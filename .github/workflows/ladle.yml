@@ -1,0 +1,56 @@
+name: Deploy Ladle to DigitalOcean Spaces
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build Ladle
+        run: yarn ladle:build
+
+      - name: Configure AWS CLI for DigitalOcean Spaces
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.DO_SPACES_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.DO_SPACES_SECRET_KEY }}
+          aws-region: ${{ secrets.DO_SPACES_REGION }}
+
+      - name: Deploy to DigitalOcean Spaces
+        run: |
+          aws s3 sync build/ s3://${{ secrets.DO_SPACES_BUCKET }} \
+            --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com \
+            --delete \
+            --cache-control "public, max-age=31536000" \
+            --exclude "*.html" \
+            --exclude "*.json"
+
+          # Deploy HTML and JSON files with no cache
+          aws s3 sync build/ s3://${{ secrets.DO_SPACES_BUCKET }} \
+            --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com \
+            --delete \
+            --cache-control "no-cache" \
+            --include "*.html" \
+            --include "*.json"
+
+      - name: Invalidate CDN (if using CDN)
+        run: |
+          echo "Build deployed successfully to: https://${{ secrets.DO_SPACES_BUCKET }}.${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com"
+          echo "If using CDN, add invalidation command here"

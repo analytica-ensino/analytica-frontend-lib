@@ -19,7 +19,9 @@
     "build:check": "npm run typecheck && npm run build",
     "dev": "tsup src/index.ts --dts --format esm,cjs --out-dir dist --watch",
     "prepack": "npm run build:check",
-    "check-nextjs-compat": "echo 'Checking Next.js 15 compatibility...' && npm run typecheck && npm run test"
+    "check-nextjs-compat": "echo 'Checking Next.js 15 compatibility...' && npm run typecheck && npm run test",
+    "ladle": "ladle serve",
+    "ladle:build": "ladle build"
   },
   "engines": {
     "node": "22.x"
@@ -60,6 +62,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.28.0",
+    "@ladle/react": "^5.0.3",
     "@tailwindcss/postcss": "^4.1.8",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",

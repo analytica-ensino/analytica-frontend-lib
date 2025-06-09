@@ -27,6 +27,11 @@ module.exports = {
     '!src/**/*.stories.{ts,tsx}',
     '!src/index.ts',
   ],
+  testPathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/.ladle/',
+    '.*\\.stories\\.(ts|tsx)$',
+  ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   coverageThreshold: {

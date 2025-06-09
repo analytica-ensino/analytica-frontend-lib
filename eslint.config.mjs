@@ -14,7 +14,12 @@ const eslintConfig = [
   ...compat.config({
     extends: ['eslint:recommended', 'prettier', 'plugin:prettier/recommended'],
     plugins: ['@typescript-eslint', 'prettier'],
-    ignorePatterns: ['node_modules/', '*.mjs'],
+    ignorePatterns: [
+      'node_modules/',
+      '*.mjs',
+      '.ladle/',
+      '**/*.stories.{ts,tsx}',
+    ],
   }),
   {
     files: ['src/**/*.{ts,tsx,js}'],
