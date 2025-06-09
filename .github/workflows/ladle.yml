@@ -26,148 +26,48 @@ jobs:
       - name: Build Ladle
         run: yarn ladle:build
 
-      - name: Install AWS CLI
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install --update
-
       - name: Configure AWS CLI for DigitalOcean Spaces
         run: |
-          echo "🔧 Configuring AWS CLI for DigitalOcean Spaces..."
-
-          # Check if secrets are available (without exposing them)
-          if [ -z "${{ secrets.DO_SPACES_ACCESS_KEY }}" ]; then
-            echo "❌ ERROR: DO_SPACES_ACCESS_KEY secret is not set"
-            exit 1
-          fi
-
-          if [ -z "${{ secrets.DO_SPACES_SECRET_KEY }}" ]; then
-            echo "❌ ERROR: DO_SPACES_SECRET_KEY secret is not set"
-            exit 1
-          fi
-
-          if [ -z "${{ secrets.DO_SPACES_BUCKET }}" ]; then
-            echo "❌ ERROR: DO_SPACES_BUCKET secret is not set"
-            exit 1
-          fi
-
-          if [ -z "${{ secrets.DO_SPACES_REGION }}" ]; then
-            echo "❌ ERROR: DO_SPACES_REGION secret is not set"
-            exit 1
-          fi
-
-          echo "✅ All secrets are configured"
-          echo "📍 Region: ${{ secrets.DO_SPACES_REGION }}"
-          echo "📦 Bucket: ${{ secrets.DO_SPACES_BUCKET }}"
-
-          # Configure AWS CLI
           aws configure set aws_access_key_id ${{ secrets.DO_SPACES_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.DO_SPACES_SECRET_KEY }}
           aws configure set default.region ${{ secrets.DO_SPACES_REGION }}
           aws configure set default.output json
 
-          # Test AWS CLI configuration
-          echo "🧪 Testing AWS CLI configuration..."
-          aws configure list
-
-      - name: Test DigitalOcean Spaces connection
+      - name: Check bucket status
         id: bucket_check
         run: |
-          echo "🔍 Testing connection to DigitalOcean Spaces..."
-          echo "Endpoint: https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com"
-          echo "Bucket: ${{ secrets.DO_SPACES_BUCKET }}"
-
-          # First, test basic connectivity
-          echo "Testing basic endpoint connectivity..."
-          if curl -s --head "https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com" > /dev/null; then
-            echo "✅ Endpoint is reachable"
+          if aws s3 ls s3://${{ secrets.DO_SPACES_BUCKET }} --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com --max-items 1 > /dev/null 2>&1; then
+            echo "bucket_has_content=true" >> $GITHUB_OUTPUT
           else
-            echo "❌ Endpoint is not reachable"
-            exit 1
+            echo "bucket_has_content=false" >> $GITHUB_OUTPUT
           fi
 
-          # Test bucket access with more verbose error reporting
-          echo "Testing bucket access..."
-          if aws s3api head-bucket --bucket ${{ secrets.DO_SPACES_BUCKET }} --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com; then
-            echo "bucket_accessible=true" >> $GITHUB_OUTPUT
-            echo "✅ Bucket is accessible"
-
-            # Check if bucket has contents
-            echo "Checking bucket contents..."
-            if aws s3 ls s3://${{ secrets.DO_SPACES_BUCKET }} --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com --max-items 1 > /dev/null 2>&1; then
-              echo "bucket_has_content=true" >> $GITHUB_OUTPUT
-              echo "✅ Bucket has existing content"
-            else
-              echo "bucket_has_content=false" >> $GITHUB_OUTPUT
-              echo "ℹ️  Bucket is empty"
-            fi
-          else
-            echo "bucket_accessible=false" >> $GITHUB_OUTPUT
-            echo "❌ Cannot access bucket"
-
-            # Try to provide more detailed error information
-            echo "Debugging bucket access..."
-            echo "Trying to list all buckets to verify credentials..."
-            aws s3 ls --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com || echo "Failed to list buckets"
-
-            echo "Trying alternative endpoints..."
-            aws s3api head-bucket --bucket ${{ secrets.DO_SPACES_BUCKET }} --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com || echo "CDN endpoint failed"
-
-            exit 1
-          fi
-
-      - name: Deploy to DigitalOcean Spaces (First time / Empty bucket)
+      - name: Deploy to DigitalOcean Spaces (Initial upload)
         if: steps.bucket_check.outputs.bucket_has_content == 'false'
         run: |
-          echo "Performing initial upload to empty bucket..."
-
-          # Upload static assets with long cache
+          # Upload all files maintaining structure
           aws s3 cp build/ s3://${{ secrets.DO_SPACES_BUCKET }}/ \
             --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com \
             --recursive \
-            --cache-control "public, max-age=31536000" \
-            --exclude "*.html" \
-            --exclude "*.json"
+            --cache-control "public, max-age=86400"
 
-          # Upload HTML and JSON files with no cache
-          aws s3 cp build/ s3://${{ secrets.DO_SPACES_BUCKET }}/ \
+          # Override cache for HTML files
+          aws s3 cp build/index.html s3://${{ secrets.DO_SPACES_BUCKET }}/index.html \
             --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com \
-            --recursive \
             --cache-control "no-cache, no-store, must-revalidate" \
-            --include "*.html" \
-            --include "*.json" \
-            --exclude "*"
+            --content-type "text/html"
 
-      - name: Deploy to DigitalOcean Spaces (Update existing)
+      - name: Deploy to DigitalOcean Spaces (Update)
         if: steps.bucket_check.outputs.bucket_has_content == 'true'
         run: |
-          echo "Updating existing bucket content..."
-
-          # Sync static assets with delete flag
-          aws s3 sync build/ s3://${{ secrets.DO_SPACES_BUCKET }} \
+          # Sync all files maintaining structure
+          aws s3 sync build/ s3://${{ secrets.DO_SPACES_BUCKET }}/ \
             --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com \
             --delete \
-            --cache-control "public, max-age=31536000" \
-            --exclude "*.html" \
-            --exclude "*.json"
+            --cache-control "public, max-age=86400"
 
-          # Sync HTML and JSON files with no cache
-          aws s3 sync build/ s3://${{ secrets.DO_SPACES_BUCKET }} \
+          # Override cache for HTML files
+          aws s3 cp build/index.html s3://${{ secrets.DO_SPACES_BUCKET }}/index.html \
             --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com \
             --cache-control "no-cache, no-store, must-revalidate" \
-            --include "*.html" \
-            --include "*.json" \
-            --exclude "*"
-
-      - name: Verify deployment
-        run: |
-          echo "Verifying deployment..."
-          aws s3 ls s3://${{ secrets.DO_SPACES_BUCKET }} --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com --recursive --human-readable --summarize
-
-      - name: Deploy Success
-        run: |
-          echo "✅ Build deployed successfully!"
-          echo "🌐 URL: https://${{ secrets.DO_SPACES_BUCKET }}.${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com"
-          echo "📁 Bucket: ${{ secrets.DO_SPACES_BUCKET }}"
-          echo "🌍 Region: ${{ secrets.DO_SPACES_REGION }}"
+            --content-type "text/html"
