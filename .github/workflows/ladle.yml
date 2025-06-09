@@ -34,32 +34,86 @@ jobs:
 
       - name: Configure AWS CLI for DigitalOcean Spaces
         run: |
+          echo "🔧 Configuring AWS CLI for DigitalOcean Spaces..."
+
+          # Check if secrets are available (without exposing them)
+          if [ -z "${{ secrets.DO_SPACES_ACCESS_KEY }}" ]; then
+            echo "❌ ERROR: DO_SPACES_ACCESS_KEY secret is not set"
+            exit 1
+          fi
+
+          if [ -z "${{ secrets.DO_SPACES_SECRET_KEY }}" ]; then
+            echo "❌ ERROR: DO_SPACES_SECRET_KEY secret is not set"
+            exit 1
+          fi
+
+          if [ -z "${{ secrets.DO_SPACES_BUCKET }}" ]; then
+            echo "❌ ERROR: DO_SPACES_BUCKET secret is not set"
+            exit 1
+          fi
+
+          if [ -z "${{ secrets.DO_SPACES_REGION }}" ]; then
+            echo "❌ ERROR: DO_SPACES_REGION secret is not set"
+            exit 1
+          fi
+
+          echo "✅ All secrets are configured"
+          echo "📍 Region: ${{ secrets.DO_SPACES_REGION }}"
+          echo "📦 Bucket: ${{ secrets.DO_SPACES_BUCKET }}"
+
+          # Configure AWS CLI
           aws configure set aws_access_key_id ${{ secrets.DO_SPACES_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.DO_SPACES_SECRET_KEY }}
           aws configure set default.region ${{ secrets.DO_SPACES_REGION }}
           aws configure set default.output json
 
+          # Test AWS CLI configuration
+          echo "🧪 Testing AWS CLI configuration..."
+          aws configure list
+
       - name: Test DigitalOcean Spaces connection
         id: bucket_check
         run: |
-          echo "Testing connection to DigitalOcean Spaces..."
+          echo "🔍 Testing connection to DigitalOcean Spaces..."
+          echo "Endpoint: https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com"
+          echo "Bucket: ${{ secrets.DO_SPACES_BUCKET }}"
 
-          # Try to list bucket contents, handle empty bucket gracefully
-          if aws s3api head-bucket --bucket ${{ secrets.DO_SPACES_BUCKET }} --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com 2>/dev/null; then
+          # First, test basic connectivity
+          echo "Testing basic endpoint connectivity..."
+          if curl -s --head "https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com" > /dev/null; then
+            echo "✅ Endpoint is reachable"
+          else
+            echo "❌ Endpoint is not reachable"
+            exit 1
+          fi
+
+          # Test bucket access with more verbose error reporting
+          echo "Testing bucket access..."
+          if aws s3api head-bucket --bucket ${{ secrets.DO_SPACES_BUCKET }} --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com; then
             echo "bucket_accessible=true" >> $GITHUB_OUTPUT
-            echo "Bucket is accessible"
+            echo "✅ Bucket is accessible"
 
             # Check if bucket has contents
+            echo "Checking bucket contents..."
             if aws s3 ls s3://${{ secrets.DO_SPACES_BUCKET }} --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com --max-items 1 > /dev/null 2>&1; then
               echo "bucket_has_content=true" >> $GITHUB_OUTPUT
-              echo "Bucket has existing content"
+              echo "✅ Bucket has existing content"
             else
               echo "bucket_has_content=false" >> $GITHUB_OUTPUT
-              echo "Bucket is empty or inaccessible"
+              echo "ℹ️  Bucket is empty"
             fi
           else
             echo "bucket_accessible=false" >> $GITHUB_OUTPUT
-            echo "Cannot access bucket"
+            echo "❌ Cannot access bucket"
+
+            # Try to provide more detailed error information
+            echo "Debugging bucket access..."
+            echo "Trying to list all buckets to verify credentials..."
+            aws s3 ls --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com || echo "Failed to list buckets"
+
+            echo "Trying alternative endpoints..."
+            aws s3api head-bucket --bucket ${{ secrets.DO_SPACES_BUCKET }} --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.cdn.digitaloceanspaces.com || echo "CDN endpoint failed"
+
             exit 1
           fi
 
