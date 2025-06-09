@@ -1,12 +1,39 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react';
 
+/**
+ * Button component props interface
+ */
 type ButtonProps = {
+  /** Content to be displayed inside the button */
   children: ReactNode;
+  /** Visual variant of the button */
   variant?: 'primary' | 'secondary' | 'danger';
+  /** Size variant of the button */
   size?: 'sm' | 'md' | 'lg';
+  /** Additional CSS classes to apply */
   className?: string;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
+/**
+ * Button component for Analytica Ensino platforms
+ *
+ * A flexible button component with multiple variants and sizes.
+ * Fully compatible with Next.js 15 and React 19.
+ *
+ * @param children - The content to display inside the button
+ * @param variant - The visual style variant (primary, secondary, danger)
+ * @param size - The size variant (sm, md, lg)
+ * @param className - Additional CSS classes
+ * @param props - All other standard button HTML attributes
+ * @returns A styled button element
+ *
+ * @example
+ * ```tsx
+ * <Button variant="primary" size="md" onClick={() => console.log('clicked')}>
+ *   Click me
+ * </Button>
+ * ```
+ */
 export const Button = ({
   children,
   variant = 'primary',
