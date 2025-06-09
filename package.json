@@ -2,7 +2,7 @@
   "name": "analytica-frontend-lib",
   "version": "1.0.2",
   "description": "Repositório público dos componentes utilizados nas plataformas da Analytica Ensino",
-  "main": "./dist/index.cjs",
+  "main": "dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
@@ -12,6 +12,9 @@
     "lint": "npx eslint \"{src,app}/**/*.{js,jsx,ts,tsx}\" --fix",
     "typecheck": "npx tsc --noEmit",
     "prepare": "husky install",
+    "test": "jest --coverage --coverageReporters=text-lcov --coverageReporters=text",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "build": "tsup src/index.ts --dts --format esm,cjs --out-dir dist --clean"
   },
   "engines": {
@@ -45,6 +48,11 @@
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.28.0",
     "@tailwindcss/postcss": "^4.1.8",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^29.5.14",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.6",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
@@ -55,11 +63,17 @@
     "eslint-plugin-jsdoc": "^50.7.1",
     "eslint-plugin-prettier": "^5.4.1",
     "husky": "^9.1.7",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.0.0-beta.3",
+    "jsdom": "^26.1.0",
+    "polished": "^4.3.1",
     "postcss": "^8.5.4",
     "prettier": "^3.5.3",
     "sonarqube-scanner": "^4.3.0",
     "tailwindcss": "^4.1.8",
+    "ts-jest": "^29.3.4",
     "tsup": "^8.5.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
   }
 }

@@ -30,6 +30,7 @@ const eslintConfig = [
       globals: {
         ...globals.browser,
         ...globals.es2021,
+        ...globals.jest,
       },
     },
     rules: {
@@ -41,6 +42,17 @@ const eslintConfig = [
       ],
       '@typescript-eslint/no-explicit-any': ['error'],
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
+    },
+  },
+  {
+    files: ['**/*.stories.{ts,tsx}'],
+  },
+  {
+    files: ['*.js', '*.mjs', '*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
     },
   },
 ];
