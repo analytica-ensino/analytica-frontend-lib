@@ -27,11 +27,16 @@ jobs:
         run: yarn ladle:build
 
       - name: Configure AWS CLI for DigitalOcean Spaces
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.DO_SPACES_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.DO_SPACES_SECRET_KEY }}
-          aws-region: ${{ secrets.DO_SPACES_REGION }}
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.DO_SPACES_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.DO_SPACES_SECRET_KEY }}
+          aws configure set default.region ${{ secrets.DO_SPACES_REGION }}
+          aws configure set default.output json
+
+      - name: Test DigitalOcean Spaces connection
+        run: |
+          aws s3 ls s3://${{ secrets.DO_SPACES_BUCKET }} \
+            --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com || echo "Bucket empty or first time setup"
 
       - name: Deploy to DigitalOcean Spaces
         run: |
