@@ -112,7 +112,7 @@ jobs:
             aws s3 ls --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com || echo "Failed to list buckets"
 
             echo "Trying alternative endpoints..."
-            aws s3api head-bucket --bucket ${{ secrets.DO_SPACES_BUCKET }} --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.cdn.digitaloceanspaces.com || echo "CDN endpoint failed"
+            aws s3api head-bucket --bucket ${{ secrets.DO_SPACES_BUCKET }} --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com || echo "CDN endpoint failed"
 
             exit 1
           fi
