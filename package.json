@@ -1,6 +1,6 @@
 {
   "name": "analytica-frontend-lib",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Repositório público dos componentes utilizados nas plataformas da Analytica Ensino",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -42,6 +42,8 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.28.0",
     "@tailwindcss/postcss": "^4.1.8",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.6",
