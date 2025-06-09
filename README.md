@@ -1,2 +1,35 @@
-# analytica-frontend-lib
-Repositório público dos componentes utilizados nas plataformas da Analytica Ensino
+# README
+
+Repositório público dos componentes utilizados nas plataformas da Analytica Ensino.
+
+[![npm version](https://img.shields.io/npm/v/analytica-frontend-lib)](https://www.npmjs.com/package/analytica-frontend-lib)
+
+---
+
+## Como usar?
+
+Instale a biblioteca em seu projeto com o comando:
+
+```bash
+yarn add analytica-frontend-lib
+```
+
+---
+
+## Etapas para criar um novo componente
+
+1. Crie uma nova branch a partir da `main`.
+2. Crie o componente na pasta `/src/components`.
+3. Adicione testes unitários, com cobertura mínima de 80%.
+4. Adicione o componente no Storybook, contemplando todas as variações.
+5. Atualize a versão no campo `version` do arquivo `package.json`.
+6. Abra um Pull Request (PR) da sua branch para a `main`.
+7. O GitHub Actions cuidará da publicação automática após o merge.
+
+---
+
+## Regras
+
+- Os componentes devem ser totalmente compatíveis com Next.js versão 15+.
+- Testes unitários são obrigatórios, com coverage mínimo de 80%.
+- Siga o princípio da responsabilidade única (`single responsibility`): construa componentes compostos por componentes menores.

@@ -1,0 +1,3 @@
+review:
+  on_open: true
+  on_update: true
