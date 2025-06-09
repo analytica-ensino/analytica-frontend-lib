@@ -26,6 +26,12 @@ jobs:
       - name: Build Ladle
         run: yarn ladle:build
 
+      - name: Install AWS CLI
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install --update
+
       - name: Configure AWS CLI for DigitalOcean Spaces
         run: |
           aws configure set aws_access_key_id ${{ secrets.DO_SPACES_ACCESS_KEY }}
@@ -34,12 +40,57 @@ jobs:
           aws configure set default.output json
 
       - name: Test DigitalOcean Spaces connection
+        id: bucket_check
         run: |
-          aws s3 ls s3://${{ secrets.DO_SPACES_BUCKET }} \
-            --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com || echo "Bucket empty or first time setup"
+          echo "Testing connection to DigitalOcean Spaces..."
 
-      - name: Deploy to DigitalOcean Spaces
+          # Try to list bucket contents, handle empty bucket gracefully
+          if aws s3api head-bucket --bucket ${{ secrets.DO_SPACES_BUCKET }} --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com 2>/dev/null; then
+            echo "bucket_accessible=true" >> $GITHUB_OUTPUT
+            echo "Bucket is accessible"
+
+            # Check if bucket has contents
+            if aws s3 ls s3://${{ secrets.DO_SPACES_BUCKET }} --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com --max-items 1 > /dev/null 2>&1; then
+              echo "bucket_has_content=true" >> $GITHUB_OUTPUT
+              echo "Bucket has existing content"
+            else
+              echo "bucket_has_content=false" >> $GITHUB_OUTPUT
+              echo "Bucket is empty or inaccessible"
+            fi
+          else
+            echo "bucket_accessible=false" >> $GITHUB_OUTPUT
+            echo "Cannot access bucket"
+            exit 1
+          fi
+
+      - name: Deploy to DigitalOcean Spaces (First time / Empty bucket)
+        if: steps.bucket_check.outputs.bucket_has_content == 'false'
         run: |
+          echo "Performing initial upload to empty bucket..."
+
+          # Upload static assets with long cache
+          aws s3 cp build/ s3://${{ secrets.DO_SPACES_BUCKET }}/ \
+            --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com \
+            --recursive \
+            --cache-control "public, max-age=31536000" \
+            --exclude "*.html" \
+            --exclude "*.json"
+
+          # Upload HTML and JSON files with no cache
+          aws s3 cp build/ s3://${{ secrets.DO_SPACES_BUCKET }}/ \
+            --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com \
+            --recursive \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --include "*.html" \
+            --include "*.json" \
+            --exclude "*"
+
+      - name: Deploy to DigitalOcean Spaces (Update existing)
+        if: steps.bucket_check.outputs.bucket_has_content == 'true'
+        run: |
+          echo "Updating existing bucket content..."
+
+          # Sync static assets with delete flag
           aws s3 sync build/ s3://${{ secrets.DO_SPACES_BUCKET }} \
             --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com \
             --delete \
@@ -47,15 +98,22 @@ jobs:
             --exclude "*.html" \
             --exclude "*.json"
 
-          # Deploy HTML and JSON files with no cache
+          # Sync HTML and JSON files with no cache
           aws s3 sync build/ s3://${{ secrets.DO_SPACES_BUCKET }} \
             --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com \
-            --delete \
-            --cache-control "no-cache" \
+            --cache-control "no-cache, no-store, must-revalidate" \
             --include "*.html" \
-            --include "*.json"
+            --include "*.json" \
+            --exclude "*"
 
-      - name: Invalidate CDN (if using CDN)
+      - name: Verify deployment
         run: |
-          echo "Build deployed successfully to: https://${{ secrets.DO_SPACES_BUCKET }}.${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com"
-          echo "If using CDN, add invalidation command here"
+          echo "Verifying deployment..."
+          aws s3 ls s3://${{ secrets.DO_SPACES_BUCKET }} --endpoint-url https://${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com --recursive --human-readable --summarize
+
+      - name: Deploy Success
+        run: |
+          echo "✅ Build deployed successfully!"
+          echo "🌐 URL: https://${{ secrets.DO_SPACES_BUCKET }}.${{ secrets.DO_SPACES_REGION }}.digitaloceanspaces.com"
+          echo "📁 Bucket: ${{ secrets.DO_SPACES_BUCKET }}"
+          echo "🌍 Region: ${{ secrets.DO_SPACES_REGION }}"
