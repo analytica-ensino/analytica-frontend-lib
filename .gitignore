@@ -10,3 +10,5 @@ build
 
 # Deploy
 .aws/
+
+test-report.xml

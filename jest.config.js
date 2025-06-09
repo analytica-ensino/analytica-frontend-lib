@@ -33,7 +33,8 @@ module.exports = {
     '.*\\.stories\\.(ts|tsx)$',
   ],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
+  coverageReporters: ['text', 'lcov', 'html', 'cobertura'],
+  testResultsProcessor: 'jest-sonar-reporter',
   coverageThreshold: {
     global: {
       branches: 80,

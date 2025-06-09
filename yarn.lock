@@ -2869,6 +2869,7 @@ __metadata:
     husky: "npm:^9.1.7"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^30.0.0-beta.3"
+    jest-sonar-reporter: "npm:^2.0.0"
     jsdom: "npm:^26.1.0"
     next: "npm:^15.3.3"
     polished: "npm:^4.3.1"
@@ -6108,6 +6109,15 @@ __metadata:
     pretty-format: "npm:^29.7.0"
     semver: "npm:^7.5.3"
   checksum: 10c0/6e9003c94ec58172b4a62864a91c0146513207bedf4e0a06e1e2ac70a4484088a2683e3a0538d8ea913bcfd53dc54a9b98a98cdfa562e7fe1d1339aeae1da570
+  languageName: node
+  linkType: hard
+
+"jest-sonar-reporter@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "jest-sonar-reporter@npm:2.0.0"
+  dependencies:
+    xml: "npm:^1.0.1"
+  checksum: 10c0/a1add541442ceba499e786ce9febcdbc8bb8ec27bafaaa9f52db06cc065944c7c2416a5e526555450ba72ce345b83dcbdcd459e5dec57554c17182079022d56d
   languageName: node
   linkType: hard
 
@@ -10261,6 +10271,13 @@ __metadata:
   version: 5.0.0
   resolution: "xml-name-validator@npm:5.0.0"
   checksum: 10c0/3fcf44e7b73fb18be917fdd4ccffff3639373c7cb83f8fc35df6001fecba7942f1dbead29d91ebb8315e2f2ff786b508f0c9dc0215b6353f9983c6b7d62cb1f5
+  languageName: node
+  linkType: hard
+
+"xml@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "xml@npm:1.0.1"
+  checksum: 10c0/04bcc9b8b5e7b49392072fbd9c6b0f0958bd8e8f8606fee460318e43991349a68cbc5384038d179ff15aef7d222285f69ca0f067f53d071084eb14c7fdb30411
   languageName: node
   linkType: hard
 
