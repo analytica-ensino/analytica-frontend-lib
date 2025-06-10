@@ -562,7 +562,3 @@
   --subject-15: #a2d7e2;
   --subject-16: #badfc8;
 }
-
-:root {
-  @apply --light;
-}
