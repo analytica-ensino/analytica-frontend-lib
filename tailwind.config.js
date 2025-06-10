@@ -10,19 +10,27 @@ module.exports = {
     extend: {
       fontFamily: {
         roboto: ['Roboto', 'sans-serif'],
-        sans: ['Roboto', 'sans-serif'],
+      },
+      fontWeight: {
+        hairline: '100',
+        light: '300',
+        normal: '400',
+        medium: '500',
+        semibold: '600',
+        bold: '700',
+        extrabold: '800',
+        black: '900',
       },
       fontSize: {
-        xs: ['12px', '14px'], // Text-medium/xs
-        sm: ['14px', '16px'], // Heading/xs
-        base: ['16px', '19px'], // Heading/sm
-        lg: ['18px', '21px'], // Text-medium/lg & Heading/md
-        xl: ['20px', '23px'], // Heading/lg
-        '2xl': ['24px', '28px'], // Heading/xl
-        '3xl': ['30px', '35px'], // Heading/2xl
-        '4xl': ['36px', '42px'], // Heading/3xl
-        '5xl': ['48px', '56px'], // Heading/4xl
-        '6xl': ['60px', '70px'], // Heading/5xl
+        xs: '14px',
+        sm: '16px',
+        base: '18px',
+        lg: '20px',
+        xl: '24px',
+        '2xl': '30px',
+        '3xl': '36px',
+        '4xl': '48px',
+        '5xl': '60px',
       },
       colors: {
         primary: 'var(--primary)',
