@@ -8,6 +8,22 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        roboto: ['Roboto', 'sans-serif'],
+        sans: ['Roboto', 'sans-serif'],
+      },
+      fontSize: {
+        xs: ['12px', '14px'], // Text-medium/xs
+        sm: ['14px', '16px'], // Heading/xs
+        base: ['16px', '19px'], // Heading/sm
+        lg: ['18px', '21px'], // Text-medium/lg & Heading/md
+        xl: ['20px', '23px'], // Heading/lg
+        '2xl': ['24px', '28px'], // Heading/xl
+        '3xl': ['30px', '35px'], // Heading/2xl
+        '4xl': ['36px', '42px'], // Heading/3xl
+        '5xl': ['48px', '56px'], // Heading/4xl
+        '6xl': ['60px', '70px'], // Heading/5xl
+      },
       colors: {
         primary: 'var(--primary)',
         'primary-50': 'var(--primary-50)',
