@@ -12,3 +12,4 @@ build
 .aws/
 
 test-report.xml
+.yarn/install-state.gz
