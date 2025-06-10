@@ -3,6 +3,8 @@ node_modules
 .next
 dist
 coverage
+.vscode
+.yarn
 
 # Ladle (stories)
 .ladle/build
@@ -12,4 +14,3 @@ build
 .aws/
 
 test-report.xml
-.yarn/install-state.gz
