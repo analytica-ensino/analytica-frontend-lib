@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 
 @theme {
+  /* Font Utilities */
+  --font-family-primary: 'Roboto', sans-serif;
+
   /* Primary Colors */
   --color-primary: #b3b3b3;
   --color-primary-50: #999999;
@@ -185,6 +188,9 @@
   --shadow-soft-shadow-2: 0px 0px 20px rgba(38, 38, 38, 0.1);
   --shadow-soft-shadow-3: 0px 0px 30px rgba(38, 38, 38, 0.1);
   --shadow-soft-shadow-4: 0px 0px 40px rgba(38, 38, 38, 0.2);
+
+  /* Font Family */
+  --font-family-primary: 'Roboto', sans-serif;
 
   /* Font Weight */
   --font-weight-hairline: 100;
@@ -590,5 +596,140 @@
     --shadow-soft-shadow-2: 0px 0px 20px rgba(38, 38, 38, 0.1);
     --shadow-soft-shadow-3: 0px 0px 30px rgba(38, 38, 38, 0.1);
     --shadow-soft-shadow-4: 0px 0px 40px rgba(38, 38, 38, 0.2);
+  }
+}
+
+/* Text Component Utilities */
+@layer components {
+  .font-primary {
+    font-family: var(--font-family-primary);
+  }
+
+  /* Text sizes using CSS variables */
+  .text-xs {
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+  }
+
+  .text-sm {
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+
+  .text-base {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+
+  .text-lg {
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
+  }
+
+  .text-xl {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+  }
+
+  .text-2xl {
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+  }
+
+  .text-3xl {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+
+  .text-4xl {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+
+  .text-5xl {
+    font-size: var(--text-5xl);
+    line-height: var(--text-5xl--line-height);
+  }
+
+  /* Font weights using CSS variables */
+  .font-hairline {
+    font-weight: var(--font-weight-hairline);
+  }
+
+  .font-light {
+    font-weight: var(--font-weight-light);
+  }
+
+  .font-normal {
+    font-weight: var(--font-weight-normal);
+  }
+
+  .font-medium {
+    font-weight: var(--font-weight-medium);
+  }
+
+  .font-semibold {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .font-bold {
+    font-weight: var(--font-weight-bold);
+  }
+
+  .font-extrabold {
+    font-weight: var(--font-weight-extrabold);
+  }
+
+  .font-black {
+    font-weight: var(--font-weight-black);
+  }
+
+  /* Text colors using CSS variables - adapts to theme */
+  .text-text {
+    color: var(--color-text);
+  }
+
+  .text-text-50 {
+    color: var(--color-text-50);
+  }
+
+  .text-text-100 {
+    color: var(--color-text-100);
+  }
+
+  .text-text-200 {
+    color: var(--color-text-200);
+  }
+
+  .text-text-300 {
+    color: var(--color-text-300);
+  }
+
+  .text-text-400 {
+    color: var(--color-text-400);
+  }
+
+  .text-text-500 {
+    color: var(--color-text-500);
+  }
+
+  .text-text-600 {
+    color: var(--color-text-600);
+  }
+
+  .text-text-700 {
+    color: var(--color-text-700);
+  }
+
+  .text-text-800 {
+    color: var(--color-text-800);
+  }
+
+  .text-text-900 {
+    color: var(--color-text-900);
+  }
+
+  .text-text-950 {
+    color: var(--color-text-950);
   }
 }
