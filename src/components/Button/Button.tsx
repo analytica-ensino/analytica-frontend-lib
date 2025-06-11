@@ -46,14 +46,15 @@ export const Button = ({
 
   switch (variant) {
     case 'secondary':
-      variantClasses = 'bg-gray-200 hover:bg-gray-300 text-black';
+      variantClasses =
+        'bg-secondary-200 hover:bg-secondary-300 text-primary-950';
       break;
     case 'danger':
-      variantClasses = 'bg-red-600 hover:bg-red-700 text-white';
+      variantClasses = 'bg-error-600 hover:bg-error-700 text-secondary';
       break;
     case 'primary':
     default:
-      variantClasses = 'bg-blue-600 hover:bg-blue-700 text-white';
+      variantClasses = 'bg-primary-600 hover:bg-primary-700 text-secondary';
       break;
   }
 
@@ -71,7 +72,7 @@ export const Button = ({
   }
 
   const baseClasses =
-    'rounded font-medium focus:outline-none focus:ring transition';
+    'rounded-full font-medium focus:outline-none focus:ring transition';
 
   return (
     <button
