@@ -183,19 +183,90 @@ export const Complex: Story = () => (
 );
 
 /**
- * Dark mode demonstration
+ * Polymorphic typing examples with type-safe HTML attributes
  */
-export const DarkMode: Story = () => (
-  <div data-theme="dark" className="p-8 bg-background min-h-screen">
-    <div className="flex flex-col gap-4">
-      <Text as="h1" size="4xl" weight="bold" color="white">
-        Dark Mode Title
+export const PolymorphicTyping: Story = () => (
+  <div className="flex flex-col gap-6 p-8">
+    <div className="space-y-4">
+      <h3 className="text-lg font-bold mb-4">Interactive Elements</h3>
+
+      {/* Link with anchor-specific attributes */}
+      <Text
+        as="a"
+        href="https://example.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        size="lg"
+        weight="medium"
+        color="black"
+        className="underline hover:no-underline"
+      >
+        Type-safe link with href, target, and rel attributes
       </Text>
-      <Text as="p" size="lg" weight="normal" color="white">
-        This text adapts to dark mode automatically
+
+      {/* Button with button-specific attributes */}
+      <Text
+        as="button"
+        onClick={() => alert('Button clicked!')}
+        disabled={false}
+        type="button"
+        size="base"
+        weight="semibold"
+        color="black"
+        className="border px-4 py-2 rounded hover:bg-gray-100"
+      >
+        Type-safe button with onClick and disabled attributes
       </Text>
-      <Text as="span" size="base" weight="medium" color="black">
-        This text uses black color which becomes light in dark mode
+    </div>
+
+    <div className="space-y-4">
+      <h3 className="text-lg font-bold mb-4">Form Elements</h3>
+
+      {/* Label with htmlFor attribute */}
+      <Text
+        as="label"
+        htmlFor="email-input"
+        size="sm"
+        weight="medium"
+        color="black"
+      >
+        Email Address (type-safe label with htmlFor)
+      </Text>
+
+      {/* Input element (void - no children) */}
+      <Text
+        as="input"
+        id="email-input"
+        type="email"
+        placeholder="Enter your email"
+        className="border px-3 py-2 rounded w-full"
+      />
+    </div>
+
+    <div className="space-y-4">
+      <h3 className="text-lg font-bold mb-4">Semantic Elements</h3>
+
+      {/* Article with role attribute */}
+      <Text
+        as="article"
+        role="main"
+        size="base"
+        weight="normal"
+        color="black"
+        className="border p-4 rounded"
+      >
+        Semantic article element with role attribute for accessibility
+      </Text>
+
+      {/* Time element with datetime */}
+      <Text
+        as="time"
+        dateTime="2024-01-15"
+        size="sm"
+        weight="light"
+        color="black"
+      >
+        January 15, 2024 (semantic time element)
       </Text>
     </div>
   </div>

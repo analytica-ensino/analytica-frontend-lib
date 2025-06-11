@@ -1,11 +1,11 @@
-import { HTMLAttributes, ReactNode } from 'react';
+import { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react';
 
 /**
- * Text component props interface
+ * Base text component props
  */
-type TextProps = {
+type BaseTextProps = {
   /** Content to be displayed */
-  children: ReactNode;
+  children?: ReactNode;
   /** Text size variant */
   size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl';
   /** Font weight variant */
@@ -20,44 +20,58 @@ type TextProps = {
     | 'black';
   /** Color variant - white for light backgrounds, black for dark backgrounds */
   color?: 'white' | 'black';
-  /** HTML tag to render */
-  as?: 'p' | 'span' | 'div' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
   /** Additional CSS classes to apply */
   className?: string;
-} & HTMLAttributes<HTMLElement>;
+};
+
+/**
+ * Polymorphic text component props that ensures type safety based on the 'as' prop
+ */
+type TextProps<T extends ElementType = 'p'> = BaseTextProps & {
+  /** HTML tag to render */
+  as?: T;
+} & Omit<ComponentPropsWithoutRef<T>, keyof BaseTextProps>;
 
 /**
  * Text component for Analytica Ensino platforms
  *
- * A flexible text component with multiple sizes, weights, and colors.
- * Automatically adapts to dark and light themes.
+ * A flexible polymorphic text component with multiple sizes, weights, and colors.
+ * Automatically adapts to dark and light themes with full type safety.
  * Fully compatible with Next.js 15 and React 19.
  *
  * @param children - The content to display
  * @param size - The text size variant (xs, sm, base, lg, xl, 2xl, 3xl, 4xl, 5xl)
  * @param weight - The font weight variant (hairline, light, normal, medium, semibold, bold, extrabold, black)
  * @param color - The color variant (white, black) - adapts to theme
- * @param as - The HTML tag to render (p, span, div, h1-h6)
+ * @param as - The HTML tag to render - determines allowed attributes via TypeScript
  * @param className - Additional CSS classes
- * @param props - All other standard HTML attributes
- * @returns A styled text element
+ * @param props - HTML attributes valid for the chosen tag only
+ * @returns A styled text element with type-safe attributes
  *
  * @example
  * ```tsx
  * <Text size="lg" weight="bold" color="black">
  *   This is a large, bold text
  * </Text>
+ *
+ * <Text as="a" href="/link" target="_blank">
+ *   Link with type-safe anchor attributes
+ * </Text>
+ *
+ * <Text as="button" onClick={handleClick} disabled>
+ *   Button with type-safe button attributes
+ * </Text>
  * ```
  */
-export const Text = ({
+export const Text = <T extends ElementType = 'p'>({
   children,
   size = 'base',
   weight = 'normal',
   color = 'black',
-  as: Component = 'p',
+  as,
   className = '',
   ...props
-}: TextProps) => {
+}: TextProps<T>) => {
   let sizeClasses = '';
   let weightClasses = '';
   let colorClasses = '';
@@ -135,6 +149,7 @@ export const Text = ({
   }
 
   const baseClasses = 'font-primary';
+  const Component = as || ('p' as ElementType);
 
   return (
     <Component
