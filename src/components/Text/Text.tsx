@@ -7,7 +7,18 @@ type BaseTextProps = {
   /** Content to be displayed */
   children?: ReactNode;
   /** Text size variant */
-  size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl';
+  size?:
+    | '2xs'
+    | 'xs'
+    | 'sm'
+    | 'md'
+    | 'lg'
+    | 'xl'
+    | '2xl'
+    | '3xl'
+    | '4xl'
+    | '5xl'
+    | '6xl';
   /** Font weight variant */
   weight?:
     | 'hairline'
@@ -40,7 +51,7 @@ type TextProps<T extends ElementType = 'p'> = BaseTextProps & {
  * Fully compatible with Next.js 15 and React 19.
  *
  * @param children - The content to display
- * @param size - The text size variant (xs, sm, base, lg, xl, 2xl, 3xl, 4xl, 5xl)
+ * @param size - The text size variant (2xs, xs, sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl, 6xl)
  * @param weight - The font weight variant (hairline, light, normal, medium, semibold, bold, extrabold, black)
  * @param color - The color variant (white, black) - adapts to theme
  * @param as - The HTML tag to render - determines allowed attributes via TypeScript
@@ -65,7 +76,7 @@ type TextProps<T extends ElementType = 'p'> = BaseTextProps & {
  */
 export const Text = <T extends ElementType = 'p'>({
   children,
-  size = 'base',
+  size = 'md',
   weight = 'normal',
   color = 'black',
   as,
@@ -78,6 +89,9 @@ export const Text = <T extends ElementType = 'p'>({
 
   // Text size classes
   switch (size) {
+    case '2xs':
+      sizeClasses = 'text-2xs';
+      break;
     case 'xs':
       sizeClasses = 'text-xs';
       break;
@@ -102,9 +116,12 @@ export const Text = <T extends ElementType = 'p'>({
     case '5xl':
       sizeClasses = 'text-5xl';
       break;
-    case 'base':
+    case '6xl':
+      sizeClasses = 'text-6xl';
+      break;
+    case 'md':
     default:
-      sizeClasses = 'text-base';
+      sizeClasses = 'text-md';
       break;
   }
 

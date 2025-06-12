@@ -27,12 +27,21 @@ describe('Text Component', () => {
     render(<Text data-testid="text">Hello World</Text>);
     const textElement = screen.getByTestId('text');
     expect(textElement).toHaveClass('font-primary');
-    expect(textElement).toHaveClass('text-base');
+    expect(textElement).toHaveClass('text-md');
     expect(textElement).toHaveClass('font-normal');
     expect(textElement).toHaveClass('text-text-950');
   });
 
   describe('Size variants', () => {
+    it('applies 2xs size class', () => {
+      render(
+        <Text size="2xs" data-testid="text">
+          Hello World
+        </Text>
+      );
+      expect(screen.getByTestId('text')).toHaveClass('text-2xs');
+    });
+
     it('applies xs size class', () => {
       render(
         <Text size="xs" data-testid="text">
@@ -51,13 +60,13 @@ describe('Text Component', () => {
       expect(screen.getByTestId('text')).toHaveClass('text-sm');
     });
 
-    it('applies base size class (default)', () => {
+    it('applies md size class (default)', () => {
       render(
-        <Text size="base" data-testid="text">
+        <Text size="md" data-testid="text">
           Hello World
         </Text>
       );
-      expect(screen.getByTestId('text')).toHaveClass('text-base');
+      expect(screen.getByTestId('text')).toHaveClass('text-md');
     });
 
     it('applies lg size class', () => {
@@ -112,6 +121,15 @@ describe('Text Component', () => {
         </Text>
       );
       expect(screen.getByTestId('text')).toHaveClass('text-5xl');
+    });
+
+    it('applies 6xl size class', () => {
+      render(
+        <Text size="6xl" data-testid="text">
+          Hello World
+        </Text>
+      );
+      expect(screen.getByTestId('text')).toHaveClass('text-6xl');
     });
   });
 
