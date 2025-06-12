@@ -119,54 +119,37 @@ export const Text = <T extends ElementType = 'p'>({
     case '6xl':
       sizeClasses = 'text-6xl';
       break;
-    case 'md':
     default:
       sizeClasses = 'text-md';
       break;
   }
 
-  // Font weight classes
-  switch (weight) {
-    case 'hairline':
-      weightClasses = 'font-hairline';
-      break;
-    case 'light':
-      weightClasses = 'font-light';
-      break;
-    case 'medium':
-      weightClasses = 'font-medium';
-      break;
-    case 'semibold':
-      weightClasses = 'font-semibold';
-      break;
-    case 'bold':
-      weightClasses = 'font-bold';
-      break;
-    case 'extrabold':
-      weightClasses = 'font-extrabold';
-      break;
-    case 'black':
-      weightClasses = 'font-black';
-      break;
-    case 'normal':
-    default:
-      weightClasses = 'font-normal';
-      break;
-  }
+  // Font weight classes mapping
+  const weightClassMap = {
+    hairline: 'font-hairline',
+    light: 'font-light',
+    normal: 'font-normal',
+    medium: 'font-medium',
+    semibold: 'font-semibold',
+    bold: 'font-bold',
+    extrabold: 'font-extrabold',
+    black: 'font-black',
+  } as const;
+
+  weightClasses = weightClassMap[weight] ?? weightClassMap.normal;
 
   // Color classes - adapts automatically to theme
   switch (color) {
     case 'white':
       colorClasses = 'text-text'; // Uses CSS variable that adapts to theme
       break;
-    case 'black':
     default:
       colorClasses = 'text-text-950'; // Uses CSS variable that adapts to theme
       break;
   }
 
   const baseClasses = 'font-primary';
-  const Component = as || ('p' as ElementType);
+  const Component = as ?? ('p' as ElementType);
 
   return (
     <Component
