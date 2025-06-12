@@ -87,42 +87,22 @@ export const Text = <T extends ElementType = 'p'>({
   let weightClasses = '';
   let colorClasses = '';
 
-  // Text size classes
-  switch (size) {
-    case '2xs':
-      sizeClasses = 'text-2xs';
-      break;
-    case 'xs':
-      sizeClasses = 'text-xs';
-      break;
-    case 'sm':
-      sizeClasses = 'text-sm';
-      break;
-    case 'lg':
-      sizeClasses = 'text-lg';
-      break;
-    case 'xl':
-      sizeClasses = 'text-xl';
-      break;
-    case '2xl':
-      sizeClasses = 'text-2xl';
-      break;
-    case '3xl':
-      sizeClasses = 'text-3xl';
-      break;
-    case '4xl':
-      sizeClasses = 'text-4xl';
-      break;
-    case '5xl':
-      sizeClasses = 'text-5xl';
-      break;
-    case '6xl':
-      sizeClasses = 'text-6xl';
-      break;
-    default:
-      sizeClasses = 'text-md';
-      break;
-  }
+  // Text size classes mapping
+  const sizeClassMap = {
+    '2xs': 'text-2xs',
+    xs: 'text-xs',
+    sm: 'text-sm',
+    md: 'text-md',
+    lg: 'text-lg',
+    xl: 'text-xl',
+    '2xl': 'text-2xl',
+    '3xl': 'text-3xl',
+    '4xl': 'text-4xl',
+    '5xl': 'text-5xl',
+    '6xl': 'text-6xl',
+  } as const;
+
+  sizeClasses = sizeClassMap[size] ?? sizeClassMap.md;
 
   // Font weight classes mapping
   const weightClassMap = {
@@ -138,15 +118,13 @@ export const Text = <T extends ElementType = 'p'>({
 
   weightClasses = weightClassMap[weight] ?? weightClassMap.normal;
 
-  // Color classes - adapts automatically to theme
-  switch (color) {
-    case 'white':
-      colorClasses = 'text-text'; // Uses CSS variable that adapts to theme
-      break;
-    default:
-      colorClasses = 'text-text-950'; // Uses CSS variable that adapts to theme
-      break;
-  }
+  // Color classes mapping
+  const colorClassMap = {
+    white: 'text-text',
+    black: 'text-text-950',
+  } as const;
+
+  colorClasses = colorClassMap[color] ?? colorClassMap.black;
 
   const baseClasses = 'font-primary';
   const Component = as ?? ('p' as ElementType);
