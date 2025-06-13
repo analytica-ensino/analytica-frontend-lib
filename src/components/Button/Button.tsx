@@ -1,6 +1,47 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react';
 
 /**
+ * Lookup table for variant and action class combinations
+ */
+const VARIANT_ACTION_CLASSES = {
+  solid: {
+    primary:
+      'bg-primary-950 text-text border-2 border-primary-950 hover:bg-primary-800 hover:border-primary-800 focus:bg-primary-950 focus:border-indicator-info active:bg-primary-700 active:border-primary-700 disabled:bg-primary-500 disabled:border-primary-500 disabled:opacity-40 disabled:cursor-not-allowed',
+    positive:
+      'bg-success-500 text-text border-2 border-success-500 hover:bg-success-600 hover:border-success-600 focus:bg-success-500 focus:border-indicator-info active:bg-success-700 active:border-success-700 disabled:bg-success-500 disabled:border-success-500 disabled:opacity-40 disabled:cursor-not-allowed',
+    negative:
+      'bg-error-500 text-text border-2 border-error-500 hover:bg-error-600 hover:border-error-600 focus:bg-error-500 focus:border-indicator-info active:bg-error-700 active:border-error-700 disabled:bg-error-500 disabled:border-error-500 disabled:opacity-40 disabled:cursor-not-allowed',
+  },
+  outline: {
+    primary:
+      'bg-transparent text-primary-950 border border-primary-950 hover:bg-background-50 hover:text-primary-400 hover:border-primary-400 focus:text-primary-600 focus:border-2 focus:border-indicator-info active:text-primary-700 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed',
+    positive:
+      'bg-transparent text-success-500 border border-success-300 hover:bg-background-50 hover:text-success-400 hover:border-success-400 focus:text-success-600 focus:border-2 focus:border-indicator-info active:text-success-700 active:border-success-700 disabled:opacity-40 disabled:cursor-not-allowed',
+    negative:
+      'bg-transparent text-error-500 border border-error-300 hover:bg-background-50 hover:text-error-400 hover:border-error-400 focus:text-error-600 focus:border-2 focus:border-indicator-info active:text-error-700 active:border-error-700 disabled:opacity-40 disabled:cursor-not-allowed',
+  },
+  link: {
+    primary:
+      'bg-transparent text-primary-950 hover:text-primary-400 focus:text-primary-600 focus:border-2 focus:border-indicator-info active:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed',
+    positive:
+      'bg-transparent text-success-500 hover:text-success-400 focus:text-success-600 focus:border-2 focus:border-indicator-info active:text-success-700 disabled:opacity-40 disabled:cursor-not-allowed',
+    negative:
+      'bg-transparent text-error-500 hover:text-error-400 focus:text-error-600 focus:border-2 focus:border-indicator-info active:text-error-700 disabled:opacity-40 disabled:cursor-not-allowed',
+  },
+} as const;
+
+/**
+ * Lookup table for size classes
+ */
+const SIZE_CLASSES = {
+  'extra-small': 'text-xs px-3.5 py-2',
+  small: 'text-sm px-4 py-2.5',
+  medium: 'text-md px-5 py-2.5',
+  large: 'text-lg px-6 py-3',
+  'extra-large': 'text-lg px-7 py-3.5',
+} as const;
+
+/**
  * Button component props interface
  */
 type ButtonProps = {
@@ -50,73 +91,12 @@ export const Button = ({
   action = 'primary',
   className = '',
   disabled,
+  type = 'button',
   ...props
 }: ButtonProps) => {
-  let sizeClasses = '';
-  let variantClasses = '';
-
-  // Size classes
-  switch (size) {
-    case 'extra-small':
-      sizeClasses = 'text-xs px-3.5 py-2';
-      break;
-    case 'small':
-      sizeClasses = 'text-sm px-4 py-2.5';
-      break;
-    case 'medium':
-      sizeClasses = 'text-md px-5 py-2.5';
-      break;
-    case 'large':
-      sizeClasses = 'text-lg px-6 py-3';
-      break;
-    case 'extra-large':
-      sizeClasses = 'text-lg px-7 py-3.5';
-      break;
-    default:
-      sizeClasses = 'text-md px-5 py-2.5';
-      break;
-  }
-
-  // Variant and Action classes
-  const getVariantActionClasses = () => {
-    if (variant === 'solid') {
-      switch (action) {
-        case 'primary':
-          return 'bg-primary-950 text-text border-2 border-primary-950 hover:bg-primary-800 hover:border-primary-800 focus:bg-primary-950 focus:border-indicator-info active:bg-primary-700 active:border-primary-700 disabled:bg-primary-500 disabled:border-primary-500 disabled:opacity-40 disabled:cursor-not-allowed';
-        case 'positive':
-          return 'bg-success-500 text-text border-2 border-success-500 hover:bg-success-600 hover:border-success-600 focus:bg-success-500 focus:border-indicator-info active:bg-success-700 active:border-success-700 disabled:bg-success-500 disabled:border-success-500 disabled:opacity-40 disabled:cursor-not-allowed';
-        case 'negative':
-          return 'bg-error-500 text-text border-2 border-error-500 hover:bg-error-600 hover:border-error-600 focus:bg-error-500 focus:border-indicator-info active:bg-error-700 active:border-error-700 disabled:bg-error-500 disabled:border-error-500 disabled:opacity-40 disabled:cursor-not-allowed';
-        default:
-          return 'bg-primary-950 text-text border-2 border-primary-950 hover:bg-primary-800 hover:border-primary-800 focus:bg-primary-950 focus:border-indicator-info active:bg-primary-700 active:border-primary-700 disabled:bg-primary-500 disabled:border-primary-500 disabled:opacity-40 disabled:cursor-not-allowed';
-      }
-    } else if (variant === 'outline') {
-      switch (action) {
-        case 'primary':
-          return 'bg-transparent text-primary-950 border border-primary-950 hover:bg-background-50 hover:text-primary-400 hover:border-primary-400 focus:text-primary-600 focus:border-2 focus:border-indicator-info active:text-primary-700 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed';
-        case 'positive':
-          return 'bg-transparent text-success-500 border border-success-300 hover:bg-background-50 hover:text-success-400 hover:border-success-400 focus:text-success-600 focus:border-2 focus:border-indicator-info active:text-success-700 active:border-success-700 disabled:opacity-40 disabled:cursor-not-allowed';
-        case 'negative':
-          return 'bg-transparent text-error-500 border border-error-300 hover:bg-background-50 hover:text-error-400 hover:border-error-400 focus:text-error-600 focus:border-2 focus:border-indicator-info active:text-error-700 active:border-error-700 disabled:opacity-40 disabled:cursor-not-allowed';
-        default:
-          return 'bg-transparent text-primary-950 border border-primary-950 hover:bg-background-50 hover:text-primary-400 hover:border-primary-400 focus:text-primary-600 focus:border-2 focus:border-indicator-info active:text-primary-700 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed';
-      }
-    } else if (variant === 'link') {
-      switch (action) {
-        case 'primary':
-          return 'bg-transparent text-primary-950 hover:text-primary-400 focus:text-primary-600 focus:border-2 focus:border-indicator-info active:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed';
-        case 'positive':
-          return 'bg-transparent text-success-500 hover:text-success-400 focus:text-success-600 focus:border-2 focus:border-indicator-info active:text-success-700 disabled:opacity-40 disabled:cursor-not-allowed';
-        case 'negative':
-          return 'bg-transparent text-error-500 hover:text-error-400 focus:text-error-600 focus:border-2 focus:border-indicator-info active:text-error-700 disabled:opacity-40 disabled:cursor-not-allowed';
-        default:
-          return 'bg-transparent text-primary-950 hover:text-primary-400 focus:text-primary-600 focus:border-2 focus:border-indicator-info active:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed';
-      }
-    }
-    return '';
-  };
-
-  variantClasses = getVariantActionClasses();
+  // Get classes from lookup tables
+  const sizeClasses = SIZE_CLASSES[size];
+  const variantClasses = VARIANT_ACTION_CLASSES[variant][action];
 
   const baseClasses =
     'inline-flex items-center justify-center rounded-full cursor-pointer font-medium';
@@ -125,6 +105,7 @@ export const Button = ({
     <button
       className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`}
       disabled={disabled}
+      type={type}
       {...props}
     >
       {iconLeft && <span className="mr-2 flex items-center">{iconLeft}</span>}

@@ -184,6 +184,18 @@ describe('Button', () => {
       expect(button).toHaveClass('disabled:opacity-40');
       expect(button).toHaveClass('disabled:cursor-not-allowed');
     });
+
+    it('has default type="button"', () => {
+      render(<Button>Test</Button>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveAttribute('type', 'button');
+    });
+
+    it('allows type to be overridden', () => {
+      render(<Button type="submit">Test</Button>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveAttribute('type', 'submit');
+    });
   });
 
   describe('Icon rendering', () => {
