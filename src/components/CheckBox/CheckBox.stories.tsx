@@ -242,11 +242,11 @@ export const Themes: Story = () => (
 
       {/* Dark Theme */}
       <div className="mb-8" data-theme="dark">
-        <h4 className="font-medium text-md mb-4 text-text-200">Dark Theme</h4>
+        <h4 className="font-medium text-md mb-4 text-text-950">Dark Theme</h4>
         <div className="p-6 bg-background border border-border-200 rounded-lg">
           <div className="grid grid-cols-2 gap-6">
             <div className="flex flex-col gap-4">
-              <h5 className="font-medium text-sm text-text-300">States</h5>
+              <h5 className="font-medium text-sm text-text-950">States</h5>
               <CheckBox label="Default" />
               <CheckBox label="Checked" checked={true} />
               <CheckBox label="Invalid" state="invalid" />
@@ -254,7 +254,7 @@ export const Themes: Story = () => (
               <CheckBox label="Indeterminate" indeterminate={true} />
             </div>
             <div className="flex flex-col gap-4">
-              <h5 className="font-medium text-sm text-text-300">Sizes</h5>
+              <h5 className="font-medium text-sm text-text-950">Sizes</h5>
               <CheckBox size="small" label="Small" checked={true} />
               <CheckBox size="medium" label="Medium" checked={true} />
               <CheckBox size="large" label="Large" checked={true} />
@@ -286,7 +286,7 @@ export const Themes: Story = () => (
             data-theme="dark"
             className="p-4 bg-background border border-border-200 rounded-lg"
           >
-            <h5 className="font-medium text-sm mb-3 text-text-300">
+            <h5 className="font-medium text-sm mb-3 text-text-700">
               Dark Mode
             </h5>
             <div className="flex flex-col gap-3">
