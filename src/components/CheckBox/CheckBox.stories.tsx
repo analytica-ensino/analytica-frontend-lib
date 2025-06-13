@@ -181,7 +181,7 @@ export const AllCheckBoxes: Story = () => (
 );
 
 /**
- * Tamanhos
+ * Tamanhos (modo não-controlado - clicáveis)
  */
 export const Sizes: Story = () => (
   <div className="flex flex-row gap-6">
@@ -190,40 +190,39 @@ export const Sizes: Story = () => (
         key={size}
         size={size}
         label={`${size.charAt(0).toUpperCase() + size.slice(1)} checkbox`}
-        checked={true}
       />
     ))}
   </div>
 );
 
 /**
- * Variantes de cor
+ * Variantes de cor (modo não-controlado - clicáveis)
  */
 export const ColorVariants: Story = () => (
   <div className="flex flex-col gap-6">
     <div>
-      <h4 className="font-medium text-text-900 mb-3">Checked variants</h4>
+      <h4 className="font-medium text-text-900 mb-3">Interactive variants (click to test)</h4>
       <div className="flex flex-row gap-4 flex-wrap">
         {variants.map((variant) => (
           <CheckBox
             key={variant}
             variant={variant}
             label={variant.charAt(0).toUpperCase() + variant.slice(1)}
-            checked={true}
           />
         ))}
       </div>
     </div>
 
     <div>
-      <h4 className="font-medium text-text-900 mb-3">Unchecked variants</h4>
+      <h4 className="font-medium text-text-900 mb-3">Pre-checked variants</h4>
       <div className="flex flex-row gap-4 flex-wrap">
         {variants.map((variant) => (
           <CheckBox
-            key={variant}
+            key={`checked-${variant}`}
             variant={variant}
             label={variant.charAt(0).toUpperCase() + variant.slice(1)}
-            checked={false}
+            checked={true}
+            readOnly
           />
         ))}
       </div>
@@ -234,10 +233,11 @@ export const ColorVariants: Story = () => (
       <div className="flex flex-row gap-4 flex-wrap">
         {variants.map((variant) => (
           <CheckBox
-            key={variant}
+            key={`indeterminate-${variant}`}
             variant={variant}
             label={variant.charAt(0).toUpperCase() + variant.slice(1)}
             indeterminate={true}
+            readOnly
           />
         ))}
       </div>
@@ -365,6 +365,27 @@ export const HierarchicalSelection: Story = () => (
             <CheckBox label="Literatura" checked={false} />
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+);
+
+/**
+ * Exemplo interativo simples
+ */
+export const InteractiveExample: Story = () => (
+  <div className="flex flex-col gap-6">
+    <div>
+      <h4 className="font-medium text-text-900 mb-3">Clique para testar</h4>
+      <p className="text-sm text-text-600 mb-4">
+        Estes checkboxes são interativos - clique neles para ver a mudança de cor azul!
+      </p>
+      <div className="flex flex-col gap-3">
+        <CheckBox label="Checkbox interativo 1" />
+        <CheckBox label="Checkbox interativo 2" />
+        <CheckBox label="Checkbox variant success" variant="success" />
+        <CheckBox label="Checkbox variant error" variant="error" />
+        <CheckBox label="Checkbox variant warning" variant="warning" />
       </div>
     </div>
   </div>

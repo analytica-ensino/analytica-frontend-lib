@@ -39,7 +39,7 @@ describe('CheckBox Component', () => {
     expect(checkbox).toBeDisabled();
   });
 
-  it('calls onChange when clicked', async () => {
+    it('calls onChange when clicked', async () => {
     const user = userEvent.setup();
     const handleChange = jest.fn();
     render(<CheckBox label="Test" onChange={handleChange} />);
@@ -48,6 +48,39 @@ describe('CheckBox Component', () => {
     await user.click(checkbox);
 
     expect(handleChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('works in uncontrolled mode (manages its own state)', async () => {
+    const user = userEvent.setup();
+    render(<CheckBox label="Test" />);
+
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).not.toBeChecked();
+
+    await user.click(checkbox);
+    expect(checkbox).toBeChecked();
+
+    await user.click(checkbox);
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('works in controlled mode when checked prop is provided', async () => {
+    const user = userEvent.setup();
+    const handleChange = jest.fn();
+    const { rerender } = render(
+      <CheckBox label="Test" checked={false} onChange={handleChange} />
+    );
+
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).not.toBeChecked();
+
+    await user.click(checkbox);
+    expect(handleChange).toHaveBeenCalledTimes(1);
+    expect(checkbox).not.toBeChecked(); // Should still be false until parent updates
+
+    // Simulate parent component updating the state
+    rerender(<CheckBox label="Test" checked={true} onChange={handleChange} />);
+    expect(checkbox).toBeChecked();
   });
 
   it('calls onChange when label is clicked', async () => {

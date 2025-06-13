@@ -1,4 +1,4 @@
-import { InputHTMLAttributes, ReactNode, forwardRef } from 'react';
+import { InputHTMLAttributes, ReactNode, forwardRef, useState } from 'react';
 
 /**
  * CheckBox size variants
@@ -140,12 +140,14 @@ export type CheckBoxProps = {
  * @param props - All other standard input HTML attributes
  * @returns A styled checkbox element with label and accessibility features
  *
-  * @example
+   * @example
  * ```tsx
- * // Basic checkbox
+ * // Uncontrolled checkbox (manages its own state)
+ * <CheckBox label="Click me!" />
+ *
+ * // Controlled checkbox
  * <CheckBox
  *   label="Accept terms and conditions"
- *   size="medium"
  *   checked={accepted}
  *   onChange={(e) => setAccepted(e.target.checked)}
  * />
@@ -185,13 +187,27 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(({
   helperText,
   className = '',
   labelClassName = '',
-  checked,
+  checked: checkedProp,
   disabled,
   id,
+  onChange,
   ...props
 }, ref) => {
   // Generate unique ID if not provided
   const inputId = id || `checkbox-${Math.random().toString(36).substr(2, 9)}`;
+
+  // Handle controlled vs uncontrolled behavior
+  const [internalChecked, setInternalChecked] = useState(false);
+  const isControlled = checkedProp !== undefined;
+  const checked = isControlled ? checkedProp : internalChecked;
+
+  // Handle change events
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isControlled) {
+      setInternalChecked(event.target.checked);
+    }
+    onChange?.(event);
+  };
 
   // Determine current state based on props
   const currentState = disabled ? 'disabled' : state;
@@ -262,6 +278,7 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(({
             id={inputId}
             checked={checked}
             disabled={disabled}
+            onChange={handleChange}
             className="sr-only"
             {...props}
           />
