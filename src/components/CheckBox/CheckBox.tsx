@@ -30,21 +30,21 @@ const SIZE_CLASSES = {
     textSize: 'sm' as const,
     spacing: 'gap-1.5', // 6px
     borderWidth: 'border-2',
-    iconSize: 'w-[13px] h-[13px]',
+    iconSize: 'w-3 h-3', // 12px x 12px
   },
   medium: {
     checkbox: 'w-5 h-5', // 20px x 20px
     textSize: 'md' as const,
     spacing: 'gap-2', // 8px
     borderWidth: 'border-2',
-    iconSize: 'w-[17px] h-4', // 17px x 16px
+    iconSize: 'w-4 h-4', // 16px x 16px
   },
   large: {
     checkbox: 'w-6 h-6', // 24px x 24px
     textSize: 'lg' as const,
     spacing: 'gap-2', // 8px
-    borderWidth: 'border-[3px]',
-    iconSize: 'w-[19px] h-[18px]',
+    borderWidth: 'border-2',
+    iconSize: 'w-5 h-5', // 20px x 20px
   },
 } as const;
 
@@ -76,12 +76,13 @@ const STATE_CLASSES = {
       'border-indicator-info bg-primary-800 text-text focus:ring-indicator-info/20',
   },
   invalid: {
-    unchecked: 'border-[#B91C1C] bg-background hover:border-error-700',
-    checked: 'border-[#B91C1C] bg-[#1C61B2] text-[#FEFEFF]',
+    unchecked: 'border-error-700 bg-background hover:border-error-600',
+    checked: 'border-error-700 bg-primary-800 text-text',
   },
   disabled: {
-    unchecked: 'border-border-400 bg-background cursor-not-allowed',
-    checked: 'border-[#292929] bg-[#292929] text-[#FEFEFF] cursor-not-allowed',
+    unchecked: 'border-border-400 bg-background cursor-not-allowed opacity-40',
+    checked:
+      'border-primary-600 bg-primary-600 text-text cursor-not-allowed opacity-40',
   },
 } as const;
 
@@ -196,23 +197,23 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     // Determine label height based on size
     const getLabelHeight = () => {
       if (size === 'large') {
-        return 'h-[27px]';
+        return 'h-6'; // 24px
       }
       if (size === 'medium') {
         return 'h-6'; // 24px
       }
-      return 'h-[21px]';
+      return 'h-5'; // 20px (próximo de 21px)
     };
 
     // Determine line height based on size
     const getLineHeight = () => {
       if (size === 'large') {
-        return 'leading-[27px]';
+        return 'leading-normal'; // 1.5
       }
       if (size === 'medium') {
-        return 'leading-[150%]'; // 150% line height for 16px font = 24px
+        return 'leading-normal'; // 1.5
       }
-      return 'leading-[150%]'; // 150% line height for 14px font = 21px
+      return 'leading-normal'; // 1.5
     };
 
     return (
@@ -244,14 +245,14 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
                   className={`${sizeClasses.iconSize}`}
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  viewBox={size === 'small' ? '0 0 18 18' : '0 0 24 24'}
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={3}
-                    d="M20 12H4"
+                    d={size === 'small' ? 'M14 9H4' : 'M20 12H4'}
                   />
                 </svg>
               ) : checked ? (
@@ -259,19 +260,14 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
                   className={`${sizeClasses.iconSize}`}
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  viewBox={size === 'small' ? '0 0 18 18' : '0 0 24 24'}
                   xmlns="http://www.w3.org/2000/svg"
-                  style={
-                    size === 'small'
-                      ? { position: 'absolute', top: '1.5px' }
-                      : undefined
-                  }
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={3}
-                    d="M5 13l4 4L19 7"
+                    d={size === 'small' ? 'M4 10l3 3L14 5' : 'M5 13l4 4L19 7'}
                   />
                 </svg>
               ) : null}
