@@ -23,21 +23,6 @@ const sizes = [
 const variants = ['solid', 'outline', 'link'] as const;
 const actions = ['primary', 'positive', 'negative'] as const;
 
-// Utilitário para exibir código formatado
-const Code = ({ children }: { children: string }) => (
-  <pre
-    style={{
-      background: '#f5f5f5',
-      padding: 12,
-      borderRadius: 8,
-      fontSize: 13,
-      overflowX: 'auto',
-    }}
-  >
-    <code>{children}</code>
-  </pre>
-);
-
 /**
  * Showcase principal: todas as combinações possíveis do Button
  */
@@ -73,7 +58,6 @@ export const AllButtons: Story = () => (
         </div>
       ))}
     </div>
-    <Code>{`<Button size="large" variant="solid" action="primary">Texto</Button>`}</Code>
 
     {/* Ícones à esquerda, direita e ambos */}
     <h3 className="font-bold text-2xl text-text-900">Com Ícones</h3>
@@ -92,7 +76,6 @@ export const AllButtons: Story = () => (
             </Button>
           ))}
         </div>
-        <Code>{`<Button iconLeft={<PlusIcon />}>Button</Button>`}</Code>
       </div>
       <div>
         <div className="font-medium text-text-900 mb-2">Ícone à direita</div>
@@ -108,7 +91,6 @@ export const AllButtons: Story = () => (
             </Button>
           ))}
         </div>
-        <Code>{`<Button iconRight={<PlusIcon />}>Button</Button>`}</Code>
       </div>
     </div>
 
@@ -121,7 +103,6 @@ export const AllButtons: Story = () => (
         </Button>
       ))}
     </div>
-    <Code>{`<Button variant="solid" disabled>Solid disabled</Button>`}</Code>
   </div>
 );
 
