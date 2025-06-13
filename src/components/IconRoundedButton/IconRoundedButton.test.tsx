@@ -42,6 +42,7 @@ describe('IconRoundedButton', () => {
       expect(button).toHaveClass('focus-visible:shadow-hard-shadow-1');
       expect(button).toHaveClass('focus-visible:ring-2');
       expect(button).toHaveClass('focus-visible:ring-indicator-info');
+      expect(button).toHaveClass('focus-visible:ring-offset-0');
     });
 
     it('applies focus and disabled classes', () => {
