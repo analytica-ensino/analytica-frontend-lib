@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { createRef } from 'react';
 import { SelectionButton } from './SelectionButton';
 
 // Ícone de teste simples
@@ -69,6 +70,28 @@ describe('SelectionButton', () => {
       const button = screen.getByRole('button');
       expect(button).toHaveClass('disabled:opacity-50');
       expect(button).toHaveClass('disabled:cursor-not-allowed');
+    });
+  });
+
+  describe('Ref forwarding', () => {
+    it('forwards ref to the button element', () => {
+      const ref = createRef<HTMLButtonElement>();
+      render(<SelectionButton ref={ref} icon={<TestIcon />} label="Test" />);
+
+      expect(ref.current).toBeInstanceOf(HTMLButtonElement);
+      expect(ref.current).toHaveAttribute('type', 'button');
+    });
+
+    it('allows programmatic focus through ref', () => {
+      const ref = createRef<HTMLButtonElement>();
+      render(<SelectionButton ref={ref} icon={<TestIcon />} label="Test" />);
+
+      ref.current?.focus();
+      expect(ref.current).toHaveFocus();
+    });
+
+    it('has correct displayName', () => {
+      expect(SelectionButton.displayName).toBe('SelectionButton');
     });
   });
 

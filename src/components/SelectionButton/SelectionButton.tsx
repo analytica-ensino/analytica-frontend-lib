@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react';
+import { ButtonHTMLAttributes, ReactNode, forwardRef } from 'react';
 
 /**
  * SelectionButton component props interface
@@ -18,6 +18,7 @@ type SelectionButtonProps = {
  * Um botão com ícone e texto para ações e navegação.
  * Ideal para filtros, tags, categorias, etc.
  * Compatível com Next.js 15 e React 19.
+ * Suporta forwardRef para acesso programático ao elemento DOM.
  *
  * @param icon - O ícone a ser exibido no botão
  * @param label - O texto/label a ser exibido
@@ -33,14 +34,28 @@ type SelectionButtonProps = {
  *   onClick={() => handleAction()}
  * />
  * ```
+ *
+ * @example
+ * ```tsx
+ * // Usando ref para foco programático
+ * const buttonRef = useRef<HTMLButtonElement>(null);
+ *
+ * const handleFocus = () => {
+ *   buttonRef.current?.focus();
+ * };
+ *
+ * <SelectionButton
+ *   ref={buttonRef}
+ *   icon={<TagIcon />}
+ *   label="Categoria"
+ *   onClick={() => handleAction()}
+ * />
+ * ```
  */
-export const SelectionButton = ({
-  icon,
-  label,
-  className = '',
-  disabled,
-  ...props
-}: SelectionButtonProps) => {
+export const SelectionButton = forwardRef<
+  HTMLButtonElement,
+  SelectionButtonProps
+>(({ icon, label, className = '', disabled, ...props }, ref) => {
   const baseClasses = [
     'inline-flex',
     'items-center',
@@ -72,6 +87,7 @@ export const SelectionButton = ({
 
   return (
     <button
+      ref={ref}
       type="button"
       className={`${baseClasses} ${className}`}
       disabled={disabled}
@@ -81,4 +97,6 @@ export const SelectionButton = ({
       <span>{label}</span>
     </button>
   );
-};
+});
+
+SelectionButton.displayName = 'SelectionButton';
