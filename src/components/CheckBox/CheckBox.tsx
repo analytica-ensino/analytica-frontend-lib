@@ -30,18 +30,21 @@ const SIZE_CLASSES = {
     textSize: 'sm' as const,
     spacing: 'gap-2',
     borderWidth: 'border-2',
+    iconSize: 'w-3 h-3',
   },
   medium: {
     checkbox: 'w-5 h-5', // 20px x 20px
     textSize: 'md' as const,
     spacing: 'gap-2', // 8px
     borderWidth: 'border-2',
+    iconSize: 'w-4 h-4',
   },
   large: {
     checkbox: 'w-6 h-6',
     textSize: 'lg' as const,
     spacing: 'gap-3',
     borderWidth: 'border-[3px]',
+    iconSize: 'w-5 h-5',
   },
 } as const;
 
@@ -180,42 +183,6 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     // Get final checkbox classes
     const checkboxClasses = `${BASE_CHECKBOX_CLASSES} ${sizeClasses.checkbox} ${sizeClasses.borderWidth} ${stylingClasses} ${className}`;
 
-    // Check icon for checked state - Adjusted for exact positioning
-    const CheckIcon = (
-      <svg
-        className="w-[17px] h-4 absolute left-[10.93%] right-[7.8%] top-[23.43%] bottom-[17.18%]"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={3}
-          d="M5 13l4 4L19 7"
-        />
-      </svg>
-    );
-
-    // Indeterminate icon
-    const IndeterminateIcon = (
-      <svg
-        className="w-full h-full p-1"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={3}
-          d="M20 12H4"
-        />
-      </svg>
-    );
-
     return (
       <div className="flex flex-col">
         <div
@@ -238,8 +205,40 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
             htmlFor={inputId}
             className={`${checkboxClasses} relative box-border`}
           >
-            {/* Show appropriate icon based on state */}
-            {indeterminate ? IndeterminateIcon : checked ? CheckIcon : null}
+            <div className="absolute inset-0 flex items-center justify-center">
+              {/* Show appropriate icon based on state */}
+              {indeterminate ? (
+                <svg
+                  className={`${sizeClasses.iconSize}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M20 12H4"
+                  />
+                </svg>
+              ) : checked ? (
+                <svg
+                  className={`${sizeClasses.iconSize}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              ) : null}
+            </div>
           </label>
 
           {/* Label text */}
