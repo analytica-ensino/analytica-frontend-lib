@@ -20,7 +20,9 @@ export const AllCheckBoxes: Story = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {sizes.map((size) => (
         <div key={size}>
-          <div className="font-medium text-text-900 mb-4 capitalize">{size}</div>
+          <div className="font-medium text-text-900 mb-4 capitalize">
+            {size}
+          </div>
 
           {/* Unchecked state */}
           <div className="mb-6">
@@ -81,7 +83,9 @@ export const AllCheckBoxes: Story = () => (
     <h3 className="font-bold text-2xl text-text-900">Com Mensagens</h3>
     <div className="flex flex-col gap-6">
       <div>
-        <div className="font-medium text-text-900 mb-2">Com mensagem de erro</div>
+        <div className="font-medium text-text-900 mb-2">
+          Com mensagem de erro
+        </div>
         <CheckBox
           label="Aceito os termos e condições"
           state="invalid"
@@ -102,7 +106,9 @@ export const AllCheckBoxes: Story = () => (
     <h3 className="font-bold text-2xl text-text-900">Agrupamento</h3>
     <div className="flex flex-col gap-4">
       <div>
-        <div className="font-medium text-text-900 mb-3">Selecionar disciplinas:</div>
+        <div className="font-medium text-text-900 mb-3">
+          Selecionar disciplinas:
+        </div>
         <div className="flex flex-col gap-2 ml-4">
           <CheckBox label="Matemática" checked={true} />
           <CheckBox label="Português" checked={false} />
@@ -112,7 +118,9 @@ export const AllCheckBoxes: Story = () => (
       </div>
 
       <div>
-        <div className="font-medium text-text-900 mb-3">Seleção hierárquica:</div>
+        <div className="font-medium text-text-900 mb-3">
+          Seleção hierárquica:
+        </div>
         <div className="flex flex-col gap-2">
           <CheckBox label="Selecionar todos" indeterminate={true} />
           <div className="flex flex-col gap-2 ml-6">
@@ -156,7 +164,9 @@ export const AllCheckBoxes: Story = () => (
       </div>
 
       <div>
-        <div className="font-medium text-text-700 mb-2">Indeterminate variants</div>
+        <div className="font-medium text-text-700 mb-2">
+          Indeterminate variants
+        </div>
         <div className="flex flex-row gap-4 flex-wrap">
           {variants.map((variant) => (
             <CheckBox
@@ -201,7 +211,9 @@ export const Sizes: Story = () => (
 export const ColorVariants: Story = () => (
   <div className="flex flex-col gap-6">
     <div>
-      <h4 className="font-medium text-text-900 mb-3">Interactive variants (click to test)</h4>
+      <h4 className="font-medium text-text-900 mb-3">
+        Interactive variants (click to test)
+      </h4>
       <div className="flex flex-row gap-4 flex-wrap">
         {variants.map((variant) => (
           <CheckBox
@@ -378,7 +390,8 @@ export const InteractiveExample: Story = () => (
     <div>
       <h4 className="font-medium text-text-900 mb-3">Clique para testar</h4>
       <p className="text-sm text-text-600 mb-4">
-        Estes checkboxes são interativos - clique neles para ver a mudança de cor azul!
+        Estes checkboxes são interativos - clique neles para ver a mudança de
+        cor azul!
       </p>
       <div className="flex flex-col gap-3">
         <CheckBox label="Checkbox interativo 1" />
