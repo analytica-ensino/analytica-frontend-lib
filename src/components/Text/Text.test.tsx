@@ -131,6 +131,48 @@ describe('Text Component', () => {
       );
       expect(screen.getByTestId('text')).toHaveClass('text-6xl');
     });
+
+    it('applies default md size class when size prop is not provided', () => {
+      render(<Text data-testid="text">Hello World</Text>);
+      expect(screen.getByTestId('text')).toHaveClass('text-md');
+    });
+
+    it('applies default md size class when invalid size is provided', () => {
+      render(
+        <Text
+          size={
+            'invalid' as
+              | '2xs'
+              | 'xs'
+              | 'sm'
+              | 'md'
+              | 'lg'
+              | 'xl'
+              | '2xl'
+              | '3xl'
+              | '4xl'
+              | '5xl'
+              | '6xl'
+          }
+          data-testid="text"
+        >
+          Hello World
+        </Text>
+      );
+      expect(screen.getByTestId('text')).toHaveClass('text-md');
+    });
+
+    it('combines size class with other classes correctly', () => {
+      render(
+        <Text size="lg" weight="bold" color="white" data-testid="text">
+          Hello World
+        </Text>
+      );
+      const element = screen.getByTestId('text');
+      expect(element).toHaveClass('text-lg');
+      expect(element).toHaveClass('font-bold');
+      expect(element).toHaveClass('text-text');
+    });
   });
 
   describe('Weight variants', () => {
@@ -205,6 +247,45 @@ describe('Text Component', () => {
       );
       expect(screen.getByTestId('text')).toHaveClass('font-black');
     });
+
+    it('applies default normal weight class when weight prop is not provided', () => {
+      render(<Text data-testid="text">Hello World</Text>);
+      expect(screen.getByTestId('text')).toHaveClass('font-normal');
+    });
+
+    it('applies default normal weight class when invalid weight is provided', () => {
+      render(
+        <Text
+          weight={
+            'invalid' as
+              | 'hairline'
+              | 'light'
+              | 'normal'
+              | 'medium'
+              | 'semibold'
+              | 'bold'
+              | 'extrabold'
+              | 'black'
+          }
+          data-testid="text"
+        >
+          Hello World
+        </Text>
+      );
+      expect(screen.getByTestId('text')).toHaveClass('font-normal');
+    });
+
+    it('combines weight class with other classes correctly', () => {
+      render(
+        <Text weight="bold" size="lg" color="white" data-testid="text">
+          Hello World
+        </Text>
+      );
+      const element = screen.getByTestId('text');
+      expect(element).toHaveClass('font-bold');
+      expect(element).toHaveClass('text-lg');
+      expect(element).toHaveClass('text-text');
+    });
   });
 
   describe('Color variants', () => {
@@ -224,6 +305,32 @@ describe('Text Component', () => {
         </Text>
       );
       expect(screen.getByTestId('text')).toHaveClass('text-text');
+    });
+
+    it('applies default black color class when color prop is not provided', () => {
+      render(<Text data-testid="text">Hello World</Text>);
+      expect(screen.getByTestId('text')).toHaveClass('text-text-950');
+    });
+
+    it('applies default black color class when invalid color is provided', () => {
+      render(
+        <Text color={'invalid' as 'black' | 'white'} data-testid="text">
+          Hello World
+        </Text>
+      );
+      expect(screen.getByTestId('text')).toHaveClass('text-text-950');
+    });
+
+    it('combines color class with other classes correctly', () => {
+      render(
+        <Text color="white" size="lg" weight="bold" data-testid="text">
+          Hello World
+        </Text>
+      );
+      const element = screen.getByTestId('text');
+      expect(element).toHaveClass('text-text');
+      expect(element).toHaveClass('text-lg');
+      expect(element).toHaveClass('font-bold');
     });
   });
 

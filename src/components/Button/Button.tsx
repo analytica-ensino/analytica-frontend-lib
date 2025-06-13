@@ -1,15 +1,62 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react';
 
 /**
+ * Lookup table for variant and action class combinations
+ */
+const VARIANT_ACTION_CLASSES = {
+  solid: {
+    primary:
+      'bg-primary-950 text-text border-2 border-primary-950 hover:bg-primary-800 hover:border-primary-800 focus:bg-primary-950 focus:border-indicator-info active:bg-primary-700 active:border-primary-700 disabled:bg-primary-500 disabled:border-primary-500 disabled:opacity-40 disabled:cursor-not-allowed',
+    positive:
+      'bg-success-500 text-text border-2 border-success-500 hover:bg-success-600 hover:border-success-600 focus:bg-success-500 focus:border-indicator-info active:bg-success-700 active:border-success-700 disabled:bg-success-500 disabled:border-success-500 disabled:opacity-40 disabled:cursor-not-allowed',
+    negative:
+      'bg-error-500 text-text border-2 border-error-500 hover:bg-error-600 hover:border-error-600 focus:bg-error-500 focus:border-indicator-info active:bg-error-700 active:border-error-700 disabled:bg-error-500 disabled:border-error-500 disabled:opacity-40 disabled:cursor-not-allowed',
+  },
+  outline: {
+    primary:
+      'bg-transparent text-primary-950 border border-primary-950 hover:bg-background-50 hover:text-primary-400 hover:border-primary-400 focus:text-primary-600 focus:border-2 focus:border-indicator-info active:text-primary-700 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed',
+    positive:
+      'bg-transparent text-success-500 border border-success-300 hover:bg-background-50 hover:text-success-400 hover:border-success-400 focus:text-success-600 focus:border-2 focus:border-indicator-info active:text-success-700 active:border-success-700 disabled:opacity-40 disabled:cursor-not-allowed',
+    negative:
+      'bg-transparent text-error-500 border border-error-300 hover:bg-background-50 hover:text-error-400 hover:border-error-400 focus:text-error-600 focus:border-2 focus:border-indicator-info active:text-error-700 active:border-error-700 disabled:opacity-40 disabled:cursor-not-allowed',
+  },
+  link: {
+    primary:
+      'bg-transparent text-primary-950 hover:text-primary-400 focus:text-primary-600 focus:border-2 focus:border-indicator-info active:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed',
+    positive:
+      'bg-transparent text-success-500 hover:text-success-400 focus:text-success-600 focus:border-2 focus:border-indicator-info active:text-success-700 disabled:opacity-40 disabled:cursor-not-allowed',
+    negative:
+      'bg-transparent text-error-500 hover:text-error-400 focus:text-error-600 focus:border-2 focus:border-indicator-info active:text-error-700 disabled:opacity-40 disabled:cursor-not-allowed',
+  },
+} as const;
+
+/**
+ * Lookup table for size classes
+ */
+const SIZE_CLASSES = {
+  'extra-small': 'text-xs px-3.5 py-2',
+  small: 'text-sm px-4 py-2.5',
+  medium: 'text-md px-5 py-2.5',
+  large: 'text-lg px-6 py-3',
+  'extra-large': 'text-lg px-7 py-3.5',
+} as const;
+
+/**
  * Button component props interface
  */
 type ButtonProps = {
   /** Content to be displayed inside the button */
   children: ReactNode;
+  /** Ícone à esquerda do texto */
+  iconLeft?: ReactNode;
+  /** Ícone à direita do texto */
+  iconRight?: ReactNode;
+  /** Size of the button */
+  size?: 'extra-small' | 'small' | 'medium' | 'large' | 'extra-large';
   /** Visual variant of the button */
-  variant?: 'primary' | 'secondary' | 'danger';
-  /** Size variant of the button */
-  size?: 'sm' | 'md' | 'lg';
+  variant?: 'solid' | 'outline' | 'link';
+  /** Action type of the button */
+  action?: 'primary' | 'positive' | 'negative';
   /** Additional CSS classes to apply */
   className?: string;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
@@ -17,69 +64,53 @@ type ButtonProps = {
 /**
  * Button component for Analytica Ensino platforms
  *
- * A flexible button component with multiple variants and sizes.
+ * A flexible button component with multiple variants, sizes and actions.
  * Fully compatible with Next.js 15 and React 19.
  *
  * @param children - The content to display inside the button
- * @param variant - The visual style variant (primary, secondary, danger)
- * @param size - The size variant (sm, md, lg)
+ * @param size - The size variant (extra-small, small, medium, large, extra-large)
+ * @param variant - The visual style variant (solid, outline, link)
+ * @param action - The action type (primary, positive, negative)
  * @param className - Additional CSS classes
  * @param props - All other standard button HTML attributes
  * @returns A styled button element
  *
  * @example
  * ```tsx
- * <Button variant="primary" size="md" onClick={() => console.log('clicked')}>
+ * <Button variant="solid" action="primary" size="medium" onClick={() => console.log('clicked')}>
  *   Click me
  * </Button>
  * ```
  */
 export const Button = ({
   children,
-  variant = 'primary',
-  size = 'md',
+  iconLeft,
+  iconRight,
+  size = 'medium',
+  variant = 'solid',
+  action = 'primary',
   className = '',
+  disabled,
+  type = 'button',
   ...props
 }: ButtonProps) => {
-  let variantClasses = '';
-  let sizeClasses = '';
-
-  switch (variant) {
-    case 'secondary':
-      variantClasses =
-        'bg-secondary-200 hover:bg-secondary-300 text-primary-950';
-      break;
-    case 'danger':
-      variantClasses = 'bg-error-600 hover:bg-error-700 text-secondary';
-      break;
-    case 'primary':
-    default:
-      variantClasses = 'bg-primary-600 hover:bg-primary-700 text-secondary';
-      break;
-  }
-
-  switch (size) {
-    case 'sm':
-      sizeClasses = 'text-sm px-3 py-1.5';
-      break;
-    case 'lg':
-      sizeClasses = 'text-lg px-5 py-3';
-      break;
-    case 'md':
-    default:
-      sizeClasses = 'text-base px-4 py-2';
-      break;
-  }
+  // Get classes from lookup tables
+  const sizeClasses = SIZE_CLASSES[size];
+  const variantClasses = VARIANT_ACTION_CLASSES[variant][action];
 
   const baseClasses =
-    'rounded-full font-medium focus:outline-none focus:ring transition';
+    'inline-flex items-center justify-center rounded-full cursor-pointer font-medium';
 
   return (
     <button
       className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`}
+      disabled={disabled}
+      type={type}
       {...props}
     >
+      {iconLeft && <span className="mr-2 flex items-center">{iconLeft}</span>}
       {children}
+      {iconRight && <span className="ml-2 flex items-center">{iconRight}</span>}
     </button>
   );
 };
