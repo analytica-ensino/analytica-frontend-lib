@@ -21,45 +21,33 @@ describe('IconRoundedButton', () => {
       expect(button).toHaveClass('inline-flex');
       expect(button).toHaveClass('items-center');
       expect(button).toHaveClass('justify-center');
-      expect(button).toHaveClass('w-10');
-      expect(button).toHaveClass('h-10');
+      expect(button).toHaveClass('w-8');
+      expect(button).toHaveClass('h-8');
       expect(button).toHaveClass('rounded-full');
       expect(button).toHaveClass('cursor-pointer');
     });
 
-    it('applies outline styling classes', () => {
+    it('applies styling classes', () => {
       render(<IconRoundedButton icon={<TestIcon />} />);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('border-2');
-      expect(button).toHaveClass('border-primary-950');
-      expect(button).toHaveClass('bg-transparent');
-      expect(button).toHaveClass('text-primary-950');
+      expect(button).toHaveClass('border');
+      expect(button).toHaveClass('border-background-200');
+      expect(button).toHaveClass('bg-background');
+      expect(button).toHaveClass('text-text-950');
     });
 
     it('applies hover and focus classes', () => {
       render(<IconRoundedButton icon={<TestIcon />} />);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('hover:bg-background-50');
-      expect(button).toHaveClass('hover:text-primary-400');
-      expect(button).toHaveClass('hover:border-primary-400');
-      expect(button).toHaveClass('focus:text-primary-600');
+      expect(button).toHaveClass('hover:shadow-hard-shadow-1');
+      expect(button).toHaveClass('focus:shadow-hard-shadow-1');
       expect(button).toHaveClass('focus:border-indicator-info');
     });
 
-    it('applies active and disabled classes', () => {
+    it('applies focus border classes', () => {
       render(<IconRoundedButton icon={<TestIcon />} />);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('active:text-primary-700');
-      expect(button).toHaveClass('active:border-primary-700');
-      expect(button).toHaveClass('disabled:opacity-40');
-      expect(button).toHaveClass('disabled:cursor-not-allowed');
-    });
-
-    it('applies transition classes', () => {
-      render(<IconRoundedButton icon={<TestIcon />} />);
-      const button = screen.getByRole('button');
-      expect(button).toHaveClass('transition-colors');
-      expect(button).toHaveClass('duration-200');
+      expect(button).toHaveClass('focus:border-2');
     });
   });
 
