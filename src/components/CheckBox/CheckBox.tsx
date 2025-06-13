@@ -29,16 +29,19 @@ const SIZE_CLASSES = {
     checkbox: 'w-4 h-4',
     textSize: 'sm' as const,
     spacing: 'gap-2',
+    borderWidth: 'border-2',
   },
   medium: {
-    checkbox: 'w-5 h-5',
+    checkbox: 'w-5 h-5', // 20px x 20px
     textSize: 'md' as const,
-    spacing: 'gap-2.5',
+    spacing: 'gap-2', // 8px
+    borderWidth: 'border-2',
   },
   large: {
     checkbox: 'w-6 h-6',
     textSize: 'lg' as const,
     spacing: 'gap-3',
+    borderWidth: 'border-[3px]',
   },
 } as const;
 
@@ -46,11 +49,11 @@ const SIZE_CLASSES = {
  * Base checkbox styling classes
  */
 const BASE_CHECKBOX_CLASSES =
-  'rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center focus:ring-2 focus:ring-offset-2 focus:outline-none';
+  'rounded border cursor-pointer transition-all duration-200 flex items-center justify-center focus:ring-2 focus:ring-offset-2 focus:outline-none';
 
 /**
  * State-based styling classes for unchecked and checked variants
- * Using design system variables from styles.css
+ * Using design system variables from styles.css and specific design colors
  */
 const STATE_CLASSES = {
   default: {
@@ -75,10 +78,8 @@ const STATE_CLASSES = {
       'border-error-600 bg-error-600 text-text hover:border-error-700 hover:bg-error-700',
   },
   disabled: {
-    unchecked:
-      'border-border-200 bg-background-100 cursor-not-allowed opacity-60',
-    checked:
-      'border-border-200 bg-background-300 text-text-400 cursor-not-allowed opacity-60',
+    unchecked: 'border-border-400 bg-background cursor-not-allowed',
+    checked: 'border-[#292929] bg-[#292929] text-[#FEFEFF] cursor-not-allowed',
   },
 } as const;
 
@@ -177,12 +178,12 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     const stylingClasses = STATE_CLASSES[currentState][checkVariant];
 
     // Get final checkbox classes
-    const checkboxClasses = `${BASE_CHECKBOX_CLASSES} ${sizeClasses.checkbox} ${stylingClasses} ${className}`;
+    const checkboxClasses = `${BASE_CHECKBOX_CLASSES} ${sizeClasses.checkbox} ${sizeClasses.borderWidth} ${stylingClasses} ${className}`;
 
-    // Check icon for checked state
+    // Check icon for checked state - Adjusted for exact positioning
     const CheckIcon = (
       <svg
-        className="w-full h-full p-0.5"
+        className="w-[17px] h-4 absolute left-[10.93%] right-[7.8%] top-[23.43%] bottom-[17.18%]"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -217,7 +218,9 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
     return (
       <div className="flex flex-col">
-        <div className={`flex items-center ${sizeClasses.spacing}`}>
+        <div
+          className={`flex flex-row items-center ${sizeClasses.spacing} ${disabled ? 'opacity-40' : ''}`}
+        >
           {/* Hidden native input for accessibility and form submission */}
           <input
             ref={ref}
@@ -231,48 +234,42 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
           />
 
           {/* Custom styled checkbox */}
-          <label htmlFor={inputId} className={checkboxClasses}>
+          <label
+            htmlFor={inputId}
+            className={`${checkboxClasses} relative box-border`}
+          >
             {/* Show appropriate icon based on state */}
             {indeterminate ? IndeterminateIcon : checked ? CheckIcon : null}
           </label>
 
           {/* Label text */}
           {label && (
-            <Text
-              as="label"
-              htmlFor={inputId}
-              size={sizeClasses.textSize}
-              weight="normal"
-              color="black"
-              className={`cursor-pointer select-none ${
-                disabled ? 'opacity-60 cursor-not-allowed' : ''
-              } ${labelClassName}`}
-            >
-              {label}
-            </Text>
+            <div className="flex flex-row items-center h-6">
+              <Text
+                as="label"
+                htmlFor={inputId}
+                size={sizeClasses.textSize}
+                weight="normal"
+                className={`cursor-pointer select-none leading-[150%] flex items-center font-roboto ${
+                  disabled && checked ? 'text-text-900' : 'text-text-600'
+                } ${disabled ? 'cursor-not-allowed' : ''} ${labelClassName}`}
+              >
+                {label}
+              </Text>
+            </div>
           )}
         </div>
 
         {/* Error message */}
         {errorMessage && (
-          <Text
-            size="sm"
-            weight="normal"
-            color="black"
-            className="mt-1.5 text-error-600"
-          >
+          <Text size="sm" weight="normal" className="mt-1.5 text-error-600">
             {errorMessage}
           </Text>
         )}
 
         {/* Helper text */}
         {helperText && !errorMessage && (
-          <Text
-            size="sm"
-            weight="normal"
-            color="black"
-            className="mt-1.5 text-text-500"
-          >
+          <Text size="sm" weight="normal" className="mt-1.5 text-text-500">
             {helperText}
           </Text>
         )}
