@@ -26,25 +26,25 @@ type CheckBoxTheme = 'light' | 'dark';
  */
 const SIZE_CLASSES = {
   small: {
-    checkbox: 'w-4 h-4',
+    checkbox: 'w-4 h-4', // 16px x 16px
     textSize: 'sm' as const,
-    spacing: 'gap-2',
+    spacing: 'gap-1.5', // 6px
     borderWidth: 'border-2',
-    iconSize: 'w-3 h-3',
+    iconSize: 'w-[13px] h-[13px]',
   },
   medium: {
     checkbox: 'w-5 h-5', // 20px x 20px
     textSize: 'md' as const,
     spacing: 'gap-2', // 8px
     borderWidth: 'border-2',
-    iconSize: 'w-4 h-4',
+    iconSize: 'w-[17px] h-4', // 17px x 16px
   },
   large: {
-    checkbox: 'w-6 h-6',
+    checkbox: 'w-6 h-6', // 24px x 24px
     textSize: 'lg' as const,
-    spacing: 'gap-3',
+    spacing: 'gap-2', // 8px
     borderWidth: 'border-[3px]',
-    iconSize: 'w-5 h-5',
+    iconSize: 'w-[19px] h-[18px]',
   },
 } as const;
 
@@ -76,9 +76,8 @@ const STATE_CLASSES = {
       'border-indicator-info bg-primary-800 text-text focus:ring-indicator-info/20',
   },
   invalid: {
-    unchecked: 'border-error-600 bg-background hover:border-error-700',
-    checked:
-      'border-error-600 bg-error-600 text-text hover:border-error-700 hover:bg-error-700',
+    unchecked: 'border-[#B91C1C] bg-background hover:border-error-700',
+    checked: 'border-[#B91C1C] bg-[#1C61B2] text-[#FEFEFF]',
   },
   disabled: {
     unchecked: 'border-border-400 bg-background cursor-not-allowed',
@@ -183,6 +182,39 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     // Get final checkbox classes
     const checkboxClasses = `${BASE_CHECKBOX_CLASSES} ${sizeClasses.checkbox} ${sizeClasses.borderWidth} ${stylingClasses} ${className}`;
 
+    // Determine text color based on state and checked status
+    const getTextColorClass = () => {
+      if (disabled && checked) {
+        return 'text-text-900'; // #262627
+      }
+      if (state === 'invalid') {
+        return 'text-text-900'; // #262627 para todos os tamanhos no estado invalid
+      }
+      return 'text-text-600'; // #737373
+    };
+
+    // Determine label height based on size
+    const getLabelHeight = () => {
+      if (size === 'large') {
+        return 'h-[27px]';
+      }
+      if (size === 'medium') {
+        return 'h-6'; // 24px
+      }
+      return 'h-[21px]';
+    };
+
+    // Determine line height based on size
+    const getLineHeight = () => {
+      if (size === 'large') {
+        return 'leading-[27px]';
+      }
+      if (size === 'medium') {
+        return 'leading-[150%]'; // 150% line height for 16px font = 24px
+      }
+      return 'leading-[150%]'; // 150% line height for 14px font = 21px
+    };
+
     return (
       <div className="flex flex-col">
         <div
@@ -229,6 +261,11 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg"
+                  style={
+                    size === 'small'
+                      ? { position: 'absolute', top: '1.5px' }
+                      : undefined
+                  }
                 >
                   <path
                     strokeLinecap="round"
@@ -243,15 +280,19 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
           {/* Label text */}
           {label && (
-            <div className="flex flex-row items-center h-6">
+            <div
+              className={`flex flex-row items-center ${
+                size === 'small' ? 'justify-end' : ''
+              } ${getLabelHeight()}`}
+            >
               <Text
                 as="label"
                 htmlFor={inputId}
                 size={sizeClasses.textSize}
                 weight="normal"
-                className={`cursor-pointer select-none leading-[150%] flex items-center font-roboto ${
-                  disabled && checked ? 'text-text-900' : 'text-text-600'
-                } ${disabled ? 'cursor-not-allowed' : ''} ${labelClassName}`}
+                className={`cursor-pointer select-none ${getLineHeight()} flex items-center font-roboto ${getTextColorClass()} ${
+                  disabled ? 'cursor-not-allowed' : ''
+                } ${labelClassName}`}
               >
                 {label}
               </Text>
