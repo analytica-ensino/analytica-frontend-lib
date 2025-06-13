@@ -4,6 +4,7 @@ import React, {
   forwardRef,
   useState,
 } from 'react';
+import { Text } from '../Text/Text';
 
 /**
  * CheckBox size variants
@@ -21,102 +22,63 @@ type CheckBoxState = 'default' | 'hovered' | 'focused' | 'invalid' | 'disabled';
 type CheckBoxTheme = 'light' | 'dark';
 
 /**
- * CheckBox color variants
- */
-type CheckBoxVariant = 'primary' | 'success' | 'error' | 'info' | 'warning';
-
-/**
- * Lookup table for size classes
+ * Size configurations
  */
 const SIZE_CLASSES = {
   small: {
     checkbox: 'w-4 h-4',
-    label: 'text-sm',
+    textSize: 'sm' as const,
     spacing: 'gap-2',
   },
   medium: {
     checkbox: 'w-5 h-5',
-    label: 'text-md',
+    textSize: 'md' as const,
     spacing: 'gap-2.5',
   },
   large: {
     checkbox: 'w-6 h-6',
-    label: 'text-lg',
+    textSize: 'lg' as const,
     spacing: 'gap-3',
   },
 } as const;
 
 /**
- * Base checkbox styling classes using Analytica Ensino Design System
+ * Base checkbox styling classes
  */
 const BASE_CHECKBOX_CLASSES =
-  'rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center focus:ring-2 focus:ring-offset-2 font-primary';
+  'rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center focus:ring-2 focus:ring-offset-2 focus:outline-none';
 
 /**
- * Variant-based color classes using Analytica Ensino Design System colors from styles.css
+ * State-based styling classes for unchecked and checked variants
+ * Using design system variables from styles.css
  */
-const VARIANT_CLASSES = {
-  primary: {
+const STATE_CLASSES = {
+  default: {
     unchecked:
-      'border-border-300 bg-background hover:border-primary-600 hover:bg-background-50 focus:border-indicator-info focus:ring-indicator-info/20 active:border-primary-700',
+      'border-border-400 bg-background hover:border-border-500 hover:bg-background-50',
     checked:
-      'border-primary-950 bg-primary-950 text-text hover:border-primary-800 hover:bg-primary-800 focus:border-indicator-info focus:ring-indicator-info/20 active:border-primary-900 active:bg-primary-900',
-    indeterminate:
-      'border-primary-950 bg-primary-950 text-text hover:border-primary-800 hover:bg-primary-800 focus:border-indicator-info focus:ring-indicator-info/20 active:border-primary-900 active:bg-primary-900',
+      'border-primary-800 bg-primary-800 text-text hover:border-primary-700 hover:bg-primary-700',
   },
-  success: {
+  hovered: {
+    unchecked: 'border-border-500 bg-background-50',
+    checked: 'border-primary-700 bg-primary-700 text-text',
+  },
+  focused: {
     unchecked:
-      'border-border-300 bg-background hover:border-success-600 hover:bg-success-background focus:border-indicator-info focus:ring-indicator-info/20 active:border-success-700',
+      'border-indicator-info bg-background focus:ring-indicator-info/20',
     checked:
-      'border-success-600 bg-success-600 text-text hover:border-success-700 hover:bg-success-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-success-800 active:bg-success-800',
-    indeterminate:
-      'border-success-600 bg-success-600 text-text hover:border-success-700 hover:bg-success-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-success-800 active:bg-success-800',
+      'border-indicator-info bg-primary-800 text-text focus:ring-indicator-info/20',
   },
-  error: {
-    unchecked:
-      'border-border-300 bg-background hover:border-error-600 hover:bg-error-background focus:border-indicator-info focus:ring-indicator-info/20 active:border-error-700',
-    checked:
-      'border-error-600 bg-error-600 text-text hover:border-error-700 hover:bg-error-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-error-800 active:bg-error-800',
-    indeterminate:
-      'border-error-600 bg-error-600 text-text hover:border-error-700 hover:bg-error-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-error-800 active:bg-error-800',
-  },
-  info: {
-    unchecked:
-      'border-border-300 bg-background hover:border-info-600 hover:bg-info-background focus:border-indicator-info focus:ring-indicator-info/20 active:border-info-700',
-    checked:
-      'border-info-600 bg-info-600 text-text hover:border-info-700 hover:bg-info-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-info-800 active:bg-info-800',
-    indeterminate:
-      'border-info-600 bg-info-600 text-text hover:border-info-700 hover:bg-info-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-info-800 active:bg-info-800',
-  },
-  warning: {
-    unchecked:
-      'border-border-300 bg-background hover:border-warning-600 hover:bg-warning-background focus:border-indicator-info focus:ring-indicator-info/20 active:border-warning-700',
-    checked:
-      'border-warning-600 bg-warning-600 text-text hover:border-warning-700 hover:bg-warning-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-warning-800 active:bg-warning-800',
-    indeterminate:
-      'border-warning-600 bg-warning-600 text-text hover:border-warning-700 hover:bg-warning-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-warning-800 active:bg-warning-800',
-  },
-} as const;
-
-/**
- * State-based styling classes using Analytica Ensino Design System colors from styles.css
- */
-const STATE_OVERRIDES = {
   invalid: {
-    unchecked:
-      'border-error-600 bg-background hover:border-error-700 hover:bg-error-background focus:border-indicator-error focus:ring-indicator-error/20 active:border-error-800',
+    unchecked: 'border-error-600 bg-background hover:border-error-700',
     checked:
-      'border-error-600 bg-error-600 text-text hover:border-error-700 hover:bg-error-700 focus:border-indicator-error focus:ring-indicator-error/20 active:border-error-800 active:bg-error-800',
-    indeterminate:
-      'border-error-600 bg-error-600 text-text hover:border-error-700 hover:bg-error-700 focus:border-indicator-error focus:ring-indicator-error/20 active:border-error-800 active:bg-error-800',
+      'border-error-600 bg-error-600 text-text hover:border-error-700 hover:bg-error-700',
   },
   disabled: {
     unchecked:
-      'border-border-200 bg-background-100 cursor-not-allowed opacity-50',
+      'border-border-200 bg-background-100 cursor-not-allowed opacity-60',
     checked:
-      'border-border-200 bg-background-300 text-text-400 cursor-not-allowed opacity-50',
-    indeterminate:
-      'border-border-200 bg-background-300 text-text-400 cursor-not-allowed opacity-50',
+      'border-border-200 bg-background-300 text-text-400 cursor-not-allowed opacity-60',
   },
 } as const;
 
@@ -132,8 +94,6 @@ export type CheckBoxProps = {
   state?: CheckBoxState;
   /** Theme variant */
   _theme?: CheckBoxTheme;
-  /** Color variant of the checkbox */
-  variant?: CheckBoxVariant;
   /** Indeterminate state for partial selections */
   indeterminate?: boolean;
   /** Error message to display */
@@ -149,58 +109,23 @@ export type CheckBoxProps = {
 /**
  * CheckBox component for Analytica Ensino platforms
  *
- * A flexible checkbox component with multiple states, sizes and themes.
- * Uses the Analytica Ensino Design System colors and typography from styles.css.
- * Supports indeterminate state for hierarchical selections and full accessibility.
- * Fully compatible with Next.js 15 and React 19.
- *
- * @param label - The label text to display next to the checkbox
- * @param size - The size variant (small, medium, large)
- * @param state - The visual state (default, invalid, disabled)
- * @param theme - The theme variant (light, dark)
- * @param variant - The color variant (primary, success, error, info, warning)
- * @param indeterminate - Whether the checkbox is in indeterminate state
- * @param errorMessage - Error message to display below checkbox
- * @param helperText - Helper text to display below checkbox
- * @param className - Additional CSS classes for the checkbox
- * @param labelClassName - Additional CSS classes for the label
- * @param props - All other standard input HTML attributes
- * @returns A styled checkbox element with label and accessibility features
+ * A checkbox component with essential states, sizes and themes.
+ * Uses the Analytica Ensino Design System colors from styles.css with automatic
+ * light/dark mode support. Includes Text component integration for consistent typography.
  *
  * @example
  * ```tsx
- * // Uncontrolled checkbox (manages its own state)
- * <CheckBox label="Click me!" />
+ * // Basic checkbox
+ * <CheckBox label="Option" />
  *
- * // Controlled checkbox
- * <CheckBox
- *   label="Accept terms and conditions"
- *   checked={accepted}
- *   onChange={(e) => setAccepted(e.target.checked)}
- * />
+ * // Small size
+ * <CheckBox size="small" label="Small option" />
  *
- * // Success variant
- * <CheckBox
- *   label="Task completed"
- *   variant="success"
- *   checked={taskDone}
- *   onChange={handleTaskToggle}
- * />
+ * // Invalid state
+ * <CheckBox state="invalid" label="Required field" />
  *
- * // Indeterminate state for hierarchical selection
- * <CheckBox
- *   label="Select all items"
- *   indeterminate={someSelected}
- *   checked={allSelected}
- *   onChange={handleSelectAll}
- * />
- *
- * // With error message
- * <CheckBox
- *   label="Required field"
- *   state="invalid"
- *   errorMessage="This field is required"
- * />
+ * // Disabled state
+ * <CheckBox disabled label="Disabled option" />
  * ```
  */
 export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
@@ -210,7 +135,6 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
       size = 'medium',
       state = 'default',
       _theme = 'light',
-      variant = 'primary',
       indeterminate = false,
       errorMessage,
       helperText,
@@ -247,19 +171,10 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     const sizeClasses = SIZE_CLASSES[size];
 
     // Determine checkbox visual variant
-    const checkVariant = indeterminate
-      ? 'indeterminate'
-      : checked
-        ? 'checked'
-        : 'unchecked';
+    const checkVariant = checked || indeterminate ? 'checked' : 'unchecked';
 
-    // Get styling classes - state overrides variant
-    let stylingClasses;
-    if (currentState === 'invalid' || currentState === 'disabled') {
-      stylingClasses = STATE_OVERRIDES[currentState][checkVariant];
-    } else {
-      stylingClasses = VARIANT_CLASSES[variant][checkVariant];
-    }
+    // Get styling classes
+    const stylingClasses = STATE_CLASSES[currentState][checkVariant];
 
     // Get final checkbox classes
     const checkboxClasses = `${BASE_CHECKBOX_CLASSES} ${sizeClasses.checkbox} ${stylingClasses} ${className}`;
@@ -267,7 +182,7 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     // Check icon for checked state
     const CheckIcon = (
       <svg
-        className="w-full h-full"
+        className="w-full h-full p-0.5"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -285,7 +200,7 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     // Indeterminate icon
     const IndeterminateIcon = (
       <svg
-        className="w-full h-full"
+        className="w-full h-full p-1"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -295,64 +210,71 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={3}
-          d="M6 12h12"
+          d="M20 12H4"
         />
       </svg>
     );
 
     return (
       <div className="flex flex-col">
-        <label
-          htmlFor={inputId}
-          className={`inline-flex items-start ${sizeClasses.spacing} cursor-pointer ${disabled ? 'cursor-not-allowed' : ''}`}
-        >
-          <div className="relative flex-shrink-0">
-            <input
-              ref={ref}
-              type="checkbox"
-              id={inputId}
-              checked={checked}
-              disabled={disabled}
-              onChange={handleChange}
-              className="sr-only"
-              {...props}
-            />
-            <div className={checkboxClasses}>
-              {indeterminate ? IndeterminateIcon : checked ? CheckIcon : null}
-            </div>
-          </div>
+        <div className={`flex items-center ${sizeClasses.spacing}`}>
+          {/* Hidden native input for accessibility and form submission */}
+          <input
+            ref={ref}
+            type="checkbox"
+            id={inputId}
+            checked={checked}
+            disabled={disabled}
+            onChange={handleChange}
+            className="sr-only"
+            {...props}
+          />
 
+          {/* Custom styled checkbox */}
+          <label htmlFor={inputId} className={checkboxClasses}>
+            {/* Show appropriate icon based on state */}
+            {indeterminate ? IndeterminateIcon : checked ? CheckIcon : null}
+          </label>
+
+          {/* Label text */}
           {label && (
-            <span
-              className={`${sizeClasses.label} ${
-                disabled ? 'text-text-400 cursor-not-allowed' : 'text-text-950'
+            <Text
+              as="label"
+              htmlFor={inputId}
+              size={sizeClasses.textSize}
+              weight="normal"
+              color="black"
+              className={`cursor-pointer select-none ${
+                disabled ? 'opacity-60 cursor-not-allowed' : ''
               } ${labelClassName}`}
             >
               {label}
-            </span>
+            </Text>
           )}
-        </label>
+        </div>
 
         {/* Error message */}
         {errorMessage && (
-          <div className={`mt-1 ${sizeClasses.spacing}`}>
-            <div
-              className="flex-shrink-0"
-              style={{ width: sizeClasses.checkbox.split(' ')[0] }}
-            />
-            <span className="text-sm text-error-600">{errorMessage}</span>
-          </div>
+          <Text
+            size="sm"
+            weight="normal"
+            color="black"
+            className="mt-1.5 text-error-600"
+          >
+            {errorMessage}
+          </Text>
         )}
 
         {/* Helper text */}
         {helperText && !errorMessage && (
-          <div className={`mt-1 ${sizeClasses.spacing}`}>
-            <div
-              className="flex-shrink-0"
-              style={{ width: sizeClasses.checkbox.split(' ')[0] }}
-            />
-            <span className="text-sm text-text-600">{helperText}</span>
-          </div>
+          <Text
+            size="sm"
+            weight="normal"
+            color="black"
+            className="mt-1.5 text-text-500"
+          >
+            {helperText}
+          </Text>
         )}
       </div>
     );

@@ -341,4 +341,110 @@ describe('CheckBox Component', () => {
       expect(ref.current).toBeInstanceOf(HTMLInputElement);
     });
   });
+
+  describe('Text Integration', () => {
+    it('should use Text component for labels with correct props', () => {
+      render(<CheckBox label="Test Label" size="large" />);
+
+      const label = screen.getByText('Test Label');
+      expect(label).toBeInTheDocument();
+      expect(label.tagName).toBe('LABEL');
+    });
+
+    it('should use Text component for error messages', () => {
+      render(<CheckBox label="Test" errorMessage="Error occurred" />);
+
+      const errorMessage = screen.getByText('Error occurred');
+      expect(errorMessage).toBeInTheDocument();
+      expect(errorMessage).toHaveClass('text-error-600');
+    });
+
+    it('should use Text component for helper text', () => {
+      render(<CheckBox label="Test" helperText="Helper information" />);
+
+      const helperText = screen.getByText('Helper information');
+      expect(helperText).toBeInTheDocument();
+      expect(helperText).toHaveClass('text-text-500');
+    });
+
+    it('should not show helper text when error message is present', () => {
+      render(
+        <CheckBox
+          label="Test"
+          helperText="Helper info"
+          errorMessage="Error occurred"
+        />
+      );
+
+      expect(screen.getByText('Error occurred')).toBeInTheDocument();
+      expect(screen.queryByText('Helper info')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Theme Support', () => {
+    it('should apply correct classes for design system integration', () => {
+      render(<CheckBox label="Test" />);
+
+      const checkbox = screen.getByRole('checkbox', { hidden: true });
+      const customCheckbox = checkbox.nextElementSibling;
+
+      expect(customCheckbox).toHaveClass('bg-background');
+      expect(customCheckbox).toHaveClass('border-border-400');
+    });
+
+    it('should apply correct classes for checked state', () => {
+      render(<CheckBox label="Test" checked />);
+
+      const checkbox = screen.getByRole('checkbox', { hidden: true });
+      const customCheckbox = checkbox.nextElementSibling;
+
+      expect(customCheckbox).toHaveClass('bg-primary-800');
+      expect(customCheckbox).toHaveClass('border-primary-800');
+    });
+
+    it('should apply correct classes for invalid state', () => {
+      render(<CheckBox label="Test" state="invalid" />);
+
+      const checkbox = screen.getByRole('checkbox', { hidden: true });
+      const customCheckbox = checkbox.nextElementSibling;
+
+      expect(customCheckbox).toHaveClass('border-error-600');
+    });
+
+    it('should apply correct classes for disabled state', () => {
+      render(<CheckBox label="Test" disabled />);
+
+      const checkbox = screen.getByRole('checkbox', { hidden: true });
+      const customCheckbox = checkbox.nextElementSibling;
+
+      expect(customCheckbox).toHaveClass('opacity-60');
+      expect(customCheckbox).toHaveClass('cursor-not-allowed');
+
+      const label = screen.getByText('Test');
+      expect(label).toHaveClass('opacity-60');
+      expect(label).toHaveClass('cursor-not-allowed');
+    });
+  });
+
+  describe('Visual States', () => {
+    it('should apply hovered state classes', () => {
+      render(<CheckBox label="Test" state="hovered" />);
+
+      const checkbox = screen.getByRole('checkbox', { hidden: true });
+      const customCheckbox = checkbox.nextElementSibling;
+
+      expect(customCheckbox).toHaveClass('bg-background-50');
+      expect(customCheckbox).toHaveClass('border-border-500');
+    });
+
+    it('should apply focused state classes', () => {
+      render(<CheckBox label="Test" state="focused" />);
+
+      const checkbox = screen.getByRole('checkbox', { hidden: true });
+      const customCheckbox = checkbox.nextElementSibling;
+
+      expect(customCheckbox).toHaveClass('border-indicator-info');
+      expect(customCheckbox).toHaveClass('focus:ring-indicator-info/20');
+    });
+  });
 });

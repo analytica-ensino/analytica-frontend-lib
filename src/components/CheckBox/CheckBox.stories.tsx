@@ -2,255 +2,203 @@ import type { Story } from '@ladle/react';
 import { CheckBox } from './CheckBox';
 
 const sizes = ['small', 'medium', 'large'] as const;
-const states = ['default', 'invalid', 'disabled'] as const;
-const variants = ['primary', 'success', 'error', 'info', 'warning'] as const;
+const states = [
+  'default',
+  'hovered',
+  'focused',
+  'invalid',
+  'disabled',
+] as const;
 
 /**
- * Showcase principal: todas as combinações possíveis do CheckBox
+ * Default CheckBox component showcase
  */
-export const AllCheckBoxes: Story = () => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-    <h2 className="font-bold text-3xl text-text-900">CheckBox</h2>
-    <p className="text-text-700">
-      Variações possíveis do componente <code>CheckBox</code>:
-    </p>
-
-    {/* Tamanhos e Estados */}
-    <h3 className="font-bold text-2xl text-text-900">Tamanhos e Estados</h3>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {sizes.map((size) => (
-        <div key={size}>
-          <div className="font-medium text-text-900 mb-4 capitalize">
-            {size}
-          </div>
-
-          {/* Unchecked state */}
-          <div className="mb-6">
-            <div className="font-medium text-text-700 mb-2">Unchecked</div>
-            <div className="flex flex-row gap-6 flex-wrap">
-              {states.map((state) => (
-                <CheckBox
-                  key={`${size}-unchecked-${state}`}
-                  size={size}
-                  state={state}
-                  label={`${state} unchecked`}
-                  checked={false}
-                  disabled={state === 'disabled'}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Checked state */}
-          <div className="mb-6">
-            <div className="font-medium text-text-700 mb-2">Checked</div>
-            <div className="flex flex-row gap-6 flex-wrap">
-              {states.map((state) => (
-                <CheckBox
-                  key={`${size}-checked-${state}`}
-                  size={size}
-                  state={state}
-                  label={`${state} checked`}
-                  checked={true}
-                  disabled={state === 'disabled'}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Indeterminate state */}
-          <div className="mb-6">
-            <div className="font-medium text-text-700 mb-2">Indeterminate</div>
-            <div className="flex flex-row gap-6 flex-wrap">
-              {states.map((state) => (
-                <CheckBox
-                  key={`${size}-indeterminate-${state}`}
-                  size={size}
-                  state={state}
-                  label={`${state} indeterminate`}
-                  checked={false}
-                  indeterminate={true}
-                  disabled={state === 'disabled'}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-
-    {/* Com mensagens de erro e ajuda */}
-    <h3 className="font-bold text-2xl text-text-900">Com Mensagens</h3>
-    <div className="flex flex-col gap-6">
-      <div>
-        <div className="font-medium text-text-900 mb-2">
-          Com mensagem de erro
-        </div>
-        <CheckBox
-          label="Aceito os termos e condições"
-          state="invalid"
-          errorMessage="Este campo é obrigatório"
-        />
+export const Default: Story = () => (
+  <div className="flex flex-col gap-8 p-8">
+    <div>
+      <h3 className="text-lg font-semibold mb-4 text-text-950">Basic Usage</h3>
+      <div className="flex flex-col gap-4">
+        <CheckBox label="Unchecked option" />
+        <CheckBox label="Checked option" checked={true} />
+        <CheckBox label="Indeterminate option" indeterminate={true} />
       </div>
-
-      <div>
-        <div className="font-medium text-text-900 mb-2">Com texto de ajuda</div>
-        <CheckBox
-          label="Receber notificações por email"
-          helperText="Você pode alterar esta preferência a qualquer momento"
-        />
-      </div>
-    </div>
-
-    {/* Agrupamento */}
-    <h3 className="font-bold text-2xl text-text-900">Agrupamento</h3>
-    <div className="flex flex-col gap-4">
-      <div>
-        <div className="font-medium text-text-900 mb-3">
-          Selecionar disciplinas:
-        </div>
-        <div className="flex flex-col gap-2 ml-4">
-          <CheckBox label="Matemática" checked={true} />
-          <CheckBox label="Português" checked={false} />
-          <CheckBox label="História" checked={true} />
-          <CheckBox label="Geografia" checked={false} />
-        </div>
-      </div>
-
-      <div>
-        <div className="font-medium text-text-900 mb-3">
-          Seleção hierárquica:
-        </div>
-        <div className="flex flex-col gap-2">
-          <CheckBox label="Selecionar todos" indeterminate={true} />
-          <div className="flex flex-col gap-2 ml-6">
-            <CheckBox label="Ensino Fundamental" checked={true} />
-            <CheckBox label="Ensino Médio" checked={false} />
-            <CheckBox label="Ensino Superior" checked={true} />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* Variantes de cor */}
-    <h3 className="font-bold text-2xl text-text-900">Variantes de Cor</h3>
-    <div className="flex flex-col gap-4">
-      <div>
-        <div className="font-medium text-text-700 mb-2">Checked variants</div>
-        <div className="flex flex-row gap-4 flex-wrap">
-          {variants.map((variant) => (
-            <CheckBox
-              key={variant}
-              variant={variant}
-              label={`${variant} variant`}
-              checked={true}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <div className="font-medium text-text-700 mb-2">Unchecked variants</div>
-        <div className="flex flex-row gap-4 flex-wrap">
-          {variants.map((variant) => (
-            <CheckBox
-              key={variant}
-              variant={variant}
-              label={`${variant} variant`}
-              checked={false}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <div className="font-medium text-text-700 mb-2">
-          Indeterminate variants
-        </div>
-        <div className="flex flex-row gap-4 flex-wrap">
-          {variants.map((variant) => (
-            <CheckBox
-              key={variant}
-              variant={variant}
-              label={`${variant} indeterminate`}
-              indeterminate={true}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-
-    {/* Sem rótulo */}
-    <h3 className="font-bold text-2xl text-text-900">Sem Rótulo</h3>
-    <div className="flex flex-row gap-4">
-      <CheckBox checked={false} />
-      <CheckBox checked={true} />
-      <CheckBox indeterminate={true} />
     </div>
   </div>
 );
 
 /**
- * Tamanhos (modo não-controlado - clicáveis)
+ * Size variations
  */
 export const Sizes: Story = () => (
-  <div className="flex flex-row gap-6">
-    {sizes.map((size) => (
-      <CheckBox
-        key={size}
-        size={size}
-        label={`${size.charAt(0).toUpperCase() + size.slice(1)} checkbox`}
-      />
-    ))}
-  </div>
-);
-
-/**
- * Variantes de cor (modo não-controlado - clicáveis)
- */
-export const ColorVariants: Story = () => (
-  <div className="flex flex-col gap-6">
+  <div className="flex flex-col gap-8 p-8">
     <div>
-      <h4 className="font-medium text-text-900 mb-3">
-        Interactive variants (click to test)
-      </h4>
-      <div className="flex flex-row gap-4 flex-wrap">
-        {variants.map((variant) => (
-          <CheckBox
-            key={variant}
-            variant={variant}
-            label={variant.charAt(0).toUpperCase() + variant.slice(1)}
-          />
-        ))}
-      </div>
-    </div>
+      <h3 className="text-lg font-semibold mb-6 text-text-950">
+        CheckBox Sizes
+      </h3>
 
-    <div>
-      <h4 className="font-medium text-text-900 mb-3">Pre-checked variants</h4>
-      <div className="flex flex-row gap-4 flex-wrap">
-        {variants.map((variant) => (
+      {/* Small Size */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-3 text-text-950">
+          Small (16x16px)
+        </h4>
+        <div className="flex items-center gap-6">
+          <CheckBox size="small" label="Small unchecked" />
+          <CheckBox size="small" label="Small checked" checked={true} />
           <CheckBox
-            key={`checked-${variant}`}
-            variant={variant}
-            label={variant.charAt(0).toUpperCase() + variant.slice(1)}
-            checked={true}
-            readOnly
-          />
-        ))}
-      </div>
-    </div>
-
-    <div>
-      <h4 className="font-medium text-text-900 mb-3">Indeterminate variants</h4>
-      <div className="flex flex-row gap-4 flex-wrap">
-        {variants.map((variant) => (
-          <CheckBox
-            key={`indeterminate-${variant}`}
-            variant={variant}
-            label={variant.charAt(0).toUpperCase() + variant.slice(1)}
+            size="small"
+            label="Small indeterminate"
             indeterminate={true}
-            readOnly
           />
+        </div>
+      </div>
+
+      {/* Medium Size */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-3 text-text-950">
+          Medium (20x20px) - Default
+        </h4>
+        <div className="flex items-center gap-6">
+          <CheckBox size="medium" label="Medium unchecked" />
+          <CheckBox size="medium" label="Medium checked" checked={true} />
+          <CheckBox
+            size="medium"
+            label="Medium indeterminate"
+            indeterminate={true}
+          />
+        </div>
+      </div>
+
+      {/* Large Size */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-3 text-text-950">
+          Large (24x24px)
+        </h4>
+        <div className="flex items-center gap-6">
+          <CheckBox size="large" label="Large unchecked" />
+          <CheckBox size="large" label="Large checked" checked={true} />
+          <CheckBox
+            size="large"
+            label="Large indeterminate"
+            indeterminate={true}
+          />
+        </div>
+      </div>
+
+      {/* Size Comparison */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-3 text-text-950">
+          Size Comparison
+        </h4>
+        <div className="flex items-end gap-8">
+          <div className="flex flex-col items-center gap-2">
+            <CheckBox size="small" checked={true} />
+            <span className="text-xs text-text-500">Small</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <CheckBox size="medium" checked={true} />
+            <span className="text-xs text-text-500">Medium</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <CheckBox size="large" checked={true} />
+            <span className="text-xs text-text-500">Large</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/**
+ * State variations
+ */
+export const States: Story = () => (
+  <div className="flex flex-col gap-8 p-8">
+    <div>
+      <h3 className="text-lg font-semibold mb-6 text-text-950">
+        CheckBox States
+      </h3>
+
+      {/* Default State */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-3 text-text-950">Default</h4>
+        <div className="flex items-center gap-6">
+          <CheckBox state="default" label="Default unchecked" />
+          <CheckBox state="default" label="Default checked" checked={true} />
+        </div>
+      </div>
+
+      {/* Hovered State */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-3 text-text-950">Hovered</h4>
+        <div className="flex items-center gap-6">
+          <CheckBox state="hovered" label="Hovered unchecked" />
+          <CheckBox state="hovered" label="Hovered checked" checked={true} />
+        </div>
+      </div>
+
+      {/* Focused State */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-3 text-text-950">Focused</h4>
+        <div className="flex items-center gap-6">
+          <CheckBox state="focused" label="Focused unchecked" />
+          <CheckBox state="focused" label="Focused checked" checked={true} />
+        </div>
+      </div>
+
+      {/* Invalid State */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-3 text-text-950">Invalid</h4>
+        <div className="flex items-center gap-6">
+          <CheckBox state="invalid" label="Invalid unchecked" />
+          <CheckBox state="invalid" label="Invalid checked" checked={true} />
+        </div>
+      </div>
+
+      {/* Disabled State */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-3 text-text-950">Disabled</h4>
+        <div className="flex items-center gap-6">
+          <CheckBox disabled label="Disabled unchecked" />
+          <CheckBox disabled label="Disabled checked" checked={true} />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/**
+ * All combinations showcase
+ */
+export const AllCombinations: Story = () => (
+  <div className="flex flex-col gap-8 p-8">
+    <div>
+      <h3 className="text-lg font-semibold mb-4 text-text-950">
+        All Size and State Combinations
+      </h3>
+      <div className="grid grid-cols-2 gap-8">
+        {sizes.map((size) => (
+          <div key={size} className="flex flex-col gap-4">
+            <h4 className="font-medium text-md text-text-950">
+              {size.charAt(0).toUpperCase() + size.slice(1)}
+            </h4>
+            {states.map((state) => (
+              <div key={`${size}-${state}`} className="flex items-center gap-4">
+                <CheckBox
+                  size={size}
+                  state={state === 'disabled' ? 'default' : state}
+                  disabled={state === 'disabled'}
+                  label={`${state}`}
+                />
+                <CheckBox
+                  size={size}
+                  state={state === 'disabled' ? 'default' : state}
+                  disabled={state === 'disabled'}
+                  label={`${state} checked`}
+                  checked={true}
+                />
+              </div>
+            ))}
+          </div>
         ))}
       </div>
     </div>
@@ -258,175 +206,96 @@ export const ColorVariants: Story = () => (
 );
 
 /**
- * Estados não marcados
+ * Theme variations - Light and Dark mode support
  */
-export const UncheckedStates: Story = () => (
-  <div className="flex flex-col gap-4">
-    {states.map((state) => (
-      <CheckBox
-        key={state}
-        state={state}
-        label={`${state.charAt(0).toUpperCase() + state.slice(1)} state`}
-        checked={false}
-        disabled={state === 'disabled'}
-      />
-    ))}
-  </div>
-);
-
-/**
- * Estados marcados
- */
-export const CheckedStates: Story = () => (
-  <div className="flex flex-col gap-4">
-    {states.map((state) => (
-      <CheckBox
-        key={state}
-        state={state}
-        label={`${state.charAt(0).toUpperCase() + state.slice(1)} state`}
-        checked={true}
-        disabled={state === 'disabled'}
-      />
-    ))}
-  </div>
-);
-
-/**
- * Estados indeterminados
- */
-export const IndeterminateStates: Story = () => (
-  <div className="flex flex-col gap-4">
-    {states.map((state) => (
-      <CheckBox
-        key={state}
-        state={state}
-        label={`${state.charAt(0).toUpperCase() + state.slice(1)} indeterminate`}
-        checked={false}
-        indeterminate={true}
-        disabled={state === 'disabled'}
-      />
-    ))}
-  </div>
-);
-
-/**
- * Com mensagens de erro
- */
-export const WithErrorMessages: Story = () => (
-  <div className="flex flex-col gap-4">
-    <CheckBox
-      label="Campo obrigatório"
-      state="invalid"
-      errorMessage="Este campo deve ser marcado"
-    />
-    <CheckBox
-      label="Aceitar termos"
-      state="invalid"
-      errorMessage="Você deve aceitar os termos para continuar"
-      checked={false}
-    />
-  </div>
-);
-
-/**
- * Com texto de ajuda
- */
-export const WithHelperText: Story = () => (
-  <div className="flex flex-col gap-4">
-    <CheckBox
-      label="Receber newsletter"
-      helperText="Enviaremos atualizações semanais sobre novos cursos"
-    />
-    <CheckBox
-      label="Habilitar notificações"
-      helperText="Você pode alterar esta configuração no seu perfil"
-      checked={true}
-    />
-  </div>
-);
-
-/**
- * Seleção hierárquica complexa
- */
-export const HierarchicalSelection: Story = () => (
-  <div className="flex flex-col gap-3">
+export const Themes: Story = () => (
+  <div className="flex flex-col gap-8 p-8">
     <div>
-      <CheckBox label="Todas as matérias" indeterminate={true} />
-      <div className="ml-6 mt-2 flex flex-col gap-2">
-        <div>
-          <CheckBox label="Ciências Exatas" checked={true} />
-          <div className="ml-6 mt-1 flex flex-col gap-1">
-            <CheckBox label="Matemática" checked={true} />
-            <CheckBox label="Física" checked={true} />
-            <CheckBox label="Química" checked={true} />
-          </div>
-        </div>
-        <div>
-          <CheckBox label="Ciências Humanas" indeterminate={true} />
-          <div className="ml-6 mt-1 flex flex-col gap-1">
-            <CheckBox label="História" checked={true} />
-            <CheckBox label="Geografia" checked={false} />
-            <CheckBox label="Filosofia" checked={false} />
-          </div>
-        </div>
-        <div>
-          <CheckBox label="Linguagens" checked={false} />
-          <div className="ml-6 mt-1 flex flex-col gap-1">
-            <CheckBox label="Português" checked={false} />
-            <CheckBox label="Inglês" checked={false} />
-            <CheckBox label="Literatura" checked={false} />
+      <h3 className="text-lg font-semibold mb-6 text-text-950">
+        CheckBox Themes
+      </h3>
+
+      {/* Light Theme */}
+      <div className="mb-8" data-theme="light">
+        <h4 className="font-medium text-md mb-4 text-text-800">
+          Light Theme (Default)
+        </h4>
+        <div className="p-6 bg-background border border-border-200 rounded-lg">
+          <div className="grid grid-cols-2 gap-6">
+            <div className="flex flex-col gap-4">
+              <h5 className="font-medium text-sm text-text-700">States</h5>
+              <CheckBox label="Default" />
+              <CheckBox label="Checked" checked={true} />
+              <CheckBox label="Invalid" state="invalid" />
+              <CheckBox label="Disabled" disabled />
+              <CheckBox label="Indeterminate" indeterminate={true} />
+            </div>
+            <div className="flex flex-col gap-4">
+              <h5 className="font-medium text-sm text-text-700">Sizes</h5>
+              <CheckBox size="small" label="Small" checked={true} />
+              <CheckBox size="medium" label="Medium" checked={true} />
+              <CheckBox size="large" label="Large" checked={true} />
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-);
 
-/**
- * Exemplo interativo simples
- */
-export const InteractiveExample: Story = () => (
-  <div className="flex flex-col gap-6">
-    <div>
-      <h4 className="font-medium text-text-900 mb-3">Clique para testar</h4>
-      <p className="text-sm text-text-600 mb-4">
-        Estes checkboxes são interativos - clique neles para ver a mudança de
-        cor azul!
-      </p>
-      <div className="flex flex-col gap-3">
-        <CheckBox label="Checkbox interativo 1" />
-        <CheckBox label="Checkbox interativo 2" />
-        <CheckBox label="Checkbox variant success" variant="success" />
-        <CheckBox label="Checkbox variant error" variant="error" />
-        <CheckBox label="Checkbox variant warning" variant="warning" />
+      {/* Dark Theme */}
+      <div className="mb-8" data-theme="dark">
+        <h4 className="font-medium text-md mb-4 text-text-200">Dark Theme</h4>
+        <div className="p-6 bg-background border border-border-200 rounded-lg">
+          <div className="grid grid-cols-2 gap-6">
+            <div className="flex flex-col gap-4">
+              <h5 className="font-medium text-sm text-text-300">States</h5>
+              <CheckBox label="Default" />
+              <CheckBox label="Checked" checked={true} />
+              <CheckBox label="Invalid" state="invalid" />
+              <CheckBox label="Disabled" disabled />
+              <CheckBox label="Indeterminate" indeterminate={true} />
+            </div>
+            <div className="flex flex-col gap-4">
+              <h5 className="font-medium text-sm text-text-300">Sizes</h5>
+              <CheckBox size="small" label="Small" checked={true} />
+              <CheckBox size="medium" label="Medium" checked={true} />
+              <CheckBox size="large" label="Large" checked={true} />
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-);
 
-/**
- * Showcase de acessibilidade
- */
-export const AccessibilityShowcase: Story = () => (
-  <div className="flex flex-col gap-6">
-    <div>
-      <h4 className="font-medium text-text-900 mb-3">Navegação por teclado</h4>
-      <p className="text-sm text-text-600 mb-4">
-        Use Tab para navegar e Espaço para marcar/desmarcar
-      </p>
-      <div className="flex flex-col gap-2">
-        <CheckBox label="Primeiro checkbox" />
-        <CheckBox label="Segundo checkbox" />
-        <CheckBox label="Terceiro checkbox" />
-      </div>
-    </div>
-
-    <div>
-      <h4 className="font-medium text-text-900 mb-3">Estados de foco</h4>
-      <div className="flex flex-col gap-2">
-        <CheckBox label="CheckBox normal" />
-        <CheckBox label="CheckBox inválido" state="invalid" />
-        <CheckBox label="CheckBox desabilitado" disabled />
+      {/* Side by Side Comparison */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-4 text-text-800">
+          Side by Side Comparison
+        </h4>
+        <div className="grid grid-cols-2 gap-6">
+          <div
+            data-theme="light"
+            className="p-4 bg-background border border-border-200 rounded-lg"
+          >
+            <h5 className="font-medium text-sm mb-3 text-text-700">
+              Light Mode
+            </h5>
+            <div className="flex flex-col gap-3">
+              <CheckBox label="Option 1" checked={true} />
+              <CheckBox label="Option 2" />
+              <CheckBox label="Option 3" state="invalid" />
+            </div>
+          </div>
+          <div
+            data-theme="dark"
+            className="p-4 bg-background border border-border-200 rounded-lg"
+          >
+            <h5 className="font-medium text-sm mb-3 text-text-300">
+              Dark Mode
+            </h5>
+            <div className="flex flex-col gap-3">
+              <CheckBox label="Option 1" checked={true} />
+              <CheckBox label="Option 2" />
+              <CheckBox label="Option 3" state="invalid" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
