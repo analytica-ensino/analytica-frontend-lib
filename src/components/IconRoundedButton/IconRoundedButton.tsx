@@ -49,9 +49,9 @@ export const IconRoundedButton = ({
     'bg-background',
     'text-text-950',
     'hover:shadow-hard-shadow-1',
-    'focus:shadow-hard-shadow-1',
-    'focus:border-2',
-    'focus:border-indicator-info',
+    'focus-visible:shadow-hard-shadow-1',
+    'focus-visible:border-2',
+    'focus-visible:border-indicator-info',
     'disabled:opacity-50',
     'disabled:cursor-not-allowed',
   ].join(' ');

@@ -6,27 +6,27 @@ import { ButtonHTMLAttributes, ReactNode } from 'react';
 const VARIANT_ACTION_CLASSES = {
   solid: {
     primary:
-      'bg-primary-950 text-text border-2 border-primary-950 hover:bg-primary-800 hover:border-primary-800 focus:bg-primary-950 focus:border-indicator-info active:bg-primary-700 active:border-primary-700 disabled:bg-primary-500 disabled:border-primary-500 disabled:opacity-40 disabled:cursor-not-allowed',
+      'bg-primary-950 text-text border-2 border-primary-950 hover:bg-primary-800 hover:border-primary-800 focus-visible:bg-primary-950 focus-visible:border-indicator-info active:bg-primary-700 active:border-primary-700 disabled:bg-primary-500 disabled:border-primary-500 disabled:opacity-40 disabled:cursor-not-allowed',
     positive:
-      'bg-success-500 text-text border-2 border-success-500 hover:bg-success-600 hover:border-success-600 focus:bg-success-500 focus:border-indicator-info active:bg-success-700 active:border-success-700 disabled:bg-success-500 disabled:border-success-500 disabled:opacity-40 disabled:cursor-not-allowed',
+      'bg-success-500 text-text border-2 border-success-500 hover:bg-success-600 hover:border-success-600 focus-visible:bg-success-500 focus-visible:border-indicator-info active:bg-success-700 active:border-success-700 disabled:bg-success-500 disabled:border-success-500 disabled:opacity-40 disabled:cursor-not-allowed',
     negative:
-      'bg-error-500 text-text border-2 border-error-500 hover:bg-error-600 hover:border-error-600 focus:bg-error-500 focus:border-indicator-info active:bg-error-700 active:border-error-700 disabled:bg-error-500 disabled:border-error-500 disabled:opacity-40 disabled:cursor-not-allowed',
+      'bg-error-500 text-text border-2 border-error-500 hover:bg-error-600 hover:border-error-600 focus-visible:bg-error-500 focus-visible:border-indicator-info active:bg-error-700 active:border-error-700 disabled:bg-error-500 disabled:border-error-500 disabled:opacity-40 disabled:cursor-not-allowed',
   },
   outline: {
     primary:
-      'bg-transparent text-primary-950 border border-primary-950 hover:bg-background-50 hover:text-primary-400 hover:border-primary-400 focus:text-primary-600 focus:border-2 focus:border-indicator-info active:text-primary-700 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed',
+      'bg-transparent text-primary-950 border border-primary-950 hover:bg-background-50 hover:text-primary-400 hover:border-primary-400 focus-visible:text-primary-600 focus-visible:border-2 focus-visible:border-indicator-info active:text-primary-700 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed',
     positive:
-      'bg-transparent text-success-500 border border-success-300 hover:bg-background-50 hover:text-success-400 hover:border-success-400 focus:text-success-600 focus:border-2 focus:border-indicator-info active:text-success-700 active:border-success-700 disabled:opacity-40 disabled:cursor-not-allowed',
+      'bg-transparent text-success-500 border border-success-300 hover:bg-background-50 hover:text-success-400 hover:border-success-400 focus-visible:text-success-600 focus-visible:border-2 focus-visible:border-indicator-info active:text-success-700 active:border-success-700 disabled:opacity-40 disabled:cursor-not-allowed',
     negative:
-      'bg-transparent text-error-500 border border-error-300 hover:bg-background-50 hover:text-error-400 hover:border-error-400 focus:text-error-600 focus:border-2 focus:border-indicator-info active:text-error-700 active:border-error-700 disabled:opacity-40 disabled:cursor-not-allowed',
+      'bg-transparent text-error-500 border border-error-300 hover:bg-background-50 hover:text-error-400 hover:border-error-400 focus-visible:text-error-600 focus-visible:border-2 focus-visible:border-indicator-info active:text-error-700 active:border-error-700 disabled:opacity-40 disabled:cursor-not-allowed',
   },
   link: {
     primary:
-      'bg-transparent text-primary-950 hover:text-primary-400 focus:text-primary-600 focus:border-2 focus:border-indicator-info active:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed',
+      'bg-transparent text-primary-950 hover:text-primary-400 focus-visible:text-primary-600 focus-visible:border-2 focus-visible:border-indicator-info active:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed',
     positive:
-      'bg-transparent text-success-500 hover:text-success-400 focus:text-success-600 focus:border-2 focus:border-indicator-info active:text-success-700 disabled:opacity-40 disabled:cursor-not-allowed',
+      'bg-transparent text-success-500 hover:text-success-400 focus-visible:text-success-600 focus-visible:border-2 focus-visible:border-indicator-info active:text-success-700 disabled:opacity-40 disabled:cursor-not-allowed',
     negative:
-      'bg-transparent text-error-500 hover:text-error-400 focus:text-error-600 focus:border-2 focus:border-indicator-info active:text-error-700 disabled:opacity-40 disabled:cursor-not-allowed',
+      'bg-transparent text-error-500 hover:text-error-400 focus-visible:text-error-600 focus-visible:border-2 focus-visible:border-indicator-info active:text-error-700 disabled:opacity-40 disabled:cursor-not-allowed',
   },
 } as const;
 

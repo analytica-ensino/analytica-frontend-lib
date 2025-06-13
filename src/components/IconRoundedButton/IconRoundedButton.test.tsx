@@ -39,14 +39,14 @@ describe('IconRoundedButton', () => {
       render(<IconRoundedButton icon={<TestIcon />} />);
       const button = screen.getByRole('button');
       expect(button).toHaveClass('hover:shadow-hard-shadow-1');
-      expect(button).toHaveClass('focus:shadow-hard-shadow-1');
-      expect(button).toHaveClass('focus:border-indicator-info');
+      expect(button).toHaveClass('focus-visible:shadow-hard-shadow-1');
+      expect(button).toHaveClass('focus-visible:border-indicator-info');
     });
 
     it('applies focus border classes', () => {
       render(<IconRoundedButton icon={<TestIcon />} />);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('focus:border-2');
+      expect(button).toHaveClass('focus-visible:border-2');
     });
   });
 
