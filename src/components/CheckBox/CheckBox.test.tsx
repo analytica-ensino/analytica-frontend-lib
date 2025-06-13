@@ -148,7 +148,7 @@ describe('CheckBox Component', () => {
     it('applies invalid state classes', () => {
       render(<CheckBox state="invalid" label="Invalid" data-testid="container" />);
       const container = screen.getByTestId('container');
-      expect(container.querySelector('div[class*="border-error-500"]')).toBeInTheDocument();
+      expect(container.querySelector('div[class*="border-error-600"]')).toBeInTheDocument();
     });
 
     it('applies disabled state classes', () => {
@@ -218,7 +218,7 @@ describe('CheckBox Component', () => {
     it('applies error styling to error message', () => {
       render(<CheckBox label="Test" errorMessage="Error message" />);
       const errorElement = screen.getByText('Error message');
-      expect(errorElement).toHaveClass('text-error-500');
+      expect(errorElement).toHaveClass('text-error-600');
     });
 
     it('applies helper styling to helper text', () => {

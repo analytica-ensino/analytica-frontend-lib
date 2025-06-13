@@ -42,49 +42,49 @@ const SIZE_CLASSES = {
 } as const;
 
 /**
- * Base checkbox styling classes
+ * Base checkbox styling classes using Analytica Ensino Design System
  */
-const BASE_CHECKBOX_CLASSES = 'rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center focus:ring-2 focus:ring-offset-2';
+const BASE_CHECKBOX_CLASSES = 'rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center focus:ring-2 focus:ring-offset-2 font-primary';
 
 /**
- * Variant-based color classes following Figma specifications
+ * Variant-based color classes using Analytica Ensino Design System colors from styles.css
  */
 const VARIANT_CLASSES = {
   primary: {
-    unchecked: 'border-border-300 bg-background hover:border-primary-500 hover:bg-background-50 focus:border-indicator-info focus:ring-indicator-info/20 active:border-primary-600',
+    unchecked: 'border-border-300 bg-background hover:border-primary-600 hover:bg-background-50 focus:border-indicator-info focus:ring-indicator-info/20 active:border-primary-700',
     checked: 'border-primary-950 bg-primary-950 text-text hover:border-primary-800 hover:bg-primary-800 focus:border-indicator-info focus:ring-indicator-info/20 active:border-primary-900 active:bg-primary-900',
     indeterminate: 'border-primary-950 bg-primary-950 text-text hover:border-primary-800 hover:bg-primary-800 focus:border-indicator-info focus:ring-indicator-info/20 active:border-primary-900 active:bg-primary-900',
   },
   success: {
-    unchecked: 'border-border-300 bg-background hover:border-success-500 hover:bg-success-50 focus:border-indicator-info focus:ring-indicator-info/20 active:border-success-600',
-    checked: 'border-success-500 bg-success-500 text-text hover:border-success-600 hover:bg-success-600 focus:border-indicator-info focus:ring-indicator-info/20 active:border-success-700 active:bg-success-700',
-    indeterminate: 'border-success-500 bg-success-500 text-text hover:border-success-600 hover:bg-success-600 focus:border-indicator-info focus:ring-indicator-info/20 active:border-success-700 active:bg-success-700',
+    unchecked: 'border-border-300 bg-background hover:border-success-600 hover:bg-success-background focus:border-indicator-info focus:ring-indicator-info/20 active:border-success-700',
+    checked: 'border-success-600 bg-success-600 text-text hover:border-success-700 hover:bg-success-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-success-800 active:bg-success-800',
+    indeterminate: 'border-success-600 bg-success-600 text-text hover:border-success-700 hover:bg-success-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-success-800 active:bg-success-800',
   },
   error: {
-    unchecked: 'border-border-300 bg-background hover:border-error-500 hover:bg-error-50 focus:border-indicator-info focus:ring-indicator-info/20 active:border-error-600',
-    checked: 'border-error-500 bg-error-500 text-text hover:border-error-600 hover:bg-error-600 focus:border-indicator-info focus:ring-indicator-info/20 active:border-error-700 active:bg-error-700',
-    indeterminate: 'border-error-500 bg-error-500 text-text hover:border-error-600 hover:bg-error-600 focus:border-indicator-info focus:ring-indicator-info/20 active:border-error-700 active:bg-error-700',
+    unchecked: 'border-border-300 bg-background hover:border-error-600 hover:bg-error-background focus:border-indicator-info focus:ring-indicator-info/20 active:border-error-700',
+    checked: 'border-error-600 bg-error-600 text-text hover:border-error-700 hover:bg-error-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-error-800 active:bg-error-800',
+    indeterminate: 'border-error-600 bg-error-600 text-text hover:border-error-700 hover:bg-error-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-error-800 active:bg-error-800',
   },
   info: {
-    unchecked: 'border-border-300 bg-background hover:border-info-500 hover:bg-info-50 focus:border-indicator-info focus:ring-indicator-info/20 active:border-info-600',
-    checked: 'border-info-500 bg-info-500 text-text hover:border-info-600 hover:bg-info-600 focus:border-indicator-info focus:ring-indicator-info/20 active:border-info-700 active:bg-info-700',
-    indeterminate: 'border-info-500 bg-info-500 text-text hover:border-info-600 hover:bg-info-600 focus:border-indicator-info focus:ring-indicator-info/20 active:border-info-700 active:bg-info-700',
+    unchecked: 'border-border-300 bg-background hover:border-info-600 hover:bg-info-background focus:border-indicator-info focus:ring-indicator-info/20 active:border-info-700',
+    checked: 'border-info-600 bg-info-600 text-text hover:border-info-700 hover:bg-info-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-info-800 active:bg-info-800',
+    indeterminate: 'border-info-600 bg-info-600 text-text hover:border-info-700 hover:bg-info-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-info-800 active:bg-info-800',
   },
   warning: {
-    unchecked: 'border-border-300 bg-background hover:border-warning-500 hover:bg-warning-50 focus:border-indicator-info focus:ring-indicator-info/20 active:border-warning-600',
-    checked: 'border-warning-500 bg-warning-500 text-text hover:border-warning-600 hover:bg-warning-600 focus:border-indicator-info focus:ring-indicator-info/20 active:border-warning-700 active:bg-warning-700',
-    indeterminate: 'border-warning-500 bg-warning-500 text-text hover:border-warning-600 hover:bg-warning-600 focus:border-indicator-info focus:ring-indicator-info/20 active:border-warning-700 active:bg-warning-700',
+    unchecked: 'border-border-300 bg-background hover:border-warning-600 hover:bg-warning-background focus:border-indicator-info focus:ring-indicator-info/20 active:border-warning-700',
+    checked: 'border-warning-600 bg-warning-600 text-text hover:border-warning-700 hover:bg-warning-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-warning-800 active:bg-warning-800',
+    indeterminate: 'border-warning-600 bg-warning-600 text-text hover:border-warning-700 hover:bg-warning-700 focus:border-indicator-info focus:ring-indicator-info/20 active:border-warning-800 active:bg-warning-800',
   },
 } as const;
 
 /**
- * State-based styling classes following Figma specifications
+ * State-based styling classes using Analytica Ensino Design System colors from styles.css
  */
 const STATE_OVERRIDES = {
   invalid: {
-    unchecked: 'border-error-500 bg-background hover:border-error-600 hover:bg-error-50 focus:border-error-500 focus:ring-error-500/20 active:border-error-700',
-    checked: 'border-error-500 bg-error-500 text-text hover:border-error-600 hover:bg-error-600 focus:border-error-500 focus:ring-error-500/20 active:border-error-700 active:bg-error-700',
-    indeterminate: 'border-error-500 bg-error-500 text-text hover:border-error-600 hover:bg-error-600 focus:border-error-500 focus:ring-error-500/20 active:border-error-700 active:bg-error-700',
+    unchecked: 'border-error-600 bg-background hover:border-error-700 hover:bg-error-background focus:border-indicator-error focus:ring-indicator-error/20 active:border-error-800',
+    checked: 'border-error-600 bg-error-600 text-text hover:border-error-700 hover:bg-error-700 focus:border-indicator-error focus:ring-indicator-error/20 active:border-error-800 active:bg-error-800',
+    indeterminate: 'border-error-600 bg-error-600 text-text hover:border-error-700 hover:bg-error-700 focus:border-indicator-error focus:ring-indicator-error/20 active:border-error-800 active:bg-error-800',
   },
   disabled: {
     unchecked: 'border-border-200 bg-background-100 cursor-not-allowed opacity-50',
@@ -123,6 +123,7 @@ export type CheckBoxProps = {
  * CheckBox component for Analytica Ensino platforms
  *
  * A flexible checkbox component with multiple states, sizes and themes.
+ * Uses the Analytica Ensino Design System colors and typography from styles.css.
  * Supports indeterminate state for hierarchical selections and full accessibility.
  * Fully compatible with Next.js 15 and React 19.
  *
@@ -284,7 +285,7 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(({
       {errorMessage && (
         <div className={`mt-1 ${sizeClasses.spacing}`}>
           <div className="flex-shrink-0" style={{ width: sizeClasses.checkbox.split(' ')[0] }} />
-          <span className="text-sm text-error-500">{errorMessage}</span>
+          <span className="text-sm text-error-600">{errorMessage}</span>
         </div>
       )}
 
