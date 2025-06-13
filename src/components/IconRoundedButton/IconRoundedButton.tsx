@@ -52,10 +52,13 @@ export const IconRoundedButton = ({
     'focus:shadow-hard-shadow-1',
     'focus:border-2',
     'focus:border-indicator-info',
+    'disabled:opacity-50',
+    'disabled:cursor-not-allowed',
   ].join(' ');
 
   return (
     <button
+      type="button"
       className={`${baseClasses} ${className}`}
       disabled={disabled}
       {...props}
