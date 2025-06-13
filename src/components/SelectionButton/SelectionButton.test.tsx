@@ -29,7 +29,7 @@ describe('SelectionButton', () => {
       expect(button).toHaveClass('cursor-pointer');
     });
 
-    it('applies styling classes', () => {
+    it('applies base styling classes', () => {
       render(<SelectionButton icon={<TestIcon />} label="Test" />);
       const button = screen.getByRole('button');
       expect(button).toHaveClass('border');
@@ -39,12 +39,38 @@ describe('SelectionButton', () => {
       expect(button).toHaveClass('font-bold');
       expect(button).toHaveClass('text-sm');
       expect(button).toHaveClass('shadow-soft-shadow-1');
+      expect(button).toHaveClass('hover:bg-background-100');
     });
 
-    it('applies hover classes', () => {
+    it('applies unselected state classes by default', () => {
       render(<SelectionButton icon={<TestIcon />} label="Test" />);
       const button = screen.getByRole('button');
+      expect(button).toHaveClass('border-border-50');
       expect(button).toHaveClass('hover:bg-background-100');
+      expect(button).not.toHaveClass('ring-primary-950');
+      expect(button).not.toHaveClass('ring-2');
+    });
+
+    it('applies selected state classes when selected=true', () => {
+      render(
+        <SelectionButton icon={<TestIcon />} label="Test" selected={true} />
+      );
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('ring-primary-950');
+      expect(button).toHaveClass('ring-2');
+      expect(button).toHaveClass('ring-offset-0');
+      expect(button).toHaveClass('shadow-none');
+    });
+
+    it('applies unselected state classes when selected=false', () => {
+      render(
+        <SelectionButton icon={<TestIcon />} label="Test" selected={false} />
+      );
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('border-border-50');
+      expect(button).toHaveClass('hover:bg-background-100');
+      expect(button).not.toHaveClass('ring-primary-950');
+      expect(button).not.toHaveClass('ring-2');
     });
 
     it('applies focus classes', () => {
@@ -71,6 +97,48 @@ describe('SelectionButton', () => {
       const button = screen.getByRole('button');
       expect(button).toHaveClass('disabled:opacity-50');
       expect(button).toHaveClass('disabled:cursor-not-allowed');
+    });
+  });
+
+  describe('Selection state', () => {
+    it('defaults to unselected state', () => {
+      render(<SelectionButton icon={<TestIcon />} label="Test" />);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('border-border-50');
+      expect(button).not.toHaveClass('ring-primary-950');
+    });
+
+    it('applies selected state when selected=true', () => {
+      render(
+        <SelectionButton icon={<TestIcon />} label="Test" selected={true} />
+      );
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('ring-primary-950');
+      expect(button).toHaveClass('ring-2');
+    });
+
+    it('applies unselected state when selected=false', () => {
+      render(
+        <SelectionButton icon={<TestIcon />} label="Test" selected={false} />
+      );
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('border-border-50');
+      expect(button).not.toHaveClass('ring-primary-950');
+    });
+
+    it('maintains selection state with disabled prop', () => {
+      render(
+        <SelectionButton
+          icon={<TestIcon />}
+          label="Test"
+          selected={true}
+          disabled
+        />
+      );
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('ring-primary-950');
+      expect(button).toHaveClass('ring-2');
+      expect(button).toBeDisabled();
     });
   });
 
