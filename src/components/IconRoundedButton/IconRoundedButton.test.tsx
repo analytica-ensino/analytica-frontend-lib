@@ -47,7 +47,7 @@ describe('IconRoundedButton', () => {
     it('applies focus and disabled classes', () => {
       render(<IconRoundedButton icon={<TestIcon />} />);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('focus:outline-none');
+      expect(button).toHaveClass('focus-visible:outline-none');
       expect(button).toHaveClass('disabled:opacity-50');
       expect(button).toHaveClass('disabled:cursor-not-allowed');
     });
