@@ -1,6 +1,5 @@
 import type { Story } from '@ladle/react';
 import { Button } from './Button';
-import React from 'react';
 
 // Ícone SVG simples para demonstração
 const PlusIcon = (
@@ -82,30 +81,32 @@ export const AllButtons: Story = () => (
       <div>
         <div className="font-medium text-text-900 mb-2">Ícone à esquerda</div>
         <div className="flex flex-row gap-4">
-          <Button variant="solid" className="my-4" iconLeft={PlusIcon}>
-            Button
-          </Button>
-          <Button variant="outline" className="my-4" iconLeft={PlusIcon}>
-            Button
-          </Button>
-          <Button variant="link" className="my-4" iconLeft={PlusIcon}>
-            Button
-          </Button>
+          {variants.map((variant) => (
+            <Button
+              key={variant}
+              variant={variant}
+              className="my-4"
+              iconLeft={PlusIcon}
+            >
+              Button
+            </Button>
+          ))}
         </div>
         <Code>{`<Button iconLeft={<PlusIcon />}>Button</Button>`}</Code>
       </div>
       <div>
         <div className="font-medium text-text-900 mb-2">Ícone à direita</div>
         <div className="flex flex-row gap-4">
-          <Button variant="solid" className="my-4" iconRight={PlusIcon}>
-            Button
-          </Button>
-          <Button variant="outline" className="my-4" iconRight={PlusIcon}>
-            Button
-          </Button>
-          <Button variant="link" className="my-4" iconRight={PlusIcon}>
-            Button
-          </Button>
+          {variants.map((variant) => (
+            <Button
+              key={variant}
+              variant={variant}
+              className="my-4"
+              iconRight={PlusIcon}
+            >
+              Button
+            </Button>
+          ))}
         </div>
         <Code>{`<Button iconRight={<PlusIcon />}>Button</Button>`}</Code>
       </div>
@@ -116,7 +117,7 @@ export const AllButtons: Story = () => (
     <div className="flex flex-row gap-4 flex-wrap">
       {variants.map((variant) => (
         <Button key={variant} variant={variant} disabled>
-          {variant} disabled
+          Disabled
         </Button>
       ))}
     </div>
@@ -127,79 +128,55 @@ export const AllButtons: Story = () => (
 // Stories individuais para referência rápida
 export const Solid: Story = () => (
   <div className="flex flex-row gap-4">
-    <Button variant="solid" action="primary">
-      Solid Button
-    </Button>
-    <Button variant="solid" action="positive">
-      Solid Button
-    </Button>
-    <Button variant="solid" action="negative">
-      Solid Button
-    </Button>
+    {actions.map((action) => (
+      <Button key={action} variant="solid" action={action}>
+        Solid Button
+      </Button>
+    ))}
   </div>
 );
 export const Outline: Story = () => (
   <div className="flex flex-row gap-4">
-    <Button variant="outline" action="primary">
-      Outline Button
-    </Button>
-    <Button variant="outline" action="positive">
-      Outline Button
-    </Button>
-    <Button variant="outline" action="negative">
-      Outline Button
-    </Button>
+    {actions.map((action) => (
+      <Button key={action} variant="outline" action={action}>
+        Outline Button
+      </Button>
+    ))}
   </div>
 );
 export const Link: Story = () => (
   <div className="flex flex-row gap-4">
-    <Button variant="link" action="primary">
-      Link Button
-    </Button>
-    <Button variant="link" action="positive">
-      Link Button
-    </Button>
-    <Button variant="link" action="negative">
-      Link Button
-    </Button>
+    {actions.map((action) => (
+      <Button key={action} variant="link" action={action}>
+        Link Button
+      </Button>
+    ))}
   </div>
 );
 export const IconLeft: Story = () => (
   <div className="flex flex-row gap-4">
-    <Button variant="solid" iconLeft={PlusIcon}>
-      Ícone à esquerda
-    </Button>
-    <Button variant="outline" iconLeft={PlusIcon}>
-      Ícone à esquerda
-    </Button>
-    <Button variant="link" iconLeft={PlusIcon}>
-      Ícone à esquerda
-    </Button>
+    {variants.map((variant) => (
+      <Button key={variant} variant={variant} iconLeft={PlusIcon}>
+        Ícone à esquerda
+      </Button>
+    ))}
   </div>
 );
 export const IconRight: Story = () => (
   <div className="flex flex-row gap-4">
-    <Button variant="solid" iconRight={PlusIcon}>
-      Ícone à direita
-    </Button>
-    <Button variant="outline" iconRight={PlusIcon}>
-      Ícone à direita
-    </Button>
-    <Button variant="link" iconRight={PlusIcon}>
-      Ícone à direita
-    </Button>
+    {variants.map((variant) => (
+      <Button key={variant} variant={variant} iconRight={PlusIcon}>
+        Ícone à direita
+      </Button>
+    ))}
   </div>
 );
 export const Disabled: Story = () => (
   <div className="flex flex-row gap-4">
-    <Button variant="solid" action="primary" disabled>
-      Desabilitado
-    </Button>
-    <Button variant="solid" action="positive" disabled>
-      Desabilitado
-    </Button>
-    <Button variant="solid" action="negative" disabled>
-      Desabilitado
-    </Button>
+    {actions.map((action) => (
+      <Button key={action} variant="solid" action={action} disabled>
+        Desabilitado
+      </Button>
+    ))}
   </div>
 );
