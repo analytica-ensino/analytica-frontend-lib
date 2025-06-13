@@ -107,6 +107,7 @@ export const SelectionButton = forwardRef<
         type="button"
         className={`${allClasses} ${className}`}
         disabled={disabled}
+        aria-pressed={selected}
         {...props}
       >
         <span className="flex items-center justify-center w-6 h-6">{icon}</span>
