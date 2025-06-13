@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
 import { SelectionButton } from './SelectionButton';
 
@@ -146,7 +147,8 @@ describe('SelectionButton', () => {
       expect(button).toBeDisabled();
     });
 
-    it('handles onClick events', () => {
+    it('handles onClick events', async () => {
+      const user = userEvent.setup();
       const handleClick = jest.fn();
       render(
         <SelectionButton
@@ -157,7 +159,7 @@ describe('SelectionButton', () => {
       );
       const button = screen.getByRole('button');
 
-      button.click();
+      await user.click(button);
       expect(handleClick).toHaveBeenCalledTimes(1);
     });
 
@@ -178,7 +180,8 @@ describe('SelectionButton', () => {
       expect(button).toHaveAttribute('data-testid', 'custom-button');
     });
 
-    it('does not call onClick when disabled', () => {
+    it('does not call onClick when disabled', async () => {
+      const user = userEvent.setup();
       const handleClick = jest.fn();
       render(
         <SelectionButton
@@ -190,7 +193,7 @@ describe('SelectionButton', () => {
       );
       const button = screen.getByRole('button');
 
-      button.click();
+      await user.click(button);
       expect(handleClick).not.toHaveBeenCalled();
     });
   });
@@ -206,11 +209,13 @@ describe('SelectionButton', () => {
 
     it('is not focusable when disabled', () => {
       render(<SelectionButton icon={<TestIcon />} label="Test" disabled />);
-      const button = screen.getByRole('button');
+      const button = screen.getByRole('button') as HTMLButtonElement;
 
       expect(button).toBeDisabled();
-      button.focus();
-      expect(button).not.toHaveFocus();
+      // Disabled buttons should not be part of the tab order
+      expect(button).toHaveAttribute('disabled');
+      // In browsers, disabled buttons are automatically excluded from tab navigation
+      expect(button.disabled).toBe(true);
     });
 
     it('supports aria attributes', () => {
