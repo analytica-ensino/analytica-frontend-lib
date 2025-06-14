@@ -14,7 +14,7 @@ const Table = React.forwardRef<
     {/* // NOSONAR */}
     <table
       ref={ref}
-      className={`w-full caption-bottom text-sm ${className}`}
+      className={`w-full caption-bottom text-sm ${className ?? ''}`}
       {...props}
     />
   </div>
@@ -73,7 +73,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
         ref={ref}
         className={`
         transition-colors
-        ${state != 'disabled' && 'hover:bg-muted/50'}
+        ${state !== 'disabled' ? 'hover:bg-muted/50' : ''}
         ${VARIANT_STATES_ROW[state]}
         ${className}
       `}
