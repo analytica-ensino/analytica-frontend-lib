@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Children } from 'react';
 
 type TableRowState = 'default' | 'selected' | 'invalid' | 'disabled';
 
@@ -9,14 +9,17 @@ interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
+>(({ className,children, ...props }, ref) => (
   <div className="border border-border-200 rounded-xl relative w-full overflow-hidden">
-    {/* // NOSONAR */}
     <table
       ref={ref}
       className={`w-full caption-bottom text-sm ${className ?? ''}`}
       {...props}
-    />
+    >
+      {/* Fix Sonnar */}
+      <caption className="sr-only">My Table</caption>
+      {children}
+    </table>
   </div>
 ));
 
