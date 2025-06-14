@@ -158,12 +158,7 @@ export const Toast = ({
 }: ToastProps) => {
   // Get classes from lookup tables
   const variantActionMap = VARIANT_ACTION_CLASSES[variant] || {};
-  const variantClasses =
-    typeof variantActionMap === 'string'
-      ? variantActionMap
-      : ((variantActionMap as Record<string, string>)[action] ??
-        (variantActionMap as Record<string, string>).muted ??
-        '');
+  const variantClasses = VARIANT_ACTION_CLASSES[variant][action];
 
   const positionClasses: Record<ToastPosition, string> = {
     'top-left': 'fixed top-4 left-4',
@@ -208,7 +203,8 @@ export const Toast = ({
       </div>
       <button
         onClick={onClose}
-        className=" text-background-500 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacit"
+        aria-label="Dismiss notification"
+        className="text-background-500 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
       >
         <IconClose />
       </button>
