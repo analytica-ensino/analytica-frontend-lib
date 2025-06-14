@@ -25,8 +25,8 @@ const VARIANT_ACTION_CLASSES = {
     exam4: 'bg-exame-4 text-[#126D30] focus-visible:outline-none',
   },
   resultStatus: {
-    negative: 'bg-success text-success-800 focus-visible:outline-none',
-    positive: 'bg-error text-error-800 focus-visible:outline-none'
+    negative: 'bg-error text-error-800 focus-visible:outline-none',
+    positive: 'bg-success text-success-800 focus-visible:outline-none'
   },
   notification: 'text-primary'
 } as const;
@@ -101,9 +101,12 @@ export const Badge = ({
   const sizeClasses = SIZE_CLASSES[size];
   const sizeClassesIcon = SIZE_CLASSES_ICON[size]
   const variantActionMap = VARIANT_ACTION_CLASSES[variant] || {};
-  const variantClasses = typeof variantActionMap === 'string' 
-    ? variantActionMap 
-    : (variantActionMap as Record<string, string>)[action] || '';
+  const variantClasses =
+    typeof variantActionMap === 'string'
+      ? variantActionMap
+   : (variantActionMap as Record<string, string>)[action] ??
+      (variantActionMap as Record<string, string>).muted ??
+        '';
 
   const baseClasses =
     'inline-flex items-center justify-center rounded-xs font-medium gap-1';

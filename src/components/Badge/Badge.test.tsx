@@ -57,7 +57,9 @@ describe('Badge', () => {
     });
 
     it('applies notification variant classes', () => {
-      render(<Badge variant="notification"/>);
+      render(<Badge variant="notification" />);
+      const svg = screen.getByRole('img', { hidden: true });
+      expect(svg).toBeInTheDocument();
     });
   });
 
