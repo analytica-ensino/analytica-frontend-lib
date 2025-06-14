@@ -146,6 +146,12 @@ type ToastProps = {
   position?: ToastPosition;
 } & React.HTMLAttributes<HTMLDivElement>;
 
+const iconMap = {
+  success: IconSuccess,
+  info: IconInfo,
+  warning: IconWarning,
+};
+
 export const Toast = ({
   variant = 'outlined',
   action = 'success',
@@ -169,15 +175,8 @@ export const Toast = ({
     default: '',
   };
 
-  const IconAction =
-    action == 'success'
-      ? IconSuccess
-      : action == 'info'
-        ? IconInfo
-        : action == 'warning'
-          ? IconWarning
-          : IconSuccess;
-  // fixed bottom-4 right-4
+  const IconAction = iconMap[action] || IconSuccess;
+
   const baseClasses =
     'max-w-[390px] w-full flex flex-row items-start justify-between shadow-lg rounded-lg border p-4 gap-6 group';
 
