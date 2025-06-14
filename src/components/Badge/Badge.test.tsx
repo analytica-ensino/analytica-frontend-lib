@@ -163,17 +163,27 @@ describe('Badge', () => {
     });
 
     it('handles invalid variant gracefully', () => {
-      // @ts-ignore - Testando caso inválido
+      const originalError = console.error;
+      console.error = jest.fn();
+      
+      // @ts-expect-error - Testando caso inválido
       render(<Badge variant="invalid">Test</Badge>);
       const badge = screen.getByText('Test');
       expect(badge).toBeInTheDocument();
+      
+      console.error = originalError;
     });
-
+  
     it('handles invalid action gracefully', () => {
-      // @ts-ignore - Testando caso inválido
+      const originalError = console.error;
+      console.error = jest.fn();
+      
+      // @ts-expect-error - Testando caso inválido
       render(<Badge variant="solid" action="invalid">Test</Badge>);
       const badge = screen.getByText('Test');
       expect(badge).toBeInTheDocument();
+      
+      console.error = originalError;
     });
   });
 });

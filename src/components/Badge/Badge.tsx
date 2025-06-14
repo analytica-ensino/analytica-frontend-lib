@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import React, {ReactNode } from 'react';
 
 /**
  * Lookup table for variant and action class combinations
