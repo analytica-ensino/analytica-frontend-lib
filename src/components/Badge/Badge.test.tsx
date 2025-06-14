@@ -28,14 +28,22 @@ describe('Badge', () => {
 
   describe('Variant and action classes', () => {
     it('applies solid variant classes', () => {
-      render(<Badge variant="solid" action="success">Success</Badge>);
+      render(
+        <Badge variant="solid" action="success">
+          Success
+        </Badge>
+      );
       const badge = screen.getByText('Success');
       expect(badge).toHaveClass('bg-success');
       expect(badge).toHaveClass('text-success-800');
     });
 
     it('applies outline variant classes', () => {
-      render(<Badge variant="outlined" action="error">Error</Badge>);
+      render(
+        <Badge variant="outlined" action="error">
+          Error
+        </Badge>
+      );
       const badge = screen.getByText('Error');
       expect(badge).toHaveClass('border');
       expect(badge).toHaveClass('border-error-300');
@@ -43,14 +51,22 @@ describe('Badge', () => {
     });
 
     it('applies exams variant classes', () => {
-      render(<Badge variant="exams" action="exam1">Exam 1</Badge>);
+      render(
+        <Badge variant="exams" action="exam1">
+          Exam 1
+        </Badge>
+      );
       const badge = screen.getByText('Exam 1');
       expect(badge).toHaveClass('bg-exame-1');
       expect(badge).toHaveClass('text-[#145B8F]');
     });
 
     it('applies resultStatus variant classes', () => {
-      render(<Badge variant="resultStatus" action="positive">Positive</Badge>);
+      render(
+        <Badge variant="resultStatus" action="positive">
+          Positive
+        </Badge>
+      );
       const badge = screen.getByText('Positive');
       expect(badge).toHaveClass('bg-success');
       expect(badge).toHaveClass('text-success-800');
@@ -91,19 +107,31 @@ describe('Badge', () => {
 
   describe('Icon size classes', () => {
     it('applies small icon size classes', () => {
-      render(<Badge size="small" iconLeft={<TestIcon />}>Small</Badge>);
+      render(
+        <Badge size="small" iconLeft={<TestIcon />}>
+          Small
+        </Badge>
+      );
       const iconWrapper = screen.getByTestId('test-icon').parentElement;
       expect(iconWrapper).toHaveClass('size-3');
     });
 
     it('applies medium icon size classes', () => {
-      render(<Badge size="medium" iconLeft={<TestIcon />}>Medium</Badge>);
+      render(
+        <Badge size="medium" iconLeft={<TestIcon />}>
+          Medium
+        </Badge>
+      );
       const iconWrapper = screen.getByTestId('test-icon').parentElement;
       expect(iconWrapper).toHaveClass('size-3.5');
     });
 
     it('applies large icon size classes', () => {
-      render(<Badge size="large" iconLeft={<TestIcon />}>Large</Badge>);
+      render(
+        <Badge size="large" iconLeft={<TestIcon />}>
+          Large
+        </Badge>
+      );
       const iconWrapper = screen.getByTestId('test-icon').parentElement;
       expect(iconWrapper).toHaveClass('size-4');
     });
@@ -118,9 +146,9 @@ describe('Badge', () => {
 
     it('passes through HTML attributes', () => {
       render(
-        <Badge 
-          data-testid="test-badge" 
-          title="Badge title" 
+        <Badge
+          data-testid="test-badge"
+          title="Badge title"
           aria-label="Test badge"
         >
           Test
@@ -167,24 +195,28 @@ describe('Badge', () => {
     it('handles invalid variant gracefully', () => {
       const originalError = console.error;
       console.error = jest.fn();
-      
+
       // @ts-expect-error - Testando caso inválido
       render(<Badge variant="invalid">Test</Badge>);
       const badge = screen.getByText('Test');
       expect(badge).toBeInTheDocument();
-      
+
       console.error = originalError;
     });
-  
+
     it('handles invalid action gracefully', () => {
       const originalError = console.error;
       console.error = jest.fn();
-      
+
       // @ts-expect-error - Testando caso inválido
-      render(<Badge variant="solid" action="invalid">Test</Badge>);
+      render(
+        <Badge variant="solid" action="invalid">
+          Test
+        </Badge>
+      );
       const badge = screen.getByText('Test');
       expect(badge).toBeInTheDocument();
-      
+
       console.error = originalError;
     });
   });

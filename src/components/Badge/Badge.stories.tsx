@@ -14,9 +14,21 @@ const PlusIcon = (
 );
 
 const sizes = ['small', 'medium', 'large'] as const;
-const variants = ['solid', 'outlined', 'exams', 'resultStatus', 'notification'] as const;
+const variants = [
+  'solid',
+  'outlined',
+  'exams',
+  'resultStatus',
+  'notification',
+] as const;
 const solidActions = ['error', 'warning', 'success', 'info', 'muted'] as const;
-const outlinedActions = ['error', 'warning', 'success', 'info', 'muted'] as const;
+const outlinedActions = [
+  'error',
+  'warning',
+  'success',
+  'info',
+  'muted',
+] as const;
 const examsActions = ['exam1', 'exam2', 'exam3', 'exam4'] as const;
 const resultStatusActions = ['positive', 'negative'] as const;
 
@@ -34,7 +46,7 @@ export const AllBadges: Story = () => (
     <h3 className="font-bold text-2xl text-text-900">
       Tamanhos, Variantes e Actions
     </h3>
-    
+
     {/* Solid Variant */}
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <h4 className="font-bold text-xl text-text-900">Solid</h4>
@@ -43,12 +55,7 @@ export const AllBadges: Story = () => (
           <div className="font-medium text-text-900 mb-2">{size}</div>
           <div className="flex flex-row gap-4 flex-wrap">
             {solidActions.map((action) => (
-              <Badge
-                key={action}
-                size={size}
-                variant="solid"
-                action={action}
-              >
+              <Badge key={action} size={size} variant="solid" action={action}>
                 {action}
               </Badge>
             ))}
@@ -56,7 +63,7 @@ export const AllBadges: Story = () => (
         </div>
       ))}
     </div>
-    
+
     {/* Outline Variant */}
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <h4 className="font-bold text-xl text-text-900">Outline</h4>
@@ -78,7 +85,7 @@ export const AllBadges: Story = () => (
         </div>
       ))}
     </div>
-    
+
     {/* Exams Variant */}
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <h4 className="font-bold text-xl text-text-900">Exams</h4>
@@ -87,12 +94,7 @@ export const AllBadges: Story = () => (
           <div className="font-medium text-text-900 mb-2">{size}</div>
           <div className="flex flex-row gap-4 flex-wrap">
             {examsActions.map((action) => (
-              <Badge
-                key={action}
-                size={size}
-                variant="exams"
-                action={action}
-              >
+              <Badge key={action} size={size} variant="exams" action={action}>
                 {action}
               </Badge>
             ))}
@@ -100,7 +102,7 @@ export const AllBadges: Story = () => (
         </div>
       ))}
     </div>
-    
+
     {/* Result Status Variant */}
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <h4 className="font-bold text-xl text-text-900">Result Status</h4>
@@ -122,14 +124,12 @@ export const AllBadges: Story = () => (
         </div>
       ))}
     </div>
-    
+
     {/* Notification Variant */}
     <div>
       <h4 className="font-bold text-xl text-text-900">Notification</h4>
       <div className="flex flex-row gap-4 flex-wrap">
-        <Badge variant="notification">
-          Notifications
-        </Badge>
+        <Badge variant="notification">Notifications</Badge>
       </div>
     </div>
 
@@ -139,33 +139,49 @@ export const AllBadges: Story = () => (
       <div>
         <div className="font-medium text-text-900 mb-2">Ícone à esquerda</div>
         <div className="flex flex-row gap-4">
-          {variants.filter(v => v !== 'notification').map((variant) => (
-            <Badge
-              key={variant}
-              variant={variant}
-              action={variant === 'exams' ? 'exam1' : variant === 'resultStatus' ? 'positive' : 'error'}
-              className="my-4"
-              iconLeft={PlusIcon}
-            >
-              Badge
-            </Badge>
-          ))}
+          {variants
+            .filter((v) => v !== 'notification')
+            .map((variant) => (
+              <Badge
+                key={variant}
+                variant={variant}
+                action={
+                  variant === 'exams'
+                    ? 'exam1'
+                    : variant === 'resultStatus'
+                      ? 'positive'
+                      : 'error'
+                }
+                className="my-4"
+                iconLeft={PlusIcon}
+              >
+                Badge
+              </Badge>
+            ))}
         </div>
       </div>
       <div>
         <div className="font-medium text-text-900 mb-2">Ícone à direita</div>
         <div className="flex flex-row gap-4">
-          {variants.filter(v => v !== 'notification').map((variant) => (
-            <Badge
-              key={variant}
-              variant={variant}
-              action={variant === 'exams' ? 'exam1' : variant === 'resultStatus' ? 'positive' : 'error'}
-              className="my-4"
-              iconRight={PlusIcon}
-            >
-              Badge
-            </Badge>
-          ))}
+          {variants
+            .filter((v) => v !== 'notification')
+            .map((variant) => (
+              <Badge
+                key={variant}
+                variant={variant}
+                action={
+                  variant === 'exams'
+                    ? 'exam1'
+                    : variant === 'resultStatus'
+                      ? 'positive'
+                      : 'error'
+                }
+                className="my-4"
+                iconRight={PlusIcon}
+              >
+                Badge
+              </Badge>
+            ))}
         </div>
       </div>
     </div>
@@ -215,38 +231,52 @@ export const ResultStatusBadge: Story = () => (
 
 export const NotificationBadge: Story = () => (
   <div className="flex flex-row gap-4">
-    <Badge variant="notification">
-      Notifications
-    </Badge>
+    <Badge variant="notification">Notifications</Badge>
   </div>
 );
 
 export const IconLeftBadge: Story = () => (
   <div className="flex flex-row gap-4">
-    {variants.filter(v => v !== 'notification').map((variant) => (
-      <Badge
-        key={variant}
-        variant={variant}
-        action={variant === 'exams' ? 'exam1' : variant === 'resultStatus' ? 'positive' : 'error'}
-        iconLeft={PlusIcon}
-      >
-        Ícone à esquerda
-      </Badge>
-    ))}
+    {variants
+      .filter((v) => v !== 'notification')
+      .map((variant) => (
+        <Badge
+          key={variant}
+          variant={variant}
+          action={
+            variant === 'exams'
+              ? 'exam1'
+              : variant === 'resultStatus'
+                ? 'positive'
+                : 'error'
+          }
+          iconLeft={PlusIcon}
+        >
+          Ícone à esquerda
+        </Badge>
+      ))}
   </div>
 );
 
 export const IconRightBadge: Story = () => (
   <div className="flex flex-row gap-4">
-    {variants.filter(v => v !== 'notification').map((variant) => (
-      <Badge
-        key={variant}
-        variant={variant}
-        action={variant === 'exams' ? 'exam1' : variant === 'resultStatus' ? 'positive' : 'error'}
-        iconRight={PlusIcon}
-      >
-        Ícone à direita
-      </Badge>
-    ))}
+    {variants
+      .filter((v) => v !== 'notification')
+      .map((variant) => (
+        <Badge
+          key={variant}
+          variant={variant}
+          action={
+            variant === 'exams'
+              ? 'exam1'
+              : variant === 'resultStatus'
+                ? 'positive'
+                : 'error'
+          }
+          iconRight={PlusIcon}
+        >
+          Ícone à direita
+        </Badge>
+      ))}
   </div>
 );
