@@ -122,12 +122,7 @@ export const Badge = ({
       : ((variantActionMap as Record<string, string>)[action] ??
         (variantActionMap as Record<string, string>).muted ??
         '');
-  if (!variantClasses && process.env.NODE_ENV !== 'production') {
-    // eslint-disable-next-line no-console
-    console.warn(
-      `[Badge] Unsupported action "${action}" for variant "${variant}". Falling back to "muted".`
-    );
-  }
+
   const baseClasses =
     'inline-flex items-center justify-center rounded-xs font-medium gap-1';
 
