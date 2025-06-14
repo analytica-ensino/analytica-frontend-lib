@@ -157,7 +157,6 @@ export const Toast = ({
   ...props
 }: ToastProps) => {
   // Get classes from lookup tables
-  const variantActionMap = VARIANT_ACTION_CLASSES[variant] || {};
   const variantClasses = VARIANT_ACTION_CLASSES[variant][action];
 
   const positionClasses: Record<ToastPosition, string> = {
