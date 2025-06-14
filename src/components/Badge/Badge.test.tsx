@@ -52,13 +52,13 @@ describe('Badge', () => {
     it('applies resultStatus variant classes', () => {
       render(<Badge variant="resultStatus" action="positive">Positive</Badge>);
       const badge = screen.getByText('Positive');
-      expect(badge).toHaveClass('bg-error');
-      expect(badge).toHaveClass('text-error-800');
+      expect(badge).toHaveClass('bg-success');
+      expect(badge).toHaveClass('text-success-800');
     });
 
     it('applies notification variant classes', () => {
       render(<Badge variant="notification" />);
-      const svg = screen.getByRole('img', { hidden: true });
+      const svg = document.querySelector('svg');
       expect(svg).toBeInTheDocument();
     });
   });
