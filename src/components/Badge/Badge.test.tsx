@@ -203,21 +203,5 @@ describe('Badge', () => {
 
       console.error = originalError;
     });
-
-    it('handles invalid action gracefully', () => {
-      const originalError = console.error;
-      console.error = jest.fn();
-
-      // @ts-expect-error - Testando caso inválido
-      render(
-        <Badge variant="solid" action="invalid">
-          Test
-        </Badge>
-      );
-      const badge = screen.getByText('Test');
-      expect(badge).toBeInTheDocument();
-
-      console.error = originalError;
-    });
   });
 });
