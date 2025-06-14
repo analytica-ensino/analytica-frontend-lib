@@ -1,4 +1,4 @@
-import React, { Children } from 'react';
+import React from 'react';
 
 type TableRowState = 'default' | 'selected' | 'invalid' | 'disabled';
 
