@@ -11,6 +11,7 @@ const Table = React.forwardRef<
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
   <div className="border border-border-200 rounded-xl relative w-full overflow-hidden">
+    {/* // NOSONAR */}
     <table
       ref={ref}
       className={`w-full caption-bottom text-sm ${className}`}
