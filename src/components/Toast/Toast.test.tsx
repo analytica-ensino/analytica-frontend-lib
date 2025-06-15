@@ -1,7 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Toast } from './Toast';
+import { CheckCircle, Info, WarningCircle } from 'phosphor-react';
 
+const iconMap = {
+  success: CheckCircle,
+  info: Info,
+  warning: WarningCircle,
+};
 describe('Toast', () => {
   const mockOnClose = jest.fn();
 
@@ -64,20 +70,26 @@ describe('Toast', () => {
     });
   });
 
-  describe('Icon rendering', () => {
+  describe('Toast IconAction logic', () => {
+    it('renders correct icon for error action', () => {
+      render(<Toast action="info" title="Test" onClose={mockOnClose}/>);
+      expect(screen.getByTestId('toast-icon-info')).toBeInTheDocument();
+    });
+    
+    it('renders success icon for warning action', () => {
+      render(<Toast action="warning" title="Test" onClose={mockOnClose}/>);
+      expect(screen.getByTestId('toast-icon-warning')).toBeInTheDocument();
+    });
+
     it('renders success icon for success action', () => {
-      render(<Toast title="Test" action="success" onClose={mockOnClose} />);
-      expect(screen.getByTestId('success-icon')).toBeInTheDocument();
+      render(<Toast action="success" title="Test" onClose={mockOnClose}/>);
+      expect(screen.getByTestId('toast-icon-success')).toBeInTheDocument();
     });
 
-    it('renders warning icon for warning action', () => {
-      render(<Toast title="Test" action="warning" onClose={mockOnClose} />);
-      expect(screen.getByTestId('warning-icon')).toBeInTheDocument();
-    });
-
-    it('renders info icon for info action', () => {
-      render(<Toast title="Test" action="info" onClose={mockOnClose} />);
-      expect(screen.getByTestId('info-icon')).toBeInTheDocument();
+    it('renders success icon for invalid action', () => {
+      // @ts-expect-error: Testing invalid action on purpose
+      render(<Toast action="invalid" title="Test" onClose={mockOnClose}/>);
+      expect(screen.getByTestId('toast-icon-invalid')).toBeInTheDocument();
     });
   });
 
