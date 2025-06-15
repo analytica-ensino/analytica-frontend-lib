@@ -12,7 +12,7 @@ import { Plus, Check } from 'phosphor-react';
 const sizes = ['small', 'medium'] as const;
 
 export const AllDropdownMenus: Story = () => (
-  <div className='flex flex-col gap-8'>
+  <div className="flex flex-col gap-8">
     <h2 className="font-bold text-3xl text-text-900">DropdownMenu</h2>
     <p className="text-text-700">
       Variações possíveis do componente <code>DropdownMenu</code>:
@@ -22,7 +22,9 @@ export const AllDropdownMenus: Story = () => (
     <h3 className="font-bold text-2xl text-text-900">Menu Básico</h3>
     <div className="flex flex-row gap-4">
       <DropdownMenu>
-        <DropdownMenuTrigger>Open Menu</DropdownMenuTrigger>
+        <DropdownMenuTrigger onClick={() => console.log('passou')}>
+          Open Menu
+        </DropdownMenuTrigger>
         <MenuContent>
           <MenuItem>
             <MenuLabel>Item 1</MenuLabel>

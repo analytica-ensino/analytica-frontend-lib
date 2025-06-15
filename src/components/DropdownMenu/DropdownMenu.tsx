@@ -11,6 +11,7 @@ import {
   HTMLAttributes,
   MouseEvent,
   KeyboardEvent,
+  useMemo,
 } from 'react';
 
 type DropdownMenuContextType = {
@@ -67,8 +68,12 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
     };
   }, [currentOpen]);
 
+  const value = useMemo(
+    () => ({ open: currentOpen, setOpen }),
+    [currentOpen, setOpen]
+  );
   return (
-    <DropdownMenuContext.Provider value={{ open: currentOpen, setOpen }}>
+    <DropdownMenuContext.Provider value={value}>
       <div className="relative" ref={menuRef}>
         {children}
       </div>
@@ -79,7 +84,7 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
 const DropdownMenuTrigger = forwardRef<
   HTMLButtonElement,
   ButtonHTMLAttributes<HTMLButtonElement>
->(({ className, children, ...props }, ref) => {
+>(({ className, children, onClick, ...props }, ref) => {
   const context = useContext(DropdownMenuContext);
   if (!context)
     throw new Error('DropdownMenuTrigger must be used within a DropdownMenu');
@@ -93,6 +98,7 @@ const DropdownMenuTrigger = forwardRef<
       onClick={(e) => {
         e.stopPropagation();
         setOpen(!open);
+        if (onClick) onClick(e);
       }}
       aria-expanded={open}
       {...props}
@@ -108,14 +114,27 @@ const ITEM_SIZE_CLASSES = {
   medium: 'text-md',
 } as const;
 
+const SIDE_CLASSES = {
+  top: 'bottom-full',
+  right: 'top-full',
+  bottom: 'top-full',
+  left: 'top-full',
+};
+
+const ALIGN_CLASSES = {
+  start: 'left-0',
+  center: 'left-1/2 -translate-x-1/2',
+  end: 'right-0',
+};
+
 const MenuLabel = forwardRef<
-  HTMLDivElement,
-  HTMLAttributes<HTMLDivElement> & { inset?: boolean }
+  HTMLFieldSetElement,
+  HTMLAttributes<HTMLFieldSetElement> & { inset?: boolean }
 >(({ className, inset, ...props }, ref) => (
-  <div
+  <fieldset
     ref={ref}
     role="group"
-    className={`text-sm w-full ${inset && 'pl-8'} ${className}`}
+    className={`text-sm w-full ${inset ? 'pl-8' : ''} ${className ?? ''}`}
     {...props}
   />
 ));
@@ -155,13 +174,8 @@ const MenuContent = forwardRef<
     if (!isVisible) return null;
 
     const getPositionClasses = () => {
-      const vertical = side === 'top' ? 'bottom-full' : 'top-full';
-      const horizontal =
-        align === 'start'
-          ? 'left-0'
-          : align === 'end'
-            ? 'right-0'
-            : 'left-1/2 -translate-x-1/2';
+      const vertical = SIDE_CLASSES[side];
+      const horizontal = ALIGN_CLASSES[align];
 
       return `absolute ${vertical} ${horizontal}`;
     };

@@ -362,4 +362,23 @@ describe('MenuContent direction and positioning', () => {
     expect(menu).toHaveClass('absolute top-full left-0');
     expect(menu).toHaveStyle({ marginRight: 12 });
   });
+
+  it('calls consumer onClick handler when trigger is clicked', () => {
+    const consumerOnClick = jest.fn();
+
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger onClick={consumerOnClick}>
+          Trigger
+        </DropdownMenuTrigger>
+        <MenuContent>Menu Content</MenuContent> {/* IMPORTANTE */}
+      </DropdownMenu>
+    );
+
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+
+    expect(consumerOnClick).toHaveBeenCalled();
+    expect(screen.getByRole('menu')).toBeInTheDocument(); // Agora deve funcionar
+  });
 });
