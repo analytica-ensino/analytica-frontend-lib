@@ -1,33 +1,32 @@
-import React from 'react';
+import { forwardRef, HTMLAttributes, TdHTMLAttributes } from 'react';
 
 type TableRowState = 'default' | 'selected' | 'invalid' | 'disabled';
 
-interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
+interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
   state?: TableRowState;
 }
 
-const Table = React.forwardRef<
-  HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement>
->(({ className,children, ...props }, ref) => (
-  <div className="border border-border-200 rounded-xl relative w-full overflow-hidden">
-    <table
-      ref={ref}
-      className={`w-full caption-bottom text-sm ${className ?? ''}`}
-      {...props}
-    >
-      {/* Fix Sonnar */}
-      <caption className="sr-only">My Table</caption>
-      {children}
-    </table>
-  </div>
-));
+const Table = forwardRef<HTMLTableElement, HTMLAttributes<HTMLTableElement>>(
+  ({ className, children, ...props }, ref) => (
+    <div className="border border-border-200 rounded-xl relative w-full overflow-hidden">
+      <table
+        ref={ref}
+        className={`w-full caption-bottom text-sm ${className ?? ''}`}
+        {...props}
+      >
+        {/* Fix Sonnar */}
+        <caption className="sr-only">My Table</caption>
+        {children}
+      </table>
+    </div>
+  )
+);
 
 Table.displayName = 'Table';
 
-const TableHeader = React.forwardRef<
+const TableHeader = forwardRef<
   HTMLTableSectionElement,
-  React.HTMLAttributes<HTMLTableSectionElement>
+  HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
   <thead
     ref={ref}
@@ -37,9 +36,9 @@ const TableHeader = React.forwardRef<
 ));
 TableHeader.displayName = 'TableHeader';
 
-const TableBody = React.forwardRef<
+const TableBody = forwardRef<
   HTMLTableSectionElement,
-  React.HTMLAttributes<HTMLTableSectionElement>
+  HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
@@ -49,9 +48,9 @@ const TableBody = React.forwardRef<
 ));
 TableBody.displayName = 'TableBody';
 
-const TableFooter = React.forwardRef<
+const TableFooter = forwardRef<
   HTMLTableSectionElement,
-  React.HTMLAttributes<HTMLTableSectionElement>
+  HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
@@ -69,7 +68,7 @@ const VARIANT_STATES_ROW = {
     'border-b border-border-100 bg-background-50 opacity-50 cursor-not-allowed',
 } as const;
 
-const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
+const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
   ({ state = 'default', className, ...props }, ref) => {
     return (
       <tr
@@ -88,9 +87,9 @@ const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
 );
 TableRow.displayName = 'TableRow';
 
-const TableHead = React.forwardRef<
+const TableHead = forwardRef<
   HTMLTableCellElement,
-  React.ThHTMLAttributes<HTMLTableCellElement>
+  TdHTMLAttributes<HTMLTableCellElement>
 >(({ className, ...props }, ref) => (
   <th
     ref={ref}
@@ -100,9 +99,9 @@ const TableHead = React.forwardRef<
 ));
 TableHead.displayName = 'TableHead';
 
-const TableCell = React.forwardRef<
+const TableCell = forwardRef<
   HTMLTableCellElement,
-  React.TdHTMLAttributes<HTMLTableCellElement>
+  TdHTMLAttributes<HTMLTableCellElement>
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
@@ -112,9 +111,9 @@ const TableCell = React.forwardRef<
 ));
 TableCell.displayName = 'TableCell';
 
-const TableCaption = React.forwardRef<
+const TableCaption = forwardRef<
   HTMLTableCaptionElement,
-  React.HTMLAttributes<HTMLTableCaptionElement>
+  HTMLAttributes<HTMLTableCaptionElement>
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
