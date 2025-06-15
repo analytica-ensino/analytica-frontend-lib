@@ -1,6 +1,5 @@
 import React from 'react';
-import {CheckCircle, WarningCircle, Info , X} from 'phosphor-react'
-
+import { CheckCircle, WarningCircle, Info, X } from 'phosphor-react';
 
 /**
  * Lookup table for variant and action class combinations
