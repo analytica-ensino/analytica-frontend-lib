@@ -43,7 +43,7 @@ const SIZE_CLASSES = {
     checkbox: 'w-6 h-6', // 24px x 24px
     textSize: 'lg' as const,
     spacing: 'gap-2', // 8px
-    borderWidth: 'border-2',
+    borderWidth: 'border',
     iconSize: 'w-5 h-5', // 20px x 20px
   },
 } as const;
@@ -71,9 +71,9 @@ const STATE_CLASSES = {
   },
   focused: {
     unchecked:
-      'border-indicator-info bg-background focus:ring-indicator-info/20',
+      'border-3 border-indicator-info bg-background focus:ring-indicator-info/20',
     checked:
-      'border-indicator-info bg-primary-800 text-text focus:ring-indicator-info/20',
+      'border-3 border-indicator-info bg-primary-800 text-text focus:ring-indicator-info/20',
   },
   invalid: {
     unchecked: 'border-error-700 bg-background hover:border-error-600',
@@ -180,8 +180,18 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     // Get styling classes
     const stylingClasses = STATE_CLASSES[currentState][checkVariant];
 
+    // Additional styling for large hovered state
+    const largeHoveredClass =
+      state === 'hovered' && size === 'large' && !checked
+        ? 'border-border-500' // #8C8D8D from styles.css
+        : '';
+
     // Get final checkbox classes
-    const checkboxClasses = `${BASE_CHECKBOX_CLASSES} ${sizeClasses.checkbox} ${sizeClasses.borderWidth} ${stylingClasses} ${className}`;
+    const checkboxClasses = `${BASE_CHECKBOX_CLASSES} ${sizeClasses.checkbox} ${
+      (state === 'focused' || state === 'hovered') && size === 'large'
+        ? 'border-3'
+        : sizeClasses.borderWidth
+    } ${stylingClasses} ${largeHoveredClass} ${className}`;
 
     // Determine text color based on state and checked status
     const getTextColorClass = () => {
@@ -191,13 +201,19 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
       if (state === 'invalid') {
         return 'text-text-900'; // #262627 para todos os tamanhos no estado invalid
       }
+      if (state === 'focused' && size === 'large') {
+        return 'text-text-900'; // #262627 para large no estado focused
+      }
+      if (state === 'hovered' && size === 'large') {
+        return 'text-text-900'; // #262627 para large no estado hovered
+      }
       return 'text-text-600'; // #737373
     };
 
     // Determine label height based on size
     const getLabelHeight = () => {
       if (size === 'large') {
-        return 'h-6'; // 24px
+        return 'h-7'; // Using Tailwind h-7 (28px) which is closest to 27px
       }
       if (size === 'medium') {
         return 'h-6'; // 24px
@@ -208,7 +224,7 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     // Determine line height based on size
     const getLineHeight = () => {
       if (size === 'large') {
-        return 'leading-normal'; // 1.5
+        return 'leading-relaxed'; // 1.5 line height
       }
       if (size === 'medium') {
         return 'leading-normal'; // 1.5
@@ -276,11 +292,7 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
           {/* Label text */}
           {label && (
-            <div
-              className={`flex flex-row items-center ${
-                size === 'small' ? 'justify-end' : ''
-              } ${getLabelHeight()}`}
-            >
+            <div className={`flex flex-row items-center ${getLabelHeight()}`}>
               <Text
                 as="label"
                 htmlFor={inputId}
