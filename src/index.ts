@@ -6,3 +6,4 @@ export * from './components/Text/Text';
 export * from './components/Table/Table';
 export * from './components/DropdownMenu/DropdownMenu';
 export * from './components/NavButton/NavButton';
+export * from './components/IconButton/IconButton';
