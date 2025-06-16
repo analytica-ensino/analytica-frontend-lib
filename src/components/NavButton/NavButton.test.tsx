@@ -20,57 +20,54 @@ describe('NavButton', () => {
     it('applies base layout classes', () => {
       render(<NavButton icon={<TestIcon />} label="Test" />);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('inline-flex');
+      expect(button).toHaveClass('flex');
+      expect(button).toHaveClass('flex-col');
       expect(button).toHaveClass('items-center');
       expect(button).toHaveClass('justify-center');
-      expect(button).toHaveClass('gap-2');
-      expect(button).toHaveClass('px-4');
-      expect(button).toHaveClass('py-3');
-      expect(button).toHaveClass('rounded-lg');
+      expect(button).toHaveClass('gap-0.5');
+      expect(button).toHaveClass('px-12');
+      expect(button).toHaveClass('py-1');
+      expect(button).toHaveClass('rounded-sm');
       expect(button).toHaveClass('cursor-pointer');
     });
 
     it('applies base styling classes', () => {
       render(<NavButton icon={<TestIcon />} label="Test" />);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('border');
-      expect(button).toHaveClass('text-sm');
+      expect(button).toHaveClass('text-text-950');
+      expect(button).toHaveClass('text-xs');
       expect(button).toHaveClass('font-medium');
-      expect(button).toHaveClass('transition-all');
-      expect(button).toHaveClass('duration-200');
-      expect(button).toHaveClass('ease-in-out');
+      expect(button).toHaveClass('hover:text-text');
+      expect(button).toHaveClass('hover:bg-primary-600');
     });
 
     it('applies unselected state classes by default', () => {
       render(<NavButton icon={<TestIcon />} label="Test" />);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-transparent');
-      expect(button).toHaveClass('border-border-200');
-      expect(button).toHaveClass('text-text-600');
-      expect(button).toHaveClass('hover:bg-background-50');
-      expect(button).not.toHaveClass('bg-primary-500');
-      expect(button).not.toHaveClass('text-white');
+      expect(button).toHaveClass('text-text-950');
+      expect(button).toHaveClass('hover:text-text');
+      expect(button).toHaveClass('hover:bg-primary-600');
+      expect(button).not.toHaveClass('bg-primary-50');
+      expect(button).not.toHaveClass('text-primary-950');
     });
 
     it('applies selected state classes when selected=true', () => {
       render(<NavButton icon={<TestIcon />} label="Test" selected={true} />);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-primary-500');
-      expect(button).toHaveClass('border-primary-500');
-      expect(button).toHaveClass('text-white');
-      expect(button).toHaveClass('shadow-sm');
+      expect(button).toHaveClass('bg-primary-50');
+      expect(button).toHaveClass('text-primary-950');
+      expect(button).toHaveClass('hover:text-text');
       expect(button).toHaveClass('hover:bg-primary-600');
     });
 
     it('applies unselected state classes when selected=false', () => {
       render(<NavButton icon={<TestIcon />} label="Test" selected={false} />);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-transparent');
-      expect(button).toHaveClass('border-border-200');
-      expect(button).toHaveClass('text-text-600');
-      expect(button).toHaveClass('hover:bg-background-50');
-      expect(button).not.toHaveClass('bg-primary-500');
-      expect(button).not.toHaveClass('text-white');
+      expect(button).toHaveClass('text-text-950');
+      expect(button).toHaveClass('hover:text-text');
+      expect(button).toHaveClass('hover:bg-primary-600');
+      expect(button).not.toHaveClass('bg-primary-50');
+      expect(button).not.toHaveClass('text-primary-950');
     });
 
     it('applies focus classes', () => {
@@ -78,22 +75,8 @@ describe('NavButton', () => {
       const button = screen.getByRole('button');
       expect(button).toHaveClass('focus-visible:outline-none');
       expect(button).toHaveClass('focus-visible:ring-2');
-      expect(button).toHaveClass('focus-visible:ring-offset-2');
-      expect(button).toHaveClass('focus-visible:ring-primary-500');
-    });
-
-    it('applies active classes for unselected state', () => {
-      render(<NavButton icon={<TestIcon />} label="Test" />);
-      const button = screen.getByRole('button');
-      expect(button).toHaveClass('active:bg-background-100');
-      expect(button).toHaveClass('active:border-border-400');
-    });
-
-    it('applies active classes for selected state', () => {
-      render(<NavButton icon={<TestIcon />} label="Test" selected={true} />);
-      const button = screen.getByRole('button');
-      expect(button).toHaveClass('active:bg-primary-700');
-      expect(button).toHaveClass('active:border-primary-700');
+      expect(button).toHaveClass('focus-visible:ring-offset-0');
+      expect(button).toHaveClass('focus-visible:ring-indicator-info');
     });
 
     it('applies disabled classes', () => {
@@ -109,24 +92,24 @@ describe('NavButton', () => {
     it('defaults to unselected state', () => {
       render(<NavButton icon={<TestIcon />} label="Test" />);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-transparent');
-      expect(button).toHaveClass('text-text-600');
-      expect(button).not.toHaveClass('bg-primary-500');
+      expect(button).toHaveClass('text-text-950');
+      expect(button).not.toHaveClass('bg-primary-50');
+      expect(button).not.toHaveClass('text-primary-950');
     });
 
     it('applies selected state when selected=true', () => {
       render(<NavButton icon={<TestIcon />} label="Test" selected={true} />);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-primary-500');
-      expect(button).toHaveClass('text-white');
+      expect(button).toHaveClass('bg-primary-50');
+      expect(button).toHaveClass('text-primary-950');
     });
 
     it('applies unselected state when selected=false', () => {
       render(<NavButton icon={<TestIcon />} label="Test" selected={false} />);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-transparent');
-      expect(button).toHaveClass('text-text-600');
-      expect(button).not.toHaveClass('bg-primary-500');
+      expect(button).toHaveClass('text-text-950');
+      expect(button).not.toHaveClass('bg-primary-50');
+      expect(button).not.toHaveClass('text-primary-950');
     });
 
     it('maintains selection state with disabled prop', () => {
@@ -134,8 +117,8 @@ describe('NavButton', () => {
         <NavButton icon={<TestIcon />} label="Test" selected={true} disabled />
       );
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-primary-500');
-      expect(button).toHaveClass('text-white');
+      expect(button).toHaveClass('bg-primary-50');
+      expect(button).toHaveClass('text-primary-950');
       expect(button).toBeDisabled();
     });
   });
@@ -336,8 +319,9 @@ describe('NavButton', () => {
         name: /dashboard/i,
       });
 
-      expect(homeButton).toHaveClass('bg-primary-500');
-      expect(dashboardButton).toHaveClass('bg-transparent');
+      expect(homeButton).toHaveClass('bg-primary-50');
+      expect(dashboardButton).toHaveClass('text-text-950');
+      expect(dashboardButton).not.toHaveClass('bg-primary-50');
 
       await user.click(dashboardButton);
       expect(handleNavigation).toHaveBeenCalledWith('dashboard');
@@ -353,8 +337,8 @@ describe('NavButton', () => {
 
       const buttons = screen.getAllByRole('button');
       buttons.forEach((button) => {
-        expect(button).toHaveClass('px-4');
-        expect(button).toHaveClass('py-3');
+        expect(button).toHaveClass('px-12');
+        expect(button).toHaveClass('py-1');
       });
     });
   });
@@ -393,7 +377,7 @@ describe('NavButton', () => {
 
       expect(button).toHaveClass('custom-1');
       expect(button).toHaveClass('custom-2');
-      expect(button).toHaveClass('inline-flex'); // Base class still present
+      expect(button).toHaveClass('flex'); // Base class still present
     });
 
     it('works with different icon sizes', () => {
