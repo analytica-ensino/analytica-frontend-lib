@@ -3,6 +3,8 @@ import React, {
   ReactNode,
   forwardRef,
   useState,
+  CSSProperties,
+  useEffect,
 } from 'react';
 import { Text } from '../Text/Text';
 import { Check, Minus } from 'phosphor-react';
@@ -59,6 +61,36 @@ const BASE_CHECKBOX_CLASSES =
   'rounded border cursor-pointer transition-all duration-200 flex items-center justify-center focus:ring-2 focus:ring-offset-2 focus:outline-none';
 
 /**
+ * Theme colors for light and dark mode
+ */
+const THEME_COLORS = {
+  light: {
+    checked: {
+      background: '#1C61B2', // primary-800
+      border: '#1C61B2',
+      iconColor: '#FEFEFF', // text
+    },
+    hover: {
+      background: '#2271C4', // primary-700
+      border: '#2271C4',
+      iconColor: '#FEFEFF', // text
+    },
+  },
+  dark: {
+    checked: {
+      background: '#BBDCF7', // primary-100
+      border: '#BBDCF7',
+      iconColor: '#171717', // text-950
+    },
+    hover: {
+      background: '#BBDCF7', // primary-100
+      border: '#BBDCF7',
+      iconColor: '#171717', // text-950
+    },
+  },
+};
+
+/**
  * State-based styling classes for unchecked and checked variants
  * Using design system variables from styles.css and specific design colors
  */
@@ -67,26 +99,28 @@ const STATE_CLASSES = {
     unchecked:
       'border-border-400 bg-background hover:border-border-500 hover:bg-background-50',
     checked:
-      'border-primary-800 bg-primary-800 text-text hover:border-primary-700 hover:bg-primary-700',
+      'border-primary-800 bg-primary-800 text-text hover:border-primary-700 hover:bg-primary-700 dark:border-primary-100 dark:bg-primary-100 dark:text-text-950',
   },
   hovered: {
     unchecked: 'border-border-500 bg-background-50',
-    checked: 'border-primary-700 bg-primary-700 text-text',
+    checked:
+      'border-primary-700 bg-primary-700 text-text dark:border-primary-100 dark:bg-primary-100 dark:text-text-950',
   },
   focused: {
     unchecked:
       'border-3 border-indicator-info bg-background focus:ring-indicator-info/20',
     checked:
-      'border-3 border-indicator-info bg-primary-800 text-text focus:ring-indicator-info/20',
+      'border-3 border-indicator-info bg-primary-800 text-text focus:ring-indicator-info/20 dark:border-primary-100 dark:bg-primary-100 dark:text-text-950',
   },
   invalid: {
     unchecked: 'border-error-700 bg-background hover:border-error-600',
-    checked: 'border-error-700 bg-primary-800 text-text',
+    checked:
+      'border-error-700 bg-primary-800 text-text dark:border-primary-100 dark:bg-primary-100 dark:text-text-950',
   },
   disabled: {
     unchecked: 'border-border-400 bg-background cursor-not-allowed opacity-40',
     checked:
-      'border-primary-600 bg-primary-600 text-text cursor-not-allowed opacity-40',
+      'border-primary-600 bg-primary-600 text-text cursor-not-allowed opacity-40 dark:border-primary-100 dark:bg-primary-100 dark:text-text-950',
   },
 } as const;
 
@@ -164,6 +198,30 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     const isControlled = checkedProp !== undefined;
     const checked = isControlled ? checkedProp : internalChecked;
 
+    // State for detecting dark mode
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
+    // Detect if we're in dark mode by checking parent elements
+    useEffect(() => {
+      const checkDarkMode = () => {
+        // Check if any parent element has data-theme="dark"
+        const element = document.getElementById(inputId);
+        if (element) {
+          let parent = element.parentElement;
+          while (parent) {
+            if (parent.getAttribute('data-theme') === 'dark') {
+              setIsDarkMode(true);
+              return;
+            }
+            parent = parent.parentElement;
+          }
+          setIsDarkMode(false);
+        }
+      };
+
+      checkDarkMode();
+    }, [inputId]);
+
     // Handle change events
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!isControlled) {
@@ -196,6 +254,70 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
         ? 'border-3'
         : sizeClasses.borderWidth
     } ${stylingClasses} ${largeHoveredClass} ${className}`;
+
+    // Get inline styles for checkbox based on theme and state
+    const getCheckboxStyle = (): CSSProperties | undefined => {
+      if (!checked && !indeterminate) return undefined;
+
+      const theme = isDarkMode ? 'dark' : 'light';
+      const stateKey = currentState === 'hovered' ? 'hover' : 'checked';
+
+      // Use error color for invalid state
+      if (currentState === 'invalid') {
+        return {
+          backgroundColor: isDarkMode
+            ? THEME_COLORS.dark.checked.background
+            : '#B91C1C',
+          borderColor: isDarkMode
+            ? THEME_COLORS.dark.checked.background
+            : '#B91C1C',
+          color: isDarkMode ? THEME_COLORS.dark.checked.iconColor : '#FEFEFF',
+        };
+      }
+
+      // Use focused style for focused state
+      if (currentState === 'focused') {
+        return {
+          backgroundColor: isDarkMode
+            ? THEME_COLORS.dark.checked.background
+            : THEME_COLORS.light.checked.background,
+          borderColor: '#5399EC', // indicator-info
+          color: isDarkMode
+            ? THEME_COLORS.dark.checked.iconColor
+            : THEME_COLORS.light.checked.iconColor,
+        };
+      }
+
+      // Use disabled style
+      if (currentState === 'disabled') {
+        return {
+          backgroundColor: isDarkMode
+            ? THEME_COLORS.dark.checked.background
+            : '#292929', // primary-600
+          borderColor: isDarkMode
+            ? THEME_COLORS.dark.checked.background
+            : '#292929',
+          color: isDarkMode
+            ? THEME_COLORS.dark.checked.iconColor
+            : THEME_COLORS.light.checked.iconColor,
+          opacity: 0.4,
+        };
+      }
+
+      return {
+        backgroundColor: THEME_COLORS[theme][stateKey].background,
+        borderColor: THEME_COLORS[theme][stateKey].border,
+        color: THEME_COLORS[theme][stateKey].iconColor,
+      };
+    };
+
+    // Get icon color based on theme and state
+    const getIconColor = (): string => {
+      if (isDarkMode) {
+        return THEME_COLORS.dark.checked.iconColor;
+      }
+      return THEME_COLORS.light.checked.iconColor;
+    };
 
     // Determine text color based on state and checked status
     const getTextColorClass = () => {
@@ -257,13 +379,22 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
           <label
             htmlFor={inputId}
             className={`${checkboxClasses} relative box-border`}
+            style={getCheckboxStyle()}
           >
             <div className="absolute inset-0 flex items-center justify-center">
               {/* Show appropriate icon based on state */}
               {indeterminate ? (
-                <Minus size={sizeClasses.phosphorSize} weight="bold" />
+                <Minus
+                  size={sizeClasses.phosphorSize}
+                  weight="bold"
+                  color={getIconColor()}
+                />
               ) : checked ? (
-                <Check size={sizeClasses.phosphorSize} weight="bold" />
+                <Check
+                  size={sizeClasses.phosphorSize}
+                  weight="bold"
+                  color={getIconColor()}
+                />
               ) : null}
             </div>
           </label>

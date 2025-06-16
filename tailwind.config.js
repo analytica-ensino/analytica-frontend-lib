@@ -6,6 +6,7 @@ module.exports = {
     './.ladle/**/*.{ts,tsx}',
     './node_modules/analytica-frontend-lib/dist/**/*.{js,ts,jsx,tsx}',
   ],
+  darkMode: ['class', '[data-theme="dark"]'],
   theme: {
     extend: {
       fontFamily: {
