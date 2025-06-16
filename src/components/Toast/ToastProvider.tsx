@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useMemo } from 'react';
 import { Toast } from './Toast';
 
 type ToastPosition =
@@ -38,8 +38,16 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
+  const contextValue = useMemo(
+    () => ({
+      addToast,
+      removeToast,
+    }),
+    [addToast, removeToast]
+  );
+
   return (
-    <ToastContext.Provider value={{ addToast, removeToast }}>
+    <ToastContext.Provider value={contextValue}>
       {children}
 
       {toasts.map((toast) => (
