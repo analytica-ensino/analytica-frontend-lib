@@ -41,7 +41,6 @@ const SIZE_CLASSES = {
     iconSize: 'w-3 h-3', // 12px x 12px
     phosphorSize: 14,
     dimensions: '16px',
-    phosphorIconSize: 13,
     labelHeight: 'h-[21px]',
   },
   medium: {
@@ -52,7 +51,6 @@ const SIZE_CLASSES = {
     iconSize: 'w-4 h-4', // 16px x 16px
     phosphorSize: 16,
     dimensions: '20px',
-    phosphorIconSize: 16,
     labelHeight: 'h-6',
   },
   large: {
@@ -63,7 +61,6 @@ const SIZE_CLASSES = {
     iconSize: 'w-5 h-5', // 20px x 20px
     phosphorSize: 20,
     dimensions: '24px',
-    phosphorIconSize: 20,
     labelHeight: 'h-[27px]',
   },
 } as const;
@@ -742,9 +739,6 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
     // Get icon size for checkbox
     const getIconSize = () => {
-      if (size === 'small' && checked) {
-        return 13; // Tamanho do ícone para checkbox small marcado
-      }
       return sizeClasses.phosphorSize;
     };
 
