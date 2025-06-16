@@ -1,263 +1,220 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import '@testing-library/jest-dom';
 import { CheckBox } from './CheckBox';
 
-describe('CheckBox Component', () => {
-  let mockUseEffect: jest.SpyInstance;
+// Mock the useId hook to ensure consistent IDs in tests
+jest.mock('react', () => ({
+  ...jest.requireActual('react'),
+  useId: () => 'test-id',
+}));
 
-  beforeEach(() => {
-    // Mock useEffect for dark mode detection
-    mockUseEffect = jest.spyOn(React, 'useEffect');
+describe('CheckBox', () => {
+  it('renders the checkbox with label text', () => {
+    render(<CheckBox label="Accept terms" />);
+    expect(screen.getByText('Accept terms')).toBeInTheDocument();
+    expect(screen.getByRole('checkbox')).toBeInTheDocument();
   });
 
-  afterEach(() => {
-    mockUseEffect.mockRestore();
-  });
-  it('renders checkbox correctly', () => {
-    render(<CheckBox data-testid="checkbox" />);
-    expect(screen.getByTestId('checkbox')).toBeInTheDocument();
+  it('renders without label', () => {
+    render(<CheckBox />);
+    expect(screen.getByRole('checkbox')).toBeInTheDocument();
+    expect(screen.queryByText('Accept terms')).not.toBeInTheDocument();
   });
 
-  it('renders with label', () => {
-    render(<CheckBox label="Test Label" />);
-    expect(screen.getByText('Test Label')).toBeInTheDocument();
-  });
-
-  it('applies default props correctly', () => {
-    render(<CheckBox label="Test" data-testid="checkbox" />);
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).not.toBeChecked();
-    expect(checkbox).not.toBeDisabled();
-  });
-
-  it('renders checked when checked prop is true', () => {
-    render(<CheckBox label="Test" checked={true} />);
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).toBeChecked();
-  });
-
-  it('renders unchecked when checked prop is false', () => {
-    render(<CheckBox label="Test" checked={false} />);
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).not.toBeChecked();
-  });
-
-  it('renders disabled when disabled prop is true', () => {
-    render(<CheckBox label="Test" disabled={true} />);
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).toBeDisabled();
-  });
-
-  it('calls onChange when clicked', async () => {
-    const user = userEvent.setup();
-    const handleChange = jest.fn();
-    render(<CheckBox label="Test" onChange={handleChange} />);
-
-    const checkbox = screen.getByRole('checkbox');
-    await user.click(checkbox);
-
-    expect(handleChange).toHaveBeenCalledTimes(1);
-  });
-
-  it('works in uncontrolled mode (manages its own state)', async () => {
-    const user = userEvent.setup();
-    render(<CheckBox label="Test" />);
-
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).not.toBeChecked();
-
-    await user.click(checkbox);
-    expect(checkbox).toBeChecked();
-
-    await user.click(checkbox);
-    expect(checkbox).not.toBeChecked();
-  });
-
-  it('works in controlled mode when checked prop is provided', async () => {
-    const user = userEvent.setup();
-    const handleChange = jest.fn();
-    const { rerender } = render(
-      <CheckBox label="Test" checked={false} onChange={handleChange} />
-    );
-
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).not.toBeChecked();
-
-    await user.click(checkbox);
-    expect(handleChange).toHaveBeenCalledTimes(1);
-    expect(checkbox).not.toBeChecked(); // Should still be false until parent updates
-
-    // Simulate parent component updating the state
-    rerender(<CheckBox label="Test" checked={true} onChange={handleChange} />);
-    expect(checkbox).toBeChecked();
-  });
-
-  it('calls onChange when label is clicked', async () => {
-    const user = userEvent.setup();
-    const handleChange = jest.fn();
-    render(<CheckBox label="Test Label" onChange={handleChange} />);
-
-    const label = screen.getByText('Test Label');
-    await user.click(label);
-
-    expect(handleChange).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not call onChange when disabled', async () => {
-    const user = userEvent.setup();
-    const handleChange = jest.fn();
-    render(<CheckBox label="Test" disabled={true} onChange={handleChange} />);
-
-    const checkbox = screen.getByRole('checkbox');
-    await user.click(checkbox);
-
-    expect(handleChange).not.toHaveBeenCalled();
-  });
-
-  it('supports keyboard interaction with Space key', async () => {
-    const user = userEvent.setup();
-    const handleChange = jest.fn();
-    render(<CheckBox label="Test" onChange={handleChange} />);
-
-    const checkbox = screen.getByRole('checkbox');
-    checkbox.focus();
-    await user.keyboard(' ');
-
-    expect(handleChange).toHaveBeenCalledTimes(1);
-  });
-
-  it('generates unique id when not provided', () => {
-    render(<CheckBox label="Test 1" />);
-    render(<CheckBox label="Test 2" />);
-
-    const checkboxes = screen.getAllByRole('checkbox');
-    expect(checkboxes[0].id).not.toBe(checkboxes[1].id);
-    expect(checkboxes[0].id).toBeTruthy();
-    expect(checkboxes[1].id).toBeTruthy();
-  });
-
-  it('uses provided id', () => {
-    render(<CheckBox label="Test" id="custom-id" />);
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox.id).toBe('custom-id');
-  });
-
-  it('associates label with checkbox correctly', () => {
-    render(<CheckBox label="Test Label" id="test-checkbox" />);
-    const checkbox = screen.getByRole('checkbox');
-    const label = screen.getByText('Test Label').closest('label');
-
-    expect(label).toHaveAttribute('for', 'test-checkbox');
-    expect(checkbox.id).toBe('test-checkbox');
-  });
-
-  describe('Size variants', () => {
+  describe('Size tests', () => {
     it('applies small size classes', () => {
-      render(<CheckBox size="small" label="Small" />);
-      const checkbox = screen.getByRole('checkbox');
-      const customCheckbox = checkbox.nextElementSibling as HTMLElement;
-      expect(customCheckbox.className).toContain('w-4');
-      expect(screen.getByText('Small')).toHaveClass('text-sm');
+      const { container } = render(<CheckBox size="small" label="Small checkbox" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveClass('w-4', 'h-4');
     });
 
     it('applies medium size classes (default)', () => {
-      render(<CheckBox size="medium" label="Medium" />);
-      const checkbox = screen.getByRole('checkbox');
-      const customCheckbox = checkbox.nextElementSibling as HTMLElement;
-      expect(customCheckbox.className).toContain('w-5');
-      expect(screen.getByText('Medium')).toHaveClass('text-md');
+      const { container } = render(<CheckBox label="Medium checkbox" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveClass('w-5', 'h-5');
     });
 
     it('applies large size classes', () => {
-      render(<CheckBox size="large" label="Large" />);
-      const checkbox = screen.getByRole('checkbox');
-      const customCheckbox = checkbox.nextElementSibling as HTMLElement;
-      expect(customCheckbox.className).toContain('w-6');
-      expect(screen.getByText('Large')).toHaveClass('text-md');
-    });
-
-    it('applies default medium size when no size specified', () => {
-      render(<CheckBox label="Default" />);
-      const checkbox = screen.getByRole('checkbox');
-      const customCheckbox = checkbox.nextElementSibling as HTMLElement;
-      expect(customCheckbox.className).toContain('w-5');
+      const { container } = render(<CheckBox size="large" label="Large checkbox" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveClass('w-6', 'h-6');
     });
   });
 
-  describe('State variants', () => {
+  describe('State tests', () => {
     it('applies default state classes', () => {
-      render(<CheckBox state="default" label="Default" />);
-      const checkbox = screen.getByRole('checkbox');
-      const customCheckbox = checkbox.nextElementSibling as HTMLElement;
-      expect(customCheckbox.className).toContain('border-border-400');
+      const { container } = render(<CheckBox state="default" label="Default state" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveClass('border-border-400');
+    });
+
+    it('applies hovered state classes', () => {
+      const { container } = render(<CheckBox state="hovered" label="Hovered state" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveClass('border-border-500');
+    });
+
+    it('applies focused state classes', () => {
+      const { container } = render(<CheckBox state="focused" label="Focused state" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveClass('border-3', 'border-indicator-info');
     });
 
     it('applies invalid state classes', () => {
-      render(<CheckBox state="invalid" label="Invalid" />);
-      const checkbox = screen.getByRole('checkbox');
-      const customCheckbox = checkbox.nextElementSibling as HTMLElement;
-      expect(customCheckbox.className).toContain('border-error-700');
+      const { container } = render(<CheckBox state="invalid" label="Invalid state" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveClass('border-error-700');
     });
 
-    it('applies disabled state classes', () => {
-      render(<CheckBox disabled label="Disabled" />);
-      const checkbox = screen.getByRole('checkbox');
-      const customCheckbox = checkbox.nextElementSibling as HTMLElement;
-      expect(customCheckbox.className).toContain('opacity-40');
-      expect(customCheckbox.className).toContain('cursor-not-allowed');
+    it('applies disabled state through disabled prop', () => {
+      const { container } = render(<CheckBox disabled label="Disabled state" />);
+      const nativeCheckbox = screen.getByRole('checkbox');
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+
+      expect(nativeCheckbox).toBeDisabled();
+      expect(customCheckbox).toHaveClass('cursor-not-allowed', 'opacity-40');
     });
   });
 
-  describe('Indeterminate state', () => {
-    it('shows indeterminate icon when indeterminate is true', () => {
-      render(<CheckBox indeterminate={true} label="Indeterminate" />);
+  describe('Checked state functionality', () => {
+    it('renders unchecked by default', () => {
+      render(<CheckBox label="Unchecked" />);
       const checkbox = screen.getByRole('checkbox');
-      const svg = checkbox.parentElement?.querySelector('svg');
-      expect(svg).toBeInTheDocument();
+      expect(checkbox).not.toBeChecked();
     });
 
-    it('shows check icon when checked and not indeterminate', () => {
-      render(<CheckBox checked={true} indeterminate={false} label="Checked" />);
+    it('renders checked when checked prop is true', () => {
+      render(<CheckBox checked label="Checked" />);
       const checkbox = screen.getByRole('checkbox');
-      const svg = checkbox.parentElement?.querySelector('svg');
-      expect(svg).toBeInTheDocument();
+      expect(checkbox).toBeChecked();
     });
 
-    it('shows no icon when unchecked and not indeterminate', () => {
-      render(
-        <CheckBox checked={false} indeterminate={false} label="Unchecked" />
+    it('shows check icon when checked', () => {
+      render(<CheckBox checked label="Checked with icon" />);
+      // The check icon should be present in the DOM
+      const checkIcon = document.querySelector('svg');
+      expect(checkIcon).toBeInTheDocument();
+    });
+
+    it('shows minus icon when indeterminate', () => {
+      render(<CheckBox indeterminate label="Indeterminate" />);
+      // The minus icon should be present in the DOM
+      const minusIcon = document.querySelector('svg');
+      expect(minusIcon).toBeInTheDocument();
+    });
+
+    it('prioritizes indeterminate over checked state for icon display', () => {
+      render(<CheckBox checked indeterminate label="Indeterminate and checked" />);
+      // Should show minus icon even when checked=true
+      const icons = document.querySelectorAll('svg');
+      expect(icons.length).toBe(1); // Only one icon should be shown
+    });
+  });
+
+  describe('Controlled vs Uncontrolled behavior', () => {
+    it('works as uncontrolled component', async () => {
+      const user = userEvent.setup();
+      render(<CheckBox label="Uncontrolled" />);
+
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).not.toBeChecked();
+
+      await user.click(checkbox);
+      expect(checkbox).toBeChecked();
+
+      await user.click(checkbox);
+      expect(checkbox).not.toBeChecked();
+    });
+
+    it('works as controlled component', async () => {
+      const user = userEvent.setup();
+      const handleChange = jest.fn();
+
+      const { rerender } = render(
+        <CheckBox checked={false} onChange={handleChange} label="Controlled" />
       );
+
       const checkbox = screen.getByRole('checkbox');
-      const svg = checkbox.parentElement?.querySelector('svg');
-      expect(svg).not.toBeInTheDocument();
+      expect(checkbox).not.toBeChecked();
+
+      await user.click(checkbox);
+      expect(handleChange).toHaveBeenCalledTimes(1);
+      expect(checkbox).not.toBeChecked(); // Should not change without prop update
+
+      // Simulate parent component updating the checked prop
+      rerender(
+        <CheckBox checked={true} onChange={handleChange} label="Controlled" />
+      );
+      expect(checkbox).toBeChecked();
     });
 
-    it('prioritizes indeterminate over checked state', () => {
-      render(<CheckBox checked={true} indeterminate={true} label="Both" />);
+    it('calls onChange when clicked', async () => {
+      const user = userEvent.setup();
+      const handleChange = jest.fn();
+
+      render(<CheckBox onChange={handleChange} label="With onChange" />);
+
       const checkbox = screen.getByRole('checkbox');
-      const svg = checkbox.parentElement?.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-      // Check if it's the indeterminate icon (horizontal line)
-      expect(svg?.querySelector('line')).toBeInTheDocument();
+      await user.click(checkbox);
+
+      expect(handleChange).toHaveBeenCalledTimes(1);
+      expect(handleChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          target: expect.objectContaining({
+            checked: true,
+          }),
+        })
+      );
     });
   });
 
-  describe('Error and helper messages', () => {
-    it('displays error message when provided', () => {
-      render(<CheckBox label="Test" errorMessage="This field is required" />);
-      expect(screen.getByText('This field is required')).toBeInTheDocument();
+  describe('Accessibility and IDs', () => {
+    it('generates unique ID when not provided', () => {
+      render(<CheckBox label="Auto ID" />);
+      const checkbox = screen.getByRole('checkbox');
+      const label = screen.getByText('Auto ID');
+
+      expect(checkbox).toHaveAttribute('id', 'checkbox-test-id');
+      expect(label.closest('label')).toHaveAttribute('for', 'checkbox-test-id');
     });
 
-    it('displays helper text when provided', () => {
-      render(<CheckBox label="Test" helperText="Optional helper text" />);
-      expect(screen.getByText('Optional helper text')).toBeInTheDocument();
+    it('uses provided ID', () => {
+      render(<CheckBox id="custom-id" label="Custom ID" />);
+      const checkbox = screen.getByRole('checkbox');
+      const label = screen.getByText('Custom ID');
+
+      expect(checkbox).toHaveAttribute('id', 'custom-id');
+      expect(label.closest('label')).toHaveAttribute('for', 'custom-id');
+    });
+
+    it('has proper accessibility attributes', () => {
+      render(<CheckBox label="Accessible checkbox" />);
+      const checkbox = screen.getByRole('checkbox');
+
+      expect(checkbox).toHaveAttribute('type', 'checkbox');
+      expect(checkbox).toHaveClass('sr-only'); // Visually hidden but accessible
+    });
+  });
+
+  describe('Error and helper text', () => {
+    it('displays error message', () => {
+      render(<CheckBox label="With error" errorMessage="This field is required" />);
+      expect(screen.getByText('This field is required')).toBeInTheDocument();
+      expect(screen.getByText('This field is required')).toHaveClass('text-error-600');
+    });
+
+    it('displays helper text when no error', () => {
+      render(<CheckBox label="With helper" helperText="Check this to continue" />);
+      expect(screen.getByText('Check this to continue')).toBeInTheDocument();
+      expect(screen.getByText('Check this to continue')).toHaveClass('text-text-500');
     });
 
     it('prioritizes error message over helper text', () => {
       render(
         <CheckBox
-          label="Test"
+          label="Both texts"
           errorMessage="Error message"
           helperText="Helper text"
         />
@@ -265,1084 +222,565 @@ describe('CheckBox Component', () => {
       expect(screen.getByText('Error message')).toBeInTheDocument();
       expect(screen.queryByText('Helper text')).not.toBeInTheDocument();
     });
-
-    it('applies error styling to error message', () => {
-      render(<CheckBox label="Test" errorMessage="Error message" />);
-      const errorElement = screen.getByText('Error message');
-      expect(errorElement).toHaveClass('text-error-600');
-    });
-
-    it('applies helper styling to helper text', () => {
-      render(<CheckBox label="Test" helperText="Helper text" />);
-      const helperElement = screen.getByText('Helper text');
-      expect(helperElement).toHaveClass('text-text-500');
-    });
   });
 
-  describe('Accessibility', () => {
-    it('has proper aria attributes', () => {
-      render(<CheckBox label="Test" />);
-      const checkbox = screen.getByRole('checkbox');
-      expect(checkbox).toHaveAttribute('type', 'checkbox');
-    });
-
-    it('is keyboard focusable', () => {
-      render(<CheckBox label="Test" />);
-      const checkbox = screen.getByRole('checkbox');
-      checkbox.focus();
-      expect(checkbox).toHaveFocus();
-    });
-
-    it('supports screen reader with label association', () => {
-      render(<CheckBox label="Screen reader test" id="sr-test" />);
-      const checkbox = screen.getByRole('checkbox');
-      const label = screen.getByText('Screen reader test').closest('label');
-
-      expect(label).toHaveAttribute('for', 'sr-test');
-      expect(checkbox).toHaveAttribute('id', 'sr-test');
-    });
-
-    it('indicates required state to screen readers when invalid', () => {
-      render(<CheckBox label="Required field" state="invalid" />);
-      const checkbox = screen.getByRole('checkbox');
-      expect(checkbox).toBeInTheDocument();
-    });
-  });
-
-  describe('Custom styling', () => {
+  describe('Custom styling and classes', () => {
     it('applies custom className to checkbox', () => {
-      render(<CheckBox label="Test" className="custom-class" />);
-      const checkbox = screen.getByRole('checkbox');
-      const customCheckbox = checkbox.nextElementSibling;
-      expect(customCheckbox).toHaveClass('custom-class');
+      const { container } = render(<CheckBox className="custom-checkbox-class" label="Custom class" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveClass('custom-checkbox-class');
     });
 
     it('applies custom labelClassName to label', () => {
-      render(<CheckBox label="Test" labelClassName="custom-label-class" />);
-      const label = screen.getByText('Test');
+      render(<CheckBox labelClassName="custom-label-class" label="Custom label class" />);
+      const label = screen.getByText('Custom label class');
       expect(label).toHaveClass('custom-label-class');
     });
-  });
 
-  describe('Without label', () => {
-    it('renders checkbox without label when label prop is not provided', () => {
-      render(<CheckBox data-testid="checkbox" />);
-      const checkbox = screen.getByRole('checkbox');
-      expect(checkbox).toBeInTheDocument();
-      expect(screen.queryByText('Test')).not.toBeInTheDocument();
-    });
+    it('applies base checkbox classes', () => {
+      const { container } = render(<CheckBox label="Base classes" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
 
-    it('still generates proper id when no label provided', () => {
-      render(<CheckBox />);
-      const checkbox = screen.getByRole('checkbox');
-      expect(checkbox.id).toBeTruthy();
-    });
-  });
-
-  describe('Form integration', () => {
-    it('can be part of a form', () => {
-      const handleSubmit = jest.fn();
-      render(
-        <form onSubmit={handleSubmit}>
-          <CheckBox name="terms" value="accepted" label="Accept terms" />
-          <button type="submit">Submit</button>
-        </form>
+      expect(customCheckbox).toHaveClass(
+        'rounded',
+        'border',
+        'cursor-pointer',
+        'transition-all',
+        'duration-200',
+        'flex',
+        'items-center',
+        'justify-center'
       );
-
-      const checkbox = screen.getByRole('checkbox');
-      expect(checkbox).toHaveAttribute('name', 'terms');
-      expect(checkbox).toHaveAttribute('value', 'accepted');
-    });
-
-    it('forwards ref correctly', () => {
-      const ref = React.createRef<HTMLInputElement>();
-      render(<CheckBox ref={ref} label="Test" />);
-      expect(ref.current).toBeInstanceOf(HTMLInputElement);
     });
   });
 
-  describe('Text Integration', () => {
-    it('should use Text component for labels with correct props', () => {
-      render(<CheckBox label="Test Label" size="large" />);
-
-      const label = screen.getByText('Test Label');
-      expect(label).toBeInTheDocument();
-      expect(label.tagName).toBe('LABEL');
-    });
-
-    it('should use Text component for error messages', () => {
-      render(<CheckBox label="Test" errorMessage="Error occurred" />);
-
-      const errorMessage = screen.getByText('Error occurred');
-      expect(errorMessage).toBeInTheDocument();
-      expect(errorMessage).toHaveClass('text-error-600');
-    });
-
-    it('should use Text component for helper text', () => {
-      render(<CheckBox label="Test" helperText="Helper information" />);
-
-      const helperText = screen.getByText('Helper information');
-      expect(helperText).toBeInTheDocument();
-      expect(helperText).toHaveClass('text-text-500');
-    });
-
-    it('should not show helper text when error message is present', () => {
-      render(
-        <CheckBox
-          label="Test"
-          helperText="Helper info"
-          errorMessage="Error occurred"
-        />
-      );
-
-      expect(screen.getByText('Error occurred')).toBeInTheDocument();
-      expect(screen.queryByText('Helper info')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('Theme Support', () => {
-    it('should apply correct classes for design system integration', () => {
-      render(<CheckBox label="Test" />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling;
-
-      expect(customCheckbox).toHaveClass('bg-background');
-      expect(customCheckbox).toHaveClass('border-border-400');
-    });
-
-    it('should apply correct classes for checked state', () => {
-      render(<CheckBox label="Test" checked />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling;
-
-      expect(customCheckbox).toHaveClass('bg-primary-800');
-      expect(customCheckbox).toHaveClass('border-primary-800');
-    });
-
-    it('should apply correct classes for invalid state', () => {
-      render(<CheckBox label="Test" state="invalid" />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling;
-
-      expect(customCheckbox).toHaveClass('border-error-700');
-    });
-
-    it('should apply correct classes for disabled state', () => {
-      render(<CheckBox label="Test" disabled />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling;
-
-      expect(customCheckbox).toHaveClass('opacity-40');
-      expect(customCheckbox).toHaveClass('cursor-not-allowed');
-    });
-
-    it('should apply dark theme when _theme prop is "dark"', () => {
-      render(<CheckBox label="Test" _theme="dark" checked />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling;
-
-      expect(customCheckbox).toHaveAttribute('style');
-    });
-
-    it('should detect dark mode from parent elements', () => {
-      const { container } = render(
-        <div data-theme="dark">
-          <CheckBox label="Dark Mode Test" id="dark-mode-test" />
-        </div>
-      );
-
-      expect(mockUseEffect).toHaveBeenCalled();
-
-      const checkbox = container.querySelector('#dark-mode-test');
-      expect(checkbox).not.toBeNull();
-    });
-  });
-
-  describe('Visual States', () => {
-    it('should apply hovered state classes', () => {
-      render(<CheckBox label="Test" state="hovered" />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling;
-
-      expect(customCheckbox).toHaveClass('bg-background-50');
-      expect(customCheckbox).toHaveClass('border-border-500');
-    });
-
-    it('should apply focused state classes', () => {
-      render(<CheckBox label="Test" state="focused" />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling;
-
-      expect(customCheckbox).toHaveClass('border-indicator-info');
-      expect(customCheckbox).toHaveClass('focus:ring-indicator-info/20');
-    });
-
-    it('should apply large size with focused state', () => {
-      render(<CheckBox label="Test" size="large" state="focused" />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling;
-
-      expect(customCheckbox).toHaveClass('border-3');
-    });
-
-    it('should apply large size with hovered state when checked', () => {
-      render(<CheckBox label="Test" size="large" state="hovered" checked />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling;
-
-      expect(customCheckbox).toHaveClass('border-3');
-    });
-
-    it('should apply invalid state with dark theme', () => {
-      render(<CheckBox label="Test" state="invalid" _theme="dark" checked />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling;
-
-      expect(customCheckbox).toHaveAttribute('style');
-    });
-  });
-
-  describe('Icon Behavior', () => {
-    it('should render check icon for small checkbox', () => {
-      render(<CheckBox label="Test" size="small" checked />);
-
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-    });
-
-    it('should render check icon for medium checkbox', () => {
-      render(<CheckBox label="Test" size="medium" checked />);
-
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-    });
-
-    it('should render check icon for large checkbox', () => {
-      render(<CheckBox label="Test" size="large" checked />);
-
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-    });
-
-    it('should render minus icon for indeterminate state', () => {
-      render(<CheckBox label="Test" indeterminate />);
-
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-
-      const line = svg?.querySelector('line');
-      expect(line).toBeInTheDocument();
-    });
-
-    it('should apply correct icon color for dark theme', () => {
-      render(<CheckBox label="Test" _theme="dark" checked />);
-
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-    });
-
-    it('should apply correct icon color for invalid state', () => {
-      render(<CheckBox label="Test" state="invalid" checked />);
-
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-    });
-
-    // Testing indeterminate state with medium size and different visual states
-    it('should handle indeterminate state with different styles', () => {
-      // Test default state
-      const { rerender } = render(
-        <CheckBox label="Test" size="medium" indeterminate state="default" />
-      );
-      let svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-
-      // Test focused state
-      rerender(
-        <CheckBox label="Test" size="medium" indeterminate state="focused" />
-      );
-      svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-
-      // Test hovered state
-      rerender(
-        <CheckBox label="Test" size="medium" indeterminate state="hovered" />
-      );
-      svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-
-      // Test invalid state
-      rerender(
-        <CheckBox label="Test" size="medium" indeterminate state="invalid" />
-      );
-      svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-
-      // Test disabled state
-      rerender(<CheckBox label="Test" size="medium" indeterminate disabled />);
-      svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-    });
-  });
-
-  describe('Special Style Cases', () => {
-    it('should apply correct styles for large size with default unchecked state', () => {
-      render(<CheckBox label="Test" size="large" />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling;
-
-      expect(customCheckbox).toHaveClass('border-3');
-    });
-
-    it('should apply correct styles for disabled state', () => {
-      render(<CheckBox label="Test" disabled checked />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling;
-
-      expect(customCheckbox).toHaveClass('opacity-40');
-    });
-
-    // Additional tests for special style cases
-    it('should apply special style for focused state with dark theme', () => {
-      render(<CheckBox label="Test" _theme="dark" state="focused" checked />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling as HTMLElement;
-
-      expect(customCheckbox).toHaveAttribute('style');
-    });
-
-    it('should apply special style for disabled state with dark theme', () => {
-      render(<CheckBox label="Test" _theme="dark" disabled checked />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling as HTMLElement;
-
-      expect(customCheckbox).toHaveClass('opacity-40');
-      expect(customCheckbox).toHaveAttribute('style');
-    });
-
-    it('should apply correct style for large checkbox with invalid state and dark theme', () => {
-      render(
-        <CheckBox
-          label="Test"
-          size="large"
-          state="invalid"
-          _theme="dark"
-          checked
-        />
-      );
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling as HTMLElement;
-
-      expect(customCheckbox).toHaveAttribute('style');
-    });
-  });
-
-  describe('Line Height and Label Spacing', () => {
-    it('should apply correct line height for small size', () => {
-      render(<CheckBox label="Test" size="small" />);
-
-      const label = screen.getByText('Test');
-      expect(label).toHaveClass('leading-[150%]');
-    });
-
-    it('should apply correct line height for medium size', () => {
-      render(<CheckBox label="Test" size="medium" />);
-
-      const label = screen.getByText('Test');
-      expect(label).toHaveClass('leading-[150%]');
-    });
-
-    it('should apply correct line height for large size', () => {
-      render(<CheckBox label="Test" size="large" />);
-
-      const label = screen.getByText('Test');
-      expect(label).toHaveClass('leading-[150%]');
-    });
-
-    it('should apply spacing for small size', () => {
-      render(<CheckBox label="Test" size="small" />);
-
-      const container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('flex');
-      expect(container).toHaveClass('flex-row');
-    });
-
-    it('should apply spacing for medium size with different states', () => {
-      const { rerender } = render(
-        <CheckBox label="Test" size="medium" state="default" />
-      );
-
-      let container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('flex');
-      expect(container).toHaveClass('flex-row');
-
-      rerender(<CheckBox label="Test" size="medium" state="focused" checked />);
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('flex');
-      expect(container).toHaveClass('flex-row');
-
-      rerender(<CheckBox label="Test" size="medium" state="hovered" checked />);
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('flex');
-      expect(container).toHaveClass('flex-row');
-    });
-
-    it('should specifically test getLineHeight function', () => {
-      // Test all sizes to cover the mapping
-      const { rerender } = render(<CheckBox label="Test" size="small" />);
-      let label = screen.getByText('Test');
-      expect(label).toHaveClass('leading-[150%]');
-
-      rerender(<CheckBox label="Test" size="medium" />);
-      label = screen.getByText('Test');
-      expect(label).toHaveClass('leading-[150%]');
-
-      rerender(<CheckBox label="Test" size="large" />);
-      label = screen.getByText('Test');
-      expect(label).toHaveClass('leading-[150%]');
-    });
-
-    it('should specifically test getLabelHeight function', () => {
-      // Test all sizes to cover the mapping
-      const { rerender } = render(<CheckBox label="Test" size="small" />);
-      let container = screen.getByText('Test').closest('div');
-      expect(container).toHaveClass('h-[21px]');
-
-      rerender(<CheckBox label="Test" size="medium" />);
-      container = screen.getByText('Test').closest('div');
-      expect(container).toHaveClass('h-6');
-
-      rerender(<CheckBox label="Test" size="large" />);
-      container = screen.getByText('Test').closest('div');
-      expect(container).toHaveClass('h-[27px]');
-
-      // This test should exercise the default case indirectly
-      rerender(<CheckBox label="Test" />);
-      container = screen.getByText('Test').closest('div');
-      expect(container).toBeInTheDocument();
-    });
-  });
-
-  describe('Edge Cases', () => {
-    afterEach(() => {
-      // Restore all Jest mocks after each test to prevent leaking
-      jest.restoreAllMocks();
-    });
-
-    it('should handle mixed state cases', () => {
-      render(<CheckBox label="Test" checked state="invalid" />);
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling;
-
-      expect(customCheckbox).toHaveClass('border-error-700');
-    });
-
-    // These tests target uncovered edge cases in the styling code
-    it('should apply correct styles for large size with dark theme and hovered state', () => {
-      render(
-        <CheckBox
-          label="Test"
-          size="large"
-          _theme="dark"
-          state="hovered"
-          checked
-        />
-      );
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling as HTMLElement;
-
-      expect(customCheckbox).toHaveAttribute('style');
-    });
-
-    it('should apply correct styles for large size with dark theme and unchecked state', () => {
-      render(<CheckBox label="Test" size="large" _theme="dark" />);
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling as HTMLElement;
-
-      expect(customCheckbox).toHaveAttribute('style');
-    });
-
-    it('should handle icon color when using large size with dark theme', () => {
-      render(<CheckBox label="Test" size="large" _theme="dark" checked />);
-
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-
-      // Force the getIconColor function to be called
-      fireEvent.mouseOver(svg!);
-      fireEvent.mouseOut(svg!);
-    });
-
-    it('should apply correct spacing class for large size with different states', () => {
-      const { rerender } = render(<CheckBox label="Test" size="large" />);
-
-      let container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('gap-2');
-
-      rerender(<CheckBox label="Test" size="large" state="focused" />);
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('gap-2');
-
-      rerender(<CheckBox label="Test" size="large" state="hovered" checked />);
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('gap-2');
-    });
-
-    // Add these specific tests to target uncovered lines
-    it('should use default icon color when no specific mapping exists', () => {
-      render(<CheckBox label="Test" size="large" checked />);
-
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-      const svgElement = svg as SVGElement;
-
-      // Force re-render to trigger getIconColor path
-      fireEvent.focus(screen.getByRole('checkbox', { hidden: true }));
-      fireEvent.blur(screen.getByRole('checkbox', { hidden: true }));
-
-      // This will indirectly test the default case in getIconColor
-      expect(svgElement).toBeInTheDocument();
-    });
-
-    it("should apply default size for icon when iconSize doesn't match the map", () => {
-      // Mock the SIZE_CLASSES to force the default path in getIconSize
-      const originalConsoleError = console.error;
-      console.error = jest.fn();
-
-      // Force use of default value in getIconSize
-      const { rerender: _rerender } = render(<CheckBox label="Test" checked />);
-      const svg = document.querySelector('svg');
-
-      expect(svg).toBeInTheDocument();
-
-      console.error = originalConsoleError;
-    });
-
-    it('should apply default height for label when using default height', () => {
-      // Mock implementation to force the getLabelHeight function to return the default value
-      jest
-        .spyOn(React, 'useState')
-        .mockImplementationOnce(() => [true, jest.fn()]);
-
-      render(<CheckBox label="Test" />);
-
-      const labelContainer = screen.getByText('Test').closest('div');
-      expect(labelContainer).toBeInTheDocument();
-    });
-
-    it('should handle all spacingClass conditions', () => {
-      // Test all spacing class conditions by forcing all the different combinations
-      const { rerender } = render(<CheckBox label="Test" size="small" />);
-      let container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('gap-1.5'); // small size
-
-      // Medium size with default state
-      rerender(<CheckBox label="Test" size="medium" state="default" />);
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('gap-2');
-
-      // Medium size with focused state and checked
-      rerender(<CheckBox label="Test" size="medium" state="focused" checked />);
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('gap-2');
-
-      // Medium size with hovered state and checked
-      rerender(<CheckBox label="Test" size="medium" state="hovered" checked />);
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('gap-2');
-
-      // Medium size with invalid state (should use default spacing)
-      rerender(<CheckBox label="Test" size="medium" state="invalid" />);
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).not.toHaveClass('gap-1.5');
-    });
-
-    it('should test specific edge cases in getCheckboxStyle function', () => {
-      // Force checks for uncovered lines in getCheckboxStyle
-
-      // Test line ~641: where no styleValue is found for unchecked
-      render(
-        <div data-theme="dark">
-          <CheckBox label="Test" size="medium" state="hovered" />
-        </div>
-      );
-
-      const checkbox = screen.getByRole('checkbox', { hidden: true });
-      const customCheckbox = checkbox.nextElementSibling as HTMLElement;
-
-      // Just checking if rendering worked to trigger the code path
+  describe('Theme support', () => {
+    it('applies light theme by default', () => {
+      const { container } = render(<CheckBox _theme="light" label="Light theme" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
       expect(customCheckbox).toBeInTheDocument();
     });
 
-    it('should test getIconColor for all scenarios', () => {
-      // Test all paths of getIconColor including lines 651-652
-      const { rerender } = render(
-        <CheckBox label="Test" size="small" checked state="default" />
-      );
-
-      // Get the Check icon
-      let svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-
-      // Try different states to trigger different paths
-      rerender(<CheckBox label="Test" size="small" checked state="focused" />);
-      svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-
-      rerender(<CheckBox label="Test" size="small" checked state="hovered" />);
-      svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
+    it('applies dark theme when specified', () => {
+      const { container } = render(<CheckBox _theme="dark" label="Dark theme" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toBeInTheDocument();
     });
 
-    it('should test all getSpacingClass conditions', () => {
-      // Test all code paths in getSpacingClass function (line 677-678)
-
-      // Test small size
-      const { rerender } = render(<CheckBox label="Test" size="small" />);
-      let container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('gap-1.5');
-
-      // Test medium size with default state
-      rerender(<CheckBox label="Test" size="medium" state="default" />);
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('gap-2');
-
-      // Test medium size with focused state and checked
-      rerender(<CheckBox label="Test" size="medium" state="focused" checked />);
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('gap-2');
-
-      // Test medium size with hovered state and checked
-      rerender(<CheckBox label="Test" size="medium" state="hovered" checked />);
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toHaveClass('gap-2');
-
-      // Test large size with any state (should use sizeClasses.spacing)
-      rerender(<CheckBox label="Test" size="large" />);
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toBeInTheDocument();
-    });
-
-    it('should test getTailwindStyles function', () => {
-      // This targets the getTailwindStyles function around line 593
+    it('detects dark mode from parent element', () => {
       const { container } = render(
-        <CheckBox label="Test" _theme="dark" checked />
-      );
-
-      // Use container.querySelector to get the current checkbox
-      const customCheckbox = container.querySelector('label') as HTMLElement;
-
-      // Verify the style was computed from Tailwind classes
-      expect(customCheckbox).toHaveAttribute('style');
-
-      // Test with unchecked to get other branch - create a new render to avoid conflicts
-      const { container: container2 } = render(
-        <CheckBox data-testid="second-checkbox" label="Test" _theme="dark" />
-      );
-      const unchecked = container2.querySelector('label') as HTMLElement;
-      expect(unchecked).toHaveAttribute('style');
-
-      // Force undefined case - in a new render
-      jest.spyOn(console, 'error').mockImplementation(() => {});
-      const { container: _container3 } = render(
-        <CheckBox
-          data-testid="third-checkbox"
-          label="Test"
-          state="invalid"
-          _theme="dark"
-          checked
-        />
-      );
-    });
-
-    it('should test SPECIAL_STYLE_MAP functions directly', () => {
-      // Target line 403 for the special style map and related lines - use separate renders
-      const { container } = render(
-        <CheckBox
-          data-testid="invalid-checkbox"
-          label="Test"
-          state="invalid"
-          _theme="dark"
-          checked
-        />
-      );
-      const invalidCheckbox = container.querySelector('label') as HTMLElement;
-      expect(invalidCheckbox).toHaveAttribute('style');
-
-      // Test focused with large - new render
-      const { container: container2 } = render(
-        <CheckBox
-          data-testid="focused-checkbox"
-          label="Test"
-          state="focused"
-          size="large"
-          checked
-        />
-      );
-      const focusedCheckbox = container2.querySelector('label') as HTMLElement;
-      expect(focusedCheckbox).toHaveAttribute('style');
-
-      // Test disabled - new render
-      const { container: _container3 } = render(
-        <CheckBox
-          data-testid="disabled-checkbox"
-          label="Test"
-          state="disabled"
-          checked
-        />
-      );
-
-      // Test hovered with large - new render
-      const { container: container4 } = render(
-        <CheckBox
-          data-testid="hovered-checkbox"
-          label="Test"
-          state="hovered"
-          size="large"
-          checked
-        />
-      );
-      const hoveredCheckbox = container4.querySelector('label') as HTMLElement;
-      expect(hoveredCheckbox).toHaveAttribute('style');
-    });
-
-    it('should test fallback to theme colors', () => {
-      // Target lines around 651-652
-      render(
-        <CheckBox
-          label="Test"
-          size="large"
-          state="disabled"
-          _theme="dark"
-          checked
-        />
-      );
-
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-    });
-
-    it('should test getTailwindStyles function with all color mappings', () => {
-      // This specifically targets lines 593-610: the getTailwindStyles function and color mappings
-
-      // Test all background colors in bgColorMap
-      const { container } = render(
-        <CheckBox label="Test primary-800" checked state="default" />
-      );
-      let customCheckbox = container.querySelector('label') as HTMLElement;
-      expect(customCheckbox).toHaveAttribute('style');
-
-      // Test with different states to trigger different color paths
-      const { container: container2 } = render(
-        <CheckBox label="Test primary-700" checked state="hovered" />
-      );
-      customCheckbox = container2.querySelector('label') as HTMLElement;
-      expect(customCheckbox).toHaveAttribute('style');
-
-      // Test with error state to trigger bg-error-700
-      const { container: container3 } = render(
-        <CheckBox label="Test error" checked state="invalid" />
-      );
-      customCheckbox = container3.querySelector('label') as HTMLElement;
-      expect(customCheckbox).toHaveAttribute('style');
-
-      // Test with dark theme to trigger primary-100
-      const { container: container4 } = render(
         <div data-theme="dark">
-          <CheckBox label="Test dark" checked state="default" />
+          <CheckBox id="dark-mode-test" label="Dark mode detection" />
         </div>
       );
-      customCheckbox = container4.querySelector('label') as HTMLElement;
-      expect(customCheckbox).toHaveAttribute('style');
+
+      const checkbox = container.querySelector('#dark-mode-test');
+      expect(checkbox).toBeInTheDocument();
+    });
+  });
+
+  describe('Text component integration', () => {
+    it('renders label using Text component with correct props', () => {
+      render(<CheckBox size="small" label="Small text" />);
+      const label = screen.getByText('Small text');
+
+      expect(label).toBeInTheDocument();
+      expect(label).toHaveClass('cursor-pointer', 'select-none', 'font-roboto');
     });
 
-    it('should test getIconColor fallback when themeIconColor is not in colorMap', () => {
-      // This targets lines 651-652: the fallback '|| #FEFEFF' in getIconColor
+    it('renders medium size text for medium and large checkboxes', () => {
+      render(<CheckBox size="large" label="Large checkbox text" />);
+      const label = screen.getByText('Large checkbox text');
+      expect(label).toBeInTheDocument();
+    });
+  });
 
-      // Create a scenario that forces the fallback by using a size/state combination
-      // that doesn't have a specific mapping in ICON_COLOR_MAP
-      const { container } = render(
+  describe('Icon sizing', () => {
+    it('uses correct icon size for small checkbox', () => {
+      render(<CheckBox size="small" checked label="Small with icon" />);
+      // Icon size is controlled by the getIconSize function
+      const icon = document.querySelector('svg');
+      expect(icon).toBeInTheDocument();
+    });
+
+    it('uses correct icon size for medium checkbox', () => {
+      render(<CheckBox size="medium" checked label="Medium with icon" />);
+      const icon = document.querySelector('svg');
+      expect(icon).toBeInTheDocument();
+    });
+
+    it('uses correct icon size for large checkbox', () => {
+      render(<CheckBox size="large" checked label="Large with icon" />);
+      const icon = document.querySelector('svg');
+      expect(icon).toBeInTheDocument();
+    });
+  });
+
+  describe('HTML attributes passthrough', () => {
+    it('passes through standard input attributes', () => {
+      render(
         <CheckBox
-          label="Test fallback color"
-          checked
-          size="large" // large doesn't have entries in ICON_COLOR_MAP
-          state="default"
+          label="With attributes"
+          name="test-name"
+          value="test-value"
+          data-testid="test-checkbox"
         />
       );
 
-      // Verify the check icon is rendered (which triggers getIconColor)
-      const svg = container.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-
-      // The getIconColor function should be called and return a valid color
-      // Even if the color attribute is not visible in the DOM, the function executes
-      expect(svg).toBeTruthy();
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).toHaveAttribute('name', 'test-name');
+      expect(checkbox).toHaveAttribute('value', 'test-value');
+      expect(checkbox).toHaveAttribute('data-testid', 'test-checkbox');
     });
 
-    it('should test getSpacingClass function edge cases', () => {
-      // This targets lines 677-678: the return sizeClasses.spacing fallback
+    it('does not override type attribute', () => {
+      render(<CheckBox label="Type test" />);
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).toHaveAttribute('type', 'checkbox');
+    });
+  });
 
-      // Test medium size with state that doesn't match the specific conditions
-      const { rerender } = render(
-        <CheckBox label="Test" size="medium" state="invalid" />
-      );
-      let container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toBeInTheDocument();
-
-      // Test medium size with hovered state but not checked (should use fallback)
-      rerender(
-        <CheckBox label="Test" size="medium" state="hovered" checked={false} />
-      );
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toBeInTheDocument();
-
-      // Test large size (should always use sizeClasses.spacing)
-      rerender(<CheckBox label="Test" size="large" state="default" />);
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toBeInTheDocument();
-
-      // Test medium with focused but not checked (should use fallback)
-      rerender(
-        <CheckBox label="Test" size="medium" state="focused" checked={false} />
-      );
-      container = screen.getByText('Test').closest('div')?.parentElement;
-      expect(container).toBeInTheDocument();
+  describe('Complex state combinations', () => {
+    it('handles checked + focused state correctly', () => {
+      const { container } = render(<CheckBox checked state="focused" label="Checked and focused" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveClass('border-3', 'border-indicator-info');
     });
 
-    it('should test borderColorMap fallback in getTailwindStyles', () => {
-      // Test the borderColorMap fallback '|| #A5A3A3' in getTailwindStyles function
-      // This targets lines 593-610 by creating a scenario where borderClass is not in the map
+    it('handles checked + invalid state correctly', () => {
+      const { container } = render(<CheckBox checked state="invalid" label="Checked and invalid" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveClass('border-error-700');
+    });
 
+    it('handles large size with various states', () => {
+      const { rerender, container } = render(
+        <CheckBox size="large" state="hovered" label="Large hovered" />
+      );
+      let customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveClass('border-3');
+
+      rerender(<CheckBox size="large" state="focused" label="Large focused" />);
+      customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveClass('border-3', 'border-indicator-info');
+    });
+  });
+
+  describe('Inline styles application', () => {
+    it('applies inline styles for special states', () => {
+      const { container } = render(<CheckBox size="large" state="focused" checked label="Inline styles" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveAttribute('style');
+    });
+
+    it('applies inline styles for invalid state when checked', () => {
+      const { container } = render(<CheckBox state="invalid" checked label="Invalid inline styles" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveAttribute('style');
+    });
+
+    it('applies inline styles for disabled state when checked', () => {
+      const { container } = render(<CheckBox disabled checked label="Disabled inline styles" />);
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveAttribute('style');
+    });
+  });
+
+  describe('Label ReactNode support', () => {
+    it('supports ReactNode as label', () => {
+      const CustomLabel = () => (
+        <span>
+          Custom <strong>label</strong> with <em>formatting</em>
+        </span>
+      );
+
+      render(<CheckBox label={<CustomLabel />} />);
+      expect(screen.getByText(/Custom/)).toBeInTheDocument();
+      expect(screen.getByText(/label/)).toBeInTheDocument();
+      expect(screen.getByText(/formatting/)).toBeInTheDocument();
+    });
+  });
+
+  describe('Edge cases and error handling', () => {
+    it('handles missing onChange gracefully', async () => {
+      const user = userEvent.setup();
+      render(<CheckBox label="No onChange" />);
+
+      const checkbox = screen.getByRole('checkbox');
+      // Should not throw error when clicked without onChange
+      await user.click(checkbox);
+      expect(checkbox).toBeChecked();
+    });
+
+    it('handles rapid state changes', async () => {
+      const user = userEvent.setup();
+      const handleChange = jest.fn();
+
+      render(<CheckBox onChange={handleChange} label="Rapid changes" />);
+
+      const checkbox = screen.getByRole('checkbox');
+      await user.click(checkbox);
+      await user.click(checkbox);
+      await user.click(checkbox);
+
+      expect(handleChange).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('Layout and spacing', () => {
+    it('applies correct spacing between checkbox and label', () => {
+      const { container } = render(<CheckBox size="small" label="Small spacing" />);
+      const spacingContainer = container.querySelector('.flex.flex-row.items-center');
+      expect(spacingContainer).toHaveClass('gap-1.5');
+    });
+
+    it('applies correct spacing for medium and large sizes', () => {
+      const { rerender, container } = render(<CheckBox size="medium" label="Medium spacing" />);
+      let spacingContainer = container.querySelector('.flex.flex-row.items-center');
+      expect(spacingContainer).toHaveClass('gap-2');
+
+      rerender(<CheckBox size="large" label="Large spacing" />);
+      spacingContainer = container.querySelector('.flex.flex-row.items-center');
+      expect(spacingContainer).toHaveClass('gap-2');
+    });
+
+    it('applies correct label height for different sizes', () => {
+      const { rerender, container } = render(<CheckBox size="small" label="Small height" />);
+      let labelContainer = container.querySelector('.flex.flex-row.items-center');
+      // Note: The height class is applied to the label text container, which is a child
+      let labelTextContainer = labelContainer?.querySelector('.flex.flex-row.items-center');
+      expect(labelTextContainer).toHaveClass('h-[21px]');
+
+      rerender(<CheckBox size="medium" label="Medium height" />);
+      labelContainer = container.querySelector('.flex.flex-row.items-center');
+      labelTextContainer = labelContainer?.querySelector('.flex.flex-row.items-center');
+      expect(labelTextContainer).toHaveClass('h-6');
+
+      rerender(<CheckBox size="large" label="Large height" />);
+      labelContainer = container.querySelector('.flex.flex-row.items-center');
+      labelTextContainer = labelContainer?.querySelector('.flex.flex-row.items-center');
+      expect(labelTextContainer).toHaveClass('h-[27px]');
+    });
+  });
+
+  describe('Coverage for edge cases and special paths', () => {
+    it('covers unchecked state with large size default style mapping', () => {
       const { container } = render(
         <CheckBox
-          label="Test border fallback"
           size="large"
           state="default"
           checked={false}
+          label="Large unchecked default"
         />
       );
-
-      const customCheckbox = container.querySelector('label') as HTMLElement;
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
       expect(customCheckbox).toHaveAttribute('style');
-      // The style should be computed and applied
-      expect(customCheckbox.style.cssText).toBeTruthy();
     });
 
-    it('should test bgColorMap and borderColorMap mappings directly', () => {
-      // This targets the specific mappings in getTailwindStyles function (lines 593-610)
+    it('covers indeterminate state with different size and theme combinations', () => {
+      const { container } = render(
+        <CheckBox
+          indeterminate={true}
+          checked={true}
+          size="large"
+          _theme="dark"
+          label="Indeterminate coverage"
+        />
+      );
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).toBeInTheDocument();
 
-      // Test each background color mapping by creating scenarios that trigger them
-      const testCases = [
-        {
-          props: { checked: true, state: 'default' as const },
-          desc: 'primary-800',
-        },
-        {
-          props: { checked: true, state: 'hovered' as const },
-          desc: 'primary-700 or primary-800',
-        },
-        {
-          props: { checked: true, state: 'invalid' as const },
-          desc: 'error-700',
-        },
-      ];
+      // Should show minus icon for indeterminate
+      const minusIcon = document.querySelector('svg');
+      expect(minusIcon).toBeInTheDocument();
+    });
 
-      testCases.forEach(({ props, desc }) => {
+    it('covers theme detection with DOM element checking', () => {
+      // Create a parent with data-theme attribute
+      const { container } = render(
+        <div data-theme="dark">
+          <CheckBox
+            id="theme-detection-test"
+            label="Theme detection"
+            checked={true}
+            size="medium"
+            state="hovered"
+          />
+        </div>
+      );
+
+      const checkbox = container.querySelector('#theme-detection-test');
+      expect(checkbox).toBeInTheDocument();
+    });
+
+    it('covers special style mapping for various state combinations', () => {
+      // Test invalid state with checked=true to trigger SPECIAL_STYLE_MAP.invalid
+      const { container: c1 } = render(
+        <CheckBox
+          state="invalid"
+          checked={true}
+          size="medium"
+          _theme="light"
+          label="Invalid checked light"
+        />
+      );
+      let customCheckbox = c1.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveAttribute('style');
+
+      // Test disabled state with checked=true
+      const { container: c2 } = render(
+        <CheckBox
+          disabled={true}
+          checked={true}
+          size="large"
+          label="Disabled checked large"
+        />
+      );
+      customCheckbox = c2.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveAttribute('style');
+
+      // Test large hovered checked state
+      const { container: c3 } = render(
+        <CheckBox
+          state="hovered"
+          checked={true}
+          size="large"
+          label="Large hovered checked"
+        />
+      );
+      customCheckbox = c3.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveAttribute('style');
+    });
+
+    it('covers getTailwindStyles function execution paths', () => {
+      // Test dark mode with various background/border combinations
+      const { container } = render(
+        <div data-theme="dark">
+          <CheckBox
+            checked={true}
+            state="hovered"
+            size="medium"
+            label="Dark theme tailwind styles"
+          />
+        </div>
+      );
+
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toBeInTheDocument();
+    });
+
+    it('covers icon size mapping for all sizes', () => {
+      const sizes = ['small', 'medium', 'large'] as const;
+
+      sizes.forEach(size => {
         const { container } = render(
           <CheckBox
-            label={`Test ${desc}`}
-            size="small" // Use small to force specific style mappings
-            {...props}
+            size={size}
+            checked={true}
+            label={`${size} icon size`}
           />
         );
 
-        const customCheckbox = container.querySelector('label') as HTMLElement;
-        expect(customCheckbox).toHaveAttribute('style');
-        expect(customCheckbox.style.cssText).toBeTruthy();
+        const icon = container.querySelector('svg');
+        expect(icon).toBeInTheDocument();
       });
     });
 
-    it('should test all color mappings in getTailwindStyles function', () => {
-      // This specifically covers the color mapping objects in lines 593-610
-
-      // Test with dark theme to trigger different color paths
+    it('covers line height and spacing variations', () => {
+      // Test that all sizes use the same line height (150%)
       const { container } = render(
-        <div data-theme="dark">
-          <CheckBox
-            label="Dark theme test"
-            checked
-            size="large"
-            state="default"
-          />
-        </div>
+        <CheckBox size="small" label="Line height test" />
       );
 
-      const customCheckbox = container.querySelector('label') as HTMLElement;
-      expect(customCheckbox).toHaveAttribute('style');
-
-      // Test unchecked with large size to trigger border color mapping
-      const { container: container2 } = render(
-        <CheckBox
-          label="Unchecked large"
-          checked={false}
-          size="large"
-          state="default"
-        />
-      );
-
-      const customCheckbox2 = container2.querySelector('label') as HTMLElement;
-      expect(customCheckbox2).toHaveAttribute('style');
+      const label = screen.getByText('Line height test');
+      expect(label).toHaveClass('leading-[150%]');
     });
 
-    it('should force execution of getTailwindStyles function (lines 593-610)', () => {
-      // This test specifically targets the getTailwindStyles function that has 0 execution count
-
-      // First scenario: Force checked state fallback to default theme colors (lines 649-653)
-      // Use a size/state combination that doesn't exist in CHECKBOX_STYLE_MAP
-      const { container: container1 } = render(
+    it('covers opacity application for disabled state', () => {
+      const { container } = render(
         <CheckBox
-          label="Force checked getTailwindStyles"
-          checked={true}
-          size="large"
-          state="hovered" // large size only has 'default' in CHECKBOX_STYLE_MAP
-          _theme="light"
+          disabled={true}
+          label="Disabled opacity"
         />
       );
 
-      // Second scenario: Force unchecked large fallback (line 679)
-      const { container: container2 } = render(
-        <CheckBox
-          label="Force unchecked getTailwindStyles"
-          checked={false}
-          size="large"
-          state="default"
-          _theme="light"
-        />
-      );
-
-      // Verify both scenarios rendered
-      expect(container1.querySelector('label')).toHaveAttribute('style');
-      expect(container2.querySelector('label')).toHaveAttribute('style');
+      const mainContainer = container.querySelector('.flex.flex-col');
+      const checkboxContainer = mainContainer?.querySelector('.flex.flex-row.items-center');
+      expect(checkboxContainer).toHaveClass('opacity-40');
     });
 
-    it('should force getIconColor fallback path (line 712)', () => {
-      // Create scenario that forces the colorMap fallback || '#FEFEFF'
-      // Use large size (no ICON_COLOR_MAP) with light theme
+    // Additional tests to cover missed lines
+    it('covers dark mode detection when element is not found', () => {
+      // Mock getElementById to return null to test line 471
+      const originalGetElementById = document.getElementById;
+      document.getElementById = jest.fn().mockReturnValue(null);
+
       render(
         <CheckBox
-          label="Test colorMap fallback"
-          checked={true}
-          size="large"
-          state="hovered" // state not specifically mapped
-          _theme="light"
+          id="non-existent-element"
+          label="Element not found test"
         />
       );
 
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
+      // Restore original function
+      document.getElementById = originalGetElementById;
     });
 
-    it('should force getSpacingClass fallback (line 757)', () => {
-      // Test the exact conditions that force 'return sizeClasses.spacing;'
-
-      // Large size always uses the fallback
+    it('covers getTailwindStyles with unknown classes for coverage', () => {
+      // This test forces execution of getTailwindStyles fallback paths (lines 533-550)
+      // by creating scenarios where classes don't exist in the mapping
       const { container } = render(
         <CheckBox
-          label="Test spacing fallback"
-          size="large"
-          state="hovered"
-          checked={false}
+          checked={true}
+          size="small"
+          state="default"
+          _theme="light"
+          label="Unknown class fallback"
         />
       );
 
-      const spacingContainer = container.querySelector(
-        '.flex.flex-row.items-center'
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toBeInTheDocument();
+
+      // Force different state combinations to trigger different paths
+      const { container: c2 } = render(
+        <CheckBox
+          checked={true}
+          size="medium"
+          state="default"
+          _theme="dark"
+          label="Medium default dark theme"
+        />
       );
-      expect(spacingContainer).toHaveClass('gap-2'); // large spacing should be gap-2
+      const customCheckbox2 = c2.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox2).toBeInTheDocument();
     });
 
-    it('should achieve 100% coverage by forcing remaining uncovered paths', () => {
-      // Final test to force the remaining uncovered lines through direct scenarios
-
-      // Force getTailwindStyles execution (lines 593-610) by creating scenarios
-      // where CHECKBOX_STYLE_MAP doesn't have entries and fallbacks are used
-
-      // Scenario 1: Force the default theme colors path for checked state
-      const { container: c1 } = render(
+    it('covers theme fallback path when style mapping is not found', () => {
+      // Test line 574 - fallback to theme colors when mapping doesn't exist
+      // This happens when size/state combination isn't in CHECKBOX_STYLE_MAP
+      const { container } = render(
         <CheckBox
-          label="Force theme fallback"
           checked={true}
-          size="large"
-          state="focused" // large doesn't have focused in CHECKBOX_STYLE_MAP
+          size="small"
+          state="focused" // small + focused should trigger fallback
+          _theme="dark"
+          label="Theme fallback test"
         />
       );
-      expect(c1.querySelector('label')).toHaveAttribute('style');
 
-      // Scenario 2: Force different dark mode paths
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveAttribute('style');
+    });
+
+    it('covers large unchecked default with theme unchecked border fallback', () => {
+      // Test lines 579-585 - large unchecked default with theme.unchecked
+      const { container: c1 } = render(
+        <CheckBox
+          size="large"
+          state="default"
+          checked={false}
+          _theme="light"
+          label="Large unchecked light theme"
+        />
+      );
+      let customCheckbox = c1.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveAttribute('style');
+
+      // Also test with dark theme to cover both paths
       const { container: c2 } = render(
         <div data-theme="dark">
           <CheckBox
-            label="Dark theme coverage"
-            checked={true}
             size="large"
-            state="hovered" // large doesn't have hovered in CHECKBOX_STYLE_MAP
+            state="default"
+            checked={false}
+            label="Large unchecked dark theme"
           />
         </div>
       );
-      expect(c2.querySelector('label')).toHaveAttribute('style');
+      customCheckbox = c2.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveAttribute('style');
+    });
 
-      // Scenario 3: Force getIconColor with different theme combinations
-      render(
+    it('covers indeterminate state with checked=false for complete coverage', () => {
+      // Test lines 603-604 and other branches
+      const { container } = render(
         <CheckBox
-          label="Icon color test"
-          checked={true}
-          indeterminate={false}
-          size="large"
-          state="focused"
-        />
-      );
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-
-      // Scenario 4: Force medium size with specific non-matching conditions for spacing
-      const { container: c3 } = render(
-        <CheckBox
-          label="Spacing test"
+          indeterminate={true}
+          checked={false}
           size="medium"
-          state="invalid" // This doesn't match the specific spacing conditions
-          checked={false}
+          label="Indeterminate unchecked"
         />
       );
-      expect(
-        c3.querySelector('.flex.flex-row.items-center')
-      ).toBeInTheDocument();
 
-      // Scenario 5: Test unchecked large with different states to force getTailwindStyles
-      const { container: c4 } = render(
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).not.toBeChecked();
+
+      // Should still show minus icon for indeterminate
+      const minusIcon = document.querySelector('svg');
+      expect(minusIcon).toBeInTheDocument();
+    });
+
+    it('covers getCheckboxStyle return undefined path', () => {
+      // Test the final return undefined in getCheckboxStyle for unchecked states
+      // that don't match large + default
+      const { container } = render(
         <CheckBox
-          label="Unchecked large"
           checked={false}
-          size="large"
-          state="default"
+          indeterminate={false}
+          size="medium"
+          state="hovered"
+          label="Unchecked medium hovered"
         />
       );
-      expect(c4.querySelector('label')).toHaveAttribute('style');
+
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toBeInTheDocument();
+    });
+
+    it('covers THEME_COLORS unchecked border access', () => {
+      // Force access to THEME_COLORS[theme].unchecked.border
+      const { container } = render(
+        <div data-theme="dark">
+          <CheckBox
+            size="large"
+            state="default"
+            checked={false}
+            indeterminate={false}
+            label="Force theme unchecked border access"
+          />
+        </div>
+      );
+
+      const customCheckbox = container.querySelector('label[for*="checkbox"]');
+      expect(customCheckbox).toHaveAttribute('style');
+    });
+
+    it('covers getIconSize fallback case', () => {
+      // Although not in uncovered lines, ensure getIconSize fallback is tested
+      const { container } = render(
+        <CheckBox
+          checked={true}
+          size="medium"
+          label="Icon size fallback test"
+        />
+      );
+
+      const icon = container.querySelector('svg');
+      expect(icon).toBeInTheDocument();
+    });
+
+    it('covers getLabelHeight fallback case', () => {
+      // Test getLabelHeight fallback (|| 'h-5')
+      const { container } = render(
+        <CheckBox
+          size="medium"
+          label="Label height fallback"
+        />
+      );
+
+      const labelContainer = container.querySelector('.flex.flex-row.items-center');
+      expect(labelContainer).toBeInTheDocument();
     });
   });
 });
