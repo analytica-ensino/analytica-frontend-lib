@@ -105,7 +105,4 @@ const Toast = ({
   );
 };
 
-
-export {
-  Toast
-}
+export { Toast };

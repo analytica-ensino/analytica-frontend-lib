@@ -42,7 +42,6 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
     <ToastContext.Provider value={{ addToast, removeToast }}>
       {children}
 
-      {/* Container for active toasts */}
       {toasts.map((toast) => (
         <Toast
           key={toast.id}

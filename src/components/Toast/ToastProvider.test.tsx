@@ -3,10 +3,13 @@ import '@testing-library/jest-dom';
 import { ToastProvider, useToast } from './ToastProvider';
 
 beforeEach(() => {
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  jest.spyOn(globalThis, 'crypto', 'get').mockReturnValue({
-    randomUUID: () => 'mock-uuid-123',
-  } as any);
+  /* eslint-disable-next-line no-undef */
+  Object.defineProperty(global, 'crypto', {
+    value: {
+      randomUUID: () => 'mock-uuid-123-1-1',
+    },
+    writable: true,
+  });
 });
 
 afterEach(() => {
@@ -31,13 +34,13 @@ describe('ToastProvider', () => {
       return (
         <div>
           <button
-            onClick={() => addToast({ title: 'Test Toast'})}
+            onClick={() => addToast({ title: 'Test Toast' })}
             data-testid="add-toast"
           >
             Add Toast
           </button>
           <button
-            onClick={() => removeToast('mock-uuid-123')}
+            onClick={() => removeToast('mock-uuid-123-1-1')}
             data-testid="remove-toast"
           >
             Remove Toast
@@ -100,13 +103,11 @@ describe('ToastProvider', () => {
 
     expect(screen.getByText('Full Toast')).toBeInTheDocument();
     expect(screen.getByText('This is a description')).toBeInTheDocument();
-    // Você pode adicionar mais verificações para variant, action e position conforme necessário
   });
 });
 
 describe('useToast', () => {
   it('should throw error when used outside of ToastProvider', () => {
-    // Suprimindo o erro esperado no console para o teste
     const originalError = console.error;
     console.error = jest.fn();
 
@@ -167,16 +168,13 @@ describe('useToast', () => {
       </ToastProvider>
     );
 
-    // Adiciona o toast
     act(() => {
       fireEvent.click(screen.getByTestId('add-toast'));
     });
 
-    // Verifica que o toast foi adicionado
     const toastElement = screen.getByText('Toast to close');
     expect(toastElement).toBeInTheDocument();
 
-    // Encontra e clica no botão de fechar do Toast usando o aria-label correto
     const closeButton = screen.getByRole('button', {
       name: /dismiss notification/i,
     });
@@ -184,7 +182,6 @@ describe('useToast', () => {
       fireEvent.click(closeButton);
     });
 
-    // Verifica que o toast foi removido
     expect(screen.queryByText('Toast to close')).not.toBeInTheDocument();
   });
 });
