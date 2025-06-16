@@ -38,8 +38,7 @@ const SIZE_CLASSES = {
     textSize: 'sm' as const,
     spacing: 'gap-1.5', // 6px
     borderWidth: 'border-2',
-    iconSize: 'w-3 h-3', // 12px x 12px
-    phosphorSize: 14,
+    iconSize: 'w-3.5 h-3.5', // ~14px
     dimensions: '16px',
     labelHeight: 'h-[21px]',
   },
@@ -48,8 +47,7 @@ const SIZE_CLASSES = {
     textSize: 'md' as const,
     spacing: 'gap-2', // 8px
     borderWidth: 'border-2',
-    iconSize: 'w-4 h-4', // 16px x 16px
-    phosphorSize: 16,
+    iconSize: 'w-4 h-4', // 16px
     dimensions: '20px',
     labelHeight: 'h-6',
   },
@@ -58,8 +56,7 @@ const SIZE_CLASSES = {
     textSize: 'lg' as const,
     spacing: 'gap-2', // 8px
     borderWidth: 'border-3', // Atualizado para border-3 (3px)
-    iconSize: 'w-5 h-5', // 20px x 20px
-    phosphorSize: 20,
+    iconSize: 'w-5 h-5', // 20px
     dimensions: '24px',
     labelHeight: 'h-[27px]',
   },
@@ -739,7 +736,14 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
     // Get icon size for checkbox
     const getIconSize = () => {
-      return sizeClasses.phosphorSize;
+      // Convert Tailwind classes to pixel values for Phosphor icons
+      const sizeMap = {
+        'w-3.5 h-3.5': 14,
+        'w-4 h-4': 16,
+        'w-5 h-5': 20,
+      };
+
+      return sizeMap[sizeClasses.iconSize] || 16;
     };
 
     // Determine text color based on state and checked status
