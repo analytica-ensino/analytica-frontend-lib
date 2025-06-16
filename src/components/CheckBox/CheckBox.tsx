@@ -308,13 +308,9 @@ const CHECKBOX_STYLE_MAP = {
   },
   large: {
     default: {
-      checked: (isDarkMode: boolean) => ({
-        backgroundColor: isDarkMode
-          ? THEME_COLORS.dark.checked.background
-          : THEME_COLORS.light.checked.background,
-        borderColor: isDarkMode
-          ? THEME_COLORS.dark.checked.border
-          : THEME_COLORS.light.checked.border,
+      checked: {
+        backgroundColor: '#1C61B2', // primary-800 - same blue as small and medium
+        borderColor: '#1C61B2', // primary-800
         borderWidth: '3px',
         borderRadius: '4px',
         width: '24px',
@@ -323,11 +319,9 @@ const CHECKBOX_STYLE_MAP = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-      }),
-      unchecked: (isDarkMode: boolean) => ({
-        borderColor: isDarkMode
-          ? THEME_COLORS.dark.unchecked.border
-          : THEME_COLORS.light.unchecked.border,
+      },
+      unchecked: {
+        borderColor: '#A5A3A3', // border-400 - same as small and medium
         borderWidth: '3px',
         borderRadius: '4px',
         width: '24px',
@@ -336,7 +330,62 @@ const CHECKBOX_STYLE_MAP = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-      }),
+        backgroundColor: 'transparent',
+      },
+    },
+    focused: {
+      checked: {
+        backgroundColor: '#1C61B2', // primary-800
+        borderColor: '#5399EC', // indicator-info
+        borderWidth: '3px',
+        borderRadius: '4px',
+        width: '24px',
+        height: '24px',
+        boxSizing: 'border-box' as BoxSizing,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 0 0 2px rgba(83, 153, 236, 0.2)', // indicator-info com transparência
+      },
+      unchecked: {
+        borderColor: '#5399EC', // indicator-info
+        borderWidth: '3px',
+        borderRadius: '4px',
+        width: '24px',
+        height: '24px',
+        boxSizing: 'border-box' as BoxSizing,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'transparent',
+        boxShadow: '0 0 0 2px rgba(83, 153, 236, 0.2)',
+      },
+    },
+    hovered: {
+      checked: {
+        backgroundColor: '#1C61B2', // primary-800 - same as small and medium
+        borderColor: '#1C61B2', // primary-800
+        borderWidth: '3px',
+        borderRadius: '4px',
+        width: '24px',
+        height: '24px',
+        boxSizing: 'border-box' as BoxSizing,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+      unchecked: {
+        borderColor: '#8C8D8D', // border-500
+        borderWidth: '3px',
+        borderRadius: '4px',
+        width: '24px',
+        height: '24px',
+        boxSizing: 'border-box' as BoxSizing,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'transparent',
+      },
     },
   },
 } as const;
@@ -367,7 +416,17 @@ const ICON_COLOR_MAP = {
       checked: '#FEFEFF', // text
     },
   },
-  large: {},
+  large: {
+    default: {
+      checked: '#FEFEFF', // text
+    },
+    focused: {
+      checked: '#FEFEFF', // text
+    },
+    hovered: {
+      checked: '#FEFEFF', // text
+    },
+  },
 } as const;
 
 /**
@@ -621,16 +680,9 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
             currentState as keyof (typeof CHECKBOX_STYLE_MAP)[typeof size]
           ]?.checked
         ) {
-          const styleValue =
-            CHECKBOX_STYLE_MAP[size][
-              currentState as keyof (typeof CHECKBOX_STYLE_MAP)[typeof size]
-            ].checked;
-
-          if (typeof styleValue === 'function') {
-            return styleValue(isDarkMode);
-          }
-
-          return styleValue;
+          return CHECKBOX_STYLE_MAP[size][
+            currentState as keyof (typeof CHECKBOX_STYLE_MAP)[typeof size]
+          ].checked;
         }
 
         // Handle special states
@@ -660,16 +712,9 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
             currentState as keyof (typeof CHECKBOX_STYLE_MAP)[typeof size]
           ]?.unchecked
         ) {
-          const styleValue =
-            CHECKBOX_STYLE_MAP[size][
-              currentState as keyof (typeof CHECKBOX_STYLE_MAP)[typeof size]
-            ].unchecked;
-
-          if (typeof styleValue === 'function') {
-            return styleValue(isDarkMode);
-          }
-
-          return styleValue;
+          return CHECKBOX_STYLE_MAP[size][
+            currentState as keyof (typeof CHECKBOX_STYLE_MAP)[typeof size]
+          ].unchecked;
         }
 
         // Large unchecked default fallback
