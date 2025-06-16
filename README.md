@@ -54,6 +54,10 @@ import 'analytica-frontend-lib/styles.css';
 - Os componentes devem ser totalmente compatíveis com Next.js versão 15+.
 - Testes unitários são obrigatórios, com coverage mínimo de 80%.
 - Siga o princípio da responsabilidade única (`single responsibility`): construa componentes compostos por componentes menores.
+- No arquivo `package.json` da biblioteca temos:
+  - `peerDependencies`: Framework core (React, Next.js)
+  - `dependencies`: Bibliotecas específicas usadas pelos componentes
+  - `devDependencies`: Ferramentas de build, testes, linting
 
 ## Ladle
 
