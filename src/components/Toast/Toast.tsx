@@ -47,7 +47,7 @@ const iconMap = {
   warning: WarningCircle,
 };
 
-export const Toast = ({
+const Toast = ({
   variant = 'outlined',
   action = 'success',
   className = '',
@@ -104,3 +104,8 @@ export const Toast = ({
     </div>
   );
 };
+
+
+export {
+  Toast
+}
