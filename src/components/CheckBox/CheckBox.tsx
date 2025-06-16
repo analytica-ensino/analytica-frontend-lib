@@ -5,6 +5,7 @@ import React, {
   useState,
 } from 'react';
 import { Text } from '../Text/Text';
+import { Check, Minus } from 'phosphor-react';
 
 /**
  * CheckBox size variants
@@ -31,6 +32,7 @@ const SIZE_CLASSES = {
     spacing: 'gap-1.5', // 6px
     borderWidth: 'border-2',
     iconSize: 'w-3 h-3', // 12px x 12px
+    phosphorSize: 14,
   },
   medium: {
     checkbox: 'w-5 h-5', // 20px x 20px
@@ -38,6 +40,7 @@ const SIZE_CLASSES = {
     spacing: 'gap-2', // 8px
     borderWidth: 'border-2',
     iconSize: 'w-4 h-4', // 16px x 16px
+    phosphorSize: 16,
   },
   large: {
     checkbox: 'w-6 h-6', // 24px x 24px
@@ -45,6 +48,7 @@ const SIZE_CLASSES = {
     spacing: 'gap-2', // 8px
     borderWidth: 'border',
     iconSize: 'w-5 h-5', // 20px x 20px
+    phosphorSize: 20,
   },
 } as const;
 
@@ -257,35 +261,9 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
             <div className="absolute inset-0 flex items-center justify-center">
               {/* Show appropriate icon based on state */}
               {indeterminate ? (
-                <svg
-                  className={`${sizeClasses.iconSize}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox={size === 'small' ? '0 0 18 18' : '0 0 24 24'}
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={3}
-                    d={size === 'small' ? 'M14 9H4' : 'M20 12H4'}
-                  />
-                </svg>
+                <Minus size={sizeClasses.phosphorSize} weight="bold" />
               ) : checked ? (
-                <svg
-                  className={`${sizeClasses.iconSize}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox={size === 'small' ? '0 0 18 18' : '0 0 24 24'}
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={3}
-                    d={size === 'small' ? 'M4 10l3 3L14 5' : 'M5 13l4 4L19 7'}
-                  />
-                </svg>
+                <Check size={sizeClasses.phosphorSize} weight="bold" />
               ) : null}
             </div>
           </label>
