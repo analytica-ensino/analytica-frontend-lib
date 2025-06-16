@@ -739,6 +739,11 @@ describe('CheckBox Component', () => {
   });
 
   describe('Edge Cases', () => {
+    afterEach(() => {
+      // Restore all Jest mocks after each test to prevent leaking
+      jest.restoreAllMocks();
+    });
+
     it('should handle mixed state cases', () => {
       render(<CheckBox label="Test" checked state="invalid" />);
 

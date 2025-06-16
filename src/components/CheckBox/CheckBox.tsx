@@ -7,6 +7,7 @@ import React, {
   useState,
   CSSProperties,
   useEffect,
+  useId,
 } from 'react';
 import { Text } from '../Text/Text';
 import { Check, Minus } from 'phosphor-react';
@@ -28,6 +29,181 @@ type CheckBoxState = 'default' | 'hovered' | 'focused' | 'invalid' | 'disabled';
  * CheckBox theme variants
  */
 type CheckBoxTheme = 'light' | 'dark';
+
+/**
+ * Color constants
+ */
+const COLORS = {
+  PRIMARY_800: '#1C61B2',
+  BORDER_400: '#A5A3A3',
+  BORDER_500: '#8C8D8D',
+  INDICATOR_INFO: '#5399EC',
+  WHITE: '#FEFEFF',
+  TRANSPARENT: 'transparent',
+  BOX_SHADOW: '0 0 0 2px rgba(83, 153, 236, 0.2)',
+} as const;
+
+/**
+ * Size configurations
+ */
+const SIZE_CONFIGS = {
+  small: { width: '16px', height: '16px', borderWidth: '2px' },
+  medium: { width: '20px', height: '20px', borderWidth: '2px' },
+  large: { width: '24px', height: '24px', borderWidth: '3px' },
+} as const;
+
+/**
+ * Helper function to create checkbox styles
+ */
+const createCheckboxStyle = (
+  size: keyof typeof SIZE_CONFIGS,
+  backgroundColor: string,
+  borderColor: string,
+  boxShadow?: string
+): CSSProperties => ({
+  backgroundColor,
+  borderColor,
+  borderWidth: SIZE_CONFIGS[size].borderWidth,
+  borderRadius: '4px',
+  width: SIZE_CONFIGS[size].width,
+  height: SIZE_CONFIGS[size].height,
+  boxSizing: 'border-box' as BoxSizing,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  ...(boxShadow && { boxShadow }),
+});
+
+/**
+ * Mapping for checkbox styles - greatly reduced duplication
+ */
+const CHECKBOX_STYLE_MAP = {
+  small: {
+    default: {
+      checked: createCheckboxStyle(
+        'small',
+        COLORS.PRIMARY_800,
+        COLORS.PRIMARY_800
+      ),
+      unchecked: createCheckboxStyle(
+        'small',
+        COLORS.TRANSPARENT,
+        COLORS.BORDER_400
+      ),
+    },
+    focused: {
+      checked: createCheckboxStyle(
+        'small',
+        COLORS.PRIMARY_800,
+        COLORS.INDICATOR_INFO,
+        COLORS.BOX_SHADOW
+      ),
+      unchecked: createCheckboxStyle(
+        'small',
+        COLORS.TRANSPARENT,
+        COLORS.INDICATOR_INFO,
+        COLORS.BOX_SHADOW
+      ),
+    },
+    hovered: {
+      checked: createCheckboxStyle(
+        'small',
+        COLORS.PRIMARY_800,
+        COLORS.PRIMARY_800
+      ),
+      unchecked: createCheckboxStyle(
+        'small',
+        COLORS.TRANSPARENT,
+        COLORS.BORDER_500
+      ),
+    },
+  },
+  medium: {
+    default: {
+      checked: createCheckboxStyle(
+        'medium',
+        COLORS.PRIMARY_800,
+        COLORS.PRIMARY_800
+      ),
+      unchecked: createCheckboxStyle(
+        'medium',
+        COLORS.TRANSPARENT,
+        COLORS.BORDER_400
+      ),
+    },
+    focused: {
+      checked: createCheckboxStyle(
+        'medium',
+        COLORS.PRIMARY_800,
+        COLORS.INDICATOR_INFO,
+        COLORS.BOX_SHADOW
+      ),
+      unchecked: createCheckboxStyle(
+        'medium',
+        COLORS.TRANSPARENT,
+        COLORS.INDICATOR_INFO,
+        COLORS.BOX_SHADOW
+      ),
+    },
+    hovered: {
+      checked: createCheckboxStyle(
+        'medium',
+        COLORS.PRIMARY_800,
+        COLORS.PRIMARY_800
+      ),
+      unchecked: createCheckboxStyle(
+        'medium',
+        COLORS.TRANSPARENT,
+        COLORS.BORDER_500
+      ),
+    },
+  },
+  large: {
+    default: {
+      checked: createCheckboxStyle(
+        'large',
+        COLORS.PRIMARY_800,
+        COLORS.PRIMARY_800
+      ),
+      unchecked: createCheckboxStyle(
+        'large',
+        COLORS.TRANSPARENT,
+        COLORS.BORDER_400
+      ),
+    },
+    focused: {
+      checked: createCheckboxStyle(
+        'large',
+        COLORS.PRIMARY_800,
+        COLORS.INDICATOR_INFO,
+        COLORS.BOX_SHADOW
+      ),
+      unchecked: createCheckboxStyle(
+        'large',
+        COLORS.TRANSPARENT,
+        COLORS.INDICATOR_INFO,
+        COLORS.BOX_SHADOW
+      ),
+    },
+    hovered: {
+      checked: createCheckboxStyle(
+        'large',
+        COLORS.PRIMARY_800,
+        COLORS.PRIMARY_800
+      ),
+      unchecked: createCheckboxStyle(
+        'large',
+        COLORS.TRANSPARENT,
+        COLORS.BORDER_500
+      ),
+    },
+  },
+} as const;
+
+/**
+ * Icon color mapping - simplified since all use the same color
+ */
+const ICON_COLOR = COLORS.WHITE;
 
 /**
  * Size configurations
@@ -139,297 +315,6 @@ const STATE_CLASSES = {
 } as const;
 
 /**
- * Mapping for checkbox styles
- */
-const CHECKBOX_STYLE_MAP = {
-  small: {
-    default: {
-      checked: {
-        backgroundColor: '#1C61B2', // primary-800
-        borderColor: '#1C61B2', // primary-800
-        borderWidth: '2px',
-        borderRadius: '4px',
-        width: '16px',
-        height: '16px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
-      unchecked: {
-        borderColor: '#A5A3A3', // border-400
-        borderWidth: '2px',
-        borderRadius: '4px',
-        width: '16px',
-        height: '16px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'transparent',
-      },
-    },
-    focused: {
-      checked: {
-        backgroundColor: '#1C61B2', // primary-800
-        borderColor: '#5399EC', // indicator-info
-        borderWidth: '2px',
-        borderRadius: '4px',
-        width: '16px',
-        height: '16px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: '0 0 0 2px rgba(83, 153, 236, 0.2)', // indicator-info com transparência
-      },
-      unchecked: {
-        borderColor: '#5399EC', // indicator-info
-        borderWidth: '2px',
-        borderRadius: '4px',
-        width: '16px',
-        height: '16px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'transparent',
-        boxShadow: '0 0 0 2px rgba(83, 153, 236, 0.2)', // indicator-info com transparência
-      },
-    },
-    hovered: {
-      checked: {
-        backgroundColor: '#1C61B2', // primary-800
-        borderColor: '#1C61B2', // primary-800 - mesma cor que o preenchimento
-        borderWidth: '2px',
-        borderRadius: '4px',
-        width: '16px',
-        height: '16px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
-      unchecked: {
-        borderColor: '#8C8D8D', // border-500
-        borderWidth: '2px',
-        borderRadius: '4px',
-        width: '16px',
-        height: '16px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'transparent',
-      },
-    },
-  },
-  medium: {
-    default: {
-      checked: {
-        backgroundColor: '#1C61B2', // primary-800
-        borderColor: '#1C61B2', // primary-800
-        borderWidth: '2px',
-        borderRadius: '4px',
-        width: '20px',
-        height: '20px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
-      unchecked: {
-        borderColor: '#A5A3A3', // border-400
-        borderWidth: '2px',
-        borderRadius: '4px',
-        width: '20px',
-        height: '20px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'transparent',
-      },
-    },
-    focused: {
-      checked: {
-        backgroundColor: '#1C61B2', // primary-800
-        borderColor: '#5399EC', // indicator-info
-        borderWidth: '2px',
-        borderRadius: '4px',
-        width: '20px',
-        height: '20px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: '0 0 0 2px rgba(83, 153, 236, 0.2)', // indicator-info com transparência
-      },
-      unchecked: {
-        borderColor: '#5399EC', // indicator-info
-        borderWidth: '2px',
-        borderRadius: '4px',
-        width: '20px',
-        height: '20px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'transparent',
-        boxShadow: '0 0 0 2px rgba(83, 153, 236, 0.2)',
-      },
-    },
-    hovered: {
-      checked: {
-        backgroundColor: '#1C61B2', // primary-800
-        borderColor: '#1C61B2', // primary-800
-        borderWidth: '2px',
-        borderRadius: '4px',
-        width: '20px',
-        height: '20px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
-      unchecked: {
-        borderColor: '#8C8D8D', // border-500
-        borderWidth: '2px',
-        borderRadius: '4px',
-        width: '20px',
-        height: '20px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'transparent',
-      },
-    },
-  },
-  large: {
-    default: {
-      checked: {
-        backgroundColor: '#1C61B2', // primary-800 - same blue as small and medium
-        borderColor: '#1C61B2', // primary-800
-        borderWidth: '3px',
-        borderRadius: '4px',
-        width: '24px',
-        height: '24px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
-      unchecked: {
-        borderColor: '#A5A3A3', // border-400 - same as small and medium
-        borderWidth: '3px',
-        borderRadius: '4px',
-        width: '24px',
-        height: '24px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'transparent',
-      },
-    },
-    focused: {
-      checked: {
-        backgroundColor: '#1C61B2', // primary-800
-        borderColor: '#5399EC', // indicator-info
-        borderWidth: '3px',
-        borderRadius: '4px',
-        width: '24px',
-        height: '24px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: '0 0 0 2px rgba(83, 153, 236, 0.2)', // indicator-info com transparência
-      },
-      unchecked: {
-        borderColor: '#5399EC', // indicator-info
-        borderWidth: '3px',
-        borderRadius: '4px',
-        width: '24px',
-        height: '24px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'transparent',
-        boxShadow: '0 0 0 2px rgba(83, 153, 236, 0.2)',
-      },
-    },
-    hovered: {
-      checked: {
-        backgroundColor: '#1C61B2', // primary-800 - same as small and medium
-        borderColor: '#1C61B2', // primary-800
-        borderWidth: '3px',
-        borderRadius: '4px',
-        width: '24px',
-        height: '24px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
-      unchecked: {
-        borderColor: '#8C8D8D', // border-500
-        borderWidth: '3px',
-        borderRadius: '4px',
-        width: '24px',
-        height: '24px',
-        boxSizing: 'border-box' as BoxSizing,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'transparent',
-      },
-    },
-  },
-} as const;
-
-/**
- * Icon color mapping
- */
-const ICON_COLOR_MAP = {
-  small: {
-    default: {
-      checked: '#FEFEFF', // text
-    },
-    focused: {
-      checked: '#FEFEFF', // text
-    },
-    hovered: {
-      checked: '#FEFEFF', // text
-    },
-  },
-  medium: {
-    default: {
-      checked: '#FEFEFF', // text
-    },
-    focused: {
-      checked: '#FEFEFF', // text
-    },
-    hovered: {
-      checked: '#FEFEFF', // text
-    },
-  },
-  large: {
-    default: {
-      checked: '#FEFEFF', // text
-    },
-    focused: {
-      checked: '#FEFEFF', // text
-    },
-    hovered: {
-      checked: '#FEFEFF', // text
-    },
-  },
-} as const;
-
-/**
  * Label height mapping
  */
 const LABEL_HEIGHT_MAP = {
@@ -439,14 +324,9 @@ const LABEL_HEIGHT_MAP = {
 } as const;
 
 /**
- * Line height mapping
+ * Line height constant - all sizes use the same value
  */
-const LINE_HEIGHT_MAP = {
-  small: 'leading-[150%]',
-  medium: 'leading-[150%]',
-  large: 'leading-[150%]',
-  default: 'leading-normal',
-} as const;
+const LINE_HEIGHT = 'leading-[150%]';
 
 /**
  * Special styles for state variations
@@ -576,7 +456,8 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     ref
   ) => {
     // Generate unique ID if not provided
-    const inputId = id || `checkbox-${Math.random().toString(36).substr(2, 9)}`;
+    const generatedId = useId();
+    const inputId = id || `checkbox-${generatedId}`;
 
     // Handle controlled vs uncontrolled behavior
     const [internalChecked, setInternalChecked] = useState(false);
@@ -584,7 +465,7 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     const checked = isControlled ? checkedProp : internalChecked;
 
     // State for detecting dark mode
-    const [isDarkMode, setIsDarkMode] = useState(false);
+    const [isDarkMode, setIsDarkMode] = useState(_theme === 'dark');
 
     // Detect if we're in dark mode by checking parent elements
     useEffect(() => {
@@ -633,9 +514,9 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
         ? 'border-border-500' // #8C8D8D from styles.css
         : '';
 
-    // Get final checkbox classes
+    // Get final checkbox classes - simplified since focused/hovered always use border-3, and large already uses border-3
     const checkboxClasses = `${BASE_CHECKBOX_CLASSES} ${sizeClasses.checkbox} ${
-      state === 'focused' || state === 'hovered' || size === 'large'
+      state === 'focused' || state === 'hovered'
         ? 'border-3'
         : sizeClasses.borderWidth
     } ${stylingClasses} ${largeHoveredClass} ${className}`;
@@ -738,33 +619,6 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
       return undefined;
     };
 
-    // Get icon color based on theme and state
-    const getIconColor = (): string => {
-      // Convert Tailwind classes to hex colors for Phosphor icons
-      const colorMap: Record<string, string> = {
-        'text-text': '#FEFEFF', // --color-text from styles.css
-        'text-text-950': '#171717', // --color-text-950 from styles.css
-      };
-
-      // Check from the mapping first
-      if (
-        ICON_COLOR_MAP[size]?.[
-          currentState as keyof (typeof ICON_COLOR_MAP)[typeof size]
-        ]?.['checked']
-      ) {
-        return ICON_COLOR_MAP[size][
-          currentState as keyof (typeof ICON_COLOR_MAP)[typeof size]
-        ]['checked'];
-      }
-
-      // Default to theme colors
-      const themeIconColor = isDarkMode
-        ? THEME_COLORS.dark.checked.iconColor
-        : THEME_COLORS.light.checked.iconColor;
-
-      return colorMap[themeIconColor] || '#FEFEFF';
-    };
-
     // Get icon size for checkbox
     const getIconSize = () => {
       // Convert Tailwind classes to pixel values for Phosphor icons
@@ -782,23 +636,13 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
       return LABEL_HEIGHT_MAP[size] || 'h-5';
     };
 
-    // Determine line height
+    // Determine line height - now simplified since all use the same value
     const getLineHeight = () => {
-      return LINE_HEIGHT_MAP[size] || LINE_HEIGHT_MAP.default;
+      return LINE_HEIGHT;
     };
 
-    // Define spacing class based on size and state
+    // Define spacing class based on size - simplified since medium and large both use gap-2
     const getSpacingClass = () => {
-      if (size === 'small') return 'gap-1.5';
-
-      if (
-        (size === 'medium' && state === 'default') ||
-        (size === 'medium' && state === 'focused' && checked) ||
-        (size === 'medium' && state === 'hovered' && checked)
-      ) {
-        return 'gap-2';
-      }
-
       return sizeClasses.spacing;
     };
 
@@ -828,48 +672,23 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
             <div className="absolute inset-0 flex items-center justify-center">
               {/* Show appropriate icon based on state */}
               {indeterminate ? (
-                <Minus
-                  size={getIconSize()}
-                  weight="bold"
-                  color={getIconColor()}
-                />
+                <Minus size={getIconSize()} weight="bold" color={ICON_COLOR} />
               ) : checked ? (
-                <Check
-                  size={getIconSize()}
-                  weight="bold"
-                  color={getIconColor()}
-                />
+                <Check size={getIconSize()} weight="bold" color={ICON_COLOR} />
               ) : null}
             </div>
           </label>
 
           {/* Label text */}
           {label && (
-            <div
-              className={`flex flex-row items-center ${
-                (size === 'medium' && state === 'default') ||
-                (size === 'medium' && state === 'focused' && checked) ||
-                (size === 'medium' && state === 'hovered' && checked)
-                  ? 'h-6'
-                  : size === 'small'
-                    ? 'h-[21px]'
-                    : getLabelHeight()
-              }`}
-            >
+            <div className={`flex flex-row items-center ${getLabelHeight()}`}>
               <Text
                 as="label"
                 htmlFor={inputId}
                 size={size === 'small' ? 'sm' : 'md'}
                 weight="normal"
-                color={disabled ? 'black' : 'black'}
-                className={`cursor-pointer select-none ${
-                  size === 'small' ||
-                  (size === 'medium' && state === 'default') ||
-                  (size === 'medium' && state === 'focused' && checked) ||
-                  (size === 'medium' && state === 'hovered' && checked)
-                    ? 'leading-[150%]'
-                    : getLineHeight()
-                } flex items-center font-roboto ${labelClassName}`}
+                color="black"
+                className={`cursor-pointer select-none ${getLineHeight()} flex items-center font-roboto ${labelClassName}`}
               >
                 {label}
               </Text>
