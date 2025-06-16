@@ -48,7 +48,7 @@ const SIZE_CLASSES = {
     checkbox: 'w-6 h-6', // 24px x 24px
     textSize: 'lg' as const,
     spacing: 'gap-2', // 8px
-    borderWidth: 'border',
+    borderWidth: 'border-3', // Atualizado para border-3 (3px)
     iconSize: 'w-5 h-5', // 20px x 20px
     phosphorSize: 20,
   },
@@ -75,6 +75,9 @@ const THEME_COLORS = {
       border: '#2271C4',
       iconColor: '#FEFEFF', // text
     },
+    unchecked: {
+      border: '#A5A3A3', // border-400
+    },
   },
   dark: {
     checked: {
@@ -86,6 +89,9 @@ const THEME_COLORS = {
       background: '#BBDCF7', // primary-100
       border: '#BBDCF7',
       iconColor: '#171717', // text-950
+    },
+    unchecked: {
+      border: '#8C8D8D', // border-500 em dark mode
     },
   },
 };
@@ -250,16 +256,309 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
     // Get final checkbox classes
     const checkboxClasses = `${BASE_CHECKBOX_CLASSES} ${sizeClasses.checkbox} ${
-      (state === 'focused' || state === 'hovered') && size === 'large'
+      state === 'focused' || state === 'hovered' || size === 'large'
         ? 'border-3'
         : sizeClasses.borderWidth
     } ${stylingClasses} ${largeHoveredClass} ${className}`;
 
     // Get inline styles for checkbox based on theme and state
     const getCheckboxStyle = (): CSSProperties | undefined => {
-      if (!checked && !indeterminate) return undefined;
-
       const theme = isDarkMode ? 'dark' : 'light';
+
+      // Estilo específico para checkbox marcado em estado default e tamanho small
+      if (
+        checked &&
+        !indeterminate &&
+        state === 'default' &&
+        size === 'small'
+      ) {
+        return {
+          backgroundColor: '#1C61B2', // primary-800
+          borderColor: '#1C61B2', // primary-800
+          borderWidth: '2px',
+          borderRadius: '4px',
+          width: '16px',
+          height: '16px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        };
+      }
+
+      // Estilo específico para checkbox marcado em estado focused e tamanho small
+      if (
+        checked &&
+        !indeterminate &&
+        state === 'focused' &&
+        size === 'small'
+      ) {
+        return {
+          backgroundColor: '#1C61B2', // primary-800
+          borderColor: '#5399EC', // indicator-info
+          borderWidth: '2px',
+          borderRadius: '4px',
+          width: '16px',
+          height: '16px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 0 0 2px rgba(83, 153, 236, 0.2)', // indicator-info com transparência
+        };
+      }
+
+      // Estilo específico para checkbox marcado em estado hovered e tamanho small
+      if (
+        checked &&
+        !indeterminate &&
+        state === 'hovered' &&
+        size === 'small'
+      ) {
+        return {
+          backgroundColor: '#1C61B2', // primary-800
+          borderColor: '#1C61B2', // primary-800 - mesma cor que o preenchimento
+          borderWidth: '2px',
+          borderRadius: '4px',
+          width: '16px',
+          height: '16px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        };
+      }
+
+      // Estilo específico para checkbox não marcado em estado default e tamanho small
+      if (
+        !checked &&
+        !indeterminate &&
+        state === 'default' &&
+        size === 'small'
+      ) {
+        return {
+          borderColor: '#A5A3A3', // border-400
+          borderWidth: '2px',
+          borderRadius: '4px',
+          width: '16px',
+          height: '16px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'transparent',
+        };
+      }
+
+      // Estilo específico para checkbox não marcado em estado hovered e tamanho small
+      if (
+        !checked &&
+        !indeterminate &&
+        state === 'hovered' &&
+        size === 'small'
+      ) {
+        return {
+          borderColor: '#8C8D8D', // border-500
+          borderWidth: '2px',
+          borderRadius: '4px',
+          width: '16px',
+          height: '16px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'transparent',
+        };
+      }
+
+      // Estilo específico para checkbox não marcado em estado focused e tamanho small
+      if (
+        !checked &&
+        !indeterminate &&
+        state === 'focused' &&
+        size === 'small'
+      ) {
+        return {
+          borderColor: '#5399EC', // indicator-info
+          borderWidth: '2px',
+          borderRadius: '4px',
+          width: '16px',
+          height: '16px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'transparent',
+          boxShadow: '0 0 0 2px rgba(83, 153, 236, 0.2)', // indicator-info com transparência
+        };
+      }
+
+      // Estilo específico para checkbox não marcado em estado default e tamanho medium
+      if (
+        !checked &&
+        !indeterminate &&
+        state === 'default' &&
+        size === 'medium'
+      ) {
+        return {
+          borderColor: '#A5A3A3', // border-400
+          borderWidth: '2px',
+          borderRadius: '4px',
+          width: '20px',
+          height: '20px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'transparent',
+        };
+      }
+
+      // Estilo específico para checkbox marcado em estado focused e tamanho medium
+      if (
+        checked &&
+        !indeterminate &&
+        state === 'focused' &&
+        size === 'medium'
+      ) {
+        return {
+          backgroundColor: '#1C61B2', // primary-800
+          borderColor: '#5399EC', // indicator-info
+          borderWidth: '2px',
+          borderRadius: '4px',
+          width: '20px',
+          height: '20px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 0 0 2px rgba(83, 153, 236, 0.2)', // indicator-info com transparência
+        };
+      }
+
+      // Estilo específico para checkbox não marcado em estado hovered e tamanho medium
+      if (
+        !checked &&
+        !indeterminate &&
+        state === 'hovered' &&
+        size === 'medium'
+      ) {
+        return {
+          borderColor: '#8C8D8D', // border-500
+          borderWidth: '2px',
+          borderRadius: '4px',
+          width: '20px',
+          height: '20px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'transparent',
+        };
+      }
+
+      // Estilo específico para checkbox marcado em estado default e tamanho medium
+      if (
+        checked &&
+        !indeterminate &&
+        state === 'default' &&
+        size === 'medium'
+      ) {
+        return {
+          backgroundColor: '#1C61B2', // primary-800
+          borderColor: '#1C61B2', // primary-800
+          borderWidth: '2px',
+          borderRadius: '4px',
+          width: '20px',
+          height: '20px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        };
+      }
+
+      // Estilo específico para checkbox marcado em estado default e tamanho large
+      if (checked && size === 'large' && state === 'default') {
+        return {
+          backgroundColor: isDarkMode
+            ? THEME_COLORS.dark.checked.background
+            : THEME_COLORS.light.checked.background,
+          borderColor: isDarkMode
+            ? THEME_COLORS.dark.checked.border
+            : THEME_COLORS.light.checked.border,
+          borderWidth: '3px',
+          borderRadius: '4px',
+          width: '24px',
+          height: '24px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        };
+      }
+
+      // Estilo específico para checkbox marcado em estado hovered e tamanho medium
+      if (
+        checked &&
+        !indeterminate &&
+        state === 'hovered' &&
+        size === 'medium'
+      ) {
+        return {
+          backgroundColor: '#1C61B2', // primary-800
+          borderColor: '#1C61B2', // primary-800
+          borderWidth: '2px',
+          borderRadius: '4px',
+          width: '20px',
+          height: '20px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        };
+      }
+
+      // Estilo específico para checkbox marcado em estado focused e tamanho medium
+      if (
+        checked &&
+        !indeterminate &&
+        state === 'focused' &&
+        size === 'medium'
+      ) {
+        return {
+          backgroundColor: '#1C61B2', // primary-800
+          borderColor: '#5399EC', // indicator-info
+          borderWidth: '2px',
+          borderRadius: '4px',
+          width: '20px',
+          height: '20px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 0 0 2px rgba(83, 153, 236, 0.2)', // indicator-info com transparência
+        };
+      }
+
+      if (!checked && !indeterminate) {
+        // Estilo específico para checkbox não marcado em tamanho large e estado default
+        if (size === 'large' && state === 'default') {
+          return {
+            borderColor: THEME_COLORS[theme].unchecked.border,
+            borderWidth: '3px',
+            borderRadius: '4px',
+            width: '24px',
+            height: '24px',
+            boxSizing: 'border-box',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          };
+        }
+        return undefined;
+      }
+
       const stateKey = currentState === 'hovered' ? 'hover' : 'checked';
 
       // Use error color for invalid state
@@ -285,6 +584,16 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
           color: isDarkMode
             ? THEME_COLORS.dark.checked.iconColor
             : THEME_COLORS.light.checked.iconColor,
+          borderWidth: '3px',
+          borderRadius: '4px',
+          width: '24px',
+          height: '24px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 0 0 2px rgba(83, 153, 236, 0.2)', // indicator-info com transparência
+          outlineOffset: '2px',
         };
       }
 
@@ -304,6 +613,29 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
         };
       }
 
+      // Use hovered style for hovered state
+      if (currentState === 'hovered' && checked) {
+        return {
+          backgroundColor: isDarkMode
+            ? THEME_COLORS.dark.hover.background
+            : THEME_COLORS.light.hover.background,
+          borderColor: isDarkMode
+            ? THEME_COLORS.dark.hover.border
+            : THEME_COLORS.light.hover.border,
+          color: isDarkMode
+            ? THEME_COLORS.dark.hover.iconColor
+            : THEME_COLORS.light.hover.iconColor,
+          borderWidth: '3px',
+          borderRadius: '4px',
+          width: '24px',
+          height: '24px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        };
+      }
+
       return {
         backgroundColor: THEME_COLORS[theme][stateKey].background,
         borderColor: THEME_COLORS[theme][stateKey].border,
@@ -313,10 +645,36 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
     // Get icon color based on theme and state
     const getIconColor = (): string => {
+      if (state === 'focused' && checked && size === 'small') {
+        return '#FEFEFF'; // text
+      }
+      if (state === 'hovered' && checked && size === 'small') {
+        return '#FEFEFF'; // text
+      }
+      if (state === 'default' && checked && size === 'small') {
+        return '#FEFEFF'; // text
+      }
+      if (state === 'default' && checked && size === 'medium') {
+        return '#FEFEFF'; // text
+      }
+      if (state === 'focused' && checked && size === 'medium') {
+        return '#FEFEFF'; // text
+      }
+      if (state === 'hovered' && checked && size === 'medium') {
+        return '#FEFEFF'; // text
+      }
       if (isDarkMode) {
         return THEME_COLORS.dark.checked.iconColor;
       }
       return THEME_COLORS.light.checked.iconColor;
+    };
+
+    // Get icon size for small checkbox
+    const getIconSize = () => {
+      if (size === 'small' && checked) {
+        return 13; // Tamanho do ícone para checkbox small marcado
+      }
+      return sizeClasses.phosphorSize;
     };
 
     // Determine text color based on state and checked status
@@ -327,19 +685,82 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
       if (state === 'invalid') {
         return 'text-text-900'; // #262627 para todos os tamanhos no estado invalid
       }
-      if (state === 'focused' && size === 'large') {
-        return 'text-text-900'; // #262627 para large no estado focused
+      if (state === 'focused' && checked && size === 'small') {
+        return 'text-text-900'; // #262627 para small quando marcado em estado focused
       }
-      if (state === 'hovered' && size === 'large') {
-        return 'text-text-900'; // #262627 para large no estado hovered
+      if (state === 'hovered' && checked && size === 'small') {
+        return 'text-text-900'; // #262627 para small quando marcado em estado hovered
+      }
+      if (state === 'default' && checked && size === 'small') {
+        return 'text-text-900'; // #262627 para small quando marcado em estado default
+      }
+      if (state === 'default' && size === 'small' && !checked) {
+        return 'text-text-600'; // #737373 para small quando não marcado em estado default
+      }
+      if (state === 'hovered' && size === 'small' && !checked) {
+        return 'text-text-900'; // #262627 para small quando não marcado em estado hovered
+      }
+      if (state === 'focused' && size === 'small' && !checked) {
+        return 'text-text-900'; // #262627 para small quando não marcado em estado focused
+      }
+      if (state === 'default' && checked && size === 'medium') {
+        return 'text-text-900'; // #262627 para medium quando marcado em estado default
+      }
+      if (state === 'hovered' && checked && size === 'medium') {
+        return 'text-text-900'; // #262627 para medium quando marcado em estado hovered
+      }
+      if (state === 'focused' && checked && size === 'medium') {
+        return 'text-text-900'; // #262627 para medium quando marcado em estado focused
+      }
+      if (state === 'focused') {
+        return 'text-text-900'; // #262627 para estados focused
+      }
+      if (state === 'hovered') {
+        return 'text-text-900'; // #262627 para estados hovered
+      }
+      if (state === 'default' && size === 'medium' && !checked) {
+        return 'text-text-600'; // #737373 para medium quando não marcado em estado default
+      }
+      if (size === 'large' && checked) {
+        return 'text-text-900'; // #262627 para large quando marcado
       }
       return 'text-text-600'; // #737373
     };
 
     // Determine label height based on size
     const getLabelHeight = () => {
+      if (size === 'small' && state === 'focused' && checked) {
+        return 'h-[21px]'; // 21px para small em estado focused marcado
+      }
+      if (size === 'small' && state === 'hovered' && checked) {
+        return 'h-[21px]'; // 21px para small em estado hovered marcado
+      }
+      if (size === 'small' && state === 'default' && checked) {
+        return 'h-[21px]'; // 21px para small em estado default marcado
+      }
+      if (size === 'small' && state === 'default' && !checked) {
+        return 'h-[21px]'; // 21px para small em estado default não marcado
+      }
+      if (size === 'small' && state === 'hovered' && !checked) {
+        return 'h-[21px]'; // 21px para small em estado hovered não marcado
+      }
+      if (size === 'small' && state === 'focused' && !checked) {
+        return 'h-[21px]'; // 21px para small em estado focused não marcado
+      }
+      if (size === 'medium' && state === 'default' && checked) {
+        return 'h-6'; // 24px para medium em estado default marcado
+      }
+      if (size === 'medium' && state === 'hovered' && checked) {
+        return 'h-6'; // 24px para medium em estado hovered marcado
+      }
+      if (size === 'medium' && state === 'focused' && checked) {
+        return 'h-6'; // 24px para medium em estado focused marcado
+      }
+      if (size === 'medium' && state === 'default' && !checked) {
+        return 'h-6'; // 24px para medium em estado default não marcado
+      }
       if (size === 'large') {
-        return 'h-7'; // Using Tailwind h-7 (28px) which is closest to 27px
+        return 'h-[27px]'; // Exatamente 27px conforme especificado
       }
       if (size === 'medium') {
         return 'h-6'; // 24px
@@ -349,11 +770,41 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
     // Determine line height based on size
     const getLineHeight = () => {
+      if (size === 'small' && state === 'focused' && checked) {
+        return 'leading-[150%]'; // 1.5 line height (150%) para small em estado focused marcado
+      }
+      if (size === 'small' && state === 'hovered' && checked) {
+        return 'leading-[150%]'; // 1.5 line height (150%) para small em estado hovered marcado
+      }
+      if (size === 'small' && state === 'default' && checked) {
+        return 'leading-[150%]'; // 1.5 line height (150%) para small em estado default marcado
+      }
+      if (size === 'small' && state === 'default' && !checked) {
+        return 'leading-[150%]'; // 1.5 line height (150%) para small em estado default não marcado
+      }
+      if (size === 'small' && state === 'hovered' && !checked) {
+        return 'leading-[150%]'; // 1.5 line height (150%) para small em estado hovered não marcado
+      }
+      if (size === 'small' && state === 'focused' && !checked) {
+        return 'leading-[150%]'; // 1.5 line height (150%) para small em estado focused não marcado
+      }
+      if (size === 'medium' && state === 'default' && checked) {
+        return 'leading-[150%]'; // 1.5 line height (150%) para medium em estado default marcado
+      }
+      if (size === 'medium' && state === 'hovered' && checked) {
+        return 'leading-[150%]'; // 1.5 line height (150%) para medium em estado hovered marcado
+      }
+      if (size === 'medium' && state === 'focused' && checked) {
+        return 'leading-[150%]'; // 1.5 line height (150%) para medium em estado focused marcado
+      }
+      if (size === 'medium' && state === 'default' && !checked) {
+        return 'leading-[150%]'; // 1.5 line height (150%) para medium em estado default não marcado
+      }
       if (size === 'large') {
-        return 'leading-relaxed'; // 1.5 line height
+        return 'leading-[150%]'; // 1.5 line height (150%) conforme especificado
       }
       if (size === 'medium') {
-        return 'leading-normal'; // 1.5
+        return 'leading-[150%]'; // 1.5 line height (150%) conforme especificado
       }
       return 'leading-normal'; // 1.5
     };
@@ -361,7 +812,7 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     return (
       <div className="flex flex-col">
         <div
-          className={`flex flex-row items-center ${sizeClasses.spacing} ${disabled ? 'opacity-40' : ''}`}
+          className={`flex flex-row items-center ${(size === 'medium' && state === 'default') || (size === 'medium' && state === 'focused' && checked) || (size === 'medium' && state === 'hovered' && checked) ? 'gap-2' : size === 'small' ? 'gap-1.5' : sizeClasses.spacing} ${disabled ? 'opacity-40' : ''}`}
         >
           {/* Hidden native input for accessibility and form submission */}
           <input
@@ -385,13 +836,13 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
               {/* Show appropriate icon based on state */}
               {indeterminate ? (
                 <Minus
-                  size={sizeClasses.phosphorSize}
+                  size={getIconSize()}
                   weight="bold"
                   color={getIconColor()}
                 />
               ) : checked ? (
                 <Check
-                  size={sizeClasses.phosphorSize}
+                  size={getIconSize()}
                   weight="bold"
                   color={getIconColor()}
                 />
@@ -401,13 +852,15 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
           {/* Label text */}
           {label && (
-            <div className={`flex flex-row items-center ${getLabelHeight()}`}>
+            <div
+              className={`flex flex-row items-center ${(size === 'medium' && state === 'default') || (size === 'medium' && state === 'focused' && checked) || (size === 'medium' && state === 'hovered' && checked) ? 'h-6' : size === 'small' ? 'h-[21px]' : getLabelHeight()}`}
+            >
               <Text
                 as="label"
                 htmlFor={inputId}
-                size={sizeClasses.textSize}
+                size={size === 'small' ? 'sm' : 'md'}
                 weight="normal"
-                className={`cursor-pointer select-none ${getLineHeight()} flex items-center font-roboto ${getTextColorClass()} ${
+                className={`cursor-pointer select-none ${size === 'small' || (size === 'medium' && state === 'default') || (size === 'medium' && state === 'focused' && checked) || (size === 'medium' && state === 'hovered' && checked) ? 'leading-[150%]' : getLineHeight()} flex items-center font-roboto ${(size === 'medium' && state === 'default' && checked) || (size === 'medium' && state === 'focused' && checked) || (size === 'medium' && state === 'hovered' && checked) || (size === 'small' && ((state === 'focused' && !checked) || (state === 'hovered' && !checked) || (state === 'focused' && checked) || (state === 'hovered' && checked))) ? 'text-text-900' : (size === 'small' && state === 'default' && !checked) || (size === 'medium' && state === 'default' && !checked) ? 'text-text-600' : getTextColorClass()} ${
                   disabled ? 'cursor-not-allowed' : ''
                 } ${labelClassName}`}
               >
