@@ -74,32 +74,32 @@ const BASE_CHECKBOX_CLASSES =
 const THEME_COLORS = {
   light: {
     checked: {
-      background: 'bg-primary-800', // primary-800
+      background: 'bg-primary-800', // from styles.css
       border: 'border-primary-800',
-      iconColor: 'text-text', // white text
+      iconColor: 'text-text', // white text from styles.css
     },
     hover: {
-      background: 'bg-primary-700', // primary-700
+      background: 'bg-primary-700', // from styles.css
       border: 'border-primary-700',
-      iconColor: 'text-text', // white text
+      iconColor: 'text-text', // white text from styles.css
     },
     unchecked: {
-      border: 'border-border-400', // border-400
+      border: 'border-border-400', // from styles.css
     },
   },
   dark: {
     checked: {
-      background: 'bg-primary-100', // primary-100
+      background: 'bg-primary-100', // from styles.css
       border: 'border-primary-100',
-      iconColor: 'text-text-950', // dark text
+      iconColor: 'text-text-950', // dark text from styles.css
     },
     hover: {
-      background: 'bg-primary-100', // primary-100
+      background: 'bg-primary-100', // from styles.css
       border: 'border-primary-100',
-      iconColor: 'text-text-950', // dark text
+      iconColor: 'text-text-950', // dark text from styles.css
     },
     unchecked: {
-      border: 'border-border-500', // border-500 em dark mode
+      border: 'border-border-500', // from styles.css
     },
   },
 };
@@ -371,57 +371,6 @@ const ICON_COLOR_MAP = {
 } as const;
 
 /**
- * Text color class mapping
- */
-const TEXT_COLOR_CLASS_MAP = {
-  disabled: {
-    checked: 'text-text-900', // #262627
-  },
-  invalid: {
-    any: 'text-text-900', // #262627 para todos os tamanhos no estado invalid
-  },
-  small: {
-    default: {
-      checked: 'text-text-900', // #262627
-      unchecked: 'text-text-600', // #737373
-    },
-    focused: {
-      checked: 'text-text-900', // #262627
-      unchecked: 'text-text-900', // #262627
-    },
-    hovered: {
-      checked: 'text-text-900', // #262627
-      unchecked: 'text-text-900', // #262627
-    },
-  },
-  medium: {
-    default: {
-      checked: 'text-text-900', // #262627
-      unchecked: 'text-text-600', // #737373
-    },
-    focused: {
-      checked: 'text-text-900', // #262627
-      unchecked: 'text-text-900', // #262627
-    },
-    hovered: {
-      checked: 'text-text-900', // #262627
-      unchecked: 'text-text-900', // #262627
-    },
-  },
-  large: {
-    any: {
-      checked: 'text-text-900', // #262627
-    },
-  },
-  focused: {
-    any: 'text-text-900', // #262627
-  },
-  hovered: {
-    any: 'text-text-900', // #262627
-  },
-} as const;
-
-/**
  * Label height mapping
  */
 const LABEL_HEIGHT_MAP = {
@@ -642,20 +591,20 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
         borderClass: string
       ): CSSProperties => {
         const bgColorMap: Record<string, string> = {
-          'bg-primary-800': '#1C61B2',
-          'bg-primary-700': '#2271C4',
-          'bg-primary-100': '#BBDCF7',
-          'bg-error-700': '#B91C1C',
+          'bg-primary-800': '#1C61B2', // --color-primary-800 from styles.css
+          'bg-primary-700': '#2271C4', // --color-primary-700 from styles.css
+          'bg-primary-100': '#BBDCF7', // --color-primary-100 from styles.css
+          'bg-error-700': '#B91C1C', // --color-error-700 from styles.css
         };
 
         const borderColorMap: Record<string, string> = {
-          'border-primary-800': '#1C61B2',
-          'border-primary-700': '#2271C4',
-          'border-primary-100': '#BBDCF7',
-          'border-border-400': '#A5A3A3',
-          'border-border-500': '#8C8D8D',
-          'border-indicator-info': '#5399EC',
-          'border-error-700': '#B91C1C',
+          'border-primary-800': '#1C61B2', // --color-primary-800 from styles.css
+          'border-primary-700': '#2271C4', // --color-primary-700 from styles.css
+          'border-primary-100': '#BBDCF7', // --color-primary-100 from styles.css
+          'border-border-400': '#A5A3A3', // --color-border-400 from styles.css
+          'border-border-500': '#8C8D8D', // --color-border-500 from styles.css
+          'border-indicator-info': '#5399EC', // --color-indicator-info from styles.css
+          'border-error-700': '#B91C1C', // --color-error-700 from styles.css
         };
 
         return {
@@ -748,8 +697,8 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     const getIconColor = (): string => {
       // Convert Tailwind classes to hex colors for Phosphor icons
       const colorMap: Record<string, string> = {
-        'text-text': '#FEFEFF',
-        'text-text-950': '#171717',
+        'text-text': '#FEFEFF', // --color-text from styles.css
+        'text-text-950': '#171717', // --color-text-950 from styles.css
       };
 
       // Check from the mapping first
@@ -781,51 +730,6 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
       };
 
       return sizeMap[sizeClasses.iconSize] || 16;
-    };
-
-    // Determine text color based on state and checked status
-    const getTextColorClass = () => {
-      // Check disabled first
-      if (disabled && checked && TEXT_COLOR_CLASS_MAP.disabled?.checked) {
-        return TEXT_COLOR_CLASS_MAP.disabled.checked;
-      }
-
-      // Check invalid state
-      if (state === 'invalid' && TEXT_COLOR_CLASS_MAP.invalid?.any) {
-        return TEXT_COLOR_CLASS_MAP.invalid.any;
-      }
-
-      // Check size and state specific combinations
-      if (
-        TEXT_COLOR_CLASS_MAP[size]?.[
-          state as keyof (typeof TEXT_COLOR_CLASS_MAP)[typeof size]
-        ]?.[checkVariant]
-      ) {
-        return TEXT_COLOR_CLASS_MAP[size][
-          state as keyof (typeof TEXT_COLOR_CLASS_MAP)[typeof size]
-        ][checkVariant];
-      }
-
-      // Check general state classes
-      if (state === 'focused' && TEXT_COLOR_CLASS_MAP.focused?.any) {
-        return TEXT_COLOR_CLASS_MAP.focused.any;
-      }
-
-      if (state === 'hovered' && TEXT_COLOR_CLASS_MAP.hovered?.any) {
-        return TEXT_COLOR_CLASS_MAP.hovered.any;
-      }
-
-      // Check for large size and any state with checked status
-      if (
-        size === 'large' &&
-        checked &&
-        TEXT_COLOR_CLASS_MAP.large?.any?.checked
-      ) {
-        return TEXT_COLOR_CLASS_MAP.large.any.checked;
-      }
-
-      // Default
-      return 'text-text-600'; // #737373
     };
 
     // Determine label height
@@ -912,6 +816,7 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
                 htmlFor={inputId}
                 size={size === 'small' ? 'sm' : 'md'}
                 weight="normal"
+                color={disabled ? 'black' : 'black'}
                 className={`cursor-pointer select-none ${
                   size === 'small' ||
                   (size === 'medium' && state === 'default') ||
@@ -919,21 +824,7 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
                   (size === 'medium' && state === 'hovered' && checked)
                     ? 'leading-[150%]'
                     : getLineHeight()
-                } flex items-center font-roboto ${
-                  (size === 'medium' && state === 'default' && checked) ||
-                  (size === 'medium' && state === 'focused' && checked) ||
-                  (size === 'medium' && state === 'hovered' && checked) ||
-                  (size === 'small' &&
-                    ((state === 'focused' && !checked) ||
-                      (state === 'hovered' && !checked) ||
-                      (state === 'focused' && checked) ||
-                      (state === 'hovered' && checked)))
-                    ? 'text-text-900'
-                    : (size === 'small' && state === 'default' && !checked) ||
-                        (size === 'medium' && state === 'default' && !checked)
-                      ? 'text-text-600'
-                      : getTextColorClass()
-                } ${disabled ? 'cursor-not-allowed' : ''} ${labelClassName}`}
+                } flex items-center font-roboto ${labelClassName}`}
               >
                 {label}
               </Text>
