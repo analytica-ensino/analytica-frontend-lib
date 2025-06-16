@@ -12,7 +12,8 @@
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    }
+    },
+    "./styles.css": "./dist/index.css"
   },
   "scripts": {
     "lint": "npx eslint \"{src,app}/**/*.{js,jsx,ts,tsx}\" --fix",

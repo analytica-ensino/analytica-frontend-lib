@@ -14,6 +14,27 @@ Instale a biblioteca em seu projeto com o comando:
 yarn add analytica-frontend-lib
 ```
 
+### Importe os componentes
+
+Para usar os componentes, basta importá-los no seu projeto:
+
+```tsx
+import { Text } from 'analytica-frontend-lib'
+
+const MyComponent = () => {
+  return <Text>Olá mundo!</Text>
+}
+```
+
+### Importando Estilos CSS
+
+Para usar os estilos e variáveis CSS da lib, importe o arquivo de estilos:
+
+```tsx
+// No seu arquivo layout.tsx (Next.js) ou main.tsx (Vite)
+import 'analytica-frontend-lib/styles.css';
+```
+
 ---
 
 ## Etapas para criar um novo componente
