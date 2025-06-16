@@ -152,7 +152,7 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
   ) => {
     // Generate unique ID if not provided
     const generatedId = useId();
-    const inputId = id || `checkbox-${generatedId}`;
+    const inputId = id ?? `checkbox-${generatedId}`;
 
     // Handle controlled vs uncontrolled behavior
     const [internalChecked, setInternalChecked] = useState(false);
@@ -188,6 +188,31 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     // Get final checkbox classes
     const checkboxClasses = `${BASE_CHECKBOX_CLASSES} ${sizeClasses.checkbox} ${borderWidthClass} ${stylingClasses} ${className}`;
 
+    // Render appropriate icon based on state
+    const renderIcon = () => {
+      if (indeterminate) {
+        return (
+          <Minus
+            size={sizeClasses.iconSize}
+            weight="bold"
+            color="currentColor"
+          />
+        );
+      }
+
+      if (checked) {
+        return (
+          <Check
+            size={sizeClasses.iconSize}
+            weight="bold"
+            color="currentColor"
+          />
+        );
+      }
+
+      return null;
+    };
+
     return (
       <div className="flex flex-col">
         <div
@@ -208,19 +233,7 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
           {/* Custom styled checkbox */}
           <label htmlFor={inputId} className={checkboxClasses}>
             {/* Show appropriate icon based on state */}
-            {indeterminate ? (
-              <Minus
-                size={sizeClasses.iconSize}
-                weight="bold"
-                color="currentColor"
-              />
-            ) : checked ? (
-              <Check
-                size={sizeClasses.iconSize}
-                weight="bold"
-                color="currentColor"
-              />
-            ) : null}
+            {renderIcon()}
           </label>
 
           {/* Label text */}
