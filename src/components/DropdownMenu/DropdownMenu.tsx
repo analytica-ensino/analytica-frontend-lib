@@ -46,41 +46,42 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
 
   const menuRef = useRef<HTMLDivElement | null>(null);
 
+  const handleArrowDownOrArrowUp = (event: globalThis.KeyboardEvent) => {
+    const menuContent = menuRef.current?.querySelector('[role="menu"]');
+    if (menuContent) {
+      event.preventDefault();
+
+      const items = Array.from(
+        menuContent.querySelectorAll(
+          '[role="menuitem"]:not([aria-disabled="true"])'
+        )
+      ).filter((el): el is HTMLElement => el instanceof HTMLElement);
+
+      if (items.length === 0) return;
+
+      const focusedItem = document.activeElement as HTMLElement;
+      const currentIndex = items.findIndex((item) => item === focusedItem);
+
+      let nextIndex;
+      if (event.key === 'ArrowDown') {
+        nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
+      } else {
+        // ArrowUp
+        nextIndex =
+          currentIndex === -1
+            ? items.length - 1
+            : (currentIndex - 1 + items.length) % items.length;
+      }
+
+      items[nextIndex]?.focus();
+    }
+  };
+
   const handleDownkey = (event: globalThis.KeyboardEvent) => {
     if (event.key === 'Escape') {
       setOpen(false);
-    }
-    // Adicionando manipulação para ArrowDown e ArrowUp
-    else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      const menuContent = menuRef.current?.querySelector('[role="menu"]');
-      if (menuContent) {
-        event.preventDefault();
-
-        const items = Array.from(
-          menuContent.querySelectorAll(
-            '[role="menuitem"]:not([aria-disabled="true"])'
-          )
-        ) as HTMLElement[];
-
-        if (items.length === 0) return;
-
-        const focusedItem = document.activeElement as HTMLElement;
-        const currentIndex = items.findIndex((item) => item === focusedItem);
-
-        let nextIndex;
-        if (event.key === 'ArrowDown') {
-          nextIndex =
-            currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
-        } else {
-          // ArrowUp
-          nextIndex =
-            currentIndex === -1
-              ? items.length - 1
-              : (currentIndex - 1 + items.length) % items.length;
-        }
-
-        items[nextIndex]?.focus();
-      }
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      handleArrowDownOrArrowUp(event);
     }
   };
 
