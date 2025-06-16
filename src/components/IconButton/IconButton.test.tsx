@@ -428,5 +428,57 @@ describe('IconButton', () => {
         unmount();
       });
     });
+
+    it('handles console.warn not being available', () => {
+      // Temporarily suppress console.warn to test the accessibility warning logic
+      const consoleSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
+
+      // Render button without aria attributes to trigger warning
+      render(<IconButton icon={<TestIcon />} />);
+
+      // Verify the warning was called
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'IconButton: Para melhor acessibilidade, forneça um `aria-label` ou `aria-labelledby` ' +
+          'para descrever a ação do botão para usuários de leitores de tela. ' +
+          'Exemplo: <IconButton aria-label="Abrir menu" icon={<MenuIcon />} />'
+      );
+
+      // Clean up
+      consoleSpy.mockRestore();
+    });
+
+    it('does not warn when aria-label is provided', () => {
+      const consoleSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
+
+      // Render button WITH aria-label - should not warn
+      render(<IconButton icon={<TestIcon />} aria-label="Test button" />);
+
+      // Verify no warning was called
+      expect(consoleSpy).not.toHaveBeenCalled();
+
+      // Clean up
+      consoleSpy.mockRestore();
+    });
+
+    it('does not warn when aria-labelledby is provided', () => {
+      const consoleSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
+
+      // Render button WITH aria-labelledby - should not warn
+      render(
+        <IconButton icon={<TestIcon />} aria-labelledby="external-label" />
+      );
+
+      // Verify no warning was called
+      expect(consoleSpy).not.toHaveBeenCalled();
+
+      // Clean up
+      consoleSpy.mockRestore();
+    });
   });
 });

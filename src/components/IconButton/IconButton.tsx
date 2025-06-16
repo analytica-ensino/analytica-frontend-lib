@@ -106,6 +106,21 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       ...activeClasses,
     ].join(' ');
 
+    // Verificação de acessibilidade em desenvolvimento
+    const hasAriaLabel = 'aria-label' in props && props['aria-label'];
+    const hasAriaLabelledBy =
+      'aria-labelledby' in props && props['aria-labelledby'];
+
+    if (!hasAriaLabel && !hasAriaLabelledBy) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn(
+          'IconButton: Para melhor acessibilidade, forneça um `aria-label` ou `aria-labelledby` ' +
+            'para descrever a ação do botão para usuários de leitores de tela. ' +
+            'Exemplo: <IconButton aria-label="Abrir menu" icon={<MenuIcon />} />'
+        );
+      }
+    }
+
     return (
       <button
         ref={ref}
