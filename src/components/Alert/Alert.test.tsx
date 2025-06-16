@@ -24,14 +24,14 @@ describe('Alert Component', () => {
   describe('Variant tests', () => {
     it('applies solid variant classes correctly', () => {
       render(<Alert description="Test" variant="solid" action="default" />);
-      const alert = screen.getByText('Test').closest('div');
+      const alert = document.querySelector('.alert-wrapper');
       expect(alert).toHaveClass('bg-background-50');
       expect(alert).toHaveClass('border-transparent');
     });
 
     it('applies outline variant classes correctly', () => {
       render(<Alert description="Test" variant="outline" action="default" />);
-      const alert = screen.getByText('Test').closest('div');
+      const alert = document.querySelector('.alert-wrapper');
       expect(alert).toHaveClass('bg-background');
       expect(alert).toHaveClass('border');
       expect(alert).toHaveClass('border-border-100');
@@ -41,31 +41,31 @@ describe('Alert Component', () => {
   describe('Action tests', () => {
     it('applies default action classes correctly', () => {
       render(<Alert description="Test" variant="solid" action="default" />);
-      const alert = screen.getByText('Test').closest('div');
+      const alert = document.querySelector('.alert-wrapper');
       expect(alert).toHaveClass('bg-background-50');
     });
 
     it('applies info action classes correctly', () => {
       render(<Alert description="Test" variant="solid" action="info" />);
-      const alert = screen.getByText('Test').closest('div');
+      const alert = document.querySelector('.alert-wrapper');
       expect(alert).toHaveClass('bg-info');
     });
 
     it('applies success action classes correctly', () => {
       render(<Alert description="Test" variant="solid" action="success" />);
-      const alert = screen.getByText('Test').closest('div');
+      const alert = document.querySelector('.alert-wrapper');
       expect(alert).toHaveClass('bg-success');
     });
 
     it('applies warning action classes correctly', () => {
       render(<Alert description="Test" variant="solid" action="warning" />);
-      const alert = screen.getByText('Test').closest('div');
+      const alert = document.querySelector('.alert-wrapper');
       expect(alert).toHaveClass('bg-warning');
     });
 
     it('applies error action classes correctly', () => {
       render(<Alert description="Test" variant="solid" action="error" />);
-      const alert = screen.getByText('Test').closest('div');
+      const alert = document.querySelector('.alert-wrapper');
       expect(alert).toHaveClass('bg-error');
     });
   });
@@ -73,31 +73,36 @@ describe('Alert Component', () => {
   describe('Icon tests', () => {
     it('renders default icon correctly', () => {
       render(<Alert description="Test" variant="solid" action="default" />);
-      const icon = screen.getByText('Test').previousSibling;
+      const alert = document.querySelector('.alert-wrapper');
+      const icon = alert?.querySelector('span');
       expect(icon).toHaveClass('text-950');
     });
 
     it('renders info icon correctly', () => {
       render(<Alert description="Test" variant="solid" action="info" />);
-      const icon = screen.getByText('Test').previousSibling;
+      const alert = document.querySelector('.alert-wrapper');
+      const icon = alert?.querySelector('span');
       expect(icon).toHaveClass('text-info-800');
     });
 
     it('renders success icon correctly', () => {
       render(<Alert description="Test" variant="solid" action="success" />);
-      const icon = screen.getByText('Test').previousSibling;
+      const alert = document.querySelector('.alert-wrapper');
+      const icon = alert?.querySelector('span');
       expect(icon).toHaveClass('text-success-800');
     });
 
     it('renders warning icon correctly', () => {
       render(<Alert description="Test" variant="solid" action="warning" />);
-      const icon = screen.getByText('Test').previousSibling;
+      const alert = document.querySelector('.alert-wrapper');
+      const icon = alert?.querySelector('span');
       expect(icon).toHaveClass('text-warning-800');
     });
 
     it('renders error icon correctly', () => {
       render(<Alert description="Test" variant="solid" action="error" />);
-      const icon = screen.getByText('Test').previousSibling;
+      const alert = document.querySelector('.alert-wrapper');
+      const icon = alert?.querySelector('span');
       expect(icon).toHaveClass('text-error-800');
     });
   });
@@ -133,7 +138,7 @@ describe('Alert Component', () => {
   describe('Base classes and functionality', () => {
     it('applies base classes correctly', () => {
       render(<Alert description="Test" variant="solid" action="default" />);
-      const alert = screen.getByText('Test').closest('div');
+      const alert = document.querySelector('.alert-wrapper');
       expect(alert).toHaveClass('flex');
       expect(alert).toHaveClass('items-start');
       expect(alert).toHaveClass('gap-2');
@@ -153,7 +158,7 @@ describe('Alert Component', () => {
           className="custom-class"
         />
       );
-      const alert = screen.getByText('Test').closest('div');
+      const alert = document.querySelector('.alert-wrapper');
       expect(alert).toHaveClass('custom-class');
     });
   });
@@ -161,14 +166,14 @@ describe('Alert Component', () => {
   describe('Combined variant and action classes', () => {
     it('combines solid variant with info action correctly', () => {
       render(<Alert description="Test" variant="solid" action="info" />);
-      const alert = screen.getByText('Test').closest('div');
+      const alert = document.querySelector('.alert-wrapper');
       expect(alert).toHaveClass('bg-info');
       expect(alert).toHaveClass('border-transparent');
     });
 
     it('combines outline variant with error action correctly', () => {
       render(<Alert description="Test" variant="outline" action="error" />);
-      const alert = screen.getByText('Test').closest('div');
+      const alert = document.querySelector('.alert-wrapper');
       expect(alert).toHaveClass('bg-background');
       expect(alert).toHaveClass('border');
       expect(alert).toHaveClass('border-border-100');

@@ -1,4 +1,4 @@
-import React from "react";
+import { HTMLAttributes } from "react";
 import { CheckCircle, Info, WarningCircle, XCircle } from "phosphor-react";
 
 type AlertProps = {
@@ -7,7 +7,7 @@ type AlertProps = {
     variant: 'solid' | 'outline';
     action: 'default' | 'info' | 'success' | 'warning' | 'error';
     className?: string;
-}
+} & HTMLAttributes<HTMLDivElement>;
 
 const VARIANT_ACTION_CLASSES = {
     solid: {
@@ -48,6 +48,7 @@ export const Alert = ({
     description,
     action = 'default',
     className,
+    ...props
 }: AlertProps) => {
     const icons = {
         default: <CheckCircle size={18} />,
@@ -56,13 +57,13 @@ export const Alert = ({
         warning: <WarningCircle size={18} />,
         error: <XCircle size={18} />,
     };
-    const baseClasses = 'flex items-start gap-2 w-[384px] py-3 px-4 font-inherit rounded-md';
+    const baseClasses = 'alert-wrapper flex items-start gap-2 w-[384px] py-3 px-4 font-inherit rounded-md';
     const variantClasses = VARIANT_ACTION_CLASSES[variant][action];
     const iconClasses = ICON_CLASSES[action];
     const hasHeading = Boolean(title);
 
     return (
-        <div className={`${baseClasses} ${variantClasses} ${className || ''}`}>
+        <div className={`${baseClasses} ${variantClasses} ${className || ''}`} {...props}>
             <span className={`mt-0.5 ${iconClasses}`}>{icons[action]}</span>
             <div>
                 {hasHeading && (
