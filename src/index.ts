@@ -5,4 +5,4 @@ export * from './components/SelectionButton/SelectionButton';
 export * from './components/Text/Text';
 export * from './components/Toast/Toast';
 export * from './components/Toast/ToastProvider';
-
+export * from './components/Table/Table';
