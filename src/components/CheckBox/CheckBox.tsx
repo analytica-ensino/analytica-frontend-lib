@@ -39,7 +39,7 @@ const SIZE_CLASSES = {
     spacing: 'gap-1.5', // 6px
     borderWidth: 'border-2',
     iconSize: 'w-3.5 h-3.5', // ~14px
-    dimensions: '16px',
+    dimensions: 'w-4 h-4', // 16px
     labelHeight: 'h-[21px]',
   },
   medium: {
@@ -48,16 +48,16 @@ const SIZE_CLASSES = {
     spacing: 'gap-2', // 8px
     borderWidth: 'border-2',
     iconSize: 'w-4 h-4', // 16px
-    dimensions: '20px',
+    dimensions: 'w-5 h-5', // 20px
     labelHeight: 'h-6',
   },
   large: {
     checkbox: 'w-6 h-6', // 24px x 24px
     textSize: 'lg' as const,
     spacing: 'gap-2', // 8px
-    borderWidth: 'border-3', // Atualizado para border-3 (3px)
+    borderWidth: 'border-3', // 3px
     iconSize: 'w-5 h-5', // 20px
-    dimensions: '24px',
+    dimensions: 'w-6 h-6', // 24px
     labelHeight: 'h-[27px]',
   },
 } as const;
@@ -74,32 +74,32 @@ const BASE_CHECKBOX_CLASSES =
 const THEME_COLORS = {
   light: {
     checked: {
-      background: '#1C61B2', // primary-800
-      border: '#1C61B2',
-      iconColor: '#FEFEFF', // text
+      background: 'bg-primary-800', // primary-800
+      border: 'border-primary-800',
+      iconColor: 'text-text', // white text
     },
     hover: {
-      background: '#2271C4', // primary-700
-      border: '#2271C4',
-      iconColor: '#FEFEFF', // text
+      background: 'bg-primary-700', // primary-700
+      border: 'border-primary-700',
+      iconColor: 'text-text', // white text
     },
     unchecked: {
-      border: '#A5A3A3', // border-400
+      border: 'border-border-400', // border-400
     },
   },
   dark: {
     checked: {
-      background: '#BBDCF7', // primary-100
-      border: '#BBDCF7',
-      iconColor: '#171717', // text-950
+      background: 'bg-primary-100', // primary-100
+      border: 'border-primary-100',
+      iconColor: 'text-text-950', // dark text
     },
     hover: {
-      background: '#BBDCF7', // primary-100
-      border: '#BBDCF7',
-      iconColor: '#171717', // text-950
+      background: 'bg-primary-100', // primary-100
+      border: 'border-primary-100',
+      iconColor: 'text-text-950', // dark text
     },
     unchecked: {
-      border: '#8C8D8D', // border-500 em dark mode
+      border: 'border-border-500', // border-500 em dark mode
     },
   },
 };
@@ -636,6 +636,34 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     const getCheckboxStyle = (): CSSProperties | undefined => {
       const theme = isDarkMode ? 'dark' : 'light';
 
+      // Convert Tailwind classes to CSS properties
+      const getTailwindStyles = (
+        bgClass: string,
+        borderClass: string
+      ): CSSProperties => {
+        const bgColorMap: Record<string, string> = {
+          'bg-primary-800': '#1C61B2',
+          'bg-primary-700': '#2271C4',
+          'bg-primary-100': '#BBDCF7',
+          'bg-error-700': '#B91C1C',
+        };
+
+        const borderColorMap: Record<string, string> = {
+          'border-primary-800': '#1C61B2',
+          'border-primary-700': '#2271C4',
+          'border-primary-100': '#BBDCF7',
+          'border-border-400': '#A5A3A3',
+          'border-border-500': '#8C8D8D',
+          'border-indicator-info': '#5399EC',
+          'border-error-700': '#B91C1C',
+        };
+
+        return {
+          backgroundColor: bgColorMap[bgClass] || 'transparent',
+          borderColor: borderColorMap[borderClass] || '#A5A3A3',
+        };
+      };
+
       // Handle special states first
       if (checked && !indeterminate) {
         // Try to get style from the mapping
@@ -671,10 +699,10 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
         }
 
         // Default theme colors for checked state
+        const { background, border } = THEME_COLORS[theme].checked;
         return {
-          backgroundColor: THEME_COLORS[theme].checked.background,
-          borderColor: THEME_COLORS[theme].checked.border,
-          color: THEME_COLORS[theme].checked.iconColor,
+          ...getTailwindStyles(background, border),
+          color: isDarkMode ? '#171717' : '#FEFEFF',
         };
       } else if (!checked && !indeterminate) {
         // Handle unchecked styles
@@ -697,8 +725,9 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
         // Large unchecked default fallback
         if (size === 'large' && currentState === 'default') {
+          const { border } = THEME_COLORS[theme].unchecked;
           return {
-            borderColor: THEME_COLORS[theme].unchecked.border,
+            ...getTailwindStyles('', border),
             borderWidth: '3px',
             borderRadius: '4px',
             width: '24px',
@@ -717,6 +746,12 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
     // Get icon color based on theme and state
     const getIconColor = (): string => {
+      // Convert Tailwind classes to hex colors for Phosphor icons
+      const colorMap: Record<string, string> = {
+        'text-text': '#FEFEFF',
+        'text-text-950': '#171717',
+      };
+
       // Check from the mapping first
       if (
         ICON_COLOR_MAP[size]?.[
@@ -729,9 +764,11 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
       }
 
       // Default to theme colors
-      return isDarkMode
+      const themeIconColor = isDarkMode
         ? THEME_COLORS.dark.checked.iconColor
         : THEME_COLORS.light.checked.iconColor;
+
+      return colorMap[themeIconColor] || '#FEFEFF';
     };
 
     // Get icon size for checkbox
