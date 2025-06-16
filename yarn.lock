@@ -2817,6 +2817,7 @@ __metadata:
     jest-sonar-reporter: "npm:^2.0.0"
     jsdom: "npm:^26.1.0"
     next: "npm:^15.3.3"
+    phosphor-react: "npm:^1.4.1"
     polished: "npm:^4.3.1"
     postcss: "npm:^8.5.4"
     prettier: "npm:^3.5.3"
@@ -8124,6 +8125,15 @@ __metadata:
   version: 2.0.3
   resolution: "pathe@npm:2.0.3"
   checksum: 10c0/c118dc5a8b5c4166011b2b70608762e260085180bb9e33e80a50dcdb1e78c010b1624f4280c492c92b05fc276715a4c357d1f9edc570f8f1b3d90b6839ebaca1
+  languageName: node
+  linkType: hard
+
+"phosphor-react@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "phosphor-react@npm:1.4.1"
+  peerDependencies:
+    react: ">=16"
+  checksum: 10c0/6441f25e4134d86ade34739bbe89dbfecf6c0fa4fa7dc6ec32b36dc76d43ddf22e3535f780db080b705ad01f1292ae3115b0244cc7659a7b53e604f6cf817425
   languageName: node
   linkType: hard
 
