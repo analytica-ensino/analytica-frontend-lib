@@ -63,7 +63,7 @@ export const Alert = ({
     const hasHeading = Boolean(title);
 
     return (
-        <div className={`${baseClasses} ${variantClasses} ${className || ''}`} {...props}>
+        <div className={`${baseClasses} ${variantClasses} ${className ?? ''}`} {...props}>
             <span className={`mt-0.5 ${iconClasses}`}>{icons[action]}</span>
             <div>
                 {hasHeading && (
