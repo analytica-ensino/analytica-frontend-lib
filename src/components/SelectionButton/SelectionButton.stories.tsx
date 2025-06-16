@@ -1,20 +1,7 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
+import { Tag, Star, Clock, Archive } from 'phosphor-react';
 import { SelectionButton } from './SelectionButton';
-
-// Ícones SVG para demonstração
-const TagIcon = (
-  <svg width="24" height="24" fill="none" viewBox="0 0 16 16">
-    <path
-      d="M2 4.5A2.5 2.5 0 0 1 4.5 2h3.086a2 2 0 0 1 1.414.586l5.414 5.414a2 2 0 0 1 0 2.828l-3.086 3.086a2 2 0 0 1-2.828 0L3.086 8.5A2 2 0 0 1 2 7.086V4.5z"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <circle cx="5.5" cy="5.5" r=".5" fill="currentColor" />
-  </svg>
-);
 
 /**
  * Showcase principal: demonstração do SelectionButton com seleção única
@@ -35,8 +22,12 @@ export const AllSelectionButtons: Story = () => {
       {/* Estados básicos */}
       <h3 className="font-bold text-2xl text-text-900">Estados Básicos:</h3>
       <div className="flex flex-row gap-4 items-center">
-        <SelectionButton icon={TagIcon} label="Default" />
-        <SelectionButton icon={TagIcon} label="Selected" selected={true} />
+        <SelectionButton icon={<Tag size={24} />} label="Default" />
+        <SelectionButton
+          icon={<Tag size={24} />}
+          label="Selected"
+          selected={true}
+        />
       </div>
 
       {/* Exemplos de seleção única */}
@@ -49,19 +40,19 @@ export const AllSelectionButtons: Story = () => {
           </div>
           <div className="flex flex-row gap-3 flex-wrap">
             <SelectionButton
-              icon={TagIcon}
+              icon={<Tag size={24} />}
               label="Todos"
               selected={selectedCategory === 'all'}
               onClick={() => setSelectedCategory('all')}
             />
             <SelectionButton
-              icon={TagIcon}
+              icon={<Star size={24} />}
               label="Favoritos"
               selected={selectedCategory === 'favorites'}
               onClick={() => setSelectedCategory('favorites')}
             />
             <SelectionButton
-              icon={TagIcon}
+              icon={<Clock size={24} />}
               label="Recentes"
               selected={selectedCategory === 'recent'}
               onClick={() => setSelectedCategory('recent')}
@@ -78,25 +69,25 @@ export const AllSelectionButtons: Story = () => {
           </div>
           <div className="flex flex-row gap-3 flex-wrap">
             <SelectionButton
-              icon={TagIcon}
+              icon={<Tag size={24} />}
               label="React"
               selected={selectedTag === 'react'}
               onClick={() => setSelectedTag('react')}
             />
             <SelectionButton
-              icon={TagIcon}
+              icon={<Tag size={24} />}
               label="TypeScript"
               selected={selectedTag === 'typescript'}
               onClick={() => setSelectedTag('typescript')}
             />
             <SelectionButton
-              icon={TagIcon}
+              icon={<Tag size={24} />}
               label="JavaScript"
               selected={selectedTag === 'javascript'}
               onClick={() => setSelectedTag('javascript')}
             />
             <SelectionButton
-              icon={TagIcon}
+              icon={<Tag size={24} />}
               label="CSS"
               selected={selectedTag === 'css'}
               onClick={() => setSelectedTag('css')}
@@ -116,8 +107,12 @@ export const AllSelectionButtons: Story = () => {
  */
 export const BasicStates: Story = () => (
   <div className="flex flex-row gap-4">
-    <SelectionButton icon={TagIcon} label="Default" />
-    <SelectionButton icon={TagIcon} label="Selected" selected={true} />
+    <SelectionButton icon={<Tag size={24} />} label="Default" />
+    <SelectionButton
+      icon={<Tag size={24} />}
+      label="Selected"
+      selected={true}
+    />
   </div>
 );
 
@@ -132,25 +127,25 @@ export const CategoryMenu: Story = () => {
       <div className="font-medium text-text-900">Filtrar por categoria</div>
       <div className="flex flex-row gap-3 flex-wrap">
         <SelectionButton
-          icon={TagIcon}
+          icon={<Tag size={24} />}
           label="Todos"
           selected={selectedCategory === 'all'}
           onClick={() => setSelectedCategory('all')}
         />
         <SelectionButton
-          icon={TagIcon}
+          icon={<Star size={24} />}
           label="Favoritos"
           selected={selectedCategory === 'favorites'}
           onClick={() => setSelectedCategory('favorites')}
         />
         <SelectionButton
-          icon={TagIcon}
+          icon={<Clock size={24} />}
           label="Recentes"
           selected={selectedCategory === 'recent'}
           onClick={() => setSelectedCategory('recent')}
         />
         <SelectionButton
-          icon={TagIcon}
+          icon={<Archive size={24} />}
           label="Arquivados"
           selected={selectedCategory === 'archived'}
           onClick={() => setSelectedCategory('archived')}

@@ -5,3 +5,5 @@ export * from './components/SelectionButton/SelectionButton';
 export * from './components/Text/Text';
 export * from './components/CheckBox/CheckBox';
 export * from './components/Table/Table';
+export * from './components/DropdownMenu/DropdownMenu';
+export * from './components/NavButton/NavButton';
