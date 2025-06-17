@@ -156,10 +156,10 @@
   --color-indicator-error: #b91c1c;
 
   /* Subject and Exam Colors */
-  --color-exame-1: #e3f1fb;
-  --color-exame-2: #fde5fa;
-  --color-exame-3: #fff4d1;
-  --color-exame-4: #ddf5e5;
+  --color-exam-1: #e3f1fb;
+  --color-exam-2: #fde5fa;
+  --color-exam-3: #fff4d1;
+  --color-exam-4: #ddf5e5;
   --color-subject-1: #b7dfff;
   --color-subject-2: #fbd1a5;
   --color-subject-3: #b2e7e8;
@@ -390,10 +390,10 @@
     --color-indicator-error: #e84645;
 
     /* Subject and Exam Colors */
-    --color-exame-1: #e3f1fb;
-    --color-exame-2: #fde5fa;
-    --color-exame-3: #fff4d1;
-    --color-exame-4: #ddf5e5;
+    --color-exam-1: #e3f1fb;
+    --color-exam-2: #fde5fa;
+    --color-exam-3: #fff4d1;
+    --color-exam-4: #ddf5e5;
     --color-subject-1: #b7dfff;
     --color-subject-2: #fbd1a5;
     --color-subject-3: #b2e7e8;
@@ -579,10 +579,10 @@
     --color-indicator-error: #b91c1c;
 
     /* Subject and Exam Colors */
-    --color-exame-1: #e3f1fb;
-    --color-exame-2: #fde5fa;
-    --color-exame-3: #fff4d1;
-    --color-exame-4: #ddf5e5;
+    --color-exam-1: #e3f1fb;
+    --color-exam-2: #fde5fa;
+    --color-exam-3: #fff4d1;
+    --color-exam-4: #ddf5e5;
     --color-subject-1: #b7dfff;
     --color-subject-2: #fbd1a5;
     --color-subject-3: #b2e7e8;

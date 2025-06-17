@@ -60,7 +60,7 @@ describe('Badge', () => {
         </Badge>
       );
       const badge = screen.getByText('Exam 1');
-      expect(badge).toHaveClass('bg-exame-1');
+      expect(badge).toHaveClass('bg-exam-1');
       expect(badge).toHaveClass('text-info-200');
     });
 

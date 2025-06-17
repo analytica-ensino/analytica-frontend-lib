@@ -24,10 +24,10 @@ const VARIANT_ACTION_CLASSES = {
       'bg-background-muted text-background-800 border border-border-300 focus-visible:outline-none',
   },
   exams: {
-    exam1: 'bg-exame-1 text-info-200 focus-visible:outline-none',
-    exam2: 'bg-exame-2 text-typography-1 focus-visible:outline-none',
-    exam3: 'bg-exame-3 text-typography-2 focus-visible:outline-none',
-    exam4: 'bg-exame-4 text-success-700 focus-visible:outline-none',
+    exam1: 'bg-exam-1 text-info-200 focus-visible:outline-none',
+    exam2: 'bg-exam-2 text-typography-1 focus-visible:outline-none',
+    exam3: 'bg-exam-3 text-typography-2 focus-visible:outline-none',
+    exam4: 'bg-exam-4 text-success-700 focus-visible:outline-none',
   },
   resultStatus: {
     negative: 'bg-error text-error-800 focus-visible:outline-none',
