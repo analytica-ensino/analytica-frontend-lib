@@ -1,15 +1,7 @@
 import './styles.css';
-export * from './components/Button/Button';
-export * from './components/IconRoundedButton/IconRoundedButton';
-export * from './components/SelectionButton/SelectionButton';
-export * from './components/Text/Text';
-export * from './components/TextArea/TextArea';
-export * from './components/Badge/Badge';
-export * from './components/CheckBox/CheckBox';
-export * from './components/Table/Table';
-export * from './components/DropdownMenu/DropdownMenu';
-export * from './components/NavButton/NavButton';
-export * from './components/IconButton/IconButton';
-export * from './components/Toast/Toast';
-export * from './components/Toast/utils/Toaster';
-export * from './components/Toast/utils/ToastStore';
+
+// Export only server-safe components by default to avoid RSC issues
+export * from './server-components';
+
+// Note: Client components are available via:
+// import { CheckBox, TextArea, DropdownMenu, Toast } from 'analytica-frontend-lib/client';

@@ -1,6 +1,6 @@
 {
   "name": "analytica-frontend-lib",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "Repositório público dos componentes utilizados nas plataformas da Analytica Ensino",
   "main": "dist/index.cjs",
   "module": "./dist/index.js",
@@ -13,7 +13,17 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./styles.css": "./dist/index.css"
+    "./client": {
+      "import": "./dist/client-components.js",
+      "require": "./dist/client-components.cjs",
+      "types": "./dist/client-components.d.ts"
+    },
+    "./styles.css": "./dist/index.css",
+    "./Alert": {
+      "types": "./dist/components/Alert/Alert.d.ts",
+      "import": "./dist/components/Alert/Alert.js",
+      "require": "./dist/components/Alert/Alert.cjs"
+    }
   },
   "scripts": {
     "lint": "npx eslint \"{src,app}/**/*.{js,jsx,ts,tsx}\" --fix",

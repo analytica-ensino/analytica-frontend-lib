@@ -23,6 +23,11 @@ function generateExports() {
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./client": {
+      "import": "./dist/client-components.js",
+      "require": "./dist/client-components.cjs",
+      "types": "./dist/client-components.d.ts"
+    },
     "./styles.css": "./dist/index.css"
   };
 
