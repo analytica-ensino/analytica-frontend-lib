@@ -34,9 +34,7 @@ function buildComponents() {
   // Handle special cases like Toaster and ToastStore
   const utilFiles = [
     'src/components/Toast/utils/Toaster.tsx',
-    'src/components/Toast/utils/ToastStore.ts',
-    'src/server-components.ts',
-    'src/client-components.ts'
+    'src/components/Toast/utils/ToastStore.ts'
   ];
 
   utilFiles.forEach(file => {
