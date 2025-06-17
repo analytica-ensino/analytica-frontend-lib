@@ -16,10 +16,10 @@ const VARIANT_ACTION_CLASSES = {
   },
   outlined: {
     warning:
-      'bg-warning text-warning-800 border border-warning-200 focus-visible:outline-none',
+      'bg-warning text-warning-600 border border-warning-300 focus-visible:outline-none',
     success:
       'bg-success text-success-800 border border-success-200 focus-visible:outline-none',
-    info: 'bg-info text-info-800 border border-info-200 focus-visible:outline-none',
+    info: 'bg-info text-info-600 border border-info-600 focus-visible:outline-none',
   },
 } as const;
 

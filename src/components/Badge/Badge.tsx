@@ -24,7 +24,7 @@ const VARIANT_ACTION_CLASSES = {
       'bg-background-muted text-background-800 border border-border-300 focus-visible:outline-none',
   },
   exams: {
-    exam1: 'bg-exam-1 text-info-200 focus-visible:outline-none',
+    exam1: 'bg-exam-1 text-info-700 focus-visible:outline-none',
     exam2: 'bg-exam-2 text-typography-1 focus-visible:outline-none',
     exam3: 'bg-exam-3 text-typography-2 focus-visible:outline-none',
     exam4: 'bg-exam-4 text-success-700 focus-visible:outline-none',
@@ -127,7 +127,7 @@ export const Badge = ({
         '');
 
   const baseClasses =
-    'inline-flex items-center justify-center rounded-xs font-medium gap-1 relative';
+    'inline-flex items-center justify-center rounded-xs font-normal gap-1 relative';
 
   const baseClassesIcon = 'flex items-center';
   if (variant === 'notification') {
