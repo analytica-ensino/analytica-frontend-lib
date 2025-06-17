@@ -214,8 +214,8 @@ describe('Badge', () => {
 
     it('does not show notification dot when inactive', () => {
       render(<Badge variant="notification" notificationActive={false} />);
-      const notificationDot = screen.queryByRole('presentation');
-      expect(notificationDot).not.toBeInTheDocument();
+      const svg = document.querySelector('svg');
+      expect(svg).not.toBeInTheDocument();
     });
   });
 });
