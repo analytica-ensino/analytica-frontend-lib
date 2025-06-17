@@ -58,7 +58,7 @@ describe('Badge', () => {
       );
       const badge = screen.getByText('Exam 1');
       expect(badge).toHaveClass('bg-exame-1');
-      expect(badge).toHaveClass('text-[#145B8F]');
+      expect(badge).toHaveClass('text-info-200');
     });
 
     it('applies resultStatus variant classes', () => {
@@ -202,6 +202,23 @@ describe('Badge', () => {
       expect(badge).toBeInTheDocument();
 
       console.error = originalError;
+    });
+  });
+
+  describe('Notification active indicator', () => {
+    it('shows notification dot when active', () => {
+      render(<Badge variant="notification" notificationActive={true} />);
+      const notificationDot = screen.getByRole('presentation'); // ou use uma query mais específica
+      expect(notificationDot).toBeInTheDocument();
+      expect(notificationDot).toHaveClass('bg-indicator-error');
+      expect(notificationDot).toHaveClass('h-2');
+      expect(notificationDot).toHaveClass('w-2');
+    });
+
+    it('does not show notification dot when inactive', () => {
+      render(<Badge variant="notification" notificationActive={false} />);
+      const notificationDot = screen.queryByRole('presentation');
+      expect(notificationDot).not.toBeInTheDocument();
     });
   });
 });

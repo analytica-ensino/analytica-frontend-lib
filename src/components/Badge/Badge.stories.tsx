@@ -130,6 +130,9 @@ export const AllBadges: Story = () => (
       <h4 className="font-bold text-xl text-text-900">Notification</h4>
       <div className="flex flex-row gap-4 flex-wrap">
         <Badge variant="notification">Notifications</Badge>
+        <Badge variant="notification" notificationActive={true}>
+          Notifications
+        </Badge>
       </div>
     </div>
 
