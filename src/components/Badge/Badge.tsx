@@ -140,6 +140,7 @@ export const Badge = ({
 
         {notificationActive && (
           <span
+            data-testid="notification-dot"
             className="absolute top-[5px] right-[10px] block h-2 w-2 rounded-full bg-indicator-error ring-2 ring-white"
           />
         )}

@@ -208,14 +208,14 @@ describe('Badge', () => {
   describe('Notification active indicator', () => {
     it('shows notification dot when active', () => {
       render(<Badge variant="notification" notificationActive={true} />);
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
+      const dot = screen.getByTestId('notification-dot');
+      expect(dot).toBeInTheDocument();
     });
-
+  
     it('does not show notification dot when inactive', () => {
       render(<Badge variant="notification" notificationActive={false} />);
-      const svg = document.querySelector('svg');
-      expect(svg).not.toBeInTheDocument();
+      const dot = screen.queryByTestId('notification-dot');
+      expect(dot).not.toBeInTheDocument();
     });
   });
 });
