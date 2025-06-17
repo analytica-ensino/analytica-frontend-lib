@@ -12,3 +12,4 @@ export * from './components/IconButton/IconButton';
 export * from './components/Toast/Toast';
 export * from './components/Toast/utils/Toaster';
 export * from './components/Toast/utils/ToastStore';
+export * from './components/Input/Input';
