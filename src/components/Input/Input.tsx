@@ -1,5 +1,6 @@
-import { WarningCircle } from 'phosphor-react';
-import { InputHTMLAttributes, ReactNode, forwardRef } from 'react';
+'use client';
+import { WarningCircle, Eye, EyeSlash } from 'phosphor-react';
+import { InputHTMLAttributes, ReactNode, forwardRef, useState } from 'react';
 
 /**
  * Lookup table for size classes
@@ -64,6 +65,7 @@ type InputProps = {
  *
  * A flexible input component with multiple sizes, states, and support for icons.
  * Includes label, helper text, and error message functionality.
+ * Features automatic password visibility toggle for password inputs.
  * Fully compatible with Next.js 15 and React 19.
  *
  * @param label - Optional label text displayed above the input
@@ -73,7 +75,8 @@ type InputProps = {
  * @param variant - The visual variant (outlined, underlined, rounded)
  * @param state - The current state (default, error, disabled, read-only)
  * @param iconLeft - Optional icon displayed on the left side
- * @param iconRight - Optional icon displayed on the right side
+ * @param iconRight - Optional icon displayed on the right side (overridden by password toggle for password inputs)
+ * @param type - Input type (text, email, password, etc.) - password type automatically includes show/hide toggle
  * @param className - Additional CSS classes for the input
  * @param containerClassName - Additional CSS classes for the container
  * @param props - All other standard input HTML attributes
@@ -81,6 +84,7 @@ type InputProps = {
  *
  * @example
  * ```tsx
+ * // Basic input
  * <Input
  *   label="Email"
  *   placeholder="Digite seu email"
@@ -89,8 +93,60 @@ type InputProps = {
  *   variant="outlined"
  *   state="default"
  * />
+ *
+ * // Password input with automatic toggle
+ * <Input
+ *   label="Senha"
+ *   type="password"
+ *   placeholder="Digite sua senha"
+ *   helperText="Clique no olho para mostrar/ocultar"
+ * />
  * ```
  */
+// Helper functions to reduce cognitive complexity
+const getActualState = (
+  disabled?: boolean,
+  readOnly?: boolean,
+  errorMessage?: string,
+  state?: string
+): keyof typeof STATE_CLASSES => {
+  if (disabled) return 'disabled';
+  if (readOnly) return 'read-only';
+  if (errorMessage) return 'error';
+  return (state as keyof typeof STATE_CLASSES) || 'default';
+};
+
+const getIconSize = (size: string) => {
+  const iconSizeClasses = {
+    small: 'w-4 h-4',
+    medium: 'w-5 h-5',
+    large: 'w-6 h-6',
+    'extra-large': 'w-7 h-7',
+  };
+  return iconSizeClasses[size as keyof typeof iconSizeClasses];
+};
+
+const getPasswordToggleConfig = (
+  type?: string,
+  disabled?: boolean,
+  readOnly?: boolean,
+  showPassword?: boolean,
+  iconRight?: ReactNode
+) => {
+  const isPasswordType = type === 'password';
+  const shouldShowPasswordToggle = isPasswordType && !disabled && !readOnly;
+
+  let actualIconRight = iconRight;
+  let ariaLabel: string | undefined;
+
+  if (shouldShowPasswordToggle) {
+    actualIconRight = showPassword ? <EyeSlash /> : <Eye />;
+    ariaLabel = showPassword ? 'Ocultar senha' : 'Mostrar senha';
+  }
+
+  return { shouldShowPasswordToggle, actualIconRight, ariaLabel };
+};
+
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
@@ -107,39 +163,41 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       disabled,
       readOnly,
       id,
+      type,
       ...props
     },
     ref
   ) => {
-    // Determine the actual state based on props
-    const actualState = disabled
-      ? 'disabled'
-      : readOnly
-        ? 'read-only'
-        : errorMessage
-          ? 'error'
-          : state;
+    // State for password visibility toggle
+    const [showPassword, setShowPassword] = useState(false);
+    const isPasswordType = type === 'password';
+    const actualType = isPasswordType && showPassword ? 'text' : type;
+    const actualState = getActualState(disabled, readOnly, errorMessage, state);
 
     // Get classes from lookup tables
     const sizeClasses = SIZE_CLASSES[size];
     const stateClasses = STATE_CLASSES[actualState];
     const variantClasses = VARIANT_CLASSES[variant];
+    const iconSize = getIconSize(size);
 
     const baseClasses =
       'bg-background w-full py-2 px-3 font-normal text-text-900 focus:outline-primary-950';
 
-    // Icon sizing based on input size
-    const iconSizeClasses = {
-      small: 'w-4 h-4',
-      medium: 'w-5 h-5',
-      large: 'w-6 h-6',
-      'extra-large': 'w-7 h-7',
-    };
-
-    const iconSize = iconSizeClasses[size];
-
     // Generate unique ID if not provided
     const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+
+    // Handle password visibility toggle
+    const togglePasswordVisibility = () => setShowPassword(!showPassword);
+
+    // Get password toggle configuration
+    const { shouldShowPasswordToggle, actualIconRight, ariaLabel } =
+      getPasswordToggleConfig(
+        type,
+        disabled,
+        readOnly,
+        showPassword,
+        iconRight
+      );
 
     return (
       <div className={`${containerClassName}`}>
@@ -170,9 +228,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             id={inputId}
+            type={actualType}
             className={`${baseClasses} ${sizeClasses} ${stateClasses} ${variantClasses} ${
               iconLeft ? 'pl-10' : ''
-            } ${iconRight ? 'pr-10' : ''} ${className}`}
+            } ${actualIconRight ? 'pr-10' : ''} ${className}`}
             disabled={disabled}
             readOnly={readOnly}
             aria-invalid={actualState === 'error' ? 'true' : undefined}
@@ -180,15 +239,29 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           />
 
           {/* Right Icon */}
-          {iconRight && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-              <span
-                className={`${iconSize} text-text-400 flex items-center justify-center`}
+          {actualIconRight &&
+            (shouldShowPasswordToggle ? (
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer border-0 bg-transparent p-0"
+                onClick={togglePasswordVisibility}
+                aria-label={ariaLabel}
               >
-                {iconRight}
-              </span>
-            </div>
-          )}
+                <span
+                  className={`${iconSize} text-text-400 flex items-center justify-center hover:text-text-600 transition-colors`}
+                >
+                  {actualIconRight}
+                </span>
+              </button>
+            ) : (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <span
+                  className={`${iconSize} text-text-400 flex items-center justify-center`}
+                >
+                  {actualIconRight}
+                </span>
+              </div>
+            ))}
         </div>
 
         {/* Helper Text or Error Message */}

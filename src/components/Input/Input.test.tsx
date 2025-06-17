@@ -368,6 +368,75 @@ describe('Input', () => {
     });
   });
 
+  describe('Password functionality', () => {
+    it('shows eye icon for password input', () => {
+      render(<Input type="password" data-testid="input" />);
+      const eyeIcon = screen.getByRole('button', { hidden: true });
+      expect(eyeIcon).toBeInTheDocument();
+    });
+
+    it('toggles password visibility when eye icon is clicked', () => {
+      render(<Input type="password" data-testid="input" />);
+      const input = screen.getByTestId('input');
+      const eyeIcon = screen.getByRole('button', { hidden: true });
+
+      // Initially should be password type
+      expect(input).toHaveAttribute('type', 'password');
+
+      // Click to show password
+      fireEvent.click(eyeIcon);
+      expect(input).toHaveAttribute('type', 'text');
+
+      // Click again to hide password
+      fireEvent.click(eyeIcon);
+      expect(input).toHaveAttribute('type', 'password');
+    });
+
+    it('does not show password toggle for disabled password input', () => {
+      render(<Input type="password" disabled data-testid="input" />);
+      const eyeIcon = screen.queryByRole('button', { hidden: true });
+      expect(eyeIcon).not.toBeInTheDocument();
+    });
+
+    it('does not show password toggle for read-only password input', () => {
+      render(<Input type="password" readOnly data-testid="input" />);
+      const eyeIcon = screen.queryByRole('button', { hidden: true });
+      expect(eyeIcon).not.toBeInTheDocument();
+    });
+
+    it('shows custom right icon when provided for non-password input', () => {
+      const CustomIcon = () => <div data-testid="custom-icon">custom</div>;
+      render(<Input type="text" iconRight={<CustomIcon />} />);
+      expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
+    });
+
+    it('prioritizes password toggle over custom right icon', () => {
+      const CustomIcon = () => <div data-testid="custom-icon">custom</div>;
+      render(<Input type="password" iconRight={<CustomIcon />} />);
+
+      // Should show password toggle, not custom icon
+      const eyeIcon = screen.getByRole('button', { hidden: true });
+      expect(eyeIcon).toBeInTheDocument();
+      expect(screen.queryByTestId('custom-icon')).not.toBeInTheDocument();
+    });
+
+    it('applies hover styles to password toggle icon', () => {
+      render(<Input type="password" />);
+      const eyeIcon = screen.getByRole('button', { hidden: true });
+      const iconSpan = eyeIcon.querySelector('span');
+
+      expect(iconSpan).toHaveClass('hover:text-text-600', 'transition-colors');
+    });
+
+    it('makes password toggle icon clickable', () => {
+      render(<Input type="password" />);
+      const eyeIcon = screen.getByRole('button', { hidden: true });
+
+      expect(eyeIcon).toHaveClass('cursor-pointer');
+      expect(eyeIcon).not.toHaveClass('pointer-events-none');
+    });
+  });
+
   describe('Value handling', () => {
     it('renders with initial value', () => {
       render(<Input value="initial value" onChange={() => {}} />);
@@ -433,6 +502,159 @@ describe('Input', () => {
       const label = screen.getByText('Test Label');
       const wrapper = label.parentElement;
       expect(wrapper).toHaveClass('test-container');
+    });
+  });
+
+  describe('Edge cases and helper functions coverage', () => {
+    it('handles undefined state correctly', () => {
+      render(<Input state={undefined} data-testid="input" />);
+      const input = screen.getByTestId('input');
+      expect(input).toHaveClass('border-border-300'); // default state classes
+    });
+
+    it('covers getActualState fallback branch', () => {
+      // Test when state is explicitly set but no other conditions apply
+      // This should hit the fallback return statement
+      render(<Input state="default" data-testid="input" />);
+      const input = screen.getByTestId('input');
+      expect(input).toHaveClass('border-border-300');
+
+      // Also test when state is undefined (should use 'default')
+      render(<Input data-testid="input-2" />);
+      const input2 = screen.getByTestId('input-2');
+      expect(input2).toHaveClass('border-border-300');
+    });
+
+    it('covers all icon size variants', () => {
+      const IconComponent = () => <div data-testid="test-icon">icon</div>;
+
+      // Test all sizes to ensure getIconSize function coverage
+      const sizes = ['small', 'medium', 'large', 'extra-large'] as const;
+      sizes.forEach((size) => {
+        const { unmount } = render(
+          <Input size={size} iconLeft={<IconComponent />} />
+        );
+        const icon = screen.getByTestId('test-icon');
+        const iconContainer = icon.closest('span');
+
+        const expectedClasses = {
+          small: ['w-4', 'h-4'],
+          medium: ['w-5', 'h-5'],
+          large: ['w-6', 'h-6'],
+          'extra-large': ['w-7', 'h-7'],
+        };
+
+        expect(iconContainer).toHaveClass(...expectedClasses[size]);
+        unmount();
+      });
+    });
+
+    it('covers password toggle configuration edge cases', () => {
+      // Test password type with showPassword false (Eye icon)
+      render(<Input type="password" data-testid="input" />);
+      expect(screen.getByRole('button')).toHaveAttribute(
+        'aria-label',
+        'Mostrar senha'
+      );
+
+      // Click to show password (EyeSlash icon)
+      fireEvent.click(screen.getByRole('button'));
+      expect(screen.getByRole('button')).toHaveAttribute(
+        'aria-label',
+        'Ocultar senha'
+      );
+    });
+
+    it('handles all state combinations in getActualState', () => {
+      // Test disabled + errorMessage (disabled should take precedence)
+      render(<Input disabled errorMessage="Error" data-testid="input-1" />);
+      expect(screen.getByTestId('input-1')).toHaveClass(
+        'cursor-not-allowed',
+        'opacity-40'
+      );
+
+      // Test readOnly + errorMessage (readOnly should take precedence)
+      render(<Input readOnly errorMessage="Error" data-testid="input-2" />);
+      expect(screen.getByTestId('input-2')).toHaveClass(
+        'cursor-default',
+        'bg-background-50'
+      );
+
+      // Test explicit state without other conditions
+      render(<Input state="default" data-testid="input-3" />);
+      expect(screen.getByTestId('input-3')).toHaveClass('border-border-300');
+
+      // Test all valid state values to ensure complete branch coverage
+      render(<Input state="error" data-testid="input-4" />);
+      expect(screen.getByTestId('input-4')).toHaveClass(
+        'border-2',
+        'border-error-500'
+      );
+
+      render(<Input state="disabled" data-testid="input-5" />);
+      expect(screen.getByTestId('input-5')).toHaveClass(
+        'cursor-not-allowed',
+        'opacity-40'
+      );
+
+      render(<Input state="read-only" data-testid="input-6" />);
+      expect(screen.getByTestId('input-6')).toHaveClass(
+        'cursor-default',
+        'bg-background-50'
+      );
+
+      // Test falsy state value to cover the || 'default' branch
+      render(
+        <Input state={'' as unknown as 'default'} data-testid="input-7" />
+      );
+      expect(screen.getByTestId('input-7')).toHaveClass('border-border-300');
+    });
+
+    it('covers all branches in getPasswordToggleConfig', () => {
+      const CustomIcon = () => <div data-testid="custom-icon">custom</div>;
+
+      // Test with non-password type (isPasswordType = false)
+      const { unmount: unmount1 } = render(
+        <Input type="text" iconRight={<CustomIcon />} data-testid="input-1" />
+      );
+      expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+      unmount1();
+
+      // Test password type with disabled (shouldShowPasswordToggle = false)
+      const { unmount: unmount2 } = render(
+        <Input
+          type="password"
+          disabled
+          iconRight={<CustomIcon />}
+          data-testid="input-2"
+        />
+      );
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+      unmount2();
+
+      // Test password type with readOnly (shouldShowPasswordToggle = false)
+      const { unmount: unmount3 } = render(
+        <Input
+          type="password"
+          readOnly
+          iconRight={<CustomIcon />}
+          data-testid="input-3"
+        />
+      );
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+      unmount3();
+
+      // Test password type enabled (shouldShowPasswordToggle = true)
+      render(
+        <Input
+          type="password"
+          iconRight={<CustomIcon />}
+          data-testid="input-4"
+        />
+      );
+      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.queryByTestId('custom-icon')).not.toBeInTheDocument();
     });
   });
 });

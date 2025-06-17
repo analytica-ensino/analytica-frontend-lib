@@ -14,7 +14,6 @@ export { IconRoundedButton } from './components/IconRoundedButton/IconRoundedBut
 export { NavButton } from './components/NavButton/NavButton';
 export { SelectionButton } from './components/SelectionButton/SelectionButton';
 export { Table } from './components/Table/Table';
-export { Input } from './components/Input/Input';
 
 // Client components (with 'use client')
 export { CheckBox } from './components/CheckBox/CheckBox';
@@ -30,3 +29,4 @@ export {
 export { Toast } from './components/Toast/Toast';
 export { Toaster } from './components/Toast/utils/Toaster';
 export { useToastStore } from './components/Toast/utils/ToastStore';
+export { Input } from './components/Input/Input';
