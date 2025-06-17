@@ -144,131 +144,131 @@ export const AllAlerts: Story = () => (
 );
 
 export const SolidWithHeading: Story = () => (
-    <div className="flex flex-col gap-4">
-        <Alert
-            variant="solid"
-            action="default"
-            title="Thank you for choosing Edo Delivery"
-            description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-        />
-        <Alert
-            variant="solid"
-            action="info"
-            title="Thank you for choosing Edo Delivery"
-            description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-        />
-        <Alert
-            variant="solid"
-            action="success"
-            title="Thank you for choosing Edo Delivery"
-            description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-        />
-        <Alert
-            variant="solid"
-            action="warning"
-            title="Thank you for choosing Edo Delivery"
-            description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-        />
-        <Alert
-            variant="solid"
-            action="error"
-            title="Thank you for choosing Edo Delivery"
-            description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-        />
-    </div>
+  <div className="flex flex-col gap-4">
+    <Alert
+      variant="solid"
+      action="default"
+      title="Thank you for choosing Edo Delivery"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="solid"
+      action="info"
+      title="Thank you for choosing Edo Delivery"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="solid"
+      action="success"
+      title="Thank you for choosing Edo Delivery"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="solid"
+      action="warning"
+      title="Thank you for choosing Edo Delivery"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="solid"
+      action="error"
+      title="Thank you for choosing Edo Delivery"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+  </div>
 );
 
 export const SolidWithoutHeading: Story = () => (
-    <div className="flex flex-col gap-4">
-      <Alert
-        variant="solid"
-        action="default"
-        description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-      />
-      <Alert
-        variant="solid"
-        action="info"
-        description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-      />
-      <Alert
-        variant="solid"
-        action="success"
-        description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-      />
-      <Alert
-        variant="solid"
-        action="warning"
-        description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-      />
-      <Alert
-        variant="solid"
-        action="error"
-        description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-      />
-    </div>
+  <div className="flex flex-col gap-4">
+    <Alert
+      variant="solid"
+      action="default"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="solid"
+      action="info"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="solid"
+      action="success"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="solid"
+      action="warning"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="solid"
+      action="error"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+  </div>
 );
 
 export const OutlineWithHeading: Story = () => (
-    <div className="flex flex-col gap-4">
-        <Alert
-            variant="outline"
-            action="default"
-            title="Thank you for choosing Edo Delivery"
-            description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-        />
-        <Alert
-            variant="outline"
-            action="info"
-            title="Thank you for choosing Edo Delivery"
-            description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-        />
-        <Alert
-            variant="outline"
-            action="success"
-            title="Thank you for choosing Edo Delivery"
-            description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-        />
-        <Alert
-            variant="outline"
-            action="warning"
-            title="Thank you for choosing Edo Delivery"
-            description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-        />
-        <Alert
-            variant="outline"
-            action="error"
-            title="Thank you for choosing Edo Delivery"
-            description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-        />
-    </div>
+  <div className="flex flex-col gap-4">
+    <Alert
+      variant="outline"
+      action="default"
+      title="Thank you for choosing Edo Delivery"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="outline"
+      action="info"
+      title="Thank you for choosing Edo Delivery"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="outline"
+      action="success"
+      title="Thank you for choosing Edo Delivery"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="outline"
+      action="warning"
+      title="Thank you for choosing Edo Delivery"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="outline"
+      action="error"
+      title="Thank you for choosing Edo Delivery"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+  </div>
 );
 
 export const OutlineWithoutHeading: Story = () => (
-    <div className="flex flex-col gap-4">
-      <Alert
-        variant="outline"
-        action="default"
-        description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-      />
-      <Alert
-        variant="outline"
-        action="info"
-        description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-      />
-      <Alert
-        variant="outline"
-        action="success"
-        description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-      />
-      <Alert
-        variant="outline"
-        action="warning"
-        description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-      />
-      <Alert
-        variant="outline"
-        action="error"
-        description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
-      />
-    </div>
-); 
+  <div className="flex flex-col gap-4">
+    <Alert
+      variant="outline"
+      action="default"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="outline"
+      action="info"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="outline"
+      action="success"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="outline"
+      action="warning"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+    <Alert
+      variant="outline"
+      action="error"
+      description="Delivery of this parcel generated 93.2% less carbon dioxide in the last mile than our home delivery."
+    />
+  </div>
+);
