@@ -2,10 +2,13 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
+import { Gear } from 'phosphor-react';
 import { IconButton } from './IconButton';
 
-// Ícone de teste simples
-const TestIcon = () => <span data-testid="test-icon">⚙️</span>;
+/**
+ * Test icon component using phosphor-react
+ */
+const TestIcon = () => <Gear data-testid="test-icon" size={16} />;
 
 describe('IconButton', () => {
   it('renders the button with icon', () => {

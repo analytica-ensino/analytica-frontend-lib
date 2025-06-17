@@ -1,17 +1,6 @@
 import type { Story } from '@ladle/react';
+import { Plus } from 'phosphor-react';
 import { Badge } from './Badge';
-
-// Ícone SVG simples para demonstração
-const PlusIcon = (
-  <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
-    <path
-      d="M8 3.5v9M3.5 8h9"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-    />
-  </svg>
-);
 
 const sizes = ['small', 'medium', 'large'] as const;
 const variants = [
@@ -156,7 +145,7 @@ export const AllBadges: Story = () => (
                       : 'error'
                 }
                 className="my-4"
-                iconLeft={PlusIcon}
+                iconLeft={<Plus size={16} />}
               >
                 Badge
               </Badge>
@@ -180,7 +169,7 @@ export const AllBadges: Story = () => (
                       : 'error'
                 }
                 className="my-4"
-                iconRight={PlusIcon}
+                iconRight={<Plus size={16} />}
               >
                 Badge
               </Badge>
@@ -253,7 +242,7 @@ export const IconLeftBadge: Story = () => (
                 ? 'positive'
                 : 'error'
           }
-          iconLeft={PlusIcon}
+          iconLeft={<Plus size={16} />}
         >
           Ícone à esquerda
         </Badge>
@@ -276,7 +265,7 @@ export const IconRightBadge: Story = () => (
                 ? 'positive'
                 : 'error'
           }
-          iconRight={PlusIcon}
+          iconRight={<Plus size={16} />}
         >
           Ícone à direita
         </Badge>

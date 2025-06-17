@@ -1,9 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { MagnifyingGlass } from 'phosphor-react';
 import { Badge } from './Badge';
 
-// Ícone de teste simples
-const TestIcon = () => <span data-testid="test-icon">🔍</span>;
+/**
+ * Test icon component using phosphor-react
+ */
+const TestIcon = () => <MagnifyingGlass data-testid="test-icon" size={16} />;
 
 describe('Badge', () => {
   describe('Basic rendering', () => {
@@ -211,7 +214,7 @@ describe('Badge', () => {
       const dot = screen.getByTestId('notification-dot');
       expect(dot).toBeInTheDocument();
     });
-  
+
     it('does not show notification dot when inactive', () => {
       render(<Badge variant="notification" notificationActive={false} />);
       const dot = screen.queryByTestId('notification-dot');

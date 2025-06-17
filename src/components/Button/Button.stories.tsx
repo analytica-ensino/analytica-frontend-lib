@@ -1,17 +1,6 @@
 import type { Story } from '@ladle/react';
+import { Plus } from 'phosphor-react';
 import { Button } from './Button';
-
-// Ícone SVG simples para demonstração
-const PlusIcon = (
-  <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
-    <path
-      d="M8 3.5v9M3.5 8h9"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-    />
-  </svg>
-);
 
 const sizes = [
   'extra-small',
@@ -70,7 +59,7 @@ export const AllButtons: Story = () => (
               key={variant}
               variant={variant}
               className="my-4"
-              iconLeft={PlusIcon}
+              iconLeft={<Plus size={16} />}
             >
               Button
             </Button>
@@ -85,7 +74,7 @@ export const AllButtons: Story = () => (
               key={variant}
               variant={variant}
               className="my-4"
-              iconRight={PlusIcon}
+              iconRight={<Plus size={16} />}
             >
               Button
             </Button>
@@ -137,7 +126,7 @@ export const Link: Story = () => (
 export const IconLeft: Story = () => (
   <div className="flex flex-row gap-4">
     {variants.map((variant) => (
-      <Button key={variant} variant={variant} iconLeft={PlusIcon}>
+      <Button key={variant} variant={variant} iconLeft={<Plus size={16} />}>
         Ícone à esquerda
       </Button>
     ))}
@@ -146,7 +135,7 @@ export const IconLeft: Story = () => (
 export const IconRight: Story = () => (
   <div className="flex flex-row gap-4">
     {variants.map((variant) => (
-      <Button key={variant} variant={variant} iconRight={PlusIcon}>
+      <Button key={variant} variant={variant} iconRight={<Plus size={16} />}>
         Ícone à direita
       </Button>
     ))}
