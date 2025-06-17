@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Input } from './Input';
+import Input from './Input';
 
 // Mock icon component for testing
 const MockIcon = () => <div data-testid="mock-icon">icon</div>;

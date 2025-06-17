@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { Input } from './Input';
+import Input from './Input';
 import {
   MagnifyingGlass,
   Eye,
