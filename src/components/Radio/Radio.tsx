@@ -35,7 +35,7 @@ const SIZE_CLASSES = {
   medium: {
     radio: 'w-5 h-5', // 20px x 20px
     textSize: 'md' as const,
-    spacing: 'gap-2', // 8px
+    spacing: 'gap-1.5', // 6px
     borderWidth: 'border-2',
     dotSize: 'w-2 h-2', // 8px inner dot
     labelHeight: 'h-6',
@@ -70,8 +70,7 @@ const BASE_RADIO_CLASSES =
 const STATE_CLASSES = {
   default: {
     unchecked: 'border-border-400 bg-background hover:border-border-500',
-    checked:
-      'border-primary-950 bg-background hover:border-primary-800',
+    checked: 'border-primary-950 bg-background hover:border-primary-800',
   },
   hovered: {
     unchecked: 'border-border-500 bg-background',
@@ -274,7 +273,13 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
                 size={sizeClasses.textSize}
                 weight="normal"
                 className={`cursor-pointer select-none leading-[150%] flex items-center font-roboto ${labelClassName}`}
-                color={currentState === 'disabled' ? 'text-text-600' : 'text-text-900'}
+                color={
+                  currentState === 'disabled'
+                    ? 'text-text-600'
+                    : checked
+                      ? 'text-text-900' // #262627 for checked
+                      : 'text-text-600' // #737373 for unchecked
+                }
               >
                 {label}
               </Text>
