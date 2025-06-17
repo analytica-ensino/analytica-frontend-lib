@@ -6,7 +6,6 @@ const states = [
   'default',
   'hovered',
   'focused',
-  'focusedAndTyping',
   'invalid',
   'disabled',
 ] as const;
@@ -147,25 +146,13 @@ export const States: Story = () => (
         </div>
       </div>
 
-            {/* Focused State */}
+      {/* Focused State */}
       <div className="mb-6">
         <h4 className="font-medium text-md mb-3 text-text-950">Focused</h4>
         <div className="max-w-md">
           <TextArea
             state="focused"
             placeholder="Focused state textarea"
-          />
-        </div>
-      </div>
-
-      {/* Focused and Typing State */}
-      <div className="mb-6">
-        <h4 className="font-medium text-md mb-3 text-text-950">Focused and Typing</h4>
-        <div className="max-w-md">
-          <TextArea
-            state="focusedAndTyping"
-            placeholder="Focused and typing state"
-            defaultValue="This textarea is in focused and typing state."
           />
         </div>
       </div>
@@ -219,7 +206,7 @@ export const AllCombinations: Story = () => (
                   state={state === 'disabled' ? 'default' : state}
                   disabled={state === 'disabled'}
                   placeholder={`${size} ${state}`}
-                  defaultValue={state === 'focusedAndTyping' ? `${size} ${state} with content` : ''}
+                  defaultValue={state === 'focused' ? `${size} ${state} with content` : ''}
                   rows={2}
                 />
                 <span className="text-xs text-text-500">{size} - {state}</span>
@@ -255,7 +242,7 @@ export const Themes: Story = () => (
               <TextArea placeholder="With content" defaultValue="Some content here" rows={2} />
               <TextArea placeholder="Invalid" state="invalid" rows={2} />
               <TextArea placeholder="Disabled" disabled rows={2} />
-              <TextArea placeholder="Focused typing" state="focusedAndTyping" defaultValue="Typing..." rows={2} />
+              <TextArea placeholder="Focused typing" state="focused" defaultValue="Typing..." rows={2} />
             </div>
             <div className="flex flex-col gap-4">
               <h5 className="font-medium text-sm text-text-700">Sizes</h5>
@@ -282,7 +269,7 @@ export const Themes: Story = () => (
               <TextArea placeholder="With content" defaultValue="Some content here" rows={2} />
               <TextArea placeholder="Invalid" state="invalid" rows={2} />
               <TextArea placeholder="Disabled" disabled rows={2} />
-              <TextArea placeholder="Focused typing" state="focusedAndTyping" defaultValue="Typing..." rows={2} />
+              <TextArea placeholder="Focused typing" state="focused" defaultValue="Typing..." rows={2} />
             </div>
             <div className="flex flex-col gap-4">
               <h5 className="font-medium text-sm text-text-950">Sizes</h5>

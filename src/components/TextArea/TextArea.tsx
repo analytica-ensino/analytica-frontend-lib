@@ -18,13 +18,7 @@ type TextAreaSize = 'small' | 'medium' | 'large' | 'extraLarge';
 /**
  * TextArea visual state
  */
-type TextAreaState =
-  | 'default'
-  | 'hovered'
-  | 'focused'
-  | 'focusedAndTyping'
-  | 'invalid'
-  | 'disabled';
+type TextAreaState = 'default' | 'hovered' | 'focused' | 'invalid' | 'disabled';
 
 /**
  * Size configurations with exact pixel specifications
@@ -74,11 +68,6 @@ const STATE_CLASSES = {
   },
   focused: {
     base: 'border-2 border-primary-950 bg-background text-text-900',
-    hover: '',
-    focus: '',
-  },
-  focusedAndTyping: {
-    base: 'border-primary-500 bg-background text-text-950 ring-2 ring-primary-500/20',
     hover: '',
     focus: '',
   },
@@ -160,14 +149,9 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 
     // Internal state for focus tracking
     const [isFocused, setIsFocused] = useState(false);
-    const [hasValue, setHasValue] = useState(() => {
-      const initialValue = props.value || props.defaultValue || '';
-      return Boolean(String(initialValue).trim());
-    });
 
     // Handle change events
     const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-      setHasValue(Boolean(event.target.value.trim()));
       onChange?.(event);
     };
 
@@ -186,17 +170,13 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     // Determine current state based on props and focus
     let currentState = disabled ? 'disabled' : state;
 
-    // Override state based on focus and content
+    // Override state based on focus
     if (
       isFocused &&
       currentState !== 'invalid' &&
       currentState !== 'disabled'
     ) {
-      if (hasValue) {
-        currentState = 'focusedAndTyping';
-      } else {
-        currentState = 'focused';
-      }
+      currentState = 'focused';
     }
 
     // Get size classes
