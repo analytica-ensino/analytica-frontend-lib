@@ -1,10 +1,12 @@
-// CSS must be imported first for proper styling
+// Dynamic proxy index - redirects to individual components
+// This allows both syntax styles:
+// import { Text } from 'analytica-frontend-lib' ← works
+// import { Text } from 'analytica-frontend-lib/Text' ← also works
+
+// CSS import
 import './styles.css';
 
-// Re-export all components using individual module resolution
-// This ensures that importing { Text } only includes Text component
-
-// Server-safe components (no 'use client')
+// Re-export all components - bundlers will resolve to individual builds
 export { Text } from './components/Text/Text';
 export { Button } from './components/Button/Button';
 export { Badge } from './components/Badge/Badge';
@@ -14,8 +16,6 @@ export { IconRoundedButton } from './components/IconRoundedButton/IconRoundedBut
 export { NavButton } from './components/NavButton/NavButton';
 export { SelectionButton } from './components/SelectionButton/SelectionButton';
 export { Table } from './components/Table/Table';
-
-// Client components (with 'use client')
 export { CheckBox } from './components/CheckBox/CheckBox';
 export { TextArea } from './components/TextArea/TextArea';
 export {
@@ -28,4 +28,4 @@ export {
 } from './components/DropdownMenu/DropdownMenu';
 export { Toast } from './components/Toast/Toast';
 export { Toaster } from './components/Toast/utils/Toaster';
-export { useToastStore } from './components/Toast/utils/ToastStore';
+export * from './components/Toast/utils/ToastStore';
