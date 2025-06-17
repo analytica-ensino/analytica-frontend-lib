@@ -17,18 +17,10 @@ export const Default: Story = () => (
   <div className="flex flex-col gap-8 p-8">
     <div>
       <h3 className="text-lg font-semibold mb-4 text-text-950">Basic Usage</h3>
-      <div className="flex flex-col gap-4">
-        <TextArea label="Empty textarea" placeholder="Enter your text here..." />
-        <TextArea
-          label="With content"
-          value="This textarea has some content already filled in."
-          placeholder="Enter your text here..."
-        />
-        <TextArea
-          label="With helper text"
-          placeholder="Enter your text here..."
-          helperText="This is some helpful information."
-        />
+      <div className="flex flex-col gap-4 max-w-md">
+        <TextArea placeholder="Enter your message..." />
+        <TextArea placeholder="With default value" defaultValue="This is some default text content that demonstrates how the TextArea looks with content." />
+        <TextArea placeholder="Disabled textarea" disabled />
       </div>
     </div>
   </div>
@@ -47,40 +39,81 @@ export const Sizes: Story = () => (
       {/* Small Size */}
       <div className="mb-6">
         <h4 className="font-medium text-md mb-3 text-text-950">
-          Small (14px)
+          Small (14px font)
         </h4>
-        <div className="flex flex-col gap-4 max-w-md">
-          <TextArea size="small" label="Small textarea" placeholder="Small size..." />
+        <div className="max-w-md">
+          <TextArea
+            size="small"
+            placeholder="Small textarea"
+            defaultValue="This is a small textarea with 14px font size."
+          />
         </div>
       </div>
 
       {/* Medium Size */}
       <div className="mb-6">
         <h4 className="font-medium text-md mb-3 text-text-950">
-          Medium (16px) - Default
+          Medium (16px font) - Default
         </h4>
-        <div className="flex flex-col gap-4 max-w-md">
-          <TextArea size="medium" label="Medium textarea" placeholder="Medium size..." />
+        <div className="max-w-md">
+          <TextArea
+            size="medium"
+            placeholder="Medium textarea"
+            defaultValue="This is a medium textarea with 16px font size."
+          />
         </div>
       </div>
 
       {/* Large Size */}
       <div className="mb-6">
         <h4 className="font-medium text-md mb-3 text-text-950">
-          Large (18px)
+          Large (18px font)
         </h4>
-        <div className="flex flex-col gap-4 max-w-md">
-          <TextArea size="large" label="Large textarea" placeholder="Large size..." />
+        <div className="max-w-md">
+          <TextArea
+            size="large"
+            placeholder="Large textarea"
+            defaultValue="This is a large textarea with 18px font size."
+          />
         </div>
       </div>
 
       {/* Extra Large Size */}
       <div className="mb-6">
         <h4 className="font-medium text-md mb-3 text-text-950">
-          Extra Large (20px)
+          Extra Large (20px font)
         </h4>
-        <div className="flex flex-col gap-4 max-w-md">
-          <TextArea size="extraLarge" label="Extra large textarea" placeholder="Extra large size..." />
+        <div className="max-w-md">
+          <TextArea
+            size="extraLarge"
+            placeholder="Extra large textarea"
+            defaultValue="This is an extra large textarea with 20px font size."
+          />
+        </div>
+      </div>
+
+      {/* Size Comparison */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-3 text-text-950">
+          Size Comparison
+        </h4>
+        <div className="grid grid-cols-2 gap-4 max-w-4xl">
+          <div className="flex flex-col gap-2">
+            <TextArea size="small" placeholder="Small" defaultValue="Small" />
+            <span className="text-xs text-text-500">Small (14px)</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            <TextArea size="medium" placeholder="Medium" defaultValue="Medium" />
+            <span className="text-xs text-text-500">Medium (16px)</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            <TextArea size="large" placeholder="Large" defaultValue="Large" />
+            <span className="text-xs text-text-500">Large (18px)</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            <TextArea size="extraLarge" placeholder="Extra Large" defaultValue="Extra Large" />
+            <span className="text-xs text-text-500">Extra Large (20px)</span>
+          </div>
         </div>
       </div>
     </div>
@@ -100,28 +133,27 @@ export const States: Story = () => (
       {/* Default State */}
       <div className="mb-6">
         <h4 className="font-medium text-md mb-3 text-text-950">Default</h4>
-        <div className="flex flex-col gap-4 max-w-md">
-          <TextArea state="default" label="Default state" placeholder="Default state..." />
+        <div className="max-w-md">
+          <TextArea state="default" placeholder="Default state textarea" />
         </div>
       </div>
 
       {/* Hovered State */}
       <div className="mb-6">
         <h4 className="font-medium text-md mb-3 text-text-950">Hovered</h4>
-        <div className="flex flex-col gap-4 max-w-md">
-          <TextArea state="hovered" label="Hovered state" placeholder="Hovered state..." />
+        <div className="max-w-md">
+          <TextArea state="hovered" placeholder="Hovered state textarea" />
         </div>
       </div>
 
       {/* Focused and Typing State */}
       <div className="mb-6">
-        <h4 className="font-medium text-md mb-3 text-text-950">Focused & Typing</h4>
-        <div className="flex flex-col gap-4 max-w-md">
+        <h4 className="font-medium text-md mb-3 text-text-950">Focused and Typing</h4>
+        <div className="max-w-md">
           <TextArea
             state="focusedAndTyping"
-            label="Focused & typing state"
-            value="User is typing content..."
-            placeholder="Focused and typing..."
+            placeholder="Focused and typing state"
+            defaultValue="This textarea is in focused and typing state."
           />
         </div>
       </div>
@@ -129,12 +161,11 @@ export const States: Story = () => (
       {/* Invalid State */}
       <div className="mb-6">
         <h4 className="font-medium text-md mb-3 text-text-950">Invalid</h4>
-        <div className="flex flex-col gap-4 max-w-md">
+        <div className="max-w-md">
           <TextArea
             state="invalid"
-            label="Invalid state"
-            placeholder="Invalid state..."
-            errorMessage="This field is required"
+            placeholder="Invalid state textarea"
+            defaultValue="This content has validation errors."
           />
         </div>
       </div>
@@ -142,64 +173,11 @@ export const States: Story = () => (
       {/* Disabled State */}
       <div className="mb-6">
         <h4 className="font-medium text-md mb-3 text-text-950">Disabled</h4>
-        <div className="flex flex-col gap-4 max-w-md">
+        <div className="max-w-md">
           <TextArea
             disabled
-            label="Disabled state"
-            value="This content cannot be edited"
-            placeholder="Disabled state..."
-          />
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-/**
- * Error and Helper Messages
- */
-export const Messages: Story = () => (
-  <div className="flex flex-col gap-8 p-8">
-    <div>
-      <h3 className="text-lg font-semibold mb-6 text-text-950">
-        Messages & Feedback
-      </h3>
-
-      {/* With Error */}
-      <div className="mb-6">
-        <h4 className="font-medium text-md mb-3 text-text-950">With Error Message</h4>
-        <div className="flex flex-col gap-4 max-w-md">
-          <TextArea
-            label="Comment"
-            state="invalid"
-            placeholder="Please provide your feedback..."
-            errorMessage="This field is required and must be at least 10 characters long."
-            value="Too short"
-          />
-        </div>
-      </div>
-
-      {/* With Helper Text */}
-      <div className="mb-6">
-        <h4 className="font-medium text-md mb-3 text-text-950">With Helper Text</h4>
-        <div className="flex flex-col gap-4 max-w-md">
-          <TextArea
-            label="Bio"
-            placeholder="Tell us about yourself..."
-            helperText="Maximum 500 characters. This will be displayed on your public profile."
-          />
-        </div>
-      </div>
-
-      {/* Required Field */}
-      <div className="mb-6">
-        <h4 className="font-medium text-md mb-3 text-text-950">Required Field</h4>
-        <div className="flex flex-col gap-4 max-w-md">
-          <TextArea
-            label="Required Field *"
-            placeholder="This field is required..."
-            required
-            helperText="Please fill in this required field."
+            placeholder="Disabled textarea"
+            defaultValue="This textarea is disabled and cannot be edited."
           />
         </div>
       </div>
@@ -228,11 +206,11 @@ export const AllCombinations: Story = () => (
                   size={size}
                   state={state === 'disabled' ? 'default' : state}
                   disabled={state === 'disabled'}
-                  label={`${state}`}
-                  placeholder={`${state} placeholder...`}
-                  value={state === 'focusedAndTyping' ? 'Sample content...' : undefined}
-                  errorMessage={state === 'invalid' ? 'Error message' : undefined}
+                  placeholder={`${size} ${state}`}
+                  defaultValue={state === 'focusedAndTyping' ? `${size} ${state} with content` : ''}
+                  rows={2}
                 />
+                <span className="text-xs text-text-500">{size} - {state}</span>
               </div>
             ))}
           </div>
@@ -243,64 +221,163 @@ export const AllCombinations: Story = () => (
 );
 
 /**
- * Form example
+ * Theme variations - Light and Dark mode support
  */
-export const FormExample: Story = () => (
+export const Themes: Story = () => (
   <div className="flex flex-col gap-8 p-8">
     <div>
-      <h3 className="text-lg font-semibold mb-4 text-text-950">Contact Form Example</h3>
-      <div className="w-full max-w-md space-y-4">
-        <TextArea
-          label="Subject"
-          size="small"
-          placeholder="Brief subject line..."
-          required
-        />
-        <TextArea
-          label="Message"
-          size="medium"
-          placeholder="Your detailed message..."
-          helperText="Please provide as much detail as possible."
-          required
-        />
-        <TextArea
-          label="Additional Notes (Optional)"
-          size="medium"
-          placeholder="Any additional information..."
-          helperText="Optional field for extra context."
-        />
+      <h3 className="text-lg font-semibold mb-6 text-text-950">
+        TextArea Themes
+      </h3>
+
+      {/* Light Theme */}
+      <div className="mb-8" data-theme="light">
+        <h4 className="font-medium text-md mb-4 text-text-800">
+          Light Theme (Default)
+        </h4>
+        <div className="p-6 bg-background border border-border-200 rounded-lg">
+          <div className="grid grid-cols-2 gap-6">
+            <div className="flex flex-col gap-4">
+              <h5 className="font-medium text-sm text-text-700">States</h5>
+              <TextArea placeholder="Default" rows={2} />
+              <TextArea placeholder="With content" defaultValue="Some content here" rows={2} />
+              <TextArea placeholder="Invalid" state="invalid" rows={2} />
+              <TextArea placeholder="Disabled" disabled rows={2} />
+              <TextArea placeholder="Focused typing" state="focusedAndTyping" defaultValue="Typing..." rows={2} />
+            </div>
+            <div className="flex flex-col gap-4">
+              <h5 className="font-medium text-sm text-text-700">Sizes</h5>
+              <TextArea size="small" placeholder="Small" defaultValue="Small textarea" rows={2} />
+              <TextArea size="medium" placeholder="Medium" defaultValue="Medium textarea" rows={2} />
+              <TextArea size="large" placeholder="Large" defaultValue="Large textarea" rows={2} />
+              <TextArea size="extraLarge" placeholder="Extra Large" defaultValue="Extra Large textarea" rows={2} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Dark Theme */}
+      <div className="mb-8">
+        <h4 className="font-medium text-md mb-4 text-text-800">Dark Theme</h4>
+        <div
+          className="p-6 bg-background border border-border-200 rounded-lg"
+          data-theme="dark"
+        >
+          <div className="grid grid-cols-2 gap-6">
+            <div className="flex flex-col gap-4">
+              <h5 className="font-medium text-sm text-text-950">States</h5>
+              <TextArea placeholder="Default" rows={2} />
+              <TextArea placeholder="With content" defaultValue="Some content here" rows={2} />
+              <TextArea placeholder="Invalid" state="invalid" rows={2} />
+              <TextArea placeholder="Disabled" disabled rows={2} />
+              <TextArea placeholder="Focused typing" state="focusedAndTyping" defaultValue="Typing..." rows={2} />
+            </div>
+            <div className="flex flex-col gap-4">
+              <h5 className="font-medium text-sm text-text-950">Sizes</h5>
+              <TextArea size="small" placeholder="Small" defaultValue="Small textarea" rows={2} />
+              <TextArea size="medium" placeholder="Medium" defaultValue="Medium textarea" rows={2} />
+              <TextArea size="large" placeholder="Large" defaultValue="Large textarea" rows={2} />
+              <TextArea size="extraLarge" placeholder="Extra Large" defaultValue="Extra Large textarea" rows={2} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Side by Side Comparison */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-4 text-text-800">
+          Side by Side Comparison
+        </h4>
+        <div className="grid grid-cols-2 gap-6">
+          <div
+            data-theme="light"
+            className="p-4 bg-background border border-border-200 rounded-lg"
+          >
+            <h5 className="font-medium text-sm mb-3 text-text-700">
+              Light Mode
+            </h5>
+            <div className="flex flex-col gap-3">
+              <TextArea placeholder="Message 1" defaultValue="This is a message in light mode" rows={2} />
+              <TextArea placeholder="Message 2" rows={2} />
+              <TextArea placeholder="Invalid message" state="invalid" rows={2} />
+            </div>
+          </div>
+          <div
+            data-theme="dark"
+            className="p-4 bg-background border border-border-200 rounded-lg"
+          >
+            <h5 className="font-medium text-sm mb-3 text-text-700">
+              Dark Mode
+            </h5>
+            <div className="flex flex-col gap-3">
+              <TextArea placeholder="Message 1" defaultValue="This is a message in dark mode" rows={2} />
+              <TextArea placeholder="Message 2" rows={2} />
+              <TextArea placeholder="Invalid message" state="invalid" rows={2} />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 );
 
 /**
- * Dark theme showcase
+ * Interactive Examples
  */
-export const DarkTheme: Story = () => (
-  <div className="w-full p-6 bg-background-950 rounded-lg" data-theme="dark">
+export const Interactive: Story = () => (
+  <div className="flex flex-col gap-8 p-8">
     <div>
-      <h3 className="text-lg font-semibold mb-6 text-text-50">
-        Dark Theme Showcase
+      <h3 className="text-lg font-semibold mb-6 text-text-950">
+        Interactive TextArea Examples
       </h3>
-      <div className="space-y-6 max-w-md">
-        <TextArea
-          label="Dark Theme Default"
-          placeholder="Type in dark theme..."
-          helperText="This demonstrates dark theme support."
-        />
-        <TextArea
-          label="Dark Theme with Error"
-          state="invalid"
-          placeholder="Error state in dark theme..."
-          errorMessage="Error message in dark theme."
-        />
-        <TextArea
-          label="Dark Theme Disabled"
-          disabled
-          placeholder="Disabled in dark theme..."
-          value="Disabled content"
-        />
+
+      {/* With Labels and Messages */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-3 text-text-950">With Labels and Messages</h4>
+        <div className="max-w-md flex flex-col gap-4">
+          <TextArea
+            label="Comments"
+            placeholder="Enter your comments here..."
+            helperMessage="Please provide detailed feedback"
+            rows={3}
+          />
+          <TextArea
+            label="Description"
+            placeholder="Describe the issue..."
+            errorMessage="This field is required"
+            state="invalid"
+            rows={3}
+          />
+          <TextArea
+            label="Additional Notes"
+            placeholder="Any additional information..."
+            helperMessage="Optional field"
+            disabled
+            rows={3}
+          />
+        </div>
+      </div>
+
+      {/* Auto-resize Example */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-3 text-text-950">Different Row Heights</h4>
+        <div className="max-w-md flex flex-col gap-4">
+          <TextArea
+            placeholder="Compact textarea (2 rows)"
+            rows={2}
+            defaultValue="This is a compact textarea with only 2 rows visible."
+          />
+          <TextArea
+            placeholder="Standard textarea (4 rows)"
+            rows={4}
+            defaultValue="This is a standard textarea with 4 rows visible. You can type more content here to see how it behaves with more text."
+          />
+          <TextArea
+            placeholder="Large textarea (6 rows)"
+            rows={6}
+            defaultValue="This is a large textarea with 6 rows visible. Perfect for longer content like descriptions, comments, or detailed feedback. The user has plenty of space to write their thoughts."
+          />
+        </div>
       </div>
     </div>
   </div>
