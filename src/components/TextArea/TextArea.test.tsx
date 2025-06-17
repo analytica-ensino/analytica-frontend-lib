@@ -187,9 +187,9 @@ describe('TextArea', () => {
       expect(textarea).toHaveClass(
         'border-border-300',
         'bg-background',
-        'text-text-400',
+        'text-text-600',
         'cursor-not-allowed',
-        'opacity-60'
+        'opacity-40'
       );
       expect(textarea).toBeDisabled();
     });
@@ -210,9 +210,9 @@ describe('TextArea', () => {
       expect(textarea).toHaveClass(
         'border-border-300',
         'bg-background',
-        'text-text-400',
+        'text-text-600',
         'cursor-not-allowed',
-        'opacity-60'
+        'opacity-40'
       );
     });
 

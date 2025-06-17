@@ -88,7 +88,7 @@ const STATE_CLASSES = {
     focus: 'focus:border-error-700',
   },
   disabled: {
-    base: 'border-border-300 bg-background text-text-400 cursor-not-allowed opacity-60',
+    base: 'border-border-300 bg-background text-text-600 cursor-not-allowed opacity-40',
     hover: '',
     focus: '',
   },
