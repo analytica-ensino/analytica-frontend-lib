@@ -9,10 +9,10 @@ import { CheckCircle, WarningCircle, Info, X } from 'phosphor-react';
 const VARIANT_ACTION_CLASSES = {
   solid: {
     warning:
-      'bg-warning text-warning-800 border-none focus-visible:outline-none',
+      'bg-warning text-warning-600 border-none focus-visible:outline-none',
     success:
       'bg-success text-success-800 border-none focus-visible:outline-none',
-    info: 'bg-info text-info-800 border-none focus-visible:outline-none',
+    info: 'bg-info text-info-600 border-none focus-visible:outline-none',
   },
   outlined: {
     warning:
