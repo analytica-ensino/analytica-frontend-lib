@@ -24,27 +24,10 @@ type ToastStore = {
   removeToast: (id: string) => void;
 };
 
-export function generateRandomId(length = 9) {
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    const array = new Uint8Array(length);
-    crypto.getRandomValues(array);
-    return Array.from(array, (b) => b.toString(36).padStart(2, '0'))
-      .join('')
-      .slice(0, length);
-  } else {
-    return Math.random()
-      .toString(36)
-      .slice(2, 2 + length);
-  }
-}
-
 export const useToastStore = create<ToastStore>((set) => ({
   toasts: [],
   addToast: (toast) => {
-    const id =
-      typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : generateRandomId();
+    const id = crypto.randomUUID();
 
     set((state) => ({
       toasts: [...state.toasts, { id, ...toast }],
