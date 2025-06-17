@@ -246,7 +246,6 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
                 htmlFor={inputId}
                 size={sizeClasses.textSize}
                 weight="normal"
-                color="black"
                 className={`cursor-pointer select-none leading-[150%] flex items-center font-roboto ${labelClassName}`}
               >
                 {label}
@@ -257,14 +256,24 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
         {/* Error message */}
         {errorMessage && (
-          <Text size="sm" weight="normal" className="mt-1.5 text-error-600">
+          <Text
+            size="sm"
+            weight="normal"
+            className="mt-1.5"
+            color="text-error-600"
+          >
             {errorMessage}
           </Text>
         )}
 
         {/* Helper text */}
         {helperText && !errorMessage && (
-          <Text size="sm" weight="normal" className="mt-1.5 text-text-500">
+          <Text
+            size="sm"
+            weight="normal"
+            className="mt-1.5"
+            color="text-text-500"
+          >
             {helperText}
           </Text>
         )}

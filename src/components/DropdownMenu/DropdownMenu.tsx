@@ -46,9 +46,42 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
 
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const handleEscape = (event: globalThis.KeyboardEvent) => {
+  const handleArrowDownOrArrowUp = (event: globalThis.KeyboardEvent) => {
+    const menuContent = menuRef.current?.querySelector('[role="menu"]');
+    if (menuContent) {
+      event.preventDefault();
+
+      const items = Array.from(
+        menuContent.querySelectorAll(
+          '[role="menuitem"]:not([aria-disabled="true"])'
+        )
+      ).filter((el): el is HTMLElement => el instanceof HTMLElement);
+
+      if (items.length === 0) return;
+
+      const focusedItem = document.activeElement as HTMLElement;
+      const currentIndex = items.findIndex((item) => item === focusedItem);
+
+      let nextIndex;
+      if (event.key === 'ArrowDown') {
+        nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
+      } else {
+        // ArrowUp
+        nextIndex =
+          currentIndex === -1
+            ? items.length - 1
+            : (currentIndex - 1 + items.length) % items.length;
+      }
+
+      items[nextIndex]?.focus();
+    }
+  };
+
+  const handleDownkey = (event: globalThis.KeyboardEvent) => {
     if (event.key === 'Escape') {
       setOpen(false);
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      handleArrowDownOrArrowUp(event);
     }
   };
 
@@ -61,12 +94,12 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
   useEffect(() => {
     if (currentOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEscape);
+      document.addEventListener('keydown', handleDownkey);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', handleDownkey);
     };
   }, [currentOpen]);
 
@@ -251,6 +284,7 @@ const MenuItem = forwardRef<
         role="menuitem"
         aria-disabled={disabled}
         className={`
+          focus-visible:bg-background-50
           relative flex select-none items-center gap-2 rounded-sm p-3 text-sm outline-none transition-colors [&>svg]:size-4 [&>svg]:shrink-0
           ${inset && 'pl-8'}
           ${sizeClasses}

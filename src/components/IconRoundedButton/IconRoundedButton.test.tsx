@@ -1,9 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { MagnifyingGlass } from 'phosphor-react';
 import { IconRoundedButton } from './IconRoundedButton';
 
-// Ícone de teste simples
-const TestIcon = () => <span data-testid="test-icon">🔍</span>;
+/**
+ * Test icon component using phosphor-react
+ */
+const TestIcon = () => <MagnifyingGlass data-testid="test-icon" size={16} />;
 
 describe('IconRoundedButton', () => {
   it('renders the button with icon', () => {

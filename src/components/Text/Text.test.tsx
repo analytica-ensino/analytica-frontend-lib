@@ -164,14 +164,14 @@ describe('Text Component', () => {
 
     it('combines size class with other classes correctly', () => {
       render(
-        <Text size="lg" weight="bold" color="white" data-testid="text">
+        <Text size="lg" weight="bold" color="text-info-800" data-testid="text">
           Hello World
         </Text>
       );
       const element = screen.getByTestId('text');
       expect(element).toHaveClass('text-lg');
       expect(element).toHaveClass('font-bold');
-      expect(element).toHaveClass('text-text');
+      expect(element).toHaveClass('text-info-800');
     });
   });
 
@@ -277,60 +277,30 @@ describe('Text Component', () => {
 
     it('combines weight class with other classes correctly', () => {
       render(
-        <Text weight="bold" size="lg" color="white" data-testid="text">
+        <Text weight="bold" size="lg" color="text-info-800" data-testid="text">
           Hello World
         </Text>
       );
       const element = screen.getByTestId('text');
       expect(element).toHaveClass('font-bold');
       expect(element).toHaveClass('text-lg');
-      expect(element).toHaveClass('text-text');
+      expect(element).toHaveClass('text-info-800');
     });
   });
 
   describe('Color variants', () => {
-    it('applies black color class (default)', () => {
-      render(
-        <Text color="black" data-testid="text">
-          Hello World
-        </Text>
-      );
-      expect(screen.getByTestId('text')).toHaveClass('text-text-950');
-    });
-
-    it('applies white color class', () => {
-      render(
-        <Text color="white" data-testid="text">
-          Hello World
-        </Text>
-      );
-      expect(screen.getByTestId('text')).toHaveClass('text-text');
-    });
-
     it('applies default black color class when color prop is not provided', () => {
       render(<Text data-testid="text">Hello World</Text>);
       expect(screen.getByTestId('text')).toHaveClass('text-text-950');
     });
 
-    it('applies default black color class when invalid color is provided', () => {
+    it('applies custom color class', () => {
       render(
-        <Text color={'invalid' as 'black' | 'white'} data-testid="text">
+        <Text color="text-info-800" data-testid="text">
           Hello World
         </Text>
       );
-      expect(screen.getByTestId('text')).toHaveClass('text-text-950');
-    });
-
-    it('combines color class with other classes correctly', () => {
-      render(
-        <Text color="white" size="lg" weight="bold" data-testid="text">
-          Hello World
-        </Text>
-      );
-      const element = screen.getByTestId('text');
-      expect(element).toHaveClass('text-text');
-      expect(element).toHaveClass('text-lg');
-      expect(element).toHaveClass('font-bold');
+      expect(screen.getByTestId('text')).toHaveClass('text-info-800');
     });
   });
 
@@ -432,7 +402,7 @@ describe('Text Component', () => {
         as="h2"
         size="xl"
         weight="bold"
-        color="white"
+        color="text-info-800"
         className="custom-class"
         data-testid="text"
       >
@@ -445,7 +415,7 @@ describe('Text Component', () => {
     expect(textElement).toHaveClass('font-primary');
     expect(textElement).toHaveClass('text-xl');
     expect(textElement).toHaveClass('font-bold');
-    expect(textElement).toHaveClass('text-text');
+    expect(textElement).toHaveClass('text-info-800');
     expect(textElement).toHaveClass('custom-class');
   });
 });

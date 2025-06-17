@@ -156,10 +156,10 @@
   --color-indicator-error: #b91c1c;
 
   /* Subject and Exam Colors */
-  --color-exame-1: #e3f1fb;
-  --color-exame-2: #fde5fa;
-  --color-exame-3: #fff4d1;
-  --color-exame-4: #ddf5e5;
+  --color-exam-1: #e3f1fb;
+  --color-exam-2: #fde5fa;
+  --color-exam-3: #fff4d1;
+  --color-exam-4: #ddf5e5;
   --color-subject-1: #b7dfff;
   --color-subject-2: #fbd1a5;
   --color-subject-3: #b2e7e8;
@@ -176,6 +176,8 @@
   --color-subject-14: #e7ec85;
   --color-subject-15: #a2d7e2;
   --color-subject-16: #badfc8;
+  --color-typography-1: #b00c9e;
+  --color-typography-2: #745A07;
 
   /* Hard Shadow Colors */
   --shadow-hard-shadow-1: -2px 2px 8px rgba(38, 38, 38, 0.2);
@@ -388,10 +390,10 @@
     --color-indicator-error: #e84645;
 
     /* Subject and Exam Colors */
-    --color-exame-1: #e3f1fb;
-    --color-exame-2: #fde5fa;
-    --color-exame-3: #fff4d1;
-    --color-exame-4: #ddf5e5;
+    --color-exam-1: #e3f1fb;
+    --color-exam-2: #fde5fa;
+    --color-exam-3: #fff4d1;
+    --color-exam-4: #ddf5e5;
     --color-subject-1: #b7dfff;
     --color-subject-2: #fbd1a5;
     --color-subject-3: #b2e7e8;
@@ -408,6 +410,8 @@
     --color-subject-14: #e7ec85;
     --color-subject-15: #a2d7e2;
     --color-subject-16: #badfc8;
+    --color-typography-1: #b00c9e;
+    --color-typography-2: #745A07;
 
     /* Hard Shadow Colors */
     --shadow-hard-shadow-1: -2px 2px 8px rgba(255, 255, 255, 0.1);
@@ -575,10 +579,10 @@
     --color-indicator-error: #b91c1c;
 
     /* Subject and Exam Colors */
-    --color-exame-1: #e3f1fb;
-    --color-exame-2: #fde5fa;
-    --color-exame-3: #fff4d1;
-    --color-exame-4: #ddf5e5;
+    --color-exam-1: #e3f1fb;
+    --color-exam-2: #fde5fa;
+    --color-exam-3: #fff4d1;
+    --color-exam-4: #ddf5e5;
     --color-subject-1: #b7dfff;
     --color-subject-2: #fbd1a5;
     --color-subject-3: #b2e7e8;
@@ -595,6 +599,8 @@
     --color-subject-14: #e7ec85;
     --color-subject-15: #a2d7e2;
     --color-subject-16: #badfc8;
+    --color-typography-1: #b00c9e;
+    --color-typography-2: #745A07;
 
     /* Hard Shadow Colors */
     --shadow-hard-shadow-1: -2px 2px 8px rgba(38, 38, 38, 0.2);

@@ -311,7 +311,6 @@ describe('MenuContent direction and positioning', () => {
 
     const menu = screen.getByRole('menu');
     expect(menu).toHaveClass('absolute top-full left-0');
-    // sideOffset padrão 4 deve gerar marginTop: 4
     expect(menu).toHaveStyle({ marginTop: 4 });
   });
 
@@ -341,9 +340,7 @@ describe('MenuContent direction and positioning', () => {
     );
 
     const menu = screen.getByRole('menu');
-    // Espera horizontal centralizado e vertical top/full
     expect(menu).toHaveClass('absolute top-full left-1/2');
-    // Deve ter transform -translate-x-1/2 aplicado via classe
     expect(menu.className).toContain('-translate-x-1/2');
     expect(menu).toHaveStyle({ marginLeft: 8 });
   });
@@ -371,7 +368,7 @@ describe('MenuContent direction and positioning', () => {
         <DropdownMenuTrigger onClick={consumerOnClick}>
           Trigger
         </DropdownMenuTrigger>
-        <MenuContent>Menu Content</MenuContent> {/* IMPORTANTE */}
+        <MenuContent>Menu Content</MenuContent>
       </DropdownMenu>
     );
 
@@ -379,6 +376,157 @@ describe('MenuContent direction and positioning', () => {
     fireEvent.click(button);
 
     expect(consumerOnClick).toHaveBeenCalled();
-    expect(screen.getByRole('menu')).toBeInTheDocument(); // Agora deve funcionar
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+  });
+
+  it('navigates through items with ArrowDown', () => {
+    render(
+      <DropdownMenu open>
+        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <MenuContent>
+          <MenuItem>Item 1</MenuItem>
+          <MenuItem>Item 2</MenuItem>
+          <MenuItem>Item 3</MenuItem>
+        </MenuContent>
+      </DropdownMenu>
+    );
+
+    const items = screen.getAllByRole('menuitem');
+    items[0].focus();
+
+    fireEvent.keyDown(document, { key: 'ArrowDown' });
+    expect(items[1]).toHaveFocus();
+
+    fireEvent.keyDown(document, { key: 'ArrowDown' });
+    expect(items[2]).toHaveFocus();
+
+    // Test wrap-around
+    fireEvent.keyDown(document, { key: 'ArrowDown' });
+    expect(items[0]).toHaveFocus();
+  });
+
+  it('navigates through items with ArrowUp', () => {
+    render(
+      <DropdownMenu open>
+        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <MenuContent>
+          <MenuItem>Item 1</MenuItem>
+          <MenuItem>Item 2</MenuItem>
+          <MenuItem>Item 3</MenuItem>
+        </MenuContent>
+      </DropdownMenu>
+    );
+
+    const items = screen.getAllByRole('menuitem');
+    items[0].focus();
+
+    fireEvent.keyDown(document, { key: 'ArrowUp' });
+    expect(items[2]).toHaveFocus();
+
+    fireEvent.keyDown(document, { key: 'ArrowUp' });
+    expect(items[1]).toHaveFocus();
+
+    fireEvent.keyDown(document, { key: 'ArrowUp' });
+    expect(items[0]).toHaveFocus();
+  });
+
+  it('starts from first item when no item is focused and ArrowDown is pressed', () => {
+    render(
+      <DropdownMenu open>
+        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <MenuContent>
+          <MenuItem>Item 1</MenuItem>
+          <MenuItem>Item 2</MenuItem>
+        </MenuContent>
+      </DropdownMenu>
+    );
+
+    expect(document.activeElement).not.toHaveAttribute('role', 'menuitem');
+
+    fireEvent.keyDown(document, { key: 'ArrowDown' });
+    expect(screen.getAllByRole('menuitem')[0]).toHaveFocus();
+  });
+
+  it('starts from last item when no item is focused and ArrowUp is pressed', () => {
+    render(
+      <DropdownMenu open>
+        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <MenuContent>
+          <MenuItem>Item 1</MenuItem>
+          <MenuItem>Item 2</MenuItem>
+        </MenuContent>
+      </DropdownMenu>
+    );
+
+    expect(document.activeElement).not.toHaveAttribute('role', 'menuitem');
+
+    fireEvent.keyDown(document, { key: 'ArrowUp' });
+    const items = screen.getAllByRole('menuitem');
+    expect(items[items.length - 1]).toHaveFocus();
+  });
+
+  it('ignores disabled items in navigation', () => {
+    render(
+      <DropdownMenu open>
+        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <MenuContent>
+          <MenuItem>Item 1</MenuItem>
+          <MenuItem disabled>Disabled Item</MenuItem>
+          <MenuItem>Item 2</MenuItem>
+        </MenuContent>
+      </DropdownMenu>
+    );
+
+    const items = screen.getAllByRole('menuitem');
+    items[0].focus();
+
+    fireEvent.keyDown(document, { key: 'ArrowDown' });
+    expect(items[2]).toHaveFocus();
+
+    fireEvent.keyDown(document, { key: 'ArrowUp' });
+    expect(items[0]).toHaveFocus();
+  });
+
+  it('does nothing when there are no enabled items', () => {
+    render(
+      <DropdownMenu open>
+        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <MenuContent>
+          <MenuItem disabled>Disabled 1</MenuItem>
+          <MenuItem disabled>Disabled 2</MenuItem>
+        </MenuContent>
+      </DropdownMenu>
+    );
+
+    const initialFocus = document.activeElement;
+
+    fireEvent.keyDown(document, { key: 'ArrowDown' });
+    expect(document.activeElement).toBe(initialFocus);
+
+    fireEvent.keyDown(document, { key: 'ArrowUp' });
+    expect(document.activeElement).toBe(initialFocus);
+  });
+
+  it('prevents default behavior for ArrowDown/ArrowUp', () => {
+    render(
+      <DropdownMenu open>
+        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <MenuContent>
+          <MenuItem>Item 1</MenuItem>
+          <MenuItem>Item 2</MenuItem>
+        </MenuContent>
+      </DropdownMenu>
+    );
+
+    const items = screen.getAllByRole('menuitem');
+    items[0].focus();
+
+    const spy = jest.spyOn(Event.prototype, 'preventDefault');
+
+    fireEvent.keyDown(document, { key: 'ArrowDown' });
+
+    expect(spy).toHaveBeenCalled();
+
+    spy.mockRestore();
   });
 });

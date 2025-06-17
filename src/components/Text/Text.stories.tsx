@@ -47,7 +47,7 @@ export const AllWeights: Story = () => (
 export const Colors: Story = () => (
   <div className="flex flex-col gap-4">
     <div className="p-4 bg-background">
-      <Text color="black">Text adapts to theme </Text>
+      <Text>Text adapts to theme </Text>
     </div>
   </div>
 );
