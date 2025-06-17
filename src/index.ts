@@ -1,7 +1,10 @@
+// CSS must be imported first for proper styling
 import './styles.css';
 
-// Re-export components individually for perfect tree-shaking
-// Each component will only include its own dependencies
+// Re-export all components using individual module resolution
+// This ensures that importing { Text } only includes Text component
+
+// Server-safe components (no 'use client')
 export { Text } from './components/Text/Text';
 export { Button } from './components/Button/Button';
 export { Badge } from './components/Badge/Badge';
@@ -11,8 +14,9 @@ export { IconRoundedButton } from './components/IconRoundedButton/IconRoundedBut
 export { NavButton } from './components/NavButton/NavButton';
 export { SelectionButton } from './components/SelectionButton/SelectionButton';
 export { Table } from './components/Table/Table';
+export { Input } from './components/Input/Input';
 
-// Client components with 'use client'
+// Client components (with 'use client')
 export { CheckBox } from './components/CheckBox/CheckBox';
 export { TextArea } from './components/TextArea/TextArea';
 export {
@@ -25,5 +29,4 @@ export {
 } from './components/DropdownMenu/DropdownMenu';
 export { Toast } from './components/Toast/Toast';
 export { Toaster } from './components/Toast/utils/Toaster';
-export * from './components/Toast/utils/ToastStore';
-export * from './components/Input/Input';
+export { useToastStore } from './components/Toast/utils/ToastStore';

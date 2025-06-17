@@ -9,7 +9,7 @@ type ToastPosition =
   | 'bottom-right'
   | 'default';
 
-export type ToastData = {
+type ToastData = {
   id: string;
   title: string;
   description?: string;

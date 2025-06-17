@@ -1,6 +1,6 @@
 {
   "name": "analytica-frontend-lib",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "description": "Repositório público dos componentes utilizados nas plataformas da Analytica Ensino",
   "main": "dist/index.cjs",
   "module": "./dist/index.js",
@@ -8,10 +8,91 @@
   "files": [
     "dist"
   ],
+  "sideEffects": [
+    "*.css",
+    "./src/styles.css",
+    "./dist/index.css"
+  ],
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./Text": {
+      "types": "./dist/Text/Text.d.ts",
+      "import": "./dist/Text/Text.mjs",
+      "require": "./dist/Text/Text.js"
+    },
+    "./Button": {
+      "types": "./dist/Button/Button.d.ts",
+      "import": "./dist/Button/Button.mjs",
+      "require": "./dist/Button/Button.js"
+    },
+    "./Badge": {
+      "types": "./dist/Badge/Badge.d.ts",
+      "import": "./dist/Badge/Badge.mjs",
+      "require": "./dist/Badge/Badge.js"
+    },
+    "./Alert": {
+      "types": "./dist/Alert/Alert.d.ts",
+      "import": "./dist/Alert/Alert.mjs",
+      "require": "./dist/Alert/Alert.js"
+    },
+    "./IconButton": {
+      "types": "./dist/IconButton/IconButton.d.ts",
+      "import": "./dist/IconButton/IconButton.mjs",
+      "require": "./dist/IconButton/IconButton.js"
+    },
+    "./IconRoundedButton": {
+      "types": "./dist/IconRoundedButton/IconRoundedButton.d.ts",
+      "import": "./dist/IconRoundedButton/IconRoundedButton.mjs",
+      "require": "./dist/IconRoundedButton/IconRoundedButton.js"
+    },
+    "./NavButton": {
+      "types": "./dist/NavButton/NavButton.d.ts",
+      "import": "./dist/NavButton/NavButton.mjs",
+      "require": "./dist/NavButton/NavButton.js"
+    },
+    "./SelectionButton": {
+      "types": "./dist/SelectionButton/SelectionButton.d.ts",
+      "import": "./dist/SelectionButton/SelectionButton.mjs",
+      "require": "./dist/SelectionButton/SelectionButton.js"
+    },
+    "./Table": {
+      "types": "./dist/Table/Table.d.ts",
+      "import": "./dist/Table/Table.mjs",
+      "require": "./dist/Table/Table.js"
+    },
+    "./CheckBox": {
+      "types": "./dist/CheckBox/CheckBox.d.ts",
+      "import": "./dist/CheckBox/CheckBox.mjs",
+      "require": "./dist/CheckBox/CheckBox.js"
+    },
+    "./TextArea": {
+      "types": "./dist/TextArea/TextArea.d.ts",
+      "import": "./dist/TextArea/TextArea.mjs",
+      "require": "./dist/TextArea/TextArea.js"
+    },
+    "./DropdownMenu": {
+      "types": "./dist/DropdownMenu/DropdownMenu.d.ts",
+      "import": "./dist/DropdownMenu/DropdownMenu.mjs",
+      "require": "./dist/DropdownMenu/DropdownMenu.js"
+    },
+    "./Toast": {
+      "types": "./dist/Toast/Toast.d.ts",
+      "import": "./dist/Toast/Toast.mjs",
+      "require": "./dist/Toast/Toast.js"
+    },
+    "./Toast/Toaster": {
+      "types": "./dist/Toast/utils/Toaster.d.ts",
+      "import": "./dist/Toast/utils/Toaster.mjs",
+      "require": "./dist/Toast/utils/Toaster.js"
+    },
+    "./Toast/ToastStore": {
+      "types": "./dist/Toast/utils/ToastStore.d.ts",
+      "import": "./dist/Toast/utils/ToastStore.mjs",
+      "require": "./dist/Toast/utils/ToastStore.js"
     },
     "./styles.css": "./dist/index.css"
   },
@@ -25,11 +106,12 @@
     "test:sonar": "jest --coverage --testResultsProcessor=jest-sonar-reporter",
     "generate:exports": "node scripts/generate-exports.mjs",
     "build": "npm run build:main && npm run build:components",
-    "build:main": "tsup src/index.ts --dts --format esm,cjs --out-dir dist --clean",
+    "build:main": "tsup src/index.ts --dts --format esm,cjs --out-dir dist --clean --treeshake",
     "build:components": "node scripts/build-components.mjs",
     "build:check": "npm run typecheck && npm run build",
     "dev": "tsup src/index.ts --dts --format esm,cjs --out-dir dist --watch",
-    "prepack": "npm run build:check",
+    "prepack": "npm run build:check && npm run generate:exports",
+    "prepublishOnly": "npm run generate:exports",
     "check-nextjs-compat": "echo 'Checking Next.js 15 compatibility...' && npm run typecheck && npm run test",
     "ladle": "ladle serve",
     "ladle:build": "ladle build"
