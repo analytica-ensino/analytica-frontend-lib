@@ -197,7 +197,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
             htmlFor={inputId}
             size={sizeClasses.textSize}
             weight="medium"
-            color="black"
+            color="text-text-950"
             className={`mb-1.5 ${labelClassName}`}
           >
             {label}

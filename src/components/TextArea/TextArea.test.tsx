@@ -4,17 +4,6 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { TextArea } from './TextArea';
 
-/**
- * Mock for useId hook to generate unique IDs in tests
- */
-jest.mock('react', () => ({
-  ...jest.requireActual('react'),
-  useId: (() => {
-    let counter = 0;
-    return () => `test-id-${++counter}`;
-  })(),
-}));
-
 // Mock the Text component
 jest.mock('../Text/Text', () => ({
   Text: ({
@@ -40,6 +29,20 @@ jest.mock('../Text/Text', () => ({
 }));
 
 describe('TextArea', () => {
+  let useIdSpy: jest.SpyInstance;
+
+  beforeAll(() => {
+    // Mock useId hook to generate predictable IDs in tests
+    let counter = 0;
+    useIdSpy = jest
+      .spyOn(React, 'useId')
+      .mockImplementation(() => `test-id-${++counter}`);
+  });
+
+  afterAll(() => {
+    // Restore the original useId implementation
+    useIdSpy.mockRestore();
+  });
   describe('Basic Rendering', () => {
     it('renders a textarea element', () => {
       render(<TextArea />);
