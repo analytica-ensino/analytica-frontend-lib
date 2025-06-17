@@ -1,6 +1,6 @@
 'use client';
 
-import {
+import React, {
   TextareaHTMLAttributes,
   ReactNode,
   forwardRef,
@@ -18,31 +18,36 @@ type TextAreaSize = 'small' | 'medium' | 'large' | 'extraLarge';
 /**
  * TextArea visual state
  */
-type TextAreaState = 'default' | 'hovered' | 'focusedAndTyping' | 'invalid' | 'disabled';
+type TextAreaState =
+  | 'default'
+  | 'hovered'
+  | 'focusedAndTyping'
+  | 'invalid'
+  | 'disabled';
 
 /**
- * Size configurations using Tailwind classes
+ * Size configurations with exact pixel specifications
  */
 const SIZE_CLASSES = {
   small: {
-    textarea: 'h-24 text-sm', // 96px height
+    container: 'w-72', // 288px width
+    textarea: 'h-24 text-sm', // 96px height, 14px font
     textSize: 'sm' as const,
-    padding: 'p-3', // 12px padding
   },
   medium: {
-    textarea: 'h-24 text-md', // 96px height
+    container: 'w-72', // 288px width
+    textarea: 'h-24 text-base', // 96px height, 16px font
     textSize: 'md' as const,
-    padding: 'p-3', // 12px padding
   },
   large: {
-    textarea: 'h-24 text-lg', // 96px height
+    container: 'w-72', // 288px width
+    textarea: 'h-24 text-lg', // 96px height, 18px font
     textSize: 'lg' as const,
-    padding: 'p-3', // 12px padding
   },
   extraLarge: {
-    textarea: 'h-24 text-xl', // 96px height
+    container: 'w-72', // 288px width
+    textarea: 'h-24 text-xl', // 96px height, 20px font
     textSize: 'xl' as const,
-    padding: 'p-3', // 12px padding
   },
 } as const;
 
@@ -50,7 +55,7 @@ const SIZE_CLASSES = {
  * Base textarea styling classes using design system colors
  */
 const BASE_TEXTAREA_CLASSES =
-  'w-full rounded border transition-all duration-200 resize-none focus:outline-none placeholder:text-text-600 font-roboto leading-[150%]';
+  'w-full box-border p-3 bg-background border border-solid rounded-[4px] resize-none focus:outline-none font-roboto font-normal leading-[150%] placeholder:text-text-600 transition-all duration-200';
 
 /**
  * State-based styling classes using design system colors from styles.css
@@ -59,7 +64,7 @@ const STATE_CLASSES = {
   default: {
     base: 'border-border-300 bg-background text-text-600',
     hover: 'hover:border-border-400',
-    focus: 'focus:border-border-400',
+    focus: 'focus:border-border-500',
   },
   hovered: {
     base: 'border-border-400 bg-background text-text-600',
@@ -67,17 +72,17 @@ const STATE_CLASSES = {
     focus: 'focus:border-border-500',
   },
   focusedAndTyping: {
-    base: 'border-primary-500 bg-background text-text-900 ring-2 ring-primary-500/20',
+    base: 'border-primary-500 bg-background text-text-950 ring-2 ring-primary-500/20',
     hover: '',
     focus: '',
   },
   invalid: {
-    base: 'border-error-600 bg-background text-text-900 ring-2 ring-error-600/20',
+    base: 'border-error-600 bg-background text-text-950 ring-2 ring-error-600/20',
     hover: 'hover:border-error-700',
     focus: 'focus:border-error-700',
   },
   disabled: {
-    base: 'border-border-300 bg-background text-text-600 cursor-not-allowed opacity-40',
+    base: 'border-border-300 bg-background text-text-400 cursor-not-allowed opacity-60',
     hover: '',
     focus: '',
   },
@@ -96,7 +101,7 @@ export type TextAreaProps = {
   /** Error message to display */
   errorMessage?: string;
   /** Helper text to display */
-  helperText?: string;
+  helperMessage?: string;
   /** Additional CSS classes */
   className?: string;
   /** Label CSS classes */
@@ -107,8 +112,8 @@ export type TextAreaProps = {
  * TextArea component for Analytica Ensino platforms
  *
  * A textarea component with essential states, sizes and themes.
- * Uses the Analytica Ensino Design System colors from styles.css with automatic
- * light/dark mode support. Includes Text component integration for consistent typography.
+ * Uses exact design specifications with 288px width, 96px height, and specific
+ * color values. Includes Text component integration for consistent typography.
  *
  * @example
  * ```tsx
@@ -132,7 +137,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       size = 'medium',
       state = 'default',
       errorMessage,
-      helperText,
+      helperMessage,
       className = '',
       labelClassName = '',
       disabled,
@@ -176,7 +181,12 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     let currentState = disabled ? 'disabled' : state;
 
     // Override state for focused and typing
-    if (isFocused && hasValue && currentState !== 'invalid' && currentState !== 'disabled') {
+    if (
+      isFocused &&
+      hasValue &&
+      currentState !== 'invalid' &&
+      currentState !== 'disabled'
+    ) {
       currentState = 'focusedAndTyping';
     }
 
@@ -187,10 +197,10 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     const stateClasses = STATE_CLASSES[currentState];
 
     // Get final textarea classes
-    const textareaClasses = `${BASE_TEXTAREA_CLASSES} ${sizeClasses.textarea} ${sizeClasses.padding} ${stateClasses.base} ${stateClasses.hover} ${stateClasses.focus} ${className}`;
+    const textareaClasses = `${BASE_TEXTAREA_CLASSES} ${sizeClasses.textarea} ${stateClasses.base} ${stateClasses.hover} ${stateClasses.focus} ${className}`;
 
     return (
-      <div className="flex flex-col w-full">
+      <div className={`flex flex-col ${sizeClasses.container}`}>
         {/* Label */}
         {label && (
           <Text
@@ -226,9 +236,9 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
         )}
 
         {/* Helper text */}
-        {helperText && !errorMessage && (
+        {helperMessage && !errorMessage && (
           <Text size="sm" weight="normal" className="mt-1.5 text-text-500">
-            {helperText}
+            {helperMessage}
           </Text>
         )}
       </div>
