@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import { HTMLAttributes } from 'react';
 import { CheckCircle, WarningCircle, Info, X } from 'phosphor-react';
 
 /**
@@ -41,7 +41,7 @@ type ToastProps = {
   /** Action type of the badge  */
   action?: 'warning' | 'success' | 'info';
   position?: ToastPosition;
-} & React.HTMLAttributes<HTMLDivElement>;
+} & HTMLAttributes<HTMLDivElement>;
 
 const iconMap = {
   success: CheckCircle,
