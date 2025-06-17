@@ -161,11 +161,10 @@ describe('TextArea', () => {
       render(<TextArea state="invalid" />);
       const textarea = screen.getByRole('textbox');
       expect(textarea).toHaveClass(
-        'border-error-600',
-        'bg-background',
-        'text-text-950',
-        'ring-2',
-        'ring-error-600/20'
+        'border-2',
+        'border-red-700',
+        'bg-white',
+        'text-gray-800'
       );
     });
 
@@ -300,7 +299,7 @@ describe('TextArea', () => {
       await user.type(textarea, 'Content');
 
       // Should maintain invalid state styling
-      expect(textarea).toHaveClass('border-error-600');
+      expect(textarea).toHaveClass('border-red-700');
     });
   });
 

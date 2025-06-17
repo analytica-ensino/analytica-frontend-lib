@@ -72,9 +72,9 @@ const STATE_CLASSES = {
     focus: '',
   },
   invalid: {
-    base: 'border-error-600 bg-background text-text-950 ring-2 ring-error-600/20',
-    hover: 'hover:border-error-700',
-    focus: 'focus:border-error-700',
+    base: 'border-2 border-red-700 bg-white text-gray-800',
+    hover: 'hover:border-red-700',
+    focus: 'focus:border-red-700',
   },
   disabled: {
     base: 'border-border-300 bg-background text-text-600 cursor-not-allowed opacity-40',
