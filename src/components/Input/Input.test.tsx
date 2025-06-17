@@ -62,6 +62,24 @@ describe('Input', () => {
       expect(label).toHaveAttribute('for', input.getAttribute('id'));
     });
 
+    it('generates different unique IDs for multiple inputs', () => {
+      const { unmount } = render(
+        <div>
+          <Input label="First Input" data-testid="input-1" />
+          <Input label="Second Input" data-testid="input-2" />
+        </div>
+      );
+
+      const input1 = screen.getByTestId('input-1');
+      const input2 = screen.getByTestId('input-2');
+
+      expect(input1.getAttribute('id')).not.toBe(input2.getAttribute('id'));
+      expect(input1.getAttribute('id')).toMatch(/^input-\d+$/);
+      expect(input2.getAttribute('id')).toMatch(/^input-\d+$/);
+
+      unmount();
+    });
+
     it('applies correct label styling', () => {
       render(<Input label="Test Label" size="medium" />);
       const label = screen.getByText('Test Label');

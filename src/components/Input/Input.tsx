@@ -2,6 +2,9 @@
 import { WarningCircle, Eye, EyeSlash } from 'phosphor-react';
 import { InputHTMLAttributes, ReactNode, forwardRef, useState } from 'react';
 
+// Counter for generating unique IDs
+let idCounter = 0;
+
 /**
  * Lookup table for size classes
  */
@@ -199,7 +202,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       'bg-background w-full py-2 px-3 font-normal text-text-900 focus:outline-primary-950';
 
     // Generate unique ID if not provided
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const inputId = id || `input-${++idCounter}`;
 
     // Handle password visibility toggle
     const togglePasswordVisibility = () => setShowPassword(!showPassword);
