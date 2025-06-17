@@ -146,6 +146,17 @@ describe('TextArea', () => {
       );
     });
 
+    it('renders focused state with correct styling', () => {
+      render(<TextArea state="focused" />);
+      const textarea = screen.getByRole('textbox');
+      expect(textarea).toHaveClass(
+        'border-2',
+        'border-primary-950',
+        'bg-background',
+        'text-text-900'
+      );
+    });
+
     it('renders focusedAndTyping state with correct styling', () => {
       render(<TextArea state="focusedAndTyping" />);
       const textarea = screen.getByRole('textbox');
@@ -202,6 +213,22 @@ describe('TextArea', () => {
         'text-text-400',
         'cursor-not-allowed',
         'opacity-60'
+      );
+    });
+
+    it('automatically switches to focused when focused without content', async () => {
+      const user = userEvent.setup();
+      render(<TextArea />);
+      const textarea = screen.getByRole('textbox');
+
+      // Focus without content
+      await user.click(textarea);
+
+      expect(textarea).toHaveClass(
+        'border-2',
+        'border-primary-950',
+        'bg-background',
+        'text-text-900'
       );
     });
 
@@ -267,15 +294,15 @@ describe('TextArea', () => {
       // Initially should have default styling
       expect(textarea).toHaveClass('border-border-300');
 
-      // Focus should not change styling without content
+      // Focus should trigger focused state
       await user.click(textarea);
-      expect(textarea).toHaveClass('border-border-300');
+      expect(textarea).toHaveClass('border-2', 'border-primary-950');
 
       // Type content while focused should trigger focusedAndTyping
       await user.type(textarea, 'Content');
       expect(textarea).toHaveClass('border-primary-500');
 
-      // Blur should remove focusedAndTyping but keep content styling
+      // Blur should return to default state
       await user.tab();
       expect(textarea).toHaveClass('border-border-300');
     });
@@ -289,9 +316,9 @@ describe('TextArea', () => {
       await user.type(textarea, 'Content');
       expect(textarea).toHaveClass('border-primary-500');
 
-      // Clear content should remove focusedAndTyping
+      // Clear content should return to focused state (since still focused)
       await user.clear(textarea);
-      expect(textarea).toHaveClass('border-border-300');
+      expect(textarea).toHaveClass('border-2', 'border-primary-950');
     });
 
     it('does not auto-switch to focusedAndTyping when in invalid state', async () => {
@@ -479,8 +506,8 @@ describe('TextArea', () => {
       await user.click(textarea);
       await user.type(textarea, '   '); // Only whitespace
 
-      // Should not trigger focusedAndTyping for whitespace-only content
-      expect(textarea).toHaveClass('border-border-300');
+      // Should not trigger focusedAndTyping for whitespace-only content, stays in focused
+      expect(textarea).toHaveClass('border-2', 'border-primary-950');
     });
   });
 });

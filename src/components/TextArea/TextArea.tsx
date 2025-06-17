@@ -21,6 +21,7 @@ type TextAreaSize = 'small' | 'medium' | 'large' | 'extraLarge';
 type TextAreaState =
   | 'default'
   | 'hovered'
+  | 'focused'
   | 'focusedAndTyping'
   | 'invalid'
   | 'disabled';
@@ -70,6 +71,11 @@ const STATE_CLASSES = {
     base: 'border-border-400 bg-background text-text-600',
     hover: '',
     focus: 'focus:border-border-500',
+  },
+  focused: {
+    base: 'border-2 border-primary-950 bg-background text-text-900',
+    hover: '',
+    focus: '',
   },
   focusedAndTyping: {
     base: 'border-primary-500 bg-background text-text-950 ring-2 ring-primary-500/20',
@@ -180,14 +186,17 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     // Determine current state based on props and focus
     let currentState = disabled ? 'disabled' : state;
 
-    // Override state for focused and typing
+    // Override state based on focus and content
     if (
       isFocused &&
-      hasValue &&
       currentState !== 'invalid' &&
       currentState !== 'disabled'
     ) {
-      currentState = 'focusedAndTyping';
+      if (hasValue) {
+        currentState = 'focusedAndTyping';
+      } else {
+        currentState = 'focused';
+      }
     }
 
     // Get size classes

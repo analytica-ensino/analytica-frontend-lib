@@ -5,6 +5,7 @@ const sizes = ['small', 'medium', 'large', 'extraLarge'] as const;
 const states = [
   'default',
   'hovered',
+  'focused',
   'focusedAndTyping',
   'invalid',
   'disabled',
@@ -143,6 +144,17 @@ export const States: Story = () => (
         <h4 className="font-medium text-md mb-3 text-text-950">Hovered</h4>
         <div className="max-w-md">
           <TextArea state="hovered" placeholder="Hovered state textarea" />
+        </div>
+      </div>
+
+            {/* Focused State */}
+      <div className="mb-6">
+        <h4 className="font-medium text-md mb-3 text-text-950">Focused</h4>
+        <div className="max-w-md">
+          <TextArea
+            state="focused"
+            placeholder="Focused state textarea"
+          />
         </div>
       </div>
 
