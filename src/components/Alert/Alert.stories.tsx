@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { Alert } from './Alert';
+import Alert from './Alert';
 
 /**
  * Showcase principal: todas as combinações possíveis do Alert

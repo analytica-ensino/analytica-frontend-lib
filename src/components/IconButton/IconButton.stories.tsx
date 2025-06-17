@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import { Gear } from 'phosphor-react';
-import { IconButton } from './IconButton';
+import IconButton from './IconButton';
 
 /**
  * Showcase principal: demonstração do IconButton para ações rápidas

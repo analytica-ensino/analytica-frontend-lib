@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import { TextArea } from './TextArea';
+import TextArea from './TextArea';
 
 // Mock the Text component
 jest.mock('../Text/Text', () => ({

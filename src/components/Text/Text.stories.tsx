@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { Text } from './Text';
+import Text from './Text';
 
 /**
  * Default text story

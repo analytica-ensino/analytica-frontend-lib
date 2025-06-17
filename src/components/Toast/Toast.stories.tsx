@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react';
-import { Toast } from './Toast';
-import { Button } from '../Button/Button';
-import { Toaster, useToast } from './utils/Toaster';
+import Toast from './Toast';
+import Button from '../Button/Button';
+import Toaster, { useToast } from './utils/Toaster';
 
 const variants = ['solid', 'outlined'] as const;
 const actions = ['success', 'warning', 'info'] as const;

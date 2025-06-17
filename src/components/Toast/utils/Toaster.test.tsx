@@ -1,7 +1,7 @@
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Toaster, useToast } from './Toaster';
-import { useToastStore } from './ToastStore';
+import Toaster, { useToast } from './Toaster';
+import useToastStore from './ToastStore';
 
 describe('Toaster', () => {
   it('should render toasts from store', () => {

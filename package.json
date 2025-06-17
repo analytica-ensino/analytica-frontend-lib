@@ -1,6 +1,6 @@
 {
   "name": "analytica-frontend-lib",
-  "version": "1.0.27",
+  "version": "1.0.28",
   "description": "Repositório público dos componentes utilizados nas plataformas da Analytica Ensino",
   "main": "dist/index.cjs",
   "module": "./dist/index.js",
@@ -19,7 +19,7 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
-    "./styles.css": "./dist/index.css"
+    "./styles": "./dist/styles.css"
   },
   "scripts": {
     "lint": "npx eslint \"{src,app}/**/*.{js,jsx,ts,tsx}\" --fix",
@@ -29,16 +29,15 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:sonar": "jest --coverage --testResultsProcessor=jest-sonar-reporter",
-    "build": "npm run build:components && npm run build:index && npm run build:css",
-    "build:index": "tsup src/index.ts --dts --format esm,cjs --out-dir dist --external react --external react-dom",
-    "build:css": "npx tsup src/styles.css --out-dir dist && cp dist/styles.css dist/index.css",
-    "build:components": "node scripts/build-components.mjs",
+    "build": "tsup",
     "build:clean": "rm -rf dist && npm run build",
-    "generate:exports": "node scripts/generate-exports.mjs",
     "ladle": "ladle serve",
     "ladle:build": "ladle build",
-    "prepack": "npm run build:clean && npm run generate:exports",
-    "publish:dry": "npm run prepack && npm publish --dry-run"
+    "add:exports": "node scripts/add-exports.mjs",
+    "remove:exports": "node scripts/remove-exports.mjs",
+    "prepack": "npm run add:exports && npm run build:clean",
+    "postpack": "npm run remove:exports",
+    "publish:dry": "npm run prepack && npm publish --dry-run && npm run postpack"
   },
   "engines": {
     "node": "22.x"

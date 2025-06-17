@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import { House, SquaresFour, Users, Gear, ChartBar } from 'phosphor-react';
-import { NavButton } from './NavButton';
+import NavButton from './NavButton';
 
 /**
  * Showcase principal: demonstração do NavButton para navegação

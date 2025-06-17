@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react';
 import { Plus } from 'phosphor-react';
-import { Button } from './Button';
+import Button from './Button';
 
 const sizes = [
   'extra-small',

@@ -24,7 +24,7 @@ type ToastStore = {
   removeToast: (id: string) => void;
 };
 
-export const useToastStore = create<ToastStore>((set) => ({
+const useToastStore = create<ToastStore>((set) => ({
   toasts: [],
   addToast: (toast) => {
     const id = crypto.randomUUID();
@@ -39,3 +39,5 @@ export const useToastStore = create<ToastStore>((set) => ({
     }));
   },
 }));
+
+export default useToastStore;

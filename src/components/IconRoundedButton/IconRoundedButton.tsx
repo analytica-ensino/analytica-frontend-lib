@@ -30,7 +30,7 @@ type IconRoundedButtonProps = {
  * />
  * ```
  */
-export const IconRoundedButton = ({
+const IconRoundedButton = ({
   icon,
   className = '',
   disabled,
@@ -69,3 +69,5 @@ export const IconRoundedButton = ({
     </button>
   );
 };
+
+export default IconRoundedButton;

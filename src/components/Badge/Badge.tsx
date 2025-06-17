@@ -104,7 +104,7 @@ type BadgeProps = {
  * </Badge>
  * ```
  */
-export const Badge = ({
+const Badge = ({
   children,
   iconLeft,
   iconRight,
@@ -166,3 +166,5 @@ export const Badge = ({
     </div>
   );
 };
+
+export default Badge;

@@ -323,11 +323,5 @@ const MenuSeparator = forwardRef<
 ));
 MenuSeparator.displayName = 'MenuSeparator';
 
-export {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  MenuContent,
-  MenuItem,
-  MenuLabel,
-  MenuSeparator,
-};
+export default DropdownMenu;
+export { DropdownMenuTrigger, MenuContent, MenuItem, MenuLabel, MenuSeparator };

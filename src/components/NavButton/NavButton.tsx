@@ -57,7 +57,7 @@ type NavButtonProps = {
  * />
  * ```
  */
-export const NavButton = forwardRef<HTMLButtonElement, NavButtonProps>(
+const NavButton = forwardRef<HTMLButtonElement, NavButtonProps>(
   (
     { icon, label, selected = false, className = '', disabled, ...props },
     ref
@@ -108,3 +108,5 @@ export const NavButton = forwardRef<HTMLButtonElement, NavButtonProps>(
 );
 
 NavButton.displayName = 'NavButton';
+
+export default NavButton;

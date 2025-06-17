@@ -82,7 +82,7 @@ type ButtonProps = {
  * </Button>
  * ```
  */
-export const Button = ({
+const Button = ({
   children,
   iconLeft,
   iconRight,
@@ -114,3 +114,5 @@ export const Button = ({
     </button>
   );
 };
+
+export default Button;

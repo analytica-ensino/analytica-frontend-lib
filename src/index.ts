@@ -1,31 +1,56 @@
 // Dynamic proxy index - redirects to individual components
 // This allows both syntax styles:
 // import { Text } from 'analytica-frontend-lib' ← works
-// import { Text } from 'analytica-frontend-lib/Text' ← also works
+// import Text from 'analytica-frontend-lib/Text' ← also works
 
 // CSS import
 import './styles.css';
 
-// Re-export all components - bundlers will resolve to individual builds
-export { Text } from './components/Text/Text';
-export { Button } from './components/Button/Button';
-export { Badge } from './components/Badge/Badge';
-export { Alert } from './components/Alert/Alert';
-export { IconButton } from './components/IconButton/IconButton';
-export { IconRoundedButton } from './components/IconRoundedButton/IconRoundedButton';
-export { NavButton } from './components/NavButton/NavButton';
-export { SelectionButton } from './components/SelectionButton/SelectionButton';
-export { Table } from './components/Table/Table';
-export { CheckBox } from './components/CheckBox/CheckBox';
-export { TextArea } from './components/TextArea/TextArea';
-export {
-  DropdownMenu,
+// Import all components as default exports and re-export as named exports
+import TextComponent from './components/Text/Text';
+import ButtonComponent from './components/Button/Button';
+import BadgeComponent from './components/Badge/Badge';
+import AlertComponent from './components/Alert/Alert';
+import IconButtonComponent from './components/IconButton/IconButton';
+import IconRoundedButtonComponent from './components/IconRoundedButton/IconRoundedButton';
+import NavButtonComponent from './components/NavButton/NavButton';
+import SelectionButtonComponent from './components/SelectionButton/SelectionButton';
+import TableComponent from './components/Table/Table';
+import CheckBoxComponent from './components/CheckBox/CheckBox';
+import TextAreaComponent from './components/TextArea/TextArea';
+import ToastComponent from './components/Toast/Toast';
+import ToasterComponent from './components/Toast/utils/Toaster';
+import useToastStoreHook from './components/Toast/utils/ToastStore';
+
+// Import DropdownMenu and its sub-components
+import DropdownMenuComponent, {
   DropdownMenuTrigger,
-  MenuContent as DropdownMenuContent,
-  MenuItem as DropdownMenuItem,
-  MenuLabel as DropdownMenuLabel,
-  MenuSeparator as DropdownMenuSeparator,
+  MenuContent,
+  MenuItem,
+  MenuLabel,
+  MenuSeparator,
 } from './components/DropdownMenu/DropdownMenu';
-export { Toast } from './components/Toast/Toast';
-export { Toaster } from './components/Toast/utils/Toaster';
-export * from './components/Toast/utils/ToastStore';
+
+// Re-export as named exports for bundled usage
+export { TextComponent as Text };
+export { ButtonComponent as Button };
+export { BadgeComponent as Badge };
+export { AlertComponent as Alert };
+export { IconButtonComponent as IconButton };
+export { IconRoundedButtonComponent as IconRoundedButton };
+export { NavButtonComponent as NavButton };
+export { SelectionButtonComponent as SelectionButton };
+export { TableComponent as Table };
+export { CheckBoxComponent as CheckBox };
+export { TextAreaComponent as TextArea };
+export { ToastComponent as Toast };
+export { ToasterComponent as Toaster };
+export { useToastStoreHook as useToastStore };
+
+// Export DropdownMenu and its sub-components
+export { DropdownMenuComponent as DropdownMenu };
+export { DropdownMenuTrigger };
+export { MenuContent as DropdownMenuContent };
+export { MenuItem as DropdownMenuItem };
+export { MenuLabel as DropdownMenuLabel };
+export { MenuSeparator as DropdownMenuSeparator };

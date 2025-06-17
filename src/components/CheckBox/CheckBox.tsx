@@ -8,7 +8,7 @@ import {
   useId,
   ChangeEvent,
 } from 'react';
-import { Text } from '../Text/Text';
+import Text from '../Text/Text';
 import { Check, Minus } from 'phosphor-react';
 
 /**
@@ -131,7 +131,7 @@ export type CheckBoxProps = {
  * <CheckBox disabled label="Disabled option" />
  * ```
  */
-export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
+const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
   (
     {
       label,
@@ -283,3 +283,5 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 );
 
 CheckBox.displayName = 'CheckBox';
+
+export default CheckBox;

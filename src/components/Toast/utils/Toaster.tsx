@@ -1,9 +1,9 @@
 'use client';
 
-import { useToastStore } from './ToastStore';
-import { Toast } from '../Toast';
+import useToastStore from './ToastStore';
+import Toast from '../Toast';
 
-export const Toaster = () => {
+const Toaster = () => {
   const toasts = useToastStore((state) => state.toasts);
   const removeToast = useToastStore((state) => state.removeToast);
 
@@ -30,3 +30,5 @@ export const useToast = () => {
 
   return { addToast, removeToast };
 };
+
+export default Toaster;

@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react';
 import { Plus } from 'phosphor-react';
-import { Badge } from './Badge';
+import Badge from './Badge';
 
 const sizes = ['small', 'medium', 'large'] as const;
 const variants = [

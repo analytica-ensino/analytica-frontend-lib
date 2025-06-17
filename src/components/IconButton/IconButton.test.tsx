@@ -3,7 +3,7 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
 import { Gear } from 'phosphor-react';
-import { IconButton } from './IconButton';
+import IconButton from './IconButton';
 
 /**
  * Test icon component using phosphor-react
