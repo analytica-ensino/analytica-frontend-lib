@@ -57,10 +57,7 @@ type SelectionButtonProps = {
  * />
  * ```
  */
-export const SelectionButton = forwardRef<
-  HTMLButtonElement,
-  SelectionButtonProps
->(
+const SelectionButton = forwardRef<HTMLButtonElement, SelectionButtonProps>(
   (
     { icon, label, selected = false, className = '', disabled, ...props },
     ref
@@ -118,3 +115,5 @@ export const SelectionButton = forwardRef<
 );
 
 SelectionButton.displayName = 'SelectionButton';
+
+export default SelectionButton;

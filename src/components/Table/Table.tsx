@@ -123,8 +123,8 @@ const TableCaption = forwardRef<
 ));
 TableCaption.displayName = 'TableCaption';
 
+export default Table;
 export {
-  Table,
   TableHeader,
   TableBody,
   TableFooter,

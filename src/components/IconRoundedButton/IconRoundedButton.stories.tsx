@@ -7,7 +7,7 @@ import {
   X,
   Play,
 } from 'phosphor-react';
-import { IconRoundedButton } from './IconRoundedButton';
+import IconRoundedButton from './IconRoundedButton';
 
 /**
  * Showcase principal: demonstração do IconRoundedButton

@@ -63,7 +63,7 @@ export type IconButtonProps = {
  * />
  * ```
  */
-export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
+const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
   (
     { icon, size = 'md', active = false, className = '', disabled, ...props },
     ref
@@ -126,3 +126,5 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
 );
 
 IconButton.displayName = 'IconButton';
+
+export default IconButton;

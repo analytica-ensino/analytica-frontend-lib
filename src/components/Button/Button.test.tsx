@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react';
 import { screen } from '@testing-library/dom';
 import '@testing-library/jest-dom';
-import { Button } from './Button';
+import Button from './Button';
 
 describe('Button', () => {
   it('renders the button with children text', () => {

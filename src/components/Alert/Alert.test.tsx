@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Alert } from './Alert';
+import Alert from './Alert';
 
 describe('Alert Component', () => {
   it('renders alert with description correctly', () => {

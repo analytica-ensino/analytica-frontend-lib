@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
+import Table from './Table';
 import {
-  Table,
   TableHeader,
   TableBody,
   TableRow,

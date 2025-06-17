@@ -3,7 +3,7 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
 import { MagnifyingGlass } from 'phosphor-react';
-import { SelectionButton } from './SelectionButton';
+import SelectionButton from './SelectionButton';
 
 /**
  * Test icon component using phosphor-react

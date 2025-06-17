@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import { Tag, Star, Clock, Archive } from 'phosphor-react';
-import { SelectionButton } from './SelectionButton';
+import SelectionButton from './SelectionButton';
 
 /**
  * Showcase principal: demonstração do SelectionButton com seleção única

@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import { CheckBox } from './CheckBox';
+import CheckBox from './CheckBox';
 
 /**
  * Mock for useId hook to ensure consistent IDs in tests

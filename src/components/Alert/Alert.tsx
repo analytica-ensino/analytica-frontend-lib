@@ -1,6 +1,6 @@
 import { HTMLAttributes } from 'react';
 import { CheckCircle, Info, WarningCircle, XCircle } from 'phosphor-react';
-import { Text } from '../Text/Text';
+import Text from '../Text/Text';
 
 type AlertProps = {
   title?: string;
@@ -43,7 +43,7 @@ const ICONS = {
   error: <XCircle size={18} />,
 } as const;
 
-export const Alert = ({
+const Alert = ({
   variant = 'solid',
   title,
   description,
@@ -86,3 +86,5 @@ export const Alert = ({
     </div>
   );
 };
+
+export default Alert;

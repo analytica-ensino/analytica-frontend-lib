@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { CheckBox } from './CheckBox';
+import CheckBox from './CheckBox';
 
 const sizes = ['small', 'medium', 'large'] as const;
 const states = [

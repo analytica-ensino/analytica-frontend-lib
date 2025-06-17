@@ -21,11 +21,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Generate exports
-        run: yarn generate:exports
+      - name: Type check
+        run: yarn typecheck
 
-      - name: Build package
-        run: yarn build
+      - name: Build and generate exports
+        run: yarn prepack
 
       - name: Publish package
         run: npm publish --access public

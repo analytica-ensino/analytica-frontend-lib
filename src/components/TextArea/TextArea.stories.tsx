@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { TextArea } from './TextArea';
+import TextArea from './TextArea';
 
 const sizes = ['small', 'medium', 'large', 'extraLarge'] as const;
 const states = [

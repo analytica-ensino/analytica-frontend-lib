@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react';
+import Table from './Table';
 import {
-  Table,
   TableBody,
   TableCaption,
   TableCell,

@@ -8,7 +8,7 @@ import React, {
   useId,
   ChangeEvent,
 } from 'react';
-import { Text } from '../Text/Text';
+import Text from '../Text/Text';
 
 /**
  * TextArea size variants
@@ -125,7 +125,7 @@ export type TextAreaProps = {
  * <TextArea disabled label="Read-only field" />
  * ```
  */
-export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
+const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   (
     {
       label,
@@ -236,3 +236,5 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 );
 
 TextArea.displayName = 'TextArea';
+
+export default TextArea;

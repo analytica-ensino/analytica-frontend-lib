@@ -74,7 +74,7 @@ type TextProps<T extends ElementType = 'p'> = BaseTextProps & {
  * </Text>
  * ```
  */
-export const Text = <T extends ElementType = 'p'>({
+const Text = <T extends ElementType = 'p'>({
   children,
   size = 'md',
   weight = 'normal',
@@ -129,3 +129,5 @@ export const Text = <T extends ElementType = 'p'>({
     </Component>
   );
 };
+
+export default Text;

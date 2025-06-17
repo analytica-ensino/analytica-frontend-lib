@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react';
+import DropdownMenu from './DropdownMenu';
 import {
-  DropdownMenu,
   DropdownMenuTrigger,
   MenuContent,
   MenuItem,

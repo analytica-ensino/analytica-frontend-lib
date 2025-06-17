@@ -3,7 +3,7 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
 import { House } from 'phosphor-react';
-import { NavButton } from './NavButton';
+import NavButton from './NavButton';
 
 /**
  * Test icon component using phosphor-react

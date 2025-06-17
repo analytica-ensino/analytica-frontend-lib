@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MagnifyingGlass } from 'phosphor-react';
-import { IconRoundedButton } from './IconRoundedButton';
+import IconRoundedButton from './IconRoundedButton';
 
 /**
  * Test icon component using phosphor-react
