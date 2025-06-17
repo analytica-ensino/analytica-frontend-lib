@@ -1,6 +1,6 @@
 {
   "name": "analytica-frontend-lib",
-  "version": "1.0.11",
+  "version": "1.0.17",
   "description": "Repositório público dos componentes utilizados nas plataformas da Analytica Ensino",
   "main": "dist/index.cjs",
   "module": "./dist/index.js",
@@ -12,7 +12,8 @@
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    }
+    },
+    "./styles.css": "./dist/index.css"
   },
   "scripts": {
     "lint": "npx eslint \"{src,app}/**/*.{js,jsx,ts,tsx}\" --fix",
@@ -47,11 +48,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "peerDependencies": {
-    "next": ">=15.0.0",
-    "react": ">=19.0.0",
-    "react-dom": ">=19.0.0"
-  },
   "author": "Analytica Ensino LTDA",
   "license": "MIT",
   "repository": {
@@ -61,6 +57,11 @@
   "homepage": "https://github.com/analytica-ensino/analytica-frontend-lib#readme",
   "bugs": {
     "url": "https://github.com/analytica-ensino/analytica-frontend-lib/issues"
+  },
+  "peerDependencies": {
+    "next": ">=15.0.0",
+    "react": ">=19.0.0",
+    "react-dom": ">=19.0.0"
   },
   "dependencies": {
     "phosphor-react": "^1.4.1",
@@ -96,6 +97,8 @@
     "polished": "^4.3.1",
     "postcss": "^8.5.4",
     "prettier": "^3.5.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "sonarqube-scanner": "^4.3.0",
     "tailwindcss": "^4.1.8",
     "ts-jest": "^29.3.4",
