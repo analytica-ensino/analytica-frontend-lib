@@ -1,4 +1,3 @@
-// Toaster.test.tsx
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Toaster, useToast } from './Toaster';

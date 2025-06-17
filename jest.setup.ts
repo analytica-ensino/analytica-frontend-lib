@@ -1,15 +1,15 @@
 import '@testing-library/jest-dom';
 
-let originalCrypto: Crypto;
+let originalCrypto: Crypto | undefined;
 
 beforeEach(() => {
   originalCrypto = global.crypto;
 
-  Object.defineProperty(global, 'crypto', {
-    value: {
-      ...originalCrypto,
-      randomUUID: () => 'mock-uuid-123-1-1',
-    },
+   Object.defineProperty(global, 'crypto', {
+       value: {
+         ...(originalCrypto ?? {}),
+         randomUUID: () => 'mock-uuid-123-1-1',
+       },
     configurable: true,
   });
 });
