@@ -4,20 +4,6 @@ import '@testing-library/jest-dom';
 import { Toaster, useToast } from './Toaster';
 import { useToastStore } from './ToastStore';
 
-beforeEach(() => {
-  /* eslint-disable-next-line no-undef */
-  Object.defineProperty(global, 'crypto', {
-    value: {
-      randomUUID: () => 'mock-uuid-123-1-1',
-    },
-    writable: true,
-  });
-});
-
-afterEach(() => {
-  useToastStore.setState({ toasts: [] });
-});
-
 describe('Toaster', () => {
   it('should render toasts from store', () => {
     useToastStore.setState({

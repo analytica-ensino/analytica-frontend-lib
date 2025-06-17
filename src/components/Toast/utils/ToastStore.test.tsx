@@ -1,19 +1,5 @@
 import { useToastStore } from './ToastStore';
 
-beforeEach(() => {
-  /* eslint-disable-next-line no-undef */
-  Object.defineProperty(global, 'crypto', {
-    value: {
-      randomUUID: () => 'mock-uuid-123-1-1',
-    },
-    writable: true,
-  });
-});
-
-afterEach(() => {
-  useToastStore.setState({ toasts: [] });
-});
-
 describe('ToastStore', () => {
   it('should add a toast', () => {
     const { addToast } = useToastStore.getState();
@@ -34,5 +20,25 @@ describe('ToastStore', () => {
 
     const { toasts } = useToastStore.getState();
     expect(toasts).toHaveLength(0);
+  });
+
+  it('should fallback to Math.random when crypto.randomUUID is not available', () => {
+    const originalCrypto = globalThis.crypto;
+    const mockMathRandom = jest
+      .spyOn(Math, 'random')
+      .mockReturnValue(0.123456789);
+
+    // @ts-expect-error - We're deliberately removing crypto for testing
+    delete globalThis.crypto;
+
+    const { addToast } = useToastStore.getState();
+    addToast({ title: 'Fallback Toast' });
+
+    const { toasts } = useToastStore.getState();
+    expect(toasts).toHaveLength(1);
+    expect(toasts[0].title).toBe('Fallback Toast');
+
+    mockMathRandom.mockRestore();
+    globalThis.crypto = originalCrypto;
   });
 });
