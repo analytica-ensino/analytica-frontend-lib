@@ -64,13 +64,9 @@
     "react-dom": ">=19.0.0"
   },
   "dependencies": {
-<<<<<<< AE-1286/Badge
     "phosphor-react": "^1.4.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
-=======
-    "phosphor-react": "^1.4.1"
->>>>>>> main
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
