@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Input from './Input';
@@ -370,6 +371,11 @@ describe('Input', () => {
   });
 
   describe('Input types', () => {
+    it('renders as text type by default when no type is specified', () => {
+      render(<Input data-testid="input" />);
+      expect(screen.getByTestId('input')).toHaveAttribute('type', 'text');
+    });
+
     it('renders as email type when specified', () => {
       render(<Input type="email" data-testid="input" />);
       expect(screen.getByTestId('input')).toHaveAttribute('type', 'email');
@@ -501,7 +507,7 @@ describe('Input', () => {
 
   describe('Forward ref', () => {
     it('forwards ref to input element', () => {
-      const ref = { current: null };
+      const ref = React.createRef<HTMLInputElement>();
       render(<Input ref={ref} />);
       expect(ref.current).toBeInstanceOf(HTMLInputElement);
     });
@@ -565,6 +571,24 @@ describe('Input', () => {
         expect(iconContainer).toHaveClass(...expectedClasses[size]);
         unmount();
       });
+    });
+
+    it('handles invalid size with fallback to medium', () => {
+      const IconComponent = () => <div data-testid="test-icon">icon</div>;
+
+      // Test with invalid size - should fallback to medium (w-5 h-5)
+      render(
+        <Input
+          size={'invalid-size' as unknown as 'medium'}
+          iconLeft={<IconComponent />}
+        />
+      );
+
+      const icon = screen.getByTestId('test-icon');
+      const iconContainer = icon.closest('span');
+
+      // Should use medium size classes as fallback
+      expect(iconContainer).toHaveClass('w-5', 'h-5');
     });
 
     it('covers password toggle configuration edge cases', () => {

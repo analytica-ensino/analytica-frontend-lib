@@ -127,7 +127,10 @@ const getIconSize = (size: string) => {
     large: 'w-6 h-6',
     'extra-large': 'w-7 h-7',
   };
-  return iconSizeClasses[size as keyof typeof iconSizeClasses];
+  return (
+    iconSizeClasses[size as keyof typeof iconSizeClasses] ||
+    iconSizeClasses.medium
+  );
 };
 
 const getPasswordToggleConfig = (
@@ -182,7 +185,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       disabled,
       readOnly,
       id,
-      type,
+      type = 'text',
       ...props
     },
     ref
@@ -202,7 +205,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       'bg-background w-full py-2 px-3 font-normal text-text-900 focus:outline-primary-950';
 
     // Generate unique ID if not provided
-    const inputId = id || `input-${++idCounter}`;
+    const inputId = id ?? `input-${++idCounter}`;
 
     // Handle password visibility toggle
     const togglePasswordVisibility = () => setShowPassword(!showPassword);
