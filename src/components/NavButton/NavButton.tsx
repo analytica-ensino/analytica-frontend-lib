@@ -1,9 +1,9 @@
 import { ButtonHTMLAttributes, ReactNode, forwardRef } from 'react';
 
 /**
- * SelectionButton component props interface
+ * NavButton component props interface
  */
-type SelectionButtonProps = {
+type NavButtonProps = {
   /** Ícone a ser exibido no botão */
   icon: ReactNode;
   /** Texto/label a ser exibido ao lado do ícone */
@@ -15,10 +15,10 @@ type SelectionButtonProps = {
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
 /**
- * SelectionButton component for Analytica Ensino platforms
+ * NavButton component for Analytica Ensino platforms
  *
- * Um botão com ícone e texto para ações e navegação com estado de seleção.
- * Ideal para filtros, tags, categorias, seleção de tipos, etc.
+ * Um botão de navegação com ícone e texto para navegação principal.
+ * Ideal para menus de navegação, sidebar, tabs de navegação, etc.
  * Compatível com Next.js 15 e React 19.
  * Suporta forwardRef para acesso programático ao elemento DOM.
  *
@@ -27,15 +27,15 @@ type SelectionButtonProps = {
  * @param selected - Estado de seleção do botão
  * @param className - Classes CSS adicionais
  * @param props - Todos os outros atributos HTML padrão de button
- * @returns Um elemento button estilizado
+ * @returns Um elemento button estilizado para navegação
  *
  * @example
  * ```tsx
- * <SelectionButton
- *   icon={<TagIcon />}
- *   label="Categoria"
+ * <NavButton
+ *   icon={<HomeIcon />}
+ *   label="Início"
  *   selected={false}
- *   onClick={() => handleSelection()}
+ *   onClick={() => navigate('/')}
  * />
  * ```
  *
@@ -48,56 +48,46 @@ type SelectionButtonProps = {
  *   buttonRef.current?.focus();
  * };
  *
- * <SelectionButton
+ * <NavButton
  *   ref={buttonRef}
- *   icon={<TagIcon />}
- *   label="Categoria"
- *   selected={isSelected}
- *   onClick={() => setSelected(!isSelected)}
+ *   icon={<HomeIcon />}
+ *   label="Dashboard"
+ *   selected={isActive}
+ *   onClick={() => setActiveTab('dashboard')}
  * />
  * ```
  */
-export const SelectionButton = forwardRef<
-  HTMLButtonElement,
-  SelectionButtonProps
->(
+export const NavButton = forwardRef<HTMLButtonElement, NavButtonProps>(
   (
     { icon, label, selected = false, className = '', disabled, ...props },
     ref
   ) => {
     // Classes base para todos os estados
     const baseClasses = [
-      'inline-flex',
+      'flex',
+      'flex-col',
       'items-center',
-      'justify-start',
-      'gap-2',
-      'p-4',
-      'rounded-xl',
+      'justify-center',
+      'gap-0.5',
+      'px-12',
+      'py-1',
+      'rounded-sm',
       'cursor-pointer',
-      'border',
-      'border-border-50',
-      'bg-background',
-      'text-sm',
-      'text-text-700',
-      'font-bold',
-      'shadow-soft-shadow-1',
-      'hover:bg-background-100',
+      'text-text-950',
+      'text-xs',
+      'font-medium',
+      'hover:text-text',
+      'hover:bg-primary-600',
       'focus-visible:outline-none',
       'focus-visible:ring-2',
-      'focus-visible:ring-indicator-info',
       'focus-visible:ring-offset-0',
-      'focus-visible:shadow-none',
-      'active:ring-2',
-      'active:ring-primary-950',
-      'active:ring-offset-0',
-      'active:shadow-none',
+      'focus-visible:ring-indicator-info',
       'disabled:opacity-50',
       'disabled:cursor-not-allowed',
+      'disabled:pointer-events-none',
     ];
 
-    const stateClasses = selected
-      ? ['ring-primary-950', 'ring-2', 'ring-offset-0', 'shadow-none']
-      : [];
+    const stateClasses = selected ? ['bg-primary-50', 'text-primary-950'] : [];
 
     const allClasses = [...baseClasses, ...stateClasses].join(' ');
 
@@ -110,11 +100,11 @@ export const SelectionButton = forwardRef<
         aria-pressed={selected}
         {...props}
       >
-        <span className="flex items-center justify-center w-6 h-6">{icon}</span>
-        <span>{label}</span>
+        <span className="flex items-center justify-center w-5 h-5">{icon}</span>
+        <span className="whitespace-nowrap">{label}</span>
       </button>
     );
   }
 );
 
-SelectionButton.displayName = 'SelectionButton';
+NavButton.displayName = 'NavButton';

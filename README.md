@@ -14,6 +14,27 @@ Instale a biblioteca em seu projeto com o comando:
 yarn add analytica-frontend-lib
 ```
 
+### Importe os componentes
+
+Para usar os componentes, basta importá-los no seu projeto:
+
+```tsx
+import { Text } from 'analytica-frontend-lib'
+
+const MyComponent = () => {
+  return <Text>Olá mundo!</Text>
+}
+```
+
+### Importando Estilos CSS
+
+Para usar os estilos e variáveis CSS da lib, importe o arquivo de estilos:
+
+```tsx
+// No seu arquivo layout.tsx (Next.js) ou main.tsx (Vite)
+import 'analytica-frontend-lib/styles.css';
+```
+
 ---
 
 ## Etapas para criar um novo componente
@@ -33,6 +54,10 @@ yarn add analytica-frontend-lib
 - Os componentes devem ser totalmente compatíveis com Next.js versão 15+.
 - Testes unitários são obrigatórios, com coverage mínimo de 80%.
 - Siga o princípio da responsabilidade única (`single responsibility`): construa componentes compostos por componentes menores.
+- No arquivo `package.json` da biblioteca temos:
+  - `peerDependencies`: Framework core (React, Next.js)
+  - `dependencies`: Bibliotecas específicas usadas pelos componentes
+  - `devDependencies`: Ferramentas de build, testes, linting
 
 ## Ladle
 
