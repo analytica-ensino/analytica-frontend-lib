@@ -176,6 +176,8 @@
   --color-subject-14: #e7ec85;
   --color-subject-15: #a2d7e2;
   --color-subject-16: #badfc8;
+  --color-typography-1: #b00c9e;
+  --color-typography-2: #745A07;
 
   /* Hard Shadow Colors */
   --shadow-hard-shadow-1: -2px 2px 8px rgba(38, 38, 38, 0.2);
@@ -408,6 +410,8 @@
     --color-subject-14: #e7ec85;
     --color-subject-15: #a2d7e2;
     --color-subject-16: #badfc8;
+    --color-typography-1: #b00c9e;
+    --color-typography-2: #745A07;
 
     /* Hard Shadow Colors */
     --shadow-hard-shadow-1: -2px 2px 8px rgba(255, 255, 255, 0.1);
@@ -595,6 +599,8 @@
     --color-subject-14: #e7ec85;
     --color-subject-15: #a2d7e2;
     --color-subject-16: #badfc8;
+    --color-typography-1: #b00c9e;
+    --color-typography-2: #745A07;
 
     /* Hard Shadow Colors */
     --shadow-hard-shadow-1: -2px 2px 8px rgba(38, 38, 38, 0.2);

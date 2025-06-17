@@ -2,10 +2,13 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
+import { MagnifyingGlass } from 'phosphor-react';
 import { SelectionButton } from './SelectionButton';
 
-// Ícone de teste simples
-const TestIcon = () => <span data-testid="test-icon">🔍</span>;
+/**
+ * Test icon component using phosphor-react
+ */
+const TestIcon = () => <MagnifyingGlass data-testid="test-icon" size={24} />;
 
 describe('SelectionButton', () => {
   it('renders the button with icon and label', () => {
