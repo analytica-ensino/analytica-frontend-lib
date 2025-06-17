@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react';
 import { Toast } from './Toast';
-import { ToastProvider, useToast } from './ToastProvider';
 import { Button } from '../Button/Button';
+import { Toaster, useToast } from './utils/Toaster';
 
 const variants = ['solid', 'outlined'] as const;
 const actions = ['success', 'warning', 'info'] as const;
@@ -12,9 +12,10 @@ const actions = ['success', 'warning', 'info'] as const;
 
 export const AllToasts: Story = () => {
   return (
-    <ToastProvider>
+    <>
       <AllToastsContent />
-    </ToastProvider>
+      <Toaster />
+    </>
   );
 };
 
