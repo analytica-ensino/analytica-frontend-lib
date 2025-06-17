@@ -84,28 +84,28 @@ describe('Alert Component', () => {
       render(<Alert description="Test" variant="solid" action="info" />);
       const alert = document.querySelector('.alert-wrapper');
       const icon = alert?.querySelector('span');
-      expect(icon).toHaveClass('text-text-950');
+      expect(icon).toHaveClass('text-info-800');
     });
 
     it('renders success icon correctly', () => {
       render(<Alert description="Test" variant="solid" action="success" />);
       const alert = document.querySelector('.alert-wrapper');
       const icon = alert?.querySelector('span');
-      expect(icon).toHaveClass('text-text-950');
+      expect(icon).toHaveClass('text-success-800');
     });
 
     it('renders warning icon correctly', () => {
       render(<Alert description="Test" variant="solid" action="warning" />);
       const alert = document.querySelector('.alert-wrapper');
       const icon = alert?.querySelector('span');
-      expect(icon).toHaveClass('text-text-950');
+      expect(icon).toHaveClass('text-warning-800');
     });
 
     it('renders error icon correctly', () => {
       render(<Alert description="Test" variant="solid" action="error" />);
       const alert = document.querySelector('.alert-wrapper');
       const icon = alert?.querySelector('span');
-      expect(icon).toHaveClass('text-text-950');
+      expect(icon).toHaveClass('text-error-800');
     });
   });
 
@@ -261,7 +261,7 @@ describe('Alert Component', () => {
       expect(title).toHaveClass('font-medium');
       expect(title).toHaveClass('text-text-950');
       expect(description).toHaveClass('text-sm');
-      expect(description).toHaveClass('text-700');
+      expect(description).toHaveClass('text-text-700');
     });
 
     it('applies correct text styling when title is not present', () => {
