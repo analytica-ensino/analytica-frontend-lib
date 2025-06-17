@@ -18,7 +18,7 @@ const SIZE_CLASSES = {
 const STATE_CLASSES = {
   default:
     'border-border-300 placeholder:text-text-600 hover:border-border-400',
-  error: 'border-2 border-error-500 placeholder:text-text-600',
+  error: 'border-2 border-indicator-error placeholder:text-text-600',
   disabled:
     'border-border-300 placeholder:text-text-600 cursor-not-allowed opacity-40',
   'read-only':
@@ -30,7 +30,8 @@ const STATE_CLASSES = {
  */
 const VARIANT_CLASSES = {
   outlined: 'border rounded-lg',
-  underlined: 'border-0 border-b rounded-none bg-transparent',
+  underlined:
+    'border-0 border-b rounded-none bg-transparent focus:outline-none focus:border-primary-950 focus:border-b-2',
   rounded: 'border rounded-full',
 } as const;
 
@@ -147,6 +148,21 @@ const getPasswordToggleConfig = (
   return { shouldShowPasswordToggle, actualIconRight, ariaLabel };
 };
 
+const getCombinedClasses = (
+  actualState: keyof typeof STATE_CLASSES,
+  variant: keyof typeof VARIANT_CLASSES
+) => {
+  const stateClasses = STATE_CLASSES[actualState];
+  const variantClasses = VARIANT_CLASSES[variant];
+
+  // Special case: error state with underlined variant
+  if (actualState === 'error' && variant === 'underlined') {
+    return 'border-0 border-b-2 border-indicator-error rounded-none bg-transparent focus:outline-none focus:border-primary-950 placeholder:text-text-600';
+  }
+
+  return `${stateClasses} ${variantClasses}`;
+};
+
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
@@ -176,8 +192,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
     // Get classes from lookup tables
     const sizeClasses = SIZE_CLASSES[size];
-    const stateClasses = STATE_CLASSES[actualState];
-    const variantClasses = VARIANT_CLASSES[variant];
+    const combinedClasses = getCombinedClasses(actualState, variant);
     const iconSize = getIconSize(size);
 
     const baseClasses =
@@ -229,7 +244,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             type={actualType}
-            className={`${baseClasses} ${sizeClasses} ${stateClasses} ${variantClasses} ${
+            className={`${baseClasses} ${sizeClasses} ${combinedClasses} ${
               iconLeft ? 'pl-10' : ''
             } ${actualIconRight ? 'pr-10' : ''} ${className}`}
             disabled={disabled}
@@ -268,7 +283,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <div className="mt-1.5 gap-1.5">
           {helperText && <p className="text-sm text-text-500">{helperText}</p>}
           {errorMessage && (
-            <p className="flex gap-1 items-center text-sm text-error-500">
+            <p className="flex gap-1 items-center text-sm text-indicator-error">
               <WarningCircle size={16} /> {errorMessage}
             </p>
           )}

@@ -90,7 +90,7 @@ describe('Input', () => {
       expect(screen.getByText('This is an error')).toBeInTheDocument();
       expect(screen.getByText('This is an error')).toHaveClass(
         'text-sm',
-        'text-error-500'
+        'text-indicator-error'
       );
     });
 
@@ -176,7 +176,7 @@ describe('Input', () => {
       render(<Input errorMessage="Error" data-testid="input" />);
       expect(screen.getByTestId('input')).toHaveClass(
         'border-2',
-        'border-error-500',
+        'border-indicator-error',
         'placeholder:text-text-600'
       );
     });
@@ -588,7 +588,7 @@ describe('Input', () => {
       render(<Input state="error" data-testid="input-4" />);
       expect(screen.getByTestId('input-4')).toHaveClass(
         'border-2',
-        'border-error-500'
+        'border-indicator-error'
       );
 
       render(<Input state="disabled" data-testid="input-5" />);
@@ -608,6 +608,39 @@ describe('Input', () => {
         <Input state={'' as unknown as 'default'} data-testid="input-7" />
       );
       expect(screen.getByTestId('input-7')).toHaveClass('border-border-300');
+    });
+
+    it('applies special styling for error state with underlined variant', () => {
+      // Test error + underlined combination (special case)
+      render(
+        <Input
+          state="error"
+          variant="underlined"
+          data-testid="input-error-underlined"
+        />
+      );
+      const input = screen.getByTestId('input-error-underlined');
+      expect(input).toHaveClass(
+        'border-0',
+        'border-b-2',
+        'border-indicator-error',
+        'rounded-none',
+        'bg-transparent',
+        'focus:outline-none',
+        'placeholder:text-text-600'
+      );
+
+      // Test that regular error state still works with other variants
+      render(
+        <Input
+          state="error"
+          variant="outlined"
+          data-testid="input-error-outlined"
+        />
+      );
+      const outlinedInput = screen.getByTestId('input-error-outlined');
+      expect(outlinedInput).toHaveClass('border-2', 'border-indicator-error');
+      expect(outlinedInput).not.toHaveClass('border-b-2');
     });
 
     it('covers all branches in getPasswordToggleConfig', () => {

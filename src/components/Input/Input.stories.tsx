@@ -6,7 +6,6 @@ import {
   User,
   EnvelopeSimple,
   Phone,
-  Lock,
 } from 'phosphor-react';
 
 const sizes = ['small', 'medium', 'large', 'extra-large'] as const;
@@ -149,325 +148,71 @@ export const AllInputs: Story = () => (
   </div>
 );
 
-// Stories individuais para casos específicos
-export const BasicInput: Story = () => (
-  <div style={{ maxWidth: 400 }}>
-    <Input placeholder="Digite aqui..." />
-  </div>
-);
-
-export const WithLabel: Story = () => (
-  <div style={{ maxWidth: 400 }}>
-    <Input
-      label="Nome completo"
-      placeholder="Digite seu nome completo"
-      helperText="Como você gostaria de ser chamado"
-    />
-  </div>
-);
-
-export const WithError: Story = () => (
-  <div style={{ maxWidth: 400 }}>
-    <Input
-      label="Email"
-      placeholder="Digite seu email"
-      value="email-inválido"
-      errorMessage="Por favor, insira um email válido"
-    />
-  </div>
-);
-
-export const SmallSize: Story = () => (
-  <div style={{ maxWidth: 400 }}>
-    <Input
-      size="small"
-      label="Input pequeno"
-      placeholder="Texto pequeno"
-      helperText="Exemplo de input pequeno"
-    />
-  </div>
-);
-
-export const LargeSize: Story = () => (
-  <div style={{ maxWidth: 400 }}>
-    <Input
-      size="large"
-      label="Input grande"
-      placeholder="Texto grande"
-      helperText="Exemplo de input grande"
-    />
-  </div>
-);
-
-export const ExtraLargeSize: Story = () => (
-  <div style={{ maxWidth: 400 }}>
-    <Input
-      size="extra-large"
-      label="Input extra grande"
-      placeholder="Texto extra grande"
-      helperText="Exemplo de input extra grande"
-    />
-  </div>
-);
-
 export const OutlinedVariant: Story = () => (
-  <div style={{ maxWidth: 400 }}>
+  <div className="flex flex-col gap-6 max-w-md">
     <Input
       variant="outlined"
-      label="Input com borda"
       placeholder="Variante outlined"
-      helperText="Input com borda tradicional"
+      helperText="Input padrão"
+    />
+    <Input
+      variant="outlined"
+      placeholder="Variante outlined"
+      helperText="Input com erro"
+      state="error"
+      errorMessage="Este valor não é válido"
+    />
+    <Input
+      variant="outlined"
+      placeholder="Variante outlined"
+      helperText="Input desabilitado"
+      disabled
     />
   </div>
 );
 
 export const UnderlinedVariant: Story = () => (
-  <div style={{ maxWidth: 400 }}>
+  <div className="flex flex-col gap-6 max-w-md">
     <Input
       variant="underlined"
-      label="Input sublinhado"
       placeholder="Variante underlined"
-      helperText="Input apenas com borda inferior"
+      helperText="Input padrão"
+    />
+    <Input
+      variant="underlined"
+      placeholder="Variante underlined"
+      helperText="Input com erro"
+      state="error"
+      errorMessage="Este valor não é válido"
+    />
+    <Input
+      variant="underlined"
+      placeholder="Variante underlined"
+      helperText="Input desabilitado"
+      disabled
     />
   </div>
 );
 
 export const RoundedVariant: Story = () => (
-  <div style={{ maxWidth: 400 }}>
+  <div className="flex flex-col gap-6 max-w-md">
     <Input
       variant="rounded"
-      label="Input arredondado"
       placeholder="Variante rounded"
-      helperText="Input com bordas completamente arredondadas"
+      helperText="Input padrão"
     />
-  </div>
-);
-
-export const WithLeftIcon: Story = () => (
-  <div style={{ maxWidth: 400 }}>
     <Input
-      label="Buscar"
-      placeholder="Digite para buscar..."
-      iconLeft={<MagnifyingGlass />}
-      helperText="Use o ícone de busca"
+      variant="rounded"
+      placeholder="Variante rounded"
+      helperText="Input com erro"
+      state="error"
+      errorMessage="Este valor não é válido"
     />
-  </div>
-);
-
-export const WithRightIcon: Story = () => (
-  <div style={{ maxWidth: 400 }}>
     <Input
-      label="Senha"
-      type="password"
-      placeholder="Digite sua senha"
-      helperText="Funcionalidade automática de mostrar/ocultar senha"
-    />
-  </div>
-);
-
-export const DisabledInput: Story = () => (
-  <div style={{ maxWidth: 400 }}>
-    <Input
-      label="Campo desabilitado"
-      placeholder="Este campo está desabilitado"
+      variant="rounded"
+      placeholder="Variante rounded"
+      helperText="Input desabilitado"
       disabled
-      helperText="Este campo não pode ser editado"
-    />
-  </div>
-);
-
-export const ReadOnlyInput: Story = () => (
-  <div style={{ maxWidth: 400 }}>
-    <Input
-      label="Campo somente leitura"
-      value="Valor fixo"
-      readOnly
-      helperText="Este campo é somente para leitura"
-    />
-  </div>
-);
-
-export const LoginForm: Story = () => (
-  <div
-    style={{ maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 16 }}
-  >
-    <h3 className="font-bold text-xl text-text-900 mb-2">
-      Formulário de Login
-    </h3>
-    <Input
-      label="Email"
-      type="email"
-      placeholder="Digite seu email"
-      iconLeft={<EnvelopeSimple />}
-      helperText="Use seu email institucional"
-    />
-    <Input
-      label="Senha"
-      type="password"
-      placeholder="Digite sua senha"
-      iconRight={<Lock />}
-      helperText="Mínimo 8 caracteres"
-    />
-  </div>
-);
-
-export const FormWithValidation: Story = () => (
-  <div
-    style={{ maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 16 }}
-  >
-    <h3 className="font-bold text-xl text-text-900 mb-2">
-      Formulário com Validação
-    </h3>
-    <Input
-      label="Nome completo"
-      placeholder="Digite seu nome completo"
-      helperText="Como você gostaria de ser chamado"
-    />
-    <Input
-      label="Email"
-      type="email"
-      placeholder="Digite seu email"
-      value="email-inválido"
-      errorMessage="Por favor, insira um email válido"
-    />
-    <Input
-      label="Telefone"
-      type="tel"
-      placeholder="(11) 99999-9999"
-      helperText="Formato: (XX) XXXXX-XXXX"
-    />
-    <Input
-      label="Data de nascimento"
-      type="date"
-      readOnly
-      value="1990-01-01"
-      helperText="Campo preenchido automaticamente"
-    />
-  </div>
-);
-
-// Stories específicas para funcionalidade de password
-export const PasswordInput: Story = () => (
-  <div style={{ maxWidth: 400 }}>
-    <Input
-      label="Senha"
-      type="password"
-      placeholder="Digite sua senha"
-      helperText="Clique no ícone do olho para mostrar/ocultar a senha"
-    />
-  </div>
-);
-
-export const PasswordWithValue: Story = () => (
-  <div style={{ maxWidth: 400 }}>
-    <Input
-      label="Senha"
-      type="password"
-      value="minhasenhasecreta123"
-      helperText="Teste a funcionalidade de mostrar/ocultar com texto"
-    />
-  </div>
-);
-
-export const PasswordDisabled: Story = () => (
-  <div style={{ maxWidth: 400 }}>
-    <Input
-      label="Senha (Desabilitada)"
-      type="password"
-      value="senha123"
-      disabled
-      helperText="Password desabilitado - sem ícone de toggle"
-    />
-  </div>
-);
-
-export const PasswordReadOnly: Story = () => (
-  <div style={{ maxWidth: 400 }}>
-    <Input
-      label="Senha (Somente Leitura)"
-      type="password"
-      value="senha123"
-      readOnly
-      helperText="Password somente leitura - sem ícone de toggle"
-    />
-  </div>
-);
-
-export const PasswordWithError: Story = () => (
-  <div style={{ maxWidth: 400 }}>
-    <Input
-      label="Senha"
-      type="password"
-      value="123"
-      errorMessage="A senha deve ter pelo menos 8 caracteres"
-      helperText="Teste o toggle com estado de erro"
-    />
-  </div>
-);
-
-export const PasswordSizes: Story = () => (
-  <div
-    style={{ maxWidth: 500, display: 'flex', flexDirection: 'column', gap: 16 }}
-  >
-    <h3 className="font-bold text-xl text-text-900 mb-2">
-      Password em Diferentes Tamanhos
-    </h3>
-    <Input
-      size="small"
-      label="Senha Pequena"
-      type="password"
-      placeholder="Senha pequena"
-      helperText="Tamanho small"
-    />
-    <Input
-      size="medium"
-      label="Senha Média"
-      type="password"
-      placeholder="Senha média"
-      helperText="Tamanho medium (padrão)"
-    />
-    <Input
-      size="large"
-      label="Senha Grande"
-      type="password"
-      placeholder="Senha grande"
-      helperText="Tamanho large"
-    />
-    <Input
-      size="extra-large"
-      label="Senha Extra Grande"
-      type="password"
-      placeholder="Senha extra grande"
-      helperText="Tamanho extra-large"
-    />
-  </div>
-);
-
-export const CompleteLoginForm: Story = () => (
-  <div
-    style={{ maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 16 }}
-  >
-    <h3 className="font-bold text-xl text-text-900 mb-2">
-      Formulário de Login Completo
-    </h3>
-    <Input
-      label="Email"
-      type="email"
-      placeholder="Digite seu email"
-      iconLeft={<EnvelopeSimple />}
-      helperText="Use seu email institucional"
-    />
-    <Input
-      label="Senha"
-      type="password"
-      placeholder="Digite sua senha"
-      helperText="Clique no olho para mostrar/ocultar a senha"
-    />
-    <Input
-      label="Confirmar Senha"
-      type="password"
-      placeholder="Confirme sua senha"
-      helperText="Digite a mesma senha novamente"
     />
   </div>
 );
