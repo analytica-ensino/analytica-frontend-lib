@@ -59,8 +59,13 @@ async function addExports() {
     }
   }
 
-  // Merge with existing exports, preserving base exports
+  // Merge with existing exports, adding main bundle export and preserving base exports
   const newExports = {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
     ...packageJson.exports,
     ...componentExports
   };

@@ -19,10 +19,9 @@ async function removeExports() {
   // Read current package.json
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
-  // Keep only base exports (index and styles)
+  // Keep only styles export (no main bundle export)
   const baseExports = {
-    ".": packageJson.exports["."],
-    "./styles": packageJson.exports["./styles"]
+    "./styles.css": packageJson.exports["./styles.css"]
   };
 
   // Count removed exports

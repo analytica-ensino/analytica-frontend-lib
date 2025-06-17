@@ -1,7 +1,5 @@
-// Dynamic proxy index - redirects to individual components
-// This allows both syntax styles:
-// import { Text } from 'analytica-frontend-lib' ← works
-// import Text from 'analytica-frontend-lib/Text' ← also works
+// Complete bundle index - includes all components
+// Individual imports still recommended for better tree-shaking
 
 // CSS import
 import './styles.css';

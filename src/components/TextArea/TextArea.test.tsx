@@ -6,7 +6,8 @@ import TextArea from './TextArea';
 
 // Mock the Text component
 jest.mock('../Text/Text', () => ({
-  Text: ({
+  __esModule: true,
+  default: ({
     children,
     htmlFor,
     className,
