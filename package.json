@@ -14,12 +14,7 @@
     "./dist/index.css"
   ],
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    },
-    "./styles": "./dist/styles.css"
+    "./styles.css": "./dist/styles.css"
   },
   "scripts": {
     "lint": "npx eslint \"{src,app}/**/*.{js,jsx,ts,tsx}\" --fix",
