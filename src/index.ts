@@ -3,6 +3,7 @@ export * from './components/Button/Button';
 export * from './components/IconRoundedButton/IconRoundedButton';
 export * from './components/SelectionButton/SelectionButton';
 export * from './components/Text/Text';
+export * from './components/TextArea/TextArea';
 export * from './components/Toast/Toast';
 export * from './components/Toast/utils/Toaster';
 export * from './components/CheckBox/CheckBox';
