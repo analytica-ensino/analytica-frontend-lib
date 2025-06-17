@@ -19,7 +19,10 @@ export const Default: Story = () => (
       <h3 className="text-lg font-semibold mb-4 text-text-950">Basic Usage</h3>
       <div className="flex flex-col gap-4 max-w-md">
         <TextArea placeholder="Enter your message..." />
-        <TextArea placeholder="With default value" defaultValue="This is some default text content that demonstrates how the TextArea looks with content." />
+        <TextArea
+          placeholder="With default value"
+          defaultValue="This is some default text content that demonstrates how the TextArea looks with content."
+        />
         <TextArea placeholder="Disabled textarea" disabled />
       </div>
     </div>
@@ -103,7 +106,11 @@ export const Sizes: Story = () => (
             <span className="text-xs text-text-500">Small (14px)</span>
           </div>
           <div className="flex flex-col gap-2">
-            <TextArea size="medium" placeholder="Medium" defaultValue="Medium" />
+            <TextArea
+              size="medium"
+              placeholder="Medium"
+              defaultValue="Medium"
+            />
             <span className="text-xs text-text-500">Medium (16px)</span>
           </div>
           <div className="flex flex-col gap-2">
@@ -111,7 +118,11 @@ export const Sizes: Story = () => (
             <span className="text-xs text-text-500">Large (18px)</span>
           </div>
           <div className="flex flex-col gap-2">
-            <TextArea size="extraLarge" placeholder="Extra Large" defaultValue="Extra Large" />
+            <TextArea
+              size="extraLarge"
+              placeholder="Extra Large"
+              defaultValue="Extra Large"
+            />
             <span className="text-xs text-text-500">Extra Large (20px)</span>
           </div>
         </div>
@@ -150,10 +161,7 @@ export const States: Story = () => (
       <div className="mb-6">
         <h4 className="font-medium text-md mb-3 text-text-950">Focused</h4>
         <div className="max-w-md">
-          <TextArea
-            state="focused"
-            placeholder="Focused state textarea"
-          />
+          <TextArea state="focused" placeholder="Focused state textarea" />
         </div>
       </div>
 
@@ -206,10 +214,14 @@ export const AllCombinations: Story = () => (
                   state={state === 'disabled' ? 'default' : state}
                   disabled={state === 'disabled'}
                   placeholder={`${size} ${state}`}
-                  defaultValue={state === 'focused' ? `${size} ${state} with content` : ''}
+                  defaultValue={
+                    state === 'focused' ? `${size} ${state} with content` : ''
+                  }
                   rows={2}
                 />
-                <span className="text-xs text-text-500">{size} - {state}</span>
+                <span className="text-xs text-text-500">
+                  {size} - {state}
+                </span>
               </div>
             ))}
           </div>
@@ -239,17 +251,46 @@ export const Themes: Story = () => (
             <div className="flex flex-col gap-4">
               <h5 className="font-medium text-sm text-text-700">States</h5>
               <TextArea placeholder="Default" rows={2} />
-              <TextArea placeholder="With content" defaultValue="Some content here" rows={2} />
+              <TextArea
+                placeholder="With content"
+                defaultValue="Some content here"
+                rows={2}
+              />
               <TextArea placeholder="Invalid" state="invalid" rows={2} />
               <TextArea placeholder="Disabled" disabled rows={2} />
-              <TextArea placeholder="Focused typing" state="focused" defaultValue="Typing..." rows={2} />
+              <TextArea
+                placeholder="Focused typing"
+                state="focused"
+                defaultValue="Typing..."
+                rows={2}
+              />
             </div>
             <div className="flex flex-col gap-4">
               <h5 className="font-medium text-sm text-text-700">Sizes</h5>
-              <TextArea size="small" placeholder="Small" defaultValue="Small textarea" rows={2} />
-              <TextArea size="medium" placeholder="Medium" defaultValue="Medium textarea" rows={2} />
-              <TextArea size="large" placeholder="Large" defaultValue="Large textarea" rows={2} />
-              <TextArea size="extraLarge" placeholder="Extra Large" defaultValue="Extra Large textarea" rows={2} />
+              <TextArea
+                size="small"
+                placeholder="Small"
+                defaultValue="Small textarea"
+                rows={2}
+              />
+              <TextArea
+                size="medium"
+                placeholder="Medium"
+                defaultValue="Medium textarea"
+                rows={2}
+              />
+              <TextArea
+                size="large"
+                placeholder="Large"
+                defaultValue="Large textarea"
+                rows={2}
+              />
+              <TextArea
+                size="extraLarge"
+                placeholder="Extra Large"
+                defaultValue="Extra Large textarea"
+                rows={2}
+              />
             </div>
           </div>
         </div>
@@ -266,17 +307,46 @@ export const Themes: Story = () => (
             <div className="flex flex-col gap-4">
               <h5 className="font-medium text-sm text-text-950">States</h5>
               <TextArea placeholder="Default" rows={2} />
-              <TextArea placeholder="With content" defaultValue="Some content here" rows={2} />
+              <TextArea
+                placeholder="With content"
+                defaultValue="Some content here"
+                rows={2}
+              />
               <TextArea placeholder="Invalid" state="invalid" rows={2} />
               <TextArea placeholder="Disabled" disabled rows={2} />
-              <TextArea placeholder="Focused typing" state="focused" defaultValue="Typing..." rows={2} />
+              <TextArea
+                placeholder="Focused typing"
+                state="focused"
+                defaultValue="Typing..."
+                rows={2}
+              />
             </div>
             <div className="flex flex-col gap-4">
               <h5 className="font-medium text-sm text-text-950">Sizes</h5>
-              <TextArea size="small" placeholder="Small" defaultValue="Small textarea" rows={2} />
-              <TextArea size="medium" placeholder="Medium" defaultValue="Medium textarea" rows={2} />
-              <TextArea size="large" placeholder="Large" defaultValue="Large textarea" rows={2} />
-              <TextArea size="extraLarge" placeholder="Extra Large" defaultValue="Extra Large textarea" rows={2} />
+              <TextArea
+                size="small"
+                placeholder="Small"
+                defaultValue="Small textarea"
+                rows={2}
+              />
+              <TextArea
+                size="medium"
+                placeholder="Medium"
+                defaultValue="Medium textarea"
+                rows={2}
+              />
+              <TextArea
+                size="large"
+                placeholder="Large"
+                defaultValue="Large textarea"
+                rows={2}
+              />
+              <TextArea
+                size="extraLarge"
+                placeholder="Extra Large"
+                defaultValue="Extra Large textarea"
+                rows={2}
+              />
             </div>
           </div>
         </div>
@@ -296,9 +366,17 @@ export const Themes: Story = () => (
               Light Mode
             </h5>
             <div className="flex flex-col gap-3">
-              <TextArea placeholder="Message 1" defaultValue="This is a message in light mode" rows={2} />
+              <TextArea
+                placeholder="Message 1"
+                defaultValue="This is a message in light mode"
+                rows={2}
+              />
               <TextArea placeholder="Message 2" rows={2} />
-              <TextArea placeholder="Invalid message" state="invalid" rows={2} />
+              <TextArea
+                placeholder="Invalid message"
+                state="invalid"
+                rows={2}
+              />
             </div>
           </div>
           <div
@@ -309,9 +387,17 @@ export const Themes: Story = () => (
               Dark Mode
             </h5>
             <div className="flex flex-col gap-3">
-              <TextArea placeholder="Message 1" defaultValue="This is a message in dark mode" rows={2} />
+              <TextArea
+                placeholder="Message 1"
+                defaultValue="This is a message in dark mode"
+                rows={2}
+              />
               <TextArea placeholder="Message 2" rows={2} />
-              <TextArea placeholder="Invalid message" state="invalid" rows={2} />
+              <TextArea
+                placeholder="Invalid message"
+                state="invalid"
+                rows={2}
+              />
             </div>
           </div>
         </div>
@@ -332,7 +418,9 @@ export const Interactive: Story = () => (
 
       {/* With Labels and Messages */}
       <div className="mb-6">
-        <h4 className="font-medium text-md mb-3 text-text-950">With Labels and Messages</h4>
+        <h4 className="font-medium text-md mb-3 text-text-950">
+          With Labels and Messages
+        </h4>
         <div className="max-w-md flex flex-col gap-4">
           <TextArea
             label="Comments"
@@ -359,7 +447,9 @@ export const Interactive: Story = () => (
 
       {/* Auto-resize Example */}
       <div className="mb-6">
-        <h4 className="font-medium text-md mb-3 text-text-950">Different Row Heights</h4>
+        <h4 className="font-medium text-md mb-3 text-text-950">
+          Different Row Heights
+        </h4>
         <div className="max-w-md flex flex-col gap-4">
           <TextArea
             placeholder="Compact textarea (2 rows)"
