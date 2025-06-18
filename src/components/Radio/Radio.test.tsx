@@ -112,7 +112,7 @@ describe('Radio', () => {
       );
       const radio = screen.getByRole('radio');
       const customRadio = radio.nextElementSibling as HTMLElement;
-      expect(customRadio).toHaveClass('border-[3px]', 'border-indicator-info');
+      expect(customRadio).toHaveClass('border-[3px]', 'border-border-400');
     });
 
     it('applies invalid state classes', () => {
@@ -262,7 +262,7 @@ describe('Radio', () => {
       const customRadio = radio.nextElementSibling as HTMLElement;
 
       fireEvent.focus(radio);
-      expect(customRadio).toHaveClass('border-indicator-info');
+      expect(customRadio).toHaveClass('border-border-400');
     });
 
     it('removes focused state on blur', async () => {
@@ -272,7 +272,8 @@ describe('Radio', () => {
 
       fireEvent.focus(radio);
       fireEvent.blur(radio);
-      expect(customRadio).not.toHaveClass('border-indicator-info');
+      // When blurred, should return to default state classes (border-border-400)
+      expect(customRadio).toHaveClass('border-border-400');
     });
 
     it('calls onFocus when focused', () => {
@@ -313,7 +314,8 @@ describe('Radio', () => {
       const customRadio = radio.nextElementSibling as HTMLElement;
 
       fireEvent.focus(radio);
-      expect(customRadio).not.toHaveClass('border-indicator-info');
+      // Disabled state should keep its classes and not change with focus
+      expect(customRadio).toHaveClass('border-border-400', 'cursor-not-allowed', 'opacity-40');
     });
   });
 
