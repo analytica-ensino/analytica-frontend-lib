@@ -212,8 +212,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       'bg-background w-full py-2 px-3 font-normal text-text-900 focus:outline-primary-950';
 
     // Generate unique ID if not provided
-    const generatedId = useId();
-    const inputId = id ?? generatedId;
+    const inputId = id ?? `input-${useId()}`;
 
     // Handle password visibility toggle
     const togglePasswordVisibility = () => setShowPassword(!showPassword);
