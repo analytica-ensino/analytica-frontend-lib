@@ -151,7 +151,8 @@ const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     ref
   ) => {
     // Generate unique ID if not provided
-    const inputId = id ?? `checkbox-${useId()}`;
+    const generatedId = useId();
+    const inputId = id ?? `checkbox-${generatedId}`;
 
     // Handle controlled vs uncontrolled behavior
     const [internalChecked, setInternalChecked] = useState(false);
