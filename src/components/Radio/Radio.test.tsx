@@ -192,6 +192,40 @@ describe('Radio', () => {
       const dot = container.querySelector('.bg-primary-950');
       expect(dot).not.toBeInTheDocument();
     });
+
+    it('renders checked when defaultChecked is true (uncontrolled)', () => {
+      render(<Radio defaultChecked name="test" value="1" label="Default checked" />);
+      const radio = screen.getByRole('radio');
+      expect(radio).toBeChecked();
+    });
+
+    it('renders unchecked when defaultChecked is false (uncontrolled)', () => {
+      render(<Radio defaultChecked={false} name="test" value="1" label="Default unchecked" />);
+      const radio = screen.getByRole('radio');
+      expect(radio).not.toBeChecked();
+    });
+
+    it('shows dot when defaultChecked is true', () => {
+      const { container } = render(
+        <Radio defaultChecked name="test" value="1" label="Default checked with dot" />
+      );
+      const dot = container.querySelector('.bg-primary-950');
+      expect(dot).toBeInTheDocument();
+    });
+
+    it('ignores defaultChecked when controlled (checked prop provided)', () => {
+      render(
+        <Radio
+          checked={false}
+          defaultChecked={true}
+          name="test"
+          value="1"
+          label="Controlled overrides default"
+        />
+      );
+      const radio = screen.getByRole('radio');
+      expect(radio).not.toBeChecked();
+    });
   });
 
   describe('User interactions', () => {

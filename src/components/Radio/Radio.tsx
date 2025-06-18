@@ -128,7 +128,12 @@ export type RadioProps = {
   name?: string;
   /** Radio value */
   value?: string;
-} & Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'>;
+  /** Default checked state for uncontrolled radios */
+  defaultChecked?: boolean;
+} & Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'size' | 'type' | 'defaultChecked'
+>;
 
 /**
  * Radio component for Analytica Ensino platforms
@@ -150,6 +155,9 @@ export type RadioProps = {
  *
  * // Disabled state
  * <Radio disabled name="option" value="4" label="Disabled option" />
+ *
+ * // Default checked (uncontrolled)
+ * <Radio defaultChecked name="option" value="5" label="Initially checked" />
  * ```
  */
 const Radio = forwardRef<HTMLInputElement, RadioProps>(
@@ -163,6 +171,7 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
       className = '',
       labelClassName = '',
       checked: checkedProp,
+      defaultChecked = false,
       disabled,
       id,
       name,
@@ -177,7 +186,7 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     const inputId = id ?? `radio-${generatedId}`;
 
     // Handle controlled vs uncontrolled behavior
-    const [internalChecked, setInternalChecked] = useState(false);
+    const [internalChecked, setInternalChecked] = useState(defaultChecked);
     const isControlled = checkedProp !== undefined;
     const checked = isControlled ? checkedProp : internalChecked;
 
@@ -232,6 +241,26 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
         ? 'border-indicator-info' // #5399EC for focused
         : 'border-indicator-error'; // #B91C1C for invalid
 
+    // Determine text color based on state and checked status
+    const getTextColor = () => {
+      if (currentState === 'disabled') {
+        return checked ? 'text-text-900' : 'text-text-600'; // #262627 for disabled checked, #737373 for disabled unchecked
+      }
+
+      if (currentState === 'focused') {
+        return 'text-text-900'; // #262627 for focused (both checked and unchecked)
+      }
+
+      return checked ? 'text-text-900' : 'text-text-600'; // #262627 for checked, #737373 for unchecked
+    };
+
+    // Determine cursor class based on disabled state
+    const getCursorClass = () => {
+      return currentState === 'disabled'
+        ? 'cursor-not-allowed'
+        : 'cursor-pointer';
+    };
+
     return (
       <div className="flex flex-col">
         <div
@@ -271,18 +300,8 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
                 htmlFor={inputId}
                 size={sizeClasses.textSize}
                 weight="normal"
-                className={`cursor-pointer select-none leading-normal flex items-center font-roboto ${labelClassName}`}
-                color={
-                  currentState === 'disabled'
-                    ? checked
-                      ? 'text-text-900' // #262627 for disabled checked
-                      : 'text-text-600' // #737373 for disabled unchecked
-                    : currentState === 'focused'
-                      ? 'text-text-900' // #262627 for focused (both checked and unchecked)
-                      : checked
-                        ? 'text-text-900' // #262627 for checked
-                        : 'text-text-600' // #737373 for unchecked
-                }
+                className={`${getCursorClass()} select-none leading-normal flex items-center font-roboto ${labelClassName}`}
+                color={getTextColor()}
               >
                 {label}
               </Text>
