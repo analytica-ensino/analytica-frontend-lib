@@ -30,7 +30,7 @@ const SIZE_CLASSES = {
     spacing: 'gap-1.5', // 6px
     borderWidth: 'border-2',
     dotSize: 'w-1.5 h-1.5', // 6px inner dot
-    labelHeight: 'h-[21px]',
+    labelHeight: 'h-5',
   },
   medium: {
     radio: 'w-6 h-6', // 24px x 24px
@@ -44,15 +44,15 @@ const SIZE_CLASSES = {
     radio: 'w-7 h-7', // 28px x 28px
     textSize: 'lg' as const,
     spacing: 'gap-2', // 8px
-    borderWidth: 'border-[3px]', // 3px border
+    borderWidth: 'border-4', // 4px border
     dotSize: 'w-2.5 h-2.5', // 10px inner dot
-    labelHeight: 'h-[27px]',
+    labelHeight: 'h-7',
   },
   extraLarge: {
     radio: 'w-7 h-7', // 28px x 28px
     textSize: 'xl' as const,
     spacing: 'gap-3', // 12px
-    borderWidth: 'border-[3px]', // 3px border
+    borderWidth: 'border-4', // 4px border
     dotSize: 'w-3 h-3', // 12px inner dot
     labelHeight: 'h-8',
   },
@@ -200,7 +200,7 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     const borderWidthClass =
       state === 'focused' ||
       (state === 'hovered' && (size === 'large' || size === 'extraLarge'))
-        ? 'border-[3px]'
+        ? 'border-4'
         : sizeClasses.borderWidth;
 
     // Get final radio classes
@@ -256,7 +256,7 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
                 htmlFor={inputId}
                 size={sizeClasses.textSize}
                 weight="normal"
-                className={`cursor-pointer select-none leading-[150%] flex items-center font-roboto ${labelClassName}`}
+                className={`cursor-pointer select-none leading-normal flex items-center font-roboto ${labelClassName}`}
                 color={
                   currentState === 'disabled'
                     ? checked
