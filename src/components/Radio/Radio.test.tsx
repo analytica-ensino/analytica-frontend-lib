@@ -315,7 +315,7 @@ describe('Radio', () => {
 
       fireEvent.focus(radio);
       // Disabled state should keep its classes and not change with focus
-      expect(customRadio).toHaveClass('border-border-400', 'cursor-not-allowed', 'opacity-40');
+      expect(customRadio).toHaveClass('border-border-400', 'cursor-not-allowed');
     });
   });
 
@@ -408,7 +408,7 @@ describe('Radio', () => {
       const { container } = render(
         <Radio checked disabled name="test" value="1" label="Test" />
       );
-      const dot = container.querySelector('.bg-primary-600');
+      const dot = container.querySelector('.bg-primary-950');
       expect(dot).toBeInTheDocument();
     });
   });

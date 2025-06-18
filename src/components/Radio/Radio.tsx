@@ -85,8 +85,8 @@ const STATE_CLASSES = {
     checked: 'border-primary-950 bg-background', // #124393 for checked radio
   },
   disabled: {
-    unchecked: 'border-border-400 bg-background cursor-not-allowed opacity-40',
-    checked: 'border-primary-600 bg-background cursor-not-allowed opacity-40',
+    unchecked: 'border-border-400 bg-background cursor-not-allowed', // #A5A3A3 for unchecked radio
+    checked: 'border-primary-950 bg-background cursor-not-allowed', // #124393 for checked radio
   },
 } as const;
 
@@ -98,7 +98,7 @@ const DOT_CLASSES = {
   hovered: 'bg-info-700', // #1C61B2 hover state for checked dot
   focused: 'bg-primary-950', // #124393 for focused checked dot
   invalid: 'bg-primary-950', // #124393 for invalid checked dot
-  disabled: 'bg-primary-600',
+  disabled: 'bg-primary-950', // #124393 for disabled checked dot
 } as const;
 
 /**
@@ -283,7 +283,9 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
                 className={`cursor-pointer select-none leading-[150%] flex items-center font-roboto ${labelClassName}`}
                 color={
                   currentState === 'disabled'
-                    ? 'text-text-600'
+                    ? checked
+                      ? 'text-text-900' // #262627 for disabled checked
+                      : 'text-text-600' // #737373 for disabled unchecked
                     : checked
                       ? 'text-text-900' // #262627 for checked
                       : 'text-text-600' // #737373 for unchecked
