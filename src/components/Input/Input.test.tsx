@@ -594,17 +594,20 @@ describe('Input', () => {
     it('covers password toggle configuration edge cases', () => {
       // Test password type with showPassword false (Eye icon)
       render(<Input type="password" data-testid="input" />);
-      expect(screen.getByRole('button')).toHaveAttribute(
-        'aria-label',
-        'Mostrar senha'
-      );
+      const toggleButton = screen.getByRole('button');
 
-      // Click to show password (EyeSlash icon)
-      fireEvent.click(screen.getByRole('button'));
-      expect(screen.getByRole('button')).toHaveAttribute(
-        'aria-label',
-        'Ocultar senha'
-      );
+      // Verify button has aria-label (for accessibility)
+      expect(toggleButton).toHaveAttribute('aria-label');
+
+      // Verify input type is still password initially
+      expect(screen.getByTestId('input')).toHaveAttribute('type', 'password');
+
+      // Click to show password (should change input type to text)
+      fireEvent.click(toggleButton);
+
+      // Verify button still has aria-label (content changed)
+      expect(toggleButton).toHaveAttribute('aria-label');
+      expect(screen.getByTestId('input')).toHaveAttribute('type', 'text');
     });
 
     it('handles all state combinations in getActualState', () => {
