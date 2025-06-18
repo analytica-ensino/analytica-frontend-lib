@@ -144,8 +144,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     ref
   ) => {
     // Generate unique ID if not provided
-    const generatedId = useId();
-    const inputId = id ?? `textarea-${generatedId}`;
+    const inputId = id ?? `textarea-${useId()}`;
 
     // Internal state for focus tracking
     const [isFocused, setIsFocused] = useState(false);
