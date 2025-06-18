@@ -1,6 +1,6 @@
 'use client';
 
-import React, {
+import {
   InputHTMLAttributes,
   ReactNode,
   forwardRef,
@@ -41,7 +41,7 @@ const SIZE_CLASSES = {
     labelHeight: 'h-6',
   },
   large: {
-    radio: 'w-7 h-7', // 28px x 28px
+    radio: 'w-7 h-7', // 28px x 28px (closest to 29px in design)
     textSize: 'lg' as const,
     spacing: 'gap-2', // 8px
     borderWidth: 'border-4', // 4px border
@@ -55,6 +55,28 @@ const SIZE_CLASSES = {
     borderWidth: 'border-4', // 4px border
     dotSize: 'w-3 h-3', // 12px inner dot
     labelHeight: 'h-8',
+  },
+} as const;
+
+/**
+ * Specific configurations for focused state based on design specifications
+ */
+const FOCUSED_SIZE_OVERRIDES = {
+  small: {
+    radio: 'w-5 h-5', // 20px for small focused
+    dotSize: 'w-1.5 h-1.5', // 6px dot
+  },
+  medium: {
+    radio: 'w-6 h-6', // 24px for medium focused
+    dotSize: 'w-2 h-2', // 8px dot
+  },
+  large: {
+    radio: 'w-7 h-7', // Keep 28px for large focused (closest to 29px design)
+    dotSize: 'w-2.5 h-2.5', // 10px dot
+  },
+  extraLarge: {
+    radio: 'w-7 h-7', // Keep 28px for extraLarge focused
+    dotSize: 'w-3 h-3', // 12px dot
   },
 } as const;
 
@@ -212,24 +234,48 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     // Get size classes
     const sizeClasses = SIZE_CLASSES[size];
 
+    // Get appropriate sizes based on state
+    const getRadioSize = () => {
+      if (currentState === 'focused') {
+        return FOCUSED_SIZE_OVERRIDES[size].radio;
+      }
+      return sizeClasses.radio;
+    };
+
+    const getDotSize = () => {
+      if (currentState === 'focused') {
+        return FOCUSED_SIZE_OVERRIDES[size].dotSize;
+      }
+      return sizeClasses.dotSize;
+    };
+
+    const actualRadioSize = getRadioSize();
+    const actualDotSize = getDotSize();
+
     // Determine radio visual variant
     const radioVariant = checked ? 'checked' : 'unchecked';
 
     // Get styling classes
     const stylingClasses = STATE_CLASSES[currentState][radioVariant];
 
-    // Special border width handling for focused/hovered states and large sizes
-    const borderWidthClass =
-      state === 'focused' ||
-      (state === 'hovered' && (size === 'large' || size === 'extraLarge'))
-        ? 'border-4'
-        : sizeClasses.borderWidth;
+    // Border width logic - focused always uses border-2 inside wrapper
+    const getBorderWidth = () => {
+      if (currentState === 'focused') {
+        return 'border-2'; // Consistent border for all focused radios inside wrapper
+      }
+      if (state === 'hovered' && (size === 'large' || size === 'extraLarge')) {
+        return 'border-4';
+      }
+      return sizeClasses.borderWidth;
+    };
+
+    const borderWidthClass = getBorderWidth();
 
     // Get final radio classes
-    const radioClasses = `${BASE_RADIO_CLASSES} ${sizeClasses.radio} ${borderWidthClass} ${stylingClasses} ${className}`;
+    const radioClasses = `${BASE_RADIO_CLASSES} ${actualRadioSize} ${borderWidthClass} ${stylingClasses} ${className}`;
 
     // Get dot classes
-    const dotClasses = `${sizeClasses.dotSize} rounded-full ${DOT_CLASSES[currentState]} transition-all duration-200`;
+    const dotClasses = `${actualDotSize} rounded-full ${DOT_CLASSES[currentState]} transition-all duration-200`;
 
     // Determine if wrapper is needed only for focused or invalid states
     const isWrapperNeeded =
@@ -284,9 +330,11 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
                     ? checked
                       ? 'text-text-900' // #262627 for disabled checked
                       : 'text-text-600' // #737373 for disabled unchecked
-                    : checked
-                      ? 'text-text-900' // #262627 for checked
-                      : 'text-text-600' // #737373 for unchecked
+                    : currentState === 'focused'
+                      ? 'text-text-900' // #262627 for focused (both checked and unchecked)
+                      : checked
+                        ? 'text-text-900' // #262627 for checked
+                        : 'text-text-600' // #737373 for unchecked
                 }
               >
                 {label}
