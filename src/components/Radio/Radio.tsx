@@ -73,8 +73,8 @@ const STATE_CLASSES = {
     checked: 'border-primary-950 bg-background hover:border-primary-800',
   },
   hovered: {
-    unchecked: 'border-border-500 bg-background',
-    checked: 'border-primary-800 bg-background',
+    unchecked: 'border-border-500 bg-background', // #8C8D8D hover state for unchecked
+    checked: 'border-info-700 bg-background', // Adjust checked border for hover
   },
   focused: {
     unchecked:
@@ -97,7 +97,7 @@ const STATE_CLASSES = {
  */
 const DOT_CLASSES = {
   default: 'bg-primary-950',
-  hovered: 'bg-primary-800',
+  hovered: 'bg-info-700', // #1C61B2 hover state for checked dot
   focused: 'bg-primary-950',
   invalid: 'bg-error-700',
   disabled: 'bg-primary-600',

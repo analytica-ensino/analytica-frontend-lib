@@ -382,7 +382,7 @@ describe('Radio', () => {
       const { container } = render(
         <Radio checked state="hovered" name="test" value="1" label="Test" />
       );
-      const dot = container.querySelector('.bg-primary-800');
+      const dot = container.querySelector('.bg-info-700');
       expect(dot).toBeInTheDocument();
     });
 
