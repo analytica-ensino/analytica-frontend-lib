@@ -13,7 +13,7 @@ describe('Divider', () => {
   it('applies default classes for horizontal orientation', () => {
     render(<Divider />);
     const divider = screen.getByRole('separator');
-    expect(divider).toHaveClass('bg-background-200');
+    expect(divider).toHaveClass('bg-border-200');
     expect(divider).toHaveClass('w-full');
     expect(divider).toHaveClass('h-px');
   });
@@ -21,7 +21,7 @@ describe('Divider', () => {
   it('applies classes for vertical orientation', () => {
     render(<Divider orientation="vertical" />);
     const divider = screen.getByRole('separator');
-    expect(divider).toHaveClass('bg-background-200');
+    expect(divider).toHaveClass('bg-border-200');
     expect(divider).toHaveClass('h-full');
     expect(divider).toHaveClass('w-px');
     expect(divider).toHaveAttribute('aria-orientation', 'vertical');
