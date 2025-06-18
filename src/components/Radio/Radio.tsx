@@ -25,7 +25,7 @@ type RadioState = 'default' | 'hovered' | 'focused' | 'invalid' | 'disabled';
  */
 const SIZE_CLASSES = {
   small: {
-    radio: 'w-4 h-4', // 16px x 16px
+    radio: 'w-5 h-5', // 20px x 20px
     textSize: 'sm' as const,
     spacing: 'gap-1.5', // 6px
     borderWidth: 'border-2',
@@ -33,15 +33,15 @@ const SIZE_CLASSES = {
     labelHeight: 'h-[21px]',
   },
   medium: {
-    radio: 'w-5 h-5', // 20px x 20px
+    radio: 'w-6 h-6', // 24px x 24px
     textSize: 'md' as const,
-    spacing: 'gap-1.5', // 6px
+    spacing: 'gap-2', // 8px
     borderWidth: 'border-2',
     dotSize: 'w-2 h-2', // 8px inner dot
     labelHeight: 'h-6',
   },
   large: {
-    radio: 'w-6 h-6', // 24px x 24px
+    radio: 'w-7 h-7', // 28px x 28px
     textSize: 'lg' as const,
     spacing: 'gap-2', // 8px
     borderWidth: 'border-[3px]', // 3px border
