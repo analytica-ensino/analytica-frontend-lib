@@ -18,6 +18,7 @@ import CheckBoxComponent from './components/CheckBox/CheckBox';
 import TextAreaComponent from './components/TextArea/TextArea';
 import ToastComponent from './components/Toast/Toast';
 import ToasterComponent from './components/Toast/utils/Toaster';
+import DividerComponent from './components/Divider/Divider';
 import useToastStoreHook from './components/Toast/utils/ToastStore';
 import InputComponent from './components/Input/Input';
 
@@ -44,6 +45,7 @@ export { CheckBoxComponent as CheckBox };
 export { TextAreaComponent as TextArea };
 export { ToastComponent as Toast };
 export { ToasterComponent as Toaster };
+export { DividerComponent as Divider };
 export { useToastStoreHook as useToastStore };
 export { InputComponent as Input };
 
