@@ -20,6 +20,7 @@ import ToastComponent from './components/Toast/Toast';
 import ToasterComponent from './components/Toast/utils/Toaster';
 import DividerComponent from './components/Divider/Divider';
 import useToastStoreHook from './components/Toast/utils/ToastStore';
+import InputComponent from './components/Input/Input';
 
 // Import DropdownMenu and its sub-components
 import DropdownMenuComponent, {
@@ -46,6 +47,7 @@ export { ToastComponent as Toast };
 export { ToasterComponent as Toaster };
 export { DividerComponent as Divider };
 export { useToastStoreHook as useToastStore };
+export { InputComponent as Input };
 
 // Export DropdownMenu and its sub-components
 export { DropdownMenuComponent as DropdownMenu };
