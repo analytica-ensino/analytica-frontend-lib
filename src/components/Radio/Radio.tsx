@@ -123,6 +123,8 @@ export type RadioProps = {
   name?: string;
   /** Radio value */
   value?: string;
+  /** Allow toggling (uncheck when clicking a checked radio) */
+  allowToggle?: boolean;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'>;
 
 /**
@@ -145,6 +147,12 @@ export type RadioProps = {
  *
  * // Disabled state
  * <Radio disabled name="option" value="4" label="Disabled option" />
+ *
+ * // With toggle functionality (default)
+ * <Radio name="option" value="5" label="Toggleable radio" allowToggle={true} />
+ *
+ * // Without toggle (standard radio behavior)
+ * <Radio name="option" value="6" label="Standard radio" allowToggle={false} />
  * ```
  */
 const Radio = forwardRef<HTMLInputElement, RadioProps>(
@@ -162,6 +170,7 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
       id,
       name,
       value,
+      allowToggle = true,
       onChange,
       ...props
     },
@@ -176,12 +185,25 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     const isControlled = checkedProp !== undefined;
     const checked = isControlled ? checkedProp : internalChecked;
 
-    // Handle change events
+    // Handle change events with toggle functionality
     const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+      // Determine new checked state based on allowToggle prop
+      const newChecked = allowToggle && checked ? false : true;
+
       if (!isControlled) {
-        setInternalChecked(event.target.checked);
+        setInternalChecked(newChecked);
       }
-      onChange?.(event);
+
+      // Create a new event with the updated value
+      const updatedEvent = {
+        ...event,
+        target: {
+          ...event.target,
+          checked: newChecked,
+        },
+      } as ChangeEvent<HTMLInputElement>;
+
+      onChange?.(updatedEvent);
     };
 
     // Determine current state based on props
