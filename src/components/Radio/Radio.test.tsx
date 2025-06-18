@@ -55,21 +55,21 @@ describe('Radio', () => {
       render(<Radio size="small" name="test" value="1" label="Small radio" />);
       const radio = screen.getByRole('radio');
       const customRadio = radio.nextElementSibling as HTMLElement;
-      expect(customRadio).toHaveClass('w-4', 'h-4');
+      expect(customRadio).toHaveClass('w-5', 'h-5');
     });
 
     it('applies medium size classes (default)', () => {
       render(<Radio name="test" value="1" label="Medium radio" />);
       const radio = screen.getByRole('radio');
       const customRadio = radio.nextElementSibling as HTMLElement;
-      expect(customRadio).toHaveClass('w-5', 'h-5');
+      expect(customRadio).toHaveClass('w-6', 'h-6');
     });
 
     it('applies large size classes', () => {
       render(<Radio size="large" name="test" value="1" label="Large radio" />);
       const radio = screen.getByRole('radio');
       const customRadio = radio.nextElementSibling as HTMLElement;
-      expect(customRadio).toHaveClass('w-6', 'h-6');
+      expect(customRadio).toHaveClass('w-7', 'h-7');
     });
 
     it('applies extraLarge size classes', () => {
@@ -83,7 +83,7 @@ describe('Radio', () => {
       );
       const radio = screen.getByRole('radio');
       const customRadio = radio.nextElementSibling as HTMLElement;
-      expect(customRadio).toHaveClass('w-7', 'h-7');
+      expect(customRadio).toHaveClass('w-8', 'h-8');
     });
   });
 
@@ -106,22 +106,45 @@ describe('Radio', () => {
       expect(customRadio).toHaveClass('border-border-500');
     });
 
-    it('applies focused state classes', () => {
-      render(
+    it('applies focused state classes with wrapper', () => {
+      const { container } = render(
         <Radio state="focused" name="test" value="1" label="Focused radio" />
       );
       const radio = screen.getByRole('radio');
       const customRadio = radio.nextElementSibling as HTMLElement;
-      expect(customRadio).toHaveClass('border-[3px]', 'border-border-400');
+
+      expect(customRadio).toHaveClass('border-2', 'border-border-400');
+
+      // Check for focused wrapper
+      const wrapper = container.querySelector('.border-indicator-info');
+      expect(wrapper).toBeInTheDocument();
     });
 
-    it('applies invalid state classes', () => {
-      render(
+    it('applies invalid state classes with wrapper', () => {
+      const { container } = render(
         <Radio state="invalid" name="test" value="1" label="Invalid radio" />
       );
       const radio = screen.getByRole('radio');
       const customRadio = radio.nextElementSibling as HTMLElement;
       expect(customRadio).toHaveClass('border-border-400');
+
+      // Check for invalid wrapper (this covers the missing branch)
+      const wrapper = container.querySelector('.border-indicator-error');
+      expect(wrapper).toBeInTheDocument();
+    });
+
+    it('applies invalid state with checked radio and wrapper', () => {
+      const { container } = render(
+        <Radio state="invalid" checked name="test" value="1" label="Invalid checked radio" />
+      );
+      const radio = screen.getByRole('radio');
+      const customRadio = radio.nextElementSibling as HTMLElement;
+      expect(customRadio).toHaveClass('border-primary-950'); // Checked radio has different border
+      expect(radio).toBeChecked();
+
+      // Check for invalid wrapper border color specifically
+      const wrapper = container.querySelector('.border-indicator-error');
+      expect(wrapper).toBeInTheDocument();
     });
 
     it('applies disabled state when disabled prop is true', () => {
@@ -251,7 +274,7 @@ describe('Radio', () => {
 
       await user.click(radio);
       expect(handleChange).toHaveBeenCalled();
-      expect(radio).not.toBeChecked(); // Should remain false as it's controlled
+      expect(radio).not.toBeChecked();
     });
   });
 
@@ -272,7 +295,6 @@ describe('Radio', () => {
 
       fireEvent.focus(radio);
       fireEvent.blur(radio);
-      // When blurred, should return to default state classes (border-border-400)
       expect(customRadio).toHaveClass('border-border-400');
     });
 
@@ -314,7 +336,6 @@ describe('Radio', () => {
       const customRadio = radio.nextElementSibling as HTMLElement;
 
       fireEvent.focus(radio);
-      // Disabled state should keep its classes and not change with focus
       expect(customRadio).toHaveClass('border-border-400', 'cursor-not-allowed');
     });
   });
@@ -418,7 +439,7 @@ describe('Radio', () => {
       render(<Radio state="focused" name="test" value="1" label="Test" />);
       const radio = screen.getByRole('radio');
       const customRadio = radio.nextElementSibling as HTMLElement;
-      expect(customRadio).toHaveClass('border-[3px]');
+      expect(customRadio).toHaveClass('border-2');
     });
 
     it('applies correct border width for hovered large size', () => {
@@ -433,7 +454,7 @@ describe('Radio', () => {
       );
       const radio = screen.getByRole('radio');
       const customRadio = radio.nextElementSibling as HTMLElement;
-      expect(customRadio).toHaveClass('border-[3px]');
+      expect(customRadio).toHaveClass('border-2');
     });
 
     it('applies correct border width for hovered extraLarge size', () => {
@@ -448,7 +469,7 @@ describe('Radio', () => {
       );
       const radio = screen.getByRole('radio');
       const customRadio = radio.nextElementSibling as HTMLElement;
-      expect(customRadio).toHaveClass('border-[3px]');
+      expect(customRadio).toHaveClass('border-2');
     });
 
     it('applies default border width for small size', () => {
@@ -487,19 +508,35 @@ describe('Radio', () => {
     it('applies normal text color for enabled unchecked radio', () => {
       render(<Radio name="test" value="1" label="Enabled" />);
       const label = screen.getByText('Enabled');
-      expect(label).toHaveClass('text-text-600'); // Unchecked uses text-600 per design
+      expect(label).toHaveClass('text-text-600');
     });
 
     it('applies checked text color for enabled checked radio', () => {
       render(<Radio checked name="test" value="1" label="Enabled Checked" />);
       const label = screen.getByText('Enabled Checked');
-      expect(label).toHaveClass('text-text-900'); // Checked uses text-900 per design
+      expect(label).toHaveClass('text-text-900');
     });
 
     it('applies disabled text color for disabled radio', () => {
       render(<Radio disabled name="test" value="1" label="Disabled" />);
       const label = screen.getByText('Disabled');
       expect(label).toHaveClass('text-text-600');
+    });
+
+    it('applies disabled checked text color', () => {
+      render(<Radio disabled checked name="test" value="1" label="Disabled Checked" />);
+      const label = screen.getByText('Disabled Checked');
+      expect(label).toHaveClass('text-text-900');
+    });
+
+    it('applies focused text color for both checked and unchecked', () => {
+      const { rerender } = render(<Radio state="focused" name="test" value="1" label="Focused Unchecked" />);
+      const label = screen.getByText('Focused Unchecked');
+      expect(label).toHaveClass('text-text-900');
+
+      rerender(<Radio state="focused" checked name="test" value="1" label="Focused Checked" />);
+      const checkedLabel = screen.getByText('Focused Checked');
+      expect(checkedLabel).toHaveClass('text-text-900');
     });
   });
 
@@ -514,7 +551,6 @@ describe('Radio', () => {
       render(<Radio name="test" value="1" label="Test" />);
       const radio = screen.getByRole('radio');
 
-      // Simulate keyboard interaction that would check the radio
       fireEvent.focus(radio);
       fireEvent.change(radio, { target: { checked: true } });
       expect(radio).toBeChecked();
@@ -531,6 +567,25 @@ describe('Radio', () => {
       const radio = screen.getByRole('radio');
       const label = screen.getByText('Associated label');
       expect(label).toHaveAttribute('for', radio.id);
+    });
+  });
+
+  describe('ReactNode label support', () => {
+    it('renders ReactNode as label', () => {
+      const complexLabel = (
+        <span>
+          Complex <strong>label</strong> with <em>formatting</em>
+        </span>
+      );
+      render(<Radio name="test" value="1" label={complexLabel} />);
+
+      // Use getByText with a function matcher to find partial text
+      expect(screen.getByText((content, element) => {
+        return element?.tagName.toLowerCase() === 'span' && content.includes('Complex');
+      })).toBeInTheDocument();
+
+      expect(screen.getByText('label')).toBeInTheDocument();
+      expect(screen.getByText('formatting')).toBeInTheDocument();
     });
   });
 
