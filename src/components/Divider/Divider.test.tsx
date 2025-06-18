@@ -14,6 +14,7 @@ describe('Divider', () => {
     render(<Divider />);
     const divider = screen.getByRole('separator');
     expect(divider).toHaveClass('bg-border-200');
+    expect(divider).toHaveClass('border-0');
     expect(divider).toHaveClass('w-full');
     expect(divider).toHaveClass('h-px');
   });
@@ -22,6 +23,7 @@ describe('Divider', () => {
     render(<Divider orientation="vertical" />);
     const divider = screen.getByRole('separator');
     expect(divider).toHaveClass('bg-border-200');
+    expect(divider).toHaveClass('border-0');
     expect(divider).toHaveClass('h-full');
     expect(divider).toHaveClass('w-px');
     expect(divider).toHaveAttribute('aria-orientation', 'vertical');
@@ -33,16 +35,17 @@ describe('Divider', () => {
     expect(divider).toHaveClass('custom-class');
   });
 
-  it('passes through div props', () => {
+  it('passes through hr props', () => {
     render(<Divider data-testid="custom-divider" />);
     const divider = screen.getByTestId('custom-divider');
     expect(divider).toBeInTheDocument();
+    expect(divider.tagName).toBe('HR');
   });
 
-  it('has correct role and aria attributes', () => {
+  it('has correct aria attributes', () => {
     render(<Divider orientation="vertical" />);
     const divider = screen.getByRole('separator');
-    expect(divider).toHaveAttribute('role', 'separator');
     expect(divider).toHaveAttribute('aria-orientation', 'vertical');
+    expect(divider.tagName).toBe('HR');
   });
 });

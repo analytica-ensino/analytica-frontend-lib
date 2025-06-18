@@ -8,7 +8,7 @@ type DividerProps = {
   orientation?: 'horizontal' | 'vertical';
   /** Additional CSS classes to apply */
   className?: string;
-} & HTMLAttributes<HTMLDivElement>;
+} & HTMLAttributes<HTMLHRElement>;
 
 /**
  * Divider component for Analytica Ensino platforms
@@ -18,7 +18,7 @@ type DividerProps = {
  *
  * @param orientation - The orientation of the divider (horizontal or vertical)
  * @param className - Additional CSS classes
- * @param props - All other standard div HTML attributes
+ * @param props - All other standard hr HTML attributes
  * @returns A styled divider element
  *
  * @example
@@ -32,7 +32,7 @@ const Divider = ({
   className = '',
   ...props
 }: DividerProps) => {
-  const baseClasses = 'bg-border-200';
+  const baseClasses = 'bg-border-200 border-0';
 
   const orientationClasses = {
     horizontal: 'w-full h-px',
@@ -40,9 +40,8 @@ const Divider = ({
   };
 
   return (
-    <div
+    <hr
       className={`${baseClasses} ${orientationClasses[orientation]} ${className}`}
-      role="separator"
       aria-orientation={orientation}
       {...props}
     />
