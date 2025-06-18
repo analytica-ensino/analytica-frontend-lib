@@ -171,9 +171,6 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     const generatedId = useId();
     const inputId = id ?? `radio-${generatedId}`;
 
-    // Internal state for focus tracking
-    const [isFocused, setIsFocused] = useState(false);
-
     // Handle controlled vs uncontrolled behavior
     const [internalChecked, setInternalChecked] = useState(false);
     const isControlled = checkedProp !== undefined;
@@ -187,29 +184,8 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
       onChange?.(event);
     };
 
-    // Handle focus events
-    const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
-      setIsFocused(true);
-      props.onFocus?.(event);
-    };
-
-    // Handle blur events
-    const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-      setIsFocused(false);
-      props.onBlur?.(event);
-    };
-
-    // Determine current state based on props and focus
-    let currentState = disabled ? 'disabled' : state;
-
-    // Override state based on focus
-    if (
-      isFocused &&
-      currentState !== 'invalid' &&
-      currentState !== 'disabled'
-    ) {
-      currentState = 'focused';
-    }
+    // Determine current state based on props
+    const currentState = disabled ? 'disabled' : state;
 
     // Get size classes
     const sizeClasses = SIZE_CLASSES[size];
@@ -233,18 +209,20 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     // Get dot classes
     const dotClasses = `${sizeClasses.dotSize} rounded-full ${DOT_CLASSES[currentState]} transition-all duration-200`;
 
-    // Determine if wrapper is needed for focused or invalid states
-    const isWrapperNeeded = currentState === 'focused' || currentState === 'invalid';
-    const wrapperBorderColor = currentState === 'focused'
-      ? 'border-indicator-info' // #5399EC for focused
-      : 'border-indicator-error'; // #B91C1C for invalid
+    // Determine if wrapper is needed only for focused or invalid states
+    const isWrapperNeeded =
+      currentState === 'focused' || currentState === 'invalid';
+    const wrapperBorderColor =
+      currentState === 'focused'
+        ? 'border-indicator-info' // #5399EC for focused
+        : 'border-indicator-error'; // #B91C1C for invalid
 
     return (
       <div className="flex flex-col">
         <div
           className={`flex flex-row items-center ${
             isWrapperNeeded
-              ? `p-1 border-2 ${wrapperBorderColor} rounded-lg gap-1.5` // Wrapper for focused/invalid
+              ? `p-1 border-2 ${wrapperBorderColor} rounded-lg gap-1.5` // Wrapper apenas para focused/invalid
               : sizeClasses.spacing
           } ${disabled ? 'opacity-40' : ''}`}
         >
@@ -258,8 +236,6 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
             name={name}
             value={value}
             onChange={handleChange}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
             className="sr-only"
             {...props}
           />
