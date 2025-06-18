@@ -1,9 +1,13 @@
 'use client';
 import { WarningCircle, Eye, EyeSlash } from 'phosphor-react';
-import { InputHTMLAttributes, ReactNode, forwardRef, useState } from 'react';
-
-// Counter for generating unique IDs
-let idCounter = 0;
+import {
+  InputHTMLAttributes,
+  ReactNode,
+  forwardRef,
+  useState,
+  useId,
+  useMemo,
+} from 'react';
 
 /**
  * Lookup table for size classes
@@ -198,14 +202,18 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
     // Get classes from lookup tables
     const sizeClasses = SIZE_CLASSES[size];
-    const combinedClasses = getCombinedClasses(actualState, variant);
+    const combinedClasses = useMemo(
+      () => getCombinedClasses(actualState, variant),
+      [actualState, variant]
+    );
     const iconSize = getIconSize(size);
 
     const baseClasses =
       'bg-background w-full py-2 px-3 font-normal text-text-900 focus:outline-primary-950';
 
     // Generate unique ID if not provided
-    const inputId = id ?? `input-${++idCounter}`;
+    const generatedId = useId();
+    const inputId = id ?? generatedId;
 
     // Handle password visibility toggle
     const togglePasswordVisibility = () => setShowPassword(!showPassword);
