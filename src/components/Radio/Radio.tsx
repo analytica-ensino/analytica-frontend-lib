@@ -41,44 +41,27 @@ const SIZE_CLASSES = {
     labelHeight: 'h-6',
   },
   large: {
-    radio: 'w-7 h-7', // 28px x 28px (closest to 29px in design)
+    radio: 'w-7 h-7', // 28px x 28px
     textSize: 'lg' as const,
     spacing: 'gap-2', // 8px
-    borderWidth: 'border-4', // 4px border
+    borderWidth: 'border-2', // 2px border (consistent with others)
     dotSize: 'w-2.5 h-2.5', // 10px inner dot
     labelHeight: 'h-7',
   },
   extraLarge: {
-    radio: 'w-7 h-7', // 28px x 28px
+    radio: 'w-8 h-8', // 32px x 32px (larger than large)
     textSize: 'xl' as const,
     spacing: 'gap-3', // 12px
-    borderWidth: 'border-4', // 4px border
+    borderWidth: 'border-2', // 2px border (consistent with others)
     dotSize: 'w-3 h-3', // 12px inner dot
     labelHeight: 'h-8',
   },
 } as const;
 
 /**
- * Specific configurations for focused state based on design specifications
+ * Focused state maintains the same sizes as default state
+ * Only adds wrapper styling, does not change radio/dot sizes
  */
-const FOCUSED_SIZE_OVERRIDES = {
-  small: {
-    radio: 'w-5 h-5', // 20px for small focused
-    dotSize: 'w-1.5 h-1.5', // 6px dot
-  },
-  medium: {
-    radio: 'w-6 h-6', // 24px for medium focused
-    dotSize: 'w-2 h-2', // 8px dot
-  },
-  large: {
-    radio: 'w-7 h-7', // Keep 28px for large focused (closest to 29px design)
-    dotSize: 'w-2.5 h-2.5', // 10px dot
-  },
-  extraLarge: {
-    radio: 'w-7 h-7', // Keep 28px for extraLarge focused
-    dotSize: 'w-3 h-3', // 12px dot
-  },
-} as const;
 
 /**
  * Base radio styling classes using design system colors
@@ -234,23 +217,9 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     // Get size classes
     const sizeClasses = SIZE_CLASSES[size];
 
-    // Get appropriate sizes based on state
-    const getRadioSize = () => {
-      if (currentState === 'focused') {
-        return FOCUSED_SIZE_OVERRIDES[size].radio;
-      }
-      return sizeClasses.radio;
-    };
-
-    const getDotSize = () => {
-      if (currentState === 'focused') {
-        return FOCUSED_SIZE_OVERRIDES[size].dotSize;
-      }
-      return sizeClasses.dotSize;
-    };
-
-    const actualRadioSize = getRadioSize();
-    const actualDotSize = getDotSize();
+    // Focused state maintains original sizes, only adds wrapper
+    const actualRadioSize = sizeClasses.radio;
+    const actualDotSize = sizeClasses.dotSize;
 
     // Determine radio visual variant
     const radioVariant = checked ? 'checked' : 'unchecked';
@@ -258,13 +227,10 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     // Get styling classes
     const stylingClasses = STATE_CLASSES[currentState][radioVariant];
 
-    // Border width logic - focused always uses border-2 inside wrapper
+    // Border width logic - consistent across all states and sizes
     const getBorderWidth = () => {
       if (currentState === 'focused') {
         return 'border-2'; // Consistent border for all focused radios inside wrapper
-      }
-      if (state === 'hovered' && (size === 'large' || size === 'extraLarge')) {
-        return 'border-4';
       }
       return sizeClasses.borderWidth;
     };
