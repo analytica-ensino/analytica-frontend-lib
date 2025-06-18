@@ -81,8 +81,8 @@ const STATE_CLASSES = {
     checked: 'border-primary-950 bg-background', // #124393 for checked radio
   },
   invalid: {
-    unchecked: 'border-error-700 bg-background hover:border-error-600',
-    checked: 'border-error-700 bg-background',
+    unchecked: 'border-border-400 bg-background', // #A5A3A3 for unchecked radio
+    checked: 'border-primary-950 bg-background', // #124393 for checked radio
   },
   disabled: {
     unchecked: 'border-border-400 bg-background cursor-not-allowed opacity-40',
@@ -97,7 +97,7 @@ const DOT_CLASSES = {
   default: 'bg-primary-950',
   hovered: 'bg-info-700', // #1C61B2 hover state for checked dot
   focused: 'bg-primary-950', // #124393 for focused checked dot
-  invalid: 'bg-error-700',
+  invalid: 'bg-primary-950', // #124393 for invalid checked dot
   disabled: 'bg-primary-600',
 } as const;
 
@@ -233,15 +233,18 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     // Get dot classes
     const dotClasses = `${sizeClasses.dotSize} rounded-full ${DOT_CLASSES[currentState]} transition-all duration-200`;
 
-    // Determine if focused wrapper is needed
-    const isFocusedWrapper = currentState === 'focused';
+    // Determine if wrapper is needed for focused or invalid states
+    const isWrapperNeeded = currentState === 'focused' || currentState === 'invalid';
+    const wrapperBorderColor = currentState === 'focused'
+      ? 'border-indicator-info' // #5399EC for focused
+      : 'border-indicator-error'; // #B91C1C for invalid
 
     return (
       <div className="flex flex-col">
         <div
           className={`flex flex-row items-center ${
-            isFocusedWrapper
-              ? 'p-1 border-2 border-indicator-info rounded-lg gap-1.5' // #5399EC focused wrapper
+            isWrapperNeeded
+              ? `p-1 border-2 ${wrapperBorderColor} rounded-lg gap-1.5` // Wrapper for focused/invalid
               : sizeClasses.spacing
           } ${disabled ? 'opacity-40' : ''}`}
         >

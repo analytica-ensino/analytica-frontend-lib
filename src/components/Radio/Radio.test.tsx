@@ -121,7 +121,7 @@ describe('Radio', () => {
       );
       const radio = screen.getByRole('radio');
       const customRadio = radio.nextElementSibling as HTMLElement;
-      expect(customRadio).toHaveClass('border-error-700');
+      expect(customRadio).toHaveClass('border-border-400');
     });
 
     it('applies disabled state when disabled prop is true', () => {
@@ -305,7 +305,7 @@ describe('Radio', () => {
       const customRadio = radio.nextElementSibling as HTMLElement;
 
       fireEvent.focus(radio);
-      expect(customRadio).toHaveClass('border-error-700');
+      expect(customRadio).toHaveClass('border-border-400');
     });
 
     it('does not override disabled state with focus', () => {
@@ -400,7 +400,7 @@ describe('Radio', () => {
       const { container } = render(
         <Radio checked state="invalid" name="test" value="1" label="Test" />
       );
-      const dot = container.querySelector('.bg-error-700');
+      const dot = container.querySelector('.bg-primary-950');
       expect(dot).toBeInTheDocument();
     });
 
