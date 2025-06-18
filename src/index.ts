@@ -21,6 +21,7 @@ import ToasterComponent from './components/Toast/utils/Toaster';
 import DividerComponent from './components/Divider/Divider';
 import useToastStoreHook from './components/Toast/utils/ToastStore';
 import InputComponent from './components/Input/Input';
+import ChipsComponent from './components/Chips/Chips';
 
 // Import DropdownMenu and its sub-components
 import DropdownMenuComponent, {
@@ -48,6 +49,7 @@ export { ToasterComponent as Toaster };
 export { DividerComponent as Divider };
 export { useToastStoreHook as useToastStore };
 export { InputComponent as Input };
+export { ChipsComponent as Chips };
 
 // Export DropdownMenu and its sub-components
 export { DropdownMenuComponent as DropdownMenu };
