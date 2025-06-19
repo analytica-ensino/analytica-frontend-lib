@@ -791,7 +791,7 @@ describe('DropdownMenu component', () => {
           <ProfileMenuTrigger />
           <MenuContent>
             <ProfileMenuHeader
-              data-testId="ProfileMenuHeader"
+              data-testid="ProfileMenuHeader"
               email="ana@gmail.com"
               name="Ana Paula"
             />
@@ -811,14 +811,14 @@ describe('DropdownMenu component', () => {
         <DropdownMenu open>
           <ProfileMenuTrigger />
           <MenuContent>
-            <ProfileMenuSection>
+            <ProfileMenuSection data-testid='ProfileMenuSection'>
               <MenuItem variant="profile">Item 1</MenuItem>
             </ProfileMenuSection>
           </MenuContent>
         </DropdownMenu>
       );
 
-      const section = screen.getByRole('ProfileMenuHeader');
+      const section = screen.getByTestId('ProfileMenuSection');
       expect(section).toBeInTheDocument();
       expect(section).toHaveTextContent('Item 1');
     });

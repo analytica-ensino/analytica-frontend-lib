@@ -399,7 +399,7 @@ const ProfileMenuHeader = forwardRef<
   return (
     <div
       ref={ref}
-      role="group"
+      role="menuitem"
       data-component="ProfileMenuHeader"
       className={`
           flex flex-row gap-4 items-center
@@ -426,7 +426,6 @@ const ProfileMenuSection = forwardRef<
   return (
     <div
       ref={ref}
-      role="ProfileMenuHeader"
       className={`
           flex flex-col p-2
           ${className}
@@ -448,7 +447,7 @@ const ProfileMenuFooter = forwardRef<
   return (
     <button
       ref={ref}
-      className={`inline-flex items-center justify-center rounded-full cursor-pointer font-medium text-md px-5 py-2.5 w-full bg-transparent  text-primary-950 border border-primary-950 hover:bg-background-50 hover:text-primary-400 hover:border-primary-400 focus-visible:border-0 focus-visible:outline-none focus-visible:text-primary-600 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:text-primary-700 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed ${className}`}
+      className={`inline-flex items-center justify-center rounded-full cursor-pointer font-medium text-md px-5 py-2.5 w-full bg-transparent text-primary-950 border border-primary-950 hover:bg-background-50 hover:text-primary-400 hover:border-primary-400 focus-visible:border-0 focus-visible:outline-none focus-visible:text-primary-600 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:text-primary-700 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed ${className}`}
       disabled={disabled}
       onClick={onClick}
       {...props}
