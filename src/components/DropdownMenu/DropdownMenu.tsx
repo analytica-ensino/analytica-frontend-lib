@@ -250,7 +250,7 @@ const MenuItem = forwardRef<
     iconLeft?: ReactNode;
     iconRight?: ReactNode;
     disabled?: boolean;
-    variant?: 'profile' | 'menu'
+    variant?: 'profile' | 'menu';
   }
 >(
   (
@@ -281,7 +281,8 @@ const MenuItem = forwardRef<
       onClick?.(e as MouseEvent<HTMLDivElement>);
     };
 
-    if(variant == 'menu') return (
+    if (variant == 'menu')
+      return (
         <div
           ref={ref}
           role="menuitem"
@@ -309,7 +310,7 @@ const MenuItem = forwardRef<
           {children}
           {iconRight}
         </div>
-    )
+      );
 
     return (
       <div

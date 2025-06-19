@@ -674,7 +674,7 @@ describe('DropdownMenu component', () => {
         <DropdownMenu>
           <ProfileMenuTrigger />
           <MenuContent>
-            <MenuItem variant='profile'>Inside Item</MenuItem>
+            <MenuItem variant="profile">Inside Item</MenuItem>
           </MenuContent>
         </DropdownMenu>
       );
@@ -708,7 +708,9 @@ describe('DropdownMenu component', () => {
         <DropdownMenu>
           <ProfileMenuTrigger />
           <MenuContent>
-            <MenuItem variant='profile' onClick={handleClick}>Item 1</MenuItem>
+            <MenuItem variant="profile" onClick={handleClick}>
+              Item 1
+            </MenuItem>
           </MenuContent>
         </DropdownMenu>
       );
@@ -727,7 +729,7 @@ describe('DropdownMenu component', () => {
         <DropdownMenu open>
           <ProfileMenuTrigger />
           <MenuContent>
-            <MenuItem variant='profile' disabled onClick={handleClick}>
+            <MenuItem variant="profile" disabled onClick={handleClick}>
               Disabled Item
             </MenuItem>
           </MenuContent>
@@ -750,7 +752,9 @@ describe('DropdownMenu component', () => {
         <DropdownMenu>
           <ProfileMenuTrigger />
           <MenuContent>
-            <MenuItem variant='profile' onClick={handleClick}>Item 1</MenuItem>
+            <MenuItem variant="profile" onClick={handleClick}>
+              Item 1
+            </MenuItem>
           </MenuContent>
         </DropdownMenu>
       );
@@ -766,7 +770,7 @@ describe('DropdownMenu component', () => {
         <DropdownMenu>
           <ProfileMenuTrigger />
           <MenuContent>
-            <MenuItem variant='profile' inset size="medium">
+            <MenuItem variant="profile" inset size="medium">
               Inset Item
             </MenuItem>
           </MenuContent>
@@ -786,7 +790,11 @@ describe('DropdownMenu component', () => {
         <DropdownMenu open>
           <ProfileMenuTrigger />
           <MenuContent>
-            <ProfileMenuHeader data-testId='ProfileMenuHeader' email="ana@gmail.com" name="Ana Paula" />
+            <ProfileMenuHeader
+              data-testId="ProfileMenuHeader"
+              email="ana@gmail.com"
+              name="Ana Paula"
+            />
           </MenuContent>
         </DropdownMenu>
       );
@@ -804,7 +812,7 @@ describe('DropdownMenu component', () => {
           <ProfileMenuTrigger />
           <MenuContent>
             <ProfileMenuSection>
-              <MenuItem variant='profile'>Item 1</MenuItem>
+              <MenuItem variant="profile">Item 1</MenuItem>
             </ProfileMenuSection>
           </MenuContent>
         </DropdownMenu>
@@ -841,7 +849,7 @@ describe('DropdownMenu component', () => {
           <ProfileMenuTrigger />
           <MenuContent>
             <MenuSeparator data-testid="separator" />
-            <MenuItem variant='profile'>Item</MenuItem>
+            <MenuItem variant="profile">Item</MenuItem>
           </MenuContent>
         </DropdownMenu>
       );
@@ -933,9 +941,9 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <ProfileMenuTrigger />
         <MenuContent>
-          <MenuItem variant='profile'>Item 1</MenuItem>
-          <MenuItem variant='profile'>Item 2</MenuItem>
-          <MenuItem variant='profile'>Item 3</MenuItem>
+          <MenuItem variant="profile">Item 1</MenuItem>
+          <MenuItem variant="profile">Item 2</MenuItem>
+          <MenuItem variant="profile">Item 3</MenuItem>
         </MenuContent>
       </DropdownMenu>
     );
@@ -958,9 +966,9 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <ProfileMenuTrigger />
         <MenuContent>
-          <MenuItem variant='profile'>Item 1</MenuItem>
-          <MenuItem variant='profile'>Item 2</MenuItem>
-          <MenuItem variant='profile'>Item 3</MenuItem>
+          <MenuItem variant="profile">Item 1</MenuItem>
+          <MenuItem variant="profile">Item 2</MenuItem>
+          <MenuItem variant="profile">Item 3</MenuItem>
         </MenuContent>
       </DropdownMenu>
     );
@@ -983,16 +991,13 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <ProfileMenuTrigger />
         <MenuContent>
-          <MenuItem variant='profile'>Item 1</MenuItem>
-          <MenuItem variant='profile'>Item 2</MenuItem>
+          <MenuItem variant="profile">Item 1</MenuItem>
+          <MenuItem variant="profile">Item 2</MenuItem>
         </MenuContent>
       </DropdownMenu>
     );
 
-    expect(document.activeElement).not.toHaveAttribute(
-      'role',
-      'menuitem'
-    );
+    expect(document.activeElement).not.toHaveAttribute('role', 'menuitem');
 
     fireEvent.keyDown(document, { key: 'ArrowDown' });
     expect(screen.getAllByRole('menuitem')[0]).toHaveFocus();
@@ -1003,16 +1008,13 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <ProfileMenuTrigger />
         <MenuContent>
-          <MenuItem variant='profile'>Item 1</MenuItem>
-          <MenuItem variant='profile'>Item 2</MenuItem>
+          <MenuItem variant="profile">Item 1</MenuItem>
+          <MenuItem variant="profile">Item 2</MenuItem>
         </MenuContent>
       </DropdownMenu>
     );
 
-    expect(document.activeElement).not.toHaveAttribute(
-      'role',
-      'menuitem'
-    );
+    expect(document.activeElement).not.toHaveAttribute('role', 'menuitem');
 
     fireEvent.keyDown(document, { key: 'ArrowUp' });
     const items = screen.getAllByRole('menuitem');
@@ -1024,9 +1026,11 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <ProfileMenuTrigger />
         <MenuContent>
-          <MenuItem variant='profile'>Item 1</MenuItem>
-          <MenuItem variant='profile' disabled>Disabled Item</MenuItem>
-          <MenuItem variant='profile'>Item 2</MenuItem>
+          <MenuItem variant="profile">Item 1</MenuItem>
+          <MenuItem variant="profile" disabled>
+            Disabled Item
+          </MenuItem>
+          <MenuItem variant="profile">Item 2</MenuItem>
         </MenuContent>
       </DropdownMenu>
     );
@@ -1046,8 +1050,12 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <ProfileMenuTrigger />
         <MenuContent>
-          <MenuItem variant='profile' disabled>Disabled 1</MenuItem>
-          <MenuItem variant='profile' disabled>Disabled 2</MenuItem>
+          <MenuItem variant="profile" disabled>
+            Disabled 1
+          </MenuItem>
+          <MenuItem variant="profile" disabled>
+            Disabled 2
+          </MenuItem>
         </MenuContent>
       </DropdownMenu>
     );
@@ -1066,8 +1074,8 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <ProfileMenuTrigger />
         <MenuContent>
-          <MenuItem variant='profile'>Item 1</MenuItem>
-          <MenuItem variant='profile'>Item 2</MenuItem>
+          <MenuItem variant="profile">Item 1</MenuItem>
+          <MenuItem variant="profile">Item 2</MenuItem>
         </MenuContent>
       </DropdownMenu>
     );
