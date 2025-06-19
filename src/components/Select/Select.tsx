@@ -166,8 +166,10 @@ const Select = ({
     const search = (nodes: ReactNode) => {
       Children.forEach(nodes, (child) => {
         if (!isValidElement(child)) return;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const typedChild = child as ReactElement<any, any>;
+        const typedChild = child as ReactElement<{
+          value?: string;
+          children?: ReactNode;
+        }>;
 
         if (
           typedChild.type === SelectItem &&
