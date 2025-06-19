@@ -25,20 +25,14 @@ import DropdownMenuComponent, {
   DropdownMenuTrigger,
   MenuContent,
   MenuItem,
+  ProfileMenuTrigger,
+  ProfileMenuFooter,
+  ProfileMenuHeader,
+  ProfileMenuItem,
+  ProfileMenuSection,
   MenuLabel,
   MenuSeparator,
 } from './components/DropdownMenu/DropdownMenu';
-
-// Import DropdownProfileMenu and its sub-components
-import DropdownProfileMenuComponent, {
-  ProfileMenuTrigger,
-  ProfileMenuContent,
-  ProfileMenuSeparator,
-  ProfileMenuHeader,
-  ProfileMenuSection,
-  ProfileMenuItem,
-  ProfileMenuFooter,
-} from './components/DropdownMenuProfile/DropdownMenuProfile';
 
 // Re-export as named exports for bundled usage
 export { TextComponent as Text };
@@ -63,13 +57,8 @@ export { MenuContent as DropdownMenuContent };
 export { MenuItem as DropdownMenuItem };
 export { MenuLabel as DropdownMenuLabel };
 export { MenuSeparator as DropdownMenuSeparator };
-
-// Export DropdownProfileMenu and its sub-components
-export { DropdownProfileMenuComponent as DropdownProfileMenu };
 export { ProfileMenuTrigger };
-export { ProfileMenuContent };
 export { ProfileMenuItem };
 export { ProfileMenuHeader };
 export { ProfileMenuSection };
 export { ProfileMenuFooter };
-export { ProfileMenuSeparator };

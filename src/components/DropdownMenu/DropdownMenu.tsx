@@ -1,5 +1,6 @@
 'use client';
 
+import { SignOut, User } from 'phosphor-react';
 import {
   createContext,
   useState,
@@ -53,7 +54,7 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
 
       const items = Array.from(
         menuContent.querySelectorAll(
-          '[role="menuitem"]:not([aria-disabled="true"])'
+          '[role="menuitem"]:not([aria-disabled="true"]), [role="menu-profile-settings-itens"]:not([aria-disabled="true"])'
         )
       ).filter((el): el is HTMLElement => el instanceof HTMLElement);
 
@@ -116,6 +117,7 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
   );
 };
 
+// Componentes genéricos do DropdownMenu
 const DropdownMenuTrigger = forwardRef<
   HTMLButtonElement,
   ButtonHTMLAttributes<HTMLButtonElement>
@@ -238,7 +240,6 @@ const MenuContent = forwardRef<
     );
   }
 );
-
 MenuContent.displayName = 'MenuContent';
 
 const MenuItem = forwardRef<
@@ -323,5 +324,193 @@ const MenuSeparator = forwardRef<
 ));
 MenuSeparator.displayName = 'MenuSeparator';
 
+// Componentes específicos do ProfileMenu
+const ProfileMenuTrigger = forwardRef<
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement>
+>(({ className, onClick, ...props }, ref) => {
+  const context = useContext(DropdownMenuContext);
+  if (!context)
+    throw new Error('ProfileMenuTrigger must be used within a DropdownMenu');
+
+  const { open, setOpen } = context;
+
+  return (
+    <button
+      ref={ref}
+      className={`rounded-lg size-10 bg-background-50 flex items-center justify-center ${className}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        setOpen(!open);
+        if (onClick) onClick(e);
+      }}
+      aria-expanded={open}
+      {...props}
+    >
+      <span className="size-6 rounded-full bg-background-100 flex items-center justify-center">
+        <User className="text-background-950" size={18} />
+      </span>
+    </button>
+  );
+});
+ProfileMenuTrigger.displayName = 'ProfileMenuTrigger';
+
+const ProfileMenuHeader = forwardRef<
+  HTMLDivElement,
+  HTMLAttributes<HTMLDivElement> & {
+    name: string;
+    email: string;
+  }
+>(({ className, name, email, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      role="ProfileMenuHeader"
+      className={`
+          flex flex-row gap-4 items-center
+          ${className}
+        `}
+      {...props}
+    >
+      <span className="size-16 bg-background-100 rounded-full flex items-center justify-center">
+        <User size={34} className="text-background-950" />
+      </span>
+      <div className="flex flex-col ">
+        <p className="text-xl font-bold text-text-950">{name}</p>
+        <p className="text-md text-text-600">{email}</p>
+      </div>
+    </div>
+  );
+});
+ProfileMenuHeader.displayName = 'ProfileMenuHeader';
+
+const ProfileMenuSection = forwardRef<
+  HTMLDivElement,
+  HTMLAttributes<HTMLDivElement> & {}
+>(({ className, children, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      role="ProfileMenuHeader"
+      className={`
+          flex flex-col p-2
+          ${className}
+        `}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+});
+ProfileMenuSection.displayName = 'ProfileMenuSection';
+
+const ProfileMenuItem = forwardRef<
+  HTMLDivElement,
+  HTMLAttributes<HTMLDivElement> & {
+    inset?: boolean;
+    size?: 'small' | 'medium';
+    iconLeft?: ReactNode;
+    iconRight?: ReactNode;
+    disabled?: boolean;
+  }
+>(
+  (
+    {
+      className,
+      inset,
+      size = 'small',
+      children,
+      iconRight,
+      iconLeft,
+      disabled = false,
+      onClick,
+      ...props
+    },
+    ref
+  ) => {
+    const sizeClasses = ITEM_SIZE_CLASSES[size];
+
+    const handleClick = (
+      e: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>
+    ) => {
+      if (disabled) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      onClick?.(e as MouseEvent<HTMLDivElement>);
+    };
+
+    return (
+      <div
+        ref={ref}
+        role="menu-profile-settings-itens"
+        aria-disabled={disabled}
+        className={`
+          focus-visible:bg-background-50
+          relative flex flex-row justify-between select-none items-center gap-2 rounded-sm p-3 text-sm outline-none transition-colors [&>svg]:size-6 [&>svg]:shrink-0
+          ${inset && 'pl-8'}
+          ${sizeClasses}
+          ${className}
+          ${
+            disabled
+              ? 'cursor-not-allowed text-text-400'
+              : 'cursor-pointer hover:bg-background-50 text-text-700 focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground'
+          }
+        `}
+        onClick={handleClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') handleClick(e);
+        }}
+        tabIndex={disabled ? -1 : 0}
+        {...props}
+      >
+        {iconLeft}
+        {children}
+        {iconRight}
+      </div>
+    );
+  }
+);
+ProfileMenuItem.displayName = 'ProfileMenuItem';
+
+const ProfileMenuFooter = forwardRef<
+  HTMLButtonElement,
+  HTMLAttributes<HTMLButtonElement> & {
+    disabled?: boolean;
+  }
+>(({ className, disabled = false, onClick, ...props }, ref) => {
+  return (
+    <button
+      ref={ref}
+      className={`inline-flex items-center justify-center rounded-full cursor-pointer font-medium text-md px-5 py-2.5 w-full bg-transparent  text-primary-950 border border-primary-950 hover:bg-background-50 hover:text-primary-400 hover:border-primary-400 focus-visible:border-0 focus-visible:outline-none focus-visible:text-primary-600 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:text-primary-700 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed ${className}`}
+      disabled={disabled}
+      onClick={onClick}
+      {...props}
+    >
+      <span className="mr-2 flex items-center">
+        <SignOut />
+      </span>
+      Sair
+    </button>
+  );
+});
+ProfileMenuFooter.displayName = 'ProfileMenuFooter';
+
+// Exportações
 export default DropdownMenu;
-export { DropdownMenuTrigger, MenuContent, MenuItem, MenuLabel, MenuSeparator };
+export {
+  // Componentes genéricos
+  DropdownMenuTrigger,
+  MenuContent,
+  MenuItem,
+  MenuLabel,
+  MenuSeparator,
+
+  // Componentes específicos do ProfileMenu
+  ProfileMenuTrigger,
+  ProfileMenuHeader,
+  ProfileMenuSection,
+  ProfileMenuItem,
+  ProfileMenuFooter,
+};
