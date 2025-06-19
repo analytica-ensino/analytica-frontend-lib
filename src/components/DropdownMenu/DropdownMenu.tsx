@@ -54,7 +54,7 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
 
       const items = Array.from(
         menuContent.querySelectorAll(
-          '[role="menuitem"]:not([aria-disabled="true"]), [role="menu-profile-settings-itens"]:not([aria-disabled="true"])'
+          '[role="menuitem"]:not([aria-disabled="true"])'
         )
       ).filter((el): el is HTMLElement => el instanceof HTMLElement);
 
@@ -250,6 +250,7 @@ const MenuItem = forwardRef<
     iconLeft?: ReactNode;
     iconRight?: ReactNode;
     disabled?: boolean;
+    variant?: 'profile' | 'menu'
   }
 >(
   (
@@ -262,6 +263,7 @@ const MenuItem = forwardRef<
       iconLeft,
       disabled = false,
       onClick,
+      variant = 'menu',
       ...props
     },
     ref
@@ -279,14 +281,45 @@ const MenuItem = forwardRef<
       onClick?.(e as MouseEvent<HTMLDivElement>);
     };
 
+    if(variant == 'menu') return (
+        <div
+          ref={ref}
+          role="menuitem"
+          aria-disabled={disabled}
+          className={`
+            focus-visible:bg-background-50
+            relative flex select-none items-center gap-2 rounded-sm p-3 text-sm outline-none transition-colors [&>svg]:size-4 [&>svg]:shrink-0
+            ${inset && 'pl-8'}
+            ${sizeClasses}
+            ${className}
+            ${
+              disabled
+                ? 'cursor-not-allowed text-text-400'
+                : 'cursor-pointer hover:bg-background-50 text-text-700 focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground'
+            }
+          `}
+          onClick={handleClick}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') handleClick(e);
+          }}
+          tabIndex={disabled ? -1 : 0}
+          {...props}
+        >
+          {iconLeft}
+          {children}
+          {iconRight}
+        </div>
+    )
+
     return (
       <div
         ref={ref}
         role="menuitem"
+        data-variant="profile"
         aria-disabled={disabled}
         className={`
           focus-visible:bg-background-50
-          relative flex select-none items-center gap-2 rounded-sm p-3 text-sm outline-none transition-colors [&>svg]:size-4 [&>svg]:shrink-0
+          relative flex flex-row justify-between select-none items-center gap-2 rounded-sm p-3 text-sm outline-none transition-colors [&>svg]:size-6 [&>svg]:shrink-0
           ${inset && 'pl-8'}
           ${sizeClasses}
           ${className}
@@ -365,7 +398,8 @@ const ProfileMenuHeader = forwardRef<
   return (
     <div
       ref={ref}
-      role="ProfileMenuHeader"
+      role="group"
+      data-component="ProfileMenuHeader"
       className={`
           flex flex-row gap-4 items-center
           ${className}
@@ -404,76 +438,6 @@ const ProfileMenuSection = forwardRef<
 });
 ProfileMenuSection.displayName = 'ProfileMenuSection';
 
-const ProfileMenuItem = forwardRef<
-  HTMLDivElement,
-  HTMLAttributes<HTMLDivElement> & {
-    inset?: boolean;
-    size?: 'small' | 'medium';
-    iconLeft?: ReactNode;
-    iconRight?: ReactNode;
-    disabled?: boolean;
-  }
->(
-  (
-    {
-      className,
-      inset,
-      size = 'small',
-      children,
-      iconRight,
-      iconLeft,
-      disabled = false,
-      onClick,
-      ...props
-    },
-    ref
-  ) => {
-    const sizeClasses = ITEM_SIZE_CLASSES[size];
-
-    const handleClick = (
-      e: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>
-    ) => {
-      if (disabled) {
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
-      onClick?.(e as MouseEvent<HTMLDivElement>);
-    };
-
-    return (
-      <div
-        ref={ref}
-        role="menu-profile-settings-itens"
-        aria-disabled={disabled}
-        className={`
-          focus-visible:bg-background-50
-          relative flex flex-row justify-between select-none items-center gap-2 rounded-sm p-3 text-sm outline-none transition-colors [&>svg]:size-6 [&>svg]:shrink-0
-          ${inset && 'pl-8'}
-          ${sizeClasses}
-          ${className}
-          ${
-            disabled
-              ? 'cursor-not-allowed text-text-400'
-              : 'cursor-pointer hover:bg-background-50 text-text-700 focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground'
-          }
-        `}
-        onClick={handleClick}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') handleClick(e);
-        }}
-        tabIndex={disabled ? -1 : 0}
-        {...props}
-      >
-        {iconLeft}
-        {children}
-        {iconRight}
-      </div>
-    );
-  }
-);
-ProfileMenuItem.displayName = 'ProfileMenuItem';
-
 const ProfileMenuFooter = forwardRef<
   HTMLButtonElement,
   HTMLAttributes<HTMLButtonElement> & {
@@ -511,6 +475,5 @@ export {
   ProfileMenuTrigger,
   ProfileMenuHeader,
   ProfileMenuSection,
-  ProfileMenuItem,
   ProfileMenuFooter,
 };

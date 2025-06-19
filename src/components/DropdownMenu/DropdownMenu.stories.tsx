@@ -9,7 +9,6 @@ import DropdownMenu, {
   ProfileMenuFooter,
   ProfileMenuHeader,
   ProfileMenuSection,
-  ProfileMenuItem,
 } from './DropdownMenu';
 import { Plus, Check, CaretRight, User } from 'phosphor-react';
 
@@ -29,7 +28,7 @@ export const AllDropdownComponents: Story = () => (
         <h3 className="font-bold text-2xl text-text-900">Menu Básico</h3>
         <div className="flex flex-row gap-4">
           <DropdownMenu>
-            <DropdownMenuTrigger onClick={() => console.log('passou')}>
+            <DropdownMenuTrigger>
               Open Menu
             </DropdownMenuTrigger>
             <MenuContent>
@@ -160,26 +159,26 @@ export const AllDropdownComponents: Story = () => (
         <div className="flex flex-row gap-4">
           <DropdownMenu>
             <ProfileMenuTrigger />
-            <MenuContent>
+            <MenuContent className='min-w-[288px]' side='top'>
               <ProfileMenuHeader name="Ana Paula" email="ana@gmail.com" />
 
               <ProfileMenuSection>
-                <ProfileMenuItem iconLeft={<User />} iconRight={<CaretRight />}>
+                <MenuItem variant='profile' iconLeft={<User />} iconRight={<CaretRight />}>
                   Meus dados
-                </ProfileMenuItem>
-                <ProfileMenuItem iconLeft={<User />} iconRight={<CaretRight />}>
+                </MenuItem>
+                <MenuItem variant='profile' iconLeft={<User />} iconRight={<CaretRight />}>
                   Configurações
-                </ProfileMenuItem>
+                </MenuItem>
                 <MenuSeparator />
-                <ProfileMenuItem iconLeft={<User />} iconRight={<CaretRight />}>
+                <MenuItem variant='profile' iconLeft={<User />} iconRight={<CaretRight />}>
                   Privacidade
-                </ProfileMenuItem>
+                </MenuItem>
               </ProfileMenuSection>
 
               <ProfileMenuSection>
-                <ProfileMenuItem iconLeft={<User />} iconRight={<CaretRight />}>
+                <MenuItem variant='profile' iconLeft={<User />} iconRight={<CaretRight />}>
                   Ajuda
-                </ProfileMenuItem>
+                </MenuItem>
               </ProfileMenuSection>
 
               <ProfileMenuFooter onClick={() => console.log('Sair')} />
@@ -196,20 +195,20 @@ export const AllDropdownComponents: Story = () => (
         <div className="flex flex-row gap-4">
           <DropdownMenu>
             <ProfileMenuTrigger />
-            <MenuContent>
+            <MenuContent className='min-w-[288px]' side='top'>
               <ProfileMenuHeader name="João Silva" email="joao@empresa.com" />
 
               <ProfileMenuSection>
-                <ProfileMenuItem
+                <MenuItem variant='profile'
                   iconLeft={<User />}
                   iconRight={<CaretRight />}
                   disabled
                 >
                   Meus dados (desabilitado)
-                </ProfileMenuItem>
-                <ProfileMenuItem iconLeft={<User />} iconRight={<CaretRight />}>
+                </MenuItem>
+                <MenuItem variant='profile' iconLeft={<User />} iconRight={<CaretRight />}>
                   Configurações
-                </ProfileMenuItem>
+                </MenuItem>
               </ProfileMenuSection>
 
               <ProfileMenuFooter />
@@ -332,15 +331,15 @@ export const MenuSizes: Story = () => (
 export const BasicProfileMenu: Story = () => (
   <DropdownMenu>
     <ProfileMenuTrigger />
-    <MenuContent>
+    <MenuContent className='min-w-[288px]'>
       <ProfileMenuHeader name="Ana Paula" email="ana@gmail.com" />
       <ProfileMenuSection>
-        <ProfileMenuItem iconLeft={<User />} iconRight={<CaretRight />}>
+        <MenuItem variant='profile' iconLeft={<User />} iconRight={<CaretRight />}>
           Meus dados
-        </ProfileMenuItem>
-        <ProfileMenuItem iconLeft={<User />} iconRight={<CaretRight />}>
+        </MenuItem>
+        <MenuItem variant='profile' iconLeft={<User />} iconRight={<CaretRight />}>
           Configurações
-        </ProfileMenuItem>
+        </MenuItem>
       </ProfileMenuSection>
       <ProfileMenuFooter />
     </MenuContent>
@@ -350,19 +349,19 @@ export const BasicProfileMenu: Story = () => (
 export const ProfileMenuWithDisabledItems: Story = () => (
   <DropdownMenu>
     <ProfileMenuTrigger />
-    <MenuContent>
+    <MenuContent className='min-w-[288px]'>
       <ProfileMenuHeader name="João Silva" email="joao@empresa.com" />
       <ProfileMenuSection>
-        <ProfileMenuItem
+        <MenuItem variant='profile'
           iconLeft={<User />}
           iconRight={<CaretRight />}
           disabled
         >
           Meus dados (desabilitado)
-        </ProfileMenuItem>
-        <ProfileMenuItem iconLeft={<User />} iconRight={<CaretRight />}>
+        </MenuItem>
+        <MenuItem variant='profile' iconLeft={<User />} iconRight={<CaretRight />}>
           Configurações
-        </ProfileMenuItem>
+        </MenuItem>
       </ProfileMenuSection>
       <ProfileMenuFooter />
     </MenuContent>

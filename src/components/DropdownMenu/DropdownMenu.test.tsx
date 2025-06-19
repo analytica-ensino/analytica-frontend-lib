@@ -3,7 +3,6 @@ import '@testing-library/jest-dom';
 import DropdownMenu, {
   ProfileMenuFooter,
   ProfileMenuHeader,
-  ProfileMenuItem,
   ProfileMenuSection,
   ProfileMenuTrigger,
 } from './DropdownMenu';
@@ -675,13 +674,13 @@ describe('DropdownMenu component', () => {
         <DropdownMenu>
           <ProfileMenuTrigger />
           <MenuContent>
-            <ProfileMenuItem>Inside Item</ProfileMenuItem>
+            <MenuItem variant='profile'>Inside Item</MenuItem>
           </MenuContent>
         </DropdownMenu>
       );
 
       fireEvent.click(screen.getByRole('button'));
-      const insideItem = screen.getByRole('menu-profile-settings-itens');
+      const insideItem = screen.getByRole('menuitem');
       fireEvent.mouseDown(insideItem);
       expect(screen.getByRole('menu')).toBeInTheDocument();
     });
@@ -702,40 +701,40 @@ describe('DropdownMenu component', () => {
     });
   });
 
-  describe('ProfileMenuItem behavior', () => {
-    it('renders ProfileMenuItem with correct roles and triggers onClick', () => {
+  describe('MenuItem behavior', () => {
+    it('renders MenuItem with correct roles and triggers onClick', () => {
       const handleClick = jest.fn();
       render(
         <DropdownMenu>
           <ProfileMenuTrigger />
           <MenuContent>
-            <ProfileMenuItem onClick={handleClick}>Item 1</ProfileMenuItem>
+            <MenuItem variant='profile' onClick={handleClick}>Item 1</MenuItem>
           </MenuContent>
         </DropdownMenu>
       );
 
       fireEvent.click(screen.getByRole('button'));
-      const item = screen.getByRole('menu-profile-settings-itens');
+      const item = screen.getByRole('menuitem');
       expect(item).toHaveTextContent('Item 1');
       fireEvent.click(item);
       expect(handleClick).toHaveBeenCalled();
     });
 
-    it('prevents click and keydown on disabled ProfileMenuItem', () => {
+    it('prevents click and keydown on disabled MenuItem', () => {
       const handleClick = jest.fn();
 
       render(
         <DropdownMenu open>
           <ProfileMenuTrigger />
           <MenuContent>
-            <ProfileMenuItem disabled onClick={handleClick}>
+            <MenuItem variant='profile' disabled onClick={handleClick}>
               Disabled Item
-            </ProfileMenuItem>
+            </MenuItem>
           </MenuContent>
         </DropdownMenu>
       );
 
-      const item = screen.getByRole('menu-profile-settings-itens');
+      const item = screen.getByRole('menuitem');
       expect(item).toHaveAttribute('aria-disabled', 'true');
 
       fireEvent.click(item);
@@ -745,37 +744,37 @@ describe('DropdownMenu component', () => {
       expect(handleClick).not.toHaveBeenCalled();
     });
 
-    it('handles keyboard interaction (Enter) on ProfileMenuItem', () => {
+    it('handles keyboard interaction (Enter) on MenuItem', () => {
       const handleClick = jest.fn();
       render(
         <DropdownMenu>
           <ProfileMenuTrigger />
           <MenuContent>
-            <ProfileMenuItem onClick={handleClick}>Item 1</ProfileMenuItem>
+            <MenuItem variant='profile' onClick={handleClick}>Item 1</MenuItem>
           </MenuContent>
         </DropdownMenu>
       );
 
       fireEvent.click(screen.getByRole('button'));
-      const item = screen.getByRole('menu-profile-settings-itens');
+      const item = screen.getByRole('menuitem');
       fireEvent.keyDown(item, { key: 'Enter' });
       expect(handleClick).toHaveBeenCalled();
     });
 
-    it('applies inset and size props to ProfileMenuItem', () => {
+    it('applies inset and size props to MenuItem', () => {
       render(
         <DropdownMenu>
           <ProfileMenuTrigger />
           <MenuContent>
-            <ProfileMenuItem inset size="medium">
+            <MenuItem variant='profile' inset size="medium">
               Inset Item
-            </ProfileMenuItem>
+            </MenuItem>
           </MenuContent>
         </DropdownMenu>
       );
 
       fireEvent.click(screen.getByRole('button'));
-      const item = screen.getByRole('menu-profile-settings-itens');
+      const item = screen.getByRole('menuitem');
       expect(item).toHaveClass('pl-8');
       expect(item).toHaveClass('text-md');
     });
@@ -787,12 +786,12 @@ describe('DropdownMenu component', () => {
         <DropdownMenu open>
           <ProfileMenuTrigger />
           <MenuContent>
-            <ProfileMenuHeader email="ana@gmail.com" name="Ana Paula" />
+            <ProfileMenuHeader data-testId='ProfileMenuHeader' email="ana@gmail.com" name="Ana Paula" />
           </MenuContent>
         </DropdownMenu>
       );
 
-      expect(screen.getByRole('ProfileMenuHeader')).toBeInTheDocument();
+      expect(screen.getByTestId('ProfileMenuHeader')).toBeInTheDocument();
       expect(screen.getByText('Ana Paula')).toBeInTheDocument();
       expect(screen.getByText('ana@gmail.com')).toBeInTheDocument();
     });
@@ -805,7 +804,7 @@ describe('DropdownMenu component', () => {
           <ProfileMenuTrigger />
           <MenuContent>
             <ProfileMenuSection>
-              <ProfileMenuItem>Item 1</ProfileMenuItem>
+              <MenuItem variant='profile'>Item 1</MenuItem>
             </ProfileMenuSection>
           </MenuContent>
         </DropdownMenu>
@@ -842,7 +841,7 @@ describe('DropdownMenu component', () => {
           <ProfileMenuTrigger />
           <MenuContent>
             <MenuSeparator data-testid="separator" />
-            <ProfileMenuItem>Item</ProfileMenuItem>
+            <MenuItem variant='profile'>Item</MenuItem>
           </MenuContent>
         </DropdownMenu>
       );
@@ -934,14 +933,14 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <ProfileMenuTrigger />
         <MenuContent>
-          <ProfileMenuItem>Item 1</ProfileMenuItem>
-          <ProfileMenuItem>Item 2</ProfileMenuItem>
-          <ProfileMenuItem>Item 3</ProfileMenuItem>
+          <MenuItem variant='profile'>Item 1</MenuItem>
+          <MenuItem variant='profile'>Item 2</MenuItem>
+          <MenuItem variant='profile'>Item 3</MenuItem>
         </MenuContent>
       </DropdownMenu>
     );
 
-    const items = screen.getAllByRole('menu-profile-settings-itens');
+    const items = screen.getAllByRole('menuitem');
     items[0].focus();
 
     fireEvent.keyDown(document, { key: 'ArrowDown' });
@@ -959,14 +958,14 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <ProfileMenuTrigger />
         <MenuContent>
-          <ProfileMenuItem>Item 1</ProfileMenuItem>
-          <ProfileMenuItem>Item 2</ProfileMenuItem>
-          <ProfileMenuItem>Item 3</ProfileMenuItem>
+          <MenuItem variant='profile'>Item 1</MenuItem>
+          <MenuItem variant='profile'>Item 2</MenuItem>
+          <MenuItem variant='profile'>Item 3</MenuItem>
         </MenuContent>
       </DropdownMenu>
     );
 
-    const items = screen.getAllByRole('menu-profile-settings-itens');
+    const items = screen.getAllByRole('menuitem');
     items[0].focus();
 
     fireEvent.keyDown(document, { key: 'ArrowUp' });
@@ -984,19 +983,19 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <ProfileMenuTrigger />
         <MenuContent>
-          <ProfileMenuItem>Item 1</ProfileMenuItem>
-          <ProfileMenuItem>Item 2</ProfileMenuItem>
+          <MenuItem variant='profile'>Item 1</MenuItem>
+          <MenuItem variant='profile'>Item 2</MenuItem>
         </MenuContent>
       </DropdownMenu>
     );
 
     expect(document.activeElement).not.toHaveAttribute(
       'role',
-      'menu-profile-settings-itens'
+      'menuitem'
     );
 
     fireEvent.keyDown(document, { key: 'ArrowDown' });
-    expect(screen.getAllByRole('menu-profile-settings-itens')[0]).toHaveFocus();
+    expect(screen.getAllByRole('menuitem')[0]).toHaveFocus();
   });
 
   it('starts from last item when no item is focused and ArrowUp is pressed', () => {
@@ -1004,19 +1003,19 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <ProfileMenuTrigger />
         <MenuContent>
-          <ProfileMenuItem>Item 1</ProfileMenuItem>
-          <ProfileMenuItem>Item 2</ProfileMenuItem>
+          <MenuItem variant='profile'>Item 1</MenuItem>
+          <MenuItem variant='profile'>Item 2</MenuItem>
         </MenuContent>
       </DropdownMenu>
     );
 
     expect(document.activeElement).not.toHaveAttribute(
       'role',
-      'menu-profile-settings-itens'
+      'menuitem'
     );
 
     fireEvent.keyDown(document, { key: 'ArrowUp' });
-    const items = screen.getAllByRole('menu-profile-settings-itens');
+    const items = screen.getAllByRole('menuitem');
     expect(items[items.length - 1]).toHaveFocus();
   });
 
@@ -1025,14 +1024,14 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <ProfileMenuTrigger />
         <MenuContent>
-          <ProfileMenuItem>Item 1</ProfileMenuItem>
-          <ProfileMenuItem disabled>Disabled Item</ProfileMenuItem>
-          <ProfileMenuItem>Item 2</ProfileMenuItem>
+          <MenuItem variant='profile'>Item 1</MenuItem>
+          <MenuItem variant='profile' disabled>Disabled Item</MenuItem>
+          <MenuItem variant='profile'>Item 2</MenuItem>
         </MenuContent>
       </DropdownMenu>
     );
 
-    const items = screen.getAllByRole('menu-profile-settings-itens');
+    const items = screen.getAllByRole('menuitem');
     items[0].focus();
 
     fireEvent.keyDown(document, { key: 'ArrowDown' });
@@ -1047,8 +1046,8 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <ProfileMenuTrigger />
         <MenuContent>
-          <ProfileMenuItem disabled>Disabled 1</ProfileMenuItem>
-          <ProfileMenuItem disabled>Disabled 2</ProfileMenuItem>
+          <MenuItem variant='profile' disabled>Disabled 1</MenuItem>
+          <MenuItem variant='profile' disabled>Disabled 2</MenuItem>
         </MenuContent>
       </DropdownMenu>
     );
@@ -1067,13 +1066,13 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <ProfileMenuTrigger />
         <MenuContent>
-          <ProfileMenuItem>Item 1</ProfileMenuItem>
-          <ProfileMenuItem>Item 2</ProfileMenuItem>
+          <MenuItem variant='profile'>Item 1</MenuItem>
+          <MenuItem variant='profile'>Item 2</MenuItem>
         </MenuContent>
       </DropdownMenu>
     );
 
-    const items = screen.getAllByRole('menu-profile-settings-itens');
+    const items = screen.getAllByRole('menuitem');
     items[0].focus();
 
     const spy = jest.spyOn(Event.prototype, 'preventDefault');
