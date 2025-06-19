@@ -135,7 +135,13 @@ describe('Radio', () => {
 
     it('applies invalid state with checked radio and wrapper', () => {
       const { container } = render(
-        <Radio state="invalid" checked name="test" value="1" label="Invalid checked radio" />
+        <Radio
+          state="invalid"
+          checked
+          name="test"
+          value="1"
+          label="Invalid checked radio"
+        />
       );
       const radio = screen.getByRole('radio');
       const customRadio = radio.nextElementSibling as HTMLElement;
@@ -194,20 +200,34 @@ describe('Radio', () => {
     });
 
     it('renders checked when defaultChecked is true (uncontrolled)', () => {
-      render(<Radio defaultChecked name="test" value="1" label="Default checked" />);
+      render(
+        <Radio defaultChecked name="test" value="1" label="Default checked" />
+      );
       const radio = screen.getByRole('radio');
       expect(radio).toBeChecked();
     });
 
     it('renders unchecked when defaultChecked is false (uncontrolled)', () => {
-      render(<Radio defaultChecked={false} name="test" value="1" label="Default unchecked" />);
+      render(
+        <Radio
+          defaultChecked={false}
+          name="test"
+          value="1"
+          label="Default unchecked"
+        />
+      );
       const radio = screen.getByRole('radio');
       expect(radio).not.toBeChecked();
     });
 
     it('shows dot when defaultChecked is true', () => {
       const { container } = render(
-        <Radio defaultChecked name="test" value="1" label="Default checked with dot" />
+        <Radio
+          defaultChecked
+          name="test"
+          value="1"
+          label="Default checked with dot"
+        />
       );
       const dot = container.querySelector('.bg-primary-950');
       expect(dot).toBeInTheDocument();
@@ -370,7 +390,10 @@ describe('Radio', () => {
       const customRadio = radio.nextElementSibling as HTMLElement;
 
       fireEvent.focus(radio);
-      expect(customRadio).toHaveClass('border-border-400', 'cursor-not-allowed');
+      expect(customRadio).toHaveClass(
+        'border-border-400',
+        'cursor-not-allowed'
+      );
     });
   });
 
@@ -558,17 +581,40 @@ describe('Radio', () => {
     });
 
     it('applies disabled checked text color', () => {
-      render(<Radio disabled checked name="test" value="1" label="Disabled Checked" />);
+      render(
+        <Radio
+          disabled
+          checked
+          name="test"
+          value="1"
+          label="Disabled Checked"
+        />
+      );
       const label = screen.getByText('Disabled Checked');
       expect(label).toHaveClass('text-text-900');
     });
 
     it('applies focused text color for both checked and unchecked', () => {
-      const { rerender } = render(<Radio state="focused" name="test" value="1" label="Focused Unchecked" />);
+      const { rerender } = render(
+        <Radio
+          state="focused"
+          name="test"
+          value="1"
+          label="Focused Unchecked"
+        />
+      );
       const label = screen.getByText('Focused Unchecked');
       expect(label).toHaveClass('text-text-900');
 
-      rerender(<Radio state="focused" checked name="test" value="1" label="Focused Checked" />);
+      rerender(
+        <Radio
+          state="focused"
+          checked
+          name="test"
+          value="1"
+          label="Focused Checked"
+        />
+      );
       const checkedLabel = screen.getByText('Focused Checked');
       expect(checkedLabel).toHaveClass('text-text-900');
     });
@@ -614,9 +660,14 @@ describe('Radio', () => {
       render(<Radio name="test" value="1" label={complexLabel} />);
 
       // Use getByText with a function matcher to find partial text
-      expect(screen.getByText((content, element) => {
-        return element?.tagName.toLowerCase() === 'span' && content.includes('Complex');
-      })).toBeInTheDocument();
+      expect(
+        screen.getByText((content, element) => {
+          return (
+            element?.tagName.toLowerCase() === 'span' &&
+            content.includes('Complex')
+          );
+        })
+      ).toBeInTheDocument();
 
       expect(screen.getByText('label')).toBeInTheDocument();
       expect(screen.getByText('formatting')).toBeInTheDocument();
