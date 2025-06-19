@@ -29,6 +29,14 @@ import DropdownMenuComponent, {
   MenuSeparator,
 } from './components/DropdownMenu/DropdownMenu';
 
+import Select, {
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+} from './components/Select/Select';
+
 // Re-export as named exports for bundled usage
 export { TextComponent as Text };
 export { ButtonComponent as Button };
@@ -52,3 +60,10 @@ export { MenuContent as DropdownMenuContent };
 export { MenuItem as DropdownMenuItem };
 export { MenuLabel as DropdownMenuLabel };
 export { MenuSeparator as DropdownMenuSeparator };
+
+export { Select };
+export { SelectValue };
+export { SelectTrigger };
+export { SelectContent };
+export { SelectItem };
+export { SelectSeparator };

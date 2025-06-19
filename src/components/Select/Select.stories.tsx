@@ -1,6 +1,5 @@
 import type { Story } from '@ladle/react';
-import {
-  Select,
+import Select, {
   SelectTrigger,
   SelectValue,
   SelectContent,

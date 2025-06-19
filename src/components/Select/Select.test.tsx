@@ -1,17 +1,16 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {
-  Select,
+import Select, {
   SelectTrigger,
   SelectContent,
   SelectItem,
   SelectSeparator,
   SelectValue,
 } from './Select';
+import { ComponentProps } from 'react';
 
 describe('Select component', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const setup = (props?: any) => {
+  const setup = (props?: Partial<ComponentProps<typeof Select>>) => {
     return render(
       <Select {...props}>
         <SelectTrigger>

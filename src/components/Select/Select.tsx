@@ -221,7 +221,7 @@ const SelectValue = ({ placeholder }: { placeholder?: string }) => {
       selectedLabel !== null &&
       selectedLabel !== ''
         ? selectedLabel
-        : placeholder || value}
+        : (placeholder ?? value)}
     </span>
   );
 };
@@ -391,8 +391,8 @@ const SelectSeparator = forwardRef<HTMLDivElement, SelectSeparatorProps>(
 );
 SelectSeparator.displayName = 'SelectSeparator';
 
+export default Select;
 export {
-  Select,
   SelectValue,
   SelectTrigger,
   SelectContent,
