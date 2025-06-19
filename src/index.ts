@@ -28,7 +28,6 @@ import DropdownMenuComponent, {
   ProfileMenuTrigger,
   ProfileMenuFooter,
   ProfileMenuHeader,
-  ProfileMenuItem,
   ProfileMenuSection,
   MenuLabel,
   MenuSeparator,
@@ -58,7 +57,6 @@ export { MenuItem as DropdownMenuItem };
 export { MenuLabel as DropdownMenuLabel };
 export { MenuSeparator as DropdownMenuSeparator };
 export { ProfileMenuTrigger };
-export { ProfileMenuItem };
 export { ProfileMenuHeader };
 export { ProfileMenuSection };
 export { ProfileMenuFooter };
