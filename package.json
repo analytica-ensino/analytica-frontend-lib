@@ -23,7 +23,7 @@
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:sonar": "jest --coverage --testResultsProcessor=jest-sonar-reporter",
+    "test:sonar": "SONAR_REPORTER=true jest --coverage",
     "build": "tsup",
     "build:clean": "rm -rf dist && npm run build",
     "ladle": "ladle serve",
