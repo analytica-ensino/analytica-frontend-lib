@@ -256,7 +256,6 @@ const MenuItem = forwardRef<
   (
     {
       className,
-      inset,
       size = 'small',
       children,
       iconRight,
@@ -290,7 +289,6 @@ const MenuItem = forwardRef<
           className={`
             focus-visible:bg-background-50
             relative flex select-none items-center gap-2 rounded-sm p-3 text-sm outline-none transition-colors [&>svg]:size-4 [&>svg]:shrink-0
-            ${inset && 'pl-8'}
             ${sizeClasses}
             ${className}
             ${
@@ -321,7 +319,6 @@ const MenuItem = forwardRef<
         className={`
           focus-visible:bg-background-50
           relative flex flex-row justify-between select-none items-center gap-2 rounded-sm p-3 text-sm outline-none transition-colors [&>svg]:size-6 [&>svg]:shrink-0
-          ${inset && 'pl-8'}
           ${sizeClasses}
           ${className}
           ${
@@ -455,7 +452,7 @@ const ProfileMenuFooter = forwardRef<
       <span className="mr-2 flex items-center">
         <SignOut />
       </span>
-      Sair
+      <span>Sair</span>
     </button>
   );
 });
