@@ -56,10 +56,11 @@ describe('Select component', () => {
 
   it('should not select a disabled item', async () => {
     setup();
+    expect(screen.queryByDisplayValue('Option 3')).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button'));
     await userEvent.click(screen.getByText('Option 3'));
-    expect(screen.queryByText('Option 3')).toBeInTheDocument(); // Still visible
     expect(screen.queryByText('Option 3')).toHaveClass('pointer-events-none');
+    expect(screen.queryByDisplayValue('Option 3')).not.toBeInTheDocument();
   });
 
   it('should disabled select', async () => {
