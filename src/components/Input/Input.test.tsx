@@ -1,4 +1,4 @@
-import React from 'react';
+import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Input from './Input';
@@ -507,7 +507,7 @@ describe('Input', () => {
 
   describe('Forward ref', () => {
     it('forwards ref to input element', () => {
-      const ref = React.createRef<HTMLInputElement>();
+      const ref = createRef<HTMLInputElement>();
       render(<Input ref={ref} />);
       expect(ref.current).toBeInstanceOf(HTMLInputElement);
     });

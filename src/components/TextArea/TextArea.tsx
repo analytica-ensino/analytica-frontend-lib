@@ -1,12 +1,13 @@
 'use client';
 
-import React, {
+import {
   TextareaHTMLAttributes,
   ReactNode,
   forwardRef,
   useState,
   useId,
   ChangeEvent,
+  FocusEvent,
 } from 'react';
 import Text from '../Text/Text';
 
@@ -156,13 +157,13 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     };
 
     // Handle focus events
-    const handleFocus = (event: React.FocusEvent<HTMLTextAreaElement>) => {
+    const handleFocus = (event: FocusEvent<HTMLTextAreaElement>) => {
       setIsFocused(true);
       props.onFocus?.(event);
     };
 
     // Handle blur events
-    const handleBlur = (event: React.FocusEvent<HTMLTextAreaElement>) => {
+    const handleBlur = (event: FocusEvent<HTMLTextAreaElement>) => {
       setIsFocused(false);
       props.onBlur?.(event);
     };
