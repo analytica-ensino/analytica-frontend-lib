@@ -31,7 +31,7 @@ describe('DropdownMenu', () => {
   it('toggles open state with trigger', () => {
     render(
       <DropdownMenu open>
-        <ProfileMenuTrigger />
+        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
         <MenuContent>Menu Content</MenuContent>
       </DropdownMenu>
     );
