@@ -1,15 +1,18 @@
 name: Tests
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
+  workflow_call:
+    inputs:
+      cache-key:
+        description: "Cache key for node_modules"
+        required: true
+        type: string
 
 jobs:
   test:
     name: Run Tests with Coverage (80% minimum)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -21,16 +24,36 @@ jobs:
           node-version: 22
           cache: yarn
 
-      - name: Install dependencies
-        run: yarn install
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .pnp.*
+          key: ${{ inputs.cache-key }}
+          fail-on-cache-miss: true
 
       - name: Run Tests with Coverage
+        env:
+          CI: true
+          NODE_OPTIONS: "--max-old-space-size=4096"
         run: yarn test
 
-      - name: Upload Coverage Reports
+      - name: Upload Coverage Reports to Codecov
         uses: codecov/codecov-action@v4
         if: always()
         with:
           file: ./coverage/lcov.info
           flags: unittests
-          name: codecov-umbrella
+          name: analytica-frontend-lib-coverage
+
+      - name: Upload Coverage Artifacts for SonarCloud
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: |
+            coverage/
+            !coverage/tmp/
+          retention-days: 1

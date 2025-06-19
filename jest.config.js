@@ -1,5 +1,5 @@
 // jest.config.js
-module.exports = {
+const config = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
@@ -34,7 +34,6 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  testResultsProcessor: 'jest-sonar-reporter',
   coverageThreshold: {
     global: {
       branches: 80,
@@ -44,3 +43,10 @@ module.exports = {
     },
   },
 };
+
+// Only add sonar reporter when explicitly needed
+if (process.env.SONAR_REPORTER === 'true') {
+  config.testResultsProcessor = 'jest-sonar-reporter';
+}
+
+module.exports = config;
