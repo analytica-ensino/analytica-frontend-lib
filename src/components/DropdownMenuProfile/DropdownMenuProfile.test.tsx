@@ -304,7 +304,6 @@ describe('DropdownProfileMenu component', () => {
 
       const button = screen.getByRole('button', { name: 'Sair' });
       expect(button).toBeInTheDocument();
-      // Verifica se o ícone está presente sem verificar o role
       expect(button).toHaveTextContent('Sair');
       expect(button.querySelector('svg')).toBeInTheDocument();
     });
@@ -425,7 +424,6 @@ describe('ProfileMenuContent direction and positioning', () => {
     fireEvent.keyDown(document, { key: 'ArrowDown' });
     expect(items[2]).toHaveFocus();
 
-    // Test wrap-around
     fireEvent.keyDown(document, { key: 'ArrowDown' });
     expect(items[0]).toHaveFocus();
   });
