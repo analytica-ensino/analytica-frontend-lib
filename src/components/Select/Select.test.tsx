@@ -188,7 +188,7 @@ describe('Select keyboard navigation', () => {
     );
 
     await userEvent.click(screen.getByRole('button'));
-    const items = screen.getAllByRole('select-item');
+    const items = screen.getAllByRole('menuitem');
     items[0].focus();
 
     fireEvent.keyDown(document, { key: 'ArrowDown' });
@@ -217,7 +217,7 @@ describe('Select keyboard navigation', () => {
     );
 
     await userEvent.click(screen.getByRole('button'));
-    const items = screen.getAllByRole('select-item');
+    const items = screen.getAllByRole('menuitem');
     items[0].focus();
 
     fireEvent.keyDown(document, { key: 'ArrowUp' });
@@ -244,10 +244,10 @@ describe('Select keyboard navigation', () => {
     );
 
     await userEvent.click(screen.getByRole('button'));
-    expect(document.activeElement).not.toHaveAttribute('role', 'select-item');
+    expect(document.activeElement).not.toHaveAttribute('role', 'menuitem');
 
     fireEvent.keyDown(document, { key: 'ArrowDown' });
-    expect(screen.getAllByRole('select-item')[0]).toHaveFocus();
+    expect(screen.getAllByRole('menuitem')[0]).toHaveFocus();
   });
 
   it('starts from last item when no item is focused and ArrowUp is pressed', async () => {
@@ -264,10 +264,10 @@ describe('Select keyboard navigation', () => {
     );
 
     await userEvent.click(screen.getByRole('button'));
-    expect(document.activeElement).not.toHaveAttribute('role', 'select-item');
+    expect(document.activeElement).not.toHaveAttribute('role', 'menuitem');
 
     fireEvent.keyDown(document, { key: 'ArrowUp' });
-    const items = screen.getAllByRole('select-item');
+    const items = screen.getAllByRole('menuitem');
     expect(items[items.length - 1]).toHaveFocus();
   });
 
@@ -288,7 +288,7 @@ describe('Select keyboard navigation', () => {
   //   );
 
   //   await userEvent.click(screen.getByRole('button'));
-  //   const items = screen.getAllByRole('select-item');
+  //   const items = screen.getAllByRole('menuitem');
   //   items[0].focus();
 
   //   fireEvent.keyDown(document, { key: 'ArrowDown' });
@@ -343,7 +343,7 @@ describe('Select keyboard navigation', () => {
     );
 
     await userEvent.click(screen.getByRole('button'));
-    const items = screen.getAllByRole('select-item');
+    const items = screen.getAllByRole('menuitem');
     items[0].focus();
 
     const spy = jest.spyOn(Event.prototype, 'preventDefault');
@@ -375,7 +375,7 @@ describe('Select event navigation', () => {
     await userEvent.click(screen.getByRole('button'));
 
     // Foca no primeiro item
-    const items = screen.getAllByRole('select-item');
+    const items = screen.getAllByRole('menuitem');
     items[0].focus();
 
     // Pressiona Enter
@@ -383,7 +383,7 @@ describe('Select event navigation', () => {
 
     // Verifica se o item foi selecionado
     expect(onValueChange).toHaveBeenCalledWith('option1');
-    expect(screen.queryByRole('select-content')).not.toBeInTheDocument(); // Deve fechar
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument(); // Deve fechar
   });
 
   it('selects item when Space key is pressed', async () => {
@@ -404,7 +404,7 @@ describe('Select event navigation', () => {
     await userEvent.click(screen.getByRole('button'));
 
     // Foca no segundo item
-    const items = screen.getAllByRole('select-item');
+    const items = screen.getAllByRole('menuitem');
     items[1].focus();
 
     // Pressiona Espaço
@@ -412,7 +412,7 @@ describe('Select event navigation', () => {
 
     // Verifica se o item foi selecionado
     expect(onValueChange).toHaveBeenCalledWith('option2');
-    expect(screen.queryByRole('select-content')).not.toBeInTheDocument(); // Deve fechar
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument(); // Deve fechar
   });
 
   it('does not select disabled item when Enter is pressed', async () => {
@@ -434,7 +434,7 @@ describe('Select event navigation', () => {
     await userEvent.click(screen.getByRole('button'));
 
     // Foca no item desabilitado
-    const item = screen.getByRole('select-item');
+    const item = screen.getByRole('menuitem');
     item.focus();
 
     // Pressiona Enter
@@ -442,7 +442,7 @@ describe('Select event navigation', () => {
 
     // Verifica que não houve mudança
     expect(onValueChange).not.toHaveBeenCalled();
-    expect(screen.getByRole('select-content')).toBeInTheDocument(); // Deve permanecer aberto
+    expect(screen.getByRole('menu')).toBeInTheDocument(); // Deve permanecer aberto
   });
 });
 

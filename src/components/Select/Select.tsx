@@ -82,14 +82,12 @@ const Select = ({
   const value = isControlled ? propValue : internalValue;
 
   const handleArrowDownOrArrowUp = (event: globalThis.KeyboardEvent) => {
-    const selectContent = selectRef.current?.querySelector(
-      '[role="select-content"]'
-    );
+    const selectContent = selectRef.current?.querySelector('[role="menu"]');
     if (selectContent) {
       event.preventDefault();
       const items = Array.from(
         selectContent.querySelectorAll(
-          '[role="select-item"]:not([aria-disabled="true"])'
+          '[role="menuitem"]:not([aria-disabled="true"])'
         )
       ).filter((el): el is HTMLElement => el instanceof HTMLElement);
 
@@ -219,7 +217,11 @@ const SelectValue = ({ placeholder }: { placeholder?: string }) => {
   const { selectedLabel, value } = useSelectContext();
   return (
     <span className="text-inherit">
-      {selectedLabel || placeholder || value}
+      {selectedLabel !== undefined &&
+      selectedLabel !== null &&
+      selectedLabel !== ''
+        ? selectedLabel
+        : placeholder || value}
     </span>
   );
 };
@@ -287,7 +289,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
 
     return (
       <div
-        role="select-content"
+        role="menu"
         ref={ref}
         className={`
           bg-background z-50 min-w-[210px] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md border-border-100
@@ -340,7 +342,8 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
 
     return (
       <div
-        role="select-item"
+        role="menuitem"
+        aria-disabled={disabled}
         ref={ref}
         className={`
           focus-visible:bg-background-50
