@@ -39,3 +39,21 @@ jobs:
     with:
       cache-key: ${{ needs.setup.outputs.cache-key }}
     secrets: inherit
+
+  publish:
+    name: Publish Package
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: setup
+    uses: ./.github/workflows/publish.yml
+    with:
+      cache-key: ${{ needs.setup.outputs.cache-key }}
+    secrets: inherit
+
+  deploy-ladle:
+    name: Deploy Ladle
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: setup
+    uses: ./.github/workflows/ladle.yml
+    with:
+      cache-key: ${{ needs.setup.outputs.cache-key }}
+    secrets: inherit
