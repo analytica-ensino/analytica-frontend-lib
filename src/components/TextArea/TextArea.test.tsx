@@ -1,4 +1,4 @@
-import React from 'react';
+import { createRef, ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
@@ -13,7 +13,7 @@ jest.mock('../Text/Text', () => ({
     className,
     ...props
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     htmlFor?: string;
     className?: string;
     [key: string]: unknown;
@@ -30,20 +30,6 @@ jest.mock('../Text/Text', () => ({
 }));
 
 describe('TextArea', () => {
-  let useIdSpy: jest.SpyInstance;
-
-  beforeAll(() => {
-    // Mock useId hook to generate predictable IDs in tests
-    let counter = 0;
-    useIdSpy = jest
-      .spyOn(React, 'useId')
-      .mockImplementation(() => `test-id-${++counter}`);
-  });
-
-  afterAll(() => {
-    // Restore the original useId implementation
-    useIdSpy.mockRestore();
-  });
   describe('Basic Rendering', () => {
     it('renders a textarea element', () => {
       render(<TextArea />);
@@ -403,14 +389,14 @@ describe('TextArea', () => {
 
   describe('ForwardRef Functionality', () => {
     it('forwards ref to textarea element', () => {
-      const ref = React.createRef<HTMLTextAreaElement>();
+      const ref = createRef<HTMLTextAreaElement>();
       render(<TextArea ref={ref} />);
       expect(ref.current).toBeInstanceOf(HTMLTextAreaElement);
       expect(ref.current).toBe(screen.getByRole('textbox'));
     });
 
     it('ref provides access to textarea methods', () => {
-      const ref = React.createRef<HTMLTextAreaElement>();
+      const ref = createRef<HTMLTextAreaElement>();
       render(<TextArea ref={ref} />);
 
       expect(ref.current).not.toBeNull();
