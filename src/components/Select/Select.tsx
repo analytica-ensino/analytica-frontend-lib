@@ -15,6 +15,9 @@ import {
   useMemo,
   Children,
   ReactElement,
+  isValidElement,
+  KeyboardEvent,
+  MouseEvent,
 } from 'react';
 
 const VARIANT_CLASSES = {
@@ -78,6 +81,35 @@ const Select = ({
   const isControlled = propValue !== undefined;
   const value = isControlled ? propValue : internalValue;
 
+  const handleArrowDownOrArrowUp = (event: globalThis.KeyboardEvent) => {
+    const selectContent = selectRef.current?.querySelector(
+      '[role="select-content"]'
+    );
+    if (selectContent) {
+      event.preventDefault();
+      const items = Array.from(
+        selectContent.querySelectorAll(
+          '[role="select-item"]:not([aria-disabled="true"])'
+        )
+      ).filter((el): el is HTMLElement => el instanceof HTMLElement);
+
+      const focusedItem = document.activeElement as HTMLElement;
+      const currentIndex = items.findIndex((item) => item === focusedItem);
+
+      let nextIndex;
+      if (event.key === 'ArrowDown') {
+        nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
+      } else {
+        // ArrowUp
+        nextIndex =
+          currentIndex === -1
+            ? items.length - 1
+            : (currentIndex - 1 + items.length) % items.length;
+      }
+
+      items[nextIndex]?.focus();
+    }
+  };
   const handleValueChange = useCallback(
     (newValue: string) => {
       if (!isControlled) {
@@ -103,7 +135,7 @@ const Select = ({
   );
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: globalThis.MouseEvent) => {
       if (
         selectRef.current &&
         !selectRef.current.contains(event.target as Node)
@@ -114,10 +146,12 @@ const Select = ({
 
     if (open) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleArrowDownOrArrowUp);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleArrowDownOrArrowUp);
     };
   }, [open]);
 
@@ -131,6 +165,7 @@ const Select = ({
 
     const search = (nodes: ReactNode) => {
       Children.forEach(nodes, (child) => {
+        if (!isValidElement(child)) return;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const typedChild = child as ReactElement<any, any>;
 
@@ -250,6 +285,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
 
     return (
       <div
+        role="select-content"
         ref={ref}
         className={`
           bg-background z-50 min-w-[210px] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md border-border-100
@@ -288,17 +324,21 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
       }
     }, [selectedValue, selectedLabel, value, children, setSelectedLabel]);
 
-    const handleClick = () => {
+    const handleClick = (
+      e: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>
+    ) => {
       if (!disabled) {
         setValue(value);
         if (typeof children === 'string') {
           setSelectedLabel(children);
         }
       }
+      props.onClick?.(e as MouseEvent<HTMLDivElement>);
     };
 
     return (
       <div
+        role="select-item"
         ref={ref}
         className={`
           focus-visible:bg-background-50
@@ -313,6 +353,10 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
           ${selectedValue === value && 'bg-background-50'}
         `}
         onClick={handleClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') handleClick(e);
+        }}
+        tabIndex={disabled ? -1 : 0}
         {...props}
       >
         <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
