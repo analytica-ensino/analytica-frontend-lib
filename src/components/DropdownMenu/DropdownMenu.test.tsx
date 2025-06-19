@@ -536,7 +536,7 @@ describe('MenuContent direction and positioning', () => {
   });
 });
 
-describe('DropdownMenu component', () => {
+describe('ProfileMenu component', () => {
   describe('Trigger behavior', () => {
     it('opens and closes on trigger click (uncontrolled)', async () => {
       render(
