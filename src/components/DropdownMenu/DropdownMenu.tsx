@@ -421,7 +421,7 @@ ProfileMenuHeader.displayName = 'ProfileMenuHeader';
 
 const ProfileMenuSection = forwardRef<
   HTMLDivElement,
-  HTMLAttributes<HTMLDivElement> & {}
+  HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => {
   return (
     <div
