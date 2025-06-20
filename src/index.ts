@@ -24,6 +24,7 @@ import useToastStore from './components/Toast/utils/ToastStore';
 import Input from './components/Input/Input';
 import Chips from './components/Chips/Chips';
 import ProgressBar from './components/ProgressBar/ProgressBar';
+import ProgressCircle from './components/ProgressCircle/ProgressCircle';
 
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
@@ -65,6 +66,7 @@ export { useToastStore };
 export { Input };
 export { Chips };
 export { ProgressBar };
+export { ProgressCircle };
 
 // Export DropdownMenu and its sub-components
 export { DropdownMenu };
