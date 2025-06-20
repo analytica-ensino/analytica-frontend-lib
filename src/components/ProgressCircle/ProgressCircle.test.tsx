@@ -102,7 +102,7 @@ describe('ProgressCircle', () => {
       const circles = container.querySelectorAll('circle');
 
       circles.forEach(circle => {
-        expect(circle).toHaveAttribute('stroke-width', '8');
+        expect(circle).toHaveAttribute('stroke-width', '4');
       });
     });
 
@@ -111,7 +111,7 @@ describe('ProgressCircle', () => {
       const circles = container.querySelectorAll('circle');
 
       circles.forEach(circle => {
-        expect(circle).toHaveAttribute('stroke-width', '12');
+        expect(circle).toHaveAttribute('stroke-width', '8');
       });
     });
 

@@ -20,19 +20,19 @@ const SIZE_CLASSES = {
   small: {
     container: 'w-[90px] h-[90px]', // 90px circle from design specs
     strokeWidth: 4, // 4px stroke width - matches ProgressBar small (h-1)
-    textSize: '2xl' as const, // 24px for percentage (font-size: 24px)
-    textWeight: 'medium' as const, // font-weight: 500
+    textSize: '2xl', // 24px for percentage (font-size: 24px)
+    textWeight: 'medium', // font-weight: 500
     labelSize: '2xs' as const, // 10px for status label (closest to 8px design spec)
-    labelWeight: 'bold' as const, // font-weight: 700
+    labelWeight: 'bold', // font-weight: 700
     spacing: 'gap-1', // 4px gap between percentage and label
   },
   medium: {
     container: 'w-[152px] h-[152px]', // 151.67px ≈ 152px circle from design specs
     strokeWidth: 8, // 8px stroke width - matches ProgressBar medium (h-2)
-    textSize: '2xl' as const, // 24px for percentage (font-size: 24px)
-    textWeight: 'medium' as const, // font-weight: 500
+    textSize: '2xl', // 24px for percentage (font-size: 24px)
+    textWeight: 'medium', // font-weight: 500
     labelSize: 'xs' as const, // 12px for status label (font-size: 12px)
-    labelWeight: 'medium' as const, // font-weight: 500 (changed from bold)
+    labelWeight: 'medium', // font-weight: 500 (changed from bold)
     spacing: 'gap-1', // 4px gap between percentage and label
   },
 } as const;
