@@ -19,16 +19,20 @@ type ProgressCircleVariant = 'blue' | 'green';
 const SIZE_CLASSES = {
   small: {
     container: 'w-[90px] h-[90px]', // 90px circle from design specs
-    strokeWidth: 8, // 8px stroke width
-    textSize: '2xl' as const, // 24px for percentage
-    labelSize: '2xs' as const, // 8px for status label
+    strokeWidth: 4, // 4px stroke width - matches ProgressBar small (h-1)
+    textSize: '2xl' as const, // 24px for percentage (font-size: 24px)
+    textWeight: 'medium' as const, // font-weight: 500
+    labelSize: '2xs' as const, // 10px for status label (closest to 8px design spec)
+    labelWeight: 'bold' as const, // font-weight: 700
     spacing: 'gap-1', // 4px gap between percentage and label
   },
   medium: {
     container: 'w-[152px] h-[152px]', // ~152px circle from design specs
-    strokeWidth: 12, // 12px stroke width for medium
+    strokeWidth: 8, // 8px stroke width - matches ProgressBar medium (h-2)
     textSize: '2xl' as const, // 24px for percentage
+    textWeight: 'medium' as const, // font-weight: 500
     labelSize: 'xs' as const, // 12px for status label
+    labelWeight: 'bold' as const, // font-weight: 700
     spacing: 'gap-1', // 4px gap between percentage and label
   },
 } as const;
@@ -40,8 +44,8 @@ const VARIANT_CLASSES = {
   blue: {
     background: 'stroke-primary-100', // Light blue background (#BBDCF7)
     fill: 'stroke-primary-700', // Blue for activity progress (#2271C4)
-    textColor: 'text-primary-700', // Blue text color
-    labelColor: 'text-text-700', // Gray text for label
+    textColor: 'text-primary-700', // Blue text color (#2271C4)
+    labelColor: 'text-text-700', // Gray text for label (#525252)
   },
   green: {
     background: 'stroke-background-300', // Gray background (#D5D4D4)
@@ -127,7 +131,7 @@ const ProgressCircle = ({
 
   return (
     <div
-      className={`relative flex flex-col items-center justify-center ${sizeClasses.container} ${className}`}
+      className={`relative flex flex-col items-center justify-center ${sizeClasses.container} rounded-lg ${className}`}
     >
       {/* Progress circle SVG */}
       <svg
@@ -144,7 +148,7 @@ const ProgressCircle = ({
           r={radius}
           fill="none"
           strokeWidth={sizeClasses.strokeWidth}
-          className={variantClasses.background}
+          className={`${variantClasses.background} rounded-lg`}
         />
         {/* Progress circle */}
         <circle
@@ -156,10 +160,7 @@ const ProgressCircle = ({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
-          className={`${variantClasses.fill} transition-all duration-500 ease-out shadow-soft-shadow-3`}
-          style={{
-            filter: 'drop-shadow(0px 0px 30px rgba(38, 38, 38, 0.1))',
-          }}
+          className={`${variantClasses.fill} transition-all duration-500 ease-out shadow-soft-shadow-3 rounded-lg`}
         />
       </svg>
 
@@ -171,13 +172,13 @@ const ProgressCircle = ({
         className="absolute opacity-0 w-0 h-0"
       />
 
-      {/* Content overlay */}
+      {/* Content overlay - centered content */}
       <div className={`relative z-10 flex flex-col items-center justify-center ${sizeClasses.spacing}`}>
         {/* Percentage text */}
         {showPercentage && (
           <Text
             size={sizeClasses.textSize}
-            weight="medium"
+            weight={sizeClasses.textWeight}
             className={`${variantClasses.textColor} text-center ${percentageClassName}`}
           >
             {Math.round(percentage)}%
@@ -189,7 +190,7 @@ const ProgressCircle = ({
           <Text
             as="span"
             size={sizeClasses.labelSize}
-            weight="bold"
+            weight={sizeClasses.labelWeight}
             className={`${variantClasses.labelColor} text-center uppercase tracking-wide ${labelClassName}`}
           >
             {label}

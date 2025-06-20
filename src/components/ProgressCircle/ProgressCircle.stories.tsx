@@ -54,7 +54,9 @@ export const SizeVariants: Story = () => (
 export const ColorVariants: Story = () => (
   <div className="flex items-center justify-center gap-16 min-h-[300px] bg-background p-8">
     <div className="flex flex-col items-center gap-4">
-      <h3 className="text-lg font-medium text-text-950">Blue (Activity Progress)</h3>
+      <h3 className="text-lg font-medium text-text-950">
+        Blue (Activity Progress)
+      </h3>
       <ProgressCircle variant="blue" value={65} label="PROGRESSO" />
     </div>
     <div className="flex flex-col items-center gap-4">
@@ -71,7 +73,7 @@ export const AllCombinations: Story = () => (
   <div className="grid grid-cols-2 gap-8 min-h-[600px] bg-background p-8">
     <div className="flex flex-col items-center gap-4">
       <h3 className="text-lg font-medium text-text-950">Small Blue</h3>
-      <ProgressCircle size="small" variant="blue" value={45} label="ATIVIDADE" />
+      <ProgressCircle size="small" variant="blue" value={45} label="NOTA" />
     </div>
     <div className="flex flex-col items-center gap-4">
       <h3 className="text-lg font-medium text-text-950">Small Green</h3>
@@ -79,11 +81,21 @@ export const AllCombinations: Story = () => (
     </div>
     <div className="flex flex-col items-center gap-4">
       <h3 className="text-lg font-medium text-text-950">Medium Blue</h3>
-      <ProgressCircle size="medium" variant="blue" value={65} label="PROGRESSO" />
+      <ProgressCircle
+        size="medium"
+        variant="blue"
+        value={65}
+        label="PROGRESSO"
+      />
     </div>
     <div className="flex flex-col items-center gap-4">
       <h3 className="text-lg font-medium text-text-950">Medium Green</h3>
-      <ProgressCircle size="medium" variant="green" value={90} label="MÉDIA GERAL" />
+      <ProgressCircle
+        size="medium"
+        variant="green"
+        value={90}
+        label="MÉDIA GERAL"
+      />
     </div>
   </div>
 );
@@ -122,7 +134,9 @@ export const WithoutPercentage: Story = () => (
       <ProgressCircle value={65} label="CONCLUÍDO" showPercentage={false} />
     </div>
     <div className="flex flex-col items-center gap-4">
-      <h3 className="text-lg font-medium text-text-950">No Label, No Percentage</h3>
+      <h3 className="text-lg font-medium text-text-950">
+        No Label, No Percentage
+      </h3>
       <ProgressCircle value={80} showPercentage={false} />
     </div>
   </div>
@@ -154,7 +168,9 @@ export const CustomMaxValues: Story = () => (
 export const ActivityProgress: Story = () => (
   <div className="flex items-center justify-center min-h-[400px] bg-background-50 p-8">
     <div className="bg-background p-8 rounded-lg shadow-soft-shadow-2 flex flex-col items-center gap-6">
-      <h2 className="text-2xl font-medium text-text-950">Progresso da Atividade</h2>
+      <h2 className="text-2xl font-medium text-text-950">
+        Progresso da Atividade
+      </h2>
       <ProgressCircle
         size="medium"
         variant="blue"
@@ -194,32 +210,54 @@ export const PerformanceMetrics: Story = () => (
 export const DashboardExample: Story = () => (
   <div className="min-h-[600px] bg-background-50 p-8">
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold text-text-950 mb-8">Dashboard do Aluno</h1>
+      <h1 className="text-3xl font-bold text-text-950 mb-8">
+        Dashboard do Aluno
+      </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Activity Progress Cards */}
         <div className="bg-background p-6 rounded-lg shadow-soft-shadow-1 flex flex-col items-center gap-4">
           <h3 className="text-lg font-medium text-text-950">Matemática</h3>
-          <ProgressCircle size="small" variant="blue" value={75} label="PROGRESSO" />
+          <ProgressCircle
+            size="small"
+            variant="blue"
+            value={75}
+            label="PROGRESSO"
+          />
           <p className="text-text-600 text-sm text-center">15 de 20 aulas</p>
         </div>
 
         <div className="bg-background p-6 rounded-lg shadow-soft-shadow-1 flex flex-col items-center gap-4">
           <h3 className="text-lg font-medium text-text-950">Português</h3>
-          <ProgressCircle size="small" variant="blue" value={60} label="PROGRESSO" />
+          <ProgressCircle
+            size="small"
+            variant="blue"
+            value={60}
+            label="PROGRESSO"
+          />
           <p className="text-text-600 text-sm text-center">12 de 20 aulas</p>
         </div>
 
         {/* Performance Cards */}
         <div className="bg-background p-6 rounded-lg shadow-soft-shadow-1 flex flex-col items-center gap-4">
           <h3 className="text-lg font-medium text-text-950">Nota Matemática</h3>
-          <ProgressCircle size="small" variant="green" value={85} label="NOTA" />
+          <ProgressCircle
+            size="small"
+            variant="green"
+            value={85}
+            label="NOTA"
+          />
           <p className="text-text-600 text-sm text-center">Média: 8.5</p>
         </div>
 
         <div className="bg-background p-6 rounded-lg shadow-soft-shadow-1 flex flex-col items-center gap-4">
           <h3 className="text-lg font-medium text-text-950">Nota Português</h3>
-          <ProgressCircle size="small" variant="green" value={92} label="NOTA" />
+          <ProgressCircle
+            size="small"
+            variant="green"
+            value={92}
+            label="NOTA"
+          />
           <p className="text-text-600 text-sm text-center">Média: 9.2</p>
         </div>
       </div>
@@ -228,13 +266,27 @@ export const DashboardExample: Story = () => (
       <div className="mt-8 bg-background p-8 rounded-lg shadow-soft-shadow-2">
         <div className="flex flex-col lg:flex-row items-center justify-around gap-8">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-text-950 mb-4">Progresso Geral do Curso</h2>
-            <ProgressCircle size="medium" variant="blue" value={68} label="CONCLUÍDO" />
+            <h2 className="text-2xl font-bold text-text-950 mb-4">
+              Progresso Geral do Curso
+            </h2>
+            <ProgressCircle
+              size="medium"
+              variant="blue"
+              value={68}
+              label="CONCLUÍDO"
+            />
           </div>
 
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-text-950 mb-4">Desempenho Geral</h2>
-            <ProgressCircle size="medium" variant="green" value={88} label="MÉDIA GERAL" />
+            <h2 className="text-2xl font-bold text-text-950 mb-4">
+              Desempenho Geral
+            </h2>
+            <ProgressCircle
+              size="medium"
+              variant="green"
+              value={88}
+              label="MÉDIA GERAL"
+            />
           </div>
         </div>
       </div>
@@ -257,7 +309,9 @@ export const DarkTheme: Story = () => (
         </div>
 
         <div className="flex flex-col items-center gap-4">
-          <h3 className="text-lg font-medium text-text-950">Green Performance</h3>
+          <h3 className="text-lg font-medium text-text-950">
+            Green Performance
+          </h3>
           <ProgressCircle variant="green" value={85} label="PERFORMANCE" />
         </div>
       </div>
