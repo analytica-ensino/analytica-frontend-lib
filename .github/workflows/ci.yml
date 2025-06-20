@@ -1,0 +1,59 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  setup:
+    name: Setup Dependencies
+    uses: ./.github/workflows/setup.yml
+
+  lint:
+    name: Run Lint
+    needs: setup
+    uses: ./.github/workflows/lint.yml
+    with:
+      cache-key: ${{ needs.setup.outputs.cache-key }}
+
+  typecheck:
+    name: Run TypeCheck
+    needs: setup
+    uses: ./.github/workflows/typecheck.yml
+    with:
+      cache-key: ${{ needs.setup.outputs.cache-key }}
+
+  test:
+    name: Run Tests
+    needs: [setup, lint, typecheck]
+    uses: ./.github/workflows/test.yml
+    with:
+      cache-key: ${{ needs.setup.outputs.cache-key }}
+
+  sonarcloud:
+    name: Run SonarCloud Analysis
+    needs: [setup, lint, typecheck, test]
+    uses: ./.github/workflows/sonarcloud.yml
+    with:
+      cache-key: ${{ needs.setup.outputs.cache-key }}
+    secrets: inherit
+
+  publish:
+    name: Publish Package
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: setup
+    uses: ./.github/workflows/publish.yml
+    with:
+      cache-key: ${{ needs.setup.outputs.cache-key }}
+    secrets: inherit
+
+  deploy-ladle:
+    name: Deploy Ladle
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: setup
+    uses: ./.github/workflows/ladle.yml
+    with:
+      cache-key: ${{ needs.setup.outputs.cache-key }}
+    secrets: inherit

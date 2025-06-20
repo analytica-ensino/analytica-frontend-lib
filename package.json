@@ -1,6 +1,6 @@
 {
   "name": "analytica-frontend-lib",
-  "version": "1.0.29",
+  "version": "1.0.35",
   "description": "Repositório público dos componentes utilizados nas plataformas da Analytica Ensino",
   "main": "dist/index.cjs",
   "module": "./dist/index.js",
@@ -23,7 +23,7 @@
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:sonar": "jest --coverage --testResultsProcessor=jest-sonar-reporter",
+    "test:sonar": "SONAR_REPORTER=true jest --coverage",
     "build": "tsup",
     "build:clean": "rm -rf dist && npm run build",
     "ladle": "ladle serve",

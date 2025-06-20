@@ -1,9 +1,12 @@
 name: Deploy Ladle to DigitalOcean Spaces
 
 on:
-  push:
-    branches:
-      - main
+  workflow_call:
+    inputs:
+      cache-key:
+        description: "Cache key for node_modules"
+        required: true
+        type: string
   workflow_dispatch:
 
 jobs:
@@ -11,17 +14,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'yarn'
+          cache: yarn
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .pnp.*
+          key: ${{ inputs.cache-key }}
+          fail-on-cache-miss: true
 
       - name: Build Ladle
         run: yarn ladle:build

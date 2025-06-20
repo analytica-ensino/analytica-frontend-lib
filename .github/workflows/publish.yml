@@ -1,25 +1,37 @@
 name: Publish Package
 
 on:
-  push:
-    branches:
-      - main
+  workflow_call:
+    inputs:
+      cache-key:
+        description: "Cache key for node_modules"
+        required: true
+        type: string
 
 jobs:
   publish:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: 22
           registry-url: 'https://registry.npmjs.org/'
+          cache: yarn
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .pnp.*
+          key: ${{ inputs.cache-key }}
+          fail-on-cache-miss: true
 
       - name: Type check
         run: yarn typecheck
