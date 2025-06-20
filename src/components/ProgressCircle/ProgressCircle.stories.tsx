@@ -90,12 +90,52 @@ export const AllCombinations: Story = () => (
     </div>
     <div className="flex flex-col items-center gap-4">
       <h3 className="text-lg font-medium text-text-950">Medium Green</h3>
-      <ProgressCircle
-        size="medium"
-        variant="green"
-        value={90}
-        label="MÉDIA GERAL"
-      />
+      {/* Custom ProgressCircle with hit count format */}
+      <div className="relative">
+        <ProgressCircle
+          size="medium"
+          variant="green"
+          value={25}
+          showPercentage={false}
+          label=""
+        />
+
+        {/* Custom content overlay */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          {/* Timer - acima do hit count */}
+          <div className="flex items-center gap-1 mb-1">
+            <div className="w-3 h-3 rounded-full bg-text-800 flex items-center justify-center">
+              <svg
+                width="8"
+                height="8"
+                viewBox="0 0 14 14"
+                fill="none"
+                className="text-background"
+              >
+                <path
+                  d="M7 1.75C4.1 1.75 1.75 4.1 1.75 7S4.1 12.25 7 12.25 12.25 9.9 12.25 7 9.9 1.75 7 1.75zM7 11.25C4.65 11.25 2.75 9.35 2.75 7S4.65 2.75 7 2.75 11.25 4.65 11.25 7 9.35 11.25 7 11.25z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M7.25 4.5V7L9.5 8.25L9 9.25L6.25 7.5V4.5H7.25Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
+            <span className="text-2xs font-medium text-text-800">0h00</span>
+          </div>
+
+          {/* Hit count - no meio */}
+          <div className="text-2xl font-medium text-text-800 leading-7">
+            0 de 0
+          </div>
+
+          {/* Label - abaixo do hit count */}
+          <div className="text-2xs font-medium text-text-600 mt-1">
+            Corretas
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 );
