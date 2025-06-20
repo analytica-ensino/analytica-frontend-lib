@@ -78,12 +78,7 @@ export function getLabelAsNode(children: ReactNode): ReactNode {
   if (typeof children === 'string' || typeof children === 'number') {
     return children;
   }
-  const flattened = Children.toArray(children).map((child) => {
-    if (typeof child === 'string' || typeof child === 'number') {
-      return child;
-    }
-    return child;
-  });
+  const flattened = Children.toArray(children);
 
   if (flattened.length === 1) return flattened[0];
 
@@ -298,6 +293,8 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
       `}
         onClick={toggleOpen}
         aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-controls={open ? 'select-content' : undefined}
         {...props}
       >
         {props.children}
