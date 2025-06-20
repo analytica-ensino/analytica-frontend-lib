@@ -179,7 +179,10 @@ const ProgressCircle = ({
           <Text
             size={sizeClasses.textSize}
             weight={sizeClasses.textWeight}
-            className={`${variantClasses.textColor} text-center ${percentageClassName}`}
+            className={`text-center ${percentageClassName}`}
+            style={{
+              color: variant === 'blue' ? '#2271C4' : variant === 'green' ? '#404040' : undefined, // parana-700 for blue, text-800 for green
+            }}
           >
             {Math.round(percentage)}%
           </Text>

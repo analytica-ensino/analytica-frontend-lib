@@ -1,4 +1,5 @@
 import type { Story } from '@ladle/react';
+import { Clock } from 'phosphor-react';
 import ProgressCircle from './ProgressCircle';
 
 /**
@@ -104,24 +105,7 @@ export const AllCombinations: Story = () => (
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {/* Timer - acima do hit count */}
           <div className="flex items-center gap-1 mb-1">
-            <div className="w-3 h-3 rounded-full bg-text-800 flex items-center justify-center">
-              <svg
-                width="8"
-                height="8"
-                viewBox="0 0 14 14"
-                fill="none"
-                className="text-background"
-              >
-                <path
-                  d="M7 1.75C4.1 1.75 1.75 4.1 1.75 7S4.1 12.25 7 12.25 12.25 9.9 12.25 7 9.9 1.75 7 1.75zM7 11.25C4.65 11.25 2.75 9.35 2.75 7S4.65 2.75 7 2.75 11.25 4.65 11.25 7 9.35 11.25 7 11.25z"
-                  fill="currentColor"
-                />
-                <path
-                  d="M7.25 4.5V7L9.5 8.25L9 9.25L6.25 7.5V4.5H7.25Z"
-                  fill="currentColor"
-                />
-              </svg>
-            </div>
+            <Clock size={12} weight="regular" className="text-text-800" />
             <span className="text-2xs font-medium text-text-800">0h00</span>
           </div>
 
