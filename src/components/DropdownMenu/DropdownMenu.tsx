@@ -432,7 +432,6 @@ const ProfileMenuHeader = forwardRef<
   return (
     <div
       ref={ref}
-      role="presentation"
       data-component="ProfileMenuHeader"
       className={`
           flex flex-row gap-4 items-center
