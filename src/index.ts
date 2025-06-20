@@ -34,7 +34,6 @@ import Select, {
   SelectTrigger,
   SelectContent,
   SelectItem,
-  SelectSeparator,
 } from './components/Select/Select';
 
 // Re-export as named exports for bundled usage
@@ -66,4 +65,3 @@ export { SelectValue };
 export { SelectTrigger };
 export { SelectContent };
 export { SelectItem };
-export { SelectSeparator };
