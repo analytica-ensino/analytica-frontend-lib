@@ -81,7 +81,8 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
   storeRef.current ??= createDropdownStore();
   const store = storeRef.current;
   const isControlled = open !== undefined;
-  const currentOpen = isControlled ? open : useStore(store, (s) => s.open);
+  const uncontrolledOpen = useStore(store, (s) => s.open);
+  const currentOpen = isControlled ? open : uncontrolledOpen;
 
   const setOpen = (newOpen: boolean) => {
     onOpenChange?.(newOpen);
@@ -149,7 +150,9 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
   }, [currentOpen]);
 
   useEffect(() => {
-    store.setState({ open: isControlled });
+    if (isControlled) {
+      store.setState({ open: open });
+    }
   }, []);
 
   return (
@@ -333,45 +336,26 @@ const MenuItem = forwardRef<
       setOpen(false);
     };
 
-    if (variant == 'menu')
-      return (
-        <div
-          ref={ref}
-          role="menuitem"
-          aria-disabled={disabled}
-          className={`
-            focus-visible:bg-background-50
-            relative flex select-none items-center gap-2 rounded-sm p-3 text-sm outline-none transition-colors [&>svg]:size-4 [&>svg]:shrink-0
-            ${sizeClasses}
-            ${className}
-            ${
-              disabled
-                ? 'cursor-not-allowed text-text-400'
-                : 'cursor-pointer hover:bg-background-50 text-text-700 focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground'
-            }
-          `}
-          onClick={handleClick}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') handleClick(e);
-          }}
-          tabIndex={disabled ? -1 : 0}
-          {...props}
-        >
-          {iconLeft}
-          {children}
-          {iconRight}
-        </div>
-      );
+    const getVariantClasses = () => {
+      if (variant === 'profile') {
+        return 'relative flex flex-row justify-between select-none items-center gap-2 rounded-sm p-3 text-sm outline-none transition-colors [&>svg]:size-6 [&>svg]:shrink-0';
+      }
+      return 'relative flex select-none items-center gap-2 rounded-sm p-3 text-sm outline-none transition-colors [&>svg]:size-4 [&>svg]:shrink-0';
+    };
+
+    const getVariantProps = () => {
+      return variant === 'profile' ? { 'data-variant': 'profile' } : {};
+    };
 
     return (
       <div
         ref={ref}
         role="menuitem"
-        data-variant="profile"
+        {...getVariantProps()}
         aria-disabled={disabled}
         className={`
           focus-visible:bg-background-50
-          relative flex flex-row justify-between select-none items-center gap-2 rounded-sm p-3 text-sm outline-none transition-colors [&>svg]:size-6 [&>svg]:shrink-0
+           ${getVariantClasses()}
           ${sizeClasses}
           ${className}
           ${
@@ -448,7 +432,7 @@ const ProfileMenuHeader = forwardRef<
   return (
     <div
       ref={ref}
-      role="menuitem"
+      role="presentation"
       data-component="ProfileMenuHeader"
       className={`
           flex flex-row gap-4 items-center
