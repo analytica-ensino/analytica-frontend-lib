@@ -49,28 +49,31 @@ describe('ProgressBar', () => {
   describe('Size variants', () => {
     it('applies small size classes', () => {
       const { container } = render(<ProgressBar size="small" value={50} />);
-      const progressContainer = screen.getByRole('progressbar');
+      const progressBar = screen.getByRole('progressbar');
+      const visualContainer = container.querySelector('.h-1.bg-background-300'); // Visual container
       const progressFill = container.querySelector('[style*="width: 50%"]');
 
-      expect(progressContainer).toHaveClass('h-1');
+      expect(visualContainer).toHaveClass('h-1');
       expect(progressFill).toHaveClass('h-1');
     });
 
     it('applies medium size classes (default)', () => {
       const { container } = render(<ProgressBar value={50} />);
-      const progressContainer = screen.getByRole('progressbar');
+      const progressBar = screen.getByRole('progressbar');
+      const visualContainer = container.querySelector('.h-2.bg-background-300'); // Visual container
       const progressFill = container.querySelector('[style*="width: 50%"]');
 
-      expect(progressContainer).toHaveClass('h-2');
+      expect(visualContainer).toHaveClass('h-2');
       expect(progressFill).toHaveClass('h-2');
     });
 
     it('applies medium size classes explicitly', () => {
       const { container } = render(<ProgressBar size="medium" value={50} />);
-      const progressContainer = screen.getByRole('progressbar');
+      const progressBar = screen.getByRole('progressbar');
+      const visualContainer = container.querySelector('.h-2.bg-background-300'); // Visual container
       const progressFill = container.querySelector('[style*="width: 50%"]');
 
-      expect(progressContainer).toHaveClass('h-2');
+      expect(visualContainer).toHaveClass('h-2');
       expect(progressFill).toHaveClass('h-2');
     });
 
@@ -90,28 +93,31 @@ describe('ProgressBar', () => {
   describe('Color variants', () => {
     it('applies blue variant classes (default)', () => {
       const { container } = render(<ProgressBar value={50} />);
-      const progressContainer = screen.getByRole('progressbar');
+      const progressBar = screen.getByRole('progressbar');
+      const visualContainer = container.querySelector('.h-2.bg-background-300'); // Visual container
       const progressFill = container.querySelector('[style*="width: 50%"]');
 
-      expect(progressContainer).toHaveClass('bg-background-300');
+      expect(visualContainer).toHaveClass('bg-background-300');
       expect(progressFill).toHaveClass('bg-primary-700');
     });
 
     it('applies blue variant classes explicitly', () => {
       const { container } = render(<ProgressBar variant="blue" value={50} />);
-      const progressContainer = screen.getByRole('progressbar');
+      const progressBar = screen.getByRole('progressbar');
+      const visualContainer = container.querySelector('.h-2.bg-background-300'); // Visual container
       const progressFill = container.querySelector('[style*="width: 50%"]');
 
-      expect(progressContainer).toHaveClass('bg-background-300');
+      expect(visualContainer).toHaveClass('bg-background-300');
       expect(progressFill).toHaveClass('bg-primary-700');
     });
 
     it('applies green variant classes', () => {
       const { container } = render(<ProgressBar variant="green" value={50} />);
-      const progressContainer = screen.getByRole('progressbar');
+      const progressBar = screen.getByRole('progressbar');
+      const visualContainer = container.querySelector('.h-2.bg-background-300'); // Visual container
       const progressFill = container.querySelector('[style*="width: 50%"]');
 
-      expect(progressContainer).toHaveClass('bg-background-300');
+      expect(visualContainer).toHaveClass('bg-background-300');
       expect(progressFill).toHaveClass('bg-success-200');
     });
   });
@@ -180,9 +186,8 @@ describe('ProgressBar', () => {
       render(<ProgressBar value={75} />);
       const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveAttribute('aria-valuenow', '75');
-      expect(progressBar).toHaveAttribute('aria-valuemin', '0');
-      expect(progressBar).toHaveAttribute('aria-valuemax', '100');
+      expect(progressBar).toHaveAttribute('value', '75');
+      expect(progressBar).toHaveAttribute('max', '100');
       expect(progressBar).toHaveAttribute('aria-label', 'Progress');
     });
 
@@ -190,9 +195,8 @@ describe('ProgressBar', () => {
       render(<ProgressBar value={8} max={10} />);
       const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveAttribute('aria-valuenow', '8');
-      expect(progressBar).toHaveAttribute('aria-valuemin', '0');
-      expect(progressBar).toHaveAttribute('aria-valuemax', '10');
+      expect(progressBar).toHaveAttribute('value', '8');
+      expect(progressBar).toHaveAttribute('max', '10');
     });
 
     it('sets custom aria-label when label is provided as string', () => {
@@ -211,7 +215,7 @@ describe('ProgressBar', () => {
     it('sets correct aria attributes with clamped values', () => {
       render(<ProgressBar value={150} max={100} />);
       const progressBar = screen.getByRole('progressbar');
-      expect(progressBar).toHaveAttribute('aria-valuenow', '100');
+      expect(progressBar).toHaveAttribute('value', '100');
     });
   });
 
@@ -238,23 +242,21 @@ describe('ProgressBar', () => {
 
     it('applies percentageClassName to percentage text', () => {
       render(
-        <ProgressBar
-          value={50}
-          showPercentage
-          percentageClassName="custom-percentage-class"
-        />
+        <ProgressBar value={50} showPercentage percentageClassName="custom-percentage-class" />
       );
-      const percentage = screen.getByText('50%');
-      expect(percentage).toHaveClass('custom-percentage-class');
+      // Use getAllByText and filter for the visible one (not the hidden progress element)
+      const percentageElements = screen.getAllByText('50%');
+      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+      expect(visiblePercentage).toHaveClass('custom-percentage-class');
     });
 
     it('applies correct base classes to progress container', () => {
       render(<ProgressBar value={50} />);
       const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveClass('flex-grow');
-      expect(progressBar).toHaveClass('rounded-lg');
-      expect(progressBar).toHaveClass('overflow-hidden');
+      // The native progress element has different classes now
+      expect(progressBar).toHaveClass('absolute');
+      expect(progressBar).toHaveClass('opacity-0');
     });
 
     it('applies correct classes to progress fill', () => {
@@ -285,8 +287,10 @@ describe('ProgressBar', () => {
 
     it('renders label/percentage container when only percentage is provided', () => {
       render(<ProgressBar value={50} showPercentage />);
-      const percentage = screen.getByText('50%');
-      expect(percentage).toBeInTheDocument();
+      // Get the visible percentage (not the hidden one in progress element)
+      const percentageElements = screen.getAllByText('50%');
+      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+      expect(visiblePercentage).toBeInTheDocument();
     });
 
     it('renders both label and percentage in correct positions', () => {
@@ -294,8 +298,10 @@ describe('ProgressBar', () => {
         <ProgressBar value={50} label="Test Label" showPercentage />
       );
 
-      const percentage = screen.getByText('50%');
-      expect(percentage).toBeInTheDocument();
+      // Get the visible percentage
+      const percentageElements = screen.getAllByText('50%');
+      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+      expect(visiblePercentage).toBeInTheDocument();
 
       // Label is not rendered when showPercentage is true in medium size
       expect(screen.queryByText('Test Label')).not.toBeInTheDocument();
@@ -343,72 +349,78 @@ describe('ProgressBar', () => {
 
     it('applies correct text color classes to percentage', () => {
       render(<ProgressBar value={50} showPercentage />);
-      const percentage = screen.getByText('50%');
-      expect(percentage).toHaveClass('text-text-950');
+      const percentageElements = screen.getAllByText('50%');
+      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+      expect(visiblePercentage).toHaveClass('text-text-950');
     });
 
     it('applies medium font weight to both label and percentage', () => {
       render(<ProgressBar size="small" value={50} label="Test" showPercentage />);
       const label = screen.getByText('Test');
-      const percentage = screen.getByText('50%');
+      const percentageElements = screen.getAllByText('50%');
+      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
 
       expect(label).toHaveClass('font-medium');
-      expect(percentage).toHaveClass('font-medium');
+      expect(visiblePercentage).toHaveClass('font-medium');
     });
   });
 
   describe('Edge cases and error handling', () => {
-        it('handles NaN values gracefully', () => {
+    it('handles NaN values gracefully', () => {
       const { container } = render(<ProgressBar value={NaN} showPercentage />);
       const progressFill = container.querySelector('[style*="width: 0%"]');
-      const percentage = screen.getByText('0%');
+      const percentageElements = screen.getAllByText('0%');
+      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
 
       expect(progressFill).toBeInTheDocument();
-      expect(percentage).toBeInTheDocument();
+      expect(visiblePercentage).toBeInTheDocument();
 
       // Check that aria attributes handle NaN correctly
       const progressBar = screen.getByRole('progressbar');
-      expect(progressBar).toHaveAttribute('aria-valuenow', '0');
+      expect(progressBar).toHaveAttribute('value', '0');
     });
 
     it('handles Infinity values gracefully', () => {
       const { container } = render(<ProgressBar value={Infinity} showPercentage />);
       const progressFill = container.querySelector('[style*="width: 100%"]');
-      const percentage = screen.getByText('100%');
+      const percentageElements = screen.getAllByText('100%');
+      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
 
       expect(progressFill).toBeInTheDocument();
-      expect(percentage).toBeInTheDocument();
+      expect(visiblePercentage).toBeInTheDocument();
     });
 
-        it('handles zero max value', () => {
+    it('handles zero max value', () => {
       const { container } = render(<ProgressBar value={5} max={0} showPercentage />);
       const progressFill = container.querySelector('[style*="width: 0%"]');
-      const percentage = screen.getByText('0%');
+      const percentageElements = screen.getAllByText('0%');
+      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
 
       expect(progressFill).toBeInTheDocument();
-      expect(percentage).toBeInTheDocument();
+      expect(visiblePercentage).toBeInTheDocument();
 
       // When max is 0, we handle it gracefully by setting percentage to 0
       const progressBar = screen.getByRole('progressbar');
-      expect(progressBar).toHaveAttribute('aria-valuemax', '0');
-      expect(progressBar).toHaveAttribute('aria-valuenow', '0');
+      expect(progressBar).toHaveAttribute('max', '0');
+      expect(progressBar).toHaveAttribute('value', '0');
     });
 
     it('handles decimal max values', () => {
       const { container } = render(<ProgressBar value={0.5} max={1.5} showPercentage />);
       const progressFill = container.querySelector('[style*="width: 33"]'); // 0.5/1.5 = 33.33%
-      const percentage = screen.getByText('33%');
+      const percentageElements = screen.getAllByText('33%');
+      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
 
       expect(progressFill).toBeInTheDocument();
-      expect(percentage).toBeInTheDocument();
+      expect(visiblePercentage).toBeInTheDocument();
     });
 
     it('maintains precision in ARIA attributes with decimal values', () => {
       render(<ProgressBar value={0.5} max={1.5} />);
       const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveAttribute('aria-valuenow', '0.5');
-      expect(progressBar).toHaveAttribute('aria-valuemax', '1.5');
+      expect(progressBar).toHaveAttribute('value', '0.5');
+      expect(progressBar).toHaveAttribute('max', '1.5');
     });
   });
 
@@ -430,21 +442,21 @@ describe('ProgressBar', () => {
 
       const progressBar = screen.getByRole('progressbar');
       const label = screen.getByText('Test Progress');
-      const percentage = screen.getByText('45%'); // 67/150 = 44.67% rounds to 45%
+      const percentageElements = screen.getAllByText('45%'); // 67/150 = 44.67% rounds to 45%
+      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
       const progressContainer = container.firstChild as HTMLElement;
       const progressFill = container.querySelector('[style*="width: 44"]'); // 44.67%
 
       expect(progressBar).toBeInTheDocument();
-      expect(progressBar).toHaveClass('h-1', 'bg-background-300');
-      expect(progressBar).toHaveAttribute('aria-valuenow', '67');
-      expect(progressBar).toHaveAttribute('aria-valuemax', '150');
+      expect(progressBar).toHaveAttribute('value', '67');
+      expect(progressBar).toHaveAttribute('max', '150');
       expect(progressBar).toHaveAttribute('aria-label', 'Test Progress');
 
       expect(label).toBeInTheDocument();
       expect(label).toHaveClass('text-xs', 'custom-label');
 
-      expect(percentage).toBeInTheDocument();
-      expect(percentage).toHaveClass('custom-percentage');
+      expect(visiblePercentage).toBeInTheDocument();
+      expect(visiblePercentage).toHaveClass('custom-percentage');
 
       expect(progressContainer).toHaveClass('custom-container');
       expect(progressFill).toHaveClass('h-1', 'bg-success-200');
@@ -467,10 +479,11 @@ describe('ProgressBar', () => {
           );
 
           const progressBar = screen.getByRole('progressbar');
-          const percentage = screen.getByText('50%');
+          const percentageElements = screen.getAllByText('50%');
+          const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
 
           expect(progressBar).toBeInTheDocument();
-          expect(percentage).toBeInTheDocument();
+          expect(visiblePercentage).toBeInTheDocument();
 
           // For small size, label should be visible
           if (size === 'small') {

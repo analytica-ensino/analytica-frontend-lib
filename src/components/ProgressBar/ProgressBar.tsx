@@ -147,14 +147,15 @@ const ProgressBar = ({
       )}
 
       {/* Progress bar container */}
-      <div
-        className={`${size === 'medium' ? 'flex-grow' : 'w-full'} ${sizeClasses.container} ${variantClasses.background} ${sizeClasses.borderRadius} overflow-hidden`}
-        role="progressbar"
-        aria-valuenow={clampedValue}
-        aria-valuemin={0}
-        aria-valuemax={max}
-        aria-label={typeof label === 'string' ? label : 'Progress'}
-      >
+      <div className={`${size === 'medium' ? 'flex-grow' : 'w-full'} ${sizeClasses.container} ${variantClasses.background} ${sizeClasses.borderRadius} overflow-hidden relative`}>
+        {/* Native progress element for accessibility */}
+        <progress
+          value={clampedValue}
+          max={max}
+          aria-label={typeof label === 'string' ? label : 'Progress'}
+          className="absolute inset-0 w-full h-full opacity-0"
+        />
+
         {/* Progress bar fill */}
         <div
           className={`${sizeClasses.bar} ${variantClasses.fill} ${sizeClasses.borderRadius} transition-all duration-300 ease-out shadow-hard-shadow-3`}
