@@ -173,16 +173,15 @@ const ProgressCircle = ({
       />
 
       {/* Content overlay - centered content */}
-      <div className={`relative z-10 flex flex-col items-center justify-center ${sizeClasses.spacing}`}>
+      <div
+        className={`relative z-10 flex flex-col items-center justify-center ${sizeClasses.spacing}`}
+      >
         {/* Percentage text */}
         {showPercentage && (
           <Text
             size={sizeClasses.textSize}
             weight={sizeClasses.textWeight}
-            className={`text-center ${percentageClassName}`}
-            style={{
-              color: variant === 'blue' ? '#2271C4' : variant === 'green' ? '#404040' : undefined, // parana-700 for blue, text-800 for green
-            }}
+            className={`text-center ${variantClasses.textColor} ${percentageClassName}`}
           >
             {Math.round(percentage)}%
           </Text>

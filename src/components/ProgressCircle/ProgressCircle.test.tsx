@@ -406,9 +406,6 @@ describe('ProgressCircle', () => {
     it('handles empty string as label', () => {
       const { container } = render(<ProgressCircle value={50} label="" />);
 
-      // When label is empty string, it still renders but with empty content
-      const allSpans = container.querySelectorAll('span');
-
       // Look for the label span that should be rendered with text-2xs class
       const labelSpan = container.querySelector('span.text-2xs');
       if (labelSpan) {
