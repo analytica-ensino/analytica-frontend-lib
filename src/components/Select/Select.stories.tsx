@@ -4,7 +4,6 @@ import Select, {
   SelectValue,
   SelectContent,
   SelectItem,
-  SelectSeparator,
 } from './Select';
 
 const sizes = ['small', 'medium', 'large'] as const;
@@ -37,6 +36,8 @@ export const AllSelects: Story = () => {
               {variants.map((variant) => (
                 <div key={variant} className="flex flex-col gap-2">
                   <span className="text-sm text-text-600">{variant}</span>
+
+                  {/* Normal */}
                   <Select size={size} defaultValue={items[0].value}>
                     <SelectTrigger variant={variant}>
                       <SelectValue placeholder={`Select ${variant}`} />
@@ -44,6 +45,42 @@ export const AllSelects: Story = () => {
                     <SelectContent>
                       {items.map((item) => (
                         <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* Invalid */}
+                  <Select size={size} defaultValue={items[0].value}>
+                    <SelectTrigger variant={variant} invalid>
+                      <SelectValue
+                        placeholder={`Select ${variant} (invalid)`}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {items.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* Disabled */}
+                  <Select size={size}>
+                    <SelectTrigger variant={variant} disabled>
+                      <SelectValue
+                        placeholder={`Select ${variant} (disabled)`}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {items.map((item) => (
+                        <SelectItem
+                          key={item.value}
+                          value={item.value}
+                          disabled
+                        >
                           {item.label}
                         </SelectItem>
                       ))}
@@ -86,23 +123,6 @@ export const AllSelects: Story = () => {
                 {item.label}
               </SelectItem>
             ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Com separador */}
-      <h3 className="font-bold text-2xl text-text-900">Com separador</h3>
-      <div className="flex flex-row gap-4 flex-wrap">
-        <Select>
-          <SelectTrigger>
-            <SelectValue placeholder="Select with separator" />
-          </SelectTrigger>
-          <SelectContent side="top">
-            <SelectItem value="group1-item1">Group 1 - Item 1</SelectItem>
-            <SelectItem value="group1-item2">Group 1 - Item 2</SelectItem>
-            <SelectSeparator />
-            <SelectItem value="group2-item1">Group 2 - Item 1</SelectItem>
-            <SelectItem value="group2-item2">Group 2 - Item 2</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -180,7 +200,11 @@ export const Large: Story = () => (
       <SelectValue placeholder="Large select" />
     </SelectTrigger>
     <SelectContent>
-      <SelectItem value="item1">Item 1</SelectItem>
+      <SelectItem value="item1">
+        Prefixo
+        <span>1</span>
+        <span>2</span>
+      </SelectItem>
       <SelectItem value="item2">Item 2</SelectItem>
     </SelectContent>
   </Select>
@@ -207,21 +231,6 @@ export const Disabled: Story = () => (
     <SelectContent>
       <SelectItem value="item1">Item 1</SelectItem>
       <SelectItem value="item2">Item 2</SelectItem>
-    </SelectContent>
-  </Select>
-);
-
-export const WithSeparator: Story = () => (
-  <Select>
-    <SelectTrigger>
-      <SelectValue placeholder="Select with separator" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="group1-item1">Group 1 - Item 1</SelectItem>
-      <SelectItem value="group1-item2">Group 1 - Item 2</SelectItem>
-      <SelectSeparator />
-      <SelectItem value="group2-item1">Group 2 - Item 1</SelectItem>
-      <SelectItem value="group2-item2">Group 2 - Item 2</SelectItem>
     </SelectContent>
   </Select>
 );

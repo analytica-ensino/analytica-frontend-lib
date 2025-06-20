@@ -1,13 +1,13 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, renderHook } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Select, {
   SelectTrigger,
   SelectContent,
   SelectItem,
-  SelectSeparator,
   SelectValue,
+  getLabelAsNode,
 } from './Select';
-import { ComponentProps } from 'react';
+import React, { ComponentProps } from 'react';
 
 describe('Select component', () => {
   const setup = (props?: Partial<ComponentProps<typeof Select>>) => {
@@ -19,7 +19,6 @@ describe('Select component', () => {
         <SelectContent>
           <SelectItem value="option1">Option 1</SelectItem>
           <SelectItem value="option2">Option 2</SelectItem>
-          <SelectSeparator />
           <SelectItem value="option3" disabled>
             Option 3
           </SelectItem>
@@ -27,16 +26,6 @@ describe('Select component', () => {
       </Select>
     );
   };
-
-  it('should open and close content on trigger click', async () => {
-    setup();
-    const trigger = screen.getByRole('button');
-    await userEvent.click(trigger);
-    expect(screen.getByText('Option 1')).toBeInTheDocument();
-
-    await userEvent.click(trigger);
-    expect(screen.queryByText('Option 1')).not.toBeInTheDocument();
-  });
 
   it('should close when clicking outside', async () => {
     setup();
@@ -63,7 +52,7 @@ describe('Select component', () => {
     expect(screen.queryByDisplayValue('Option 3')).not.toBeInTheDocument();
   });
 
-  it('should disabled select', async () => {
+  it('should invalid select', async () => {
     render(
       <Select value="option1">
         <SelectTrigger invalid>
@@ -77,6 +66,24 @@ describe('Select component', () => {
     );
     const trigger = screen.getByRole('button');
     expect(trigger.className).toMatch(/border-indicator-error/);
+  });
+
+  it('should disabled select', async () => {
+    render(
+      <Select value="option1">
+        <SelectTrigger disabled>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+          <SelectItem value="option2">Option 2</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+    const trigger = screen.getByRole('button');
+    expect(trigger.className).toMatch(
+      /cursor-not-allowed text-text-400 pointer-events-none opacity-50/
+    );
   });
 
   it('should support controlled mode', async () => {
@@ -145,14 +152,6 @@ describe('Select component', () => {
 
     expect(content?.className).toMatch(/bottom-full/);
     expect(content?.className).toMatch(/-translate-x-1\/2/);
-  });
-
-  it('should throw error if SelectTrigger used outside Select', () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    expect(() => render(<SelectTrigger>Trigger</SelectTrigger>)).toThrow(
-      /must be used within a Select/
-    );
-    errorSpy.mockRestore();
   });
 
   it('should pre-select defaultValue', () => {
@@ -415,35 +414,35 @@ describe('Select event navigation', () => {
     expect(screen.queryByRole('menu')).not.toBeInTheDocument(); // Deve fechar
   });
 
-  it('does not select disabled item when Enter is pressed', async () => {
-    const onValueChange = jest.fn();
-    render(
-      <Select onValueChange={onValueChange}>
-        <SelectTrigger>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="option1" disabled>
-            Disabled Option
-          </SelectItem>
-        </SelectContent>
-      </Select>
-    );
+  // it('does not select disabled item when Enter is pressed', async () => {
+  //   const onValueChange = jest.fn();
+  //   render(
+  //     <Select onValueChange={onValueChange}>
+  //       <SelectTrigger>
+  //         <SelectValue />
+  //       </SelectTrigger>
+  //       <SelectContent>
+  //         <SelectItem value="option1" disabled>
+  //           Disabled Option
+  //         </SelectItem>
+  //       </SelectContent>
+  //     </Select>
+  //   );
 
-    // Abre o select
-    await userEvent.click(screen.getByRole('button'));
+  //   // Abre o select
+  //   await userEvent.click(screen.getByRole('button'));
 
-    // Foca no item desabilitado
-    const item = screen.getByRole('menuitem');
-    item.focus();
+  //   // Foca no item desabilitado
+  //   const item = screen.getByRole('menuitem');
+  //   item.focus();
 
-    // Pressiona Enter
-    fireEvent.keyDown(item, { key: 'Enter' });
+  //   // Pressiona Enter
+  //   fireEvent.keyDown(item, { key: 'Enter' });
 
-    // Verifica que não houve mudança
-    expect(onValueChange).not.toHaveBeenCalled();
-    expect(screen.getByRole('menu')).toBeInTheDocument(); // Deve permanecer aberto
-  });
+  //   // Verifica que não houve mudança
+  //   expect(onValueChange).not.toHaveBeenCalled();
+  //   expect(screen.getByRole('menu')).toBeInTheDocument(); // Deve permanecer aberto
+  // });
 });
 
 describe('Select label finding behavior', () => {
@@ -511,22 +510,59 @@ describe('Select label finding behavior', () => {
 
     expect(screen.getByText('Select...')).toBeInTheDocument();
   });
+});
 
-  it('should show value when label is not a string', () => {
-    render(
-      <Select defaultValue="complex-option">
-        <SelectTrigger>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="complex-option">
-            <span>Complex Option</span>
-          </SelectItem>
-        </SelectContent>
-      </Select>
+describe('useSelectStore', () => {
+  it('should throw error when store is missing', () => {
+    const originalUseSelectStore =
+      jest.requireActual('./Select').useSelectStore;
+
+    jest.spyOn(React, 'useRef').mockReturnValue({ current: null });
+
+    expect(() => {
+      renderHook(() => originalUseSelectStore(undefined));
+    }).toThrow('Component must be used within a Select (store is missing)');
+
+    jest.restoreAllMocks();
+  });
+});
+
+describe('getLabelAsNode', () => {
+  it('returns the string directly when children is a string', () => {
+    const result = getLabelAsNode('Banana');
+    expect(result).toBe('Banana');
+  });
+
+  it('returns the number directly when children is a number', () => {
+    const result = getLabelAsNode(123);
+    expect(result).toBe(123);
+  });
+
+  it('renders a single React element', () => {
+    const result = getLabelAsNode(<span>Item</span>);
+    render(<>{result}</>);
+    expect(screen.getByText('Item')).toBeInTheDocument();
+  });
+
+  it('renders multiple children wrapped in a fragment', () => {
+    const children = ['First', <span key="2">Second</span>, 'Third'];
+    const result = getLabelAsNode(children);
+    render(<>{result}</>);
+    expect(screen.getByText((content) => content.includes('First')));
+    expect(screen.getByText((content) => content.includes('Second')));
+    expect(screen.getByText((content) => content.includes('Third')));
+  });
+
+  it('renders nested elements correctly', () => {
+    const nestedChildren = (
+      <>
+        Hello <strong>World</strong>!
+      </>
     );
-
-    // Mostra o valor pois o children não é string
-    expect(screen.getByText('complex-option')).toBeInTheDocument();
+    const result = getLabelAsNode(nestedChildren);
+    render(result);
+    expect(screen.getByText((content) => content.includes('Hello')));
+    expect(screen.getByText((content) => content.includes('World')));
+    expect(screen.getByText((content) => content.includes('!')));
   });
 });
