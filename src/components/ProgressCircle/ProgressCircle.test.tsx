@@ -101,7 +101,7 @@ describe('ProgressCircle', () => {
       const { container } = render(<ProgressCircle size="small" value={50} />);
       const circles = container.querySelectorAll('circle');
 
-      circles.forEach(circle => {
+      circles.forEach((circle) => {
         expect(circle).toHaveAttribute('stroke-width', '4');
       });
     });
@@ -110,7 +110,7 @@ describe('ProgressCircle', () => {
       const { container } = render(<ProgressCircle size="medium" value={50} />);
       const circles = container.querySelectorAll('circle');
 
-      circles.forEach(circle => {
+      circles.forEach((circle) => {
         expect(circle).toHaveAttribute('stroke-width', '8');
       });
     });
@@ -150,7 +150,9 @@ describe('ProgressCircle', () => {
     });
 
     it('applies blue variant classes explicitly', () => {
-      const { container } = render(<ProgressCircle variant="blue" value={50} />);
+      const { container } = render(
+        <ProgressCircle variant="blue" value={50} />
+      );
       const circles = container.querySelectorAll('circle');
 
       expect(circles[0]).toHaveClass('stroke-primary-100'); // Background circle
@@ -158,7 +160,9 @@ describe('ProgressCircle', () => {
     });
 
     it('applies green variant classes', () => {
-      const { container } = render(<ProgressCircle variant="green" value={50} />);
+      const { container } = render(
+        <ProgressCircle variant="green" value={50} />
+      );
       const circles = container.querySelectorAll('circle');
 
       expect(circles[0]).toHaveClass('stroke-background-300'); // Background circle
@@ -166,7 +170,9 @@ describe('ProgressCircle', () => {
     });
 
     it('applies correct text colors for blue variant', () => {
-      render(<ProgressCircle variant="blue" value={50} label="Test" showPercentage />);
+      render(
+        <ProgressCircle variant="blue" value={50} label="Test" showPercentage />
+      );
       const percentage = screen.getByText('50%');
       const label = screen.getByText('Test');
 
@@ -175,7 +181,14 @@ describe('ProgressCircle', () => {
     });
 
     it('applies correct text colors for green variant', () => {
-      render(<ProgressCircle variant="green" value={50} label="Test" showPercentage />);
+      render(
+        <ProgressCircle
+          variant="green"
+          value={50}
+          label="Test"
+          showPercentage
+        />
+      );
       const percentage = screen.getByText('50%');
       const label = screen.getByText('Test');
 
@@ -247,7 +260,10 @@ describe('ProgressCircle', () => {
       const radius = 37;
       const circumference = 2 * Math.PI * radius;
 
-      expect(progressCircle).toHaveAttribute('stroke-dasharray', circumference.toString());
+      expect(progressCircle).toHaveAttribute(
+        'stroke-dasharray',
+        circumference.toString()
+      );
       expect(progressCircle).toHaveAttribute('r', '37');
       expect(progressCircle).toHaveAttribute('cx', '45');
       expect(progressCircle).toHaveAttribute('cy', '45');
@@ -259,7 +275,10 @@ describe('ProgressCircle', () => {
       const radius = 64;
       const circumference = 2 * Math.PI * radius;
 
-      expect(progressCircle).toHaveAttribute('stroke-dasharray', circumference.toString());
+      expect(progressCircle).toHaveAttribute(
+        'stroke-dasharray',
+        circumference.toString()
+      );
       expect(progressCircle).toHaveAttribute('r', '64');
       expect(progressCircle).toHaveAttribute('cx', '76');
       expect(progressCircle).toHaveAttribute('cy', '76');
@@ -272,7 +291,10 @@ describe('ProgressCircle', () => {
       const circumference = 2 * Math.PI * radius;
       const expectedOffset = circumference - (25 / 100) * circumference;
 
-      expect(progressCircle).toHaveAttribute('stroke-dashoffset', expectedOffset.toString());
+      expect(progressCircle).toHaveAttribute(
+        'stroke-dashoffset',
+        expectedOffset.toString()
+      );
     });
   });
 
@@ -318,21 +340,31 @@ describe('ProgressCircle', () => {
 
   describe('Styling and CSS classes', () => {
     it('applies additional className to container', () => {
-      const { container } = render(<ProgressCircle value={50} className="custom-class" />);
+      const { container } = render(
+        <ProgressCircle value={50} className="custom-class" />
+      );
       const wrapper = container.firstChild as HTMLElement;
 
       expect(wrapper).toHaveClass('custom-class');
     });
 
     it('applies additional labelClassName to label', () => {
-      render(<ProgressCircle value={50} label="Test" labelClassName="custom-label" />);
+      render(
+        <ProgressCircle value={50} label="Test" labelClassName="custom-label" />
+      );
       const label = screen.getByText('Test');
 
       expect(label).toHaveClass('custom-label');
     });
 
     it('applies additional percentageClassName to percentage', () => {
-      render(<ProgressCircle value={50} showPercentage percentageClassName="custom-percentage" />);
+      render(
+        <ProgressCircle
+          value={50}
+          showPercentage
+          percentageClassName="custom-percentage"
+        />
+      );
       const percentage = screen.getByText('50%');
 
       expect(percentage).toHaveClass('custom-percentage');
@@ -349,7 +381,12 @@ describe('ProgressCircle', () => {
       const { container } = render(<ProgressCircle value={50} />);
       const progressCircle = container.querySelectorAll('circle')[1];
 
-      expect(progressCircle).toHaveClass('transition-all', 'duration-500', 'ease-out', 'shadow-soft-shadow-3');
+      expect(progressCircle).toHaveClass(
+        'transition-all',
+        'duration-500',
+        'ease-out',
+        'shadow-soft-shadow-3'
+      );
     });
 
     it('applies uppercase and tracking to label', () => {
@@ -433,8 +470,8 @@ describe('ProgressCircle', () => {
     const sizes: ProgressCircleSize[] = ['small', 'medium'];
     const variants: ProgressCircleVariant[] = ['blue', 'green'];
 
-    sizes.forEach(size => {
-      variants.forEach(variant => {
+    sizes.forEach((size) => {
+      variants.forEach((variant) => {
         it(`renders correctly with size="${size}" and variant="${variant}"`, () => {
           const { container } = render(
             <ProgressCircle
