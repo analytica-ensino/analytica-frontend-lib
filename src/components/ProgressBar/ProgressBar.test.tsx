@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ProgressBar, { ProgressBarProps } from './ProgressBar';
+import ProgressBar from './ProgressBar';
 
 // Import the types from the component
 type ProgressBarSize = 'small' | 'medium';
@@ -277,13 +277,14 @@ describe('ProgressBar', () => {
     });
 
     it('renders label/percentage container when only label is provided', () => {
-      const { container } = render(<ProgressBar value={50} label="Test" />);
+      // For medium size, label is rendered directly, not in a justify-between container
+      render(<ProgressBar value={50} label="Test" />);
       const label = screen.getByText('Test');
       expect(label).toBeInTheDocument();
     });
 
     it('renders label/percentage container when only percentage is provided', () => {
-      const { container } = render(<ProgressBar value={50} showPercentage />);
+      render(<ProgressBar value={50} showPercentage />);
       const percentage = screen.getByText('50%');
       expect(percentage).toBeInTheDocument();
     });
