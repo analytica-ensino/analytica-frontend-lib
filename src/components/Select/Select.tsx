@@ -124,7 +124,7 @@ const Select = ({
   size = 'small',
 }: SelectProps) => {
   const storeRef = useRef<SelectStoreApi | null>(null);
-  if (!storeRef.current) storeRef.current = createSelectStore();
+  storeRef.current ??= createSelectStore();
   const store = storeRef.current;
 
   const selectRef = useRef<HTMLDivElement>(null);
@@ -246,7 +246,7 @@ const SelectValue = ({
   const value = useStore(store, (s) => s.value);
   return (
     <span className="text-inherit">
-      {selectedLabel ? selectedLabel : (placeholder ?? value)}
+      {selectedLabel || placeholder || value}
     </span>
   );
 };
