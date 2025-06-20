@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ProgressBar from './ProgressBar';
@@ -49,7 +48,6 @@ describe('ProgressBar', () => {
   describe('Size variants', () => {
     it('applies small size classes', () => {
       const { container } = render(<ProgressBar size="small" value={50} />);
-      const progressBar = screen.getByRole('progressbar');
       const visualContainer = container.querySelector('.h-1.bg-background-300'); // Visual container
       const progressFill = container.querySelector('[style*="width: 50%"]');
 
@@ -59,7 +57,6 @@ describe('ProgressBar', () => {
 
     it('applies medium size classes (default)', () => {
       const { container } = render(<ProgressBar value={50} />);
-      const progressBar = screen.getByRole('progressbar');
       const visualContainer = container.querySelector('.h-2.bg-background-300'); // Visual container
       const progressFill = container.querySelector('[style*="width: 50%"]');
 
@@ -69,7 +66,6 @@ describe('ProgressBar', () => {
 
     it('applies medium size classes explicitly', () => {
       const { container } = render(<ProgressBar size="medium" value={50} />);
-      const progressBar = screen.getByRole('progressbar');
       const visualContainer = container.querySelector('.h-2.bg-background-300'); // Visual container
       const progressFill = container.querySelector('[style*="width: 50%"]');
 
@@ -93,7 +89,6 @@ describe('ProgressBar', () => {
   describe('Color variants', () => {
     it('applies blue variant classes (default)', () => {
       const { container } = render(<ProgressBar value={50} />);
-      const progressBar = screen.getByRole('progressbar');
       const visualContainer = container.querySelector('.h-2.bg-background-300'); // Visual container
       const progressFill = container.querySelector('[style*="width: 50%"]');
 
@@ -103,7 +98,6 @@ describe('ProgressBar', () => {
 
     it('applies blue variant classes explicitly', () => {
       const { container } = render(<ProgressBar variant="blue" value={50} />);
-      const progressBar = screen.getByRole('progressbar');
       const visualContainer = container.querySelector('.h-2.bg-background-300'); // Visual container
       const progressFill = container.querySelector('[style*="width: 50%"]');
 
@@ -113,7 +107,6 @@ describe('ProgressBar', () => {
 
     it('applies green variant classes', () => {
       const { container } = render(<ProgressBar variant="green" value={50} />);
-      const progressBar = screen.getByRole('progressbar');
       const visualContainer = container.querySelector('.h-2.bg-background-300'); // Visual container
       const progressFill = container.querySelector('[style*="width: 50%"]');
 
