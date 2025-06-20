@@ -27,12 +27,12 @@ const SIZE_CLASSES = {
     spacing: 'gap-1', // 4px gap between percentage and label
   },
   medium: {
-    container: 'w-[152px] h-[152px]', // ~152px circle from design specs
+    container: 'w-[152px] h-[152px]', // 151.67px ≈ 152px circle from design specs
     strokeWidth: 8, // 8px stroke width - matches ProgressBar medium (h-2)
-    textSize: '2xl' as const, // 24px for percentage
+    textSize: '2xl' as const, // 24px for percentage (font-size: 24px)
     textWeight: 'medium' as const, // font-weight: 500
-    labelSize: 'xs' as const, // 12px for status label
-    labelWeight: 'bold' as const, // font-weight: 700
+    labelSize: 'xs' as const, // 12px for status label (font-size: 12px)
+    labelWeight: 'medium' as const, // font-weight: 500 (changed from bold)
     spacing: 'gap-1', // 4px gap between percentage and label
   },
 } as const;
@@ -48,10 +48,10 @@ const VARIANT_CLASSES = {
     labelColor: 'text-text-700', // Gray text for label (#525252)
   },
   green: {
-    background: 'stroke-background-300', // Gray background (#D5D4D4)
-    fill: 'stroke-success-200', // Green for performance (#84D3A2)
-    textColor: 'text-text-800', // Dark gray text
-    labelColor: 'text-text-600', // Medium gray text for label
+    background: 'stroke-background-300', // Gray background (#D5D4D4 - matches design)
+    fill: 'stroke-success-200', // Green for performance (#84D3A2 - matches design)
+    textColor: 'text-text-800', // Dark gray text (#404040 - matches design)
+    labelColor: 'text-text-600', // Medium gray text for label (#737373 - matches design)
   },
 } as const;
 
@@ -150,7 +150,7 @@ const ProgressCircle = ({
           strokeWidth={sizeClasses.strokeWidth}
           className={`${variantClasses.background} rounded-lg`}
         />
-        {/* Progress circle */}
+        {/* Progress circle - SVG stroke properties require style for animation */}
         <circle
           cx={center}
           cy={center}
