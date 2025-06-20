@@ -2,10 +2,6 @@
 
 import { SignOut, User } from 'phosphor-react';
 import {
-  createContext,
-  useState,
-  useCallback,
-  useContext,
   forwardRef,
   ReactNode,
   ButtonHTMLAttributes,
@@ -14,17 +10,65 @@ import {
   HTMLAttributes,
   MouseEvent,
   KeyboardEvent,
-  useMemo,
+  isValidElement,
+  Children,
+  cloneElement,
+  ReactElement,
+  useState,
 } from 'react';
+import { create, StoreApi, useStore } from 'zustand';
 
-type DropdownMenuContextType = {
+interface DropdownStore {
   open: boolean;
   setOpen: (open: boolean) => void;
+}
+
+type DropdownStoreApi = StoreApi<DropdownStore>;
+
+export function createDropdownStore(): DropdownStoreApi {
+  return create<DropdownStore>((set) => ({
+    open: false,
+    setOpen: (open) => set({ open }),
+  }));
+}
+
+export const useDropdownStore = (externalStore?: DropdownStoreApi) => {
+  if (!externalStore) {
+    throw new Error(
+      'Component must be used within a DropdownMenu (store is missing)'
+    );
+  }
+
+  return externalStore;
 };
 
-const DropdownMenuContext = createContext<DropdownMenuContextType | undefined>(
-  undefined
-);
+const injectStore = (
+  children: ReactNode,
+  store: DropdownStoreApi
+): ReactNode => {
+  return Children.map(children, (child) => {
+    if (isValidElement(child)) {
+      const typedChild = child as ReactElement<{
+        store?: DropdownStoreApi;
+        children?: ReactNode;
+      }>;
+
+      const newProps: Partial<{
+        store: DropdownStoreApi;
+        children: ReactNode;
+      }> = {
+        store,
+      };
+
+      if (typedChild.props.children) {
+        newProps.children = injectStore(typedChild.props.children, store);
+      }
+
+      return cloneElement(typedChild, newProps);
+    }
+    return child;
+  });
+};
 
 interface DropdownMenuProps {
   children: ReactNode;
@@ -33,17 +77,16 @@ interface DropdownMenuProps {
 }
 
 const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
-  const [internalOpen, setInternalOpen] = useState(false);
+  const storeRef = useRef<DropdownStoreApi | null>(null);
+  storeRef.current ??= createDropdownStore();
+  const store = storeRef.current;
   const isControlled = open !== undefined;
-  const currentOpen = isControlled ? open : internalOpen;
+  const currentOpen = isControlled ? open : useStore(store, (s) => s.open);
 
-  const setOpen = useCallback(
-    (newOpen: boolean) => {
-      if (onOpenChange) onOpenChange(newOpen);
-      if (!isControlled) setInternalOpen(newOpen);
-    },
-    [isControlled, onOpenChange]
-  );
+  const setOpen = (newOpen: boolean) => {
+    onOpenChange?.(newOpen);
+    if (!isControlled) store.setState({ open: newOpen });
+  };
 
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -93,6 +136,7 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
   };
 
   useEffect(() => {
+    onOpenChange?.(currentOpen);
     if (currentOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleDownkey);
@@ -104,29 +148,26 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
     };
   }, [currentOpen]);
 
-  const value = useMemo(
-    () => ({ open: currentOpen, setOpen }),
-    [currentOpen, setOpen]
-  );
+  useEffect(() => {
+    store.setState({ open: isControlled });
+  }, []);
+
   return (
-    <DropdownMenuContext.Provider value={value}>
-      <div className="relative" ref={menuRef}>
-        {children}
-      </div>
-    </DropdownMenuContext.Provider>
+    <div className="relative" ref={menuRef}>
+      {injectStore(children, store)}
+    </div>
   );
 };
 
 // Componentes genéricos do DropdownMenu
 const DropdownMenuTrigger = forwardRef<
   HTMLButtonElement,
-  ButtonHTMLAttributes<HTMLButtonElement>
->(({ className, children, onClick, ...props }, ref) => {
-  const context = useContext(DropdownMenuContext);
-  if (!context)
-    throw new Error('DropdownMenuTrigger must be used within a DropdownMenu');
+  ButtonHTMLAttributes<HTMLButtonElement> & { store?: DropdownStoreApi }
+>(({ className, children, onClick, store: externalStore, ...props }, ref) => {
+  const store = useDropdownStore(externalStore);
 
-  const { open, setOpen } = context;
+  const open = useStore(store, (s) => s.open);
+  const toggleOpen = () => store.setState({ open: !open });
 
   return (
     <button
@@ -134,7 +175,7 @@ const DropdownMenuTrigger = forwardRef<
       className={`border border-border-200 cursor-pointer bg-background-muted hover:bg-background-200 transition-colors px-4 py-2 rounded-sm ${className}`}
       onClick={(e) => {
         e.stopPropagation();
-        setOpen(!open);
+        toggleOpen();
         if (onClick) onClick(e);
       }}
       aria-expanded={open}
@@ -165,16 +206,20 @@ const ALIGN_CLASSES = {
 };
 
 const MenuLabel = forwardRef<
-  HTMLFieldSetElement,
-  HTMLAttributes<HTMLFieldSetElement> & { inset?: boolean }
->(({ className, inset, ...props }, ref) => (
-  <fieldset
-    ref={ref}
-    role="group"
-    className={`text-sm w-full ${inset ? 'pl-8' : ''} ${className ?? ''}`}
-    {...props}
-  />
-));
+  HTMLDivElement,
+  HTMLAttributes<HTMLDivElement> & {
+    inset?: boolean;
+    store?: DropdownStoreApi;
+  }
+>(({ className, inset, store: _store, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={`text-sm w-full ${inset ? 'pl-8' : ''} ${className ?? ''}`}
+      {...props}
+    />
+  );
+});
 MenuLabel.displayName = 'MenuLabel';
 
 const MenuContent = forwardRef<
@@ -183,6 +228,7 @@ const MenuContent = forwardRef<
     align?: 'start' | 'center' | 'end';
     side?: 'top' | 'right' | 'bottom' | 'left';
     sideOffset?: number;
+    store?: DropdownStoreApi;
   }
 >(
   (
@@ -192,11 +238,13 @@ const MenuContent = forwardRef<
       side = 'bottom',
       sideOffset = 4,
       children,
+      store: externalStore,
       ...props
     },
     ref
   ) => {
-    const { open } = useContext(DropdownMenuContext)!;
+    const store = useDropdownStore(externalStore);
+    const open = useStore(store, (s) => s.open);
     const [isVisible, setIsVisible] = useState(open);
 
     useEffect(() => {
@@ -251,6 +299,7 @@ const MenuItem = forwardRef<
     iconRight?: ReactNode;
     disabled?: boolean;
     variant?: 'profile' | 'menu';
+    store?: DropdownStoreApi;
   }
 >(
   (
@@ -263,10 +312,13 @@ const MenuItem = forwardRef<
       disabled = false,
       onClick,
       variant = 'menu',
+      store: externalStore,
       ...props
     },
     ref
   ) => {
+    const store = useDropdownStore(externalStore);
+    const setOpen = useStore(store, (s) => s.setOpen);
     const sizeClasses = ITEM_SIZE_CLASSES[size];
 
     const handleClick = (
@@ -278,6 +330,7 @@ const MenuItem = forwardRef<
         return;
       }
       onClick?.(e as MouseEvent<HTMLDivElement>);
+      setOpen(false);
     };
 
     if (variant == 'menu')
@@ -345,8 +398,8 @@ MenuItem.displayName = 'MenuItem';
 
 const MenuSeparator = forwardRef<
   HTMLDivElement,
-  HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+  HTMLAttributes<HTMLDivElement> & { store?: DropdownStoreApi }
+>(({ className, store: _store, ...props }, ref) => (
   <div
     ref={ref}
     className={`my-1 h-px bg-border-200 ${className}`}
@@ -358,13 +411,11 @@ MenuSeparator.displayName = 'MenuSeparator';
 // Componentes específicos do ProfileMenu
 const ProfileMenuTrigger = forwardRef<
   HTMLButtonElement,
-  ButtonHTMLAttributes<HTMLButtonElement>
->(({ className, onClick, ...props }, ref) => {
-  const context = useContext(DropdownMenuContext);
-  if (!context)
-    throw new Error('ProfileMenuTrigger must be used within a DropdownMenu');
-
-  const { open, setOpen } = context;
+  ButtonHTMLAttributes<HTMLButtonElement> & { store?: DropdownStoreApi }
+>(({ className, onClick, store: externalStore, ...props }, ref) => {
+  const store = useDropdownStore(externalStore);
+  const open = useStore(store, (s) => s.open);
+  const toggleOpen = () => store.setState({ open: !open });
 
   return (
     <button
@@ -372,8 +423,8 @@ const ProfileMenuTrigger = forwardRef<
       className={`rounded-lg size-10 bg-background-50 flex items-center justify-center ${className}`}
       onClick={(e) => {
         e.stopPropagation();
-        setOpen(!open);
-        if (onClick) onClick(e);
+        toggleOpen();
+        onClick?.(e);
       }}
       aria-expanded={open}
       {...props}
@@ -391,8 +442,9 @@ const ProfileMenuHeader = forwardRef<
   HTMLAttributes<HTMLDivElement> & {
     name: string;
     email: string;
+    store?: DropdownStoreApi;
   }
->(({ className, name, email, ...props }, ref) => {
+>(({ className, name, email, store: _store, ...props }, ref) => {
   return (
     <div
       ref={ref}
@@ -418,8 +470,8 @@ ProfileMenuHeader.displayName = 'ProfileMenuHeader';
 
 const ProfileMenuSection = forwardRef<
   HTMLDivElement,
-  HTMLAttributes<HTMLDivElement>
->(({ className, children, ...props }, ref) => {
+  HTMLAttributes<HTMLDivElement> & { store?: DropdownStoreApi }
+>(({ className, children, store: _store, ...props }, ref) => {
   return (
     <div
       ref={ref}
@@ -439,23 +491,35 @@ const ProfileMenuFooter = forwardRef<
   HTMLButtonElement,
   HTMLAttributes<HTMLButtonElement> & {
     disabled?: boolean;
+    store?: DropdownStoreApi;
   }
->(({ className, disabled = false, onClick, ...props }, ref) => {
-  return (
-    <button
-      ref={ref}
-      className={`inline-flex items-center justify-center rounded-full cursor-pointer font-medium text-md px-5 py-2.5 w-full bg-transparent text-primary-950 border border-primary-950 hover:bg-background-50 hover:text-primary-400 hover:border-primary-400 focus-visible:border-0 focus-visible:outline-none focus-visible:text-primary-600 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:text-primary-700 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed ${className}`}
-      disabled={disabled}
-      onClick={onClick}
-      {...props}
-    >
-      <span className="mr-2 flex items-center">
-        <SignOut />
-      </span>
-      <span>Sair</span>
-    </button>
-  );
-});
+>(
+  (
+    { className, disabled = false, onClick, store: externalStore, ...props },
+    ref
+  ) => {
+    const store = useDropdownStore(externalStore);
+    const setOpen = useStore(store, (s) => s.setOpen);
+
+    return (
+      <button
+        ref={ref}
+        className={`inline-flex items-center justify-center rounded-full cursor-pointer font-medium text-md px-5 py-2.5 w-full bg-transparent text-primary-950 border border-primary-950 hover:bg-background-50 hover:text-primary-400 hover:border-primary-400 focus-visible:border-0 focus-visible:outline-none focus-visible:text-primary-600 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:text-primary-700 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed ${className}`}
+        disabled={disabled}
+        onClick={(e) => {
+          setOpen(false);
+          onClick?.(e);
+        }}
+        {...props}
+      >
+        <span className="mr-2 flex items-center">
+          <SignOut />
+        </span>
+        <span>Sair</span>
+      </button>
+    );
+  }
+);
 ProfileMenuFooter.displayName = 'ProfileMenuFooter';
 
 // Exportações
