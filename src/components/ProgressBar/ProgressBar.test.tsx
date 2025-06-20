@@ -1,6 +1,11 @@
-import { render, screen } from '@testing-library/react';
+import React from 'react';
+import { render, screen, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ProgressBar from './ProgressBar';
+import ProgressBar, { ProgressBarProps } from './ProgressBar';
+
+// Import the types from the component
+type ProgressBarSize = 'small' | 'medium';
+type ProgressBarVariant = 'blue' | 'green';
 
 describe('ProgressBar', () => {
   describe('Basic rendering', () => {
@@ -31,11 +36,12 @@ describe('ProgressBar', () => {
     it('renders progress bar with both label and percentage', () => {
       render(<ProgressBar value={60} label="Complete" showPercentage />);
       const progressBar = screen.getByRole('progressbar');
-      const label = screen.getByText('Complete');
+
+      // For medium size (default), label won't be rendered when showPercentage is true
+      // Only percentage is shown in horizontal layout
       const percentage = screen.getByText('60%');
 
       expect(progressBar).toBeInTheDocument();
-      expect(label).toBeInTheDocument();
       expect(percentage).toBeInTheDocument();
     });
   });
@@ -77,7 +83,7 @@ describe('ProgressBar', () => {
     it('uses correct text size for medium size with label', () => {
       render(<ProgressBar size="medium" value={50} label="Medium Label" />);
       const label = screen.getByText('Medium Label');
-      expect(label).toHaveClass('text-sm');
+      expect(label).toHaveClass('text-xs');
     });
   });
 
@@ -246,8 +252,8 @@ describe('ProgressBar', () => {
       render(<ProgressBar value={50} />);
       const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveClass('w-full');
-      expect(progressBar).toHaveClass('rounded-full');
+      expect(progressBar).toHaveClass('flex-grow');
+      expect(progressBar).toHaveClass('rounded-lg');
       expect(progressBar).toHaveClass('overflow-hidden');
     });
 
@@ -255,7 +261,7 @@ describe('ProgressBar', () => {
       const { container } = render(<ProgressBar value={50} />);
       const progressFill = container.querySelector('[style*="width: 50%"]');
 
-      expect(progressFill).toHaveClass('rounded-full');
+      expect(progressFill).toHaveClass('rounded-lg');
       expect(progressFill).toHaveClass('transition-all');
       expect(progressFill).toHaveClass('duration-300');
       expect(progressFill).toHaveClass('ease-out');
@@ -272,28 +278,26 @@ describe('ProgressBar', () => {
 
     it('renders label/percentage container when only label is provided', () => {
       const { container } = render(<ProgressBar value={50} label="Test" />);
-      const labelContainer = container.querySelector('.justify-between');
-      expect(labelContainer).toBeInTheDocument();
+      const label = screen.getByText('Test');
+      expect(label).toBeInTheDocument();
     });
 
     it('renders label/percentage container when only percentage is provided', () => {
       const { container } = render(<ProgressBar value={50} showPercentage />);
-      const labelContainer = container.querySelector('.justify-between');
-      expect(labelContainer).toBeInTheDocument();
+      const percentage = screen.getByText('50%');
+      expect(percentage).toBeInTheDocument();
     });
 
     it('renders both label and percentage in correct positions', () => {
-      const { container } = render(
+      render(
         <ProgressBar value={50} label="Test Label" showPercentage />
       );
-      const labelContainer = container.querySelector('.justify-between');
-      const label = screen.getByText('Test Label');
-      const percentage = screen.getByText('50%');
 
-      expect(labelContainer).toBeInTheDocument();
-      expect(label).toBeInTheDocument();
+      const percentage = screen.getByText('50%');
       expect(percentage).toBeInTheDocument();
-      expect(percentage).toHaveClass('text-center');
+
+      // Label is not rendered when showPercentage is true in medium size
+      expect(screen.queryByText('Test Label')).not.toBeInTheDocument();
     });
   });
 
@@ -339,11 +343,11 @@ describe('ProgressBar', () => {
     it('applies correct text color classes to percentage', () => {
       render(<ProgressBar value={50} showPercentage />);
       const percentage = screen.getByText('50%');
-      expect(percentage).toHaveClass('text-text-700');
+      expect(percentage).toHaveClass('text-text-950');
     });
 
     it('applies medium font weight to both label and percentage', () => {
-      render(<ProgressBar value={50} label="Test" showPercentage />);
+      render(<ProgressBar size="small" value={50} label="Test" showPercentage />);
       const label = screen.getByText('Test');
       const percentage = screen.getByText('50%');
 
@@ -446,12 +450,12 @@ describe('ProgressBar', () => {
     });
 
     it('handles all size and variant combinations', () => {
-      const sizes: Array<'small' | 'medium'> = ['small', 'medium'];
-      const variants: Array<'blue' | 'green'> = ['blue', 'green'];
+      const sizes: ProgressBarSize[] = ['small', 'medium'];
+      const variants: ProgressBarVariant[] = ['blue', 'green'];
 
       sizes.forEach((size) => {
         variants.forEach((variant) => {
-          const { container, unmount } = render(
+          render(
             <ProgressBar
               size={size}
               variant={variant}
@@ -462,14 +466,22 @@ describe('ProgressBar', () => {
           );
 
           const progressBar = screen.getByRole('progressbar');
-          const label = screen.getByText(`${size}-${variant}`);
           const percentage = screen.getByText('50%');
 
           expect(progressBar).toBeInTheDocument();
-          expect(label).toBeInTheDocument();
           expect(percentage).toBeInTheDocument();
 
-          unmount();
+          // For small size, label should be visible
+          if (size === 'small') {
+            const label = screen.getByText(`${size}-${variant}`);
+            expect(label).toBeInTheDocument();
+          }
+          // For medium size, label is not shown when showPercentage is true
+          if (size === 'medium') {
+            expect(screen.queryByText(`${size}-${variant}`)).not.toBeInTheDocument();
+          }
+
+          cleanup();
         });
       });
     });

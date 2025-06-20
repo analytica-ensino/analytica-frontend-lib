@@ -484,3 +484,40 @@ export const RealWorldExamples: Story = () => (
     </div>
   </div>
 );
+
+/**
+ * Medium size horizontal layout demonstration
+ */
+export const MediumHorizontalLayout: Story = () => (
+  <div className="flex flex-col gap-8 p-8">
+    <div>
+      <h3 className="text-lg font-semibold mb-4 text-text-950">
+        Medium Size - Horizontal Layout
+      </h3>
+      <div className="flex flex-col gap-6 max-w-md">
+        {/* Medium with percentage - horizontal layout */}
+        <div className="flex flex-col gap-4">
+          <h4 className="font-medium text-md mb-2 text-text-950">With Percentage (Horizontal)</h4>
+          <ProgressBar size="medium" variant="blue" value={35} showPercentage />
+          <ProgressBar size="medium" variant="green" value={63} showPercentage />
+          <ProgressBar size="medium" variant="blue" value={85} showPercentage />
+          <ProgressBar size="medium" variant="green" value={92} showPercentage />
+        </div>
+
+        {/* Medium without percentage */}
+        <div className="flex flex-col gap-4">
+          <h4 className="font-medium text-md mb-2 text-text-950">Without Percentage</h4>
+          <ProgressBar size="medium" variant="blue" value={40} />
+          <ProgressBar size="medium" variant="green" value={75} />
+        </div>
+
+        {/* Medium with labels (no percentage) */}
+        <div className="flex flex-col gap-4">
+          <h4 className="font-medium text-md mb-2 text-text-950">With Labels Only</h4>
+          <ProgressBar size="medium" variant="blue" value={45} label="Activity Progress" />
+          <ProgressBar size="medium" variant="green" value={80} label="Performance Score" />
+        </div>
+      </div>
+    </div>
+  </div>
+);

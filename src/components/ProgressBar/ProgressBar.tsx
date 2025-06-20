@@ -18,16 +18,20 @@ type ProgressBarVariant = 'blue' | 'green';
  */
 const SIZE_CLASSES = {
   small: {
-    container: 'h-1', // 4px height
-    bar: 'h-1',
+    container: 'h-1', // 4px height (h-1 = 4px in Tailwind)
+    bar: 'h-1', // 4px height for the fill bar
     labelSize: 'xs' as const,
-    spacing: 'gap-2',
+    spacing: 'gap-2', // 8px gap between label and progress bar
+    layout: 'flex-col', // vertical layout for small
+    borderRadius: 'rounded-full', // 9999px border radius
   },
   medium: {
-    container: 'h-2', // 8px height
-    bar: 'h-2',
-    labelSize: 'sm' as const,
-    spacing: 'gap-2',
+    container: 'h-2', // 8px height (h-2 = 8px in Tailwind)
+    bar: 'h-2', // 8px height for the fill bar
+    labelSize: 'xs' as const, // 12px font size (xs in Tailwind)
+    spacing: 'gap-2', // 8px gap between progress bar and label
+    layout: 'flex-row items-center', // horizontal layout for medium
+    borderRadius: 'rounded-lg', // 8px border radius
   },
 } as const;
 
@@ -36,12 +40,12 @@ const SIZE_CLASSES = {
  */
 const VARIANT_CLASSES = {
   blue: {
-    background: 'bg-background-300', // Background track color
-    fill: 'bg-primary-700', // Blue for activity progress
+    background: 'bg-background-300', // Background track color (#D5D4D4)
+    fill: 'bg-primary-700', // Blue for activity progress (#2271C4)
   },
   green: {
-    background: 'bg-background-300', // Background track color
-    fill: 'bg-success-200', // Green for performance
+    background: 'bg-background-300', // Background track color (#D5D4D4)
+    fill: 'bg-success-200', // Green for performance (#84D3A2)
   },
 } as const;
 
@@ -113,10 +117,10 @@ const ProgressBar = ({
   const variantClasses = VARIANT_CLASSES[variant];
 
   return (
-    <div className={`flex flex-col ${sizeClasses.spacing} ${className}`}>
-      {/* Label and percentage container */}
-      {(label || showPercentage) && (
-        <div className="flex flex-row items-center justify-between">
+    <div className={`flex ${sizeClasses.layout} ${sizeClasses.spacing} ${className}`}>
+      {/* For small size: vertical layout with label/percentage on top */}
+      {size === 'small' && (label || showPercentage) && (
+        <div className="flex flex-row items-center justify-between w-full">
           {/* Label */}
           {label && (
             <Text
@@ -144,7 +148,7 @@ const ProgressBar = ({
 
       {/* Progress bar container */}
       <div
-        className={`w-full ${sizeClasses.container} ${variantClasses.background} rounded-full overflow-hidden`}
+        className={`${size === 'medium' ? 'flex-grow' : 'w-full'} ${sizeClasses.container} ${variantClasses.background} ${sizeClasses.borderRadius} overflow-hidden`}
         role="progressbar"
         aria-valuenow={clampedValue}
         aria-valuemin={0}
@@ -153,10 +157,33 @@ const ProgressBar = ({
       >
         {/* Progress bar fill */}
         <div
-          className={`${sizeClasses.bar} ${variantClasses.fill} rounded-full transition-all duration-300 ease-out shadow-hard-shadow-3`}
+          className={`${sizeClasses.bar} ${variantClasses.fill} ${sizeClasses.borderRadius} transition-all duration-300 ease-out shadow-hard-shadow-3`}
           style={{ width: `${percentage}%` }}
         />
       </div>
+
+      {/* For medium size: horizontal layout with percentage on the right */}
+      {size === 'medium' && showPercentage && (
+        <Text
+          size={sizeClasses.labelSize}
+          weight="medium"
+          className={`text-text-950 text-center flex-none w-[70px] ${percentageClassName}`}
+        >
+          {Math.round(percentage)}%
+        </Text>
+      )}
+
+      {/* For medium size: label below if provided */}
+      {size === 'medium' && label && !showPercentage && (
+        <Text
+          as="div"
+          size={sizeClasses.labelSize}
+          weight="medium"
+          className={`text-text-950 flex-none ${labelClassName}`}
+        >
+          {label}
+        </Text>
+      )}
     </div>
   );
 };
