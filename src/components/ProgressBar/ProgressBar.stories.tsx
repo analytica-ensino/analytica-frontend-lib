@@ -27,33 +27,51 @@ export const Default: Story = () => (
 export const Sizes: Story = () => (
   <div className="flex flex-col gap-8 p-8">
     <div>
-      <h3 className="text-lg font-semibold mb-6 text-text-950">ProgressBar Sizes</h3>
+      <h3 className="text-lg font-semibold mb-6 text-text-950">
+        ProgressBar Sizes
+      </h3>
 
       {/* Small Size */}
       <div className="mb-6">
-        <h4 className="font-medium text-md mb-3 text-text-950">Small (4px height)</h4>
+        <h4 className="font-medium text-md mb-3 text-text-950">
+          Small (4px height)
+        </h4>
         <div className="flex flex-col gap-4 max-w-md">
           <ProgressBar size="small" value={30} />
           <ProgressBar size="small" value={60} label="Small with label" />
           <ProgressBar size="small" value={90} showPercentage />
-          <ProgressBar size="small" value={45} label="Small complete" showPercentage />
+          <ProgressBar
+            size="small"
+            value={45}
+            label="Small complete"
+            showPercentage
+          />
         </div>
       </div>
 
       {/* Medium Size */}
       <div className="mb-6">
-        <h4 className="font-medium text-md mb-3 text-text-950">Medium (8px height) - Default</h4>
+        <h4 className="font-medium text-md mb-3 text-text-950">
+          Medium (8px height) - Default
+        </h4>
         <div className="flex flex-col gap-4 max-w-md">
           <ProgressBar size="medium" value={30} />
           <ProgressBar size="medium" value={60} label="Medium with label" />
           <ProgressBar size="medium" value={90} showPercentage />
-          <ProgressBar size="medium" value={45} label="Medium complete" showPercentage />
+          <ProgressBar
+            size="medium"
+            value={45}
+            label="Medium complete"
+            showPercentage
+          />
         </div>
       </div>
 
       {/* Size Comparison */}
       <div className="mb-6">
-        <h4 className="font-medium text-md mb-3 text-text-950">Size Comparison</h4>
+        <h4 className="font-medium text-md mb-3 text-text-950">
+          Size Comparison
+        </h4>
         <div className="flex flex-col gap-4 max-w-md">
           <div className="flex flex-col gap-2">
             <span className="text-xs text-text-500">Small</span>
@@ -75,36 +93,81 @@ export const Sizes: Story = () => (
 export const Variants: Story = () => (
   <div className="flex flex-col gap-8 p-8">
     <div>
-      <h3 className="text-lg font-semibold mb-6 text-text-950">ProgressBar Variants</h3>
+      <h3 className="text-lg font-semibold mb-6 text-text-950">
+        ProgressBar Variants
+      </h3>
 
       {/* Blue Variant */}
       <div className="mb-6">
-        <h4 className="font-medium text-md mb-3 text-text-950">Blue - Activity Progress</h4>
+        <h4 className="font-medium text-md mb-3 text-text-950">
+          Blue - Activity Progress
+        </h4>
         <div className="flex flex-col gap-4 max-w-md">
           <ProgressBar variant="blue" value={25} label="Lesson 1" />
-          <ProgressBar variant="blue" value={50} label="Lesson 2" showPercentage />
-          <ProgressBar variant="blue" value={75} label="Lesson 3" showPercentage />
-          <ProgressBar variant="blue" value={100} label="Completed" showPercentage />
+          <ProgressBar
+            variant="blue"
+            value={50}
+            label="Lesson 2"
+            showPercentage
+          />
+          <ProgressBar
+            variant="blue"
+            value={75}
+            label="Lesson 3"
+            showPercentage
+          />
+          <ProgressBar
+            variant="blue"
+            value={100}
+            label="Completed"
+            showPercentage
+          />
         </div>
       </div>
 
       {/* Green Variant */}
       <div className="mb-6">
-        <h4 className="font-medium text-md mb-3 text-text-950">Green - Performance Metrics</h4>
+        <h4 className="font-medium text-md mb-3 text-text-950">
+          Green - Performance Metrics
+        </h4>
         <div className="flex flex-col gap-4 max-w-md">
-          <ProgressBar variant="green" value={30} label="Accuracy" showPercentage />
-          <ProgressBar variant="green" value={65} label="Speed" showPercentage />
-          <ProgressBar variant="green" value={85} label="Comprehension" showPercentage />
-          <ProgressBar variant="green" value={95} label="Overall Score" showPercentage />
+          <ProgressBar
+            variant="green"
+            value={30}
+            label="Accuracy"
+            showPercentage
+          />
+          <ProgressBar
+            variant="green"
+            value={65}
+            label="Speed"
+            showPercentage
+          />
+          <ProgressBar
+            variant="green"
+            value={85}
+            label="Comprehension"
+            showPercentage
+          />
+          <ProgressBar
+            variant="green"
+            value={95}
+            label="Overall Score"
+            showPercentage
+          />
         </div>
       </div>
 
       {/* Variant Comparison */}
       <div className="mb-6">
-        <h4 className="font-medium text-md mb-3 text-text-950">Variant Comparison</h4>
+        <h4 className="font-medium text-md mb-3 text-text-950">
+          Variant Comparison
+        </h4>
         <div className="flex flex-col gap-4 max-w-md">
           <div className="flex flex-col gap-2">
-            <span className="text-xs text-text-500">Blue (Activity Progress)</span>
+            <span className="text-xs text-text-500">
+              Blue (Activity Progress)
+            </span>
             <ProgressBar variant="blue" value={70} />
           </div>
           <div className="flex flex-col gap-2">
@@ -129,7 +192,9 @@ export const WithoutLabels: Story = () => (
       <div className="flex flex-col gap-6 max-w-md">
         {/* Different values without any labels */}
         <div className="flex flex-col gap-4">
-          <h4 className="font-medium text-md mb-2 text-text-950">Blue Variant (Activity Progress)</h4>
+          <h4 className="font-medium text-md mb-2 text-text-950">
+            Blue Variant (Activity Progress)
+          </h4>
           <ProgressBar variant="blue" value={25} />
           <ProgressBar variant="blue" value={50} />
           <ProgressBar variant="blue" value={75} />
@@ -137,7 +202,9 @@ export const WithoutLabels: Story = () => (
         </div>
 
         <div className="flex flex-col gap-4">
-          <h4 className="font-medium text-md mb-2 text-text-950">Green Variant (Performance)</h4>
+          <h4 className="font-medium text-md mb-2 text-text-950">
+            Green Variant (Performance)
+          </h4>
           <ProgressBar variant="green" value={30} />
           <ProgressBar variant="green" value={60} />
           <ProgressBar variant="green" value={85} />
@@ -151,7 +218,9 @@ export const WithoutLabels: Story = () => (
         </div>
 
         <div className="flex flex-col gap-4">
-          <h4 className="font-medium text-md mb-2 text-text-950">Medium Size (Default)</h4>
+          <h4 className="font-medium text-md mb-2 text-text-950">
+            Medium Size (Default)
+          </h4>
           <ProgressBar size="medium" variant="blue" value={45} />
           <ProgressBar size="medium" variant="green" value={80} />
         </div>
@@ -170,11 +239,7 @@ export const WithLabelsAndPercentages: Story = () => (
         ProgressBar with Labels and Percentages
       </h3>
       <div className="flex flex-col gap-6 max-w-md">
-        <ProgressBar
-          value={35}
-          label="Mathematics Course"
-          showPercentage
-        />
+        <ProgressBar value={35} label="Mathematics Course" showPercentage />
         <ProgressBar
           variant="green"
           value={78}
@@ -254,18 +319,18 @@ export const AllVariations: Story = () => (
       <div className="grid grid-cols-2 gap-8">
         {sizes.map((size) => (
           <div key={size} className="flex flex-col gap-4">
-            <h4 className="font-medium text-md text-text-950 capitalize">{size} Size</h4>
+            <h4 className="font-medium text-md text-text-950 capitalize">
+              {size} Size
+            </h4>
 
             {variants.map((variant) => (
               <div key={variant} className="flex flex-col gap-3">
-                <h5 className="font-medium text-sm text-text-700 capitalize">{variant} Variant</h5>
+                <h5 className="font-medium text-sm text-text-700 capitalize">
+                  {variant} Variant
+                </h5>
 
                 <div className="flex flex-col gap-2">
-                  <ProgressBar
-                    size={size}
-                    variant={variant}
-                    value={35}
-                  />
+                  <ProgressBar size={size} variant={variant} value={35} />
                   <ProgressBar
                     size={size}
                     variant={variant}
@@ -389,7 +454,9 @@ export const RealWorldExamples: Story = () => (
 
       {/* Course Progress */}
       <div className="mb-8">
-        <h4 className="font-medium text-md mb-4 text-text-950">Course Progress Dashboard</h4>
+        <h4 className="font-medium text-md mb-4 text-text-950">
+          Course Progress Dashboard
+        </h4>
         <div className="max-w-lg space-y-4">
           <ProgressBar
             variant="blue"
@@ -420,7 +487,9 @@ export const RealWorldExamples: Story = () => (
 
       {/* Performance Metrics */}
       <div className="mb-8">
-        <h4 className="font-medium text-md mb-4 text-text-950">Student Performance</h4>
+        <h4 className="font-medium text-md mb-4 text-text-950">
+          Student Performance
+        </h4>
         <div className="max-w-lg space-y-4">
           <ProgressBar
             variant="green"
@@ -451,7 +520,9 @@ export const RealWorldExamples: Story = () => (
 
       {/* Mixed Usage */}
       <div className="mb-8">
-        <h4 className="font-medium text-md mb-4 text-text-950">Mixed Progress & Performance</h4>
+        <h4 className="font-medium text-md mb-4 text-text-950">
+          Mixed Progress & Performance
+        </h4>
         <div className="max-w-lg space-y-4">
           <ProgressBar
             size="small"
@@ -497,25 +568,51 @@ export const MediumHorizontalLayout: Story = () => (
       <div className="flex flex-col gap-6 max-w-md">
         {/* Medium with percentage - horizontal layout */}
         <div className="flex flex-col gap-4">
-          <h4 className="font-medium text-md mb-2 text-text-950">With Percentage (Horizontal)</h4>
+          <h4 className="font-medium text-md mb-2 text-text-950">
+            With Percentage (Horizontal)
+          </h4>
           <ProgressBar size="medium" variant="blue" value={35} showPercentage />
-          <ProgressBar size="medium" variant="green" value={63} showPercentage />
+          <ProgressBar
+            size="medium"
+            variant="green"
+            value={63}
+            showPercentage
+          />
           <ProgressBar size="medium" variant="blue" value={85} showPercentage />
-          <ProgressBar size="medium" variant="green" value={92} showPercentage />
+          <ProgressBar
+            size="medium"
+            variant="green"
+            value={92}
+            showPercentage
+          />
         </div>
 
         {/* Medium without percentage */}
         <div className="flex flex-col gap-4">
-          <h4 className="font-medium text-md mb-2 text-text-950">Without Percentage</h4>
+          <h4 className="font-medium text-md mb-2 text-text-950">
+            Without Percentage
+          </h4>
           <ProgressBar size="medium" variant="blue" value={40} />
           <ProgressBar size="medium" variant="green" value={75} />
         </div>
 
         {/* Medium with labels (no percentage) */}
         <div className="flex flex-col gap-4">
-          <h4 className="font-medium text-md mb-2 text-text-950">With Labels Only</h4>
-          <ProgressBar size="medium" variant="blue" value={45} label="Activity Progress" />
-          <ProgressBar size="medium" variant="green" value={80} label="Performance Score" />
+          <h4 className="font-medium text-md mb-2 text-text-950">
+            With Labels Only
+          </h4>
+          <ProgressBar
+            size="medium"
+            variant="blue"
+            value={45}
+            label="Activity Progress"
+          />
+          <ProgressBar
+            size="medium"
+            variant="green"
+            value={80}
+            label="Performance Score"
+          />
         </div>
       </div>
     </div>

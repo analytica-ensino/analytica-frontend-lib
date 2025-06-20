@@ -117,7 +117,9 @@ const ProgressBar = ({
   const variantClasses = VARIANT_CLASSES[variant];
 
   return (
-    <div className={`flex ${sizeClasses.layout} ${sizeClasses.spacing} ${className}`}>
+    <div
+      className={`flex ${sizeClasses.layout} ${sizeClasses.spacing} ${className}`}
+    >
       {/* For small size: vertical layout with label/percentage on top */}
       {size === 'small' && (label || showPercentage) && (
         <div className="flex flex-row items-center justify-between w-full">
@@ -147,7 +149,9 @@ const ProgressBar = ({
       )}
 
       {/* Progress bar container */}
-      <div className={`${size === 'medium' ? 'flex-grow' : 'w-full'} ${sizeClasses.container} ${variantClasses.background} ${sizeClasses.borderRadius} overflow-hidden relative`}>
+      <div
+        className={`${size === 'medium' ? 'flex-grow' : 'w-full'} ${sizeClasses.container} ${variantClasses.background} ${sizeClasses.borderRadius} overflow-hidden relative`}
+      >
         {/* Native progress element for accessibility */}
         <progress
           value={clampedValue}

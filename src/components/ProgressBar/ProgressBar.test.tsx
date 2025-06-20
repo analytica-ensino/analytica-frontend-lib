@@ -135,7 +135,9 @@ describe('ProgressBar', () => {
     });
 
     it('clamps values above maximum', () => {
-      const { container } = render(<ProgressBar value={150} max={100} showPercentage />);
+      const { container } = render(
+        <ProgressBar value={150} max={100} showPercentage />
+      );
       const progressFill = container.querySelector('[style*="width: 100%"]');
       const percentage = screen.getByText('100%');
 
@@ -153,7 +155,9 @@ describe('ProgressBar', () => {
     });
 
     it('handles custom max values', () => {
-      const { container } = render(<ProgressBar value={3} max={5} showPercentage />);
+      const { container } = render(
+        <ProgressBar value={3} max={5} showPercentage />
+      );
       const progressFill = container.querySelector('[style*="width: 60%"]');
       const percentage = screen.getByText('60%');
 
@@ -199,7 +203,11 @@ describe('ProgressBar', () => {
     });
 
     it('uses default aria-label when label is ReactNode', () => {
-      const complexLabel = <span>Complex <strong>Label</strong></span>;
+      const complexLabel = (
+        <span>
+          Complex <strong>Label</strong>
+        </span>
+      );
       render(<ProgressBar value={50} label={complexLabel} />);
       const progressBar = screen.getByRole('progressbar');
       expect(progressBar).toHaveAttribute('aria-label', 'Progress');
@@ -235,11 +243,17 @@ describe('ProgressBar', () => {
 
     it('applies percentageClassName to percentage text', () => {
       render(
-        <ProgressBar value={50} showPercentage percentageClassName="custom-percentage-class" />
+        <ProgressBar
+          value={50}
+          showPercentage
+          percentageClassName="custom-percentage-class"
+        />
       );
       // Use getAllByText and filter for the visible one (not the hidden progress element)
       const percentageElements = screen.getAllByText('50%');
-      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+      const visiblePercentage = percentageElements.find(
+        (el) => !el.classList.contains('opacity-0')
+      );
       expect(visiblePercentage).toHaveClass('custom-percentage-class');
     });
 
@@ -282,18 +296,20 @@ describe('ProgressBar', () => {
       render(<ProgressBar value={50} showPercentage />);
       // Get the visible percentage (not the hidden one in progress element)
       const percentageElements = screen.getAllByText('50%');
-      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+      const visiblePercentage = percentageElements.find(
+        (el) => !el.classList.contains('opacity-0')
+      );
       expect(visiblePercentage).toBeInTheDocument();
     });
 
     it('renders both label and percentage in correct positions', () => {
-      render(
-        <ProgressBar value={50} label="Test Label" showPercentage />
-      );
+      render(<ProgressBar value={50} label="Test Label" showPercentage />);
 
       // Get the visible percentage
       const percentageElements = screen.getAllByText('50%');
-      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+      const visiblePercentage = percentageElements.find(
+        (el) => !el.classList.contains('opacity-0')
+      );
       expect(visiblePercentage).toBeInTheDocument();
 
       // Label is not rendered when showPercentage is true in medium size
@@ -343,15 +359,21 @@ describe('ProgressBar', () => {
     it('applies correct text color classes to percentage', () => {
       render(<ProgressBar value={50} showPercentage />);
       const percentageElements = screen.getAllByText('50%');
-      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+      const visiblePercentage = percentageElements.find(
+        (el) => !el.classList.contains('opacity-0')
+      );
       expect(visiblePercentage).toHaveClass('text-text-950');
     });
 
     it('applies medium font weight to both label and percentage', () => {
-      render(<ProgressBar size="small" value={50} label="Test" showPercentage />);
+      render(
+        <ProgressBar size="small" value={50} label="Test" showPercentage />
+      );
       const label = screen.getByText('Test');
       const percentageElements = screen.getAllByText('50%');
-      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+      const visiblePercentage = percentageElements.find(
+        (el) => !el.classList.contains('opacity-0')
+      );
 
       expect(label).toHaveClass('font-medium');
       expect(visiblePercentage).toHaveClass('font-medium');
@@ -363,7 +385,9 @@ describe('ProgressBar', () => {
       const { container } = render(<ProgressBar value={NaN} showPercentage />);
       const progressFill = container.querySelector('[style*="width: 0%"]');
       const percentageElements = screen.getAllByText('0%');
-      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+      const visiblePercentage = percentageElements.find(
+        (el) => !el.classList.contains('opacity-0')
+      );
 
       expect(progressFill).toBeInTheDocument();
       expect(visiblePercentage).toBeInTheDocument();
@@ -374,20 +398,28 @@ describe('ProgressBar', () => {
     });
 
     it('handles Infinity values gracefully', () => {
-      const { container } = render(<ProgressBar value={Infinity} showPercentage />);
+      const { container } = render(
+        <ProgressBar value={Infinity} showPercentage />
+      );
       const progressFill = container.querySelector('[style*="width: 100%"]');
       const percentageElements = screen.getAllByText('100%');
-      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+      const visiblePercentage = percentageElements.find(
+        (el) => !el.classList.contains('opacity-0')
+      );
 
       expect(progressFill).toBeInTheDocument();
       expect(visiblePercentage).toBeInTheDocument();
     });
 
     it('handles zero max value', () => {
-      const { container } = render(<ProgressBar value={5} max={0} showPercentage />);
+      const { container } = render(
+        <ProgressBar value={5} max={0} showPercentage />
+      );
       const progressFill = container.querySelector('[style*="width: 0%"]');
       const percentageElements = screen.getAllByText('0%');
-      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+      const visiblePercentage = percentageElements.find(
+        (el) => !el.classList.contains('opacity-0')
+      );
 
       expect(progressFill).toBeInTheDocument();
       expect(visiblePercentage).toBeInTheDocument();
@@ -399,10 +431,14 @@ describe('ProgressBar', () => {
     });
 
     it('handles decimal max values', () => {
-      const { container } = render(<ProgressBar value={0.5} max={1.5} showPercentage />);
+      const { container } = render(
+        <ProgressBar value={0.5} max={1.5} showPercentage />
+      );
       const progressFill = container.querySelector('[style*="width: 33"]'); // 0.5/1.5 = 33.33%
       const percentageElements = screen.getAllByText('33%');
-      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+      const visiblePercentage = percentageElements.find(
+        (el) => !el.classList.contains('opacity-0')
+      );
 
       expect(progressFill).toBeInTheDocument();
       expect(visiblePercentage).toBeInTheDocument();
@@ -436,7 +472,9 @@ describe('ProgressBar', () => {
       const progressBar = screen.getByRole('progressbar');
       const label = screen.getByText('Test Progress');
       const percentageElements = screen.getAllByText('45%'); // 67/150 = 44.67% rounds to 45%
-      const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+      const visiblePercentage = percentageElements.find(
+        (el) => !el.classList.contains('opacity-0')
+      );
       const progressContainer = container.firstChild as HTMLElement;
       const progressFill = container.querySelector('[style*="width: 44"]'); // 44.67%
 
@@ -473,7 +511,9 @@ describe('ProgressBar', () => {
 
           const progressBar = screen.getByRole('progressbar');
           const percentageElements = screen.getAllByText('50%');
-          const visiblePercentage = percentageElements.find(el => !el.classList.contains('opacity-0'));
+          const visiblePercentage = percentageElements.find(
+            (el) => !el.classList.contains('opacity-0')
+          );
 
           expect(progressBar).toBeInTheDocument();
           expect(visiblePercentage).toBeInTheDocument();
@@ -485,7 +525,9 @@ describe('ProgressBar', () => {
           }
           // For medium size, label is not shown when showPercentage is true
           if (size === 'medium') {
-            expect(screen.queryByText(`${size}-${variant}`)).not.toBeInTheDocument();
+            expect(
+              screen.queryByText(`${size}-${variant}`)
+            ).not.toBeInTheDocument();
           }
 
           cleanup();
