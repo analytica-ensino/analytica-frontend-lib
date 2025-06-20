@@ -21,6 +21,8 @@ export default defineConfig({
     'Text/index': 'src/components/Text/Text.tsx',
     'TextArea/index': 'src/components/TextArea/TextArea.tsx',
     'Toast/index': 'src/components/Toast/Toast.tsx',
+    'ProgressBar/index': 'src/components/ProgressBar/ProgressBar.tsx',
+    'Radio/index': 'src/components/Radio/Radio.tsx',
 
     // Toast utils
     'Toast/Toaster/index': 'src/components/Toast/utils/Toaster.tsx',
