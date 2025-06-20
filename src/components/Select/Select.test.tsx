@@ -451,9 +451,15 @@ describe('getLabelAsNode', () => {
     const children = ['First', <span key="2">Second</span>, 'Third'];
     const result = getLabelAsNode(children);
     render(<>{result}</>);
-    expect(screen.getByText((content) => content.includes('First'))).toBeInTheDocument();
-    expect(screen.getByText((content) => content.includes('Second'))).toBeInTheDocument();
-    expect(screen.getByText((content) => content.includes('Third'))).toBeInTheDocument();
+    expect(
+      screen.getByText((content) => content.includes('First'))
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText((content) => content.includes('Second'))
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText((content) => content.includes('Third'))
+    ).toBeInTheDocument();
   });
 
   it('renders nested elements correctly', () => {
@@ -464,8 +470,14 @@ describe('getLabelAsNode', () => {
     );
     const result = getLabelAsNode(nestedChildren);
     render(result);
-    expect(screen.getByText((content) => content.includes('Hello'))).toBeInTheDocument();
-    expect(screen.getByText((content) => content.includes('World'))).toBeInTheDocument();
-    expect(screen.getByText((content) => content.includes('!'))).toBeInTheDocument();
+    expect(
+      screen.getByText((content) => content.includes('Hello'))
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText((content) => content.includes('World'))
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText((content) => content.includes('!'))
+    ).toBeInTheDocument();
   });
 });
