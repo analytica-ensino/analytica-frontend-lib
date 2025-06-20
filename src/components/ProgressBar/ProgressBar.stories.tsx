@@ -118,6 +118,49 @@ export const Variants: Story = () => (
 );
 
 /**
+ * Without labels - clean progress bars
+ */
+export const WithoutLabels: Story = () => (
+  <div className="flex flex-col gap-8 p-8">
+    <div>
+      <h3 className="text-lg font-semibold mb-4 text-text-950">
+        ProgressBar without Labels
+      </h3>
+      <div className="flex flex-col gap-6 max-w-md">
+        {/* Different values without any labels */}
+        <div className="flex flex-col gap-4">
+          <h4 className="font-medium text-md mb-2 text-text-950">Blue Variant (Activity Progress)</h4>
+          <ProgressBar variant="blue" value={25} />
+          <ProgressBar variant="blue" value={50} />
+          <ProgressBar variant="blue" value={75} />
+          <ProgressBar variant="blue" value={100} />
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <h4 className="font-medium text-md mb-2 text-text-950">Green Variant (Performance)</h4>
+          <ProgressBar variant="green" value={30} />
+          <ProgressBar variant="green" value={60} />
+          <ProgressBar variant="green" value={85} />
+          <ProgressBar variant="green" value={95} />
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <h4 className="font-medium text-md mb-2 text-text-950">Small Size</h4>
+          <ProgressBar size="small" variant="blue" value={40} />
+          <ProgressBar size="small" variant="green" value={70} />
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <h4 className="font-medium text-md mb-2 text-text-950">Medium Size (Default)</h4>
+          <ProgressBar size="medium" variant="blue" value={45} />
+          <ProgressBar size="medium" variant="green" value={80} />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/**
  * With labels and percentages
  */
 export const WithLabelsAndPercentages: Story = () => (
