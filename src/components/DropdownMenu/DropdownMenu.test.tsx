@@ -15,7 +15,7 @@ import DropdownMenu, {
 import {
   DropdownMenuTrigger,
   MenuContent,
-  MenuItem,
+  DropdownMenuItem,
   MenuLabel,
   MenuSeparator,
 } from './DropdownMenu';
@@ -99,7 +99,7 @@ describe('DropdownMenu component', () => {
         <DropdownMenu>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
           <MenuContent>
-            <MenuItem>Inside Item</MenuItem>
+            <DropdownMenuItem>Inside Item</DropdownMenuItem>
           </MenuContent>
         </DropdownMenu>
       );
@@ -126,14 +126,14 @@ describe('DropdownMenu component', () => {
     });
   });
 
-  describe('MenuItem behavior', () => {
-    it('renders MenuItem with correct roles and triggers onClick', () => {
+  describe('DropdownMenuItem behavior', () => {
+    it('renders DropdownMenuItem with correct roles and triggers onClick', () => {
       const handleClick = jest.fn();
       render(
         <DropdownMenu>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
           <MenuContent>
-            <MenuItem onClick={handleClick}>Item 1</MenuItem>
+            <DropdownMenuItem onClick={handleClick}>Item 1</DropdownMenuItem>
           </MenuContent>
         </DropdownMenu>
       );
@@ -145,16 +145,16 @@ describe('DropdownMenu component', () => {
       expect(handleClick).toHaveBeenCalled();
     });
 
-    it('prevents click and keydown on disabled MenuItem', () => {
+    it('prevents click and keydown on disabled DropdownMenuItem', () => {
       const handleClick = jest.fn();
 
       render(
         <DropdownMenu open>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
           <MenuContent>
-            <MenuItem disabled onClick={handleClick}>
+            <DropdownMenuItem disabled onClick={handleClick}>
               Disabled Item
-            </MenuItem>
+            </DropdownMenuItem>
           </MenuContent>
         </DropdownMenu>
       );
@@ -169,13 +169,13 @@ describe('DropdownMenu component', () => {
       expect(handleClick).not.toHaveBeenCalled();
     });
 
-    it('handles keyboard interaction (Enter) on MenuItem', () => {
+    it('handles keyboard interaction (Enter) on DropdownMenuItem', () => {
       const handleClick = jest.fn();
       render(
         <DropdownMenu>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
           <MenuContent>
-            <MenuItem onClick={handleClick}>Item 1</MenuItem>
+            <DropdownMenuItem onClick={handleClick}>Item 1</DropdownMenuItem>
           </MenuContent>
         </DropdownMenu>
       );
@@ -213,7 +213,7 @@ describe('DropdownMenu component', () => {
           <MenuContent>
             <MenuLabel data-testid="label-with-label">Label</MenuLabel>
             <MenuSeparator />
-            <MenuItem>Item</MenuItem>
+            <DropdownMenuItem>Item</DropdownMenuItem>
           </MenuContent>
         </DropdownMenu>
       );
@@ -309,9 +309,9 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
         <MenuContent>
-          <MenuItem>Item 1</MenuItem>
-          <MenuItem>Item 2</MenuItem>
-          <MenuItem>Item 3</MenuItem>
+          <DropdownMenuItem>Item 1</DropdownMenuItem>
+          <DropdownMenuItem>Item 2</DropdownMenuItem>
+          <DropdownMenuItem>Item 3</DropdownMenuItem>
         </MenuContent>
       </DropdownMenu>
     );
@@ -335,9 +335,9 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
         <MenuContent>
-          <MenuItem>Item 1</MenuItem>
-          <MenuItem>Item 2</MenuItem>
-          <MenuItem>Item 3</MenuItem>
+          <DropdownMenuItem>Item 1</DropdownMenuItem>
+          <DropdownMenuItem>Item 2</DropdownMenuItem>
+          <DropdownMenuItem>Item 3</DropdownMenuItem>
         </MenuContent>
       </DropdownMenu>
     );
@@ -360,8 +360,8 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
         <MenuContent>
-          <MenuItem>Item 1</MenuItem>
-          <MenuItem>Item 2</MenuItem>
+          <DropdownMenuItem>Item 1</DropdownMenuItem>
+          <DropdownMenuItem>Item 2</DropdownMenuItem>
         </MenuContent>
       </DropdownMenu>
     );
@@ -377,8 +377,8 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
         <MenuContent>
-          <MenuItem>Item 1</MenuItem>
-          <MenuItem>Item 2</MenuItem>
+          <DropdownMenuItem>Item 1</DropdownMenuItem>
+          <DropdownMenuItem>Item 2</DropdownMenuItem>
         </MenuContent>
       </DropdownMenu>
     );
@@ -395,9 +395,9 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
         <MenuContent>
-          <MenuItem>Item 1</MenuItem>
-          <MenuItem disabled>Disabled Item</MenuItem>
-          <MenuItem>Item 2</MenuItem>
+          <DropdownMenuItem>Item 1</DropdownMenuItem>
+          <DropdownMenuItem disabled>Disabled Item</DropdownMenuItem>
+          <DropdownMenuItem>Item 2</DropdownMenuItem>
         </MenuContent>
       </DropdownMenu>
     );
@@ -417,8 +417,8 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
         <MenuContent>
-          <MenuItem disabled>Disabled 1</MenuItem>
-          <MenuItem disabled>Disabled 2</MenuItem>
+          <DropdownMenuItem disabled>Disabled 1</DropdownMenuItem>
+          <DropdownMenuItem disabled>Disabled 2</DropdownMenuItem>
         </MenuContent>
       </DropdownMenu>
     );
@@ -437,8 +437,8 @@ describe('MenuContent direction and positioning', () => {
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
         <MenuContent>
-          <MenuItem>Item 1</MenuItem>
-          <MenuItem>Item 2</MenuItem>
+          <DropdownMenuItem>Item 1</DropdownMenuItem>
+          <DropdownMenuItem>Item 2</DropdownMenuItem>
         </MenuContent>
       </DropdownMenu>
     );
@@ -535,7 +535,7 @@ describe('ProfileMenu component', () => {
         <DropdownMenu>
           <ProfileMenuTrigger />
           <MenuContent>
-            <MenuItem variant="profile">Inside Item</MenuItem>
+            <DropdownMenuItem variant="profile">Inside Item</DropdownMenuItem>
           </MenuContent>
         </DropdownMenu>
       );
@@ -563,16 +563,16 @@ describe('ProfileMenu component', () => {
   });
 
   // Tlvz tbm n seja necessario
-  describe('MenuItem behavior', () => {
-    it('renders MenuItem with correct roles and triggers onClick', () => {
+  describe('DropdownMenuItem behavior', () => {
+    it('renders DropdownMenuItem with correct roles and triggers onClick', () => {
       const handleClick = jest.fn();
       render(
         <DropdownMenu>
           <ProfileMenuTrigger />
           <MenuContent>
-            <MenuItem variant="profile" onClick={handleClick}>
+            <DropdownMenuItem variant="profile" onClick={handleClick}>
               Item 1
-            </MenuItem>
+            </DropdownMenuItem>
           </MenuContent>
         </DropdownMenu>
       );
@@ -584,16 +584,16 @@ describe('ProfileMenu component', () => {
       expect(handleClick).toHaveBeenCalled();
     });
 
-    it('prevents click and keydown on disabled MenuItem', () => {
+    it('prevents click and keydown on disabled DropdownMenuItem', () => {
       const handleClick = jest.fn();
 
       render(
         <DropdownMenu open>
           <ProfileMenuTrigger />
           <MenuContent>
-            <MenuItem variant="profile" disabled onClick={handleClick}>
+            <DropdownMenuItem variant="profile" disabled onClick={handleClick}>
               Disabled Item
-            </MenuItem>
+            </DropdownMenuItem>
           </MenuContent>
         </DropdownMenu>
       );
@@ -608,15 +608,15 @@ describe('ProfileMenu component', () => {
       expect(handleClick).not.toHaveBeenCalled();
     });
 
-    it('handles keyboard interaction (Enter) on MenuItem', () => {
+    it('handles keyboard interaction (Enter) on DropdownMenuItem', () => {
       const handleClick = jest.fn();
       render(
         <DropdownMenu>
           <ProfileMenuTrigger />
           <MenuContent>
-            <MenuItem variant="profile" onClick={handleClick}>
+            <DropdownMenuItem variant="profile" onClick={handleClick}>
               Item 1
-            </MenuItem>
+            </DropdownMenuItem>
           </MenuContent>
         </DropdownMenu>
       );
@@ -656,7 +656,7 @@ describe('ProfileMenu component', () => {
           <ProfileMenuTrigger />
           <MenuContent>
             <ProfileMenuSection data-testid="ProfileMenuSection">
-              <MenuItem variant="profile">Item 1</MenuItem>
+              <DropdownMenuItem variant="profile">Item 1</DropdownMenuItem>
             </ProfileMenuSection>
           </MenuContent>
         </DropdownMenu>

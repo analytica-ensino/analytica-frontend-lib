@@ -307,7 +307,7 @@ const MenuContent = forwardRef<
 );
 MenuContent.displayName = 'MenuContent';
 
-const MenuItem = forwardRef<
+const DropdownMenuItem = forwardRef<
   HTMLDivElement,
   HTMLAttributes<HTMLDivElement> & {
     inset?: boolean;
@@ -392,7 +392,7 @@ const MenuItem = forwardRef<
     );
   }
 );
-MenuItem.displayName = 'MenuItem';
+DropdownMenuItem.displayName = 'DropdownMenuItem';
 
 const MenuSeparator = forwardRef<
   HTMLDivElement,
@@ -523,7 +523,7 @@ export {
   // Componentes genéricos
   DropdownMenuTrigger,
   MenuContent,
-  MenuItem,
+  DropdownMenuItem,
   MenuLabel,
   MenuSeparator,
 
