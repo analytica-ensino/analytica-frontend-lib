@@ -17,6 +17,7 @@ export default defineConfig({
     'NavButton/index': 'src/components/NavButton/NavButton.tsx',
     'SelectionButton/index':
       'src/components/SelectionButton/SelectionButton.tsx',
+    'Select/index': 'src/components/Select/Select.tsx',
     'Table/index': 'src/components/Table/Table.tsx',
     'Text/index': 'src/components/Text/Text.tsx',
     'TextArea/index': 'src/components/TextArea/TextArea.tsx',
