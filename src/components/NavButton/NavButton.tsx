@@ -19,7 +19,6 @@ type NavButtonProps = {
  *
  * Um botão de navegação com ícone e texto para navegação principal.
  * Ideal para menus de navegação, sidebar, tabs de navegação, etc.
- * Compatível com Next.js 15 e React 19.
  * Suporta forwardRef para acesso programático ao elemento DOM.
  *
  * @param icon - O ícone a ser exibido no botão

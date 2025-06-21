@@ -1,5 +1,3 @@
-'use client';
-
 import { SignOut, User } from 'phosphor-react';
 import {
   forwardRef,

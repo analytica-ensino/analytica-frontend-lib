@@ -21,7 +21,6 @@ export type IconButtonProps = {
  * barras de ferramentas e ações secundárias.
  * Oferece dois tamanhos com estilo consistente.
  * Estado ativo permanece até ser clicado novamente ou outro botão ser ativado.
- * Compatível com Next.js 15 e React 19.
  * Suporta forwardRef para acesso programático ao elemento DOM.
  *
  * @param icon - O ícone a ser exibido no botão

@@ -48,7 +48,6 @@ type TextProps<T extends ElementType = 'p'> = BaseTextProps & {
  *
  * A flexible polymorphic text component with multiple sizes, weights, and colors.
  * Automatically adapts to dark and light themes with full type safety.
- * Fully compatible with Next.js 15 and React 19.
  *
  * @param children - The content to display
  * @param size - The text size variant (2xs, xs, sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl, 6xl)

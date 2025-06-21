@@ -1,6 +1,3 @@
-// app/components/Select.tsx
-'use client';
-
 import { create, StoreApi, useStore } from 'zustand';
 import {
   ReactNode,

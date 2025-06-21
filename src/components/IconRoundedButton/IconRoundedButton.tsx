@@ -15,7 +15,6 @@ type IconRoundedButtonProps = {
  *
  * Um botão redondo simples que exibe apenas um ícone.
  * Ideal para ações como navegação, fechar, editar, etc.
- * Compatível com Next.js 15 e React 19.
  *
  * @param icon - O ícone a ser exibido no botão
  * @param className - Classes CSS adicionais

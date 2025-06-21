@@ -1,5 +1,3 @@
-'use client';
-
 import useToastStore from './ToastStore';
 import Toast from '../Toast';
 
