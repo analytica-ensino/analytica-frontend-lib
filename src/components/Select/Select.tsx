@@ -282,12 +282,13 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
         ref={ref}
         className={`
         flex h-9 min-w-[220px] w-full items-center justify-between border-border-300 px-3 py-2
-        ${invalid && 'border-indicator-error'}
+        ${invalid && 'border-indicator-error text-text-600'}
         ${
           disabled
             ? 'cursor-not-allowed text-text-400 pointer-events-none opacity-50'
-            : 'cursor-pointer hover:bg-background-50 text-text-700 focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground'
+            : 'cursor-pointer hover:bg-background-50 focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground'
         }
+        ${!invalid && !disabled ? 'text-text-700' : ''}
         ${variantClasses}
         ${className}
       `}
@@ -332,7 +333,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
     if (!open) return null;
 
     const getPositionClasses = () =>
-      `absolute ${SIDE_CLASSES[side]} ${ALIGN_CLASSES[align]}`;
+      `w-full min-w-full absolute ${SIDE_CLASSES[side]} ${ALIGN_CLASSES[align]}`;
 
     return (
       <div
