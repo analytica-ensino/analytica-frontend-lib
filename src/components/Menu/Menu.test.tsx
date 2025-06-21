@@ -23,7 +23,11 @@ describe('Menu component', () => {
       const handleChange = jest.fn();
 
       render(
-        <Menu defaultValue="home" value="dashboard" onValueChange={handleChange}>
+        <Menu
+          defaultValue="home"
+          value="dashboard"
+          onValueChange={handleChange}
+        >
           <MenuItem value="home">Home</MenuItem>
           <MenuItem value="dashboard">Dashboard</MenuItem>
         </Menu>
@@ -134,16 +138,13 @@ describe('Menu component', () => {
 
 describe('useMenuMenuStore', () => {
   it('should throw error when store is missing', () => {
-    const originalUseMenuStore =
-      jest.requireActual('./Menu').useMenuStore;
+    const originalUseMenuStore = jest.requireActual('./Menu').useMenuStore;
 
     jest.spyOn(React, 'useRef').mockReturnValue({ current: null });
 
     expect(() => {
       renderHook(() => originalUseMenuStore(undefined));
-    }).toThrow(
-      'Component must be used within a Menu (store is missing)'
-    );
+    }).toThrow('Component must be used within a Menu (store is missing)');
 
     jest.restoreAllMocks();
   });

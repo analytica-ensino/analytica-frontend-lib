@@ -31,9 +31,7 @@ function createMenuStore(): MenuStoreApi {
 
 export const useMenuStore = (externalStore?: MenuStoreApi) => {
   if (!externalStore) {
-    throw new Error(
-      'Component must be used within a Menu (store is missing)'
-    );
+    throw new Error('Component must be used within a Menu (store is missing)');
   }
 
   return externalStore;

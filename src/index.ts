@@ -46,9 +46,7 @@ import Select, {
   SelectItem,
 } from './components/Select/Select';
 
-import Menu, {
-  MenuItem
-} from './components/Menu/Menu';
+import Menu, { MenuItem } from './components/Menu/Menu';
 
 // Export all components for bundled usage
 export { Text };
