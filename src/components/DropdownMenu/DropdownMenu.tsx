@@ -1,5 +1,3 @@
-'use client';
-
 import { SignOut, User } from 'phosphor-react';
 import {
   forwardRef,
@@ -17,6 +15,7 @@ import {
   useState,
 } from 'react';
 import { create, StoreApi, useStore } from 'zustand';
+import Button from '../Button/Button';
 
 interface DropdownStore {
   open: boolean;
@@ -163,31 +162,37 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
 };
 
 // Componentes genéricos do DropdownMenu
-const DropdownMenuTrigger = forwardRef<
-  HTMLButtonElement,
-  ButtonHTMLAttributes<HTMLButtonElement> & { store?: DropdownStoreApi }
->(({ className, children, onClick, store: externalStore, ...props }, ref) => {
+const DropdownMenuTrigger = ({
+  className,
+  children,
+  onClick,
+  store: externalStore,
+  ...props
+}: HTMLAttributes<HTMLButtonElement> & {
+  disabled?: boolean;
+  store?: DropdownStoreApi;
+}) => {
   const store = useDropdownStore(externalStore);
 
   const open = useStore(store, (s) => s.open);
   const toggleOpen = () => store.setState({ open: !open });
 
   return (
-    <button
-      ref={ref}
-      className={`border border-border-200 cursor-pointer bg-background-muted hover:bg-background-200 transition-colors px-4 py-2 rounded-sm ${className}`}
+    <Button
+      variant="outline"
       onClick={(e) => {
         e.stopPropagation();
         toggleOpen();
         if (onClick) onClick(e);
       }}
       aria-expanded={open}
+      className={`${className}`}
       {...props}
     >
       {children}
-    </button>
+    </Button>
   );
-});
+};
 DropdownMenuTrigger.displayName = 'DropdownMenuTrigger';
 
 const ITEM_SIZE_CLASSES = {
@@ -206,6 +211,11 @@ const ALIGN_CLASSES = {
   start: 'left-0',
   center: 'left-1/2 -translate-x-1/2',
   end: 'right-0',
+};
+
+const MENUCONTENT_VARIANT_CLASSES = {
+  menu: 'p-1',
+  profile: 'p-6',
 };
 
 const MenuLabel = forwardRef<
@@ -230,6 +240,7 @@ const MenuContent = forwardRef<
   HTMLAttributes<HTMLDivElement> & {
     align?: 'start' | 'center' | 'end';
     side?: 'top' | 'right' | 'bottom' | 'left';
+    variant?: 'menu' | 'profile';
     sideOffset?: number;
     store?: DropdownStoreApi;
   }
@@ -239,6 +250,7 @@ const MenuContent = forwardRef<
       className,
       align = 'start',
       side = 'bottom',
+      variant = 'menu',
       sideOffset = 4,
       children,
       store: externalStore,
@@ -268,14 +280,16 @@ const MenuContent = forwardRef<
       return `absolute ${vertical} ${horizontal}`;
     };
 
+    const variantClasses = MENUCONTENT_VARIANT_CLASSES[variant];
     return (
       <div
         ref={ref}
         role="menu"
         className={`
-        bg-background z-50 min-w-[210px] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md border-border-100
+        bg-background z-50 min-w-[210px] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md border-border-100
         ${open ? 'animate-in fade-in-0 zoom-in-95' : 'animate-out fade-out-0 zoom-out-95'}
         ${getPositionClasses()}
+        ${variantClasses}
         ${className}
       `}
         style={{
@@ -338,7 +352,7 @@ const DropdownMenuItem = forwardRef<
 
     const getVariantClasses = () => {
       if (variant === 'profile') {
-        return 'relative flex flex-row justify-between select-none items-center gap-2 rounded-sm p-3 text-sm outline-none transition-colors [&>svg]:size-6 [&>svg]:shrink-0';
+        return 'relative flex flex-row justify-between select-none items-center gap-2 rounded-sm p-4 text-sm outline-none transition-colors [&>svg]:size-6 [&>svg]:shrink-0';
       }
       return 'relative flex select-none items-center gap-2 rounded-sm p-3 text-sm outline-none transition-colors [&>svg]:size-4 [&>svg]:shrink-0';
     };
@@ -372,7 +386,7 @@ const DropdownMenuItem = forwardRef<
         {...props}
       >
         {iconLeft}
-        {children}
+        <span className="w-full text-md">{children}</span>
         {iconRight}
       </div>
     );
@@ -470,39 +484,37 @@ const ProfileMenuSection = forwardRef<
 });
 ProfileMenuSection.displayName = 'ProfileMenuSection';
 
-const ProfileMenuFooter = forwardRef<
-  HTMLButtonElement,
-  HTMLAttributes<HTMLButtonElement> & {
-    disabled?: boolean;
-    store?: DropdownStoreApi;
-  }
->(
-  (
-    { className, disabled = false, onClick, store: externalStore, ...props },
-    ref
-  ) => {
-    const store = useDropdownStore(externalStore);
-    const setOpen = useStore(store, (s) => s.setOpen);
+const ProfileMenuFooter = ({
+  className,
+  disabled = false,
+  onClick,
+  store: externalStore,
+  ...props
+}: HTMLAttributes<HTMLButtonElement> & {
+  disabled?: boolean;
+  store?: DropdownStoreApi;
+}) => {
+  const store = useDropdownStore(externalStore);
+  const setOpen = useStore(store, (s) => s.setOpen);
 
-    return (
-      <button
-        ref={ref}
-        className={`inline-flex items-center justify-center rounded-full cursor-pointer font-medium text-md px-5 py-2.5 w-full bg-transparent text-primary-950 border border-primary-950 hover:bg-background-50 hover:text-primary-400 hover:border-primary-400 focus-visible:border-0 focus-visible:outline-none focus-visible:text-primary-600 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:text-primary-700 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed ${className}`}
-        disabled={disabled}
-        onClick={(e) => {
-          setOpen(false);
-          onClick?.(e);
-        }}
-        {...props}
-      >
-        <span className="mr-2 flex items-center">
-          <SignOut />
-        </span>
-        <span>Sair</span>
-      </button>
-    );
-  }
-);
+  return (
+    <Button
+      variant="outline"
+      className={`w-full ${className}`}
+      disabled={disabled}
+      onClick={(e) => {
+        setOpen(false);
+        onClick?.(e);
+      }}
+      {...props}
+    >
+      <span className="mr-2 flex items-center">
+        <SignOut />
+      </span>
+      <span>Sair</span>
+    </Button>
+  );
+};
 ProfileMenuFooter.displayName = 'ProfileMenuFooter';
 
 // Exportações

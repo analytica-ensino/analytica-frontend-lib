@@ -157,7 +157,7 @@ export const AllDropdownComponents: Story = () => (
         <div className="flex flex-row gap-4">
           <DropdownMenu>
             <ProfileMenuTrigger />
-            <MenuContent className="min-w-[288px]" side="top">
+            <MenuContent className="min-w-[320px]" side="top" variant="profile">
               <ProfileMenuHeader name="Ana Paula" email="ana@gmail.com" />
 
               <ProfileMenuSection>
@@ -167,31 +167,6 @@ export const AllDropdownComponents: Story = () => (
                   iconRight={<CaretRight />}
                 >
                   Meus dados
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  variant="profile"
-                  iconLeft={<User />}
-                  iconRight={<CaretRight />}
-                >
-                  Configurações
-                </DropdownMenuItem>
-                <MenuSeparator />
-                <DropdownMenuItem
-                  variant="profile"
-                  iconLeft={<User />}
-                  iconRight={<CaretRight />}
-                >
-                  Privacidade
-                </DropdownMenuItem>
-              </ProfileMenuSection>
-
-              <ProfileMenuSection>
-                <DropdownMenuItem
-                  variant="profile"
-                  iconLeft={<User />}
-                  iconRight={<CaretRight />}
-                >
-                  Ajuda
                 </DropdownMenuItem>
               </ProfileMenuSection>
 
@@ -209,7 +184,7 @@ export const AllDropdownComponents: Story = () => (
         <div className="flex flex-row gap-4">
           <DropdownMenu>
             <ProfileMenuTrigger />
-            <MenuContent className="min-w-[288px]" side="top">
+            <MenuContent className="min-w-[320px]" side="top" variant="profile">
               <ProfileMenuHeader name="João Silva" email="joao@empresa.com" />
 
               <ProfileMenuSection>
@@ -350,7 +325,7 @@ export const MenuSizes: Story = () => (
 export const BasicProfileMenu: Story = () => (
   <DropdownMenu>
     <ProfileMenuTrigger />
-    <MenuContent className="min-w-[288px]">
+    <MenuContent className="min-w-[320px]" variant="profile">
       <ProfileMenuHeader name="Ana Paula" email="ana@gmail.com" />
       <ProfileMenuSection>
         <DropdownMenuItem
@@ -376,7 +351,7 @@ export const BasicProfileMenu: Story = () => (
 export const ProfileMenuWithDisabledItems: Story = () => (
   <DropdownMenu>
     <ProfileMenuTrigger />
-    <MenuContent className="min-w-[288px]">
+    <MenuContent className="min-w-[320px]" variant="profile">
       <ProfileMenuHeader name="João Silva" email="joao@empresa.com" />
       <ProfileMenuSection>
         <DropdownMenuItem

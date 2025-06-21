@@ -1,5 +1,3 @@
-'use client';
-
 import { HTMLAttributes } from 'react';
 import { CheckCircle, WarningCircle, Info, X } from 'phosphor-react';
 

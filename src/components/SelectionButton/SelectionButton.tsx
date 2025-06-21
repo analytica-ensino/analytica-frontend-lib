@@ -19,7 +19,6 @@ type SelectionButtonProps = {
  *
  * Um botão com ícone e texto para ações e navegação com estado de seleção.
  * Ideal para filtros, tags, categorias, seleção de tipos, etc.
- * Compatível com Next.js 15 e React 19.
  * Suporta forwardRef para acesso programático ao elemento DOM.
  *
  * @param icon - O ícone a ser exibido no botão

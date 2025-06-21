@@ -1,4 +1,3 @@
-'use client';
 import { WarningCircle, Eye, EyeSlash } from 'phosphor-react';
 import {
   InputHTMLAttributes,
@@ -74,7 +73,6 @@ type InputProps = {
  * A flexible input component with multiple sizes, states, and support for icons.
  * Includes label, helper text, and error message functionality.
  * Features automatic password visibility toggle for password inputs.
- * Fully compatible with Next.js 15 and React 19.
  *
  * @param label - Optional label text displayed above the input
  * @param helperText - Optional helper text displayed below the input

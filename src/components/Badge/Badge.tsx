@@ -87,7 +87,6 @@ type BadgeProps = {
  * Badge component for Analytica Ensino platforms
  *
  * A flexible button component with multiple variants, sizes and actions.
- * Fully compatible with Next.js 15 and React 19.
  *
  * @param children - The content to display inside the badge
  * @param size - The size variant (extra-small, small, medium, large, extra-large)

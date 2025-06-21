@@ -1,6 +1,6 @@
 {
   "name": "analytica-frontend-lib",
-  "version": "1.0.37",
+  "version": "1.0.39",
   "description": "Repositório público dos componentes utilizados nas plataformas da Analytica Ensino",
   "main": "dist/index.cjs",
   "module": "./dist/index.js",
@@ -42,8 +42,6 @@
     "analytica ensino",
     "frontend",
     "components",
-    "nextjs",
-    "nextjs-15",
     "react-19",
     "typescript",
     "tailwindcss"
@@ -62,7 +60,6 @@
     "url": "https://github.com/analytica-ensino/analytica-frontend-lib/issues"
   },
   "peerDependencies": {
-    "next": ">=15.0.0",
     "react": ">=19.0.0",
     "react-dom": ">=19.0.0"
   },
@@ -96,7 +93,6 @@
     "jest-environment-jsdom": "^29.7.0",
     "jest-sonar-reporter": "^2.0.0",
     "jsdom": "^26.1.0",
-    "next": "^15.3.3",
     "polished": "^4.3.1",
     "postcss": "^8.5.4",
     "prettier": "^3.5.3",

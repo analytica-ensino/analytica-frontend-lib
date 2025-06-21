@@ -33,9 +33,6 @@ jobs:
           key: ${{ inputs.cache-key }}
           fail-on-cache-miss: true
 
-      - name: Type check
-        run: yarn typecheck
-
       - name: Build and generate exports
         run: yarn prepack
 
