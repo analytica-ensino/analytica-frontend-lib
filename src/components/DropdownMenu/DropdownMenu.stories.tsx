@@ -2,7 +2,7 @@ import type { Story } from '@ladle/react';
 import DropdownMenu, {
   DropdownMenuTrigger,
   MenuContent,
-  MenuItem,
+  DropdownMenuItem,
   MenuLabel,
   MenuSeparator,
   ProfileMenuTrigger,
@@ -30,15 +30,15 @@ export const AllDropdownComponents: Story = () => (
           <DropdownMenu>
             <DropdownMenuTrigger>Open Menu</DropdownMenuTrigger>
             <MenuContent>
-              <MenuItem>
+              <DropdownMenuItem>
                 <MenuLabel>Item 1</MenuLabel>
-              </MenuItem>
-              <MenuItem>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
                 <MenuLabel>Item 2</MenuLabel>
-              </MenuItem>
-              <MenuItem>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
                 <MenuLabel>Item 3</MenuLabel>
-              </MenuItem>
+              </DropdownMenuItem>
             </MenuContent>
           </DropdownMenu>
         </div>
@@ -54,15 +54,15 @@ export const AllDropdownComponents: Story = () => (
               <DropdownMenu>
                 <DropdownMenuTrigger>Menu {size}</DropdownMenuTrigger>
                 <MenuContent>
-                  <MenuItem size={size}>
+                  <DropdownMenuItem size={size}>
                     <MenuLabel>Item 1 ({size})</MenuLabel>
-                  </MenuItem>
-                  <MenuItem size={size}>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem size={size}>
                     <MenuLabel>Item 2 ({size})</MenuLabel>
-                  </MenuItem>
-                  <MenuItem size={size}>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem size={size}>
                     <MenuLabel>Item 3 ({size})</MenuLabel>
-                  </MenuItem>
+                  </DropdownMenuItem>
                 </MenuContent>
               </DropdownMenu>
             </div>
@@ -77,15 +77,15 @@ export const AllDropdownComponents: Story = () => (
           <DropdownMenu>
             <DropdownMenuTrigger>Menu with Icons</DropdownMenuTrigger>
             <MenuContent>
-              <MenuItem iconLeft={<Plus />}>
+              <DropdownMenuItem iconLeft={<Plus />}>
                 <MenuLabel>New Item</MenuLabel>
-              </MenuItem>
-              <MenuItem iconLeft={<Check />}>
+              </DropdownMenuItem>
+              <DropdownMenuItem iconLeft={<Check />}>
                 <MenuLabel>Completed</MenuLabel>
-              </MenuItem>
-              <MenuItem iconRight={<Plus />}>
+              </DropdownMenuItem>
+              <DropdownMenuItem iconRight={<Plus />}>
                 <MenuLabel>Add More</MenuLabel>
-              </MenuItem>
+              </DropdownMenuItem>
             </MenuContent>
           </DropdownMenu>
         </div>
@@ -100,19 +100,19 @@ export const AllDropdownComponents: Story = () => (
           <DropdownMenu>
             <DropdownMenuTrigger>Advanced Menu</DropdownMenuTrigger>
             <MenuContent>
-              <MenuItem>
+              <DropdownMenuItem>
                 <MenuLabel>Edit</MenuLabel>
-              </MenuItem>
-              <MenuItem>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
                 <MenuLabel>Delete</MenuLabel>
-              </MenuItem>
+              </DropdownMenuItem>
               <MenuSeparator />
-              <MenuItem>
+              <DropdownMenuItem>
                 <MenuLabel>Preferences</MenuLabel>
-              </MenuItem>
-              <MenuItem>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
                 <MenuLabel>Account</MenuLabel>
-              </MenuItem>
+              </DropdownMenuItem>
             </MenuContent>
           </DropdownMenu>
         </div>
@@ -127,15 +127,15 @@ export const AllDropdownComponents: Story = () => (
           <DropdownMenu>
             <DropdownMenuTrigger>Disabled Items</DropdownMenuTrigger>
             <MenuContent side="top">
-              <MenuItem>
+              <DropdownMenuItem>
                 <MenuLabel>Enabled Item</MenuLabel>
-              </MenuItem>
-              <MenuItem disabled>
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
                 <MenuLabel>Disabled Item</MenuLabel>
-              </MenuItem>
-              <MenuItem disabled iconLeft={<Check />}>
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled iconLeft={<Check />}>
                 <MenuLabel>Disabled with Icon</MenuLabel>
-              </MenuItem>
+              </DropdownMenuItem>
             </MenuContent>
           </DropdownMenu>
         </div>
@@ -161,38 +161,38 @@ export const AllDropdownComponents: Story = () => (
               <ProfileMenuHeader name="Ana Paula" email="ana@gmail.com" />
 
               <ProfileMenuSection>
-                <MenuItem
+                <DropdownMenuItem
                   variant="profile"
                   iconLeft={<User />}
                   iconRight={<CaretRight />}
                 >
                   Meus dados
-                </MenuItem>
-                <MenuItem
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   variant="profile"
                   iconLeft={<User />}
                   iconRight={<CaretRight />}
                 >
                   Configurações
-                </MenuItem>
+                </DropdownMenuItem>
                 <MenuSeparator />
-                <MenuItem
+                <DropdownMenuItem
                   variant="profile"
                   iconLeft={<User />}
                   iconRight={<CaretRight />}
                 >
                   Privacidade
-                </MenuItem>
+                </DropdownMenuItem>
               </ProfileMenuSection>
 
               <ProfileMenuSection>
-                <MenuItem
+                <DropdownMenuItem
                   variant="profile"
                   iconLeft={<User />}
                   iconRight={<CaretRight />}
                 >
                   Ajuda
-                </MenuItem>
+                </DropdownMenuItem>
               </ProfileMenuSection>
 
               <ProfileMenuFooter onClick={() => console.log('Sair')} />
@@ -213,21 +213,21 @@ export const AllDropdownComponents: Story = () => (
               <ProfileMenuHeader name="João Silva" email="joao@empresa.com" />
 
               <ProfileMenuSection>
-                <MenuItem
+                <DropdownMenuItem
                   variant="profile"
                   iconLeft={<User />}
                   iconRight={<CaretRight />}
                   disabled
                 >
                   Meus dados (desabilitado)
-                </MenuItem>
-                <MenuItem
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   variant="profile"
                   iconLeft={<User />}
                   iconRight={<CaretRight />}
                 >
                   Configurações
-                </MenuItem>
+                </DropdownMenuItem>
               </ProfileMenuSection>
 
               <ProfileMenuFooter />
@@ -244,15 +244,15 @@ export const BasicMenu: Story = () => (
   <DropdownMenu>
     <DropdownMenuTrigger>Open Menu</DropdownMenuTrigger>
     <MenuContent>
-      <MenuItem>
+      <DropdownMenuItem>
         <MenuLabel>Item 1</MenuLabel>
-      </MenuItem>
-      <MenuItem>
+      </DropdownMenuItem>
+      <DropdownMenuItem>
         <MenuLabel>Item 2</MenuLabel>
-      </MenuItem>
-      <MenuItem>
+      </DropdownMenuItem>
+      <DropdownMenuItem>
         <MenuLabel>Item 3</MenuLabel>
-      </MenuItem>
+      </DropdownMenuItem>
     </MenuContent>
   </DropdownMenu>
 );
@@ -261,15 +261,15 @@ export const MenuWithIcons: Story = () => (
   <DropdownMenu>
     <DropdownMenuTrigger>Menu with Icons</DropdownMenuTrigger>
     <MenuContent>
-      <MenuItem iconLeft={<Plus />}>
+      <DropdownMenuItem iconLeft={<Plus />}>
         <MenuLabel>New Item</MenuLabel>
-      </MenuItem>
-      <MenuItem iconLeft={<Check />}>
+      </DropdownMenuItem>
+      <DropdownMenuItem iconLeft={<Check />}>
         <MenuLabel>Completed</MenuLabel>
-      </MenuItem>
-      <MenuItem iconRight={<Plus />}>
+      </DropdownMenuItem>
+      <DropdownMenuItem iconRight={<Plus />}>
         <MenuLabel>Add More</MenuLabel>
-      </MenuItem>
+      </DropdownMenuItem>
     </MenuContent>
   </DropdownMenu>
 );
@@ -278,19 +278,19 @@ export const MenuWithLabels: Story = () => (
   <DropdownMenu>
     <DropdownMenuTrigger>Menu with Labels</DropdownMenuTrigger>
     <MenuContent>
-      <MenuItem>
+      <DropdownMenuItem>
         <MenuLabel>Edit</MenuLabel>
-      </MenuItem>
-      <MenuItem>
+      </DropdownMenuItem>
+      <DropdownMenuItem>
         <MenuLabel>Delete</MenuLabel>
-      </MenuItem>
+      </DropdownMenuItem>
       <MenuSeparator />
-      <MenuItem>
+      <DropdownMenuItem>
         <MenuLabel>Preferences</MenuLabel>
-      </MenuItem>
-      <MenuItem>
+      </DropdownMenuItem>
+      <DropdownMenuItem>
         <MenuLabel>Account</MenuLabel>
-      </MenuItem>
+      </DropdownMenuItem>
     </MenuContent>
   </DropdownMenu>
 );
@@ -299,15 +299,15 @@ export const DisabledMenuItems: Story = () => (
   <DropdownMenu>
     <DropdownMenuTrigger>Disabled Items</DropdownMenuTrigger>
     <MenuContent>
-      <MenuItem>
+      <DropdownMenuItem>
         <MenuLabel>Enabled Item</MenuLabel>
-      </MenuItem>
-      <MenuItem disabled>
+      </DropdownMenuItem>
+      <DropdownMenuItem disabled>
         <MenuLabel>Disabled Item</MenuLabel>
-      </MenuItem>
-      <MenuItem disabled iconLeft={<Check />}>
+      </DropdownMenuItem>
+      <DropdownMenuItem disabled iconLeft={<Check />}>
         <MenuLabel>Disabled with Icon</MenuLabel>
-      </MenuItem>
+      </DropdownMenuItem>
     </MenuContent>
   </DropdownMenu>
 );
@@ -317,30 +317,30 @@ export const MenuSizes: Story = () => (
     <DropdownMenu>
       <DropdownMenuTrigger>Small Menu</DropdownMenuTrigger>
       <MenuContent>
-        <MenuItem size="small">
+        <DropdownMenuItem size="small">
           <MenuLabel>Small Item 1</MenuLabel>
-        </MenuItem>
-        <MenuItem size="small">
+        </DropdownMenuItem>
+        <DropdownMenuItem size="small">
           <MenuLabel>Small Item 2</MenuLabel>
-        </MenuItem>
-        <MenuItem size="small">
+        </DropdownMenuItem>
+        <DropdownMenuItem size="small">
           <MenuLabel>Small Item 3</MenuLabel>
-        </MenuItem>
+        </DropdownMenuItem>
       </MenuContent>
     </DropdownMenu>
 
     <DropdownMenu>
       <DropdownMenuTrigger>Medium Menu</DropdownMenuTrigger>
       <MenuContent>
-        <MenuItem size="medium">
+        <DropdownMenuItem size="medium">
           <MenuLabel>Medium Item 1</MenuLabel>
-        </MenuItem>
-        <MenuItem size="medium">
+        </DropdownMenuItem>
+        <DropdownMenuItem size="medium">
           <MenuLabel>Medium Item 2</MenuLabel>
-        </MenuItem>
-        <MenuItem size="medium">
+        </DropdownMenuItem>
+        <DropdownMenuItem size="medium">
           <MenuLabel>Medium Item 3</MenuLabel>
-        </MenuItem>
+        </DropdownMenuItem>
       </MenuContent>
     </DropdownMenu>
   </div>
@@ -353,20 +353,20 @@ export const BasicProfileMenu: Story = () => (
     <MenuContent className="min-w-[288px]">
       <ProfileMenuHeader name="Ana Paula" email="ana@gmail.com" />
       <ProfileMenuSection>
-        <MenuItem
+        <DropdownMenuItem
           variant="profile"
           iconLeft={<User />}
           iconRight={<CaretRight />}
         >
           Meus dados
-        </MenuItem>
-        <MenuItem
+        </DropdownMenuItem>
+        <DropdownMenuItem
           variant="profile"
           iconLeft={<User />}
           iconRight={<CaretRight />}
         >
           Configurações
-        </MenuItem>
+        </DropdownMenuItem>
       </ProfileMenuSection>
       <ProfileMenuFooter />
     </MenuContent>
@@ -379,21 +379,21 @@ export const ProfileMenuWithDisabledItems: Story = () => (
     <MenuContent className="min-w-[288px]">
       <ProfileMenuHeader name="João Silva" email="joao@empresa.com" />
       <ProfileMenuSection>
-        <MenuItem
+        <DropdownMenuItem
           variant="profile"
           iconLeft={<User />}
           iconRight={<CaretRight />}
           disabled
         >
           Meus dados (desabilitado)
-        </MenuItem>
-        <MenuItem
+        </DropdownMenuItem>
+        <DropdownMenuItem
           variant="profile"
           iconLeft={<User />}
           iconRight={<CaretRight />}
         >
           Configurações
-        </MenuItem>
+        </DropdownMenuItem>
       </ProfileMenuSection>
       <ProfileMenuFooter />
     </MenuContent>

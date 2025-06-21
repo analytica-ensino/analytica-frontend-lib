@@ -24,6 +24,7 @@ export default defineConfig({
     'ProgressBar/index': 'src/components/ProgressBar/ProgressBar.tsx',
     'ProgressCircle/index': 'src/components/ProgressCircle/ProgressCircle.tsx',
     'Radio/index': 'src/components/Radio/Radio.tsx',
+    'Menu/index': 'src/components/Menu/Menu.tsx',
 
     // Toast utils
     'Toast/Toaster/index': 'src/components/Toast/utils/Toaster.tsx',
