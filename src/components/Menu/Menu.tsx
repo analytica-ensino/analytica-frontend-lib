@@ -14,6 +14,7 @@ import {
   Children,
   cloneElement,
 } from 'react';
+import { CaretRight } from 'phosphor-react';
 
 interface MenuStore {
   value: string;
@@ -41,6 +42,7 @@ interface MenuProps {
   children: ReactNode;
   defaultValue: string;
   value?: string;
+  variant?: 'menu' | 'menu2' | 'breadcrumb';
   onValueChange?: (value: string) => void;
 }
 
@@ -70,6 +72,7 @@ const Menu = ({
   children,
   defaultValue,
   value: propValue,
+  variant = 'menu',
   onValueChange,
 }: MenuProps) => {
   const storeRef = useRef<MenuStoreApi | null>(null);
@@ -95,21 +98,25 @@ const Menu = ({
   }, [value]);
 
   return (
-    <div
-      className={`w-full flex flex-row gap-2 py-2 px-6 bg-background shadow-soft-shadow-1`}
+    <ul
+      className={`
+        w-full flex flex-row items-center gap-2 py-2 px-6 
+        ${variant == 'menu' ? 'bg-background shadow-soft-shadow-1' : ''}
+      `}
     >
       {injectStore(children, store)}
-    </div>
+    </ul>
   );
 };
 
-interface MenuItemProps extends HTMLAttributes<HTMLDivElement> {
+interface MenuItemProps extends HTMLAttributes<HTMLLIElement> {
   value: string;
   disabled?: boolean;
   store?: MenuStoreApi;
+  variant?: 'menu' | 'menu2' | 'breadcrumb';
 }
 
-const MenuItem = forwardRef<HTMLDivElement, MenuItemProps>(
+const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
   (
     {
       className,
@@ -117,6 +124,7 @@ const MenuItem = forwardRef<HTMLDivElement, MenuItemProps>(
       value,
       disabled = false,
       store: externalStore,
+      variant = 'menu',
       ...props
     },
     ref
@@ -125,39 +133,85 @@ const MenuItem = forwardRef<HTMLDivElement, MenuItemProps>(
     const { value: selectedValue, setValue } = useStore(store, (s) => s);
 
     const handleClick = (
-      e: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>
+      e: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>
     ) => {
       if (!disabled) {
         setValue(value);
       }
-      props.onClick?.(e as MouseEvent<HTMLDivElement>);
+      props.onClick?.(e as MouseEvent<HTMLLIElement>);
     };
 
-    return (
-      <div
-        role="menuitem"
-        aria-disabled={disabled}
-        ref={ref}
-        className={`
-          w-full flex flex-col gap-0.5 items-center py-1 px-2 rounded-sm font-medium text-xs [&>svg]:size-6 cursor-pointer hover:bg-primary-600 hover:text-text
-          focus:outline-none focus:border-indicator-info focus:border
-          ${selectedValue === value ? 'bg-primary-50 text-primary-950' : 'text-text-950'}
-          ${className}
-        `}
-        onClick={handleClick}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') handleClick(e);
-        }}
-        tabIndex={disabled ? -1 : 0}
-        {...props}
-      >
-        {children}
-      </div>
-    );
+    const commonProps = {
+      role: 'menuitem',
+      'aria-disabled': disabled,
+      ref,
+      onClick: handleClick,
+      onKeyDown: (e: KeyboardEvent<HTMLLIElement>) => {
+        if (e.key === 'Enter' || e.key === ' ') handleClick(e);
+      },
+      tabIndex: disabled ? -1 : 0,
+      ...props,
+    };
+
+    const variantRender: Record<string, ReactNode> = {
+      menu: (
+        <li
+          data-variant="menu"
+          className={`
+            w-full flex flex-col gap-0.5 items-center py-1 px-2 rounded-sm font-medium text-xs
+            [&>svg]:size-6 cursor-pointer hover:bg-primary-600 hover:text-text
+            focus:outline-none focus:border-2-indicator-info focus:border-2
+            ${selectedValue === value ? 'bg-primary-50 text-primary-950' : 'text-text-950'}
+            ${className}
+          `}
+          {...commonProps}
+        >
+          {children}
+        </li>
+      ),
+      breadcrumb: (
+        <li
+          data-variant="breadcrumb"
+          className={`
+            p-2 rounded-lg hover:text-primary-600 cursor-pointer font-bold text-xs
+            focus:outline-none focus:border-indicator-info focus:border-2
+            ${selectedValue === value ? 'text-primary-950' : 'text-text-600'}
+            ${className}
+          `}
+          {...commonProps}
+        >
+          <span
+            className={`
+              border-b border-text-600 hover:border-primary-600 text-inherit
+              ${selectedValue === value ? 'border-b-primary-950' : 'border-b-primary-600'}
+            `}
+          >
+            {children}
+          </span>
+        </li>
+      ),
+    };
+
+    return variantRender[variant];
   }
 );
 
 MenuItem.displayName = 'MenuItem';
 
+const MenuSeparator = forwardRef<HTMLLIElement, HTMLAttributes<HTMLLIElement>>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <li
+        ref={ref}
+        role="presentation"
+        aria-hidden="true"
+        className={`[&>svg]:w-4 [&>svg]:h-4 text-text-600 ${className}`}
+        {...props}
+      >
+        {children ?? <CaretRight />}
+      </li>
+    );
+  }
+);
 export default Menu;
-export { Menu, MenuItem };
+export { Menu, MenuItem, MenuSeparator };

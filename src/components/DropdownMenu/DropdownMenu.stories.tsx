@@ -4,7 +4,7 @@ import DropdownMenu, {
   MenuContent,
   DropdownMenuItem,
   MenuLabel,
-  MenuSeparator,
+  DropdownMenuSeparator,
   ProfileMenuTrigger,
   ProfileMenuFooter,
   ProfileMenuHeader,
@@ -106,7 +106,7 @@ export const AllDropdownComponents: Story = () => (
               <DropdownMenuItem>
                 <MenuLabel>Delete</MenuLabel>
               </DropdownMenuItem>
-              <MenuSeparator />
+              <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <MenuLabel>Preferences</MenuLabel>
               </DropdownMenuItem>
@@ -259,7 +259,7 @@ export const MenuWithLabels: Story = () => (
       <DropdownMenuItem>
         <MenuLabel>Delete</MenuLabel>
       </DropdownMenuItem>
-      <MenuSeparator />
+      <DropdownMenuSeparator />
       <DropdownMenuItem>
         <MenuLabel>Preferences</MenuLabel>
       </DropdownMenuItem>

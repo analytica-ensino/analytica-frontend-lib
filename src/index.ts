@@ -36,7 +36,7 @@ import DropdownMenu, {
   ProfileMenuHeader,
   ProfileMenuSection,
   MenuLabel,
-  MenuSeparator,
+  DropdownMenuSeparator,
 } from './components/DropdownMenu/DropdownMenu';
 
 import Select, {
@@ -46,7 +46,7 @@ import Select, {
   SelectItem,
 } from './components/Select/Select';
 
-import Menu, { MenuItem } from './components/Menu/Menu';
+import Menu, { MenuItem, MenuSeparator } from './components/Menu/Menu';
 
 // Export all components for bundled usage
 export { Text };
@@ -76,7 +76,7 @@ export { DropdownMenuTrigger };
 export { MenuContent };
 export { DropdownMenuItem };
 export { MenuLabel };
-export { MenuSeparator };
+export { DropdownMenuSeparator };
 export { ProfileMenuTrigger };
 export { ProfileMenuHeader };
 export { ProfileMenuSection };
@@ -90,3 +90,4 @@ export { SelectItem };
 
 export { Menu };
 export { MenuItem };
+export { MenuSeparator };

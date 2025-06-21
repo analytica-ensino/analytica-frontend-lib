@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import Menu, { MenuItem } from './Menu';
+import Menu, { MenuItem, MenuSeparator } from './Menu';
 import {
   Headphones,
   House,
@@ -37,6 +37,36 @@ export const AllMenus: Story = () => {
 
           <MenuItem value="suport">
             <Headphones />
+            Suporte
+          </MenuItem>
+        </Menu>
+
+        <Menu defaultValue="home" variant="breadcrumb">
+          <MenuItem variant="breadcrumb" value="home">
+            Painel
+          </MenuItem>
+
+          <MenuSeparator />
+
+          <MenuItem variant="breadcrumb" value="simulated">
+            Simulados
+          </MenuItem>
+
+          <MenuSeparator />
+
+          <MenuItem variant="breadcrumb" value="lecture">
+            Aulas
+          </MenuItem>
+
+          <MenuSeparator />
+
+          <MenuItem variant="breadcrumb" value="performance">
+            Desempenho
+          </MenuItem>
+
+          <MenuSeparator />
+
+          <MenuItem variant="breadcrumb" value="suport">
             Suporte
           </MenuItem>
         </Menu>

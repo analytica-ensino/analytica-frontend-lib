@@ -394,7 +394,7 @@ const DropdownMenuItem = forwardRef<
 );
 DropdownMenuItem.displayName = 'DropdownMenuItem';
 
-const MenuSeparator = forwardRef<
+const DropdownMenuSeparator = forwardRef<
   HTMLDivElement,
   HTMLAttributes<HTMLDivElement> & { store?: DropdownStoreApi }
 >(({ className, store: _store, ...props }, ref) => (
@@ -404,7 +404,7 @@ const MenuSeparator = forwardRef<
     {...props}
   />
 ));
-MenuSeparator.displayName = 'MenuSeparator';
+DropdownMenuSeparator.displayName = 'DropdownMenuSeparator';
 
 // Componentes específicos do ProfileMenu
 const ProfileMenuTrigger = forwardRef<
@@ -525,7 +525,7 @@ export {
   MenuContent,
   DropdownMenuItem,
   MenuLabel,
-  MenuSeparator,
+  DropdownMenuSeparator,
 
   // Componentes específicos do ProfileMenu
   ProfileMenuTrigger,

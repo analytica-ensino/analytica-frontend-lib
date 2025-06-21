@@ -17,7 +17,7 @@ import {
   MenuContent,
   DropdownMenuItem,
   MenuLabel,
-  MenuSeparator,
+  DropdownMenuSeparator,
 } from './DropdownMenu';
 import React from 'react';
 
@@ -187,7 +187,7 @@ describe('DropdownMenu component', () => {
     });
   });
 
-  describe('MenuLabel and MenuSeparator behavior', () => {
+  describe('MenuLabel and DropdownMenuSeparator behavior', () => {
     it('applies inset class when inset prop is true on MenuLabel', () => {
       render(
         <DropdownMenu>
@@ -206,13 +206,13 @@ describe('DropdownMenu component', () => {
       expect(group).toHaveTextContent('Label with inset');
     });
 
-    it('renders MenuLabel and MenuSeparator', () => {
+    it('renders MenuLabel and DropdownMenuSeparator', () => {
       render(
         <DropdownMenu>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
           <MenuContent>
             <MenuLabel data-testid="label-with-label">Label</MenuLabel>
-            <MenuSeparator />
+            <DropdownMenuSeparator />
             <DropdownMenuItem>Item</DropdownMenuItem>
           </MenuContent>
         </DropdownMenu>
