@@ -194,7 +194,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
       ),
     };
 
-    return variants[variant] ?? variants["menu"];
+    return variants[variant] ?? variants['menu'];
   }
 );
 MenuItem.displayName = 'MenuItem';

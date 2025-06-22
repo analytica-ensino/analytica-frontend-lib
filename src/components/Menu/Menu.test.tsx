@@ -28,6 +28,20 @@ describe('Menu Component', () => {
       expect(handleChange).toHaveBeenCalledWith('home');
     });
 
+    it('invalid menu item variant', () => {
+      render(
+        <Menu defaultValue="home">
+          {/* @ts-expect-error testing invalid variant */}
+          <MenuItem value="home" variant="invalid" data-testid="menuitem">
+            Home
+          </MenuItem>
+          <MenuItem value="dashboard">Dashboard</MenuItem>
+        </Menu>
+      );
+
+      expect(screen.getByTestId('menuitem')).toHaveClass('[&>svg]:size-6');
+    });
+
     it('does not override controlled value', () => {
       const handleChange = jest.fn();
 
