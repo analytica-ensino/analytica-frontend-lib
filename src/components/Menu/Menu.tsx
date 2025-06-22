@@ -1,4 +1,3 @@
-// src/components/Menu.tsx
 'use client';
 
 import { create, StoreApi, useStore } from 'zustand';
@@ -44,6 +43,12 @@ interface MenuProps extends HTMLAttributes<HTMLUListElement> {
   onValueChange?: (value: string) => void;
 }
 
+const VARIANT_CLASSES = {
+  menu: 'bg-background shadow-soft-shadow-1',
+  menu2: 'overflow-x-auto scroll-smooth',
+  breadcrumb: '',
+};
+
 const Menu = forwardRef<HTMLUListElement, MenuProps>(
   (
     {
@@ -70,15 +75,18 @@ const Menu = forwardRef<HTMLUListElement, MenuProps>(
       onValueChange?.(value);
     }, [value]);
 
-    const baseClass =
-      variant === 'menu2'
-        ? 'flex w-full items-center gap-2 overflow-x-auto scroll-smooth px-6 py-2'
-        : `w-full flex flex-row items-center gap-2 py-2 px-6 ${variant === 'menu' ? 'bg-background shadow-soft-shadow-1' : ''}`;
+    const baseClasses = 'w-full flex flex-row items-center gap-2 py-2 px-6';
+
+    const variantClasses = VARIANT_CLASSES[variant];
 
     return (
       <ul
         ref={ref}
-        className={`${baseClass} ${className ?? ''}`}
+        className={`
+          ${baseClasses}
+          ${variantClasses}
+          ${className ?? ''}
+        `}
         style={
           variant === 'menu2'
             ? { scrollbarWidth: 'none', msOverflowStyle: 'none' }
@@ -211,7 +219,6 @@ const MenuSeparator = forwardRef<HTMLLIElement, HTMLAttributes<HTMLLIElement>>(
   ({ className, children, ...props }, ref) => (
     <li
       ref={ref}
-      role="presentation"
       aria-hidden="true"
       className={`[&>svg]:w-4 [&>svg]:h-4 text-text-600 ${className ?? ''}`}
       {...props}
