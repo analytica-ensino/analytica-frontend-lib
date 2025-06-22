@@ -69,11 +69,11 @@ const Menu = forwardRef<HTMLUListElement, MenuProps>(
 
     useEffect(() => {
       setValue(propValue ?? defaultValue);
-    }, [defaultValue, propValue]);
+    }, [defaultValue, propValue, setValue]);
 
     useEffect(() => {
       onValueChange?.(value);
-    }, [value]);
+    }, [value, onValueChange]);
 
     const baseClasses = 'w-full flex flex-row items-center gap-2 py-2 px-6';
 
@@ -194,7 +194,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
       ),
     };
 
-    return variants[variant];
+    return variants[variant] ?? variants["menu"];
   }
 );
 MenuItem.displayName = 'MenuItem';
