@@ -1,5 +1,10 @@
 import type { Story } from '@ladle/react';
-import Menu, { MenuItem, MenuSeparator } from './Menu';
+import Menu, {
+  MenuItem,
+  MenuItemIcon,
+  MenuOverflow,
+  MenuSeparator,
+} from './Menu';
 import {
   Headphones,
   House,
@@ -70,6 +75,36 @@ export const AllMenus: Story = () => {
             Suporte
           </MenuItem>
         </Menu>
+
+        <MenuOverflow className="max-w-[500px]" defaultValue="home">
+          <MenuItem variant="menu2" value="home">
+            <MenuItemIcon className="bg-amber-500" icon={<House />} />
+            Painel
+          </MenuItem>
+
+          <MenuItem variant="menu2" value="simulated">
+            <MenuItemIcon className="bg-exam-2" icon={<File />} />
+            Simulados
+          </MenuItem>
+
+          <MenuItem variant="menu2" value="lecture">
+            <MenuItemIcon
+              className="bg-success-500"
+              icon={<ChalkboardTeacher />}
+            />
+            Aulas
+          </MenuItem>
+
+          <MenuItem variant="menu2" value="performance">
+            <MenuItemIcon className="bg-yellow-500" icon={<ChartLine />} />
+            Desempenho
+          </MenuItem>
+
+          <MenuItem variant="menu2" value="suport">
+            <MenuItemIcon className="bg-blue-500" icon={<Headphones />} />
+            Suporte
+          </MenuItem>
+        </MenuOverflow>
       </div>
     </div>
   );

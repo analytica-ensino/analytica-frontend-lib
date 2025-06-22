@@ -1,3 +1,4 @@
+// src/components/Menu.tsx
 'use client';
 
 import { create, StoreApi, useStore } from 'zustand';
@@ -13,8 +14,9 @@ import {
   isValidElement,
   Children,
   cloneElement,
+  useState,
 } from 'react';
-import { CaretRight } from 'phosphor-react';
+import { CaretLeft, CaretRight } from 'phosphor-react';
 
 interface MenuStore {
   value: string;
@@ -23,22 +25,18 @@ interface MenuStore {
 
 type MenuStoreApi = StoreApi<MenuStore>;
 
-function createMenuStore(): MenuStoreApi {
-  return create<MenuStore>((set) => ({
+const createMenuStore = (): MenuStoreApi =>
+  create<MenuStore>((set) => ({
     value: '',
     setValue: (value) => set({ value }),
   }));
-}
 
 export const useMenuStore = (externalStore?: MenuStoreApi) => {
-  if (!externalStore) {
-    throw new Error('Component must be used within a Menu (store is missing)');
-  }
-
+  if (!externalStore) throw new Error('MenuItem must be inside Menu');
   return externalStore;
 };
 
-interface MenuProps {
+interface MenuProps extends HTMLAttributes<HTMLUListElement> {
   children: ReactNode;
   defaultValue: string;
   value?: string;
@@ -46,68 +44,54 @@ interface MenuProps {
   onValueChange?: (value: string) => void;
 }
 
-const injectStore = (children: ReactNode, store: MenuStoreApi): ReactNode => {
-  return Children.map(children, (child) => {
-    if (isValidElement(child)) {
-      const typedChild = child as ReactElement<{
-        store?: MenuStoreApi;
-        children?: ReactNode;
-      }>;
+const Menu = forwardRef<HTMLUListElement, MenuProps>(
+  (
+    {
+      className,
+      children,
+      defaultValue,
+      value: propValue,
+      variant = 'menu',
+      onValueChange,
+      ...props
+    },
+    ref
+  ) => {
+    const storeRef = useRef<MenuStoreApi>(null);
+    storeRef.current ??= createMenuStore();
+    const store = storeRef.current;
+    const { setValue, value } = useStore(store, (s) => s);
 
-      const newProps: Partial<{ store: MenuStoreApi; children: ReactNode }> = {
-        store,
-      };
+    useEffect(() => {
+      setValue(propValue ?? defaultValue);
+    }, [defaultValue, propValue]);
 
-      if (typedChild.props.children) {
-        newProps.children = injectStore(typedChild.props.children, store);
-      }
+    useEffect(() => {
+      onValueChange?.(value);
+    }, [value]);
 
-      return cloneElement(typedChild, newProps);
-    }
-    return child;
-  });
-};
+    const baseClass =
+      variant === 'menu2'
+        ? 'flex w-full items-center gap-2 overflow-x-auto scroll-smooth px-6 py-2'
+        : `w-full flex flex-row items-center gap-2 py-2 px-6 ${variant === 'menu' ? 'bg-background shadow-soft-shadow-1' : ''}`;
 
-const Menu = ({
-  children,
-  defaultValue,
-  value: propValue,
-  variant = 'menu',
-  onValueChange,
-}: MenuProps) => {
-  const storeRef = useRef<MenuStoreApi | null>(null);
-  storeRef.current ??= createMenuStore();
-  const store = storeRef.current;
-
-  const { setValue, value } = useStore(store, (s) => s);
-
-  useEffect(() => {
-    if (propValue === undefined) {
-      setValue(defaultValue);
-    }
-  }, [defaultValue, propValue]);
-
-  useEffect(() => {
-    if (propValue !== undefined) {
-      setValue(propValue);
-    }
-  }, [propValue]);
-
-  useEffect(() => {
-    onValueChange?.(value);
-  }, [value]);
-
-  return (
-    <ul
-      className={`
-        w-full flex flex-row items-center gap-2 py-2 px-6 
-        ${variant == 'menu' ? 'bg-background shadow-soft-shadow-1' : ''}
-      `}
-    >
-      {injectStore(children, store)}
-    </ul>
-  );
-};
+    return (
+      <ul
+        ref={ref}
+        className={`${baseClass} ${className ?? ''}`}
+        style={
+          variant === 'menu2'
+            ? { scrollbarWidth: 'none', msOverflowStyle: 'none' }
+            : undefined
+        }
+        {...props}
+      >
+        {injectStore(children, store)}
+      </ul>
+    );
+  }
+);
+Menu.displayName = 'Menu';
 
 interface MenuItemProps extends HTMLAttributes<HTMLLIElement> {
   value: string;
@@ -135,9 +119,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
     const handleClick = (
       e: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>
     ) => {
-      if (!disabled) {
-        setValue(value);
-      }
+      if (!disabled) setValue(value);
       props.onClick?.(e as MouseEvent<HTMLLIElement>);
     };
 
@@ -147,13 +129,13 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
       ref,
       onClick: handleClick,
       onKeyDown: (e: KeyboardEvent<HTMLLIElement>) => {
-        if (e.key === 'Enter' || e.key === ' ') handleClick(e);
+        if (['Enter', ' '].includes(e.key)) handleClick(e);
       },
       tabIndex: disabled ? -1 : 0,
       ...props,
     };
 
-    const variantRender: Record<string, ReactNode> = {
+    const variants: Record<string, ReactNode> = {
       menu: (
         <li
           data-variant="menu"
@@ -162,7 +144,19 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
             [&>svg]:size-6 cursor-pointer hover:bg-primary-600 hover:text-text
             focus:outline-none focus:border-2-indicator-info focus:border-2
             ${selectedValue === value ? 'bg-primary-50 text-primary-950' : 'text-text-950'}
-            ${className}
+            ${className ?? ''}
+          `}
+          {...commonProps}
+        >
+          {children}
+        </li>
+      ),
+      menu2: (
+        <li
+          data-variant="menu2"
+          className={`
+            flex flex-row items-center p-4 gap-2 border-b-2 border-transparent text-text-950 text-sx font-bold cursor-pointer
+            ${selectedValue === value ? 'border-b-primary-950' : ''}
           `}
           {...commonProps}
         >
@@ -176,7 +170,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
             p-2 rounded-lg hover:text-primary-600 cursor-pointer font-bold text-xs
             focus:outline-none focus:border-indicator-info focus:border-2
             ${selectedValue === value ? 'text-primary-950' : 'text-text-600'}
-            ${className}
+            ${className ?? ''}
           `}
           {...commonProps}
         >
@@ -192,26 +186,154 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
       ),
     };
 
-    return variantRender[variant];
+    return variants[variant];
   }
 );
-
 MenuItem.displayName = 'MenuItem';
 
+const MenuItemIcon = ({
+  className,
+  icon,
+  ...props
+}: HTMLAttributes<HTMLSpanElement> & { icon: ReactNode }) => (
+  <span
+    className={`
+      bg-background-500 w-[21px] h-[21px] flex items-center justify-center
+      [&>svg]:w-[17px] [&>svg]:h-[17px] rounded-sm ${className ?? ''}
+    `}
+    {...props}
+  >
+    {icon}
+  </span>
+);
+
 const MenuSeparator = forwardRef<HTMLLIElement, HTMLAttributes<HTMLLIElement>>(
-  ({ className, children, ...props }, ref) => {
-    return (
-      <li
-        ref={ref}
-        role="presentation"
-        aria-hidden="true"
-        className={`[&>svg]:w-4 [&>svg]:h-4 text-text-600 ${className}`}
+  ({ className, children, ...props }, ref) => (
+    <li
+      ref={ref}
+      role="presentation"
+      aria-hidden="true"
+      className={`[&>svg]:w-4 [&>svg]:h-4 text-text-600 ${className ?? ''}`}
+      {...props}
+    >
+      {children ?? <CaretRight />}
+    </li>
+  )
+);
+MenuSeparator.displayName = 'MenuSeparator';
+
+export const internalScroll = (
+  container: HTMLUListElement | null,
+  direction: 'left' | 'right'
+) => {
+  if (!container) return;
+  container.scrollBy({
+    left: direction === 'left' ? -150 : 150,
+    behavior: 'smooth',
+  });
+};
+
+export const internalCheckScroll = (
+  container: HTMLUListElement | null,
+  setShowLeftArrow: (v: boolean) => void,
+  setShowRightArrow: (v: boolean) => void
+) => {
+  if (!container) return;
+  const { scrollLeft, scrollWidth, clientWidth } = container;
+  setShowLeftArrow(scrollLeft > 0);
+  setShowRightArrow(scrollLeft + clientWidth < scrollWidth);
+};
+
+interface MenuOverflowProps extends HTMLAttributes<HTMLUListElement> {
+  children: ReactNode;
+  defaultValue: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
+}
+
+const MenuOverflow = ({
+  children,
+  className,
+  defaultValue,
+  value,
+  onValueChange,
+  ...props
+}: MenuOverflowProps) => {
+  const containerRef = useRef<HTMLUListElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+
+  useEffect(() => {
+    const checkScroll = () =>
+      internalCheckScroll(
+        containerRef.current,
+        setShowLeftArrow,
+        setShowRightArrow
+      );
+    checkScroll();
+    const container = containerRef.current;
+    container?.addEventListener('scroll', checkScroll);
+    window.addEventListener('resize', checkScroll);
+    return () => {
+      container?.removeEventListener('scroll', checkScroll);
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, []);
+
+  return (
+    <div
+      data-testid="menu-overflow-wrapper"
+      className={`relative w-full overflow-hidden ${className ?? ''}`}
+    >
+      {showLeftArrow && (
+        <button
+          onClick={() => internalScroll(containerRef.current, 'left')}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md"
+          data-testid="scroll-left-button"
+        >
+          <CaretLeft size={16} />
+          <span className="sr-only">Scroll left</span>
+        </button>
+      )}
+
+      <Menu
+        ref={containerRef}
+        variant="menu2"
+        defaultValue={defaultValue}
+        onValueChange={onValueChange}
+        value={value}
         {...props}
       >
-        {children ?? <CaretRight />}
-      </li>
-    );
-  }
-);
+        {children}
+      </Menu>
+
+      {showRightArrow && (
+        <button
+          onClick={() => internalScroll(containerRef.current, 'right')}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md"
+          data-testid="scroll-right-button"
+        >
+          <CaretRight size={16} />
+          <span className="sr-only">Scroll right</span>
+        </button>
+      )}
+    </div>
+  );
+};
+
+const injectStore = (children: ReactNode, store: MenuStoreApi): ReactNode =>
+  Children.map(children, (child) => {
+    if (!isValidElement(child)) return child;
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    const typedChild = child as ReactElement<any>;
+    const shouldInject = typedChild.type === MenuItem;
+    return cloneElement(typedChild, {
+      ...(shouldInject ? { store } : {}),
+      ...(typedChild.props.children
+        ? { children: injectStore(typedChild.props.children, store) }
+        : {}),
+    });
+  });
+
 export default Menu;
-export { Menu, MenuItem, MenuSeparator };
+export { Menu, MenuItem, MenuSeparator, MenuOverflow, MenuItemIcon };
