@@ -409,19 +409,6 @@ export const AllVariations: Story = () => (
                   showPercentage
                 />
               </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Detailed Activity Dashboard
-                </span>
-                <ProgressBar
-                  size="medium"
-                  variant="blue"
-                  value={95}
-                  label="Course Completion"
-                  showPercentage
-                />
-              </div>
             </div>
           </div>
 
@@ -441,27 +428,19 @@ export const AllVariations: Story = () => (
 
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-text-500">
-                  Performance Analytics
-                </span>
-                <ProgressBar
-                  size="medium"
-                  variant="green"
-                  value={85}
-                  showPercentage
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
                   Comprehensive Performance Report
                 </span>
-                <ProgressBar
-                  size="medium"
-                  variant="green"
-                  value={95}
-                  label="Excellence Rating"
-                  showPercentage
-                />
+                <div className="flex flex-row items-center gap-2">
+                  <ProgressBar
+                    size="medium"
+                    variant="green"
+                    value={95}
+                    className="flex-grow"
+                  />
+                  <span className="text-xs font-medium text-text-950 leading-none tracking-normal text-center flex-none">
+                    95% corretas
+                  </span>
+                </div>
               </div>
             </div>
           </div>
