@@ -20,9 +20,9 @@ const SIZE_CLASSES = {
     strokeWidth: 4, // 4px stroke width - matches ProgressBar small (h-1)
     textSize: '2xl', // 24px for percentage (font-size: 24px)
     textWeight: 'medium', // font-weight: 500
-    labelSize: '2xs' as const, // 10px for status label (closest to 8px design spec)
+    labelSize: '2xs' as const, // Will be overridden with custom 8px in className
     labelWeight: 'bold', // font-weight: 700
-    spacing: 'gap-1', // 4px gap between percentage and label
+    spacing: 'gap-0', // Reduced gap between percentage and label for better spacing
     contentWidth: 'max-w-[50px]', // Reduced width to fit text inside circle
   },
   medium: {
@@ -193,7 +193,7 @@ const ProgressCircle = ({
             as="span"
             size={sizeClasses.labelSize}
             weight={sizeClasses.labelWeight}
-            className={`${variantClasses.labelColor} text-center uppercase tracking-wide truncate w-full ${labelClassName}`}
+            className={`${variantClasses.labelColor} text-center uppercase tracking-wide truncate w-full ${size === 'small' ? 'text-[8px] leading-[9px]' : ''} ${labelClassName}`}
           >
             {label}
           </Text>
