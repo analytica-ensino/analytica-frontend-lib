@@ -475,29 +475,6 @@ export const AllVariations: Story = () => (
         </h4>
 
         <div className="grid grid-cols-2 gap-8">
-          {/* Stacked Blue Variations */}
-          <div className="flex flex-col gap-4">
-            <h5 className="font-medium text-md text-text-700">
-              Activity Progress Cards (Blue)
-            </h5>
-
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Complete Activity Dashboard Card
-                </span>
-                <ProgressBar
-                  layout="stacked"
-                  variant="blue"
-                  value={23}
-                  max={25}
-                  label="Ciências"
-                  showHitCount
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Stacked Green Variations */}
           <div className="flex flex-col gap-4">
             <h5 className="font-medium text-md text-text-700">
