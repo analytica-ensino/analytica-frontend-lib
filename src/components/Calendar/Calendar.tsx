@@ -74,6 +74,77 @@ const MONTH_NAMES = [
 ];
 
 /**
+ * Month/Year picker props
+ */
+interface MonthYearPickerProps {
+  monthPickerRef: React.RefObject<HTMLDivElement | null>;
+  availableYears: number[];
+  currentDate: Date;
+  onYearChange: (year: number) => void;
+  onMonthChange: (month: number, year: number) => void;
+}
+
+/**
+ * Month/Year picker component
+ */
+const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
+  monthPickerRef,
+  availableYears,
+  currentDate,
+  onYearChange,
+  onMonthChange,
+}) => (
+  <div
+    ref={monthPickerRef}
+    className="absolute top-full left-0 z-50 mt-1 bg-white rounded-lg shadow-lg border border-border-200 p-4 min-w-[280px]"
+  >
+    <div className="mb-4">
+      <h3 className="text-sm font-medium text-text-700 mb-2">Selecionar Ano</h3>
+      <div className="grid grid-cols-4 gap-1 max-h-32 overflow-y-auto">
+        {availableYears.map((year) => (
+          <button
+            key={year}
+            onClick={() => onYearChange(year)}
+            className={`
+              px-2 py-1 text-xs rounded text-center hover:bg-background-100 transition-colors
+              ${
+                year === currentDate.getFullYear()
+                  ? 'bg-primary-800 text-text font-medium hover:text-text-950'
+                  : 'text-text-700'
+              }
+            `}
+          >
+            {year}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div>
+      <h3 className="text-sm font-medium text-text-700 mb-2">Selecionar Mês</h3>
+      <div className="grid grid-cols-3 gap-1">
+        {MONTH_NAMES.map((month, index) => (
+          <button
+            key={month}
+            onClick={() => onMonthChange(index, currentDate.getFullYear())}
+            className={`
+              px-2 py-2 text-xs rounded text-center hover:bg-background-100 transition-colors
+              ${
+                index === currentDate.getMonth()
+                  ? 'bg-primary-800 text-text font-medium hover:text-text-950'
+                  : 'text-text-700'
+              }
+            `}
+          >
+            {month.substring(0, 3)}
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+/**
  * Calendar component for Analytica Ensino platforms
  *
  * A comprehensive calendar component with activity indicators,
@@ -193,6 +264,11 @@ const Calendar = ({
     onMonthChange?.(newDate);
   };
 
+  const handleYearChange = (year: number) => {
+    const newDate = new Date(year, currentDate.getMonth(), 1);
+    setCurrentDate(newDate);
+  };
+
   const toggleMonthPicker = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     setIsMonthPickerOpen(!isMonthPickerOpen);
@@ -202,65 +278,6 @@ const Calendar = ({
   const handleDateSelect = (day: CalendarDay) => {
     onDateSelect?.(day.date);
   };
-
-  // Month picker component
-  const MonthYearPicker = () => (
-    <div
-      ref={monthPickerRef}
-      className="absolute top-full left-0 z-50 mt-1 bg-white rounded-lg shadow-lg border border-border-200 p-4 min-w-[280px]"
-    >
-      <div className="mb-4">
-        <h3 className="text-sm font-medium text-text-700 mb-2">
-          Selecionar Ano
-        </h3>
-        <div className="grid grid-cols-4 gap-1 max-h-32 overflow-y-auto">
-          {availableYears.map((year) => (
-            <button
-              key={year}
-              onClick={() => {
-                const newDate = new Date(year, currentDate.getMonth(), 1);
-                setCurrentDate(newDate);
-              }}
-              className={`
-                px-2 py-1 text-xs rounded text-center hover:bg-background-100 transition-colors
-                ${
-                  year === currentDate.getFullYear()
-                    ? 'bg-primary-800 text-text font-medium hover:text-text-950'
-                    : 'text-text-700'
-                }
-              `}
-            >
-              {year}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="text-sm font-medium text-text-700 mb-2">
-          Selecionar Mês
-        </h3>
-        <div className="grid grid-cols-3 gap-1">
-          {MONTH_NAMES.map((month, index) => (
-            <button
-              key={month}
-              onClick={() => goToMonth(index, currentDate.getFullYear())}
-              className={`
-                px-2 py-2 text-xs rounded text-center hover:bg-background-100 transition-colors
-                ${
-                  index === currentDate.getMonth()
-                    ? 'bg-primary-800 text-text font-medium hover:text-text-950'
-                    : 'text-text-700'
-                }
-              `}
-            >
-              {month.substring(0, 3)}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 
   // Navigation variant (compact)
   if (variant === 'navigation') {
@@ -293,7 +310,15 @@ const Calendar = ({
                 />
               </svg>
             </button>
-            {isMonthPickerOpen && <MonthYearPicker />}
+            {isMonthPickerOpen && (
+              <MonthYearPicker
+                monthPickerRef={monthPickerRef}
+                availableYears={availableYears}
+                currentDate={currentDate}
+                onYearChange={handleYearChange}
+                onMonthChange={goToMonth}
+              />
+            )}
           </div>
           <div className="flex items-center gap-10">
             <button
@@ -457,7 +482,15 @@ const Calendar = ({
               />
             </svg>
           </button>
-          {isMonthPickerOpen && <MonthYearPicker />}
+          {isMonthPickerOpen && (
+            <MonthYearPicker
+              monthPickerRef={monthPickerRef}
+              availableYears={availableYears}
+              currentDate={currentDate}
+              onYearChange={handleYearChange}
+              onMonthChange={goToMonth}
+            />
+          )}
         </div>
         <div className="flex items-center gap-1">
           <button
