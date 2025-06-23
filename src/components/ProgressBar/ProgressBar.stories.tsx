@@ -402,12 +402,15 @@ export const AllVariations: Story = () => (
                 <span className="text-xs text-text-500">
                   Activity Progress Monitor
                 </span>
-                <ProgressBar
-                  size="medium"
-                  variant="blue"
-                  value={85}
-                  showPercentage
-                />
+                <div style={{ fontSize: '10px', color: '#404040' }}>
+                  <ProgressBar
+                    size="medium"
+                    variant="blue"
+                    value={85}
+                    showPercentage
+                    percentageClassName="font-normal"
+                  />
+                </div>
               </div>
             </div>
           </div>
