@@ -440,7 +440,7 @@ export const AllVariations: Story = () => (
                     value={95}
                     className="flex-grow"
                   />
-                  <span className="text-xs font-medium text-text-950 leading-none tracking-normal text-center flex-none">
+                  <span className="text-xs font-medium leading-none tracking-normal text-center flex-none text-neutral-800">
                     95% corretas
                   </span>
                 </div>
