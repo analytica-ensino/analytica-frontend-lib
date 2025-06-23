@@ -237,7 +237,7 @@ const Calendar = ({
 
         {/* Compact calendar grid */}
         <div className="grid grid-cols-7 gap-1">
-          {calendarData.map((day, index) => {
+          {calendarData.map((day) => {
             // Determinar o estilo baseado no status do dia
             let dayStyle = '';
             let textStyle = '';
@@ -245,16 +245,18 @@ const Calendar = ({
             // Não renderizar dias que não pertencem ao mês atual
             if (!day.isCurrentMonth) {
               return (
-                <div key={index} className="flex items-center justify-center">
+                <div
+                  key={day.date.getTime()}
+                  className="flex items-center justify-center"
+                >
                   <div className="w-9 h-9"></div>
                 </div>
               );
             }
 
             if (day.isToday) {
-              textStyle = 'text-primary-800';
+              textStyle = 'text-[#1c61b2]';
             } else if (day.activities && day.activities.length > 0) {
-              // Dias com atividades - círculo colorido baseado no status
               const primaryActivity = day.activities[0];
               if (primaryActivity.status === 'near-deadline') {
                 dayStyle = 'bg-warning-background border-2 border-warning-400';
@@ -271,11 +273,14 @@ const Calendar = ({
               }
             } else {
               // Dias normais
-              textStyle = 'text-text-950';
+              textStyle = 'text-text-950 hover:bg-background-100';
             }
 
             return (
-              <div key={index} className="flex items-center justify-center">
+              <div
+                key={day.date.getTime()}
+                className="flex items-center justify-center"
+              >
                 <button
                   className={`
                     w-9 h-9 
@@ -295,7 +300,7 @@ const Calendar = ({
                     } ${
                       day.isSelected &&
                       day.isToday &&
-                      'h-6 w-6 rounded-full bg-primary-800 text-text'
+                      'h-6 w-6 rounded-full bg-[#1c61b2] text-text'
                     }`}
                   >
                     {day.date.getDate()}
@@ -311,20 +316,20 @@ const Calendar = ({
 
   // Selection variant (full)
   return (
-    <div className={`bg-background rounded-xl p-8 ${className}`}>
+    <div className={`bg-background rounded-xl p-4 ${className}`}>
       {/* Full header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-3.5">
         <h2 className="text-lg font-semibold text-text-950">
           {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
         </h2>
         <div className="flex items-center gap-1">
           <button
             onClick={goToPreviousMonth}
-            className="p-2 rounded-md hover:bg-background-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="p-1 rounded-md hover:bg-background-100 transition-colors"
             aria-label="Mês anterior"
           >
             <svg
-              className="w-5 h-5 text-text-600"
+              className="w-6 h-6 text-primary-950"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -339,11 +344,11 @@ const Calendar = ({
           </button>
           <button
             onClick={goToNextMonth}
-            className="p-2 rounded-md hover:bg-background-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="p-1 rounded-md hover:bg-background-100 transition-colors"
             aria-label="Próximo mês"
           >
             <svg
-              className="w-5 h-5 text-text-600"
+              className="w-6 h-6 text-primary-950"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -360,11 +365,11 @@ const Calendar = ({
       </div>
 
       {/* Week days header */}
-      <div className="grid grid-cols-7 gap-2 mb-4">
+      <div className="grid grid-cols-7 gap-1 mb-2">
         {WEEK_DAYS.map((day) => (
           <div
             key={day}
-            className="h-10 flex items-center justify-center text-sm font-medium text-text-500"
+            className="h-4 flex items-center justify-center text-xs font-semibold text-text-500"
           >
             {day}
           </div>
@@ -372,8 +377,8 @@ const Calendar = ({
       </div>
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-2">
-        {calendarData.map((day, index) => {
+      <div className="grid grid-cols-7 gap-1">
+        {calendarData.map((day) => {
           // Determinar o estilo baseado no status do dia
           let dayStyle = '';
           let textStyle = '';
@@ -381,48 +386,35 @@ const Calendar = ({
           // Não renderizar dias que não pertencem ao mês atual
           if (!day.isCurrentMonth) {
             return (
-              <div key={index} className="flex items-center justify-center">
+              <div
+                key={day.date.getTime()}
+                className="flex items-center justify-center"
+              >
                 <div className="w-10 h-10"></div>
               </div>
             );
           }
 
           if (day.isSelected) {
-            // Dia selecionado - círculo azul preenchido
-            dayStyle = 'bg-blue-500';
+            dayStyle = 'bg-primary-800';
             textStyle = 'text-white';
           } else if (day.isToday) {
-            // Dia de hoje - círculo azul vazado
-            dayStyle = 'border-2 border-blue-500';
-            textStyle = 'text-blue-500';
-          } else if (day.activities && day.activities.length > 0) {
-            // Dias com atividades - círculo colorido baseado no status
-            const primaryActivity = day.activities[0];
-            if (primaryActivity.status === 'near-deadline') {
-              dayStyle = 'border-2 border-orange-500';
-              textStyle = 'text-orange-500';
-            } else if (primaryActivity.status === 'in-deadline') {
-              dayStyle = 'border-2 border-green-500';
-              textStyle = 'text-green-500';
-            } else if (primaryActivity.status === 'overdue') {
-              dayStyle = 'border-2 border-red-500';
-              textStyle = 'text-red-500';
-            } else {
-              dayStyle = 'border-2 border-blue-500';
-              textStyle = 'text-blue-500';
-            }
+            textStyle = 'text-[#1c61b2]';
           } else {
             // Dias normais
-            textStyle = 'text-text-700 hover:bg-background-100';
+            textStyle = 'text-text-950 hover:bg-background-100';
           }
 
           return (
-            <div key={index} className="flex items-center justify-center">
+            <div
+              key={day.date.getTime()}
+              className="flex items-center justify-center"
+            >
               <button
                 className={`
                   w-10 h-10 
                   flex items-center justify-center 
-                  text-sm font-medium 
+                  text-xl font-normal 
                   cursor-pointer 
                   rounded-full
                   ${dayStyle} 

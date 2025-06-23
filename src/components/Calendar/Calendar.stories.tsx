@@ -22,32 +22,59 @@ const sampleActivities: Record<string, CalendarActivity[]> = {
   ],
 };
 
-// Interactive navigation calendar component
-const InteractiveNavigationCalendar = ({
-  activities = {},
-  showActivities = true,
-}: {
-  activities?: Record<string, CalendarActivity[]>;
-  showActivities?: boolean;
-}) => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date()
-  );
+// Date picker component example
+const DatePickerExample = () => {
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+    setIsOpen(false);
+  };
 
   return (
-    <div>
-      <Calendar
-        variant="navigation"
-        selectedDate={selectedDate}
-        onDateSelect={setSelectedDate}
-        activities={activities}
-        showActivities={showActivities}
-      />
-      {selectedDate && (
-        <div className="mt-4 p-3 bg-background-50 rounded-lg">
-          <p className="text-sm text-text-600">
-            Data selecionada: {selectedDate.toLocaleDateString('pt-BR')}
-          </p>
+    <div className="relative">
+      <div className="mb-4">
+        <label
+          htmlFor="date-input"
+          className="block text-sm font-medium text-text-700 mb-2"
+        >
+          Data
+        </label>
+        <div className="relative">
+          <input
+            id="date-input"
+            type="text"
+            value={selectedDate ? selectedDate.toLocaleDateString('pt-BR') : ''}
+            placeholder="00/00/0000"
+            className="w-full px-3 py-2 border border-border-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            onClick={() => setIsOpen(!isOpen)}
+            readOnly
+          />
+          <svg
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 z-50 mt-1">
+          <Calendar
+            variant="selection"
+            selectedDate={selectedDate}
+            onDateSelect={handleDateSelect}
+            showActivities={false}
+          />
         </div>
       )}
     </div>
@@ -64,209 +91,43 @@ export const AllCalendars: Story = () => (
       Variações possíveis do componente <code>Calendar</code>:
     </p>
 
-    {/* Calendário de navegação (compacto) */}
+    {/* Calendário de navegação */}
     <div>
       <h3 className="font-bold text-2xl text-text-900 mb-4">
-        Calendário de Navegação (Compacto)
+        Calendário de Navegação
       </h3>
-      <InteractiveNavigationCalendar />
+      <NavigationCalendar />
     </div>
 
     {/* Calendário de seleção (completo) */}
     <div>
       <h3 className="font-bold text-2xl text-text-900 mb-4">
-        Calendário de Seleção (Completo)
+        Calendário de Seleção (Como Popover)
       </h3>
-      <Calendar variant="selection" showActivities={true} />
-    </div>
-
-    {/* Com data selecionada */}
-    <div>
-      <h3 className="font-bold text-2xl text-text-900 mb-4">
-        Com Data Selecionada
-      </h3>
-      <Calendar selectedDate={new Date(2025, 0, 15)} showActivities={true} />
-    </div>
-
-    {/* Com atividades */}
-    <div>
-      <h3 className="font-bold text-2xl text-text-900 mb-4">Com Atividades</h3>
-      <Calendar
-        selectedDate={new Date(2025, 0, 15)}
-        activities={sampleActivities}
-        showActivities={true}
-      />
-    </div>
-
-    {/* Sem indicadores de atividades */}
-    <div>
-      <h3 className="font-bold text-2xl text-text-900 mb-4">
-        Sem Indicadores de Atividades
-      </h3>
-      <Calendar
-        selectedDate={new Date(2025, 0, 15)}
-        activities={sampleActivities}
-        showActivities={false}
-      />
-    </div>
-
-    {/* Estados das atividades */}
-    <div>
-      <h3 className="font-bold text-2xl text-text-900 mb-4">
-        Estados das Atividades
-      </h3>
-      <div className="space-y-6">
-        <Calendar
-          selectedDate={new Date(2025, 0, 15)}
-          activities={{
-            ...sampleActivities,
-            '2025-01-01': [
-              { id: '8', status: 'in-deadline', title: 'No prazo' },
-            ],
-            '2025-01-02': [
-              {
-                id: '9',
-                status: 'near-deadline',
-                title: 'Próximo do vencimento',
-              },
-            ],
-            '2025-01-03': [{ id: '10', status: 'overdue', title: 'Atrasada' }],
-            '2025-01-04': [
-              { id: '11', status: 'in-deadline', title: 'Concluída' },
-            ],
-          }}
-          showActivities={true}
-        />
-        <div className="p-4 bg-background-50 rounded-lg">
-          <h4 className="font-semibold mb-3">Legenda dos estados:</h4>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-success-500"></div>
-              <span>Atividade no prazo</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-warning-500"></div>
-              <span>Atividade próxima do vencimento</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-error-500"></div>
-              <span>Atividade atrasada</span>
-            </div>
-          </div>
-        </div>
+      <div className="max-w-xs">
+        <DatePickerExample />
       </div>
     </div>
   </div>
 );
 
-// Stories individuais para referência rápida
-export const NavigationCalendar: Story = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date()
-  );
-
-  return (
-    <div>
-      <Calendar
-        variant="navigation"
-        selectedDate={selectedDate}
-        onDateSelect={setSelectedDate}
-        showActivities={true}
-      />
-      {selectedDate && (
-        <div className="mt-4 p-3 bg-background-50 rounded-lg">
-          <p className="text-sm text-text-600">
-            Data selecionada: {selectedDate.toLocaleDateString('pt-BR')}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-};
-
 export const SelectionCalendar: Story = () => (
-  <Calendar variant="selection" showActivities={true} />
+  <div className="max-w-xs">
+    <DatePickerExample />
+  </div>
 );
 
-export const Default: Story = () => (
-  <Calendar variant="selection" showActivities={true} />
-);
-
-export const WithSelectedDate: Story = () => (
-  <Calendar selectedDate={new Date(2025, 0, 15)} showActivities={true} />
-);
-
-export const WithActivities: Story = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date(2025, 0, 15)
-  );
-
-  return (
-    <div>
-      <Calendar
-        selectedDate={selectedDate}
-        onDateSelect={setSelectedDate}
-        activities={sampleActivities}
-        showActivities={true}
-        variant="navigation"
-      />
-      {selectedDate && (
-        <div className="mt-4 p-3 bg-background-50 rounded-lg">
-          <p className="text-sm text-text-600">
-            Data selecionada: {selectedDate.toLocaleDateString('pt-BR')}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export const WithoutActivities: Story = () => (
-  <Calendar
-    selectedDate={new Date(2025, 0, 15)}
-    activities={sampleActivities}
-    showActivities={false}
-  />
-);
-
-export const Interactive: Story = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date()
-  );
-
-  return (
-    <div className="p-4">
-      <Calendar
-        selectedDate={selectedDate}
-        onDateSelect={setSelectedDate}
-        activities={sampleActivities}
-        showActivities={true}
-        variant="navigation"
-      />
-      {selectedDate && (
-        <div className="mt-4 p-3 bg-background-50 rounded-lg">
-          <p className="text-sm text-text-600">
-            Data selecionada: {selectedDate.toLocaleDateString('pt-BR')}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export const ActivityStates: Story = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date(2025, 0, 15)
-  );
+export const NavigationCalendar: Story = () => {
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 
   const activitiesForDemo: Record<string, CalendarActivity[]> = {
     ...sampleActivities,
-    '2025-01-01': [{ id: '8', status: 'in-deadline', title: 'No prazo' }],
-    '2025-01-02': [
+    '2025-06-01': [{ id: '8', status: 'in-deadline', title: 'No prazo' }],
+    '2025-06-02': [
       { id: '9', status: 'near-deadline', title: 'Próximo do vencimento' },
     ],
-    '2025-01-03': [{ id: '10', status: 'overdue', title: 'Atrasada' }],
-    '2025-01-04': [{ id: '11', status: 'in-deadline', title: 'Concluída' }],
+    '2025-06-03': [{ id: '10', status: 'overdue', title: 'Atrasada' }],
+    '2025-06-04': [{ id: '11', status: 'in-deadline', title: 'Concluída' }],
   };
 
   return (
