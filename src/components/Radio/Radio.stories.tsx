@@ -301,7 +301,10 @@ export const AllCombinations: Story = () => (
               {size.charAt(0).toUpperCase() + size.slice(1)}
             </h4>
             {states.map((state) => (
-              <div key={`${size}-${state}`} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <div
+                key={`${size}-${state}`}
+                className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4"
+              >
                 <Radio
                   size={size}
                   state={state === 'disabled' ? 'default' : state}

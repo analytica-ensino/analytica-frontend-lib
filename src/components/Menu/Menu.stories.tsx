@@ -15,10 +15,10 @@ import {
 
 export const AllMenus: Story = () => {
   return (
-    <div className='flex flex-col gap-8'>
+    <div className="flex flex-col gap-8">
       <h2 className="font-bold text-3xl text-text-900">Menu:</h2>
 
-      <div className='flex flex-col gap-8'>
+      <div className="flex flex-col gap-8">
         <Menu defaultValue="home">
           <MenuItem value="home">
             <House />
