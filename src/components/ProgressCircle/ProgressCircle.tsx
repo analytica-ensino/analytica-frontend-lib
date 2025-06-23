@@ -23,6 +23,7 @@ const SIZE_CLASSES = {
     labelSize: '2xs' as const, // 10px for status label (closest to 8px design spec)
     labelWeight: 'bold', // font-weight: 700
     spacing: 'gap-1', // 4px gap between percentage and label
+    contentWidth: 'max-w-[70px]', // Maximum width for content to prevent overflow
   },
   medium: {
     container: 'w-[152px] h-[152px]', // 151.67px ≈ 152px circle from design specs
@@ -32,6 +33,7 @@ const SIZE_CLASSES = {
     labelSize: 'xs' as const, // 12px for status label (font-size: 12px)
     labelWeight: 'medium', // font-weight: 500 (changed from bold)
     spacing: 'gap-1', // 4px gap between percentage and label
+    contentWidth: 'max-w-[120px]', // Maximum width for content to prevent overflow
   },
 } as const;
 
@@ -172,14 +174,14 @@ const ProgressCircle = ({
 
       {/* Content overlay - centered content */}
       <div
-        className={`relative z-10 flex flex-col items-center justify-center ${sizeClasses.spacing}`}
+        className={`relative z-10 flex flex-col items-center justify-center ${sizeClasses.spacing} ${sizeClasses.contentWidth}`}
       >
         {/* Percentage text */}
         {showPercentage && (
           <Text
             size={sizeClasses.textSize}
             weight={sizeClasses.textWeight}
-            className={`text-center ${variantClasses.textColor} ${percentageClassName}`}
+            className={`text-center truncate w-full ${variantClasses.textColor} ${percentageClassName}`}
           >
             {Math.round(percentage)}%
           </Text>
@@ -191,7 +193,7 @@ const ProgressCircle = ({
             as="span"
             size={sizeClasses.labelSize}
             weight={sizeClasses.labelWeight}
-            className={`${variantClasses.labelColor} text-center uppercase tracking-wide ${labelClassName}`}
+            className={`${variantClasses.labelColor} text-center uppercase tracking-wide truncate w-full ${labelClassName}`}
           >
             {label}
           </Text>
