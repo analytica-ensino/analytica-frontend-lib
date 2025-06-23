@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 
 /**
  * Activity status types for calendar days
@@ -89,9 +89,42 @@ const Calendar = ({
   className = '',
 }: CalendarProps) => {
   const [currentDate, setCurrentDate] = useState(selectedDate || new Date());
+  const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
+  const monthPickerRef = useRef<HTMLDivElement>(null);
+  const monthPickerContainerRef = useRef<HTMLDivElement>(null);
+
+  // Close month picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        monthPickerContainerRef.current &&
+        !monthPickerContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsMonthPickerOpen(false);
+      }
+    };
+
+    if (isMonthPickerOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMonthPickerOpen]);
 
   // Get today's date for comparison
   const today = new Date();
+
+  // Generate available years (current year ± 10 years)
+  const availableYears = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = currentYear - 10; year <= currentYear + 10; year++) {
+      years.push(year);
+    }
+    return years;
+  }, []);
 
   // Calculate calendar data
   const calendarData = useMemo(() => {
@@ -152,10 +185,82 @@ const Calendar = ({
     onMonthChange?.(newDate);
   };
 
+  // Month/Year selection functions
+  const goToMonth = (month: number, year: number) => {
+    const newDate = new Date(year, month, 1);
+    setCurrentDate(newDate);
+    setIsMonthPickerOpen(false);
+    onMonthChange?.(newDate);
+  };
+
+  const toggleMonthPicker = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setIsMonthPickerOpen(!isMonthPickerOpen);
+  };
+
   // Date selection handler
   const handleDateSelect = (day: CalendarDay) => {
     onDateSelect?.(day.date);
   };
+
+  // Month picker component
+  const MonthYearPicker = () => (
+    <div
+      ref={monthPickerRef}
+      className="absolute top-full left-0 z-50 mt-1 bg-white rounded-lg shadow-lg border border-border-200 p-4 min-w-[280px]"
+    >
+      <div className="mb-4">
+        <h3 className="text-sm font-medium text-text-700 mb-2">
+          Selecionar Ano
+        </h3>
+        <div className="grid grid-cols-4 gap-1 max-h-32 overflow-y-auto">
+          {availableYears.map((year) => (
+            <button
+              key={year}
+              onClick={() => {
+                const newDate = new Date(year, currentDate.getMonth(), 1);
+                setCurrentDate(newDate);
+              }}
+              className={`
+                px-2 py-1 text-xs rounded text-center hover:bg-background-100 transition-colors
+                ${
+                  year === currentDate.getFullYear()
+                    ? 'bg-primary-800 text-text font-medium hover:text-text-950'
+                    : 'text-text-700'
+                }
+              `}
+            >
+              {year}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-medium text-text-700 mb-2">
+          Selecionar Mês
+        </h3>
+        <div className="grid grid-cols-3 gap-1">
+          {MONTH_NAMES.map((month, index) => (
+            <button
+              key={month}
+              onClick={() => goToMonth(index, currentDate.getFullYear())}
+              className={`
+                px-2 py-2 text-xs rounded text-center hover:bg-background-100 transition-colors
+                ${
+                  index === currentDate.getMonth()
+                    ? 'bg-primary-800 text-text font-medium hover:text-text-950'
+                    : 'text-text-700'
+                }
+              `}
+            >
+              {month.substring(0, 3)}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   // Navigation variant (compact)
   if (variant === 'navigation') {
@@ -163,23 +268,32 @@ const Calendar = ({
       <div className={`bg-background rounded-xl p-3 ${className}`}>
         {/* Compact header */}
         <div className="flex items-center justify-between mb-4 px-6">
-          <div className="flex items-center gap-1">
-            <span className="text-sm font-medium text-text-600">
-              {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
-            </span>
-            <svg
-              className="w-4 h-4 text-primary-950"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="relative" ref={monthPickerContainerRef}>
+            <button
+              onClick={toggleMonthPicker}
+              className="flex items-center gap-1 hover:bg-background-100 rounded px-2 py-1 transition-colors"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
+              <span className="text-sm font-medium text-text-600">
+                {MONTH_NAMES[currentDate.getMonth()]}{' '}
+                {currentDate.getFullYear()}
+              </span>
+              <svg
+                className={`w-4 h-4 text-primary-950 transition-transform ${
+                  isMonthPickerOpen ? 'rotate-180' : ''
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+            {isMonthPickerOpen && <MonthYearPicker />}
           </div>
           <div className="flex items-center gap-10">
             <button
@@ -319,9 +433,32 @@ const Calendar = ({
     <div className={`bg-background rounded-xl p-4 ${className}`}>
       {/* Full header */}
       <div className="flex items-center justify-between mb-3.5">
-        <h2 className="text-lg font-semibold text-text-950">
-          {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
-        </h2>
+        <div className="relative" ref={monthPickerContainerRef}>
+          <button
+            onClick={toggleMonthPicker}
+            className="flex items-center gap-2 hover:bg-background-100 rounded px-2 py-1 transition-colors"
+          >
+            <h2 className="text-lg font-semibold text-text-950">
+              {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
+            </h2>
+            <svg
+              className={`w-4 h-4 text-text-400 transition-transform ${
+                isMonthPickerOpen ? 'rotate-180' : ''
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+          {isMonthPickerOpen && <MonthYearPicker />}
+        </div>
         <div className="flex items-center gap-1">
           <button
             onClick={goToPreviousMonth}

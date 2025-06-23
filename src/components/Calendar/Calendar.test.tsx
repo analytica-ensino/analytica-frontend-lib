@@ -97,6 +97,79 @@ describe('Calendar', () => {
       expect(normalDay).not.toHaveClass('bg-primary-800');
       expect(normalDay).not.toHaveClass('text-[#1c61b2]');
     });
+
+    it('should toggle month picker when clicking header in selection variant', () => {
+      render(<Calendar variant="selection" />);
+
+      // Find the month header button
+      const monthButton = screen.getByRole('button', {
+        name: /janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro/i,
+      });
+
+      // Initially closed
+      expect(screen.queryByText('Selecionar Ano')).not.toBeInTheDocument();
+
+      // Click to open month picker
+      fireEvent.click(monthButton);
+
+      // Check if month picker is open
+      expect(screen.getByText('Selecionar Ano')).toBeInTheDocument();
+      expect(screen.getByText('Selecionar Mês')).toBeInTheDocument();
+
+      // Click again to close
+      fireEvent.click(monthButton);
+
+      // Month picker should be hidden
+      expect(screen.queryByText('Selecionar Ano')).not.toBeInTheDocument();
+      expect(screen.queryByText('Selecionar Mês')).not.toBeInTheDocument();
+    });
+
+    it('should navigate to selected month when clicking month in picker', () => {
+      render(
+        <Calendar variant="selection" onMonthChange={mockOnMonthChange} />
+      );
+
+      // Open month picker
+      const monthButton = screen.getByRole('button', {
+        name: /janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro/i,
+      });
+      fireEvent.click(monthButton);
+
+      // Click on "Mar" (March)
+      const marchButton = screen.getByText('Mar');
+      fireEvent.click(marchButton);
+
+      // Should call onMonthChange
+      expect(mockOnMonthChange).toHaveBeenCalledWith(expect.any(Date));
+
+      // Month picker should be closed
+      expect(screen.queryByText('Selecionar Ano')).not.toBeInTheDocument();
+    });
+
+    it('should change year when clicking year in picker', () => {
+      render(
+        <Calendar variant="selection" selectedDate={new Date(2025, 0, 1)} />
+      );
+
+      // Open month picker
+      const monthButton = screen.getByRole('button', {
+        name: /janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro/i,
+      });
+      fireEvent.click(monthButton);
+
+      // Get all year buttons and click on 2024
+      const year2024Buttons = screen.getAllByText('2024');
+      const year2024Button = year2024Buttons.find(
+        (button) =>
+          button.tagName === 'BUTTON' && button.closest('.grid-cols-4')
+      );
+
+      expect(year2024Button).toBeInTheDocument();
+      fireEvent.click(year2024Button!);
+
+      // Check if header contains Janeiro 2024 (not just 2024)
+      expect(screen.getByText('Janeiro 2024')).toBeInTheDocument();
+    });
   });
 
   describe('Navigation variant', () => {
@@ -238,6 +311,21 @@ describe('Calendar', () => {
       expect(mockCallback).toHaveBeenCalledWith(expect.any(Date));
       expect(mockCallback).toHaveBeenCalledTimes(1);
     });
+
+    it('should toggle month picker when clicking header in navigation variant', () => {
+      render(<Calendar variant="navigation" />);
+
+      // Find the month header button
+      const monthButton = screen.getByRole('button', {
+        name: /janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro/i,
+      });
+
+      // Click to open month picker
+      fireEvent.click(monthButton);
+
+      // Check if month picker is open
+      expect(screen.getByText('Selecionar Ano')).toBeInTheDocument();
+    });
   });
 
   describe('Common functionality', () => {
@@ -321,6 +409,25 @@ describe('Calendar', () => {
 
       expect(mockCallback).toHaveBeenCalledWith(expect.any(Date));
       expect(mockCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should close month picker when clicking outside', () => {
+      render(<Calendar variant="selection" />);
+
+      // Open month picker
+      const monthButton = screen.getByRole('button', {
+        name: /janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro/i,
+      });
+      fireEvent.click(monthButton);
+
+      // Check if month picker is open
+      expect(screen.getByText('Selecionar Ano')).toBeInTheDocument();
+
+      // Simulate clicking outside
+      fireEvent.mouseDown(document.body);
+
+      // Month picker should be closed
+      expect(screen.queryByText('Selecionar Ano')).not.toBeInTheDocument();
     });
   });
 });
