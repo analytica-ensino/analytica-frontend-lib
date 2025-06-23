@@ -23,7 +23,7 @@ const SIZE_CLASSES = {
     labelSize: '2xs' as const, // 10px for status label (closest to 8px design spec)
     labelWeight: 'bold', // font-weight: 700
     spacing: 'gap-1', // 4px gap between percentage and label
-    contentWidth: 'max-w-[70px]', // Maximum width for content to prevent overflow
+    contentWidth: 'max-w-[50px]', // Reduced width to fit text inside circle
   },
   medium: {
     container: 'w-[152px] h-[152px]', // 151.67px ≈ 152px circle from design specs
@@ -33,7 +33,7 @@ const SIZE_CLASSES = {
     labelSize: 'xs' as const, // 12px for status label (font-size: 12px)
     labelWeight: 'medium', // font-weight: 500 (changed from bold)
     spacing: 'gap-1', // 4px gap between percentage and label
-    contentWidth: 'max-w-[120px]', // Maximum width for content to prevent overflow
+    contentWidth: 'max-w-[90px]', // Reduced width to fit text inside circle
   },
 } as const;
 
