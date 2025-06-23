@@ -181,7 +181,7 @@ const ProgressCircle = ({
           <Text
             size={sizeClasses.textSize}
             weight={sizeClasses.textWeight}
-            className={`text-center truncate w-full ${variantClasses.textColor} ${percentageClassName}`}
+            className={`text-center w-full ${variantClasses.textColor} ${percentageClassName}`}
           >
             {Math.round(percentage)}%
           </Text>
