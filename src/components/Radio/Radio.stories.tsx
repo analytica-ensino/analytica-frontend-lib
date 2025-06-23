@@ -294,14 +294,14 @@ export const AllCombinations: Story = () => (
       <h3 className="text-lg font-semibold mb-4 text-text-950">
         All Size and State Combinations
       </h3>
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {sizes.map((size) => (
-          <div key={size} className="flex flex-col gap-4">
+          <div key={size} className="flex flex-col gap-4 min-w-0">
             <h4 className="font-medium text-md text-text-950">
               {size.charAt(0).toUpperCase() + size.slice(1)}
             </h4>
             {states.map((state) => (
-              <div key={`${size}-${state}`} className="flex items-center gap-4">
+              <div key={`${size}-${state}`} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <Radio
                   size={size}
                   state={state === 'disabled' ? 'default' : state}

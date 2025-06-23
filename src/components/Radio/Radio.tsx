@@ -23,35 +23,35 @@ type RadioState = 'default' | 'hovered' | 'focused' | 'invalid' | 'disabled';
  */
 const SIZE_CLASSES = {
   small: {
-    radio: 'w-5 h-5', // 20px x 20px
+    radio: 'w-5 h-5',
     textSize: 'sm' as const,
-    spacing: 'gap-1.5', // 6px
+    spacing: 'gap-1.5',
     borderWidth: 'border-2',
-    dotSize: 'w-1.5 h-1.5', // 6px inner dot
+    dotSize: 'w-2 h-2',
     labelHeight: 'h-5',
   },
   medium: {
-    radio: 'w-6 h-6', // 24px x 24px
+    radio: 'w-6 h-6',
     textSize: 'md' as const,
-    spacing: 'gap-2', // 8px
+    spacing: 'gap-2',
     borderWidth: 'border-2',
-    dotSize: 'w-2 h-2', // 8px inner dot
+    dotSize: 'w-2.5 h-2.5',
     labelHeight: 'h-6',
   },
   large: {
-    radio: 'w-7 h-7', // 28px x 28px
+    radio: 'w-7 h-7',
     textSize: 'lg' as const,
-    spacing: 'gap-2', // 8px
-    borderWidth: 'border-2', // 2px border (consistent with others)
-    dotSize: 'w-2.5 h-2.5', // 10px inner dot
+    spacing: 'gap-2',
+    borderWidth: 'border-2',
+    dotSize: 'w-3 h-3',
     labelHeight: 'h-7',
   },
   extraLarge: {
-    radio: 'w-8 h-8', // 32px x 32px (larger than large)
+    radio: 'w-8 h-8',
     textSize: 'xl' as const,
-    spacing: 'gap-3', // 12px
-    borderWidth: 'border-2', // 2px border (consistent with others)
-    dotSize: 'w-3 h-3', // 12px inner dot
+    spacing: 'gap-3',
+    borderWidth: 'border-2',
+    dotSize: 'w-3.5 h-3.5',
     labelHeight: 'h-8',
   },
 } as const;
@@ -76,20 +76,20 @@ const STATE_CLASSES = {
     checked: 'border-primary-950 bg-background hover:border-primary-800',
   },
   hovered: {
-    unchecked: 'border-border-500 bg-background', // #8C8D8D hover state for unchecked
-    checked: 'border-info-700 bg-background', // Adjust checked border for hover
+    unchecked: 'border-border-500 bg-background',
+    checked: 'border-info-700 bg-background',
   },
   focused: {
-    unchecked: 'border-border-400 bg-background', // #A5A3A3 for unchecked radio
-    checked: 'border-primary-950 bg-background', // #124393 for checked radio
+    unchecked: 'border-border-400 bg-background',
+    checked: 'border-primary-950 bg-background',
   },
   invalid: {
-    unchecked: 'border-border-400 bg-background', // #A5A3A3 for unchecked radio
-    checked: 'border-primary-950 bg-background', // #124393 for checked radio
+    unchecked: 'border-border-400 bg-background',
+    checked: 'border-primary-950 bg-background',
   },
   disabled: {
-    unchecked: 'border-border-400 bg-background cursor-not-allowed', // #A5A3A3 for unchecked radio
-    checked: 'border-primary-950 bg-background cursor-not-allowed', // #124393 for checked radio
+    unchecked: 'border-border-400 bg-background cursor-not-allowed',
+    checked: 'border-primary-950 bg-background cursor-not-allowed',
   },
 } as const;
 
@@ -98,10 +98,10 @@ const STATE_CLASSES = {
  */
 const DOT_CLASSES = {
   default: 'bg-primary-950',
-  hovered: 'bg-info-700', // #1C61B2 hover state for checked dot
-  focused: 'bg-primary-950', // #124393 for focused checked dot
-  invalid: 'bg-primary-950', // #124393 for invalid checked dot
-  disabled: 'bg-primary-950', // #124393 for disabled checked dot
+  hovered: 'bg-info-700',
+  focused: 'bg-primary-950',
+  invalid: 'bg-primary-950',
+  disabled: 'bg-primary-950',
 } as const;
 
 /**
@@ -218,7 +218,7 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     // Border width logic - consistent across all states and sizes
     const getBorderWidth = () => {
       if (currentState === 'focused') {
-        return 'border-2'; // Consistent border for all focused radios inside wrapper
+        return 'border-2';
       }
       return sizeClasses.borderWidth;
     };
@@ -236,20 +236,20 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
       currentState === 'focused' || currentState === 'invalid';
     const wrapperBorderColor =
       currentState === 'focused'
-        ? 'border-indicator-info' // #5399EC for focused
-        : 'border-indicator-error'; // #B91C1C for invalid
+        ? 'border-indicator-info'
+        : 'border-indicator-error';
 
     // Determine text color based on state and checked status
     const getTextColor = () => {
       if (currentState === 'disabled') {
-        return checked ? 'text-text-900' : 'text-text-600'; // #262627 for disabled checked, #737373 for disabled unchecked
+        return checked ? 'text-text-900' : 'text-text-600';
       }
 
       if (currentState === 'focused') {
-        return 'text-text-900'; // #262627 for focused (both checked and unchecked)
+        return 'text-text-900';
       }
 
-      return checked ? 'text-text-900' : 'text-text-600'; // #262627 for checked, #737373 for unchecked
+      return checked ? 'text-text-900' : 'text-text-600';
     };
 
     // Determine cursor class based on disabled state
@@ -264,7 +264,7 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
         <div
           className={`flex flex-row items-center ${
             isWrapperNeeded
-              ? `p-1 border-2 ${wrapperBorderColor} rounded-lg gap-1.5` // Wrapper apenas para focused/invalid
+              ? `p-1 border-2 ${wrapperBorderColor} rounded-lg gap-1.5`
               : sizeClasses.spacing
           } ${disabled ? 'opacity-40' : ''}`}
         >
@@ -291,14 +291,14 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
           {/* Label text */}
           {label && (
             <div
-              className={`flex flex-row items-center ${sizeClasses.labelHeight}`}
+              className={`flex flex-row items-center ${sizeClasses.labelHeight} flex-1 min-w-0`}
             >
               <Text
                 as="label"
                 htmlFor={inputId}
                 size={sizeClasses.textSize}
                 weight="normal"
-                className={`${getCursorClass()} select-none leading-normal flex items-center font-roboto ${labelClassName}`}
+                className={`${getCursorClass()} select-none leading-normal flex items-center font-roboto truncate ${labelClassName}`}
                 color={getTextColor()}
               >
                 {label}
@@ -312,7 +312,7 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
           <Text
             size="sm"
             weight="normal"
-            className="mt-1.5"
+            className="mt-1.5 truncate"
             color="text-error-600"
           >
             {errorMessage}
@@ -324,7 +324,7 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
           <Text
             size="sm"
             weight="normal"
-            className="mt-1.5"
+            className="mt-1.5 truncate"
             color="text-text-500"
           >
             {helperText}
