@@ -344,31 +344,6 @@ export const AllVariations: Story = () => (
                   label="Lesson Progress"
                 />
               </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Activity with Percentage
-                </span>
-                <ProgressBar
-                  size="small"
-                  variant="blue"
-                  value={85}
-                  showPercentage
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Complete Activity Status
-                </span>
-                <ProgressBar
-                  size="small"
-                  variant="blue"
-                  value={95}
-                  label="Module Complete"
-                  showPercentage
-                />
-              </div>
             </div>
           </div>
 
@@ -397,31 +372,6 @@ export const AllVariations: Story = () => (
                   label="Accuracy Score"
                 />
               </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Performance with Percentage
-                </span>
-                <ProgressBar
-                  size="small"
-                  variant="green"
-                  value={85}
-                  showPercentage
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Excellent Performance Status
-                </span>
-                <ProgressBar
-                  size="small"
-                  variant="green"
-                  value={95}
-                  label="Mastery Level"
-                  showPercentage
-                />
-              </div>
             </div>
           </div>
         </div>
@@ -446,18 +396,6 @@ export const AllVariations: Story = () => (
                   Standard Activity Bar
                 </span>
                 <ProgressBar size="medium" variant="blue" value={35} />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Activity with Description
-                </span>
-                <ProgressBar
-                  size="medium"
-                  variant="blue"
-                  value={65}
-                  label="Course Progress"
-                />
               </div>
 
               <div className="flex flex-col gap-1">
@@ -499,18 +437,6 @@ export const AllVariations: Story = () => (
                   Standard Performance Bar
                 </span>
                 <ProgressBar size="medium" variant="green" value={35} />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Performance with Label
-                </span>
-                <ProgressBar
-                  size="medium"
-                  variant="green"
-                  value={65}
-                  label="Overall Score"
-                />
               </div>
 
               <div className="flex flex-col gap-1">
@@ -558,38 +484,6 @@ export const AllVariations: Story = () => (
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-text-500">
-                  Basic Activity Card
-                </span>
-                <ProgressBar layout="stacked" variant="blue" value={35} />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Activity Card with Label
-                </span>
-                <ProgressBar
-                  layout="stacked"
-                  variant="blue"
-                  value={65}
-                  label="Matemática"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Activity Card with Hit Count
-                </span>
-                <ProgressBar
-                  layout="stacked"
-                  variant="blue"
-                  value={17}
-                  max={20}
-                  showHitCount
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
                   Complete Activity Dashboard Card
                 </span>
                 <ProgressBar
@@ -611,38 +505,6 @@ export const AllVariations: Story = () => (
             </h5>
 
             <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Basic Performance Card
-                </span>
-                <ProgressBar layout="stacked" variant="green" value={35} />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Performance Card with Label
-                </span>
-                <ProgressBar
-                  layout="stacked"
-                  variant="green"
-                  value={65}
-                  label="Fáceis"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Performance Card with Hit Count
-                </span>
-                <ProgressBar
-                  layout="stacked"
-                  variant="green"
-                  value={24}
-                  max={30}
-                  showHitCount
-                />
-              </div>
-
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-text-500">
                   Excellence Performance Report Card
@@ -684,99 +546,6 @@ export const AllVariations: Story = () => (
                   variant="blue"
                   value={70}
                   label="Questão 08"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Lesson Progress Card
-                </span>
-                <ProgressBar
-                  layout="compact"
-                  variant="blue"
-                  value={45}
-                  label="Lição 1"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Exercise Progress Card
-                </span>
-                <ProgressBar
-                  layout="compact"
-                  variant="blue"
-                  value={90}
-                  label="Ex. Matemática"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Topic Progress Card
-                </span>
-                <ProgressBar
-                  layout="compact"
-                  variant="blue"
-                  value={25}
-                  label="Tópico A"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Compact Green Variations */}
-          <div className="flex flex-col gap-4">
-            <h5 className="font-medium text-md text-text-700">
-              Performance Metrics Cards (Green)
-            </h5>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Module Performance Card
-                </span>
-                <ProgressBar
-                  layout="compact"
-                  variant="green"
-                  value={85}
-                  label="Módulo A"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Skill Assessment Card
-                </span>
-                <ProgressBar
-                  layout="compact"
-                  variant="green"
-                  value={60}
-                  label="Habilidade X"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Achievement Progress Card
-                </span>
-                <ProgressBar
-                  layout="compact"
-                  variant="green"
-                  value={95}
-                  label="Conquista Y"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-text-500">
-                  Competency Level Card
-                </span>
-                <ProgressBar
-                  layout="compact"
-                  variant="green"
-                  value={40}
-                  label="Competência Z"
                 />
               </div>
             </div>
