@@ -20,9 +20,10 @@ const SIZE_CLASSES = {
     strokeWidth: 4, // 4px stroke width - matches ProgressBar small (h-1)
     textSize: '2xl', // 24px for percentage (font-size: 24px)
     textWeight: 'medium', // font-weight: 500
-    labelSize: '2xs' as const, // 10px for status label (closest to 8px design spec)
+    labelSize: '2xs' as const, // Will be overridden with custom 8px in className
     labelWeight: 'bold', // font-weight: 700
-    spacing: 'gap-1', // 4px gap between percentage and label
+    spacing: 'gap-0', // Reduced gap between percentage and label for better spacing
+    contentWidth: 'max-w-[50px]', // Reduced width to fit text inside circle
   },
   medium: {
     container: 'w-[152px] h-[152px]', // 151.67px ≈ 152px circle from design specs
@@ -32,6 +33,7 @@ const SIZE_CLASSES = {
     labelSize: 'xs' as const, // 12px for status label (font-size: 12px)
     labelWeight: 'medium', // font-weight: 500 (changed from bold)
     spacing: 'gap-1', // 4px gap between percentage and label
+    contentWidth: 'max-w-[90px]', // Reduced width to fit text inside circle
   },
 } as const;
 
@@ -172,14 +174,14 @@ const ProgressCircle = ({
 
       {/* Content overlay - centered content */}
       <div
-        className={`relative z-10 flex flex-col items-center justify-center ${sizeClasses.spacing}`}
+        className={`relative z-10 flex flex-col items-center justify-center ${sizeClasses.spacing} ${sizeClasses.contentWidth}`}
       >
         {/* Percentage text */}
         {showPercentage && (
           <Text
             size={sizeClasses.textSize}
             weight={sizeClasses.textWeight}
-            className={`text-center ${variantClasses.textColor} ${percentageClassName}`}
+            className={`text-center w-full ${variantClasses.textColor} ${percentageClassName}`}
           >
             {Math.round(percentage)}%
           </Text>
@@ -191,7 +193,7 @@ const ProgressCircle = ({
             as="span"
             size={sizeClasses.labelSize}
             weight={sizeClasses.labelWeight}
-            className={`${variantClasses.labelColor} text-center uppercase tracking-wide ${labelClassName}`}
+            className={`${variantClasses.labelColor} text-center uppercase tracking-wide truncate w-full ${size === 'small' ? 'text-[8px] leading-[9px]' : ''} ${labelClassName}`}
           >
             {label}
           </Text>
