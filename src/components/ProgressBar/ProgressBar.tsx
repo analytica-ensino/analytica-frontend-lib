@@ -20,7 +20,6 @@ const SIZE_CLASSES = {
   small: {
     container: 'h-1', // 4px height (h-1 = 4px in Tailwind)
     bar: 'h-1', // 4px height for the fill bar
-    labelSize: 'xs' as const,
     spacing: 'gap-2', // 8px gap between label and progress bar
     layout: 'flex-col', // vertical layout for small
     borderRadius: 'rounded-full', // 9999px border radius
@@ -28,7 +27,6 @@ const SIZE_CLASSES = {
   medium: {
     container: 'h-2', // 8px height (h-2 = 8px in Tailwind)
     bar: 'h-2', // 8px height for the fill bar
-    labelSize: 'xs' as const, // 12px font size (xs in Tailwind)
     spacing: 'gap-2', // 8px gap between progress bar and label
     layout: 'flex-row items-center', // horizontal layout for medium
     borderRadius: 'rounded-lg', // 8px border radius
@@ -127,9 +125,9 @@ const ProgressBar = ({
           {label && (
             <Text
               as="div"
-              size={sizeClasses.labelSize}
+              size="xs"
               weight="medium"
-              className={`text-text-950 ${labelClassName}`}
+              className={`text-text-950 leading-none tracking-normal text-center ${labelClassName}`}
             >
               {label}
             </Text>
@@ -138,9 +136,9 @@ const ProgressBar = ({
           {/* Percentage */}
           {showPercentage && (
             <Text
-              size={sizeClasses.labelSize}
+              size="xs"
               weight="medium"
-              className={`text-text-700 text-center ${percentageClassName}`}
+              className={`text-text-950 leading-none tracking-normal text-center ${percentageClassName}`}
             >
               {Math.round(percentage)}%
             </Text>
@@ -170,9 +168,9 @@ const ProgressBar = ({
       {/* For medium size: horizontal layout with percentage on the right */}
       {size === 'medium' && showPercentage && (
         <Text
-          size={sizeClasses.labelSize}
+          size="xs"
           weight="medium"
-          className={`text-text-950 flex-none ${percentageClassName}`}
+          className={`text-text-950 leading-none tracking-normal text-center flex-none ${percentageClassName}`}
         >
           {Math.round(percentage)}%
         </Text>
@@ -182,9 +180,9 @@ const ProgressBar = ({
       {size === 'medium' && label && !showPercentage && (
         <Text
           as="div"
-          size={sizeClasses.labelSize}
+          size="xs"
           weight="medium"
-          className={`text-text-950 flex-none ${labelClassName}`}
+          className={`text-text-950 leading-none tracking-normal text-center flex-none ${labelClassName}`}
         >
           {label}
         </Text>
