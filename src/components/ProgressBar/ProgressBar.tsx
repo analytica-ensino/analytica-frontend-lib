@@ -118,7 +118,7 @@ const ProgressBar = ({
 
   return (
     <div
-      className={`flex ${sizeClasses.layout} ${sizeClasses.spacing} ${className}`}
+      className={`flex ${sizeClasses.layout} ${size === 'medium' ? 'gap-2' : sizeClasses.spacing} ${className}`}
     >
       {/* For small size: vertical layout with label/percentage on top */}
       {size === 'small' && (label || showPercentage) && (
@@ -172,7 +172,7 @@ const ProgressBar = ({
         <Text
           size={sizeClasses.labelSize}
           weight="medium"
-          className={`text-text-950 text-center flex-none w-[70px] ${percentageClassName}`}
+          className={`text-text-950 flex-none ${percentageClassName}`}
         >
           {Math.round(percentage)}%
         </Text>
