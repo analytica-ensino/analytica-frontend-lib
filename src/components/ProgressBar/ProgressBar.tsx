@@ -12,6 +12,11 @@ type ProgressBarSize = 'small' | 'medium';
 type ProgressBarVariant = 'blue' | 'green';
 
 /**
+ * Progress bar layout variants
+ */
+type ProgressBarLayout = 'default' | 'stacked' | 'compact';
+
+/**
  * Size configurations using Tailwind classes
  */
 const SIZE_CLASSES = {
@@ -57,10 +62,14 @@ export type ProgressBarProps = {
   size?: ProgressBarSize;
   /** Color variant of the progress bar */
   variant?: ProgressBarVariant;
+  /** Layout variant of the progress bar */
+  layout?: ProgressBarLayout;
   /** Optional label to display */
   label?: ReactNode;
   /** Show percentage text */
   showPercentage?: boolean;
+  /** Show hit count (e.g., "28 de 30") instead of percentage */
+  showHitCount?: boolean;
   /** Additional CSS classes */
   className?: string;
   /** Label CSS classes */
@@ -90,6 +99,12 @@ export type ProgressBarProps = {
  *
  * // Small size with custom max value
  * <ProgressBar size="small" value={3} max={5} showPercentage />
+ *
+ * // Stacked layout with fixed width and hit count
+ * <ProgressBar layout="stacked" variant="green" value={28} max={30} label="Fáceis" showHitCount />
+ *
+ * // Compact layout for small cards
+ * <ProgressBar layout="compact" variant="blue" value={70} label="Questão 08" />
  * ```
  */
 const ProgressBar = ({
@@ -97,8 +112,10 @@ const ProgressBar = ({
   max = 100,
   size = 'medium',
   variant = 'blue',
+  layout = 'default',
   label,
   showPercentage = false,
+  showHitCount = false,
   className = '',
   labelClassName = '',
   percentageClassName = '',
@@ -112,6 +129,105 @@ const ProgressBar = ({
   const sizeClasses = SIZE_CLASSES[size];
   const variantClasses = VARIANT_CLASSES[variant];
 
+  // Stacked layout variant (based on provided design)
+  if (layout === 'stacked') {
+    return (
+      <div
+        className={`flex flex-col items-start gap-2 w-[380px] h-[35px] ${className}`}
+      >
+        {/* Header with label and percentage/hitcount */}
+        {(label || showPercentage || showHitCount) && (
+          <div className="flex flex-row justify-between items-center w-full h-[19px]">
+            {/* Label */}
+            {label && (
+              <Text
+                as="div"
+                size="md"
+                weight="medium"
+                className={`text-text-600 leading-[19px] ${labelClassName}`}
+              >
+                {label}
+              </Text>
+            )}
+
+            {/* Hit Count or Percentage */}
+            {(showHitCount || showPercentage) && (
+              <Text
+                size="xs"
+                weight="medium"
+                className={`text-success-200 leading-[14px] text-right ${percentageClassName}`}
+              >
+                {showHitCount
+                  ? `${Math.round(clampedValue)} de ${max}`
+                  : `${Math.round(percentage)}%`}
+              </Text>
+            )}
+          </div>
+        )}
+
+        {/* Progress bar */}
+        <div
+          className={`w-full h-2 ${variantClasses.background} rounded-lg overflow-hidden relative`}
+        >
+          {/* Native progress element for accessibility */}
+          <progress
+            value={clampedValue}
+            max={max}
+            aria-label={typeof label === 'string' ? label : 'Progress'}
+            className="absolute inset-0 w-full h-full opacity-0"
+          />
+
+          {/* Progress bar fill */}
+          <div
+            className={`h-2 ${variantClasses.fill} rounded-lg transition-all duration-300 ease-out shadow-hard-shadow-3`}
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Compact layout variant (based on provided design)
+  if (layout === 'compact') {
+    return (
+      <div
+        className={`flex flex-col items-start gap-1 w-[131px] h-[24px] ${className}`}
+      >
+        {/* Label */}
+        {label && (
+          <Text
+            as="div"
+            size="sm"
+            weight="medium"
+            className={`text-primary-700 leading-4 w-full ${labelClassName}`}
+          >
+            {label}
+          </Text>
+        )}
+
+        {/* Progress bar */}
+        <div
+          className={`w-full h-1 ${variantClasses.background} rounded-full overflow-hidden relative`}
+        >
+          {/* Native progress element for accessibility */}
+          <progress
+            value={clampedValue}
+            max={max}
+            aria-label={typeof label === 'string' ? label : 'Progress'}
+            className="absolute inset-0 w-full h-full opacity-0"
+          />
+
+          {/* Progress bar fill */}
+          <div
+            className={`h-1 ${variantClasses.fill} rounded-full transition-all duration-300 ease-out`}
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Default layout (existing behavior)
   return (
     <div
       className={`flex ${sizeClasses.layout} ${size === 'medium' ? 'gap-2' : sizeClasses.spacing} ${className}`}
