@@ -307,7 +307,7 @@ const MenuContent = forwardRef<
 );
 MenuContent.displayName = 'MenuContent';
 
-const MenuItem = forwardRef<
+const DropdownMenuItem = forwardRef<
   HTMLDivElement,
   HTMLAttributes<HTMLDivElement> & {
     inset?: boolean;
@@ -392,9 +392,9 @@ const MenuItem = forwardRef<
     );
   }
 );
-MenuItem.displayName = 'MenuItem';
+DropdownMenuItem.displayName = 'DropdownMenuItem';
 
-const MenuSeparator = forwardRef<
+const DropdownMenuSeparator = forwardRef<
   HTMLDivElement,
   HTMLAttributes<HTMLDivElement> & { store?: DropdownStoreApi }
 >(({ className, store: _store, ...props }, ref) => (
@@ -404,7 +404,7 @@ const MenuSeparator = forwardRef<
     {...props}
   />
 ));
-MenuSeparator.displayName = 'MenuSeparator';
+DropdownMenuSeparator.displayName = 'DropdownMenuSeparator';
 
 // Componentes específicos do ProfileMenu
 const ProfileMenuTrigger = forwardRef<
@@ -523,9 +523,9 @@ export {
   // Componentes genéricos
   DropdownMenuTrigger,
   MenuContent,
-  MenuItem,
+  DropdownMenuItem,
   MenuLabel,
-  MenuSeparator,
+  DropdownMenuSeparator,
 
   // Componentes específicos do ProfileMenu
   ProfileMenuTrigger,

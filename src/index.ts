@@ -30,13 +30,13 @@ import ProgressCircle from './components/ProgressCircle/ProgressCircle';
 import DropdownMenu, {
   DropdownMenuTrigger,
   MenuContent,
-  MenuItem,
+  DropdownMenuItem,
   ProfileMenuTrigger,
   ProfileMenuFooter,
   ProfileMenuHeader,
   ProfileMenuSection,
   MenuLabel,
-  MenuSeparator,
+  DropdownMenuSeparator,
 } from './components/DropdownMenu/DropdownMenu';
 
 import Select, {
@@ -45,6 +45,8 @@ import Select, {
   SelectContent,
   SelectItem,
 } from './components/Select/Select';
+
+import Menu, { MenuItem, MenuSeparator } from './components/Menu/Menu';
 
 // Export all components for bundled usage
 export { Text };
@@ -72,9 +74,9 @@ export { ProgressCircle };
 export { DropdownMenu };
 export { DropdownMenuTrigger };
 export { MenuContent };
-export { MenuItem };
+export { DropdownMenuItem };
 export { MenuLabel };
-export { MenuSeparator };
+export { DropdownMenuSeparator };
 export { ProfileMenuTrigger };
 export { ProfileMenuHeader };
 export { ProfileMenuSection };
@@ -85,3 +87,7 @@ export { SelectValue };
 export { SelectTrigger };
 export { SelectContent };
 export { SelectItem };
+
+export { Menu };
+export { MenuItem };
+export { MenuSeparator };

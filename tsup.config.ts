@@ -28,6 +28,7 @@ export default defineConfig({
     'Text/index': 'src/components/Text/Text.tsx',
     'TextArea/index': 'src/components/TextArea/TextArea.tsx',
     'Toast/index': 'src/components/Toast/Toast.tsx',
+    'Menu/index': 'src/components/Menu/Menu.tsx',
 
     // Toast utils
     'Toast/Toaster/index': 'src/components/Toast/utils/Toaster.tsx',
