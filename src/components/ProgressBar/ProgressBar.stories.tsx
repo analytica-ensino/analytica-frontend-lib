@@ -523,7 +523,7 @@ export const AllVariations: Story = () => (
                   layout="compact"
                   variant="blue"
                   value={70}
-                  label="Questão 08"
+                  showPercentage
                 />
               </div>
             </div>

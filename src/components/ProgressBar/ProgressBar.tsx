@@ -193,15 +193,28 @@ const ProgressBar = ({
       <div
         className={`flex flex-col items-start gap-1 w-[131px] h-[24px] ${className}`}
       >
-        {/* Label */}
-        {label && (
+        {/* Label or Percentage */}
+        {(label || showPercentage || showHitCount) && (
           <Text
             as="div"
             size="sm"
             weight="medium"
-            className={`text-primary-700 leading-4 w-full ${labelClassName}`}
+            color={
+              showPercentage || showHitCount
+                ? 'text-primary-600'
+                : 'text-primary-700'
+            }
+            className={`leading-4 w-full ${
+              showPercentage || showHitCount
+                ? percentageClassName
+                : labelClassName
+            }`}
           >
-            {label}
+            {showPercentage
+              ? `${Math.round(percentage)}%`
+              : showHitCount
+                ? `${Math.round(clampedValue)} de ${max}`
+                : label}
           </Text>
         )}
 
