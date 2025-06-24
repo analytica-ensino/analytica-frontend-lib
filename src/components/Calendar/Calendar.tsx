@@ -53,7 +53,12 @@ export interface CalendarProps {
 /**
  * Day names abbreviations
  */
-const WEEK_DAYS = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
+export const WEEK_DAYS = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
+
+/**
+ * Day names single-letter abbreviations
+ */
+const WEEK_DAYS_SHORT = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
 
 /**
  * Month names in Portuguese
@@ -156,7 +161,7 @@ const Calendar = ({
   onDateSelect,
   onMonthChange,
   activities = {},
-  showActivities: _showActivities = true,
+  showActivities = true,
   className = '',
 }: CalendarProps) => {
   const [currentDate, setCurrentDate] = useState(selectedDate || new Date());
@@ -204,8 +209,6 @@ const Calendar = ({
 
     // First day of the month
     const firstDay = new Date(year, month, 1);
-    // Last day of the month
-    const _lastDay = new Date(year, month + 1, 0);
 
     // Get the first Monday of the calendar view
     const startDate = new Date(firstDay);
@@ -364,9 +367,9 @@ const Calendar = ({
 
         {/* Compact week days */}
         <div className="grid grid-cols-7 gap-1 mb-2">
-          {['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((day, index) => (
+          {WEEK_DAYS_SHORT.map((day) => (
             <div
-              key={index}
+              key={day}
               className="h-9 flex items-center justify-center text-xs font-normal text-text-600"
             >
               {day}
@@ -395,7 +398,11 @@ const Calendar = ({
 
             if (day.isToday) {
               textStyle = 'text-[#1c61b2]';
-            } else if (day.activities && day.activities.length > 0) {
+            } else if (
+              showActivities &&
+              day.activities &&
+              day.activities.length > 0
+            ) {
               const primaryActivity = day.activities[0];
               if (primaryActivity.status === 'near-deadline') {
                 dayStyle = 'bg-warning-background border-2 border-warning-400';
@@ -415,6 +422,13 @@ const Calendar = ({
               textStyle = 'text-text-950 hover:bg-background-100';
             }
 
+            let spanClass = '';
+            if (day.isSelected && day.isToday) {
+              spanClass = 'h-6 w-6 rounded-full bg-[#1c61b2] text-text';
+            } else if (day.isSelected) {
+              spanClass = 'h-6 w-6 rounded-full bg-primary-950 text-text';
+            }
+
             return (
               <div
                 key={day.date.getTime()}
@@ -432,18 +446,7 @@ const Calendar = ({
                   `}
                   onClick={() => handleDateSelect(day)}
                 >
-                  <span
-                    className={` ${
-                      day.isSelected &&
-                      'h-6 w-6 rounded-full bg-primary-950 text-text'
-                    } ${
-                      day.isSelected &&
-                      day.isToday &&
-                      'h-6 w-6 rounded-full bg-[#1c61b2] text-text'
-                    }`}
-                  >
-                    {day.date.getDate()}
-                  </span>
+                  <span className={spanClass}>{day.date.getDate()}</span>
                 </button>
               </div>
             );

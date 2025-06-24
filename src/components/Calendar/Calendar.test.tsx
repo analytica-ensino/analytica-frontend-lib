@@ -1,6 +1,10 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Calendar, { CalendarActivity, ActivityStatus } from './Calendar';
+import Calendar, {
+  CalendarActivity,
+  ActivityStatus,
+  WEEK_DAYS,
+} from './Calendar';
 
 describe('Calendar', () => {
   const mockOnDateSelect = jest.fn();
@@ -431,5 +435,3 @@ describe('Calendar', () => {
     });
   });
 });
-
-const WEEK_DAYS = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
