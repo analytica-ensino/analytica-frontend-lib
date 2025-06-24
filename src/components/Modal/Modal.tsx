@@ -1,4 +1,4 @@
-import React, { ReactNode, MouseEvent, useEffect } from 'react';
+import { ReactNode, MouseEvent, useEffect, KeyboardEvent } from 'react';
 import { X } from 'phosphor-react';
 
 /**
@@ -122,9 +122,7 @@ const Modal = ({
   };
 
   // Handle backdrop keyboard interaction
-  const handleBackdropKeyDown = (
-    event: React.KeyboardEvent<HTMLDivElement>
-  ) => {
+  const handleBackdropKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (closeOnBackdropClick && (event.key === 'Enter' || event.key === ' ')) {
       onClose();
     }
