@@ -41,6 +41,19 @@ describe('Input', () => {
         'focus:outline-primary-950'
       );
     });
+
+    it('applies correct padding for read-only state', () => {
+      render(<Input readOnly data-testid="input" />);
+      expect(screen.getByTestId('input')).toHaveClass(
+        'bg-background',
+        'w-full',
+        'py-2',
+        'px-0', // read-only has px-0 instead of px-3
+        'font-normal',
+        'text-text-900',
+        'focus:outline-primary-950'
+      );
+    });
   });
 
   describe('Label functionality', () => {
@@ -214,11 +227,11 @@ describe('Input', () => {
     it('applies read-only state classes when readOnly', () => {
       render(<Input readOnly data-testid="input" />);
       expect(screen.getByTestId('input')).toHaveClass(
-        'border-border-300',
+        'border-transparent',
         '!text-text-600',
         'cursor-default',
         'focus:outline-none',
-        'bg-background-50'
+        'bg-transparent'
       );
       expect(screen.getByTestId('input')).toHaveAttribute('readonly');
     });
@@ -237,7 +250,7 @@ describe('Input', () => {
       expect(screen.getByTestId('input')).toHaveClass(
         'cursor-default',
         'focus:outline-none',
-        'bg-background-50'
+        'bg-transparent'
       );
     });
   });
@@ -622,7 +635,7 @@ describe('Input', () => {
       render(<Input readOnly errorMessage="Error" data-testid="input-2" />);
       expect(screen.getByTestId('input-2')).toHaveClass(
         'cursor-default',
-        'bg-background-50'
+        'bg-transparent'
       );
 
       // Test explicit state without other conditions
@@ -645,7 +658,7 @@ describe('Input', () => {
       render(<Input state="read-only" data-testid="input-6" />);
       expect(screen.getByTestId('input-6')).toHaveClass(
         'cursor-default',
-        'bg-background-50'
+        'bg-transparent'
       );
 
       // Test falsy state value to cover the || 'default' branch
@@ -686,6 +699,39 @@ describe('Input', () => {
       const outlinedInput = screen.getByTestId('input-error-outlined');
       expect(outlinedInput).toHaveClass('border-2', 'border-indicator-error');
       expect(outlinedInput).not.toHaveClass('border-b-2');
+    });
+
+    it('applies special styling for read-only state with underlined variant', () => {
+      // Test read-only + underlined combination (special case)
+      render(
+        <Input
+          readOnly
+          variant="underlined"
+          data-testid="input-readonly-underlined"
+        />
+      );
+      const input = screen.getByTestId('input-readonly-underlined');
+      expect(input).toHaveClass(
+        'border-0',
+        'border-b-0',
+        'rounded-none',
+        'bg-transparent',
+        'focus:outline-none',
+        '!text-text-900',
+        'cursor-default'
+      );
+
+      // Test that regular read-only state still works with other variants
+      render(
+        <Input
+          readOnly
+          variant="outlined"
+          data-testid="input-readonly-outlined"
+        />
+      );
+      const outlinedInput = screen.getByTestId('input-readonly-outlined');
+      expect(outlinedInput).toHaveClass('border-transparent', 'bg-transparent');
+      expect(outlinedInput).not.toHaveClass('border-b-0');
     });
 
     it('covers all branches in getPasswordToggleConfig', () => {
