@@ -14,205 +14,215 @@ import { Plus, Check, CaretRight, User } from 'phosphor-react';
 
 const sizes = ['small', 'medium'] as const;
 
-export const AllDropdownComponents: Story = () => (
-  <div className="flex flex-col gap-12 p-6">
-    {/* Seção do DropdownMenu genérico */}
-    <section className="flex flex-col gap-8">
-      <h2 className="font-bold text-3xl text-text-900">DropdownMenu</h2>
-      <p className="text-text-700">
-        Variações possíveis do componente <code>DropdownMenu</code>:
-      </p>
+export const AllDropdownComponents: Story = () => {
+  return (
+    <div className="flex flex-col gap-12 p-6">
+      {/* Seção do DropdownMenu genérico */}
+      <section className="flex flex-col gap-8">
+        <h2 className="font-bold text-3xl text-text-900">DropdownMenu</h2>
+        <p className="text-text-700">
+          Variações possíveis do componente <code>DropdownMenu</code>:
+        </p>
 
-      {/* Menu básico */}
-      <div className="flex flex-col gap-4">
-        <h3 className="font-bold text-2xl text-text-900">Menu Básico</h3>
-        <div className="flex flex-row gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger>Open Menu</DropdownMenuTrigger>
-            <MenuContent>
-              <DropdownMenuItem>
-                <MenuLabel>Item 1</MenuLabel>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <MenuLabel>Item 2</MenuLabel>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <MenuLabel>Item 3</MenuLabel>
-              </DropdownMenuItem>
-            </MenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* Tamanhos */}
-      <div className="flex flex-col gap-4">
-        <h3 className="font-bold text-2xl text-text-900">Tamanhos</h3>
+        {/* Menu básico */}
         <div className="flex flex-col gap-4">
-          {sizes.map((size) => (
-            <div key={size}>
-              <div className="font-medium text-text-900 mb-2">{size}</div>
-              <DropdownMenu>
-                <DropdownMenuTrigger>Menu {size}</DropdownMenuTrigger>
-                <MenuContent>
-                  <DropdownMenuItem size={size}>
-                    <MenuLabel>Item 1 ({size})</MenuLabel>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem size={size}>
-                    <MenuLabel>Item 2 ({size})</MenuLabel>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem size={size}>
-                    <MenuLabel>Item 3 ({size})</MenuLabel>
-                  </DropdownMenuItem>
-                </MenuContent>
-              </DropdownMenu>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Com ícones */}
-      <div className="flex flex-col gap-4">
-        <h3 className="font-bold text-2xl text-text-900">Com Ícones</h3>
-        <div className="flex flex-row gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger>Menu with Icons</DropdownMenuTrigger>
-            <MenuContent>
-              <DropdownMenuItem iconLeft={<Plus />}>
-                <MenuLabel>New Item</MenuLabel>
-              </DropdownMenuItem>
-              <DropdownMenuItem iconLeft={<Check />}>
-                <MenuLabel>Completed</MenuLabel>
-              </DropdownMenuItem>
-              <DropdownMenuItem iconRight={<Plus />}>
-                <MenuLabel>Add More</MenuLabel>
-              </DropdownMenuItem>
-            </MenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* Com labels e separadores */}
-      <div className="flex flex-col gap-4">
-        <h3 className="font-bold text-2xl text-text-900">
-          Com Labels e Separadores
-        </h3>
-        <div className="flex flex-row gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger>Advanced Menu</DropdownMenuTrigger>
-            <MenuContent>
-              <DropdownMenuItem>
-                <MenuLabel>Edit</MenuLabel>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <MenuLabel>Delete</MenuLabel>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <MenuLabel>Preferences</MenuLabel>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <MenuLabel>Account</MenuLabel>
-              </DropdownMenuItem>
-            </MenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* Desabilitado */}
-      <div className="flex flex-col gap-4">
-        <h3 className="font-bold text-2xl text-text-900">
-          Itens Desabilitados
-        </h3>
-        <div className="flex flex-row gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger>Disabled Items</DropdownMenuTrigger>
-            <MenuContent side="top">
-              <DropdownMenuItem>
-                <MenuLabel>Enabled Item</MenuLabel>
-              </DropdownMenuItem>
-              <DropdownMenuItem disabled>
-                <MenuLabel>Disabled Item</MenuLabel>
-              </DropdownMenuItem>
-              <DropdownMenuItem disabled iconLeft={<Check />}>
-                <MenuLabel>Disabled with Icon</MenuLabel>
-              </DropdownMenuItem>
-            </MenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    </section>
-
-    {/* Seção do ProfileMenu */}
-    <section className="flex flex-col gap-8 mt-12">
-      <h2 className="font-bold text-3xl text-text-900">Profile Menu</h2>
-      <p className="text-text-700">
-        Variações possíveis do componente <code>DropdownProfileMenu</code>:
-      </p>
-
-      {/* Profile Menu básico */}
-      <div className="flex flex-col gap-4">
-        <h3 className="font-bold text-2xl text-text-900">
-          Profile Menu Completo
-        </h3>
-        <div className="flex flex-row gap-4">
-          <DropdownMenu>
-            <ProfileMenuTrigger />
-            <MenuContent className="min-w-[320px]" side="top" variant="profile">
-              <ProfileMenuHeader name="Ana Paula" email="ana@gmail.com" />
-
-              <ProfileMenuSection>
-                <DropdownMenuItem
-                  variant="profile"
-                  iconLeft={<User />}
-                  iconRight={<CaretRight />}
-                >
-                  Meus dados
+          <h3 className="font-bold text-2xl text-text-900">Menu Básico</h3>
+          <div className="flex flex-row gap-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger>Open Menu</DropdownMenuTrigger>
+              <MenuContent>
+                <DropdownMenuItem>
+                  <MenuLabel>Item 1</MenuLabel>
                 </DropdownMenuItem>
-              </ProfileMenuSection>
-
-              <ProfileMenuFooter onClick={() => console.log('Sair')} />
-            </MenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* Profile Menu com itens desabilitados */}
-      <div className="flex flex-col gap-4">
-        <h3 className="font-bold text-2xl text-text-900">
-          Com Itens Desabilitados
-        </h3>
-        <div className="flex flex-row gap-4">
-          <DropdownMenu>
-            <ProfileMenuTrigger />
-            <MenuContent className="min-w-[320px]" side="top" variant="profile">
-              <ProfileMenuHeader name="João Silva" email="joao@empresa.com" />
-
-              <ProfileMenuSection>
-                <DropdownMenuItem
-                  variant="profile"
-                  iconLeft={<User />}
-                  iconRight={<CaretRight />}
-                  disabled
-                >
-                  Meus dados (desabilitado)
+                <DropdownMenuItem>
+                  <MenuLabel>Item 2</MenuLabel>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  variant="profile"
-                  iconLeft={<User />}
-                  iconRight={<CaretRight />}
-                >
-                  Configurações
+                <DropdownMenuItem>
+                  <MenuLabel>Item 3</MenuLabel>
                 </DropdownMenuItem>
-              </ProfileMenuSection>
-
-              <ProfileMenuFooter />
-            </MenuContent>
-          </DropdownMenu>
+              </MenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-      </div>
-    </section>
-  </div>
-);
+
+        {/* Tamanhos */}
+        <div className="flex flex-col gap-4">
+          <h3 className="font-bold text-2xl text-text-900">Tamanhos</h3>
+          <div className="flex flex-col gap-4">
+            {sizes.map((size) => (
+              <div key={size}>
+                <div className="font-medium text-text-900 mb-2">{size}</div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger>Menu {size}</DropdownMenuTrigger>
+                  <MenuContent>
+                    <DropdownMenuItem size={size}>
+                      <MenuLabel>Item 1 ({size})</MenuLabel>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem size={size}>
+                      <MenuLabel>Item 2 ({size})</MenuLabel>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem size={size}>
+                      <MenuLabel>Item 3 ({size})</MenuLabel>
+                    </DropdownMenuItem>
+                  </MenuContent>
+                </DropdownMenu>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Com ícones */}
+        <div className="flex flex-col gap-4">
+          <h3 className="font-bold text-2xl text-text-900">Com Ícones</h3>
+          <div className="flex flex-row gap-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger>Menu with Icons</DropdownMenuTrigger>
+              <MenuContent>
+                <DropdownMenuItem iconLeft={<Plus />}>
+                  <MenuLabel>New Item</MenuLabel>
+                </DropdownMenuItem>
+                <DropdownMenuItem iconLeft={<Check />}>
+                  <MenuLabel>Completed</MenuLabel>
+                </DropdownMenuItem>
+                <DropdownMenuItem iconRight={<Plus />}>
+                  <MenuLabel>Add More</MenuLabel>
+                </DropdownMenuItem>
+              </MenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Com labels e separadores */}
+        <div className="flex flex-col gap-4">
+          <h3 className="font-bold text-2xl text-text-900">
+            Com Labels e Separadores
+          </h3>
+          <div className="flex flex-row gap-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger>Advanced Menu</DropdownMenuTrigger>
+              <MenuContent>
+                <DropdownMenuItem>
+                  <MenuLabel>Edit</MenuLabel>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <MenuLabel>Delete</MenuLabel>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <MenuLabel>Preferences</MenuLabel>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <MenuLabel>Account</MenuLabel>
+                </DropdownMenuItem>
+              </MenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Desabilitado */}
+        <div className="flex flex-col gap-4">
+          <h3 className="font-bold text-2xl text-text-900">
+            Itens Desabilitados
+          </h3>
+          <div className="flex flex-row gap-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger>Disabled Items</DropdownMenuTrigger>
+              <MenuContent side="top">
+                <DropdownMenuItem>
+                  <MenuLabel>Enabled Item</MenuLabel>
+                </DropdownMenuItem>
+                <DropdownMenuItem disabled>
+                  <MenuLabel>Disabled Item</MenuLabel>
+                </DropdownMenuItem>
+                <DropdownMenuItem disabled iconLeft={<Check />}>
+                  <MenuLabel>Disabled with Icon</MenuLabel>
+                </DropdownMenuItem>
+              </MenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </section>
+
+      {/* Seção do ProfileMenu */}
+      <section className="flex flex-col gap-8 mt-12">
+        <h2 className="font-bold text-3xl text-text-900">Profile Menu</h2>
+        <p className="text-text-700">
+          Variações possíveis do componente <code>DropdownProfileMenu</code>:
+        </p>
+
+        {/* Profile Menu básico */}
+        <div className="flex flex-col gap-4">
+          <h3 className="font-bold text-2xl text-text-900">
+            Profile Menu Completo
+          </h3>
+          <div className="flex flex-row gap-4">
+            <DropdownMenu>
+              <ProfileMenuTrigger />
+              <MenuContent
+                className="min-w-[320px]"
+                side="top"
+                variant="profile"
+              >
+                <ProfileMenuHeader name="Ana Paula" email="ana@gmail.com" />
+
+                <ProfileMenuSection>
+                  <DropdownMenuItem
+                    variant="profile"
+                    iconLeft={<User />}
+                    iconRight={<CaretRight />}
+                  >
+                    Meus dados
+                  </DropdownMenuItem>
+                </ProfileMenuSection>
+
+                <ProfileMenuFooter onClick={() => console.log('Sair')} />
+              </MenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Profile Menu com itens desabilitados */}
+        <div className="flex flex-col gap-4">
+          <h3 className="font-bold text-2xl text-text-900">
+            Com Itens Desabilitados
+          </h3>
+          <div className="flex flex-row gap-4">
+            <DropdownMenu>
+              <ProfileMenuTrigger />
+              <MenuContent
+                className="min-w-[320px]"
+                side="top"
+                variant="profile"
+              >
+                <ProfileMenuHeader name="João Silva" email="joao@empresa.com" />
+
+                <ProfileMenuSection>
+                  <DropdownMenuItem
+                    variant="profile"
+                    iconLeft={<User />}
+                    iconRight={<CaretRight />}
+                    disabled
+                  >
+                    Meus dados (desabilitado)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    variant="profile"
+                    iconLeft={<User />}
+                    iconRight={<CaretRight />}
+                  >
+                    Configurações
+                  </DropdownMenuItem>
+                </ProfileMenuSection>
+
+                <ProfileMenuFooter />
+              </MenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
 
 // Stories individuais para DropdownMenu genérico
 export const BasicMenu: Story = () => (
