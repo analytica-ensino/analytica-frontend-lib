@@ -26,6 +26,7 @@ import Chips from './components/Chips/Chips';
 import ProgressBar from './components/ProgressBar/ProgressBar';
 import ProgressCircle from './components/ProgressCircle/ProgressCircle';
 import Calendar from './components/Calendar/Calendar';
+import Modal from './components/Modal/Modal';
 
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
@@ -71,6 +72,7 @@ export { Chips };
 export { ProgressBar };
 export { ProgressCircle };
 export { Calendar };
+export { Modal };
 
 // Export DropdownMenu and its sub-components
 export { DropdownMenu };
