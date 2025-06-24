@@ -130,9 +130,6 @@ const Select = ({
     (s) => s
   );
 
-  const isControlled = propValue !== undefined;
-  const currentValue = isControlled ? propValue : value;
-
   const findLabelForValue = (
     children: ReactNode,
     targetValue: string
@@ -168,7 +165,6 @@ const Select = ({
   }, [children, defaultValue, selectedLabel]);
 
   useEffect(() => {
-    setValue(currentValue);
     const handleClickOutside = (event: globalThis.MouseEvent) => {
       if (
         selectRef.current &&
@@ -216,10 +212,17 @@ const Select = ({
   }, [open]);
 
   useEffect(() => {
-    if (onValueChange) {
-      onValueChange(value);
+    setValue(value);
+    onValueChange?.(value);
+  }, [value, onValueChange]);
+
+  useEffect(() => {
+    if (propValue) {
+      setValue(propValue);
+      const label = findLabelForValue(children, propValue);
+      if (label) store.setState({ selectedLabel: label });
     }
-  }, [value]);
+  }, [propValue]);
 
   const sizeClasses = SIZE_CLASSES[size];
 
@@ -268,7 +271,6 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
     ref
   ) => {
     const store = useSelectStore(externalStore);
-
     const open = useStore(store, (s) => s.open);
     const toggleOpen = () => store.setState({ open: !open });
 
@@ -365,9 +367,12 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
     ref
   ) => {
     const store = useSelectStore(externalStore);
-
-    const selectedValue = useStore(store, (s) => s.value);
-    const { setValue, setSelectedLabel, setOpen } = store.getState();
+    const {
+      value: selectedValue,
+      setValue,
+      setOpen,
+      setSelectedLabel,
+    } = useStore(store, (s) => s);
 
     const handleClick = (
       e: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>
