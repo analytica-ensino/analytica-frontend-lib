@@ -1,4 +1,11 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import {
+  useState,
+  useMemo,
+  useEffect,
+  useRef,
+  MouseEvent,
+  RefObject,
+} from 'react';
 
 /**
  * Activity status types for calendar days
@@ -82,7 +89,7 @@ const MONTH_NAMES = [
  * Month/Year picker props
  */
 interface MonthYearPickerProps {
-  monthPickerRef: React.RefObject<HTMLDivElement | null>;
+  monthPickerRef: RefObject<HTMLDivElement | null>;
   availableYears: number[];
   currentDate: Date;
   onYearChange: (year: number) => void;
@@ -92,13 +99,13 @@ interface MonthYearPickerProps {
 /**
  * Month/Year picker component
  */
-const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
+const MonthYearPicker = ({
   monthPickerRef,
   availableYears,
   currentDate,
   onYearChange,
   onMonthChange,
-}) => (
+}: MonthYearPickerProps) => (
   <div
     ref={monthPickerRef}
     className="absolute top-full left-0 z-50 mt-1 bg-white rounded-lg shadow-lg border border-border-200 p-4 min-w-[280px]"
@@ -164,7 +171,7 @@ const getDayStyles = (
     dayStyle = 'bg-primary-800';
     textStyle = 'text-white';
   } else if (day.isToday) {
-    textStyle = 'text-[#1c61b2]';
+    textStyle = 'text-primary-800';
   } else if (
     variant === 'navigation' &&
     showActivities &&
@@ -213,7 +220,7 @@ const Calendar = ({
 
   // Close month picker when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: Event) => {
       if (
         monthPickerContainerRef.current &&
         !monthPickerContainerRef.current.contains(event.target as Node)
@@ -314,7 +321,7 @@ const Calendar = ({
     setCurrentDate(newDate);
   };
 
-  const toggleMonthPicker = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const toggleMonthPicker = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     setIsMonthPickerOpen(!isMonthPickerOpen);
   };
@@ -442,7 +449,7 @@ const Calendar = ({
 
             let spanClass = '';
             if (day.isSelected && day.isToday) {
-              spanClass = 'h-6 w-6 rounded-full bg-[#1c61b2] text-text';
+              spanClass = 'h-6 w-6 rounded-full bg-primary-800 text-text';
             } else if (day.isSelected) {
               spanClass = 'h-6 w-6 rounded-full bg-primary-950 text-text';
             }
@@ -454,12 +461,12 @@ const Calendar = ({
               >
                 <button
                   className={`
-                    w-9 h-9 
-                    flex items-center justify-center 
-                    text-md font-normal 
-                    cursor-pointer 
+                    w-9 h-9
+                    flex items-center justify-center
+                    text-md font-normal
+                    cursor-pointer
                     rounded-full
-                    ${dayStyle} 
+                    ${dayStyle}
                     ${textStyle}
                   `}
                   onClick={() => handleDateSelect(day)}
@@ -598,13 +605,13 @@ const Calendar = ({
             >
               <button
                 className={`
-                  w-10 h-10 
-                  flex items-center justify-center 
-                  text-xl font-normal 
-                  cursor-pointer 
+                  w-10 h-10
+                  flex items-center justify-center
+                  text-xl font-normal
+                  cursor-pointer
                   rounded-full
                   focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-1
-                  ${dayStyle} 
+                  ${dayStyle}
                   ${textStyle}
                 `}
                 onClick={() => handleDateSelect(day)}

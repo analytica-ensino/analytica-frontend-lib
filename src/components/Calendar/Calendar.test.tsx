@@ -87,7 +87,7 @@ describe('Calendar', () => {
       render(<Calendar variant="selection" />);
 
       const todayElement = screen.getByText(today.getDate().toString());
-      expect(todayElement).toHaveClass('text-[#1c61b2]');
+      expect(todayElement).toHaveClass('text-primary-800');
     });
 
     it('should style normal days correctly in selection variant', () => {
@@ -99,7 +99,7 @@ describe('Calendar', () => {
       const normalDay = screen.getByText('10');
       expect(normalDay).toHaveClass('text-text-950', 'hover:bg-background-100');
       expect(normalDay).not.toHaveClass('bg-primary-800');
-      expect(normalDay).not.toHaveClass('text-[#1c61b2]');
+      expect(normalDay).not.toHaveClass('text-text-800');
     });
 
     it('should toggle month picker when clicking header in selection variant', () => {
@@ -278,7 +278,7 @@ describe('Calendar', () => {
 
       const todayElement = screen.getByText(today.getDate().toString());
       // In navigation variant, today's text should be inside a span with the color class
-      expect(todayElement.parentElement).toHaveClass('text-[#1c61b2]');
+      expect(todayElement.parentElement).toHaveClass('text-primary-800');
     });
 
     it('should highlight selected date correctly in navigation variant', () => {
@@ -297,7 +297,7 @@ describe('Calendar', () => {
 
       const todayElement = screen.getByText(today.getDate().toString());
       // Check if the selected today element has the correct styling
-      expect(todayElement).toHaveClass('bg-[#1c61b2]');
+      expect(todayElement).toHaveClass('bg-primary-800');
       expect(todayElement).toHaveClass('text-text');
     });
 
