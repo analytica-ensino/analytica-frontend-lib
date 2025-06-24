@@ -577,7 +577,9 @@ describe('ProgressBar', () => {
 
         const progressBar = screen.getByRole('progressbar');
         const label = screen.getByText('Fáceis');
-        const hitCount = screen.getByText('28 de 30');
+        const hitCount = screen.getByText((content, element) => {
+          return element?.textContent === '28 de 30';
+        });
 
         expect(progressBar).toBeInTheDocument();
         expect(label).toBeInTheDocument();
@@ -630,10 +632,12 @@ describe('ProgressBar', () => {
         );
 
         const progressBar = screen.getByRole('progressbar');
-        const hitCount = screen.getByText('15 de 20');
+        const hitCountContainer = screen.getAllByText((content, element) => {
+          return element?.textContent === '15 de 20';
+        })[0];
 
         expect(progressBar).toBeInTheDocument();
-        expect(hitCount).toBeInTheDocument();
+        expect(hitCountContainer).toBeInTheDocument();
       });
 
       it('applies custom classes in stacked layout', () => {
@@ -653,10 +657,11 @@ describe('ProgressBar', () => {
         const stackedContainer = container.firstChild as HTMLElement;
         const label = screen.getByText('Custom');
         const percentage = screen.getByText('70%');
+        const percentageContainer = percentage.parentElement;
 
         expect(stackedContainer).toHaveClass('custom-stacked');
         expect(label).toHaveClass('custom-stacked-label');
-        expect(percentage).toHaveClass('custom-stacked-percentage');
+        expect(percentageContainer).toHaveClass('custom-stacked-percentage');
       });
     });
 
@@ -712,10 +717,12 @@ describe('ProgressBar', () => {
         );
 
         const progressBar = screen.getByRole('progressbar');
-        const hitCount = screen.getByText('18 de 25');
+        const hitCountContainer = screen.getAllByText((content, element) => {
+          return element?.textContent === '18 de 25';
+        })[0];
 
         expect(progressBar).toBeInTheDocument();
-        expect(hitCount).toBeInTheDocument();
+        expect(hitCountContainer).toBeInTheDocument();
       });
 
       it('applies correct colors in compact layout', () => {
@@ -780,8 +787,10 @@ describe('ProgressBar', () => {
           />
         );
 
-        const hitCount = screen.getByText('15 de 20');
-        expect(hitCount).toBeInTheDocument();
+        const hitCountContainer = screen.getAllByText((content, element) => {
+          return element?.textContent === '15 de 20';
+        })[0];
+        expect(hitCountContainer).toBeInTheDocument();
         expect(screen.queryByText('Should not show')).not.toBeInTheDocument();
       });
     });

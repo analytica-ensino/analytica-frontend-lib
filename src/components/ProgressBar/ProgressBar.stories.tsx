@@ -473,7 +473,7 @@ export const AllVariations: Story = () => (
                   max={20}
                   label="Difíceis"
                   showHitCount
-                  labelClassName="text-base font-medium text-text-800 leading-[19px]"
+                  labelClassName="text-base font-medium text-text-800 leading-none"
                   percentageClassName="text-xs font-medium leading-[14px] text-right"
                 />
               </div>
