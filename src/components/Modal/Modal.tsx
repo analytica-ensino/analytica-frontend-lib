@@ -89,9 +89,8 @@ const Modal = ({
   useEffect(() => {
     if (!isOpen || !closeOnEscape) return;
 
-    const handleEscape = (event: Event) => {
-      const keyboardEvent = event as globalThis.KeyboardEvent;
-      if (keyboardEvent.key === 'Escape') {
+    const handleEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
         onClose();
       }
     };
@@ -141,11 +140,19 @@ const Modal = ({
       onClick={handleBackdropClick}
       onKeyDown={handleBackdropKeyDown}
       role="none"
+      aria-hidden="true"
     >
-      <div className={modalClasses}>
+      <div
+        className={modalClasses}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-6">
-          <h2 className="text-lg font-semibold text-text-950">{title}</h2>
+          <h2 id="modal-title" className="text-lg font-semibold text-text-950">
+            {title}
+          </h2>
           {!hideCloseButton && (
             <button
               onClick={onClose}
