@@ -28,7 +28,7 @@ const STATE_CLASSES = {
   disabled:
     'border-border-300 placeholder:text-text-600 cursor-not-allowed opacity-40',
   'read-only':
-    'border-border-300 !text-text-600 cursor-default focus:outline-none bg-background-50',
+    'border-transparent !text-text-600 cursor-default focus:outline-none bg-transparent',
 } as const;
 
 /**
@@ -168,6 +168,11 @@ const getCombinedClasses = (
     return 'border-0 border-b-2 border-indicator-error rounded-none bg-transparent focus:outline-none focus:border-primary-950 placeholder:text-text-600';
   }
 
+  // Special case: read-only state with underlined variant
+  if (actualState === 'read-only' && variant === 'underlined') {
+    return 'border-0 border-b-0 rounded-none bg-transparent focus:outline-none !text-text-900 cursor-default';
+  }
+
   return `${stateClasses} ${variantClasses}`;
 };
 
@@ -206,8 +211,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     );
     const iconSize = getIconSize(size);
 
-    const baseClasses =
-      'bg-background w-full py-2 px-3 font-normal text-text-900 focus:outline-primary-950';
+    const baseClasses = `bg-background w-full py-2 ${
+      actualState === 'read-only' ? 'px-0' : 'px-3'
+    } font-normal text-text-900 focus:outline-primary-950`;
 
     // Generate unique ID if not provided
     const generatedId = useId();
