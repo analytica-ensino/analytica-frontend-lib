@@ -86,6 +86,14 @@ export type ProgressBarProps = {
   labelClassName?: string;
   /** Percentage text CSS classes */
   percentageClassName?: string;
+  /** Custom width for stacked layout (defaults to w-[380px]) */
+  stackedWidth?: string;
+  /** Custom height for stacked layout (defaults to h-[35px]) */
+  stackedHeight?: string;
+  /** Custom width for compact layout (defaults to w-[131px]) */
+  compactWidth?: string;
+  /** Custom height for compact layout (defaults to h-[24px]) */
+  compactHeight?: string;
 };
 
 /**
@@ -111,117 +119,110 @@ const shouldShowHeader = (
 };
 
 /**
- * Helper function to get compact layout color
+ * Helper function to get compact layout configuration
  */
-const getCompactLayoutColor = (
-  showPercentage: boolean,
-  showHitCount: boolean
-): string => {
-  if (showPercentage || showHitCount) {
-    return 'text-primary-600';
-  }
-  return 'text-primary-700';
-};
-
-/**
- * Helper function to get compact layout className
- */
-const getCompactLayoutClassName = (
-  showPercentage: boolean,
-  showHitCount: boolean,
-  percentageClassName: string,
-  labelClassName: string
-): string => {
-  if (showPercentage || showHitCount) {
-    return percentageClassName;
-  }
-  return labelClassName;
-};
-
-/**
- * Helper function to get compact layout content
- */
-const getCompactLayoutContent = (
+const getCompactLayoutConfig = (
   showPercentage: boolean,
   showHitCount: boolean,
   percentage: number,
   clampedValue: number,
   max: number,
-  label: ReactNode
-): string | ReactNode => {
-  if (showPercentage) {
-    return `${Math.round(percentage)}%`;
-  }
-  if (showHitCount) {
-    return `${Math.round(clampedValue)} de ${max}`;
-  }
-  return label;
+  label: ReactNode,
+  percentageClassName: string,
+  labelClassName: string
+) => {
+  const hasMetrics = showPercentage || showHitCount;
+
+  return {
+    color: hasMetrics ? 'text-primary-600' : 'text-primary-700',
+    className: hasMetrics ? percentageClassName : labelClassName,
+    content: showPercentage
+      ? `${Math.round(percentage)}%`
+      : showHitCount
+        ? `${Math.round(clampedValue)} de ${max}`
+        : label,
+  };
 };
 
 /**
- * Helper function to get default layout gap
+ * Helper function to get default layout display configuration
  */
-const getDefaultLayoutGap = (
-  size: ProgressBarSize,
-  sizeClasses: SizeClassType
-): string => {
-  if (size === 'medium') {
-    return 'gap-2';
-  }
-  return sizeClasses.spacing;
-};
-
-/**
- * Helper function to get progress bar container className for default layout
- */
-const getDefaultProgressBarClassName = (size: ProgressBarSize): string => {
-  if (size === 'medium') {
-    return 'flex-grow';
-  }
-  return 'w-full';
-};
-
-/**
- * Helper function to get aria label
- */
-const getAriaLabel = (label: ReactNode): string => {
-  if (typeof label === 'string') {
-    return label;
-  }
-  return 'Progress';
-};
-
-/**
- * Helper function to check if small size header should be shown
- */
-const shouldShowSmallSizeHeader = (
+const getDefaultLayoutDisplayConfig = (
   size: ProgressBarSize,
   label: ReactNode,
   showPercentage: boolean
-): boolean => {
-  return size === 'small' && !!(label || showPercentage);
+) => ({
+  showHeader: size === 'small' && !!(label || showPercentage),
+  showPercentage: size === 'medium' && showPercentage,
+  showLabel: size === 'medium' && !!label && !showPercentage,
+});
+
+/**
+ * Helper function to render hit count or percentage display for stacked layout
+ */
+const renderStackedHitCountDisplay = (
+  showHitCount: boolean,
+  showPercentage: boolean,
+  clampedValue: number,
+  max: number,
+  percentage: number,
+  percentageClassName: string
+): ReactNode => {
+  if (!showHitCount && !showPercentage) return null;
+
+  return (
+    <div
+      className={`text-xs font-medium leading-[14px] text-right ${percentageClassName}`}
+    >
+      {showHitCount ? (
+        <>
+          <span className="text-success-200">{Math.round(clampedValue)}</span>
+          <span className="text-text-600"> de {max}</span>
+        </>
+      ) : (
+        <Text size="xs" weight="medium" className="text-success-200">
+          {Math.round(percentage)}%
+        </Text>
+      )}
+    </div>
+  );
 };
 
 /**
- * Helper function to check if medium size percentage should be shown
+ * Base progress bar component with common rendering logic
  */
-const shouldShowMediumPercentage = (
-  size: ProgressBarSize,
-  showPercentage: boolean
-): boolean => {
-  return size === 'medium' && showPercentage;
-};
-
-/**
- * Helper function to check if medium size label should be shown
- */
-const shouldShowMediumLabel = (
-  size: ProgressBarSize,
-  label: ReactNode,
-  showPercentage: boolean
-): boolean => {
-  return size === 'medium' && !!label && !showPercentage;
-};
+const ProgressBarBase = ({
+  clampedValue,
+  max,
+  percentage,
+  label,
+  variantClasses,
+  containerClassName,
+  fillClassName,
+}: {
+  clampedValue: number;
+  max: number;
+  percentage: number;
+  label: ReactNode;
+  variantClasses: VariantClassType;
+  containerClassName: string;
+  fillClassName: string;
+}) => (
+  <div
+    className={`${containerClassName} ${variantClasses.background} overflow-hidden relative`}
+  >
+    <progress
+      value={clampedValue}
+      max={max}
+      aria-label={typeof label === 'string' ? label : 'Progress'}
+      className="absolute inset-0 w-full h-full opacity-0"
+    />
+    <div
+      className={`${fillClassName} ${variantClasses.fill} transition-all duration-300 ease-out`}
+      style={{ width: `${percentage}%` }}
+    />
+  </div>
+);
 
 /**
  * Stacked layout component
@@ -237,6 +238,8 @@ const StackedLayout = ({
   max,
   percentage,
   variantClasses,
+  stackedWidth = 'w-[380px]',
+  stackedHeight = 'h-[35px]',
 }: {
   className: string;
   label: ReactNode;
@@ -248,9 +251,11 @@ const StackedLayout = ({
   max: number;
   percentage: number;
   variantClasses: VariantClassType;
+  stackedWidth?: string;
+  stackedHeight?: string;
 }) => (
   <div
-    className={`flex flex-col items-start gap-2 w-[380px] h-[35px] ${className}`}
+    className={`flex flex-col items-start gap-2 ${stackedWidth} ${stackedHeight} ${className}`}
   >
     {shouldShowHeader(label, showPercentage, showHitCount) && (
       <div className="flex flex-row justify-between items-center w-full h-[19px]">
@@ -265,41 +270,26 @@ const StackedLayout = ({
           </Text>
         )}
 
-        {(showHitCount || showPercentage) && (
-          <div
-            className={`text-xs font-medium leading-[14px] text-right ${percentageClassName}`}
-          >
-            {showHitCount ? (
-              <>
-                <span className="text-success-200">
-                  {Math.round(clampedValue)}
-                </span>
-                <span className="text-text-600"> de {max}</span>
-              </>
-            ) : (
-              <Text size="xs" weight="medium" className="text-success-200">
-                {Math.round(percentage)}%
-              </Text>
-            )}
-          </div>
+        {renderStackedHitCountDisplay(
+          showHitCount,
+          showPercentage,
+          clampedValue,
+          max,
+          percentage,
+          percentageClassName
         )}
       </div>
     )}
 
-    <div
-      className={`w-full h-2 ${variantClasses.background} rounded-lg overflow-hidden relative`}
-    >
-      <progress
-        value={clampedValue}
-        max={max}
-        aria-label={getAriaLabel(label)}
-        className="absolute inset-0 w-full h-full opacity-0"
-      />
-      <div
-        className={`h-2 ${variantClasses.fill} rounded-lg transition-all duration-300 ease-out shadow-hard-shadow-3`}
-        style={{ width: `${percentage}%` }}
-      />
-    </div>
+    <ProgressBarBase
+      clampedValue={clampedValue}
+      max={max}
+      percentage={percentage}
+      label={label}
+      variantClasses={variantClasses}
+      containerClassName="w-full h-2 rounded-lg"
+      fillClassName="h-2 rounded-lg shadow-hard-shadow-3"
+    />
   </div>
 );
 
@@ -317,6 +307,8 @@ const CompactLayout = ({
   max,
   percentage,
   variantClasses,
+  compactWidth = 'w-[131px]',
+  compactHeight = 'h-[24px]',
 }: {
   className: string;
   label: ReactNode;
@@ -328,26 +320,27 @@ const CompactLayout = ({
   max: number;
   percentage: number;
   variantClasses: VariantClassType;
+  compactWidth?: string;
+  compactHeight?: string;
 }) => {
-  const color = getCompactLayoutColor(showPercentage, showHitCount);
-  const compactClassName = getCompactLayoutClassName(
-    showPercentage,
-    showHitCount,
-    percentageClassName,
-    labelClassName
-  );
-  const content = getCompactLayoutContent(
+  const {
+    color,
+    className: compactClassName,
+    content,
+  } = getCompactLayoutConfig(
     showPercentage,
     showHitCount,
     percentage,
     clampedValue,
     max,
-    label
+    label,
+    percentageClassName,
+    labelClassName
   );
 
   return (
     <div
-      className={`flex flex-col items-start gap-1 w-[131px] h-[24px] ${className}`}
+      className={`flex flex-col items-start gap-1 ${compactWidth} ${compactHeight} ${className}`}
     >
       {shouldShowHeader(label, showPercentage, showHitCount) && (
         <Text
@@ -361,20 +354,15 @@ const CompactLayout = ({
         </Text>
       )}
 
-      <div
-        className={`w-full h-1 ${variantClasses.background} rounded-full overflow-hidden relative`}
-      >
-        <progress
-          value={clampedValue}
-          max={max}
-          aria-label={getAriaLabel(label)}
-          className="absolute inset-0 w-full h-full opacity-0"
-        />
-        <div
-          className={`h-1 ${variantClasses.fill} rounded-full transition-all duration-300 ease-out`}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
+      <ProgressBarBase
+        clampedValue={clampedValue}
+        max={max}
+        percentage={percentage}
+        label={label}
+        variantClasses={variantClasses}
+        containerClassName="w-full h-1 rounded-full"
+        fillClassName="h-1 rounded-full"
+      />
     </div>
   );
 };
@@ -407,12 +395,17 @@ const DefaultLayout = ({
   max: number;
   percentage: number;
 }) => {
-  const gapClass = getDefaultLayoutGap(size, sizeClasses);
-  const progressBarClass = getDefaultProgressBarClassName(size);
+  const gapClass = size === 'medium' ? 'gap-2' : sizeClasses.spacing;
+  const progressBarClass = size === 'medium' ? 'flex-grow' : 'w-full';
+  const displayConfig = getDefaultLayoutDisplayConfig(
+    size,
+    label,
+    showPercentage
+  );
 
   return (
     <div className={`flex ${sizeClasses.layout} ${gapClass} ${className}`}>
-      {shouldShowSmallSizeHeader(size, label, showPercentage) && (
+      {displayConfig.showHeader && (
         <div className="flex flex-row items-center justify-between w-full">
           {label && (
             <Text
@@ -437,22 +430,17 @@ const DefaultLayout = ({
         </div>
       )}
 
-      <div
-        className={`${progressBarClass} ${sizeClasses.container} ${variantClasses.background} ${sizeClasses.borderRadius} overflow-hidden relative`}
-      >
-        <progress
-          value={clampedValue}
-          max={max}
-          aria-label={getAriaLabel(label)}
-          className="absolute inset-0 w-full h-full opacity-0"
-        />
-        <div
-          className={`${sizeClasses.bar} ${variantClasses.fill} ${sizeClasses.borderRadius} transition-all duration-300 ease-out shadow-hard-shadow-3`}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
+      <ProgressBarBase
+        clampedValue={clampedValue}
+        max={max}
+        percentage={percentage}
+        label={label}
+        variantClasses={variantClasses}
+        containerClassName={`${progressBarClass} ${sizeClasses.container} ${sizeClasses.borderRadius}`}
+        fillClassName={`${sizeClasses.bar} ${sizeClasses.borderRadius} shadow-hard-shadow-3`}
+      />
 
-      {shouldShowMediumPercentage(size, showPercentage) && (
+      {displayConfig.showPercentage && (
         <Text
           size="xs"
           weight="medium"
@@ -462,7 +450,7 @@ const DefaultLayout = ({
         </Text>
       )}
 
-      {shouldShowMediumLabel(size, label, showPercentage) && (
+      {displayConfig.showLabel && (
         <Text
           as="div"
           size="xs"
@@ -517,6 +505,10 @@ const ProgressBar = ({
   className = '',
   labelClassName = '',
   percentageClassName = '',
+  stackedWidth,
+  stackedHeight,
+  compactWidth,
+  compactHeight,
 }: ProgressBarProps) => {
   const { clampedValue, percentage } = calculateProgressValues(value, max);
   const sizeClasses = SIZE_CLASSES[size];
@@ -535,6 +527,8 @@ const ProgressBar = ({
         max={max}
         percentage={percentage}
         variantClasses={variantClasses}
+        stackedWidth={stackedWidth}
+        stackedHeight={stackedHeight}
       />
     );
   }
@@ -552,6 +546,8 @@ const ProgressBar = ({
         max={max}
         percentage={percentage}
         variantClasses={variantClasses}
+        compactWidth={compactWidth}
+        compactHeight={compactHeight}
       />
     );
   }
