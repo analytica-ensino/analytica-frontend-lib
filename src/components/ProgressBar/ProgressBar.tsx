@@ -61,6 +61,61 @@ type SizeClassType = (typeof SIZE_CLASSES)[keyof typeof SIZE_CLASSES];
 type VariantClassType = (typeof VARIANT_CLASSES)[keyof typeof VARIANT_CLASSES];
 
 /**
+ * Common props shared across all layout components
+ */
+interface BaseLayoutProps {
+  className: string;
+  label: ReactNode;
+  showPercentage: boolean;
+  showHitCount: boolean;
+  labelClassName: string;
+  percentageClassName: string;
+  clampedValue: number;
+  max: number;
+  percentage: number;
+  variantClasses: VariantClassType;
+}
+
+/**
+ * Dimensions configuration for layouts
+ */
+interface LayoutDimensions {
+  width: string;
+  height: string;
+}
+
+/**
+ * Props for StackedLayout component
+ */
+interface StackedLayoutProps extends BaseLayoutProps {
+  dimensions: LayoutDimensions;
+}
+
+/**
+ * Props for CompactLayout component
+ */
+interface CompactLayoutProps extends BaseLayoutProps {
+  dimensions: LayoutDimensions;
+}
+
+/**
+ * Props for DefaultLayout component
+ */
+interface DefaultLayoutProps {
+  className: string;
+  size: ProgressBarSize;
+  sizeClasses: SizeClassType;
+  variantClasses: VariantClassType;
+  label: ReactNode;
+  showPercentage: boolean;
+  labelClassName: string;
+  percentageClassName: string;
+  clampedValue: number;
+  max: number;
+  percentage: number;
+}
+
+/**
  * ProgressBar component props interface
  */
 export type ProgressBarProps = {
@@ -119,28 +174,48 @@ const shouldShowHeader = (
 };
 
 /**
+ * Parameters for compact layout configuration
+ */
+interface CompactLayoutConfigParams {
+  showPercentage: boolean;
+  showHitCount: boolean;
+  percentage: number;
+  clampedValue: number;
+  max: number;
+  label: ReactNode;
+  percentageClassName: string;
+  labelClassName: string;
+}
+
+/**
  * Helper function to get compact layout configuration
  */
-const getCompactLayoutConfig = (
-  showPercentage: boolean,
-  showHitCount: boolean,
-  percentage: number,
-  clampedValue: number,
-  max: number,
-  label: ReactNode,
-  percentageClassName: string,
-  labelClassName: string
-) => {
+const getCompactLayoutConfig = ({
+  showPercentage,
+  showHitCount,
+  percentage,
+  clampedValue,
+  max,
+  label,
+  percentageClassName,
+  labelClassName,
+}: CompactLayoutConfigParams) => {
   const hasMetrics = showPercentage || showHitCount;
+
+  // Extract nested ternary operation into independent statement
+  let content: string | ReactNode;
+  if (showPercentage) {
+    content = `${Math.round(percentage)}%`;
+  } else if (showHitCount) {
+    content = `${Math.round(clampedValue)} de ${max}`;
+  } else {
+    content = label;
+  }
 
   return {
     color: hasMetrics ? 'text-primary-600' : 'text-primary-700',
     className: hasMetrics ? percentageClassName : labelClassName,
-    content: showPercentage
-      ? `${Math.round(percentage)}%`
-      : showHitCount
-        ? `${Math.round(clampedValue)} de ${max}`
-        : label,
+    content,
   };
 };
 
@@ -238,24 +313,10 @@ const StackedLayout = ({
   max,
   percentage,
   variantClasses,
-  stackedWidth = 'w-[380px]',
-  stackedHeight = 'h-[35px]',
-}: {
-  className: string;
-  label: ReactNode;
-  showPercentage: boolean;
-  showHitCount: boolean;
-  labelClassName: string;
-  percentageClassName: string;
-  clampedValue: number;
-  max: number;
-  percentage: number;
-  variantClasses: VariantClassType;
-  stackedWidth?: string;
-  stackedHeight?: string;
-}) => (
+  dimensions,
+}: StackedLayoutProps) => (
   <div
-    className={`flex flex-col items-start gap-2 ${stackedWidth} ${stackedHeight} ${className}`}
+    className={`flex flex-col items-start gap-2 ${dimensions.width} ${dimensions.height} ${className}`}
   >
     {shouldShowHeader(label, showPercentage, showHitCount) && (
       <div className="flex flex-row justify-between items-center w-full h-[19px]">
@@ -307,27 +368,13 @@ const CompactLayout = ({
   max,
   percentage,
   variantClasses,
-  compactWidth = 'w-[131px]',
-  compactHeight = 'h-[24px]',
-}: {
-  className: string;
-  label: ReactNode;
-  showPercentage: boolean;
-  showHitCount: boolean;
-  labelClassName: string;
-  percentageClassName: string;
-  clampedValue: number;
-  max: number;
-  percentage: number;
-  variantClasses: VariantClassType;
-  compactWidth?: string;
-  compactHeight?: string;
-}) => {
+  dimensions,
+}: CompactLayoutProps) => {
   const {
     color,
     className: compactClassName,
     content,
-  } = getCompactLayoutConfig(
+  } = getCompactLayoutConfig({
     showPercentage,
     showHitCount,
     percentage,
@@ -335,12 +382,12 @@ const CompactLayout = ({
     max,
     label,
     percentageClassName,
-    labelClassName
-  );
+    labelClassName,
+  });
 
   return (
     <div
-      className={`flex flex-col items-start gap-1 ${compactWidth} ${compactHeight} ${className}`}
+      className={`flex flex-col items-start gap-1 ${dimensions.width} ${dimensions.height} ${className}`}
     >
       {shouldShowHeader(label, showPercentage, showHitCount) && (
         <Text
@@ -382,19 +429,7 @@ const DefaultLayout = ({
   clampedValue,
   max,
   percentage,
-}: {
-  className: string;
-  size: ProgressBarSize;
-  sizeClasses: SizeClassType;
-  variantClasses: VariantClassType;
-  label: ReactNode;
-  showPercentage: boolean;
-  labelClassName: string;
-  percentageClassName: string;
-  clampedValue: number;
-  max: number;
-  percentage: number;
-}) => {
+}: DefaultLayoutProps) => {
   const gapClass = size === 'medium' ? 'gap-2' : sizeClasses.spacing;
   const progressBarClass = size === 'medium' ? 'flex-grow' : 'w-full';
   const displayConfig = getDefaultLayoutDisplayConfig(
@@ -527,8 +562,10 @@ const ProgressBar = ({
         max={max}
         percentage={percentage}
         variantClasses={variantClasses}
-        stackedWidth={stackedWidth}
-        stackedHeight={stackedHeight}
+        dimensions={{
+          width: stackedWidth || 'w-[380px]',
+          height: stackedHeight || 'h-[35px]',
+        }}
       />
     );
   }
@@ -546,8 +583,10 @@ const ProgressBar = ({
         max={max}
         percentage={percentage}
         variantClasses={variantClasses}
-        compactWidth={compactWidth}
-        compactHeight={compactHeight}
+        dimensions={{
+          width: compactWidth || 'w-[131px]',
+          height: compactHeight || 'h-[24px]',
+        }}
       />
     );
   }
