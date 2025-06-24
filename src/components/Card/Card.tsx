@@ -1,4 +1,6 @@
 import { forwardRef, HTMLAttributes, ReactNode } from 'react';
+import Button from '../Button/Button';
+import Badge from '../Badge/Badge';
 
 interface CardActivesResultsProps extends HTMLAttributes<HTMLDivElement> {
   icon: ReactNode;
@@ -100,4 +102,67 @@ const CardActivesResults = forwardRef<HTMLDivElement, CardActivesResultsProps>(
   }
 );
 
-export { CardActivesResults };
+interface CardQuestionProps extends HTMLAttributes<HTMLDivElement> {
+  header: string;
+  state?: 'done' | 'undone';
+  onClickButton?: (valueButton?: unknown) => void;
+  valueButton?: unknown;
+}
+
+const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
+  (
+    {
+      header,
+      state = 'undone',
+      className,
+      onClickButton,
+      valueButton,
+      ...props
+    },
+    ref
+  ) => {
+    const isDone = state === 'done';
+    const stateLabel = isDone ? 'Realizado' : 'Não Realizado';
+    const buttonLabel = isDone ? 'Ver Questão' : 'Responder';
+
+    return (
+      <div
+        ref={ref}
+        className={`
+          w-full flex flex-row justify-between rounded-xl p-4 gap-4 bg-background border border-border-50
+          ${className}
+        `}
+        {...props}
+      >
+        <section className="flex flex-col gap-1">
+          <p className="font-bold text-xs text-text-950">{header}</p>
+
+          <div className="flex flex-row gap-6 items-center">
+            <Badge
+              size="medium"
+              variant="solid"
+              action={isDone ? 'success' : 'error'}
+            >
+              {stateLabel}
+            </Badge>
+
+            <span className="flex flex-row items-center gap-1 text-text-700 text-xs">
+              {isDone ? 'Nota' : 'Sem nota'}
+              {isDone && (
+                <Badge size="medium" action="success">
+                  00
+                </Badge>
+              )}
+            </span>
+          </div>
+        </section>
+
+        <Button size="extra-small" onClick={() => onClickButton?.(valueButton)}>
+          {buttonLabel}
+        </Button>
+      </div>
+    );
+  }
+);
+
+export { CardActivesResults, CardQuestions };

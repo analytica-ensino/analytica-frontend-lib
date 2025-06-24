@@ -2,7 +2,7 @@
 
 import type { Story } from '@ladle/react';
 import { Star } from 'phosphor-react';
-import { CardActivesResults } from './Card';
+import { CardActivesResults, CardQuestions } from './Card';
 
 /**
  * Showcase principal: todos os estados do CardActivesResults
@@ -67,6 +67,12 @@ export const AllCardActivesResults: Story = () => {
             </span>
           </div>
         ))}
+      </div>
+
+      <h3 className="font-bold text-2xl text-text-900">Extended State</h3>
+      <div className="flex flex-row gap-6">
+        <CardQuestions className="max-w-[360px]" header="Header" />
+        <CardQuestions className="max-w-[360px]" header="Header" state="done" />
       </div>
     </div>
   );
