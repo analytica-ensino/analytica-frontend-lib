@@ -133,7 +133,13 @@ export type ProgressBarProps = {
   label?: ReactNode;
   /** Show percentage text */
   showPercentage?: boolean;
-  /** Show hit count (e.g., "28 de 30") instead of percentage */
+  /**
+   * Show hit count (e.g., "28 de 30") instead of percentage
+   *
+   * PRIORITY: When both showHitCount and showPercentage are true,
+   * showHitCount takes precedence (stacked and compact layouts only).
+   * Default layout does not support showHitCount.
+   */
   showHitCount?: boolean;
   /** Additional CSS classes */
   className?: string;
@@ -174,6 +180,53 @@ const shouldShowHeader = (
 };
 
 /**
+ * Centralized function to determine display priority and content
+ *
+ * PRIORITY ORDER (consistent across all layouts):
+ * 1. showHitCount (highest priority) - displays "X de Y" format
+ * 2. showPercentage - displays "X%" format
+ * 3. label (lowest priority) - displays custom label
+ *
+ * @param showHitCount - Whether to show hit count format
+ * @param showPercentage - Whether to show percentage format
+ * @param label - Custom label to display
+ * @param clampedValue - Current progress value
+ * @param max - Maximum progress value
+ * @param percentage - Calculated percentage value
+ * @returns Object with content type and formatted content
+ */
+const getDisplayPriority = (
+  showHitCount: boolean,
+  showPercentage: boolean,
+  label: ReactNode,
+  clampedValue: number,
+  max: number,
+  percentage: number
+) => {
+  if (showHitCount) {
+    return {
+      type: 'hitCount' as const,
+      content: `${Math.round(clampedValue)} de ${max}`,
+      hasMetrics: true,
+    };
+  }
+
+  if (showPercentage) {
+    return {
+      type: 'percentage' as const,
+      content: `${Math.round(percentage)}%`,
+      hasMetrics: true,
+    };
+  }
+
+  return {
+    type: 'label' as const,
+    content: label,
+    hasMetrics: false,
+  };
+};
+
+/**
  * Parameters for compact layout configuration
  */
 interface CompactLayoutConfigParams {
@@ -189,6 +242,13 @@ interface CompactLayoutConfigParams {
 
 /**
  * Helper function to get compact layout configuration
+ *
+ * PRIORITY ORDER (consistent across all layouts):
+ * 1. showHitCount (highest priority) - displays "X de Y" format
+ * 2. showPercentage - displays "X%" format
+ * 3. label (lowest priority) - displays custom label
+ *
+ * When both showHitCount and showPercentage are true, showHitCount takes precedence.
  */
 const getCompactLayoutConfig = ({
   showPercentage,
@@ -200,27 +260,33 @@ const getCompactLayoutConfig = ({
   percentageClassName,
   labelClassName,
 }: CompactLayoutConfigParams) => {
-  const hasMetrics = showPercentage || showHitCount;
-
-  // Extract nested ternary operation into independent statement
-  let content: string | ReactNode;
-  if (showPercentage) {
-    content = `${Math.round(percentage)}%`;
-  } else if (showHitCount) {
-    content = `${Math.round(clampedValue)} de ${max}`;
-  } else {
-    content = label;
-  }
+  // Use centralized priority logic for consistency
+  const displayPriority = getDisplayPriority(
+    showHitCount,
+    showPercentage,
+    label,
+    clampedValue,
+    max,
+    percentage
+  );
 
   return {
-    color: hasMetrics ? 'text-primary-600' : 'text-primary-700',
-    className: hasMetrics ? percentageClassName : labelClassName,
-    content,
+    color: displayPriority.hasMetrics ? 'text-primary-600' : 'text-primary-700',
+    className: displayPriority.hasMetrics
+      ? percentageClassName
+      : labelClassName,
+    content: displayPriority.content,
   };
 };
 
 /**
  * Helper function to get default layout display configuration
+ *
+ * PRIORITY ORDER for default layout (showHitCount is not supported):
+ * 1. showPercentage (when enabled, takes precedence over label)
+ * 2. label (shown only when showPercentage is false)
+ *
+ * Note: Default layout does not support showHitCount feature.
  */
 const getDefaultLayoutDisplayConfig = (
   size: ProgressBarSize,
@@ -229,11 +295,17 @@ const getDefaultLayoutDisplayConfig = (
 ) => ({
   showHeader: size === 'small' && !!(label || showPercentage),
   showPercentage: size === 'medium' && showPercentage,
-  showLabel: size === 'medium' && !!label && !showPercentage,
+  showLabel: size === 'medium' && !!label && !showPercentage, // Only show label when percentage is not shown
 });
 
 /**
  * Helper function to render hit count or percentage display for stacked layout
+ *
+ * PRIORITY ORDER (consistent across all layouts):
+ * 1. showHitCount (highest priority) - displays "X de Y" format
+ * 2. showPercentage - displays "X%" format
+ *
+ * When both showHitCount and showPercentage are true, showHitCount takes precedence.
  */
 const renderStackedHitCountDisplay = (
   showHitCount: boolean,
@@ -245,11 +317,21 @@ const renderStackedHitCountDisplay = (
 ): ReactNode => {
   if (!showHitCount && !showPercentage) return null;
 
+  // Use centralized priority logic for consistency
+  const displayPriority = getDisplayPriority(
+    showHitCount,
+    showPercentage,
+    null, // label is not relevant for stacked layout metrics display
+    clampedValue,
+    max,
+    percentage
+  );
+
   return (
     <div
       className={`text-xs font-medium leading-[14px] text-right ${percentageClassName}`}
     >
-      {showHitCount ? (
+      {displayPriority.type === 'hitCount' ? (
         <>
           <span className="text-success-200">{Math.round(clampedValue)}</span>
           <span className="text-text-600"> de {max}</span>
@@ -289,7 +371,11 @@ const ProgressBarBase = ({
     <progress
       value={clampedValue}
       max={max}
-      aria-label={typeof label === 'string' ? label : 'Progress'}
+      aria-label={
+        typeof label === 'string'
+          ? `${label}: ${Math.round(percentage)}% complete`
+          : `Progress: ${Math.round(percentage)}% of ${max}`
+      }
       className="absolute inset-0 w-full h-full opacity-0"
     />
     <div
@@ -507,6 +593,13 @@ const DefaultLayout = ({
  * Uses the Analytica Ensino Design System colors from styles.css with automatic
  * light/dark mode support. Includes Text component integration for consistent typography.
  *
+ * CONTENT DISPLAY PRIORITY (Consistent across all layouts):
+ * 1. showHitCount (highest) - "X de Y" format (stacked/compact only)
+ * 2. showPercentage - "X%" format
+ * 3. label (lowest) - Custom label text
+ *
+ * When multiple display options are enabled, higher priority options take precedence.
+ *
  * @example
  * ```tsx
  * // Basic progress bar
@@ -563,8 +656,8 @@ const ProgressBar = ({
         percentage={percentage}
         variantClasses={variantClasses}
         dimensions={{
-          width: stackedWidth || 'w-[380px]',
-          height: stackedHeight || 'h-[35px]',
+          width: stackedWidth ?? 'w-[380px]',
+          height: stackedHeight ?? 'h-[35px]',
         }}
       />
     );
@@ -584,8 +677,8 @@ const ProgressBar = ({
         percentage={percentage}
         variantClasses={variantClasses}
         dimensions={{
-          width: compactWidth || 'w-[131px]',
-          height: compactHeight || 'h-[24px]',
+          width: compactWidth ?? 'w-[131px]',
+          height: compactHeight ?? 'h-[24px]',
         }}
       />
     );

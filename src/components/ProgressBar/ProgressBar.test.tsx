@@ -185,7 +185,7 @@ describe('ProgressBar', () => {
 
       expect(progressBar).toHaveAttribute('value', '75');
       expect(progressBar).toHaveAttribute('max', '100');
-      expect(progressBar).toHaveAttribute('aria-label', 'Progress');
+      expect(progressBar).toHaveAttribute('aria-label', 'Progress: 75% of 100');
     });
 
     it('sets correct aria attributes with custom max', () => {
@@ -199,7 +199,10 @@ describe('ProgressBar', () => {
     it('sets custom aria-label when label is provided as string', () => {
       render(<ProgressBar value={50} label="Custom Label" />);
       const progressBar = screen.getByRole('progressbar');
-      expect(progressBar).toHaveAttribute('aria-label', 'Custom Label');
+      expect(progressBar).toHaveAttribute(
+        'aria-label',
+        'Custom Label: 50% complete'
+      );
     });
 
     it('uses default aria-label when label is ReactNode', () => {
@@ -210,7 +213,7 @@ describe('ProgressBar', () => {
       );
       render(<ProgressBar value={50} label={complexLabel} />);
       const progressBar = screen.getByRole('progressbar');
-      expect(progressBar).toHaveAttribute('aria-label', 'Progress');
+      expect(progressBar).toHaveAttribute('aria-label', 'Progress: 50% of 100');
     });
 
     it('sets correct aria attributes with clamped values', () => {
@@ -481,7 +484,10 @@ describe('ProgressBar', () => {
       expect(progressBar).toBeInTheDocument();
       expect(progressBar).toHaveAttribute('value', '67');
       expect(progressBar).toHaveAttribute('max', '150');
-      expect(progressBar).toHaveAttribute('aria-label', 'Test Progress');
+      expect(progressBar).toHaveAttribute(
+        'aria-label',
+        'Test Progress: 45% complete'
+      );
 
       expect(label).toBeInTheDocument();
       expect(label).toHaveClass('text-xs', 'custom-label');
@@ -663,6 +669,30 @@ describe('ProgressBar', () => {
         expect(label).toHaveClass('custom-stacked-label');
         expect(percentageContainer).toHaveClass('custom-stacked-percentage');
       });
+
+      it('prioritizes hit count over percentage when both are enabled in stacked layout', () => {
+        render(
+          <ProgressBar
+            layout="stacked"
+            variant="green"
+            value={22}
+            max={30}
+            label="Fáceis"
+            showHitCount
+            showPercentage
+          />
+        );
+
+        const label = screen.getByText('Fáceis');
+        // Should show hit count "22 de 30" instead of percentage "73%"
+        const hitCountContainer = screen.getAllByText((content, element) => {
+          return element?.textContent === '22 de 30';
+        })[0];
+
+        expect(label).toBeInTheDocument();
+        expect(hitCountContainer).toBeInTheDocument();
+        expect(screen.queryByText('73%')).not.toBeInTheDocument();
+      });
     });
 
     describe('Compact layout', () => {
@@ -792,6 +822,26 @@ describe('ProgressBar', () => {
         })[0];
         expect(hitCountContainer).toBeInTheDocument();
         expect(screen.queryByText('Should not show')).not.toBeInTheDocument();
+      });
+
+      it('prioritizes hit count over percentage when both are enabled in compact layout', () => {
+        render(
+          <ProgressBar
+            layout="compact"
+            variant="green"
+            value={15}
+            max={20}
+            showHitCount
+            showPercentage
+          />
+        );
+
+        // Should show hit count "15 de 20" instead of percentage "75%"
+        const hitCountContainer = screen.getAllByText((content, element) => {
+          return element?.textContent === '15 de 20';
+        })[0];
+        expect(hitCountContainer).toBeInTheDocument();
+        expect(screen.queryByText('75%')).not.toBeInTheDocument();
       });
     });
   });
