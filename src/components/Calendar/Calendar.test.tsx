@@ -105,10 +105,9 @@ describe('Calendar', () => {
     it('should toggle month picker when clicking header in selection variant', () => {
       render(<Calendar variant="selection" />);
 
-      // Find the month header button
-      const monthButton = screen.getByRole('button', {
-        name: /janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro/i,
-      });
+      // Find the month header button by looking for the h2 element and getting its parent
+      const monthHeader = screen.getByRole('heading', { level: 2 });
+      const monthButton = monthHeader.closest('button')!;
 
       // Initially closed
       expect(screen.queryByText('Selecionar Ano')).not.toBeInTheDocument();
@@ -133,10 +132,9 @@ describe('Calendar', () => {
         <Calendar variant="selection" onMonthChange={mockOnMonthChange} />
       );
 
-      // Open month picker
-      const monthButton = screen.getByRole('button', {
-        name: /janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro/i,
-      });
+      // Open month picker by finding the h2 element and getting its parent
+      const monthHeader = screen.getByRole('heading', { level: 2 });
+      const monthButton = monthHeader.closest('button')!;
       fireEvent.click(monthButton);
 
       // Click on "Mar" (March)
@@ -155,10 +153,9 @@ describe('Calendar', () => {
         <Calendar variant="selection" selectedDate={new Date(2025, 0, 1)} />
       );
 
-      // Open month picker
-      const monthButton = screen.getByRole('button', {
-        name: /janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro/i,
-      });
+      // Open month picker by finding the h2 element and getting its parent
+      const monthHeader = screen.getByRole('heading', { level: 2 });
+      const monthButton = monthHeader.closest('button')!;
       fireEvent.click(monthButton);
 
       // Get all year buttons and click on 2024
@@ -319,10 +316,11 @@ describe('Calendar', () => {
     it('should toggle month picker when clicking header in navigation variant', () => {
       render(<Calendar variant="navigation" />);
 
-      // Find the month header button
-      const monthButton = screen.getByRole('button', {
-        name: /janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro/i,
-      });
+      // Find the month header button - in navigation variant, we look for span with text
+      const monthSpan = screen.getByText(
+        /Janeiro|Fevereiro|Março|Abril|Maio|Junho|Julho|Agosto|Setembro|Outubro|Novembro|Dezembro/
+      );
+      const monthButton = monthSpan.closest('button')!;
 
       // Click to open month picker
       fireEvent.click(monthButton);
@@ -418,10 +416,9 @@ describe('Calendar', () => {
     it('should close month picker when clicking outside', () => {
       render(<Calendar variant="selection" />);
 
-      // Open month picker
-      const monthButton = screen.getByRole('button', {
-        name: /janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro/i,
-      });
+      // Open month picker by finding the h2 element and getting its parent
+      const monthHeader = screen.getByRole('heading', { level: 2 });
+      const monthButton = monthHeader.closest('button')!;
       fireEvent.click(monthButton);
 
       // Check if month picker is open
@@ -432,6 +429,26 @@ describe('Calendar', () => {
 
       // Month picker should be closed
       expect(screen.queryByText('Selecionar Ano')).not.toBeInTheDocument();
+    });
+
+    it('should not have aria-current attribute for non-today dates in selection variant', () => {
+      // Use a fixed date from the past to ensure we test non-today dates
+      const pastDate = new Date(2023, 0, 15); // January 15, 2023
+      render(<Calendar variant="selection" selectedDate={pastDate} />);
+
+      // Find a non-today date (day 10 should not be today)
+      const nonTodayElement = screen.getByText('10');
+      expect(nonTodayElement).not.toHaveAttribute('aria-current');
+    });
+
+    it('should not have aria-current attribute for non-today dates in navigation variant', () => {
+      // Use a fixed date from the past to ensure we test non-today dates
+      const pastDate = new Date(2023, 0, 15); // January 15, 2023
+      render(<Calendar variant="navigation" selectedDate={pastDate} />);
+
+      // Find a non-today date (day 10 should not be today)
+      const nonTodayElement = screen.getByText('10');
+      expect(nonTodayElement).not.toHaveAttribute('aria-current');
     });
   });
 });

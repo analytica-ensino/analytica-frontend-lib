@@ -409,9 +409,9 @@ const Calendar = ({
 
         {/* Compact week days */}
         <div className="grid grid-cols-7 gap-1 mb-2">
-          {WEEK_DAYS_SHORT.map((day) => (
+          {WEEK_DAYS_SHORT.map((day, index) => (
             <div
-              key={day}
+              key={`${day}-${index}`}
               className="h-9 flex items-center justify-center text-xs font-normal text-text-600"
             >
               {day}
@@ -465,7 +465,7 @@ const Calendar = ({
                   onClick={() => handleDateSelect(day)}
                   aria-label={`${day.date.getDate()} de ${MONTH_NAMES[day.date.getMonth()]}`}
                   aria-current={day.isToday ? 'date' : undefined}
-                  tabIndex={day.isCurrentMonth ? 0 : -1}
+                  tabIndex={0}
                 >
                   <span className={spanClass}>{day.date.getDate()}</span>
                 </button>
@@ -610,7 +610,7 @@ const Calendar = ({
                 onClick={() => handleDateSelect(day)}
                 aria-label={`${day.date.getDate()} de ${MONTH_NAMES[day.date.getMonth()]}`}
                 aria-current={day.isToday ? 'date' : undefined}
-                tabIndex={day.isCurrentMonth ? 0 : -1}
+                tabIndex={0}
               >
                 {day.date.getDate()}
               </button>
