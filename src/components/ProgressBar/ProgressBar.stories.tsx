@@ -466,30 +466,16 @@ export const AllVariations: Story = () => (
                 <span className="text-xs text-text-500">
                   Excellence Performance Report Card
                 </span>
-                <div className="flex flex-col items-start gap-2 w-[380px] h-[35px]">
-                  {/* Header with label and custom hit count */}
-                  <div className="flex flex-row justify-between items-center w-full h-[19px]">
-                    {/* Label */}
-                    <div className="text-base font-medium text-text-600 leading-[19px]">
-                      Difíceis
-                    </div>
-                    {/* Custom Hit Count with green number */}
-                    <div className="text-xs font-medium leading-[14px] text-right">
-                      <span className="text-success-200">18</span>
-                      <span className="text-text-600"> de 20</span>
-                    </div>
-                  </div>
-                  {/* Progress bar */}
-                  <div className="w-full h-2 bg-background-300 rounded-lg overflow-hidden relative">
-                    <progress
-                      value={18}
-                      max={20}
-                      aria-label="Difíceis"
-                      className="absolute inset-0 w-full h-full opacity-0"
-                    />
-                    <div className="h-2 bg-success-200 rounded-lg transition-all duration-300 ease-out shadow-hard-shadow-3 w-[90%]" />
-                  </div>
-                </div>
+                <ProgressBar
+                  layout="stacked"
+                  variant="green"
+                  value={18}
+                  max={20}
+                  label="Difíceis"
+                  showHitCount
+                  labelClassName="text-base font-medium text-text-800 leading-[19px]"
+                  percentageClassName="text-xs font-medium leading-[14px] text-right"
+                />
               </div>
             </div>
           </div>

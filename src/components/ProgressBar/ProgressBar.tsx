@@ -152,15 +152,22 @@ const ProgressBar = ({
 
             {/* Hit Count or Percentage */}
             {(showHitCount || showPercentage) && (
-              <Text
-                size="xs"
-                weight="medium"
-                className={`text-success-200 leading-[14px] text-right ${percentageClassName}`}
+              <div
+                className={`text-xs font-medium leading-[14px] text-right ${percentageClassName}`}
               >
-                {showHitCount
-                  ? `${Math.round(clampedValue)} de ${max}`
-                  : `${Math.round(percentage)}%`}
-              </Text>
+                {showHitCount ? (
+                  <>
+                    <span className="text-success-200">
+                      {Math.round(clampedValue)}
+                    </span>
+                    <span className="text-text-600"> de {max}</span>
+                  </>
+                ) : (
+                  <Text size="xs" weight="medium" className="text-success-200">
+                    {Math.round(percentage)}%
+                  </Text>
+                )}
+              </div>
             )}
           </div>
         )}
