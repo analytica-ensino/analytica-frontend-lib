@@ -499,7 +499,7 @@ export const AllVariations: Story = () => (
       {/* Compact Layout Variations */}
       <div className="mb-8">
         <h4 className="font-medium text-lg mb-4 text-text-950">
-          Compact Layout (131px) - Small Progress Cards
+          Compact Layout (130px) - Small Progress Cards
         </h4>
 
         <div className="grid grid-cols-2 gap-8">
