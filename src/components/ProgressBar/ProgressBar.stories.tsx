@@ -402,15 +402,13 @@ export const AllVariations: Story = () => (
                 <span className="text-xs text-text-500">
                   Activity Progress Monitor
                 </span>
-                <div style={{ fontSize: '10px', color: '#404040' }}>
-                  <ProgressBar
-                    size="medium"
-                    variant="blue"
-                    value={85}
-                    showPercentage
-                    percentageClassName="font-normal"
-                  />
-                </div>
+                <ProgressBar
+                  size="medium"
+                  variant="blue"
+                  value={85}
+                  showPercentage
+                  percentageClassName="text-2xs font-normal text-text-800"
+                />
               </div>
             </div>
           </div>
@@ -440,7 +438,7 @@ export const AllVariations: Story = () => (
                     value={95}
                     className="flex-grow"
                   />
-                  <span className="text-xs font-medium leading-none tracking-normal text-center flex-none text-neutral-800">
+                  <span className="text-xs font-medium leading-none tracking-normal text-center flex-none text-text-950">
                     95% corretas
                   </span>
                 </div>
@@ -472,13 +470,13 @@ export const AllVariations: Story = () => (
                   {/* Header with label and custom hit count */}
                   <div className="flex flex-row justify-between items-center w-full h-[19px]">
                     {/* Label */}
-                    <div className="text-base font-medium text-neutral-600 leading-[19px]">
+                    <div className="text-base font-medium text-text-600 leading-[19px]">
                       Difíceis
                     </div>
                     {/* Custom Hit Count with green number */}
                     <div className="text-xs font-medium leading-[14px] text-right">
                       <span className="text-success-200">18</span>
-                      <span className="text-neutral-600"> de 20</span>
+                      <span className="text-text-600"> de 20</span>
                     </div>
                   </div>
                   {/* Progress bar */}
@@ -489,10 +487,7 @@ export const AllVariations: Story = () => (
                       aria-label="Difíceis"
                       className="absolute inset-0 w-full h-full opacity-0"
                     />
-                    <div
-                      className="h-2 bg-success-200 rounded-lg transition-all duration-300 ease-out shadow-hard-shadow-3"
-                      style={{ width: '90%' }}
-                    />
+                    <div className="h-2 bg-success-200 rounded-lg transition-all duration-300 ease-out shadow-hard-shadow-3 w-[90%]" />
                   </div>
                 </div>
               </div>
