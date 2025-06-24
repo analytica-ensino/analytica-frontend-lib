@@ -150,6 +150,48 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
 );
 
 /**
+ * Helper function to get day styles based on variant and conditions
+ */
+const getDayStyles = (
+  day: CalendarDay,
+  variant: CalendarVariant,
+  showActivities: boolean
+) => {
+  let dayStyle = '';
+  let textStyle = '';
+
+  if (variant === 'selection' && day.isSelected) {
+    dayStyle = 'bg-primary-800';
+    textStyle = 'text-white';
+  } else if (day.isToday) {
+    textStyle = 'text-[#1c61b2]';
+  } else if (
+    variant === 'navigation' &&
+    showActivities &&
+    day.activities?.length
+  ) {
+    const primaryActivity = day.activities[0];
+    if (primaryActivity.status === 'near-deadline') {
+      dayStyle = 'bg-warning-background border-2 border-warning-400';
+      textStyle = 'text-text-950';
+    } else if (primaryActivity.status === 'in-deadline') {
+      dayStyle = 'bg-success-background border-2 border-success-300';
+      textStyle = 'text-text-950';
+    } else if (primaryActivity.status === 'overdue') {
+      dayStyle = 'bg-error-background border-2 border-error-300';
+      textStyle = 'text-text-950';
+    } else {
+      dayStyle = 'border-2 border-blue-500';
+      textStyle = 'text-blue-500';
+    }
+  } else {
+    textStyle = 'text-text-950 hover:bg-background-100';
+  }
+
+  return { dayStyle, textStyle };
+};
+
+/**
  * Calendar component for Analytica Ensino platforms
  *
  * A comprehensive calendar component with activity indicators,
@@ -380,10 +422,6 @@ const Calendar = ({
         {/* Compact calendar grid */}
         <div className="grid grid-cols-7 gap-1">
           {calendarData.map((day) => {
-            // Determinar o estilo baseado no status do dia
-            let dayStyle = '';
-            let textStyle = '';
-
             // Não renderizar dias que não pertencem ao mês atual
             if (!day.isCurrentMonth) {
               return (
@@ -396,31 +434,11 @@ const Calendar = ({
               );
             }
 
-            if (day.isToday) {
-              textStyle = 'text-[#1c61b2]';
-            } else if (
-              showActivities &&
-              day.activities &&
-              day.activities.length > 0
-            ) {
-              const primaryActivity = day.activities[0];
-              if (primaryActivity.status === 'near-deadline') {
-                dayStyle = 'bg-warning-background border-2 border-warning-400';
-                textStyle = 'text-text-950';
-              } else if (primaryActivity.status === 'in-deadline') {
-                dayStyle = 'bg-success-background border-2 border-success-300';
-                textStyle = 'text-text-950';
-              } else if (primaryActivity.status === 'overdue') {
-                dayStyle = 'bg-error-background border-2 border-error-300';
-                textStyle = 'text-text-950';
-              } else {
-                dayStyle = 'border-2 border-blue-500';
-                textStyle = 'text-blue-500';
-              }
-            } else {
-              // Dias normais
-              textStyle = 'text-text-950 hover:bg-background-100';
-            }
+            const { dayStyle, textStyle } = getDayStyles(
+              day,
+              variant,
+              showActivities
+            );
 
             let spanClass = '';
             if (day.isSelected && day.isToday) {
@@ -445,6 +463,9 @@ const Calendar = ({
                     ${textStyle}
                   `}
                   onClick={() => handleDateSelect(day)}
+                  aria-label={`${day.date.getDate()} de ${MONTH_NAMES[day.date.getMonth()]}`}
+                  aria-current={day.isToday ? 'date' : undefined}
+                  tabIndex={day.isCurrentMonth ? 0 : -1}
                 >
                   <span className={spanClass}>{day.date.getDate()}</span>
                 </button>
@@ -552,10 +573,6 @@ const Calendar = ({
       {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-1">
         {calendarData.map((day) => {
-          // Determinar o estilo baseado no status do dia
-          let dayStyle = '';
-          let textStyle = '';
-
           // Não renderizar dias que não pertencem ao mês atual
           if (!day.isCurrentMonth) {
             return (
@@ -568,15 +585,11 @@ const Calendar = ({
             );
           }
 
-          if (day.isSelected) {
-            dayStyle = 'bg-primary-800';
-            textStyle = 'text-white';
-          } else if (day.isToday) {
-            textStyle = 'text-[#1c61b2]';
-          } else {
-            // Dias normais
-            textStyle = 'text-text-950 hover:bg-background-100';
-          }
+          const { dayStyle, textStyle } = getDayStyles(
+            day,
+            variant,
+            showActivities
+          );
 
           return (
             <div
@@ -590,10 +603,14 @@ const Calendar = ({
                   text-xl font-normal 
                   cursor-pointer 
                   rounded-full
+                  focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-1
                   ${dayStyle} 
                   ${textStyle}
                 `}
                 onClick={() => handleDateSelect(day)}
+                aria-label={`${day.date.getDate()} de ${MONTH_NAMES[day.date.getMonth()]}`}
+                aria-current={day.isToday ? 'date' : undefined}
+                tabIndex={day.isCurrentMonth ? 0 : -1}
               >
                 {day.date.getDate()}
               </button>
