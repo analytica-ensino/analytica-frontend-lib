@@ -87,7 +87,7 @@ describe('Calendar', () => {
       render(<Calendar variant="selection" />);
 
       const todayElement = screen.getByText(today.getDate().toString());
-      expect(todayElement).toHaveClass('text-text-800');
+      expect(todayElement).toHaveClass('text-primary-800');
     });
 
     it('should style normal days correctly in selection variant', () => {
@@ -278,7 +278,7 @@ describe('Calendar', () => {
 
       const todayElement = screen.getByText(today.getDate().toString());
       // In navigation variant, today's text should be inside a span with the color class
-      expect(todayElement.parentElement).toHaveClass('text-text-800');
+      expect(todayElement.parentElement).toHaveClass('text-primary-800');
     });
 
     it('should highlight selected date correctly in navigation variant', () => {

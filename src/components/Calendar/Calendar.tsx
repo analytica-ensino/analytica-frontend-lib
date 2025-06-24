@@ -171,7 +171,7 @@ const getDayStyles = (
     dayStyle = 'bg-primary-800';
     textStyle = 'text-white';
   } else if (day.isToday) {
-    textStyle = 'text-text-800';
+    textStyle = 'text-primary-800';
   } else if (
     variant === 'navigation' &&
     showActivities &&
