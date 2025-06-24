@@ -10,13 +10,17 @@ describe('Modal', () => {
     children: 'Test content',
   };
 
+  let originalOverflow: string;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    // Salvar o valor original do overflow
+    originalOverflow = document.body.style.overflow;
   });
 
   afterEach(() => {
-    // Restaurar o overflow do body
-    document.body.style.overflow = 'unset';
+    // Restaurar o valor original do overflow
+    document.body.style.overflow = originalOverflow;
   });
 
   it('deve renderizar o modal quando isOpen é true', () => {
@@ -141,6 +145,40 @@ describe('Modal', () => {
 
     const header = document.querySelector('.flex.items-center.justify-between');
     expect(header).toHaveClass('px-6', 'py-6');
+  });
+
+  it('deve ter role="none" no backdrop', () => {
+    render(<Modal {...defaultProps} />);
+
+    const backdrop = document.querySelector('.fixed.inset-0.z-50');
+    expect(backdrop).toHaveAttribute('role', 'none');
+  });
+
+  it('deve chamar onClose quando Enter ou Space é pressionado no backdrop', () => {
+    const onClose = jest.fn();
+    render(<Modal {...defaultProps} onClose={onClose} />);
+
+    const backdrop = document.querySelector('.fixed.inset-0.z-50');
+
+    // Testar Enter
+    fireEvent.keyDown(backdrop!, { key: 'Enter' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+
+    // Testar Space
+    fireEvent.keyDown(backdrop!, { key: ' ' });
+    expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it('não deve chamar onClose quando Enter é pressionado no backdrop e closeOnBackdropClick é false', () => {
+    const onClose = jest.fn();
+    render(
+      <Modal {...defaultProps} onClose={onClose} closeOnBackdropClick={false} />
+    );
+
+    const backdrop = document.querySelector('.fixed.inset-0.z-50');
+    fireEvent.keyDown(backdrop!, { key: 'Enter' });
+
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   describe('Tamanhos', () => {

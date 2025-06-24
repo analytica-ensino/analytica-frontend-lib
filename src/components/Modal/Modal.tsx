@@ -1,4 +1,4 @@
-import { ReactNode, MouseEvent, useEffect } from 'react';
+import React, { ReactNode, MouseEvent, useEffect } from 'react';
 import { X } from 'phosphor-react';
 
 /**
@@ -89,8 +89,9 @@ const Modal = ({
   useEffect(() => {
     if (!isOpen || !closeOnEscape) return;
 
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+    const handleEscape = (event: Event) => {
+      const keyboardEvent = event as globalThis.KeyboardEvent;
+      if (keyboardEvent.key === 'Escape') {
         onClose();
       }
     };
@@ -101,20 +102,30 @@ const Modal = ({
 
   // Handle body scroll lock
   useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = originalOverflow;
     }
 
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = originalOverflow;
     };
   }, [isOpen]);
 
   // Handle backdrop click
   const handleBackdropClick = (event: MouseEvent<HTMLDivElement>) => {
     if (closeOnBackdropClick && event.target === event.currentTarget) {
+      onClose();
+    }
+  };
+
+  // Handle backdrop keyboard interaction
+  const handleBackdropKeyDown = (
+    event: React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    if (closeOnBackdropClick && (event.key === 'Enter' || event.key === ' ')) {
       onClose();
     }
   };
@@ -130,6 +141,8 @@ const Modal = ({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs"
       onClick={handleBackdropClick}
+      onKeyDown={handleBackdropKeyDown}
+      role="none"
     >
       <div className={modalClasses}>
         {/* Header */}
