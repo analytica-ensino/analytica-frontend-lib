@@ -31,32 +31,27 @@ const basicSteps: StepData[] = [
   {
     id: '1',
     label: 'Informações Pessoais',
-    description: 'Nome, email e dados básicos',
-    state: 'completed', // Etapa preenchida
+    state: 'completed',
   },
   {
     id: '2',
     label: 'Documentação',
-    description: 'Upload de documentos necessários',
-    state: 'completed', // Etapa preenchida
+    state: 'completed',
   },
   {
     id: '3',
     label: 'Endereço Residencial',
-    description: 'Endereço de residência atual',
-    state: 'current', // Etapa sendo preenchida
+    state: 'current',
   },
   {
     id: '4',
     label: 'Dados Profissionais',
-    description: 'Informações sobre trabalho atual',
-    state: 'pending', // Próxima etapa a ser preenchida
+    state: 'pending',
   },
   {
     id: '5',
     label: 'Confirmação Final',
-    description: 'Revisão e envio dos dados',
-    state: 'pending', // Última etapa - começa como pending, depois vira completed
+    state: 'pending',
   },
 ];
 
@@ -64,31 +59,26 @@ const extendedSteps: StepData[] = [
   {
     id: '1',
     label: 'Dados Pessoais',
-    description: 'Informações básicas do usuário',
     state: 'completed',
   },
   {
     id: '2',
     label: 'Documentos',
-    description: 'Upload de documentos necessários',
     state: 'completed',
   },
   {
     id: '3',
     label: 'Endereço',
-    description: 'Endereço residencial e comercial',
     state: 'current',
   },
   {
     id: '4',
     label: 'Verificação',
-    description: 'Verificação dos dados inseridos',
     state: 'pending',
   },
   {
     id: '5',
     label: 'Finalização',
-    description: 'Confirmação e envio do formulário',
     state: 'pending',
   },
 ];
@@ -187,26 +177,49 @@ export const AllSteppers: Story = () => {
           steps={dynamicSteps}
           size="medium"
           showDescription
-          showNavigation
           showProgress
-          onNext={handleNext}
-          onPrevious={currentStep > 0 ? handlePrevious : undefined}
-          onFinish={handleFinish}
           onStepClick={handleStepClick}
           responsive
           progressText={`Etapa ${currentStep + 1} de ${basicSteps.length}`}
         />
+
+        {/* Navigation buttons implemented in stories */}
+        <div className="flex gap-4 justify-between mt-4">
+          {currentStep > 0 && (
+            <button
+              onClick={handlePrevious}
+              className="px-4 py-2 rounded-lg border border-primary-800 text-primary-800 hover:bg-primary-50 transition-colors duration-200 cursor-pointer"
+            >
+              Voltar
+            </button>
+          )}
+
+          <div className="flex-grow" />
+
+          {currentStep === basicSteps.length - 1 ? (
+            <button
+              onClick={handleFinish}
+              className="px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition-colors duration-200 cursor-pointer"
+            >
+              Concluir
+            </button>
+          ) : (
+            <button
+              onClick={handleNext}
+              className="px-4 py-2 rounded-lg bg-primary-800 text-white hover:bg-primary-900 transition-colors duration-200 cursor-pointer"
+            >
+              Avançar
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Simulação da última etapa - Formulário com CheckBox */}
       {currentStep === basicSteps.length - 1 && (
         <div className="p-6 bg-background-50 rounded-lg border border-border-200">
-          <h4 className="font-semibold text-text-900 mb-4">
-            Formulário da Última Etapa: {basicSteps[currentStep].label}
-          </h4>
-          <p className="text-text-600 mb-4">
-            {basicSteps[currentStep].description}
-          </p>
+                     <h4 className="font-semibold text-text-900 mb-4">
+             Formulário da Última Etapa: {basicSteps[currentStep].label}
+           </h4>
 
           <CheckBox
             label="Li e aceito os termos e condições"
@@ -263,12 +276,7 @@ export const AllSteppers: Story = () => {
   );
 };
 
-// Basic stepper story
-export const Default: Story = () => (
-  <div className="w-full max-w-[800px] p-5">
-    <Stepper steps={basicSteps} size="medium" showDescription responsive />
-  </div>
-);
+
 
 // Size variants
 export const Sizes: Story = () => (
@@ -296,95 +304,9 @@ export const Sizes: Story = () => (
   </div>
 );
 
-// States demonstration
-export const States: Story = () => {
-  const allCompletedSteps: StepData[] = [
-    { id: '1', label: 'Etapa 1', state: 'completed' },
-    { id: '2', label: 'Etapa 2', state: 'completed' },
-    { id: '3', label: 'Etapa 3', state: 'completed' },
-  ];
 
-  const allPendingSteps: StepData[] = [
-    { id: '1', label: 'Etapa 1', state: 'pending' },
-    { id: '2', label: 'Etapa 2', state: 'pending' },
-    { id: '3', label: 'Etapa 3', state: 'pending' },
-  ];
 
-  const mixedSteps: StepData[] = [
-    { id: '1', label: 'Etapa 1', state: 'completed' },
-    { id: '2', label: 'Etapa 2', state: 'current' },
-    { id: '3', label: 'Etapa 3', state: 'pending' },
-  ];
 
-  return (
-    <div className="w-full max-w-[1000px] p-5">
-      <div className="space-y-8">
-        <div>
-          <h3 className="text-lg font-semibold mb-4 text-text-900">
-            Todas Concluídas
-          </h3>
-          <Stepper steps={allCompletedSteps} showDescription={false} />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold mb-4 text-text-900">
-            Todas Pendentes
-          </h3>
-          <Stepper steps={allPendingSteps} showDescription={false} />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold mb-4 text-text-900">
-            Estados Mistos
-          </h3>
-          <Stepper steps={mixedSteps} showDescription={false} />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// With navigation
-export const WithNavigation: Story = () => {
-  const [currentStep, setCurrentStep] = useState(1);
-
-  const handleNext = () => {
-    if (currentStep < basicSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
-      console.log('onNext:', currentStep + 1);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-      console.log('onPrevious:', currentStep - 1);
-    }
-  };
-
-  const handleFinish = () => {
-    console.log('onFinish');
-    alert('Formulário finalizado!');
-  };
-
-  return (
-    <div className="w-full max-w-[1000px] p-5">
-      <Stepper
-        steps={basicSteps}
-        currentStep={currentStep}
-        showNavigation
-        showProgress
-        onNext={handleNext}
-        onPrevious={handlePrevious}
-        onFinish={handleFinish}
-        onStepClick={(id, index) => {
-          if (index <= currentStep) {
-            setCurrentStep(index);
-            console.log('onStepClick:', id, index);
-          }
-        }}
-      />
-    </div>
-  );
-};
 
 // Extended process
 export const ExtendedProcess: Story = () => {
@@ -396,35 +318,48 @@ export const ExtendedProcess: Story = () => {
         steps={extendedSteps}
         currentStep={currentStep}
         size="large"
-        showNavigation
         showProgress
-        onNext={() =>
-          setCurrentStep(Math.min(currentStep + 1, extendedSteps.length - 1))
-        }
-        onPrevious={() => setCurrentStep(Math.max(currentStep - 1, 0))}
-        onFinish={() => alert('Processo finalizado!')}
         onStepClick={(id, index) => {
           if (index <= currentStep) {
             setCurrentStep(index);
           }
         }}
       />
+
+      {/* Navigation buttons for extended process */}
+      <div className="flex gap-4 justify-between mt-4">
+        {currentStep > 0 && (
+          <button
+            onClick={() => setCurrentStep(Math.max(currentStep - 1, 0))}
+            className="px-4 py-2 rounded-lg border border-primary-800 text-primary-800 hover:bg-primary-50 transition-colors duration-200 cursor-pointer"
+          >
+            Voltar
+          </button>
+        )}
+
+        <div className="flex-grow" />
+
+        {currentStep === extendedSteps.length - 1 ? (
+          <button
+            onClick={() => alert('Processo finalizado!')}
+            className="px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition-colors duration-200 cursor-pointer"
+          >
+            Finalizar
+          </button>
+        ) : (
+          <button
+            onClick={() => setCurrentStep(Math.min(currentStep + 1, extendedSteps.length - 1))}
+            className="px-4 py-2 rounded-lg bg-primary-800 text-white hover:bg-primary-900 transition-colors duration-200 cursor-pointer"
+          >
+            Avançar
+          </button>
+        )}
+      </div>
     </div>
   );
 };
 
-// Without descriptions
-export const WithoutDescriptions: Story = () => (
-  <div style={{ width: '100%', maxWidth: '800px', padding: '20px' }}>
-    <Stepper
-      steps={basicSteps}
-      size="medium"
-      showDescription={false}
-      showProgress
-      currentStep={1}
-    />
-  </div>
-);
+
 
 // Compact size
 export const Compact: Story = () => (
@@ -440,66 +375,6 @@ export const Compact: Story = () => (
   </div>
 );
 
-// Interactive example
-export const Interactive: Story = () => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
-  const handleNext = () => {
-    if (currentStep < basicSteps.length - 1) {
-      if (!completedSteps.includes(currentStep)) {
-        setCompletedSteps([...completedSteps, currentStep]);
-      }
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const handleStepClick = (id: string, index: number) => {
-    if (completedSteps.includes(index) || index === currentStep) {
-      setCurrentStep(index);
-    }
-  };
-
-  const dynamicSteps: StepData[] = basicSteps.map((step, index) => ({
-    ...step,
-    state: completedSteps.includes(index)
-      ? 'completed'
-      : index === currentStep
-        ? 'current'
-        : 'pending',
-  }));
-
-  return (
-    <div style={{ width: '100%', maxWidth: '1000px', padding: '20px' }}>
-      <div className="space-y-6">
-        <div className="text-center p-4 bg-background-100 rounded-lg">
-          <p className="text-text-700">
-            Clique nas etapas concluídas para navegar ou use os botões abaixo
-          </p>
-        </div>
-
-        <Stepper
-          steps={dynamicSteps}
-          size="large"
-          showNavigation
-          showProgress
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          onFinish={() => {
-            setCompletedSteps([...completedSteps, currentStep]);
-            alert('Processo concluído com sucesso!');
-          }}
-          onStepClick={handleStepClick}
-        />
-      </div>
-    </div>
-  );
-};
 
 

@@ -255,32 +255,10 @@ export type StepperProps = {
   onStepClick?: (stepId: string, index: number) => void;
   /** Show step descriptions */
   showDescription?: boolean;
-  /** Navigation buttons configuration */
-  showNavigation?: boolean;
-  /** Previous button text */
-  previousButtonText?: string;
-  /** Next button text */
-  nextButtonText?: string;
-  /** Finish button text */
-  finishButtonText?: string;
-  /** Callback for previous button */
-  onPrevious?: () => void;
-  /** Callback for next button */
-  onNext?: () => void;
-  /** Callback for finish button */
-  onFinish?: () => void;
-  /** Disable previous button */
-  disablePrevious?: boolean;
-  /** Disable next button */
-  disableNext?: boolean;
-  /** Disable finish button */
-  disableFinish?: boolean;
   /** Additional CSS classes */
   className?: string;
   /** Step container CSS classes */
   stepClassName?: string;
-  /** Navigation container CSS classes */
-  navigationClassName?: string;
   /** Progress indicator (e.g., "Etapa 2 de 4") */
   showProgress?: boolean;
   /** Custom progress text */
@@ -338,13 +316,11 @@ const getProgressText = (
  * // Basic stepper
  * <Stepper steps={steps} currentStep={1} />
  *
- * // With navigation
+ * // With step click handler
  * <Stepper
  *   steps={steps}
  *   currentStep={1}
- *   showNavigation
- *   onNext={() => setCurrentStep(prev => prev + 1)}
- *   onPrevious={() => setCurrentStep(prev => prev - 1)}
+ *   onStepClick={(id, index) => console.log('Step clicked:', id, index)}
  * />
  *
  * // Custom styling
@@ -357,19 +333,8 @@ const Stepper = ({
   currentStep,
   onStepClick,
   showDescription = true,
-  showNavigation = false,
-  previousButtonText = 'Voltar',
-  nextButtonText = 'Avançar',
-  finishButtonText = 'Concluir',
-  onPrevious,
-  onNext,
-  onFinish,
-  disablePrevious = false,
-  disableNext = false,
-  disableFinish = false,
   className = '',
   stepClassName = '',
-  navigationClassName = '',
   showProgress = false,
   progressText,
   responsive = true,
@@ -381,10 +346,6 @@ const Stepper = ({
     currentStep !== undefined
       ? calculateStepStates(initialSteps, currentStep)
       : initialSteps;
-
-  const isLastStep =
-    currentStep !== undefined && currentStep === steps.length - 1;
-  const showPreviousButton = onPrevious !== undefined;
 
   return (
     <div
@@ -428,62 +389,6 @@ const Stepper = ({
           );
         })}
       </div>
-
-      {/* Navigation buttons */}
-      {showNavigation && (
-        <div className={`flex gap-4 justify-between ${navigationClassName}`}>
-          {showPreviousButton && (
-            <Text
-              as="button"
-              size="sm"
-              weight="medium"
-              onClick={onPrevious}
-              disabled={disablePrevious}
-              className={`
-                px-4 py-2 rounded-lg border border-primary-800 text-primary-800
-                hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed
-                transition-colors duration-200 cursor-pointer flex-none
-              `}
-            >
-              {previousButtonText}
-            </Text>
-          )}
-
-          <div className="flex-grow" />
-
-          {isLastStep ? (
-            <Text
-              as="button"
-              size="sm"
-              weight="medium"
-              onClick={onFinish}
-              disabled={disableFinish}
-              className={`
-                px-4 py-2 rounded-lg bg-success-500 text-text border-0
-                hover:bg-success-600 disabled:opacity-50 disabled:cursor-not-allowed
-                transition-colors duration-200 cursor-pointer flex-none
-              `}
-            >
-              {finishButtonText}
-            </Text>
-          ) : (
-            <Text
-              as="button"
-              size="sm"
-              weight="medium"
-              onClick={onNext}
-              disabled={disableNext}
-              className={`
-                px-4 py-2 rounded-lg bg-primary-800 text-text border-0
-                hover:bg-primary-900 disabled:opacity-50 disabled:cursor-not-allowed
-                transition-colors duration-200 cursor-pointer flex-none
-              `}
-            >
-              {nextButtonText}
-            </Text>
-          )}
-        </div>
-      )}
     </div>
   );
 };
