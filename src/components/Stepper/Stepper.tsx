@@ -84,7 +84,7 @@ const STATE_CLASSES = {
   pending: {
     progressBar: 'bg-text-400', // #A3A3A3
     indicator: 'bg-text-400', // #A3A3A3
-    indicatorText: 'text-text-400', // #A3A3A3 (mesma cor do background para não ser visível)
+    indicatorText: 'text-white', // Branco para contraste com background cinza
     label: 'text-text-400', // #A3A3A3
     description: 'text-text-400',
   },
