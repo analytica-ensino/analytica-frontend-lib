@@ -174,6 +174,7 @@ export const AllSteppers: Story = () => {
         </h3>
         <Stepper
           steps={dynamicSteps}
+          currentStep={currentStep}
           size="medium"
           showDescription
           showNavigation
