@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { CardActivesResults, CardQuestions } from './Card';
-import { Star } from 'phosphor-react';
+import { CardActivesResults, CardProgress, CardQuestions } from './Card';
+import { ChartBar, Star } from 'phosphor-react';
 
 describe('CardActivesResults', () => {
   const baseProps = {
@@ -57,7 +57,7 @@ describe('CardActivesResults', () => {
       <CardActivesResults
         {...baseProps}
         className="custom-class"
-        data-testId="test-class"
+        data-testid="test-class"
       />
     );
     const container = screen.getByTestId('test-class').closest('div');
@@ -128,5 +128,69 @@ describe('CardQuestions', () => {
   it('should forward extra HTML attributes', () => {
     render(<CardQuestions {...baseProps} data-testid="card-container" />);
     expect(screen.getByTestId('card-container')).toBeInTheDocument();
+  });
+});
+
+describe('CardProgress', () => {
+  const baseProps = {
+    header: 'Progresso do Projeto',
+    icon: <ChartBar />,
+  };
+
+  it('should render subhead in vertical layout', () => {
+    render(
+      <CardProgress {...baseProps} direction="vertical" subhead="SubHead" />
+    );
+    expect(screen.getByText('SubHead')).toBeInTheDocument();
+  });
+
+  it('should render horizontal layout with dates and progress bar', () => {
+    render(
+      <CardProgress
+        {...baseProps}
+        direction="horizontal"
+        initialDate="01 Jan 2025"
+        endDate="31 Jan 2025"
+        progress={75}
+      />
+    );
+
+    expect(screen.getByText('Início')).toBeInTheDocument();
+    expect(screen.getByText('01 Jan 2025')).toBeInTheDocument();
+    expect(screen.getByText('Fim')).toBeInTheDocument();
+    expect(screen.getByText('31 Jan 2025')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  });
+
+  it('should render vertical layout with subhead', () => {
+    render(
+      <CardProgress
+        {...baseProps}
+        direction="vertical"
+        subhead="Este é um subtítulo"
+      />
+    );
+
+    expect(screen.getByText('Progresso do Projeto')).toBeInTheDocument();
+    expect(screen.getByText('Este é um subtítulo')).toBeInTheDocument();
+    expect(screen.queryByText('Início')).not.toBeInTheDocument();
+  });
+
+  it('should not render dates or progress bar if not provided', () => {
+    render(<CardProgress {...baseProps} direction="horizontal" />);
+    expect(screen.queryByText('Início')).not.toBeInTheDocument();
+  });
+
+  it('should apply custom className and forward props', () => {
+    render(
+      <CardProgress
+        {...baseProps}
+        className="custom-class"
+        data-testid="card-progress"
+      />
+    );
+    const container = screen.getByTestId('card-progress');
+    expect(container).toBeInTheDocument();
+    expect(container.className).toContain('custom-class');
   });
 });

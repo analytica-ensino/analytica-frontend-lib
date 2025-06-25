@@ -1,6 +1,7 @@
 import { forwardRef, HTMLAttributes, ReactNode } from 'react';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
+import ProgressBar from '../ProgressBar/ProgressBar';
 
 interface CardActivesResultsProps extends HTMLAttributes<HTMLDivElement> {
   icon: ReactNode;
@@ -165,4 +166,104 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
   }
 );
 
-export { CardActivesResults, CardQuestions };
+interface CardProgressProps extends HTMLAttributes<HTMLDivElement> {
+  header: string;
+  subhead?: string;
+  initialDate?: string;
+  endDate?: string;
+  progress?: number;
+  direction?: 'horizontal' | 'vertical';
+  icon: ReactNode;
+  color?: string;
+}
+
+const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
+  (
+    {
+      header,
+      subhead,
+      initialDate,
+      endDate,
+      progress = 0,
+      direction = 'horizontal',
+      icon,
+      color = '#B7DFFF',
+      className,
+      ...props
+    },
+    ref
+  ) => {
+    const isHorizontal = direction === 'horizontal';
+
+    const DateInfo = () => (
+      <div className="flex flex-row gap-6 items-center">
+        {initialDate && (
+          <span className="flex flex-row gap-1 items-center text-2xs">
+            <p className="text-text-800 font-semibold">Início</p>
+            <p className="text-text-600">{initialDate}</p>
+          </span>
+        )}
+        {endDate && (
+          <span className="flex flex-row gap-1 items-center text-2xs">
+            <p className="text-text-800 font-semibold">Fim</p>
+            <p className="text-text-600">{endDate}</p>
+          </span>
+        )}
+      </div>
+    );
+
+    const HorizontalContent = () => (
+      <>
+        <DateInfo />
+        {progress !== undefined && (
+          <ProgressBar
+            size="small"
+            value={progress}
+            data-testid="progress-bar"
+          />
+        )}
+      </>
+    );
+
+    const VerticalContent = () => (
+      <p className="text-sm text-text-800">{subhead}</p>
+    );
+
+    return (
+      <div
+        ref={ref}
+        className={`
+          w-full flex border border-border-50 rounded-xl
+          ${isHorizontal ? 'flex-row h-20' : 'flex-col'}
+          ${className}
+        `}
+        {...props}
+      >
+        <div
+          className={`
+            flex justify-center items-center [&>svg]:size-8 text-text-950 bg-[${color}]
+            ${
+              isHorizontal
+                ? 'w-20 h-full rounded-l-xl'
+                : 'min-h-[50px] w-full rounded-t-xl'
+            }
+          `}
+        >
+          {icon}
+        </div>
+
+        <div
+          className={`
+            p-4 flex flex-col justify-between w-full h-full
+            ${!isHorizontal && 'gap-4'}
+          `}
+        >
+          <p className="text-xs font-bold text-text-950">{header}</p>
+          {isHorizontal ? <HorizontalContent /> : <VerticalContent />}
+        </div>
+      </div>
+    );
+  }
+);
+
+export { CardActivesResults, CardQuestions, CardProgress };
