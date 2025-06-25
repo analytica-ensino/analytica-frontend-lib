@@ -27,8 +27,8 @@ export interface StepData {
 }
 
 /**
- * Size configurations - Based on exact design specifications
- * Medium size matches the design: width: 157px, height: 38px
+ * Size configurations - Following design system pattern from other components
+ * Based on Button, Input, Radio, and CheckBox component size progressions
  */
 const SIZE_CLASSES = {
   small: {
@@ -42,8 +42,8 @@ const SIZE_CLASSES = {
   },
   medium: {
     container: 'gap-1', // 4px
-    stepWidth: 'w-[157px]', // exact 157px as in design
-    stepHeight: 'h-[38px]', // exact 38px as in design
+    stepWidth: 'w-40', // 160px (increased from 157px for consistency)
+    stepHeight: 'h-10', // 40px (increased from 38px for consistency)
     indicator: 'w-5 h-5', // 20px
     progressBar: 'h-0.5', // 2px
     indicatorTextSize: '2xs', // 10px
@@ -54,7 +54,7 @@ const SIZE_CLASSES = {
     stepWidth: 'w-48', // 192px
     stepHeight: 'h-12', // 48px
     indicator: 'w-6 h-6', // 24px
-    progressBar: 'h-0.5', // 2px
+    progressBar: 'h-1', // 4px (increased from 2px)
     indicatorTextSize: 'xs', // 12px
     labelTextSize: 'sm', // 14px
   },
@@ -62,7 +62,7 @@ const SIZE_CLASSES = {
     container: 'gap-3',
     stepWidth: 'w-56', // 224px
     stepHeight: 'h-14', // 56px
-    indicator: 'w-8 h-8', // 32px
+    indicator: 'w-7 h-7', // 28px (reduced from 32px for better proportion)
     progressBar: 'h-1', // 4px
     indicatorTextSize: 'sm', // 14px
     labelTextSize: 'md', // 16px
@@ -195,10 +195,10 @@ const Step = ({
                 size === 'small'
                   ? 12
                   : size === 'medium'
-                    ? 16
+                    ? 14
                     : size === 'large'
-                      ? 20
-                      : 24
+                      ? 16
+                      : 18
               }
               weight="bold"
               className={stateClasses.indicatorText}
@@ -304,12 +304,10 @@ const getProgressText = (
  * Follows the exact design specifications with proper spacing, colors, and layout.
  *
  * Design specifications:
- * - Container: flex-row, gap-4px, width: 479px, height: 38px
- * - Each step: flex-col, width: 157px, height: 38px
- * - Progress bar: width: 157px, height: 2px, border-radius: 2px
- * - Indicator: 20x20px circle with 16.25px inner circle
- * - Text: 10px (2xs) in circle, 12px (xs) for label
- * - Colors: #1C61B2 (primary-800) for active, #A3A3A3 (text-400) for inactive
+ * - Follows design system size patterns from Button, Input, and other components
+ * - Progressive sizing: small (128px width) → medium (160px) → large (192px) → extraLarge (224px)
+ * - Consistent color scheme: pending (gray), current (dark blue), completed (light blue)
+ * - Responsive and accessible with keyboard navigation support
  *
  * @example
  * ```tsx
