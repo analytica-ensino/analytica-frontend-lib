@@ -1,5 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { CardActivesResults, CardProgress, CardQuestions } from './Card';
+import {
+  CardActivesResults,
+  CardProgress,
+  CardQuestions,
+  CardTopic,
+} from './Card';
 import { ChartBar, Star } from 'phosphor-react';
 
 describe('CardActivesResults', () => {
@@ -192,5 +197,55 @@ describe('CardProgress', () => {
     const container = screen.getByTestId('card-progress');
     expect(container).toBeInTheDocument();
     expect(container.className).toContain('custom-class');
+  });
+});
+
+describe('CardTopic', () => {
+  const baseProps = {
+    header: 'Tópico de Teste',
+    progress: 0,
+  };
+
+  it('should render with minimal props and header text', () => {
+    render(<CardTopic {...baseProps} />);
+    expect(screen.getByText('Tópico de Teste')).toBeInTheDocument();
+  });
+
+  it('should render subHead with separators (•)', () => {
+    render(
+      <CardTopic
+        {...baseProps}
+        subHead={['Módulo 1', 'Unidade 2', 'Semana 3']}
+      />
+    );
+
+    expect(screen.getByText('Módulo 1')).toBeInTheDocument();
+    expect(screen.getByText('Unidade 2')).toBeInTheDocument();
+    expect(screen.getByText('Semana 3')).toBeInTheDocument();
+    expect(screen.getAllByText('•')).toHaveLength(2);
+  });
+
+  it('should render progress bar and show percentage if enabled', () => {
+    render(<CardTopic {...baseProps} progress={75} showPercentage={true} />);
+
+    expect(screen.getByText('75%')).toBeInTheDocument();
+  });
+
+  it('should apply custom className', () => {
+    render(
+      <CardTopic
+        {...baseProps}
+        className="my-custom-class"
+        data-testid="card-topic"
+      />
+    );
+
+    const container = screen.getByTestId('card-topic');
+    expect(container.className).toContain('my-custom-class');
+  });
+
+  it('should forward extra HTML attributes', () => {
+    render(<CardTopic {...baseProps} data-testid="topic-container" />);
+    expect(screen.getByTestId('topic-container')).toBeInTheDocument();
   });
 });

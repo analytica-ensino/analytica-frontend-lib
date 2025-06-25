@@ -1,4 +1,4 @@
-import { forwardRef, HTMLAttributes, ReactNode } from 'react';
+import { forwardRef, Fragment, HTMLAttributes, ReactNode } from 'react';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
@@ -211,14 +211,14 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
               </span>
             )}
           </div>
-            {progress !== undefined && (
-              <ProgressBar
-                size="medium"
-                showPercentage
-                value={progress}
-                data-testid="progress-bar"
-              />
-            )}
+          {progress !== undefined && (
+            <ProgressBar
+              size="medium"
+              showPercentage
+              value={progress}
+              data-testid="progress-bar"
+            />
+          )}
         </>
       ),
       vertical: <p className="text-sm text-text-800">{subhead}</p>,
@@ -236,13 +236,16 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
       >
         <div
           className={`
-            flex justify-center items-center [&>svg]:size-8 text-text-950 bg-[${color}]
+            flex justify-center items-center [&>svg]:size-8 text-text-950
             ${
               isHorizontal
                 ? 'w-20 h-full rounded-l-xl'
                 : 'min-h-[50px] w-full rounded-t-xl'
             }
           `}
+          style={{
+            backgroundColor: color,
+          }}
         >
           {icon}
         </div>
@@ -261,4 +264,48 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
   }
 );
 
-export { CardActivesResults, CardQuestions, CardProgress };
+interface CardTopicProps extends HTMLAttributes<HTMLDivElement> {
+  header: string;
+  subHead?: string[];
+  progress: number;
+  showPercentage?: boolean;
+}
+
+const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
+  (
+    {
+      header,
+      subHead,
+      progress,
+      showPercentage = false,
+      className = '',
+      ...props
+    },
+    ref
+  ) => {
+    return (
+      <div
+        ref={ref}
+        className={`w-full py-2 px-4 flex flex-col justify-center gap-2 border border-border-50 rounded-xl min-h-20 ${className}`}
+        {...props}
+      >
+        {subHead && (
+          <span className="text-text-600 text-2xs flex flex-row gap-1">
+            {subHead.map((text, index) => (
+              <Fragment key={index}>
+                <p>{text}</p>
+                {index < subHead.length - 1 && <p>•</p>}
+              </Fragment>
+            ))}
+          </span>
+        )}
+
+        <p className="text-xs text-text-950 font-bold">{header}</p>
+
+        <ProgressBar showPercentage={showPercentage} value={progress} />
+      </div>
+    );
+  }
+);
+
+export { CardActivesResults, CardQuestions, CardProgress, CardTopic };

@@ -2,7 +2,12 @@
 
 import type { Story } from '@ladle/react';
 import { Book, Star } from 'phosphor-react';
-import { CardActivesResults, CardProgress, CardQuestions } from './Card';
+import {
+  CardActivesResults,
+  CardProgress,
+  CardQuestions,
+  CardTopic,
+} from './Card';
 
 /**
  * Showcase principal: todos os estados do CardActivesResults
@@ -83,6 +88,7 @@ export const AllCardActivesResults: Story = () => {
           initialDate="12 Fev 2025"
           endDate="20 Mar 2025"
           progress={20}
+          color="#B7DFFF"
           icon={<Book />}
         />
         <CardProgress
@@ -92,9 +98,49 @@ export const AllCardActivesResults: Story = () => {
           initialDate=""
           endDate=""
           progress={20}
+          color="#B7DFFF"
           icon={<Book />}
           subhead="0 de 3"
         />
+      </div>
+
+      <h3 className="font-bold text-2xl text-text-900">Card Topic</h3>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
+          <h3 className="font-bold text-xl text-text-900">Sem Porcentagem</h3>
+          <div className="flex flex-row gap-6">
+            <CardTopic
+              className="max-w-[360px]"
+              header="Header"
+              progress={20}
+            />
+            <CardTopic
+              subHead={['Tema', 'Subtema']}
+              className="max-w-[360px]"
+              header="Header"
+              progress={20}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h3 className="font-bold text-xl text-text-900">Com Porcentagem</h3>
+          <div className="flex flex-row gap-6">
+            <CardTopic
+              className="max-w-[360px]"
+              header="Header"
+              progress={20}
+              showPercentage
+            />
+            <CardTopic
+              subHead={['Tema', 'Subtema']}
+              className="max-w-[360px]"
+              header="Header"
+              progress={20}
+              showPercentage
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
