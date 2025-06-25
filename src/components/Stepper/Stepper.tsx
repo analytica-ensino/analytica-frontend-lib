@@ -146,9 +146,9 @@ export const Step = ({
         ${sizeClasses.stepWidth} ${sizeClasses.stepHeight}
         flex-none flex-grow
         ${className}
-        sm:max-w-[85px] md:max-w-[95px] lg:max-w-none
+        sm:max-w-[100px] md:max-w-[120px] lg:max-w-none xl:max-w-none
         sm:min-h-[40px] md:min-h-[45px] lg:min-h-none
-        overflow-hidden
+        overflow-visible
       `}
     >
       {/* Progress Bar - Full width at top with responsive scaling */}
@@ -165,7 +165,7 @@ export const Step = ({
           flex flex-col sm:flex-row items-center
           gap-1 sm:gap-2 w-full sm:w-auto
           h-auto sm:h-5 flex-none
-          overflow-hidden
+          overflow-visible
         `}
       >
         {/* Step Indicator Circle with responsive sizing */}
@@ -209,7 +209,7 @@ export const Step = ({
             text-center sm:text-left break-words
             px-1 sm:px-0 max-w-full
             text-2xs sm:text-xs md:text-xs lg:text-sm
-            whitespace-nowrap sm:whitespace-normal
+            whitespace-normal
           `}
         >
           {step.label}
@@ -338,12 +338,12 @@ const Stepper = ({
           ${sizeClasses.container}
           ${
             responsive
-              ? 'flex-row overflow-x-auto overflow-y-hidden scrollbar-hide justify-start sm:justify-center md:justify-start'
+              ? 'flex-row overflow-x-auto overflow-y-hidden scrollbar-hide justify-start sm:justify-center md:justify-center lg:justify-center'
               : 'flex-row justify-center'
           }
-          px-2 sm:px-4 md:px-2 lg:px-0
-          max-w-full
-          gap-2 sm:gap-3 md:gap-3 lg:gap-4
+          px-2 sm:px-4 md:px-6 lg:px-0
+          max-w-full min-w-0
+          gap-2 sm:gap-3 md:gap-4 lg:gap-4
         `}
         role="tablist"
         aria-label="Progress steps"
