@@ -27,48 +27,48 @@ export interface StepData {
 }
 
 /**
- * Size configurations - Following design system pattern from other components
- * Based on Button, Input, Radio, and CheckBox component size progressions
+ * Size configurations - Following design system pattern from CSS specifications
+ * Small size based on exact CSS: width 58px, height 38px, gap 8px
  */
 const SIZE_CLASSES = {
   small: {
-    container: 'gap-1',
-    stepWidth: 'w-32', // 128px
-    stepHeight: 'h-8', // 32px
-    indicator: 'w-4 h-4', // 16px
-    progressBar: 'h-0.5', // 2px
-    indicatorTextSize: '2xs', // 10px
-    labelTextSize: '2xs', // 10px
+    container: 'gap-2', // 8px gap as specified in CSS
+    stepWidth: 'w-[58px]', // exact 58px from CSS
+    stepHeight: 'h-[38px]', // exact 38px from CSS
+    indicator: 'w-5 h-5', // 20px as specified
+    progressBar: 'h-0.5', // 2px as specified
+    indicatorTextSize: '2xs', // 10px as specified
+    labelTextSize: 'xs', // 12px as specified
     iconSize: 'w-3 h-3', // 12px
   },
   medium: {
-    container: 'gap-1', // 4px
-    stepWidth: 'w-40', // 160px (increased from 157px for consistency)
-    stepHeight: 'h-10', // 40px (increased from 38px for consistency)
-    indicator: 'w-5 h-5', // 20px
-    progressBar: 'h-0.5', // 2px
-    indicatorTextSize: '2xs', // 10px
-    labelTextSize: 'xs', // 12px
+    container: 'gap-3', // 12px (8px + 4px progression)
+    stepWidth: 'w-[110px]', // 110px (increased from 90px to fit "Endereço Residencial")
+    stepHeight: 'h-[48px]', // 48px (increased from 46px for better proportion)
+    indicator: 'w-6 h-6', // 24px (20px + 4px progression)
+    progressBar: 'h-0.5', // 2px maintained for consistency
+    indicatorTextSize: '2xs', // 10px maintained for readability
+    labelTextSize: 'xs', // 12px maintained
     iconSize: 'w-3.5 h-3.5', // 14px
   },
   large: {
-    container: 'gap-2',
-    stepWidth: 'w-48', // 192px
-    stepHeight: 'h-12', // 48px
-    indicator: 'w-6 h-6', // 24px
-    progressBar: 'h-1', // 4px (increased from 2px)
-    indicatorTextSize: 'xs', // 12px
-    labelTextSize: 'sm', // 14px
+    container: 'gap-4', // 16px (12px + 4px progression)
+    stepWidth: 'w-[160px]', // 160px (increased from 140px to fit "Endereço Residencial")
+    stepHeight: 'h-[58px]', // 58px (increased from 54px for better proportion)
+    indicator: 'w-7 h-7', // 28px (24px + 4px progression)
+    progressBar: 'h-1', // 4px (increased for better visibility)
+    indicatorTextSize: 'xs', // 12px (increased for larger size)
+    labelTextSize: 'sm', // 14px (increased for larger size)
     iconSize: 'w-4 h-4', // 16px
   },
   extraLarge: {
-    container: 'gap-3',
-    stepWidth: 'w-56', // 224px
-    stepHeight: 'h-14', // 56px
-    indicator: 'w-7 h-7', // 28px (reduced from 32px for better proportion)
-    progressBar: 'h-1', // 4px
-    indicatorTextSize: 'sm', // 14px
-    labelTextSize: 'md', // 16px
+    container: 'gap-5', // 20px (16px + 4px progression)
+    stepWidth: 'w-[200px]', // 200px (increased from 180px to ensure "Endereço Residencial" fits)
+    stepHeight: 'h-[68px]', // 68px (increased from 62px for better proportion)
+    indicator: 'w-8 h-8', // 32px (28px + 4px progression)
+    progressBar: 'h-1', // 4px maintained
+    indicatorTextSize: 'xs', // 12px maintained for readability
+    labelTextSize: 'sm', // 14px maintained
     iconSize: 'w-[18px] h-[18px]', // 18px
   },
 } as const;
@@ -299,8 +299,10 @@ const getProgressText = (
  * Follows the exact design specifications with proper spacing, colors, and layout.
  *
  * Design specifications:
- * - Follows design system size patterns from Button, Input, and other components
- * - Progressive sizing: small (128px width) → medium (160px) → large (192px) → extraLarge (224px)
+ * - Based on exact CSS specifications from Figma design
+ * - Progressive sizing: small (58px × 38px) → medium (110px × 48px) → large (160px × 58px) → extraLarge (200px × 68px)
+ * - Large and extraLarge sizes adjusted to properly contain text and numbers
+ * - Consistent gaps: 8px → 12px → 16px → 20px
  * - Consistent color scheme: pending (gray), current (dark blue), completed (light blue)
  * - Responsive and accessible with keyboard navigation support
  *
