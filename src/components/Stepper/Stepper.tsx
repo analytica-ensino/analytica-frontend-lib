@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+// ReactNode removed as it's not used in this component
 import Text from '../Text/Text';
 import { Check } from 'phosphor-react';
 
@@ -72,7 +72,7 @@ const SIZE_CLASSES = {
 /**
  * State configurations using exact colors from CSS specs
  * pending: #A3A3A3 = text-400 (etapa ainda não iniciada)
- * current: #1C61B2 = primary-800 (etapa atual sendo preenchida)
+ * current: #1C61B2 = primary-800 (etapa atual sendo preenchida) - baseado no CSS fornecido
  * completed: #1C61B2 = primary-800 (etapa concluída)
  * text color: #FEFEFF = text
  */
@@ -80,22 +80,22 @@ const STATE_CLASSES = {
   pending: {
     progressBar: 'bg-text-400', // #A3A3A3
     indicator: 'bg-text-400', // #A3A3A3
-    indicatorText: 'text-text', // #FEFEFF white text
+    indicatorText: 'text-white', // Branco usando classe Tailwind padrão
     label: 'text-text-400', // #A3A3A3
     description: 'text-text-400',
   },
   current: {
-    progressBar: 'bg-primary-800', // #1C61B2
-    indicator: 'bg-primary-800', // #1C61B2
-    indicatorText: 'text-text', // #FEFEFF white text
-    label: 'text-primary-800', // #1C61B2
+    progressBar: 'bg-primary-800', // #1C61B2 usando classe Tailwind padrão
+    indicator: 'bg-primary-800', // #1C61B2 usando classe Tailwind padrão
+    indicatorText: 'text-white', // Branco usando classe Tailwind padrão
+    label: 'text-primary-800', // #1C61B2 usando classe Tailwind padrão
     description: 'text-text-600',
   },
   completed: {
-    progressBar: 'bg-primary-800', // #1C61B2
-    indicator: 'bg-primary-800', // #1C61B2
-    indicatorText: 'text-text', // #FEFEFF white text
-    label: 'text-primary-800', // #1C61B2
+    progressBar: 'bg-primary-800', // #1C61B2 usando classe Tailwind padrão
+    indicator: 'bg-primary-800', // #1C61B2 usando classe Tailwind padrão
+    indicatorText: 'text-white', // Branco usando classe Tailwind padrão
+    label: 'text-primary-800', // #1C61B2 usando classe Tailwind padrão
     description: 'text-text-600',
   },
 } as const;
@@ -135,14 +135,15 @@ const Step = ({
   size,
   sizeClasses,
   stateClasses,
-  isLast,
+  isLast: _isLast,
   onStepClick,
   showDescription = true,
   className = '',
 }: StepProps) => {
   const stepNumber = index + 1;
   const isCompleted = step.state === 'completed';
-  const isClickable = onStepClick && (step.state === 'completed' || step.state === 'current');
+  const isClickable =
+    onStepClick && (step.state === 'completed' || step.state === 'current');
 
   const handleStepClick = () => {
     if (isClickable) {
@@ -189,16 +190,25 @@ const Step = ({
           aria-label={`${step.label}${step.state === 'completed' ? ' (concluído)' : step.state === 'current' ? ' (atual)' : ''}`}
         >
           {isCompleted ? (
-                      <Check
-            size={size === 'small' ? 12 : size === 'medium' ? 16 : size === 'large' ? 20 : 24}
-            weight="bold"
-            className={stateClasses.indicatorText}
-          />
+            <Check
+              size={
+                size === 'small'
+                  ? 12
+                  : size === 'medium'
+                    ? 16
+                    : size === 'large'
+                      ? 20
+                      : 24
+              }
+              weight="bold"
+              className={stateClasses.indicatorText}
+            />
           ) : (
             <Text
-              size={sizeClasses.indicatorTextSize as any}
+              size={sizeClasses.indicatorTextSize as '2xs' | 'xs' | 'sm'}
               weight="medium"
-              className={`${stateClasses.indicatorText} leading-none`}
+              color="text-white"
+              className="leading-none"
             >
               {stepNumber}
             </Text>
@@ -207,7 +217,7 @@ const Step = ({
 
         {/* Step Label (xs, 12px, medium weight) */}
         <Text
-          size={sizeClasses.labelTextSize as any}
+          size={sizeClasses.labelTextSize as '2xs' | 'xs' | 'sm' | 'md'}
           weight="medium"
           className={`${stateClasses.label} leading-none flex-none`}
         >
@@ -280,17 +290,29 @@ export type StepperProps = {
 /**
  * Helper function to calculate step states based on current step
  */
-const calculateStepStates = (steps: StepData[], currentStep: number): StepData[] => {
+const calculateStepStates = (
+  steps: StepData[],
+  currentStep: number
+): StepData[] => {
   return steps.map((step, index) => ({
     ...step,
-    state: index < currentStep ? 'completed' : index === currentStep ? 'current' : 'pending',
+    state:
+      index < currentStep
+        ? 'completed'
+        : index === currentStep
+          ? 'current'
+          : 'pending',
   }));
 };
 
 /**
  * Helper function to get progress text
  */
-const getProgressText = (currentStep: number, totalSteps: number, customText?: string): string => {
+const getProgressText = (
+  currentStep: number,
+  totalSteps: number,
+  customText?: string
+): string => {
   if (customText) return customText;
   return `Etapa ${currentStep + 1} de ${totalSteps}`;
 };
@@ -353,14 +375,16 @@ const Stepper = ({
   const sizeClasses = SIZE_CLASSES[size];
 
   // Calculate steps with states if currentStep is provided
-  const steps = currentStep !== undefined
-    ? calculateStepStates(initialSteps, currentStep)
-    : initialSteps;
+  const steps =
+    currentStep !== undefined
+      ? calculateStepStates(initialSteps, currentStep)
+      : initialSteps;
 
-  const isLastStep = currentStep !== undefined && currentStep === steps.length - 1;
+  const isLastStep =
+    currentStep !== undefined && currentStep === steps.length - 1;
   const isFirstStep = currentStep === 0;
 
-    return (
+  return (
     <div
       className={`flex flex-col gap-6 ${className}`}
       role="group"
@@ -403,7 +427,7 @@ const Stepper = ({
         })}
       </div>
 
-            {/* Navigation buttons */}
+      {/* Navigation buttons */}
       {showNavigation && (
         <div className={`flex gap-4 justify-between ${navigationClassName}`}>
           {!isFirstStep && (

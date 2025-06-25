@@ -138,22 +138,26 @@ export const AllSteppers: Story = () => {
     state: completedSteps.includes(index)
       ? 'completed'
       : index === currentStep
-      ? 'current'
-      : 'pending',
+        ? 'current'
+        : 'pending',
   }));
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 32, width: '100%', maxWidth: '1000px', padding: '20px' }}>
+    <div className="flex flex-col gap-8 w-full max-w-[1000px] p-5">
       <h2 className="font-bold text-3xl text-text-900">Stepper</h2>
       <p className="text-text-700">
-        Variações possíveis do componente <code>Stepper</code> com navegação interativa:
+        Variações possíveis do componente <code>Stepper</code> com navegação
+        interativa:
       </p>
 
       {/* Status atual */}
       <div className="p-4 bg-background-100 rounded-lg">
-        <h4 className="font-semibold text-text-900 mb-2">Status do Formulário:</h4>
+        <h4 className="font-semibold text-text-900 mb-2">
+          Status do Formulário:
+        </h4>
         <p className="text-text-700">
-          Etapa atual: <strong>{currentStep + 1}</strong> de <strong>{basicSteps.length}</strong>
+          Etapa atual: <strong>{currentStep + 1}</strong> de{' '}
+          <strong>{basicSteps.length}</strong>
         </p>
         <p className="text-text-700">
           Etapas concluídas: <strong>{completedSteps.length}</strong>
@@ -165,7 +169,9 @@ export const AllSteppers: Story = () => {
 
       {/* Stepper interativo */}
       <div>
-        <h3 className="font-bold text-2xl text-text-900 mb-4">Stepper Interativo:</h3>
+        <h3 className="font-bold text-2xl text-text-900 mb-4">
+          Stepper Interativo:
+        </h3>
         <Stepper
           steps={dynamicSteps}
           size="medium"
@@ -195,7 +201,9 @@ export const AllSteppers: Story = () => {
         <button
           onClick={() => {
             setCurrentStep(basicSteps.length - 1);
-            setCompletedSteps(Array.from({ length: basicSteps.length - 1 }, (_, i) => i));
+            setCompletedSteps(
+              Array.from({ length: basicSteps.length - 1 }, (_, i) => i)
+            );
           }}
           className="px-4 py-2 bg-primary-800 text-text rounded-lg hover:bg-primary-900 transition-colors"
         >
@@ -205,7 +213,9 @@ export const AllSteppers: Story = () => {
         <button
           onClick={() => {
             setCurrentStep(basicSteps.length - 1);
-            setCompletedSteps(Array.from({ length: basicSteps.length }, (_, i) => i));
+            setCompletedSteps(
+              Array.from({ length: basicSteps.length }, (_, i) => i)
+            );
           }}
           className="px-4 py-2 bg-success-500 text-text rounded-lg hover:bg-success-600 transition-colors"
         >
@@ -218,19 +228,14 @@ export const AllSteppers: Story = () => {
 
 // Basic stepper story
 export const Default: Story = () => (
-  <div style={{ width: '100%', maxWidth: '800px', padding: '20px' }}>
-    <Stepper
-      steps={basicSteps}
-      size="medium"
-      showDescription
-      responsive
-    />
+  <div className="w-full max-w-[800px] p-5">
+    <Stepper steps={basicSteps} size="medium" showDescription responsive />
   </div>
 );
 
 // Size variants
 export const Sizes: Story = () => (
-  <div style={{ width: '100%', maxWidth: '1000px', padding: '20px' }}>
+  <div className="w-full max-w-[1000px] p-5">
     <div className="space-y-8">
       <div>
         <h3 className="text-lg font-semibold mb-4 text-text-900">Small</h3>
@@ -245,7 +250,9 @@ export const Sizes: Story = () => (
         <Stepper steps={basicSteps} size="large" />
       </div>
       <div>
-        <h3 className="text-lg font-semibold mb-4 text-text-900">Extra Large</h3>
+        <h3 className="text-lg font-semibold mb-4 text-text-900">
+          Extra Large
+        </h3>
         <Stepper steps={basicSteps} size="extraLarge" />
       </div>
     </div>
@@ -273,18 +280,24 @@ export const States: Story = () => {
   ];
 
   return (
-    <div style={{ width: '100%', maxWidth: '1000px', padding: '20px' }}>
+    <div className="w-full max-w-[1000px] p-5">
       <div className="space-y-8">
         <div>
-          <h3 className="text-lg font-semibold mb-4 text-text-900">Todas Concluídas</h3>
+          <h3 className="text-lg font-semibold mb-4 text-text-900">
+            Todas Concluídas
+          </h3>
           <Stepper steps={allCompletedSteps} showDescription={false} />
         </div>
         <div>
-          <h3 className="text-lg font-semibold mb-4 text-text-900">Todas Pendentes</h3>
+          <h3 className="text-lg font-semibold mb-4 text-text-900">
+            Todas Pendentes
+          </h3>
           <Stepper steps={allPendingSteps} showDescription={false} />
         </div>
         <div>
-          <h3 className="text-lg font-semibold mb-4 text-text-900">Estados Mistos</h3>
+          <h3 className="text-lg font-semibold mb-4 text-text-900">
+            Estados Mistos
+          </h3>
           <Stepper steps={mixedSteps} showDescription={false} />
         </div>
       </div>
@@ -316,7 +329,7 @@ export const WithNavigation: Story = () => {
   };
 
   return (
-    <div style={{ width: '100%', maxWidth: '1000px', padding: '20px' }}>
+    <div className="w-full max-w-[1000px] p-5">
       <Stepper
         steps={basicSteps}
         currentStep={currentStep}
@@ -348,7 +361,9 @@ export const ExtendedProcess: Story = () => {
         size="large"
         showNavigation
         showProgress
-        onNext={() => setCurrentStep(Math.min(currentStep + 1, extendedSteps.length - 1))}
+        onNext={() =>
+          setCurrentStep(Math.min(currentStep + 1, extendedSteps.length - 1))
+        }
         onPrevious={() => setCurrentStep(Math.max(currentStep - 1, 0))}
         onFinish={() => alert('Processo finalizado!')}
         onStepClick={(id, index) => {
@@ -419,8 +434,8 @@ export const Interactive: Story = () => {
     state: completedSteps.includes(index)
       ? 'completed'
       : index === currentStep
-      ? 'current'
-      : 'pending',
+        ? 'current'
+        : 'pending',
   }));
 
   return (
