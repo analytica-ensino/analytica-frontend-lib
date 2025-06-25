@@ -10,7 +10,7 @@ type StepperSize = 'small' | 'medium' | 'large' | 'extraLarge';
 /**
  * Step state variants
  */
-type StepState = 'default' | 'selected' | 'done';
+type StepState = 'pending' | 'current' | 'completed';
 
 /**
  * Individual step data interface
@@ -71,26 +71,27 @@ const SIZE_CLASSES = {
 
 /**
  * State configurations using exact colors from CSS specs
- * default: #A3A3A3 = text-400
- * selected/done: #1C61B2 = primary-800
+ * pending: #A3A3A3 = text-400 (etapa ainda não iniciada)
+ * current: #1C61B2 = primary-800 (etapa atual sendo preenchida)
+ * completed: #1C61B2 = primary-800 (etapa concluída)
  * text color: #FEFEFF = text
  */
 const STATE_CLASSES = {
-  default: {
+  pending: {
     progressBar: 'bg-text-400', // #A3A3A3
     indicator: 'bg-text-400', // #A3A3A3
     indicatorText: 'text-text', // #FEFEFF white text
     label: 'text-text-400', // #A3A3A3
     description: 'text-text-400',
   },
-  selected: {
+  current: {
     progressBar: 'bg-primary-800', // #1C61B2
     indicator: 'bg-primary-800', // #1C61B2
     indicatorText: 'text-text', // #FEFEFF white text
     label: 'text-primary-800', // #1C61B2
     description: 'text-text-600',
   },
-  done: {
+  completed: {
     progressBar: 'bg-primary-800', // #1C61B2
     indicator: 'bg-primary-800', // #1C61B2
     indicatorText: 'text-text', // #FEFEFF white text
@@ -140,8 +141,8 @@ const Step = ({
   className = '',
 }: StepProps) => {
   const stepNumber = index + 1;
-  const isDone = step.state === 'done';
-  const isClickable = onStepClick && (step.state === 'done' || step.state === 'selected');
+  const isCompleted = step.state === 'completed';
+  const isClickable = onStepClick && (step.state === 'completed' || step.state === 'current');
 
   const handleStepClick = () => {
     if (isClickable) {
@@ -185,9 +186,9 @@ const Step = ({
               handleStepClick();
             }
           }}
-          aria-label={`${step.label}${step.state === 'done' ? ' (concluído)' : step.state === 'selected' ? ' (atual)' : ''}`}
+          aria-label={`${step.label}${step.state === 'completed' ? ' (concluído)' : step.state === 'current' ? ' (atual)' : ''}`}
         >
-          {isDone ? (
+          {isCompleted ? (
                       <Check
             size={size === 'small' ? 12 : size === 'medium' ? 16 : size === 'large' ? 20 : 24}
             weight="bold"
@@ -282,7 +283,7 @@ export type StepperProps = {
 const calculateStepStates = (steps: StepData[], currentStep: number): StepData[] => {
   return steps.map((step, index) => ({
     ...step,
-    state: index < currentStep ? 'done' : index === currentStep ? 'selected' : 'default',
+    state: index < currentStep ? 'completed' : index === currentStep ? 'current' : 'pending',
   }));
 };
 

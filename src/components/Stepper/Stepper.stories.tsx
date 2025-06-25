@@ -20,30 +20,42 @@ import Stepper, { StepData } from './Stepper';
  *
  * ## Estados das Etapas
  *
- * - **default**: Etapa não iniciada (cinza)
- * - **selected**: Etapa atual (azul)
- * - **done**: Etapa concluída (verde com check)
+ * - **pending**: Etapa não iniciada ou a ser preenchida (cinza)
+ * - **current**: Etapa atual sendo preenchida (azul)
+ * - **completed**: Etapa concluída/preenchida (azul com check)
  */
 
-// Sample step data
+// Sample step data with more comprehensive flow
 const basicSteps: StepData[] = [
   {
     id: '1',
-    label: 'Informações pessoais',
+    label: 'Informações Pessoais',
     description: 'Nome, email e dados básicos',
-    state: 'done',
+    state: 'completed', // Etapa preenchida
   },
   {
     id: '2',
-    label: 'Endereço',
-    description: 'Endereço de entrega e cobrança',
-    state: 'selected',
+    label: 'Documentação',
+    description: 'Upload de documentos necessários',
+    state: 'completed', // Etapa preenchida
   },
   {
     id: '3',
-    label: 'Pagamento',
-    description: 'Método de pagamento e finalização',
-    state: 'default',
+    label: 'Endereço Residencial',
+    description: 'Endereço de residência atual',
+    state: 'current', // Etapa sendo preenchida
+  },
+  {
+    id: '4',
+    label: 'Dados Profissionais',
+    description: 'Informações sobre trabalho atual',
+    state: 'pending', // Próxima etapa a ser preenchida
+  },
+  {
+    id: '5',
+    label: 'Confirmação Final',
+    description: 'Revisão e envio dos dados',
+    state: 'pending', // Última etapa - começa como pending, depois vira completed
   },
 ];
 
@@ -52,56 +64,157 @@ const extendedSteps: StepData[] = [
     id: '1',
     label: 'Dados Pessoais',
     description: 'Informações básicas do usuário',
-    state: 'done',
+    state: 'completed',
   },
   {
     id: '2',
     label: 'Documentos',
     description: 'Upload de documentos necessários',
-    state: 'done',
+    state: 'completed',
   },
   {
     id: '3',
     label: 'Endereço',
     description: 'Endereço residencial e comercial',
-    state: 'selected',
+    state: 'current',
   },
   {
     id: '4',
     label: 'Verificação',
     description: 'Verificação dos dados inseridos',
-    state: 'default',
+    state: 'pending',
   },
   {
     id: '5',
     label: 'Finalização',
     description: 'Confirmação e envio do formulário',
-    state: 'default',
+    state: 'pending',
   },
 ];
 
 /**
  * Showcase principal: todas as variações possíveis do Stepper
  */
-export const AllSteppers: Story = () => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 32, width: '100%', maxWidth: '1000px', padding: '20px' }}>
-    <h2 className="font-bold text-3xl text-text-900">Stepper</h2>
-    <p className="text-text-700">
-      Variações possíveis do componente <code>Stepper</code>:
-    </p>
+export const AllSteppers: Story = () => {
+  const [currentStep, setCurrentStep] = useState(2); // Inicia na 3ª etapa (index 2)
+  const [completedSteps, setCompletedSteps] = useState<number[]>([0, 1]); // Primeiras duas etapas já concluídas
 
-    {/* Basic stepper */}
-    <div>
-      <h3 className="font-bold text-2xl text-text-900 mb-4">Básico:</h3>
-      <Stepper
-        steps={basicSteps}
-        size="medium"
-        showDescription
-        responsive
-      />
+  const handleNext = () => {
+    if (currentStep < basicSteps.length - 1) {
+      // Marca a etapa atual como concluída
+      if (!completedSteps.includes(currentStep)) {
+        setCompletedSteps([...completedSteps, currentStep]);
+      }
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleFinish = () => {
+    // Marca a última etapa como concluída
+    if (!completedSteps.includes(currentStep)) {
+      setCompletedSteps([...completedSteps, currentStep]);
+    }
+    alert('Formulário finalizado com sucesso!');
+    console.log('Processo concluído');
+  };
+
+  const handleStepClick = (id: string, index: number) => {
+    // Permite navegar apenas para etapas concluídas ou a atual
+    if (completedSteps.includes(index) || index === currentStep) {
+      setCurrentStep(index);
+      console.log('Navegou para etapa:', id, index);
+    }
+  };
+
+  // Gera os steps dinamicamente baseado no estado atual
+  const dynamicSteps: StepData[] = basicSteps.map((step, index) => ({
+    ...step,
+    state: completedSteps.includes(index)
+      ? 'completed'
+      : index === currentStep
+      ? 'current'
+      : 'pending',
+  }));
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32, width: '100%', maxWidth: '1000px', padding: '20px' }}>
+      <h2 className="font-bold text-3xl text-text-900">Stepper</h2>
+      <p className="text-text-700">
+        Variações possíveis do componente <code>Stepper</code> com navegação interativa:
+      </p>
+
+      {/* Status atual */}
+      <div className="p-4 bg-background-100 rounded-lg">
+        <h4 className="font-semibold text-text-900 mb-2">Status do Formulário:</h4>
+        <p className="text-text-700">
+          Etapa atual: <strong>{currentStep + 1}</strong> de <strong>{basicSteps.length}</strong>
+        </p>
+        <p className="text-text-700">
+          Etapas concluídas: <strong>{completedSteps.length}</strong>
+        </p>
+        <p className="text-text-600 text-sm mt-2">
+          Use os botões abaixo para navegar ou clique nas etapas concluídas
+        </p>
+      </div>
+
+      {/* Stepper interativo */}
+      <div>
+        <h3 className="font-bold text-2xl text-text-900 mb-4">Stepper Interativo:</h3>
+        <Stepper
+          steps={dynamicSteps}
+          size="medium"
+          showDescription
+          showNavigation
+          showProgress
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+          onFinish={handleFinish}
+          onStepClick={handleStepClick}
+          responsive
+        />
+      </div>
+
+      {/* Botões de teste adicionais */}
+      <div className="flex gap-4 flex-wrap">
+        <button
+          onClick={() => {
+            setCurrentStep(0);
+            setCompletedSteps([]);
+          }}
+          className="px-4 py-2 bg-background-300 text-text-900 rounded-lg hover:bg-background-400 transition-colors"
+        >
+          Resetar Formulário
+        </button>
+
+        <button
+          onClick={() => {
+            setCurrentStep(basicSteps.length - 1);
+            setCompletedSteps(Array.from({ length: basicSteps.length - 1 }, (_, i) => i));
+          }}
+          className="px-4 py-2 bg-primary-800 text-text rounded-lg hover:bg-primary-900 transition-colors"
+        >
+          Ir para Última Etapa
+        </button>
+
+        <button
+          onClick={() => {
+            setCurrentStep(basicSteps.length - 1);
+            setCompletedSteps(Array.from({ length: basicSteps.length }, (_, i) => i));
+          }}
+          className="px-4 py-2 bg-success-500 text-text rounded-lg hover:bg-success-600 transition-colors"
+        >
+          Concluir Todas
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Basic stepper story
 export const Default: Story = () => (
@@ -141,22 +254,22 @@ export const Sizes: Story = () => (
 
 // States demonstration
 export const States: Story = () => {
-  const allDoneSteps: StepData[] = [
-    { id: '1', label: 'Etapa 1', state: 'done' },
-    { id: '2', label: 'Etapa 2', state: 'done' },
-    { id: '3', label: 'Etapa 3', state: 'done' },
+  const allCompletedSteps: StepData[] = [
+    { id: '1', label: 'Etapa 1', state: 'completed' },
+    { id: '2', label: 'Etapa 2', state: 'completed' },
+    { id: '3', label: 'Etapa 3', state: 'completed' },
   ];
 
-  const allDefaultSteps: StepData[] = [
-    { id: '1', label: 'Etapa 1', state: 'default' },
-    { id: '2', label: 'Etapa 2', state: 'default' },
-    { id: '3', label: 'Etapa 3', state: 'default' },
+  const allPendingSteps: StepData[] = [
+    { id: '1', label: 'Etapa 1', state: 'pending' },
+    { id: '2', label: 'Etapa 2', state: 'pending' },
+    { id: '3', label: 'Etapa 3', state: 'pending' },
   ];
 
   const mixedSteps: StepData[] = [
-    { id: '1', label: 'Etapa 1', state: 'done' },
-    { id: '2', label: 'Etapa 2', state: 'selected' },
-    { id: '3', label: 'Etapa 3', state: 'default' },
+    { id: '1', label: 'Etapa 1', state: 'completed' },
+    { id: '2', label: 'Etapa 2', state: 'current' },
+    { id: '3', label: 'Etapa 3', state: 'pending' },
   ];
 
   return (
@@ -164,11 +277,11 @@ export const States: Story = () => {
       <div className="space-y-8">
         <div>
           <h3 className="text-lg font-semibold mb-4 text-text-900">Todas Concluídas</h3>
-          <Stepper steps={allDoneSteps} showDescription={false} />
+          <Stepper steps={allCompletedSteps} showDescription={false} />
         </div>
         <div>
           <h3 className="text-lg font-semibold mb-4 text-text-900">Todas Pendentes</h3>
-          <Stepper steps={allDefaultSteps} showDescription={false} />
+          <Stepper steps={allPendingSteps} showDescription={false} />
         </div>
         <div>
           <h3 className="text-lg font-semibold mb-4 text-text-900">Estados Mistos</h3>
@@ -304,10 +417,10 @@ export const Interactive: Story = () => {
   const dynamicSteps: StepData[] = basicSteps.map((step, index) => ({
     ...step,
     state: completedSteps.includes(index)
-      ? 'done'
+      ? 'completed'
       : index === currentStep
-      ? 'selected'
-      : 'default',
+      ? 'current'
+      : 'pending',
   }));
 
   return (
