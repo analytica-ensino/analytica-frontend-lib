@@ -502,16 +502,4 @@ export const Interactive: Story = () => {
   );
 };
 
-// Mobile responsive
-export const MobileResponsive: Story = () => (
-  <div style={{ maxWidth: '400px', padding: '20px' }}>
-    <Stepper
-      steps={basicSteps}
-      size="medium"
-      showNavigation
-      showProgress
-      currentStep={1}
-      responsive
-    />
-  </div>
-);
+

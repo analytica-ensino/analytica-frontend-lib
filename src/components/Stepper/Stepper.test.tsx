@@ -16,19 +16,19 @@ const mockSteps: StepData[] = [
     id: '1',
     label: 'Step 1',
     description: 'First step description',
-    state: 'done',
+    state: 'completed',
   },
   {
     id: '2',
     label: 'Step 2',
     description: 'Second step description',
-    state: 'selected',
+    state: 'current',
   },
   {
     id: '3',
     label: 'Step 3',
     description: 'Third step description',
-    state: 'default',
+    state: 'pending',
   },
 ];
 
@@ -94,32 +94,32 @@ describe('Stepper', () => {
   });
 
   describe('Step States', () => {
-    it('renders done state with check icon', () => {
-      const doneSteps: StepData[] = [
-        { id: '1', label: 'Done Step', state: 'done' },
+    it('renders completed state with check icon', () => {
+      const completedSteps: StepData[] = [
+        { id: '1', label: 'Completed Step', state: 'completed' },
       ];
 
-      render(<Stepper steps={doneSteps} />);
+      render(<Stepper steps={completedSteps} />);
 
       expect(screen.getByTestId('check-icon')).toBeInTheDocument();
     });
 
-    it('renders selected state with step number', () => {
-      const selectedSteps: StepData[] = [
-        { id: '1', label: 'Selected Step', state: 'selected' },
+    it('renders current state with step number', () => {
+      const currentSteps: StepData[] = [
+        { id: '1', label: 'Current Step', state: 'current' },
       ];
 
-      render(<Stepper steps={selectedSteps} />);
+      render(<Stepper steps={currentSteps} />);
 
       expect(screen.getByText('1')).toBeInTheDocument();
     });
 
-    it('renders default state with step number', () => {
-      const defaultSteps: StepData[] = [
-        { id: '1', label: 'Default Step', state: 'default' },
+    it('renders pending state with step number', () => {
+      const pendingSteps: StepData[] = [
+        { id: '1', label: 'Pending Step', state: 'pending' },
       ];
 
-      render(<Stepper steps={defaultSteps} />);
+      render(<Stepper steps={pendingSteps} />);
 
       expect(screen.getByText('1')).toBeInTheDocument();
     });
@@ -164,7 +164,7 @@ describe('Stepper', () => {
     it('calculates step states when currentStep is provided', () => {
       render(<Stepper steps={mockSteps} currentStep={1} />);
 
-      // Step 0 should be done, step 1 should be selected, step 2 should be default
+      // Step 0 should be completed, step 1 should be current, step 2 should be pending
       const checkIcon = screen.getByTestId('check-icon');
       expect(checkIcon).toBeInTheDocument();
     });
@@ -278,13 +278,12 @@ describe('Stepper', () => {
       expect(onFinish).toHaveBeenCalledTimes(1);
     });
 
-    it('does not show previous button on first step', () => {
+    it('does not show previous button when onPrevious is not provided', () => {
       render(
         <Stepper
           steps={mockSteps}
           showNavigation
           currentStep={0}
-          onPrevious={jest.fn()}
         />
       );
 
@@ -379,12 +378,12 @@ describe('Stepper', () => {
       const user = userEvent.setup();
       const onStepClick = jest.fn();
       const nonClickableSteps: StepData[] = [
-        { id: '1', label: 'Step 1', state: 'default' },
+        { id: '1', label: 'Step 1', state: 'pending' },
       ];
 
       render(<Stepper steps={nonClickableSteps} onStepClick={onStepClick} />);
 
-      // Default steps should not be clickable
+      // Pending steps should not be clickable
       const stepIndicator = screen.getByText('1').closest('div');
       expect(stepIndicator).not.toHaveAttribute('role', 'button');
     });
@@ -392,13 +391,13 @@ describe('Stepper', () => {
     it('applies correct aria-label for steps', () => {
       render(<Stepper steps={mockSteps} />);
 
-      const doneStep = screen.getByLabelText('Step 1 (concluído)');
-      const selectedStep = screen.getByLabelText('Step 2 (atual)');
-      const defaultStep = screen.getByLabelText('Step 3');
+      const completedStep = screen.getByLabelText('Step 1 (concluído)');
+      const currentStep = screen.getByLabelText('Step 2 (atual)');
+      const pendingStep = screen.getByLabelText('Step 3');
 
-      expect(doneStep).toBeInTheDocument();
-      expect(selectedStep).toBeInTheDocument();
-      expect(defaultStep).toBeInTheDocument();
+      expect(completedStep).toBeInTheDocument();
+      expect(currentStep).toBeInTheDocument();
+      expect(pendingStep).toBeInTheDocument();
     });
   });
 
@@ -429,7 +428,7 @@ describe('Stepper', () => {
 
     it('renders progress bar for single step', () => {
       const singleStep: StepData[] = [
-        { id: '1', label: 'Only Step', state: 'selected' },
+        { id: '1', label: 'Only Step', state: 'current' },
       ];
 
       const { container } = render(<Stepper steps={singleStep} />);
@@ -458,7 +457,7 @@ describe('Stepper', () => {
 
     it('handles single step', () => {
       const singleStep: StepData[] = [
-        { id: '1', label: 'Only Step', state: 'selected' },
+        { id: '1', label: 'Only Step', state: 'current' },
       ];
 
       render(<Stepper steps={singleStep} currentStep={0} showNavigation onFinish={jest.fn()} />);
@@ -483,16 +482,16 @@ describe('Stepper', () => {
       expect(screen.getByText('Etapa 0 de 3')).toBeInTheDocument();
     });
 
-    it('calculates correct active step index when no selected step exists', () => {
-      const noSelectedSteps: StepData[] = [
-        { id: '1', label: 'Step 1', state: 'done' },
-        { id: '2', label: 'Step 2', state: 'done' },
-        { id: '3', label: 'Step 3', state: 'default' },
+    it('calculates correct active step index when no current step exists', () => {
+      const noCurrentSteps: StepData[] = [
+        { id: '1', label: 'Step 1', state: 'completed' },
+        { id: '2', label: 'Step 2', state: 'completed' },
+        { id: '3', label: 'Step 3', state: 'pending' },
       ];
 
-      render(<Stepper steps={noSelectedSteps} showProgress />);
+      render(<Stepper steps={noCurrentSteps} showProgress />);
 
-      // Should handle the case where no step has 'selected' state
+      // Should handle the case where no step has 'current' state
       expect(screen.getByRole('group')).toBeInTheDocument();
     });
   });
@@ -504,11 +503,11 @@ describe('Stepper', () => {
       ['large', '20'],
       ['extraLarge', '24'],
     ])('renders correct icon size for %s', (size, expectedSize) => {
-      const doneSteps: StepData[] = [
-        { id: '1', label: 'Done Step', state: 'done' },
+      const completedSteps: StepData[] = [
+        { id: '1', label: 'Completed Step', state: 'completed' },
       ];
 
-      render(<Stepper steps={doneSteps} size={size as any} />);
+      render(<Stepper steps={completedSteps} size={size as any} />);
 
       const checkIcon = screen.getByTestId('check-icon');
       expect(checkIcon).toHaveAttribute('data-size', expectedSize);
@@ -526,15 +525,15 @@ describe('Stepper', () => {
     it('has proper tabindex for clickable and non-clickable steps', () => {
       render(<Stepper steps={mockSteps} onStepClick={jest.fn()} />);
 
-      // Done and selected steps should be clickable (tabindex 0)
+      // Completed and current steps should be clickable (tabindex 0)
       const clickableSteps = screen.getAllByRole('button');
       clickableSteps.forEach(step => {
         expect(step).toHaveAttribute('tabIndex', '0');
       });
 
-      // Default steps should not be clickable (tabindex -1 or no role=button)
-      const defaultStepIndicator = screen.getByLabelText('Step 3');
-      expect(defaultStepIndicator).toHaveAttribute('tabIndex', '-1');
+      // Pending steps should not be clickable (tabindex -1 or no role=button)
+      const pendingStepIndicator = screen.getByLabelText('Step 3');
+      expect(pendingStepIndicator).toHaveAttribute('tabIndex', '-1');
     });
 
     it('supports keyboard navigation', async () => {
