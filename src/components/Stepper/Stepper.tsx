@@ -80,7 +80,7 @@ const STATE_CLASSES = {
   pending: {
     progressBar: 'bg-text-400', // #A3A3A3
     indicator: 'bg-text-400', // #A3A3A3
-    indicatorText: 'text-white', // Branco usando classe Tailwind padrão
+    indicatorText: 'text-text-400', // #A3A3A3 (mesma cor do background para não ser visível)
     label: 'text-text-400', // #A3A3A3
     description: 'text-text-400',
   },
@@ -92,10 +92,10 @@ const STATE_CLASSES = {
     description: 'text-text-600',
   },
   completed: {
-    progressBar: 'bg-primary-800', // #1C61B2 usando classe Tailwind padrão
-    indicator: 'bg-primary-800', // #1C61B2 usando classe Tailwind padrão
+    progressBar: 'bg-primary-400', // #48A0E8 para barra quando checked (completed)
+    indicator: 'bg-primary-400', // #48A0E8 para corresponder à barra de progresso
     indicatorText: 'text-white', // Branco usando classe Tailwind padrão
-    label: 'text-primary-800', // #1C61B2 usando classe Tailwind padrão
+    label: 'text-primary-400', // #48A0E8 para corresponder à barra de progresso
     description: 'text-text-600',
   },
 } as const;
@@ -207,8 +207,8 @@ const Step = ({
             <Text
               size={sizeClasses.indicatorTextSize as '2xs' | 'xs' | 'sm'}
               weight="medium"
-              color="text-white"
-              className="leading-none"
+              color=""
+              className={`${stateClasses.indicatorText} leading-none`}
             >
               {stepNumber}
             </Text>
@@ -219,6 +219,7 @@ const Step = ({
         <Text
           size={sizeClasses.labelTextSize as '2xs' | 'xs' | 'sm' | 'md'}
           weight="medium"
+          color=""
           className={`${stateClasses.label} leading-none flex-none`}
         >
           {step.label}
@@ -230,6 +231,7 @@ const Step = ({
         <Text
           size="2xs"
           weight="normal"
+          color=""
           className={`${stateClasses.description} text-center leading-tight mt-1`}
         >
           {step.description}
@@ -382,7 +384,7 @@ const Stepper = ({
 
   const isLastStep =
     currentStep !== undefined && currentStep === steps.length - 1;
-  const isFirstStep = currentStep === 0;
+  const showPreviousButton = onPrevious !== undefined;
 
   return (
     <div
@@ -430,7 +432,7 @@ const Stepper = ({
       {/* Navigation buttons */}
       {showNavigation && (
         <div className={`flex gap-4 justify-between ${navigationClassName}`}>
-          {!isFirstStep && (
+          {showPreviousButton && (
             <Text
               as="button"
               size="sm"

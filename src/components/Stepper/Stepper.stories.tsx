@@ -1,6 +1,7 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import Stepper, { StepData } from './Stepper';
+import CheckBox from '../CheckBox/CheckBox';
 
 /**
  * # Stepper
@@ -98,6 +99,7 @@ const extendedSteps: StepData[] = [
 export const AllSteppers: Story = () => {
   const [currentStep, setCurrentStep] = useState(2); // Inicia na 3ª etapa (index 2)
   const [completedSteps, setCompletedSteps] = useState<number[]>([0, 1]); // Primeiras duas etapas já concluídas
+  const [isLastStepCompleted, setIsLastStepCompleted] = useState(false); // Controla se a última etapa foi preenchida
 
   const handleNext = () => {
     if (currentStep < basicSteps.length - 1) {
@@ -133,14 +135,23 @@ export const AllSteppers: Story = () => {
   };
 
   // Gera os steps dinamicamente baseado no estado atual
-  const dynamicSteps: StepData[] = basicSteps.map((step, index) => ({
-    ...step,
-    state: completedSteps.includes(index)
-      ? 'completed'
-      : index === currentStep
-        ? 'current'
-        : 'pending',
-  }));
+  const dynamicSteps: StepData[] = basicSteps.map((step, index) => {
+    const isLastStep = index === basicSteps.length - 1;
+
+    if (completedSteps.includes(index)) {
+      return { ...step, state: 'completed' };
+    }
+
+    if (index === currentStep) {
+      // Se está na última etapa e o CheckBox foi marcado, marca como completed
+      if (isLastStep && isLastStepCompleted) {
+        return { ...step, state: 'completed' };
+      }
+      return { ...step, state: 'current' };
+    }
+
+    return { ...step, state: 'pending' };
+  });
 
   return (
     <div className="flex flex-col gap-8 w-full max-w-[1000px] p-5">
@@ -174,18 +185,42 @@ export const AllSteppers: Story = () => {
         </h3>
         <Stepper
           steps={dynamicSteps}
-          currentStep={currentStep}
           size="medium"
           showDescription
           showNavigation
           showProgress
           onNext={handleNext}
-          onPrevious={handlePrevious}
+          onPrevious={currentStep > 0 ? handlePrevious : undefined}
           onFinish={handleFinish}
           onStepClick={handleStepClick}
           responsive
+          progressText={`Etapa ${currentStep + 1} de ${basicSteps.length}`}
         />
       </div>
+
+      {/* Simulação da última etapa - Formulário com CheckBox */}
+      {currentStep === basicSteps.length - 1 && (
+        <div className="p-6 bg-background-50 rounded-lg border border-border-200">
+          <h4 className="font-semibold text-text-900 mb-4">
+            Formulário da Última Etapa: {basicSteps[currentStep].label}
+          </h4>
+          <p className="text-text-600 mb-4">
+            {basicSteps[currentStep].description}
+          </p>
+
+          <CheckBox
+            label="Li e aceito os termos e condições"
+            checked={isLastStepCompleted}
+            onChange={(e) => setIsLastStepCompleted(e.target.checked)}
+            size="medium"
+          />
+
+          <p className="text-text-500 text-sm mt-3">
+            ✨ Marque o checkbox acima para ver a etapa mudar para "completed"
+            com a cor azul claro (#48A0E8) na barra de progresso!
+          </p>
+        </div>
+      )}
 
       {/* Botões de teste adicionais */}
       <div className="flex gap-4 flex-wrap">
@@ -193,6 +228,7 @@ export const AllSteppers: Story = () => {
           onClick={() => {
             setCurrentStep(0);
             setCompletedSteps([]);
+            setIsLastStepCompleted(false);
           }}
           className="px-4 py-2 bg-background-300 text-text-900 rounded-lg hover:bg-background-400 transition-colors"
         >
