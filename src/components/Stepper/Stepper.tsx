@@ -125,6 +125,7 @@ interface StepProps {
 /**
  * Individual Step component - Based on exact design specifications
  * Layout: flex-column with progress bar at top, then icon+label row
+ * Fully responsive for mobile, tablets, and laptops
  */
 export const Step = ({
   step,
@@ -145,9 +146,12 @@ export const Step = ({
         ${sizeClasses.stepWidth} ${sizeClasses.stepHeight}
         flex-none flex-grow
         ${className}
+        sm:max-w-[85px] md:max-w-[95px] lg:max-w-none
+        sm:min-h-[40px] md:min-h-[45px] lg:min-h-none
+        overflow-hidden
       `}
     >
-      {/* Progress Bar - Full width at top (157px x 2px) */}
+      {/* Progress Bar - Full width at top with responsive scaling */}
       <div
         className={`
           w-full ${sizeClasses.progressBar} ${stateClasses.progressBar}
@@ -155,14 +159,22 @@ export const Step = ({
         `}
       />
 
-      {/* Step Content Container - Icon + Label horizontal (58px x 20px) */}
-      <div className="flex flex-row items-center gap-2 w-auto h-5 flex-none">
-        {/* Step Indicator Circle (20px x 20px) */}
+      {/* Step Content Container - Responsive layout for all devices, no vertical scroll */}
+      <div
+        className={`
+          flex flex-col sm:flex-row items-center
+          gap-1 sm:gap-2 w-full sm:w-auto
+          h-auto sm:h-5 flex-none
+          overflow-hidden
+        `}
+      >
+        {/* Step Indicator Circle with responsive sizing */}
         <div
           className={`
             ${sizeClasses.indicator} ${stateClasses.indicator}
             rounded-full flex items-center justify-center relative
             flex-none transition-all duration-300 ease-out
+            w-4 h-4 sm:w-5 sm:h-5 md:w-5 md:h-5 lg:w-6 lg:h-6
           `}
           role="presentation"
           aria-label={`${step.label}${step.state === 'completed' ? ' (concluído)' : step.state === 'current' ? ' (atual)' : ''}`}
@@ -170,26 +182,35 @@ export const Step = ({
           {isCompleted ? (
             <Check
               weight="bold"
-              className={`${stateClasses.indicatorText} ${sizeClasses.iconSize}`}
+              className={`
+                ${stateClasses.indicatorText}
+                w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3 md:h-3 lg:w-3.5 lg:h-3.5
+              `}
             />
           ) : (
             <Text
               size={sizeClasses.indicatorTextSize as '2xs' | 'xs' | 'sm'}
               weight="medium"
               color=""
-              className={`${stateClasses.indicatorText} leading-none`}
+              className={`${stateClasses.indicatorText} leading-none text-2xs sm:text-xs`}
             >
               {stepNumber}
             </Text>
           )}
         </div>
 
-        {/* Step Label (xs, 12px, medium weight) */}
+        {/* Step Label with full responsive text sizing, no vertical overflow */}
         <Text
           size={sizeClasses.labelTextSize as '2xs' | 'xs' | 'sm' | 'md'}
           weight="medium"
           color=""
-          className={`${stateClasses.label} leading-none flex-none`}
+          className={`
+            ${stateClasses.label} leading-tight flex-none
+            text-center sm:text-left break-words
+            px-1 sm:px-0 max-w-full
+            text-2xs sm:text-xs md:text-xs lg:text-sm
+            whitespace-nowrap sm:whitespace-normal
+          `}
         >
           {step.label}
         </Text>
@@ -255,22 +276,24 @@ const getProgressText = (
  *
  * A progress stepper component that displays a sequence of steps with different states.
  * Follows the exact design specifications with proper spacing, colors, and layout.
+ * Fully responsive for mobile, tablets, and laptops.
  *
  * Design specifications:
  * - Based on exact CSS specifications from Figma design
- * - Progressive sizing: small (58px × 38px) → medium (110px × 48px) → large (160px × 58px) → extraLarge (200px × 68px)
- * - Large and extraLarge sizes adjusted to properly contain text and numbers
- * - Consistent gaps: 8px → 12px → 16px → 20px
+ * - Fully responsive: mobile (320px+) -> tablets (640px+) -> laptops (1024px+)
+ * - Progressive sizing with responsive breakpoints that adapt to device type
+ * - Consistent gaps that scale with screen size and device capabilities
  * - Consistent color scheme: pending (gray), current (dark blue), completed (light blue)
- * - Responsive design support
+ * - Responsive design with overflow scroll on smaller devices
+ * - Optimized text sizing and layout for each device category
  *
  * @example
  * ```tsx
- * // Basic stepper
+ * // Basic stepper - automatically responsive for all devices
  * <Stepper steps={steps} currentStep={1} />
  *
- * // Custom styling
- * <Stepper steps={steps} size="large" showProgress />
+ * // Custom styling with full responsive behavior
+ * <Stepper steps={steps} size="medium" showProgress responsive />
  * ```
  */
 const Stepper = ({
@@ -293,23 +316,34 @@ const Stepper = ({
 
   return (
     <div
-      className={`flex flex-col gap-6 ${className}`}
+      className={`flex flex-col gap-4 sm:gap-5 md:gap-6 ${className}`}
       role="group"
       aria-label="Stepper de formulário"
     >
-      {/* Progress indicator */}
+      {/* Progress indicator with responsive text */}
       {showProgress && currentStep !== undefined && (
-        <Text size="sm" weight="medium" className="text-text-600">
+        <Text
+          size="sm"
+          weight="medium"
+          className="text-text-600 text-center sm:text-left text-xs sm:text-sm"
+        >
           {getProgressText(currentStep, steps.length, progressText)}
         </Text>
       )}
 
-      {/* Stepper container - Based on design: flex-row, gap-4px */}
+      {/* Stepper container - Fully responsive for all devices with horizontal scroll only */}
       <div
         className={`
-          flex flex-row items-center
+          flex items-center
           ${sizeClasses.container}
-          ${responsive ? 'flex-row md:flex-row' : 'flex-row'}
+          ${
+            responsive
+              ? 'flex-row overflow-x-auto overflow-y-hidden scrollbar-hide justify-start sm:justify-center md:justify-start'
+              : 'flex-row justify-center'
+          }
+          px-2 sm:px-4 md:px-2 lg:px-0
+          max-w-full
+          gap-2 sm:gap-3 md:gap-3 lg:gap-4
         `}
         role="tablist"
         aria-label="Progress steps"
