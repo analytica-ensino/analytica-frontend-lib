@@ -20,8 +20,6 @@ export interface StepData {
   id: string;
   /** Label text for the step */
   label: string;
-  /** Optional description for the step */
-  description?: string;
   /** Current state of the step */
   state: StepState;
 }
@@ -86,21 +84,18 @@ const STATE_CLASSES = {
     indicator: 'bg-text-400', // #A3A3A3
     indicatorText: 'text-white', // Branco para contraste com background cinza
     label: 'text-text-400', // #A3A3A3
-    description: 'text-text-400',
   },
   current: {
     progressBar: 'bg-primary-800', // #1C61B2 usando classe Tailwind padrão
     indicator: 'bg-primary-800', // #1C61B2 usando classe Tailwind padrão
     indicatorText: 'text-white', // Branco usando classe Tailwind padrão
     label: 'text-primary-800', // #1C61B2 usando classe Tailwind padrão
-    description: 'text-text-600',
   },
   completed: {
     progressBar: 'bg-primary-400', // #48A0E8 para barra quando checked (completed)
     indicator: 'bg-primary-400', // #48A0E8 para corresponder à barra de progresso
     indicatorText: 'text-white', // Branco usando classe Tailwind padrão
     label: 'text-primary-400', // #48A0E8 para corresponder à barra de progresso
-    description: 'text-text-600',
   },
 } as const;
 
@@ -124,8 +119,6 @@ interface StepProps {
   sizeClasses: SizeClassType;
   stateClasses: StateClassType;
   isLast: boolean;
-  onStepClick?: (stepId: string, index: number) => void;
-  showDescription?: boolean;
   className?: string;
 }
 
@@ -133,27 +126,17 @@ interface StepProps {
  * Individual Step component - Based on exact design specifications
  * Layout: flex-column with progress bar at top, then icon+label row
  */
-const Step = ({
+export const Step = ({
   step,
   index,
   size: _size,
   sizeClasses,
   stateClasses,
   isLast: _isLast,
-  onStepClick,
-  showDescription = true,
   className = '',
 }: StepProps) => {
   const stepNumber = index + 1;
   const isCompleted = step.state === 'completed';
-  const isClickable =
-    onStepClick && (step.state === 'completed' || step.state === 'current');
-
-  const handleStepClick = () => {
-    if (isClickable) {
-      onStepClick(step.id, index);
-    }
-  };
 
   return (
     <div
@@ -180,17 +163,8 @@ const Step = ({
             ${sizeClasses.indicator} ${stateClasses.indicator}
             rounded-full flex items-center justify-center relative
             flex-none transition-all duration-300 ease-out
-            ${isClickable ? 'cursor-pointer hover:shadow-soft-shadow-2' : ''}
           `}
-          onClick={handleStepClick}
-          role={isClickable ? 'button' : 'presentation'}
-          tabIndex={isClickable ? 0 : -1}
-          onKeyDown={(e) => {
-            if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
-              e.preventDefault();
-              handleStepClick();
-            }
-          }}
+          role="presentation"
           aria-label={`${step.label}${step.state === 'completed' ? ' (concluído)' : step.state === 'current' ? ' (atual)' : ''}`}
         >
           {isCompleted ? (
@@ -220,18 +194,6 @@ const Step = ({
           {step.label}
         </Text>
       </div>
-
-      {/* Step Description (optional) */}
-      {showDescription && step.description && (
-        <Text
-          size="2xs"
-          weight="normal"
-          color=""
-          className={`${stateClasses.description} text-center leading-tight mt-1`}
-        >
-          {step.description}
-        </Text>
-      )}
     </div>
   );
 };
@@ -246,10 +208,6 @@ export type StepperProps = {
   size?: StepperSize;
   /** Current active step index */
   currentStep?: number;
-  /** Callback when a step is clicked */
-  onStepClick?: (stepId: string, index: number) => void;
-  /** Show step descriptions */
-  showDescription?: boolean;
   /** Additional CSS classes */
   className?: string;
   /** Step container CSS classes */
@@ -304,19 +262,12 @@ const getProgressText = (
  * - Large and extraLarge sizes adjusted to properly contain text and numbers
  * - Consistent gaps: 8px → 12px → 16px → 20px
  * - Consistent color scheme: pending (gray), current (dark blue), completed (light blue)
- * - Responsive and accessible with keyboard navigation support
+ * - Responsive design support
  *
  * @example
  * ```tsx
  * // Basic stepper
  * <Stepper steps={steps} currentStep={1} />
- *
- * // With step click handler
- * <Stepper
- *   steps={steps}
- *   currentStep={1}
- *   onStepClick={(id, index) => console.log('Step clicked:', id, index)}
- * />
  *
  * // Custom styling
  * <Stepper steps={steps} size="large" showProgress />
@@ -326,8 +277,6 @@ const Stepper = ({
   steps: initialSteps,
   size = 'medium',
   currentStep,
-  onStepClick,
-  showDescription = true,
   className = '',
   stepClassName = '',
   showProgress = false,
@@ -377,8 +326,6 @@ const Stepper = ({
               sizeClasses={sizeClasses}
               stateClasses={stateClasses}
               isLast={index === steps.length - 1}
-              onStepClick={onStepClick}
-              showDescription={showDescription}
               className={stepClassName}
             />
           );
