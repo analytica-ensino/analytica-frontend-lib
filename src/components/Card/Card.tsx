@@ -212,14 +212,12 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
               </span>
             )}
           </div>
-          {progress !== undefined && (
-            <ProgressBar
-              size="medium"
-              showPercentage
-              value={progress}
-              data-testid="progress-bar"
-            />
-          )}
+          <ProgressBar
+            size="medium"
+            showPercentage
+            value={progress}
+            data-testid="progress-bar"
+          />
         </>
       ),
       vertical: <p className="text-sm text-text-800">{subhead}</p>,
@@ -309,7 +307,7 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
   }
 );
 
-interface CardPerfomanceProps extends HTMLAttributes<HTMLDivElement> {
+interface CardPerformanceProps extends HTMLAttributes<HTMLDivElement> {
   header: string;
   description?: string;
   progress?: number;
@@ -317,7 +315,7 @@ interface CardPerfomanceProps extends HTMLAttributes<HTMLDivElement> {
   valueButton?: unknown;
 }
 
-const CardPerformance = forwardRef<HTMLDivElement, CardPerfomanceProps>(
+const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
   (
     {
       header,
