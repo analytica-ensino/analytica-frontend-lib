@@ -211,13 +211,14 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
               </span>
             )}
           </div>
-          {progress !== undefined && (
-            <ProgressBar
-              size="small"
-              value={progress}
-              data-testid="progress-bar"
-            />
-          )}
+            {progress !== undefined && (
+              <ProgressBar
+                size="medium"
+                showPercentage
+                value={progress}
+                data-testid="progress-bar"
+              />
+            )}
         </>
       ),
       vertical: <p className="text-sm text-text-800">{subhead}</p>,
