@@ -194,40 +194,34 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
     ref
   ) => {
     const isHorizontal = direction === 'horizontal';
-
-    const DateInfo = () => (
-      <div className="flex flex-row gap-6 items-center">
-        {initialDate && (
-          <span className="flex flex-row gap-1 items-center text-2xs">
-            <p className="text-text-800 font-semibold">Início</p>
-            <p className="text-text-600">{initialDate}</p>
-          </span>
-        )}
-        {endDate && (
-          <span className="flex flex-row gap-1 items-center text-2xs">
-            <p className="text-text-800 font-semibold">Fim</p>
-            <p className="text-text-600">{endDate}</p>
-          </span>
-        )}
-      </div>
-    );
-
-    const HorizontalContent = () => (
-      <>
-        <DateInfo />
-        {progress !== undefined && (
-          <ProgressBar
-            size="small"
-            value={progress}
-            data-testid="progress-bar"
-          />
-        )}
-      </>
-    );
-
-    const VerticalContent = () => (
-      <p className="text-sm text-text-800">{subhead}</p>
-    );
+    const contentComponent = {
+      horizontal: (
+        <>
+          <div className="flex flex-row gap-6 items-center">
+            {initialDate && (
+              <span className="flex flex-row gap-1 items-center text-2xs">
+                <p className="text-text-800 font-semibold">Início</p>
+                <p className="text-text-600">{initialDate}</p>
+              </span>
+            )}
+            {endDate && (
+              <span className="flex flex-row gap-1 items-center text-2xs">
+                <p className="text-text-800 font-semibold">Fim</p>
+                <p className="text-text-600">{endDate}</p>
+              </span>
+            )}
+          </div>
+          {progress !== undefined && (
+            <ProgressBar
+              size="small"
+              value={progress}
+              data-testid="progress-bar"
+            />
+          )}
+        </>
+      ),
+      vertical: <p className="text-sm text-text-800">{subhead}</p>,
+    };
 
     return (
       <div
@@ -259,7 +253,7 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
           `}
         >
           <p className="text-xs font-bold text-text-950">{header}</p>
-          {isHorizontal ? <HorizontalContent /> : <VerticalContent />}
+          {contentComponent[direction]}
         </div>
       </div>
     );
