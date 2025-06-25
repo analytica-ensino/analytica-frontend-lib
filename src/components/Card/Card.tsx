@@ -292,7 +292,7 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
         {subHead && (
           <span className="text-text-600 text-2xs flex flex-row gap-1">
             {subHead.map((text, index) => (
-              <Fragment key={index}>
+              <Fragment key={`${text} - ${index}`}>
                 <p>{text}</p>
                 {index < subHead.length - 1 && <p>•</p>}
               </Fragment>
