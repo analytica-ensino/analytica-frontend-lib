@@ -25,6 +25,7 @@ import Input from './components/Input/Input';
 import Chips from './components/Chips/Chips';
 import ProgressBar from './components/ProgressBar/ProgressBar';
 import ProgressCircle from './components/ProgressCircle/ProgressCircle';
+import Stepper from './components/Stepper/Stepper';
 import Calendar from './components/Calendar/Calendar';
 import Modal from './components/Modal/Modal';
 
@@ -71,6 +72,7 @@ export { Input };
 export { Chips };
 export { ProgressBar };
 export { ProgressCircle };
+export { Stepper };
 export { Calendar };
 export { Modal };
 
