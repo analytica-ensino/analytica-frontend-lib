@@ -39,6 +39,7 @@ const SIZE_CLASSES = {
     progressBar: 'h-0.5', // 2px
     indicatorTextSize: '2xs', // 10px
     labelTextSize: '2xs', // 10px
+    iconSize: 'w-3 h-3', // 12px
   },
   medium: {
     container: 'gap-1', // 4px
@@ -48,6 +49,7 @@ const SIZE_CLASSES = {
     progressBar: 'h-0.5', // 2px
     indicatorTextSize: '2xs', // 10px
     labelTextSize: 'xs', // 12px
+    iconSize: 'w-3.5 h-3.5', // 14px
   },
   large: {
     container: 'gap-2',
@@ -57,6 +59,7 @@ const SIZE_CLASSES = {
     progressBar: 'h-1', // 4px (increased from 2px)
     indicatorTextSize: 'xs', // 12px
     labelTextSize: 'sm', // 14px
+    iconSize: 'w-4 h-4', // 16px
   },
   extraLarge: {
     container: 'gap-3',
@@ -66,6 +69,7 @@ const SIZE_CLASSES = {
     progressBar: 'h-1', // 4px
     indicatorTextSize: 'sm', // 14px
     labelTextSize: 'md', // 16px
+    iconSize: 'w-[18px] h-[18px]', // 18px
   },
 } as const;
 
@@ -132,7 +136,7 @@ interface StepProps {
 const Step = ({
   step,
   index,
-  size,
+  size: _size,
   sizeClasses,
   stateClasses,
   isLast: _isLast,
@@ -191,17 +195,8 @@ const Step = ({
         >
           {isCompleted ? (
             <Check
-              size={
-                size === 'small'
-                  ? 12
-                  : size === 'medium'
-                    ? 14
-                    : size === 'large'
-                      ? 16
-                      : 18
-              }
               weight="bold"
-              className={stateClasses.indicatorText}
+              className={`${stateClasses.indicatorText} ${sizeClasses.iconSize}`}
             />
           ) : (
             <Text
