@@ -1,18 +1,14 @@
-// src/components/CardActivesResults.stories.tsx
-
 import type { Story } from '@ladle/react';
 import { Book, Star } from 'phosphor-react';
 import {
   CardActivesResults,
+  CardPerformance,
   CardProgress,
   CardQuestions,
   CardTopic,
 } from './Card';
 
-/**
- * Showcase principal: todos os estados do CardActivesResults
- */
-export const AllCardActivesResults: Story = () => {
+export const AllCardComponentsShowcase: Story = () => {
   const baseProps = {
     icon: <Star size={16} weight="fill" />,
     title: 'Título',
@@ -31,15 +27,10 @@ export const AllCardActivesResults: Story = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
       <h2 className="font-bold text-3xl text-text-900">
-        CardActivesResults - Estados
+        Card Components - Showcase
       </h2>
-      <p className="text-text-700">
-        Variações do componente <code>CardActivesResults</code> com diferentes
-        ações e estados estendidos.
-      </p>
 
-      {/* Estados por action */}
-      <h3 className="font-bold text-2xl text-text-900">Ações</h3>
+      <h3 className="font-bold text-2xl text-text-900">CardActivesResults</h3>
       <div className="grid grid-cols-2 gap-6">
         {actions.map((action) => (
           <div key={action} className="flex flex-col items-center gap-2">
@@ -53,8 +44,9 @@ export const AllCardActivesResults: Story = () => {
         ))}
       </div>
 
-      {/* Estado Extended */}
-      <h3 className="font-bold text-2xl text-text-900">Extended State</h3>
+      <h3 className="font-bold text-2xl text-text-900">
+        CardActivesResults (Extended)
+      </h3>
       <div className="grid grid-cols-2 gap-6">
         {actions.map((action) => (
           <div
@@ -74,13 +66,13 @@ export const AllCardActivesResults: Story = () => {
         ))}
       </div>
 
-      <h3 className="font-bold text-2xl text-text-900">Extended State</h3>
+      <h3 className="font-bold text-2xl text-text-900">CardQuestions</h3>
       <div className="flex flex-row gap-6">
         <CardQuestions className="max-w-[360px]" header="Header" />
         <CardQuestions className="max-w-[360px]" header="Header" state="done" />
       </div>
 
-      <h3 className="font-bold text-2xl text-text-900">Extended State</h3>
+      <h3 className="font-bold text-2xl text-text-900">CardProgress</h3>
       <div className="flex flex-row gap-6">
         <CardProgress
           className="max-w-[360px]"
@@ -104,10 +96,10 @@ export const AllCardActivesResults: Story = () => {
         />
       </div>
 
-      <h3 className="font-bold text-2xl text-text-900">Card Topic</h3>
+      <h3 className="font-bold text-2xl text-text-900">CardTopic</h3>
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-2">
-          <h3 className="font-bold text-xl text-text-900">Sem Porcentagem</h3>
+          <h4 className="font-bold text-xl text-text-900">Sem Porcentagem</h4>
           <div className="flex flex-row gap-6">
             <CardTopic
               className="max-w-[360px]"
@@ -124,7 +116,7 @@ export const AllCardActivesResults: Story = () => {
         </div>
 
         <div className="flex flex-col gap-2">
-          <h3 className="font-bold text-xl text-text-900">Com Porcentagem</h3>
+          <h4 className="font-bold text-xl text-text-900">Com Porcentagem</h4>
           <div className="flex flex-row gap-6">
             <CardTopic
               className="max-w-[360px]"
@@ -141,6 +133,16 @@ export const AllCardActivesResults: Story = () => {
             />
           </div>
         </div>
+      </div>
+
+      <h3 className="font-bold text-2xl text-text-900">CardPerformance</h3>
+      <div className="flex flex-row gap-6">
+        <CardPerformance className="max-w-[360px]" header="Header" />
+        <CardPerformance
+          className="max-w-[360px]"
+          header="Header"
+          progress={30}
+        />
       </div>
     </div>
   );

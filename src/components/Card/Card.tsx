@@ -2,6 +2,7 @@ import { forwardRef, Fragment, HTMLAttributes, ReactNode } from 'react';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
+import { CaretRight } from 'phosphor-react';
 
 interface CardActivesResultsProps extends HTMLAttributes<HTMLDivElement> {
   icon: ReactNode;
@@ -308,4 +309,74 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
   }
 );
 
-export { CardActivesResults, CardQuestions, CardProgress, CardTopic };
+interface CardPerfomanceProps extends HTMLAttributes<HTMLDivElement> {
+  header: string;
+  description?: string;
+  progress?: number;
+  onClickButton?: (valueButton?: unknown) => void;
+  valueButton?: unknown;
+}
+
+const CardPerformance = forwardRef<HTMLDivElement, CardPerfomanceProps>(
+  (
+    {
+      header,
+      progress,
+      description = 'Sem dados ainda! Você ainda não fez um questionário neste assunto.',
+      className = '',
+      onClickButton,
+      valueButton,
+      ...props
+    },
+    ref
+  ) => {
+    const hasProgress = progress !== undefined;
+
+    return (
+      <div
+        ref={ref}
+        className={`w-full h-20.5 flex flex-row justify-between p-4 gap-2 bg-background border border-border-50 ${className}`}
+        {...props}
+      >
+        <div className="w-full flex flex-col justify-between gap-2">
+          <div className="flex flex-row justify-between items-center">
+            <p className="text-md font-bold text-text-950">{header}</p>
+            {hasProgress && (
+              <Button
+                variant="outline"
+                size="extra-small"
+                onClick={() => onClickButton?.(valueButton)}
+              >
+                Ver Aula
+              </Button>
+            )}
+          </div>
+
+          <div className="w-full">
+            {hasProgress ? (
+              <ProgressBar value={progress} label={`${progress}% corretas`} />
+            ) : (
+              <p className="text-xs text-text-600">{description}</p>
+            )}
+          </div>
+        </div>
+
+        {!hasProgress && (
+          <CaretRight
+            className="size-4.5"
+            data-testid="caret-icon"
+            onClick={() => onClickButton?.(valueButton)}
+          />
+        )}
+      </div>
+    );
+  }
+);
+
+export {
+  CardActivesResults,
+  CardQuestions,
+  CardProgress,
+  CardTopic,
+  CardPerformance,
+};

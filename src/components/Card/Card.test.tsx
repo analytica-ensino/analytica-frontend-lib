@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import {
   CardActivesResults,
+  CardPerformance,
   CardProgress,
   CardQuestions,
   CardTopic,
@@ -247,5 +248,85 @@ describe('CardTopic', () => {
   it('should forward extra HTML attributes', () => {
     render(<CardTopic {...baseProps} data-testid="topic-container" />);
     expect(screen.getByTestId('topic-container')).toBeInTheDocument();
+  });
+});
+
+describe('CardPerformance', () => {
+  const baseProps = {
+    header: 'Desempenho de Teste',
+  };
+
+  it('should render with header text', () => {
+    render(<CardPerformance {...baseProps} />);
+    expect(screen.getByText('Desempenho de Teste')).toBeInTheDocument();
+  });
+
+  it('should show default description when no progress is provided', () => {
+    render(<CardPerformance {...baseProps} />);
+    expect(
+      screen.getByText(
+        'Sem dados ainda! Você ainda não fez um questionário neste assunto.'
+      )
+    ).toBeInTheDocument();
+  });
+
+  it('should render ProgressBar with percentage when progress is given', () => {
+    render(<CardPerformance {...baseProps} progress={80} />);
+    expect(screen.getByText('80% corretas')).toBeInTheDocument();
+  });
+
+  it('should show button "Ver Aula" when progress exists', () => {
+    render(<CardPerformance {...baseProps} progress={50} />);
+    expect(
+      screen.getByRole('button', { name: 'Ver Aula' })
+    ).toBeInTheDocument();
+  });
+
+  it('should apply custom className', () => {
+    render(
+      <CardPerformance
+        {...baseProps}
+        className="my-custom-class"
+        data-testid="card-perf"
+      />
+    );
+    const card = screen.getByTestId('card-perf');
+    expect(card.className).toContain('my-custom-class');
+  });
+
+  it('should forward extra HTML attributes', () => {
+    render(<CardPerformance {...baseProps} data-testid="custom-id" />);
+    expect(screen.getByTestId('custom-id')).toBeInTheDocument();
+  });
+
+  it('should trigger onClickButton when button is clicked', () => {
+    const handleClick = jest.fn();
+
+    render(
+      <CardPerformance
+        {...baseProps}
+        progress={90}
+        onClickButton={handleClick}
+        valueButton="foo"
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ver Aula' }));
+    expect(handleClick).toHaveBeenCalledWith('foo');
+  });
+
+  it('should trigger onClickButton when CaretRight is clicked', () => {
+    const handleClick = jest.fn();
+
+    render(
+      <CardPerformance
+        {...baseProps}
+        onClickButton={handleClick}
+        valueButton="bar"
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('caret-icon'));
+    expect(handleClick).toHaveBeenCalledWith('bar');
   });
 });
