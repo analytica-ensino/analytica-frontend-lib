@@ -147,11 +147,13 @@ describe('Modal', () => {
     expect(header).toHaveClass('px-6', 'py-6');
   });
 
-  it('deve ter role="none" no backdrop', () => {
+  it('deve usar elemento dialog para acessibilidade', () => {
     render(<Modal {...defaultProps} />);
 
-    const backdrop = document.querySelector('.fixed.inset-0.z-50');
-    expect(backdrop).toHaveAttribute('role', 'none');
+    const dialog = document.querySelector('dialog');
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveAttribute('aria-labelledby', 'modal-title');
+    expect(dialog).toHaveAttribute('open');
   });
 
   it('deve chamar onClose quando Enter ou Space é pressionado no backdrop', () => {

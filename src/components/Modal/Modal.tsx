@@ -132,22 +132,18 @@ const Modal = ({
   const sizeClasses = SIZE_CLASSES[size];
   const baseClasses =
     'bg-background rounded-3xl shadow-hard-shadow-2 border border-border-100 w-full mx-4';
-  const modalClasses = `${baseClasses} ${sizeClasses} ${className}`;
+  // Reset dialog default styles to prevent positioning issues
+  const dialogResetClasses =
+    'p-0 m-0 border-none outline-none max-h-none static';
+  const modalClasses = `${baseClasses} ${sizeClasses} ${dialogResetClasses} ${className}`;
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs"
       onClick={handleBackdropClick}
       onKeyDown={handleBackdropKeyDown}
-      role="none"
-      aria-hidden="true"
     >
-      <div
-        className={modalClasses}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modal-title"
-      >
+      <dialog className={modalClasses} aria-labelledby="modal-title" open>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-6">
           <h2 id="modal-title" className="text-lg font-semibold text-text-950">
@@ -175,7 +171,7 @@ const Modal = ({
         {footer && (
           <div className="flex justify-end gap-3 px-6 pb-6">{footer}</div>
         )}
-      </div>
+      </dialog>
     </div>
   );
 };
