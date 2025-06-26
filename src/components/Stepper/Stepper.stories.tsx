@@ -116,8 +116,6 @@ export const AllSteppers: Story = () => {
     console.log('Processo concluído');
   };
 
-
-
   // Gera os steps dinamicamente baseado no estado atual
   const dynamicSteps: StepData[] = basicSteps.map((step, index) => {
     const isLastStep = index === basicSteps.length - 1;
@@ -209,9 +207,9 @@ export const AllSteppers: Story = () => {
       {/* Simulação da última etapa - Formulário com CheckBox */}
       {currentStep === basicSteps.length - 1 && (
         <div className="p-6 bg-background-50 rounded-lg border border-border-200">
-                     <h4 className="font-semibold text-text-900 mb-4">
-             Formulário da Última Etapa: {basicSteps[currentStep].label}
-           </h4>
+          <h4 className="font-semibold text-text-900 mb-4">
+            Formulário da Última Etapa: {basicSteps[currentStep].label}
+          </h4>
 
           <CheckBox
             label="Li e aceito os termos e condições"
@@ -268,8 +266,6 @@ export const AllSteppers: Story = () => {
   );
 };
 
-
-
 // Size variants
 export const Sizes: Story = () => (
   <div className="w-full max-w-[1000px] p-5">
@@ -295,10 +291,6 @@ export const Sizes: Story = () => (
     </div>
   </div>
 );
-
-
-
-
 
 // Extended process
 export const ExtendedProcess: Story = () => {
@@ -335,7 +327,11 @@ export const ExtendedProcess: Story = () => {
           </button>
         ) : (
           <button
-            onClick={() => setCurrentStep(Math.min(currentStep + 1, extendedSteps.length - 1))}
+            onClick={() =>
+              setCurrentStep(
+                Math.min(currentStep + 1, extendedSteps.length - 1)
+              )
+            }
             className="px-4 py-2 rounded-lg bg-primary-800 text-white hover:bg-primary-900 transition-colors duration-200 cursor-pointer"
           >
             Avançar
@@ -345,8 +341,6 @@ export const ExtendedProcess: Story = () => {
     </div>
   );
 };
-
-
 
 // Compact size
 export const Compact: Story = () => (
@@ -360,7 +354,3 @@ export const Compact: Story = () => (
     />
   </div>
 );
-
-
-
-

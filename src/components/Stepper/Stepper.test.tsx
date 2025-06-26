@@ -37,7 +37,9 @@ describe('Stepper', () => {
     it('renders stepper with steps', () => {
       render(<Stepper steps={mockSteps} />);
 
-      expect(screen.getByRole('group', { name: 'Stepper de formulário' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('group', { name: 'Stepper de formulário' })
+      ).toBeInTheDocument();
       expect(screen.getByText('Step 1')).toBeInTheDocument();
       expect(screen.getByText('Step 2')).toBeInTheDocument();
       expect(screen.getByText('Step 3')).toBeInTheDocument();
@@ -113,7 +115,9 @@ describe('Stepper', () => {
     });
 
     it('does not show progress indicator when showProgress is false', () => {
-      render(<Stepper steps={mockSteps} showProgress={false} currentStep={1} />);
+      render(
+        <Stepper steps={mockSteps} showProgress={false} currentStep={1} />
+      );
 
       expect(screen.queryByText('Etapa 2 de 3')).not.toBeInTheDocument();
     });
@@ -198,7 +202,9 @@ describe('Stepper', () => {
     });
 
     it('applies non-responsive classes when responsive is false', () => {
-      const { container } = render(<Stepper steps={mockSteps} responsive={false} />);
+      const { container } = render(
+        <Stepper steps={mockSteps} responsive={false} />
+      );
 
       const stepsContainer = container.querySelector('[role="tablist"]');
       expect(stepsContainer).toHaveClass('flex-row');
@@ -229,7 +235,9 @@ describe('Stepper', () => {
 
   describe('Custom Styling', () => {
     it('applies custom stepClassName to steps', () => {
-      const { container } = render(<Stepper steps={mockSteps} stepClassName="custom-step-class" />);
+      const { container } = render(
+        <Stepper steps={mockSteps} stepClassName="custom-step-class" />
+      );
 
       // Check if custom class is applied to step containers (the outermost step div)
       const stepContainers = container.querySelectorAll('.custom-step-class');
@@ -265,11 +273,7 @@ describe('Stepper', () => {
       // to trigger the default value branches
 
       // Test by calling Stepper without passing stepClassName explicitly
-      const { container } = render(
-        <Stepper
-          steps={mockSteps.slice(0, 1)}
-        />
-      );
+      const { container } = render(<Stepper steps={mockSteps.slice(0, 1)} />);
 
       expect(screen.getByText('Step 1')).toBeInTheDocument();
       expect(container.firstChild).toBeInTheDocument();
