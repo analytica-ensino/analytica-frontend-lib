@@ -116,13 +116,7 @@ export const AllSteppers: Story = () => {
     console.log('Processo concluído');
   };
 
-  const handleStepClick = (id: string, index: number) => {
-    // Permite navegar apenas para etapas concluídas ou a atual
-    if (completedSteps.includes(index) || index === currentStep) {
-      setCurrentStep(index);
-      console.log('Navegou para etapa:', id, index);
-    }
-  };
+
 
   // Gera os steps dinamicamente baseado no estado atual
   const dynamicSteps: StepData[] = basicSteps.map((step, index) => {
@@ -176,9 +170,7 @@ export const AllSteppers: Story = () => {
         <Stepper
           steps={dynamicSteps}
           size="medium"
-          showDescription
           showProgress
-          onStepClick={handleStepClick}
           responsive
           progressText={`Etapa ${currentStep + 1} de ${basicSteps.length}`}
         />
@@ -319,11 +311,6 @@ export const ExtendedProcess: Story = () => {
         currentStep={currentStep}
         size="large"
         showProgress
-        onStepClick={(id, index) => {
-          if (index <= currentStep) {
-            setCurrentStep(index);
-          }
-        }}
       />
 
       {/* Navigation buttons for extended process */}
@@ -367,7 +354,6 @@ export const Compact: Story = () => (
     <Stepper
       steps={extendedSteps}
       size="small"
-      showDescription={false}
       showProgress
       currentStep={2}
       responsive

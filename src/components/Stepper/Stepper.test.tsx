@@ -3,7 +3,7 @@ import Stepper, { StepData, Step } from './Stepper';
 
 // Mock phosphor-react Check icon
 jest.mock('phosphor-react', () => ({
-  Check: ({ weight, className }: any) => (
+  Check: ({ weight, className }: { weight?: string; className?: string }) => (
     <div data-testid="check-icon" data-weight={weight} className={className}>
       ✓
     </div>
@@ -188,7 +188,8 @@ describe('Stepper', () => {
       const { container } = render(<Stepper steps={mockSteps} responsive />);
 
       const stepsContainer = container.querySelector('[role="tablist"]');
-      expect(stepsContainer).toHaveClass('flex-row', 'md:flex-row');
+      expect(stepsContainer).toHaveClass('flex-row');
+      expect(stepsContainer).toHaveClass('overflow-x-auto');
     });
 
     it('applies non-responsive classes when responsive is false', () => {
@@ -196,6 +197,7 @@ describe('Stepper', () => {
 
       const stepsContainer = container.querySelector('[role="tablist"]');
       expect(stepsContainer).toHaveClass('flex-row');
+      expect(stepsContainer).toHaveClass('justify-center');
     });
   });
 
@@ -259,10 +261,8 @@ describe('Stepper', () => {
 
       // Test by calling Stepper without passing stepClassName explicitly
       const { container } = render(
-        // @ts-ignore - intentionally passing undefined to test default parameter branches
         <Stepper
           steps={mockSteps.slice(0, 1)}
-          stepClassName={undefined}
         />
       );
 
@@ -301,20 +301,21 @@ describe('Stepper', () => {
       };
 
       const sizeClasses = {
-        stepWidth: 'w-[110px]',
-        stepHeight: 'h-[48px]',
-        indicator: 'w-6 h-6',
-        progressBar: 'h-0.5',
+        container: 'gap-3' as const,
+        stepWidth: 'w-[110px]' as const,
+        stepHeight: 'h-[48px]' as const,
+        indicator: 'w-6 h-6' as const,
+        progressBar: 'h-0.5' as const,
         indicatorTextSize: '2xs' as const,
         labelTextSize: 'xs' as const,
-        iconSize: 'w-3.5 h-3.5',
+        iconSize: 'w-3.5 h-3.5' as const,
       };
 
       const stateClasses = {
-        progressBar: 'bg-primary-800',
-        indicator: 'bg-primary-800',
-        indicatorText: 'text-white',
-        label: 'text-primary-800',
+        progressBar: 'bg-primary-800' as const,
+        indicator: 'bg-primary-800' as const,
+        indicatorText: 'text-white' as const,
+        label: 'text-primary-800' as const,
       };
 
       // Render Step component directly without className prop to trigger default value
