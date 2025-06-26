@@ -1,9 +1,6 @@
 import type { Story } from '@ladle/react';
 import ProgressBar from './ProgressBar';
 
-const sizes = ['small', 'medium'] as const;
-const variants = ['blue', 'green'] as const;
-
 /**
  * Default ProgressBar component showcase
  */
@@ -315,46 +312,204 @@ export const AllVariations: Story = () => (
         All ProgressBar Variations
       </h3>
 
-      {/* Grid layout for all combinations */}
-      <div className="grid grid-cols-2 gap-8">
-        {sizes.map((size) => (
-          <div key={size} className="flex flex-col gap-4">
-            <h4 className="font-medium text-md text-text-950 capitalize">
-              {size} Size
-            </h4>
+      {/* Small Size Variations */}
+      <div className="mb-8">
+        <h4 className="font-medium text-lg mb-4 text-text-950">
+          Small Size (4px) - Compact Progress Indicators
+        </h4>
 
-            {variants.map((variant) => (
-              <div key={variant} className="flex flex-col gap-3">
-                <h5 className="font-medium text-sm text-text-700 capitalize">
-                  {variant} Variant
-                </h5>
+        <div className="grid grid-cols-2 gap-8">
+          {/* Small Blue Variations */}
+          <div className="flex flex-col gap-4">
+            <h5 className="font-medium text-md text-text-700">
+              Activity Progress (Blue)
+            </h5>
 
-                <div className="flex flex-col gap-2">
-                  <ProgressBar size={size} variant={variant} value={35} />
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-text-500">
+                  Basic Activity Tracker
+                </span>
+                <ProgressBar size="small" variant="blue" value={35} />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-text-500">
+                  Labeled Activity Progress
+                </span>
+                <ProgressBar
+                  size="small"
+                  variant="blue"
+                  value={65}
+                  label="Lesson Progress"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Small Green Variations */}
+          <div className="flex flex-col gap-4">
+            <h5 className="font-medium text-md text-text-700">
+              Performance Metrics (Green)
+            </h5>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-text-500">
+                  Basic Performance Meter
+                </span>
+                <ProgressBar size="small" variant="green" value={35} />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-text-500">
+                  Labeled Performance Score
+                </span>
+                <ProgressBar
+                  size="small"
+                  variant="green"
+                  value={65}
+                  label="Accuracy Score"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Medium Size Variations */}
+      <div className="mb-8">
+        <h4 className="font-medium text-lg mb-4 text-text-950">
+          Medium Size (8px) - Primary Progress Displays
+        </h4>
+
+        <div className="grid grid-cols-2 gap-8">
+          {/* Medium Blue Variations */}
+          <div className="flex flex-col gap-4">
+            <h5 className="font-medium text-md text-text-700">
+              Activity Progress (Blue)
+            </h5>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-text-500">
+                  Standard Activity Bar
+                </span>
+                <ProgressBar size="medium" variant="blue" value={35} />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-text-500">
+                  Activity Progress Monitor
+                </span>
+                <ProgressBar
+                  size="medium"
+                  variant="blue"
+                  value={85}
+                  showPercentage
+                  percentageClassName="text-2xs font-normal text-text-800"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Medium Green Variations */}
+          <div className="flex flex-col gap-4">
+            <h5 className="font-medium text-md text-text-700">
+              Performance Metrics (Green)
+            </h5>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-text-500">
+                  Standard Performance Bar
+                </span>
+                <ProgressBar size="medium" variant="green" value={35} />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-text-500">
+                  Comprehensive Performance Report
+                </span>
+                <div className="flex flex-row items-center gap-2">
                   <ProgressBar
-                    size={size}
-                    variant={variant}
-                    value={65}
-                    label="With Label"
-                  />
-                  <ProgressBar
-                    size={size}
-                    variant={variant}
-                    value={85}
-                    showPercentage
-                  />
-                  <ProgressBar
-                    size={size}
-                    variant={variant}
+                    size="medium"
+                    variant="green"
                     value={95}
-                    label="Complete"
-                    showPercentage
+                    className="flex-grow"
                   />
+                  <span className="text-xs font-medium leading-none tracking-normal text-center flex-none text-text-950">
+                    95% corretas
+                  </span>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-        ))}
+        </div>
+      </div>
+
+      {/* Stacked Layout Variations */}
+      <div className="mb-8">
+        <h4 className="font-medium text-lg mb-4 text-text-950">
+          Stacked Layout (380px) - Fixed Width Progress Cards
+        </h4>
+
+        <div className="grid grid-cols-2 gap-8">
+          {/* Stacked Green Variations */}
+          <div className="flex flex-col gap-4">
+            <h5 className="font-medium text-md text-text-700">
+              Performance Metrics Cards (Green)
+            </h5>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-text-500">
+                  Excellence Performance Report Card
+                </span>
+                <ProgressBar
+                  layout="stacked"
+                  variant="green"
+                  value={18}
+                  max={20}
+                  label="Difíceis"
+                  showHitCount
+                  labelClassName="text-base font-medium text-text-800 leading-none"
+                  percentageClassName="text-xs font-medium leading-[14px] text-right"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Compact Layout Variations */}
+      <div className="mb-8">
+        <h4 className="font-medium text-lg mb-4 text-text-950">
+          Compact Layout (130px) - Small Progress Cards
+        </h4>
+
+        <div className="grid grid-cols-2 gap-8">
+          {/* Compact Blue Variations */}
+          <div className="flex flex-col gap-4">
+            <h5 className="font-medium text-md text-text-700">
+              Activity Progress Cards (Blue)
+            </h5>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-text-500">
+                  Activity Question Card
+                </span>
+                <ProgressBar
+                  layout="compact"
+                  variant="blue"
+                  value={70}
+                  showPercentage
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -613,6 +768,248 @@ export const MediumHorizontalLayout: Story = () => (
             value={80}
             label="Performance Score"
           />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/**
+ * Stacked layout variant
+ */
+export const StackedLayout: Story = () => (
+  <div className="flex flex-col gap-8 p-8">
+    <div>
+      <h3 className="text-lg font-semibold mb-6 text-text-950">
+        Stacked Layout - Fixed Width Progress Cards
+      </h3>
+
+      <div className="flex flex-col gap-6">
+        <div>
+          <h4 className="font-medium text-md mb-4 text-text-950">
+            Performance Progress Cards (Green)
+          </h4>
+          <div className="flex flex-col gap-4">
+            <ProgressBar
+              layout="stacked"
+              variant="green"
+              value={28}
+              max={30}
+              label="Fáceis"
+              showHitCount
+            />
+            <ProgressBar
+              layout="stacked"
+              variant="green"
+              value={15}
+              max={25}
+              label="Médias"
+              showHitCount
+            />
+            <ProgressBar
+              layout="stacked"
+              variant="green"
+              value={8}
+              max={20}
+              label="Difíceis"
+              showHitCount
+            />
+          </div>
+        </div>
+
+        <div>
+          <h4 className="font-medium text-md mb-4 text-text-950">
+            Activity Progress Cards (Blue)
+          </h4>
+          <div className="flex flex-col gap-4">
+            <ProgressBar
+              layout="stacked"
+              variant="blue"
+              value={18}
+              max={25}
+              label="Matemática"
+              showHitCount
+            />
+            <ProgressBar
+              layout="stacked"
+              variant="blue"
+              value={12}
+              max={20}
+              label="Português"
+              showHitCount
+            />
+            <ProgressBar
+              layout="stacked"
+              variant="blue"
+              value={22}
+              max={30}
+              label="Ciências"
+              showHitCount
+            />
+          </div>
+        </div>
+
+        <div>
+          <h4 className="font-medium text-md mb-4 text-text-950">
+            Stacked Layout Variations
+          </h4>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-text-500">
+                Label only (no hit count)
+              </span>
+              <ProgressBar
+                layout="stacked"
+                variant="green"
+                value={19}
+                max={30}
+                label="Moderadas"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-text-500">
+                Hit count only (no label)
+              </span>
+              <ProgressBar
+                layout="stacked"
+                variant="blue"
+                value={16}
+                max={20}
+                showHitCount
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-text-500">
+                Complete card with label and hit count
+              </span>
+              <ProgressBar
+                layout="stacked"
+                variant="green"
+                value={28}
+                max={30}
+                label="Excelente"
+                showHitCount
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/**
+ * Compact layout variant
+ */
+export const CompactLayout: Story = () => (
+  <div className="flex flex-col gap-8 p-8">
+    <div>
+      <h3 className="text-lg font-semibold mb-6 text-text-950">
+        Compact Layout - Small Progress Cards (131px)
+      </h3>
+
+      <div className="flex flex-col gap-6">
+        <div>
+          <h4 className="font-medium text-md mb-4 text-text-950">
+            Activity Progress Cards (Blue)
+          </h4>
+          <div className="grid grid-cols-4 gap-4">
+            <ProgressBar
+              layout="compact"
+              variant="blue"
+              value={70}
+              label="Questão 08"
+            />
+            <ProgressBar
+              layout="compact"
+              variant="blue"
+              value={45}
+              label="Questão 09"
+            />
+            <ProgressBar
+              layout="compact"
+              variant="blue"
+              value={90}
+              label="Questão 10"
+            />
+            <ProgressBar
+              layout="compact"
+              variant="blue"
+              value={25}
+              label="Questão 11"
+            />
+          </div>
+        </div>
+
+        <div>
+          <h4 className="font-medium text-md mb-4 text-text-950">
+            Performance Metrics Cards (Green)
+          </h4>
+          <div className="grid grid-cols-4 gap-4">
+            <ProgressBar
+              layout="compact"
+              variant="green"
+              value={85}
+              label="Módulo A"
+            />
+            <ProgressBar
+              layout="compact"
+              variant="green"
+              value={60}
+              label="Módulo B"
+            />
+            <ProgressBar
+              layout="compact"
+              variant="green"
+              value={95}
+              label="Módulo C"
+            />
+            <ProgressBar
+              layout="compact"
+              variant="green"
+              value={40}
+              label="Módulo D"
+            />
+          </div>
+        </div>
+
+        <div>
+          <h4 className="font-medium text-md mb-4 text-text-950">
+            Different Progress Levels
+          </h4>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="flex flex-col gap-2">
+              <span className="text-xs text-text-500">Low Progress</span>
+              <ProgressBar
+                layout="compact"
+                variant="blue"
+                value={15}
+                label="Exercício 1"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="text-xs text-text-500">Medium Progress</span>
+              <ProgressBar
+                layout="compact"
+                variant="green"
+                value={55}
+                label="Exercício 2"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="text-xs text-text-500">High Progress</span>
+              <ProgressBar
+                layout="compact"
+                variant="blue"
+                value={95}
+                label="Exercício 3"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

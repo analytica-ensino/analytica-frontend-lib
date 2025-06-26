@@ -185,7 +185,7 @@ describe('ProgressBar', () => {
 
       expect(progressBar).toHaveAttribute('value', '75');
       expect(progressBar).toHaveAttribute('max', '100');
-      expect(progressBar).toHaveAttribute('aria-label', 'Progress');
+      expect(progressBar).toHaveAttribute('aria-label', 'Progress: 75% of 100');
     });
 
     it('sets correct aria attributes with custom max', () => {
@@ -199,7 +199,10 @@ describe('ProgressBar', () => {
     it('sets custom aria-label when label is provided as string', () => {
       render(<ProgressBar value={50} label="Custom Label" />);
       const progressBar = screen.getByRole('progressbar');
-      expect(progressBar).toHaveAttribute('aria-label', 'Custom Label');
+      expect(progressBar).toHaveAttribute(
+        'aria-label',
+        'Custom Label: 50% complete'
+      );
     });
 
     it('uses default aria-label when label is ReactNode', () => {
@@ -210,7 +213,7 @@ describe('ProgressBar', () => {
       );
       render(<ProgressBar value={50} label={complexLabel} />);
       const progressBar = screen.getByRole('progressbar');
-      expect(progressBar).toHaveAttribute('aria-label', 'Progress');
+      expect(progressBar).toHaveAttribute('aria-label', 'Progress: 50% of 100');
     });
 
     it('sets correct aria attributes with clamped values', () => {
@@ -481,7 +484,10 @@ describe('ProgressBar', () => {
       expect(progressBar).toBeInTheDocument();
       expect(progressBar).toHaveAttribute('value', '67');
       expect(progressBar).toHaveAttribute('max', '150');
-      expect(progressBar).toHaveAttribute('aria-label', 'Test Progress');
+      expect(progressBar).toHaveAttribute(
+        'aria-label',
+        'Test Progress: 45% complete'
+      );
 
       expect(label).toBeInTheDocument();
       expect(label).toHaveClass('text-xs', 'custom-label');
@@ -532,6 +538,310 @@ describe('ProgressBar', () => {
 
           cleanup();
         });
+      });
+    });
+  });
+
+  describe('Layout variants', () => {
+    describe('Stacked layout', () => {
+      it('renders stacked layout with label and percentage', () => {
+        render(
+          <ProgressBar
+            layout="stacked"
+            variant="green"
+            value={80}
+            label="Fáceis"
+            showPercentage
+          />
+        );
+
+        const progressBar = screen.getByRole('progressbar');
+        const label = screen.getByText('Fáceis');
+        const percentage = screen.getByText('80%');
+
+        expect(progressBar).toBeInTheDocument();
+        expect(label).toBeInTheDocument();
+        expect(percentage).toBeInTheDocument();
+
+        // Check specific stacked layout classes
+        const container = progressBar.closest('.w-\\[380px\\]');
+        expect(container).toBeInTheDocument();
+        expect(container).toHaveClass('h-[35px]');
+      });
+
+      it('renders stacked layout with label and hit count', () => {
+        render(
+          <ProgressBar
+            layout="stacked"
+            variant="green"
+            value={28}
+            max={30}
+            label="Fáceis"
+            showHitCount
+          />
+        );
+
+        const progressBar = screen.getByRole('progressbar');
+        const label = screen.getByText('Fáceis');
+        const hitCount = screen.getByText((content, element) => {
+          return element?.textContent === '28 de 30';
+        });
+
+        expect(progressBar).toBeInTheDocument();
+        expect(label).toBeInTheDocument();
+        expect(hitCount).toBeInTheDocument();
+      });
+
+      it('renders stacked layout with only label', () => {
+        render(
+          <ProgressBar
+            layout="stacked"
+            variant="blue"
+            value={60}
+            label="Progress Only"
+          />
+        );
+
+        const progressBar = screen.getByRole('progressbar');
+        const label = screen.getByText('Progress Only');
+
+        expect(progressBar).toBeInTheDocument();
+        expect(label).toBeInTheDocument();
+      });
+
+      it('renders stacked layout with only percentage', () => {
+        render(
+          <ProgressBar
+            layout="stacked"
+            variant="blue"
+            value={75}
+            showPercentage
+          />
+        );
+
+        const progressBar = screen.getByRole('progressbar');
+        const percentage = screen.getByText('75%');
+
+        expect(progressBar).toBeInTheDocument();
+        expect(percentage).toBeInTheDocument();
+      });
+
+      it('renders stacked layout with only hit count', () => {
+        render(
+          <ProgressBar
+            layout="stacked"
+            variant="green"
+            value={15}
+            max={20}
+            showHitCount
+          />
+        );
+
+        const progressBar = screen.getByRole('progressbar');
+        const hitCountContainer = screen.getAllByText((content, element) => {
+          return element?.textContent === '15 de 20';
+        })[0];
+
+        expect(progressBar).toBeInTheDocument();
+        expect(hitCountContainer).toBeInTheDocument();
+      });
+
+      it('applies custom classes in stacked layout', () => {
+        const { container } = render(
+          <ProgressBar
+            layout="stacked"
+            variant="green"
+            value={70}
+            label="Custom"
+            showPercentage
+            className="custom-stacked"
+            labelClassName="custom-stacked-label"
+            percentageClassName="custom-stacked-percentage"
+          />
+        );
+
+        const stackedContainer = container.firstChild as HTMLElement;
+        const label = screen.getByText('Custom');
+        const percentage = screen.getByText('70%');
+        const percentageContainer = percentage.parentElement;
+
+        expect(stackedContainer).toHaveClass('custom-stacked');
+        expect(label).toHaveClass('custom-stacked-label');
+        expect(percentageContainer).toHaveClass('custom-stacked-percentage');
+      });
+
+      it('prioritizes hit count over percentage when both are enabled in stacked layout', () => {
+        render(
+          <ProgressBar
+            layout="stacked"
+            variant="green"
+            value={22}
+            max={30}
+            label="Fáceis"
+            showHitCount
+            showPercentage
+          />
+        );
+
+        const label = screen.getByText('Fáceis');
+        // Should show hit count "22 de 30" instead of percentage "73%"
+        const hitCountContainer = screen.getAllByText((content, element) => {
+          return element?.textContent === '22 de 30';
+        })[0];
+
+        expect(label).toBeInTheDocument();
+        expect(hitCountContainer).toBeInTheDocument();
+        expect(screen.queryByText('73%')).not.toBeInTheDocument();
+      });
+    });
+
+    describe('Compact layout', () => {
+      it('renders compact layout with label', () => {
+        render(
+          <ProgressBar
+            layout="compact"
+            variant="blue"
+            value={70}
+            label="Questão 08"
+          />
+        );
+
+        const progressBar = screen.getByRole('progressbar');
+        const label = screen.getByText('Questão 08');
+
+        expect(progressBar).toBeInTheDocument();
+        expect(label).toBeInTheDocument();
+
+        // Check specific compact layout classes
+        const container = progressBar.closest('.w-\\[131px\\]');
+        expect(container).toBeInTheDocument();
+        expect(container).toHaveClass('h-[24px]');
+      });
+
+      it('renders compact layout with percentage', () => {
+        render(
+          <ProgressBar
+            layout="compact"
+            variant="blue"
+            value={85}
+            showPercentage
+          />
+        );
+
+        const progressBar = screen.getByRole('progressbar');
+        const percentage = screen.getByText('85%');
+
+        expect(progressBar).toBeInTheDocument();
+        expect(percentage).toBeInTheDocument();
+      });
+
+      it('renders compact layout with hit count', () => {
+        render(
+          <ProgressBar
+            layout="compact"
+            variant="green"
+            value={18}
+            max={25}
+            showHitCount
+          />
+        );
+
+        const progressBar = screen.getByRole('progressbar');
+        const hitCountContainer = screen.getAllByText((content, element) => {
+          return element?.textContent === '18 de 25';
+        })[0];
+
+        expect(progressBar).toBeInTheDocument();
+        expect(hitCountContainer).toBeInTheDocument();
+      });
+
+      it('applies correct colors in compact layout', () => {
+        render(
+          <ProgressBar
+            layout="compact"
+            variant="blue"
+            value={60}
+            showPercentage
+          />
+        );
+
+        const percentage = screen.getByText('60%');
+        // The percentage should use text-primary-600 color via the Text component
+        expect(percentage).toBeInTheDocument();
+      });
+
+      it('applies custom classes in compact layout', () => {
+        const { container } = render(
+          <ProgressBar
+            layout="compact"
+            variant="green"
+            value={50}
+            label="Custom Label"
+            className="custom-compact"
+            labelClassName="custom-compact-label"
+          />
+        );
+
+        const compactContainer = container.firstChild as HTMLElement;
+        const label = screen.getByText('Custom Label');
+
+        expect(compactContainer).toHaveClass('custom-compact');
+        expect(label).toHaveClass('custom-compact-label');
+      });
+
+      it('prioritizes percentage over label in compact layout', () => {
+        render(
+          <ProgressBar
+            layout="compact"
+            variant="blue"
+            value={70}
+            label="Should not show"
+            showPercentage
+          />
+        );
+
+        const percentage = screen.getByText('70%');
+        expect(percentage).toBeInTheDocument();
+        expect(screen.queryByText('Should not show')).not.toBeInTheDocument();
+      });
+
+      it('prioritizes hit count over label in compact layout', () => {
+        render(
+          <ProgressBar
+            layout="compact"
+            variant="green"
+            value={15}
+            max={20}
+            label="Should not show"
+            showHitCount
+          />
+        );
+
+        const hitCountContainer = screen.getAllByText((content, element) => {
+          return element?.textContent === '15 de 20';
+        })[0];
+        expect(hitCountContainer).toBeInTheDocument();
+        expect(screen.queryByText('Should not show')).not.toBeInTheDocument();
+      });
+
+      it('prioritizes hit count over percentage when both are enabled in compact layout', () => {
+        render(
+          <ProgressBar
+            layout="compact"
+            variant="green"
+            value={15}
+            max={20}
+            showHitCount
+            showPercentage
+          />
+        );
+
+        // Should show hit count "15 de 20" instead of percentage "75%"
+        const hitCountContainer = screen.getAllByText((content, element) => {
+          return element?.textContent === '15 de 20';
+        })[0];
+        expect(hitCountContainer).toBeInTheDocument();
+        expect(screen.queryByText('75%')).not.toBeInTheDocument();
       });
     });
   });

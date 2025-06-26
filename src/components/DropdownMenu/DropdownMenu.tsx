@@ -75,17 +75,18 @@ interface DropdownMenuProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
+const DropdownMenu = ({
+  children,
+  open: propOpen,
+  onOpenChange,
+}: DropdownMenuProps) => {
   const storeRef = useRef<DropdownStoreApi | null>(null);
   storeRef.current ??= createDropdownStore();
   const store = storeRef.current;
-  const isControlled = open !== undefined;
-  const uncontrolledOpen = useStore(store, (s) => s.open);
-  const currentOpen = isControlled ? open : uncontrolledOpen;
+  const { open, setOpen: storeSetOpen } = useStore(store, (s) => s);
 
   const setOpen = (newOpen: boolean) => {
-    onOpenChange?.(newOpen);
-    if (!isControlled) store.setState({ open: newOpen });
+    storeSetOpen(newOpen);
   };
 
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -136,8 +137,7 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
   };
 
   useEffect(() => {
-    onOpenChange?.(currentOpen);
-    if (currentOpen) {
+    if (open) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleDownkey);
     }
@@ -146,13 +146,18 @@ const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleDownkey);
     };
-  }, [currentOpen]);
+  }, [open]);
 
   useEffect(() => {
-    if (isControlled) {
-      store.setState({ open: open });
+    setOpen(open);
+    onOpenChange?.(open);
+  }, [open, onOpenChange]);
+
+  useEffect(() => {
+    if (propOpen) {
+      setOpen(propOpen);
     }
-  }, []);
+  }, [propOpen]);
 
   return (
     <div className="relative" ref={menuRef}>
