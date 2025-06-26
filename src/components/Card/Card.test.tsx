@@ -4,9 +4,11 @@ import {
   CardPerformance,
   CardProgress,
   CardQuestions,
+  CardResults,
+  CardStatus,
   CardTopic,
 } from './Card';
-import { ChartBar, Star } from 'phosphor-react';
+import { ChartBar, CheckCircle, Star } from 'phosphor-react';
 
 describe('CardActivesResults', () => {
   const baseProps = {
@@ -328,5 +330,99 @@ describe('CardPerformance', () => {
 
     fireEvent.click(screen.getByTestId('caret-icon'));
     expect(handleClick).toHaveBeenCalledWith('bar');
+  });
+});
+
+describe('CardResults', () => {
+  const baseProps = {
+    header: 'Resultado do Teste',
+    icon: <CheckCircle data-testid="test-icon" />,
+    correct_answers: 3,
+    incorrect_answers: 1,
+  };
+
+  it('should render with header and answers', () => {
+    render(<CardResults {...baseProps} />);
+    expect(screen.getByText('Resultado do Teste')).toBeInTheDocument();
+    expect(screen.getByText('3 Corretas')).toBeInTheDocument();
+    expect(screen.getByText('1 Incorretas')).toBeInTheDocument();
+  });
+
+  it('should render icon', () => {
+    render(<CardResults {...baseProps} />);
+    expect(screen.getByTestId('test-icon')).toBeInTheDocument();
+  });
+
+  it('should apply column layout by default', () => {
+    render(<CardResults {...baseProps} />);
+    const container = screen.getByText('Resultado do Teste').closest('div');
+    expect(container?.className).toContain('flex-col');
+  });
+
+  it('should apply row layout when direction is "row"', () => {
+    render(<CardResults {...baseProps} direction="row" />);
+    const container = screen.getByText('Resultado do Teste').closest('div');
+    expect(container?.className).toContain('flex-row');
+  });
+
+  it('should apply custom color as background', () => {
+    render(<CardResults {...baseProps} color="#FF0000" />);
+    const iconWrapper = screen.getByTestId('test-icon').parentElement;
+    expect(iconWrapper).toHaveStyle({ backgroundColor: '#FF0000' });
+  });
+
+  it('should apply custom className', () => {
+    render(
+      <CardResults
+        {...baseProps}
+        className="my-custom-class"
+        data-testid="card-results"
+      />
+    );
+    const wrapper = screen.getByTestId('card-results');
+    expect(wrapper.className).toContain('my-custom-class');
+  });
+
+  it('should forward extra HTML attributes', () => {
+    render(<CardResults {...baseProps} data-testid="custom-attr" />);
+    expect(screen.getByTestId('custom-attr')).toBeInTheDocument();
+  });
+});
+
+describe('CardStatus', () => {
+  const baseProps = {
+    header: 'Questão 1',
+  };
+
+  it('should render with header and "Correta" status', () => {
+    render(<CardStatus {...baseProps} status="correct" />);
+    expect(screen.getByText('Questão 1')).toBeInTheDocument();
+    expect(screen.getByText('Correta')).toBeInTheDocument();
+    expect(screen.getByText('Respondida')).toBeInTheDocument();
+  });
+
+  it('should render with "Incorreta" status', () => {
+    render(<CardStatus {...baseProps} status="incorrect" />);
+    expect(screen.getByText('Incorreta')).toBeInTheDocument();
+  });
+
+  it('should apply custom className', () => {
+    render(
+      <CardStatus
+        {...baseProps}
+        status="correct"
+        className="my-custom-class"
+        data-testid="card-status"
+      />
+    );
+    const wrapper = screen.getByTestId('card-status');
+    expect(wrapper.className).toContain('my-custom-class');
+  });
+
+  it('should forward extra HTML attributes', () => {
+    render(
+      <CardStatus {...baseProps} status="correct" data-testid="custom-status" />
+    );
+    expect(screen.getByTestId('custom-status')).toBeInTheDocument();
   });
 });

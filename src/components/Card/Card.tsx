@@ -2,7 +2,7 @@ import { forwardRef, Fragment, HTMLAttributes, ReactNode } from 'react';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
-import { CaretRight } from 'phosphor-react';
+import { CaretRight, CheckCircle, XCircle } from 'phosphor-react';
 
 interface CardActivesResultsProps extends HTMLAttributes<HTMLDivElement> {
   icon: ReactNode;
@@ -371,10 +371,133 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
   }
 );
 
+interface CardResultsProps extends HTMLAttributes<HTMLDivElement> {
+  header: string;
+  icon: ReactNode;
+  correct_answers: number;
+  incorrect_answers: number;
+  direction?: 'row' | 'col';
+  color?: string;
+}
+
+const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
+  (
+    {
+      header,
+      correct_answers,
+      incorrect_answers,
+      icon,
+      direction = 'col',
+      color = '#B7DFFF',
+      className,
+      ...props
+    },
+    ref
+  ) => {
+    const isRow = direction == 'row';
+
+    return (
+      <div
+        ref={ref}
+        className={`
+          w-full flex border border-border-50 rounded-xl min-h-20 flex-row items-center pr-4
+          ${className}
+        `}
+        {...props}
+      >
+        <div
+          className={`
+              flex justify-center items-center [&>svg]:size-8 text-text-950 min-w-20 max-w-20 h-full rounded-l-xl
+            `}
+          style={{
+            backgroundColor: color,
+          }}
+        >
+          {icon}
+        </div>
+
+        <div
+          className={`
+            p-4 flex justify-between w-full h-full
+            ${isRow ? 'flex-row items-center' : 'flex-col'}
+          `}
+        >
+          <p className="text-xs font-bold text-text-950">{header}</p>
+          <span className="flex flex-row gap-1 items-center">
+            <Badge
+              action="success"
+              variant="solid"
+              size="medium"
+              iconLeft={<CheckCircle />}
+            >
+              {correct_answers} Corretas
+            </Badge>
+
+            <Badge
+              action="error"
+              variant="solid"
+              size="medium"
+              iconLeft={<XCircle />}
+            >
+              {incorrect_answers} Incorretas
+            </Badge>
+          </span>
+        </div>
+
+        <CaretRight className="min-w-6 min-h-6" />
+      </div>
+    );
+  }
+);
+
+interface CardStatusProps extends HTMLAttributes<HTMLDivElement> {
+  header: string;
+  status: 'correct' | 'incorrect';
+}
+
+const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
+  ({ header, className, status, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={`
+          w-full flex border border-border-50 rounded-xl min-h-20 flex-row items-center pr-4
+          ${className}
+        `}
+        {...props}
+      >
+        <div
+          className={`
+            p-4 flex justify-between w-full h-full flex-row items-center
+          `}
+        >
+          <p className="text-xs font-bold text-text-950">{header}</p>
+          <span className="flex flex-row gap-1 items-center">
+            <Badge
+              action={status == 'correct' ? 'success' : 'error'}
+              variant="solid"
+              size="medium"
+              iconLeft={<CheckCircle />}
+            >
+              {status == 'correct' ? 'Correta' : 'Incorreta'}
+            </Badge>
+
+            <p className="text-sm text-text-800">Respondida</p>
+          </span>
+        </div>
+
+        <CaretRight className="min-w-6 min-h-6" />
+      </div>
+    );
+  }
+);
+
 export {
   CardActivesResults,
   CardQuestions,
   CardProgress,
   CardTopic,
   CardPerformance,
+  CardResults,
+  CardStatus,
 };

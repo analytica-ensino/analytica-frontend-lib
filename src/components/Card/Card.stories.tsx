@@ -5,6 +5,8 @@ import {
   CardPerformance,
   CardProgress,
   CardQuestions,
+  CardResults,
+  CardStatus,
   CardTopic,
 } from './Card';
 
@@ -135,13 +137,47 @@ export const AllCardComponentsShowcase: Story = () => {
         </div>
       </div>
 
-      <h3 className="font-bold text-2xl text-text-900">CardPerformance</h3>
+      <h3 className="font-bold text-2xl text-text-900">Card Desempenho</h3>
       <div className="flex flex-row gap-6">
         <CardPerformance className="max-w-[360px]" header="Header" />
         <CardPerformance
           className="max-w-[360px]"
           header="Header"
           progress={30}
+        />
+      </div>
+
+      <h3 className="font-bold text-2xl text-text-900">Card Resultados</h3>
+      <div className="flex flex-row gap-6">
+        <CardResults
+          className="max-w-[360px]"
+          header="Header"
+          correct_answers={10}
+          incorrect_answers={5}
+          icon={<Book />}
+        />
+        <CardResults
+          className="max-w-[500px]"
+          header="Header"
+          correct_answers={10}
+          incorrect_answers={5}
+          icon={<Book />}
+          direction="row"
+        />
+      </div>
+
+      <h3 className="font-bold text-2xl text-text-900">Card Status</h3>
+      <div className="flex flex-row gap-6">
+        <CardStatus
+          className="max-w-[500px]"
+          header="Header"
+          status="correct"
+        />
+
+        <CardStatus
+          className="max-w-[500px]"
+          header="Header"
+          status="incorrect"
         />
       </div>
     </div>
