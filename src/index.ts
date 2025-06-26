@@ -48,6 +48,16 @@ import Select, {
 
 import Menu, { MenuItem, MenuSeparator } from './components/Menu/Menu';
 
+import {
+  CardActivesResults,
+  CardPerformance,
+  CardProgress,
+  CardQuestions,
+  CardResults,
+  CardStatus,
+  CardTopic,
+} from './components/Card/Card';
+
 // Export all components for bundled usage
 export { Text };
 export { Button };
@@ -91,3 +101,11 @@ export { SelectItem };
 export { Menu };
 export { MenuItem };
 export { MenuSeparator };
+
+export { CardActivesResults };
+export { CardPerformance };
+export { CardProgress };
+export { CardQuestions };
+export { CardResults };
+export { CardStatus };
+export { CardTopic };
