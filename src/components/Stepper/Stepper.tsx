@@ -139,6 +139,17 @@ export const Step = ({
   const stepNumber = index + 1;
   const isCompleted = step.state === 'completed';
 
+  // Generate accessible aria-label based on step state
+  const getAriaLabel = () => {
+    let suffix = '';
+    if (step.state === 'completed') {
+      suffix = ' (concluído)';
+    } else if (step.state === 'current') {
+      suffix = ' (atual)';
+    }
+    return `${step.label}${suffix}`;
+  };
+
   return (
     <div
       className={`
@@ -176,8 +187,7 @@ export const Step = ({
             flex-none transition-all duration-300 ease-out
             w-4 h-4 sm:w-5 sm:h-5 md:w-5 md:h-5 lg:w-6 lg:h-6
           `}
-          role="presentation"
-          aria-label={`${step.label}${step.state === 'completed' ? ' (concluído)' : step.state === 'current' ? ' (atual)' : ''}`}
+          aria-label={getAriaLabel()}
         >
           {isCompleted ? (
             <Check
@@ -248,15 +258,22 @@ const calculateStepStates = (
   steps: StepData[],
   currentStep: number
 ): StepData[] => {
-  return steps.map((step, index) => ({
-    ...step,
-    state:
-      index < currentStep
-        ? 'completed'
-        : index === currentStep
-          ? 'current'
-          : 'pending',
-  }));
+  return steps.map((step, index) => {
+    let stepState: StepState;
+
+    if (index < currentStep) {
+      stepState = 'completed';
+    } else if (index === currentStep) {
+      stepState = 'current';
+    } else {
+      stepState = 'pending';
+    }
+
+    return {
+      ...step,
+      state: stepState,
+    };
+  });
 };
 
 /**
@@ -315,11 +332,12 @@ const Stepper = ({
       : initialSteps;
 
   return (
-    <div
-      className={`flex flex-col gap-4 sm:gap-5 md:gap-6 ${className}`}
-      role="group"
-      aria-label="Stepper de formulário"
+    <fieldset
+      className={`flex flex-col gap-4 sm:gap-5 md:gap-6 ${className} border-0 p-0 m-0`}
     >
+      <legend className="absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0">
+        Stepper de formulário
+      </legend>
       {/* Progress indicator with responsive text */}
       {showProgress && currentStep !== undefined && (
         <Text
@@ -365,7 +383,7 @@ const Stepper = ({
           );
         })}
       </div>
-    </div>
+    </fieldset>
   );
 };
 

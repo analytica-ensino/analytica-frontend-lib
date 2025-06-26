@@ -170,16 +170,21 @@ describe('Stepper', () => {
       expect(pendingStep).toBeInTheDocument();
     });
 
-    it('renders all steps as non-interactive presentations', () => {
+    it('renders all steps as non-interactive elements', () => {
       render(<Stepper steps={mockSteps} />);
 
       // No steps should be clickable (no button role)
       const buttons = screen.queryAllByRole('button');
       expect(buttons).toHaveLength(0);
 
-      // All steps should have presentation role
-      const presentations = screen.getAllByRole('presentation');
-      expect(presentations).toHaveLength(3);
+      // All step indicators should have appropriate aria-labels for accessibility
+      const completedStep = screen.getByLabelText('Step 1 (concluído)');
+      const currentStep = screen.getByLabelText('Step 2 (atual)');
+      const pendingStep = screen.getByLabelText('Step 3');
+
+      expect(completedStep).toBeInTheDocument();
+      expect(currentStep).toBeInTheDocument();
+      expect(pendingStep).toBeInTheDocument();
     });
   });
 
