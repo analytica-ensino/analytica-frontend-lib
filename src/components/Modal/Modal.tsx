@@ -142,6 +142,9 @@ const Modal = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs"
       onClick={handleBackdropClick}
       onKeyDown={handleBackdropKeyDown}
+      role="button"
+      tabIndex={closeOnBackdropClick ? 0 : -1}
+      aria-label="Fechar modal clicando no fundo"
     >
       <dialog className={modalClasses} aria-labelledby="modal-title" open>
         {/* Header */}
