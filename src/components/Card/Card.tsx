@@ -333,7 +333,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
     return (
       <div
         ref={ref}
-        className={`w-full h-20.5 flex flex-row justify-between p-4 gap-2 bg-background border border-border-50 ${className}`}
+        className={`w-full min-h-20.5 flex flex-row justify-between p-4 gap-2 bg-background border border-border-50 ${className}`}
         {...props}
       >
         <div className="w-full flex flex-col justify-between gap-2">
@@ -361,7 +361,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
 
         {!hasProgress && (
           <CaretRight
-            className="size-4.5"
+            className="size-4.5 text-text-800"
             data-testid="caret-icon"
             onClick={() => onClickButton?.(valueButton)}
           />
@@ -444,7 +444,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
           </span>
         </div>
 
-        <CaretRight className="min-w-6 min-h-6" />
+        <CaretRight className="min-w-6 min-h-6 text-text-800" />
       </div>
     );
   }
@@ -486,7 +486,61 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
           </span>
         </div>
 
-        <CaretRight className="min-w-6 min-h-6" />
+        <CaretRight className="min-w-6 min-h-6 text-text-800" />
+      </div>
+    );
+  }
+);
+
+interface CardSettingsProps extends HTMLAttributes<HTMLDivElement> {
+  icon: ReactNode;
+  header: string;
+}
+
+const CardSettings = forwardRef<HTMLDivElement, CardSettingsProps>(
+  ({ header, className, icon, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={`w-full p-2 flex flex-row items-center gap-2 text-text-700 bg-background rounded-xl ${className}`}
+        {...props}
+      >
+        <span className="[&>svg]:size-6">{icon}</span>
+
+        <p className="w-full text-md">{header}</p>
+
+        <CaretRight size={24} />
+      </div>
+    );
+  }
+);
+
+interface CardSupportProps extends HTMLAttributes<HTMLDivElement> {
+  header: string;
+  direction?: 'row' | 'col';
+  children: ReactNode;
+}
+
+const CardSupport = forwardRef<HTMLDivElement, CardSupportProps>(
+  ({ header, className, direction = 'col', children, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={`w-full p-4 flex flex-row items-center gap-2 text-text-700  bg-background rounded-xl ${className}`}
+        {...props}
+      >
+        <div
+          className={`
+              w-full flex ${direction == 'col' ? 'flex-col' : 'flex-row items-center'}  gap-2
+          `}
+        >
+          <span className="w-full">
+            <p className="text-xs text-text-950 font-bold">{header}</p>
+          </span>
+          <span className="flex flex-row gap-1">{children}</span>
+        </div>
+
+        <CaretRight className="text-text-800" size={24} />
       </div>
     );
   }
@@ -500,4 +554,6 @@ export {
   CardPerformance,
   CardResults,
   CardStatus,
+  CardSettings,
+  CardSupport,
 };

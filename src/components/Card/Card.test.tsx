@@ -5,10 +5,12 @@ import {
   CardProgress,
   CardQuestions,
   CardResults,
+  CardSettings,
   CardStatus,
+  CardSupport,
   CardTopic,
 } from './Card';
-import { ChartBar, CheckCircle, Star } from 'phosphor-react';
+import { ChartBar, CheckCircle, Gear, Star } from 'phosphor-react';
 
 describe('CardActivesResults', () => {
   const baseProps = {
@@ -424,5 +426,82 @@ describe('CardStatus', () => {
       <CardStatus {...baseProps} status="correct" data-testid="custom-status" />
     );
     expect(screen.getByTestId('custom-status')).toBeInTheDocument();
+  });
+});
+
+describe('CardSettings', () => {
+  const baseProps = {
+    header: 'Configurações',
+    icon: <Gear data-testid="icon-gear" />,
+  };
+
+  it('should render with icon and header', () => {
+    render(<CardSettings {...baseProps} />);
+    expect(screen.getByText('Configurações')).toBeInTheDocument();
+    expect(screen.getByTestId('icon-gear')).toBeInTheDocument();
+  });
+
+  it('should apply custom className', () => {
+    render(
+      <CardSettings
+        {...baseProps}
+        className="my-custom-class"
+        data-testid="card-settings"
+      />
+    );
+    const card = screen.getByTestId('card-settings');
+    expect(card.className).toContain('my-custom-class');
+  });
+
+  it('should forward extra HTML attributes', () => {
+    render(<CardSettings {...baseProps} data-testid="settings-container" />);
+    expect(screen.getByTestId('settings-container')).toBeInTheDocument();
+  });
+});
+
+describe('CardSupport', () => {
+  const baseProps = {
+    header: 'Suporte Técnico',
+    children: <span data-testid="support-child">Ajuda</span>,
+  };
+
+  it('should render with header and children', () => {
+    render(<CardSupport {...baseProps} />);
+    expect(screen.getByText('Suporte Técnico')).toBeInTheDocument();
+    expect(screen.getByTestId('support-child')).toBeInTheDocument();
+  });
+
+  it('should default to "col" direction', () => {
+    render(<CardSupport {...baseProps} data-testid="card-support" />);
+    const container = screen.getByTestId('card-support');
+    expect(container).toBeInTheDocument();
+    const flexWrapper = container.querySelector('div > div');
+    expect(flexWrapper?.className).toMatch(/flex-col/);
+  });
+
+  it('should apply "row" direction when specified', () => {
+    render(
+      <CardSupport {...baseProps} direction="row" data-testid="card-support" />
+    );
+    const container = screen.getByTestId('card-support');
+    const flexWrapper = container.querySelector('div > div');
+    expect(flexWrapper?.className).toMatch(/flex-row/);
+  });
+
+  it('should apply custom className', () => {
+    render(
+      <CardSupport
+        {...baseProps}
+        className="my-custom-class"
+        data-testid="card-support"
+      />
+    );
+    const card = screen.getByTestId('card-support');
+    expect(card.className).toContain('my-custom-class');
+  });
+
+  it('should forward extra HTML attributes', () => {
+    render(<CardSupport {...baseProps} data-testid="support-container" />);
+    expect(screen.getByTestId('support-container')).toBeInTheDocument();
   });
 });
