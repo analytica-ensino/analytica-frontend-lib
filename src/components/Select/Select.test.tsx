@@ -132,7 +132,7 @@ describe('Select component', () => {
     );
 
     const trigger = screen.getByRole('button');
-    expect(trigger.className).toMatch(/border-b-2/);
+    expect(trigger.className).toMatch(/border-b/);
   });
 
   it('should apply content alignment and side', async () => {
@@ -479,5 +479,38 @@ describe('getLabelAsNode', () => {
     expect(
       screen.getByText((content) => content.includes('!'))
     ).toBeInTheDocument();
+  });
+});
+
+describe('SelectTrigger invalid + variant classes', () => {
+  const setup = (
+    variant: 'outlined' | 'underlined' | 'rounded' = 'outlined'
+  ) => {
+    render(
+      <Select>
+        <SelectTrigger invalid variant={variant}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+  };
+
+  it('applies border-b-2 when invalid and variant is underlined', () => {
+    setup('underlined');
+    const trigger = screen.getByRole('button');
+    expect(trigger.className).toMatch(/border-b-2/);
+    expect(trigger.className).toMatch(/border-indicator-error/);
+    expect(trigger.className).toMatch(/text-text-600/);
+  });
+
+  it('applies border-2 when invalid and variant is outlined', () => {
+    setup('outlined');
+    const trigger = screen.getByRole('button');
+    expect(trigger.className).toMatch(/border-2/);
+    expect(trigger.className).toMatch(/border-indicator-error/);
+    expect(trigger.className).toMatch(/text-text-600/);
   });
 });
