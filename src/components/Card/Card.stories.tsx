@@ -1,14 +1,18 @@
 import type { Story } from '@ladle/react';
-import { Book, Star } from 'phosphor-react';
+import { Book, Key, Star } from 'phosphor-react';
 import {
   CardActivesResults,
+  CardForum,
   CardPerformance,
   CardProgress,
   CardQuestions,
   CardResults,
+  CardSettings,
   CardStatus,
+  CardSupport,
   CardTopic,
 } from './Card';
+import Badge from '../Badge/Badge';
 
 export const AllCardComponentsShowcase: Story = () => {
   const baseProps = {
@@ -178,6 +182,50 @@ export const AllCardComponentsShowcase: Story = () => {
           className="max-w-[500px]"
           header="Header"
           status="incorrect"
+        />
+      </div>
+
+      <h3 className="font-bold text-2xl text-text-900">Card Settings</h3>
+      <div className="flex flex-row gap-6">
+        <CardSettings
+          className="max-w-[500px]"
+          header="Header"
+          icon={<Book />}
+        />
+      </div>
+
+      <h3 className="font-bold text-2xl text-text-900">Card Suporte</h3>
+      <div className="flex flex-row gap-6">
+        <CardSupport className="max-w-[500px]" header="Header">
+          <Badge variant="solid" action="success">
+            Aberto
+          </Badge>
+
+          <Badge variant="solid" action="muted" iconLeft={<Key />}>
+            Chave
+          </Badge>
+        </CardSupport>
+
+        <CardSupport className="max-w-[500px]" header="Header" direction="row">
+          <Badge variant="solid" action="success">
+            Aberto
+          </Badge>
+
+          <Badge variant="solid" action="muted" iconLeft={<Key />}>
+            Chave
+          </Badge>
+        </CardSupport>
+      </div>
+
+      <h3 className="font-bold text-2xl text-text-900">Card Forum</h3>
+      <div className="flex flex-row gap-6">
+        <CardForum
+          className="max-w-[380px]"
+          title="Titulo"
+          content="Olá, estudante! Este é um espaço onde você poderá debater, trocar conhecimento e conversar com seus colegas de turma. Basta criar um post para iniciar!"
+          comments={0}
+          date="25 Maio 2025"
+          hour="09:35"
         />
       </div>
     </div>

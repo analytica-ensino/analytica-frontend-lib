@@ -2,7 +2,12 @@ import { forwardRef, Fragment, HTMLAttributes, ReactNode } from 'react';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
-import { CaretRight, CheckCircle, XCircle } from 'phosphor-react';
+import {
+  CaretRight,
+  ChatCircleText,
+  CheckCircle,
+  XCircle,
+} from 'phosphor-react';
 
 interface CardActivesResultsProps extends HTMLAttributes<HTMLDivElement> {
   icon: ReactNode;
@@ -159,9 +164,14 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
           </div>
         </section>
 
-        <Button size="extra-small" onClick={() => onClickButton?.(valueButton)}>
-          {buttonLabel}
-        </Button>
+        <span>
+          <Button
+            size="extra-small"
+            onClick={() => onClickButton?.(valueButton)}
+          >
+            {buttonLabel}
+          </Button>
+        </span>
       </div>
     );
   }
@@ -333,7 +343,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
     return (
       <div
         ref={ref}
-        className={`w-full h-20.5 flex flex-row justify-between p-4 gap-2 bg-background border border-border-50 ${className}`}
+        className={`w-full min-h-20.5 flex flex-row justify-between p-4 gap-2 bg-background border border-border-50 ${className}`}
         {...props}
       >
         <div className="w-full flex flex-col justify-between gap-2">
@@ -361,7 +371,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
 
         {!hasProgress && (
           <CaretRight
-            className="size-4.5"
+            className="size-4.5 text-text-800"
             data-testid="caret-icon"
             onClick={() => onClickButton?.(valueButton)}
           />
@@ -444,7 +454,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
           </span>
         </div>
 
-        <CaretRight className="min-w-6 min-h-6" />
+        <CaretRight className="min-w-6 min-h-6 text-text-800" />
       </div>
     );
   }
@@ -486,7 +496,130 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
           </span>
         </div>
 
-        <CaretRight className="min-w-6 min-h-6" />
+        <CaretRight className="min-w-6 min-h-6 text-text-800" />
+      </div>
+    );
+  }
+);
+
+interface CardSettingsProps extends HTMLAttributes<HTMLDivElement> {
+  icon: ReactNode;
+  header: string;
+}
+
+const CardSettings = forwardRef<HTMLDivElement, CardSettingsProps>(
+  ({ header, className, icon, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={`w-full p-2 flex flex-row items-center gap-2 text-text-700 bg-background rounded-xl ${className}`}
+        {...props}
+      >
+        <span className="[&>svg]:size-6">{icon}</span>
+
+        <p className="w-full text-md">{header}</p>
+
+        <CaretRight size={24} />
+      </div>
+    );
+  }
+);
+
+interface CardSupportProps extends HTMLAttributes<HTMLDivElement> {
+  header: string;
+  direction?: 'row' | 'col';
+  children: ReactNode;
+}
+
+const CardSupport = forwardRef<HTMLDivElement, CardSupportProps>(
+  ({ header, className, direction = 'col', children, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={`w-full p-4 flex flex-row items-center gap-2 text-text-700  bg-background rounded-xl ${className}`}
+        {...props}
+      >
+        <div
+          className={`
+              w-full flex ${direction == 'col' ? 'flex-col' : 'flex-row items-center'}  gap-2
+          `}
+        >
+          <span className="w-full">
+            <p className="text-xs text-text-950 font-bold">{header}</p>
+          </span>
+          <span className="flex flex-row gap-1">{children}</span>
+        </div>
+
+        <CaretRight className="text-text-800" size={24} />
+      </div>
+    );
+  }
+);
+
+interface CardForumProps<T = unknown> extends HTMLAttributes<HTMLDivElement> {
+  title: string;
+  content: string;
+  comments: number;
+  date: string;
+  hour: string;
+  onClickComments?: (value?: T) => void;
+  valueComments?: T;
+  onClickProfile?: (profile?: T) => void;
+  valueProfile?: T;
+}
+
+const CardForum = forwardRef<HTMLDivElement, CardForumProps>(
+  (
+    {
+      title,
+      content,
+      comments,
+      onClickComments,
+      valueComments,
+      onClickProfile,
+      valueProfile,
+      className = '',
+      date,
+      hour,
+      ...props
+    },
+    ref
+  ) => {
+    return (
+      <div
+        ref={ref}
+        className={`w-auto h-auto p-4 rounded-lg flex flex-row gap-3 border border-border-100 bg-background ${className}`}
+        {...props}
+      >
+        <button
+          type="button"
+          aria-label="Ver perfil"
+          onClick={() => onClickProfile?.(valueProfile)}
+          className="min-w-8 h-8 rounded-full bg-background-950"
+        />
+
+        <div className="flex flex-col gap-2 flex-1">
+          <div className="flex flex-row gap-1 items-center flex-wrap">
+            <p className="text-xs font-semibold text-primary-700 truncate">
+              {title}
+            </p>
+            <p className="text-xs text-text-600">
+              • {date} • {hour}
+            </p>
+          </div>
+
+          <p className="text-text-950 text-sm line-clamp-2">{content}</p>
+
+          <button
+            type="button"
+            aria-label="Ver comentários"
+            onClick={() => onClickComments?.(valueComments)}
+            className="text-text-600 flex flex-row gap-2 items-center"
+          >
+            <ChatCircleText aria-hidden="true" size={16} />
+            <p className="text-xs">{comments} respostas</p>
+          </button>
+        </div>
       </div>
     );
   }
@@ -500,4 +633,7 @@ export {
   CardPerformance,
   CardResults,
   CardStatus,
+  CardSettings,
+  CardSupport,
+  CardForum,
 };
