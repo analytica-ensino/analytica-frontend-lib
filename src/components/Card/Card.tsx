@@ -2,7 +2,12 @@ import { forwardRef, Fragment, HTMLAttributes, ReactNode } from 'react';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
-import { CaretRight, CheckCircle, XCircle } from 'phosphor-react';
+import {
+  CaretRight,
+  ChatCircleText,
+  CheckCircle,
+  XCircle,
+} from 'phosphor-react';
 
 interface CardActivesResultsProps extends HTMLAttributes<HTMLDivElement> {
   icon: ReactNode;
@@ -159,9 +164,14 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
           </div>
         </section>
 
-        <Button size="extra-small" onClick={() => onClickButton?.(valueButton)}>
-          {buttonLabel}
-        </Button>
+        <span>
+          <Button
+            size="extra-small"
+            onClick={() => onClickButton?.(valueButton)}
+          >
+            {buttonLabel}
+          </Button>
+        </span>
       </div>
     );
   }
@@ -546,6 +556,75 @@ const CardSupport = forwardRef<HTMLDivElement, CardSupportProps>(
   }
 );
 
+interface CardForumProps<T = unknown> extends HTMLAttributes<HTMLDivElement> {
+  title: string;
+  content: string;
+  comments: number;
+  date: string;
+  hour: string;
+  onClickComments?: (value?: T) => void;
+  valueComments?: T;
+  onClickProfile?: (profile?: T) => void;
+  valueProfile?: T;
+}
+
+const CardForum = forwardRef<HTMLDivElement, CardForumProps>(
+  (
+    {
+      title,
+      content,
+      comments,
+      onClickComments,
+      valueComments,
+      onClickProfile,
+      valueProfile,
+      className = '',
+      date,
+      hour,
+      ...props
+    },
+    ref
+  ) => {
+    return (
+      <div
+        ref={ref}
+        className={`w-auto h-auto p-4 rounded-lg flex flex-row gap-3 border border-border-100 bg-background ${className}`}
+        {...props}
+      >
+        <button
+          type="button"
+          aria-label="Ver perfil"
+          onClick={() => onClickProfile?.(valueProfile)}
+          className="min-w-8 h-8 rounded-full bg-background-950"
+        />
+
+        <div className="flex flex-col gap-2 flex-1">
+          <div className="flex flex-row gap-1 items-center flex-wrap">
+            <p className="text-xs font-semibold text-primary-700 truncate">
+              {title}
+            </p>
+            <p className="text-xs text-text-600">
+              • {date} • {hour}
+            </p>
+          </div>
+
+          <p className="text-text-950 text-sm line-clamp-2">{content}</p>
+
+          <button
+            type="button"
+            aria-label="Ver comentários"
+            onClick={() => onClickComments?.(valueComments)}
+            className="text-text-600 flex flex-row gap-2 items-center"
+          >
+            <ChatCircleText aria-hidden="true" size={16} />
+            <p className="text-xs">{comments} respostas</p>
+          </button>
+        </div>
+      </div>
+    );
+  }
+);
+
 export {
   CardActivesResults,
   CardQuestions,
@@ -556,4 +635,5 @@ export {
   CardStatus,
   CardSettings,
   CardSupport,
+  CardForum,
 };

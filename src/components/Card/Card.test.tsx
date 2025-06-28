@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import {
   CardActivesResults,
+  CardForum,
   CardPerformance,
   CardProgress,
   CardQuestions,
@@ -503,5 +504,73 @@ describe('CardSupport', () => {
   it('should forward extra HTML attributes', () => {
     render(<CardSupport {...baseProps} data-testid="support-container" />);
     expect(screen.getByTestId('support-container')).toBeInTheDocument();
+  });
+});
+
+describe('CardForum', () => {
+  const baseProps = {
+    title: 'Título do Fórum',
+    content: 'Conteúdo do fórum para testes.',
+    comments: 5,
+    date: '01/06/2025',
+    hour: '14:30',
+  };
+
+  it('should render title, content, date, hour and comments', () => {
+    render(<CardForum {...baseProps} />);
+    expect(screen.getByText('Título do Fórum')).toBeInTheDocument();
+    expect(
+      screen.getByText('Conteúdo do fórum para testes.')
+    ).toBeInTheDocument();
+    expect(screen.getByText(/01\/06\/2025/)).toBeInTheDocument();
+    expect(screen.getByText(/14:30/)).toBeInTheDocument();
+    expect(screen.getByText(/5 respostas/)).toBeInTheDocument();
+  });
+
+  it('should apply custom className', () => {
+    render(
+      <CardForum
+        {...baseProps}
+        className="my-custom-class"
+        data-testid="card-forum"
+      />
+    );
+    const card = screen.getByTestId('card-forum');
+    expect(card.className).toContain('my-custom-class');
+  });
+
+  it('should forward extra HTML attributes', () => {
+    render(<CardForum {...baseProps} data-testid="forum-container" />);
+    expect(screen.getByTestId('forum-container')).toBeInTheDocument();
+  });
+
+  it('should call onClickComments with the provided value when clicked', () => {
+    const handleCommentsClick = jest.fn();
+
+    render(
+      <CardForum
+        {...baseProps}
+        onClickComments={handleCommentsClick}
+        valueComments="commentValue"
+      />
+    );
+    const button = screen.getByRole('button', { name: /ver comentários/i });
+    fireEvent.click(button);
+    expect(handleCommentsClick).toHaveBeenCalledWith('commentValue');
+  });
+
+  it('should call onClickProfile with the provided value when clicked', () => {
+    const handleProfileClick = jest.fn();
+
+    render(
+      <CardForum
+        {...baseProps}
+        onClickProfile={handleProfileClick}
+        valueProfile="profileValue"
+      />
+    );
+    const buttons = screen.getAllByRole('button');
+    fireEvent.click(buttons[0]);
+    expect(handleProfileClick).toHaveBeenCalledWith('profileValue');
   });
 });

@@ -2,6 +2,7 @@ import type { Story } from '@ladle/react';
 import { Book, Key, Star } from 'phosphor-react';
 import {
   CardActivesResults,
+  CardForum,
   CardPerformance,
   CardProgress,
   CardQuestions,
@@ -214,6 +215,18 @@ export const AllCardComponentsShowcase: Story = () => {
             Chave
           </Badge>
         </CardSupport>
+      </div>
+
+      <h3 className="font-bold text-2xl text-text-900">Card Forum</h3>
+      <div className="flex flex-row gap-6">
+        <CardForum
+          className="max-w-[380px]"
+          title="Titulo"
+          content="Olá, estudante! Este é um espaço onde você poderá debater, trocar conhecimento e conversar com seus colegas de turma. Basta criar um post para iniciar!"
+          comments={0}
+          date="25 Maio 2025"
+          hour="09:35"
+        />
       </div>
     </div>
   );
