@@ -138,6 +138,9 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
         if (['Enter', ' '].includes(e.key)) handleClick(e);
       },
       tabIndex: disabled ? -1 : 0,
+      onMouseDown: (e: MouseEvent<HTMLLIElement>) => {
+        e.preventDefault();
+      },
       ...props,
     };
 

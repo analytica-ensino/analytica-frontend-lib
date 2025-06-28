@@ -447,4 +447,20 @@ describe('MenuOverflow', () => {
       expect(() => internalScroll(null, 'left')).not.toThrow();
     });
   });
+
+  it('prevents focus on mouse down', () => {
+    render(
+      <Menu defaultValue="home">
+        <MenuItem value="home">Home</MenuItem>
+        <MenuItem value="dashboard">Dashboard</MenuItem>
+      </Menu>
+    );
+
+    const dashboardItem = screen.getByText('Dashboard');
+
+    fireEvent.mouseDown(dashboardItem);
+    fireEvent.click(dashboardItem);
+
+    expect(document.activeElement).not.toBe(dashboardItem);
+  });
 });
