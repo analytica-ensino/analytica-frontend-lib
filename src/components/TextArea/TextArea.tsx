@@ -24,22 +24,18 @@ type TextAreaState = 'default' | 'hovered' | 'focused' | 'invalid' | 'disabled';
  */
 const SIZE_CLASSES = {
   small: {
-    container: 'w-72', // 288px width
     textarea: 'h-24 text-sm', // 96px height, 14px font
     textSize: 'sm' as const,
   },
   medium: {
-    container: 'w-72', // 288px width
     textarea: 'h-24 text-base', // 96px height, 16px font
     textSize: 'md' as const,
   },
   large: {
-    container: 'w-72', // 288px width
     textarea: 'h-24 text-lg', // 96px height, 18px font
     textSize: 'lg' as const,
   },
   extraLarge: {
-    container: 'w-72', // 288px width
     textarea: 'h-24 text-xl', // 96px height, 20px font
     textSize: 'xl' as const,
   },
@@ -188,7 +184,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     const textareaClasses = `${BASE_TEXTAREA_CLASSES} ${sizeClasses.textarea} ${stateClasses.base} ${stateClasses.hover} ${stateClasses.focus} ${className}`;
 
     return (
-      <div className={`flex flex-col ${sizeClasses.container}`}>
+      <div className={`flex flex-col`}>
         {/* Label */}
         {label && (
           <Text
