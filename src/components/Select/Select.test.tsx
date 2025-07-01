@@ -6,6 +6,7 @@ import Select, {
   SelectItem,
   SelectValue,
   getLabelAsNode,
+  createSelectStore,
 } from './Select';
 import React, { ComponentProps } from 'react';
 
@@ -26,6 +27,103 @@ describe('Select component', () => {
       </Select>
     );
   };
+
+  it('should render without errors', () => {
+    setup();
+    expect(screen.getByRole('button')).toBeInTheDocument();
+  });
+
+  it('should render with label', () => {
+    setup({ label: 'Select a fruit' });
+    expect(screen.getByText('Select a fruit')).toBeInTheDocument();
+    expect(screen.getByLabelText('Select a fruit')).toBeInTheDocument();
+  });
+
+  it('should render with helper text', () => {
+    setup({ helperText: 'Choose your preferred option' });
+    expect(
+      screen.getByText('Choose your preferred option')
+    ).toBeInTheDocument();
+  });
+
+  it('should render with error message', () => {
+    setup({ errorMessage: 'This field is required' });
+    expect(screen.getByText('This field is required')).toBeInTheDocument();
+    // Should have warning icon
+    const errorElement = screen
+      .getByText('This field is required')
+      .closest('p');
+    expect(errorElement).toHaveClass('text-indicator-error');
+  });
+
+  it('should render with all text elements', () => {
+    setup({
+      label: 'Category',
+      helperText: 'Select a category for your item',
+      errorMessage: 'Please select a valid category',
+    });
+
+    expect(screen.getByText('Category')).toBeInTheDocument();
+    expect(
+      screen.getByText('Select a category for your item')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Please select a valid category')
+    ).toBeInTheDocument();
+  });
+
+  it('should have correct size classes', () => {
+    // Test each size individually to avoid conflicts
+    const testSize = (
+      size: 'small' | 'medium' | 'large' | 'extra-large',
+      expectedClasses: string[]
+    ) => {
+      const { unmount } = render(
+        <Select size={size}>
+          <SelectTrigger data-testid={`${size}-trigger`}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="option1">Option 1</SelectItem>
+          </SelectContent>
+        </Select>
+      );
+
+      const trigger = screen.getByTestId(`${size}-trigger`);
+      expectedClasses.forEach((className) => {
+        expect(trigger).toHaveClass(className);
+      });
+
+      unmount();
+    };
+
+    testSize('small', ['h-8', 'px-2', 'py-1']);
+    testSize('medium', ['h-9', 'px-3', 'py-2']);
+    testSize('large', ['h-10', 'px-4', 'py-3']);
+    testSize('extra-large', ['h-12', 'px-5', 'py-4']);
+  });
+
+  it('should generate and use unique ID', () => {
+    setup({ label: 'Test Label' });
+    const label = screen.getByText('Test Label');
+    const button = screen.getByRole('button');
+
+    const htmlFor = label.getAttribute('for');
+    const buttonId = button.getAttribute('id');
+
+    expect(htmlFor).toBeTruthy();
+    expect(buttonId).toBeTruthy();
+    expect(htmlFor).toBe(buttonId);
+  });
+
+  it('should use provided ID', () => {
+    setup({ id: 'custom-select-id', label: 'Test Label' });
+    const button = screen.getByRole('button');
+    const label = screen.getByText('Test Label');
+
+    expect(button).toHaveAttribute('id', 'custom-select-id');
+    expect(label).toHaveAttribute('for', 'custom-select-id');
+  });
 
   it('should close when clicking outside', async () => {
     setup();
@@ -168,6 +266,221 @@ describe('Select component', () => {
     );
 
     expect(screen.getByText('Option 1')).toBeInTheDocument();
+  });
+
+  it('should call custom onClick handler on SelectItem', async () => {
+    const customOnClick = jest.fn();
+
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1" onClick={customOnClick}>
+            Option 1
+          </SelectItem>
+          <SelectItem value="option2">Option 2</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByText('Option 1'));
+
+    expect(customOnClick).toHaveBeenCalled();
+  });
+
+  it('should test all SelectContent positioning combinations', async () => {
+    const sides = ['top', 'right', 'bottom', 'left'] as const;
+    const aligns = ['start', 'center', 'end'] as const;
+
+    for (const side of sides) {
+      for (const align of aligns) {
+        const { unmount } = render(
+          <Select>
+            <SelectTrigger data-testid={`trigger-${side}-${align}`}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent side={side} align={align}>
+              <SelectItem value="option1">Option 1</SelectItem>
+            </SelectContent>
+          </Select>
+        );
+
+        await userEvent.click(screen.getByTestId(`trigger-${side}-${align}`));
+        const content = screen
+          .getByText('Option 1')
+          .closest('div')?.parentElement;
+        expect(content).toBeInTheDocument();
+
+        unmount();
+      }
+    }
+  });
+
+  it('should handle SelectItem with custom className', async () => {
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1" className="custom-class">
+            Option 1
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+    const item = screen.getByText('Option 1');
+    expect(item).toHaveClass('custom-class');
+  });
+
+  it('should handle SelectContent with custom className', async () => {
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="custom-content-class">
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+    const content = screen.getByText('Option 1').closest('div')?.parentElement;
+    expect(content).toHaveClass('custom-content-class');
+  });
+
+  it('should handle SelectTrigger with custom className', () => {
+    render(
+      <Select>
+        <SelectTrigger className="custom-trigger-class">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    const trigger = screen.getByRole('button');
+    expect(trigger).toHaveClass('custom-trigger-class');
+  });
+
+  it('should set correct tabIndex for disabled SelectItem', async () => {
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1" disabled>
+            Disabled Option
+          </SelectItem>
+          <SelectItem value="option2">Enabled Option</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+
+    const disabledItem = screen.getByText('Disabled Option');
+    const enabledItem = screen.getByText('Enabled Option');
+
+    expect(disabledItem).toHaveAttribute('tabindex', '-1');
+    expect(enabledItem).toHaveAttribute('tabindex', '0');
+  });
+
+  it('should use default size when not specified', () => {
+    render(
+      <Select>
+        <SelectTrigger data-testid="default-size-trigger">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    const trigger = screen.getByTestId('default-size-trigger');
+    // Should use small size as default (h-8, px-2, py-1) based on Select component default
+    expect(trigger).toHaveClass('h-8', 'px-2', 'py-1');
+  });
+
+  it('should use SelectTrigger default size when used without Select context', () => {
+    // Manually create store to test SelectTrigger independently
+    const store = createSelectStore();
+
+    render(
+      <SelectTrigger store={store} data-testid="standalone-trigger">
+        <SelectValue store={store} />
+      </SelectTrigger>
+    );
+
+    const trigger = screen.getByTestId('standalone-trigger');
+    // Should use medium size as default (h-9, px-3, py-2) based on SelectTrigger component default
+    expect(trigger).toHaveClass('h-9', 'px-3', 'py-2');
+  });
+
+  it('should call onValueChange only when user selects item, not on re-render', () => {
+    const mockOnValueChange = jest.fn();
+
+    const { rerender } = render(
+      <Select onValueChange={mockOnValueChange} value="initial">
+        <SelectTrigger>
+          <SelectValue placeholder="Select an option" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+          <SelectItem value="option2">Option 2</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    // Initial render should not call onValueChange
+    expect(mockOnValueChange).not.toHaveBeenCalled();
+
+    // Re-render with same value should not call onValueChange
+    rerender(
+      <Select onValueChange={mockOnValueChange} value="initial">
+        <SelectTrigger>
+          <SelectValue placeholder="Select an option" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+          <SelectItem value="option2">Option 2</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    expect(mockOnValueChange).not.toHaveBeenCalled();
+
+    // Re-render with different value should not call onValueChange
+    rerender(
+      <Select onValueChange={mockOnValueChange} value="option1">
+        <SelectTrigger>
+          <SelectValue placeholder="Select an option" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+          <SelectItem value="option2">Option 2</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    expect(mockOnValueChange).not.toHaveBeenCalled();
+
+    // Open select and click an item - this should call onValueChange
+    fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByText('Option 2'));
+
+    expect(mockOnValueChange).toHaveBeenCalledTimes(1);
+    expect(mockOnValueChange).toHaveBeenCalledWith('option2');
   });
 });
 
