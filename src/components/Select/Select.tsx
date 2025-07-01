@@ -12,19 +12,35 @@ import {
   isValidElement,
   Children,
   cloneElement,
+  useId,
 } from 'react';
-import { CaretDown, Check } from 'phosphor-react';
+import { CaretDown, Check, WarningCircle } from 'phosphor-react';
 
 const VARIANT_CLASSES = {
-  outlined: 'border rounded-sm focus:border-primary-950',
+  outlined: 'border rounded-lg focus:border-primary-950',
   underlined: 'border-b focus:border-primary-950',
-  rounded: 'border rounded-4xl focus:border-primary-950',
+  rounded: 'border rounded-full focus:border-primary-950',
 } as const;
 
 const SIZE_CLASSES = {
   small: 'text-sm',
   medium: 'text-md',
   large: 'text-lg',
+  'extra-large': 'text-lg',
+} as const;
+
+const HEIGHT_CLASSES = {
+  small: 'h-8',
+  medium: 'h-9',
+  large: 'h-10',
+  'extra-large': 'h-12',
+} as const;
+
+const PADDING_CLASSES = {
+  small: 'px-2 py-1',
+  medium: 'px-3 py-2',
+  large: 'px-4 py-3',
+  'extra-large': 'px-5 py-4',
 } as const;
 
 const SIDE_CLASSES = {
@@ -46,11 +62,14 @@ interface SelectStore {
   setValue: (value: string) => void;
   selectedLabel: ReactNode;
   setSelectedLabel: (label: ReactNode) => void;
+  onValueChange?: (value: string) => void;
 }
 
 type SelectStoreApi = StoreApi<SelectStore>;
 
-export function createSelectStore(): SelectStoreApi {
+export function createSelectStore(
+  onValueChange?: (value: string) => void
+): SelectStoreApi {
   return create<SelectStore>((set) => ({
     open: false,
     setOpen: (open) => set({ open }),
@@ -58,6 +77,7 @@ export function createSelectStore(): SelectStoreApi {
     setValue: (value) => set({ value }),
     selectedLabel: '',
     setSelectedLabel: (label) => set({ selectedLabel: label }),
+    onValueChange,
   }));
 }
 
@@ -87,24 +107,50 @@ interface SelectProps {
   defaultValue?: string;
   value?: string;
   onValueChange?: (value: string) => void;
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | 'extra-large';
+  label?: string;
+  helperText?: string;
+  errorMessage?: string;
+  id?: string;
 }
 
-const injectStore = (children: ReactNode, store: SelectStoreApi): ReactNode => {
+const injectStore = (
+  children: ReactNode,
+  store: SelectStoreApi,
+  size: string,
+  selectId: string
+): ReactNode => {
   return Children.map(children, (child) => {
     if (isValidElement(child)) {
       const typedChild = child as ReactElement<{
         store?: SelectStoreApi;
         children?: ReactNode;
+        size?: string;
+        selectId?: string;
       }>;
 
-      const newProps: Partial<{ store: SelectStoreApi; children: ReactNode }> =
-        {
-          store,
-        };
+      const newProps: Partial<{
+        store: SelectStoreApi;
+        children: ReactNode;
+        size: string;
+        selectId: string;
+      }> = {
+        store,
+      };
+
+      // Only pass size and selectId to SelectTrigger
+      if (typedChild.type === SelectTrigger) {
+        newProps.size = size;
+        newProps.selectId = selectId;
+      }
 
       if (typedChild.props.children) {
-        newProps.children = injectStore(typedChild.props.children, store);
+        newProps.children = injectStore(
+          typedChild.props.children,
+          store,
+          size,
+          selectId
+        );
       }
 
       return cloneElement(typedChild, newProps);
@@ -119,16 +165,21 @@ const Select = ({
   value: propValue,
   onValueChange,
   size = 'small',
+  label,
+  helperText,
+  errorMessage,
+  id,
 }: SelectProps) => {
   const storeRef = useRef<SelectStoreApi | null>(null);
-  storeRef.current ??= createSelectStore();
+  storeRef.current ??= createSelectStore(onValueChange);
   const store = storeRef.current;
 
   const selectRef = useRef<HTMLDivElement>(null);
-  const { open, setOpen, setValue, value, selectedLabel } = useStore(
-    store,
-    (s) => s
-  );
+  const { open, setOpen, setValue, selectedLabel } = useStore(store, (s) => s);
+
+  // Generate unique ID if not provided
+  const generatedId = useId();
+  const selectId = id ?? `select-${generatedId}`;
 
   const findLabelForValue = (
     children: ReactNode,
@@ -212,11 +263,6 @@ const Select = ({
   }, [open]);
 
   useEffect(() => {
-    setValue(value);
-    onValueChange?.(value);
-  }, [value, onValueChange]);
-
-  useEffect(() => {
     if (propValue) {
       setValue(propValue);
       const label = findLabelForValue(children, propValue);
@@ -227,8 +273,31 @@ const Select = ({
   const sizeClasses = SIZE_CLASSES[size];
 
   return (
-    <div className={`relative ${sizeClasses}`} ref={selectRef}>
-      {injectStore(children, store)}
+    <div className="w-full">
+      {/* Label */}
+      {label && (
+        <label
+          htmlFor={selectId}
+          className={`block font-bold text-text-900 mb-1.5 ${sizeClasses}`}
+        >
+          {label}
+        </label>
+      )}
+
+      {/* Select Container */}
+      <div className={`relative ${sizeClasses}`} ref={selectRef}>
+        {injectStore(children, store, size, selectId)}
+      </div>
+
+      {/* Helper Text or Error Message */}
+      <div className="mt-1.5 gap-1.5">
+        {helperText && <p className="text-sm text-text-500">{helperText}</p>}
+        {errorMessage && (
+          <p className="flex gap-1 items-center text-sm text-indicator-error">
+            <WarningCircle size={16} /> {errorMessage}
+          </p>
+        )}
+      </div>
     </div>
   );
 };
@@ -256,6 +325,8 @@ interface SelectTriggerProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   invalid?: boolean;
   variant?: 'outlined' | 'underlined' | 'rounded';
   store?: SelectStoreApi;
+  size?: 'small' | 'medium' | 'large' | 'extra-large';
+  selectId?: string;
 }
 
 const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
@@ -266,6 +337,8 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
       variant = 'outlined',
       store: externalStore,
       disabled,
+      size = 'medium',
+      selectId,
       ...props
     },
     ref
@@ -275,12 +348,16 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
     const toggleOpen = () => store.setState({ open: !open });
 
     const variantClasses = VARIANT_CLASSES[variant];
+    const heightClasses = HEIGHT_CLASSES[size];
+    const paddingClasses = PADDING_CLASSES[size];
 
     return (
       <button
         ref={ref}
+        id={selectId}
         className={`
-        flex h-9 min-w-[220px] w-full items-center justify-between border-border-300 px-3 py-2
+        flex min-w-[220px] w-full items-center justify-between border-border-300
+        ${heightClasses} ${paddingClasses}
         ${invalid && `${variant == 'underlined' ? 'border-b-2' : 'border-2'} border-indicator-error text-text-600`}
         ${
           disabled
@@ -372,6 +449,7 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
       setValue,
       setOpen,
       setSelectedLabel,
+      onValueChange,
     } = useStore(store, (s) => s);
 
     const handleClick = (
@@ -382,6 +460,7 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
         setValue(value);
         setSelectedLabel(labelNode);
         setOpen(false);
+        onValueChange?.(value);
       }
       props.onClick?.(e as MouseEvent<HTMLDivElement>);
     };
