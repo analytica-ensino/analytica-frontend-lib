@@ -151,7 +151,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
           className={`
             w-full flex flex-col gap-0.5 items-center py-1 px-2 rounded-sm font-medium text-xs
             [&>svg]:size-6 cursor-pointer hover:bg-primary-600 hover:text-text
-            focus:outline-none focus:border-2-indicator-info focus:border-2
+            focus:outline-none focus:border-indicator-info focus:border-2
             ${selectedValue === value ? 'bg-primary-50 text-primary-950' : 'text-text-950'}
             ${className ?? ''}
           `}
@@ -164,7 +164,8 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
         <li
           data-variant="menu2"
           className={`
-            flex flex-row items-center p-4 gap-2 border-b-2 border-transparent text-text-950 text-sx font-bold cursor-pointer
+            flex flex-row items-center p-4 gap-2 border-b-2 border-transparent text-text-950 text-sx font-bold cursor-pointer focus:rounded-sm
+            focus:outline-none focus:border-indicator-info focus:border-2
             ${selectedValue === value ? 'border-b-primary-950' : ''}
           `}
           {...commonProps}
@@ -176,7 +177,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
         <li
           data-variant="breadcrumb"
           className={`
-            p-2 rounded-lg hover:text-primary-600 cursor-pointer font-bold text-xs
+            p-2 rounded-lg hover:text-primary-600 cursor-pointer font-bold text-xs 
             focus:outline-none focus:border-indicator-info focus:border-2
             ${selectedValue === value ? 'text-primary-950' : 'text-text-600'}
             ${className ?? ''}
