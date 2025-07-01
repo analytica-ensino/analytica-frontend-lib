@@ -227,7 +227,7 @@ const Select = ({
   const sizeClasses = SIZE_CLASSES[size];
 
   return (
-    <div className={`relative ${sizeClasses} w-[288px]`} ref={selectRef}>
+    <div className={`relative ${sizeClasses}`} ref={selectRef}>
       {injectStore(children, store)}
     </div>
   );
