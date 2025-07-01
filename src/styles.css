@@ -1,5 +1,15 @@
 @import 'tailwindcss';
 
+/* Safelist completo de todas as classes primary (50-950) para garantir disponibilidade */
+@source inline("bg-primary-{50,{100..900..100},950}");
+@source inline("text-primary-{50,{100..900..100},950}");
+@source inline("border-primary-{50,{100..900..100},950}");
+
+/* Também incluindo variantes com hover e focus por precaução */
+@source inline("{hover:,focus:,}bg-primary-{50,{100..900..100},950}");
+@source inline("{hover:,focus:,}text-primary-{50,{100..900..100},950}");
+@source inline("{hover:,focus:,}border-primary-{50,{100..900..100},950}");
+
 @theme {
   --font-sans:
     'Roboto', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
@@ -177,7 +187,7 @@
   --color-subject-15: #a2d7e2;
   --color-subject-16: #badfc8;
   --color-typography-1: #b00c9e;
-  --color-typography-2: #745A07;
+  --color-typography-2: #745a07;
 
   /* Hard Shadow Colors */
   --shadow-hard-shadow-1: -2px 2px 8px rgba(38, 38, 38, 0.2);
@@ -411,7 +421,7 @@
     --color-subject-15: #a2d7e2;
     --color-subject-16: #badfc8;
     --color-typography-1: #b00c9e;
-    --color-typography-2: #745A07;
+    --color-typography-2: #745a07;
 
     /* Hard Shadow Colors */
     --shadow-hard-shadow-1: -2px 2px 8px rgba(255, 255, 255, 0.1);
@@ -600,7 +610,7 @@
     --color-subject-15: #a2d7e2;
     --color-subject-16: #badfc8;
     --color-typography-1: #b00c9e;
-    --color-typography-2: #745A07;
+    --color-typography-2: #745a07;
 
     /* Hard Shadow Colors */
     --shadow-hard-shadow-1: -2px 2px 8px rgba(38, 38, 38, 0.2);
