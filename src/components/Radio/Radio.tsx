@@ -27,7 +27,7 @@ const SIZE_CLASSES = {
     textSize: 'sm' as const,
     spacing: 'gap-1.5',
     borderWidth: 'border-2',
-    dotSize: 'w-2 h-2',
+    dotSize: 'w-2.5 h-2.5',
     labelHeight: 'h-5',
   },
   medium: {
@@ -35,7 +35,7 @@ const SIZE_CLASSES = {
     textSize: 'md' as const,
     spacing: 'gap-2',
     borderWidth: 'border-2',
-    dotSize: 'w-2.5 h-2.5',
+    dotSize: 'w-3 h-3',
     labelHeight: 'h-6',
   },
   large: {
@@ -43,7 +43,7 @@ const SIZE_CLASSES = {
     textSize: 'lg' as const,
     spacing: 'gap-2',
     borderWidth: 'border-2',
-    dotSize: 'w-3 h-3',
+    dotSize: 'w-3.5 h-3.5',
     labelHeight: 'h-7',
   },
   extraLarge: {
@@ -51,7 +51,7 @@ const SIZE_CLASSES = {
     textSize: 'xl' as const,
     spacing: 'gap-3',
     borderWidth: 'border-2',
-    dotSize: 'w-3.5 h-3.5',
+    dotSize: 'w-4 h-4',
     labelHeight: 'h-8',
   },
 } as const;
