@@ -79,7 +79,7 @@ describe('Calendar', () => {
       render(<Calendar variant="selection" selectedDate={selectedDate} />);
 
       const selectedDay = screen.getByText('15');
-      expect(selectedDay).toHaveClass('bg-primary-800', 'text-white');
+      expect(selectedDay).toHaveClass('bg-primary-800', 'text-text');
     });
 
     it('should highlight today correctly in selection variant', () => {

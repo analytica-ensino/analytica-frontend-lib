@@ -7,6 +7,7 @@ import {
   ChangeEvent,
   FocusEvent,
 } from 'react';
+import { WarningCircle } from 'phosphor-react';
 import Text from '../Text/Text';
 
 /**
@@ -214,9 +215,9 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 
         {/* Error message */}
         {errorMessage && (
-          <Text size="sm" weight="normal" className="mt-1.5 text-error-600">
-            {errorMessage}
-          </Text>
+          <p className="flex gap-1 items-center text-sm text-indicator-error mt-1.5">
+            <WarningCircle size={16} /> {errorMessage}
+          </p>
         )}
 
         {/* Helper text */}
