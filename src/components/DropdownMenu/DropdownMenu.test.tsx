@@ -14,7 +14,7 @@ import DropdownMenu, {
 } from './DropdownMenu';
 import {
   DropdownMenuTrigger,
-  MenuContent,
+  DropdownMenuContent,
   DropdownMenuItem,
   MenuLabel,
   DropdownMenuSeparator,
@@ -29,7 +29,7 @@ describe('DropdownMenu component', () => {
       render(
         <DropdownMenu onOpenChange={handleOpenChange}>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-          <MenuContent>Content</MenuContent>
+          <DropdownMenuContent>Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -48,7 +48,7 @@ describe('DropdownMenu component', () => {
       render(
         <DropdownMenu>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-          <MenuContent>Menu Content</MenuContent>
+          <DropdownMenuContent>Menu Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -65,7 +65,7 @@ describe('DropdownMenu component', () => {
       render(
         <DropdownMenu>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-          <MenuContent>Content</MenuContent>
+          <DropdownMenuContent>Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -79,7 +79,7 @@ describe('DropdownMenu component', () => {
         <div>
           <DropdownMenu>
             <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-            <MenuContent>Menu Content</MenuContent>
+            <DropdownMenuContent>Menu Content</DropdownMenuContent>
           </DropdownMenu>
           <button data-testid="outside">Outside</button>
         </div>
@@ -98,9 +98,9 @@ describe('DropdownMenu component', () => {
       render(
         <DropdownMenu>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-          <MenuContent>
+          <DropdownMenuContent>
             <DropdownMenuItem>Inside Item</DropdownMenuItem>
-          </MenuContent>
+          </DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -114,7 +114,7 @@ describe('DropdownMenu component', () => {
       render(
         <DropdownMenu open>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-          <MenuContent>Menu Content</MenuContent>
+          <DropdownMenuContent>Menu Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -132,9 +132,9 @@ describe('DropdownMenu component', () => {
       render(
         <DropdownMenu>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-          <MenuContent>
+          <DropdownMenuContent>
             <DropdownMenuItem onClick={handleClick}>Item 1</DropdownMenuItem>
-          </MenuContent>
+          </DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -151,11 +151,11 @@ describe('DropdownMenu component', () => {
       render(
         <DropdownMenu open>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-          <MenuContent>
+          <DropdownMenuContent>
             <DropdownMenuItem disabled onClick={handleClick}>
               Disabled Item
             </DropdownMenuItem>
-          </MenuContent>
+          </DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -174,9 +174,9 @@ describe('DropdownMenu component', () => {
       render(
         <DropdownMenu>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-          <MenuContent>
+          <DropdownMenuContent>
             <DropdownMenuItem onClick={handleClick}>Item 1</DropdownMenuItem>
-          </MenuContent>
+          </DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -192,11 +192,11 @@ describe('DropdownMenu component', () => {
       render(
         <DropdownMenu>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-          <MenuContent>
+          <DropdownMenuContent>
             <MenuLabel inset data-testid="label-with-inset">
               Label with inset
             </MenuLabel>
-          </MenuContent>
+          </DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -210,11 +210,11 @@ describe('DropdownMenu component', () => {
       render(
         <DropdownMenu>
           <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-          <MenuContent>
+          <DropdownMenuContent>
             <MenuLabel data-testid="label-with-label">Label</MenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Item</DropdownMenuItem>
-          </MenuContent>
+          </DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -225,12 +225,12 @@ describe('DropdownMenu component', () => {
   });
 });
 
-describe('MenuContent direction and positioning', () => {
+describe('DropdownMenuContent direction and positioning', () => {
   it('renders with default position (bottom, start) classes and styles', () => {
     render(
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-        <MenuContent>Content</MenuContent>
+        <DropdownMenuContent>Content</DropdownMenuContent>
       </DropdownMenu>
     );
 
@@ -243,9 +243,9 @@ describe('MenuContent direction and positioning', () => {
     render(
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-        <MenuContent side="top" align="end" sideOffset={10}>
+        <DropdownMenuContent side="top" align="end" sideOffset={10}>
           Content
-        </MenuContent>
+        </DropdownMenuContent>
       </DropdownMenu>
     );
 
@@ -258,9 +258,9 @@ describe('MenuContent direction and positioning', () => {
     render(
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-        <MenuContent side="right" align="center" sideOffset={8}>
+        <DropdownMenuContent side="right" align="center" sideOffset={8}>
           Content
-        </MenuContent>
+        </DropdownMenuContent>
       </DropdownMenu>
     );
 
@@ -274,9 +274,9 @@ describe('MenuContent direction and positioning', () => {
     render(
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-        <MenuContent side="left" align="start" sideOffset={12}>
+        <DropdownMenuContent side="left" align="start" sideOffset={12}>
           Content
-        </MenuContent>
+        </DropdownMenuContent>
       </DropdownMenu>
     );
 
@@ -293,7 +293,7 @@ describe('MenuContent direction and positioning', () => {
         <DropdownMenuTrigger onClick={consumerOnClick}>
           Trigger
         </DropdownMenuTrigger>
-        <MenuContent>Menu Content</MenuContent>
+        <DropdownMenuContent>Menu Content</DropdownMenuContent>
       </DropdownMenu>
     );
 
@@ -308,11 +308,11 @@ describe('MenuContent direction and positioning', () => {
     render(
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-        <MenuContent>
+        <DropdownMenuContent>
           <DropdownMenuItem>Item 1</DropdownMenuItem>
           <DropdownMenuItem>Item 2</DropdownMenuItem>
           <DropdownMenuItem>Item 3</DropdownMenuItem>
-        </MenuContent>
+        </DropdownMenuContent>
       </DropdownMenu>
     );
 
@@ -334,11 +334,11 @@ describe('MenuContent direction and positioning', () => {
     render(
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-        <MenuContent>
+        <DropdownMenuContent>
           <DropdownMenuItem>Item 1</DropdownMenuItem>
           <DropdownMenuItem>Item 2</DropdownMenuItem>
           <DropdownMenuItem>Item 3</DropdownMenuItem>
-        </MenuContent>
+        </DropdownMenuContent>
       </DropdownMenu>
     );
 
@@ -359,10 +359,10 @@ describe('MenuContent direction and positioning', () => {
     render(
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-        <MenuContent>
+        <DropdownMenuContent>
           <DropdownMenuItem>Item 1</DropdownMenuItem>
           <DropdownMenuItem>Item 2</DropdownMenuItem>
-        </MenuContent>
+        </DropdownMenuContent>
       </DropdownMenu>
     );
 
@@ -376,10 +376,10 @@ describe('MenuContent direction and positioning', () => {
     render(
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-        <MenuContent>
+        <DropdownMenuContent>
           <DropdownMenuItem>Item 1</DropdownMenuItem>
           <DropdownMenuItem>Item 2</DropdownMenuItem>
-        </MenuContent>
+        </DropdownMenuContent>
       </DropdownMenu>
     );
 
@@ -394,11 +394,11 @@ describe('MenuContent direction and positioning', () => {
     render(
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-        <MenuContent>
+        <DropdownMenuContent>
           <DropdownMenuItem>Item 1</DropdownMenuItem>
           <DropdownMenuItem disabled>Disabled Item</DropdownMenuItem>
           <DropdownMenuItem>Item 2</DropdownMenuItem>
-        </MenuContent>
+        </DropdownMenuContent>
       </DropdownMenu>
     );
 
@@ -416,10 +416,10 @@ describe('MenuContent direction and positioning', () => {
     render(
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-        <MenuContent>
+        <DropdownMenuContent>
           <DropdownMenuItem disabled>Disabled 1</DropdownMenuItem>
           <DropdownMenuItem disabled>Disabled 2</DropdownMenuItem>
-        </MenuContent>
+        </DropdownMenuContent>
       </DropdownMenu>
     );
 
@@ -436,10 +436,10 @@ describe('MenuContent direction and positioning', () => {
     render(
       <DropdownMenu open>
         <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
-        <MenuContent>
+        <DropdownMenuContent>
           <DropdownMenuItem>Item 1</DropdownMenuItem>
           <DropdownMenuItem>Item 2</DropdownMenuItem>
-        </MenuContent>
+        </DropdownMenuContent>
       </DropdownMenu>
     );
 
@@ -465,7 +465,7 @@ describe('ProfileMenu component', () => {
       render(
         <DropdownMenu onOpenChange={handleOpenChange}>
           <ProfileMenuTrigger />
-          <MenuContent>Content</MenuContent>
+          <DropdownMenuContent>Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -484,7 +484,7 @@ describe('ProfileMenu component', () => {
       render(
         <DropdownMenu>
           <ProfileMenuTrigger />
-          <MenuContent>Menu Content</MenuContent>
+          <DropdownMenuContent>Menu Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -501,7 +501,7 @@ describe('ProfileMenu component', () => {
       render(
         <DropdownMenu>
           <ProfileMenuTrigger />
-          <MenuContent>Content</MenuContent>
+          <DropdownMenuContent>Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -515,7 +515,7 @@ describe('ProfileMenu component', () => {
         <div>
           <DropdownMenu>
             <ProfileMenuTrigger data-testid="trigger" />
-            <MenuContent>Menu Content</MenuContent>
+            <DropdownMenuContent>Menu Content</DropdownMenuContent>
           </DropdownMenu>
           <button data-testid="outside">Outside</button>
         </div>
@@ -534,9 +534,9 @@ describe('ProfileMenu component', () => {
       render(
         <DropdownMenu>
           <ProfileMenuTrigger />
-          <MenuContent>
+          <DropdownMenuContent>
             <DropdownMenuItem variant="profile">Inside Item</DropdownMenuItem>
-          </MenuContent>
+          </DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -550,7 +550,7 @@ describe('ProfileMenu component', () => {
       render(
         <DropdownMenu open>
           <ProfileMenuTrigger />
-          <MenuContent>Menu Content</MenuContent>
+          <DropdownMenuContent>Menu Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -569,11 +569,11 @@ describe('ProfileMenu component', () => {
       render(
         <DropdownMenu>
           <ProfileMenuTrigger />
-          <MenuContent>
+          <DropdownMenuContent>
             <DropdownMenuItem variant="profile" onClick={handleClick}>
               Item 1
             </DropdownMenuItem>
-          </MenuContent>
+          </DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -590,11 +590,11 @@ describe('ProfileMenu component', () => {
       render(
         <DropdownMenu open>
           <ProfileMenuTrigger />
-          <MenuContent>
+          <DropdownMenuContent>
             <DropdownMenuItem variant="profile" disabled onClick={handleClick}>
               Disabled Item
             </DropdownMenuItem>
-          </MenuContent>
+          </DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -613,11 +613,11 @@ describe('ProfileMenu component', () => {
       render(
         <DropdownMenu>
           <ProfileMenuTrigger />
-          <MenuContent>
+          <DropdownMenuContent>
             <DropdownMenuItem variant="profile" onClick={handleClick}>
               Item 1
             </DropdownMenuItem>
-          </MenuContent>
+          </DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -633,13 +633,13 @@ describe('ProfileMenu component', () => {
       render(
         <DropdownMenu open>
           <ProfileMenuTrigger />
-          <MenuContent>
+          <DropdownMenuContent>
             <ProfileMenuHeader
               data-testid="ProfileMenuHeader"
               email="ana@gmail.com"
               name="Ana Paula"
             />
-          </MenuContent>
+          </DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -654,11 +654,11 @@ describe('ProfileMenu component', () => {
       render(
         <DropdownMenu open>
           <ProfileMenuTrigger />
-          <MenuContent>
+          <DropdownMenuContent>
             <ProfileMenuSection data-testid="ProfileMenuSection">
               <DropdownMenuItem variant="profile">Item 1</DropdownMenuItem>
             </ProfileMenuSection>
-          </MenuContent>
+          </DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -673,9 +673,9 @@ describe('ProfileMenu component', () => {
       render(
         <DropdownMenu open>
           <ProfileMenuTrigger />
-          <MenuContent>
+          <DropdownMenuContent>
             <ProfileMenuFooter />
-          </MenuContent>
+          </DropdownMenuContent>
         </DropdownMenu>
       );
 
@@ -691,12 +691,12 @@ describe('ProfileMenu component', () => {
       render(
         <DropdownMenu open>
           <ProfileMenuTrigger />
-          <MenuContent>
+          <DropdownMenuContent>
             <ProfileMenuFooter
               data-testid="footer-button"
               onClick={handleClick}
             />
-          </MenuContent>
+          </DropdownMenuContent>
         </DropdownMenu>
       );
 

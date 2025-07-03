@@ -33,7 +33,7 @@ export const useMenuStore = (externalStore?: MenuStoreApi) => {
   return externalStore;
 };
 
-interface MenuProps extends HTMLAttributes<HTMLUListElement> {
+interface MenuProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   defaultValue: string;
   value?: string;
@@ -43,11 +43,11 @@ interface MenuProps extends HTMLAttributes<HTMLUListElement> {
 
 const VARIANT_CLASSES = {
   menu: 'bg-background shadow-soft-shadow-1',
-  menu2: 'overflow-x-auto scroll-smooth',
+  menu2: '',
   breadcrumb: '',
 };
 
-const Menu = forwardRef<HTMLUListElement, MenuProps>(
+const Menu = forwardRef<HTMLDivElement, MenuProps>(
   (
     {
       className,
@@ -73,9 +73,38 @@ const Menu = forwardRef<HTMLUListElement, MenuProps>(
       onValueChange?.(value);
     }, [value, onValueChange]);
 
-    const baseClasses = 'w-full flex flex-row items-center gap-2 py-2 px-6';
-
+    const baseClasses =
+      'w-full py-2 px-6 flex flex-row items-center justify-center';
     const variantClasses = VARIANT_CLASSES[variant];
+
+    return (
+      <div
+        ref={ref}
+        className={`
+          ${baseClasses}
+          ${variantClasses}
+          ${className ?? ''}
+        `}
+        {...props}
+      >
+        {injectStore(children, store)}
+      </div>
+    );
+  }
+);
+Menu.displayName = 'Menu';
+
+interface MenuContentProps extends HTMLAttributes<HTMLUListElement> {
+  children: ReactNode;
+  variant?: 'menu' | 'menu2' | 'breadcrumb';
+}
+
+const MenuContent = forwardRef<HTMLUListElement, MenuContentProps>(
+  ({ className, children, variant = 'menu', ...props }, ref) => {
+    const baseClasses = 'w-full flex flex-row items-center gap-2';
+
+    const variantClasses =
+      variant === 'menu2' ? 'overflow-x-auto scroll-smooth' : '';
 
     return (
       <ul
@@ -92,12 +121,12 @@ const Menu = forwardRef<HTMLUListElement, MenuProps>(
         }
         {...props}
       >
-        {injectStore(children, store)}
+        {children}
       </ul>
     );
   }
 );
-Menu.displayName = 'Menu';
+MenuContent.displayName = 'MenuContent';
 
 interface MenuItemProps extends HTMLAttributes<HTMLLIElement> {
   value: string;
@@ -253,7 +282,7 @@ export const internalCheckScroll = (
   setShowRightArrow(scrollLeft + clientWidth < scrollWidth);
 };
 
-interface MenuOverflowProps extends HTMLAttributes<HTMLUListElement> {
+interface MenuOverflowProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   defaultValue: string;
   value?: string;
@@ -297,7 +326,7 @@ const MenuOverflow = ({
       {showLeftArrow && (
         <button
           onClick={() => internalScroll(containerRef.current, 'left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md cursor-pointer"
           data-testid="scroll-left-button"
         >
           <CaretLeft size={16} />
@@ -306,20 +335,21 @@ const MenuOverflow = ({
       )}
 
       <Menu
-        ref={containerRef}
-        variant="menu2"
         defaultValue={defaultValue}
         onValueChange={onValueChange}
         value={value}
+        variant="menu2"
         {...props}
       >
-        {children}
+        <MenuContent ref={containerRef} variant="menu2">
+          {children}
+        </MenuContent>
       </Menu>
 
       {showRightArrow && (
         <button
           onClick={() => internalScroll(containerRef.current, 'right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md cursor-pointer"
           data-testid="scroll-right-button"
         >
           <CaretRight size={16} />
@@ -345,4 +375,11 @@ const injectStore = (children: ReactNode, store: MenuStoreApi): ReactNode =>
   });
 
 export default Menu;
-export { Menu, MenuItem, MenuSeparator, MenuOverflow, MenuItemIcon };
+export {
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuSeparator,
+  MenuOverflow,
+  MenuItemIcon,
+};

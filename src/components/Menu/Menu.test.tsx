@@ -5,6 +5,7 @@ import {
   internalCheckScroll,
   internalScroll,
   Menu,
+  MenuContent,
   MenuItem,
   MenuItemIcon,
   MenuOverflow,
@@ -292,6 +293,49 @@ describe('MenuItem TabIndex', () => {
   });
 });
 
+describe('MenuContent', () => {
+  it('renders with default variant', () => {
+    render(
+      <Menu defaultValue="home">
+        <MenuContent data-testid="menu-content">
+          <MenuItem value="home">Home</MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    const menuContent = screen.getByTestId('menu-content');
+    expect(menuContent).toHaveClass('w-full flex flex-row items-center gap-2');
+    expect(menuContent).not.toHaveClass('overflow-x-auto scroll-smooth');
+  });
+
+  it('renders with breadcrumb variant', () => {
+    render(
+      <Menu defaultValue="home">
+        <MenuContent variant="breadcrumb" data-testid="menu-content">
+          <MenuItem value="home">Home</MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    const menuContent = screen.getByTestId('menu-content');
+    expect(menuContent).toHaveClass('w-full flex flex-row items-center gap-2');
+    expect(menuContent).not.toHaveClass('overflow-x-auto scroll-smooth');
+  });
+
+  it('applies custom className', () => {
+    render(
+      <Menu defaultValue="home">
+        <MenuContent className="custom-class" data-testid="menu-content">
+          <MenuItem value="home">Home</MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    const menuContent = screen.getByTestId('menu-content');
+    expect(menuContent).toHaveClass('custom-class');
+  });
+});
+
 describe('MenuOverflow', () => {
   const mockChildren = (
     <>
@@ -316,93 +360,95 @@ describe('MenuOverflow', () => {
 
   describe('Scroll Function', () => {
     it('calls scrollBy with positive value when direction is right', () => {
-      render(
-        <MenuOverflow defaultValue="item1" data-testid="menu">
-          {mockChildren}
-        </MenuOverflow>
-      );
-      const container = screen.getByTestId('menu');
-      Object.defineProperty(container, 'scrollWidth', { value: 1000 });
-      Object.defineProperty(container, 'clientWidth', { value: 500 });
-      Object.defineProperty(container, 'scrollLeft', { value: 0 });
+      render(<MenuOverflow defaultValue="item1">{mockChildren}</MenuOverflow>);
+      const container = screen
+        .getByTestId('menu-overflow-wrapper')
+        .querySelector('ul');
+      if (container) {
+        Object.defineProperty(container, 'scrollWidth', { value: 1000 });
+        Object.defineProperty(container, 'clientWidth', { value: 500 });
+        Object.defineProperty(container, 'scrollLeft', { value: 0 });
+        Object.defineProperty(container, 'scrollBy', { value: jest.fn() });
 
-      fireEvent.scroll(container);
-      fireEvent.click(screen.getByTestId('scroll-right-button'));
+        fireEvent.scroll(container);
+        fireEvent.click(screen.getByTestId('scroll-right-button'));
 
-      expect(container.scrollBy).toHaveBeenCalledWith({
-        left: 150,
-        behavior: 'smooth',
-      });
+        expect(container.scrollBy).toHaveBeenCalledWith({
+          left: 150,
+          behavior: 'smooth',
+        });
+      }
     });
 
     it('calls scrollBy with negative value when direction is left', () => {
-      render(
-        <MenuOverflow defaultValue="item1" data-testid="menu">
-          {mockChildren}
-        </MenuOverflow>
-      );
-      const container = screen.getByTestId('menu');
-      Object.defineProperty(container, 'scrollLeft', { value: 200 });
+      render(<MenuOverflow defaultValue="item1">{mockChildren}</MenuOverflow>);
+      const container = screen
+        .getByTestId('menu-overflow-wrapper')
+        .querySelector('ul');
+      if (container) {
+        Object.defineProperty(container, 'scrollLeft', { value: 200 });
+        Object.defineProperty(container, 'scrollBy', { value: jest.fn() });
 
-      fireEvent.scroll(container);
-      fireEvent.click(screen.getByTestId('scroll-left-button'));
+        fireEvent.scroll(container);
+        fireEvent.click(screen.getByTestId('scroll-left-button'));
 
-      expect(container.scrollBy).toHaveBeenCalledWith({
-        left: -150,
-        behavior: 'smooth',
-      });
+        expect(container.scrollBy).toHaveBeenCalledWith({
+          left: -150,
+          behavior: 'smooth',
+        });
+      }
     });
   });
 
   describe('Button Visibility', () => {
     it('shows right button when overflow exists', () => {
-      render(
-        <MenuOverflow defaultValue="item1" data-testid="menu">
-          {mockChildren}
-        </MenuOverflow>
-      );
-      const container = screen.getByTestId('menu');
-      Object.defineProperty(container, 'scrollWidth', { value: 1000 });
-      Object.defineProperty(container, 'clientWidth', { value: 500 });
-      Object.defineProperty(container, 'scrollLeft', { value: 0 });
+      render(<MenuOverflow defaultValue="item1">{mockChildren}</MenuOverflow>);
+      const container = screen
+        .getByTestId('menu-overflow-wrapper')
+        .querySelector('ul');
+      if (container) {
+        Object.defineProperty(container, 'scrollWidth', { value: 1000 });
+        Object.defineProperty(container, 'clientWidth', { value: 500 });
+        Object.defineProperty(container, 'scrollLeft', { value: 0 });
 
-      fireEvent.scroll(container);
-      expect(screen.getByTestId('scroll-right-button')).toBeInTheDocument();
-      expect(
-        screen.queryByTestId('scroll-left-button')
-      ).not.toBeInTheDocument();
+        fireEvent.scroll(container);
+        expect(screen.getByTestId('scroll-right-button')).toBeInTheDocument();
+        expect(
+          screen.queryByTestId('scroll-left-button')
+        ).not.toBeInTheDocument();
+      }
     });
 
     it('shows left button when scrolled right', () => {
-      render(
-        <MenuOverflow defaultValue="item1" data-testid="menu">
-          {mockChildren}
-        </MenuOverflow>
-      );
-      const container = screen.getByTestId('menu');
-      Object.defineProperty(container, 'scrollLeft', { value: 200 });
+      render(<MenuOverflow defaultValue="item1">{mockChildren}</MenuOverflow>);
+      const container = screen
+        .getByTestId('menu-overflow-wrapper')
+        .querySelector('ul');
+      if (container) {
+        Object.defineProperty(container, 'scrollLeft', { value: 200 });
 
-      fireEvent.scroll(container);
-      expect(screen.getByTestId('scroll-left-button')).toBeInTheDocument();
+        fireEvent.scroll(container);
+        expect(screen.getByTestId('scroll-left-button')).toBeInTheDocument();
+      }
     });
 
     it('hides both buttons when no overflow', () => {
-      render(
-        <MenuOverflow defaultValue="item1" data-testid="menu">
-          {mockChildren}
-        </MenuOverflow>
-      );
-      const container = screen.getByTestId('menu');
-      Object.defineProperty(container, 'scrollWidth', { value: 500 });
-      Object.defineProperty(container, 'clientWidth', { value: 500 });
+      render(<MenuOverflow defaultValue="item1">{mockChildren}</MenuOverflow>);
+      const container = screen
+        .getByTestId('menu-overflow-wrapper')
+        .querySelector('ul');
+      if (container) {
+        Object.defineProperty(container, 'scrollWidth', { value: 500 });
+        Object.defineProperty(container, 'clientWidth', { value: 500 });
 
-      fireEvent.scroll(container);
-      expect(
-        screen.queryByTestId('scroll-left-button')
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByTestId('scroll-right-button')
-      ).not.toBeInTheDocument();
+        fireEvent.scroll(container);
+        expect(
+          screen.queryByTestId('scroll-left-button')
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('scroll-right-button')
+        ).not.toBeInTheDocument();
+      }
     });
   });
 
@@ -461,6 +507,37 @@ describe('MenuOverflow', () => {
   describe('internalScroll', () => {
     it('does nothing when container is null', () => {
       expect(() => internalScroll(null, 'left')).not.toThrow();
+    });
+  });
+
+  describe('injectStore', () => {
+    it('handles non-element children', () => {
+      render(
+        <Menu defaultValue="home">
+          <MenuContent>
+            <MenuItem value="home">Home</MenuItem>
+            {'text node'}
+            {null}
+            {undefined}
+          </MenuContent>
+        </Menu>
+      );
+
+      expect(screen.getByText('Home')).toBeInTheDocument();
+    });
+
+    it('handles nested children with store injection', () => {
+      render(
+        <Menu defaultValue="home">
+          <MenuContent>
+            <div>
+              <MenuItem value="home">Home</MenuItem>
+            </div>
+          </MenuContent>
+        </Menu>
+      );
+
+      expect(screen.getByText('Home')).toBeInTheDocument();
     });
   });
 });

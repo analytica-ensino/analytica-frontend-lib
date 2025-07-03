@@ -32,7 +32,7 @@ import Modal from './components/Modal/Modal';
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
   DropdownMenuTrigger,
-  MenuContent,
+  DropdownMenuContent,
   DropdownMenuItem,
   ProfileMenuTrigger,
   ProfileMenuFooter,
@@ -49,7 +49,12 @@ import Select, {
   SelectItem,
 } from './components/Select/Select';
 
-import Menu, { MenuItem, MenuSeparator } from './components/Menu/Menu';
+import Menu, {
+  MenuItem,
+  MenuSeparator,
+  MenuOverflow,
+  MenuContent,
+} from './components/Menu/Menu';
 
 import {
   CardActivesResults,
@@ -89,7 +94,7 @@ export { Modal };
 // Export DropdownMenu and its sub-components
 export { DropdownMenu };
 export { DropdownMenuTrigger };
-export { MenuContent };
+export { DropdownMenuContent };
 export { DropdownMenuItem };
 export { MenuLabel };
 export { DropdownMenuSeparator };
@@ -106,6 +111,8 @@ export { SelectItem };
 
 export { Menu };
 export { MenuItem };
+export { MenuOverflow };
+export { MenuContent };
 export { MenuSeparator };
 
 export { CardActivesResults };
