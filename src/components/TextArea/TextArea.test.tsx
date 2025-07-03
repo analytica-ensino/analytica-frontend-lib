@@ -319,8 +319,23 @@ describe('TextArea', () => {
 
     it('error message has correct styling', () => {
       render(<TextArea errorMessage="Error message" />);
-      const errorText = screen.getByText('Error message');
-      expect(errorText).toHaveClass('text-error-600');
+      const errorElement = screen.getByText('Error message').closest('p');
+      expect(errorElement).toHaveClass(
+        'flex',
+        'gap-1',
+        'items-center',
+        'text-sm',
+        'text-indicator-error',
+        'mt-1.5'
+      );
+    });
+
+    it('error message displays warning icon', () => {
+      render(<TextArea errorMessage="Error message" />);
+      // Verifica se o ícone existe no container do erro
+      const errorElement = screen.getByText('Error message').parentElement;
+      const svgIcon = errorElement?.querySelector('svg');
+      expect(svgIcon).toBeInTheDocument();
     });
   });
 

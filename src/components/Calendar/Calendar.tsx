@@ -169,7 +169,7 @@ const getDayStyles = (
 
   if (variant === 'selection' && day.isSelected) {
     dayStyle = 'bg-primary-800';
-    textStyle = 'text-white';
+    textStyle = 'text-text';
   } else if (day.isToday) {
     textStyle = 'text-primary-800';
   } else if (
@@ -566,7 +566,7 @@ const Calendar = ({
       </div>
 
       {/* Week days header */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
+      <div className="grid grid-cols-7 mb-2">
         {WEEK_DAYS.map((day) => (
           <div
             key={day}
@@ -578,7 +578,7 @@ const Calendar = ({
       </div>
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7">
         {calendarData.map((day) => {
           // Não renderizar dias que não pertencem ao mês atual
           if (!day.isCurrentMonth) {
@@ -605,9 +605,9 @@ const Calendar = ({
             >
               <button
                 className={`
-                  w-10 h-10
+                  w-9 h-9
                   flex items-center justify-center
-                  text-xl font-normal
+                  text-lg font-normal
                   cursor-pointer
                   rounded-full
                   focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-1
