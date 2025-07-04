@@ -70,7 +70,7 @@ const CardActivesResults = forwardRef<HTMLDivElement, CardActivesResultsProps>(
     return (
       <div
         ref={ref}
-        className={`w-full flex flex-col border border-border-50 bg-background rounded-xl ${className}`}
+        className={`w-full flex flex-col border border-border-50  bg-background rounded-xl ${className}`}
         {...props}
       >
         <div
@@ -237,7 +237,7 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
       <div
         ref={ref}
         className={`
-          w-full flex border border-border-50 rounded-xl
+          w-full flex border border-border-50 bg-background rounded-xl
           ${isHorizontal ? 'flex-row h-20' : 'flex-col'}
           ${className}
         `}
@@ -295,7 +295,7 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
     return (
       <div
         ref={ref}
-        className={`w-full py-2 px-4 flex flex-col justify-center gap-2 border border-border-50 rounded-xl min-h-20 ${className}`}
+        className={`w-full py-2 px-4 flex flex-col justify-center gap-2 bg-background border border-border-50 rounded-xl min-h-20 ${className}`}
         {...props}
       >
         {subHead && (
@@ -410,7 +410,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
       <div
         ref={ref}
         className={`
-          w-full flex border border-border-50 rounded-xl min-h-20 flex-row items-center pr-4
+          w-full flex border border-border-50 bg-background rounded-xl min-h-20 flex-row items-center pr-4
           ${className}
         `}
         {...props}
@@ -471,7 +471,7 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
       <div
         ref={ref}
         className={`
-          w-full flex border border-border-50 rounded-xl min-h-20 flex-row items-center pr-4
+          w-full flex border border-border-50 bg-background rounded-xl min-h-20 flex-row items-center pr-4
           ${className}
         `}
         {...props}
