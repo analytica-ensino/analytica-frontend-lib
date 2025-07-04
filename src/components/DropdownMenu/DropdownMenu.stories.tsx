@@ -11,6 +11,7 @@ import DropdownMenu, {
   ProfileMenuSection,
 } from './DropdownMenu';
 import { Plus, Check, CaretRight, User } from 'phosphor-react';
+import Button from '../Button/Button';
 
 const sizes = ['small', 'medium'] as const;
 
@@ -29,7 +30,9 @@ export const AllDropdownComponents: Story = () => {
           <h3 className="font-bold text-2xl text-text-900">Menu Básico</h3>
           <div className="flex flex-row gap-4">
             <DropdownMenu>
-              <DropdownMenuTrigger>Open Menu</DropdownMenuTrigger>
+              <DropdownMenuTrigger>
+                <Button variant="outline">Open Menu</Button>
+              </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem>
                   <MenuLabel>Item 1</MenuLabel>
@@ -53,7 +56,9 @@ export const AllDropdownComponents: Story = () => {
               <div key={size}>
                 <div className="font-medium text-text-900 mb-2">{size}</div>
                 <DropdownMenu>
-                  <DropdownMenuTrigger>Menu {size}</DropdownMenuTrigger>
+                  <DropdownMenuTrigger>
+                    <Button variant="outline">Menu {size}</Button>
+                  </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem size={size}>
                       <MenuLabel>Item 1 ({size})</MenuLabel>
@@ -76,7 +81,9 @@ export const AllDropdownComponents: Story = () => {
           <h3 className="font-bold text-2xl text-text-900">Com Ícones</h3>
           <div className="flex flex-row gap-4">
             <DropdownMenu>
-              <DropdownMenuTrigger>Menu with Icons</DropdownMenuTrigger>
+              <DropdownMenuTrigger>
+                <Button variant="outline">Menu with Icons</Button>
+              </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem iconLeft={<Plus />}>
                   <MenuLabel>New Item</MenuLabel>
@@ -99,7 +106,9 @@ export const AllDropdownComponents: Story = () => {
           </h3>
           <div className="flex flex-row gap-4">
             <DropdownMenu>
-              <DropdownMenuTrigger>Advanced Menu</DropdownMenuTrigger>
+              <DropdownMenuTrigger>
+                <Button variant="outline">Advanced Menu</Button>
+              </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem>
                   <MenuLabel>Edit</MenuLabel>
@@ -126,7 +135,9 @@ export const AllDropdownComponents: Story = () => {
           </h3>
           <div className="flex flex-row gap-4">
             <DropdownMenu>
-              <DropdownMenuTrigger>Disabled Items</DropdownMenuTrigger>
+              <DropdownMenuTrigger>
+                <Button variant="outline">Disabled Items</Button>
+              </DropdownMenuTrigger>
               <DropdownMenuContent side="top">
                 <DropdownMenuItem>
                   <MenuLabel>Enabled Item</MenuLabel>
@@ -227,7 +238,9 @@ export const AllDropdownComponents: Story = () => {
 // Stories individuais para DropdownMenu genérico
 export const BasicMenu: Story = () => (
   <DropdownMenu>
-    <DropdownMenuTrigger>Open Menu</DropdownMenuTrigger>
+    <DropdownMenuTrigger>
+      <Button variant="outline">Open Menu</Button>
+    </DropdownMenuTrigger>
     <DropdownMenuContent>
       <DropdownMenuItem>
         <MenuLabel>Item 1</MenuLabel>
@@ -244,7 +257,9 @@ export const BasicMenu: Story = () => (
 
 export const MenuWithIcons: Story = () => (
   <DropdownMenu>
-    <DropdownMenuTrigger>Menu with Icons</DropdownMenuTrigger>
+    <DropdownMenuTrigger>
+      <Button variant="outline">Menu with Icons</Button>
+    </DropdownMenuTrigger>
     <DropdownMenuContent>
       <DropdownMenuItem iconLeft={<Plus />}>
         <MenuLabel>New Item</MenuLabel>
@@ -261,7 +276,9 @@ export const MenuWithIcons: Story = () => (
 
 export const MenuWithLabels: Story = () => (
   <DropdownMenu>
-    <DropdownMenuTrigger>Menu with Labels</DropdownMenuTrigger>
+    <DropdownMenuTrigger>
+      <Button variant="outline">Menu with Labels</Button>
+    </DropdownMenuTrigger>
     <DropdownMenuContent>
       <DropdownMenuItem>
         <MenuLabel>Edit</MenuLabel>
@@ -282,7 +299,9 @@ export const MenuWithLabels: Story = () => (
 
 export const DisabledMenuItems: Story = () => (
   <DropdownMenu>
-    <DropdownMenuTrigger>Disabled Items</DropdownMenuTrigger>
+    <DropdownMenuTrigger>
+      <Button variant="outline">Disabled Items</Button>
+    </DropdownMenuTrigger>
     <DropdownMenuContent>
       <DropdownMenuItem>
         <MenuLabel>Enabled Item</MenuLabel>
@@ -300,7 +319,9 @@ export const DisabledMenuItems: Story = () => (
 export const MenuSizes: Story = () => (
   <div className="flex flex-col gap-4">
     <DropdownMenu>
-      <DropdownMenuTrigger>Small Menu</DropdownMenuTrigger>
+      <DropdownMenuTrigger>
+        <Button variant="outline">Small Menu</Button>
+      </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem size="small">
           <MenuLabel>Small Item 1</MenuLabel>
@@ -315,7 +336,9 @@ export const MenuSizes: Story = () => (
     </DropdownMenu>
 
     <DropdownMenu>
-      <DropdownMenuTrigger>Medium Menu</DropdownMenuTrigger>
+      <DropdownMenuTrigger>
+        <Button variant="outline">Medium Menu</Button>
+      </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem size="medium">
           <MenuLabel>Medium Item 1</MenuLabel>

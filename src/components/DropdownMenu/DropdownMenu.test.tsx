@@ -28,12 +28,14 @@ describe('DropdownMenu component', () => {
 
       render(
         <DropdownMenu onOpenChange={handleOpenChange}>
-          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuTrigger data-testid="trigger">
+            Toggle
+          </DropdownMenuTrigger>
           <DropdownMenuContent>Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByTestId('trigger');
 
       fireEvent.click(trigger);
       expect(handleOpenChange).toHaveBeenCalledWith(true);
@@ -47,12 +49,14 @@ describe('DropdownMenu component', () => {
     it('closes on Escape key press', async () => {
       render(
         <DropdownMenu>
-          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuTrigger data-testid="trigger">
+            Toggle
+          </DropdownMenuTrigger>
           <DropdownMenuContent>Menu Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(screen.getByTestId('trigger'));
       expect(screen.getByRole('menu')).toBeInTheDocument();
 
       fireEvent.keyDown(document, { key: 'Escape' });
@@ -64,12 +68,14 @@ describe('DropdownMenu component', () => {
     it('ignores non-Escape key in handleEscape', async () => {
       render(
         <DropdownMenu>
-          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuTrigger data-testid="trigger">
+            Toggle
+          </DropdownMenuTrigger>
           <DropdownMenuContent>Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(screen.getByTestId('trigger'));
       fireEvent.keyDown(document, { key: 'Enter' });
       expect(screen.getByRole('menu')).toBeInTheDocument();
     });
@@ -78,14 +84,16 @@ describe('DropdownMenu component', () => {
       render(
         <div>
           <DropdownMenu>
-            <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+            <DropdownMenuTrigger data-testid="trigger">
+              Toggle
+            </DropdownMenuTrigger>
             <DropdownMenuContent>Menu Content</DropdownMenuContent>
           </DropdownMenu>
           <button data-testid="outside">Outside</button>
         </div>
       );
 
-      fireEvent.click(screen.getByRole('button', { name: 'Toggle' }));
+      fireEvent.click(screen.getByTestId('trigger'));
       expect(screen.getByRole('menu')).toBeInTheDocument();
 
       fireEvent.mouseDown(screen.getByTestId('outside'));
@@ -97,14 +105,16 @@ describe('DropdownMenu component', () => {
     it('does not close on outside click if clicking inside menu', () => {
       render(
         <DropdownMenu>
-          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuTrigger data-testid="trigger">
+            Toggle
+          </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem>Inside Item</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(screen.getByTestId('trigger'));
       const insideItem = screen.getByRole('menuitem');
       fireEvent.mouseDown(insideItem);
       expect(screen.getByRole('menu')).toBeInTheDocument();
@@ -113,12 +123,14 @@ describe('DropdownMenu component', () => {
     it('renders open state correctly when open prop is true', () => {
       render(
         <DropdownMenu open>
-          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuTrigger data-testid="trigger">
+            Toggle
+          </DropdownMenuTrigger>
           <DropdownMenuContent>Menu Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
-      expect(screen.getByRole('button')).toHaveAttribute(
+      expect(screen.getByTestId('trigger')).toHaveAttribute(
         'aria-expanded',
         'true'
       );
@@ -131,14 +143,16 @@ describe('DropdownMenu component', () => {
       const handleClick = jest.fn();
       render(
         <DropdownMenu>
-          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuTrigger data-testid="trigger">
+            Toggle
+          </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={handleClick}>Item 1</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(screen.getByTestId('trigger'));
       const item = screen.getByRole('menuitem');
       expect(item).toHaveTextContent('Item 1');
       fireEvent.click(item);
@@ -150,7 +164,9 @@ describe('DropdownMenu component', () => {
 
       render(
         <DropdownMenu open>
-          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuTrigger data-testid="trigger">
+            Toggle
+          </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem disabled onClick={handleClick}>
               Disabled Item
@@ -173,14 +189,16 @@ describe('DropdownMenu component', () => {
       const handleClick = jest.fn();
       render(
         <DropdownMenu>
-          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuTrigger data-testid="trigger">
+            Toggle
+          </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={handleClick}>Item 1</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(screen.getByTestId('trigger'));
       const item = screen.getByRole('menuitem');
       fireEvent.keyDown(item, { key: 'Enter' });
       expect(handleClick).toHaveBeenCalled();
@@ -191,7 +209,9 @@ describe('DropdownMenu component', () => {
     it('applies inset class when inset prop is true on MenuLabel', () => {
       render(
         <DropdownMenu>
-          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuTrigger data-testid="trigger">
+            Toggle
+          </DropdownMenuTrigger>
           <DropdownMenuContent>
             <MenuLabel inset data-testid="label-with-inset">
               Label with inset
@@ -200,7 +220,7 @@ describe('DropdownMenu component', () => {
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(screen.getByTestId('trigger'));
       const group = screen.getByTestId('label-with-inset');
       expect(group).toHaveClass('pl-8');
       expect(group).toHaveTextContent('Label with inset');
@@ -209,7 +229,9 @@ describe('DropdownMenu component', () => {
     it('renders MenuLabel and DropdownMenuSeparator', () => {
       render(
         <DropdownMenu>
-          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuTrigger data-testid="trigger">
+            Toggle
+          </DropdownMenuTrigger>
           <DropdownMenuContent>
             <MenuLabel data-testid="label-with-label">Label</MenuLabel>
             <DropdownMenuSeparator />
@@ -218,7 +240,7 @@ describe('DropdownMenu component', () => {
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(screen.getByTestId('trigger'));
       expect(screen.getByTestId('label-with-label')).toHaveTextContent('Label');
       expect(screen.getByText('Item')).toBeInTheDocument();
     });
@@ -229,7 +251,7 @@ describe('DropdownMenuContent direction and positioning', () => {
   it('renders with default position (bottom, start) classes and styles', () => {
     render(
       <DropdownMenu open>
-        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <DropdownMenuTrigger data-testid="trigger">Toggle</DropdownMenuTrigger>
         <DropdownMenuContent>Content</DropdownMenuContent>
       </DropdownMenu>
     );
@@ -242,7 +264,7 @@ describe('DropdownMenuContent direction and positioning', () => {
   it('renders with side "top" and align "end"', () => {
     render(
       <DropdownMenu open>
-        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <DropdownMenuTrigger data-testid="trigger">Toggle</DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="end" sideOffset={10}>
           Content
         </DropdownMenuContent>
@@ -257,7 +279,7 @@ describe('DropdownMenuContent direction and positioning', () => {
   it('renders with side "right" and align "center"', () => {
     render(
       <DropdownMenu open>
-        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <DropdownMenuTrigger data-testid="trigger">Toggle</DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="center" sideOffset={8}>
           Content
         </DropdownMenuContent>
@@ -273,7 +295,7 @@ describe('DropdownMenuContent direction and positioning', () => {
   it('renders with side "left" and align "start"', () => {
     render(
       <DropdownMenu open>
-        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <DropdownMenuTrigger data-testid="trigger">Toggle</DropdownMenuTrigger>
         <DropdownMenuContent side="left" align="start" sideOffset={12}>
           Content
         </DropdownMenuContent>
@@ -290,14 +312,14 @@ describe('DropdownMenuContent direction and positioning', () => {
 
     render(
       <DropdownMenu>
-        <DropdownMenuTrigger onClick={consumerOnClick}>
+        <DropdownMenuTrigger data-testid="trigger" onClick={consumerOnClick}>
           Trigger
         </DropdownMenuTrigger>
         <DropdownMenuContent>Menu Content</DropdownMenuContent>
       </DropdownMenu>
     );
 
-    const button = screen.getByRole('button');
+    const button = screen.getByTestId('trigger');
     fireEvent.click(button);
 
     expect(consumerOnClick).toHaveBeenCalled();
@@ -307,7 +329,7 @@ describe('DropdownMenuContent direction and positioning', () => {
   it('navigates through items with ArrowDown', () => {
     render(
       <DropdownMenu open>
-        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <DropdownMenuTrigger data-testid="trigger">Toggle</DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem>Item 1</DropdownMenuItem>
           <DropdownMenuItem>Item 2</DropdownMenuItem>
@@ -333,7 +355,7 @@ describe('DropdownMenuContent direction and positioning', () => {
   it('navigates through items with ArrowUp', () => {
     render(
       <DropdownMenu open>
-        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <DropdownMenuTrigger data-testid="trigger">Toggle</DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem>Item 1</DropdownMenuItem>
           <DropdownMenuItem>Item 2</DropdownMenuItem>
@@ -358,7 +380,7 @@ describe('DropdownMenuContent direction and positioning', () => {
   it('starts from first item when no item is focused and ArrowDown is pressed', () => {
     render(
       <DropdownMenu open>
-        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <DropdownMenuTrigger data-testid="trigger">Toggle</DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem>Item 1</DropdownMenuItem>
           <DropdownMenuItem>Item 2</DropdownMenuItem>
@@ -375,7 +397,7 @@ describe('DropdownMenuContent direction and positioning', () => {
   it('starts from last item when no item is focused and ArrowUp is pressed', () => {
     render(
       <DropdownMenu open>
-        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <DropdownMenuTrigger data-testid="trigger">Toggle</DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem>Item 1</DropdownMenuItem>
           <DropdownMenuItem>Item 2</DropdownMenuItem>
@@ -393,7 +415,7 @@ describe('DropdownMenuContent direction and positioning', () => {
   it('ignores disabled items in navigation', () => {
     render(
       <DropdownMenu open>
-        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <DropdownMenuTrigger data-testid="trigger">Toggle</DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem>Item 1</DropdownMenuItem>
           <DropdownMenuItem disabled>Disabled Item</DropdownMenuItem>
@@ -415,7 +437,7 @@ describe('DropdownMenuContent direction and positioning', () => {
   it('does nothing when there are no enabled items', () => {
     render(
       <DropdownMenu open>
-        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <DropdownMenuTrigger data-testid="trigger">Toggle</DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem disabled>Disabled 1</DropdownMenuItem>
           <DropdownMenuItem disabled>Disabled 2</DropdownMenuItem>
@@ -435,7 +457,7 @@ describe('DropdownMenuContent direction and positioning', () => {
   it('prevents default behavior for ArrowDown/ArrowUp', () => {
     render(
       <DropdownMenu open>
-        <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+        <DropdownMenuTrigger data-testid="trigger">Toggle</DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem>Item 1</DropdownMenuItem>
           <DropdownMenuItem>Item 2</DropdownMenuItem>
@@ -464,12 +486,12 @@ describe('ProfileMenu component', () => {
 
       render(
         <DropdownMenu onOpenChange={handleOpenChange}>
-          <ProfileMenuTrigger />
+          <ProfileMenuTrigger data-testid="trigger" />
           <DropdownMenuContent>Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByTestId('trigger');
 
       fireEvent.click(trigger);
       expect(handleOpenChange).toHaveBeenCalledWith(true);
@@ -483,12 +505,12 @@ describe('ProfileMenu component', () => {
     it('closes on Escape key press', async () => {
       render(
         <DropdownMenu>
-          <ProfileMenuTrigger />
+          <ProfileMenuTrigger data-testid="trigger" />
           <DropdownMenuContent>Menu Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(screen.getByTestId('trigger'));
       expect(screen.getByRole('menu')).toBeInTheDocument();
 
       fireEvent.keyDown(document, { key: 'Escape' });
@@ -500,12 +522,12 @@ describe('ProfileMenu component', () => {
     it('ignores non-Escape key in handleEscape', async () => {
       render(
         <DropdownMenu>
-          <ProfileMenuTrigger />
+          <ProfileMenuTrigger data-testid="trigger" />
           <DropdownMenuContent>Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(screen.getByTestId('trigger'));
       fireEvent.keyDown(document, { key: 'Enter' });
       expect(screen.getByRole('menu')).toBeInTheDocument();
     });
@@ -533,14 +555,14 @@ describe('ProfileMenu component', () => {
     it('does not close on outside click if clicking inside menu', () => {
       render(
         <DropdownMenu>
-          <ProfileMenuTrigger />
+          <ProfileMenuTrigger data-testid="trigger" />
           <DropdownMenuContent>
             <DropdownMenuItem variant="profile">Inside Item</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(screen.getByTestId('trigger'));
       const insideItem = screen.getByRole('menuitem');
       fireEvent.mouseDown(insideItem);
       expect(screen.getByRole('menu')).toBeInTheDocument();
@@ -549,12 +571,12 @@ describe('ProfileMenu component', () => {
     it('renders open state correctly when open prop is true', () => {
       render(
         <DropdownMenu open>
-          <ProfileMenuTrigger />
+          <ProfileMenuTrigger data-testid="trigger" />
           <DropdownMenuContent>Menu Content</DropdownMenuContent>
         </DropdownMenu>
       );
 
-      expect(screen.getByRole('button')).toHaveAttribute(
+      expect(screen.getByTestId('trigger')).toHaveAttribute(
         'aria-expanded',
         'true'
       );
@@ -568,7 +590,7 @@ describe('ProfileMenu component', () => {
       const handleClick = jest.fn();
       render(
         <DropdownMenu>
-          <ProfileMenuTrigger />
+          <ProfileMenuTrigger data-testid="trigger" />
           <DropdownMenuContent>
             <DropdownMenuItem variant="profile" onClick={handleClick}>
               Item 1
@@ -577,7 +599,7 @@ describe('ProfileMenu component', () => {
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(screen.getByTestId('trigger'));
       const item = screen.getByRole('menuitem');
       expect(item).toHaveTextContent('Item 1');
       fireEvent.click(item);
@@ -589,7 +611,7 @@ describe('ProfileMenu component', () => {
 
       render(
         <DropdownMenu open>
-          <ProfileMenuTrigger />
+          <ProfileMenuTrigger data-testid="trigger" />
           <DropdownMenuContent>
             <DropdownMenuItem variant="profile" disabled onClick={handleClick}>
               Disabled Item
@@ -612,7 +634,7 @@ describe('ProfileMenu component', () => {
       const handleClick = jest.fn();
       render(
         <DropdownMenu>
-          <ProfileMenuTrigger />
+          <ProfileMenuTrigger data-testid="trigger" />
           <DropdownMenuContent>
             <DropdownMenuItem variant="profile" onClick={handleClick}>
               Item 1
@@ -621,7 +643,7 @@ describe('ProfileMenu component', () => {
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(screen.getByTestId('trigger'));
       const item = screen.getByRole('menuitem');
       fireEvent.keyDown(item, { key: 'Enter' });
       expect(handleClick).toHaveBeenCalled();
@@ -632,7 +654,7 @@ describe('ProfileMenu component', () => {
     it('renders ProfileMenuHeader with correct content', () => {
       render(
         <DropdownMenu open>
-          <ProfileMenuTrigger />
+          <ProfileMenuTrigger data-testid="trigger" />
           <DropdownMenuContent>
             <ProfileMenuHeader
               data-testid="ProfileMenuHeader"
@@ -653,7 +675,7 @@ describe('ProfileMenu component', () => {
     it('renders ProfileMenuSection with children', () => {
       render(
         <DropdownMenu open>
-          <ProfileMenuTrigger />
+          <ProfileMenuTrigger data-testid="trigger" />
           <DropdownMenuContent>
             <ProfileMenuSection data-testid="ProfileMenuSection">
               <DropdownMenuItem variant="profile">Item 1</DropdownMenuItem>
@@ -672,7 +694,7 @@ describe('ProfileMenu component', () => {
     it('renders ProfileMenuFooter with SignOut button', () => {
       render(
         <DropdownMenu open>
-          <ProfileMenuTrigger />
+          <ProfileMenuTrigger data-testid="trigger" />
           <DropdownMenuContent>
             <ProfileMenuFooter />
           </DropdownMenuContent>
@@ -690,7 +712,7 @@ describe('ProfileMenu component', () => {
 
       render(
         <DropdownMenu open>
-          <ProfileMenuTrigger />
+          <ProfileMenuTrigger data-testid="trigger" />
           <DropdownMenuContent>
             <ProfileMenuFooter
               data-testid="footer-button"
