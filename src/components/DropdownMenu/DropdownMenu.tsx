@@ -240,7 +240,7 @@ const MenuLabel = forwardRef<
 });
 MenuLabel.displayName = 'MenuLabel';
 
-const MenuContent = forwardRef<
+const DropdownMenuContent = forwardRef<
   HTMLDivElement,
   HTMLAttributes<HTMLDivElement> & {
     align?: 'start' | 'center' | 'end';
@@ -310,7 +310,7 @@ const MenuContent = forwardRef<
     );
   }
 );
-MenuContent.displayName = 'MenuContent';
+DropdownMenuContent.displayName = 'DropdownMenuContent';
 
 const DropdownMenuItem = forwardRef<
   HTMLDivElement,
@@ -527,7 +527,7 @@ export default DropdownMenu;
 export {
   // Componentes genéricos
   DropdownMenuTrigger,
-  MenuContent,
+  DropdownMenuContent,
   DropdownMenuItem,
   MenuLabel,
   DropdownMenuSeparator,

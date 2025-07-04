@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react';
 import Menu, {
+  MenuContent,
   MenuItem,
   MenuItemIcon,
   MenuOverflow,
@@ -20,60 +21,64 @@ export const AllMenus: Story = () => {
 
       <div className="flex flex-col gap-8">
         <Menu defaultValue="home">
-          <MenuItem value="home">
-            <House />
-            Painel
-          </MenuItem>
+          <MenuContent className="max-w-[1000px]">
+            <MenuItem value="home">
+              <House />
+              Painel
+            </MenuItem>
 
-          <MenuItem value="simulated">
-            <File />
-            Simulados
-          </MenuItem>
+            <MenuItem value="simulated">
+              <File />
+              Simulados
+            </MenuItem>
 
-          <MenuItem value="lecture">
-            <ChalkboardTeacher />
-            Aulas
-          </MenuItem>
+            <MenuItem value="lecture">
+              <ChalkboardTeacher />
+              Aulas
+            </MenuItem>
 
-          <MenuItem value="performance">
-            <ChartLine />
-            Desempenho
-          </MenuItem>
+            <MenuItem value="performance">
+              <ChartLine />
+              Desempenho
+            </MenuItem>
 
-          <MenuItem value="suport">
-            <Headphones />
-            Suporte
-          </MenuItem>
+            <MenuItem value="suport">
+              <Headphones />
+              Suporte
+            </MenuItem>
+          </MenuContent>
         </Menu>
 
         <Menu defaultValue="home" variant="breadcrumb">
-          <MenuItem variant="breadcrumb" value="home">
-            Painel
-          </MenuItem>
+          <MenuContent>
+            <MenuItem variant="breadcrumb" value="home">
+              Painel
+            </MenuItem>
 
-          <MenuSeparator />
+            <MenuSeparator />
 
-          <MenuItem variant="breadcrumb" value="simulated">
-            Simulados
-          </MenuItem>
+            <MenuItem variant="breadcrumb" value="simulated">
+              Simulados
+            </MenuItem>
 
-          <MenuSeparator />
+            <MenuSeparator />
 
-          <MenuItem variant="breadcrumb" value="lecture">
-            Aulas
-          </MenuItem>
+            <MenuItem variant="breadcrumb" value="lecture">
+              Aulas
+            </MenuItem>
 
-          <MenuSeparator />
+            <MenuSeparator />
 
-          <MenuItem variant="breadcrumb" value="performance">
-            Desempenho
-          </MenuItem>
+            <MenuItem variant="breadcrumb" value="performance">
+              Desempenho
+            </MenuItem>
 
-          <MenuSeparator />
+            <MenuSeparator />
 
-          <MenuItem variant="breadcrumb" value="suport">
-            Suporte
-          </MenuItem>
+            <MenuItem variant="breadcrumb" value="suport">
+              Suporte
+            </MenuItem>
+          </MenuContent>
         </Menu>
 
         <MenuOverflow className="max-w-[500px]" defaultValue="home">
