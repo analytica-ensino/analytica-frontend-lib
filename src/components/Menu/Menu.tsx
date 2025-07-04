@@ -15,6 +15,8 @@ import {
 } from 'react';
 import { CaretLeft, CaretRight } from 'phosphor-react';
 
+type MenuVariant = 'menu' | 'menu2' | 'breadcrumb';
+
 interface MenuStore {
   value: string;
   setValue: (value: string) => void;
@@ -37,7 +39,7 @@ interface MenuProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   defaultValue: string;
   value?: string;
-  variant?: 'menu' | 'menu2' | 'breadcrumb';
+  variant?: MenuVariant;
   onValueChange?: (value: string) => void;
 }
 
@@ -96,7 +98,7 @@ Menu.displayName = 'Menu';
 
 interface MenuContentProps extends HTMLAttributes<HTMLUListElement> {
   children: ReactNode;
-  variant?: 'menu' | 'menu2' | 'breadcrumb';
+  variant?: MenuVariant;
 }
 
 const MenuContent = forwardRef<HTMLUListElement, MenuContentProps>(
@@ -132,7 +134,7 @@ interface MenuItemProps extends HTMLAttributes<HTMLLIElement> {
   value: string;
   disabled?: boolean;
   store?: MenuStoreApi;
-  variant?: 'menu' | 'menu2' | 'breadcrumb';
+  variant?: MenuVariant;
 }
 
 const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
