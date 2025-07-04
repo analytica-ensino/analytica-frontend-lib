@@ -135,7 +135,7 @@ const Badge = ({
         className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`}
         {...props}
       >
-        <Bell size={24} className="text-primary-950" />
+        <Bell size={24} className="text-current" aria-hidden="true" />
 
         {notificationActive && (
           <span

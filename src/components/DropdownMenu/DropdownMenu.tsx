@@ -173,7 +173,7 @@ const DropdownMenuTrigger = ({
   onClick,
   store: externalStore,
   ...props
-}: HTMLAttributes<HTMLButtonElement> & {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
   disabled?: boolean;
   store?: DropdownStoreApi;
 }) => {
@@ -183,8 +183,7 @@ const DropdownMenuTrigger = ({
   const toggleOpen = () => store.setState({ open: !open });
 
   return (
-    <Button
-      variant="outline"
+    <button
       onClick={(e) => {
         e.stopPropagation();
         toggleOpen();
@@ -195,7 +194,7 @@ const DropdownMenuTrigger = ({
       {...props}
     >
       {children}
-    </Button>
+    </button>
   );
 };
 DropdownMenuTrigger.displayName = 'DropdownMenuTrigger';
