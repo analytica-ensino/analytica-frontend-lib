@@ -71,9 +71,18 @@ const Menu = forwardRef<HTMLDivElement, MenuProps>(
       setValue(propValue ?? defaultValue);
     }, [defaultValue, propValue, setValue]);
 
+    const onValueChangeRef = useRef(onValueChange);
+    const isInitializedRef = useRef(false);
+    onValueChangeRef.current = onValueChange;
+
     useEffect(() => {
-      onValueChange?.(value);
-    }, [value, onValueChange]);
+      // Só chama onValueChange se não for a inicialização
+      if (isInitializedRef.current) {
+        onValueChangeRef.current?.(value);
+      } else {
+        isInitializedRef.current = true;
+      }
+    }, [value]);
 
     const baseClasses =
       'w-full py-2 px-6 flex flex-row items-center justify-center';
