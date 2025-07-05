@@ -462,7 +462,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
 
 interface CardStatusProps extends HTMLAttributes<HTMLDivElement> {
   header: string;
-  status: 'correct' | 'incorrect';
+  status?: 'correct' | 'incorrect';
 }
 
 const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
@@ -482,18 +482,20 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
           `}
         >
           <p className="text-xs font-bold text-text-950">{header}</p>
-          <span className="flex flex-row gap-1 items-center">
-            <Badge
-              action={status == 'correct' ? 'success' : 'error'}
-              variant="solid"
-              size="medium"
-              iconLeft={<CheckCircle />}
-            >
-              {status == 'correct' ? 'Correta' : 'Incorreta'}
-            </Badge>
+          {status && (
+            <span className="flex flex-row gap-1 items-center">
+              <Badge
+                action={status == 'correct' ? 'success' : 'error'}
+                variant="solid"
+                size="medium"
+                iconLeft={<CheckCircle />}
+              >
+                {status == 'correct' ? 'Correta' : 'Incorreta'}
+              </Badge>
 
-            <p className="text-sm text-text-800">Respondida</p>
-          </span>
+              <p className="text-sm text-text-800">Respondida</p>
+            </span>
+          )}
         </div>
 
         <CaretRight className="min-w-6 min-h-6 text-text-800" />

@@ -183,6 +183,8 @@ export const AllCardComponentsShowcase: Story = () => {
           header="Header"
           status="incorrect"
         />
+
+        <CardStatus className="max-w-[500px]" header="Header" />
       </div>
 
       <h3 className="font-bold text-2xl text-text-900">Card Settings</h3>
