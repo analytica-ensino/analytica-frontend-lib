@@ -195,9 +195,10 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
         <li
           data-variant="menu2"
           className={`
-            flex flex-row items-center p-4 gap-2 border-b-2 border-transparent text-text-950 text-sx font-bold cursor-pointer focus:rounded-sm
+            w-full flex flex-row items-center p-4 gap-2 border-b-4 border-transparent text-text-950 text-sx font-bold cursor-pointer focus:rounded-sm
             focus:outline-none focus:border-indicator-info focus:border-2
             ${selectedValue === value ? 'border-b-primary-950' : ''}
+            ${className ?? ''}
           `}
           {...commonProps}
         >
@@ -208,7 +209,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
         <li
           data-variant="breadcrumb"
           className={`
-            p-2 rounded-lg hover:text-primary-600 cursor-pointer font-bold text-xs 
+            w-full p-2 rounded-lg hover:text-primary-600 cursor-pointer font-bold text-xs 
             focus:outline-none focus:border-indicator-info focus:border-2
             ${selectedValue === value ? 'text-primary-950' : 'text-text-600'}
             ${className ?? ''}

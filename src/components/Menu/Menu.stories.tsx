@@ -49,7 +49,11 @@ export const AllMenus: Story = () => {
           </MenuContent>
         </Menu>
 
-        <Menu defaultValue="home" variant="breadcrumb">
+        <Menu
+          defaultValue="home"
+          variant="breadcrumb"
+          className="max-w-[500px]"
+        >
           <MenuContent>
             <MenuItem variant="breadcrumb" value="home">
               Painel
