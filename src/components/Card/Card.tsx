@@ -237,7 +237,7 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
       <div
         ref={ref}
         className={`
-          w-full flex border border-border-50 bg-background rounded-xl
+          w-full flex border border-border-50 bg-background rounded-xl cursor-pointer
           ${isHorizontal ? 'flex-row h-20' : 'flex-col'}
           ${className}
         `}
@@ -295,7 +295,7 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
     return (
       <div
         ref={ref}
-        className={`w-full py-2 px-4 flex flex-col justify-center gap-2 bg-background border border-border-50 rounded-xl min-h-20 ${className}`}
+        className={`cursor-pointer w-full py-2 px-4 flex flex-col justify-center gap-2 bg-background border border-border-50 rounded-xl min-h-20 ${className}`}
         {...props}
       >
         {subHead && (
@@ -371,7 +371,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
 
         {!hasProgress && (
           <CaretRight
-            className="size-4.5 text-text-800"
+            className="size-4.5 text-text-800 cursor-pointer"
             data-testid="caret-icon"
             onClick={() => onClickButton?.(valueButton)}
           />
@@ -454,7 +454,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
           </span>
         </div>
 
-        <CaretRight className="min-w-6 min-h-6 text-text-800" />
+        <CaretRight className="min-w-6 min-h-6 text-text-800 cursor-pointer" />
       </div>
     );
   }
@@ -498,7 +498,7 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
           )}
         </div>
 
-        <CaretRight className="min-w-6 min-h-6 text-text-800" />
+        <CaretRight className="min-w-6 min-h-6 text-text-800 cursor-pointer" />
       </div>
     );
   }
@@ -521,7 +521,7 @@ const CardSettings = forwardRef<HTMLDivElement, CardSettingsProps>(
 
         <p className="w-full text-md">{header}</p>
 
-        <CaretRight size={24} />
+        <CaretRight size={24} className='cursor-pointer'/>
       </div>
     );
   }
@@ -552,7 +552,7 @@ const CardSupport = forwardRef<HTMLDivElement, CardSupportProps>(
           <span className="flex flex-row gap-1">{children}</span>
         </div>
 
-        <CaretRight className="text-text-800" size={24} />
+        <CaretRight className="text-text-800 cursor-pointer" size={24} />
       </div>
     );
   }
