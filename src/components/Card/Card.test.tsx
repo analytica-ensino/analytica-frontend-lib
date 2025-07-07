@@ -721,11 +721,11 @@ describe('CardAudio', () => {
     render(<CardAudio {...baseProps} />);
 
     const progressBar = screen.getByTestId('progress-bar');
-    const progressContainer = progressBar.querySelector('div');
+    const progressButton = progressBar.querySelector('button');
 
-    if (progressContainer) {
+    if (progressButton) {
       // Mock getBoundingClientRect
-      Object.defineProperty(progressContainer, 'getBoundingClientRect', {
+      Object.defineProperty(progressButton, 'getBoundingClientRect', {
         value: () => ({
           left: 0,
           top: 0,
@@ -734,7 +734,7 @@ describe('CardAudio', () => {
         }),
       });
 
-      fireEvent.click(progressContainer);
+      fireEvent.click(progressButton);
     }
 
     expect(progressBar).toBeInTheDocument();
@@ -865,13 +865,6 @@ describe('CardAudio', () => {
     expect(menuIcon?.tagName).toBe('svg');
   });
 
-  it('should handle autoPlay prop', () => {
-    render(<CardAudio {...baseProps} autoPlay />);
-
-    const audio = screen.getByTestId('audio-element');
-    expect(audio).toHaveAttribute('autoplay');
-  });
-
   it('should handle loop prop', () => {
     render(<CardAudio {...baseProps} loop />);
 
@@ -914,7 +907,7 @@ describe('CardAudio', () => {
     });
     fireEvent.click(volumeButton);
 
-    const volumeControl = screen.getByRole('slider').closest('div');
+    const volumeControl = screen.getByRole('slider').closest('button');
     expect(volumeControl).toHaveClass('absolute', 'bottom-full', 'right-0');
   });
 
@@ -943,11 +936,11 @@ describe('CardAudio', () => {
     Object.defineProperty(audio, 'duration', { value: 100 });
 
     const progressBar = screen.getByTestId('progress-bar');
-    const progressContainer = progressBar.querySelector('div');
+    const progressButton = progressBar.querySelector('button');
 
-    if (progressContainer) {
+    if (progressButton) {
       // Mock getBoundingClientRect
-      Object.defineProperty(progressContainer, 'getBoundingClientRect', {
+      Object.defineProperty(progressButton, 'getBoundingClientRect', {
         value: () => ({
           left: 0,
           top: 0,
@@ -962,7 +955,7 @@ describe('CardAudio', () => {
         clientY: 5,
       });
 
-      fireEvent(progressContainer, clickEvent);
+      fireEvent(progressButton, clickEvent);
     }
 
     expect(progressBar).toBeInTheDocument();
@@ -1155,14 +1148,14 @@ describe('CardAudio', () => {
         configurable: true,
       });
       const progressBar = screen.getByTestId('progress-bar');
-      const progressContainer = progressBar.querySelector('div');
-      if (progressContainer) {
-        Object.defineProperty(progressContainer, 'getBoundingClientRect', {
+      const progressButton = progressBar.querySelector('button');
+      if (progressButton) {
+        Object.defineProperty(progressButton, 'getBoundingClientRect', {
           value: () => ({ left: 0, top: 0, width: 100, height: 10 }),
         });
         // Simula clique em 25% da barra
         const clickEvent = new MouseEvent('click', { clientX: 25, clientY: 5 });
-        fireEvent(progressContainer, clickEvent);
+        fireEvent(progressButton, clickEvent);
 
         // Mocka o valor de currentTime para 25 e dispara timeUpdate
         Object.defineProperty(audio, 'currentTime', {
@@ -1183,10 +1176,10 @@ describe('CardAudio', () => {
         configurable: true,
       });
       const progressBar = screen.getByTestId('progress-bar');
-      const progressContainer = progressBar.querySelector('div');
+      const progressButton = progressBar.querySelector('button');
 
-      if (progressContainer) {
-        Object.defineProperty(progressContainer, 'getBoundingClientRect', {
+      if (progressButton) {
+        Object.defineProperty(progressButton, 'getBoundingClientRect', {
           value: () => ({ left: 0, top: 0, width: 100, height: 10 }),
         });
 
@@ -1198,10 +1191,10 @@ describe('CardAudio', () => {
         });
 
         // Simula pressionar Enter na barra de progresso
-        fireEvent.keyDown(progressContainer, { key: 'Enter' });
+        fireEvent.keyDown(progressButton, { key: 'Enter' });
 
         // Verifica se o evento foi processado (não deve lançar erro)
-        expect(progressContainer).toBeInTheDocument();
+        expect(progressButton).toBeInTheDocument();
       }
     });
 
@@ -1213,10 +1206,10 @@ describe('CardAudio', () => {
         configurable: true,
       });
       const progressBar = screen.getByTestId('progress-bar');
-      const progressContainer = progressBar.querySelector('div');
+      const progressButton = progressBar.querySelector('button');
 
-      if (progressContainer) {
-        Object.defineProperty(progressContainer, 'getBoundingClientRect', {
+      if (progressButton) {
+        Object.defineProperty(progressButton, 'getBoundingClientRect', {
           value: () => ({ left: 0, top: 0, width: 100, height: 10 }),
         });
 
@@ -1228,10 +1221,10 @@ describe('CardAudio', () => {
         });
 
         // Simula pressionar Space na barra de progresso
-        fireEvent.keyDown(progressContainer, { key: ' ' });
+        fireEvent.keyDown(progressButton, { key: ' ' });
 
         // Verifica se o evento foi processado (não deve lançar erro)
-        expect(progressContainer).toBeInTheDocument();
+        expect(progressButton).toBeInTheDocument();
       }
     });
 
@@ -1243,17 +1236,17 @@ describe('CardAudio', () => {
         configurable: true,
       });
       const progressBar = screen.getByTestId('progress-bar');
-      const progressContainer = progressBar.querySelector('div');
+      const progressButton = progressBar.querySelector('button');
 
-      if (progressContainer) {
-        Object.defineProperty(progressContainer, 'getBoundingClientRect', {
+      if (progressButton) {
+        Object.defineProperty(progressButton, 'getBoundingClientRect', {
           value: () => ({ left: 0, top: 0, width: 100, height: 10 }),
         });
 
         // Simula pressionar outras teclas que não devem executar handleProgressClick
-        fireEvent.keyDown(progressContainer, { key: 'ArrowRight' });
-        fireEvent.keyDown(progressContainer, { key: 'Tab' });
-        fireEvent.keyDown(progressContainer, { key: 'Escape' });
+        fireEvent.keyDown(progressButton, { key: 'ArrowRight' });
+        fireEvent.keyDown(progressButton, { key: 'Tab' });
+        fireEvent.keyDown(progressButton, { key: 'Escape' });
 
         // O tempo deve permanecer inalterado
         expect(screen.getAllByText('0:00').length).toBeGreaterThan(0);
@@ -1263,12 +1256,11 @@ describe('CardAudio', () => {
     it('barra de progresso tem atributos de acessibilidade corretos', () => {
       render(<CardAudio src="audio.mp3" />);
       const progressBar = screen.getByTestId('progress-bar');
-      const progressContainer = progressBar.querySelector('div');
+      const progressButton = progressBar.querySelector('button');
 
-      if (progressContainer) {
-        expect(progressContainer).toHaveAttribute('role', 'button');
-        expect(progressContainer).toHaveAttribute('tabIndex', '0');
-        expect(progressContainer).toHaveAttribute(
+      if (progressButton) {
+        expect(progressButton).toHaveAttribute('type', 'button');
+        expect(progressButton).toHaveAttribute(
           'aria-label',
           'Barra de progresso do áudio'
         );
@@ -1317,7 +1309,7 @@ describe('CardAudio', () => {
         name: /controle de volume/i,
       });
       fireEvent.click(volumeButton);
-      const popup = screen.getByRole('slider').closest('div');
+      const popup = screen.getByRole('slider').closest('button');
       expect(popup).toBeInTheDocument();
       fireEvent.keyDown(popup!, { key: 'Escape' });
       // O controle de volume deve sumir
@@ -1359,6 +1351,90 @@ describe('CardAudio', () => {
       expect(slider).toHaveAttribute('aria-valuenow');
       expect(slider).toHaveAttribute('aria-valuemin', '0');
       expect(slider).toHaveAttribute('aria-valuemax', '100');
+    });
+
+    it('renderiza tracks de legendas quando fornecidos', () => {
+      const tracks = [
+        {
+          kind: 'subtitles' as const,
+          src: 'subtitles-pt.vtt',
+          srcLang: 'pt',
+          label: 'Português',
+          default: true,
+        },
+        {
+          kind: 'captions' as const,
+          src: 'captions-en.vtt',
+          srcLang: 'en',
+          label: 'English',
+        },
+      ];
+
+      render(<CardAudio src="audio.mp3" tracks={tracks} />);
+      const audio = screen.getByTestId('audio-element');
+
+      // Verifica se os elementos track foram renderizados
+      const trackElements = audio.querySelectorAll('track');
+      expect(trackElements).toHaveLength(2);
+
+      // Verifica o primeiro track (legendas em português)
+      const firstTrack = trackElements[0];
+      expect(firstTrack).toHaveAttribute('kind', 'subtitles');
+      expect(firstTrack).toHaveAttribute('src', 'subtitles-pt.vtt');
+      expect(firstTrack).toHaveAttribute('srcLang', 'pt');
+      expect(firstTrack).toHaveAttribute('label', 'Português');
+      expect(firstTrack).toHaveAttribute('default');
+
+      // Verifica o segundo track (legendas em inglês)
+      const secondTrack = trackElements[1];
+      expect(secondTrack).toHaveAttribute('kind', 'captions');
+      expect(secondTrack).toHaveAttribute('src', 'captions-en.vtt');
+      expect(secondTrack).toHaveAttribute('srcLang', 'en');
+      expect(secondTrack).toHaveAttribute('label', 'English');
+      expect(secondTrack).not.toHaveAttribute('default');
+    });
+
+    it('não renderiza tracks quando não fornecidos', () => {
+      render(<CardAudio src="audio.mp3" />);
+      const audio = screen.getByTestId('audio-element');
+
+      // Verifica que não há elementos track
+      const trackElements = audio.querySelectorAll('track');
+      expect(trackElements).toHaveLength(0);
+    });
+
+    it('renderiza tracks com diferentes tipos de kind', () => {
+      const tracks = [
+        {
+          kind: 'descriptions' as const,
+          src: 'descriptions.vtt',
+          srcLang: 'pt',
+          label: 'Descrições',
+        },
+        {
+          kind: 'chapters' as const,
+          src: 'chapters.vtt',
+          srcLang: 'pt',
+          label: 'Capítulos',
+        },
+        {
+          kind: 'metadata' as const,
+          src: 'metadata.vtt',
+          srcLang: 'pt',
+          label: 'Metadados',
+        },
+      ];
+
+      render(<CardAudio src="audio.mp3" tracks={tracks} />);
+      const audio = screen.getByTestId('audio-element');
+
+      const trackElements = audio.querySelectorAll('track');
+      expect(trackElements).toHaveLength(3);
+
+      // Verifica se cada tipo de track foi renderizado corretamente
+      expect(trackElements[0]).toHaveAttribute('kind', 'descriptions');
+      expect(trackElements[1]).toHaveAttribute('kind', 'chapters');
+      expect(trackElements[2]).toHaveAttribute('kind', 'metadata');
     });
   });
 });

@@ -17,6 +17,9 @@ import {
   CheckCircle,
   DotsThreeVertical,
   Play,
+  SpeakerHigh,
+  SpeakerLow,
+  SpeakerSimpleX,
   XCircle,
 } from 'phosphor-react';
 
@@ -645,9 +648,15 @@ interface CardAudioProps extends HTMLAttributes<HTMLDivElement> {
   onPause?: () => void;
   onEnded?: () => void;
   onAudioTimeUpdate?: (currentTime: number, duration: number) => void;
-  autoPlay?: boolean;
   loop?: boolean;
   preload?: 'none' | 'metadata' | 'auto';
+  tracks?: Array<{
+    kind: 'subtitles' | 'captions' | 'descriptions' | 'chapters' | 'metadata';
+    src: string;
+    srcLang: string;
+    label: string;
+    default?: boolean;
+  }>;
 }
 
 const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
@@ -659,9 +668,9 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
       onPause,
       onEnded,
       onAudioTimeUpdate,
-      autoPlay = false,
       loop = false,
       preload = 'metadata',
+      tracks,
       className,
       ...props
     },
@@ -711,7 +720,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
       onEnded?.();
     };
 
-    const handleProgressClick = (e: MouseEvent<HTMLDivElement>) => {
+    const handleProgressClick = (e: MouseEvent<HTMLButtonElement>) => {
       const rect = e.currentTarget.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const width = rect.width;
@@ -736,6 +745,16 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
       setShowVolumeControl(!showVolumeControl);
     };
 
+    const getVolumeIcon = () => {
+      if (volume === 0) {
+        return <SpeakerSimpleX />;
+      }
+      if (volume < 0.5) {
+        return <SpeakerLow />;
+      }
+      return <SpeakerHigh />;
+    };
+
     return (
       <div
         ref={ref}
@@ -746,7 +765,6 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
         <audio
           ref={audioRef}
           src={src}
-          autoPlay={autoPlay}
           loop={loop}
           preload={preload}
           onTimeUpdate={handleTimeUpdate}
@@ -754,7 +772,19 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
           onEnded={handleEnded}
           data-testid="audio-element"
           aria-label={title}
-        />
+        >
+          {tracks &&
+            tracks.map((track) => (
+              <track
+                key={track.src}
+                kind={track.kind}
+                src={track.src}
+                srcLang={track.srcLang}
+                label={track.label}
+                default={track.default}
+              />
+            ))}
+        </audio>
 
         {/* Play/Pause Button */}
         <button
@@ -783,17 +813,18 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
 
         {/* Progress Bar */}
         <div className="flex-1 relative" data-testid="progress-bar">
-          <div
+          <button
+            type="button"
             className="w-full h-2 bg-border-100 rounded-full cursor-pointer"
             onClick={handleProgressClick}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                handleProgressClick(e as unknown as MouseEvent<HTMLDivElement>);
+                handleProgressClick(
+                  e as unknown as MouseEvent<HTMLButtonElement>
+                );
               }
             }}
-            role="button"
-            tabIndex={0}
             aria-label="Barra de progresso do áudio"
           >
             <div
@@ -803,7 +834,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
                   duration > 0 ? `${(currentTime / duration) * 100}%` : '0%',
               }}
             />
-          </div>
+          </button>
         </div>
 
         {/* Duration */}
@@ -819,35 +850,15 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
             className="cursor-pointer text-text-950 hover:text-primary-600"
             aria-label="Controle de volume"
           >
-            {volume === 0 ? (
-              <div className="w-6 h-6 flex items-center justify-center">
-                <div className="relative">
-                  <div className="w-4 h-4 border-2 border-current rounded-sm"></div>
-                  <div className="absolute top-1/2 left-1/2 w-0.5 h-6 bg-current transform -translate-x-1/2 -translate-y-1/2 rotate-45"></div>
-                </div>
-              </div>
-            ) : volume < 0.5 ? (
-              <div className="w-6 h-6 flex items-center justify-center">
-                <div className="flex items-end gap-0.5">
-                  <div className="w-1 h-2 bg-current rounded-sm"></div>
-                  <div className="w-1 h-3 bg-current rounded-sm"></div>
-                </div>
-              </div>
-            ) : (
-              <div className="w-6 h-6 flex items-center justify-center">
-                <div className="flex items-end gap-0.5">
-                  <div className="w-1 h-2 bg-current rounded-sm"></div>
-                  <div className="w-1 h-3 bg-current rounded-sm"></div>
-                  <div className="w-1 h-4 bg-current rounded-sm"></div>
-                </div>
-              </div>
-            )}
+            <div className="w-6 h-6 flex items-center justify-center">
+              {getVolumeIcon()}
+            </div>
           </button>
 
           {showVolumeControl && (
-            <div
-              className="absolute bottom-full right-0 mb-2 p-2 bg-background border border-border-100 rounded-lg shadow-lg"
-              tabIndex={0}
+            <button
+              type="button"
+              className="absolute bottom-full right-0 mb-2 p-2 bg-background border border-border-100 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               onKeyDown={(e) => {
                 if (e.key === 'Escape') {
                   setShowVolumeControl(false);
@@ -889,7 +900,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
                 aria-valuemin={0}
                 aria-valuemax={100}
               />
-            </div>
+            </button>
           )}
         </div>
 

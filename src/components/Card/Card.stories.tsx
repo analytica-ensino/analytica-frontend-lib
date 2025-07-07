@@ -252,15 +252,6 @@ export const AllCardComponentsShowcase: Story = () => {
         </div>
 
         <div className="flex flex-col gap-2">
-          <h4 className="font-bold text-xl text-text-900">Com autoplay</h4>
-          <CardAudio
-            src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"
-            autoPlay
-            title="Áudio com autoplay"
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
           <h4 className="font-bold text-xl text-text-900">Com loop</h4>
           <CardAudio
             src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"
