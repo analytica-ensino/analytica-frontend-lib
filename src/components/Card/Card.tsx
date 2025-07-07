@@ -789,7 +789,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                handleProgressClick(e as any);
+                handleProgressClick(e as unknown as MouseEvent<HTMLDivElement>);
               }
             }}
             role="button"
@@ -845,7 +845,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
           </button>
 
           {showVolumeControl && (
-            <div 
+            <div
               className="absolute bottom-full right-0 mb-2 p-2 bg-background border border-border-100 rounded-lg shadow-lg"
               tabIndex={0}
               onKeyDown={(e) => {
@@ -864,12 +864,18 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
                 onKeyDown={(e) => {
                   if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
                     e.preventDefault();
-                    const newVolume = Math.min(1, Math.round((volume + 0.1) * 10) / 10);
+                    const newVolume = Math.min(
+                      1,
+                      Math.round((volume + 0.1) * 10) / 10
+                    );
                     setVolume(newVolume);
                     if (audioRef.current) audioRef.current.volume = newVolume;
                   } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
                     e.preventDefault();
-                    const newVolume = Math.max(0, Math.round((volume - 0.1) * 10) / 10);
+                    const newVolume = Math.max(
+                      0,
+                      Math.round((volume - 0.1) * 10) / 10
+                    );
                     setVolume(newVolume);
                     if (audioRef.current) audioRef.current.volume = newVolume;
                   }

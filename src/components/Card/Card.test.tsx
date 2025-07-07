@@ -1184,22 +1184,22 @@ describe('CardAudio', () => {
       });
       const progressBar = screen.getByTestId('progress-bar');
       const progressContainer = progressBar.querySelector('div');
-      
+
       if (progressContainer) {
         Object.defineProperty(progressContainer, 'getBoundingClientRect', {
           value: () => ({ left: 0, top: 0, width: 100, height: 10 }),
         });
-        
+
         // Mock do currentTime para evitar erro de NaN
         Object.defineProperty(audio, 'currentTime', {
           get: () => 0,
           set: () => {}, // Mock do setter para evitar erro
           configurable: true,
         });
-        
+
         // Simula pressionar Enter na barra de progresso
         fireEvent.keyDown(progressContainer, { key: 'Enter' });
-        
+
         // Verifica se o evento foi processado (não deve lançar erro)
         expect(progressContainer).toBeInTheDocument();
       }
@@ -1214,22 +1214,22 @@ describe('CardAudio', () => {
       });
       const progressBar = screen.getByTestId('progress-bar');
       const progressContainer = progressBar.querySelector('div');
-      
+
       if (progressContainer) {
         Object.defineProperty(progressContainer, 'getBoundingClientRect', {
           value: () => ({ left: 0, top: 0, width: 100, height: 10 }),
         });
-        
+
         // Mock do currentTime para evitar erro de NaN
         Object.defineProperty(audio, 'currentTime', {
           get: () => 0,
           set: () => {}, // Mock do setter para evitar erro
           configurable: true,
         });
-        
+
         // Simula pressionar Space na barra de progresso
         fireEvent.keyDown(progressContainer, { key: ' ' });
-        
+
         // Verifica se o evento foi processado (não deve lançar erro)
         expect(progressContainer).toBeInTheDocument();
       }
@@ -1244,17 +1244,17 @@ describe('CardAudio', () => {
       });
       const progressBar = screen.getByTestId('progress-bar');
       const progressContainer = progressBar.querySelector('div');
-      
+
       if (progressContainer) {
         Object.defineProperty(progressContainer, 'getBoundingClientRect', {
           value: () => ({ left: 0, top: 0, width: 100, height: 10 }),
         });
-        
+
         // Simula pressionar outras teclas que não devem executar handleProgressClick
         fireEvent.keyDown(progressContainer, { key: 'ArrowRight' });
         fireEvent.keyDown(progressContainer, { key: 'Tab' });
         fireEvent.keyDown(progressContainer, { key: 'Escape' });
-        
+
         // O tempo deve permanecer inalterado
         expect(screen.getAllByText('0:00').length).toBeGreaterThan(0);
       }
@@ -1264,11 +1264,14 @@ describe('CardAudio', () => {
       render(<CardAudio src="audio.mp3" />);
       const progressBar = screen.getByTestId('progress-bar');
       const progressContainer = progressBar.querySelector('div');
-      
+
       if (progressContainer) {
         expect(progressContainer).toHaveAttribute('role', 'button');
         expect(progressContainer).toHaveAttribute('tabIndex', '0');
-        expect(progressContainer).toHaveAttribute('aria-label', 'Barra de progresso do áudio');
+        expect(progressContainer).toHaveAttribute(
+          'aria-label',
+          'Barra de progresso do áudio'
+        );
       }
     });
 
@@ -1310,7 +1313,9 @@ describe('CardAudio', () => {
 
     it('fecha o controle de volume ao pressionar Escape', () => {
       render(<CardAudio src="audio.mp3" />);
-      const volumeButton = screen.getByRole('button', { name: /controle de volume/i });
+      const volumeButton = screen.getByRole('button', {
+        name: /controle de volume/i,
+      });
       fireEvent.click(volumeButton);
       const popup = screen.getByRole('slider').closest('div');
       expect(popup).toBeInTheDocument();
@@ -1321,7 +1326,9 @@ describe('CardAudio', () => {
 
     it('aumenta e diminui o volume com as setas do teclado', () => {
       render(<CardAudio src="audio.mp3" />);
-      const volumeButton = screen.getByRole('button', { name: /controle de volume/i });
+      const volumeButton = screen.getByRole('button', {
+        name: /controle de volume/i,
+      });
       fireEvent.click(volumeButton);
       const slider = screen.getByRole('slider') as HTMLInputElement;
       expect(slider).toBeInTheDocument();
@@ -1343,7 +1350,9 @@ describe('CardAudio', () => {
 
     it('slider de volume possui atributos ARIA corretos', () => {
       render(<CardAudio src="audio.mp3" />);
-      const volumeButton = screen.getByRole('button', { name: /controle de volume/i });
+      const volumeButton = screen.getByRole('button', {
+        name: /controle de volume/i,
+      });
       fireEvent.click(volumeButton);
       const slider = screen.getByRole('slider');
       expect(slider).toHaveAttribute('aria-label', 'Volume');
