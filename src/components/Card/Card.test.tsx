@@ -1394,13 +1394,13 @@ describe('CardAudio', () => {
       expect(secondTrack).not.toHaveAttribute('default');
     });
 
-    it('não renderiza tracks quando não fornecidos', () => {
+    it('renderiza fallback track quando não fornecidos', () => {
       render(<CardAudio src="audio.mp3" />);
       const audio = screen.getByTestId('audio-element');
 
       // Verifica que não há elementos track
       const trackElements = audio.querySelectorAll('track');
-      expect(trackElements).toHaveLength(0);
+      expect(trackElements).toHaveLength(1);
     });
 
     it('renderiza tracks com diferentes tipos de kind', () => {

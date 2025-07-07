@@ -773,17 +773,25 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
           data-testid="audio-element"
           aria-label={title}
         >
-          {tracks &&
-            tracks.map((track) => (
-              <track
-                key={track.src}
-                kind={track.kind}
-                src={track.src}
-                srcLang={track.srcLang}
-                label={track.label}
-                default={track.default}
-              />
-            ))}
+          {tracks?.map((track) => (
+            <track
+              key={track.src}
+              kind={track.kind}
+              src={track.src}
+              srcLang={track.srcLang}
+              label={track.label}
+              default={track.default}
+            />
+          ))}
+          {/* Fallback track for accessibility when no tracks are provided */}
+          {!tracks && (
+            <track
+              kind="captions"
+              src=""
+              srcLang=""
+              label="Sem legendas disponíveis"
+            />
+          )}
         </audio>
 
         {/* Play/Pause Button */}
