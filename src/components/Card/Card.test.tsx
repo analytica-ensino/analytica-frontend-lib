@@ -1398,9 +1398,14 @@ describe('CardAudio', () => {
       render(<CardAudio src="audio.mp3" />);
       const audio = screen.getByTestId('audio-element');
 
-      // Verifica que não há elementos track
+      // Verifica que há um track fallback
       const trackElements = audio.querySelectorAll('track');
       expect(trackElements).toHaveLength(1);
+      
+      // Verifica o track fallback
+      const fallbackTrack = trackElements[0];
+      expect(fallbackTrack).toHaveAttribute('kind', 'captions');
+      expect(fallbackTrack).toHaveAttribute('label', 'Sem legendas disponíveis');
     });
 
     it('renderiza tracks com diferentes tipos de kind', () => {
