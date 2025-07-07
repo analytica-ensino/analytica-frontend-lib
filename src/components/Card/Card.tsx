@@ -6,6 +6,8 @@ import {
   CaretRight,
   ChatCircleText,
   CheckCircle,
+  DotsThreeVertical,
+  Play,
   XCircle,
 } from 'phosphor-react';
 
@@ -521,7 +523,7 @@ const CardSettings = forwardRef<HTMLDivElement, CardSettingsProps>(
 
         <p className="w-full text-md">{header}</p>
 
-        <CaretRight size={24} className='cursor-pointer'/>
+        <CaretRight size={24} className="cursor-pointer" />
       </div>
     );
   }
@@ -627,6 +629,24 @@ const CardForum = forwardRef<HTMLDivElement, CardForumProps>(
   }
 );
 
+const CardAudio = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={`w-auto h-14 p-4 flex flex-row bg-background items-center gap-1 ${className}`}
+        {...props}
+      >
+        <Play size={24} className="cursor-pointer text-text-950" />
+        <p className="text-text-800 text-sm font-medium">0:00</p>
+        <ProgressBar value={20} size="small" className="w-[228px]" />
+        <p className="text-text-800 text-sm font-medium">0:00</p>
+        <DotsThreeVertical size={24} className="text-text-950 cursor-pointer" />
+      </div>
+    );
+  }
+);
+
 export {
   CardActivesResults,
   CardQuestions,
@@ -638,4 +658,5 @@ export {
   CardSettings,
   CardSupport,
   CardForum,
+  CardAudio,
 };

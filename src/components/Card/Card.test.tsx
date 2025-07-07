@@ -10,6 +10,7 @@ import {
   CardStatus,
   CardSupport,
   CardTopic,
+  CardAudio,
 } from './Card';
 import { ChartBar, CheckCircle, Gear, Star } from 'phosphor-react';
 
@@ -572,5 +573,52 @@ describe('CardForum', () => {
     const buttons = screen.getAllByRole('button');
     fireEvent.click(buttons[0]);
     expect(handleProfileClick).toHaveBeenCalledWith('profileValue');
+  });
+});
+
+describe('CardAudio', () => {
+  it('should render with all audio player elements', () => {
+    render(<CardAudio />);
+
+    expect(screen.getAllByText('0:00')).toHaveLength(2);
+
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  });
+
+  it('should render with correct default styling classes', () => {
+    render(<CardAudio data-testid="card-audio" />);
+
+    const container = screen.getByTestId('card-audio');
+    expect(container.className).toContain('w-auto');
+    expect(container.className).toContain('h-14');
+    expect(container.className).toContain('p-4');
+    expect(container.className).toContain('flex');
+    expect(container.className).toContain('flex-row');
+    expect(container.className).toContain('bg-background');
+    expect(container.className).toContain('items-center');
+    expect(container.className).toContain('gap-1');
+  });
+
+  it('should apply custom className', () => {
+    render(<CardAudio className="my-custom-class" data-testid="card-audio" />);
+
+    const container = screen.getByTestId('card-audio');
+    expect(container.className).toContain('my-custom-class');
+  });
+
+  it('should forward extra HTML attributes', () => {
+    render(<CardAudio data-testid="audio-container" />);
+    expect(screen.getByTestId('audio-container')).toBeInTheDocument();
+  });
+
+  it('should render with correct time display styling', () => {
+    render(<CardAudio />);
+
+    const timeElements = screen.getAllByText('0:00');
+    timeElements.forEach((element) => {
+      expect(element.className).toContain('text-text-800');
+      expect(element.className).toContain('text-sm');
+      expect(element.className).toContain('font-medium');
+    });
   });
 });

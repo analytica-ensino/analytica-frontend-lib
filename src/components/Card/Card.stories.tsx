@@ -2,6 +2,7 @@ import type { Story } from '@ladle/react';
 import { Book, Key, Star } from 'phosphor-react';
 import {
   CardActivesResults,
+  CardAudio,
   CardForum,
   CardPerformance,
   CardProgress,
@@ -229,6 +230,11 @@ export const AllCardComponentsShowcase: Story = () => {
           date="25 Maio 2025"
           hour="09:35"
         />
+      </div>
+
+      <h3 className="font-bold text-2xl text-text-900">Card Audio</h3>
+      <div className="flex flex-row gap-6">
+        <CardAudio />
       </div>
     </div>
   );
