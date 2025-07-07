@@ -22,6 +22,7 @@ import {
   SpeakerSimpleX,
   XCircle,
 } from 'phosphor-react';
+import Text from '../Text/Text';
 
 interface CardActivesResultsProps extends HTMLAttributes<HTMLDivElement> {
   icon: ReactNode;
@@ -99,9 +100,9 @@ const CardActivesResults = forwardRef<HTMLDivElement, CardActivesResultsProps>(
             {icon}
           </span>
 
-          <p className="text-text-800 font-medium uppercase text-2xs">
+          <Text size="2xs" weight="medium" className="text-text-800 uppercase">
             {title}
-          </p>
+          </Text>
 
           <p className={`text-lg font-bold ${actionSubTitleClasses}`}>
             {subTitle}
@@ -236,12 +237,21 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
               </span>
             )}
           </div>
-          <ProgressBar
-            size="medium"
-            showPercentage
-            value={progress}
-            data-testid="progress-bar"
-          />
+          <span className="grid grid-cols-[1fr_auto] items-center gap-2">
+            <ProgressBar
+              size="small"
+              value={progress}
+              data-testid="progress-bar"
+            />
+
+            <Text
+              size="xs"
+              weight="medium"
+              className={`text-text-950 leading-none tracking-normal text-center flex-none`}
+            >
+              {Math.round(progress)}%
+            </Text>
+          </span>
         </>
       ),
       vertical: <p className="text-sm text-text-800">{subhead}</p>,
@@ -259,10 +269,10 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
       >
         <div
           className={`
-            flex justify-center items-center [&>svg]:size-8 text-text-950
+            flex justify-center items-center [&>svg]:size-6 text-text-950
             ${
               isHorizontal
-                ? 'w-20 h-full rounded-l-xl'
+                ? 'min-w-[80px] min-h-[80px] rounded-l-xl'
                 : 'min-h-[50px] w-full rounded-t-xl'
             }
           `}
@@ -279,7 +289,9 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
             ${!isHorizontal && 'gap-4'}
           `}
         >
-          <p className="text-xs font-bold text-text-950">{header}</p>
+          <Text size="sm" weight="bold" className="text-text-950">
+            {header}
+          </Text>
           {contentComponent[direction]}
         </div>
       </div>
@@ -323,7 +335,7 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
           </span>
         )}
 
-        <p className="text-xs text-text-950 font-bold">{header}</p>
+        <p className="text-sm text-text-950 font-bold">{header}</p>
 
         <ProgressBar showPercentage={showPercentage} value={progress} />
       </div>
@@ -357,12 +369,12 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
     return (
       <div
         ref={ref}
-        className={`w-full min-h-20.5 flex flex-row justify-between p-4 gap-2 bg-background border border-border-50 ${className}`}
+        className={`w-full min-h-20.5 rounded-xl flex flex-row justify-between p-4 gap-2 bg-background border border-border-50 ${className}`}
         {...props}
       >
         <div className="w-full flex flex-col justify-between gap-2">
           <div className="flex flex-row justify-between items-center">
-            <p className="text-md font-bold text-text-950">{header}</p>
+            <p className="text-lg font-bold text-text-950">{header}</p>
             {hasProgress && (
               <Button
                 variant="outline"
@@ -446,7 +458,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
             ${isRow ? 'flex-row items-center' : 'flex-col'}
           `}
         >
-          <p className="text-xs font-bold text-text-950">{header}</p>
+          <p className="text-sm font-bold text-text-950">{header}</p>
           <span className="flex flex-row gap-1 items-center">
             <Badge
               action="success"
@@ -495,7 +507,7 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
             p-4 flex justify-between w-full h-full flex-row items-center
           `}
         >
-          <p className="text-xs font-bold text-text-950">{header}</p>
+          <p className="text-sm font-bold text-text-950">{header}</p>
           {status && (
             <span className="flex flex-row gap-1 items-center">
               <Badge
@@ -533,7 +545,7 @@ const CardSettings = forwardRef<HTMLDivElement, CardSettingsProps>(
       >
         <span className="[&>svg]:size-6">{icon}</span>
 
-        <p className="w-full text-md">{header}</p>
+        <p className="w-full text-sm">{header}</p>
 
         <CaretRight size={24} className="cursor-pointer" />
       </div>
@@ -561,7 +573,7 @@ const CardSupport = forwardRef<HTMLDivElement, CardSupportProps>(
           `}
         >
           <span className="w-full">
-            <p className="text-xs text-text-950 font-bold">{header}</p>
+            <p className="text-sm text-text-950 font-bold">{header}</p>
           </span>
           <span className="flex flex-row gap-1">{children}</span>
         </div>
@@ -773,16 +785,18 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
           data-testid="audio-element"
           aria-label={title}
         >
-          {tracks ? tracks.map((track) => (
-            <track
-              key={track.src}
-              kind={track.kind}
-              src={track.src}
-              srcLang={track.srcLang}
-              label={track.label}
-              default={track.default}
-            />
-          )) : (
+          {tracks ? (
+            tracks.map((track) => (
+              <track
+                key={track.src}
+                kind={track.kind}
+                src={track.src}
+                srcLang={track.srcLang}
+                label={track.label}
+                default={track.default}
+              />
+            ))
+          ) : (
             <track
               kind="captions"
               src="data:text/vtt;base64,"

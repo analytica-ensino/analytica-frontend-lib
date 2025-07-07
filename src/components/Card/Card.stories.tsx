@@ -238,7 +238,7 @@ export const AllCardComponentsShowcase: Story = () => {
           <h4 className="font-bold text-xl text-text-900">
             Sem arquivo de áudio
           </h4>
-          <CardAudio />
+          <CardAudio className="max-w-[380px]" />
         </div>
 
         <div className="flex flex-col gap-2">
@@ -246,6 +246,7 @@ export const AllCardComponentsShowcase: Story = () => {
             Com arquivo de áudio
           </h4>
           <CardAudio
+            className="max-w-[380px]"
             src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"
             title="Áudio de exemplo"
           />
@@ -254,6 +255,7 @@ export const AllCardComponentsShowcase: Story = () => {
         <div className="flex flex-col gap-2">
           <h4 className="font-bold text-xl text-text-900">Com loop</h4>
           <CardAudio
+            className="max-w-[380px]"
             src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"
             loop
             title="Áudio com loop"

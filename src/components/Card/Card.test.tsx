@@ -1401,13 +1401,16 @@ describe('CardAudio', () => {
       // Verifica que há um track fallback
       const trackElements = audio.querySelectorAll('track');
       expect(trackElements).toHaveLength(1);
-      
+
       // Verifica o track fallback
       const fallbackTrack = trackElements[0];
       expect(fallbackTrack).toHaveAttribute('kind', 'captions');
       expect(fallbackTrack).toHaveAttribute('src', 'data:text/vtt;base64,');
       expect(fallbackTrack).toHaveAttribute('srcLang', 'pt');
-      expect(fallbackTrack).toHaveAttribute('label', 'Sem legendas disponíveis');
+      expect(fallbackTrack).toHaveAttribute(
+        'label',
+        'Sem legendas disponíveis'
+      );
     });
 
     it('renderiza tracks com diferentes tipos de kind', () => {
