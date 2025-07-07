@@ -1,4 +1,13 @@
-import { forwardRef, Fragment, HTMLAttributes, ReactNode } from 'react';
+import {
+  forwardRef,
+  Fragment,
+  HTMLAttributes,
+  ReactNode,
+  useState,
+  useRef,
+  MouseEvent,
+  ChangeEvent,
+} from 'react';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
@@ -629,19 +638,226 @@ const CardForum = forwardRef<HTMLDivElement, CardForumProps>(
   }
 );
 
-const CardAudio = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => {
+interface CardAudioProps extends HTMLAttributes<HTMLDivElement> {
+  src?: string;
+  title?: string;
+  onPlay?: () => void;
+  onPause?: () => void;
+  onEnded?: () => void;
+  onAudioTimeUpdate?: (currentTime: number, duration: number) => void;
+  autoPlay?: boolean;
+  loop?: boolean;
+  preload?: 'none' | 'metadata' | 'auto';
+}
+
+const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
+  (
+    {
+      src,
+      title,
+      onPlay,
+      onPause,
+      onEnded,
+      onAudioTimeUpdate,
+      autoPlay = false,
+      loop = false,
+      preload = 'metadata',
+      className,
+      ...props
+    },
+    ref
+  ) => {
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const [volume, setVolume] = useState(1);
+    const [showVolumeControl, setShowVolumeControl] = useState(false);
+    const audioRef = useRef<HTMLAudioElement>(null);
+
+    const formatTime = (time: number) => {
+      const minutes = Math.floor(time / 60);
+      const seconds = Math.floor(time % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    const handlePlayPause = () => {
+      if (isPlaying) {
+        audioRef.current?.pause();
+        setIsPlaying(false);
+        onPause?.();
+      } else {
+        audioRef.current?.play();
+        setIsPlaying(true);
+        onPlay?.();
+      }
+    };
+
+    const handleTimeUpdate = () => {
+      const current = audioRef.current?.currentTime ?? 0;
+      const total = audioRef.current?.duration ?? 0;
+
+      setCurrentTime(current);
+      setDuration(total);
+      onAudioTimeUpdate?.(current, total);
+    };
+
+    const handleLoadedMetadata = () => {
+      setDuration(audioRef.current?.duration ?? 0);
+    };
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+      onEnded?.();
+    };
+
+    const handleProgressClick = (e: MouseEvent<HTMLDivElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const width = rect.width;
+      const percentage = clickX / width;
+      const newTime = percentage * duration;
+
+      if (audioRef.current) {
+        audioRef.current.currentTime = newTime;
+      }
+      setCurrentTime(newTime);
+    };
+
+    const handleVolumeChange = (e: ChangeEvent<HTMLInputElement>) => {
+      const newVolume = parseFloat(e.target.value);
+      setVolume(newVolume);
+      if (audioRef.current) {
+        audioRef.current.volume = newVolume;
+      }
+    };
+
+    const toggleVolumeControl = () => {
+      setShowVolumeControl(!showVolumeControl);
+    };
+
     return (
       <div
         ref={ref}
-        className={`w-auto h-14 p-4 flex flex-row bg-background items-center gap-1 ${className}`}
+        className={`w-auto h-14 p-4 flex flex-row bg-background items-center gap-2 ${className}`}
         {...props}
       >
-        <Play size={24} className="cursor-pointer text-text-950" />
-        <p className="text-text-800 text-sm font-medium">0:00</p>
-        <ProgressBar value={20} size="small" className="w-[228px]" />
-        <p className="text-text-800 text-sm font-medium">0:00</p>
-        <DotsThreeVertical size={24} className="text-text-950 cursor-pointer" />
+        {/* Audio element */}
+        <audio
+          ref={audioRef}
+          src={src}
+          autoPlay={autoPlay}
+          loop={loop}
+          preload={preload}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={handleEnded}
+          data-testid="audio-element"
+          aria-label={title}
+        />
+
+        {/* Play/Pause Button */}
+        <button
+          type="button"
+          onClick={handlePlayPause}
+          disabled={!src}
+          className="cursor-pointer text-text-950 hover:text-primary-600 disabled:text-text-400 disabled:cursor-not-allowed"
+          aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
+        >
+          {isPlaying ? (
+            <div className="w-6 h-6 flex items-center justify-center">
+              <div className="flex gap-0.5">
+                <div className="w-1 h-4 bg-current rounded-sm"></div>
+                <div className="w-1 h-4 bg-current rounded-sm"></div>
+              </div>
+            </div>
+          ) : (
+            <Play size={24} />
+          )}
+        </button>
+
+        {/* Current Time */}
+        <p className="text-text-800 text-sm font-medium min-w-[2.5rem]">
+          {formatTime(currentTime)}
+        </p>
+
+        {/* Progress Bar */}
+        <div className="flex-1 relative" data-testid="progress-bar">
+          <div
+            className="w-full h-2 bg-border-100 rounded-full cursor-pointer"
+            onClick={handleProgressClick}
+          >
+            <div
+              className="h-full bg-primary-600 rounded-full transition-all duration-100"
+              style={{
+                width:
+                  duration > 0 ? `${(currentTime / duration) * 100}%` : '0%',
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Duration */}
+        <p className="text-text-800 text-sm font-medium min-w-[2.5rem]">
+          {formatTime(duration)}
+        </p>
+
+        {/* Volume Control */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={toggleVolumeControl}
+            className="cursor-pointer text-text-950 hover:text-primary-600"
+            aria-label="Controle de volume"
+          >
+            {volume === 0 ? (
+              <div className="w-6 h-6 flex items-center justify-center">
+                <div className="relative">
+                  <div className="w-4 h-4 border-2 border-current rounded-sm"></div>
+                  <div className="absolute top-1/2 left-1/2 w-0.5 h-6 bg-current transform -translate-x-1/2 -translate-y-1/2 rotate-45"></div>
+                </div>
+              </div>
+            ) : volume < 0.5 ? (
+              <div className="w-6 h-6 flex items-center justify-center">
+                <div className="flex items-end gap-0.5">
+                  <div className="w-1 h-2 bg-current rounded-sm"></div>
+                  <div className="w-1 h-3 bg-current rounded-sm"></div>
+                </div>
+              </div>
+            ) : (
+              <div className="w-6 h-6 flex items-center justify-center">
+                <div className="flex items-end gap-0.5">
+                  <div className="w-1 h-2 bg-current rounded-sm"></div>
+                  <div className="w-1 h-3 bg-current rounded-sm"></div>
+                  <div className="w-1 h-4 bg-current rounded-sm"></div>
+                </div>
+              </div>
+            )}
+          </button>
+
+          {showVolumeControl && (
+            <div className="absolute bottom-full right-0 mb-2 p-2 bg-background border border-border-100 rounded-lg shadow-lg">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={volume}
+                onChange={handleVolumeChange}
+                className="w-20 h-2 bg-border-100 rounded-lg appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${volume * 100}%, #e5e7eb ${volume * 100}%, #e5e7eb 100%)`,
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Menu Button */}
+        <DotsThreeVertical
+          size={24}
+          className="text-text-950 cursor-pointer hover:text-primary-600"
+        />
       </div>
     );
   }

@@ -233,8 +233,86 @@ export const AllCardComponentsShowcase: Story = () => {
       </div>
 
       <h3 className="font-bold text-2xl text-text-900">Card Audio</h3>
-      <div className="flex flex-row gap-6">
-        <CardAudio />
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <h4 className="font-bold text-xl text-text-900">
+            Sem arquivo de áudio
+          </h4>
+          <CardAudio />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h4 className="font-bold text-xl text-text-900">
+            Com arquivo de áudio
+          </h4>
+          <CardAudio
+            src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"
+            title="Áudio de exemplo"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h4 className="font-bold text-xl text-text-900">Com autoplay</h4>
+          <CardAudio
+            src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"
+            autoPlay
+            title="Áudio com autoplay"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h4 className="font-bold text-xl text-text-900">Com loop</h4>
+          <CardAudio
+            src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"
+            loop
+            title="Áudio com loop"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const CardAudioInteractive: Story = () => {
+  const handlePlay = () => {
+    console.log('Áudio iniciado');
+  };
+
+  const handlePause = () => {
+    console.log('Áudio pausado');
+  };
+
+  const handleEnded = () => {
+    console.log('Áudio finalizado');
+  };
+
+  const handleTimeUpdate = (currentTime: number, duration: number) => {
+    console.log(`Tempo atual: ${currentTime}s, Duração total: ${duration}s`);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <h2 className="font-bold text-3xl text-text-900">
+        Card Audio - Interativo
+      </h2>
+
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <h3 className="font-bold text-xl text-text-900">
+            Áudio com callbacks
+          </h3>
+          <p className="text-sm text-text-600">
+            Abra o console do navegador para ver os logs dos eventos
+          </p>
+          <CardAudio
+            src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"
+            title="Áudio interativo"
+            onPlay={handlePlay}
+            onPause={handlePause}
+            onEnded={handleEnded}
+            onAudioTimeUpdate={handleTimeUpdate}
+          />
+        </div>
       </div>
     </div>
   );
