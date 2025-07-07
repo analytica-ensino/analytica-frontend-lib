@@ -786,6 +786,15 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
           <div
             className="w-full h-2 bg-border-100 rounded-full cursor-pointer"
             onClick={handleProgressClick}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleProgressClick(e as any);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Barra de progresso do áudio"
           >
             <div
               className="h-full bg-primary-600 rounded-full transition-all duration-100"
@@ -836,7 +845,15 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
           </button>
 
           {showVolumeControl && (
-            <div className="absolute bottom-full right-0 mb-2 p-2 bg-background border border-border-100 rounded-lg shadow-lg">
+            <div 
+              className="absolute bottom-full right-0 mb-2 p-2 bg-background border border-border-100 rounded-lg shadow-lg"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  setShowVolumeControl(false);
+                }
+              }}
+            >
               <input
                 type="range"
                 min="0"
@@ -844,10 +861,27 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
                 step="0.1"
                 value={volume}
                 onChange={handleVolumeChange}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    const newVolume = Math.min(1, Math.round((volume + 0.1) * 10) / 10);
+                    setVolume(newVolume);
+                    if (audioRef.current) audioRef.current.volume = newVolume;
+                  } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    const newVolume = Math.max(0, Math.round((volume - 0.1) * 10) / 10);
+                    setVolume(newVolume);
+                    if (audioRef.current) audioRef.current.volume = newVolume;
+                  }
+                }}
                 className="w-20 h-2 bg-border-100 rounded-lg appearance-none cursor-pointer"
                 style={{
                   background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${volume * 100}%, #e5e7eb ${volume * 100}%, #e5e7eb 100%)`,
                 }}
+                aria-label="Volume"
+                aria-valuenow={Math.round(volume * 100)}
+                aria-valuemin={0}
+                aria-valuemax={100}
               />
             </div>
           )}
