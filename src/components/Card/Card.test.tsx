@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import {
+  CardBase,
   CardActivesResults,
   CardForum,
   CardPerformance,
@@ -13,6 +14,238 @@ import {
   CardAudio,
 } from './Card';
 import { ChartBar, CheckCircle, Gear, Star } from 'phosphor-react';
+
+describe('CardBase', () => {
+  const baseProps = {
+    children: <div data-testid="test-children">Test Content</div>,
+  };
+
+  it('should render with default props', () => {
+    render(<CardBase {...baseProps} />);
+    expect(screen.getByTestId('test-children')).toBeInTheDocument();
+  });
+
+  it('should apply default classes correctly', () => {
+    render(<CardBase {...baseProps} data-testid="card-base" />);
+    const card = screen.getByTestId('card-base');
+
+    // Verifica as classes padrão
+    expect(card.className).toContain('w-full');
+    expect(card.className).toContain('bg-background');
+    expect(card.className).toContain('border');
+    expect(card.className).toContain('border-border-50');
+    expect(card.className).toContain('rounded-xl');
+    expect(card.className).toContain('flex');
+    expect(card.className).toContain('flex-row');
+    expect(card.className).toContain('p-4');
+    expect(card.className).toContain('min-h-20');
+  });
+
+  it('should apply variant classes correctly', () => {
+    const { rerender } = render(
+      <CardBase {...baseProps} data-testid="card-base" />
+    );
+
+    // Teste variant default
+    let card = screen.getByTestId('card-base');
+    expect(card.className).toContain('rounded-xl');
+
+    // Teste variant compact
+    rerender(
+      <CardBase {...baseProps} variant="compact" data-testid="card-base" />
+    );
+    card = screen.getByTestId('card-base');
+    expect(card.className).toContain('rounded-lg');
+
+    // Teste variant minimal
+    rerender(
+      <CardBase {...baseProps} variant="minimal" data-testid="card-base" />
+    );
+    card = screen.getByTestId('card-base');
+    expect(card.className).toContain('rounded-md');
+    expect(card.className).toContain('border-border-100');
+  });
+
+  it('should apply layout classes correctly', () => {
+    const { rerender } = render(
+      <CardBase {...baseProps} data-testid="card-base" />
+    );
+
+    // Teste layout horizontal (padrão)
+    let card = screen.getByTestId('card-base');
+    expect(card.className).toContain('flex-row');
+
+    // Teste layout vertical
+    rerender(
+      <CardBase {...baseProps} layout="vertical" data-testid="card-base" />
+    );
+    card = screen.getByTestId('card-base');
+    expect(card.className).toContain('flex-col');
+  });
+
+  it('should apply padding classes correctly', () => {
+    const { rerender } = render(
+      <CardBase {...baseProps} data-testid="card-base" />
+    );
+
+    // Teste padding medium (padrão)
+    let card = screen.getByTestId('card-base');
+    expect(card.className).toContain('p-4');
+
+    // Teste padding none
+    rerender(
+      <CardBase {...baseProps} padding="none" data-testid="card-base" />
+    );
+    card = screen.getByTestId('card-base');
+    expect(card.className).not.toContain('p-');
+
+    // Teste padding small
+    rerender(
+      <CardBase {...baseProps} padding="small" data-testid="card-base" />
+    );
+    card = screen.getByTestId('card-base');
+    expect(card.className).toContain('p-2');
+
+    // Teste padding large
+    rerender(
+      <CardBase {...baseProps} padding="large" data-testid="card-base" />
+    );
+    card = screen.getByTestId('card-base');
+    expect(card.className).toContain('p-6');
+  });
+
+  it('should apply minHeight classes correctly', () => {
+    const { rerender } = render(
+      <CardBase {...baseProps} data-testid="card-base" />
+    );
+
+    // Teste minHeight medium (padrão)
+    let card = screen.getByTestId('card-base');
+    expect(card.className).toContain('min-h-20');
+
+    // Teste minHeight none
+    rerender(
+      <CardBase {...baseProps} minHeight="none" data-testid="card-base" />
+    );
+    card = screen.getByTestId('card-base');
+    expect(card.className).not.toContain('min-h-');
+
+    // Teste minHeight small
+    rerender(
+      <CardBase {...baseProps} minHeight="small" data-testid="card-base" />
+    );
+    card = screen.getByTestId('card-base');
+    expect(card.className).toContain('min-h-16');
+
+    // Teste minHeight large
+    rerender(
+      <CardBase {...baseProps} minHeight="large" data-testid="card-base" />
+    );
+    card = screen.getByTestId('card-base');
+    expect(card.className).toContain('min-h-24');
+  });
+
+  it('should apply cursor classes correctly', () => {
+    const { rerender } = render(
+      <CardBase {...baseProps} data-testid="card-base" />
+    );
+
+    // Teste cursor default (padrão)
+    let card = screen.getByTestId('card-base');
+    expect(card.className).not.toContain('cursor-');
+
+    // Teste cursor pointer
+    rerender(
+      <CardBase {...baseProps} cursor="pointer" data-testid="card-base" />
+    );
+    card = screen.getByTestId('card-base');
+    expect(card.className).toContain('cursor-pointer');
+  });
+
+  it('should combine all classes correctly', () => {
+    render(
+      <CardBase
+        {...baseProps}
+        variant="compact"
+        layout="vertical"
+        padding="large"
+        minHeight="small"
+        cursor="pointer"
+        className="custom-class"
+        data-testid="card-base"
+      />
+    );
+
+    const card = screen.getByTestId('card-base');
+    expect(card.className).toContain('w-full');
+    expect(card.className).toContain('bg-background');
+    expect(card.className).toContain('border');
+    expect(card.className).toContain('border-border-50');
+    expect(card.className).toContain('rounded-lg'); // variant compact
+    expect(card.className).toContain('flex-col'); // layout vertical
+    expect(card.className).toContain('p-6'); // padding large
+    expect(card.className).toContain('min-h-16'); // minHeight small
+    expect(card.className).toContain('cursor-pointer'); // cursor pointer
+    expect(card.className).toContain('custom-class'); // custom className
+  });
+
+  it('should filter out empty classes and join with spaces', () => {
+    render(
+      <CardBase
+        {...baseProps}
+        padding="none"
+        minHeight="none"
+        className=""
+        data-testid="card-base"
+      />
+    );
+
+    const card = screen.getByTestId('card-base');
+    const classes = card.className.split(' ');
+
+    // Verifica que não há strings vazias
+    expect(classes).not.toContain('');
+
+    // Verifica que as classes estão separadas por espaço
+    expect(card.className).toMatch(/^[\w-]+(\s+[\w-]+)*$/);
+  });
+
+  it('should forward ref correctly', () => {
+    const ref = jest.fn();
+    render(<CardBase {...baseProps} ref={ref} data-testid="card-base" />);
+
+    expect(ref).toHaveBeenCalled();
+  });
+
+  it('should forward extra HTML attributes', () => {
+    render(
+      <CardBase
+        {...baseProps}
+        data-testid="card-base"
+        aria-label="Test Card"
+        role="button"
+      />
+    );
+
+    const card = screen.getByTestId('card-base');
+    expect(card).toHaveAttribute('aria-label', 'Test Card');
+    expect(card).toHaveAttribute('role', 'button');
+  });
+
+  it('should render children correctly', () => {
+    render(
+      <CardBase data-testid="card-base">
+        <div data-testid="child-1">Child 1</div>
+        <div data-testid="child-2">Child 2</div>
+      </CardBase>
+    );
+
+    expect(screen.getByTestId('child-1')).toBeInTheDocument();
+    expect(screen.getByTestId('child-2')).toBeInTheDocument();
+    expect(screen.getByText('Child 1')).toBeInTheDocument();
+    expect(screen.getByText('Child 2')).toBeInTheDocument();
+  });
+});
 
 describe('CardActivesResults', () => {
   const baseProps = {
