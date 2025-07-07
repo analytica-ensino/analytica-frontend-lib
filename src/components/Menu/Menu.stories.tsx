@@ -13,14 +13,17 @@ import {
   ChalkboardTeacher,
   File,
 } from 'phosphor-react';
+import { useState } from 'react';
 
 export const AllMenus: Story = () => {
+  const [value, setValue] = useState('home');
+
   return (
     <div className="flex flex-col gap-8">
       <h2 className="font-bold text-3xl text-text-900">Menu:</h2>
-
       <div className="flex flex-col gap-8">
-        <Menu defaultValue="home">
+        <p>Selecionado: {value}</p>
+        <Menu defaultValue="home" value={value} onValueChange={setValue}>
           <MenuContent className="max-w-[1000px]">
             <MenuItem value="home">
               <House />

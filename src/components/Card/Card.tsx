@@ -1,4 +1,13 @@
-import { forwardRef, Fragment, HTMLAttributes, ReactNode } from 'react';
+import {
+  forwardRef,
+  Fragment,
+  HTMLAttributes,
+  ReactNode,
+  useState,
+  useRef,
+  MouseEvent,
+  ChangeEvent,
+} from 'react';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
@@ -6,6 +15,11 @@ import {
   CaretRight,
   ChatCircleText,
   CheckCircle,
+  DotsThreeVertical,
+  Play,
+  SpeakerHigh,
+  SpeakerLow,
+  SpeakerSimpleX,
   XCircle,
 } from 'phosphor-react';
 
@@ -237,7 +251,7 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
       <div
         ref={ref}
         className={`
-          w-full flex border border-border-50 bg-background rounded-xl
+          w-full flex border border-border-50 bg-background rounded-xl cursor-pointer
           ${isHorizontal ? 'flex-row h-20' : 'flex-col'}
           ${className}
         `}
@@ -295,7 +309,7 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
     return (
       <div
         ref={ref}
-        className={`w-full py-2 px-4 flex flex-col justify-center gap-2 bg-background border border-border-50 rounded-xl min-h-20 ${className}`}
+        className={`cursor-pointer w-full py-2 px-4 flex flex-col justify-center gap-2 bg-background border border-border-50 rounded-xl min-h-20 ${className}`}
         {...props}
       >
         {subHead && (
@@ -371,7 +385,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
 
         {!hasProgress && (
           <CaretRight
-            className="size-4.5 text-text-800"
+            className="size-4.5 text-text-800 cursor-pointer"
             data-testid="caret-icon"
             onClick={() => onClickButton?.(valueButton)}
           />
@@ -454,7 +468,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
           </span>
         </div>
 
-        <CaretRight className="min-w-6 min-h-6 text-text-800" />
+        <CaretRight className="min-w-6 min-h-6 text-text-800 cursor-pointer" />
       </div>
     );
   }
@@ -498,7 +512,7 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
           )}
         </div>
 
-        <CaretRight className="min-w-6 min-h-6 text-text-800" />
+        <CaretRight className="min-w-6 min-h-6 text-text-800 cursor-pointer" />
       </div>
     );
   }
@@ -521,7 +535,7 @@ const CardSettings = forwardRef<HTMLDivElement, CardSettingsProps>(
 
         <p className="w-full text-md">{header}</p>
 
-        <CaretRight size={24} />
+        <CaretRight size={24} className="cursor-pointer" />
       </div>
     );
   }
@@ -552,7 +566,7 @@ const CardSupport = forwardRef<HTMLDivElement, CardSupportProps>(
           <span className="flex flex-row gap-1">{children}</span>
         </div>
 
-        <CaretRight className="text-text-800" size={24} />
+        <CaretRight className="text-text-800 cursor-pointer" size={24} />
       </div>
     );
   }
@@ -627,6 +641,285 @@ const CardForum = forwardRef<HTMLDivElement, CardForumProps>(
   }
 );
 
+interface CardAudioProps extends HTMLAttributes<HTMLDivElement> {
+  src?: string;
+  title?: string;
+  onPlay?: () => void;
+  onPause?: () => void;
+  onEnded?: () => void;
+  onAudioTimeUpdate?: (currentTime: number, duration: number) => void;
+  loop?: boolean;
+  preload?: 'none' | 'metadata' | 'auto';
+  tracks?: Array<{
+    kind: 'subtitles' | 'captions' | 'descriptions' | 'chapters' | 'metadata';
+    src: string;
+    srcLang: string;
+    label: string;
+    default?: boolean;
+  }>;
+}
+
+const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
+  (
+    {
+      src,
+      title,
+      onPlay,
+      onPause,
+      onEnded,
+      onAudioTimeUpdate,
+      loop = false,
+      preload = 'metadata',
+      tracks,
+      className,
+      ...props
+    },
+    ref
+  ) => {
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const [volume, setVolume] = useState(1);
+    const [showVolumeControl, setShowVolumeControl] = useState(false);
+    const audioRef = useRef<HTMLAudioElement>(null);
+
+    const formatTime = (time: number) => {
+      const minutes = Math.floor(time / 60);
+      const seconds = Math.floor(time % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    const handlePlayPause = () => {
+      if (isPlaying) {
+        audioRef.current?.pause();
+        setIsPlaying(false);
+        onPause?.();
+      } else {
+        audioRef.current?.play();
+        setIsPlaying(true);
+        onPlay?.();
+      }
+    };
+
+    const handleTimeUpdate = () => {
+      const current = audioRef.current?.currentTime ?? 0;
+      const total = audioRef.current?.duration ?? 0;
+
+      setCurrentTime(current);
+      setDuration(total);
+      onAudioTimeUpdate?.(current, total);
+    };
+
+    const handleLoadedMetadata = () => {
+      setDuration(audioRef.current?.duration ?? 0);
+    };
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+      onEnded?.();
+    };
+
+    const handleProgressClick = (e: MouseEvent<HTMLButtonElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const width = rect.width;
+      const percentage = clickX / width;
+      const newTime = percentage * duration;
+
+      if (audioRef.current) {
+        audioRef.current.currentTime = newTime;
+      }
+      setCurrentTime(newTime);
+    };
+
+    const handleVolumeChange = (e: ChangeEvent<HTMLInputElement>) => {
+      const newVolume = parseFloat(e.target.value);
+      setVolume(newVolume);
+      if (audioRef.current) {
+        audioRef.current.volume = newVolume;
+      }
+    };
+
+    const toggleVolumeControl = () => {
+      setShowVolumeControl(!showVolumeControl);
+    };
+
+    const getVolumeIcon = () => {
+      if (volume === 0) {
+        return <SpeakerSimpleX />;
+      }
+      if (volume < 0.5) {
+        return <SpeakerLow />;
+      }
+      return <SpeakerHigh />;
+    };
+
+    return (
+      <div
+        ref={ref}
+        className={`w-auto h-14 p-4 flex flex-row bg-background items-center gap-2 ${className}`}
+        {...props}
+      >
+        {/* Audio element */}
+        <audio
+          ref={audioRef}
+          src={src}
+          loop={loop}
+          preload={preload}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={handleEnded}
+          data-testid="audio-element"
+          aria-label={title}
+        >
+          {tracks ? tracks.map((track) => (
+            <track
+              key={track.src}
+              kind={track.kind}
+              src={track.src}
+              srcLang={track.srcLang}
+              label={track.label}
+              default={track.default}
+            />
+          )) : (
+            <track
+              kind="captions"
+              src="data:text/vtt;base64,"
+              srcLang="pt"
+              label="Sem legendas disponíveis"
+            />
+          )}
+        </audio>
+
+        {/* Play/Pause Button */}
+        <button
+          type="button"
+          onClick={handlePlayPause}
+          disabled={!src}
+          className="cursor-pointer text-text-950 hover:text-primary-600 disabled:text-text-400 disabled:cursor-not-allowed"
+          aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
+        >
+          {isPlaying ? (
+            <div className="w-6 h-6 flex items-center justify-center">
+              <div className="flex gap-0.5">
+                <div className="w-1 h-4 bg-current rounded-sm"></div>
+                <div className="w-1 h-4 bg-current rounded-sm"></div>
+              </div>
+            </div>
+          ) : (
+            <Play size={24} />
+          )}
+        </button>
+
+        {/* Current Time */}
+        <p className="text-text-800 text-sm font-medium min-w-[2.5rem]">
+          {formatTime(currentTime)}
+        </p>
+
+        {/* Progress Bar */}
+        <div className="flex-1 relative" data-testid="progress-bar">
+          <button
+            type="button"
+            className="w-full h-2 bg-border-100 rounded-full cursor-pointer"
+            onClick={handleProgressClick}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleProgressClick(
+                  e as unknown as MouseEvent<HTMLButtonElement>
+                );
+              }
+            }}
+            aria-label="Barra de progresso do áudio"
+          >
+            <div
+              className="h-full bg-primary-600 rounded-full transition-all duration-100"
+              style={{
+                width:
+                  duration > 0 ? `${(currentTime / duration) * 100}%` : '0%',
+              }}
+            />
+          </button>
+        </div>
+
+        {/* Duration */}
+        <p className="text-text-800 text-sm font-medium min-w-[2.5rem]">
+          {formatTime(duration)}
+        </p>
+
+        {/* Volume Control */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={toggleVolumeControl}
+            className="cursor-pointer text-text-950 hover:text-primary-600"
+            aria-label="Controle de volume"
+          >
+            <div className="w-6 h-6 flex items-center justify-center">
+              {getVolumeIcon()}
+            </div>
+          </button>
+
+          {showVolumeControl && (
+            <button
+              type="button"
+              className="absolute bottom-full right-0 mb-2 p-2 bg-background border border-border-100 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  setShowVolumeControl(false);
+                }
+              }}
+            >
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={volume}
+                onChange={handleVolumeChange}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    const newVolume = Math.min(
+                      1,
+                      Math.round((volume + 0.1) * 10) / 10
+                    );
+                    setVolume(newVolume);
+                    if (audioRef.current) audioRef.current.volume = newVolume;
+                  } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    const newVolume = Math.max(
+                      0,
+                      Math.round((volume - 0.1) * 10) / 10
+                    );
+                    setVolume(newVolume);
+                    if (audioRef.current) audioRef.current.volume = newVolume;
+                  }
+                }}
+                className="w-20 h-2 bg-border-100 rounded-lg appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${volume * 100}%, #e5e7eb ${volume * 100}%, #e5e7eb 100%)`,
+                }}
+                aria-label="Volume"
+                aria-valuenow={Math.round(volume * 100)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              />
+            </button>
+          )}
+        </div>
+
+        {/* Menu Button */}
+        <DotsThreeVertical
+          size={24}
+          className="text-text-950 cursor-pointer hover:text-primary-600"
+        />
+      </div>
+    );
+  }
+);
+
 export {
   CardActivesResults,
   CardQuestions,
@@ -638,4 +931,5 @@ export {
   CardSettings,
   CardSupport,
   CardForum,
+  CardAudio,
 };

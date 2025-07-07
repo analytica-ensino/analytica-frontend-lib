@@ -71,9 +71,18 @@ const Menu = forwardRef<HTMLDivElement, MenuProps>(
       setValue(propValue ?? defaultValue);
     }, [defaultValue, propValue, setValue]);
 
+    const onValueChangeRef = useRef(onValueChange);
+    const isInitializedRef = useRef(false);
+    onValueChangeRef.current = onValueChange;
+
     useEffect(() => {
-      onValueChange?.(value);
-    }, [value, onValueChange]);
+      // Só chama onValueChange se não for a inicialização
+      if (isInitializedRef.current) {
+        onValueChangeRef.current?.(value);
+      } else {
+        isInitializedRef.current = true;
+      }
+    }, [value]);
 
     const baseClasses =
       'w-full py-2 px-6 flex flex-row items-center justify-center';
@@ -209,17 +218,17 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
         <li
           data-variant="breadcrumb"
           className={`
-            w-full p-2 rounded-lg hover:text-primary-600 cursor-pointer font-bold text-xs 
+            w-full p-2 rounded-lg hover:text-primary-600 cursor-pointer font-bold text-xs
             focus:outline-none focus:border-indicator-info focus:border-2
-            ${selectedValue === value ? 'text-primary-950' : 'text-text-600'}
+            ${selectedValue === value ? 'text-text-950' : 'text-text-600'}
             ${className ?? ''}
           `}
           {...commonProps}
         >
           <span
             className={`
-              border-b border-text-600 hover:border-primary-600 text-inherit
-              ${selectedValue === value ? 'border-b-primary-950' : 'border-b-primary-600'}
+              border-b border-text-600 hover:border-primary-600 text-inherit text-xs
+              ${selectedValue === value ? 'border-b-0 font-bold' : 'border-b-primary-600'}
             `}
           >
             {children}

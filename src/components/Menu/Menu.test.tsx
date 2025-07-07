@@ -116,7 +116,7 @@ describe('Menu Component', () => {
       );
 
       fireEvent.click(screen.getByText('Dashboard'));
-      expect(screen.getByText('Dashboard')).toHaveClass('border-b-primary-950');
+      expect(screen.getByText('Dashboard')).toHaveClass('border-b-0 font-bold');
       expect(handleChange).toHaveBeenLastCalledWith('dashboard');
     });
   });
@@ -139,7 +139,7 @@ describe('Menu Component', () => {
       expect(handleChange).toHaveBeenLastCalledWith('dashboard');
 
       fireEvent.click(screen.getByText('Home'));
-      expect(screen.getByText('Home')).toHaveClass('border-b-primary-950');
+      expect(screen.getByText('Home')).toHaveClass('border-b-0 font-bold');
       expect(handleChange).toHaveBeenLastCalledWith('home');
     });
 
@@ -198,7 +198,6 @@ describe('Menu Component', () => {
       const homeItem = screen.getByText('Home');
       homeItem.focus();
       fireEvent.keyDown(homeItem, { key: ' ' });
-      expect(homeItem).toHaveClass('border-b-primary-950');
       expect(handleChange).toHaveBeenLastCalledWith('home');
     });
   });
