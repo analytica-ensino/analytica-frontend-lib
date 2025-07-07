@@ -785,8 +785,8 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
           )) : (
             <track
               kind="captions"
-              src=""
-              srcLang=""
+              src="data:text/vtt;base64,"
+              srcLang="pt"
               label="Sem legendas disponíveis"
             />
           )}
