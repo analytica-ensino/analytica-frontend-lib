@@ -66,6 +66,17 @@ import {
   CardTopic,
 } from './components/Card/Card';
 
+import {
+  Skeleton,
+  SkeletonText,
+  SkeletonCircle,
+  SkeletonRectangle,
+  SkeletonRounded,
+  SkeletonCard,
+  SkeletonList,
+  SkeletonTable,
+} from './components/Skeleton/Skeleton';
+
 // Export all components for bundled usage
 export { Text };
 export { Button };
@@ -122,3 +133,12 @@ export { CardQuestions };
 export { CardResults };
 export { CardStatus };
 export { CardTopic };
+
+export { Skeleton };
+export { SkeletonText };
+export { SkeletonCircle };
+export { SkeletonRectangle };
+export { SkeletonRounded };
+export { SkeletonCard };
+export { SkeletonList };
+export { SkeletonTable };
