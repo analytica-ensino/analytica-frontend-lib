@@ -4,14 +4,13 @@ interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
   variant?: 'text' | 'circular' | 'rectangular' | 'rounded';
   width?: string | number;
   height?: string | number;
-  animation?: 'pulse' | 'wave' | 'none';
+  animation?: 'pulse' | 'none';
   lines?: number;
   spacing?: 'none' | 'small' | 'medium' | 'large';
 }
 
 const SKELETON_ANIMATION_CLASSES = {
   pulse: 'animate-pulse',
-  wave: 'animate-pulse',
   none: '',
 };
 
