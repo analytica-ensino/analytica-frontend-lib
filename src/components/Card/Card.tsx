@@ -22,6 +22,86 @@ import {
   SpeakerSimpleX,
   XCircle,
 } from 'phosphor-react';
+import Text from '../Text/Text';
+
+// Componente base reutilizável para todos os cards
+interface CardBaseProps extends HTMLAttributes<HTMLDivElement> {
+  children: ReactNode;
+  variant?: 'default' | 'compact' | 'minimal';
+  layout?: 'horizontal' | 'vertical';
+  padding?: 'none' | 'small' | 'medium' | 'large';
+  minHeight?: 'none' | 'small' | 'medium' | 'large';
+  cursor?: 'default' | 'pointer';
+}
+
+const CARD_BASE_CLASSES = {
+  default: 'w-full bg-background border border-border-50 rounded-xl',
+  compact: 'w-full bg-background border border-border-50 rounded-lg',
+  minimal: 'w-full bg-background border border-border-100 rounded-md',
+};
+
+const CARD_PADDING_CLASSES = {
+  none: '',
+  small: 'p-2',
+  medium: 'p-4',
+  large: 'p-6',
+};
+
+const CARD_MIN_HEIGHT_CLASSES = {
+  none: '',
+  small: 'min-h-16',
+  medium: 'min-h-20',
+  large: 'min-h-24',
+};
+
+const CARD_LAYOUT_CLASSES = {
+  horizontal: 'flex flex-row',
+  vertical: 'flex flex-col',
+};
+
+const CARD_CURSOR_CLASSES = {
+  default: '',
+  pointer: 'cursor-pointer',
+};
+
+const CardBase = forwardRef<HTMLDivElement, CardBaseProps>(
+  (
+    {
+      children,
+      variant = 'default',
+      layout = 'horizontal',
+      padding = 'medium',
+      minHeight = 'medium',
+      cursor = 'default',
+      className = '',
+      ...props
+    },
+    ref
+  ) => {
+    const baseClasses = CARD_BASE_CLASSES[variant];
+    const paddingClasses = CARD_PADDING_CLASSES[padding];
+    const minHeightClasses = CARD_MIN_HEIGHT_CLASSES[minHeight];
+    const layoutClasses = CARD_LAYOUT_CLASSES[layout];
+    const cursorClasses = CARD_CURSOR_CLASSES[cursor];
+
+    const combinedClasses = [
+      baseClasses,
+      paddingClasses,
+      minHeightClasses,
+      layoutClasses,
+      cursorClasses,
+      className,
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    return (
+      <div ref={ref} className={combinedClasses} {...props}>
+        {children}
+      </div>
+    );
+  }
+);
 
 interface CardActivesResultsProps extends HTMLAttributes<HTMLDivElement> {
   icon: ReactNode;
@@ -99,9 +179,9 @@ const CardActivesResults = forwardRef<HTMLDivElement, CardActivesResultsProps>(
             {icon}
           </span>
 
-          <p className="text-text-800 font-medium uppercase text-2xs">
+          <Text size="2xs" weight="medium" className="text-text-800 uppercase">
             {title}
-          </p>
+          </Text>
 
           <p className={`text-lg font-bold ${actionSubTitleClasses}`}>
             {subTitle}
@@ -147,12 +227,12 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
     const buttonLabel = isDone ? 'Ver Questão' : 'Responder';
 
     return (
-      <div
+      <CardBase
         ref={ref}
-        className={`
-          w-full flex flex-row justify-between rounded-xl p-4 gap-4 bg-background border border-border-50
-          ${className}
-        `}
+        layout="horizontal"
+        padding="medium"
+        minHeight="medium"
+        className={`justify-between gap-4 ${className}`}
         {...props}
       >
         <section className="flex flex-col gap-1">
@@ -186,7 +266,7 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
             {buttonLabel}
           </Button>
         </span>
-      </div>
+      </CardBase>
     );
   }
 );
@@ -236,33 +316,42 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
               </span>
             )}
           </div>
-          <ProgressBar
-            size="medium"
-            showPercentage
-            value={progress}
-            data-testid="progress-bar"
-          />
+          <span className="grid grid-cols-[1fr_auto] items-center gap-2">
+            <ProgressBar
+              size="small"
+              value={progress}
+              data-testid="progress-bar"
+            />
+
+            <Text
+              size="xs"
+              weight="medium"
+              className={`text-text-950 leading-none tracking-normal text-center flex-none`}
+            >
+              {Math.round(progress)}%
+            </Text>
+          </span>
         </>
       ),
       vertical: <p className="text-sm text-text-800">{subhead}</p>,
     };
 
     return (
-      <div
+      <CardBase
         ref={ref}
-        className={`
-          w-full flex border border-border-50 bg-background rounded-xl cursor-pointer
-          ${isHorizontal ? 'flex-row h-20' : 'flex-col'}
-          ${className}
-        `}
+        layout={isHorizontal ? 'horizontal' : 'vertical'}
+        padding="none"
+        minHeight="medium"
+        cursor="pointer"
+        className={`${isHorizontal ? 'h-20' : ''} ${className}`}
         {...props}
       >
         <div
           className={`
-            flex justify-center items-center [&>svg]:size-8 text-text-950
+            flex justify-center items-center [&>svg]:size-6 text-text-950
             ${
               isHorizontal
-                ? 'w-20 h-full rounded-l-xl'
+                ? 'min-w-[80px] min-h-[80px] rounded-l-xl'
                 : 'min-h-[50px] w-full rounded-t-xl'
             }
           `}
@@ -279,10 +368,12 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
             ${!isHorizontal && 'gap-4'}
           `}
         >
-          <p className="text-xs font-bold text-text-950">{header}</p>
+          <Text size="sm" weight="bold" className="text-text-950">
+            {header}
+          </Text>
           {contentComponent[direction]}
         </div>
-      </div>
+      </CardBase>
     );
   }
 );
@@ -307,9 +398,13 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
     ref
   ) => {
     return (
-      <div
+      <CardBase
         ref={ref}
-        className={`cursor-pointer w-full py-2 px-4 flex flex-col justify-center gap-2 bg-background border border-border-50 rounded-xl min-h-20 ${className}`}
+        layout="vertical"
+        padding="small"
+        minHeight="medium"
+        cursor="pointer"
+        className={`justify-center gap-2  py-2 px-4 ${className}`}
         {...props}
       >
         {subHead && (
@@ -323,10 +418,25 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
           </span>
         )}
 
-        <p className="text-xs text-text-950 font-bold">{header}</p>
+        <p className="text-sm text-text-950 font-bold">{header}</p>
 
-        <ProgressBar showPercentage={showPercentage} value={progress} />
-      </div>
+        <span className="grid grid-cols-[1fr_auto] items-center gap-2">
+          <ProgressBar
+            size="small"
+            value={progress}
+            data-testid="progress-bar"
+          />
+          {showPercentage && (
+            <Text
+              size="xs"
+              weight="medium"
+              className={`text-text-950 leading-none tracking-normal text-center flex-none`}
+            >
+              {Math.round(progress)}%
+            </Text>
+          )}
+        </span>
+      </CardBase>
     );
   }
 );
@@ -355,14 +465,17 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
     const hasProgress = progress !== undefined;
 
     return (
-      <div
+      <CardBase
         ref={ref}
-        className={`w-full min-h-20.5 flex flex-row justify-between p-4 gap-2 bg-background border border-border-50 ${className}`}
+        layout="horizontal"
+        padding="medium"
+        minHeight="large"
+        className={`justify-between gap-2 ${className}`}
         {...props}
       >
         <div className="w-full flex flex-col justify-between gap-2">
           <div className="flex flex-row justify-between items-center">
-            <p className="text-md font-bold text-text-950">{header}</p>
+            <p className="text-lg font-bold text-text-950">{header}</p>
             {hasProgress && (
               <Button
                 variant="outline"
@@ -390,7 +503,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
             onClick={() => onClickButton?.(valueButton)}
           />
         )}
-      </div>
+      </CardBase>
     );
   }
 );
@@ -421,12 +534,12 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
     const isRow = direction == 'row';
 
     return (
-      <div
+      <CardBase
         ref={ref}
-        className={`
-          w-full flex border border-border-50 bg-background rounded-xl min-h-20 flex-row items-center pr-4
-          ${className}
-        `}
+        layout="horizontal"
+        padding="none"
+        minHeight="medium"
+        className={`items-center pr-4 ${className}`}
         {...props}
       >
         <div
@@ -446,7 +559,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
             ${isRow ? 'flex-row items-center' : 'flex-col'}
           `}
         >
-          <p className="text-xs font-bold text-text-950">{header}</p>
+          <p className="text-sm font-bold text-text-950">{header}</p>
           <span className="flex flex-row gap-1 items-center">
             <Badge
               action="success"
@@ -469,7 +582,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
         </div>
 
         <CaretRight className="min-w-6 min-h-6 text-text-800 cursor-pointer" />
-      </div>
+      </CardBase>
     );
   }
 );
@@ -482,12 +595,12 @@ interface CardStatusProps extends HTMLAttributes<HTMLDivElement> {
 const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
   ({ header, className, status, ...props }, ref) => {
     return (
-      <div
+      <CardBase
         ref={ref}
-        className={`
-          w-full flex border border-border-50 bg-background rounded-xl min-h-20 flex-row items-center pr-4
-          ${className}
-        `}
+        layout="horizontal"
+        padding="none"
+        minHeight="medium"
+        className={`items-center pr-4 ${className}`}
         {...props}
       >
         <div
@@ -495,7 +608,7 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
             p-4 flex justify-between w-full h-full flex-row items-center
           `}
         >
-          <p className="text-xs font-bold text-text-950">{header}</p>
+          <p className="text-sm font-bold text-text-950">{header}</p>
           {status && (
             <span className="flex flex-row gap-1 items-center">
               <Badge
@@ -513,7 +626,7 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
         </div>
 
         <CaretRight className="min-w-6 min-h-6 text-text-800 cursor-pointer" />
-      </div>
+      </CardBase>
     );
   }
 );
@@ -526,17 +639,20 @@ interface CardSettingsProps extends HTMLAttributes<HTMLDivElement> {
 const CardSettings = forwardRef<HTMLDivElement, CardSettingsProps>(
   ({ header, className, icon, ...props }, ref) => {
     return (
-      <div
+      <CardBase
         ref={ref}
-        className={`w-full p-2 flex flex-row items-center gap-2 text-text-700 bg-background rounded-xl ${className}`}
+        layout="horizontal"
+        padding="small"
+        minHeight="none"
+        className={`border-none items-center gap-2 text-text-700 ${className}`}
         {...props}
       >
         <span className="[&>svg]:size-6">{icon}</span>
 
-        <p className="w-full text-md">{header}</p>
+        <p className="w-full text-sm">{header}</p>
 
         <CaretRight size={24} className="cursor-pointer" />
-      </div>
+      </CardBase>
     );
   }
 );
@@ -550,9 +666,12 @@ interface CardSupportProps extends HTMLAttributes<HTMLDivElement> {
 const CardSupport = forwardRef<HTMLDivElement, CardSupportProps>(
   ({ header, className, direction = 'col', children, ...props }, ref) => {
     return (
-      <div
+      <CardBase
         ref={ref}
-        className={`w-full p-4 flex flex-row items-center gap-2 text-text-700  bg-background rounded-xl ${className}`}
+        layout="horizontal"
+        padding="medium"
+        minHeight="none"
+        className={`border-none items-center gap-2 text-text-700 ${className}`}
         {...props}
       >
         <div
@@ -561,13 +680,13 @@ const CardSupport = forwardRef<HTMLDivElement, CardSupportProps>(
           `}
         >
           <span className="w-full">
-            <p className="text-xs text-text-950 font-bold">{header}</p>
+            <p className="text-sm text-text-950 font-bold">{header}</p>
           </span>
           <span className="flex flex-row gap-1">{children}</span>
         </div>
 
         <CaretRight className="text-text-800 cursor-pointer" size={24} />
-      </div>
+      </CardBase>
     );
   }
 );
@@ -602,9 +721,13 @@ const CardForum = forwardRef<HTMLDivElement, CardForumProps>(
     ref
   ) => {
     return (
-      <div
+      <CardBase
         ref={ref}
-        className={`w-auto h-auto p-4 rounded-lg flex flex-row gap-3 border border-border-100 bg-background ${className}`}
+        layout="horizontal"
+        padding="medium"
+        minHeight="none"
+        variant="minimal"
+        className={`w-auto h-auto gap-3 ${className}`}
         {...props}
       >
         <button
@@ -636,7 +759,7 @@ const CardForum = forwardRef<HTMLDivElement, CardForumProps>(
             <p className="text-xs">{comments} respostas</p>
           </button>
         </div>
-      </div>
+      </CardBase>
     );
   }
 );
@@ -756,9 +879,12 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
     };
 
     return (
-      <div
+      <CardBase
         ref={ref}
-        className={`w-auto h-14 p-4 flex flex-row bg-background items-center gap-2 ${className}`}
+        layout="horizontal"
+        padding="medium"
+        minHeight="none"
+        className={`w-auto h-14 items-center gap-2 border-none ${className}`}
         {...props}
       >
         {/* Audio element */}
@@ -773,16 +899,18 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
           data-testid="audio-element"
           aria-label={title}
         >
-          {tracks ? tracks.map((track) => (
-            <track
-              key={track.src}
-              kind={track.kind}
-              src={track.src}
-              srcLang={track.srcLang}
-              label={track.label}
-              default={track.default}
-            />
-          )) : (
+          {tracks ? (
+            tracks.map((track) => (
+              <track
+                key={track.src}
+                kind={track.kind}
+                src={track.src}
+                srcLang={track.srcLang}
+                label={track.label}
+                default={track.default}
+              />
+            ))
+          ) : (
             <track
               kind="captions"
               src="data:text/vtt;base64,"
@@ -915,12 +1043,13 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
           size={24}
           className="text-text-950 cursor-pointer hover:text-primary-600"
         />
-      </div>
+      </CardBase>
     );
   }
 );
 
 export {
+  CardBase,
   CardActivesResults,
   CardQuestions,
   CardProgress,
