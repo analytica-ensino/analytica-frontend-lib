@@ -1,14 +1,8 @@
 @import 'tailwindcss';
 
-/* Safelist completo de todas as classes primary (50-950) para garantir disponibilidade */
-@source inline("bg-primary-{50,{100..900..100},950}");
-@source inline("text-primary-{50,{100..900..100},950}");
-@source inline("border-primary-{50,{100..900..100},950}");
-
-/* Também incluindo variantes com hover e focus por precaução */
-@source inline("{hover:,focus:,}bg-primary-{50,{100..900..100},950}");
-@source inline("{hover:,focus:,}text-primary-{50,{100..900..100},950}");
-@source inline("{hover:,focus:,}border-primary-{50,{100..900..100},950}");
+/* Safelist compacto para todas as cores do tema */
+@source inline("{bg,text,border}-{primary,secondary,tertiary,text,background,border,success,error,warning,info}-{50,{100..900..100},950}");
+@source inline("{hover:,focus:,}{bg,text,border}-{primary,secondary,tertiary,text,background,border,success,error,warning,info}-{50,{100..900..100},950}");
 
 @theme {
   --font-sans:
