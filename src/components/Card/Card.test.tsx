@@ -562,6 +562,7 @@ describe('CardPerformance', () => {
         {...baseProps}
         onClickButton={handleClick}
         valueButton="bar"
+        actionVariant="caret"
       />
     );
 
