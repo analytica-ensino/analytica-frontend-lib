@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react';
 import { Book, Key, Star } from 'phosphor-react';
 import {
-  CardActivesResults,
+  CardActivitiesResults,
   CardAudio,
   CardForum,
   CardPerformance,
@@ -383,16 +383,16 @@ export const AllCardComponentsShowcase: Story = () => {
           </p>
         </div>
 
-        {/* CardActivesResults */}
+        {/* CardActivitiesResults */}
         <div className="space-y-6">
           <h3 className="text-2xl font-bold text-text-900 border-b border-border-100 pb-2">
-            CardActivesResults
+            CardActivitiesResults
           </h3>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {actions.map((action) => (
               <div key={action} className="flex flex-col items-center gap-3">
-                <CardActivesResults
+                <CardActivitiesResults
                   className="w-full max-w-[140px]"
                   {...baseProps}
                   action={action}
@@ -414,8 +414,8 @@ export const AllCardComponentsShowcase: Story = () => {
                   key={`${action}-extended`}
                   className="flex flex-col items-center gap-3"
                 >
-                  <CardActivesResults
-                    className="w-full max-w-[140px]"
+                  <CardActivitiesResults
+                    className="w-full max-w-[262px]"
                     {...baseProps}
                     action={action}
                     extended
