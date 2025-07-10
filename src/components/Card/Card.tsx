@@ -280,6 +280,8 @@ interface CardProgressProps extends HTMLAttributes<HTMLDivElement> {
   direction?: 'horizontal' | 'vertical';
   icon: ReactNode;
   color?: string;
+  progressVariant?: 'blue' | 'green';
+  showDates?: boolean;
 }
 
 const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
@@ -293,6 +295,8 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
       direction = 'horizontal',
       icon,
       color = '#B7DFFF',
+      progressVariant = 'blue',
+      showDates = true,
       className,
       ...props
     },
@@ -302,24 +306,27 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
     const contentComponent = {
       horizontal: (
         <>
-          <div className="flex flex-row gap-6 items-center">
-            {initialDate && (
-              <span className="flex flex-row gap-1 items-center text-2xs">
-                <p className="text-text-800 font-semibold">Início</p>
-                <p className="text-text-600">{initialDate}</p>
-              </span>
-            )}
-            {endDate && (
-              <span className="flex flex-row gap-1 items-center text-2xs">
-                <p className="text-text-800 font-semibold">Fim</p>
-                <p className="text-text-600">{endDate}</p>
-              </span>
-            )}
-          </div>
+          {showDates && (
+            <div className="flex flex-row gap-6 items-center">
+              {initialDate && (
+                <span className="flex flex-row gap-1 items-center text-2xs">
+                  <p className="text-text-800 font-semibold">Início</p>
+                  <p className="text-text-600">{initialDate}</p>
+                </span>
+              )}
+              {endDate && (
+                <span className="flex flex-row gap-1 items-center text-2xs">
+                  <p className="text-text-800 font-semibold">Fim</p>
+                  <p className="text-text-600">{endDate}</p>
+                </span>
+              )}
+            </div>
+          )}
           <span className="grid grid-cols-[1fr_auto] items-center gap-2">
             <ProgressBar
               size="small"
               value={progress}
+              variant={progressVariant}
               data-testid="progress-bar"
             />
 
@@ -383,6 +390,7 @@ interface CardTopicProps extends HTMLAttributes<HTMLDivElement> {
   subHead?: string[];
   progress: number;
   showPercentage?: boolean;
+  progressVariant?: 'blue' | 'green';
 }
 
 const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
@@ -392,6 +400,7 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
       subHead,
       progress,
       showPercentage = false,
+      progressVariant = 'blue',
       className = '',
       ...props
     },
@@ -424,6 +433,7 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
           <ProgressBar
             size="small"
             value={progress}
+            variant={progressVariant}
             data-testid="progress-bar"
           />
           {showPercentage && (
@@ -445,6 +455,8 @@ interface CardPerformanceProps extends HTMLAttributes<HTMLDivElement> {
   header: string;
   description?: string;
   progress?: number;
+  actionVariant?: 'button' | 'caret';
+  progressVariant?: 'blue' | 'green';
   onClickButton?: (valueButton?: unknown) => void;
   valueButton?: unknown;
 }
@@ -455,6 +467,8 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
       header,
       progress,
       description = 'Sem dados ainda! Você ainda não fez um questionário neste assunto.',
+      actionVariant = 'button',
+      progressVariant = 'blue',
       className = '',
       onClickButton,
       valueButton,
@@ -476,7 +490,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
         <div className="w-full flex flex-col justify-between gap-2">
           <div className="flex flex-row justify-between items-center">
             <p className="text-lg font-bold text-text-950">{header}</p>
-            {hasProgress && (
+            {actionVariant === 'button' && (
               <Button
                 variant="outline"
                 size="extra-small"
@@ -489,14 +503,18 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
 
           <div className="w-full">
             {hasProgress ? (
-              <ProgressBar value={progress} label={`${progress}% corretas`} />
+              <ProgressBar
+                value={progress}
+                label={`${progress}% corretas`}
+                variant={progressVariant}
+              />
             ) : (
               <p className="text-xs text-text-600">{description}</p>
             )}
           </div>
         </div>
 
-        {!hasProgress && (
+        {actionVariant == 'caret' && (
           <CaretRight
             className="size-4.5 text-text-800 cursor-pointer"
             data-testid="caret-icon"

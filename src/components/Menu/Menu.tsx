@@ -189,7 +189,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
         <li
           data-variant="menu"
           className={`
-            w-full flex flex-col gap-0.5 items-center py-1 px-2 rounded-sm font-medium text-xs
+            w-full flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-sm font-medium text-xs
             [&>svg]:size-6 cursor-pointer hover:bg-primary-600 hover:text-text
             focus:outline-none focus:border-indicator-info focus:border-2
             ${selectedValue === value ? 'bg-primary-50 text-primary-950' : 'text-text-950'}
