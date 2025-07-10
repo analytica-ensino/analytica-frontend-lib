@@ -57,7 +57,7 @@ import Menu, {
 } from './components/Menu/Menu';
 
 import {
-  CardActivesResults,
+  CardActivitiesResults,
   CardPerformance,
   CardProgress,
   CardQuestions,
@@ -126,7 +126,7 @@ export { MenuOverflow };
 export { MenuContent };
 export { MenuSeparator };
 
-export { CardActivesResults };
+export { CardActivitiesResults };
 export { CardPerformance };
 export { CardProgress };
 export { CardQuestions };

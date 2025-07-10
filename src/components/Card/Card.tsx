@@ -103,7 +103,7 @@ const CardBase = forwardRef<HTMLDivElement, CardBaseProps>(
   }
 );
 
-interface CardActivesResultsProps extends HTMLAttributes<HTMLDivElement> {
+interface CardActivitiesResultsProps extends HTMLAttributes<HTMLDivElement> {
   icon: ReactNode;
   title: string;
   subTitle: string;
@@ -141,7 +141,10 @@ const ACTION_HEADER_CLASSES = {
   info: 'text-info-300',
 };
 
-const CardActivesResults = forwardRef<HTMLDivElement, CardActivesResultsProps>(
+const CardActivitiesResults = forwardRef<
+  HTMLDivElement,
+  CardActivitiesResultsProps
+>(
   (
     {
       icon,
@@ -195,7 +198,9 @@ const CardActivesResults = forwardRef<HTMLDivElement, CardActivesResultsProps>(
             >
               {header}
             </p>
-            <p className="text-sm text-info-800 text-center">{description}</p>
+            <Badge size="large" action="info">
+              {description}
+            </Badge>
           </div>
         )}
       </div>
@@ -1068,7 +1073,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
 
 export {
   CardBase,
-  CardActivesResults,
+  CardActivitiesResults,
   CardQuestions,
   CardProgress,
   CardTopic,

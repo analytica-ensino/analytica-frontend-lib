@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import {
   CardBase,
-  CardActivesResults,
+  CardActivitiesResults,
   CardForum,
   CardPerformance,
   CardProgress,
@@ -247,7 +247,7 @@ describe('CardBase', () => {
   });
 });
 
-describe('CardActivesResults', () => {
+describe('CardActivitiesResults', () => {
   const baseProps = {
     icon: <Star data-testid="icon" />,
     title: 'Título Teste',
@@ -256,7 +256,7 @@ describe('CardActivesResults', () => {
   };
 
   it('should render with minimal props', () => {
-    render(<CardActivesResults {...baseProps} />);
+    render(<CardActivitiesResults {...baseProps} />);
     expect(screen.getByText('Título Teste')).toBeInTheDocument();
     expect(screen.getByText('Subtítulo Teste')).toBeInTheDocument();
     expect(screen.queryByText('Header Teste')).not.toBeInTheDocument();
@@ -264,7 +264,7 @@ describe('CardActivesResults', () => {
 
   it('should render extended content when extended=true', () => {
     render(
-      <CardActivesResults
+      <CardActivitiesResults
         {...baseProps}
         extended
         description="Descrição teste"
@@ -284,7 +284,7 @@ describe('CardActivesResults', () => {
 
     actions.forEach((action) => {
       const { unmount } = render(
-        <CardActivesResults {...baseProps} action={action} />
+        <CardActivitiesResults {...baseProps} action={action} />
       );
       const subtitle = screen.getByText('Subtítulo Teste');
       expect(subtitle.className).toContain(`text-${action}-`);
@@ -293,13 +293,13 @@ describe('CardActivesResults', () => {
   });
 
   it('should render icon', () => {
-    render(<CardActivesResults {...baseProps} />);
+    render(<CardActivitiesResults {...baseProps} />);
     expect(screen.getByTestId('icon')).toBeInTheDocument();
   });
 
   it('should accept and apply custom className', () => {
     render(
-      <CardActivesResults
+      <CardActivitiesResults
         {...baseProps}
         className="custom-class"
         data-testid="test-class"
@@ -310,7 +310,7 @@ describe('CardActivesResults', () => {
   });
 
   it('should forward extra HTML attributes', () => {
-    render(<CardActivesResults {...baseProps} data-testid="card-container" />);
+    render(<CardActivitiesResults {...baseProps} data-testid="card-container" />);
     expect(screen.getByTestId('card-container')).toBeInTheDocument();
   });
 });
