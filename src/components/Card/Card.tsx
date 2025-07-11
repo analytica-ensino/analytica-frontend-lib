@@ -460,6 +460,7 @@ interface CardPerformanceProps extends HTMLAttributes<HTMLDivElement> {
   header: string;
   description?: string;
   progress?: number;
+  labelProgress?: string;
   actionVariant?: 'button' | 'caret';
   progressVariant?: 'blue' | 'green';
   onClickButton?: (valueButton?: unknown) => void;
@@ -474,6 +475,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
       description = 'Sem dados ainda! Você ainda não fez um questionário neste assunto.',
       actionVariant = 'button',
       progressVariant = 'blue',
+      labelProgress = '',
       className = '',
       onClickButton,
       valueButton,
@@ -488,7 +490,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
         ref={ref}
         layout="horizontal"
         padding="medium"
-        minHeight="large"
+        minHeight="none"
         className={`justify-between gap-2 ${className}`}
         {...props}
       >
@@ -510,7 +512,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
             {hasProgress ? (
               <ProgressBar
                 value={progress}
-                label={`${progress}% corretas`}
+                label={`${progress}% ${labelProgress}`}
                 variant={progressVariant}
               />
             ) : (

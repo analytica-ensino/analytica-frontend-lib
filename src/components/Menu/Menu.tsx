@@ -204,7 +204,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
         <li
           data-variant="menu2"
           className={`
-            w-full flex flex-row items-center p-4 gap-2 border-b-4 border-transparent text-text-950 text-sx font-bold cursor-pointer focus:rounded-sm
+            w-full flex flex-row items-center p-4 gap-2 border-b-4 border-transparent text-text-950 text-xs font-bold cursor-pointer focus:rounded-sm justify-center
             focus:outline-none focus:border-indicator-info focus:border-2
             ${selectedValue === value ? 'border-b-primary-950' : ''}
             ${className ?? ''}
