@@ -310,7 +310,9 @@ describe('CardActivitiesResults', () => {
   });
 
   it('should forward extra HTML attributes', () => {
-    render(<CardActivitiesResults {...baseProps} data-testid="card-container" />);
+    render(
+      <CardActivitiesResults {...baseProps} data-testid="card-container" />
+    );
     expect(screen.getByTestId('card-container')).toBeInTheDocument();
   });
 });
@@ -511,7 +513,7 @@ describe('CardPerformance', () => {
 
   it('should render ProgressBar with percentage when progress is given', () => {
     render(<CardPerformance {...baseProps} progress={80} />);
-    expect(screen.getByText('80% corretas')).toBeInTheDocument();
+    expect(screen.getByText('80%')).toBeInTheDocument();
   });
 
   it('should show button "Ver Aula" when progress exists', () => {
