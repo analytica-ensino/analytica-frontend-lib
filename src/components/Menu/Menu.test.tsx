@@ -9,7 +9,6 @@ import {
   MenuItem,
   MenuItemIcon,
   MenuOverflow,
-  MenuSeparator,
 } from './Menu';
 import { House } from 'phosphor-react';
 
@@ -232,10 +231,9 @@ describe('Menu Component', () => {
           variant="breadcrumb"
           onValueChange={jest.fn()}
         >
-          <MenuItem value="home" variant="breadcrumb">
+          <MenuItem value="home" variant="breadcrumb" separator>
             Home
           </MenuItem>
-          <MenuSeparator data-testid="separator" />
           <MenuItem value="dashboard" variant="breadcrumb">
             Dashboard
           </MenuItem>

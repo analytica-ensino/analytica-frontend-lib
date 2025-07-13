@@ -4,7 +4,6 @@ import Menu, {
   MenuItem,
   MenuItemIcon,
   MenuOverflow,
-  MenuSeparator,
 } from './Menu';
 import {
   Headphones,
@@ -20,10 +19,12 @@ export const AllMenus: Story = () => {
 
   return (
     <div className="flex flex-col gap-8">
-      <h2 className="font-bold text-3xl text-text-900">Menu:</h2>
+      <h2 className="font-bold text-3xl text-text-900">
+        Menu: Valor selecionado - {value}
+      </h2>
       <div className="flex flex-col gap-8">
         <p>Selecionado: {value}</p>
-        <Menu defaultValue="home" value={value} onValueChange={setValue}>
+        <Menu defaultValue="home">
           <MenuContent className="max-w-[1000px]">
             <MenuItem value="home">
               <House />
@@ -56,33 +57,27 @@ export const AllMenus: Story = () => {
           defaultValue="home"
           variant="breadcrumb"
           className="max-w-[500px]"
+          value={value}
+          onValueChange={setValue}
         >
-          <MenuContent>
-            <MenuItem variant="breadcrumb" value="home">
+          <MenuContent variant="breadcrumb">
+            <MenuItem variant="breadcrumb" value="home" separator>
               Painel
             </MenuItem>
 
-            <MenuSeparator />
-
-            <MenuItem variant="breadcrumb" value="simulated">
+            <MenuItem variant="breadcrumb" value="simulated" separator>
               Simulados
             </MenuItem>
 
-            <MenuSeparator />
-
-            <MenuItem variant="breadcrumb" value="lecture">
+            <MenuItem variant="breadcrumb" value="lecture" separator>
               Aulas
             </MenuItem>
 
-            <MenuSeparator />
-
-            <MenuItem variant="breadcrumb" value="performance">
+            <MenuItem variant="breadcrumb" value="performance" separator>
               Desempenho
             </MenuItem>
 
-            <MenuSeparator />
-
-            <MenuItem variant="breadcrumb" value="suport">
+            <MenuItem variant="breadcrumb" value="suport" separator>
               Suporte
             </MenuItem>
           </MenuContent>

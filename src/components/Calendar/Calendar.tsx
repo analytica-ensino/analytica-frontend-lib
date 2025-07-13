@@ -334,15 +334,15 @@ const Calendar = ({
   // Navigation variant (compact)
   if (variant === 'navigation') {
     return (
-      <div className={`bg-background rounded-xl p-3 ${className}`}>
+      <div className={`bg-background rounded-xl pt-6 ${className}`}>
         {/* Compact header */}
         <div className="flex items-center justify-between mb-4 px-6">
           <div className="relative" ref={monthPickerContainerRef}>
             <button
               onClick={toggleMonthPicker}
-              className="flex items-center gap-1 hover:bg-background-100 rounded px-2 py-1 transition-colors"
+              className="flex items-center group gap-1 rounded transition-colors cursor-pointer"
             >
-              <span className="text-sm font-medium text-text-600">
+              <span className="text-sm font-medium text-text-600 group-hover:text-primary-950">
                 {MONTH_NAMES[currentDate.getMonth()]}{' '}
                 {currentDate.getFullYear()}
               </span>
@@ -415,7 +415,7 @@ const Calendar = ({
         </div>
 
         {/* Compact week days */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
+        <div className="grid grid-cols-7 gap-1 mb-2 px-3">
           {WEEK_DAYS_SHORT.map((day, index) => (
             <div
               key={`${day}-${index}`}
@@ -427,7 +427,7 @@ const Calendar = ({
         </div>
 
         {/* Compact calendar grid */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-1 px-3">
           {calendarData.map((day) => {
             // Não renderizar dias que não pertencem ao mês atual
             if (!day.isCurrentMonth) {

@@ -4,6 +4,11 @@
 @source inline("{bg,text,border}-{primary,secondary,tertiary,text,background,border,success,error,warning,info}-{50,{100..900..100},950}");
 @source inline("{hover:,focus:,}{bg,text,border}-{primary,secondary,tertiary,text,background,border,success,error,warning,info}-{50,{100..900..100},950}");
 
+/* Safelist para cores customizadas */
+@source inline("{bg,text,border}-{exam-1,exam-2,exam-3,exam-4}");
+@source inline("{bg,text,border}-{subject-1,subject-2,subject-3,subject-4,subject-5,subject-6,subject-7,subject-8,subject-9,subject-10,subject-11,subject-12,subject-13,subject-14,subject-15,subject-16}");
+@source inline("{bg,text,border}-{typography-1,typography-2}");
+
 @theme {
   --font-sans:
     'Roboto', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
