@@ -19,7 +19,9 @@ export const AllMenus: Story = () => {
 
   return (
     <div className="flex flex-col gap-8">
-      <h2 className="font-bold text-3xl text-text-900">Menu: Valor selecionado - {value}</h2>
+      <h2 className="font-bold text-3xl text-text-900">
+        Menu: Valor selecionado - {value}
+      </h2>
       <div className="flex flex-col gap-8">
         <p>Selecionado: {value}</p>
         <Menu defaultValue="home">
@@ -55,7 +57,8 @@ export const AllMenus: Story = () => {
           defaultValue="home"
           variant="breadcrumb"
           className="max-w-[500px]"
-          value={value} onValueChange={setValue}
+          value={value}
+          onValueChange={setValue}
         >
           <MenuContent variant="breadcrumb">
             <MenuItem variant="breadcrumb" value="home" separator>

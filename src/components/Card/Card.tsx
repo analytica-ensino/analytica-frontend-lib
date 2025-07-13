@@ -492,7 +492,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
         padding="medium"
         minHeight="none"
         className={`justify-between gap-2 ${actionVariant == 'caret' ? 'cursor-pointer' : ''} ${className}`}
-        onClick={() => actionVariant == 'caret' &&  onClickButton?.(valueButton)}
+        onClick={() => actionVariant == 'caret' && onClickButton?.(valueButton)}
         {...props}
       >
         <div className="w-full flex flex-col justify-between gap-2">

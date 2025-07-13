@@ -20,14 +20,21 @@ type MenuVariant = 'menu' | 'menu2' | 'breadcrumb';
 interface MenuStore {
   value: string;
   setValue: (value: string) => void;
+  onValueChange?: (value: string) => void;
 }
 
 type MenuStoreApi = StoreApi<MenuStore>;
 
-const createMenuStore = (): MenuStoreApi =>
+const createMenuStore = (
+  onValueChange?: (value: string) => void
+): MenuStoreApi =>
   create<MenuStore>((set) => ({
     value: '',
-    setValue: (value) => set({ value }),
+    setValue: (value) => {
+      set({ value });
+      onValueChange?.(value);
+    },
+    onValueChange,
   }));
 
 export const useMenuStore = (externalStore?: MenuStoreApi) => {
@@ -63,26 +70,19 @@ const Menu = forwardRef<HTMLDivElement, MenuProps>(
     ref
   ) => {
     const storeRef = useRef<MenuStoreApi>(null);
-    storeRef.current ??= createMenuStore();
+    storeRef.current ??= createMenuStore(onValueChange);
     const store = storeRef.current;
-    const { setValue, value } = useStore(store, (s) => s);
+    const { setValue } = useStore(store, (s) => s);
 
     useEffect(() => {
       setValue(propValue ?? defaultValue);
     }, [defaultValue, propValue, setValue]);
 
-    const onValueChangeRef = useRef(onValueChange);
-    const isInitializedRef = useRef(false);
-    onValueChangeRef.current = onValueChange;
-
     useEffect(() => {
-      // Só chama onValueChange se não for a inicialização
-      if (isInitializedRef.current) {
-        onValueChangeRef.current?.(value);
-      } else {
-        isInitializedRef.current = true;
+      if (propValue) {
+        setValue(propValue);
       }
-    }, [value]);
+    }, [propValue]);
 
     const baseClasses =
       'w-full py-2 px-6 flex flex-row items-center justify-center';
@@ -168,7 +168,9 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
     const handleClick = (
       e: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>
     ) => {
-      if (!disabled) setValue(value);
+      if (!disabled) {
+        setValue(value);
+      }
       props.onClick?.(e as MouseEvent<HTMLLIElement>);
     };
 
