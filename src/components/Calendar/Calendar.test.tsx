@@ -201,7 +201,7 @@ describe('Calendar', () => {
       expect(container.firstChild).toHaveClass(
         'bg-background',
         'rounded-xl',
-        'p-3'
+        'pt-6'
       );
     });
 

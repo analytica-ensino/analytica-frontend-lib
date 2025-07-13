@@ -91,6 +91,14 @@ export const AllCalendars: Story = () => (
       Variações possíveis do componente <code>Calendar</code>:
     </p>
 
+    <div>
+      <Calendar
+        activities={sampleActivities}
+        showActivities={true}
+        variant="navigation"
+        className="w-[320px]"
+      />
+    </div>
     {/* Calendário de navegação */}
     <div>
       <h3 className="font-bold text-2xl text-text-900 mb-4">

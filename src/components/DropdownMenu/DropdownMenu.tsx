@@ -422,7 +422,7 @@ const ProfileMenuTrigger = forwardRef<
   return (
     <button
       ref={ref}
-      className={`rounded-lg size-10 bg-background-50 flex items-center justify-center ${className}`}
+      className={`rounded-lg size-10 bg-primary-50 flex items-center justify-center cursor-pointer ${className}`}
       onClick={(e) => {
         e.stopPropagation();
         toggleOpen();
@@ -431,8 +431,8 @@ const ProfileMenuTrigger = forwardRef<
       aria-expanded={open}
       {...props}
     >
-      <span className="size-6 rounded-full bg-background-100 flex items-center justify-center">
-        <User className="text-background-950" size={18} />
+      <span className="size-6 rounded-full bg-primary-100 flex items-center justify-center">
+        <User className="text-primary-950" size={18} />
       </span>
     </button>
   );
@@ -457,8 +457,8 @@ const ProfileMenuHeader = forwardRef<
         `}
       {...props}
     >
-      <span className="size-16 bg-background-100 rounded-full flex items-center justify-center">
-        <User size={34} className="text-background-950" />
+      <span className="size-16 bg-primary-100 rounded-full flex items-center justify-center">
+        <User size={34} className="text-primary-950" />
       </span>
       <div className="flex flex-col ">
         <p className="text-xl font-bold text-text-950">{name}</p>

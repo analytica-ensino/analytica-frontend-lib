@@ -491,7 +491,8 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
         layout="horizontal"
         padding="medium"
         minHeight="none"
-        className={`justify-between gap-2 ${className}`}
+        className={`justify-between gap-2 ${actionVariant == 'caret' ? 'cursor-pointer' : ''} ${className}`}
+        onClick={() => actionVariant == 'caret' &&  onClickButton?.(valueButton)}
         {...props}
       >
         <div className="w-full flex flex-col justify-between gap-2">
@@ -525,7 +526,6 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
           <CaretRight
             className="size-4.5 text-text-800 cursor-pointer"
             data-testid="caret-icon"
-            onClick={() => onClickButton?.(valueButton)}
           />
         )}
       </CardBase>
@@ -909,7 +909,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
         layout="horizontal"
         padding="medium"
         minHeight="none"
-        className={`w-auto h-14 items-center gap-2 border-none ${className}`}
+        className={`w-auto h-14 items-center gap-2 ${className}`}
         {...props}
       >
         {/* Audio element */}

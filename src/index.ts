@@ -51,7 +51,6 @@ import Select, {
 
 import Menu, {
   MenuItem,
-  MenuSeparator,
   MenuOverflow,
   MenuContent,
 } from './components/Menu/Menu';
@@ -124,7 +123,6 @@ export { Menu };
 export { MenuItem };
 export { MenuOverflow };
 export { MenuContent };
-export { MenuSeparator };
 
 export { CardActivitiesResults };
 export { CardPerformance };

@@ -123,6 +123,7 @@ const MenuContent = forwardRef<HTMLUListElement, MenuContentProps>(
         className={`
           ${baseClasses}
           ${variantClasses}
+          ${variant == 'breadcrumb' ? 'flex-wrap' : ''}
           ${className ?? ''}
         `}
         style={
@@ -144,6 +145,7 @@ interface MenuItemProps extends HTMLAttributes<HTMLLIElement> {
   disabled?: boolean;
   store?: MenuStoreApi;
   variant?: MenuVariant;
+  separator?: boolean;
 }
 
 const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
@@ -155,6 +157,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
       disabled = false,
       store: externalStore,
       variant = 'menu',
+      separator = false,
       ...props
     },
     ref
@@ -204,21 +207,27 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
         <li
           data-variant="menu2"
           className={`
-            w-full flex flex-row items-center p-4 gap-2 border-b-4 border-transparent text-text-950 text-xs font-bold cursor-pointer focus:rounded-sm justify-center
-            focus:outline-none focus:border-indicator-info focus:border-2
-            ${selectedValue === value ? 'border-b-primary-950' : ''}
-            ${className ?? ''}
+            w-full flex flex-col items-center px-4 pt-4 gap-3 border-b-4 border-transparent cursor-pointer focus:rounded-sm justify-center hover:bg-background-100 rounded-lg
+            focus:outline-none focus:border-indicator-info focus:border-2 
+            ${selectedValue === value ? '' : 'pb-4'}
           `}
           {...commonProps}
         >
-          {children}
+          <span
+            className={`flex flex-row items-center gap-2 px-2 text-text-950 text-xs font-bold ${className ?? ''}`}
+          >
+            {children}
+          </span>
+          {selectedValue === value && (
+            <div className="h-1 w-full bg-primary-950 rounded-lg" />
+          )}
         </li>
       ),
       breadcrumb: (
         <li
           data-variant="breadcrumb"
           className={`
-            w-full p-2 rounded-lg hover:text-primary-600 cursor-pointer font-bold text-xs
+            flex flex-row gap-2 items-center w-fit p-2 rounded-lg hover:text-primary-600 cursor-pointer font-bold text-xs
             focus:outline-none focus:border-indicator-info focus:border-2
             ${selectedValue === value ? 'text-text-950' : 'text-text-600'}
             ${className ?? ''}
@@ -228,11 +237,19 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
           <span
             className={`
               border-b border-text-600 hover:border-primary-600 text-inherit text-xs
-              ${selectedValue === value ? 'border-b-0 font-bold' : 'border-b-primary-600'}
+              ${selectedValue === value ? 'border-b-0 font-bold' : 'border-b-text-600'}
             `}
           >
             {children}
           </span>
+
+          {variant == 'breadcrumb' && separator && (
+            <CaretRight
+              size={16}
+              className="text-text-600"
+              data-testid="separator"
+            />
+          )}
         </li>
       ),
     };
@@ -257,20 +274,6 @@ const MenuItemIcon = ({
     {icon}
   </span>
 );
-
-const MenuSeparator = forwardRef<HTMLLIElement, HTMLAttributes<HTMLLIElement>>(
-  ({ className, children, ...props }, ref) => (
-    <li
-      ref={ref}
-      aria-hidden="true"
-      className={`[&>svg]:w-4 [&>svg]:h-4 text-text-600 ${className ?? ''}`}
-      {...props}
-    >
-      {children ?? <CaretRight />}
-    </li>
-  )
-);
-MenuSeparator.displayName = 'MenuSeparator';
 
 export const internalScroll = (
   container: HTMLUListElement | null,
@@ -387,11 +390,4 @@ const injectStore = (children: ReactNode, store: MenuStoreApi): ReactNode =>
   });
 
 export default Menu;
-export {
-  Menu,
-  MenuContent,
-  MenuItem,
-  MenuSeparator,
-  MenuOverflow,
-  MenuItemIcon,
-};
+export { Menu, MenuContent, MenuItem, MenuOverflow, MenuItemIcon };
