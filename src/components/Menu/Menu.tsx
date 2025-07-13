@@ -78,12 +78,6 @@ const Menu = forwardRef<HTMLDivElement, MenuProps>(
       setValue(propValue ?? defaultValue);
     }, [defaultValue, propValue, setValue]);
 
-    useEffect(() => {
-      if (propValue) {
-        setValue(propValue);
-      }
-    }, [propValue]);
-
     const baseClasses =
       'w-full py-2 px-6 flex flex-row items-center justify-center';
     const variantClasses = VARIANT_CLASSES[variant];
@@ -245,7 +239,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
             {children}
           </span>
 
-          {variant == 'breadcrumb' && separator && (
+          {separator && (
             <CaretRight
               size={16}
               className="text-text-600"
