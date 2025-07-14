@@ -440,6 +440,90 @@ describe('CardProgress', () => {
     expect(container).toBeInTheDocument();
     expect(container.className).toContain('custom-class');
   });
+
+  it('should apply hex color via style when color starts with #', () => {
+    render(
+      <CardProgress
+        {...baseProps}
+        color="#FF5733"
+        data-testid="card-progress"
+      />
+    );
+    
+    const iconContainer = screen.getByTestId('card-progress').querySelector('div > div');
+    expect(iconContainer).toHaveStyle({ backgroundColor: '#FF5733' });
+    expect(iconContainer?.className).not.toContain('bg-');
+  });
+
+  it('should apply Tailwind color class when color does not start with #', () => {
+    render(
+      <CardProgress
+        {...baseProps}
+        color="blue-500"
+        data-testid="card-progress"
+      />
+    );
+    
+    const iconContainer = screen.getByTestId('card-progress').querySelector('div > div');
+    expect(iconContainer).toHaveClass('bg-blue-500');
+    // Verifica que não tem backgroundColor definido no style (ou está vazio)
+    const style = iconContainer?.getAttribute('style');
+    expect(style).toBeNull();
+  });
+
+  it('should apply default color when no color is provided', () => {
+    render(
+      <CardProgress
+        {...baseProps}
+        data-testid="card-progress"
+      />
+    );
+    
+    const iconContainer = screen.getByTestId('card-progress').querySelector('div > div');
+    expect(iconContainer).toHaveStyle({ backgroundColor: '#B7DFFF' });
+  });
+
+  it('should handle different hex color formats', () => {
+    const hexColors = ['#FF0000', '#00FF00', '#0000FF', '#123456', '#ABCDEF'];
+    
+    hexColors.forEach(color => {
+      const { unmount } = render(
+        <CardProgress
+          {...baseProps}
+          color={color}
+          data-testid="card-progress"
+        />
+      );
+      
+      const iconContainer = screen.getByTestId('card-progress').querySelector('div > div');
+      expect(iconContainer).toHaveStyle({ backgroundColor: color });
+      expect(iconContainer?.className).not.toContain('bg-');
+      
+      unmount();
+    });
+  });
+
+  it('should handle different Tailwind color classes', () => {
+    const tailwindColors = ['red-500', 'green-300', 'blue-700', 'yellow-400', 'purple-600'];
+    
+    tailwindColors.forEach(color => {
+      const { unmount } = render(
+        <CardProgress
+          {...baseProps}
+          color={color}
+          data-testid="card-progress"
+        />
+      );
+      
+      const iconContainer = screen.getByTestId('card-progress').querySelector('div > div');
+      expect(iconContainer).toHaveClass(`bg-${color}`);
+      // Verifica que não tem backgroundColor definido no style (ou está vazio)
+      const style = iconContainer?.getAttribute('style');
+      expect(style).toBeNull();
+      
+      unmount();
+    });
+  });
 });
 
 describe('CardTopic', () => {

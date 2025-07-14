@@ -32,7 +32,7 @@ export const AllCardComponentsShowcase: Story = () => {
   ];
 
   return (
-    <div className="space-y-12">
+    <div data-theme="enem-parana-light" className="space-y-12">
       {/* Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold text-text-900 mb-4">
@@ -78,7 +78,7 @@ export const AllCardComponentsShowcase: Story = () => {
                     initialDate="12 Fev 2025"
                     endDate="20 Mar 2025"
                     progress={20}
-                    color="#B7DFFF"
+                    color="subject-16"
                     icon={<Book />}
                     progressVariant="blue"
                     showDates={true}
