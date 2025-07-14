@@ -449,8 +449,8 @@ describe('CardProgress', () => {
         data-testid="card-progress"
       />
     );
-    
-    const iconContainer = screen.getByTestId('card-progress').querySelector('div > div');
+
+    const iconContainer = screen.getByTestId('icon-container');
     expect(iconContainer).toHaveStyle({ backgroundColor: '#FF5733' });
     expect(iconContainer?.className).not.toContain('bg-');
   });
@@ -463,8 +463,8 @@ describe('CardProgress', () => {
         data-testid="card-progress"
       />
     );
-    
-    const iconContainer = screen.getByTestId('card-progress').querySelector('div > div');
+
+    const iconContainer = screen.getByTestId('icon-container');
     expect(iconContainer).toHaveClass('bg-blue-500');
     // Verifica que não tem backgroundColor definido no style (ou está vazio)
     const style = iconContainer?.getAttribute('style');
@@ -472,21 +472,16 @@ describe('CardProgress', () => {
   });
 
   it('should apply default color when no color is provided', () => {
-    render(
-      <CardProgress
-        {...baseProps}
-        data-testid="card-progress"
-      />
-    );
-    
-    const iconContainer = screen.getByTestId('card-progress').querySelector('div > div');
+    render(<CardProgress {...baseProps} data-testid="card-progress" />);
+
+    const iconContainer = screen.getByTestId('icon-container');
     expect(iconContainer).toHaveStyle({ backgroundColor: '#B7DFFF' });
   });
 
   it('should handle different hex color formats', () => {
     const hexColors = ['#FF0000', '#00FF00', '#0000FF', '#123456', '#ABCDEF'];
-    
-    hexColors.forEach(color => {
+
+    hexColors.forEach((color) => {
       const { unmount } = render(
         <CardProgress
           {...baseProps}
@@ -494,19 +489,25 @@ describe('CardProgress', () => {
           data-testid="card-progress"
         />
       );
-      
-      const iconContainer = screen.getByTestId('card-progress').querySelector('div > div');
+
+      const iconContainer = screen.getByTestId('icon-container');
       expect(iconContainer).toHaveStyle({ backgroundColor: color });
       expect(iconContainer?.className).not.toContain('bg-');
-      
+
       unmount();
     });
   });
 
   it('should handle different Tailwind color classes', () => {
-    const tailwindColors = ['red-500', 'green-300', 'blue-700', 'yellow-400', 'purple-600'];
-    
-    tailwindColors.forEach(color => {
+    const tailwindColors = [
+      'red-500',
+      'green-300',
+      'blue-700',
+      'yellow-400',
+      'purple-600',
+    ];
+
+    tailwindColors.forEach((color) => {
       const { unmount } = render(
         <CardProgress
           {...baseProps}
@@ -514,13 +515,13 @@ describe('CardProgress', () => {
           data-testid="card-progress"
         />
       );
-      
-      const iconContainer = screen.getByTestId('card-progress').querySelector('div > div');
+
+      const iconContainer = screen.getByTestId('icon-container');
       expect(iconContainer).toHaveClass(`bg-${color}`);
       // Verifica que não tem backgroundColor definido no style (ou está vazio)
       const style = iconContainer?.getAttribute('style');
       expect(style).toBeNull();
-      
+
       unmount();
     });
   });

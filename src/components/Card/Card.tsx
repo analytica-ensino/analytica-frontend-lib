@@ -369,6 +369,7 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
             ${!color.startsWith('#') ? `bg-${color}` : ''}
           `}
           style={color.startsWith('#') ? { backgroundColor: color } : undefined}
+          data-testid="icon-container"
         >
           {icon}
         </div>
