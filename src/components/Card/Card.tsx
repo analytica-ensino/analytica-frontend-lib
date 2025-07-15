@@ -182,11 +182,15 @@ const CardActivitiesResults = forwardRef<
             {icon}
           </span>
 
-          <Text size="2xs" weight="medium" className="text-text-800 uppercase">
+          <Text
+            size="2xs"
+            weight="medium"
+            className="text-text-800 uppercase truncate"
+          >
             {title}
           </Text>
 
-          <p className={`text-lg font-bold ${actionSubTitleClasses}`}>
+          <p className={`text-lg font-bold truncate ${actionSubTitleClasses}`}>
             {subTitle}
           </p>
         </div>
@@ -194,7 +198,7 @@ const CardActivitiesResults = forwardRef<
         {extended && (
           <div className="flex flex-col items-center gap-2.5 pb-9.5 pt-2.5">
             <p
-              className={`text-2xs font-medium uppercase ${actionHeaderClasses}`}
+              className={`text-2xs font-medium uppercase truncate ${actionHeaderClasses}`}
             >
               {header}
             </p>
@@ -240,8 +244,8 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
         className={`justify-between gap-4 ${className}`}
         {...props}
       >
-        <section className="flex flex-col gap-1">
-          <p className="font-bold text-xs text-text-950">{header}</p>
+        <section className="flex flex-col gap-1 flex-1 min-w-0">
+          <p className="font-bold text-xs text-text-950 truncate">{header}</p>
 
           <div className="flex flex-row gap-6 items-center">
             <Badge
@@ -263,10 +267,11 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
           </div>
         </section>
 
-        <span>
+        <span className="flex-shrink-0">
           <Button
             size="extra-small"
             onClick={() => onClickButton?.(valueButton)}
+            className="min-w-fit"
           >
             {buttonLabel}
           </Button>
@@ -380,7 +385,7 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
             ${!isHorizontal && 'gap-4'}
           `}
         >
-          <Text size="sm" weight="bold" className="text-text-950">
+          <Text size="sm" weight="bold" className="text-text-950 truncate">
             {header}
           </Text>
           {contentComponent[direction]}
@@ -432,7 +437,7 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
           </span>
         )}
 
-        <p className="text-sm text-text-950 font-bold">{header}</p>
+        <p className="text-sm text-text-950 font-bold truncate">{header}</p>
 
         <span className="grid grid-cols-[1fr_auto] items-center gap-2">
           <ProgressBar
@@ -496,13 +501,16 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
         {...props}
       >
         <div className="w-full flex flex-col justify-between gap-2">
-          <div className="flex flex-row justify-between items-center">
-            <p className="text-lg font-bold text-text-950">{header}</p>
+          <div className="flex flex-row justify-between items-center gap-2">
+            <p className="text-lg font-bold text-text-950 truncate flex-1 min-w-0">
+              {header}
+            </p>
             {actionVariant === 'button' && (
               <Button
                 variant="outline"
                 size="extra-small"
                 onClick={() => onClickButton?.(valueButton)}
+                className="min-w-fit flex-shrink-0"
               >
                 Ver Aula
               </Button>
@@ -517,7 +525,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
                 variant={progressVariant}
               />
             ) : (
-              <p className="text-xs text-text-600">{description}</p>
+              <p className="text-xs text-text-600 truncate">{description}</p>
             )}
           </div>
         </div>
@@ -569,7 +577,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
       >
         <div
           className={`
-              flex justify-center items-center [&>svg]:size-8 text-text-950 min-w-20 max-w-20 h-full rounded-l-xl
+              flex justify-center items-center [&>svg]:size-8 text-text-950 min-w-20 max-w-20 min-h-20 h-full rounded-l-xl
             `}
           style={{
             backgroundColor: color,
@@ -581,10 +589,12 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
         <div
           className={`
             p-4 flex justify-between w-full h-full
-            ${isRow ? 'flex-row items-center' : 'flex-col'}
+            ${isRow ? 'flex-row items-center gap-2' : 'flex-col'}
           `}
         >
-          <p className="text-sm font-bold text-text-950">{header}</p>
+          <p className="text-sm font-bold text-text-950 truncate flex-1 min-w-0">
+            {header}
+          </p>
           <span className="flex flex-row gap-1 items-center">
             <Badge
               action="success"
@@ -630,10 +640,12 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
       >
         <div
           className={`
-            p-4 flex justify-between w-full h-full flex-row items-center
+            p-4 flex justify-between w-full h-full flex-row items-center gap-2
           `}
         >
-          <p className="text-sm font-bold text-text-950">{header}</p>
+          <p className="text-sm font-bold text-text-950 truncate flex-1 min-w-0">
+            {header}
+          </p>
           {status && (
             <span className="flex flex-row gap-1 items-center">
               <Badge
@@ -674,7 +686,7 @@ const CardSettings = forwardRef<HTMLDivElement, CardSettingsProps>(
       >
         <span className="[&>svg]:size-6">{icon}</span>
 
-        <p className="w-full text-sm">{header}</p>
+        <p className="w-full text-sm truncate">{header}</p>
 
         <CaretRight size={24} className="cursor-pointer" />
       </CardBase>
@@ -704,8 +716,8 @@ const CardSupport = forwardRef<HTMLDivElement, CardSupportProps>(
               w-full flex ${direction == 'col' ? 'flex-col' : 'flex-row items-center'}  gap-2
           `}
         >
-          <span className="w-full">
-            <p className="text-sm text-text-950 font-bold">{header}</p>
+          <span className="w-full min-w-0">
+            <p className="text-sm text-text-950 font-bold truncate">{header}</p>
           </span>
           <span className="flex flex-row gap-1">{children}</span>
         </div>
@@ -762,7 +774,7 @@ const CardForum = forwardRef<HTMLDivElement, CardForumProps>(
           className="min-w-8 h-8 rounded-full bg-background-950"
         />
 
-        <div className="flex flex-col gap-2 flex-1">
+        <div className="flex flex-col gap-2 flex-1 min-w-0">
           <div className="flex flex-row gap-1 items-center flex-wrap">
             <p className="text-xs font-semibold text-primary-700 truncate">
               {title}
@@ -772,7 +784,9 @@ const CardForum = forwardRef<HTMLDivElement, CardForumProps>(
             </p>
           </div>
 
-          <p className="text-text-950 text-sm line-clamp-2">{content}</p>
+          <p className="text-text-950 text-sm line-clamp-2 truncate">
+            {content}
+          </p>
 
           <button
             type="button"

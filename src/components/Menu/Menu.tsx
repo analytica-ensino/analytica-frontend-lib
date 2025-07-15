@@ -51,7 +51,7 @@ interface MenuProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const VARIANT_CLASSES = {
-  menu: 'bg-background shadow-soft-shadow-1',
+  menu: 'bg-background shadow-soft-shadow-1 px-6',
   menu2: '',
   breadcrumb: '',
 };
@@ -78,8 +78,7 @@ const Menu = forwardRef<HTMLDivElement, MenuProps>(
       setValue(propValue ?? defaultValue);
     }, [defaultValue, propValue, setValue]);
 
-    const baseClasses =
-      'w-full py-2 px-6 flex flex-row items-center justify-center';
+    const baseClasses = 'w-full py-2 flex flex-row items-center justify-center';
     const variantClasses = VARIANT_CLASSES[variant];
 
     return (
