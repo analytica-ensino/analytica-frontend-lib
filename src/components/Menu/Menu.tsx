@@ -51,7 +51,7 @@ interface MenuProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const VARIANT_CLASSES = {
-  menu: 'bg-background shadow-soft-shadow-1',
+  menu: 'bg-background shadow-soft-shadow-1 px-6',
   menu2: '',
   breadcrumb: '',
 };
@@ -78,8 +78,7 @@ const Menu = forwardRef<HTMLDivElement, MenuProps>(
       setValue(propValue ?? defaultValue);
     }, [defaultValue, propValue, setValue]);
 
-    const baseClasses =
-      'w-full py-2 px-6 flex flex-row items-center justify-center';
+    const baseClasses = 'w-full py-2 flex flex-row items-center justify-center';
     const variantClasses = VARIANT_CLASSES[variant];
 
     return (
@@ -203,14 +202,14 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
         <li
           data-variant="menu2"
           className={`
-            w-full flex flex-col items-center px-4 pt-4 gap-3 border-b-4 border-transparent cursor-pointer focus:rounded-sm justify-center hover:bg-background-100 rounded-lg
+            w-full flex flex-col items-center px-2 pt-4 gap-3 border-b-4 border-transparent cursor-pointer focus:rounded-sm justify-center hover:bg-background-100 rounded-lg
             focus:outline-none focus:border-indicator-info focus:border-2 
             ${selectedValue === value ? '' : 'pb-4'}
           `}
           {...commonProps}
         >
           <span
-            className={`flex flex-row items-center gap-2 px-2 text-text-950 text-xs font-bold ${className ?? ''}`}
+            className={`flex flex-row items-center gap-2 px-4 text-text-950 text-xs font-bold ${className ?? ''}`}
           >
             {children}
           </span>

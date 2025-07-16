@@ -32,7 +32,7 @@ export const AllCardComponentsShowcase: Story = () => {
   ];
 
   return (
-    <div data-theme="enem-parana-light" className="space-y-12">
+    <div className="space-y-12">
       {/* Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold text-text-900 mb-4">
@@ -59,6 +59,25 @@ export const AllCardComponentsShowcase: Story = () => {
           <h3 className="text-2xl font-bold text-text-900 border-b border-border-100 pb-2">
             CardProgress
           </h3>
+
+          {/* Exemplo com texto longo para mostrar truncate */}
+          <div className="space-y-4">
+            <h4 className="text-xl font-semibold text-text-900 flex items-center gap-2">
+              <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
+              Exemplo com Texto Longo (Truncate)
+            </h4>
+            <CardProgress
+              className="max-w-xs"
+              header="Este é um título muito longo que deve ser truncado quando não cabe no container disponível"
+              initialDate="12 Fev 2025"
+              endDate="20 Mar 2025"
+              progress={65}
+              color="#FFB366"
+              icon={<Book />}
+              progressVariant="blue"
+              showDates={true}
+            />
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Variante Blue */}
@@ -179,6 +198,25 @@ export const AllCardComponentsShowcase: Story = () => {
             CardTopic
           </h3>
 
+          {/* Exemplo com texto longo para mostrar truncate */}
+          <div className="space-y-4">
+            <h4 className="text-xl font-semibold text-text-900 flex items-center gap-2">
+              <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
+              Exemplo com Texto Longo (Truncate)
+            </h4>
+            <CardTopic
+              className="max-w-xs"
+              header="Este é um título de tópico muito longo que deve ser truncado adequadamente"
+              subHead={[
+                'Módulo com nome muito longo',
+                'Unidade com descrição extensa',
+              ]}
+              progress={45}
+              showPercentage={true}
+              progressVariant="blue"
+            />
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Variante Blue */}
             <div className="space-y-4">
@@ -277,6 +315,22 @@ export const AllCardComponentsShowcase: Story = () => {
           <h3 className="text-2xl font-bold text-text-900 border-b border-border-100 pb-2">
             CardPerformance
           </h3>
+
+          {/* Exemplo com texto longo para mostrar truncate */}
+          <div className="space-y-4">
+            <h4 className="text-xl font-semibold text-text-900 flex items-center gap-2">
+              <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
+              Exemplo com Texto Longo (Truncate)
+            </h4>
+            <CardPerformance
+              className="max-w-sm"
+              header="Este é um título de desempenho muito longo que demonstra o comportamento de truncate"
+              description="Esta é uma descrição muito longa que também deve ser truncada quando não cabe no espaço disponível do card"
+              actionVariant="button"
+              progress={80}
+              progressVariant="green"
+            />
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Variante Blue */}
@@ -434,6 +488,20 @@ export const AllCardComponentsShowcase: Story = () => {
           <h3 className="text-2xl font-bold text-text-900 border-b border-border-100 pb-2">
             CardQuestions
           </h3>
+
+          {/* Exemplo com texto longo para mostrar truncate */}
+          <div className="space-y-4">
+            <h4 className="text-xl font-semibold text-text-900 flex items-center gap-2">
+              <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
+              Exemplo com Texto Longo (Truncate)
+            </h4>
+            <div className="max-w-md">
+              <CardQuestions
+                header="Esta é uma questão com um título muito longo que demonstra como o texto é truncado adequadamente"
+                state="done"
+              />
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
@@ -601,6 +669,23 @@ export const AllCardComponentsShowcase: Story = () => {
           <h3 className="text-2xl font-bold text-text-900 border-b border-border-100 pb-2">
             CardForum
           </h3>
+
+          {/* Exemplo com texto longo para mostrar truncate */}
+          <div className="space-y-4">
+            <h4 className="text-xl font-semibold text-text-900 flex items-center gap-2">
+              <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
+              Exemplo com Texto Longo (Truncate)
+            </h4>
+            <div className="max-w-md">
+              <CardForum
+                title="Este é um título de post no fórum muito longo que deve ser truncado adequadamente quando não cabe"
+                content="Este é um conteúdo muito longo do post no fórum que demonstra como o text-clamp funciona junto com o truncate para limitar o texto a duas linhas e adicionar reticências quando necessário, garantindo uma boa experiência visual."
+                comments={15}
+                date="25 Maio 2025"
+                hour="09:35"
+              />
+            </div>
+          </div>
 
           <div className="max-w-lg">
             <CardForum
