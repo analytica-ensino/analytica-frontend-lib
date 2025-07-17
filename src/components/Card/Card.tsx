@@ -1087,14 +1087,14 @@ interface CardSimuladoProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   duration?: string;
   info: string;
-  backgroundColor: 'blue' | 'pink' | 'yellow' | 'green';
+  backgroundColor: 'enem' | 'prova' | 'simuladao' | 'vestibular';
 }
 
 const SIMULADO_BACKGROUND_CLASSES = {
-  blue: 'bg-exam-1',
-  pink: 'bg-exam-2',
-  yellow: 'bg-exam-3',
-  green: 'bg-exam-4',
+  enem: 'bg-exam-1',
+  prova: 'bg-exam-2',
+  simuladao: 'bg-exam-3',
+  vestibular: 'bg-exam-4',
 };
 
 const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(

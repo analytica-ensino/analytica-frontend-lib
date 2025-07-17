@@ -732,7 +732,7 @@ export const AllCardComponentsShowcase: Story = () => {
                 title="Este é um título de simulado muito longo que deve ser truncado quando não cabe no espaço disponível"
                 duration="2h30min"
                 info="Informação adicional muito longa que também será truncada adequadamente"
-                backgroundColor="blue"
+                backgroundColor="enem"
               />
             </div>
           </div>
@@ -745,28 +745,28 @@ export const AllCardComponentsShowcase: Story = () => {
               </h4>
               <div className="space-y-4">
                 <CardSimulado
-                  title="Simulado ENEM - Azul"
+                  title="Simulado ENEM"
                   duration="3h00min"
                   info="180 questões"
-                  backgroundColor="blue"
+                  backgroundColor="enem"
                 />
                 <CardSimulado
-                  title="Simulado ENEM - Rosa"
+                  title="Simulado Prova"
                   duration="2h30min"
                   info="90 questões"
-                  backgroundColor="pink"
+                  backgroundColor="prova"
                 />
                 <CardSimulado
-                  title="Simulado ENEM - Amarelo"
+                  title="Simulado Simuladão"
                   duration="1h30min"
-                  info="45 questões"
-                  backgroundColor="yellow"
+                  info="Quantidade de questões flexível"
+                  backgroundColor="simuladao"
                 />
                 <CardSimulado
-                  title="Simulado ENEM - Verde"
+                  title="Simulado Vestibular"
                   duration="4h00min"
-                  info="200 questões"
-                  backgroundColor="green"
+                  info="Analytica, Uel, UEM, UEPG, UFPR, Unicentro"
+                  backgroundColor="vestibular"
                 />
               </div>
             </div>
@@ -778,24 +778,24 @@ export const AllCardComponentsShowcase: Story = () => {
               </h4>
               <div className="space-y-4">
                 <CardSimulado
-                  title="Simulado Rápido"
+                  title="Simulado ENEM Rápido"
                   info="30 questões rápidas"
-                  backgroundColor="blue"
+                  backgroundColor="enem"
                 />
                 <CardSimulado
-                  title="Simulado Personalizado"
+                  title="Simulado Prova Personalizado"
                   info="Quantidade variável"
-                  backgroundColor="pink"
+                  backgroundColor="prova"
                 />
                 <CardSimulado
-                  title="Simulado Treino"
-                  info="Sem limite de tempo"
-                  backgroundColor="yellow"
+                  title="Simulado Simuladão Treino"
+                  info="Quantidade de questões flexível"
+                  backgroundColor="simuladao"
                 />
                 <CardSimulado
-                  title="Simulado Livre"
-                  info="Responda no seu ritmo"
-                  backgroundColor="green"
+                  title="Simulado Vestibular Livre"
+                  info="Analytica, Uel, UEM, UEPG, UFPR, Unicentro"
+                  backgroundColor="vestibular"
                 />
               </div>
             </div>
@@ -884,31 +884,31 @@ export const CardSimuladoInteractive: Story = () => {
           title="Simulado ENEM 2025 - Completo"
           duration="5h00min"
           info="180 questões + redação"
-          backgroundColor="blue"
+          backgroundColor="enem"
           onClick={() => handleClick('Simulado ENEM 2025 - Completo')}
         />
 
         <CardSimulado
-          title="Simulado Matemática"
+          title="Simulado Prova Matemática"
           duration="1h30min"
           info="45 questões de matemática"
-          backgroundColor="pink"
-          onClick={() => handleClick('Simulado Matemática')}
+          backgroundColor="prova"
+          onClick={() => handleClick('Simulado Prova Matemática')}
         />
 
         <CardSimulado
-          title="Simulado Ciências da Natureza"
+          title="Simulado Simuladão Ciências da Natureza"
           duration="2h00min"
           info="60 questões de física, química e biologia"
-          backgroundColor="yellow"
-          onClick={() => handleClick('Simulado Ciências da Natureza')}
+          backgroundColor="simuladao"
+          onClick={() => handleClick('Simulado Simuladão Ciências da Natureza')}
         />
 
         <CardSimulado
-          title="Simulado Linguagens"
+          title="Simulado Vestibular Linguagens"
           info="45 questões sem limite de tempo"
-          backgroundColor="green"
-          onClick={() => handleClick('Simulado Linguagens')}
+          backgroundColor="vestibular"
+          onClick={() => handleClick('Simulado Vestibular Linguagens')}
         />
       </div>
 
@@ -918,7 +918,8 @@ export const CardSimuladoInteractive: Story = () => {
         </h3>
         <ul className="space-y-2 text-text-700">
           <li>
-            • Suporta 4 cores de fundo diferentes (blue, pink, yellow, green)
+            • Suporta 4 tipos de simulados diferentes (ENEM, Prova, Simuladão,
+            Vestibular)
           </li>
           <li>• Campo de duração opcional com ícone de relógio</li>
           <li>• Textos longos são truncados automaticamente</li>

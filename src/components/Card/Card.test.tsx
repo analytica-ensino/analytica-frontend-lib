@@ -1775,7 +1775,7 @@ describe('CardSimulado', () => {
   const baseProps = {
     title: 'Simulado ENEM 2025',
     info: '180 questões',
-    backgroundColor: 'blue' as const,
+    backgroundColor: 'enem' as const,
   };
 
   it('should render with minimal props', () => {
@@ -1804,12 +1804,9 @@ describe('CardSimulado', () => {
   });
 
   it('should apply correct background color classes', () => {
-    const backgroundColors: Array<'blue' | 'pink' | 'yellow' | 'green'> = [
-      'blue',
-      'pink',
-      'yellow',
-      'green',
-    ];
+    const backgroundColors: Array<
+      'enem' | 'prova' | 'simuladao' | 'vestibular'
+    > = ['enem', 'prova', 'simuladao', 'vestibular'];
     const expectedClasses = [
       'bg-exam-1',
       'bg-exam-2',
@@ -1900,7 +1897,7 @@ describe('CardSimulado', () => {
     );
 
     const infoElement = screen.getByText('180 questões');
-    expect(infoElement.className).toContain('text-text-700');
+    expect(infoElement.parentElement?.className).toContain('text-text-700');
   });
 
   it('should have proper layout structure', () => {
@@ -1965,10 +1962,10 @@ describe('CardSimulado', () => {
 
   it('should handle all background color variants correctly', () => {
     const colors = [
-      { color: 'blue' as const, class: 'bg-exam-1' },
-      { color: 'pink' as const, class: 'bg-exam-2' },
-      { color: 'yellow' as const, class: 'bg-exam-3' },
-      { color: 'green' as const, class: 'bg-exam-4' },
+      { color: 'enem' as const, class: 'bg-exam-1' },
+      { color: 'prova' as const, class: 'bg-exam-2' },
+      { color: 'simuladao' as const, class: 'bg-exam-3' },
+      { color: 'vestibular' as const, class: 'bg-exam-4' },
     ];
 
     colors.forEach(({ color, class: expectedClass }) => {
@@ -2030,14 +2027,14 @@ describe('CardSimulado', () => {
     render(
       <CardSimulado
         {...baseProps}
-        backgroundColor="pink"
+        backgroundColor="prova"
         className="custom-class another-class"
         data-testid="card-simulado"
       />
     );
 
     const card = screen.getByTestId('card-simulado');
-    expect(card.className).toContain('bg-exam-2'); // pink background
+    expect(card.className).toContain('bg-exam-2'); // prova background
     expect(card.className).toContain('hover:shadow-soft-shadow-2');
     expect(card.className).toContain('transition-shadow');
     expect(card.className).toContain('duration-200');
