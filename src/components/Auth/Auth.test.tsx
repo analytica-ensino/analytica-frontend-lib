@@ -1,0 +1,736 @@
+import React from 'react';
+import { render, screen, waitFor, act } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import {
+  AuthProvider,
+  ProtectedRoute,
+  PublicRoute,
+  useAuth,
+  useAuthGuard,
+  useRouteAuth,
+  withAuth,
+} from './Auth';
+
+// Mock component para testar hooks
+const TestComponent = ({ testHook }: { testHook?: string }) => {
+  if (testHook === 'useAuth') {
+    const { isAuthenticated, isLoading, signOut, user, sessionInfo, tokens } =
+      useAuth();
+    return (
+      <div>
+        <div data-testid="authenticated">{isAuthenticated.toString()}</div>
+        <div data-testid="loading">{isLoading.toString()}</div>
+        <div data-testid="user">{user ? JSON.stringify(user) : 'null'}</div>
+        <div data-testid="session">
+          {sessionInfo ? JSON.stringify(sessionInfo) : 'null'}
+        </div>
+        <div data-testid="tokens">
+          {tokens ? JSON.stringify(tokens) : 'null'}
+        </div>
+        <button data-testid="signout-btn" onClick={signOut}>
+          Sign Out
+        </button>
+      </div>
+    );
+  }
+
+  if (testHook === 'useAuthGuard') {
+    const { canAccess, isLoading } = useAuthGuard({
+      requireAuth: true,
+      customCheck: (authState) => authState.user?.role === 'admin',
+    });
+    return (
+      <div>
+        <div data-testid="can-access">{canAccess.toString()}</div>
+        <div data-testid="loading">{isLoading.toString()}</div>
+      </div>
+    );
+  }
+
+  if (testHook === 'useAuthGuardNoAuth') {
+    const { canAccess, isLoading } = useAuthGuard({
+      requireAuth: false,
+      customCheck: (authState) => !authState.isAuthenticated,
+    });
+    return (
+      <div>
+        <div data-testid="can-access">{canAccess.toString()}</div>
+        <div data-testid="loading">{isLoading.toString()}</div>
+      </div>
+    );
+  }
+
+  if (testHook === 'useRouteAuth') {
+    const { isAuthenticated, isLoading } = useRouteAuth('/custom-login');
+    return (
+      <div>
+        <div data-testid="authenticated">{isAuthenticated.toString()}</div>
+        <div data-testid="loading">{isLoading.toString()}</div>
+      </div>
+    );
+  }
+
+  return <div data-testid="test-component">Test Component</div>;
+};
+
+// Componente para testar withAuth HOC
+const SimpleComponent = ({ title }: { title: string }) => (
+  <div data-testid="simple-component">{title}</div>
+);
+
+// Helper para renderizar com AuthProvider
+const renderWithAuth = (
+  component: React.ReactNode,
+  authProps: {
+    checkAuthFn?: () => Promise<boolean> | boolean;
+    signOutFn?: () => void;
+    initialAuthState?: Record<string, unknown>;
+    getUserFn?: () => { id: string; name?: string; role?: string } | null;
+    getSessionFn?: () => { institutionId?: string } | null;
+    getTokensFn?: () => { token: string; refreshToken: string } | null;
+  }
+) => {
+  return render(
+    <MemoryRouter>
+      <AuthProvider {...authProps}>{component}</AuthProvider>
+    </MemoryRouter>
+  );
+};
+
+describe('Auth Components', () => {
+  describe('AuthProvider', () => {
+    it('should initialize with loading state', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      renderWithAuth(<TestComponent testHook="useAuth" />, { checkAuthFn });
+
+      // Initially should be loading
+      expect(screen.getByTestId('loading')).toHaveTextContent('true');
+    });
+
+    it('should call checkAuthFn on mount', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      renderWithAuth(<TestComponent testHook="useAuth" />, { checkAuthFn });
+
+      await waitFor(() => {
+        expect(checkAuthFn).toHaveBeenCalled();
+      });
+    });
+
+    it('should set authenticated state correctly', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      renderWithAuth(<TestComponent testHook="useAuth" />, { checkAuthFn });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('authenticated')).toHaveTextContent('true');
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+      });
+    });
+
+    it('should handle authentication failure', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      renderWithAuth(<TestComponent testHook="useAuth" />, { checkAuthFn });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+      });
+    });
+
+    it('should handle checkAuth error', async () => {
+      const checkAuthFn = jest.fn().mockRejectedValue(new Error('Auth failed'));
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      renderWithAuth(<TestComponent testHook="useAuth" />, { checkAuthFn });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'Erro ao verificar autenticação:',
+          expect.any(Error)
+        );
+      });
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle user, session and tokens data', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+      const getUserFn = jest.fn().mockReturnValue({ id: '1', name: 'John' });
+      const getSessionFn = jest
+        .fn()
+        .mockReturnValue({ institutionId: 'inst1' });
+      const getTokensFn = jest
+        .fn()
+        .mockReturnValue({ token: 'abc123', refreshToken: 'refresh123' });
+
+      renderWithAuth(<TestComponent testHook="useAuth" />, {
+        checkAuthFn,
+        getUserFn,
+        getSessionFn,
+        getTokensFn,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('user')).toHaveTextContent(
+          '{"id":"1","name":"John"}'
+        );
+        expect(screen.getByTestId('session')).toHaveTextContent(
+          '{"institutionId":"inst1"}'
+        );
+        expect(screen.getByTestId('tokens')).toHaveTextContent(
+          '{"token":"abc123","refreshToken":"refresh123"}'
+        );
+      });
+    });
+
+    it('should handle signOut with signOutFn', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+      const signOutFn = jest.fn();
+
+      renderWithAuth(<TestComponent testHook="useAuth" />, {
+        checkAuthFn,
+        signOutFn,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('authenticated')).toHaveTextContent('true');
+      });
+
+      act(() => {
+        screen.getByTestId('signout-btn').click();
+      });
+
+      expect(signOutFn).toHaveBeenCalled();
+      expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
+    });
+
+    it('should handle signOut without signOutFn', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      renderWithAuth(<TestComponent testHook="useAuth" />, { checkAuthFn });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('authenticated')).toHaveTextContent('true');
+      });
+
+      act(() => {
+        screen.getByTestId('signout-btn').click();
+      });
+
+      expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
+    });
+
+    it('should handle undefined checkAuthFn', async () => {
+      renderWithAuth(<TestComponent testHook="useAuth" />, {});
+
+      await waitFor(() => {
+        expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+      });
+    });
+  });
+
+  describe('ProtectedRoute', () => {
+    it('should render children when authenticated', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      renderWithAuth(
+        <ProtectedRoute>
+          <TestComponent />
+        </ProtectedRoute>,
+        { checkAuthFn }
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('test-component')).toBeInTheDocument();
+      });
+    });
+
+    it('should show loading component while checking auth', () => {
+      const checkAuthFn = jest
+        .fn()
+        .mockImplementation(
+          () => new Promise((resolve) => setTimeout(() => resolve(true), 100))
+        );
+
+      renderWithAuth(
+        <ProtectedRoute
+          loadingComponent={<div data-testid="custom-loading">Loading...</div>}
+        >
+          <TestComponent />
+        </ProtectedRoute>,
+        { checkAuthFn }
+      );
+
+      expect(screen.getByTestId('custom-loading')).toBeInTheDocument();
+    });
+
+    it('should redirect when not authenticated', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      render(
+        <MemoryRouter initialEntries={['/protected']}>
+          <AuthProvider checkAuthFn={checkAuthFn}>
+            <ProtectedRoute redirectTo="/login">
+              <TestComponent />
+            </ProtectedRoute>
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should respect additional check function', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+      const additionalCheck = jest.fn().mockReturnValue(false);
+
+      render(
+        <MemoryRouter initialEntries={['/protected']}>
+          <AuthProvider checkAuthFn={checkAuthFn}>
+            <ProtectedRoute
+              additionalCheck={additionalCheck}
+              redirectTo="/unauthorized"
+            >
+              <TestComponent />
+            </ProtectedRoute>
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(additionalCheck).toHaveBeenCalled();
+        expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('PublicRoute', () => {
+    it('should render children when not authenticated', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      renderWithAuth(
+        <PublicRoute>
+          <TestComponent />
+        </PublicRoute>,
+        { checkAuthFn }
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('test-component')).toBeInTheDocument();
+      });
+    });
+
+    it('should redirect when authenticated and redirectIfAuthenticated is set', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      render(
+        <MemoryRouter initialEntries={['/login']}>
+          <AuthProvider checkAuthFn={checkAuthFn}>
+            <PublicRoute redirectTo="/dashboard" redirectIfAuthenticated={true}>
+              <TestComponent />
+            </PublicRoute>
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should render children when authenticated but no redirect configured', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      renderWithAuth(
+        <PublicRoute>
+          <TestComponent />
+        </PublicRoute>,
+        { checkAuthFn }
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('test-component')).toBeInTheDocument();
+      });
+    });
+
+    it('should show loading when checkAuthBeforeRender is true', () => {
+      const checkAuthFn = jest
+        .fn()
+        .mockImplementation(
+          () => new Promise((resolve) => setTimeout(() => resolve(false), 100))
+        );
+
+      renderWithAuth(
+        <PublicRoute checkAuthBeforeRender={true}>
+          <TestComponent />
+        </PublicRoute>,
+        { checkAuthFn }
+      );
+
+      expect(screen.getByText('Carregando...')).toBeInTheDocument();
+    });
+  });
+
+  describe('withAuth HOC', () => {
+    it('should wrap component with ProtectedRoute', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+      const WrappedComponent = withAuth(SimpleComponent, {
+        redirectTo: '/login',
+      });
+
+      renderWithAuth(<WrappedComponent title="Protected Content" />, {
+        checkAuthFn,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('simple-component')).toBeInTheDocument();
+        expect(screen.getByText('Protected Content')).toBeInTheDocument();
+      });
+    });
+
+    it('should redirect when not authenticated', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+      const WrappedComponent = withAuth(SimpleComponent, {
+        redirectTo: '/login',
+      });
+
+      render(
+        <MemoryRouter>
+          <AuthProvider checkAuthFn={checkAuthFn}>
+            <WrappedComponent title="Protected Content" />
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId('simple-component')
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    it('should work with no options provided (use default)', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+      // Test the default options branch (line 331)
+      const WrappedComponent = withAuth(SimpleComponent); // No options provided
+
+      renderWithAuth(<WrappedComponent title="Default Options" />, {
+        checkAuthFn,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('simple-component')).toBeInTheDocument();
+        expect(screen.getByText('Default Options')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('useAuthGuard', () => {
+    it('should return correct access state for authenticated user', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      renderWithAuth(<TestComponent testHook="useAuthGuard" />, {
+        checkAuthFn,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('can-access')).toHaveTextContent('false'); // because customCheck requires admin role
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+      });
+    });
+
+    it('should return correct access state for unauthenticated user', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      renderWithAuth(<TestComponent testHook="useAuthGuard" />, {
+        checkAuthFn,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('can-access')).toHaveTextContent('false');
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+      });
+    });
+
+    it('should work with requireAuth false', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      renderWithAuth(<TestComponent testHook="useAuthGuardNoAuth" />, {
+        checkAuthFn,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('can-access')).toHaveTextContent('true'); // requireAuth false + customCheck passes for non-auth
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+      });
+    });
+
+    it('should handle custom check with authenticated user having admin role', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+      const getUserFn = jest.fn().mockReturnValue({ id: '1', role: 'admin' });
+
+      renderWithAuth(<TestComponent testHook="useAuthGuard" />, {
+        checkAuthFn,
+        getUserFn,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('can-access')).toHaveTextContent('true'); // admin role should pass
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+      });
+    });
+
+    it('should return false when loading', async () => {
+      const checkAuthFn = jest.fn(() => new Promise<boolean>(() => {})); // Never resolves to keep loading state
+
+      const TestLoadingComponent = () => {
+        const { canAccess, isLoading } = useAuthGuard({ requireAuth: true });
+        return (
+          <div>
+            <div data-testid="can-access">{canAccess.toString()}</div>
+            <div data-testid="loading">{isLoading.toString()}</div>
+          </div>
+        );
+      };
+
+      renderWithAuth(<TestLoadingComponent />, { checkAuthFn });
+
+      // Should be loading and canAccess should be false
+      expect(screen.getByTestId('can-access')).toHaveTextContent('false');
+      expect(screen.getByTestId('loading')).toHaveTextContent('true');
+    });
+
+    it('should work with requireAuth true and no customCheck', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      const TestSimpleAuthComponent = () => {
+        const { canAccess, isLoading } = useAuthGuard({ requireAuth: true });
+        return (
+          <div>
+            <div data-testid="can-access">{canAccess.toString()}</div>
+            <div data-testid="loading">{isLoading.toString()}</div>
+          </div>
+        );
+      };
+
+      renderWithAuth(<TestSimpleAuthComponent />, { checkAuthFn });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('can-access')).toHaveTextContent('true');
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+      });
+    });
+
+    it('should work with requireAuth false and no customCheck', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      const TestSimpleNoAuthComponent = () => {
+        const { canAccess, isLoading } = useAuthGuard({ requireAuth: false });
+        return (
+          <div>
+            <div data-testid="can-access">{canAccess.toString()}</div>
+            <div data-testid="loading">{isLoading.toString()}</div>
+          </div>
+        );
+      };
+
+      renderWithAuth(<TestSimpleNoAuthComponent />, { checkAuthFn });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('can-access')).toHaveTextContent('true'); // not authenticated and requireAuth false = true
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+      });
+    });
+
+    it('should work with requireAuth false and authenticated user', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      const TestAuthenticatedNoRequireComponent = () => {
+        const { canAccess, isLoading } = useAuthGuard({ requireAuth: false });
+        return (
+          <div>
+            <div data-testid="can-access">{canAccess.toString()}</div>
+            <div data-testid="loading">{isLoading.toString()}</div>
+          </div>
+        );
+      };
+
+      renderWithAuth(<TestAuthenticatedNoRequireComponent />, { checkAuthFn });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('can-access')).toHaveTextContent('true'); // authenticated user with requireAuth false = true
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+      });
+    });
+
+    it('should work with requireAuth false and customCheck that fails for authenticated user', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      const TestFailingCustomCheckComponent = () => {
+        const { canAccess, isLoading } = useAuthGuard({
+          requireAuth: false,
+          customCheck: () => false, // Always fails
+        });
+        return (
+          <div>
+            <div data-testid="can-access">{canAccess.toString()}</div>
+            <div data-testid="loading">{isLoading.toString()}</div>
+          </div>
+        );
+      };
+
+      renderWithAuth(<TestFailingCustomCheckComponent />, { checkAuthFn });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('can-access')).toHaveTextContent('false'); // customCheck fails
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+      });
+    });
+
+    it('should work with default options (empty object)', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      const TestDefaultOptionsComponent = () => {
+        const { canAccess, isLoading } = useAuthGuard(); // No options, should use defaults
+        return (
+          <div>
+            <div data-testid="can-access">{canAccess.toString()}</div>
+            <div data-testid="loading">{isLoading.toString()}</div>
+          </div>
+        );
+      };
+
+      renderWithAuth(<TestDefaultOptionsComponent />, { checkAuthFn });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('can-access')).toHaveTextContent('true'); // requireAuth defaults to true, user is authenticated
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+      });
+    });
+  });
+
+  describe('useRouteAuth', () => {
+    it('should provide auth state', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      renderWithAuth(<TestComponent testHook="useRouteAuth" />, {
+        checkAuthFn,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('authenticated')).toHaveTextContent('true');
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+      });
+    });
+
+    it('should provide redirectToLogin function', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      const TestRedirectComponent = () => {
+        const { redirectToLogin } = useRouteAuth('/login');
+        // Call the function to cover line 391
+        redirectToLogin();
+        return (
+          <div data-testid="redirect-test">
+            {typeof redirectToLogin === 'function'
+              ? 'function'
+              : 'not-function'}
+          </div>
+        );
+      };
+
+      renderWithAuth(<TestRedirectComponent />, { checkAuthFn });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('redirect-test')).toHaveTextContent(
+          'function'
+        );
+      });
+    });
+
+    it('should use default fallbackPath when none provided', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      const TestDefaultPathComponent = () => {
+        const { isAuthenticated, isLoading, redirectToLogin } = useRouteAuth(); // No fallbackPath provided, should default to '/'
+        return (
+          <div>
+            <div data-testid="authenticated">{isAuthenticated.toString()}</div>
+            <div data-testid="loading">{isLoading.toString()}</div>
+            <div data-testid="redirect-type">
+              {typeof redirectToLogin === 'function'
+                ? 'function'
+                : 'not-function'}
+            </div>
+          </div>
+        );
+      };
+
+      renderWithAuth(<TestDefaultPathComponent />, { checkAuthFn });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('authenticated')).toHaveTextContent('true');
+        expect(screen.getByTestId('loading')).toHaveTextContent('false');
+        expect(screen.getByTestId('redirect-type')).toHaveTextContent(
+          'function'
+        );
+      });
+    });
+
+    it('should handle loading state correctly', async () => {
+      const checkAuthFn = jest.fn(() => new Promise<boolean>(() => {})); // Never resolves
+
+      const TestLoadingRouteComponent = () => {
+        const { isAuthenticated, isLoading } = useRouteAuth('/test');
+        return (
+          <div>
+            <div data-testid="authenticated">{isAuthenticated.toString()}</div>
+            <div data-testid="loading">{isLoading.toString()}</div>
+          </div>
+        );
+      };
+
+      renderWithAuth(<TestLoadingRouteComponent />, { checkAuthFn });
+
+      // Should be in loading state
+      expect(screen.getByTestId('authenticated')).toHaveTextContent('false'); // initial state
+      expect(screen.getByTestId('loading')).toHaveTextContent('true');
+    });
+  });
+
+  describe('useAuth hook', () => {
+    it('should throw error when used outside AuthProvider', () => {
+      // Suppress console.error for this test
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      expect(() => {
+        render(<TestComponent testHook="useAuth" />);
+      }).toThrow('useAuth deve ser usado dentro de um AuthProvider');
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should provide auth context when used within AuthProvider', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(true);
+
+      renderWithAuth(<TestComponent testHook="useAuth" />, { checkAuthFn });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('authenticated')).toBeInTheDocument();
+        expect(screen.getByTestId('loading')).toBeInTheDocument();
+      });
+    });
+  });
+});
