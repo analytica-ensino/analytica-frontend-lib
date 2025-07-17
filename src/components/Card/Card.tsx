@@ -15,6 +15,7 @@ import {
   CaretRight,
   ChatCircleText,
   CheckCircle,
+  Clock,
   DotsThreeVertical,
   Play,
   SpeakerHigh,
@@ -1082,6 +1083,65 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
   }
 );
 
+interface CardSimuladoProps extends HTMLAttributes<HTMLDivElement> {
+  title: string;
+  duration?: string;
+  info: string;
+  backgroundColor: 'blue' | 'pink' | 'yellow' | 'green';
+}
+
+const SIMULADO_BACKGROUND_CLASSES = {
+  blue: 'bg-exam-1',
+  pink: 'bg-exam-2',
+  yellow: 'bg-exam-3',
+  green: 'bg-exam-4',
+};
+
+const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
+  ({ title, duration, info, backgroundColor, className, ...props }, ref) => {
+    const backgroundClass = SIMULADO_BACKGROUND_CLASSES[backgroundColor];
+
+    return (
+      <CardBase
+        ref={ref}
+        layout="horizontal"
+        padding="medium"
+        minHeight="none"
+        cursor="pointer"
+        className={`${backgroundClass} hover:shadow-soft-shadow-2 transition-shadow duration-200 ${className}`}
+        {...props}
+      >
+        <div className="flex justify-between items-center w-full gap-4">
+          <div className="flex flex-col gap-1 flex-1 min-w-0">
+            <Text size="lg" weight="bold" className="text-text-950 truncate">
+              {title}
+            </Text>
+
+            <div className="flex items-center gap-4 text-text-700">
+              {duration && (
+                <div className="flex items-center gap-1">
+                  <Clock size={16} className="flex-shrink-0" />
+                  <Text size="sm">{duration}</Text>
+                </div>
+              )}
+
+              <Text size="sm" className="truncate">
+                {info}
+              </Text>
+            </div>
+          </div>
+
+          <CaretRight
+            size={24}
+            className="text-text-800 flex-shrink-0"
+            data-testid="caret-icon"
+          />
+        </div>
+      </CardBase>
+    );
+  }
+);
+
 export {
   CardBase,
   CardActivitiesResults,
@@ -1095,4 +1155,5 @@ export {
   CardSupport,
   CardForum,
   CardAudio,
+  CardSimulado,
 };

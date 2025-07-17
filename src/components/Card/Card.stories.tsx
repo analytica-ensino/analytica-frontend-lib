@@ -9,6 +9,7 @@ import {
   CardQuestions,
   CardResults,
   CardSettings,
+  CardSimulado,
   CardStatus,
   CardSupport,
   CardTopic,
@@ -592,7 +593,10 @@ export const AllCardComponentsShowcase: Story = () => {
               <h4 className="text-lg font-semibold text-text-900 mb-4">
                 Sem Status
               </h4>
-              <CardStatus className="max-w-full" header="Questão 3 este é um título muito longo que deve ser truncado adequadamente" />
+              <CardStatus
+                className="max-w-full"
+                header="Questão 3 este é um título muito longo que deve ser truncado adequadamente"
+              />
             </div>
           </div>
         </div>
@@ -700,6 +704,105 @@ export const AllCardComponentsShowcase: Story = () => {
         </div>
       </section>
 
+      {/* ===== CARDS DE SIMULADOS ===== */}
+      <section className="space-y-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-text-900 mb-2">
+            Cards de Simulados
+          </h2>
+          <p className="text-text-600">
+            Componentes para exibir simulados com diferentes estilos
+          </p>
+        </div>
+
+        {/* CardSimulado */}
+        <div className="space-y-6">
+          <h3 className="text-2xl font-bold text-text-900 border-b border-border-100 pb-2">
+            CardSimulado
+          </h3>
+
+          {/* Exemplo com texto longo para mostrar truncate */}
+          <div className="space-y-4">
+            <h4 className="text-xl font-semibold text-text-900 flex items-center gap-2">
+              <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
+              Exemplo com Texto Longo (Truncate)
+            </h4>
+            <div className="max-w-md">
+              <CardSimulado
+                title="Este é um título de simulado muito longo que deve ser truncado quando não cabe no espaço disponível"
+                duration="2h30min"
+                info="Informação adicional muito longa que também será truncada adequadamente"
+                backgroundColor="blue"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Variações de cores */}
+            <div>
+              <h4 className="text-lg font-semibold text-text-900 mb-4">
+                Todas as Variações de Cores
+              </h4>
+              <div className="space-y-4">
+                <CardSimulado
+                  title="Simulado ENEM - Azul"
+                  duration="3h00min"
+                  info="180 questões"
+                  backgroundColor="blue"
+                />
+                <CardSimulado
+                  title="Simulado ENEM - Rosa"
+                  duration="2h30min"
+                  info="90 questões"
+                  backgroundColor="pink"
+                />
+                <CardSimulado
+                  title="Simulado ENEM - Amarelo"
+                  duration="1h30min"
+                  info="45 questões"
+                  backgroundColor="yellow"
+                />
+                <CardSimulado
+                  title="Simulado ENEM - Verde"
+                  duration="4h00min"
+                  info="200 questões"
+                  backgroundColor="green"
+                />
+              </div>
+            </div>
+
+            {/* Sem duração */}
+            <div>
+              <h4 className="text-lg font-semibold text-text-900 mb-4">
+                Sem Duração
+              </h4>
+              <div className="space-y-4">
+                <CardSimulado
+                  title="Simulado Rápido"
+                  info="30 questões rápidas"
+                  backgroundColor="blue"
+                />
+                <CardSimulado
+                  title="Simulado Personalizado"
+                  info="Quantidade variável"
+                  backgroundColor="pink"
+                />
+                <CardSimulado
+                  title="Simulado Treino"
+                  info="Sem limite de tempo"
+                  backgroundColor="yellow"
+                />
+                <CardSimulado
+                  title="Simulado Livre"
+                  info="Responda no seu ritmo"
+                  backgroundColor="green"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ===== CARDS MULTIMÍDIA ===== */}
       <section className="space-y-8">
         <div className="text-center">
@@ -756,6 +859,74 @@ export const AllCardComponentsShowcase: Story = () => {
           </div>
         </div>
       </section>
+    </div>
+  );
+};
+
+export const CardSimuladoInteractive: Story = () => {
+  const handleClick = (title: string) => {
+    console.log(`Simulado clicado: ${title}`);
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-text-900 mb-4">
+          Card Simulado - Interativo
+        </h2>
+        <p className="text-text-600 text-lg">
+          Clique nos cards para ver a interação no console
+        </p>
+      </div>
+
+      <div className="max-w-2xl mx-auto space-y-4">
+        <CardSimulado
+          title="Simulado ENEM 2025 - Completo"
+          duration="5h00min"
+          info="180 questões + redação"
+          backgroundColor="blue"
+          onClick={() => handleClick('Simulado ENEM 2025 - Completo')}
+        />
+
+        <CardSimulado
+          title="Simulado Matemática"
+          duration="1h30min"
+          info="45 questões de matemática"
+          backgroundColor="pink"
+          onClick={() => handleClick('Simulado Matemática')}
+        />
+
+        <CardSimulado
+          title="Simulado Ciências da Natureza"
+          duration="2h00min"
+          info="60 questões de física, química e biologia"
+          backgroundColor="yellow"
+          onClick={() => handleClick('Simulado Ciências da Natureza')}
+        />
+
+        <CardSimulado
+          title="Simulado Linguagens"
+          info="45 questões sem limite de tempo"
+          backgroundColor="green"
+          onClick={() => handleClick('Simulado Linguagens')}
+        />
+      </div>
+
+      <div className="max-w-2xl mx-auto bg-background-50 p-6 rounded-lg">
+        <h3 className="text-xl font-semibold text-text-900 mb-2">
+          Recursos do CardSimulado
+        </h3>
+        <ul className="space-y-2 text-text-700">
+          <li>
+            • Suporta 4 cores de fundo diferentes (blue, pink, yellow, green)
+          </li>
+          <li>• Campo de duração opcional com ícone de relógio</li>
+          <li>• Textos longos são truncados automaticamente</li>
+          <li>• Hover effect com sombra suave</li>
+          <li>• Ícone de seta indicando ação de navegação</li>
+          <li>• Totalmente acessível com suporte a teclado</li>
+        </ul>
+      </div>
     </div>
   );
 };

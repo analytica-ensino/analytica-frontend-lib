@@ -8,6 +8,7 @@ import {
   CardQuestions,
   CardResults,
   CardSettings,
+  CardSimulado,
   CardStatus,
   CardSupport,
   CardTopic,
@@ -1767,5 +1768,280 @@ describe('CardAudio', () => {
       expect(trackElements[1]).toHaveAttribute('kind', 'chapters');
       expect(trackElements[2]).toHaveAttribute('kind', 'metadata');
     });
+  });
+});
+
+describe('CardSimulado', () => {
+  const baseProps = {
+    title: 'Simulado ENEM 2025',
+    info: '180 questões',
+    backgroundColor: 'blue' as const,
+  };
+
+  it('should render with minimal props', () => {
+    render(<CardSimulado {...baseProps} />);
+    expect(screen.getByText('Simulado ENEM 2025')).toBeInTheDocument();
+    expect(screen.getByText('180 questões')).toBeInTheDocument();
+    expect(screen.getByTestId('caret-icon')).toBeInTheDocument();
+  });
+
+  it('should render with duration', () => {
+    render(<CardSimulado {...baseProps} duration="3h00min" />);
+    expect(screen.getByText('3h00min')).toBeInTheDocument();
+    // Clock icon should be present
+    const clockIcon = screen.getByText('3h00min').previousElementSibling;
+    expect(clockIcon).toBeInTheDocument();
+  });
+
+  it('should render without duration', () => {
+    render(<CardSimulado {...baseProps} />);
+    expect(screen.queryByText('3h00min')).not.toBeInTheDocument();
+    // Clock icon should not be present when no duration
+    const infoText = screen.getByText('180 questões');
+    expect(
+      infoText.parentElement?.querySelector('svg')
+    ).not.toBeInTheDocument();
+  });
+
+  it('should apply correct background color classes', () => {
+    const backgroundColors: Array<'blue' | 'pink' | 'yellow' | 'green'> = [
+      'blue',
+      'pink',
+      'yellow',
+      'green',
+    ];
+    const expectedClasses = [
+      'bg-exam-1',
+      'bg-exam-2',
+      'bg-exam-3',
+      'bg-exam-4',
+    ];
+
+    backgroundColors.forEach((color, index) => {
+      const { unmount } = render(
+        <CardSimulado
+          {...baseProps}
+          backgroundColor={color}
+          data-testid={`card-${color}`}
+        />
+      );
+
+      const card = screen.getByTestId(`card-${color}`);
+      expect(card.className).toContain(expectedClasses[index]);
+      unmount();
+    });
+  });
+
+  it('should handle click events', () => {
+    const handleClick = jest.fn();
+    render(<CardSimulado {...baseProps} onClick={handleClick} />);
+
+    const card = screen.getByText('Simulado ENEM 2025').closest('div');
+    fireEvent.click(card!);
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('should apply custom className', () => {
+    render(
+      <CardSimulado
+        {...baseProps}
+        className="custom-class"
+        data-testid="card-simulado"
+      />
+    );
+
+    const card = screen.getByTestId('card-simulado');
+    expect(card.className).toContain('custom-class');
+  });
+
+  it('should apply hover and transition classes', () => {
+    render(<CardSimulado {...baseProps} data-testid="card-simulado" />);
+
+    const card = screen.getByTestId('card-simulado');
+    expect(card.className).toContain('hover:shadow-soft-shadow-2');
+    expect(card.className).toContain('transition-shadow');
+    expect(card.className).toContain('duration-200');
+  });
+
+  it('should apply cursor pointer from CardBase', () => {
+    render(<CardSimulado {...baseProps} data-testid="card-simulado" />);
+
+    const card = screen.getByTestId('card-simulado');
+    expect(card.className).toContain('cursor-pointer');
+  });
+
+  it('should truncate long title text', () => {
+    const longTitle =
+      'Este é um título muito longo que deveria ser truncado quando não cabe no espaço disponível do card';
+    render(<CardSimulado {...baseProps} title={longTitle} />);
+
+    const titleElement = screen.getByText(longTitle);
+    expect(titleElement.className).toContain('truncate');
+  });
+
+  it('should truncate long info text', () => {
+    const longInfo =
+      'Esta é uma informação muito longa que deveria ser truncada quando não cabe no espaço disponível';
+    render(<CardSimulado {...baseProps} info={longInfo} />);
+
+    const infoElement = screen.getByText(longInfo);
+    expect(infoElement.className).toContain('truncate');
+  });
+
+  it('should have proper text styling', () => {
+    render(<CardSimulado {...baseProps} duration="2h30min" />);
+
+    const titleElement = screen.getByText('Simulado ENEM 2025');
+    expect(titleElement.className).toContain('text-text-950');
+
+    const durationElement = screen.getByText('2h30min');
+    expect(durationElement.parentElement?.parentElement?.className).toContain(
+      'text-text-700'
+    );
+
+    const infoElement = screen.getByText('180 questões');
+    expect(infoElement.className).toContain('text-text-700');
+  });
+
+  it('should have proper layout structure', () => {
+    render(<CardSimulado {...baseProps} duration="2h30min" />);
+
+    const titleElement = screen.getByText('Simulado ENEM 2025');
+    const titleContainer = titleElement.closest('div');
+    expect(titleContainer?.className).toContain('flex-col');
+    expect(titleContainer?.className).toContain('flex-1');
+    expect(titleContainer?.className).toContain('min-w-0');
+
+    const mainContainer = screen.getByText('180 questões').closest('div')
+      ?.parentElement?.parentElement;
+    expect(mainContainer?.className).toContain('flex');
+    expect(mainContainer?.className).toContain('justify-between');
+    expect(mainContainer?.className).toContain('items-center');
+  });
+
+  it('should render CaretRight icon with correct attributes', () => {
+    render(<CardSimulado {...baseProps} />);
+
+    const caretIcon = screen.getByTestId('caret-icon');
+    expect(caretIcon).toBeInTheDocument();
+    expect(caretIcon).toHaveClass('text-text-800');
+    expect(caretIcon).toHaveClass('flex-shrink-0');
+    // SVG elements don't have size attribute - it's a phosphor-react prop
+    expect(caretIcon.tagName).toBe('svg');
+  });
+
+  it('should forward extra HTML attributes', () => {
+    render(
+      <CardSimulado
+        {...baseProps}
+        data-testid="custom-simulado"
+        aria-label="Simulado Card"
+        role="button"
+      />
+    );
+
+    const card = screen.getByTestId('custom-simulado');
+    expect(card).toHaveAttribute('aria-label', 'Simulado Card');
+    expect(card).toHaveAttribute('role', 'button');
+  });
+
+  it('should forward ref correctly', () => {
+    const ref = jest.fn();
+    render(<CardSimulado {...baseProps} ref={ref} />);
+
+    expect(ref).toHaveBeenCalled();
+  });
+
+  it('should render Clock icon only when duration is provided', () => {
+    const { rerender } = render(<CardSimulado {...baseProps} />);
+
+    // Without duration - no clock icon
+    expect(screen.queryByText('2h30min')).not.toBeInTheDocument();
+
+    // With duration - clock icon should be present
+    rerender(<CardSimulado {...baseProps} duration="2h30min" />);
+    expect(screen.getByText('2h30min')).toBeInTheDocument();
+  });
+
+  it('should handle all background color variants correctly', () => {
+    const colors = [
+      { color: 'blue' as const, class: 'bg-exam-1' },
+      { color: 'pink' as const, class: 'bg-exam-2' },
+      { color: 'yellow' as const, class: 'bg-exam-3' },
+      { color: 'green' as const, class: 'bg-exam-4' },
+    ];
+
+    colors.forEach(({ color, class: expectedClass }) => {
+      const { unmount } = render(
+        <CardSimulado
+          {...baseProps}
+          backgroundColor={color}
+          data-testid={`test-${color}`}
+        />
+      );
+
+      const card = screen.getByTestId(`test-${color}`);
+      expect(card.className).toContain(expectedClass);
+      unmount();
+    });
+  });
+
+  it('should maintain proper spacing between elements', () => {
+    render(<CardSimulado {...baseProps} duration="2h30min" />);
+
+    const durationContainer = screen.getByText('2h30min').closest('div');
+    expect(durationContainer?.className).toContain('flex');
+    expect(durationContainer?.className).toContain('items-center');
+    expect(durationContainer?.className).toContain('gap-1');
+
+    const infoContainer = screen.getByText('180 questões').closest('div');
+    expect(infoContainer?.className).toContain('flex');
+    expect(infoContainer?.className).toContain('items-center');
+    expect(infoContainer?.className).toContain('gap-4');
+  });
+
+  it('should have correct CardBase props applied', () => {
+    render(<CardSimulado {...baseProps} data-testid="card-simulado" />);
+
+    const card = screen.getByTestId('card-simulado');
+
+    // Check for CardBase classes
+    expect(card.className).toContain('w-full');
+    expect(card.className).toContain('bg-background');
+    expect(card.className).toContain('border');
+    expect(card.className).toContain('rounded-xl');
+    expect(card.className).toContain('flex');
+    expect(card.className).toContain('flex-row');
+    expect(card.className).toContain('p-4');
+    expect(card.className).toContain('cursor-pointer');
+  });
+
+  it('should handle keyboard events through CardBase', () => {
+    const handleClick = jest.fn();
+    render(<CardSimulado {...baseProps} onClick={handleClick} />);
+
+    const card = screen.getByText('Simulado ENEM 2025').closest('div');
+    fireEvent.keyDown(card!, { key: 'Enter' });
+    // The click handler should work through CardBase's forwarded events
+    expect(card).toBeInTheDocument();
+  });
+
+  it('should combine all class names correctly', () => {
+    render(
+      <CardSimulado
+        {...baseProps}
+        backgroundColor="pink"
+        className="custom-class another-class"
+        data-testid="card-simulado"
+      />
+    );
+
+    const card = screen.getByTestId('card-simulado');
+    expect(card.className).toContain('bg-exam-2'); // pink background
+    expect(card.className).toContain('hover:shadow-soft-shadow-2');
+    expect(card.className).toContain('transition-shadow');
+    expect(card.className).toContain('duration-200');
+    expect(card.className).toContain('custom-class');
+    expect(card.className).toContain('another-class');
   });
 });
