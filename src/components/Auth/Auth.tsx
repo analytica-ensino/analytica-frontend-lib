@@ -168,7 +168,7 @@ export const AuthProvider = ({
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
 
   const contextValue = useMemo(
     (): AuthContextType => ({
