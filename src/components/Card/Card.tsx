@@ -633,21 +633,17 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
       <CardBase
         ref={ref}
         layout="horizontal"
-        padding="none"
+        padding="medium"
         minHeight="medium"
-        className={`items-center pr-4 ${className}`}
+        className={`items-center ${className}`}
         {...props}
       >
-        <div
-          className={`
-            p-4 flex justify-between w-full h-full flex-row items-center gap-2
-          `}
-        >
+        <div className="flex justify-between w-full h-full flex-row items-center gap-2">
           <p className="text-sm font-bold text-text-950 truncate flex-1 min-w-0">
             {header}
           </p>
           {status && (
-            <span className="flex flex-row gap-1 items-center">
+            <span className="flex flex-row gap-1 items-center flex-shrink-0">
               <Badge
                 action={status == 'correct' ? 'success' : 'error'}
                 variant="solid"
@@ -660,9 +656,8 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
               <p className="text-sm text-text-800">Respondida</p>
             </span>
           )}
+          <CaretRight className="min-w-6 min-h-6 text-text-800 cursor-pointer flex-shrink-0 ml-2" />
         </div>
-
-        <CaretRight className="min-w-6 min-h-6 text-text-800 cursor-pointer" />
       </CardBase>
     );
   }

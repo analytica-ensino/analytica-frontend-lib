@@ -592,7 +592,7 @@ export const AllCardComponentsShowcase: Story = () => {
               <h4 className="text-lg font-semibold text-text-900 mb-4">
                 Sem Status
               </h4>
-              <CardStatus className="max-w-full" header="Questão 3" />
+              <CardStatus className="max-w-full" header="Questão 3 este é um título muito longo que deve ser truncado adequadamente" />
             </div>
           </div>
         </div>
