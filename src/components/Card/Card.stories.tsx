@@ -9,6 +9,7 @@ import {
   CardQuestions,
   CardResults,
   CardSettings,
+  CardSimulado,
   CardStatus,
   CardSupport,
   CardTopic,
@@ -592,7 +593,10 @@ export const AllCardComponentsShowcase: Story = () => {
               <h4 className="text-lg font-semibold text-text-900 mb-4">
                 Sem Status
               </h4>
-              <CardStatus className="max-w-full" header="Questão 3 este é um título muito longo que deve ser truncado adequadamente" />
+              <CardStatus
+                className="max-w-full"
+                header="Questão 3 este é um título muito longo que deve ser truncado adequadamente"
+              />
             </div>
           </div>
         </div>
@@ -700,6 +704,105 @@ export const AllCardComponentsShowcase: Story = () => {
         </div>
       </section>
 
+      {/* ===== CARDS DE SIMULADOS ===== */}
+      <section className="space-y-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-text-900 mb-2">
+            Cards de Simulados
+          </h2>
+          <p className="text-text-600">
+            Componentes para exibir simulados com diferentes estilos
+          </p>
+        </div>
+
+        {/* CardSimulado */}
+        <div className="space-y-6">
+          <h3 className="text-2xl font-bold text-text-900 border-b border-border-100 pb-2">
+            CardSimulado
+          </h3>
+
+          {/* Exemplo com texto longo para mostrar truncate */}
+          <div className="space-y-4">
+            <h4 className="text-xl font-semibold text-text-900 flex items-center gap-2">
+              <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
+              Exemplo com Texto Longo (Truncate)
+            </h4>
+            <div className="max-w-md">
+              <CardSimulado
+                title="Este é um título de simulado muito longo que deve ser truncado quando não cabe no espaço disponível"
+                duration="2h30min"
+                info="Informação adicional muito longa que também será truncada adequadamente"
+                backgroundColor="enem"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Variações de cores */}
+            <div>
+              <h4 className="text-lg font-semibold text-text-900 mb-4">
+                Todas as Variações de Cores
+              </h4>
+              <div className="space-y-4">
+                <CardSimulado
+                  title="Simulado ENEM"
+                  duration="3h00min"
+                  info="180 questões"
+                  backgroundColor="enem"
+                />
+                <CardSimulado
+                  title="Simulado Prova"
+                  duration="2h30min"
+                  info="90 questões"
+                  backgroundColor="prova"
+                />
+                <CardSimulado
+                  title="Simulado Simuladão"
+                  duration="1h30min"
+                  info="Quantidade de questões flexível"
+                  backgroundColor="simuladao"
+                />
+                <CardSimulado
+                  title="Simulado Vestibular"
+                  duration="4h00min"
+                  info="Analytica, Uel, UEM, UEPG, UFPR, Unicentro"
+                  backgroundColor="vestibular"
+                />
+              </div>
+            </div>
+
+            {/* Sem duração */}
+            <div>
+              <h4 className="text-lg font-semibold text-text-900 mb-4">
+                Sem Duração
+              </h4>
+              <div className="space-y-4">
+                <CardSimulado
+                  title="Simulado ENEM Rápido"
+                  info="30 questões rápidas"
+                  backgroundColor="enem"
+                />
+                <CardSimulado
+                  title="Simulado Prova Personalizado"
+                  info="Quantidade variável"
+                  backgroundColor="prova"
+                />
+                <CardSimulado
+                  title="Simulado Simuladão Treino"
+                  info="Quantidade de questões flexível"
+                  backgroundColor="simuladao"
+                />
+                <CardSimulado
+                  title="Simulado Vestibular Livre"
+                  info="Analytica, Uel, UEM, UEPG, UFPR, Unicentro"
+                  backgroundColor="vestibular"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ===== CARDS MULTIMÍDIA ===== */}
       <section className="space-y-8">
         <div className="text-center">
@@ -756,6 +859,75 @@ export const AllCardComponentsShowcase: Story = () => {
           </div>
         </div>
       </section>
+    </div>
+  );
+};
+
+export const CardSimuladoInteractive: Story = () => {
+  const handleClick = (title: string) => {
+    console.log(`Simulado clicado: ${title}`);
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-text-900 mb-4">
+          Card Simulado - Interativo
+        </h2>
+        <p className="text-text-600 text-lg">
+          Clique nos cards para ver a interação no console
+        </p>
+      </div>
+
+      <div className="max-w-2xl mx-auto space-y-4">
+        <CardSimulado
+          title="Simulado ENEM 2025 - Completo"
+          duration="5h00min"
+          info="180 questões + redação"
+          backgroundColor="enem"
+          onClick={() => handleClick('Simulado ENEM 2025 - Completo')}
+        />
+
+        <CardSimulado
+          title="Simulado Prova Matemática"
+          duration="1h30min"
+          info="45 questões de matemática"
+          backgroundColor="prova"
+          onClick={() => handleClick('Simulado Prova Matemática')}
+        />
+
+        <CardSimulado
+          title="Simulado Simuladão Ciências da Natureza"
+          duration="2h00min"
+          info="60 questões de física, química e biologia"
+          backgroundColor="simuladao"
+          onClick={() => handleClick('Simulado Simuladão Ciências da Natureza')}
+        />
+
+        <CardSimulado
+          title="Simulado Vestibular Linguagens"
+          info="45 questões sem limite de tempo"
+          backgroundColor="vestibular"
+          onClick={() => handleClick('Simulado Vestibular Linguagens')}
+        />
+      </div>
+
+      <div className="max-w-2xl mx-auto bg-background-50 p-6 rounded-lg">
+        <h3 className="text-xl font-semibold text-text-900 mb-2">
+          Recursos do CardSimulado
+        </h3>
+        <ul className="space-y-2 text-text-700">
+          <li>
+            • Suporta 4 tipos de simulados diferentes (ENEM, Prova, Simuladão,
+            Vestibular)
+          </li>
+          <li>• Campo de duração opcional com ícone de relógio</li>
+          <li>• Textos longos são truncados automaticamente</li>
+          <li>• Hover effect com sombra suave</li>
+          <li>• Ícone de seta indicando ação de navegação</li>
+          <li>• Totalmente acessível com suporte a teclado</li>
+        </ul>
+      </div>
     </div>
   );
 };

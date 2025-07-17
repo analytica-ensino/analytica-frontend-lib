@@ -61,6 +61,7 @@ import {
   CardProgress,
   CardQuestions,
   CardResults,
+  CardSimulado,
   CardStatus,
   CardTopic,
 } from './components/Card/Card';
@@ -129,6 +130,7 @@ export { CardPerformance };
 export { CardProgress };
 export { CardQuestions };
 export { CardResults };
+export { CardSimulado };
 export { CardStatus };
 export { CardTopic };
 
