@@ -77,6 +77,8 @@ import {
   SkeletonTable,
 } from './components/Skeleton/Skeleton';
 
+import Tab from './components/Tab/Tab';
+
 // Export all components for bundled usage
 export { Text };
 export { Button };
@@ -142,3 +144,4 @@ export { SkeletonRounded };
 export { SkeletonCard };
 export { SkeletonList };
 export { SkeletonTable };
+export { Tab };

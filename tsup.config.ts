@@ -34,6 +34,7 @@ export default defineConfig({
     'Calendar/index': 'src/components/Calendar/Calendar.tsx',
     'Stepper/index': 'src/components/Stepper/Stepper.tsx',
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
+    'Tab/index': 'src/components/Tab/Tab.tsx',
 
     // Toast utils
     'Toast/Toaster/index': 'src/components/Toast/utils/Toaster.tsx',
