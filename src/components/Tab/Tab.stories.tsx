@@ -51,56 +51,6 @@ export const AllTabsShowcase: Story = () => {
           Biblioteca completa de componentes Tab para a plataforma Analytica
         </p>
       </div>
-
-      {/* ===== TAMANHOS ===== */}
-      <section className="space-y-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-text-900 mb-2">
-            Variações de Tamanho
-          </h2>
-          <p className="text-text-600">
-            Diferentes tamanhos disponíveis para o componente Tab
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Small */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-text-900">Small</h3>
-            <Tab
-              tabs={defaultTabs}
-              activeTab={activeTab1}
-              onTabChange={setActiveTab1}
-              size="small"
-            />
-          </div>
-
-          {/* Medium */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-text-900">
-              Medium (Padrão)
-            </h3>
-            <Tab
-              tabs={defaultTabs}
-              activeTab={activeTab1}
-              onTabChange={setActiveTab1}
-              size="medium"
-            />
-          </div>
-
-          {/* Large */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-text-900">Large</h3>
-            <Tab
-              tabs={defaultTabs}
-              activeTab={activeTab1}
-              onTabChange={setActiveTab1}
-              size="large"
-            />
-          </div>
-        </div>
-      </section>
-
       {/* ===== QUANTIDADE DE TABS ===== */}
       <section className="space-y-8">
         <div className="text-center">
