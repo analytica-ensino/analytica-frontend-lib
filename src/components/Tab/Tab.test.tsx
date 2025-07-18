@@ -98,7 +98,7 @@ describe('Tab', () => {
       expect(onTabChange).toHaveBeenCalledWith('tab2');
     });
 
-    it('should not call onTabChange when active tab is clicked', () => {
+    it('should call onTabChange when active tab is clicked', () => {
       const onTabChange = jest.fn();
       render(<Tab {...defaultProps} onTabChange={onTabChange} />);
 
