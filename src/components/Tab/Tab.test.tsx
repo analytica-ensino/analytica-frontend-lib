@@ -253,6 +253,28 @@ describe('Tab', () => {
       fireEvent.keyDown(tab1, { key: 'ArrowRight' });
       expect(onTabChange).not.toHaveBeenCalled();
     });
+
+    it('should handle navigation with disabled tabs at the beginning when going left', () => {
+      const tabsWithDisabledFirst: TabItem[] = [
+        { id: 'tab1', label: 'Tab 1', disabled: true },
+        { id: 'tab2', label: 'Tab 2', disabled: true },
+        { id: 'tab3', label: 'Tab 3' },
+      ];
+      const onTabChange = jest.fn();
+      render(
+        <Tab
+          {...defaultProps}
+          tabs={tabsWithDisabledFirst}
+          activeTab="tab3"
+          onTabChange={onTabChange}
+        />
+      );
+
+      const tab3 = screen.getByTestId('tab-tab3');
+      fireEvent.keyDown(tab3, { key: 'ArrowLeft' });
+      // Should wrap around and stay on tab3 since tab1 and tab2 are disabled
+      expect(onTabChange).not.toHaveBeenCalled();
+    });
   });
 
   describe('Size Variants', () => {
