@@ -112,6 +112,45 @@ const Tab = forwardRef<HTMLDivElement, TabProps>(
     };
 
     /**
+     * Wrap index around array bounds
+     */
+    const wrapAroundIndex = (index: number, maxLength: number): number => {
+      if (index < 0) return maxLength - 1;
+      if (index >= maxLength) return 0;
+      return index;
+    };
+
+    /**
+     * Find next valid (non-disabled) tab index
+     */
+    const findNextValidTab = (
+      startIndex: number,
+      direction: number
+    ): number => {
+      let nextIndex = wrapAroundIndex(startIndex + direction, tabs.length);
+      let attempts = 0;
+
+      while (tabs[nextIndex]?.disabled && attempts < tabs.length) {
+        nextIndex = wrapAroundIndex(nextIndex + direction, tabs.length);
+        attempts++;
+      }
+
+      return nextIndex;
+    };
+
+    /**
+     * Handle arrow key navigation
+     */
+    const handleArrowNavigation = (direction: number): void => {
+      const currentIndex = tabs.findIndex((tab) => tab.id === activeTab);
+      const nextIndex = findNextValidTab(currentIndex, direction);
+
+      if (!tabs[nextIndex]?.disabled && nextIndex !== currentIndex) {
+        handleTabClick(tabs[nextIndex].id);
+      }
+    };
+
+    /**
      * Handle keyboard navigation
      */
     const handleKeyDown = (
@@ -121,31 +160,32 @@ const Tab = forwardRef<HTMLDivElement, TabProps>(
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         handleTabClick(tabId);
+        return;
       }
 
       if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
         event.preventDefault();
-        const currentIndex = tabs.findIndex((tab) => tab.id === activeTab);
         const direction = event.key === 'ArrowLeft' ? -1 : 1;
-        let nextIndex = currentIndex + direction;
-
-        // Wrap around
-        if (nextIndex < 0) nextIndex = tabs.length - 1;
-        if (nextIndex >= tabs.length) nextIndex = 0;
-
-        // Skip disabled tabs
-        let attempts = 0;
-        while (tabs[nextIndex]?.disabled && attempts < tabs.length) {
-          nextIndex += direction;
-          if (nextIndex < 0) nextIndex = tabs.length - 1;
-          if (nextIndex >= tabs.length) nextIndex = 0;
-          attempts++;
-        }
-
-        if (!tabs[nextIndex]?.disabled && nextIndex !== currentIndex) {
-          handleTabClick(tabs[nextIndex].id);
-        }
+        handleArrowNavigation(direction);
       }
+    };
+
+    /**
+     * Get tab text and interaction classes based on state
+     */
+    const getTabClassNames = (
+      isDisabled: boolean,
+      isActive: boolean
+    ): string => {
+      if (isDisabled) {
+        return 'text-text-400 cursor-not-allowed opacity-50';
+      }
+
+      if (isActive) {
+        return 'text-text-950';
+      }
+
+      return 'text-text-700 hover:text-text-800';
     };
 
     const tabWidthClass = getResponsiveWidthClass(tabs.length);
@@ -161,7 +201,8 @@ const Tab = forwardRef<HTMLDivElement, TabProps>(
       >
         {tabs.map((tab) => {
           const isActive = tab.id === activeTab;
-          const isDisabled = tab.disabled;
+          const isDisabled = Boolean(tab.disabled);
+          const tabClassNames = getTabClassNames(isDisabled, isActive);
 
           return (
             <button
@@ -175,13 +216,7 @@ const Tab = forwardRef<HTMLDivElement, TabProps>(
                 relative flex flex-row justify-center items-center gap-2 rounded transition-colors isolate
                 ${sizeClasses.tab}
                 ${tabWidthClass}
-                ${
-                  isDisabled
-                    ? 'text-text-400 cursor-not-allowed opacity-50'
-                    : isActive
-                      ? 'text-text-950'
-                      : 'text-text-700 hover:text-text-800'
-                }
+                ${tabClassNames}
                 ${!isDisabled && !isActive ? 'hover:bg-background-50' : ''}
                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2
               `}
