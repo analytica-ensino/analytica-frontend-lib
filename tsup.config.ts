@@ -35,6 +35,7 @@ export default defineConfig({
     'Stepper/index': 'src/components/Stepper/Stepper.tsx',
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
     'Tab/index': 'src/components/Tab/Tab.tsx',
+    'Auth/index': 'src/components/Auth/Auth.tsx',
 
     // Toast utils
     'Toast/Toaster/index': 'src/components/Toast/utils/Toaster.tsx',

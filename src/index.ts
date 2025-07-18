@@ -77,6 +77,16 @@ import {
   SkeletonTable,
 } from './components/Skeleton/Skeleton';
 
+import {
+  AuthProvider,
+  ProtectedRoute,
+  PublicRoute,
+  withAuth,
+  useAuth,
+  useAuthGuard,
+  useRouteAuth,
+} from './components/Auth/Auth';
+
 import Tab from './components/Tab/Tab';
 
 // Export all components for bundled usage
@@ -144,4 +154,13 @@ export { SkeletonRounded };
 export { SkeletonCard };
 export { SkeletonList };
 export { SkeletonTable };
+
+// Export Auth components
+export { AuthProvider };
+export { ProtectedRoute };
+export { PublicRoute };
+export { withAuth };
+export { useAuth };
+export { useAuthGuard };
+export { useRouteAuth };
 export { Tab };

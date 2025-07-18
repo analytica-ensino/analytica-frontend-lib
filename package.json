@@ -61,7 +61,8 @@
   },
   "peerDependencies": {
     "react": ">=19.0.0",
-    "react-dom": ">=19.0.0"
+    "react-dom": ">=19.0.0",
+    "react-router-dom": "^7.6.2"
   },
   "dependencies": {
     "phosphor-react": "^1.4.1",
@@ -98,6 +99,7 @@
     "prettier": "^3.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.2",
     "sonarqube-scanner": "^4.3.0",
     "tailwindcss": "^4.1.8",
     "ts-jest": "^29.3.4",
