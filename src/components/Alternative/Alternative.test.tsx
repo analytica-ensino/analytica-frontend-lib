@@ -10,9 +10,7 @@ const mockAlternatives = [
 
 describe('AlternativesList', () => {
   it('should render all alternatives', () => {
-    render(
-      <AlternativesList alternatives={mockAlternatives} />
-    );
+    render(<AlternativesList alternatives={mockAlternatives} />);
 
     expect(screen.getByText('Alternativa A')).toBeInTheDocument();
     expect(screen.getByText('Alternativa B')).toBeInTheDocument();
@@ -23,7 +21,7 @@ describe('AlternativesList', () => {
   it('should handle value change in interactive mode', () => {
     const onValueChange = jest.fn();
     render(
-      <AlternativesList 
+      <AlternativesList
         alternatives={mockAlternatives}
         onValueChange={onValueChange}
       />
@@ -36,9 +34,7 @@ describe('AlternativesList', () => {
   });
 
   it('should render status badges correctly', () => {
-    render(
-      <AlternativesList alternatives={mockAlternatives} />
-    );
+    render(<AlternativesList alternatives={mockAlternatives} />);
 
     expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
@@ -46,7 +42,7 @@ describe('AlternativesList', () => {
 
   it('should render in readonly mode', () => {
     render(
-      <AlternativesList 
+      <AlternativesList
         mode="readonly"
         selectedValue="a"
         alternatives={mockAlternatives}
@@ -59,7 +55,7 @@ describe('AlternativesList', () => {
 
   it('should show selected alternative in readonly mode', () => {
     render(
-      <AlternativesList 
+      <AlternativesList
         mode="readonly"
         selectedValue="b"
         alternatives={mockAlternatives}
@@ -71,9 +67,7 @@ describe('AlternativesList', () => {
   });
 
   it('should handle disabled alternatives', () => {
-    render(
-      <AlternativesList alternatives={mockAlternatives} />
-    );
+    render(<AlternativesList alternatives={mockAlternatives} />);
 
     const radioD = screen.getByRole('radio', { name: /alternativa d/i });
     expect(radioD).toBeDisabled();
@@ -81,18 +75,15 @@ describe('AlternativesList', () => {
 
   it('should render detailed layout', () => {
     const detailedAlternatives = [
-      { 
-        value: 'a', 
-        label: 'Alternativa A', 
-        description: 'Descrição da alternativa A'
+      {
+        value: 'a',
+        label: 'Alternativa A',
+        description: 'Descrição da alternativa A',
       },
     ];
 
     render(
-      <AlternativesList 
-        alternatives={detailedAlternatives}
-        layout="detailed"
-      />
+      <AlternativesList alternatives={detailedAlternatives} layout="detailed" />
     );
 
     expect(screen.getByText('Descrição da alternativa A')).toBeInTheDocument();
@@ -100,10 +91,7 @@ describe('AlternativesList', () => {
 
   it('should render compact layout', () => {
     render(
-      <AlternativesList 
-        alternatives={mockAlternatives}
-        layout="compact"
-      />
+      <AlternativesList alternatives={mockAlternatives} layout="compact" />
     );
 
     // Verifica se renderizou sem erros
@@ -113,7 +101,7 @@ describe('AlternativesList', () => {
   it('should handle controlled mode', () => {
     const onValueChange = jest.fn();
     render(
-      <AlternativesList 
+      <AlternativesList
         alternatives={mockAlternatives}
         value="b"
         onValueChange={onValueChange}
@@ -128,26 +116,23 @@ describe('AlternativesList', () => {
 
   it('should handle disabled state for whole component', () => {
     render(
-      <AlternativesList 
-        alternatives={mockAlternatives}
-        disabled={true}
-      />
+      <AlternativesList alternatives={mockAlternatives} disabled={true} />
     );
 
     const radios = screen.getAllByRole('radio');
-    radios.forEach(radio => {
+    radios.forEach((radio) => {
       expect(radio).toBeDisabled();
     });
   });
 
   it('should show incorrect badge when user selected wrong answer in readonly mode', () => {
     render(
-      <AlternativesList 
+      <AlternativesList
         mode="readonly"
-        selectedValue="a"  // Usuário selecionou A
+        selectedValue="a" // Usuário selecionou A
         alternatives={[
-          { value: 'a', label: 'Alternativa A' },  // Selecionada (incorreta)
-          { value: 'b', label: 'Alternativa B', status: 'correct' },  // Correta
+          { value: 'a', label: 'Alternativa A' }, // Selecionada (incorreta)
+          { value: 'b', label: 'Alternativa B', status: 'correct' }, // Correta
         ]}
       />
     );
@@ -158,12 +143,12 @@ describe('AlternativesList', () => {
 
   it('should show only correct badge when user selected correct answer in readonly mode', () => {
     render(
-      <AlternativesList 
+      <AlternativesList
         mode="readonly"
-        selectedValue="b"  // Usuário selecionou B (correta)
+        selectedValue="b" // Usuário selecionou B (correta)
         alternatives={[
           { value: 'a', label: 'Alternativa A' },
-          { value: 'b', label: 'Alternativa B', status: 'correct' },  // Selecionada e correta
+          { value: 'b', label: 'Alternativa B', status: 'correct' }, // Selecionada e correta
         ]}
       />
     );
@@ -171,4 +156,4 @@ describe('AlternativesList', () => {
     expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     expect(screen.queryByText('Resposta incorreta')).not.toBeInTheDocument();
   });
-}); 
+});

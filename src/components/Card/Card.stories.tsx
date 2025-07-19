@@ -15,8 +15,6 @@ import {
   CardTopic,
 } from './Card';
 import Badge from '../Badge/Badge';
-import CheckBox from '../CheckBox/CheckBox';
-import Radio from '../Radio/Radio';
 
 export const AllCardComponentsShowcase: Story = () => {
   const baseProps = {

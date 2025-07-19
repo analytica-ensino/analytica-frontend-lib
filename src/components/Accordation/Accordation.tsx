@@ -1,7 +1,7 @@
-import { forwardRef, HTMLAttributes, ReactNode, useState } from "react";
-import { CardBase } from "../Card/Card";
-import Text from "../Text/Text";
-import { CaretRight } from "phosphor-react";
+import { forwardRef, HTMLAttributes, ReactNode, useState } from 'react';
+import { CardBase } from '../Card/Card';
+import Text from '../Text/Text';
+import { CaretRight } from 'phosphor-react';
 
 interface CardAccordationProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
@@ -11,7 +11,17 @@ interface CardAccordationProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
-  ({ title, children, className, defaultExpanded = false, onToggleExpanded, ...props }, ref) => {
+  (
+    {
+      title,
+      children,
+      className,
+      defaultExpanded = false,
+      onToggleExpanded,
+      ...props
+    },
+    ref
+  ) => {
     const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
     const handleToggle = () => {
@@ -36,10 +46,14 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
           aria-expanded={isExpanded}
           aria-controls="accordion-content"
         >
-          <Text size="sm" weight="bold" className="text-text-950 truncate flex-1">
+          <Text
+            size="sm"
+            weight="bold"
+            className="text-text-950 truncate flex-1"
+          >
             {title}
           </Text>
-          
+
           <CaretRight
             size={20}
             className={`text-text-700 transition-transform duration-200 flex-shrink-0 ${
@@ -57,15 +71,11 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
           }`}
           data-testid="accordion-content"
         >
-          <div className="p-4 pt-0 border-border-50">
-            {children}
-          </div>
+          <div className="p-4 pt-0 border-border-50">{children}</div>
         </div>
       </CardBase>
     );
   }
 );
 
-export {
-  CardAccordation
-};
+export { CardAccordation };

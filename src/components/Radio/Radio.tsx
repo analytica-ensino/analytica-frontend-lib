@@ -341,12 +341,7 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
 Radio.displayName = 'Radio';
 
 import { create, StoreApi, useStore } from 'zustand';
-import {
-  Children,
-  cloneElement,
-  isValidElement,
-  ReactElement,
-} from 'react';
+import { Children, cloneElement, isValidElement, ReactElement } from 'react';
 
 /**
  * RadioGroup store interface
@@ -435,7 +430,7 @@ export type RadioGroupProps = {
 
 /**
  * RadioGroup component for flexible radio group composition
- * 
+ *
  * Uses Zustand for state management with automatic store injection.
  * Allows complete control over layout and styling by composing with RadioGroupItem.
  *
@@ -473,7 +468,12 @@ const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
 
     // Create store reference
     const storeRef = useRef<RadioGroupStoreApi>(null);
-    storeRef.current ??= createRadioGroupStore(name, defaultValue, disabled, onValueChange);
+    storeRef.current ??= createRadioGroupStore(
+      name,
+      defaultValue,
+      disabled,
+      onValueChange
+    );
     const store = storeRef.current;
 
     // Get store actions
@@ -523,11 +523,14 @@ export type RadioGroupItemProps = {
   state?: RadioState;
   /** Additional CSS classes */
   className?: string;
-} & Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'name' | 'value' | 'checked' | 'onChange' | 'size'>;
+} & Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'type' | 'name' | 'value' | 'checked' | 'onChange' | 'size'
+>;
 
 /**
  * RadioGroupItem component for use within RadioGroup
- * 
+ *
  * A radio button without label that works within RadioGroup context.
  * Provides just the radio input for maximum flexibility in composition.
  *
@@ -557,8 +560,13 @@ const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
   ) => {
     // Get store and state
     const store = useRadioGroupStore(externalStore);
-    const { value: groupValue, setValue, disabled: groupDisabled, name } = useStore(store);
-    
+    const {
+      value: groupValue,
+      setValue,
+      disabled: groupDisabled,
+      name,
+    } = useStore(store);
+
     // Generate unique ID if not provided
     const generatedId = useId();
     const inputId = id ?? `radio-item-${generatedId}`;
@@ -574,7 +582,7 @@ const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
         // Prevenir scroll automático quando o input recebe foco
         event.preventDefault();
         setValue(value);
-        
+
         // Remover foco do input para evitar comportamento de scroll
         if (event.target) {
           event.target.blur();
@@ -586,7 +594,7 @@ const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
     const sizeClasses = SIZE_CLASSES[size];
     const radioVariant = isChecked ? 'checked' : 'unchecked';
     const stylingClasses = STATE_CLASSES[currentState][radioVariant];
-    
+
     const getBorderWidth = () => {
       return currentState === 'focused' ? 'border-2' : sizeClasses.borderWidth;
     };
@@ -596,8 +604,12 @@ const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
     const dotClasses = `${sizeClasses.dotSize} rounded-full ${DOT_CLASSES[currentState]} transition-all duration-200`;
 
     // Wrapper for focused/invalid states
-    const isWrapperNeeded = currentState === 'focused' || currentState === 'invalid';
-    const wrapperBorderColor = currentState === 'focused' ? 'border-indicator-info' : 'border-indicator-error';
+    const isWrapperNeeded =
+      currentState === 'focused' || currentState === 'invalid';
+    const wrapperBorderColor =
+      currentState === 'focused'
+        ? 'border-indicator-info'
+        : 'border-indicator-error';
 
     const radioElement = (
       <>
@@ -616,16 +628,16 @@ const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
             e.target.blur();
           }}
           className="sr-only"
-          style={{ 
-            position: 'absolute', 
+          style={{
+            position: 'absolute',
             left: '-9999px',
-            visibility: 'hidden'
+            visibility: 'hidden',
           }}
           {...props}
         />
 
         {/* Custom styled radio */}
-        <div 
+        <div
           className={radioClasses}
           onClick={(e) => {
             // Prevenir scroll quando o radio é clicado
@@ -656,17 +668,15 @@ const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
 
     if (isWrapperNeeded) {
       return (
-        <div className={`p-1 border-2 ${wrapperBorderColor} rounded-lg ${isDisabled ? 'opacity-40' : ''}`}>
+        <div
+          className={`p-1 border-2 ${wrapperBorderColor} rounded-lg ${isDisabled ? 'opacity-40' : ''}`}
+        >
           {radioElement}
         </div>
       );
     }
 
-    return (
-      <div className={isDisabled ? 'opacity-40' : ''}>
-        {radioElement}
-      </div>
-    );
+    return <div className={isDisabled ? 'opacity-40' : ''}>{radioElement}</div>;
   }
 );
 

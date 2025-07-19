@@ -1,7 +1,7 @@
-import { CheckCircle, XCircle } from "phosphor-react";
-import Badge from "../Badge/Badge";
-import { RadioGroup, RadioGroupItem } from "../Radio/Radio";
-import { useId } from "react";
+import { CheckCircle, XCircle } from 'phosphor-react';
+import Badge from '../Badge/Badge';
+import { RadioGroup, RadioGroupItem } from '../Radio/Radio';
+import { useId } from 'react';
 
 /**
  * Interface para definir uma alternativa
@@ -42,11 +42,11 @@ export interface AlternativesListProps {
 
 /**
  * Componente reutilizável para exibir lista de alternativas com RadioGroup
- * 
+ *
  * Suporta dois modos:
  * - `interactive`: Permite interação com radios (padrão)
  * - `readonly`: Apenas exibição visual dos estados
- * 
+ *
  * @example
  * ```tsx
  * // Modo interativo (padrão)
@@ -60,7 +60,7 @@ export interface AlternativesListProps {
  *   defaultValue="a"
  *   onValueChange={(value) => console.log(value)}
  * />
- * 
+ *
  * // Modo readonly - mostra seleção do usuário
  * <AlternativesList
  *   mode="readonly"
@@ -73,7 +73,7 @@ export interface AlternativesListProps {
  * />
  * ```
  */
-export const AlternativesList: React.FC<AlternativesListProps> = ({
+export const AlternativesList = ({
   alternatives,
   name,
   defaultValue,
@@ -84,37 +84,40 @@ export const AlternativesList: React.FC<AlternativesListProps> = ({
   className = '',
   mode = 'interactive',
   selectedValue,
-}) => {
+}: AlternativesListProps) => {
   // Gerar um ID único para garantir que cada instância tenha seu próprio grupo
   const uniqueId = useId();
   const groupName = name || `alternatives-${uniqueId}`;
-  
+
   // No modo readonly, não precisamos de interação
   const isReadonly = mode === 'readonly';
-     const getStatusStyles = (status?: Alternative['status'], isReadonly: boolean = false) => {
-     const hoverClass = isReadonly ? '' : 'hover:bg-background-50';
-     
-     switch (status) {
-       case 'correct':
-         return 'bg-success-background border-success-300';
-       case 'incorrect':
-         return 'bg-error-background border-error-300';
-       default:
-         return `bg-background border-border-100 ${hoverClass}`;
-     }
-   };
+  const getStatusStyles = (
+    status?: Alternative['status'],
+    isReadonly: boolean = false
+  ) => {
+    const hoverClass = isReadonly ? '' : 'hover:bg-background-50';
+
+    switch (status) {
+      case 'correct':
+        return 'bg-success-background border-success-300';
+      case 'incorrect':
+        return 'bg-error-background border-error-300';
+      default:
+        return `bg-background border-border-100 ${hoverClass}`;
+    }
+  };
 
   const getStatusBadge = (status?: Alternative['status']) => {
     switch (status) {
       case 'correct':
         return (
-          <Badge variant='solid' action='success' iconLeft={<CheckCircle />}>
+          <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
             Resposta correta
           </Badge>
         );
       case 'incorrect':
         return (
-          <Badge variant='solid' action='error' iconLeft={<XCircle />}>
+          <Badge variant="solid" action="error" iconLeft={<XCircle />}>
             Resposta incorreta
           </Badge>
         );
@@ -135,11 +138,14 @@ export const AlternativesList: React.FC<AlternativesListProps> = ({
   };
 
   // Componente para renderizar alternativa no modo readonly
-  const renderReadonlyAlternative = (alternative: Alternative, index: number) => {
+  const renderReadonlyAlternative = (
+    alternative: Alternative,
+    index: number
+  ) => {
     const alternativeId = alternative.value || `alt-${index}`;
     const isUserSelected = selectedValue === alternative.value;
     const isCorrectAnswer = alternative.status === 'correct';
-    
+
     // Determinar o status da alternativa para visualização
     let displayStatus: Alternative['status'] = undefined;
     if (isUserSelected && !isCorrectAnswer) {
@@ -149,25 +155,24 @@ export const AlternativesList: React.FC<AlternativesListProps> = ({
       // Alternativa correta (independente se foi selecionada ou não)
       displayStatus = 'correct';
     }
-    
-         const statusStyles = getStatusStyles(displayStatus, true);
-     const statusBadge = getStatusBadge(displayStatus);
+
+    const statusStyles = getStatusStyles(displayStatus, true);
+    const statusBadge = getStatusBadge(displayStatus);
 
     // Radio visual - apenas mostra selecionado se o usuário escolheu esta alternativa
     const renderRadio = () => {
       const radioClasses = `w-6 h-6 rounded-full border-2 cursor-default transition-all duration-200 flex items-center justify-center ${
-        isUserSelected 
-          ? 'border-primary-950 bg-background' 
+        isUserSelected
+          ? 'border-primary-950 bg-background'
           : 'border-border-400 bg-background'
       }`;
-      
-      const dotClasses = 'w-3 h-3 rounded-full bg-primary-950 transition-all duration-200';
+
+      const dotClasses =
+        'w-3 h-3 rounded-full bg-primary-950 transition-all duration-200';
 
       return (
         <div className={radioClasses}>
-          {isUserSelected && (
-            <div className={dotClasses} />
-          )}
+          {isUserSelected && <div className={dotClasses} />}
         </div>
       );
     };
@@ -182,9 +187,7 @@ export const AlternativesList: React.FC<AlternativesListProps> = ({
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3 flex-1">
-              <div className="mt-1">
-                {renderRadio()}
-              </div>
+              <div className="mt-1">{renderRadio()}</div>
               <div className="flex-1">
                 <p className="block font-medium text-text-950">
                   {alternative.label}
@@ -211,9 +214,7 @@ export const AlternativesList: React.FC<AlternativesListProps> = ({
       >
         <div className="flex items-center gap-2 flex-1">
           {renderRadio()}
-          <span className="flex-1">
-            {alternative.label}
-          </span>
+          <span className="flex-1">{alternative.label}</span>
         </div>
         {statusBadge && <div className="flex-shrink-0">{statusBadge}</div>}
       </div>
@@ -223,8 +224,10 @@ export const AlternativesList: React.FC<AlternativesListProps> = ({
   // Se for modo readonly, renderizar sem RadioGroup
   if (isReadonly) {
     return (
-      <div className={`flex flex-col ${getLayoutClasses()} w-full ${className}`}>
-        {alternatives.map((alternative, index) => 
+      <div
+        className={`flex flex-col ${getLayoutClasses()} w-full ${className}`}
+      >
+        {alternatives.map((alternative, index) =>
           renderReadonlyAlternative(alternative, index)
         )}
       </div>
@@ -242,15 +245,17 @@ export const AlternativesList: React.FC<AlternativesListProps> = ({
     >
       {alternatives.map((alternative, index) => {
         const alternativeId = alternative.value || `alt-${index}`;
-                 const statusStyles = getStatusStyles(alternative.status, false);
-         const statusBadge = getStatusBadge(alternative.status);
+        const statusStyles = getStatusStyles(alternative.status, false);
+        const statusBadge = getStatusBadge(alternative.status);
 
         if (layout === 'detailed') {
           return (
             <div
               key={alternativeId}
               className={`border-2 rounded-lg p-4 transition-all ${statusStyles} ${
-                alternative.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                alternative.disabled
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'cursor-pointer'
               }`}
             >
               <div className="flex items-start justify-between gap-3">
@@ -265,7 +270,9 @@ export const AlternativesList: React.FC<AlternativesListProps> = ({
                     <label
                       htmlFor={alternativeId}
                       className={`block font-medium text-text-950 ${
-                        alternative.disabled ? 'cursor-not-allowed' : 'cursor-pointer'
+                        alternative.disabled
+                          ? 'cursor-not-allowed'
+                          : 'cursor-pointer'
                       }`}
                     >
                       {alternative.label}
@@ -277,7 +284,9 @@ export const AlternativesList: React.FC<AlternativesListProps> = ({
                     )}
                   </div>
                 </div>
-                {statusBadge && <div className="flex-shrink-0">{statusBadge}</div>}
+                {statusBadge && (
+                  <div className="flex-shrink-0">{statusBadge}</div>
+                )}
               </div>
             </div>
           );
