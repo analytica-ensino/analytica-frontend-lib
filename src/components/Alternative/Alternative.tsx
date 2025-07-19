@@ -93,7 +93,7 @@ export const AlternativesList = ({
   const isReadonly = mode === 'readonly';
   const getStatusStyles = (
     status?: Alternative['status'],
-    isReadonly: boolean = false
+    isReadonly?: boolean
   ) => {
     const hoverClass = isReadonly ? '' : 'hover:bg-background-50';
 
@@ -138,11 +138,8 @@ export const AlternativesList = ({
   };
 
   // Componente para renderizar alternativa no modo readonly
-  const renderReadonlyAlternative = (
-    alternative: Alternative,
-    index: number
-  ) => {
-    const alternativeId = alternative.value || `alt-${index}`;
+  const renderReadonlyAlternative = (alternative: Alternative) => {
+    const alternativeId = alternative.value;
     const isUserSelected = selectedValue === alternative.value;
     const isCorrectAnswer = alternative.status === 'correct';
 
@@ -227,8 +224,8 @@ export const AlternativesList = ({
       <div
         className={`flex flex-col ${getLayoutClasses()} w-full ${className}`}
       >
-        {alternatives.map((alternative, index) =>
-          renderReadonlyAlternative(alternative, index)
+        {alternatives.map((alternative) =>
+          renderReadonlyAlternative(alternative)
         )}
       </div>
     );
