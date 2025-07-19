@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import Radio from './Radio';
+import Radio, { RadioGroup, RadioGroupItem } from './Radio';
 
 /**
  * Mock for useId hook to ensure consistent IDs in tests
@@ -677,6 +677,716 @@ describe('Radio', () => {
   describe('Component display name', () => {
     it('has correct display name', () => {
       expect(Radio.displayName).toBe('Radio');
+    });
+  });
+});
+
+// Tests for RadioGroup with Zustand store
+describe('RadioGroup Component', () => {
+  describe('Store initialization and injection', () => {
+    it('creates store and injects it to RadioGroupItem children', () => {
+      const handleChange = jest.fn();
+
+      render(
+        <RadioGroup defaultValue="option1" onValueChange={handleChange}>
+          <div>
+            <RadioGroupItem value="option1" data-testid="radio1" />
+            <label htmlFor="radio1">Option 1</label>
+          </div>
+          <div>
+            <RadioGroupItem value="option2" data-testid="radio2" />
+            <label htmlFor="radio2">Option 2</label>
+          </div>
+        </RadioGroup>
+      );
+
+      // Check if callback was called with default value
+      expect(handleChange).toHaveBeenCalledWith('option1');
+
+      // Check if radios are rendered
+      expect(screen.getByTestId('radio1')).toBeInTheDocument();
+      expect(screen.getByTestId('radio2')).toBeInTheDocument();
+    });
+
+    it('generates unique group name when not provided', () => {
+      render(
+        <RadioGroup defaultValue="option1">
+          <RadioGroupItem value="option1" data-testid="radio1" />
+          <RadioGroupItem value="option2" data-testid="radio2" />
+        </RadioGroup>
+      );
+
+      const hiddenInput1 = screen.getByDisplayValue('option1');
+      const hiddenInput2 = screen.getByDisplayValue('option2');
+
+      // Both should have the same generated name
+      expect(hiddenInput1).toHaveAttribute('name');
+      expect(hiddenInput2).toHaveAttribute('name');
+      expect(hiddenInput1.getAttribute('name')).toBe(
+        hiddenInput2.getAttribute('name')
+      );
+      expect(hiddenInput1.getAttribute('name')).toContain('radio-group-');
+    });
+
+    it('uses provided group name', () => {
+      render(
+        <RadioGroup defaultValue="option1" name="custom-group">
+          <RadioGroupItem value="option1" data-testid="radio1" />
+          <RadioGroupItem value="option2" data-testid="radio2" />
+        </RadioGroup>
+      );
+
+      const hiddenInput1 = screen.getByDisplayValue('option1');
+      const hiddenInput2 = screen.getByDisplayValue('option2');
+
+      expect(hiddenInput1).toHaveAttribute('name', 'custom-group');
+      expect(hiddenInput2).toHaveAttribute('name', 'custom-group');
+    });
+
+    it('works with default parameters in store creation', () => {
+      // Test default values without explicit params to cover lines 364-365
+      render(
+        <RadioGroup>
+          <RadioGroupItem value="test" />
+        </RadioGroup>
+      );
+
+      expect(screen.getByDisplayValue('test')).toBeInTheDocument();
+    });
+  });
+
+  describe('Uncontrolled behavior (defaultValue)', () => {
+    it('calls onChange when selection changes', () => {
+      const handleChange = jest.fn();
+
+      render(
+        <RadioGroup defaultValue="option1" onValueChange={handleChange}>
+          <RadioGroupItem value="option1" data-testid="radio1" />
+          <RadioGroupItem value="option2" data-testid="radio2" />
+        </RadioGroup>
+      );
+
+      // Initial call with default value
+      expect(handleChange).toHaveBeenCalledWith('option1');
+
+      // Change selection by clicking on radio2
+      fireEvent.click(screen.getByTestId('radio2'));
+      expect(handleChange).toHaveBeenCalledWith('option2');
+    });
+
+    it('works without defaultValue and calls onChange on selection', () => {
+      const handleChange = jest.fn();
+
+      render(
+        <RadioGroup onValueChange={handleChange}>
+          <RadioGroupItem value="option1" data-testid="radio1" />
+          <RadioGroupItem value="option2" data-testid="radio2" />
+        </RadioGroup>
+      );
+
+      // No initial call
+      expect(handleChange).not.toHaveBeenCalled();
+
+      // Select first option
+      fireEvent.click(screen.getByTestId('radio1'));
+      expect(handleChange).toHaveBeenCalledWith('option1');
+    });
+  });
+
+  describe('Controlled behavior (value prop)', () => {
+    it('respects controlled value and calls onChange', () => {
+      const handleChange = jest.fn();
+
+      render(
+        <RadioGroup
+          value="option2"
+          defaultValue="option1"
+          onValueChange={handleChange}
+        >
+          <RadioGroupItem value="option1" data-testid="radio1" />
+          <RadioGroupItem value="option2" data-testid="radio2" />
+        </RadioGroup>
+      );
+
+      // Should call with controlled value
+      expect(handleChange).toHaveBeenCalledWith('option2');
+    });
+
+    it('handles controlled value updates', () => {
+      const handleChange = jest.fn();
+      const { rerender } = render(
+        <RadioGroup value="option1" onValueChange={handleChange}>
+          <RadioGroupItem value="option1" data-testid="radio1" />
+          <RadioGroupItem value="option2" data-testid="radio2" />
+        </RadioGroup>
+      );
+
+      expect(handleChange).toHaveBeenCalledWith('option1');
+
+      // Update controlled value
+      rerender(
+        <RadioGroup value="option2" onValueChange={handleChange}>
+          <RadioGroupItem value="option1" data-testid="radio1" />
+          <RadioGroupItem value="option2" data-testid="radio2" />
+        </RadioGroup>
+      );
+
+      // Should update the internal store
+      expect(screen.getByTestId('radio1')).toBeInTheDocument();
+      expect(screen.getByTestId('radio2')).toBeInTheDocument();
+    });
+  });
+
+  describe('Disabled state', () => {
+    it('does not call onChange when group is disabled', () => {
+      const handleChange = jest.fn();
+
+      render(
+        <RadioGroup
+          disabled
+          defaultValue="option1"
+          onValueChange={handleChange}
+        >
+          <RadioGroupItem value="option1" data-testid="radio1" />
+          <RadioGroupItem value="option2" data-testid="radio2" />
+        </RadioGroup>
+      );
+
+      // Should not change selection when disabled
+      fireEvent.click(screen.getByTestId('radio2'));
+      expect(handleChange).toHaveBeenCalledTimes(1); // Only initial call
+    });
+
+    it('does not call onChange when individual item is disabled', () => {
+      const handleChange = jest.fn();
+
+      render(
+        <RadioGroup defaultValue="option1" onValueChange={handleChange}>
+          <RadioGroupItem value="option1" data-testid="radio1" />
+          <RadioGroupItem value="option2" disabled data-testid="radio2" />
+        </RadioGroup>
+      );
+
+      // Should not be able to select disabled item
+      fireEvent.click(screen.getByTestId('radio2'));
+      expect(handleChange).toHaveBeenCalledTimes(1); // Only initial call
+    });
+  });
+
+  describe('Store functionality', () => {
+    it('handles state updates correctly', () => {
+      const handleChange = jest.fn();
+
+      render(
+        <RadioGroup onValueChange={handleChange}>
+          <RadioGroupItem value="option1" data-testid="radio1" />
+          <RadioGroupItem value="option2" data-testid="radio2" />
+        </RadioGroup>
+      );
+
+      // Should work with click events
+      fireEvent.click(screen.getByTestId('radio1'));
+      expect(handleChange).toHaveBeenCalledWith('option1');
+
+      fireEvent.click(screen.getByTestId('radio2'));
+      expect(handleChange).toHaveBeenCalledWith('option2');
+    });
+  });
+
+  describe('Basic interaction', () => {
+    it('responds to click events', () => {
+      const handleChange = jest.fn();
+
+      render(
+        <RadioGroup onValueChange={handleChange}>
+          <RadioGroupItem value="option1" data-testid="radio1" />
+        </RadioGroup>
+      );
+
+      fireEvent.click(screen.getByTestId('radio1'));
+      expect(handleChange).toHaveBeenCalledWith('option1');
+    });
+  });
+
+  describe('Store error handling', () => {
+    it('throws error when RadioGroupItem is used without RadioGroup', () => {
+      // Suppress console.error for this test
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      expect(() => {
+        render(<RadioGroupItem value="option1" />);
+      }).toThrow('RadioGroupItem must be used within a RadioGroup');
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('Accessibility', () => {
+    it('renders with proper radiogroup role', () => {
+      render(
+        <RadioGroup name="test-group">
+          <RadioGroupItem value="option1" data-testid="radio1" />
+          <RadioGroupItem value="option2" data-testid="radio2" />
+        </RadioGroup>
+      );
+
+      const radioGroup = screen.getByRole('radiogroup');
+      expect(radioGroup).toHaveAttribute('aria-label', 'test-group');
+      expect(screen.getByTestId('radio1')).toBeInTheDocument();
+      expect(screen.getByTestId('radio2')).toBeInTheDocument();
+    });
+  });
+
+  describe('Complex scenarios', () => {
+    it('handles nested structure with store injection', () => {
+      const handleChange = jest.fn();
+
+      render(
+        <RadioGroup defaultValue="option1" onValueChange={handleChange}>
+          <div className="group">
+            <div className="item">
+              <RadioGroupItem value="option1" data-testid="radio1" />
+              <label>Option 1</label>
+            </div>
+            <div className="item">
+              <RadioGroupItem value="option2" data-testid="radio2" />
+              <label>Option 2</label>
+            </div>
+          </div>
+        </RadioGroup>
+      );
+
+      // Initial call with default value
+      expect(handleChange).toHaveBeenCalledWith('option1');
+
+      // Should work with nested structure
+      fireEvent.click(screen.getByTestId('radio2'));
+      expect(handleChange).toHaveBeenCalledWith('option2');
+    });
+
+    it('handles multiple RadioGroups independently', () => {
+      const handleChange1 = jest.fn();
+      const handleChange2 = jest.fn();
+
+      render(
+        <div>
+          <RadioGroup
+            name="group1"
+            defaultValue="a1"
+            onValueChange={handleChange1}
+          >
+            <RadioGroupItem value="a1" data-testid="group1-radio1" />
+            <RadioGroupItem value="a2" data-testid="group1-radio2" />
+          </RadioGroup>
+          <RadioGroup
+            name="group2"
+            defaultValue="b1"
+            onValueChange={handleChange2}
+          >
+            <RadioGroupItem value="b1" data-testid="group2-radio1" />
+            <RadioGroupItem value="b2" data-testid="group2-radio2" />
+          </RadioGroup>
+        </div>
+      );
+
+      // Each group should have called their initial values
+      expect(handleChange1).toHaveBeenCalledWith('a1');
+      expect(handleChange2).toHaveBeenCalledWith('b1');
+
+      // Change in group1 shouldn't affect group2
+      fireEvent.click(screen.getByTestId('group1-radio2'));
+      expect(handleChange1).toHaveBeenCalledWith('a2');
+
+      // group2 should not have been called again
+      expect(handleChange2).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Component display names', () => {
+    it('has correct display names', () => {
+      expect(RadioGroup.displayName).toBe('RadioGroup');
+      expect(RadioGroupItem.displayName).toBe('RadioGroupItem');
+    });
+  });
+
+  describe('RadioGroupItem Wrapper Logic (isWrapperNeeded)', () => {
+    it('renders wrapper when state is focused', () => {
+      const { container } = render(
+        <RadioGroup>
+          <RadioGroupItem value="option1" state="focused" />
+        </RadioGroup>
+      );
+
+      // Look for the wrapper div with focused classes
+      const wrapperDiv = container.querySelector(
+        '.p-1.border-2.border-indicator-info.rounded-lg'
+      );
+      expect(wrapperDiv).toBeInTheDocument();
+    });
+
+    it('renders wrapper when state is invalid', () => {
+      const { container } = render(
+        <RadioGroup>
+          <RadioGroupItem value="option1" state="invalid" />
+        </RadioGroup>
+      );
+
+      // Look for the wrapper div with error classes
+      const wrapperDiv = container.querySelector(
+        '.p-1.border-2.border-indicator-error.rounded-lg'
+      );
+      expect(wrapperDiv).toBeInTheDocument();
+    });
+
+    it('renders wrapper with opacity when focused and disabled', () => {
+      const { container } = render(
+        <RadioGroup>
+          <RadioGroupItem value="option1" state="focused" disabled />
+        </RadioGroup>
+      );
+
+      // When disabled, currentState becomes 'disabled', so no special wrapper is rendered
+      // Instead, just the simple wrapper with opacity
+      const opacityDiv = container.querySelector('.opacity-40');
+      expect(opacityDiv).toBeInTheDocument();
+
+      // Should NOT have the focused wrapper since disabled overrides the state
+      const focusedWrapperDiv = container.querySelector(
+        '.p-1.border-2.border-indicator-info.rounded-lg'
+      );
+      expect(focusedWrapperDiv).not.toBeInTheDocument();
+    });
+
+    it('renders wrapper with opacity when invalid and disabled', () => {
+      const { container } = render(
+        <RadioGroup>
+          <RadioGroupItem value="option1" state="invalid" disabled />
+        </RadioGroup>
+      );
+
+      // When disabled, currentState becomes 'disabled', so no special wrapper is rendered
+      // Instead, just the simple wrapper with opacity
+      const opacityDiv = container.querySelector('.opacity-40');
+      expect(opacityDiv).toBeInTheDocument();
+
+      // Should NOT have the invalid wrapper since disabled overrides the state
+      const invalidWrapperDiv = container.querySelector(
+        '.p-1.border-2.border-indicator-error.rounded-lg'
+      );
+      expect(invalidWrapperDiv).not.toBeInTheDocument();
+    });
+
+    it('does not render wrapper when state is default', () => {
+      const { container } = render(
+        <RadioGroup>
+          <RadioGroupItem value="option1" state="default" />
+        </RadioGroup>
+      );
+
+      // Should not have wrapper classes
+      const wrapperDiv = container.querySelector('.p-1.border-2.rounded-lg');
+      expect(wrapperDiv).not.toBeInTheDocument();
+    });
+
+    it('does not render wrapper when state is hovered', () => {
+      const { container } = render(
+        <RadioGroup>
+          <RadioGroupItem value="option1" state="hovered" />
+        </RadioGroup>
+      );
+
+      // Should not have wrapper classes
+      const wrapperDiv = container.querySelector('.p-1.border-2.rounded-lg');
+      expect(wrapperDiv).not.toBeInTheDocument();
+    });
+
+    it('renders simple wrapper with opacity when disabled and no special state', () => {
+      const { container } = render(
+        <RadioGroup>
+          <RadioGroupItem value="option1" disabled />
+        </RadioGroup>
+      );
+
+      // Should have opacity but not special wrapper classes
+      const opacityDiv = container.querySelector('.opacity-40');
+      expect(opacityDiv).toBeInTheDocument();
+
+      const wrapperDiv = container.querySelector('.p-1.border-2.rounded-lg');
+      expect(wrapperDiv).not.toBeInTheDocument();
+    });
+
+    it('covers wrapper className template literal with disabled condition', () => {
+      // Test enabled focused state (should have wrapper without opacity)
+      const { container } = render(
+        <RadioGroup>
+          <RadioGroupItem value="option1" state="focused" />
+        </RadioGroup>
+      );
+
+      // This should cover line 680: template literal with isDisabled condition
+      const wrapperDiv = container.querySelector(
+        '.p-1.border-2.border-indicator-info.rounded-lg'
+      );
+      expect(wrapperDiv).toBeInTheDocument();
+      expect(wrapperDiv).not.toHaveClass('opacity-40');
+
+      // Test invalid state with group disabled (covers the disabled part of line 680)
+      const { container: container2 } = render(
+        <RadioGroup disabled>
+          <RadioGroupItem value="option2" state="invalid" />
+        </RadioGroup>
+      );
+
+      // When group is disabled, currentState becomes 'disabled', no special wrapper
+      const opacityDiv = container2.querySelector('.opacity-40');
+      expect(opacityDiv).toBeInTheDocument();
+    });
+  });
+
+  describe('RadioGroupItem Event Handling (lines 636-667)', () => {
+    it('calls blur on hidden input when focused', () => {
+      render(
+        <RadioGroup>
+          <RadioGroupItem value="option1" />
+        </RadioGroup>
+      );
+
+      const hiddenInput = screen.getByDisplayValue('option1');
+      const blurSpy = jest.spyOn(hiddenInput, 'blur');
+
+      fireEvent.focus(hiddenInput);
+
+      expect(blurSpy).toHaveBeenCalled();
+      blurSpy.mockRestore();
+    });
+
+    it('calls preventDefault and stopPropagation on custom radio click', () => {
+      const handleChange = jest.fn();
+
+      const { container } = render(
+        <RadioGroup onValueChange={handleChange}>
+          <RadioGroupItem value="option1" />
+        </RadioGroup>
+      );
+
+      const customRadio = container.querySelector('[role="radio"]');
+      if (!customRadio) throw new Error('Custom radio element not found');
+
+      // Spy on the actual preventDefault and stopPropagation methods
+      const preventDefaultSpy = jest.spyOn(Event.prototype, 'preventDefault');
+      const stopPropagationSpy = jest.spyOn(Event.prototype, 'stopPropagation');
+
+      fireEvent.click(customRadio);
+
+      expect(preventDefaultSpy).toHaveBeenCalled();
+      expect(stopPropagationSpy).toHaveBeenCalled();
+      expect(handleChange).toHaveBeenCalledWith('option1');
+
+      preventDefaultSpy.mockRestore();
+      stopPropagationSpy.mockRestore();
+    });
+
+    it('does not call setValue when disabled radio is clicked', () => {
+      const handleChange = jest.fn();
+
+      const { container } = render(
+        <RadioGroup onValueChange={handleChange}>
+          <RadioGroupItem value="option1" disabled />
+        </RadioGroup>
+      );
+
+      const customRadio = container.querySelector('[role="radio"]');
+      if (!customRadio) throw new Error('Custom radio element not found');
+
+      fireEvent.click(customRadio);
+
+      expect(handleChange).not.toHaveBeenCalled();
+    });
+
+    it('handles keyboard navigation with Space key', () => {
+      const handleChange = jest.fn();
+
+      const { container } = render(
+        <RadioGroup onValueChange={handleChange}>
+          <RadioGroupItem value="option1" />
+        </RadioGroup>
+      );
+
+      const customRadio = container.querySelector('[role="radio"]');
+      if (!customRadio) throw new Error('Custom radio element not found');
+
+      fireEvent.keyDown(customRadio, { key: ' ' });
+
+      expect(handleChange).toHaveBeenCalledWith('option1');
+    });
+
+    it('handles keyboard navigation with Enter key', () => {
+      const handleChange = jest.fn();
+
+      const { container } = render(
+        <RadioGroup onValueChange={handleChange}>
+          <RadioGroupItem value="option1" />
+        </RadioGroup>
+      );
+
+      const customRadio = container.querySelector('[role="radio"]');
+      if (!customRadio) throw new Error('Custom radio element not found');
+
+      fireEvent.keyDown(customRadio, { key: 'Enter' });
+
+      expect(handleChange).toHaveBeenCalledWith('option1');
+    });
+
+    it('calls preventDefault on keyboard events', () => {
+      const handleChange = jest.fn();
+
+      const { container } = render(
+        <RadioGroup onValueChange={handleChange}>
+          <RadioGroupItem value="option1" />
+        </RadioGroup>
+      );
+
+      const customRadio = container.querySelector('[role="radio"]');
+      if (!customRadio) throw new Error('Custom radio element not found');
+
+      // Spy on preventDefault
+      const preventDefaultSpy = jest.spyOn(Event.prototype, 'preventDefault');
+
+      fireEvent.keyDown(customRadio, { key: ' ' });
+
+      expect(preventDefaultSpy).toHaveBeenCalled();
+      expect(handleChange).toHaveBeenCalledWith('option1');
+
+      preventDefaultSpy.mockRestore();
+    });
+
+    it('ignores non-navigation keys', () => {
+      const handleChange = jest.fn();
+
+      const { container } = render(
+        <RadioGroup onValueChange={handleChange}>
+          <RadioGroupItem value="option1" />
+        </RadioGroup>
+      );
+
+      const customRadio = container.querySelector('[role="radio"]');
+      if (!customRadio) throw new Error('Custom radio element not found');
+
+      fireEvent.keyDown(customRadio, { key: 'a' });
+      fireEvent.keyDown(customRadio, { key: 'Tab' });
+      fireEvent.keyDown(customRadio, { key: 'Escape' });
+
+      expect(handleChange).not.toHaveBeenCalled();
+    });
+
+    it('does not call setValue when disabled radio receives keyboard input', () => {
+      const handleChange = jest.fn();
+
+      const { container } = render(
+        <RadioGroup onValueChange={handleChange}>
+          <RadioGroupItem value="option1" disabled />
+        </RadioGroup>
+      );
+
+      const customRadio = container.querySelector('[role="radio"]');
+      if (!customRadio) throw new Error('Custom radio element not found');
+
+      fireEvent.keyDown(customRadio, { key: ' ' });
+      fireEvent.keyDown(customRadio, { key: 'Enter' });
+
+      expect(handleChange).not.toHaveBeenCalled();
+    });
+
+    it('sets correct tabIndex based on disabled state', () => {
+      const { rerender, container } = render(
+        <RadioGroup>
+          <RadioGroupItem value="option1" />
+        </RadioGroup>
+      );
+
+      let customRadio = container.querySelector('[role="radio"]');
+      expect(customRadio).toHaveAttribute('tabIndex', '0');
+
+      // Test disabled state
+      rerender(
+        <RadioGroup>
+          <RadioGroupItem value="option1" disabled />
+        </RadioGroup>
+      );
+
+      customRadio = container.querySelector('[role="radio"]');
+      expect(customRadio).toHaveAttribute('tabIndex', '-1');
+    });
+
+    it('sets correct ARIA attributes', () => {
+      // Test checked state
+      const { container } = render(
+        <RadioGroup defaultValue="option1">
+          <RadioGroupItem value="option1" />
+        </RadioGroup>
+      );
+
+      let customRadio = container.querySelector('[role="radio"]');
+      expect(customRadio).toHaveAttribute('role', 'radio');
+      expect(customRadio).toHaveAttribute('aria-checked', 'true');
+      // aria-disabled is only set when true, not when false
+      expect(customRadio).not.toHaveAttribute('aria-disabled', 'false');
+
+      // Test unchecked state with fresh render
+      const { container: container2 } = render(
+        <RadioGroup defaultValue="option2">
+          <RadioGroupItem value="option1" />
+        </RadioGroup>
+      );
+
+      const customRadio2 = container2.querySelector('[role="radio"]');
+      expect(customRadio2).toHaveAttribute('aria-checked', 'false');
+
+      // Test disabled state with fresh render
+      const { container: container3 } = render(
+        <RadioGroup defaultValue="option1">
+          <RadioGroupItem value="option1" disabled />
+        </RadioGroup>
+      );
+
+      const customRadio3 = container3.querySelector('[role="radio"]');
+      expect(customRadio3).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('covers all branch conditions in store creation', () => {
+      // Test with onValueChange callback and defaultValue to cover branch
+      const handleChange = jest.fn();
+      render(
+        <RadioGroup defaultValue="test" onValueChange={handleChange}>
+          <RadioGroupItem value="test" />
+        </RadioGroup>
+      );
+
+      expect(screen.getByDisplayValue('test')).toBeInTheDocument();
+      expect(handleChange).toHaveBeenCalledWith('test');
+
+      // Test without onValueChange to cover the other branch
+      render(
+        <RadioGroup>
+          <RadioGroupItem value="test2" />
+        </RadioGroup>
+      );
+
+      expect(screen.getByDisplayValue('test2')).toBeInTheDocument();
+    });
+
+    it('covers edge cases in RadioGroupItem state management', () => {
+      const { container } = render(
+        <RadioGroup disabled>
+          <RadioGroupItem value="test" state="invalid" />
+        </RadioGroup>
+      );
+
+      // This should cover the currentState = isDisabled ? 'disabled' : state branch
+      const radioElement = container.querySelector('[role="radio"]');
+      expect(radioElement).toHaveAttribute('aria-disabled', 'true');
     });
   });
 });

@@ -8,7 +8,12 @@ import React, {
   ChangeEvent,
   useEffect,
   useRef,
+  Children,
+  cloneElement,
+  isValidElement,
+  ReactElement,
 } from 'react';
+import { create, StoreApi, useStore } from 'zustand';
 import Text from '../Text/Text';
 
 /**
@@ -340,9 +345,6 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
 
 Radio.displayName = 'Radio';
 
-import { create, StoreApi, useStore } from 'zustand';
-import { Children, cloneElement, isValidElement, ReactElement } from 'react';
-
 /**
  * RadioGroup store interface
  */
@@ -361,8 +363,8 @@ type RadioGroupStoreApi = StoreApi<RadioGroupStore>;
  */
 const createRadioGroupStore = (
   name: string,
-  defaultValue: string = '',
-  disabled: boolean = false,
+  defaultValue: string,
+  disabled: boolean,
   onValueChange?: (value: string) => void
 ): RadioGroupStoreApi =>
   create<RadioGroupStore>((set, get) => ({
@@ -478,6 +480,14 @@ const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
 
     // Get store actions
     const { setValue } = useStore(store, (s) => s);
+
+    // Call onValueChange with initial value
+    useEffect(() => {
+      const currentValue = store.getState().value;
+      if (currentValue && onValueChange) {
+        onValueChange(currentValue);
+      }
+    }, []); // Empty dependency array for mount only
 
     // Handle controlled value changes
     useEffect(() => {
@@ -669,7 +679,9 @@ const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
     if (isWrapperNeeded) {
       return (
         <div
-          className={`p-1 border-2 ${wrapperBorderColor} rounded-lg ${isDisabled ? 'opacity-40' : ''}`}
+          className={`p-1 border-2 rounded-lg
+            ${wrapperBorderColor}
+          `}
         >
           {radioElement}
         </div>
