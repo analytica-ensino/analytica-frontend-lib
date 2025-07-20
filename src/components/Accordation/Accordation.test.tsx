@@ -19,8 +19,8 @@ describe('CardAccordation', () => {
   // Helper function to find the clickable header
   const getHeader = () => screen.getByText(mockTitle).parentElement;
 
-  describe('Renderização básica', () => {
-    it('renderiza com título e conteúdo', () => {
+  describe('Basic rendering', () => {
+    it('renders with title and content', () => {
       render(
         <CardAccordation title={mockTitle}>
           <p>{mockContent}</p>
@@ -31,7 +31,7 @@ describe('CardAccordation', () => {
       expect(screen.getByText(mockContent)).toBeInTheDocument();
     });
 
-    it('renderiza com ícone de seta', () => {
+    it('renders with arrow icon', () => {
       render(
         <CardAccordation title={mockTitle}>
           <p>{mockContent}</p>
@@ -42,7 +42,7 @@ describe('CardAccordation', () => {
       expect(caretIcon).toBeInTheDocument();
     });
 
-    it('aplica classes CSS customizadas', () => {
+    it('applies custom CSS classes', () => {
       const { container } = render(
         <CardAccordation title={mockTitle} className="custom-class">
           <p>{mockContent}</p>
@@ -53,7 +53,7 @@ describe('CardAccordation', () => {
       expect(accordionElement).toHaveClass('custom-class');
     });
 
-    it('passa props HTML corretamente', () => {
+    it('passes HTML props correctly', () => {
       render(
         <CardAccordation
           title={mockTitle}
@@ -69,8 +69,8 @@ describe('CardAccordation', () => {
     });
   });
 
-  describe('Estado inicial', () => {
-    it('inicia colapsado por padrão', () => {
+  describe('Initial state', () => {
+    it('starts collapsed by default', () => {
       render(
         <CardAccordation title={mockTitle}>
           <p>{mockContent}</p>
@@ -87,7 +87,7 @@ describe('CardAccordation', () => {
       expect(caretIcon).toHaveClass('rotate-0');
     });
 
-    it('inicia expandido quando defaultExpanded é true', () => {
+    it('starts expanded when defaultExpanded is true', () => {
       render(
         <CardAccordation title={mockTitle} defaultExpanded={true}>
           <p>{mockContent}</p>
@@ -105,8 +105,8 @@ describe('CardAccordation', () => {
     });
   });
 
-  describe('Interações do usuário', () => {
-    it('expande quando clicado se estava colapsado', async () => {
+  describe('User interactions', () => {
+    it('expands when clicked if it was collapsed', async () => {
       const user = userEvent.setup();
       render(
         <CardAccordation title={mockTitle}>
@@ -132,7 +132,7 @@ describe('CardAccordation', () => {
       expect(caretIcon).toHaveClass('rotate-90');
     });
 
-    it('colapsa quando clicado se estava expandido', async () => {
+    it('collapses when clicked if it was expanded', async () => {
       const user = userEvent.setup();
       render(
         <CardAccordation title={mockTitle} defaultExpanded={true}>
@@ -158,7 +158,7 @@ describe('CardAccordation', () => {
       expect(caretIcon).toHaveClass('rotate-0');
     });
 
-    it('alterna entre expandido e colapsado com múltiplos cliques', async () => {
+    it('toggles between expanded and collapsed with multiple clicks', async () => {
       const user = userEvent.setup();
       render(
         <CardAccordation title={mockTitle}>
@@ -185,7 +185,7 @@ describe('CardAccordation', () => {
       expect(content).toHaveClass('max-h-screen', 'opacity-100');
     });
 
-    it('responde a eventos de teclado via click', () => {
+    it('responds to keyboard events via click', () => {
       render(
         <CardAccordation title={mockTitle}>
           <p>{mockContent}</p>
@@ -208,8 +208,8 @@ describe('CardAccordation', () => {
     });
   });
 
-  describe('Callback onToggleExpanded', () => {
-    it('chama onToggleExpanded quando expandido', async () => {
+  describe('onToggleExpanded callback', () => {
+    it('calls onToggleExpanded when expanded', async () => {
       const handleToggle = jest.fn();
       const user = userEvent.setup();
 
@@ -228,7 +228,7 @@ describe('CardAccordation', () => {
       expect(handleToggle).toHaveBeenCalledWith(true);
     });
 
-    it('chama onToggleExpanded quando colapsado', async () => {
+    it('calls onToggleExpanded when collapsed', async () => {
       const handleToggle = jest.fn();
       const user = userEvent.setup();
 
@@ -251,7 +251,7 @@ describe('CardAccordation', () => {
       expect(handleToggle).toHaveBeenCalledWith(false);
     });
 
-    it('chama onToggleExpanded com valores corretos em múltiplos cliques', async () => {
+    it('calls onToggleExpanded with correct values on multiple clicks', async () => {
       const handleToggle = jest.fn();
       const user = userEvent.setup();
 
@@ -278,7 +278,7 @@ describe('CardAccordation', () => {
       expect(handleToggle).toHaveBeenCalledTimes(3);
     });
 
-    it('funciona sem callback onToggleExpanded', async () => {
+    it('works without onToggleExpanded callback', async () => {
       const user = userEvent.setup();
 
       render(
@@ -298,8 +298,8 @@ describe('CardAccordation', () => {
     });
   });
 
-  describe('Acessibilidade', () => {
-    it('tem atributos ARIA corretos', () => {
+  describe('Accessibility', () => {
+    it('has correct ARIA attributes', () => {
       render(
         <CardAccordation title={mockTitle}>
           <p>{mockContent}</p>
@@ -314,7 +314,7 @@ describe('CardAccordation', () => {
       expect(content).toHaveAttribute('data-testid', 'accordion-content');
     });
 
-    it('atualiza aria-expanded corretamente', async () => {
+    it('updates aria-expanded correctly', async () => {
       const user = userEvent.setup();
       render(
         <CardAccordation title={mockTitle}>
@@ -336,7 +336,7 @@ describe('CardAccordation', () => {
       expect(header).toHaveAttribute('aria-expanded', 'false');
     });
 
-    it('tem foco visível', () => {
+    it('has visible focus', () => {
       render(
         <CardAccordation title={mockTitle}>
           <p>{mockContent}</p>
@@ -347,7 +347,7 @@ describe('CardAccordation', () => {
       expect(header).toHaveClass('focus:ring-2', 'focus:ring-primary-500');
     });
 
-    it('header é clicável e tem cursor pointer', () => {
+    it('header is clickable and has pointer cursor', () => {
       render(
         <CardAccordation title={mockTitle}>
           <p>{mockContent}</p>
@@ -359,8 +359,8 @@ describe('CardAccordation', () => {
     });
   });
 
-  describe('Conteúdo e layout', () => {
-    it('renderiza conteúdo complexo', () => {
+  describe('Content and layout', () => {
+    it('renders complex content', () => {
       const complexContent = (
         <div>
           <h3>Subtítulo</h3>
@@ -384,7 +384,7 @@ describe('CardAccordation', () => {
       expect(screen.getByText('Botão interno')).toBeInTheDocument();
     });
 
-    it('aplica layout vertical do CardBase', () => {
+    it('applies CardBase vertical layout', () => {
       const { container } = render(
         <CardAccordation title={mockTitle}>
           <p>{mockContent}</p>
@@ -396,7 +396,7 @@ describe('CardAccordation', () => {
       expect(cardBase).toBeInTheDocument();
     });
 
-    it('aplica estilos de transição corretos', () => {
+    it('applies correct transition styles', () => {
       render(
         <CardAccordation title={mockTitle}>
           <p>{mockContent}</p>
@@ -415,8 +415,8 @@ describe('CardAccordation', () => {
     });
   });
 
-  describe('Ícone de seta', () => {
-    it('rotaciona corretamente quando expandido/colapsado', async () => {
+  describe('Arrow icon', () => {
+    it('rotates correctly when expanded/collapsed', async () => {
       const user = userEvent.setup();
       render(
         <CardAccordation title={mockTitle}>
@@ -442,7 +442,7 @@ describe('CardAccordation', () => {
       expect(caretIcon).not.toHaveClass('rotate-90');
     });
 
-    it('mantém tamanho correto', () => {
+    it('maintains correct size', () => {
       render(
         <CardAccordation title={mockTitle}>
           <p>{mockContent}</p>
@@ -456,8 +456,8 @@ describe('CardAccordation', () => {
     });
   });
 
-  describe('Casos extremos', () => {
-    it('funciona com título vazio', () => {
+  describe('Edge cases', () => {
+    it('works with empty title', () => {
       const { container } = render(
         <CardAccordation title="">
           <p>{mockContent}</p>
@@ -470,7 +470,7 @@ describe('CardAccordation', () => {
       expect(header).toHaveAttribute('aria-expanded', 'false');
     });
 
-    it('funciona com conteúdo vazio', () => {
+    it('works with empty content', () => {
       render(
         <CardAccordation title={mockTitle}>
           <div></div>
@@ -482,7 +482,7 @@ describe('CardAccordation', () => {
       expect(content).toBeInTheDocument();
     });
 
-    it('funciona com título muito longo', () => {
+    it('works with very long title', () => {
       const longTitle = 'Título muito longo que pode ser truncado'.repeat(5);
       render(
         <CardAccordation title={longTitle}>
@@ -496,7 +496,7 @@ describe('CardAccordation', () => {
   });
 
   describe('forwardRef', () => {
-    it('encaminha ref corretamente', () => {
+    it('forwards ref correctly', () => {
       const ref = { current: null };
       render(
         <CardAccordation ref={ref} title={mockTitle}>

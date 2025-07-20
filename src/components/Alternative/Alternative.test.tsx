@@ -39,8 +39,8 @@ describe('AlternativesList', () => {
     { value: 'c', label: 'Alternativa C', disabled: true },
   ];
 
-  describe('Renderização básica', () => {
-    it('renderiza lista de alternativas básica', () => {
+  describe('Basic rendering', () => {
+    it('renders basic alternatives list', () => {
       render(<AlternativesList alternatives={mockAlternatives} />);
 
       expect(screen.getByText('Alternativa A')).toBeInTheDocument();
@@ -48,7 +48,7 @@ describe('AlternativesList', () => {
       expect(screen.getByText('Alternativa C')).toBeInTheDocument();
     });
 
-    it('renderiza com valor padrão selecionado', () => {
+    it('renders with default selected value', () => {
       render(
         <AlternativesList alternatives={mockAlternatives} defaultValue="b" />
       );
@@ -57,14 +57,14 @@ describe('AlternativesList', () => {
       expect(radioB).toBeChecked();
     });
 
-    it('gera nome único do grupo quando não fornecido', () => {
+    it('generates unique group name when not provided', () => {
       render(<AlternativesList alternatives={mockAlternatives} />);
 
       const radioA = screen.getByDisplayValue('a');
       expect(radioA).toHaveAttribute('name', 'alternatives-test-id');
     });
 
-    it('usa nome customizado do grupo', () => {
+    it('uses custom group name', () => {
       render(
         <AlternativesList alternatives={mockAlternatives} name="custom-group" />
       );
@@ -73,7 +73,7 @@ describe('AlternativesList', () => {
       expect(radioA).toHaveAttribute('name', 'custom-group');
     });
 
-    it('aplica classes CSS customizadas', () => {
+    it('applies custom CSS classes', () => {
       const { container } = render(
         <AlternativesList
           alternatives={mockAlternatives}
@@ -87,7 +87,7 @@ describe('AlternativesList', () => {
   });
 
   describe('Layouts', () => {
-    it('aplica layout padrão', () => {
+    it('applies default layout', () => {
       const { container } = render(
         <AlternativesList alternatives={mockAlternatives} />
       );
@@ -96,7 +96,7 @@ describe('AlternativesList', () => {
       expect(wrapper).toHaveClass('gap-3.5');
     });
 
-    it('aplica layout compacto', () => {
+    it('applies compact layout', () => {
       const { container } = render(
         <AlternativesList alternatives={mockAlternatives} layout="compact" />
       );
@@ -105,7 +105,7 @@ describe('AlternativesList', () => {
       expect(wrapper).toHaveClass('gap-2');
     });
 
-    it('aplica layout detalhado com descrições', () => {
+    it('applies detailed layout with descriptions', () => {
       const { container } = render(
         <AlternativesList
           alternatives={mockAlternativesDetailed}
@@ -124,8 +124,8 @@ describe('AlternativesList', () => {
     });
   });
 
-  describe('Status das alternativas', () => {
-    it('aplica estilos para alternativa correta', () => {
+  describe('Alternative status', () => {
+    it('applies styles for correct alternative', () => {
       const { container } = render(
         <AlternativesList alternatives={mockAlternativesWithStatus} />
       );
@@ -137,7 +137,7 @@ describe('AlternativesList', () => {
       expect(correctAlternative).toHaveClass('border-success-300');
     });
 
-    it('aplica estilos para alternativa incorreta', () => {
+    it('applies styles for incorrect alternative', () => {
       const { container } = render(
         <AlternativesList alternatives={mockAlternativesWithStatus} />
       );
@@ -149,7 +149,7 @@ describe('AlternativesList', () => {
       expect(incorrectAlternative).toHaveClass('border-error-300');
     });
 
-    it('aplica estilos padrão para alternativa neutra', () => {
+    it('applies default styles for neutral alternative', () => {
       const { container } = render(
         <AlternativesList alternatives={mockAlternatives} />
       );
@@ -158,21 +158,21 @@ describe('AlternativesList', () => {
       expect(neutralAlternatives.length).toBeGreaterThan(0);
     });
 
-    it('exibe badge de resposta correta', () => {
+    it('displays correct answer badge', () => {
       render(<AlternativesList alternatives={mockAlternativesWithStatus} />);
 
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
 
-    it('exibe badge de resposta incorreta', () => {
+    it('displays incorrect answer badge', () => {
       render(<AlternativesList alternatives={mockAlternativesWithStatus} />);
 
       expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
     });
   });
 
-  describe('Estado desabilitado', () => {
-    it('desabilita todas as alternativas quando disabled é true', () => {
+  describe('Disabled state', () => {
+    it('disables all alternatives when disabled is true', () => {
       render(<AlternativesList alternatives={mockAlternatives} disabled />);
 
       // Check if hidden inputs are disabled
@@ -182,7 +182,7 @@ describe('AlternativesList', () => {
       });
     });
 
-    it('desabilita alternativa específica', () => {
+    it('disables specific alternative', () => {
       const alternativesWithDisabled = [
         ...mockAlternatives,
         { value: 'd', label: 'Alternativa D', disabled: true },
@@ -197,7 +197,7 @@ describe('AlternativesList', () => {
       expect(enabledRadio).not.toBeDisabled();
     });
 
-    it('aplica opacidade para alternativa desabilitada', () => {
+    it('applies opacity for disabled alternative', () => {
       const { container } = render(
         <AlternativesList alternatives={mockAlternativesDetailed} />
       );
@@ -207,8 +207,8 @@ describe('AlternativesList', () => {
     });
   });
 
-  describe('Modo interativo', () => {
-    it('permite seleção de alternativas', async () => {
+  describe('Interactive mode', () => {
+    it('allows alternative selection', async () => {
       const handleValueChange = jest.fn();
       const user = userEvent.setup();
 
@@ -225,7 +225,7 @@ describe('AlternativesList', () => {
       expect(handleValueChange).toHaveBeenCalledWith('b');
     });
 
-    it('funciona como componente controlado', () => {
+    it('works as controlled component', () => {
       const { rerender } = render(
         <AlternativesList alternatives={mockAlternatives} value="a" />
       );
@@ -240,7 +240,7 @@ describe('AlternativesList', () => {
       expect(radioA).not.toBeChecked();
     });
 
-    it('aplica classes hover em modo interativo', () => {
+    it('applies hover classes in interactive mode', () => {
       const { container } = render(
         <AlternativesList alternatives={mockAlternatives} />
       );
@@ -252,8 +252,8 @@ describe('AlternativesList', () => {
     });
   });
 
-  describe('Modo readonly', () => {
-    it('renderiza em modo readonly sem RadioGroup', () => {
+  describe('Readonly mode', () => {
+    it('renders in readonly mode without RadioGroup', () => {
       render(
         <AlternativesList
           alternatives={mockAlternativesWithStatus}
@@ -271,7 +271,7 @@ describe('AlternativesList', () => {
       expect(screen.getByText('Alternativa B')).toBeInTheDocument();
     });
 
-    it('mostra alternativa selecionada pelo usuário em readonly', () => {
+    it('shows user selected alternative in readonly mode', () => {
       const { container } = render(
         <AlternativesList
           alternatives={mockAlternativesWithStatus}
@@ -285,7 +285,7 @@ describe('AlternativesList', () => {
       expect(selectedRadios.length).toBeGreaterThan(0);
     });
 
-    it('marca resposta incorreta quando usuário seleciona alternativa errada', () => {
+    it('marks incorrect answer when user selects wrong alternative', () => {
       render(
         <AlternativesList
           alternatives={mockAlternativesWithStatus}
@@ -297,7 +297,7 @@ describe('AlternativesList', () => {
       expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
     });
 
-    it('mostra resposta correta independente da seleção do usuário', () => {
+    it('shows correct answer regardless of user selection', () => {
       render(
         <AlternativesList
           alternatives={mockAlternativesWithStatus}
@@ -310,7 +310,7 @@ describe('AlternativesList', () => {
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
 
-    it('não aplica classes hover em modo readonly', () => {
+    it('does not apply hover classes in readonly mode', () => {
       const { container } = render(
         <AlternativesList alternatives={mockAlternatives} mode="readonly" />
       );
@@ -319,7 +319,7 @@ describe('AlternativesList', () => {
       expect(hoverClasses).not.toBeInTheDocument();
     });
 
-    it('renderiza radio visual sem funcionalidade em readonly', () => {
+    it('renders visual radio without functionality in readonly', () => {
       const { container } = render(
         <AlternativesList
           alternatives={mockAlternatives}
@@ -337,8 +337,8 @@ describe('AlternativesList', () => {
     });
   });
 
-  describe('Layout detalhado', () => {
-    it('renderiza layout detalhado com todas as funcionalidades', () => {
+  describe('Detailed layout', () => {
+    it('renders detailed layout with all features', () => {
       render(
         <AlternativesList
           alternatives={mockAlternativesDetailed}
@@ -358,7 +358,7 @@ describe('AlternativesList', () => {
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
 
-    it('renderiza layout detalhado em modo readonly', () => {
+    it('renders detailed layout in readonly mode', () => {
       render(
         <AlternativesList
           alternatives={mockAlternativesDetailed}
@@ -377,7 +377,7 @@ describe('AlternativesList', () => {
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
 
-    it('aplica estilos corretos para layout detalhado', () => {
+    it('applies correct styles for detailed layout', () => {
       const { container } = render(
         <AlternativesList
           alternatives={mockAlternativesDetailed}
@@ -392,8 +392,8 @@ describe('AlternativesList', () => {
     });
   });
 
-  describe('Alternativas sem valor', () => {
-    it('gera ID alternativo quando value não está presente', () => {
+  describe('Alternatives without value', () => {
+    it('generates alternative ID when value is not present', () => {
       const alternativesWithoutValue: Alternative[] = [
         { value: '', label: 'Alternativa sem valor' },
         { value: 'b', label: 'Alternativa B' },
@@ -409,8 +409,8 @@ describe('AlternativesList', () => {
     });
   });
 
-  describe('Interações do usuário', () => {
-    it('permite clicar no label para selecionar', async () => {
+  describe('User interactions', () => {
+    it('allows clicking on label to select', async () => {
       const handleValueChange = jest.fn();
       const user = userEvent.setup();
 
@@ -427,7 +427,7 @@ describe('AlternativesList', () => {
       expect(handleValueChange).toHaveBeenCalledWith('b');
     });
 
-    it('não permite interação com alternativas desabilitadas', async () => {
+    it('does not allow interaction with disabled alternatives', async () => {
       const handleValueChange = jest.fn();
       const user = userEvent.setup();
 
@@ -445,8 +445,8 @@ describe('AlternativesList', () => {
     });
   });
 
-  describe('Acessibilidade', () => {
-    it('associa labels corretamente com inputs', () => {
+  describe('Accessibility', () => {
+    it('associates labels correctly with inputs', () => {
       render(<AlternativesList alternatives={mockAlternatives} />);
 
       const radioA = screen.getByDisplayValue('a');
@@ -455,7 +455,7 @@ describe('AlternativesList', () => {
       expect(labelA).toHaveAttribute('for', radioA.id);
     });
 
-    it('tem estrutura acessível de radiogroup', () => {
+    it('has accessible radiogroup structure', () => {
       render(<AlternativesList alternatives={mockAlternatives} />);
 
       const radiogroup = screen.getByRole('radiogroup');
@@ -467,8 +467,8 @@ describe('AlternativesList', () => {
     });
   });
 
-  describe('Casos extremos', () => {
-    it('lida com lista vazia de alternativas', () => {
+  describe('Edge cases', () => {
+    it('handles empty alternatives list', () => {
       const { container } = render(<AlternativesList alternatives={[]} />);
 
       const wrapper = container.firstChild as HTMLElement;
@@ -476,7 +476,7 @@ describe('AlternativesList', () => {
       expect(wrapper.children).toHaveLength(0);
     });
 
-    it('lida com alternativas que não têm label', () => {
+    it('handles alternatives that don\'t have label', () => {
       const alternativesWithoutLabel: Alternative[] = [
         { value: 'a', label: '' },
         { value: 'b', label: 'Alternativa B' },
@@ -488,7 +488,7 @@ describe('AlternativesList', () => {
       expect(screen.getByText('Alternativa B')).toBeInTheDocument();
     });
 
-    it('funciona com apenas uma alternativa', () => {
+    it('works with only one alternative', () => {
       const singleAlternative: Alternative[] = [
         { value: 'single', label: 'Única alternativa' },
       ];
@@ -500,8 +500,8 @@ describe('AlternativesList', () => {
     });
   });
 
-  describe('Estados visuais complexos', () => {
-    it('combina status e disabled corretamente', () => {
+  describe('Complex visual states', () => {
+    it('combines status and disabled correctly', () => {
       const complexAlternatives: Alternative[] = [
         {
           value: 'a',
@@ -533,7 +533,7 @@ describe('AlternativesList', () => {
       expect(incorrectDisabled).toBeInTheDocument();
     });
 
-    it('renderiza corretamente em readonly com layout detailed', () => {
+    it('renders correctly in readonly with detailed layout', () => {
       render(
         <AlternativesList
           alternatives={mockAlternativesDetailed}
@@ -551,15 +551,15 @@ describe('AlternativesList', () => {
     });
   });
 
-  describe('Renderização condicional de badges', () => {
-    it('não renderiza badge quando status é neutro', () => {
+  describe('Conditional badge rendering', () => {
+    it('does not render badge when status is neutral', () => {
       render(<AlternativesList alternatives={mockAlternatives} />);
 
       expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
       expect(screen.queryByText('Resposta incorreta')).not.toBeInTheDocument();
     });
 
-    it('renderiza badges apenas para alternativas com status', () => {
+    it('renders badges only for alternatives with status', () => {
       const mixedAlternatives: Alternative[] = [
         { value: 'a', label: 'Alternativa A', status: 'correct' },
         { value: 'b', label: 'Alternativa B' }, // without status
@@ -577,8 +577,8 @@ describe('AlternativesList', () => {
     });
   });
 
-  describe('Função getStatusStyles com valor default', () => {
-    it('aplica classes hover por padrão quando isReadonly não é fornecido (valor default false)', () => {
+  describe('getStatusStyles function with default value', () => {
+    it('applies hover classes by default when isReadonly is not provided (default value false)', () => {
       // Test to cover line 96: isReadonly: boolean = false
       const { container } = render(
         <AlternativesList
@@ -600,7 +600,7 @@ describe('AlternativesList', () => {
       expect(neutralAlternatives.length).toBeGreaterThan(0);
     });
 
-    it('não aplica classes hover quando isReadonly é explicitamente true', () => {
+    it('does not apply hover classes when isReadonly is explicitly true', () => {
       // Comparison test to ensure default value is working
       const { container } = render(
         <AlternativesList
@@ -617,8 +617,8 @@ describe('AlternativesList', () => {
     });
   });
 
-  describe('Alternative.disabled em modo readonly (linha 212)', () => {
-    it('aplica opacity-50 para alternativa desabilitada em modo readonly', () => {
+  describe('Alternative.disabled in readonly mode (line 212)', () => {
+    it('applies opacity-50 for disabled alternative in readonly mode', () => {
       // Specific test for line 212: alternative.disabled ? 'opacity-50' : ''
       const alternativesWithDisabled: Alternative[] = [
         { value: 'a', label: 'Alternativa habilitada' },
@@ -654,7 +654,7 @@ describe('AlternativesList', () => {
       ).toBeInTheDocument();
     });
 
-    it('não aplica opacity-50 quando alternative.disabled é false em modo readonly', () => {
+    it('does not apply opacity-50 when alternative.disabled is false in readonly mode', () => {
       // Test for the opposite side of the condition (alternative.disabled ? 'opacity-50' : '')
       const alternativesEnabled: Alternative[] = [
         { value: 'a', label: 'Alternativa A', disabled: false },
@@ -670,7 +670,7 @@ describe('AlternativesList', () => {
       expect(disabledElements).toHaveLength(0);
     });
 
-    it('aplica opacity-50 para alternativa desabilitada em layout detailed readonly', () => {
+    it('applies opacity-50 for disabled alternative in detailed readonly layout', () => {
       // Test to ensure line 212 also works in detailed layout
       const alternativesWithDisabledDetailed: Alternative[] = [
         {
