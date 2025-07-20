@@ -462,7 +462,8 @@ describe('AlternativesList', () => {
       expect(radiogroup).toBeInTheDocument();
 
       const radios = screen.getAllByRole('radio', { hidden: true });
-      expect(radios).toHaveLength(mockAlternatives.length);
+      // Now there are 2 radio elements per alternative (accessible + visual)
+      expect(radios).toHaveLength(mockAlternatives.length * 2);
     });
   });
 
