@@ -113,23 +113,6 @@ export const AllAlertDialog: Story = () => (
       />
     </div>
 
-    {/* Sem botão de fechar */}
-    <h3 className="font-bold text-2xl text-text-900">Sem Botão de Fechar</h3>
-    <div className="flex flex-col gap-4">
-      <AlertDialog
-        trigger={
-          <Button variant="solid" action="primary">
-            Ação Importante
-          </Button>
-        }
-        title="Ação Importante"
-        hideCloseButton={true}
-        description="Esta é uma ação importante que requer sua atenção. Você deve tomar uma decisão."
-        cancelButtonLabel="Não"
-        submitButtonLabel="Sim"
-      />
-    </div>
-
     {/* Não fecha no backdrop */}
     <h3 className="font-bold text-2xl text-text-900">Não Fecha no Backdrop</h3>
     <div className="flex flex-col gap-4">
@@ -384,21 +367,6 @@ export const ExtraLarge: Story = () => (
     size="extra-large"
     cancelButtonLabel="Cancelar"
     submitButtonLabel="Confirmar"
-  />
-);
-
-export const WithoutCloseButton: Story = () => (
-  <AlertDialog
-    trigger={
-      <Button variant="solid" action="primary">
-        Ação Importante
-      </Button>
-    }
-    title="Ação Importante"
-    hideCloseButton={true}
-    description="Esta é uma ação importante que requer sua atenção. Você deve tomar uma decisão."
-    cancelButtonLabel="Não"
-    submitButtonLabel="Sim"
   />
 );
 
