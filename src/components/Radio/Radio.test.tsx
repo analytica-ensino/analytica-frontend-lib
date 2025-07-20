@@ -786,6 +786,75 @@ describe('Radio', () => {
 
       blurSpy.mockRestore();
     });
+
+    it('handles keyboard events for accessibility (Enter and Space)', () => {
+      const handleChange = jest.fn();
+      render(
+        <Radio
+          name="test"
+          value="1"
+          label="Keyboard test"
+          onChange={handleChange}
+        />
+      );
+
+      const radio = screen.getByRole('radio', { hidden: true });
+      const label = radio.nextElementSibling as HTMLElement;
+
+      // Spy on input methods
+      const clickSpy = jest.spyOn(radio, 'click');
+      const blurSpy = jest.spyOn(radio, 'blur');
+
+      // Test Enter key
+      fireEvent.keyDown(label, { key: 'Enter' });
+      expect(clickSpy).toHaveBeenCalled();
+      expect(blurSpy).toHaveBeenCalled();
+
+      // Reset spies
+      clickSpy.mockClear();
+      blurSpy.mockClear();
+
+      // Test Space key
+      fireEvent.keyDown(label, { key: ' ' });
+      expect(clickSpy).toHaveBeenCalled();
+      expect(blurSpy).toHaveBeenCalled();
+
+      // Test other keys (should not trigger)
+      clickSpy.mockClear();
+      blurSpy.mockClear();
+      fireEvent.keyDown(label, { key: 'Tab' });
+      expect(clickSpy).not.toHaveBeenCalled();
+      expect(blurSpy).not.toHaveBeenCalled();
+
+      clickSpy.mockRestore();
+      blurSpy.mockRestore();
+    });
+
+    it('does not handle keyboard events when disabled', () => {
+      render(
+        <Radio disabled name="test" value="1" label="Disabled keyboard test" />
+      );
+
+      const radio = screen.getByRole('radio', { hidden: true });
+      const label = radio.nextElementSibling as HTMLElement;
+
+      // Spy on input methods
+      const clickSpy = jest.spyOn(radio, 'click');
+      const blurSpy = jest.spyOn(radio, 'blur');
+
+      // Test Enter key with disabled radio
+      fireEvent.keyDown(label, { key: 'Enter' });
+      expect(clickSpy).not.toHaveBeenCalled();
+      expect(blurSpy).not.toHaveBeenCalled();
+
+      // Test Space key with disabled radio
+      fireEvent.keyDown(label, { key: ' ' });
+      expect(clickSpy).not.toHaveBeenCalled();
+      expect(blurSpy).not.toHaveBeenCalled();
+
+      clickSpy.mockRestore();
+      blurSpy.mockRestore();
+    });
   });
 });
 

@@ -323,6 +323,19 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
                 }
               }
             }}
+            onKeyDown={(e) => {
+              // Handle keyboard activation (Enter or Space)
+              if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
+                e.preventDefault();
+                const input = document.getElementById(
+                  inputId
+                ) as HTMLInputElement;
+                if (input) {
+                  input.click();
+                  input.blur();
+                }
+              }
+            }}
           >
             {/* Show dot when checked */}
             {checked && <div className={dotClasses} />}
