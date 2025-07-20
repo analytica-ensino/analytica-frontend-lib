@@ -40,7 +40,7 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
         {...props}
       >
         {/* Header clicável */}
-        <div
+        <button
           onClick={handleToggle}
           className="w-full cursor-pointer p-4 flex items-center justify-between gap-3 text-left transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset"
           aria-expanded={isExpanded}
@@ -61,7 +61,7 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
             }`}
             data-testid="accordion-caret"
           />
-        </div>
+        </button>
 
         {/* Conteúdo expansível */}
         <div
