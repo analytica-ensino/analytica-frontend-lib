@@ -30,6 +30,7 @@ import Calendar from './components/Calendar/Calendar';
 import Modal from './components/Modal/Modal';
 import { CardAccordation } from './components/Accordation/Accordation';
 import { AlternativesList } from './components/Alternative/Alternative';
+import { AlertDialog } from './components/AlertDialog/AlertDialog';
 
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
@@ -117,6 +118,7 @@ export { ProgressCircle };
 export { Stepper };
 export { Calendar };
 export { Modal };
+export { AlertDialog };
 
 // Export DropdownMenu and its sub-components
 export { DropdownMenu };
