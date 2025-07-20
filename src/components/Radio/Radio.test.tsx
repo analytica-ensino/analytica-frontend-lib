@@ -634,12 +634,30 @@ describe('Radio', () => {
     });
   });
 
+  describe('Ref forwarding', () => {
+    it('forwards ref correctly to input element', () => {
+      const mockRef = jest.fn();
+      render(<Radio ref={mockRef} name="test" value="1" label="Ref test" />);
+
+      expect(mockRef).toHaveBeenCalledWith(expect.any(HTMLInputElement));
+    });
+
+    it('handles ref as object correctly', () => {
+      const refObject = { current: null };
+      render(
+        <Radio ref={refObject} name="test" value="1" label="Ref object test" />
+      );
+
+      expect(refObject.current).toBeInstanceOf(HTMLInputElement);
+    });
+  });
+
   describe('Custom label click handling (lines 313-320)', () => {
-    it('prevents default and triggers input click when label is clicked', () => {
+    it('prevents default and triggers input click when button is clicked', () => {
       render(<Radio name="test" value="1" label="Click test" />);
 
       const radio = screen.getByRole('radio', { hidden: true });
-      const label = radio.nextElementSibling as HTMLElement;
+      const button = radio.nextElementSibling as HTMLElement;
 
       // Spy on input methods
       const clickSpy = jest.spyOn(radio, 'click');
@@ -654,8 +672,8 @@ describe('Radio', () => {
         value: preventDefaultSpy,
       });
 
-      // Trigger click on custom label
-      label.dispatchEvent(clickEvent);
+      // Trigger click on custom button
+      button.dispatchEvent(clickEvent);
 
       expect(preventDefaultSpy).toHaveBeenCalled();
       expect(clickSpy).toHaveBeenCalled();
@@ -665,31 +683,23 @@ describe('Radio', () => {
       blurSpy.mockRestore();
     });
 
-    it('does not trigger input click when disabled radio label is clicked', () => {
+    it('does not trigger input click when disabled radio button is clicked', () => {
       render(
         <Radio disabled name="test" value="1" label="Disabled click test" />
       );
 
       const radio = screen.getByRole('radio', { hidden: true });
-      const label = radio.nextElementSibling as HTMLElement;
+      const button = radio.nextElementSibling as HTMLElement;
 
       // Spy on input methods
       const clickSpy = jest.spyOn(radio, 'click');
       const blurSpy = jest.spyOn(radio, 'blur');
 
-      // Spy on preventDefault
-      const preventDefaultSpy = jest.fn();
+      // For disabled buttons, we can't use dispatchEvent as it won't work
+      // Let's use fireEvent.click which will properly handle the disabled state
+      fireEvent.click(button);
 
-      // Create a custom event with preventDefault
-      const clickEvent = new MouseEvent('click', { bubbles: true });
-      Object.defineProperty(clickEvent, 'preventDefault', {
-        value: preventDefaultSpy,
-      });
-
-      // Trigger click on custom label
-      label.dispatchEvent(clickEvent);
-
-      expect(preventDefaultSpy).toHaveBeenCalled();
+      // When button is disabled, onClick should not be triggered
       expect(clickSpy).not.toHaveBeenCalled();
       expect(blurSpy).not.toHaveBeenCalled();
 
@@ -701,7 +711,7 @@ describe('Radio', () => {
       render(<Radio name="test" value="1" label="Edge case test" />);
 
       const radio = screen.getByRole('radio', { hidden: true });
-      const label = radio.nextElementSibling as HTMLElement;
+      const button = radio.nextElementSibling as HTMLElement;
 
       // Mock getElementById to return null
       const getElementByIdSpy = jest
@@ -719,7 +729,7 @@ describe('Radio', () => {
 
       // Should not throw error when input is not found
       expect(() => {
-        label.dispatchEvent(clickEvent);
+        button.dispatchEvent(clickEvent);
       }).not.toThrow();
 
       expect(preventDefaultSpy).toHaveBeenCalled();
@@ -731,13 +741,13 @@ describe('Radio', () => {
       render(<Radio name="test" value="1" label="Blur test" />);
 
       const radio = screen.getByRole('radio', { hidden: true });
-      const label = radio.nextElementSibling as HTMLElement;
+      const button = radio.nextElementSibling as HTMLElement;
 
       // Spy on blur method specifically
       const blurSpy = jest.spyOn(radio, 'blur');
 
-      // Trigger click on custom label
-      fireEvent.click(label);
+      // Trigger click on custom button
+      fireEvent.click(button);
 
       expect(blurSpy).toHaveBeenCalled();
 
@@ -770,18 +780,19 @@ describe('Radio', () => {
       blurSpy.mockRestore();
     });
 
-    it('prevents scroll when onFocus is triggered - tests blur call in focus handler', () => {
-      render(<Radio name="test" value="1" label="Focus test" />);
+    it('maintains scroll prevention functionality through ref usage', () => {
+      render(<Radio name="test" value="1" label="Ref test" />);
 
       const radio = screen.getByRole('radio', { hidden: true });
+      const button = radio.nextElementSibling as HTMLElement;
 
       // Spy on blur method
       const blurSpy = jest.spyOn(radio, 'blur');
 
-      // Trigger focus event which should call our internal blur
-      fireEvent.focus(radio);
+      // Trigger click on custom button which should use ref to call blur
+      fireEvent.click(button);
 
-      // The blur should be called automatically by our onFocus handler to prevent scroll
+      // The blur should be called via inputRef.current.blur()
       expect(blurSpy).toHaveBeenCalled();
 
       blurSpy.mockRestore();
@@ -1188,8 +1199,8 @@ describe('RadioGroup Component', () => {
     });
   });
 
-  describe('RadioGroupItem Focus Handling', () => {
-    it('calls blur on hidden input when focused', () => {
+  describe('RadioGroupItem Ref Functionality', () => {
+    it('uses ref for input interaction instead of getElementById', () => {
       render(
         <RadioGroup>
           <RadioGroupItem value="option1" />
@@ -1197,11 +1208,17 @@ describe('RadioGroup Component', () => {
       );
 
       const hiddenInput = screen.getByDisplayValue('option1');
+      const clickSpy = jest.spyOn(hiddenInput, 'click');
       const blurSpy = jest.spyOn(hiddenInput, 'blur');
 
-      fireEvent.focus(hiddenInput);
+      // Find the label element and click it
+      const label = hiddenInput.nextElementSibling as HTMLElement;
+      fireEvent.click(label);
 
+      expect(clickSpy).toHaveBeenCalled();
       expect(blurSpy).toHaveBeenCalled();
+
+      clickSpy.mockRestore();
       blurSpy.mockRestore();
     });
   });

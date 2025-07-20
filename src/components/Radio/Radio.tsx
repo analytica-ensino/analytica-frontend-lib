@@ -190,6 +190,7 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     // Generate unique ID if not provided
     const generatedId = useId();
     const inputId = id ?? `radio-${generatedId}`;
+    const inputRef = useRef<HTMLInputElement>(null);
 
     // Handle controlled vs uncontrolled behavior
     const [internalChecked, setInternalChecked] = useState(defaultChecked);
@@ -283,7 +284,11 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
         >
           {/* Hidden native input for accessibility and form submission */}
           <input
-            ref={ref}
+            ref={(node) => {
+              inputRef.current = node;
+              if (typeof ref === 'function') ref(node);
+              else if (ref) ref.current = node;
+            }}
             type="radio"
             id={inputId}
             checked={checked}
@@ -291,10 +296,6 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
             name={name}
             value={value}
             onChange={handleChange}
-            onFocus={(e) => {
-              // Prevent automatic scroll when receiving focus
-              e.target.blur();
-            }}
             className="sr-only"
             style={{
               position: 'absolute',
@@ -305,21 +306,20 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
           />
 
           {/* Custom styled radio */}
-          <label
-            htmlFor={inputId}
+          <button
+            type="button"
             className={radioClasses}
+            disabled={disabled}
+            aria-pressed={checked}
             onClick={(e) => {
               // Prevent scroll when radio is clicked
               e.preventDefault();
               if (!disabled) {
                 // Simulate click on hidden input
-                const input = document.getElementById(
-                  inputId
-                ) as HTMLInputElement;
-                if (input) {
-                  input.click();
+                if (inputRef.current) {
+                  inputRef.current.click();
                   // Remove focus to prevent scroll behavior
-                  input.blur();
+                  inputRef.current.blur();
                 }
               }
             }}
@@ -327,19 +327,16 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
               // Handle keyboard activation (Enter or Space)
               if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
                 e.preventDefault();
-                const input = document.getElementById(
-                  inputId
-                ) as HTMLInputElement;
-                if (input) {
-                  input.click();
-                  input.blur();
+                if (inputRef.current) {
+                  inputRef.current.click();
+                  inputRef.current.blur();
                 }
               }
             }}
           >
             {/* Show dot when checked */}
             {checked && <div className={dotClasses} />}
-          </label>
+          </button>
 
           {/* Label text */}
           {label && (
