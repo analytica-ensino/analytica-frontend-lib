@@ -461,7 +461,7 @@ describe('AlternativesList', () => {
       const radiogroup = screen.getByRole('radiogroup');
       expect(radiogroup).toBeInTheDocument();
 
-      const radios = screen.getAllByRole('radio');
+      const radios = screen.getAllByRole('radio', { hidden: true });
       expect(radios).toHaveLength(mockAlternatives.length);
     });
   });

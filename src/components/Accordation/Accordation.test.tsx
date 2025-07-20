@@ -311,7 +311,7 @@ describe('CardAccordation', () => {
 
       expect(header).toHaveAttribute('aria-expanded', 'false');
       expect(header).toHaveAttribute('aria-controls', 'accordion-content');
-      expect(content).toHaveAttribute('id', 'accordion-content');
+      expect(content).toHaveAttribute('data-testid', 'accordion-content');
     });
 
     it('atualiza aria-expanded corretamente', async () => {

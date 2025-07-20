@@ -204,6 +204,11 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
         setInternalChecked(newChecked);
       }
 
+      // Prevent automatic scroll when input changes
+      if (event.target) {
+        event.target.blur();
+      }
+
       onChange?.(event);
     };
 
@@ -286,12 +291,39 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
             name={name}
             value={value}
             onChange={handleChange}
+            onFocus={(e) => {
+              // Prevent automatic scroll when receiving focus
+              e.target.blur();
+            }}
             className="sr-only"
+            style={{
+              position: 'absolute',
+              left: '-9999px',
+              visibility: 'hidden',
+            }}
             {...props}
           />
 
           {/* Custom styled radio */}
-          <label htmlFor={inputId} className={radioClasses}>
+          <label
+            htmlFor={inputId}
+            className={radioClasses}
+            onClick={(e) => {
+              // Prevent scroll when radio is clicked
+              e.preventDefault();
+              if (!disabled) {
+                // Simulate click on hidden input
+                const input = document.getElementById(
+                  inputId
+                ) as HTMLInputElement;
+                if (input) {
+                  input.click();
+                  // Remove focus to prevent scroll behavior
+                  input.blur();
+                }
+              }
+            }}
+          >
             {/* Show dot when checked */}
             {checked && <div className={dotClasses} />}
           </label>
@@ -586,109 +618,26 @@ const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
     const isDisabled = groupDisabled || itemDisabled;
     const currentState = isDisabled ? 'disabled' : state;
 
-    // Handle change
-    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-      if (event.target.checked && !isDisabled) {
-        // Prevenir scroll automático quando o input recebe foco
-        event.preventDefault();
-        setValue(value);
-
-        // Remover foco do input para evitar comportamento de scroll
-        if (event.target) {
-          event.target.blur();
-        }
-      }
-    };
-
-    // Get styling classes
-    const sizeClasses = SIZE_CLASSES[size];
-    const radioVariant = isChecked ? 'checked' : 'unchecked';
-    const stylingClasses = STATE_CLASSES[currentState][radioVariant];
-
-    const getBorderWidth = () => {
-      return currentState === 'focused' ? 'border-2' : sizeClasses.borderWidth;
-    };
-
-    const borderWidthClass = getBorderWidth();
-    const radioClasses = `${BASE_RADIO_CLASSES} ${sizeClasses.radio} ${borderWidthClass} ${stylingClasses} ${className}`;
-    const dotClasses = `${sizeClasses.dotSize} rounded-full ${DOT_CLASSES[currentState]} transition-all duration-200`;
-
-    // Wrapper for focused/invalid states
-    const isWrapperNeeded =
-      currentState === 'focused' || currentState === 'invalid';
-    const wrapperBorderColor =
-      currentState === 'focused'
-        ? 'border-indicator-info'
-        : 'border-indicator-error';
-
-    const radioElement = (
-      <>
-        {/* Hidden native input */}
-        <input
-          ref={ref}
-          type="radio"
-          id={inputId}
-          name={name}
-          value={value}
-          checked={isChecked}
-          disabled={isDisabled}
-          onChange={handleChange}
-          onFocus={(e) => {
-            // Prevenir scroll automático quando recebe foco
-            e.target.blur();
-          }}
-          className="sr-only"
-          style={{
-            position: 'absolute',
-            left: '-9999px',
-            visibility: 'hidden',
-          }}
-          {...props}
-        />
-
-        {/* Custom styled radio */}
-        <div
-          className={radioClasses}
-          onClick={(e) => {
-            // Prevenir scroll quando o radio é clicado
-            e.preventDefault();
-            e.stopPropagation();
-            if (!isDisabled) {
-              setValue(value);
-            }
-          }}
-          role="radio"
-          aria-checked={isChecked}
-          aria-disabled={isDisabled}
-          tabIndex={isDisabled ? -1 : 0}
-          onKeyDown={(e) => {
-            // Suporte para navegação por teclado
-            if (e.key === ' ' || e.key === 'Enter') {
-              e.preventDefault();
-              if (!isDisabled) {
-                setValue(value);
-              }
-            }
-          }}
-        >
-          {isChecked && <div className={dotClasses} />}
-        </div>
-      </>
+    // Use standard Radio component for consistency and simplicity
+    return (
+      <Radio
+        ref={ref}
+        id={inputId}
+        name={name}
+        value={value}
+        checked={isChecked}
+        disabled={isDisabled}
+        size={size}
+        state={currentState}
+        className={className}
+        onChange={(e) => {
+          if (e.target.checked && !isDisabled) {
+            setValue(value);
+          }
+        }}
+        {...props}
+      />
     );
-
-    if (isWrapperNeeded) {
-      return (
-        <div
-          className={`p-1 border-2 rounded-lg
-            ${wrapperBorderColor}
-          `}
-        >
-          {radioElement}
-        </div>
-      );
-    }
-
-    return <div className={isDisabled ? 'opacity-40' : ''}>{radioElement}</div>;
   }
 );
 

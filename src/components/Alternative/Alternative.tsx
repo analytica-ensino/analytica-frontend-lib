@@ -73,7 +73,7 @@ export interface AlternativesListProps {
  * />
  * ```
  */
-export const AlternativesList = ({
+const AlternativesList = ({
   alternatives,
   name,
   defaultValue,
@@ -318,3 +318,5 @@ export const AlternativesList = ({
     </RadioGroup>
   );
 };
+
+export { AlternativesList };

@@ -36,6 +36,8 @@ export default defineConfig({
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
     'Tab/index': 'src/components/Tab/Tab.tsx',
     'Auth/index': 'src/components/Auth/Auth.tsx',
+    'Accordation/index': 'src/components/Accordation/Accordation.tsx',
+    'Alternative/index': 'src/components/Alternative/Alternative.tsx',
 
     // Toast utils
     'Toast/Toaster/index': 'src/components/Toast/utils/Toaster.tsx',

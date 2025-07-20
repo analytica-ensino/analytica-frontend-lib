@@ -28,6 +28,8 @@ import ProgressCircle from './components/ProgressCircle/ProgressCircle';
 import Stepper from './components/Stepper/Stepper';
 import Calendar from './components/Calendar/Calendar';
 import Modal from './components/Modal/Modal';
+import { CardAccordation } from './components/Accordation/Accordation';
+import { AlternativesList } from './components/Alternative/Alternative';
 
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
@@ -166,3 +168,5 @@ export { useAuth };
 export { useAuthGuard };
 export { useRouteAuth };
 export { Tab };
+export { CardAccordation };
+export { AlternativesList };

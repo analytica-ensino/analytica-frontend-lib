@@ -1,4 +1,4 @@
-import { forwardRef, HTMLAttributes, ReactNode, useState } from 'react';
+import { forwardRef, HTMLAttributes, ReactNode, useId, useState } from 'react';
 import { CardBase } from '../Card/Card';
 import Text from '../Text/Text';
 import { CaretRight } from 'phosphor-react';
@@ -23,6 +23,7 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
     ref
   ) => {
     const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+    const contentId = useId();
 
     const handleToggle = () => {
       const newExpanded = !isExpanded;
@@ -39,7 +40,7 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
         className={`overflow-hidden ${className}`}
         {...props}
       >
-        {/* Header clicável */}
+        {/* Clickable header */}
         <button
           onClick={handleToggle}
           className="w-full cursor-pointer p-4 flex items-center justify-between gap-3 text-left transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset"
@@ -63,9 +64,9 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
           />
         </button>
 
-        {/* Conteúdo expansível */}
+        {/* Expandable content */}
         <div
-          id="accordion-content"
+          id={contentId}
           className={`transition-all duration-300 ease-in-out overflow-hidden ${
             isExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
           }`}
