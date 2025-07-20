@@ -306,8 +306,8 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
           />
 
           {/* Custom styled radio */}
-          <input
-            type="radio"
+          <button
+            type="button"
             className={radioClasses}
             disabled={disabled}
             aria-pressed={checked}
@@ -318,6 +318,8 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
                 // Simulate click on hidden input
                 if (inputRef.current) {
                   inputRef.current.click();
+                  // Remove focus to prevent scroll behavior
+                  inputRef.current.blur();
                 }
               }
             }}
@@ -327,13 +329,14 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
                 e.preventDefault();
                 if (inputRef.current) {
                   inputRef.current.click();
+                  inputRef.current.blur();
                 }
               }
             }}
-            role="radio" // Adicionando o papel de rádio
-          />
-          {/* Show dot when checked */}
-          {checked && <div className={dotClasses} />}
+          >
+            {/* Show dot when checked */}
+            {checked && <div className={dotClasses} />}
+          </button>
 
           {/* Label text */}
           {label && (
