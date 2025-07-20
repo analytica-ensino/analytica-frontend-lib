@@ -205,7 +205,7 @@ export const AlternativesList = ({
     return (
       <div
         key={alternativeId}
-        className={`flex flex-row justify-between gap-2 items-center p-2 rounded-lg w-full ${statusStyles} ${
+        className={`flex flex-row justify-between items-start gap-2 p-2 rounded-lg w-full ${statusStyles} ${
           alternative.disabled ? 'opacity-50' : ''
         }`}
       >
@@ -292,7 +292,7 @@ export const AlternativesList = ({
         return (
           <div
             key={alternativeId}
-            className={`flex flex-row justify-between gap-2 items-center p-2 rounded-lg transition-all ${statusStyles} ${
+            className={`flex flex-row justify-between gap-2 items-start p-2 rounded-lg transition-all ${statusStyles} ${
               alternative.disabled ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
