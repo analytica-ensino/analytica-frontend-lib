@@ -1,7 +1,11 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import { AlternativesList, Alternative } from './Alternative';
+import {
+  AlternativesList,
+  Alternative,
+  HeaderAlternative,
+} from './Alternative';
 
 /**
  * Mock for useId hook to ensure consistent IDs in tests
@@ -476,7 +480,7 @@ describe('AlternativesList', () => {
       expect(wrapper.children).toHaveLength(0);
     });
 
-    it('handles alternatives that don\'t have label', () => {
+    it("handles alternatives that don't have label", () => {
       const alternativesWithoutLabel: Alternative[] = [
         { value: 'a', label: '' },
         { value: 'b', label: 'Alternativa B' },
@@ -697,6 +701,496 @@ describe('AlternativesList', () => {
 
       // Check that description is present even with disabled
       expect(screen.getByText('Descrição da alternativa')).toBeInTheDocument();
+    });
+  });
+});
+
+describe('HeaderAlternative', () => {
+  const mockProps = {
+    title: 'Questão 1',
+    subTitle: 'Matemática - Álgebra',
+    content: 'Resolva a equação quadrática x² + 5x + 6 = 0.',
+  };
+
+  describe('Basic rendering', () => {
+    it('renders with all required props', () => {
+      render(<HeaderAlternative {...mockProps} />);
+
+      expect(screen.getByText('Questão 1')).toBeInTheDocument();
+      expect(screen.getByText('Matemática - Álgebra')).toBeInTheDocument();
+      expect(
+        screen.getByText('Resolva a equação quadrática x² + 5x + 6 = 0.')
+      ).toBeInTheDocument();
+    });
+
+    it('renders with different content', () => {
+      const differentProps = {
+        title: 'Análise de Texto',
+        subTitle: 'Português - Literatura',
+        content: 'Leia o texto e responda às questões propostas.',
+      };
+
+      render(<HeaderAlternative {...differentProps} />);
+
+      expect(screen.getByText('Análise de Texto')).toBeInTheDocument();
+      expect(screen.getByText('Português - Literatura')).toBeInTheDocument();
+      expect(
+        screen.getByText('Leia o texto e responda às questões propostas.')
+      ).toBeInTheDocument();
+    });
+
+    it('applies default CSS classes', () => {
+      const { container } = render(<HeaderAlternative {...mockProps} />);
+
+      const headerElement = container.firstChild as HTMLElement;
+      expect(headerElement).toHaveClass(
+        'bg-background',
+        'p-4',
+        'flex',
+        'flex-col',
+        'gap-4',
+        'rounded-xl'
+      );
+    });
+
+    it('applies custom CSS classes', () => {
+      const { container } = render(
+        <HeaderAlternative {...mockProps} className="custom-class" />
+      );
+
+      const headerElement = container.firstChild as HTMLElement;
+      expect(headerElement).toHaveClass('custom-class');
+    });
+  });
+
+  describe('Content structure', () => {
+    it('renders title with correct styling', () => {
+      render(<HeaderAlternative {...mockProps} />);
+
+      const titleElement = screen.getByText('Questão 1');
+      expect(titleElement).toHaveClass('text-text-950', 'font-bold', 'text-lg');
+    });
+
+    it('renders subtitle with correct styling', () => {
+      render(<HeaderAlternative {...mockProps} />);
+
+      const subtitleElement = screen.getByText('Matemática - Álgebra');
+      expect(subtitleElement).toHaveClass('text-text-700', 'text-sm');
+    });
+
+    it('renders content with correct styling', () => {
+      render(<HeaderAlternative {...mockProps} />);
+
+      const contentElement = screen.getByText(
+        'Resolva a equação quadrática x² + 5x + 6 = 0.'
+      );
+      expect(contentElement).toHaveClass('text-text-950', 'text-md');
+    });
+
+    it('has correct flex structure', () => {
+      const { container } = render(<HeaderAlternative {...mockProps} />);
+
+      const headerElement = container.firstChild as HTMLElement;
+      const titleContainer = headerElement.querySelector('span');
+
+      expect(titleContainer).toHaveClass('flex', 'flex-col');
+    });
+  });
+
+  describe('ForwardRef functionality', () => {
+    it('forwards ref correctly', () => {
+      const ref = jest.fn();
+      const { container } = render(
+        <HeaderAlternative {...mockProps} ref={ref} />
+      );
+
+      expect(ref).toHaveBeenCalledWith(container.firstChild);
+    });
+
+    it('forwards HTML attributes', () => {
+      const { container } = render(
+        <HeaderAlternative
+          {...mockProps}
+          data-testid="header-test"
+          onClick={() => {}}
+        />
+      );
+
+      const headerElement = container.firstChild as HTMLElement;
+      expect(headerElement).toHaveAttribute('data-testid', 'header-test');
+    });
+  });
+
+  describe('Long content handling', () => {
+    it('renders very long title', () => {
+      const longTitleProps = {
+        ...mockProps,
+        title:
+          'Análise Comparativa Abrangente entre os Sistemas Econômicos Capitalista e Socialista no Contexto Histórico da Guerra Fria e suas Implicações Profundas para o Desenvolvimento Socioeconômico Global Contemporâneo',
+      };
+
+      render(<HeaderAlternative {...longTitleProps} />);
+
+      expect(screen.getByText(longTitleProps.title)).toBeInTheDocument();
+    });
+
+    it('renders very long subtitle', () => {
+      const longSubtitleProps = {
+        ...mockProps,
+        subTitle:
+          'Biologia - Fisiologia Vegetal - Processos Bioquímicos - Ciclo de Calvin - Fase Fotoquímica - Fase Química - Pigmentos Fotossintéticos',
+      };
+
+      render(<HeaderAlternative {...longSubtitleProps} />);
+
+      expect(screen.getByText(longSubtitleProps.subTitle)).toBeInTheDocument();
+    });
+
+    it('renders very long content', () => {
+      const longContentProps = {
+        ...mockProps,
+        content:
+          'Elabore uma redação dissertativa-argumentativa sobre o tema "O impacto das redes sociais na formação da opinião pública contemporânea". Sua redação deve ter entre 25 e 30 linhas, apresentar argumentos bem fundamentados, utilizar linguagem formal e adequada ao gênero textual solicitado. Considere aspectos como a velocidade de disseminação de informações, a formação de bolhas de filtro, o papel dos algoritmos na curadoria de conteúdo, a democratização do acesso à informação versus a propagação de fake news, e as implicações para a democracia e o debate público.',
+      };
+
+      render(<HeaderAlternative {...longContentProps} />);
+
+      expect(screen.getByText(longContentProps.content)).toBeInTheDocument();
+    });
+  });
+
+  describe('Short content handling', () => {
+    it('renders very short title', () => {
+      const shortTitleProps = {
+        ...mockProps,
+        title: 'Q1',
+      };
+
+      render(<HeaderAlternative {...shortTitleProps} />);
+
+      expect(screen.getByText('Q1')).toBeInTheDocument();
+    });
+
+    it('renders very short subtitle', () => {
+      const shortSubtitleProps = {
+        ...mockProps,
+        subTitle: 'Teste',
+      };
+
+      render(<HeaderAlternative {...shortSubtitleProps} />);
+
+      expect(screen.getByText('Teste')).toBeInTheDocument();
+    });
+
+    it('renders very short content', () => {
+      const shortContentProps = {
+        ...mockProps,
+        content: 'Responda sim ou não.',
+      };
+
+      render(<HeaderAlternative {...shortContentProps} />);
+
+      expect(screen.getByText('Responda sim ou não.')).toBeInTheDocument();
+    });
+  });
+
+  describe('Special characters and formatting', () => {
+    it('renders content with mathematical symbols', () => {
+      const mathProps = {
+        ...mockProps,
+        content: 'Resolva a equação: x² + 5x + 6 = 0, onde x ∈ ℝ.',
+      };
+
+      render(<HeaderAlternative {...mathProps} />);
+
+      expect(
+        screen.getByText('Resolva a equação: x² + 5x + 6 = 0, onde x ∈ ℝ.')
+      ).toBeInTheDocument();
+    });
+
+    it('renders content with special characters', () => {
+      const specialCharsProps = {
+        ...mockProps,
+        content: 'Analise o texto: "O cortiço" de Aluísio Azevedo.',
+      };
+
+      render(<HeaderAlternative {...specialCharsProps} />);
+
+      expect(
+        screen.getByText('Analise o texto: "O cortiço" de Aluísio Azevedo.')
+      ).toBeInTheDocument();
+    });
+
+    it('renders content with line breaks and formatting', () => {
+      const formattedProps = {
+        ...mockProps,
+        content: 'Texto com\nquebras de linha\ne formatação especial.',
+      };
+
+      render(<HeaderAlternative {...formattedProps} />);
+
+      // Test that the content is rendered (the exact text matching might not work with line breaks)
+      expect(screen.getByText(/Texto com/)).toBeInTheDocument();
+      expect(screen.getByText(/formatação especial/)).toBeInTheDocument();
+    });
+  });
+
+  describe('Interactive functionality', () => {
+    it('handles click events', () => {
+      const handleClick = jest.fn();
+      render(<HeaderAlternative {...mockProps} onClick={handleClick} />);
+
+      const headerElement = screen.getByText('Questão 1').closest('div');
+      fireEvent.click(headerElement!);
+
+      expect(handleClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles mouse events', () => {
+      const handleMouseEnter = jest.fn();
+      const handleMouseLeave = jest.fn();
+
+      render(
+        <HeaderAlternative
+          {...mockProps}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        />
+      );
+
+      const headerElement = screen.getByText('Questão 1').closest('div');
+
+      fireEvent.mouseEnter(headerElement!);
+      expect(handleMouseEnter).toHaveBeenCalledTimes(1);
+
+      fireEvent.mouseLeave(headerElement!);
+      expect(handleMouseLeave).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles keyboard events', () => {
+      const handleKeyDown = jest.fn();
+
+      render(<HeaderAlternative {...mockProps} onKeyDown={handleKeyDown} />);
+
+      const headerElement = screen.getByText('Questão 1').closest('div');
+      fireEvent.keyDown(headerElement!, { key: 'Enter' });
+
+      expect(handleKeyDown).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Accessibility', () => {
+    it('has semantic HTML structure', () => {
+      const { container } = render(<HeaderAlternative {...mockProps} />);
+
+      const headerElement = container.firstChild as HTMLElement;
+      expect(headerElement.tagName).toBe('DIV');
+    });
+
+    it('supports ARIA attributes', () => {
+      render(
+        <HeaderAlternative
+          {...mockProps}
+          role="article"
+          aria-label="Questão de matemática"
+        />
+      );
+
+      const headerElement = screen.getByRole('article');
+      expect(headerElement).toHaveAttribute(
+        'aria-label',
+        'Questão de matemática'
+      );
+    });
+
+    it('maintains proper text hierarchy', () => {
+      render(<HeaderAlternative {...mockProps} />);
+
+      const titleElement = screen.getByText('Questão 1');
+      const subtitleElement = screen.getByText('Matemática - Álgebra');
+      const contentElement = screen.getByText(
+        'Resolva a equação quadrática x² + 5x + 6 = 0.'
+      );
+
+      expect(titleElement.tagName).toBe('P');
+      expect(subtitleElement.tagName).toBe('P');
+      expect(contentElement.tagName).toBe('P');
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('handles empty strings', () => {
+      const emptyProps = {
+        title: '',
+        subTitle: '',
+        content: '',
+      };
+
+      render(<HeaderAlternative {...emptyProps} />);
+
+      // Should render without errors
+      const headerElement = screen.getAllByRole('generic')[0].closest('div');
+      expect(headerElement).toBeInTheDocument();
+    });
+
+    it('handles whitespace-only strings', () => {
+      const whitespaceProps = {
+        title: '   ',
+        subTitle: '  ',
+        content: ' ',
+      };
+
+      render(<HeaderAlternative {...whitespaceProps} />);
+
+      // Should render without errors
+      const headerElement = screen.getAllByRole('generic')[0].closest('div');
+      expect(headerElement).toBeInTheDocument();
+    });
+
+    it('handles very long strings without breaking layout', () => {
+      const veryLongString = 'A'.repeat(1000);
+      const longProps = {
+        title: veryLongString,
+        subTitle: veryLongString,
+        content: veryLongString,
+      };
+
+      render(<HeaderAlternative {...longProps} />);
+
+      // Test that the component renders without errors
+      const headerElement = screen.getAllByRole('generic')[0].closest('div');
+      expect(headerElement).toBeInTheDocument();
+    });
+
+    it('handles null and undefined props gracefully', () => {
+      // TypeScript would prevent this, but testing for runtime safety
+      const { container } = render(
+        <HeaderAlternative
+          title="Test"
+          subTitle=""
+          content=""
+          className={undefined as unknown as string}
+        />
+      );
+
+      expect(container.firstChild).toBeInTheDocument();
+    });
+  });
+
+  describe('CSS class combinations', () => {
+    it('combines default and custom classes correctly', () => {
+      const { container } = render(
+        <HeaderAlternative
+          {...mockProps}
+          className="border-2 border-primary-200 shadow-lg"
+        />
+      );
+
+      const headerElement = container.firstChild as HTMLElement;
+      expect(headerElement).toHaveClass(
+        'bg-background',
+        'p-4',
+        'flex',
+        'flex-col',
+        'gap-4',
+        'rounded-xl',
+        'border-2',
+        'border-primary-200',
+        'shadow-lg'
+      );
+    });
+
+    it('handles multiple custom classes', () => {
+      const { container } = render(
+        <HeaderAlternative
+          {...mockProps}
+          className="custom-class-1 custom-class-2"
+        />
+      );
+
+      const headerElement = container.firstChild as HTMLElement;
+      expect(headerElement).toHaveClass('custom-class-1', 'custom-class-2');
+    });
+
+    it('handles empty className prop', () => {
+      const { container } = render(
+        <HeaderAlternative {...mockProps} className="" />
+      );
+
+      const headerElement = container.firstChild as HTMLElement;
+      expect(headerElement).toHaveClass(
+        'bg-background',
+        'p-4',
+        'flex',
+        'flex-col',
+        'gap-4',
+        'rounded-xl'
+      );
+    });
+  });
+
+  describe('Real-world scenarios', () => {
+    it('renders typical question header', () => {
+      const typicalProps = {
+        title: 'Questão 15',
+        subTitle: 'Física - Mecânica - Cinemática',
+        content:
+          'Um automóvel parte do repouso e acelera uniformemente durante 10 segundos, atingindo uma velocidade de 20 m/s. Qual é a aceleração média do automóvel durante esse intervalo de tempo?',
+      };
+
+      render(<HeaderAlternative {...typicalProps} />);
+
+      expect(screen.getByText('Questão 15')).toBeInTheDocument();
+      expect(
+        screen.getByText('Física - Mecânica - Cinemática')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Um automóvel parte do repouso e acelera uniformemente durante 10 segundos, atingindo uma velocidade de 20 m/s. Qual é a aceleração média do automóvel durante esse intervalo de tempo?'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('renders essay question header', () => {
+      const essayProps = {
+        title: 'Redação Dissertativa',
+        subTitle: 'Linguagens - Produção Textual',
+        content:
+          'Elabore uma redação dissertativa-argumentativa sobre o tema "O impacto das redes sociais na formação da opinião pública contemporânea". Sua redação deve ter entre 25 e 30 linhas.',
+      };
+
+      render(<HeaderAlternative {...essayProps} />);
+
+      expect(screen.getByText('Redação Dissertativa')).toBeInTheDocument();
+      expect(
+        screen.getByText('Linguagens - Produção Textual')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Elabore uma redação dissertativa-argumentativa sobre o tema "O impacto das redes sociais na formação da opinião pública contemporânea". Sua redação deve ter entre 25 e 30 linhas.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('renders laboratory activity header', () => {
+      const labProps = {
+        title: 'Atividade Laboratorial',
+        subTitle: 'Química - Análise Qualitativa',
+        content:
+          'Identifique os íons presentes em uma solução desconhecida utilizando testes específicos. Registre suas observações e escreva as equações químicas balanceadas.',
+      };
+
+      render(<HeaderAlternative {...labProps} />);
+
+      expect(screen.getByText('Atividade Laboratorial')).toBeInTheDocument();
+      expect(
+        screen.getByText('Química - Análise Qualitativa')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Identifique os íons presentes em uma solução desconhecida utilizando testes específicos. Registre suas observações e escreva as equações químicas balanceadas.'
+        )
+      ).toBeInTheDocument();
     });
   });
 });

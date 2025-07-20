@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { AlternativesList } from './Alternative';
+import { AlternativesList, HeaderAlternative } from './Alternative';
 
 export const AllAlternativesShowcase: Story = () => {
   return (
@@ -582,6 +582,310 @@ export const LayoutExamples: Story = () => {
             layout="detailed"
             alternatives={sampleAlternatives}
             onValueChange={(value) => console.log('Detailed:', value)}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Stories para HeaderAlternative
+export const HeaderAlternativeShowcase: Story = () => {
+  return (
+    <div className="space-y-12">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          HeaderAlternative Component Library
+        </h1>
+        <p className="text-text-600 text-lg">
+          Componente de cabeçalho para questões e formulários
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        <h2 className="text-3xl font-bold text-text-900 border-b border-border-100 pb-2">
+          Exemplos Básicos
+        </h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-text-800">
+              Cabeçalho Simples
+            </h3>
+            <HeaderAlternative
+              title="Questão 1"
+              subTitle="Matemática - Álgebra"
+              content="Resolva a equação quadrática x² + 5x + 6 = 0 utilizando o método da fatoração."
+            />
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-text-800">
+              Cabeçalho com Conteúdo Extenso
+            </h3>
+            <HeaderAlternative
+              title="Análise de Texto - Literatura Brasileira"
+              subTitle="Português - Interpretação de Texto"
+              content="Leia atentamente o texto a seguir e responda às questões propostas. O texto apresenta uma análise crítica sobre o movimento modernista brasileiro, destacando as principais características literárias, os autores mais representativos e a influência do movimento na cultura nacional. Considere o contexto histórico, as inovações estéticas introduzidas e o impacto duradouro na literatura contemporânea."
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-text-800">
+              Cabeçalho Científico
+            </h3>
+            <HeaderAlternative
+              title="Experimento de Química"
+              subTitle="Laboratório - Reações Químicas"
+              content="Realize o experimento de titulação ácido-base utilizando ácido clorídrico (HCl) 0,1M e hidróxido de sódio (NaOH) 0,1M. Observe as mudanças de cor do indicador fenolftaleína e registre os volumes necessários para neutralização completa."
+            />
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-text-800">
+              Cabeçalho de História
+            </h3>
+            <HeaderAlternative
+              title="Revolução Industrial"
+              subTitle="História - Século XIX"
+              content="Analise as transformações sociais, econômicas e tecnológicas ocorridas durante a Revolução Industrial na Inglaterra. Considere o impacto nas relações de trabalho, urbanização, condições de vida da classe trabalhadora e as consequências para o desenvolvimento do capitalismo moderno."
+            />
+          </div>
+        </div>
+
+        <h2 className="text-3xl font-bold text-text-900 border-b border-border-100 pb-2 mt-12">
+          Variações de Conteúdo
+        </h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-text-800">
+              Título Muito Longo
+            </h3>
+            <HeaderAlternative
+              title="Análise Comparativa entre os Sistemas Econômicos Capitalista e Socialista no Contexto da Guerra Fria e suas Implicações para o Desenvolvimento Global Contemporâneo"
+              subTitle="Ciências Sociais - Economia Política"
+              content="Compare os fundamentos teóricos, práticas de implementação e resultados históricos dos sistemas capitalista e socialista, considerando o período da Guerra Fria e suas consequências para a ordem mundial atual."
+            />
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-text-800">
+              Subtítulo Detalhado
+            </h3>
+            <HeaderAlternative
+              title="Fotossíntese"
+              subTitle="Biologia - Fisiologia Vegetal - Processos Bioquímicos - Ciclo de Calvin"
+              content="Explique o processo de fotossíntese, incluindo as fases fotoquímica e química, os pigmentos envolvidos, a captação de CO₂ e a produção de carboidratos."
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-text-800">
+              Conteúdo Muito Extenso
+            </h3>
+            <HeaderAlternative
+              title="Redação Dissertativa"
+              subTitle="Linguagens - Produção Textual"
+              content="Elabore uma redação dissertativa-argumentativa sobre o tema 'O impacto das redes sociais na formação da opinião pública contemporânea'. Sua redação deve ter entre 25 e 30 linhas, apresentar argumentos bem fundamentados, utilizar linguagem formal e adequada ao gênero textual solicitado. Considere aspectos como a velocidade de disseminação de informações, a formação de bolhas de filtro, o papel dos algoritmos na curadoria de conteúdo, a democratização do acesso à informação versus a propagação de fake news, e as implicações para a democracia e o debate público. Desenvolva uma tese clara, argumente de forma coerente e apresente uma proposta de intervenção social que respeite os direitos humanos."
+            />
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-text-800">
+              Conteúdo Técnico
+            </h3>
+            <HeaderAlternative
+              title="Programação Orientada a Objetos"
+              subTitle="Tecnologia - Desenvolvimento de Software"
+              content="Implemente uma classe em Java que represente um sistema bancário simplificado. A classe deve incluir métodos para depósito, saque e consulta de saldo, com validações apropriadas. Considere encapsulamento, herança e polimorfismo em sua implementação."
+            />
+          </div>
+        </div>
+
+        <h2 className="text-3xl font-bold text-text-900 border-b border-border-100 pb-2 mt-12">
+          Casos de Uso Específicos
+        </h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-text-800">
+              Questão de Múltipla Escolha
+            </h3>
+            <HeaderAlternative
+              title="Questão 15"
+              subTitle="Física - Mecânica - Cinemática"
+              content="Um automóvel parte do repouso e acelera uniformemente durante 10 segundos, atingindo uma velocidade de 20 m/s. Qual é a aceleração média do automóvel durante esse intervalo de tempo?"
+            />
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-text-800">
+              Questão Discursiva
+            </h3>
+            <HeaderAlternative
+              title="Questão 8"
+              subTitle="Geografia - Geografia Humana - Urbanização"
+              content="Analise o processo de urbanização brasileira, destacando as principais características, os problemas urbanos enfrentados e as possíveis soluções para melhorar a qualidade de vida nas cidades."
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-text-800">
+              Exercício Prático
+            </h3>
+            <HeaderAlternative
+              title="Atividade Laboratorial"
+              subTitle="Química - Análise Qualitativa"
+              content="Identifique os íons presentes em uma solução desconhecida utilizando testes específicos. Registre suas observações, escreva as equações químicas balanceadas e explique os princípios químicos envolvidos em cada reação."
+            />
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-text-800">
+              Problema Matemático
+            </h3>
+            <HeaderAlternative
+              title="Problema 3"
+              subTitle="Matemática - Geometria Analítica"
+              content="Determine a equação da circunferência que passa pelos pontos A(2,3), B(4,1) e C(6,5). Calcule também o raio e as coordenadas do centro desta circunferência."
+            />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Demonstração Completa - Conteúdo Muito Extenso
+          </h3>
+          <HeaderAlternative
+            title="Análise Crítica de Texto Literário - O Cortiço de Aluísio Azevedo"
+            subTitle="Literatura Brasileira - Naturalismo - Século XIX - Realismo Social"
+            content="Leia atentamente o excerto do romance 'O Cortiço' de Aluísio Azevedo e desenvolva uma análise crítica abrangente que inclua: a contextualização histórica e social da obra, as características do Naturalismo brasileiro presentes no texto, a representação das classes sociais e suas relações de poder, o papel do determinismo biológico e social na construção dos personagens, a crítica social implícita na narrativa, o uso de recursos estilísticos como zoomorfização e animalização, a função do espaço urbano (o cortiço) como metáfora da sociedade, a relação entre indivíduo e meio ambiente, as questões de gênero e raça abordadas, e a atualidade da temática para a sociedade contemporânea. Sua análise deve demonstrar compreensão dos conceitos literários, capacidade de interpretação textual e articulação entre forma e conteúdo."
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Story para variações de estilo
+export const HeaderAlternativeVariations: Story = () => {
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-text-900 mb-2">
+          Variações de Estilo
+        </h1>
+        <p className="text-text-600">
+          Diferentes aplicações do componente HeaderAlternative
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Com Classes CSS Adicionais
+          </h3>
+          <HeaderAlternative
+            className="border-2 border-primary-200 shadow-lg"
+            title="Questão com Estilo Personalizado"
+            subTitle="Exemplo - Estilização"
+            content="Este exemplo demonstra como aplicar classes CSS adicionais ao componente para personalizar sua aparência."
+          />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Com Eventos HTML
+          </h3>
+          <HeaderAlternative
+            onClick={() => alert('HeaderAlternative clicado!')}
+            className="cursor-pointer hover:bg-background-50 transition-colors"
+            title="HeaderAlternative Interativo"
+            subTitle="Teste - Interatividade"
+            content="Este exemplo demonstra como o componente pode receber eventos HTML padrão como onClick, onMouseEnter, etc."
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Título Muito Curto
+          </h3>
+          <HeaderAlternative
+            title="Q1"
+            subTitle="Matemática"
+            content="Resolva a equação x + 5 = 10."
+          />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Conteúdo Muito Curto
+          </h3>
+          <HeaderAlternative
+            title="Questão Simples"
+            subTitle="Teste"
+            content="Responda sim ou não."
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Story para casos extremos
+export const HeaderAlternativeEdgeCases: Story = () => {
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-text-900 mb-2">
+          Casos Extremos
+        </h1>
+        <p className="text-text-600">
+          Testes com conteúdo extremo para verificar comportamento
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Título Extremamente Longo
+          </h3>
+          <HeaderAlternative
+            title="Análise Comparativa Abrangente entre os Sistemas Econômicos Capitalista e Socialista no Contexto Histórico da Guerra Fria e suas Implicações Profundas para o Desenvolvimento Socioeconômico Global Contemporâneo: Uma Perspectiva Multidisciplinar"
+            subTitle="Ciências Sociais - Economia Política - História Contemporânea"
+            content="Desenvolva uma análise crítica comparando os fundamentos teóricos, práticas de implementação e resultados históricos dos sistemas capitalista e socialista."
+          />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Subtítulo Muito Detalhado
+          </h3>
+          <HeaderAlternative
+            title="Fotossíntese"
+            subTitle="Biologia - Fisiologia Vegetal - Processos Bioquímicos - Ciclo de Calvin - Fase Fotoquímica - Fase Química - Pigmentos Fotossintéticos - Cloroplastos - Membranas Tilacoides - Estroma - ATP - NADPH - RuBisCO - Glicose - Oxigênio"
+            content="Explique o processo de fotossíntese, incluindo as fases fotoquímica e química."
+          />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Conteúdo Extremamente Extenso
+          </h3>
+          <HeaderAlternative
+            title="Redação Dissertativa"
+            subTitle="Linguagens - Produção Textual"
+            content="Elabore uma redação dissertativa-argumentativa sobre o tema 'O impacto das redes sociais na formação da opinião pública contemporânea'. Sua redação deve ter entre 25 e 30 linhas, apresentar argumentos bem fundamentados, utilizar linguagem formal e adequada ao gênero textual solicitado. Considere aspectos como a velocidade de disseminação de informações, a formação de bolhas de filtro, o papel dos algoritmos na curadoria de conteúdo, a democratização do acesso à informação versus a propagação de fake news, e as implicações para a democracia e o debate público. Desenvolva uma tese clara, argumente de forma coerente e apresente uma proposta de intervenção social que respeite os direitos humanos. Analise também o impacto das redes sociais na polarização política, na formação de identidades digitais, na privacidade dos usuários, na economia da atenção, na saúde mental dos usuários, na educação e no mercado de trabalho. Considere as diferenças entre plataformas como Facebook, Twitter, Instagram, TikTok e LinkedIn, e como cada uma contribui para diferentes aspectos da sociedade contemporânea. Examine o papel das redes sociais em movimentos sociais, ativismo digital, jornalismo cidadão e participação política. Avalie os desafios regulatórios, questões de moderação de conteúdo, transparência algorítmica e responsabilidade das plataformas. Considere perspectivas internacionais e como diferentes países lidam com a regulação das redes sociais."
           />
         </div>
       </div>

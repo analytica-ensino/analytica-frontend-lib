@@ -1,7 +1,7 @@
 import { CheckCircle, XCircle } from 'phosphor-react';
 import Badge from '../Badge/Badge';
 import { RadioGroup, RadioGroupItem } from '../Radio/Radio';
-import { useId } from 'react';
+import { forwardRef, HTMLAttributes, useId } from 'react';
 
 /**
  * Interface para definir uma alternativa
@@ -319,4 +319,29 @@ const AlternativesList = ({
   );
 };
 
-export { AlternativesList };
+interface HeaderAlternativeProps extends HTMLAttributes<HTMLDivElement> {
+  title: string;
+  subTitle: string;
+  content: string;
+}
+
+const HeaderAlternative = forwardRef<HTMLDivElement, HeaderAlternativeProps>(
+  ({ className, title, subTitle, content, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={`bg-background p-4 flex flex-col gap-4 rounded-xl ${className}`}
+        {...props}
+      >
+        <span className="flex flex-col">
+          <p className="text-text-950 font-bold text-lg">{title}</p>
+          <p className="text-text-700 text-sm ">{subTitle}</p>
+        </span>
+
+        <p className="text-text-950 text-md">{content}</p>
+      </div>
+    );
+  }
+);
+
+export { AlternativesList, HeaderAlternative };
