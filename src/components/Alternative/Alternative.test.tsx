@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 import { AlternativesList, Alternative } from './Alternative';
 
 /**
- * Mock para useId hook para garantir IDs consistentes nos testes
+ * Mock for useId hook to ensure consistent IDs in tests
  */
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
@@ -175,7 +175,7 @@ describe('AlternativesList', () => {
     it('desabilita todas as alternativas quando disabled é true', () => {
       render(<AlternativesList alternatives={mockAlternatives} disabled />);
 
-      // Verifica se os inputs hidden estão desabilitados
+      // Check if hidden inputs are disabled
       const hiddenInputs = screen.getAllByDisplayValue(/[abc]/);
       hiddenInputs.forEach((input) => {
         expect(input).toBeDisabled();
@@ -262,11 +262,11 @@ describe('AlternativesList', () => {
         />
       );
 
-      // Não deve haver elementos de radio funcionais
+      // Should not have functional radio elements
       const radioGroup = screen.queryByRole('radiogroup');
       expect(radioGroup).not.toBeInTheDocument();
 
-      // Deve exibir as alternativas
+      // Should display alternatives
       expect(screen.getByText('Alternativa A')).toBeInTheDocument();
       expect(screen.getByText('Alternativa B')).toBeInTheDocument();
     });
@@ -280,7 +280,7 @@ describe('AlternativesList', () => {
         />
       );
 
-      // Verifica se existe um radio visual marcado
+      // Check if there's a visual radio marked
       const selectedRadios = container.querySelectorAll('.border-primary-950');
       expect(selectedRadios.length).toBeGreaterThan(0);
     });
@@ -290,7 +290,7 @@ describe('AlternativesList', () => {
         <AlternativesList
           alternatives={mockAlternativesWithStatus}
           mode="readonly"
-          selectedValue="b" // Usuário selecionou 'b' que tem status 'incorrect'
+          selectedValue="b" // User selected 'b' which has status 'incorrect'
         />
       );
 
@@ -302,11 +302,11 @@ describe('AlternativesList', () => {
         <AlternativesList
           alternatives={mockAlternativesWithStatus}
           mode="readonly"
-          selectedValue="b" // Usuário selecionou 'b'
+          selectedValue="b" // User selected 'b'
         />
       );
 
-      // Alternativa 'a' tem status 'correct', então deve mostrar como correta
+      // Alternative 'a' has status 'correct', so should show as correct
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
 
@@ -331,7 +331,7 @@ describe('AlternativesList', () => {
       const visualRadios = container.querySelectorAll('.rounded-full.border-2');
       expect(visualRadios.length).toBe(mockAlternatives.length);
 
-      // Verifica se tem cursor-default (não clicável)
+      // Check if has cursor-default (not clickable)
       const radioWithCursor = container.querySelector('.cursor-default');
       expect(radioWithCursor).toBeInTheDocument();
     });
@@ -346,7 +346,7 @@ describe('AlternativesList', () => {
         />
       );
 
-      // Verifica se as descrições estão presentes
+      // Check if descriptions are present
       expect(
         screen.getByText('Descrição da alternativa A')
       ).toBeInTheDocument();
@@ -354,7 +354,7 @@ describe('AlternativesList', () => {
         screen.getByText('Descrição da alternativa B')
       ).toBeInTheDocument();
 
-      // Verifica se o badge está presente
+      // Check if badge is present
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
 
@@ -403,7 +403,7 @@ describe('AlternativesList', () => {
         <AlternativesList alternatives={alternativesWithoutValue} />
       );
 
-      // Deve gerar ID baseado no índice
+      // Should generate ID based on index
       const element = container.querySelector('#alt-0');
       expect(element).toBeInTheDocument();
     });
@@ -521,7 +521,7 @@ describe('AlternativesList', () => {
         <AlternativesList alternatives={complexAlternatives} />
       );
 
-      // Deve ter elementos com opacidade e status
+      // Should have elements with opacity and status
       const correctDisabled = container.querySelector(
         '.bg-success-background.opacity-50'
       );
@@ -562,7 +562,7 @@ describe('AlternativesList', () => {
     it('renderiza badges apenas para alternativas com status', () => {
       const mixedAlternatives: Alternative[] = [
         { value: 'a', label: 'Alternativa A', status: 'correct' },
-        { value: 'b', label: 'Alternativa B' }, // sem status
+        { value: 'b', label: 'Alternativa B' }, // without status
         { value: 'c', label: 'Alternativa C', status: 'incorrect' },
       ];
 
@@ -571,7 +571,7 @@ describe('AlternativesList', () => {
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
       expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
 
-      // Deve ter apenas 2 badges (não 3)
+      // Should have only 2 badges (not 3)
       const badges = screen.getAllByText(/Resposta/);
       expect(badges).toHaveLength(2);
     });
@@ -579,21 +579,21 @@ describe('AlternativesList', () => {
 
   describe('Função getStatusStyles com valor default', () => {
     it('aplica classes hover por padrão quando isReadonly não é fornecido (valor default false)', () => {
-      // Teste para cobrir a linha 96: isReadonly: boolean = false
+      // Test to cover line 96: isReadonly: boolean = false
       const { container } = render(
         <AlternativesList
           alternatives={mockAlternatives}
-          mode="interactive" // modo interativo usa o valor default de isReadonly = false
+          mode="interactive" // interactive mode uses default value of isReadonly = false
         />
       );
 
-      // Verifica se as classes hover estão presentes (comportamento quando isReadonly = false por default)
+      // Check if hover classes are present (behavior when isReadonly = false by default)
       const hoverElements = container.querySelectorAll(
         '.hover\\:bg-background-50'
       );
       expect(hoverElements.length).toBeGreaterThan(0);
 
-      // Verifica que não há elementos com status específicos (neutral status)
+      // Check that there are no elements with specific status (neutral status)
       const neutralAlternatives = container.querySelectorAll(
         '.bg-background.border-border-100'
       );
@@ -601,15 +601,15 @@ describe('AlternativesList', () => {
     });
 
     it('não aplica classes hover quando isReadonly é explicitamente true', () => {
-      // Teste de comparação para garantir que o valor default está funcionando
+      // Comparison test to ensure default value is working
       const { container } = render(
         <AlternativesList
           alternatives={mockAlternatives}
-          mode="readonly" // modo readonly define isReadonly = true explicitamente
+          mode="readonly" // readonly mode sets isReadonly = true explicitly
         />
       );
 
-      // Verifica que NÃO há classes hover (comportamento quando isReadonly = true)
+      // Check that there are NO hover classes (behavior when isReadonly = true)
       const hoverElements = container.querySelectorAll(
         '.hover\\:bg-background-50'
       );
@@ -619,7 +619,7 @@ describe('AlternativesList', () => {
 
   describe('Alternative.disabled em modo readonly (linha 212)', () => {
     it('aplica opacity-50 para alternativa desabilitada em modo readonly', () => {
-      // Teste específico para a linha 212: alternative.disabled ? 'opacity-50' : ''
+      // Specific test for line 212: alternative.disabled ? 'opacity-50' : ''
       const alternativesWithDisabled: Alternative[] = [
         { value: 'a', label: 'Alternativa habilitada' },
         { value: 'b', label: 'Alternativa desabilitada', disabled: true },
@@ -639,15 +639,15 @@ describe('AlternativesList', () => {
         />
       );
 
-      // Verifica que existe exatamente 2 elementos com opacity-50 (as duas alternativas desabilitadas)
+      // Check that there are exactly 2 elements with opacity-50 (the two disabled alternatives)
       const disabledElements = container.querySelectorAll('.opacity-50');
       expect(disabledElements).toHaveLength(2);
 
-      // Verifica que a alternativa habilitada NÃO tem opacity-50
+      // Check that enabled alternative does NOT have opacity-50
       const enabledElement = container.querySelector('span');
       expect(enabledElement?.closest('.opacity-50')).toBeNull();
 
-      // Verifica que as labels das alternativas desabilitadas estão presentes
+      // Check that labels of disabled alternatives are present
       expect(screen.getByText('Alternativa desabilitada')).toBeInTheDocument();
       expect(
         screen.getByText('Alternativa com status e disabled')
@@ -655,7 +655,7 @@ describe('AlternativesList', () => {
     });
 
     it('não aplica opacity-50 quando alternative.disabled é false em modo readonly', () => {
-      // Teste para o lado contrário da condição (alternative.disabled ? 'opacity-50' : '')
+      // Test for the opposite side of the condition (alternative.disabled ? 'opacity-50' : '')
       const alternativesEnabled: Alternative[] = [
         { value: 'a', label: 'Alternativa A', disabled: false },
         { value: 'b', label: 'Alternativa B' }, // disabled undefined (falsy)
@@ -665,13 +665,13 @@ describe('AlternativesList', () => {
         <AlternativesList alternatives={alternativesEnabled} mode="readonly" />
       );
 
-      // Verifica que NÃO existem elementos com opacity-50
+      // Check that there are NO elements with opacity-50
       const disabledElements = container.querySelectorAll('.opacity-50');
       expect(disabledElements).toHaveLength(0);
     });
 
     it('aplica opacity-50 para alternativa desabilitada em layout detailed readonly', () => {
-      // Teste para garantir que a linha 212 também funciona no layout detailed
+      // Test to ensure line 212 also works in detailed layout
       const alternativesWithDisabledDetailed: Alternative[] = [
         {
           value: 'a',
@@ -690,12 +690,12 @@ describe('AlternativesList', () => {
         />
       );
 
-      // Verifica que existe elemento com opacity-50 no layout detailed
+      // Check that element with opacity-50 exists in detailed layout
       const disabledElement = container.querySelector('.opacity-50');
       expect(disabledElement).toBeInTheDocument();
       expect(disabledElement).toHaveClass('border-2', 'rounded-lg', 'p-4');
 
-      // Verifica que a descrição está presente mesmo com disabled
+      // Check that description is present even with disabled
       expect(screen.getByText('Descrição da alternativa')).toBeInTheDocument();
     });
   });

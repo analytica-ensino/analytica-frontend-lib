@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 import { CardAccordation } from './Accordation';
 
 /**
- * Mock para useId hook para garantir IDs consistentes nos testes
+ * Mock for useId hook to ensure consistent IDs in tests
  */
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
@@ -16,7 +16,7 @@ describe('CardAccordation', () => {
   const mockContent =
     'Conteúdo do acordeão que pode ser expandido ou colapsado';
 
-  // Helper function para encontrar o header clicável
+  // Helper function to find the clickable header
   const getHeader = () => screen.getByText(mockTitle).parentElement;
 
   describe('Renderização básica', () => {
@@ -118,15 +118,15 @@ describe('CardAccordation', () => {
       const content = screen.getByTestId('accordion-content');
       const caretIcon = screen.getByTestId('accordion-caret');
 
-      // Estado inicial: colapsado
+      // Initial state: collapsed
       expect(content).toHaveClass('max-h-0', 'opacity-0');
       expect(header).toHaveAttribute('aria-expanded', 'false');
       expect(caretIcon).toHaveClass('rotate-0');
 
-      // Clica para expandir
+      // Click to expand
       await user.click(header!);
 
-      // Estado após clique: expandido
+      // State after click: expanded
       expect(content).toHaveClass('max-h-screen', 'opacity-100');
       expect(header).toHaveAttribute('aria-expanded', 'true');
       expect(caretIcon).toHaveClass('rotate-90');
@@ -144,15 +144,15 @@ describe('CardAccordation', () => {
       const content = screen.getByTestId('accordion-content');
       const caretIcon = screen.getByTestId('accordion-caret');
 
-      // Estado inicial: expandido
+      // Initial state: expanded
       expect(content).toHaveClass('max-h-screen', 'opacity-100');
       expect(header).toHaveAttribute('aria-expanded', 'true');
       expect(caretIcon).toHaveClass('rotate-90');
 
-      // Clica para colapsar
+      // Click to collapse
       await user.click(header!);
 
-      // Estado após clique: colapsado
+      // State after click: collapsed
       expect(content).toHaveClass('max-h-0', 'opacity-0');
       expect(header).toHaveAttribute('aria-expanded', 'false');
       expect(caretIcon).toHaveClass('rotate-0');
@@ -169,18 +169,18 @@ describe('CardAccordation', () => {
       const header = getHeader();
       const content = screen.getByTestId('accordion-content');
 
-      // Inicialmente colapsado
+      // Initially collapsed
       expect(content).toHaveClass('max-h-0', 'opacity-0');
 
-      // Primeiro clique: expande
+      // First click: expand
       await user.click(header!);
       expect(content).toHaveClass('max-h-screen', 'opacity-100');
 
-      // Segundo clique: colapsa
+      // Second click: collapse
       await user.click(header!);
       expect(content).toHaveClass('max-h-0', 'opacity-0');
 
-      // Terceiro clique: expande novamente
+      // Third click: expand again
       await user.click(header!);
       expect(content).toHaveClass('max-h-screen', 'opacity-100');
     });
@@ -195,14 +195,14 @@ describe('CardAccordation', () => {
       const header = getHeader();
       const content = screen.getByTestId('accordion-content');
 
-      // Inicialmente colapsado
+      // Initially collapsed
       expect(content).toHaveClass('max-h-0', 'opacity-0');
 
-      // Simula clique via teclado
+      // Simulate click via keyboard
       fireEvent.click(header!);
       expect(content).toHaveClass('max-h-screen', 'opacity-100');
 
-      // Simula outro clique via teclado
+      // Simulate another click via keyboard
       fireEvent.click(header!);
       expect(content).toHaveClass('max-h-0', 'opacity-0');
     });
@@ -221,7 +221,7 @@ describe('CardAccordation', () => {
 
       const header = getHeader();
 
-      // Clica para expandir
+      // Click to expand
       await user.click(header!);
 
       expect(handleToggle).toHaveBeenCalledTimes(1);
@@ -244,7 +244,7 @@ describe('CardAccordation', () => {
 
       const header = getHeader();
 
-      // Clica para colapsar
+      // Click to collapse
       await user.click(header!);
 
       expect(handleToggle).toHaveBeenCalledTimes(1);
@@ -263,15 +263,15 @@ describe('CardAccordation', () => {
 
       const header = getHeader();
 
-      // Primeiro clique: expandir
+      // First click: expand
       await user.click(header!);
       expect(handleToggle).toHaveBeenNthCalledWith(1, true);
 
-      // Segundo clique: colapsar
+      // Second click: collapse
       await user.click(header!);
       expect(handleToggle).toHaveBeenNthCalledWith(2, false);
 
-      // Terceiro clique: expandir
+      // Third click: expand
       await user.click(header!);
       expect(handleToggle).toHaveBeenNthCalledWith(3, true);
 
@@ -290,7 +290,7 @@ describe('CardAccordation', () => {
       const header = getHeader();
       const content = screen.getByTestId('accordion-content');
 
-      // Deve funcionar normalmente mesmo sem callback
+      // Should work normally even without callback
       expect(content).toHaveClass('max-h-0', 'opacity-0');
 
       await user.click(header!);
@@ -324,14 +324,14 @@ describe('CardAccordation', () => {
 
       const header = getHeader();
 
-      // Inicialmente falso
+      // Initially false
       expect(header).toHaveAttribute('aria-expanded', 'false');
 
-      // Após expandir
+      // After expanding
       await user.click(header!);
       expect(header).toHaveAttribute('aria-expanded', 'true');
 
-      // Após colapsar
+      // After collapsing
       await user.click(header!);
       expect(header).toHaveAttribute('aria-expanded', 'false');
     });
@@ -391,7 +391,7 @@ describe('CardAccordation', () => {
         </CardAccordation>
       );
 
-      // CardBase com layout vertical deve estar presente
+      // CardBase with vertical layout should be present
       const cardBase = container.firstChild as HTMLElement;
       expect(cardBase).toBeInTheDocument();
     });
@@ -427,16 +427,16 @@ describe('CardAccordation', () => {
       const caretIcon = screen.getByTestId('accordion-caret');
       const header = getHeader();
 
-      // Inicialmente rotação 0
+      // Initially rotation 0
       expect(caretIcon).toHaveClass('rotate-0');
       expect(caretIcon).not.toHaveClass('rotate-90');
 
-      // Após expandir: rotação 90
+      // After expanding: rotation 90
       await user.click(header!);
       expect(caretIcon).toHaveClass('rotate-90');
       expect(caretIcon).not.toHaveClass('rotate-0');
 
-      // Após colapsar: rotação 0 novamente
+      // After collapsing: rotation 0 again
       await user.click(header!);
       expect(caretIcon).toHaveClass('rotate-0');
       expect(caretIcon).not.toHaveClass('rotate-90');
@@ -450,7 +450,7 @@ describe('CardAccordation', () => {
       );
 
       const caretIcon = screen.getByTestId('accordion-caret');
-      // Verifica atributos do ícone Phosphor
+      // Check Phosphor icon attributes
       expect(caretIcon).toHaveAttribute('width', '20');
       expect(caretIcon).toHaveAttribute('height', '20');
     });
@@ -464,7 +464,7 @@ describe('CardAccordation', () => {
         </CardAccordation>
       );
 
-      // Verifica se o header está presente mesmo com título vazio
+      // Check if header is present even with empty title
       const header = container.querySelector('[aria-expanded]');
       expect(header).toBeInTheDocument();
       expect(header).toHaveAttribute('aria-expanded', 'false');
