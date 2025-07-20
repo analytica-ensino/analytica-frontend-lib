@@ -150,7 +150,19 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
     return (
       <>
         {/* Trigger */}
-        <div onClick={handleTriggerClick}>{trigger}</div>
+        <div
+          onClick={handleTriggerClick}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleTriggerClick();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+        >
+          {trigger}
+        </div>
 
         {/* Alert Dialog Overlay */}
         {isOpen && (

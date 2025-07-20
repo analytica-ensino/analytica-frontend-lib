@@ -25,7 +25,7 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       expect(
-        screen.getByRole('button', { name: 'Open Dialog' })
+        screen.getByText('Open Dialog').closest('button')
       ).toBeInTheDocument();
     });
 
@@ -33,8 +33,8 @@ describe('AlertDialog', () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} />);
 
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       expect(screen.getByRole('dialog')).toBeInTheDocument();
       expect(screen.getByText('Test Dialog')).toBeInTheDocument();
@@ -45,8 +45,8 @@ describe('AlertDialog', () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} />);
 
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       expect(
         screen.getByRole('button', { name: 'Cancelar' })
@@ -66,8 +66,8 @@ describe('AlertDialog', () => {
         />
       );
 
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       expect(screen.getByRole('button', { name: 'Não' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Sim' })).toBeInTheDocument();
@@ -80,8 +80,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Close dialog
       const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
@@ -95,8 +95,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Close dialog
       const submitButton = screen.getByRole('button', { name: 'Deletar' });
@@ -110,8 +110,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Click on backdrop
       const backdrop = screen.getByRole('dialog');
@@ -125,8 +125,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} closeOnBackdropClick={false} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Click on backdrop
       const backdrop = screen.getByRole('dialog');
@@ -140,8 +140,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Press Escape
       await user.keyboard('{Escape}');
@@ -154,8 +154,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} closeOnEscape={false} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Press Escape
       await user.keyboard('{Escape}');
@@ -207,8 +207,8 @@ describe('AlertDialog', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       expect(onOpen).toHaveBeenCalled();
     });
@@ -229,8 +229,8 @@ describe('AlertDialog', () => {
       );
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Click on submit
       const submitButton = screen.getByRole('button', { name: 'Deletar' });
@@ -253,8 +253,8 @@ describe('AlertDialog', () => {
       );
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Click on cancel
       const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
@@ -270,8 +270,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} onSubmit={onSubmit} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Click on submit
       const submitButton = screen.getByRole('button', { name: 'Deletar' });
@@ -287,8 +287,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} onCancel={onCancel} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Click on cancel
       const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
@@ -303,8 +303,8 @@ describe('AlertDialog', () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} size="extra-small" />);
 
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       const dialogContent = screen.getByRole('dialog').querySelector('div');
       expect(dialogContent?.className).toContain('w-screen');
@@ -315,8 +315,8 @@ describe('AlertDialog', () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} size="small" />);
 
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       const dialogContent = screen.getByRole('dialog').querySelector('div');
       expect(dialogContent?.className).toContain('w-screen');
@@ -327,8 +327,8 @@ describe('AlertDialog', () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} />);
 
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       const dialogContent = screen.getByRole('dialog').querySelector('div');
       expect(dialogContent?.className).toContain('w-screen');
@@ -339,8 +339,8 @@ describe('AlertDialog', () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} size="large" />);
 
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       const dialogContent = screen.getByRole('dialog').querySelector('div');
       expect(dialogContent?.className).toContain('w-screen');
@@ -351,8 +351,8 @@ describe('AlertDialog', () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} size="extra-large" />);
 
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       const dialogContent = screen.getByRole('dialog').querySelector('div');
       expect(dialogContent?.className).toContain('w-screen');
@@ -366,8 +366,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       const dialog = screen.getByRole('dialog');
       expect(dialog).toHaveAttribute('aria-modal', 'true');
@@ -383,8 +383,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Check if dialog is focused
       const dialog = screen.getByRole('dialog');
@@ -398,8 +398,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} className="custom-class" />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       const dialogContent = screen
         .getByRole('dialog')
@@ -412,8 +412,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       const dialogContent = screen.getByRole('dialog').querySelector('div');
       expect(dialogContent?.className).toContain('bg-background');
@@ -432,8 +432,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       expect(document.body.style.overflow).toBe('hidden');
     });
@@ -443,8 +443,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Close dialog
       const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
@@ -458,8 +458,8 @@ describe('AlertDialog', () => {
       const { unmount } = render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Unmount component
       unmount();
@@ -476,8 +476,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} ref={ref} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       expect(ref).toHaveBeenCalled();
     });
@@ -489,8 +489,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Simulate keydown on backdrop
       const backdrop = screen.getByRole('dialog');
@@ -504,8 +504,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
-      await user.click(trigger);
+      const trigger = screen.getByText('Open Dialog').closest('button');
+      await user.click(trigger!);
 
       // Simulate click on backdrop
       const backdrop = screen.getByRole('dialog');
@@ -515,17 +515,85 @@ describe('AlertDialog', () => {
     });
   });
 
+  describe('Trigger accessibility', () => {
+    it('should handle keyboard events on trigger wrapper', async () => {
+      const user = userEvent.setup();
+      render(<AlertDialog {...defaultProps} />);
+
+      // Find the trigger wrapper by getting the parent of the button
+      const button = screen.getByText('Open Dialog').closest('button');
+      const triggerWrapper = button?.parentElement;
+
+      expect(triggerWrapper).toHaveAttribute('role', 'button');
+
+      // Test Enter key
+      await user.keyboard('{Tab}'); // Focus the trigger wrapper
+      await user.keyboard('{Enter}');
+
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+      // Close dialog
+      const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
+      await user.click(cancelButton);
+
+      // Test Space key
+      await user.keyboard('{Tab}'); // Focus the trigger wrapper again
+      await user.keyboard(' ');
+
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    it('should have proper accessibility attributes on trigger wrapper', () => {
+      render(<AlertDialog {...defaultProps} />);
+
+      // Find the trigger wrapper by getting the parent of the button
+      const button = screen.getByText('Open Dialog').closest('button');
+      const triggerWrapper = button?.parentElement;
+
+      expect(triggerWrapper).toHaveAttribute('role', 'button');
+      expect(triggerWrapper).toHaveAttribute('tabindex', '0');
+    });
+
+    it('should prevent default behavior on Enter and Space keys', async () => {
+      const user = userEvent.setup();
+      const preventDefaultSpy = jest.spyOn(Event.prototype, 'preventDefault');
+
+      render(<AlertDialog {...defaultProps} />);
+
+      // Test Enter key
+      await user.keyboard('{Tab}');
+      await user.keyboard('{Enter}');
+
+      expect(preventDefaultSpy).toHaveBeenCalled();
+
+      // Close dialog
+      const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
+      await user.click(cancelButton);
+
+      // Reset spy
+      preventDefaultSpy.mockClear();
+
+      // Test Space key
+      await user.keyboard('{Tab}');
+      await user.keyboard(' ');
+
+      expect(preventDefaultSpy).toHaveBeenCalled();
+
+      preventDefaultSpy.mockRestore();
+    });
+  });
+
   describe('Edge cases', () => {
     it('should handle multiple rapid clicks on trigger', async () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} />);
 
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
+      const trigger = screen.getByText('Open Dialog').closest('button');
 
       // Click rapidly multiple times
-      await user.click(trigger);
-      await user.click(trigger);
-      await user.click(trigger);
+      await user.click(trigger!);
+      await user.click(trigger!);
+      await user.click(trigger!);
 
       // Should have only one dialog
       const dialogs = screen.getAllByRole('dialog');
@@ -536,15 +604,15 @@ describe('AlertDialog', () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} />);
 
-      const trigger = screen.getByRole('button', { name: 'Open Dialog' });
+      const trigger = screen.getByText('Open Dialog').closest('button');
 
       // Open and close rapidly
-      await user.click(trigger);
+      await user.click(trigger!);
       const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
       await user.click(cancelButton);
 
       // Open again
-      await user.click(trigger);
+      await user.click(trigger!);
 
       expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
