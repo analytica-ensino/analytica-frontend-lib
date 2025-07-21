@@ -90,8 +90,6 @@ import {
   useRouteAuth,
 } from './components/Auth/Auth';
 
-import Tab from './components/Tab/Tab';
-
 // Export all components for bundled usage
 export { Text };
 export { Button };
@@ -169,6 +167,5 @@ export { withAuth };
 export { useAuth };
 export { useAuthGuard };
 export { useRouteAuth };
-export { Tab };
 export { CardAccordation };
 export { AlternativesList };
