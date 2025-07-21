@@ -25,7 +25,7 @@ interface AlertDialogProps extends HTMLAttributes<HTMLDivElement> {
   trigger: ReactNode;
   /** Title of the alert dialog */
   title: string;
-  /** Content of the alert dialog */
+  /** Whether the alert dialog is open (controlled mode) */
   isOpen?: boolean;
   /** Function called when the alert dialog should be opened (controlled mode) */
   onOpen?: () => void;
@@ -149,7 +149,7 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
     return (
       <>
         {/* Trigger */}
-        <button
+        <span
           onClick={handleTriggerClick}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
@@ -158,10 +158,12 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
             }
           }}
           aria-label="Open dialog"
-          className="border-none bg-transparent p-0 cursor-pointer"
+          role="button"
+          tabIndex={0}
+          className="border-none bg-transparent p-0 cursor-pointer inline-block"
         >
           {trigger}
-        </button>
+        </span>
 
         {/* Alert Dialog Overlay */}
         {isOpen && (
@@ -175,6 +177,8 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
             }}
             data-testid="alert-dialog-overlay"
             aria-modal="true"
+            role="dialog"
+            tabIndex={-1}
           >
             {/* Alert Dialog Content */}
             <div
@@ -182,7 +186,7 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
               className={`bg-background border border-border-100 rounded-lg shadow-lg p-6 m-3 ${sizeClasses} ${className}`}
               {...props}
             >
-              <p className="pb-3 text-xl font-semibold">{title}</p>
+              <h2 className="pb-3 text-xl font-semibold">{title}</h2>
               <p className="text-text-700 text-sm">{description}</p>
 
               <div className="flex flex-row items-center justify-end pt-4 gap-3">

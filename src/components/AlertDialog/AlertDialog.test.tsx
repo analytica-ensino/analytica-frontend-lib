@@ -25,7 +25,7 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       expect(
-        screen.getByText('Open Dialog').closest('button')
+        screen.getByText('Open Dialog').closest('[role="button"]')
       ).toBeInTheDocument();
     });
 
@@ -33,7 +33,9 @@ describe('AlertDialog', () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} />);
 
-      const trigger = screen.getByText('Open Dialog').closest('button');
+      const trigger = screen
+        .getByText('Open Dialog')
+        .closest('[role="button"]');
       await user.click(trigger!);
 
       expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
@@ -45,7 +47,9 @@ describe('AlertDialog', () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} />);
 
-      const trigger = screen.getByText('Open Dialog').closest('button');
+      const trigger = screen
+        .getByText('Open Dialog')
+        .closest('[role="button"]');
       await user.click(trigger!);
 
       expect(
@@ -66,7 +70,9 @@ describe('AlertDialog', () => {
         />
       );
 
-      const trigger = screen.getByText('Open Dialog').closest('button');
+      const trigger = screen
+        .getByText('Open Dialog')
+        .closest('[role="button"]');
       await user.click(trigger!);
 
       expect(screen.getByRole('button', { name: 'Não' })).toBeInTheDocument();
@@ -80,7 +86,9 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
+      const trigger = screen
+        .getByText('Open Dialog')
+        .closest('[role="button"]');
       await user.click(trigger!);
 
       // Close dialog
@@ -97,7 +105,9 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
+      const trigger = screen
+        .getByText('Open Dialog')
+        .closest('[role="button"]');
       await user.click(trigger!);
 
       // Close dialog
