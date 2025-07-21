@@ -13,7 +13,7 @@ import {
   CardSupport,
   CardTopic,
   CardAudio,
-  TestCard,
+  CardTest,
 } from './Card';
 import { ChartBar, CheckCircle, Gear, Star } from 'phosphor-react';
 
@@ -2044,20 +2044,20 @@ describe('CardSimulado', () => {
   });
 });
 
-describe('TestCard', () => {
+describe('CardTest', () => {
   const baseProps = {
     title: 'Teste de Matemática',
     additionalInfo: 'Informação adicional',
   };
 
   it('should render with minimal props', () => {
-    render(<TestCard {...baseProps} />);
+    render(<CardTest {...baseProps} />);
     expect(screen.getByText('Teste de Matemática')).toBeInTheDocument();
     expect(screen.getByText('Informação adicional')).toBeInTheDocument();
   });
 
   it('should render with duration', () => {
-    render(<TestCard {...baseProps} duration="2h30min" />);
+    render(<CardTest {...baseProps} duration="2h30min" />);
     expect(screen.getByText('2h30min')).toBeInTheDocument();
     // Clock icon should be present
     const durationText = screen.getByText('2h30min');
@@ -2067,7 +2067,7 @@ describe('TestCard', () => {
   });
 
   it('should render without duration', () => {
-    render(<TestCard {...baseProps} />);
+    render(<CardTest {...baseProps} />);
     expect(screen.queryByText('2h30min')).not.toBeInTheDocument();
     // Clock icon should not be present when no duration
     const additionalInfoText = screen.getByText('Informação adicional');
@@ -2076,7 +2076,7 @@ describe('TestCard', () => {
   });
 
   it('should apply correct CSS classes', () => {
-    render(<TestCard {...baseProps} data-testid="test-card" />);
+    render(<CardTest {...baseProps} data-testid="test-card" />);
     const card = screen.getByTestId('test-card');
 
     // Base classes
@@ -2093,7 +2093,7 @@ describe('TestCard', () => {
   });
 
   it('should apply custom shadow correctly', () => {
-    render(<TestCard {...baseProps} data-testid="test-card" />);
+    render(<CardTest {...baseProps} data-testid="test-card" />);
     const card = screen.getByTestId('test-card');
     expect(card.className).toContain(
       'shadow-[0px_0px_10px_rgba(38,38,38,0.1)]'
@@ -2102,7 +2102,7 @@ describe('TestCard', () => {
 
   it('should handle click events', () => {
     const handleClick = jest.fn();
-    render(<TestCard {...baseProps} onClick={handleClick} />);
+    render(<CardTest {...baseProps} onClick={handleClick} />);
 
     const card = screen.getByText('Teste de Matemática').closest('div');
     fireEvent.click(card!);
@@ -2111,7 +2111,7 @@ describe('TestCard', () => {
 
   it('should apply custom className', () => {
     render(
-      <TestCard
+      <CardTest
         {...baseProps}
         className="custom-class"
         data-testid="test-card"
@@ -2125,7 +2125,7 @@ describe('TestCard', () => {
   it('should truncate long title text', () => {
     const longTitle =
       'Este é um título muito longo que deveria ser truncado quando não cabe no espaço disponível do card';
-    render(<TestCard {...baseProps} title={longTitle} />);
+    render(<CardTest {...baseProps} title={longTitle} />);
 
     const titleElement = screen.getByText(longTitle);
     expect(titleElement.className).toContain('truncate');
@@ -2134,14 +2134,14 @@ describe('TestCard', () => {
   it('should truncate long additional info text', () => {
     const longInfo =
       'Esta é uma informação adicional muito longa que deveria ser truncada quando não cabe no espaço disponível';
-    render(<TestCard {...baseProps} additionalInfo={longInfo} />);
+    render(<CardTest {...baseProps} additionalInfo={longInfo} />);
 
     const infoElement = screen.getByText(longInfo);
     expect(infoElement.className).toContain('truncate');
   });
 
   it('should have proper text styling', () => {
-    render(<TestCard {...baseProps} duration="2h30min" />);
+    render(<CardTest {...baseProps} duration="2h30min" />);
 
     const titleElement = screen.getByText('Teste de Matemática');
     expect(titleElement.className).toContain('text-text-950');
@@ -2161,7 +2161,7 @@ describe('TestCard', () => {
 
   it('should have proper layout structure', () => {
     render(
-      <TestCard {...baseProps} duration="2h30min" data-testid="test-card" />
+      <CardTest {...baseProps} duration="2h30min" data-testid="test-card" />
     );
 
     const card = screen.getByTestId('test-card');
@@ -2186,7 +2186,7 @@ describe('TestCard', () => {
   });
 
   it('should render Clock icon with correct attributes', () => {
-    render(<TestCard {...baseProps} duration="2h30min" />);
+    render(<CardTest {...baseProps} duration="2h30min" />);
 
     const durationText = screen.getByText('2h30min');
     const clockIcon = durationText.previousElementSibling;
@@ -2198,7 +2198,7 @@ describe('TestCard', () => {
 
   it('should forward extra HTML attributes', () => {
     render(
-      <TestCard
+      <CardTest
         {...baseProps}
         data-testid="custom-test-card"
         aria-label="Test Card"
@@ -2213,14 +2213,14 @@ describe('TestCard', () => {
 
   it('should forward ref correctly', () => {
     const ref = jest.fn();
-    render(<TestCard {...baseProps} ref={ref} />);
+    render(<CardTest {...baseProps} ref={ref} />);
 
     expect(ref).toHaveBeenCalled();
   });
 
   it('should handle keyboard events', () => {
     const handleClick = jest.fn();
-    render(<TestCard {...baseProps} onClick={handleClick} />);
+    render(<CardTest {...baseProps} onClick={handleClick} />);
 
     const card = screen.getByText('Teste de Matemática').closest('div');
     fireEvent.keyDown(card!, { key: 'Enter' });
@@ -2229,7 +2229,7 @@ describe('TestCard', () => {
   });
 
   it('should maintain proper spacing between elements', () => {
-    render(<TestCard {...baseProps} duration="2h30min" />);
+    render(<CardTest {...baseProps} duration="2h30min" />);
 
     const durationContainer = screen.getByText('2h30min').closest('div');
     expect(durationContainer?.className).toContain('flex');
@@ -2249,7 +2249,7 @@ describe('TestCard', () => {
 
     durations.forEach((duration) => {
       const { unmount } = render(
-        <TestCard {...baseProps} duration={duration} />
+        <CardTest {...baseProps} duration={duration} />
       );
 
       expect(screen.getByText(duration)).toBeInTheDocument();
@@ -2263,7 +2263,7 @@ describe('TestCard', () => {
 
   it('should handle empty strings gracefully', () => {
     render(
-      <TestCard
+      <CardTest
         title=""
         additionalInfo=""
         duration=""
@@ -2280,12 +2280,12 @@ describe('TestCard', () => {
 
   it('should handle long text with proper responsive behavior', () => {
     const longTitle =
-      'Este é um título extremamente longo que testa o comportamento responsivo do componente TestCard quando o texto não cabe adequadamente';
+      'Este é um título extremamente longo que testa o comportamento responsivo do componente CardTest quando o texto não cabe adequadamente';
     const longInfo =
       'Esta é uma informação adicional extremamente longa que também testa o comportamento responsivo e de truncamento do componente';
 
     render(
-      <TestCard
+      <CardTest
         title={longTitle}
         additionalInfo={longInfo}
         duration="3h00min"
@@ -2308,7 +2308,7 @@ describe('TestCard', () => {
 
   it('should combine all class names correctly', () => {
     render(
-      <TestCard
+      <CardTest
         {...baseProps}
         duration="1h30"
         className="custom-class another-class hover:shadow-lg"
@@ -2333,7 +2333,7 @@ describe('TestCard', () => {
 
   it('should maintain accessibility features', () => {
     render(
-      <TestCard
+      <CardTest
         {...baseProps}
         duration="2h00"
         role="button"
@@ -2351,7 +2351,7 @@ describe('TestCard', () => {
 
   it('should render with all props and maintain structure', () => {
     render(
-      <TestCard
+      <CardTest
         title="Linguagens e Códigos, Ciências Humanas e Redação"
         duration="3h30min"
         additionalInfo="180 questões + redação"

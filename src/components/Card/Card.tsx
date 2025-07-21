@@ -1142,13 +1142,13 @@ const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
   }
 );
 
-interface TestCardProps extends HTMLAttributes<HTMLDivElement> {
+interface CardTestProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   duration?: string;
   additionalInfo: string;
 }
 
-const TestCard = forwardRef<HTMLDivElement, TestCardProps>(
+const CardTest = forwardRef<HTMLDivElement, CardTestProps>(
   ({ title, duration, additionalInfo, className = '', ...props }, ref) => {
     return (
       <div
@@ -1205,5 +1205,5 @@ export {
   CardForum,
   CardAudio,
   CardSimulado,
-  TestCard,
+  CardTest,
 };

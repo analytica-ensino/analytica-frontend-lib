@@ -13,7 +13,7 @@ import {
   CardStatus,
   CardSupport,
   CardTopic,
-  TestCard,
+  CardTest,
 } from './Card';
 import Badge from '../Badge/Badge';
 
@@ -871,10 +871,10 @@ export const AllCardComponentsShowcase: Story = () => {
           </p>
         </div>
 
-        {/* TestCard */}
+        {/* CardTest */}
         <div className="space-y-6">
           <h3 className="text-2xl font-bold text-text-900 border-b border-border-100 pb-2">
-            TestCard
+            CardTest
           </h3>
 
           {/* Exemplo com texto longo para mostrar truncate */}
@@ -884,7 +884,7 @@ export const AllCardComponentsShowcase: Story = () => {
               Exemplo com Texto Longo (Truncate)
             </h4>
             <div className="max-w-md">
-              <TestCard
+              <CardTest
                 title="Este é um título de teste muito longo que deve ser truncado quando não cabe no espaço disponível do card"
                 duration="0h00"
                 additionalInfo="Informação adicional muito longa que também será truncada adequadamente"
@@ -898,7 +898,7 @@ export const AllCardComponentsShowcase: Story = () => {
               <h4 className="text-lg font-semibold text-text-900 mb-4">
                 Com Duração
               </h4>
-              <TestCard
+              <CardTest
                 title="Linguagens e Códigos, Ciências Humanas e Redação"
                 duration="0h00"
                 additionalInfo="Additional info"
@@ -910,7 +910,7 @@ export const AllCardComponentsShowcase: Story = () => {
               <h4 className="text-lg font-semibold text-text-900 mb-4">
                 Sem Duração
               </h4>
-              <TestCard
+              <CardTest
                 title="Ciências da Natureza e Matemática"
                 additionalInfo="Additional info"
               />
@@ -924,7 +924,7 @@ export const AllCardComponentsShowcase: Story = () => {
 
             <div className="space-y-4">
               <div className="max-w-sm">
-                <TestCard
+                <CardTest
                   title="Teste Pequeno"
                   duration="1h30"
                   additionalInfo="Info curta"
@@ -932,7 +932,7 @@ export const AllCardComponentsShowcase: Story = () => {
               </div>
 
               <div className="max-w-lg">
-                <TestCard
+                <CardTest
                   title="Teste Médio com mais informações"
                   duration="2h45"
                   additionalInfo="Informação adicional média"
@@ -940,7 +940,7 @@ export const AllCardComponentsShowcase: Story = () => {
               </div>
 
               <div className="max-w-4xl">
-                <TestCard
+                <CardTest
                   title="Teste Grande - Linguagens e Códigos, Ciências Humanas e Redação"
                   duration="3h00"
                   additionalInfo="Informação adicional muito longa que mostra como o componente se comporta em larguras maiores"
@@ -1073,16 +1073,16 @@ export const CardAudioInteractive: Story = () => {
   );
 };
 
-export const TestCardInteractive: Story = () => {
+export const CardTestInteractive: Story = () => {
   const handleClick = (title: string) => {
-    console.log(`TestCard clicado: ${title}`);
+    console.log(`CardTest clicado: ${title}`);
   };
 
   return (
     <div className="space-y-8">
       <div className="text-center">
         <h2 className="text-3xl font-bold text-text-900 mb-4">
-          TestCard - Interativo
+          CardTest - Interativo
         </h2>
         <p className="text-text-600 text-lg">
           Clique nos cards para ver a interação no console
@@ -1090,7 +1090,7 @@ export const TestCardInteractive: Story = () => {
       </div>
 
       <div className="max-w-2xl mx-auto space-y-4">
-        <TestCard
+        <CardTest
           title="Linguagens e Códigos, Ciências Humanas e Redação"
           duration="0h00"
           additionalInfo="Additional info"
@@ -1098,7 +1098,7 @@ export const TestCardInteractive: Story = () => {
           className="cursor-pointer hover:shadow-lg transition-shadow"
         />
 
-        <TestCard
+        <CardTest
           title="Ciências da Natureza e Matemática"
           duration="0h00"
           additionalInfo="Additional info"
@@ -1106,7 +1106,7 @@ export const TestCardInteractive: Story = () => {
           className="cursor-pointer hover:shadow-lg transition-shadow"
         />
 
-        <TestCard
+        <CardTest
           title="Matemática e suas Tecnologias"
           additionalInfo="Sem duração - informações adicionais"
           onClick={() => handleClick('Matemática')}
@@ -1116,7 +1116,7 @@ export const TestCardInteractive: Story = () => {
 
       <div className="max-w-2xl mx-auto bg-background-50 p-6 rounded-lg">
         <h3 className="text-xl font-semibold text-text-900 mb-2">
-          Recursos do TestCard
+          Recursos do CardTest
         </h3>
         <ul className="space-y-2 text-text-700">
           <li>• Campo de duração opcional com ícone de relógio</li>
