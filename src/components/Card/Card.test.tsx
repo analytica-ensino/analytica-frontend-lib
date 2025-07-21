@@ -2087,7 +2087,7 @@ describe('CardTest', () => {
     expect(card.className).toContain('gap-2');
     expect(card.className).toContain('w-full');
     expect(card.className).toContain('max-w-full');
-    expect(card.className).toContain('bg-white');
+    expect(card.className).toContain('bg-background');
     expect(card.className).toContain('rounded-xl');
     expect(card.className).toContain('isolate');
   });
@@ -2095,9 +2095,7 @@ describe('CardTest', () => {
   it('should apply custom shadow correctly', () => {
     render(<CardTest {...baseProps} data-testid="test-card" />);
     const card = screen.getByTestId('test-card');
-    expect(card.className).toContain(
-      'shadow-[0px_0px_10px_rgba(38,38,38,0.1)]'
-    );
+    expect(card.className).toContain('shadow-soft-shadow-1');
   });
 
   it('should render with questionsCount', () => {
@@ -2177,14 +2175,20 @@ describe('CardTest', () => {
   it('should truncate long additional info text', () => {
     const longInfo =
       'Esta é uma informação adicional muito longa que deveria ser truncada quando não cabe no espaço disponível';
-    render(<CardTest {...baseProps} additionalInfo={longInfo} />);
+    render(<CardTest title="Teste" additionalInfo={longInfo} />);
 
     const infoElement = screen.getByText(longInfo);
     expect(infoElement.className).toContain('truncate');
   });
 
   it('should have proper text styling', () => {
-    render(<CardTest {...baseProps} duration="2h30min" />);
+    render(
+      <CardTest
+        title="Teste de Matemática"
+        duration="2h30min"
+        additionalInfo="Informação adicional"
+      />
+    );
 
     const titleElement = screen.getByText('Teste de Matemática');
     expect(titleElement.className).toContain('text-text-950');
@@ -2199,7 +2203,7 @@ describe('CardTest', () => {
     const infoElement = screen.getByText('Informação adicional');
     expect(infoElement.className).toContain('text-text-700');
     expect(infoElement.className).toContain('leading-[21px]');
-    expect(infoElement.className).toContain('text-right');
+    expect(infoElement.className).toContain('flex-grow');
   });
 
   it('should have proper layout structure', () => {
@@ -2219,10 +2223,11 @@ describe('CardTest', () => {
     expect(innerContainer?.className).toContain('w-full');
     expect(innerContainer?.className).toContain('min-w-0');
 
-    const bottomSection = screen.getByText('2h30min').closest('div');
+    const durationDiv = screen.getByText('2h30min').closest('div');
+    const bottomSection = durationDiv?.parentElement;
     expect(bottomSection?.className).toContain('flex');
     expect(bottomSection?.className).toContain('flex-row');
-    expect(bottomSection?.className).toContain('justify-end');
+    expect(bottomSection?.className).toContain('justify-start');
     expect(bottomSection?.className).toContain('items-end');
     expect(bottomSection?.className).toContain('gap-4');
     expect(bottomSection?.className).toContain('w-full');
@@ -2272,7 +2277,13 @@ describe('CardTest', () => {
   });
 
   it('should maintain proper spacing between elements', () => {
-    render(<CardTest {...baseProps} duration="2h30min" />);
+    render(
+      <CardTest
+        title="Teste"
+        duration="2h30min"
+        additionalInfo="Informação adicional"
+      />
+    );
 
     const durationContainer = screen.getByText('2h30min').closest('div');
     expect(durationContainer?.className).toContain('flex');
@@ -2318,7 +2329,8 @@ describe('CardTest', () => {
     expect(card).toBeInTheDocument();
 
     // Empty duration should not render clock icon
-    expect(screen.queryByText('')).not.toBeInTheDocument();
+    const clockIcon = screen.queryByRole('img', { hidden: true });
+    expect(clockIcon).not.toBeInTheDocument();
   });
 
   it('should handle long text with proper responsive behavior', () => {
@@ -2365,7 +2377,7 @@ describe('CardTest', () => {
     expect(card.className).toContain('flex');
     expect(card.className).toContain('flex-row');
     expect(card.className).toContain('items-center');
-    expect(card.className).toContain('bg-white');
+    expect(card.className).toContain('bg-background');
     expect(card.className).toContain('rounded-xl');
 
     // Custom classes
@@ -2445,8 +2457,7 @@ describe('CardTest', () => {
       );
       const card = screen.getByTestId('card-test');
 
-      expect(card).toHaveAttribute('role', 'button');
-      expect(card).toHaveAttribute('tabIndex', '0');
+      expect(card.tagName).toBe('BUTTON');
       expect(card).toHaveAttribute('aria-pressed', 'false');
       expect(card.className).toContain('cursor-pointer');
     });
@@ -2564,17 +2575,11 @@ describe('CardTest', () => {
 
       const card = screen.getByTestId('card-test');
 
-      const enterEvent = new KeyboardEvent('keydown', { key: 'Enter' });
-      const spaceEvent = new KeyboardEvent('keydown', { key: ' ' });
+      fireEvent.keyDown(card, { key: 'Enter' });
+      fireEvent.keyDown(card, { key: ' ' });
 
-      jest.spyOn(enterEvent, 'preventDefault');
-      jest.spyOn(spaceEvent, 'preventDefault');
-
-      fireEvent(card, enterEvent);
-      fireEvent(card, spaceEvent);
-
-      expect(enterEvent.preventDefault).toHaveBeenCalled();
-      expect(spaceEvent.preventDefault).toHaveBeenCalled();
+      expect(onSelect).toHaveBeenCalledTimes(2);
+      expect(onSelect).toHaveBeenCalledWith(true);
     });
 
     it('should use custom onClick when onSelect is not provided', () => {
@@ -2635,7 +2640,8 @@ describe('CardTest', () => {
 
       let card = screen.getByTestId('card-test');
       expect(card).toHaveAttribute('aria-pressed', 'false');
-      expect(card.className).not.toContain('ring-2');
+      // Verificar que não tem as classes de seleção (apenas as de foco)
+      expect(card.className.match(/\bring-2\b/g) || []).toHaveLength(1);
 
       // Re-render with selected=true
       rerender(
@@ -2649,7 +2655,8 @@ describe('CardTest', () => {
 
       card = screen.getByTestId('card-test');
       expect(card).toHaveAttribute('aria-pressed', 'true');
-      expect(card.className).toContain('ring-2');
+      // Verificar que tem as classes de seleção + as de foco (2x ring-2)
+      expect(card.className.match(/\bring-2\b/g) || []).toHaveLength(2);
     });
 
     it('should combine selection classes with custom className', () => {
@@ -2669,6 +2676,30 @@ describe('CardTest', () => {
       expect(card.className).toContain('ring-primary-950');
       expect(card.className).toContain('cursor-pointer');
       expect(card.className).toContain('custom-class');
+    });
+
+    it('should render selectable card with duration and clock icon', () => {
+      const onSelect = jest.fn();
+      render(
+        <CardTest
+          title="Teste"
+          duration="2h30min"
+          questionsCount={30}
+          onSelect={onSelect}
+          data-testid="card-test"
+        />
+      );
+
+      const card = screen.getByTestId('card-test');
+      expect(card.tagName).toBe('BUTTON');
+
+      // Verificar se o ícone de clock está presente
+      const clockIcon = card.querySelector('svg');
+      expect(clockIcon).toBeInTheDocument();
+
+      // Verificar se o texto de duração está presente
+      expect(screen.getByText('2h30min')).toBeInTheDocument();
+      expect(screen.getByText('30 questões')).toBeInTheDocument();
     });
   });
 });
