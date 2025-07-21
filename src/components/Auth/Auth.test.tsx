@@ -392,6 +392,70 @@ describe('Auth Components', () => {
         expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
       });
     });
+
+    it('should redirect to root domain for subdomain', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      // Mock window.location with subdomain
+      const mockLocation = {
+        hostname: 'aluno.example.com',
+        protocol: 'https:',
+        port: '',
+        href: '',
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/protected']}>
+          <AuthProvider checkAuthFn={checkAuthFn}>
+            <ProtectedRoute redirectTo="/login">
+              <TestComponent />
+            </ProtectedRoute>
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(mockLocation.href).toBe('https://example.com');
+        expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should handle single domain fallback', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      // Mock window.location with single domain (not localhost)
+      const mockLocation = {
+        hostname: 'example',
+        protocol: 'https:',
+        port: '',
+        href: '',
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/protected']}>
+          <AuthProvider checkAuthFn={checkAuthFn}>
+            <ProtectedRoute redirectTo="/login">
+              <TestComponent />
+            </ProtectedRoute>
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(mockLocation.href).toBe('https://example');
+        expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
+      });
+    });
   });
 
   describe('PublicRoute', () => {

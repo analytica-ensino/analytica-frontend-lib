@@ -246,6 +246,10 @@ export const ProtectedRoute = ({
 
   // Verificar autenticação básica
   if (!isAuthenticated) {
+    if (typeof window !== 'undefined' && getRootDomain) {
+      window.location.href = getRootDomain();
+      return null;
+    }
     return <Navigate to={redirectTo} replace />;
   }
 
@@ -396,6 +400,22 @@ export const useRouteAuth = (fallbackPath = '/') => {
     isLoading,
     redirectToLogin,
   };
+};
+
+const getRootDomain = () => {
+  const { hostname, protocol, port } = window.location;
+  const portStr = port ? ':' + port : '';
+  if (hostname === 'localhost') {
+    return `${protocol}//${hostname}${portStr}`;
+  }
+  const parts = hostname.split('.');
+  // Se for subdomínio (ex: aluno.localhost ou aluno.meusite.com.br)
+  if (parts.length > 1) {
+    const base = parts.slice(1).join('.');
+    return `${protocol}//${base}${portStr}`;
+  }
+  // fallback
+  return `${protocol}//${hostname}${portStr}`;
 };
 
 export default {
