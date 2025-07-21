@@ -1142,6 +1142,55 @@ const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
   }
 );
 
+interface TestCardProps extends HTMLAttributes<HTMLDivElement> {
+  title: string;
+  duration?: string;
+  additionalInfo: string;
+}
+
+const TestCard = forwardRef<HTMLDivElement, TestCardProps>(
+  ({ title, duration, additionalInfo, className = '', ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={`flex flex-row items-center p-4 gap-2 w-full max-w-full bg-white shadow-[0px_0px_10px_rgba(38,38,38,0.1)] rounded-xl isolate ${className}`}
+        {...props}
+      >
+        <div className="flex flex-col justify-between gap-[27px] flex-grow min-h-[67px] w-full min-w-0">
+          <Text
+            size="md"
+            weight="bold"
+            className="text-text-950 tracking-[0.2px] leading-[19px] truncate"
+          >
+            {title}
+          </Text>
+
+          <div className="flex flex-row justify-end items-end gap-4 w-full">
+            {duration && (
+              <div className="flex flex-row items-center gap-1 flex-shrink-0">
+                <Clock size={16} className="text-text-700" />
+                <Text
+                  size="sm"
+                  className="text-text-700 leading-[21px] whitespace-nowrap"
+                >
+                  {duration}
+                </Text>
+              </div>
+            )}
+
+            <Text
+              size="sm"
+              className="text-text-700 leading-[21px] flex-grow text-right truncate min-w-0"
+            >
+              {additionalInfo}
+            </Text>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
 export {
   CardBase,
   CardActivitiesResults,
@@ -1156,4 +1205,5 @@ export {
   CardForum,
   CardAudio,
   CardSimulado,
+  TestCard,
 };

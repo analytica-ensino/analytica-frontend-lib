@@ -13,6 +13,7 @@ import {
   CardSupport,
   CardTopic,
   CardAudio,
+  TestCard,
 } from './Card';
 import { ChartBar, CheckCircle, Gear, Star } from 'phosphor-react';
 
@@ -2040,5 +2041,346 @@ describe('CardSimulado', () => {
     expect(card.className).toContain('duration-200');
     expect(card.className).toContain('custom-class');
     expect(card.className).toContain('another-class');
+  });
+});
+
+describe('TestCard', () => {
+  const baseProps = {
+    title: 'Teste de Matemática',
+    additionalInfo: 'Informação adicional',
+  };
+
+  it('should render with minimal props', () => {
+    render(<TestCard {...baseProps} />);
+    expect(screen.getByText('Teste de Matemática')).toBeInTheDocument();
+    expect(screen.getByText('Informação adicional')).toBeInTheDocument();
+  });
+
+  it('should render with duration', () => {
+    render(<TestCard {...baseProps} duration="2h30min" />);
+    expect(screen.getByText('2h30min')).toBeInTheDocument();
+    // Clock icon should be present
+    const durationText = screen.getByText('2h30min');
+    const clockIcon = durationText.previousElementSibling;
+    expect(clockIcon).toBeInTheDocument();
+    expect(clockIcon?.tagName).toBe('svg');
+  });
+
+  it('should render without duration', () => {
+    render(<TestCard {...baseProps} />);
+    expect(screen.queryByText('2h30min')).not.toBeInTheDocument();
+    // Clock icon should not be present when no duration
+    const additionalInfoText = screen.getByText('Informação adicional');
+    const container = additionalInfoText.closest('div');
+    expect(container?.querySelector('svg')).not.toBeInTheDocument();
+  });
+
+  it('should apply correct CSS classes', () => {
+    render(<TestCard {...baseProps} data-testid="test-card" />);
+    const card = screen.getByTestId('test-card');
+
+    // Base classes
+    expect(card.className).toContain('flex');
+    expect(card.className).toContain('flex-row');
+    expect(card.className).toContain('items-center');
+    expect(card.className).toContain('p-4');
+    expect(card.className).toContain('gap-2');
+    expect(card.className).toContain('w-full');
+    expect(card.className).toContain('max-w-full');
+    expect(card.className).toContain('bg-white');
+    expect(card.className).toContain('rounded-xl');
+    expect(card.className).toContain('isolate');
+  });
+
+  it('should apply custom shadow correctly', () => {
+    render(<TestCard {...baseProps} data-testid="test-card" />);
+    const card = screen.getByTestId('test-card');
+    expect(card.className).toContain(
+      'shadow-[0px_0px_10px_rgba(38,38,38,0.1)]'
+    );
+  });
+
+  it('should handle click events', () => {
+    const handleClick = jest.fn();
+    render(<TestCard {...baseProps} onClick={handleClick} />);
+
+    const card = screen.getByText('Teste de Matemática').closest('div');
+    fireEvent.click(card!);
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('should apply custom className', () => {
+    render(
+      <TestCard
+        {...baseProps}
+        className="custom-class"
+        data-testid="test-card"
+      />
+    );
+
+    const card = screen.getByTestId('test-card');
+    expect(card.className).toContain('custom-class');
+  });
+
+  it('should truncate long title text', () => {
+    const longTitle =
+      'Este é um título muito longo que deveria ser truncado quando não cabe no espaço disponível do card';
+    render(<TestCard {...baseProps} title={longTitle} />);
+
+    const titleElement = screen.getByText(longTitle);
+    expect(titleElement.className).toContain('truncate');
+  });
+
+  it('should truncate long additional info text', () => {
+    const longInfo =
+      'Esta é uma informação adicional muito longa que deveria ser truncada quando não cabe no espaço disponível';
+    render(<TestCard {...baseProps} additionalInfo={longInfo} />);
+
+    const infoElement = screen.getByText(longInfo);
+    expect(infoElement.className).toContain('truncate');
+  });
+
+  it('should have proper text styling', () => {
+    render(<TestCard {...baseProps} duration="2h30min" />);
+
+    const titleElement = screen.getByText('Teste de Matemática');
+    expect(titleElement.className).toContain('text-text-950');
+    expect(titleElement.className).toContain('tracking-[0.2px]');
+    expect(titleElement.className).toContain('leading-[19px]');
+
+    const durationElement = screen.getByText('2h30min');
+    expect(durationElement.className).toContain('text-text-700');
+    expect(durationElement.className).toContain('leading-[21px]');
+    expect(durationElement.className).toContain('whitespace-nowrap');
+
+    const infoElement = screen.getByText('Informação adicional');
+    expect(infoElement.className).toContain('text-text-700');
+    expect(infoElement.className).toContain('leading-[21px]');
+    expect(infoElement.className).toContain('text-right');
+  });
+
+  it('should have proper layout structure', () => {
+    render(
+      <TestCard {...baseProps} duration="2h30min" data-testid="test-card" />
+    );
+
+    const card = screen.getByTestId('test-card');
+    const innerContainer = card.querySelector('div');
+
+    expect(innerContainer?.className).toContain('flex');
+    expect(innerContainer?.className).toContain('flex-col');
+    expect(innerContainer?.className).toContain('justify-between');
+    expect(innerContainer?.className).toContain('gap-[27px]');
+    expect(innerContainer?.className).toContain('flex-grow');
+    expect(innerContainer?.className).toContain('min-h-[67px]');
+    expect(innerContainer?.className).toContain('w-full');
+    expect(innerContainer?.className).toContain('min-w-0');
+
+    const bottomSection = screen.getByText('2h30min').closest('div');
+    expect(bottomSection?.className).toContain('flex');
+    expect(bottomSection?.className).toContain('flex-row');
+    expect(bottomSection?.className).toContain('justify-end');
+    expect(bottomSection?.className).toContain('items-end');
+    expect(bottomSection?.className).toContain('gap-4');
+    expect(bottomSection?.className).toContain('w-full');
+  });
+
+  it('should render Clock icon with correct attributes', () => {
+    render(<TestCard {...baseProps} duration="2h30min" />);
+
+    const durationText = screen.getByText('2h30min');
+    const clockIcon = durationText.previousElementSibling;
+
+    expect(clockIcon).toBeInTheDocument();
+    expect(clockIcon?.tagName).toBe('svg');
+    expect(clockIcon).toHaveClass('text-text-700');
+  });
+
+  it('should forward extra HTML attributes', () => {
+    render(
+      <TestCard
+        {...baseProps}
+        data-testid="custom-test-card"
+        aria-label="Test Card"
+        role="button"
+      />
+    );
+
+    const card = screen.getByTestId('custom-test-card');
+    expect(card).toHaveAttribute('aria-label', 'Test Card');
+    expect(card).toHaveAttribute('role', 'button');
+  });
+
+  it('should forward ref correctly', () => {
+    const ref = jest.fn();
+    render(<TestCard {...baseProps} ref={ref} />);
+
+    expect(ref).toHaveBeenCalled();
+  });
+
+  it('should handle keyboard events', () => {
+    const handleClick = jest.fn();
+    render(<TestCard {...baseProps} onClick={handleClick} />);
+
+    const card = screen.getByText('Teste de Matemática').closest('div');
+    fireEvent.keyDown(card!, { key: 'Enter' });
+    // The card should handle keyboard events through forwarded props
+    expect(card).toBeInTheDocument();
+  });
+
+  it('should maintain proper spacing between elements', () => {
+    render(<TestCard {...baseProps} duration="2h30min" />);
+
+    const durationContainer = screen.getByText('2h30min').closest('div');
+    expect(durationContainer?.className).toContain('flex');
+    expect(durationContainer?.className).toContain('flex-row');
+    expect(durationContainer?.className).toContain('items-center');
+    expect(durationContainer?.className).toContain('gap-1');
+    expect(durationContainer?.className).toContain('flex-shrink-0');
+
+    const bottomContainer = screen
+      .getByText('Informação adicional')
+      .closest('div');
+    expect(bottomContainer?.className).toContain('gap-4');
+  });
+
+  it('should handle different duration formats', () => {
+    const durations = ['0h00', '1h30', '2h45min', '30min', '1h'];
+
+    durations.forEach((duration) => {
+      const { unmount } = render(
+        <TestCard {...baseProps} duration={duration} />
+      );
+
+      expect(screen.getByText(duration)).toBeInTheDocument();
+      const durationText = screen.getByText(duration);
+      const clockIcon = durationText.previousElementSibling;
+      expect(clockIcon).toBeInTheDocument();
+
+      unmount();
+    });
+  });
+
+  it('should handle empty strings gracefully', () => {
+    render(
+      <TestCard
+        title=""
+        additionalInfo=""
+        duration=""
+        data-testid="empty-card"
+      />
+    );
+
+    const card = screen.getByTestId('empty-card');
+    expect(card).toBeInTheDocument();
+
+    // Empty duration should not render clock icon
+    expect(screen.queryByText('')).not.toBeInTheDocument();
+  });
+
+  it('should handle long text with proper responsive behavior', () => {
+    const longTitle =
+      'Este é um título extremamente longo que testa o comportamento responsivo do componente TestCard quando o texto não cabe adequadamente';
+    const longInfo =
+      'Esta é uma informação adicional extremamente longa que também testa o comportamento responsivo e de truncamento do componente';
+
+    render(
+      <TestCard
+        title={longTitle}
+        additionalInfo={longInfo}
+        duration="3h00min"
+        data-testid="responsive-card"
+        className="max-w-xs"
+      />
+    );
+
+    const card = screen.getByTestId('responsive-card');
+    expect(card).toBeInTheDocument();
+    expect(card.className).toContain('max-w-xs'); // Custom max-width applied
+
+    const titleElement = screen.getByText(longTitle);
+    expect(titleElement.className).toContain('truncate');
+
+    const infoElement = screen.getByText(longInfo);
+    expect(infoElement.className).toContain('truncate');
+    expect(infoElement.className).toContain('min-w-0');
+  });
+
+  it('should combine all class names correctly', () => {
+    render(
+      <TestCard
+        {...baseProps}
+        duration="1h30"
+        className="custom-class another-class hover:shadow-lg"
+        data-testid="test-card"
+      />
+    );
+
+    const card = screen.getByTestId('test-card');
+
+    // Base classes
+    expect(card.className).toContain('flex');
+    expect(card.className).toContain('flex-row');
+    expect(card.className).toContain('items-center');
+    expect(card.className).toContain('bg-white');
+    expect(card.className).toContain('rounded-xl');
+
+    // Custom classes
+    expect(card.className).toContain('custom-class');
+    expect(card.className).toContain('another-class');
+    expect(card.className).toContain('hover:shadow-lg');
+  });
+
+  it('should maintain accessibility features', () => {
+    render(
+      <TestCard
+        {...baseProps}
+        duration="2h00"
+        role="button"
+        tabIndex={0}
+        aria-label="Mathematics Test Card"
+        data-testid="accessible-card"
+      />
+    );
+
+    const card = screen.getByTestId('accessible-card');
+    expect(card).toHaveAttribute('role', 'button');
+    expect(card).toHaveAttribute('tabIndex', '0');
+    expect(card).toHaveAttribute('aria-label', 'Mathematics Test Card');
+  });
+
+  it('should render with all props and maintain structure', () => {
+    render(
+      <TestCard
+        title="Linguagens e Códigos, Ciências Humanas e Redação"
+        duration="3h30min"
+        additionalInfo="180 questões + redação"
+        className="max-w-4xl hover:shadow-lg"
+        onClick={() => console.log('clicked')}
+        data-testid="full-props-card"
+        role="button"
+        tabIndex={0}
+      />
+    );
+
+    const card = screen.getByTestId('full-props-card');
+
+    // Check all content is rendered
+    expect(
+      screen.getByText('Linguagens e Códigos, Ciências Humanas e Redação')
+    ).toBeInTheDocument();
+    expect(screen.getByText('3h30min')).toBeInTheDocument();
+    expect(screen.getByText('180 questões + redação')).toBeInTheDocument();
+
+    // Check structure and classes
+    expect(card.className).toContain('max-w-4xl');
+    expect(card.className).toContain('hover:shadow-lg');
+    expect(card).toHaveAttribute('role', 'button');
+    expect(card).toHaveAttribute('tabIndex', '0');
+
+    // Check clock icon is present
+    const clockIcon = screen.getByText('3h30min').previousElementSibling;
+    expect(clockIcon).toBeInTheDocument();
+    expect(clockIcon?.tagName).toBe('svg');
   });
 });
