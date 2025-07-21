@@ -2047,13 +2047,13 @@ describe('CardSimulado', () => {
 describe('CardTest', () => {
   const baseProps = {
     title: 'Teste de Matemática',
-    additionalInfo: 'Informação adicional',
+    questionsCount: 30,
   };
 
   it('should render with minimal props', () => {
     render(<CardTest {...baseProps} />);
     expect(screen.getByText('Teste de Matemática')).toBeInTheDocument();
-    expect(screen.getByText('Informação adicional')).toBeInTheDocument();
+    expect(screen.getByText('30 questões')).toBeInTheDocument();
   });
 
   it('should render with duration', () => {
@@ -2070,8 +2070,8 @@ describe('CardTest', () => {
     render(<CardTest {...baseProps} />);
     expect(screen.queryByText('2h30min')).not.toBeInTheDocument();
     // Clock icon should not be present when no duration
-    const additionalInfoText = screen.getByText('Informação adicional');
-    const container = additionalInfoText.closest('div');
+    const questionsText = screen.getByText('30 questões');
+    const container = questionsText.closest('div');
     expect(container?.querySelector('svg')).not.toBeInTheDocument();
   });
 
@@ -2098,6 +2098,49 @@ describe('CardTest', () => {
     expect(card.className).toContain(
       'shadow-[0px_0px_10px_rgba(38,38,38,0.1)]'
     );
+  });
+
+  it('should render with questionsCount', () => {
+    render(<CardTest title="Matemática" questionsCount={45} />);
+    expect(screen.getByText('45 questões')).toBeInTheDocument();
+  });
+
+  it('should prioritize questionsCount over additionalInfo', () => {
+    render(
+      <CardTest
+        title="Teste"
+        questionsCount={30}
+        additionalInfo="Esta informação deve ser ignorada"
+      />
+    );
+    expect(screen.getByText('30 questões')).toBeInTheDocument();
+    expect(
+      screen.queryByText('Esta informação deve ser ignorada')
+    ).not.toBeInTheDocument();
+  });
+
+  it('should use additionalInfo when questionsCount is not provided', () => {
+    render(
+      <CardTest title="Teste" additionalInfo="Informação personalizada" />
+    );
+    expect(screen.getByText('Informação personalizada')).toBeInTheDocument();
+  });
+
+  it('should handle questionsCount with different numbers', () => {
+    const { rerender } = render(<CardTest title="Teste" questionsCount={1} />);
+    expect(screen.getByText('1 questões')).toBeInTheDocument();
+
+    rerender(<CardTest title="Teste" questionsCount={180} />);
+    expect(screen.getByText('180 questões')).toBeInTheDocument();
+  });
+
+  it('should render empty info when neither questionsCount nor additionalInfo are provided', () => {
+    render(<CardTest title="Teste" />);
+    // Should not crash and should not show any info text
+    expect(screen.getByText('Teste')).toBeInTheDocument();
+    // The info container should exist but be empty
+    const card = screen.getByText('Teste').closest('[class*="flex"]');
+    expect(card).toBeInTheDocument();
   });
 
   it('should handle click events', () => {

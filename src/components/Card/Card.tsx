@@ -1146,7 +1146,8 @@ const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
 interface CardTestProps extends Omit<HTMLAttributes<HTMLElement>, 'onSelect'> {
   title: string;
   duration?: string;
-  additionalInfo: string;
+  questionsCount?: number;
+  additionalInfo?: string;
   selected?: boolean;
   onSelect?: (selected: boolean) => void;
 }
@@ -1156,6 +1157,7 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
     {
       title,
       duration,
+      questionsCount,
       additionalInfo,
       selected = false,
       onSelect,
@@ -1178,6 +1180,9 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
     };
 
     const isSelectable = !!onSelect;
+    const displayInfo = questionsCount
+      ? `${questionsCount} questões`
+      : additionalInfo || '';
     const baseClasses =
       'flex flex-row items-center p-4 gap-2 w-full max-w-full bg-white shadow-[0px_0px_10px_rgba(38,38,38,0.1)] rounded-xl isolate border-0 text-left';
     const interactiveClasses = isSelectable
@@ -1207,7 +1212,7 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
               {title}
             </Text>
 
-            <div className="flex flex-row justify-end items-end gap-4 w-full">
+            <div className="flex flex-row justify-start items-end gap-4 w-full">
               {duration && (
                 <div className="flex flex-row items-center gap-1 flex-shrink-0">
                   <Clock size={16} className="text-text-700" />
@@ -1220,8 +1225,11 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
                 </div>
               )}
 
-              <Text size="sm" className="text-text-700 leading-[21px] truncate">
-                {additionalInfo}
+              <Text
+                size="sm"
+                className="text-text-700 leading-[21px] flex-grow truncate"
+              >
+                {displayInfo}
               </Text>
             </div>
           </div>
@@ -1244,7 +1252,7 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
             {title}
           </Text>
 
-          <div className="flex flex-row justify-end items-end gap-4 w-full">
+          <div className="flex flex-row justify-start items-end gap-4 w-full">
             {duration && (
               <div className="flex flex-row items-center gap-1 flex-shrink-0">
                 <Clock size={16} className="text-text-700" />
@@ -1259,9 +1267,9 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
 
             <Text
               size="sm"
-              className="text-text-700 leading-[21px] flex-grow text-right truncate min-w-0"
+              className="text-text-700 leading-[21px] flex-grow truncate min-w-0"
             >
-              {additionalInfo}
+              {displayInfo}
             </Text>
           </div>
         </div>

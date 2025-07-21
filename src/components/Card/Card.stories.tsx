@@ -902,7 +902,7 @@ export const AllCardComponentsShowcase: Story = () => {
               <CardTest
                 title="Linguagens e Códigos, Ciências Humanas e Redação"
                 duration="0h00"
-                additionalInfo="Additional info"
+                questionsCount={90}
               />
             </div>
 
@@ -913,7 +913,7 @@ export const AllCardComponentsShowcase: Story = () => {
               </h4>
               <CardTest
                 title="Ciências da Natureza e Matemática"
-                additionalInfo="Additional info"
+                questionsCount={90}
               />
             </div>
           </div>
@@ -928,7 +928,7 @@ export const AllCardComponentsShowcase: Story = () => {
                 <CardTest
                   title="Teste Pequeno"
                   duration="1h30"
-                  additionalInfo="Info curta"
+                  questionsCount={20}
                 />
               </div>
 
@@ -936,7 +936,7 @@ export const AllCardComponentsShowcase: Story = () => {
                 <CardTest
                   title="Teste Médio com mais informações"
                   duration="2h45"
-                  additionalInfo="Informação adicional média"
+                  questionsCount={60}
                 />
               </div>
 
@@ -944,7 +944,7 @@ export const AllCardComponentsShowcase: Story = () => {
                 <CardTest
                   title="Teste Grande - Linguagens e Códigos, Ciências Humanas e Redação"
                   duration="3h00"
-                  additionalInfo="Informação adicional muito longa que mostra como o componente se comporta em larguras maiores"
+                  questionsCount={180}
                 />
               </div>
             </div>
@@ -1106,7 +1106,7 @@ export const CardTestInteractive: Story = () => {
         <CardTest
           title="Linguagens e Códigos, Ciências Humanas e Redação"
           duration="0h00"
-          additionalInfo="Literatura, Gramática, História, Geografia"
+          questionsCount={90}
           selected={selectedCards.linguagens}
           onSelect={(selected) => handleCardSelect('linguagens', selected)}
           className="hover:shadow-lg transition-shadow"
@@ -1115,7 +1115,7 @@ export const CardTestInteractive: Story = () => {
         <CardTest
           title="Ciências da Natureza e Matemática"
           duration="0h00"
-          additionalInfo="Física, Química, Biologia, Matemática"
+          questionsCount={90}
           selected={selectedCards.ciencias}
           onSelect={(selected) => handleCardSelect('ciencias', selected)}
           className="hover:shadow-lg transition-shadow"
@@ -1123,7 +1123,7 @@ export const CardTestInteractive: Story = () => {
 
         <CardTest
           title="Matemática e suas Tecnologias"
-          additionalInfo="Álgebra, Geometria, Estatística"
+          questionsCount={45}
           selected={selectedCards.matematica}
           onSelect={(selected) => handleCardSelect('matematica', selected)}
           className="hover:shadow-lg transition-shadow"
