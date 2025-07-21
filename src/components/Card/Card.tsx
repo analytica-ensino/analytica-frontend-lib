@@ -7,6 +7,8 @@ import {
   useRef,
   MouseEvent,
   ChangeEvent,
+  KeyboardEvent,
+  Ref,
 } from 'react';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
@@ -1142,6 +1144,146 @@ const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
   }
 );
 
+interface CardTestProps extends Omit<HTMLAttributes<HTMLElement>, 'onSelect'> {
+  title: string;
+  duration?: string;
+  questionsCount?: number;
+  additionalInfo?: string;
+  selected?: boolean;
+  onSelect?: (selected: boolean) => void;
+}
+
+const CardTest = forwardRef<HTMLElement, CardTestProps>(
+  (
+    {
+      title,
+      duration,
+      questionsCount,
+      additionalInfo,
+      selected = false,
+      onSelect,
+      className = '',
+      ...props
+    },
+    ref
+  ) => {
+    const handleClick = () => {
+      if (onSelect) {
+        onSelect(!selected);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+      if ((event.key === 'Enter' || event.key === ' ') && onSelect) {
+        event.preventDefault();
+        onSelect(!selected);
+      }
+    };
+
+    const isSelectable = !!onSelect;
+    const getQuestionsText = (count: number) => {
+      const singular = count === 1 ? 'questão' : 'questões';
+      return `${count} ${singular}`;
+    };
+
+    const displayInfo = questionsCount
+      ? getQuestionsText(questionsCount)
+      : additionalInfo || '';
+    const baseClasses =
+      'flex flex-row items-center p-4 gap-2 w-full max-w-full bg-background shadow-soft-shadow-1 rounded-xl isolate border-0 text-left';
+    const interactiveClasses = isSelectable
+      ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-950 focus:ring-offset-2'
+      : '';
+    const selectedClasses = selected
+      ? 'ring-2 ring-primary-950 ring-offset-2'
+      : '';
+
+    if (isSelectable) {
+      return (
+        <button
+          ref={ref as Ref<HTMLButtonElement>}
+          type="button"
+          className={`${baseClasses} ${interactiveClasses} ${selectedClasses} ${className}`.trim()}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+          aria-pressed={selected}
+          {...(props as HTMLAttributes<HTMLButtonElement>)}
+        >
+          <div className="flex flex-col justify-between gap-[27px] flex-grow min-h-[67px] w-full min-w-0">
+            <Text
+              size="md"
+              weight="bold"
+              className="text-text-950 tracking-[0.2px] leading-[19px] truncate"
+            >
+              {title}
+            </Text>
+
+            <div className="flex flex-row justify-start items-end gap-4 w-full">
+              {duration && (
+                <div className="flex flex-row items-center gap-1 flex-shrink-0">
+                  <Clock size={16} className="text-text-700" />
+                  <Text
+                    size="sm"
+                    className="text-text-700 leading-[21px] whitespace-nowrap"
+                  >
+                    {duration}
+                  </Text>
+                </div>
+              )}
+
+              <Text
+                size="sm"
+                className="text-text-700 leading-[21px] flex-grow truncate"
+              >
+                {displayInfo}
+              </Text>
+            </div>
+          </div>
+        </button>
+      );
+    }
+
+    return (
+      <div
+        ref={ref as Ref<HTMLDivElement>}
+        className={`${baseClasses} ${className}`.trim()}
+        {...(props as HTMLAttributes<HTMLDivElement>)}
+      >
+        <div className="flex flex-col justify-between gap-[27px] flex-grow min-h-[67px] w-full min-w-0">
+          <Text
+            size="md"
+            weight="bold"
+            className="text-text-950 tracking-[0.2px] leading-[19px] truncate"
+          >
+            {title}
+          </Text>
+
+          <div className="flex flex-row justify-start items-end gap-4 w-full">
+            {duration && (
+              <div className="flex flex-row items-center gap-1 flex-shrink-0">
+                <Clock size={16} className="text-text-700" />
+                <Text
+                  size="sm"
+                  className="text-text-700 leading-[21px] whitespace-nowrap"
+                >
+                  {duration}
+                </Text>
+              </div>
+            )}
+
+            <Text
+              size="sm"
+              className="text-text-700 leading-[21px] flex-grow truncate min-w-0"
+            >
+              {displayInfo}
+            </Text>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
 export {
   CardBase,
   CardActivitiesResults,
@@ -1156,4 +1298,5 @@ export {
   CardForum,
   CardAudio,
   CardSimulado,
+  CardTest,
 };

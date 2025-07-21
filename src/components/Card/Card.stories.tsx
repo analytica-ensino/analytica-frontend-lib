@@ -1,4 +1,5 @@
 import type { Story } from '@ladle/react';
+import { useState } from 'react';
 import { Book, Key, Star } from 'phosphor-react';
 import {
   CardActivitiesResults,
@@ -13,6 +14,7 @@ import {
   CardStatus,
   CardSupport,
   CardTopic,
+  CardTest,
 } from './Card';
 import Badge from '../Badge/Badge';
 
@@ -858,6 +860,97 @@ export const AllCardComponentsShowcase: Story = () => {
           </div>
         </div>
       </section>
+
+      {/* ===== CARDS DE TESTE ===== */}
+      <section className="space-y-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-text-900 mb-2">
+            Cards de Teste
+          </h2>
+          <p className="text-text-600">
+            Componentes para exibir informações de testes e exames
+          </p>
+        </div>
+
+        {/* CardTest */}
+        <div className="space-y-6">
+          <h3 className="text-2xl font-bold text-text-900 border-b border-border-100 pb-2">
+            CardTest
+          </h3>
+
+          {/* Exemplo com texto longo para mostrar truncate */}
+          <div className="space-y-4">
+            <h4 className="text-xl font-semibold text-text-900 flex items-center gap-2">
+              <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
+              Exemplo com Texto Longo (Truncate)
+            </h4>
+            <div className="max-w-md">
+              <CardTest
+                title="Este é um título de teste muito longo que deve ser truncado quando não cabe no espaço disponível do card"
+                duration="0h00"
+                additionalInfo="Informação adicional muito longa que também será truncada adequadamente"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Card com duração */}
+            <div>
+              <h4 className="text-lg font-semibold text-text-900 mb-4">
+                Com Duração
+              </h4>
+              <CardTest
+                title="Linguagens e Códigos, Ciências Humanas e Redação"
+                duration="0h00"
+                questionsCount={90}
+              />
+            </div>
+
+            {/* Card sem duração */}
+            <div>
+              <h4 className="text-lg font-semibold text-text-900 mb-4">
+                Sem Duração
+              </h4>
+              <CardTest
+                title="Ciências da Natureza e Matemática"
+                questionsCount={90}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="text-lg font-semibold text-text-900">
+              Diferentes Larguras
+            </h4>
+
+            <div className="space-y-4">
+              <div className="max-w-sm">
+                <CardTest
+                  title="Teste Pequeno"
+                  duration="1h30"
+                  questionsCount={20}
+                />
+              </div>
+
+              <div className="max-w-lg">
+                <CardTest
+                  title="Teste Médio com mais informações"
+                  duration="2h45"
+                  questionsCount={60}
+                />
+              </div>
+
+              <div className="max-w-4xl">
+                <CardTest
+                  title="Teste Grande - Linguagens e Códigos, Ciências Humanas e Redação"
+                  duration="3h00"
+                  questionsCount={180}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
@@ -976,6 +1069,93 @@ export const CardAudioInteractive: Story = () => {
             onAudioTimeUpdate={handleTimeUpdate}
           />
         </div>
+      </div>
+    </div>
+  );
+};
+
+export const CardTestInteractive: Story = () => {
+  const [selectedCards, setSelectedCards] = useState({
+    linguagens: false,
+    ciencias: false,
+    matematica: false,
+  });
+
+  const handleCardSelect = (cardId: string, selected: boolean) => {
+    setSelectedCards((prev) => ({
+      ...prev,
+      [cardId]: selected,
+    }));
+    console.log(
+      `CardTest ${cardId} ${selected ? 'selecionado' : 'desselecionado'}`
+    );
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-text-900 mb-4">
+          CardTest - Interativo
+        </h2>
+        <p className="text-text-600 text-lg">
+          Cards com funcionalidade de seleção e outline visual
+        </p>
+      </div>
+
+      <div className="max-w-2xl mx-auto space-y-4">
+        <CardTest
+          title="Linguagens e Códigos, Ciências Humanas e Redação"
+          duration="0h00"
+          questionsCount={90}
+          selected={selectedCards.linguagens}
+          onSelect={(selected) => handleCardSelect('linguagens', selected)}
+          className="hover:shadow-lg transition-shadow"
+        />
+
+        <CardTest
+          title="Ciências da Natureza e Matemática"
+          duration="0h00"
+          questionsCount={90}
+          selected={selectedCards.ciencias}
+          onSelect={(selected) => handleCardSelect('ciencias', selected)}
+          className="hover:shadow-lg transition-shadow"
+        />
+
+        <CardTest
+          title="Matemática e suas Tecnologias"
+          questionsCount={45}
+          selected={selectedCards.matematica}
+          onSelect={(selected) => handleCardSelect('matematica', selected)}
+          className="hover:shadow-lg transition-shadow"
+        />
+      </div>
+
+      <div className="max-w-2xl mx-auto bg-background-50 p-6 rounded-lg">
+        <h3 className="text-xl font-semibold text-text-900 mb-2">
+          Estado atual da seleção
+        </h3>
+        <p className="text-text-700 mb-4">
+          Cards selecionados:{' '}
+          {Object.entries(selectedCards)
+            .filter(([, selected]) => selected)
+            .map(([cardId]) => cardId)
+            .join(', ') || 'Nenhum'}
+        </p>
+
+        <h3 className="text-xl font-semibold text-text-900 mb-2">
+          Recursos do CardTest
+        </h3>
+        <ul className="space-y-2 text-text-700">
+          <li>• Campo de duração opcional com ícone de relógio</li>
+          <li>• Textos longos são truncados automaticamente</li>
+          <li>• Layout responsivo e flexível</li>
+          <li>• Sombra suave conforme especificação</li>
+          <li>• Seleção visual com ring azul (outline)</li>
+          <li>• Suporte completo a teclado (Enter e Space)</li>
+          <li>• Estado focus visível para acessibilidade</li>
+          <li>• Callback onSelect para controle do estado</li>
+          <li>• Role de button e aria-pressed para screen readers</li>
+        </ul>
       </div>
     </div>
   );
