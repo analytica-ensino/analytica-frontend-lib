@@ -43,7 +43,6 @@ export const AllCardComponentsShowcase: Story = () => {
           Biblioteca completa de componentes Card para a plataforma Analytica
         </p>
       </div>
-
       {/* ===== CARDS COM PROGRESS BAR ===== */}
       <section className="space-y-8">
         <div className="text-center">

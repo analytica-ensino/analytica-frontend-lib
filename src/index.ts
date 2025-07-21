@@ -15,7 +15,7 @@ import NavButton from './components/NavButton/NavButton';
 import SelectionButton from './components/SelectionButton/SelectionButton';
 import Table from './components/Table/Table';
 import CheckBox from './components/CheckBox/CheckBox';
-import Radio from './components/Radio/Radio';
+import Radio, { RadioGroup, RadioGroupItem } from './components/Radio/Radio';
 import TextArea from './components/TextArea/TextArea';
 import Toast from './components/Toast/Toast';
 import Toaster from './components/Toast/utils/Toaster';
@@ -28,6 +28,9 @@ import ProgressCircle from './components/ProgressCircle/ProgressCircle';
 import Stepper from './components/Stepper/Stepper';
 import Calendar from './components/Calendar/Calendar';
 import Modal from './components/Modal/Modal';
+import { CardAccordation } from './components/Accordation/Accordation';
+import { AlternativesList } from './components/Alternative/Alternative';
+import { AlertDialog } from './components/AlertDialog/AlertDialog';
 
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
@@ -101,6 +104,8 @@ export { SelectionButton };
 export { Table };
 export { CheckBox };
 export { Radio };
+export { RadioGroup };
+export { RadioGroupItem };
 export { TextArea };
 export { Toast };
 export { Toaster };
@@ -113,6 +118,7 @@ export { ProgressCircle };
 export { Stepper };
 export { Calendar };
 export { Modal };
+export { AlertDialog };
 
 // Export DropdownMenu and its sub-components
 export { DropdownMenu };
@@ -164,3 +170,5 @@ export { useAuth };
 export { useAuthGuard };
 export { useRouteAuth };
 export { Tab };
+export { CardAccordation };
+export { AlternativesList };

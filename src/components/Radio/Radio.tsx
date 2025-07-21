@@ -1,11 +1,19 @@
 import {
   InputHTMLAttributes,
+  HTMLAttributes,
   ReactNode,
   forwardRef,
   useState,
   useId,
   ChangeEvent,
+  useEffect,
+  useRef,
+  Children,
+  cloneElement,
+  isValidElement,
+  ReactElement,
 } from 'react';
+import { create, StoreApi, useStore } from 'zustand';
 import Text from '../Text/Text';
 
 /**
@@ -182,6 +190,7 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     // Generate unique ID if not provided
     const generatedId = useId();
     const inputId = id ?? `radio-${generatedId}`;
+    const inputRef = useRef<HTMLInputElement>(null);
 
     // Handle controlled vs uncontrolled behavior
     const [internalChecked, setInternalChecked] = useState(defaultChecked);
@@ -194,6 +203,11 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
 
       if (!isControlled) {
         setInternalChecked(newChecked);
+      }
+
+      // Prevent automatic scroll when input changes
+      if (event.target) {
+        event.target.blur();
       }
 
       onChange?.(event);
@@ -270,7 +284,11 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
         >
           {/* Hidden native input for accessibility and form submission */}
           <input
-            ref={ref}
+            ref={(node) => {
+              inputRef.current = node;
+              if (typeof ref === 'function') ref(node);
+              else if (ref) ref.current = node;
+            }}
             type="radio"
             id={inputId}
             checked={checked}
@@ -279,14 +297,46 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
             value={value}
             onChange={handleChange}
             className="sr-only"
+            style={{
+              position: 'absolute',
+              left: '-9999px',
+              visibility: 'hidden',
+            }}
             {...props}
           />
 
           {/* Custom styled radio */}
-          <label htmlFor={inputId} className={radioClasses}>
+          <button
+            type="button"
+            className={radioClasses}
+            disabled={disabled}
+            aria-pressed={checked}
+            onClick={(e) => {
+              // Prevent scroll when radio is clicked
+              e.preventDefault();
+              if (!disabled) {
+                // Simulate click on hidden input
+                if (inputRef.current) {
+                  inputRef.current.click();
+                  // Remove focus to prevent scroll behavior
+                  inputRef.current.blur();
+                }
+              }
+            }}
+            onKeyDown={(e) => {
+              // Handle keyboard activation (Enter or Space)
+              if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
+                e.preventDefault();
+                if (inputRef.current) {
+                  inputRef.current.click();
+                  inputRef.current.blur();
+                }
+              }
+            }}
+          >
             {/* Show dot when checked */}
             {checked && <div className={dotClasses} />}
-          </label>
+          </button>
 
           {/* Label text */}
           {label && (
@@ -337,4 +387,271 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
 
 Radio.displayName = 'Radio';
 
+/**
+ * RadioGroup store interface
+ */
+interface RadioGroupStore {
+  value: string;
+  setValue: (value: string) => void;
+  onValueChange?: (value: string) => void;
+  disabled: boolean;
+  name: string;
+}
+
+type RadioGroupStoreApi = StoreApi<RadioGroupStore>;
+
+/**
+ * Create a new RadioGroup store
+ */
+const createRadioGroupStore = (
+  name: string,
+  defaultValue: string,
+  disabled: boolean,
+  onValueChange?: (value: string) => void
+): RadioGroupStoreApi =>
+  create<RadioGroupStore>((set, get) => ({
+    value: defaultValue,
+    setValue: (value) => {
+      if (!get().disabled) {
+        set({ value });
+        get().onValueChange?.(value);
+      }
+    },
+    onValueChange,
+    disabled,
+    name,
+  }));
+
+/**
+ * Hook to access RadioGroup store
+ */
+export const useRadioGroupStore = (externalStore?: RadioGroupStoreApi) => {
+  if (!externalStore) {
+    throw new Error('RadioGroupItem must be used within a RadioGroup');
+  }
+  return externalStore;
+};
+
+/**
+ * Inject store into RadioGroupItem children
+ */
+const injectStore = (
+  children: ReactNode,
+  store: RadioGroupStoreApi
+): ReactNode =>
+  Children.map(children, (child) => {
+    if (!isValidElement(child)) return child;
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    const typedChild = child as ReactElement<any>;
+    const shouldInject = typedChild.type === RadioGroupItem;
+    return cloneElement(typedChild, {
+      ...(shouldInject ? { store } : {}),
+      ...(typedChild.props.children
+        ? { children: injectStore(typedChild.props.children, store) }
+        : {}),
+    });
+  });
+
+/**
+ * RadioGroup component props interface
+ */
+export type RadioGroupProps = {
+  /** Current selected value */
+  value?: string;
+  /** Default selected value for uncontrolled usage */
+  defaultValue?: string;
+  /** Callback when selection changes */
+  onValueChange?: (value: string) => void;
+  /** Group name for all radios */
+  name?: string;
+  /** Disabled state for the entire group */
+  disabled?: boolean;
+  /** Additional CSS classes */
+  className?: string;
+  /** Children components */
+  children: ReactNode;
+} & Omit<HTMLAttributes<HTMLDivElement>, 'onChange' | 'defaultValue'>;
+
+/**
+ * RadioGroup component for flexible radio group composition
+ *
+ * Uses Zustand for state management with automatic store injection.
+ * Allows complete control over layout and styling by composing with RadioGroupItem.
+ *
+ * @example
+ * ```tsx
+ * <RadioGroup defaultValue="option1" onValueChange={setValue}>
+ *   <div className="flex items-center gap-3">
+ *     <RadioGroupItem value="option1" id="r1" />
+ *     <label htmlFor="r1">Option 1</label>
+ *   </div>
+ *   <div className="flex items-center gap-3">
+ *     <RadioGroupItem value="option2" id="r2" />
+ *     <label htmlFor="r2">Option 2</label>
+ *   </div>
+ * </RadioGroup>
+ * ```
+ */
+const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
+  (
+    {
+      value: propValue,
+      defaultValue = '',
+      onValueChange,
+      name: propName,
+      disabled = false,
+      className = '',
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    // Generate unique name if not provided
+    const generatedId = useId();
+    const name = propName || `radio-group-${generatedId}`;
+
+    // Create store reference
+    const storeRef = useRef<RadioGroupStoreApi>(null);
+    storeRef.current ??= createRadioGroupStore(
+      name,
+      defaultValue,
+      disabled,
+      onValueChange
+    );
+    const store = storeRef.current;
+
+    // Get store actions
+    const { setValue } = useStore(store, (s) => s);
+
+    // Call onValueChange with initial value
+    useEffect(() => {
+      const currentValue = store.getState().value;
+      if (currentValue && onValueChange) {
+        onValueChange(currentValue);
+      }
+    }, []); // Empty dependency array for mount only
+
+    // Handle controlled value changes
+    useEffect(() => {
+      if (propValue !== undefined) {
+        setValue(propValue);
+      }
+    }, [propValue, setValue]);
+
+    // Update disabled state
+    useEffect(() => {
+      store.setState({ disabled });
+    }, [disabled, store]);
+
+    return (
+      <div
+        ref={ref}
+        className={className}
+        role="radiogroup"
+        aria-label={name}
+        {...props}
+      >
+        {injectStore(children, store)}
+      </div>
+    );
+  }
+);
+
+RadioGroup.displayName = 'RadioGroup';
+
+/**
+ * RadioGroupItem component props interface
+ */
+export type RadioGroupItemProps = {
+  /** Value for this radio item */
+  value: string;
+  /** Store reference (automatically injected by RadioGroup) */
+  store?: RadioGroupStoreApi;
+  /** Disabled state for this specific item */
+  disabled?: boolean;
+  /** Size variant */
+  size?: RadioSize;
+  /** Visual state */
+  state?: RadioState;
+  /** Additional CSS classes */
+  className?: string;
+} & Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'type' | 'name' | 'value' | 'checked' | 'onChange' | 'size'
+>;
+
+/**
+ * RadioGroupItem component for use within RadioGroup
+ *
+ * A radio button without label that works within RadioGroup context.
+ * Provides just the radio input for maximum flexibility in composition.
+ *
+ * @example
+ * ```tsx
+ * <RadioGroup defaultValue="option1">
+ *   <div className="flex items-center gap-3">
+ *     <RadioGroupItem value="option1" id="r1" />
+ *     <label htmlFor="r1">Option 1</label>
+ *   </div>
+ * </RadioGroup>
+ * ```
+ */
+const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
+  (
+    {
+      value,
+      store: externalStore,
+      disabled: itemDisabled,
+      size = 'medium',
+      state = 'default',
+      className = '',
+      id,
+      ...props
+    },
+    ref
+  ) => {
+    // Get store and state
+    const store = useRadioGroupStore(externalStore);
+    const {
+      value: groupValue,
+      setValue,
+      disabled: groupDisabled,
+      name,
+    } = useStore(store);
+
+    // Generate unique ID if not provided
+    const generatedId = useId();
+    const inputId = id ?? `radio-item-${generatedId}`;
+
+    // Determine states
+    const isChecked = groupValue === value;
+    const isDisabled = groupDisabled || itemDisabled;
+    const currentState = isDisabled ? 'disabled' : state;
+
+    // Use standard Radio component for consistency and simplicity
+    return (
+      <Radio
+        ref={ref}
+        id={inputId}
+        name={name}
+        value={value}
+        checked={isChecked}
+        disabled={isDisabled}
+        size={size}
+        state={currentState}
+        className={className}
+        onChange={(e) => {
+          if (e.target.checked && !isDisabled) {
+            setValue(value);
+          }
+        }}
+        {...props}
+      />
+    );
+  }
+);
+
+RadioGroupItem.displayName = 'RadioGroupItem';
+
 export default Radio;
+export { RadioGroup, RadioGroupItem };

@@ -6,7 +6,7 @@ import { Bell } from 'phosphor-react';
  */
 const VARIANT_ACTION_CLASSES = {
   solid: {
-    error: 'bg-error text-error-700 focus-visible:outline-none',
+    error: 'bg-error-background text-error-700 focus-visible:outline-none',
     warning: 'bg-warning text-warning-800 focus-visible:outline-none',
     success: 'bg-success text-success-800 focus-visible:outline-none',
     info: 'bg-info text-info-800 focus-visible:outline-none',
