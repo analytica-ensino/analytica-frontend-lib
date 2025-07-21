@@ -1,11 +1,10 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AlertDialog } from './AlertDialog';
-import Button from '../Button/Button';
 
 describe('AlertDialog', () => {
   const defaultProps = {
-    trigger: <Button>Open Dialog</Button>,
+    trigger: <span>Open Dialog</span>,
     title: 'Test Dialog',
     description: 'Dialog content',
   };
@@ -25,7 +24,7 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       expect(
-        screen.getByText('Open Dialog').closest('[role="button"]')
+        screen.getByRole('button', { name: 'Open dialog' })
       ).toBeInTheDocument();
     });
 
@@ -33,10 +32,8 @@ describe('AlertDialog', () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} />);
 
-      const trigger = screen
-        .getByText('Open Dialog')
-        .closest('[role="button"]');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
       expect(screen.getByText('Test Dialog')).toBeInTheDocument();
@@ -47,10 +44,8 @@ describe('AlertDialog', () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} />);
 
-      const trigger = screen
-        .getByText('Open Dialog')
-        .closest('[role="button"]');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       expect(
         screen.getByRole('button', { name: 'Cancelar' })
@@ -70,10 +65,8 @@ describe('AlertDialog', () => {
         />
       );
 
-      const trigger = screen
-        .getByText('Open Dialog')
-        .closest('[role="button"]');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       expect(screen.getByRole('button', { name: 'Não' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Sim' })).toBeInTheDocument();
@@ -86,10 +79,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen
-        .getByText('Open Dialog')
-        .closest('[role="button"]');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       // Close dialog
       const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
@@ -105,10 +96,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen
-        .getByText('Open Dialog')
-        .closest('[role="button"]');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       // Close dialog
       const submitButton = screen.getByRole('button', { name: 'Deletar' });
@@ -124,8 +113,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       // Click on backdrop
       const backdrop = screen.getByTestId('alert-dialog-overlay');

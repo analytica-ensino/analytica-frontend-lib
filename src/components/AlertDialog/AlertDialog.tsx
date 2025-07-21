@@ -149,36 +149,27 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
     return (
       <>
         {/* Trigger */}
-        <span
+        <button
           onClick={handleTriggerClick}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleTriggerClick();
-            }
-          }}
           aria-label="Open dialog"
-          role="button"
-          tabIndex={0}
-          className="border-none bg-transparent p-0 cursor-pointer inline-block"
+          type="button"
+          className="border-none bg-transparent p-0 cursor-pointer"
         >
           {trigger}
-        </span>
+        </button>
 
         {/* Alert Dialog Overlay */}
         {isOpen && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={(event) => {
-              handleBackdropClick(event);
-            }}
-            onKeyDown={(event) => {
-              handleBackdropKeyDown(event);
-            }}
-            data-testid="alert-dialog-overlay"
-            aria-modal="true"
             role="dialog"
+            aria-modal="true"
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
             tabIndex={-1}
+            onClick={handleBackdropClick}
+            onKeyDown={handleBackdropKeyDown}
+            data-testid="alert-dialog-overlay"
           >
             {/* Alert Dialog Content */}
             <div
@@ -186,8 +177,18 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
               className={`bg-background border border-border-100 rounded-lg shadow-lg p-6 m-3 ${sizeClasses} ${className}`}
               {...props}
             >
-              <h2 className="pb-3 text-xl font-semibold">{title}</h2>
-              <p className="text-text-700 text-sm">{description}</p>
+              <h2
+                id="alert-dialog-title"
+                className="pb-3 text-xl font-semibold"
+              >
+                {title}
+              </h2>
+              <p
+                id="alert-dialog-description"
+                className="text-text-700 text-sm"
+              >
+                {description}
+              </p>
 
               <div className="flex flex-row items-center justify-end pt-4 gap-3">
                 <Button variant="outline" size="small" onClick={handleCancel}>
