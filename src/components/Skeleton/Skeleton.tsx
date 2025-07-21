@@ -1,4 +1,4 @@
-import React, { forwardRef, HTMLAttributes } from 'react';
+import { forwardRef, HTMLAttributes, CSSProperties } from 'react';
 
 interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
   variant?: 'text' | 'circular' | 'rectangular' | 'rounded';
@@ -47,7 +47,7 @@ const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(
     const variantClass = SKELETON_VARIANT_CLASSES[variant];
     const spacingClass = SPACING_CLASSES[spacing];
 
-    const style: React.CSSProperties = {
+    const style: CSSProperties = {
       width: typeof width === 'number' ? `${width}px` : width,
       height: typeof height === 'number' ? `${height}px` : height,
     };
