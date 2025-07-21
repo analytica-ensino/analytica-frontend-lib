@@ -1,4 +1,4 @@
-import React, {
+import {
   forwardRef,
   Fragment,
   HTMLAttributes,
@@ -8,6 +8,7 @@ import React, {
   MouseEvent,
   ChangeEvent,
   KeyboardEvent,
+  Ref,
 } from 'react';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
@@ -1200,7 +1201,7 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
     if (isSelectable) {
       return (
         <button
-          ref={ref as React.Ref<HTMLButtonElement>}
+          ref={ref as Ref<HTMLButtonElement>}
           type="button"
           className={`${baseClasses} ${interactiveClasses} ${selectedClasses} ${className}`.trim()}
           onClick={handleClick}
@@ -1244,7 +1245,7 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
 
     return (
       <div
-        ref={ref as React.Ref<HTMLDivElement>}
+        ref={ref as Ref<HTMLDivElement>}
         className={`${baseClasses} ${className}`.trim()}
         {...(props as HTMLAttributes<HTMLDivElement>)}
       >
