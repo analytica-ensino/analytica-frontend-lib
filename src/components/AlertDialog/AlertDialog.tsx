@@ -161,7 +161,7 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
         {/* Alert Dialog Overlay */}
         {isOpen && (
           <div
-            role="dialog"
+            role="presentation"
             aria-modal="true"
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
