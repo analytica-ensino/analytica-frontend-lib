@@ -2383,4 +2383,249 @@ describe('CardTest', () => {
     expect(clockIcon).toBeInTheDocument();
     expect(clockIcon?.tagName).toBe('svg');
   });
+
+  describe('Selection functionality', () => {
+    it('should render as non-selectable when onSelect is not provided', () => {
+      render(<CardTest {...baseProps} data-testid="card-test" />);
+      const card = screen.getByTestId('card-test');
+
+      expect(card).not.toHaveAttribute('role');
+      expect(card).not.toHaveAttribute('tabIndex');
+      expect(card).not.toHaveAttribute('aria-pressed');
+      expect(card.className).not.toContain('cursor-pointer');
+    });
+
+    it('should render as selectable when onSelect is provided', () => {
+      const onSelect = jest.fn();
+      render(
+        <CardTest {...baseProps} onSelect={onSelect} data-testid="card-test" />
+      );
+      const card = screen.getByTestId('card-test');
+
+      expect(card).toHaveAttribute('role', 'button');
+      expect(card).toHaveAttribute('tabIndex', '0');
+      expect(card).toHaveAttribute('aria-pressed', 'false');
+      expect(card.className).toContain('cursor-pointer');
+    });
+
+    it('should show selected state when selected=true', () => {
+      const onSelect = jest.fn();
+      render(
+        <CardTest
+          {...baseProps}
+          selected={true}
+          onSelect={onSelect}
+          data-testid="card-test"
+        />
+      );
+      const card = screen.getByTestId('card-test');
+
+      expect(card).toHaveAttribute('aria-pressed', 'true');
+      expect(card.className).toContain('ring-2');
+      expect(card.className).toContain('ring-primary-950');
+      expect(card.className).toContain('ring-offset-2');
+    });
+
+    it('should call onSelect with true when clicked and not selected', () => {
+      const onSelect = jest.fn();
+      render(
+        <CardTest
+          {...baseProps}
+          selected={false}
+          onSelect={onSelect}
+          data-testid="card-test"
+        />
+      );
+
+      const card = screen.getByTestId('card-test');
+      fireEvent.click(card);
+
+      expect(onSelect).toHaveBeenCalledWith(true);
+    });
+
+    it('should call onSelect with false when clicked and selected', () => {
+      const onSelect = jest.fn();
+      render(
+        <CardTest
+          {...baseProps}
+          selected={true}
+          onSelect={onSelect}
+          data-testid="card-test"
+        />
+      );
+
+      const card = screen.getByTestId('card-test');
+      fireEvent.click(card);
+
+      expect(onSelect).toHaveBeenCalledWith(false);
+    });
+
+    it('should call onSelect when Enter key is pressed', () => {
+      const onSelect = jest.fn();
+      render(
+        <CardTest
+          {...baseProps}
+          selected={false}
+          onSelect={onSelect}
+          data-testid="card-test"
+        />
+      );
+
+      const card = screen.getByTestId('card-test');
+      fireEvent.keyDown(card, { key: 'Enter' });
+
+      expect(onSelect).toHaveBeenCalledWith(true);
+    });
+
+    it('should call onSelect when Space key is pressed', () => {
+      const onSelect = jest.fn();
+      render(
+        <CardTest
+          {...baseProps}
+          selected={false}
+          onSelect={onSelect}
+          data-testid="card-test"
+        />
+      );
+
+      const card = screen.getByTestId('card-test');
+      fireEvent.keyDown(card, { key: ' ' });
+
+      expect(onSelect).toHaveBeenCalledWith(true);
+    });
+
+    it('should not call onSelect when other keys are pressed', () => {
+      const onSelect = jest.fn();
+      render(
+        <CardTest
+          {...baseProps}
+          selected={false}
+          onSelect={onSelect}
+          data-testid="card-test"
+        />
+      );
+
+      const card = screen.getByTestId('card-test');
+      fireEvent.keyDown(card, { key: 'Tab' });
+      fireEvent.keyDown(card, { key: 'Escape' });
+      fireEvent.keyDown(card, { key: 'ArrowUp' });
+
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('should prevent default behavior on Enter and Space key press', () => {
+      const onSelect = jest.fn();
+      render(
+        <CardTest {...baseProps} onSelect={onSelect} data-testid="card-test" />
+      );
+
+      const card = screen.getByTestId('card-test');
+
+      const enterEvent = new KeyboardEvent('keydown', { key: 'Enter' });
+      const spaceEvent = new KeyboardEvent('keydown', { key: ' ' });
+
+      jest.spyOn(enterEvent, 'preventDefault');
+      jest.spyOn(spaceEvent, 'preventDefault');
+
+      fireEvent(card, enterEvent);
+      fireEvent(card, spaceEvent);
+
+      expect(enterEvent.preventDefault).toHaveBeenCalled();
+      expect(spaceEvent.preventDefault).toHaveBeenCalled();
+    });
+
+    it('should use custom onClick when onSelect is not provided', () => {
+      const customOnClick = jest.fn();
+      render(
+        <CardTest
+          {...baseProps}
+          onClick={customOnClick}
+          data-testid="card-test"
+        />
+      );
+
+      const card = screen.getByTestId('card-test');
+      fireEvent.click(card);
+
+      expect(customOnClick).toHaveBeenCalled();
+    });
+
+    it('should use custom onKeyDown when onSelect is not provided', () => {
+      const customOnKeyDown = jest.fn();
+      render(
+        <CardTest
+          {...baseProps}
+          onKeyDown={customOnKeyDown}
+          data-testid="card-test"
+        />
+      );
+
+      const card = screen.getByTestId('card-test');
+      fireEvent.keyDown(card, { key: 'Enter' });
+
+      expect(customOnKeyDown).toHaveBeenCalled();
+    });
+
+    it('should apply focus styles when focused', () => {
+      const onSelect = jest.fn();
+      render(
+        <CardTest {...baseProps} onSelect={onSelect} data-testid="card-test" />
+      );
+
+      const card = screen.getByTestId('card-test');
+      expect(card.className).toContain('focus:outline-none');
+      expect(card.className).toContain('focus:ring-2');
+      expect(card.className).toContain('focus:ring-primary-950');
+      expect(card.className).toContain('focus:ring-offset-2');
+    });
+
+    it('should handle selection state changes correctly', () => {
+      const onSelect = jest.fn();
+      const { rerender } = render(
+        <CardTest
+          {...baseProps}
+          selected={false}
+          onSelect={onSelect}
+          data-testid="card-test"
+        />
+      );
+
+      let card = screen.getByTestId('card-test');
+      expect(card).toHaveAttribute('aria-pressed', 'false');
+      expect(card.className).not.toContain('ring-2');
+
+      // Re-render with selected=true
+      rerender(
+        <CardTest
+          {...baseProps}
+          selected={true}
+          onSelect={onSelect}
+          data-testid="card-test"
+        />
+      );
+
+      card = screen.getByTestId('card-test');
+      expect(card).toHaveAttribute('aria-pressed', 'true');
+      expect(card.className).toContain('ring-2');
+    });
+
+    it('should combine selection classes with custom className', () => {
+      const onSelect = jest.fn();
+      render(
+        <CardTest
+          {...baseProps}
+          selected={true}
+          onSelect={onSelect}
+          className="custom-class"
+          data-testid="card-test"
+        />
+      );
+
+      const card = screen.getByTestId('card-test');
+      expect(card.className).toContain('ring-2');
+      expect(card.className).toContain('ring-primary-950');
+      expect(card.className).toContain('cursor-pointer');
+      expect(card.className).toContain('custom-class');
+    });
+  });
 });

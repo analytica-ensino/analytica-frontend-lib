@@ -1,4 +1,4 @@
-import {
+import React, {
   forwardRef,
   Fragment,
   HTMLAttributes,
@@ -7,6 +7,7 @@ import {
   useRef,
   MouseEvent,
   ChangeEvent,
+  KeyboardEvent,
 } from 'react';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
@@ -1142,19 +1143,97 @@ const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
   }
 );
 
-interface CardTestProps extends HTMLAttributes<HTMLDivElement> {
+interface CardTestProps extends Omit<HTMLAttributes<HTMLElement>, 'onSelect'> {
   title: string;
   duration?: string;
   additionalInfo: string;
+  selected?: boolean;
+  onSelect?: (selected: boolean) => void;
 }
 
-const CardTest = forwardRef<HTMLDivElement, CardTestProps>(
-  ({ title, duration, additionalInfo, className = '', ...props }, ref) => {
+const CardTest = forwardRef<HTMLElement, CardTestProps>(
+  (
+    {
+      title,
+      duration,
+      additionalInfo,
+      selected = false,
+      onSelect,
+      className = '',
+      ...props
+    },
+    ref
+  ) => {
+    const handleClick = () => {
+      if (onSelect) {
+        onSelect(!selected);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+      if ((event.key === 'Enter' || event.key === ' ') && onSelect) {
+        event.preventDefault();
+        onSelect(!selected);
+      }
+    };
+
+    const isSelectable = !!onSelect;
+    const baseClasses =
+      'flex flex-row items-center p-4 gap-2 w-full max-w-full bg-white shadow-[0px_0px_10px_rgba(38,38,38,0.1)] rounded-xl isolate border-0 text-left';
+    const interactiveClasses = isSelectable
+      ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-950 focus:ring-offset-2'
+      : '';
+    const selectedClasses = selected
+      ? 'ring-2 ring-primary-950 ring-offset-2'
+      : '';
+
+    if (isSelectable) {
+      return (
+        <button
+          ref={ref as React.Ref<HTMLButtonElement>}
+          type="button"
+          className={`${baseClasses} ${interactiveClasses} ${selectedClasses} ${className}`}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+          aria-pressed={selected}
+          {...(props as HTMLAttributes<HTMLButtonElement>)}
+        >
+          <div className="flex flex-col justify-between gap-[27px] flex-grow min-h-[67px] w-full min-w-0">
+            <Text
+              size="md"
+              weight="bold"
+              className="text-text-950 tracking-[0.2px] leading-[19px] truncate"
+            >
+              {title}
+            </Text>
+
+            <div className="flex flex-row justify-end items-end gap-4 w-full">
+              {duration && (
+                <div className="flex flex-row items-center gap-1 flex-shrink-0">
+                  <Clock size={16} className="text-text-700" />
+                  <Text
+                    size="sm"
+                    className="text-text-700 leading-[21px] whitespace-nowrap"
+                  >
+                    {duration}
+                  </Text>
+                </div>
+              )}
+
+              <Text size="sm" className="text-text-700 leading-[21px] truncate">
+                {additionalInfo}
+              </Text>
+            </div>
+          </div>
+        </button>
+      );
+    }
+
     return (
       <div
-        ref={ref}
-        className={`flex flex-row items-center p-4 gap-2 w-full max-w-full bg-white shadow-[0px_0px_10px_rgba(38,38,38,0.1)] rounded-xl isolate ${className}`}
-        {...props}
+        ref={ref as React.Ref<HTMLDivElement>}
+        className={`${baseClasses} ${className}`}
+        {...(props as HTMLAttributes<HTMLDivElement>)}
       >
         <div className="flex flex-col justify-between gap-[27px] flex-grow min-h-[67px] w-full min-w-0">
           <Text
