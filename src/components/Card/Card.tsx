@@ -1180,8 +1180,13 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
     };
 
     const isSelectable = !!onSelect;
+    const getQuestionsText = (count: number) => {
+      const singular = count === 1 ? 'questão' : 'questões';
+      return `${count} ${singular}`;
+    };
+
     const displayInfo = questionsCount
-      ? `${questionsCount} questões`
+      ? getQuestionsText(questionsCount)
       : additionalInfo || '';
     const baseClasses =
       'flex flex-row items-center p-4 gap-2 w-full max-w-full bg-background shadow-soft-shadow-1 rounded-xl isolate border-0 text-left';
