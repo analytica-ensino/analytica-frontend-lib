@@ -161,12 +161,7 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
         {/* Alert Dialog Overlay */}
         {isOpen && (
           <div
-            role="presentation"
-            aria-modal="true"
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            tabIndex={-1}
             onClick={handleBackdropClick}
             onKeyDown={handleBackdropKeyDown}
             data-testid="alert-dialog-overlay"

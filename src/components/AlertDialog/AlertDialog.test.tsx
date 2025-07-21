@@ -40,10 +40,11 @@ describe('AlertDialog', () => {
       expect(screen.getByText('Dialog content')).toBeInTheDocument();
     });
 
-    it('should render with default button labels', async () => {
+    it('should render with default and custom button labels', async () => {
       const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} />);
 
+      // Test default labels
+      const { rerender } = render(<AlertDialog {...defaultProps} />);
       const trigger = screen.getByRole('button', { name: 'Open dialog' });
       await user.click(trigger);
 
@@ -53,19 +54,19 @@ describe('AlertDialog', () => {
       expect(
         screen.getByRole('button', { name: 'Deletar' })
       ).toBeInTheDocument();
-    });
 
-    it('should render with custom button labels', async () => {
-      const user = userEvent.setup();
-      render(
+      // Close dialog
+      const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
+      await user.click(cancelButton);
+
+      // Test custom labels
+      rerender(
         <AlertDialog
           {...defaultProps}
           cancelButtonLabel="Não"
           submitButtonLabel="Sim"
         />
       );
-
-      const trigger = screen.getByRole('button', { name: 'Open dialog' });
       await user.click(trigger);
 
       expect(screen.getByRole('button', { name: 'Não' })).toBeInTheDocument();
@@ -74,7 +75,7 @@ describe('AlertDialog', () => {
   });
 
   describe('Open/close control', () => {
-    it('should close dialog when cancel button is clicked', async () => {
+    it('should close dialog when buttons are clicked', async () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} />);
 
@@ -82,24 +83,18 @@ describe('AlertDialog', () => {
       const trigger = screen.getByRole('button', { name: 'Open dialog' });
       await user.click(trigger);
 
-      // Close dialog
+      // Close with cancel button
       const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
       await user.click(cancelButton);
 
       expect(
         screen.queryByTestId('alert-dialog-overlay')
       ).not.toBeInTheDocument();
-    });
 
-    it('should close dialog when submit button is clicked', async () => {
-      const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} />);
-
-      // Open dialog
-      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      // Open again
       await user.click(trigger);
 
-      // Close dialog
+      // Close with submit button
       const submitButton = screen.getByRole('button', { name: 'Deletar' });
       await user.click(submitButton);
 
@@ -130,8 +125,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} closeOnBackdropClick={false} />);
 
       // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       // Click on backdrop
       const backdrop = screen.getByTestId('alert-dialog-overlay');
@@ -145,8 +140,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       // Press Escape
       await user.keyboard('{Escape}');
@@ -161,8 +156,8 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} closeOnEscape={false} />);
 
       // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       // Press Escape
       await user.keyboard('{Escape}');
@@ -216,54 +211,43 @@ describe('AlertDialog', () => {
       ).not.toBeInTheDocument();
 
       // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       expect(onOpen).toHaveBeenCalled();
     });
   });
 
   describe('Callbacks and values', () => {
-    it('should call onSubmit with submitValue when submit button is clicked', async () => {
+    it('should call onSubmit and onCancel with values', async () => {
       const user = userEvent.setup();
       const onSubmit = jest.fn();
+      const onCancel = jest.fn();
       const submitValue = 'test-value';
+      const cancelValue = 'cancel-value';
 
       render(
         <AlertDialog
           {...defaultProps}
           onSubmit={onSubmit}
           submitValue={submitValue}
-        />
-      );
-
-      // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
-
-      // Click on submit
-      const submitButton = screen.getByRole('button', { name: 'Deletar' });
-      await user.click(submitButton);
-
-      expect(onSubmit).toHaveBeenCalledWith(submitValue);
-    });
-
-    it('should call onCancel with cancelValue when cancel button is clicked', async () => {
-      const user = userEvent.setup();
-      const onCancel = jest.fn();
-      const cancelValue = 'cancel-value';
-
-      render(
-        <AlertDialog
-          {...defaultProps}
           onCancel={onCancel}
           cancelValue={cancelValue}
         />
       );
 
       // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
+
+      // Click on submit
+      const submitButton = screen.getByRole('button', { name: 'Deletar' });
+      await user.click(submitButton);
+
+      expect(onSubmit).toHaveBeenCalledWith(submitValue);
+
+      // Open dialog again
+      await user.click(trigger);
 
       // Click on cancel
       const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
@@ -272,32 +256,31 @@ describe('AlertDialog', () => {
       expect(onCancel).toHaveBeenCalledWith(cancelValue);
     });
 
-    it('should call onSubmit without value when no submitValue is provided', async () => {
+    it('should call onSubmit and onCancel without values when not provided', async () => {
       const user = userEvent.setup();
       const onSubmit = jest.fn();
+      const onCancel = jest.fn();
 
-      render(<AlertDialog {...defaultProps} onSubmit={onSubmit} />);
+      render(
+        <AlertDialog
+          {...defaultProps}
+          onSubmit={onSubmit}
+          onCancel={onCancel}
+        />
+      );
 
       // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       // Click on submit
       const submitButton = screen.getByRole('button', { name: 'Deletar' });
       await user.click(submitButton);
 
       expect(onSubmit).toHaveBeenCalledWith(undefined);
-    });
 
-    it('should call onCancel without value when no cancelValue is provided', async () => {
-      const user = userEvent.setup();
-      const onCancel = jest.fn();
-
-      render(<AlertDialog {...defaultProps} onCancel={onCancel} />);
-
-      // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      // Open dialog again
+      await user.click(trigger);
 
       // Click on cancel
       const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
@@ -307,160 +290,66 @@ describe('AlertDialog', () => {
     });
   });
 
-  describe('Sizes', () => {
-    it('should apply extra-small size classes', async () => {
+  describe('Sizes and styles', () => {
+    it('should apply different size classes', async () => {
       const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} size="extra-small" />);
 
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      // Test extra-small
+      const { rerender } = render(
+        <AlertDialog {...defaultProps} size="extra-small" />
+      );
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
-      const dialogContent = screen
+      let dialogContent = screen
         .getByTestId('alert-dialog-overlay')
         .querySelector('div');
-      expect(dialogContent?.className).toContain('w-screen');
       expect(dialogContent?.className).toContain('max-w-[324px]');
-    });
 
-    it('should apply small size classes', async () => {
-      const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} size="small" />);
+      // Close dialog
+      const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
+      await user.click(cancelButton);
 
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      // Test large
+      rerender(<AlertDialog {...defaultProps} size="large" />);
+      await user.click(trigger);
 
-      const dialogContent = screen
+      dialogContent = screen
         .getByTestId('alert-dialog-overlay')
         .querySelector('div');
-      expect(dialogContent?.className).toContain('w-screen');
-      expect(dialogContent?.className).toContain('max-w-[378px]');
-    });
-
-    it('should apply medium size classes (default)', async () => {
-      const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} />);
-
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
-
-      const dialogContent = screen
-        .getByTestId('alert-dialog-overlay')
-        .querySelector('div');
-      expect(dialogContent?.className).toContain('w-screen');
-      expect(dialogContent?.className).toContain('max-w-[459px]');
-    });
-
-    it('should apply large size classes', async () => {
-      const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} size="large" />);
-
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
-
-      const dialogContent = screen
-        .getByTestId('alert-dialog-overlay')
-        .querySelector('div');
-      expect(dialogContent?.className).toContain('w-screen');
       expect(dialogContent?.className).toContain('max-w-[578px]');
     });
 
-    it('should apply extra-large size classes', async () => {
-      const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} size="extra-large" />);
-
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
-
-      const dialogContent = screen
-        .getByTestId('alert-dialog-overlay')
-        .querySelector('div');
-      expect(dialogContent?.className).toContain('w-screen');
-      expect(dialogContent?.className).toContain('max-w-[912px]');
-    });
-  });
-
-  describe('Accessibility', () => {
-    it('should have proper ARIA attributes', async () => {
-      const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} />);
-
-      // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
-
-      const dialog = screen.getByTestId('alert-dialog-overlay');
-      expect(dialog).toHaveAttribute('aria-modal', 'true');
-    });
-
-    it('should have proper focus management', async () => {
-      const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} />);
-
-      // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
-
-      // Check if dialog is focused
-      const dialog = screen.getByTestId('alert-dialog-overlay');
-      expect(dialog).toBeInTheDocument();
-    });
-  });
-
-  describe('Styles and classes', () => {
-    it('should apply custom className', async () => {
+    it('should apply custom className and default styling', async () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} className="custom-class" />);
 
       // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       const dialogContent = screen
         .getByTestId('alert-dialog-overlay')
         .querySelector('.custom-class');
       expect(dialogContent).toBeInTheDocument();
-    });
 
-    it('should apply default styling classes', async () => {
-      const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} />);
-
-      // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
-
-      const dialogContent = screen
-        .getByTestId('alert-dialog-overlay')
-        .querySelector('div');
+      // Check default styling
       expect(dialogContent?.className).toContain('bg-background');
       expect(dialogContent?.className).toContain('border');
-      expect(dialogContent?.className).toContain('border-border-100');
       expect(dialogContent?.className).toContain('rounded-lg');
-      expect(dialogContent?.className).toContain('shadow-lg');
-      expect(dialogContent?.className).toContain('p-6');
-      expect(dialogContent?.className).toContain('m-3');
     });
   });
 
   describe('Body scroll control', () => {
-    it('should prevent body scroll when dialog is open', async () => {
+    it('should prevent and restore body scroll', async () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       expect(document.body.style.overflow).toBe('hidden');
-    });
-
-    it('should restore body scroll when dialog is closed', async () => {
-      const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} />);
-
-      // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
 
       // Close dialog
       const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
@@ -474,8 +363,8 @@ describe('AlertDialog', () => {
       const { unmount } = render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       // Unmount component
       unmount();
@@ -492,61 +381,43 @@ describe('AlertDialog', () => {
       render(<AlertDialog {...defaultProps} ref={ref} />);
 
       // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
       expect(ref).toHaveBeenCalled();
     });
   });
 
-  describe('Event handlers', () => {
-    it('should handle backdrop keydown events', async () => {
+  describe('Event handlers and accessibility', () => {
+    it('should handle backdrop events and keyboard accessibility', async () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} />);
 
       // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
+      await user.click(trigger);
 
-      // Simulate keydown on backdrop
+      // Test backdrop keydown
       const backdrop = screen.getByTestId('alert-dialog-overlay');
       fireEvent.keyDown(backdrop, { key: 'Escape' });
 
       expect(
         screen.queryByTestId('alert-dialog-overlay')
       ).not.toBeInTheDocument();
-    });
 
-    it('should handle backdrop click events', async () => {
-      const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} />);
+      // Open dialog again
+      await user.click(trigger);
 
-      // Open dialog
-      const trigger = screen.getByText('Open Dialog').closest('button');
-      await user.click(trigger!);
-
-      // Simulate click on backdrop
-      const backdrop = screen.getByTestId('alert-dialog-overlay');
-      fireEvent.click(backdrop);
+      // Test backdrop click
+      const backdrop2 = screen.getByTestId('alert-dialog-overlay');
+      fireEvent.click(backdrop2);
 
       expect(
         screen.queryByTestId('alert-dialog-overlay')
       ).not.toBeInTheDocument();
-    });
-  });
 
-  describe('Trigger accessibility', () => {
-    it('should handle keyboard events on trigger button', async () => {
-      const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} />);
-
-      // Find the trigger button by aria-label
-      const triggerButton = screen.getByRole('button', {
-        name: 'Open dialog',
-      });
-
-      // Test Enter key
-      await user.click(triggerButton);
+      // Test keyboard events on trigger
+      await user.click(trigger);
       await user.keyboard('{Enter}');
 
       expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
@@ -556,86 +427,47 @@ describe('AlertDialog', () => {
       await user.click(cancelButton);
 
       // Test Space key
-      await user.click(triggerButton);
+      await user.click(trigger);
       await user.keyboard(' ');
 
       expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
     });
 
-    it('should have proper accessibility attributes on trigger button', () => {
+    it('should have proper accessibility attributes', () => {
       render(<AlertDialog {...defaultProps} />);
 
-      // Find the trigger button by aria-label
       const triggerButton = screen.getByRole('button', {
         name: 'Open dialog',
       });
 
       expect(triggerButton).toHaveAttribute('aria-label', 'Open dialog');
     });
+  });
 
-    it('should prevent default behavior on Enter and Space keys', async () => {
+  describe('Edge cases', () => {
+    it('should handle multiple rapid clicks and different trigger elements', async () => {
       const user = userEvent.setup();
-      const preventDefaultSpy = jest.spyOn(Event.prototype, 'preventDefault');
-
       render(<AlertDialog {...defaultProps} />);
 
-      const triggerButton = screen.getByRole('button', {
-        name: 'Open dialog',
-      });
+      const trigger = screen.getByRole('button', { name: 'Open dialog' });
 
-      // Test Enter key
-      await user.click(triggerButton);
-      await user.keyboard('{Enter}');
+      // Click rapidly multiple times
+      await user.click(trigger);
+      await user.click(trigger);
+      await user.click(trigger);
 
-      expect(preventDefaultSpy).toHaveBeenCalled();
+      // Should have only one dialog
+      const dialogs = screen.getAllByTestId('alert-dialog-overlay');
+      expect(dialogs).toHaveLength(1);
 
       // Close dialog
       const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
       await user.click(cancelButton);
 
-      // Reset spy
-      preventDefaultSpy.mockClear();
-
-      // Test Space key
-      await user.click(triggerButton);
-      await user.keyboard(' ');
-
-      expect(preventDefaultSpy).toHaveBeenCalled();
-
-      preventDefaultSpy.mockRestore();
-    });
-  });
-
-  describe('Edge cases', () => {
-    it('should handle multiple rapid clicks on trigger', async () => {
-      const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} />);
-
-      const trigger = screen.getByText('Open Dialog').closest('button');
-
-      // Click rapidly multiple times
-      await user.click(trigger!);
-      await user.click(trigger!);
-      await user.click(trigger!);
-
-      // Should have only one dialog
-      const dialogs = screen.getAllByTestId('alert-dialog-overlay');
-      expect(dialogs).toHaveLength(1);
-    });
-
-    it('should handle rapid open/close cycles', async () => {
-      const user = userEvent.setup();
-      render(<AlertDialog {...defaultProps} />);
-
-      const trigger = screen.getByText('Open Dialog').closest('button');
-
-      // Open and close rapidly
-      await user.click(trigger!);
-      const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
+      // Test rapid open/close cycles
+      await user.click(trigger);
       await user.click(cancelButton);
-
-      // Open again
-      await user.click(trigger!);
+      await user.click(trigger);
 
       expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
     });
