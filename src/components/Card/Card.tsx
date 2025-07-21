@@ -1184,7 +1184,7 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
       ? `${questionsCount} questões`
       : additionalInfo || '';
     const baseClasses =
-      'flex flex-row items-center p-4 gap-2 w-full max-w-full bg-white shadow-[0px_0px_10px_rgba(38,38,38,0.1)] rounded-xl isolate border-0 text-left';
+      'flex flex-row items-center p-4 gap-2 w-full max-w-full bg-background shadow-soft-shadow-1 rounded-xl isolate border-0 text-left';
     const interactiveClasses = isSelectable
       ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-950 focus:ring-offset-2'
       : '';
@@ -1197,7 +1197,7 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
         <button
           ref={ref as React.Ref<HTMLButtonElement>}
           type="button"
-          className={`${baseClasses} ${interactiveClasses} ${selectedClasses} ${className}`}
+          className={`${baseClasses} ${interactiveClasses} ${selectedClasses} ${className}`.trim()}
           onClick={handleClick}
           onKeyDown={handleKeyDown}
           aria-pressed={selected}
@@ -1240,7 +1240,7 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
     return (
       <div
         ref={ref as React.Ref<HTMLDivElement>}
-        className={`${baseClasses} ${className}`}
+        className={`${baseClasses} ${className}`.trim()}
         {...(props as HTMLAttributes<HTMLDivElement>)}
       >
         <div className="flex flex-col justify-between gap-[27px] flex-grow min-h-[67px] w-full min-w-0">
