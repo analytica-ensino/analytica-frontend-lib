@@ -2126,7 +2126,7 @@ describe('CardTest', () => {
 
   it('should handle questionsCount with different numbers', () => {
     const { rerender } = render(<CardTest title="Teste" questionsCount={1} />);
-    expect(screen.getByText('1 questões')).toBeInTheDocument();
+    expect(screen.getByText('1 questão')).toBeInTheDocument();
 
     rerender(<CardTest title="Teste" questionsCount={180} />);
     expect(screen.getByText('180 questões')).toBeInTheDocument();
