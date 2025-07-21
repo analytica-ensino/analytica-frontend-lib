@@ -149,7 +149,7 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
     return (
       <>
         {/* Trigger */}
-        <div
+        <button
           onClick={handleTriggerClick}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
@@ -157,23 +157,24 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
               handleTriggerClick();
             }
           }}
-          role="button"
-          tabIndex={0}
           aria-label="Open dialog"
+          className="border-none bg-transparent p-0 cursor-pointer"
         >
           {trigger}
-        </div>
+        </button>
 
         {/* Alert Dialog Overlay */}
         {isOpen && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={handleBackdropClick}
-            onKeyDown={handleBackdropKeyDown}
+            onClick={(event) => {
+              handleBackdropClick(event);
+            }}
+            onKeyDown={(event) => {
+              handleBackdropKeyDown(event);
+            }}
             data-testid="alert-dialog-overlay"
             aria-modal="true"
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
           >
             {/* Alert Dialog Content */}
             <div
