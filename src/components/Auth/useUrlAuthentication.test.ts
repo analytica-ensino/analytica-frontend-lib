@@ -158,4 +158,88 @@ describe('useUrlAuthentication', () => {
       });
     });
   });
+
+  it('deve lidar com response.data.data null sem quebrar', async () => {
+    mockApi.get.mockResolvedValue({
+      data: { data: null },
+    });
+    await act(async () => {
+      renderHook(
+        () =>
+          useUrlAuthentication({
+            setTokens: mockSetTokens,
+            setSessionInfo: mockSetSessionInfo,
+            setSelectedProfile: mockSetSelectedProfile,
+            api: mockApi,
+            endpoint: '/auth/session-info',
+            clearParamsFromURL: mockClearParams,
+          }),
+        { wrapper }
+      );
+    });
+    await waitFor(() => {
+      expect(mockSetTokens).toHaveBeenCalled();
+      expect(mockSetSessionInfo).toHaveBeenCalledWith(null);
+      // setSelectedProfile não deve ser chamado quando response.data.data é null
+      expect(mockSetSelectedProfile).not.toHaveBeenCalled();
+      expect(mockClearParams).toHaveBeenCalled();
+    });
+  });
+
+  it('deve lidar com response.data.data sem profileId sem quebrar', async () => {
+    mockApi.get.mockResolvedValue({
+      data: { data: { foo: 'bar' } }, // sem profileId
+    });
+    await act(async () => {
+      renderHook(
+        () =>
+          useUrlAuthentication({
+            setTokens: mockSetTokens,
+            setSessionInfo: mockSetSessionInfo,
+            setSelectedProfile: mockSetSelectedProfile,
+            api: mockApi,
+            endpoint: '/auth/session-info',
+            clearParamsFromURL: mockClearParams,
+          }),
+        { wrapper }
+      );
+    });
+    await waitFor(() => {
+      expect(mockSetTokens).toHaveBeenCalled();
+      expect(mockSetSessionInfo).toHaveBeenCalledWith({ foo: 'bar' });
+      // setSelectedProfile não deve ser chamado quando profileId não existe
+      expect(mockSetSelectedProfile).not.toHaveBeenCalled();
+      expect(mockClearParams).toHaveBeenCalled();
+    });
+  });
+
+  it('deve lidar com profileId null/undefined sem quebrar', async () => {
+    mockApi.get.mockResolvedValue({
+      data: { data: { profileId: null, foo: 'bar' } },
+    });
+    await act(async () => {
+      renderHook(
+        () =>
+          useUrlAuthentication({
+            setTokens: mockSetTokens,
+            setSessionInfo: mockSetSessionInfo,
+            setSelectedProfile: mockSetSelectedProfile,
+            api: mockApi,
+            endpoint: '/auth/session-info',
+            clearParamsFromURL: mockClearParams,
+          }),
+        { wrapper }
+      );
+    });
+    await waitFor(() => {
+      expect(mockSetTokens).toHaveBeenCalled();
+      expect(mockSetSessionInfo).toHaveBeenCalledWith({
+        profileId: null,
+        foo: 'bar',
+      });
+      // setSelectedProfile não deve ser chamado quando profileId é null
+      expect(mockSetSelectedProfile).not.toHaveBeenCalled();
+      expect(mockClearParams).toHaveBeenCalled();
+    });
+  });
 });

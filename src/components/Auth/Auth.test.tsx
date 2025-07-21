@@ -320,6 +320,21 @@ describe('Auth Components', () => {
   });
 
   describe('ProtectedRoute', () => {
+    let originalLocation: Location;
+
+    beforeEach(() => {
+      // Save original window.location
+      originalLocation = window.location;
+    });
+
+    afterEach(() => {
+      // Restore original window.location
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+        configurable: true,
+      });
+    });
     it('should render children when authenticated', async () => {
       const checkAuthFn = jest.fn().mockResolvedValue(true);
 
@@ -407,6 +422,7 @@ describe('Auth Components', () => {
       Object.defineProperty(window, 'location', {
         value: mockLocation,
         writable: true,
+        configurable: true,
       });
 
       render(
@@ -425,7 +441,7 @@ describe('Auth Components', () => {
       });
     });
 
-    it('should handle single domain fallback', async () => {
+    it('should not redirect for single domain when already on root', async () => {
       const checkAuthFn = jest.fn().mockResolvedValue(false);
 
       // Mock window.location with single domain (not localhost)
@@ -439,6 +455,7 @@ describe('Auth Components', () => {
       Object.defineProperty(window, 'location', {
         value: mockLocation,
         writable: true,
+        configurable: true,
       });
 
       render(
@@ -452,7 +469,240 @@ describe('Auth Components', () => {
       );
 
       await waitFor(() => {
-        expect(mockLocation.href).toBe('https://example');
+        // Should not set href because current location is same as root domain
+        expect(mockLocation.href).toBe('');
+        expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should handle localhost domain without redirecting to root domain', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      // Mock window.location with localhost
+      const mockLocation = {
+        hostname: 'localhost',
+        protocol: 'http:',
+        port: '3000',
+        href: '',
+        assign: jest.fn(),
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/protected']}>
+          <AuthProvider checkAuthFn={checkAuthFn}>
+            <ProtectedRoute redirectTo="/login">
+              <TestComponent />
+            </ProtectedRoute>
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        // Should not modify href for localhost
+        expect(mockLocation.href).toBe('');
+        expect(mockLocation.assign).not.toHaveBeenCalled();
+        expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should handle localhost subdomain without redirecting to root domain', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      // Mock window.location with localhost subdomain
+      const mockLocation = {
+        hostname: 'app.localhost',
+        protocol: 'http:',
+        port: '3000',
+        href: '',
+        assign: jest.fn(),
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/protected']}>
+          <AuthProvider checkAuthFn={checkAuthFn}>
+            <ProtectedRoute redirectTo="/login">
+              <TestComponent />
+            </ProtectedRoute>
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        // Should not modify href for localhost subdomain
+        expect(mockLocation.href).toBe('');
+        expect(mockLocation.assign).not.toHaveBeenCalled();
+        expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should handle authentication check error gracefully', async () => {
+      const checkAuthFn = jest
+        .fn()
+        .mockRejectedValue(new Error('Auth check failed'));
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      // Mock window.location
+      const mockLocation = {
+        hostname: 'example.com',
+        protocol: 'https:',
+        port: '',
+        href: '',
+        assign: jest.fn(),
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/protected']}>
+          <AuthProvider checkAuthFn={checkAuthFn}>
+            <ProtectedRoute redirectTo="/login">
+              <TestComponent />
+            </ProtectedRoute>
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(checkAuthFn).toHaveBeenCalled();
+        expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
+      });
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should verify window.location assignment is called with correct domain', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      // Mock window.location with a spy to track assignment
+      const mockLocation = {
+        hostname: 'subdomain.example.com',
+        protocol: 'https:',
+        port: '',
+        href: '',
+        _internalHref: '',
+      };
+
+      const hrefSetter = jest.fn();
+      Object.defineProperty(mockLocation, 'href', {
+        get: () => mockLocation._internalHref,
+        set: hrefSetter,
+      });
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/protected']}>
+          <AuthProvider checkAuthFn={checkAuthFn}>
+            <ProtectedRoute redirectTo="/login">
+              <TestComponent />
+            </ProtectedRoute>
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(hrefSetter).toHaveBeenCalledWith('https://example.com');
+        expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should not redirect for two-part domain (example.com)', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      // Mock window.location with standard two-part domain
+      const mockLocation = {
+        hostname: 'example.com',
+        protocol: 'https:',
+        port: '',
+        href: '',
+        _internalHref: '',
+      };
+
+      const hrefSetter = jest.fn();
+      Object.defineProperty(mockLocation, 'href', {
+        get: () => mockLocation._internalHref,
+        set: hrefSetter,
+      });
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/protected']}>
+          <AuthProvider checkAuthFn={checkAuthFn}>
+            <ProtectedRoute redirectTo="/login">
+              <TestComponent />
+            </ProtectedRoute>
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        // Should not redirect because example.com is already the root domain
+        expect(hrefSetter).not.toHaveBeenCalled();
+        expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should redirect multi-level subdomain to root domain', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      // Mock window.location with multi-level subdomain
+      const mockLocation = {
+        hostname: 'deep.subdomain.example.com',
+        protocol: 'https:',
+        port: '',
+        href: '',
+        _internalHref: '',
+      };
+
+      const hrefSetter = jest.fn();
+      Object.defineProperty(mockLocation, 'href', {
+        get: () => mockLocation._internalHref,
+        set: hrefSetter,
+      });
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/protected']}>
+          <AuthProvider checkAuthFn={checkAuthFn}>
+            <ProtectedRoute redirectTo="/login">
+              <TestComponent />
+            </ProtectedRoute>
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(hrefSetter).toHaveBeenCalledWith('https://example.com');
         expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
       });
     });

@@ -58,9 +58,22 @@ export function useUrlAuthentication<
           options.setSessionInfo(response.data.data as Session);
 
           if (options.setSelectedProfile) {
-            options.setSelectedProfile({
-              id: (response.data.data as Record<string, unknown>).profileId,
-            } as Profile);
+            // Validate response.data.data structure before accessing profileId
+            const responseData = response.data.data;
+            if (
+              responseData &&
+              typeof responseData === 'object' &&
+              'profileId' in responseData
+            ) {
+              const profileId = (responseData as Record<string, unknown>)
+                .profileId;
+              // Only call setSelectedProfile if profileId is valid
+              if (profileId !== null && profileId !== undefined) {
+                options.setSelectedProfile({
+                  id: profileId,
+                } as Profile);
+              }
+            }
           }
 
           options.clearParamsFromURL?.();

@@ -246,9 +246,14 @@ export const ProtectedRoute = ({
 
   // Verificar autenticação básica
   if (!isAuthenticated) {
-    if (typeof window !== 'undefined' && getRootDomain) {
-      window.location.href = getRootDomain();
-      return null;
+    if (typeof window !== 'undefined') {
+      const rootDomain = getRootDomain();
+      // Only redirect if the root domain is different from current location
+      const currentLocation = `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}`;
+      if (rootDomain !== currentLocation) {
+        window.location.href = rootDomain;
+        return null;
+      }
     }
     return <Navigate to={redirectTo} replace />;
   }
@@ -409,12 +414,13 @@ const getRootDomain = () => {
     return `${protocol}//${hostname}${portStr}`;
   }
   const parts = hostname.split('.');
-  // Se for subdomínio (ex: aluno.localhost ou aluno.meusite.com.br)
-  if (parts.length > 1) {
-    const base = parts.slice(1).join('.');
+  // Only treat as subdomain if there are 3+ parts (e.g., subdomain.example.com)
+  if (parts.length > 2) {
+    // Return the last 2 parts as the root domain (example.com)
+    const base = parts.slice(-2).join('.');
     return `${protocol}//${base}${portStr}`;
   }
-  // fallback
+  // For 2-part domains (example.com) or single domains, return as-is
   return `${protocol}//${hostname}${portStr}`;
 };
 
