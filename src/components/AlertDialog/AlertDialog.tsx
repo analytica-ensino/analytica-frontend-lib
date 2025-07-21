@@ -82,8 +82,7 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
     const [internalIsOpen, setInternalIsOpen] = useState(false);
 
     // Use controlled or uncontrolled state
-    const isOpen =
-      controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+    const isOpen = controlledIsOpen ?? internalIsOpen;
     const setIsOpen = (open: boolean) => {
       if (controlledIsOpen === undefined) {
         setInternalIsOpen(open);
@@ -160,6 +159,7 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
           }}
           role="button"
           tabIndex={0}
+          aria-label="Open dialog"
         >
           {trigger}
         </div>
@@ -170,7 +170,7 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
             onClick={handleBackdropClick}
             onKeyDown={handleBackdropKeyDown}
-            role="dialog"
+            data-testid="alert-dialog-overlay"
             aria-modal="true"
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"

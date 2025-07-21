@@ -36,7 +36,7 @@ describe('AlertDialog', () => {
       const trigger = screen.getByText('Open Dialog').closest('button');
       await user.click(trigger!);
 
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
       expect(screen.getByText('Test Dialog')).toBeInTheDocument();
       expect(screen.getByText('Dialog content')).toBeInTheDocument();
     });
@@ -87,7 +87,9 @@ describe('AlertDialog', () => {
       const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
       await user.click(cancelButton);
 
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('alert-dialog-overlay')
+      ).not.toBeInTheDocument();
     });
 
     it('should close dialog when submit button is clicked', async () => {
@@ -102,7 +104,9 @@ describe('AlertDialog', () => {
       const submitButton = screen.getByRole('button', { name: 'Deletar' });
       await user.click(submitButton);
 
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('alert-dialog-overlay')
+      ).not.toBeInTheDocument();
     });
 
     it('should close dialog when backdrop is clicked', async () => {
@@ -114,10 +118,12 @@ describe('AlertDialog', () => {
       await user.click(trigger!);
 
       // Click on backdrop
-      const backdrop = screen.getByRole('dialog');
+      const backdrop = screen.getByTestId('alert-dialog-overlay');
       await user.click(backdrop);
 
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('alert-dialog-overlay')
+      ).not.toBeInTheDocument();
     });
 
     it('should not close dialog when backdrop is clicked if closeOnBackdropClick is false', async () => {
@@ -129,10 +135,10 @@ describe('AlertDialog', () => {
       await user.click(trigger!);
 
       // Click on backdrop
-      const backdrop = screen.getByRole('dialog');
+      const backdrop = screen.getByTestId('alert-dialog-overlay');
       await user.click(backdrop);
 
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
     });
 
     it('should close dialog when Escape key is pressed', async () => {
@@ -146,7 +152,9 @@ describe('AlertDialog', () => {
       // Press Escape
       await user.keyboard('{Escape}');
 
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('alert-dialog-overlay')
+      ).not.toBeInTheDocument();
     });
 
     it('should not close dialog when Escape key is pressed if closeOnEscape is false', async () => {
@@ -160,7 +168,7 @@ describe('AlertDialog', () => {
       // Press Escape
       await user.keyboard('{Escape}');
 
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
     });
   });
 
@@ -180,7 +188,7 @@ describe('AlertDialog', () => {
       );
 
       // Dialog should be open
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
 
       // Close dialog
       const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
@@ -204,7 +212,9 @@ describe('AlertDialog', () => {
       );
 
       // Dialog should be closed
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('alert-dialog-overlay')
+      ).not.toBeInTheDocument();
 
       // Open dialog
       const trigger = screen.getByText('Open Dialog').closest('button');
@@ -306,7 +316,9 @@ describe('AlertDialog', () => {
       const trigger = screen.getByText('Open Dialog').closest('button');
       await user.click(trigger!);
 
-      const dialogContent = screen.getByRole('dialog').querySelector('div');
+      const dialogContent = screen
+        .getByTestId('alert-dialog-overlay')
+        .querySelector('div');
       expect(dialogContent?.className).toContain('w-screen');
       expect(dialogContent?.className).toContain('max-w-[324px]');
     });
@@ -318,7 +330,9 @@ describe('AlertDialog', () => {
       const trigger = screen.getByText('Open Dialog').closest('button');
       await user.click(trigger!);
 
-      const dialogContent = screen.getByRole('dialog').querySelector('div');
+      const dialogContent = screen
+        .getByTestId('alert-dialog-overlay')
+        .querySelector('div');
       expect(dialogContent?.className).toContain('w-screen');
       expect(dialogContent?.className).toContain('max-w-[378px]');
     });
@@ -330,7 +344,9 @@ describe('AlertDialog', () => {
       const trigger = screen.getByText('Open Dialog').closest('button');
       await user.click(trigger!);
 
-      const dialogContent = screen.getByRole('dialog').querySelector('div');
+      const dialogContent = screen
+        .getByTestId('alert-dialog-overlay')
+        .querySelector('div');
       expect(dialogContent?.className).toContain('w-screen');
       expect(dialogContent?.className).toContain('max-w-[459px]');
     });
@@ -342,7 +358,9 @@ describe('AlertDialog', () => {
       const trigger = screen.getByText('Open Dialog').closest('button');
       await user.click(trigger!);
 
-      const dialogContent = screen.getByRole('dialog').querySelector('div');
+      const dialogContent = screen
+        .getByTestId('alert-dialog-overlay')
+        .querySelector('div');
       expect(dialogContent?.className).toContain('w-screen');
       expect(dialogContent?.className).toContain('max-w-[578px]');
     });
@@ -354,7 +372,9 @@ describe('AlertDialog', () => {
       const trigger = screen.getByText('Open Dialog').closest('button');
       await user.click(trigger!);
 
-      const dialogContent = screen.getByRole('dialog').querySelector('div');
+      const dialogContent = screen
+        .getByTestId('alert-dialog-overlay')
+        .querySelector('div');
       expect(dialogContent?.className).toContain('w-screen');
       expect(dialogContent?.className).toContain('max-w-[912px]');
     });
@@ -369,7 +389,7 @@ describe('AlertDialog', () => {
       const trigger = screen.getByText('Open Dialog').closest('button');
       await user.click(trigger!);
 
-      const dialog = screen.getByRole('dialog');
+      const dialog = screen.getByTestId('alert-dialog-overlay');
       expect(dialog).toHaveAttribute('aria-modal', 'true');
       expect(dialog).toHaveAttribute('aria-labelledby', 'alert-dialog-title');
       expect(dialog).toHaveAttribute(
@@ -387,7 +407,7 @@ describe('AlertDialog', () => {
       await user.click(trigger!);
 
       // Check if dialog is focused
-      const dialog = screen.getByRole('dialog');
+      const dialog = screen.getByTestId('alert-dialog-overlay');
       expect(dialog).toBeInTheDocument();
     });
   });
@@ -402,7 +422,7 @@ describe('AlertDialog', () => {
       await user.click(trigger!);
 
       const dialogContent = screen
-        .getByRole('dialog')
+        .getByTestId('alert-dialog-overlay')
         .querySelector('.custom-class');
       expect(dialogContent).toBeInTheDocument();
     });
@@ -415,7 +435,9 @@ describe('AlertDialog', () => {
       const trigger = screen.getByText('Open Dialog').closest('button');
       await user.click(trigger!);
 
-      const dialogContent = screen.getByRole('dialog').querySelector('div');
+      const dialogContent = screen
+        .getByTestId('alert-dialog-overlay')
+        .querySelector('div');
       expect(dialogContent?.className).toContain('bg-background');
       expect(dialogContent?.className).toContain('border');
       expect(dialogContent?.className).toContain('border-border-100');
@@ -493,10 +515,12 @@ describe('AlertDialog', () => {
       await user.click(trigger!);
 
       // Simulate keydown on backdrop
-      const backdrop = screen.getByRole('dialog');
+      const backdrop = screen.getByTestId('alert-dialog-overlay');
       fireEvent.keyDown(backdrop, { key: 'Escape' });
 
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('alert-dialog-overlay')
+      ).not.toBeInTheDocument();
     });
 
     it('should handle backdrop click events', async () => {
@@ -508,10 +532,12 @@ describe('AlertDialog', () => {
       await user.click(trigger!);
 
       // Simulate click on backdrop
-      const backdrop = screen.getByRole('dialog');
+      const backdrop = screen.getByTestId('alert-dialog-overlay');
       fireEvent.click(backdrop);
 
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('alert-dialog-overlay')
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -520,17 +546,16 @@ describe('AlertDialog', () => {
       const user = userEvent.setup();
       render(<AlertDialog {...defaultProps} />);
 
-      // Find the trigger wrapper by getting the parent of the button
-      const button = screen.getByText('Open Dialog').closest('button');
-      const triggerWrapper = button?.parentElement;
-
-      expect(triggerWrapper).toHaveAttribute('role', 'button');
+      // Find the trigger wrapper by aria-label
+      screen.getByRole('button', {
+        name: 'Open dialog',
+      });
 
       // Test Enter key
       await user.keyboard('{Tab}'); // Focus the trigger wrapper
       await user.keyboard('{Enter}');
 
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
 
       // Close dialog
       const cancelButton = screen.getByRole('button', { name: 'Cancelar' });
@@ -540,18 +565,20 @@ describe('AlertDialog', () => {
       await user.keyboard('{Tab}'); // Focus the trigger wrapper again
       await user.keyboard(' ');
 
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
     });
 
     it('should have proper accessibility attributes on trigger wrapper', () => {
       render(<AlertDialog {...defaultProps} />);
 
-      // Find the trigger wrapper by getting the parent of the button
-      const button = screen.getByText('Open Dialog').closest('button');
-      const triggerWrapper = button?.parentElement;
+      // Find the trigger wrapper by aria-label
+      const triggerWrapper = screen.getByRole('button', {
+        name: 'Open dialog',
+      });
 
       expect(triggerWrapper).toHaveAttribute('role', 'button');
       expect(triggerWrapper).toHaveAttribute('tabindex', '0');
+      expect(triggerWrapper).toHaveAttribute('aria-label', 'Open dialog');
     });
 
     it('should prevent default behavior on Enter and Space keys', async () => {
@@ -596,7 +623,7 @@ describe('AlertDialog', () => {
       await user.click(trigger!);
 
       // Should have only one dialog
-      const dialogs = screen.getAllByRole('dialog');
+      const dialogs = screen.getAllByTestId('alert-dialog-overlay');
       expect(dialogs).toHaveLength(1);
     });
 
@@ -614,7 +641,7 @@ describe('AlertDialog', () => {
       // Open again
       await user.click(trigger!);
 
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
     });
 
     it('should work with different trigger elements', () => {
