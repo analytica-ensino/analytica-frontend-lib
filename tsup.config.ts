@@ -35,6 +35,20 @@ export default defineConfig({
     'Stepper/index': 'src/components/Stepper/Stepper.tsx',
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
     'Auth/index': 'src/components/Auth/Auth.tsx',
+
+    // Individual Auth components
+    'Auth/AuthProvider/index': 'src/components/Auth/Auth.tsx',
+    'Auth/ProtectedRoute/index': 'src/components/Auth/Auth.tsx',
+    'Auth/PublicRoute/index': 'src/components/Auth/Auth.tsx',
+    'Auth/withAuth/index': 'src/components/Auth/Auth.tsx',
+    'Auth/useAuth/index': 'src/components/Auth/Auth.tsx',
+    'Auth/useAuthGuard/index': 'src/components/Auth/Auth.tsx',
+    'Auth/useRouteAuth/index': 'src/components/Auth/Auth.tsx',
+    'Auth/zustandAuthAdapter/index':
+      'src/components/Auth/zustandAuthAdapter.ts',
+    'Auth/useUrlAuthentication/index':
+      'src/components/Auth/useUrlAuthentication.ts',
+
     'Accordation/index': 'src/components/Accordation/Accordation.tsx',
     'Alternative/index': 'src/components/Alternative/Alternative.tsx',
     'AlertDialog/index': 'src/components/AlertDialog/AlertDialog.tsx',

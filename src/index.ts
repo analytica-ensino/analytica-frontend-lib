@@ -90,6 +90,9 @@ import {
   useRouteAuth,
 } from './components/Auth/Auth';
 
+import { createZustandAuthAdapter } from './components/Auth/zustandAuthAdapter';
+import { useUrlAuthentication } from './components/Auth/useUrlAuthentication';
+
 // Export all components for bundled usage
 export { Text };
 export { Button };
@@ -169,3 +172,5 @@ export { useAuthGuard };
 export { useRouteAuth };
 export { CardAccordation };
 export { AlternativesList };
+export { createZustandAuthAdapter };
+export { useUrlAuthentication };

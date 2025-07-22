@@ -11,7 +11,12 @@ import {
 import { useLocation, Navigate } from 'react-router-dom';
 
 /**
- * Interface básica para tokens de autenticação
+ * Interface for basic authentication tokens
+ *
+ * @interface AuthTokens
+ * @property {string} token - Main authentication token
+ * @property {string} refreshToken - Token used to refresh the main token
+ * @property {unknown} [key] - Additional properties that can be included
  */
 export interface AuthTokens {
   token: string;
@@ -20,7 +25,13 @@ export interface AuthTokens {
 }
 
 /**
- * Interface básica para usuário
+ * Interface for basic user information
+ *
+ * @interface AuthUser
+ * @property {string} id - Unique user identifier
+ * @property {string} [name] - Optional user name
+ * @property {string} [email] - Optional user email
+ * @property {unknown} [key] - Additional user properties
  */
 export interface AuthUser {
   id: string;
@@ -30,7 +41,15 @@ export interface AuthUser {
 }
 
 /**
- * Interface básica para informações de sessão
+ * Interface for basic session information
+ *
+ * @interface SessionInfo
+ * @property {string} [institutionId] - Optional institution identifier
+ * @property {string} [profileId] - Optional profile identifier
+ * @property {string} [schoolId] - Optional school identifier
+ * @property {string} [schoolYearId] - Optional school year identifier
+ * @property {string} [classId] - Optional class identifier
+ * @property {unknown} [key] - Additional session properties
  */
 export interface SessionInfo {
   institutionId?: string;
@@ -42,7 +61,14 @@ export interface SessionInfo {
 }
 
 /**
- * Interface para o estado de autenticação
+ * Interface for authentication state
+ *
+ * @interface AuthState
+ * @property {boolean} isAuthenticated - Whether the user is authenticated
+ * @property {boolean} isLoading - Whether authentication is being checked
+ * @property {AuthUser | null} [user] - Current user information
+ * @property {SessionInfo | null} [sessionInfo] - Current session information
+ * @property {AuthTokens | null} [tokens] - Current authentication tokens
  */
 export interface AuthState {
   isAuthenticated: boolean;
@@ -53,7 +79,12 @@ export interface AuthState {
 }
 
 /**
- * Interface para as funções de autenticação
+ * Interface for authentication context functions and state
+ *
+ * @interface AuthContextType
+ * @extends {AuthState}
+ * @property {() => Promise<boolean>} checkAuth - Function to check authentication status
+ * @property {() => void} signOut - Function to sign out the user
  */
 export interface AuthContextType extends AuthState {
   checkAuth: () => Promise<boolean>;
@@ -61,12 +92,23 @@ export interface AuthContextType extends AuthState {
 }
 
 /**
- * Context de autenticação
+ * Authentication context for React components
+ *
+ * @private
  */
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
- * Props do AuthProvider
+ * Props for the AuthProvider component
+ *
+ * @interface AuthProviderProps
+ * @property {ReactNode} children - Child components
+ * @property {() => Promise<boolean> | boolean} [checkAuthFn] - Function to check if user is authenticated
+ * @property {() => void} [signOutFn] - Function to handle logout
+ * @property {Partial<AuthState>} [initialAuthState] - Initial authentication state
+ * @property {() => AuthUser | null | undefined} [getUserFn] - Function to get user data
+ * @property {() => SessionInfo | null | undefined} [getSessionFn] - Function to get session info
+ * @property {() => AuthTokens | null | undefined} [getTokensFn] - Function to get tokens
  */
 export interface AuthProviderProps {
   children: ReactNode;
@@ -98,8 +140,22 @@ export interface AuthProviderProps {
 }
 
 /**
- * Provider de autenticação que gerencia o estado global de auth
- * Compatível com qualquer store (Zustand, Redux, Context, etc.)
+ * Authentication provider that manages global auth state
+ * Compatible with any store (Zustand, Redux, Context, etc.)
+ *
+ * @param {AuthProviderProps} props - The provider props
+ * @returns {JSX.Element} The provider component
+ *
+ * @example
+ * ```tsx
+ * <AuthProvider
+ *   checkAuthFn={checkAuthFunction}
+ *   signOutFn={signOutFunction}
+ *   getUserFn={getUserFunction}
+ * >
+ *   <App />
+ * </AuthProvider>
+ * ```
  */
 export const AuthProvider = ({
   children,
@@ -116,6 +172,11 @@ export const AuthProvider = ({
     ...initialAuthState,
   });
 
+  /**
+   * Check authentication status and update state accordingly
+   *
+   * @returns {Promise<boolean>} Promise that resolves to authentication status
+   */
   const checkAuth = useCallback(async (): Promise<boolean> => {
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true }));
@@ -153,6 +214,11 @@ export const AuthProvider = ({
     }
   }, [checkAuthFn, getUserFn, getSessionFn, getTokensFn]);
 
+  /**
+   * Sign out the current user and clear auth state
+   *
+   * @returns {void}
+   */
   const signOut = useCallback(() => {
     if (signOutFn) {
       signOutFn();
@@ -185,7 +251,15 @@ export const AuthProvider = ({
 };
 
 /**
- * Hook para usar o contexto de autenticação
+ * Hook to use the authentication context
+ *
+ * @throws {Error} When used outside of AuthProvider
+ * @returns {AuthContextType} The authentication context
+ *
+ * @example
+ * ```tsx
+ * const { isAuthenticated, user, signOut } = useAuth();
+ * ```
  */
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
@@ -196,7 +270,13 @@ export const useAuth = (): AuthContextType => {
 };
 
 /**
- * Props do ProtectedRoute
+ * Props for the ProtectedRoute component
+ *
+ * @interface ProtectedRouteProps
+ * @property {ReactNode} children - Components to render when authenticated
+ * @property {string} [redirectTo] - Path to redirect when not authenticated (default: '/')
+ * @property {ReactNode} [loadingComponent] - Custom loading component
+ * @property {(authState: AuthState) => boolean} [additionalCheck] - Additional authentication check
  */
 export interface ProtectedRouteProps {
   children: ReactNode;
@@ -246,6 +326,15 @@ export const ProtectedRoute = ({
 
   // Verificar autenticação básica
   if (!isAuthenticated) {
+    if (typeof window !== 'undefined') {
+      const rootDomain = getRootDomain();
+      // Only redirect if the root domain is different from current location
+      const currentLocation = `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}`;
+      if (rootDomain !== currentLocation) {
+        window.location.href = rootDomain;
+        return null;
+      }
+    }
     return <Navigate to={redirectTo} replace />;
   }
 
@@ -261,7 +350,13 @@ export const ProtectedRoute = ({
 };
 
 /**
- * Props do PublicRoute
+ * Props for the PublicRoute component
+ *
+ * @interface PublicRouteProps
+ * @property {ReactNode} children - Components to render
+ * @property {string} [redirectTo] - Path to redirect to (default: '/painel')
+ * @property {boolean} [redirectIfAuthenticated] - Whether to redirect if authenticated
+ * @property {boolean} [checkAuthBeforeRender] - Whether to check auth before rendering
  */
 export interface PublicRouteProps {
   children: ReactNode;
@@ -316,12 +411,17 @@ export const PublicRoute = ({
 };
 
 /**
- * HOC para proteger componentes com autenticação
+ * Higher-Order Component to protect components with authentication
+ *
+ * @template P - Component props type
+ * @param {ComponentType<P>} Component - Component to wrap with authentication
+ * @param {Omit<ProtectedRouteProps, 'children'>} [options] - Protection options
+ * @returns {(props: P) => JSX.Element} Wrapped component
  *
  * @example
  * ```tsx
  * const ProtectedComponent = withAuth(MyComponent, {
- *   fallback: "/login",
+ *   redirectTo: "/login",
  *   loadingComponent: <CustomSpinner />
  * });
  * ```
@@ -338,13 +438,18 @@ export const withAuth = <P extends object>(
 };
 
 /**
- * Hook para guard de autenticação com verificações customizadas
+ * Hook for authentication guard with custom checks
+ *
+ * @param {object} [options] - Guard options
+ * @param {boolean} [options.requireAuth=true] - Whether authentication is required
+ * @param {(authState: AuthState) => boolean} [options.customCheck] - Custom check function
+ * @returns {object} Guard result with canAccess, isLoading, and authState
  *
  * @example
  * ```tsx
  * const { canAccess, isLoading } = useAuthGuard({
  *   requireAuth: true,
- *   customCheck: (user) => user?.role === 'admin'
+ *   customCheck: (authState) => authState.user?.role === 'admin'
  * });
  * ```
  */
@@ -371,8 +476,11 @@ export const useAuthGuard = (
 };
 
 /**
- * Hook para verificar autenticação em rotas específicas
- * Útil para verificações condicionais dentro de componentes
+ * Hook to check authentication on specific routes
+ * Useful for conditional checks within components
+ *
+ * @param {string} [fallbackPath='/'] - Path to redirect when not authenticated
+ * @returns {object} Object with isAuthenticated, isLoading, and redirectToLogin function
  *
  * @example
  * ```tsx
@@ -396,6 +504,30 @@ export const useRouteAuth = (fallbackPath = '/') => {
     isLoading,
     redirectToLogin,
   };
+};
+
+/**
+ * Get the root domain from the current window location
+ * Handles localhost and subdomain cases
+ *
+ * @private
+ * @returns {string} The root domain URL
+ */
+const getRootDomain = () => {
+  const { hostname, protocol, port } = window.location;
+  const portStr = port ? ':' + port : '';
+  if (hostname === 'localhost') {
+    return `${protocol}//${hostname}${portStr}`;
+  }
+  const parts = hostname.split('.');
+  // Only treat as subdomain if there are 3+ parts (e.g., subdomain.example.com)
+  if (parts.length > 2) {
+    // Return the last 2 parts as the root domain (example.com)
+    const base = parts.slice(-2).join('.');
+    return `${protocol}//${base}${portStr}`;
+  }
+  // For 2-part domains (example.com) or single domains, return as-is
+  return `${protocol}//${hostname}${portStr}`;
 };
 
 export default {
