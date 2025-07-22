@@ -510,10 +510,9 @@ export const useRouteAuth = (fallbackPath = '/') => {
  * Get the root domain from the current window location
  * Handles localhost and subdomain cases
  *
- * @private
  * @returns {string} The root domain URL
  */
-const getRootDomain = () => {
+export const getRootDomain = () => {
   const { hostname, protocol, port } = window.location;
   const portStr = port ? ':' + port : '';
   if (hostname === 'localhost') {

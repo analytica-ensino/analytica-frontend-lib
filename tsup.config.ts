@@ -44,6 +44,7 @@ export default defineConfig({
     'Auth/useAuth/index': 'src/components/Auth/Auth.tsx',
     'Auth/useAuthGuard/index': 'src/components/Auth/Auth.tsx',
     'Auth/useRouteAuth/index': 'src/components/Auth/Auth.tsx',
+    'Auth/getRootDomain/index': 'src/components/Auth/Auth.tsx',
     'Auth/zustandAuthAdapter/index':
       'src/components/Auth/zustandAuthAdapter.ts',
     'Auth/useUrlAuthentication/index':

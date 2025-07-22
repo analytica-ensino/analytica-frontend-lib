@@ -88,6 +88,7 @@ import {
   useAuth,
   useAuthGuard,
   useRouteAuth,
+  getRootDomain,
 } from './components/Auth/Auth';
 
 import { createZustandAuthAdapter } from './components/Auth/zustandAuthAdapter';
@@ -170,6 +171,7 @@ export { withAuth };
 export { useAuth };
 export { useAuthGuard };
 export { useRouteAuth };
+export { getRootDomain };
 export { CardAccordation };
 export { AlternativesList };
 export { createZustandAuthAdapter };
