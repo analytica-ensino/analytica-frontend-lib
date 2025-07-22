@@ -99,7 +99,6 @@ export function useUrlAuthentication<
 
         const response = (await options.api.get(options.endpoint, {
           headers: {
-            'Session-Id': authParams.sessionId,
             Authorization: `Bearer ${authParams.token}`,
           },
         })) as { data: { data: unknown; [key: string]: unknown } };
