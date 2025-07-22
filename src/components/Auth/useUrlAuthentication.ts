@@ -19,6 +19,63 @@ export interface UseUrlAuthOptions<
   clearParamsFromURL?: () => void;
 }
 
+// Helper function to extract authentication parameters from URL
+const getAuthParams = (
+  location: { search: string },
+  extractParams?: (searchParams: URLSearchParams) => {
+    sessionId: string;
+    token: string;
+    refreshToken: string;
+  }
+) => {
+  const searchParams = new URLSearchParams(location.search);
+  return extractParams
+    ? extractParams(searchParams)
+    : {
+        sessionId: searchParams.get('sessionId'),
+        token: searchParams.get('token'),
+        refreshToken: searchParams.get('refreshToken'),
+      };
+};
+
+// Helper function to validate auth parameters
+const hasValidAuthParams = (authParams: {
+  sessionId: string | null;
+  token: string | null;
+  refreshToken: string | null;
+}) => {
+  return !!(
+    authParams?.sessionId &&
+    authParams?.token &&
+    authParams?.refreshToken
+  );
+};
+
+// Helper function to check if response has valid profile data
+const hasValidProfileData = (
+  data: unknown
+): data is Record<string, unknown> => {
+  return data !== null && typeof data === 'object' && data !== undefined;
+};
+
+// Helper function to handle profile selection
+const handleProfileSelection = <Profile>(
+  responseData: unknown,
+  setSelectedProfile?: (profile: Profile) => void
+) => {
+  if (!setSelectedProfile) return;
+  if (!hasValidProfileData(responseData)) return;
+
+  const profileId = responseData.profileId;
+  const isValidProfileId = profileId !== null && profileId !== undefined;
+
+  if (isValidProfileId) {
+    setSelectedProfile({
+      id: profileId,
+    } as Profile);
+  }
+};
+
 export function useUrlAuthentication<
   Tokens = unknown,
   Session = unknown,
@@ -28,58 +85,30 @@ export function useUrlAuthentication<
 
   useEffect(() => {
     const handleAuthentication = async () => {
-      const searchParams = new URLSearchParams(location.search);
-      const authParams = options.extractParams
-        ? options.extractParams(searchParams)
-        : {
-            sessionId: searchParams.get('sessionId'),
-            token: searchParams.get('token'),
-            refreshToken: searchParams.get('refreshToken'),
-          };
+      const authParams = getAuthParams(location, options.extractParams);
 
-      if (
-        authParams?.sessionId &&
-        authParams?.token &&
-        authParams?.refreshToken
-      ) {
-        try {
-          options.setTokens({
-            token: authParams.token,
-            refreshToken: authParams.refreshToken,
-          } as Tokens);
+      if (!hasValidAuthParams(authParams)) {
+        return;
+      }
 
-          const response = (await options.api.get(options.endpoint, {
-            headers: {
-              'Session-Id': authParams.sessionId,
-              Authorization: `Bearer ${authParams.token}`,
-            },
-          })) as { data: { data: unknown; [key: string]: unknown } };
+      try {
+        options.setTokens({
+          token: authParams.token,
+          refreshToken: authParams.refreshToken,
+        } as Tokens);
 
-          options.setSessionInfo(response.data.data as Session);
+        const response = (await options.api.get(options.endpoint, {
+          headers: {
+            'Session-Id': authParams.sessionId,
+            Authorization: `Bearer ${authParams.token}`,
+          },
+        })) as { data: { data: unknown; [key: string]: unknown } };
 
-          if (options.setSelectedProfile) {
-            // Validate response.data.data structure before accessing profileId
-            const responseData = response.data.data;
-            if (
-              responseData &&
-              typeof responseData === 'object' &&
-              'profileId' in responseData
-            ) {
-              const profileId = (responseData as Record<string, unknown>)
-                .profileId;
-              // Only call setSelectedProfile if profileId is valid
-              if (profileId !== null && profileId !== undefined) {
-                options.setSelectedProfile({
-                  id: profileId,
-                } as Profile);
-              }
-            }
-          }
-
-          options.clearParamsFromURL?.();
-        } catch (error) {
-          console.error('Erro ao obter informações da sessão:', error);
-        }
+        options.setSessionInfo(response.data.data as Session);
+        handleProfileSelection(response.data.data, options.setSelectedProfile);
+        options.clearParamsFromURL?.();
+      } catch (error) {
+        console.error('Erro ao obter informações da sessão:', error);
       }
     };
 

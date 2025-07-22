@@ -242,4 +242,63 @@ describe('useUrlAuthentication', () => {
       expect(mockClearParams).toHaveBeenCalled();
     });
   });
+
+  it('deve funcionar quando setSelectedProfile não é fornecido', async () => {
+    mockApi.get.mockResolvedValue({
+      data: { data: { profileId: 'p1', foo: 'bar' } },
+    });
+    await act(async () => {
+      renderHook(
+        () =>
+          useUrlAuthentication({
+            setTokens: mockSetTokens,
+            setSessionInfo: mockSetSessionInfo,
+            // setSelectedProfile não fornecido (undefined)
+            api: mockApi,
+            endpoint: '/auth/session-info',
+            clearParamsFromURL: mockClearParams,
+          }),
+        { wrapper }
+      );
+    });
+    await waitFor(() => {
+      expect(mockSetTokens).toHaveBeenCalled();
+      expect(mockSetSessionInfo).toHaveBeenCalledWith({
+        profileId: 'p1',
+        foo: 'bar',
+      });
+      // setSelectedProfile não foi fornecido, então não deve ser chamado
+      expect(mockSetSelectedProfile).not.toHaveBeenCalled();
+      expect(mockClearParams).toHaveBeenCalled();
+    });
+  });
+
+  it('deve lidar com response.data.data não sendo um objeto válido', async () => {
+    mockApi.get.mockResolvedValue({
+      data: { data: 'string inválido ao invés de objeto' },
+    });
+    await act(async () => {
+      renderHook(
+        () =>
+          useUrlAuthentication({
+            setTokens: mockSetTokens,
+            setSessionInfo: mockSetSessionInfo,
+            setSelectedProfile: mockSetSelectedProfile,
+            api: mockApi,
+            endpoint: '/auth/session-info',
+            clearParamsFromURL: mockClearParams,
+          }),
+        { wrapper }
+      );
+    });
+    await waitFor(() => {
+      expect(mockSetTokens).toHaveBeenCalled();
+      expect(mockSetSessionInfo).toHaveBeenCalledWith(
+        'string inválido ao invés de objeto'
+      );
+      // setSelectedProfile não deve ser chamado quando response.data.data não é objeto
+      expect(mockSetSelectedProfile).not.toHaveBeenCalled();
+      expect(mockClearParams).toHaveBeenCalled();
+    });
+  });
 });
