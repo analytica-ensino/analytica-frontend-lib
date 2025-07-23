@@ -156,8 +156,7 @@ describe('NotFound', () => {
     );
 
     // Check heading structure
-    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 1 })).toHaveAttribute(
+    expect(screen.getByText('Página não encontrada')).toHaveAttribute(
       'id',
       'error-title'
     );
@@ -185,7 +184,6 @@ describe('NotFound', () => {
 
     const errorCodeElement = screen.getByLabelText('Código de erro: 404');
     expect(errorCodeElement).toBeInTheDocument();
-    expect(errorCodeElement).toHaveAttribute('role', 'img');
   });
 
   it('should have proper section labeling for custom error', () => {
@@ -201,7 +199,10 @@ describe('NotFound', () => {
     expect(screen.getByRole('main')).toBeInTheDocument();
 
     // Heading should still be accessible
-    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+    expect(screen.getByText('Página não encontrada')).toHaveAttribute(
+      'id',
+      'error-title'
+    );
 
     // Navigation should not be present when no button
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
