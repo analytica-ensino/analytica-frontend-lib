@@ -67,6 +67,7 @@ import {
   CardSimulado,
   CardStatus,
   CardTopic,
+  CardTest,
 } from './components/Card/Card';
 
 import {
@@ -153,6 +154,7 @@ export { CardResults };
 export { CardSimulado };
 export { CardStatus };
 export { CardTopic };
+export { CardTest };
 
 export { Skeleton };
 export { SkeletonText };
