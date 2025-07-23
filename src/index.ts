@@ -81,6 +81,8 @@ import {
   SkeletonTable,
 } from './components/Skeleton/Skeleton';
 
+import NotFound from './components/NotFound/NotFound';
+
 import {
   AuthProvider,
   ProtectedRoute,
@@ -94,6 +96,7 @@ import {
 
 import { createZustandAuthAdapter } from './components/Auth/zustandAuthAdapter';
 import { useUrlAuthentication } from './components/Auth/useUrlAuthentication';
+import { useApiConfig } from './components/Auth/useApiConfig';
 
 // Export all components for bundled usage
 export { Text };
@@ -165,6 +168,8 @@ export { SkeletonCard };
 export { SkeletonList };
 export { SkeletonTable };
 
+export { NotFound };
+
 // Export Auth components
 export { AuthProvider };
 export { ProtectedRoute };
@@ -178,3 +183,4 @@ export { CardAccordation };
 export { AlternativesList };
 export { createZustandAuthAdapter };
 export { useUrlAuthentication };
+export { useApiConfig };
