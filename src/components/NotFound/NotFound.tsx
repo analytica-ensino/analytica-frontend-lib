@@ -67,9 +67,7 @@ const NotFound = ({
 }: NotFoundProps) => {
   const getErrorCode = () => {
     if (errorType === 'custom') {
-      return customErrorCode && customErrorCode.trim()
-        ? customErrorCode
-        : 'ERROR';
+      return customErrorCode?.trim() || 'ERROR';
     }
     return errorType;
   };
@@ -108,7 +106,6 @@ const NotFound = ({
   return (
     <div
       className={`flex flex-col w-full h-screen items-center justify-center bg-background-50 px-4 ${className}`}
-      role="document"
     >
       <main
         role="main"
@@ -121,7 +118,6 @@ const NotFound = ({
           <div
             className="text-8xl font-bold text-primary-300 select-none"
             aria-label={`Código de erro: ${errorCode}`}
-            role="img"
           >
             {errorCode}
           </div>
@@ -133,7 +129,6 @@ const NotFound = ({
               weight="bold"
               className="text-text-950"
               id="error-title"
-              role="heading"
               aria-level={1}
             >
               {errorTitle}
