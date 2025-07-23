@@ -27,9 +27,6 @@ export const AllAlternativesShowcase: Story = () => {
             <AlternativesList
               name="interactive-default"
               defaultValue="int-def-2"
-              onValueChange={(value) =>
-                console.log('Padrão selecionado:', value)
-              }
               alternatives={[
                 {
                   value: 'int-def-1',
@@ -62,9 +59,6 @@ export const AllAlternativesShowcase: Story = () => {
             <AlternativesList
               name="interactive-compact"
               layout="compact"
-              onValueChange={(value) =>
-                console.log('Compacto selecionado:', value)
-              }
               alternatives={[
                 {
                   value: 'int-comp-1',
@@ -100,9 +94,6 @@ export const AllAlternativesShowcase: Story = () => {
             name="interactive-detailed"
             layout="detailed"
             defaultValue="int-det-1"
-            onValueChange={(value) =>
-              console.log('Detalhado selecionado:', value)
-            }
             alternatives={[
               {
                 value: 'int-det-1',

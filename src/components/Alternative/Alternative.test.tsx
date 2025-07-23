@@ -447,6 +447,83 @@ describe('AlternativesList', () => {
 
       expect(handleValueChange).not.toHaveBeenCalledWith('c');
     });
+
+    it('changes text color based on selection state', async () => {
+      const handleValueChange = jest.fn();
+      const user = userEvent.setup();
+
+      render(
+        <AlternativesList
+          alternatives={mockAlternatives}
+          onValueChange={handleValueChange}
+        />
+      );
+
+      // Initially, all labels should have text-text-600 (not selected)
+      const labelA = screen.getByText('Alternativa A');
+      const labelB = screen.getByText('Alternativa B');
+      const labelC = screen.getByText('Alternativa C');
+
+      expect(labelA).toHaveClass('text-text-600');
+      expect(labelA).not.toHaveClass('text-primary-950');
+      expect(labelB).toHaveClass('text-text-600');
+      expect(labelB).not.toHaveClass('text-primary-950');
+      expect(labelC).toHaveClass('text-text-600');
+      expect(labelC).not.toHaveClass('text-primary-950');
+
+      // Click on alternative B
+      await user.click(labelB);
+
+      // After selection, B should have text-primary-950, others should remain text-text-600
+      expect(labelA).toHaveClass('text-text-600');
+      expect(labelA).not.toHaveClass('text-primary-950');
+      expect(labelB).toHaveClass('text-primary-950');
+      expect(labelB).not.toHaveClass('text-text-600');
+      expect(labelC).toHaveClass('text-text-600');
+      expect(labelC).not.toHaveClass('text-primary-950');
+
+      // Click on alternative A
+      await user.click(labelA);
+
+      // Now A should have text-primary-950, B and C should have text-text-600
+      expect(labelA).toHaveClass('text-primary-950');
+      expect(labelA).not.toHaveClass('text-text-600');
+      expect(labelB).toHaveClass('text-text-600');
+      expect(labelB).not.toHaveClass('text-primary-950');
+      expect(labelC).toHaveClass('text-text-600');
+      expect(labelC).not.toHaveClass('text-primary-950');
+    });
+
+    it('changes text color in detailed layout based on selection state', async () => {
+      const handleValueChange = jest.fn();
+      const user = userEvent.setup();
+
+      render(
+        <AlternativesList
+          alternatives={mockAlternativesDetailed}
+          layout="detailed"
+          onValueChange={handleValueChange}
+        />
+      );
+
+      // Initially, all labels should have text-text-600 (not selected)
+      const labelA = screen.getByText('Alternativa A');
+      const labelB = screen.getByText('Alternativa B');
+
+      expect(labelA).toHaveClass('text-text-600');
+      expect(labelA).not.toHaveClass('text-primary-950');
+      expect(labelB).toHaveClass('text-text-600');
+      expect(labelB).not.toHaveClass('text-primary-950');
+
+      // Click on alternative B
+      await user.click(labelB);
+
+      // After selection, B should have text-primary-950, A should remain text-text-600
+      expect(labelA).toHaveClass('text-text-600');
+      expect(labelA).not.toHaveClass('text-primary-950');
+      expect(labelB).toHaveClass('text-primary-950');
+      expect(labelB).not.toHaveClass('text-text-600');
+    });
   });
 
   describe('Accessibility', () => {
