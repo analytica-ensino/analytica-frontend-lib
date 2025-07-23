@@ -34,6 +34,7 @@ export default defineConfig({
     'Calendar/index': 'src/components/Calendar/Calendar.tsx',
     'Stepper/index': 'src/components/Stepper/Stepper.tsx',
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
+    'NotFound/index': 'src/components/NotFound/NotFound.tsx',
     'Auth/index': 'src/components/Auth/Auth.tsx',
 
     // Individual Auth components
@@ -49,6 +50,7 @@ export default defineConfig({
       'src/components/Auth/zustandAuthAdapter.ts',
     'Auth/useUrlAuthentication/index':
       'src/components/Auth/useUrlAuthentication.ts',
+    'Auth/useApiConfig/index': 'src/components/Auth/useApiConfig.ts',
 
     'Accordation/index': 'src/components/Accordation/Accordation.tsx',
     'Alternative/index': 'src/components/Alternative/Alternative.tsx',
