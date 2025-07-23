@@ -1,7 +1,7 @@
 import { CheckCircle, XCircle } from 'phosphor-react';
 import Badge from '../Badge/Badge';
 import { RadioGroup, RadioGroupItem } from '../Radio/Radio';
-import { forwardRef, HTMLAttributes, useId } from 'react';
+import { forwardRef, HTMLAttributes, useId, useState } from 'react';
 
 /**
  * Interface para definir uma alternativa
@@ -88,7 +88,7 @@ const AlternativesList = ({
   // Gerar um ID único para garantir que cada instância tenha seu próprio grupo
   const uniqueId = useId();
   const groupName = name || `alternatives-${uniqueId}`;
-
+  const [actualValue, setActualValue] = useState(value);
   // No modo readonly, não precisamos de interação
   const isReadonly = mode === 'readonly';
   const getStatusStyles = (
@@ -186,7 +186,9 @@ const AlternativesList = ({
             <div className="flex items-start gap-3 flex-1">
               <div className="mt-1">{renderRadio()}</div>
               <div className="flex-1">
-                <p className="block font-medium text-text-950">
+                <p
+                  className={`block font-medium ${selectedValue === alternative.value || statusBadge ? 'text-primary-950' : 'text-text-600'}`}
+                >
                   {alternative.label}
                 </p>
                 {alternative.description && (
@@ -211,7 +213,11 @@ const AlternativesList = ({
       >
         <div className="flex items-center gap-2 flex-1">
           {renderRadio()}
-          <span className="flex-1">{alternative.label}</span>
+          <span
+            className={`flex-1 ${selectedValue === alternative.value || statusBadge ? 'text-primary-950' : 'text-text-600'}`}
+          >
+            {alternative.label}
+          </span>
         </div>
         {statusBadge && <div className="flex-shrink-0">{statusBadge}</div>}
       </div>
@@ -236,7 +242,10 @@ const AlternativesList = ({
       name={groupName}
       defaultValue={defaultValue}
       value={value}
-      onValueChange={onValueChange}
+      onValueChange={(value) => {
+        setActualValue(value);
+        onValueChange?.(value);
+      }}
       disabled={disabled}
       className={`flex flex-col ${getLayoutClasses()} ${className}`}
     >
@@ -266,11 +275,13 @@ const AlternativesList = ({
                   <div className="flex-1">
                     <label
                       htmlFor={alternativeId}
-                      className={`block font-medium text-text-950 ${
-                        alternative.disabled
-                          ? 'cursor-not-allowed'
-                          : 'cursor-pointer'
-                      }`}
+                      className={`block font-medium
+                        ${actualValue === alternative.value ? 'text-primary-950' : 'text-text-600'}
+                        ${
+                          alternative.disabled
+                            ? 'cursor-not-allowed'
+                            : 'cursor-pointer'
+                        }`}
                     >
                       {alternative.label}
                     </label>
@@ -304,9 +315,13 @@ const AlternativesList = ({
               />
               <label
                 htmlFor={alternativeId}
-                className={`flex-1 ${
-                  alternative.disabled ? 'cursor-not-allowed' : 'cursor-pointer'
-                }`}
+                className={`flex-1
+                  ${actualValue === alternative.value ? 'text-primary-950' : 'text-text-600'}
+                  ${
+                    alternative.disabled
+                      ? 'cursor-not-allowed'
+                      : 'cursor-pointer'
+                  }`}
               >
                 {alternative.label}
               </label>

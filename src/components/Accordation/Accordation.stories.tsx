@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react';
 import { CardAccordation } from './Accordation';
+import Text from '../Text/Text';
 
 export const AllCardAccordationShowcase: Story = () => {
   return (
@@ -24,7 +25,13 @@ export const AllCardAccordationShowcase: Story = () => {
             <h3 className="text-xl font-semibold text-text-800">
               Accordion Simples
             </h3>
-            <CardAccordation title="Informações Básicas">
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Informações Básicas
+                </Text>
+              }
+            >
               <div className="space-y-3">
                 <p className="text-text-700">
                   Este é um exemplo básico de accordion. O conteúdo pode ser
@@ -41,7 +48,13 @@ export const AllCardAccordationShowcase: Story = () => {
             <h3 className="text-xl font-semibold text-text-800">
               Com Conteúdo Rico
             </h3>
-            <CardAccordation title="Detalhes do Produto">
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Detalhes do Produto
+                </Text>
+              }
+            >
               <div className="space-y-4">
                 <div>
                   <h4 className="font-semibold text-text-900 mb-2">
@@ -73,7 +86,11 @@ export const AllCardAccordationShowcase: Story = () => {
             Accordion Expandido por Padrão
           </h3>
           <CardAccordation
-            title="Seção Importante (Expandida)"
+            trigger={
+              <Text size="sm" weight="bold">
+                Seção Importante (Expandida)
+              </Text>
+            }
             defaultExpanded={true}
           >
             <div className="space-y-3">
@@ -103,7 +120,13 @@ export const AllCardAccordationShowcase: Story = () => {
             <h3 className="text-xl font-semibold text-text-800">
               Com Lista de Tarefas
             </h3>
-            <CardAccordation title="Tarefas Pendentes">
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Tarefas Pendentes
+                </Text>
+              }
+            >
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <input type="checkbox" className="rounded" />
@@ -133,7 +156,13 @@ export const AllCardAccordationShowcase: Story = () => {
             <h3 className="text-xl font-semibold text-text-800">
               Com Formulário
             </h3>
-            <CardAccordation title="Configurações Avançadas">
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Configurações Avançadas
+                </Text>
+              }
+            >
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-text-700 mb-1">
@@ -168,7 +197,13 @@ export const AllCardAccordationShowcase: Story = () => {
 
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-text-800">Com Tabela</h3>
-          <CardAccordation title="Relatório de Vendas">
+          <CardAccordation
+            trigger={
+              <Text size="sm" weight="bold">
+                Relatório de Vendas
+              </Text>
+            }
+          >
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
@@ -246,7 +281,13 @@ export const AllCardAccordationShowcase: Story = () => {
           </h3>
 
           <div className="space-y-3">
-            <CardAccordation title="Como posso alterar minha senha?">
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Como posso alterar minha senha?
+                </Text>
+              }
+            >
               <div className="space-y-2">
                 <p className="text-text-700">
                   Para alterar sua senha, siga estes passos:
@@ -261,7 +302,13 @@ export const AllCardAccordationShowcase: Story = () => {
               </div>
             </CardAccordation>
 
-            <CardAccordation title="Como cancelar minha assinatura?">
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Como cancelar minha assinatura?
+                </Text>
+              }
+            >
               <div className="space-y-2">
                 <p className="text-text-700">
                   Você pode cancelar sua assinatura a qualquer momento:
@@ -275,7 +322,13 @@ export const AllCardAccordationShowcase: Story = () => {
               </div>
             </CardAccordation>
 
-            <CardAccordation title="Posso usar em projetos comerciais?">
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Posso usar em projetos comerciais?
+                </Text>
+              }
+            >
               <p className="text-text-700">
                 Sim! Nossos componentes são licenciados sob MIT License,
                 permitindo uso comercial. Você pode usar, modificar e distribuir
@@ -283,7 +336,13 @@ export const AllCardAccordationShowcase: Story = () => {
               </p>
             </CardAccordation>
 
-            <CardAccordation title="Como obter suporte técnico?">
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Como obter suporte técnico?
+                </Text>
+              }
+            >
               <div className="space-y-3">
                 <p className="text-text-700">
                   Oferecemos várias opções de suporte:
@@ -322,7 +381,11 @@ export const AllCardAccordationShowcase: Story = () => {
             Com Callback de Expansão
           </h3>
           <CardAccordation
-            title="Accordion com Callback"
+            trigger={
+              <Text size="sm" weight="bold">
+                Accordion com Callback
+              </Text>
+            }
             onToggleExpanded={(isExpanded) => {
               console.log(
                 'Accordion foi',

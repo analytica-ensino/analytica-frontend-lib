@@ -1,11 +1,9 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AlertDialog } from './AlertDialog';
-import Button from '../Button/Button';
 
 describe('AlertDialog', () => {
   const defaultProps = {
-    trigger: <Button>Open Dialog</Button>,
     title: 'Test Dialog',
     description: 'This is a test dialog',
     cancelButtonLabel: 'Cancel',
@@ -24,28 +22,10 @@ describe('AlertDialog', () => {
   });
 
   describe('Rendering', () => {
-    it('should render trigger button', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      expect(
-        screen.getByRole('button', { name: 'Open Dialog' })
-      ).toBeInTheDocument();
-    });
-
-    it('should not render dialog content initially', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      expect(screen.queryByText('Test Dialog')).not.toBeInTheDocument();
-      expect(
-        screen.queryByText('This is a test dialog')
-      ).not.toBeInTheDocument();
-    });
-
-    it('should render dialog content when opened', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+    it('should render dialog content when isOpen is true', () => {
+      render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
 
       expect(screen.getByText('Test Dialog')).toBeInTheDocument();
       expect(screen.getByText('This is a test dialog')).toBeInTheDocument();
@@ -57,17 +37,45 @@ describe('AlertDialog', () => {
       ).toBeInTheDocument();
     });
 
-    it('should render with default button labels', () => {
+    it('should not render dialog content when isOpen is false', () => {
       render(
         <AlertDialog
-          trigger={<Button>Open</Button>}
-          title="Test"
-          description="Test description"
+          {...defaultProps}
+          isOpen={false}
+          onChangeOpen={jest.fn()}
         />
       );
 
-      const triggerButton = screen.getByRole('button', { name: 'Open' });
-      fireEvent.click(triggerButton);
+      expect(screen.queryByText('Test Dialog')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('This is a test dialog')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should render with custom button labels', () => {
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={jest.fn()}
+          cancelButtonLabel="No"
+          submitButtonLabel="Yes"
+        />
+      );
+
+      expect(screen.getByRole('button', { name: 'No' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Yes' })).toBeInTheDocument();
+    });
+
+    it('should render with default button labels when not provided', () => {
+      render(
+        <AlertDialog
+          title="Test Dialog"
+          description="This is a test dialog"
+          isOpen={true}
+          onChangeOpen={jest.fn()}
+        />
+      );
 
       expect(
         screen.getByRole('button', { name: 'Cancelar' })
@@ -76,35 +84,17 @@ describe('AlertDialog', () => {
         screen.getByRole('button', { name: 'Deletar' })
       ).toBeInTheDocument();
     });
-
-    it('should render with custom button labels', () => {
-      render(
-        <AlertDialog
-          {...defaultProps}
-          cancelButtonLabel="No"
-          submitButtonLabel="Yes"
-        />
-      );
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
-
-      expect(screen.getByRole('button', { name: 'No' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Yes' })).toBeInTheDocument();
-    });
   });
 
   describe('Controlled Mode', () => {
     it('should use controlled state when isOpen is provided', () => {
-      const onOpen = jest.fn();
-      const onClose = jest.fn();
+      const onChangeOpen = jest.fn();
 
       render(
         <AlertDialog
           {...defaultProps}
           isOpen={true}
-          onOpen={onOpen}
-          onClose={onClose}
+          onChangeOpen={onChangeOpen}
         />
       );
 
@@ -112,96 +102,49 @@ describe('AlertDialog', () => {
     });
 
     it('should not render when controlled isOpen is false', () => {
-      render(<AlertDialog {...defaultProps} isOpen={false} />);
-
-      expect(screen.queryByText('Test Dialog')).not.toBeInTheDocument();
-    });
-
-    it('should call onOpen when dialog opens through trigger click in controlled mode', () => {
-      const onOpen = jest.fn();
-      const onClose = jest.fn();
-
       render(
         <AlertDialog
           {...defaultProps}
           isOpen={false}
-          onOpen={onOpen}
-          onClose={onClose}
+          onChangeOpen={jest.fn()}
         />
       );
 
-      expect(onOpen).not.toHaveBeenCalled();
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
-
-      expect(onOpen).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText('Test Dialog')).not.toBeInTheDocument();
     });
 
-    it('should call onClose when dialog closes through button click in controlled mode', () => {
-      const onOpen = jest.fn();
-      const onClose = jest.fn();
+    it('should call onChangeOpen when dialog closes through button click in controlled mode', () => {
+      const onChangeOpen = jest.fn();
 
       render(
         <AlertDialog
           {...defaultProps}
           isOpen={true}
-          onOpen={onOpen}
-          onClose={onClose}
+          onChangeOpen={onChangeOpen}
         />
       );
 
-      expect(onClose).not.toHaveBeenCalled();
+      expect(onChangeOpen).not.toHaveBeenCalled();
 
       const cancelButton = screen.getByRole('button', { name: 'Cancel' });
       fireEvent.click(cancelButton);
 
-      expect(onClose).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('Uncontrolled Mode', () => {
-    it('should open dialog when trigger is clicked', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
-
-      expect(screen.getByText('Test Dialog')).toBeInTheDocument();
-    });
-
-    it('should close dialog when cancel button is clicked', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
-
-      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
-      fireEvent.click(cancelButton);
-
-      expect(screen.queryByText('Test Dialog')).not.toBeInTheDocument();
-    });
-
-    it('should close dialog when submit button is clicked', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
-
-      const submitButton = screen.getByRole('button', { name: 'Confirm' });
-      fireEvent.click(submitButton);
-
-      expect(screen.queryByText('Test Dialog')).not.toBeInTheDocument();
+      expect(onChangeOpen).toHaveBeenCalledTimes(1);
+      expect(onChangeOpen).toHaveBeenCalledWith(false);
     });
   });
 
   describe('Event Handlers', () => {
     it('should call onSubmit when submit button is clicked', () => {
       const onSubmit = jest.fn();
-      render(<AlertDialog {...defaultProps} onSubmit={onSubmit} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={jest.fn()}
+          onSubmit={onSubmit}
+        />
+      );
 
       const submitButton = screen.getByRole('button', { name: 'Confirm' });
       fireEvent.click(submitButton);
@@ -215,13 +158,12 @@ describe('AlertDialog', () => {
       render(
         <AlertDialog
           {...defaultProps}
+          isOpen={true}
+          onChangeOpen={jest.fn()}
           onSubmit={onSubmit}
           submitValue="test-value"
         />
       );
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
 
       const submitButton = screen.getByRole('button', { name: 'Confirm' });
       fireEvent.click(submitButton);
@@ -231,10 +173,14 @@ describe('AlertDialog', () => {
 
     it('should call onCancel when cancel button is clicked', () => {
       const onCancel = jest.fn();
-      render(<AlertDialog {...defaultProps} onCancel={onCancel} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={jest.fn()}
+          onCancel={onCancel}
+        />
+      );
 
       const cancelButton = screen.getByRole('button', { name: 'Cancel' });
       fireEvent.click(cancelButton);
@@ -248,13 +194,12 @@ describe('AlertDialog', () => {
       render(
         <AlertDialog
           {...defaultProps}
+          isOpen={true}
+          onChangeOpen={jest.fn()}
           onCancel={onCancel}
           cancelValue="cancel-value"
         />
       );
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
 
       const cancelButton = screen.getByRole('button', { name: 'Cancel' });
       fireEvent.click(cancelButton);
@@ -264,108 +209,142 @@ describe('AlertDialog', () => {
   });
 
   describe('Backdrop and Escape Key', () => {
-    it('should close dialog when backdrop is clicked', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
-
-      const overlay = screen.getByTestId('alert-dialog-overlay');
-      fireEvent.click(overlay);
-
-      expect(screen.queryByText('Test Dialog')).not.toBeInTheDocument();
-    });
-
-    it('should not close dialog when backdrop is clicked and closeOnBackdropClick is false', () => {
-      render(<AlertDialog {...defaultProps} closeOnBackdropClick={false} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+    it('should call onChangeOpen when backdrop is clicked', () => {
+      const onChangeOpen = jest.fn();
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={onChangeOpen}
+        />
+      );
 
       const overlay = screen.getByTestId('alert-dialog-overlay');
       fireEvent.click(overlay);
 
-      expect(screen.getByText('Test Dialog')).toBeInTheDocument();
+      expect(onChangeOpen).toHaveBeenCalledTimes(1);
+      expect(onChangeOpen).toHaveBeenCalledWith(false);
     });
 
-    it('should close dialog when Escape key is pressed', async () => {
-      render(<AlertDialog {...defaultProps} />);
+    it('should not call onChangeOpen when backdrop is clicked and closeOnBackdropClick is false', () => {
+      const onChangeOpen = jest.fn();
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={onChangeOpen}
+          closeOnBackdropClick={false}
+        />
+      );
 
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      const overlay = screen.getByTestId('alert-dialog-overlay');
+      fireEvent.click(overlay);
+
+      expect(onChangeOpen).not.toHaveBeenCalled();
+    });
+
+    it('should call onChangeOpen when Escape key is pressed', async () => {
+      const onChangeOpen = jest.fn();
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={onChangeOpen}
+        />
+      );
 
       fireEvent.keyDown(document, { key: 'Escape' });
 
       await waitFor(() => {
-        expect(screen.queryByText('Test Dialog')).not.toBeInTheDocument();
+        expect(onChangeOpen).toHaveBeenCalledTimes(1);
+        expect(onChangeOpen).toHaveBeenCalledWith(false);
       });
     });
 
-    it('should not close dialog when Escape key is pressed and closeOnEscape is false', async () => {
-      render(<AlertDialog {...defaultProps} closeOnEscape={false} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+    it('should not call onChangeOpen when Escape key is pressed and closeOnEscape is false', async () => {
+      const onChangeOpen = jest.fn();
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={onChangeOpen}
+          closeOnEscape={false}
+        />
+      );
 
       fireEvent.keyDown(document, { key: 'Escape' });
 
       await waitFor(() => {
-        expect(screen.getByText('Test Dialog')).toBeInTheDocument();
+        expect(onChangeOpen).not.toHaveBeenCalled();
       });
     });
 
-    it('should handle backdrop keydown event', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+    it('should handle backdrop keydown event for Escape key', () => {
+      const onChangeOpen = jest.fn();
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={onChangeOpen}
+        />
+      );
 
       const overlay = screen.getByTestId('alert-dialog-overlay');
       fireEvent.keyDown(overlay, { key: 'Escape' });
 
-      expect(screen.queryByText('Test Dialog')).not.toBeInTheDocument();
+      // The backdrop keydown should trigger onChangeOpen through setIsOpen(false)
+      // Note: There are two Escape listeners (document and backdrop), so onChangeOpen might be called twice
+      expect(onChangeOpen).toHaveBeenCalled();
     });
 
-    it('should not close dialog when backdrop keydown is not Escape', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+    it('should not call onChangeOpen when backdrop keydown is not Escape', () => {
+      const onChangeOpen = jest.fn();
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={onChangeOpen}
+        />
+      );
 
       const overlay = screen.getByTestId('alert-dialog-overlay');
       fireEvent.keyDown(overlay, { key: 'Enter' });
 
-      expect(screen.getByText('Test Dialog')).toBeInTheDocument();
+      expect(onChangeOpen).not.toHaveBeenCalled();
     });
   });
 
   describe('Body Scroll Management', () => {
     it('should hide body overflow when dialog is open', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
 
       expect(document.body.style.overflow).toBe('hidden');
     });
 
     it('should restore body overflow when dialog is closed', () => {
-      render(<AlertDialog {...defaultProps} />);
+      const { rerender } = render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
 
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      expect(document.body.style.overflow).toBe('hidden');
 
-      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
-      fireEvent.click(cancelButton);
+      rerender(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={false}
+          onChangeOpen={jest.fn()}
+        />
+      );
 
       expect(document.body.style.overflow).toBe('unset');
     });
 
     it('should restore body overflow on unmount', () => {
-      const { unmount } = render(<AlertDialog {...defaultProps} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      const { unmount } = render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
 
       expect(document.body.style.overflow).toBe('hidden');
 
@@ -377,50 +356,65 @@ describe('AlertDialog', () => {
 
   describe('Size Variants', () => {
     it('should apply extra-small size classes', () => {
-      render(<AlertDialog {...defaultProps} size="extra-small" />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={jest.fn()}
+          size="extra-small"
+        />
+      );
 
       const dialogContent = screen.getByText('Test Dialog').closest('div');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[324px]');
     });
 
     it('should apply small size classes', () => {
-      render(<AlertDialog {...defaultProps} size="small" />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={jest.fn()}
+          size="small"
+        />
+      );
 
       const dialogContent = screen.getByText('Test Dialog').closest('div');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[378px]');
     });
 
     it('should apply medium size classes (default)', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
 
       const dialogContent = screen.getByText('Test Dialog').closest('div');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[459px]');
     });
 
     it('should apply large size classes', () => {
-      render(<AlertDialog {...defaultProps} size="large" />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={jest.fn()}
+          size="large"
+        />
+      );
 
       const dialogContent = screen.getByText('Test Dialog').closest('div');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[578px]');
     });
 
     it('should apply extra-large size classes', () => {
-      render(<AlertDialog {...defaultProps} size="extra-large" />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={jest.fn()}
+          size="extra-large"
+        />
+      );
 
       const dialogContent = screen.getByText('Test Dialog').closest('div');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[912px]');
@@ -429,20 +423,28 @@ describe('AlertDialog', () => {
 
   describe('Custom Styling', () => {
     it('should apply custom className', () => {
-      render(<AlertDialog {...defaultProps} className="custom-class" />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={jest.fn()}
+          className="custom-class"
+        />
+      );
 
       const dialogContent = screen.getByText('Test Dialog').closest('div');
       expect(dialogContent).toHaveClass('custom-class');
     });
 
     it('should apply additional props to dialog content', () => {
-      render(<AlertDialog {...defaultProps} data-testid="custom-dialog" />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={jest.fn()}
+          data-testid="custom-dialog"
+        />
+      );
 
       expect(screen.getByTestId('custom-dialog')).toBeInTheDocument();
     });
@@ -450,10 +452,9 @@ describe('AlertDialog', () => {
 
   describe('Accessibility', () => {
     it('should have proper ARIA attributes', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
 
       expect(screen.getByText('Test Dialog')).toHaveAttribute(
         'id',
@@ -464,91 +465,144 @@ describe('AlertDialog', () => {
         'alert-dialog-description'
       );
     });
-
-    it('should have proper trigger button attributes', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      // Find the outer button (the trigger wrapper)
-      const triggerWrapper = screen.getByRole('button', {
-        name: 'Open Dialog',
-      }).parentElement;
-      expect(triggerWrapper).toHaveAttribute('aria-label', 'Open dialog');
-      expect(triggerWrapper).toHaveAttribute('type', 'button');
-    });
   });
 
   describe('Ref Forwarding', () => {
     it('should forward ref to dialog content', () => {
       const ref = jest.fn();
-      render(<AlertDialog {...defaultProps} ref={ref} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={jest.fn()}
+          ref={ref}
+        />
+      );
 
       expect(ref).toHaveBeenCalled();
     });
   });
 
   describe('Edge Cases', () => {
-    it('should handle trigger click when dialog is already open', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
-      fireEvent.click(triggerButton); // Click again
-
-      expect(screen.getByText('Test Dialog')).toBeInTheDocument();
-    });
-
-    it('should handle multiple rapid clicks on trigger', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
-      fireEvent.click(triggerButton);
-      fireEvent.click(triggerButton);
-
-      expect(screen.getByText('Test Dialog')).toBeInTheDocument();
-    });
-
-    it('should handle complex trigger elements', () => {
-      const complexTrigger = (
-        <div>
-          <span>Complex</span>
-          <Button>Trigger</Button>
-        </div>
-      );
-
-      render(<AlertDialog {...defaultProps} trigger={complexTrigger} />);
-
-      const triggerButton = screen.getByRole('button', { name: 'Trigger' });
-      fireEvent.click(triggerButton);
-
-      expect(screen.getByText('Test Dialog')).toBeInTheDocument();
-    });
-
     it('should handle undefined callback functions', () => {
       render(
         <AlertDialog
           {...defaultProps}
+          isOpen={true}
+          onChangeOpen={jest.fn()}
           onSubmit={undefined}
           onCancel={undefined}
-          onOpen={undefined}
-          onClose={undefined}
         />
       );
 
-      const triggerButton = screen.getByRole('button', { name: 'Open Dialog' });
-      fireEvent.click(triggerButton);
-
-      // Should open dialog
+      // Should render dialog
       expect(screen.getByText('Test Dialog')).toBeInTheDocument();
 
       const submitButton = screen.getByRole('button', { name: 'Confirm' });
 
-      // Should close dialog when submit is clicked
-      fireEvent.click(submitButton);
+      // Should not throw when submit is clicked with undefined callback
+      expect(() => fireEvent.click(submitButton)).not.toThrow();
+    });
+
+    it('should handle controlled mode with state changes', () => {
+      const { rerender } = render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={false}
+          onChangeOpen={jest.fn()}
+        />
+      );
+
+      // Initially not rendered
       expect(screen.queryByText('Test Dialog')).not.toBeInTheDocument();
+
+      // Simulate controlled mode
+      rerender(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+      expect(screen.getByText('Test Dialog')).toBeInTheDocument();
+
+      // Simulate closing
+      rerender(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={false}
+          onChangeOpen={jest.fn()}
+        />
+      );
+      expect(screen.queryByText('Test Dialog')).not.toBeInTheDocument();
+    });
+
+    it('should handle escape key when dialog is not open', () => {
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={false}
+          onChangeOpen={jest.fn()}
+          closeOnEscape={true}
+        />
+      );
+
+      // Should not throw when escape is pressed on closed dialog
+      expect(() =>
+        fireEvent.keyDown(document, { key: 'Escape' })
+      ).not.toThrow();
+    });
+
+    it('should handle backdrop click when dialog is not open', () => {
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={false}
+          onChangeOpen={jest.fn()}
+          closeOnBackdropClick={true}
+        />
+      );
+
+      // Should not throw when backdrop is clicked on closed dialog
+      expect(() => fireEvent.click(document.body)).not.toThrow();
+    });
+
+    it('should handle multiple rapid state changes', () => {
+      const { rerender } = render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+
+      expect(screen.getByText('Test Dialog')).toBeInTheDocument();
+
+      // Rapid state changes
+      rerender(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={false}
+          onChangeOpen={jest.fn()}
+        />
+      );
+      rerender(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+      rerender(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={false}
+          onChangeOpen={jest.fn()}
+        />
+      );
+
+      expect(screen.queryByText('Test Dialog')).not.toBeInTheDocument();
+    });
+
+    it('should handle button clicks when callbacks are not provided', () => {
+      render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+
+      const submitButton = screen.getByRole('button', { name: 'Confirm' });
+      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+
+      // Should not throw when buttons are clicked without callbacks
+      expect(() => fireEvent.click(submitButton)).not.toThrow();
+      expect(() => fireEvent.click(cancelButton)).not.toThrow();
     });
   });
 });

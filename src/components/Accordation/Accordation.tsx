@@ -1,10 +1,16 @@
-import { forwardRef, HTMLAttributes, ReactNode, useId, useState } from 'react';
+import {
+  forwardRef,
+  HTMLAttributes,
+  KeyboardEvent,
+  ReactNode,
+  useId,
+  useState,
+} from 'react';
 import { CardBase } from '../Card/Card';
-import Text from '../Text/Text';
 import { CaretRight } from 'phosphor-react';
 
 interface CardAccordationProps extends HTMLAttributes<HTMLDivElement> {
-  title: string;
+  trigger: ReactNode;
   children: ReactNode;
   defaultExpanded?: boolean;
   onToggleExpanded?: (isExpanded: boolean) => void;
@@ -13,7 +19,7 @@ interface CardAccordationProps extends HTMLAttributes<HTMLDivElement> {
 const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
   (
     {
-      title,
+      trigger,
       children,
       className,
       defaultExpanded = false,
@@ -31,6 +37,13 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
       onToggleExpanded?.(newExpanded);
     };
 
+    const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        handleToggle();
+      }
+    };
+
     return (
       <CardBase
         ref={ref}
@@ -43,17 +56,12 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
         {/* Clickable header */}
         <button
           onClick={handleToggle}
-          className="w-full cursor-pointer p-4 flex items-center justify-between gap-3 text-left transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset"
+          onKeyDown={handleKeyDown}
+          className="w-full cursor-pointer text-text-950 not-aria-expanded:rounded-xl aria-expanded:rounded-t-xl p-4 flex items-center justify-between gap-3 text-left transition-colors duration-200 focus:outline-none focus:border-2 focus:border-primary-950 focus:ring-inset"
           aria-expanded={isExpanded}
           aria-controls="accordion-content"
         >
-          <Text
-            size="sm"
-            weight="bold"
-            className="text-text-950 truncate flex-1"
-          >
-            {title}
-          </Text>
+          {trigger}
 
           <CaretRight
             size={20}

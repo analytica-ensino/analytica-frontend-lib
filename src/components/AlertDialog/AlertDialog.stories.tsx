@@ -1,4 +1,5 @@
 import type { Story } from '@ladle/react';
+import { useState } from 'react';
 import { AlertDialog } from './AlertDialog';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
@@ -6,508 +7,497 @@ import Text from '../Text/Text';
 /**
  * Showcase principal: todas as variações do AlertDialog
  */
-export const AllAlertDialog: Story = () => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-    <h2 className="font-bold text-3xl text-text-900">AlertDialog</h2>
-    <p className="text-text-700">
-      Variações possíveis do componente <code>AlertDialog</code>
-    </p>
+export const AllAlertDialog: Story = () => {
+  const [openStates, setOpenStates] = useState({
+    extraSmall: false,
+    small: false,
+    medium: false,
+    large: false,
+    extraLarge: false,
+  });
 
-    {/* Tamanhos */}
-    <h3 className="font-bold text-2xl text-text-900">Tamanhos</h3>
-    <div className="flex flex-col gap-4">
-      <div>
-        <Text className="font-semibold mb-2">Extra Small (324px)</Text>
-        <AlertDialog
-          trigger={
-            <Button variant="solid" action="negative" size="small">
-              Extra Small
-            </Button>
-          }
-          title="Dialog Extra Small"
-          description="Este é um dialog com tamanho extra small (324px)."
-          size="extra-small"
-          cancelButtonLabel="Cancelar"
-          submitButtonLabel="Confirmar"
-        />
-      </div>
+  const handleOpen = (key: keyof typeof openStates) => {
+    setOpenStates((prev) => ({ ...prev, [key]: true }));
+  };
 
-      <div>
-        <Text className="font-semibold mb-2">Small (378px)</Text>
-        <AlertDialog
-          trigger={
-            <Button variant="solid" action="negative" size="small">
-              Small
-            </Button>
-          }
-          title="Dialog Small"
-          description="Este é um dialog com tamanho small (378px)."
-          size="small"
-          cancelButtonLabel="Cancelar"
-          submitButtonLabel="Confirmar"
-        />
-      </div>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <h2 className="font-bold text-3xl text-text-900">AlertDialog</h2>
+      <p className="text-text-700">
+        Variações possíveis do componente <code>AlertDialog</code>
+      </p>
 
-      <div>
-        <Text className="font-semibold mb-2">Medium (459px) - Padrão</Text>
-        <AlertDialog
-          trigger={
-            <Button variant="solid" action="negative" size="small">
-              Medium
-            </Button>
-          }
-          title="Dialog Medium"
-          description="Este é um dialog com tamanho medium (459px) - tamanho padrão."
-          size="medium"
-          cancelButtonLabel="Cancelar"
-          submitButtonLabel="Confirmar"
-        />
-      </div>
-
-      <div>
-        <Text className="font-semibold mb-2">Large (578px)</Text>
-        <AlertDialog
-          trigger={
-            <Button variant="solid" action="negative" size="small">
-              Large
-            </Button>
-          }
-          title="Dialog Large"
-          description="Este é um dialog com tamanho large (578px)."
-          size="large"
-          cancelButtonLabel="Cancelar"
-          submitButtonLabel="Confirmar"
-        />
-      </div>
-
-      <div>
-        <Text className="font-semibold mb-2">Extra Large (912px)</Text>
-        <AlertDialog
-          trigger={
-            <Button variant="solid" action="negative" size="small">
-              Extra Large
-            </Button>
-          }
-          title="Dialog Extra Large"
-          description="Este é um dialog com tamanho extra large (912px)."
-          size="extra-large"
-          cancelButtonLabel="Cancelar"
-          submitButtonLabel="Confirmar"
-        />
-      </div>
-    </div>
-
-    {/* Exemplo básico */}
-    <h3 className="font-bold text-2xl text-text-900">Exemplo Básico</h3>
-    <div className="flex flex-col gap-4">
-      <AlertDialog
-        trigger={
-          <Button variant="solid" action="negative">
-            Excluir Item
+      {/* Tamanhos */}
+      <h3 className="font-bold text-2xl text-text-900">Tamanhos</h3>
+      <div className="flex flex-col gap-4">
+        <div>
+          <Text className="font-semibold mb-2">Extra Small (324px)</Text>
+          <Button
+            variant="solid"
+            action="negative"
+            size="small"
+            onClick={() => handleOpen('extraSmall')}
+          >
+            Extra Small
           </Button>
-        }
-        title="Confirmar Exclusão"
-        description="Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita."
-        cancelButtonLabel="Cancelar"
-        submitButtonLabel="Excluir"
-      />
-    </div>
-
-    {/* Não fecha no backdrop */}
-    <h3 className="font-bold text-2xl text-text-900">Não Fecha no Backdrop</h3>
-    <div className="flex flex-col gap-4">
-      <AlertDialog
-        trigger={
-          <Button variant="solid" action="negative">
-            Ação Crítica
-          </Button>
-        }
-        title="Ação Crítica"
-        closeOnBackdropClick={false}
-        description="Esta é uma ação crítica que não pode ser cancelada clicando fora do dialog. Você deve escolher uma opção."
-        cancelButtonLabel="Cancelar"
-        submitButtonLabel="Confirmar"
-      />
-    </div>
-
-    {/* Não fecha no Escape */}
-    <h3 className="font-bold text-2xl text-text-900">Não Fecha no Escape</h3>
-    <div className="flex flex-col gap-4">
-      <AlertDialog
-        trigger={
-          <Button variant="solid" action="negative">
-            Ação Crítica
-          </Button>
-        }
-        title="Ação Crítica"
-        closeOnEscape={false}
-        description="Esta é uma ação crítica que não pode ser cancelada pressionando Escape. Você deve escolher uma opção."
-        cancelButtonLabel="Cancelar"
-        submitButtonLabel="Confirmar"
-      />
-    </div>
-
-    {/* Conteúdo personalizado */}
-    <h3 className="font-bold text-2xl text-text-900">Conteúdo Personalizado</h3>
-    <div className="flex flex-col gap-4">
-      <AlertDialog
-        trigger={
-          <Button variant="outline" action="primary">
-            Ver Detalhes
-          </Button>
-        }
-        title="Informações do Usuário"
-        description="Informações do usuário"
-        cancelButtonLabel="Fechar"
-        submitButtonLabel="Fechar"
-      >
-        <div className="space-y-4">
-          <div>
-            <Text className="font-semibold">Nome:</Text>
-            <Text>João Silva</Text>
-          </div>
-          <div>
-            <Text className="font-semibold">Email:</Text>
-            <Text>joao.silva@exemplo.com</Text>
-          </div>
-          <div>
-            <Text className="font-semibold">Status:</Text>
-            <Text className="text-success-500">Ativo</Text>
-          </div>
+          <AlertDialog
+            isOpen={openStates.extraSmall}
+            onChangeOpen={(open) =>
+              setOpenStates((prev) => ({ ...prev, extraSmall: open }))
+            }
+            title="Dialog Extra Small"
+            description="Este é um dialog com tamanho extra small (324px)."
+            size="extra-small"
+            cancelButtonLabel="Cancelar"
+            submitButtonLabel="Confirmar"
+          />
         </div>
-      </AlertDialog>
+
+        <div>
+          <Text className="font-semibold mb-2">Small (378px)</Text>
+          <Button
+            variant="solid"
+            action="negative"
+            size="small"
+            onClick={() => handleOpen('small')}
+          >
+            Small
+          </Button>
+          <AlertDialog
+            isOpen={openStates.small}
+            onChangeOpen={(open) =>
+              setOpenStates((prev) => ({ ...prev, small: open }))
+            }
+            title="Dialog Small"
+            description="Este é um dialog com tamanho small (378px)."
+            size="small"
+            cancelButtonLabel="Cancelar"
+            submitButtonLabel="Confirmar"
+          />
+        </div>
+
+        <div>
+          <Text className="font-semibold mb-2">Medium (459px) - Padrão</Text>
+          <Button
+            variant="solid"
+            action="negative"
+            size="small"
+            onClick={() => handleOpen('medium')}
+          >
+            Medium
+          </Button>
+          <AlertDialog
+            isOpen={openStates.medium}
+            onChangeOpen={(open) =>
+              setOpenStates((prev) => ({ ...prev, medium: open }))
+            }
+            title="Dialog Medium"
+            description="Este é um dialog com tamanho medium (459px) - tamanho padrão."
+            size="medium"
+            cancelButtonLabel="Cancelar"
+            submitButtonLabel="Confirmar"
+          />
+        </div>
+
+        <div>
+          <Text className="font-semibold mb-2">Large (578px)</Text>
+          <Button
+            variant="solid"
+            action="negative"
+            size="small"
+            onClick={() => handleOpen('large')}
+          >
+            Large
+          </Button>
+          <AlertDialog
+            isOpen={openStates.large}
+            onChangeOpen={(open) =>
+              setOpenStates((prev) => ({ ...prev, large: open }))
+            }
+            title="Dialog Large"
+            description="Este é um dialog com tamanho large (578px)."
+            size="large"
+            cancelButtonLabel="Cancelar"
+            submitButtonLabel="Confirmar"
+          />
+        </div>
+
+        <div>
+          <Text className="font-semibold mb-2">Extra Large (912px)</Text>
+          <Button
+            variant="solid"
+            action="negative"
+            size="small"
+            onClick={() => handleOpen('extraLarge')}
+          >
+            Extra Large
+          </Button>
+          <AlertDialog
+            isOpen={openStates.extraLarge}
+            onChangeOpen={(open) =>
+              setOpenStates((prev) => ({ ...prev, extraLarge: open }))
+            }
+            title="Dialog Extra Large"
+            description="Este é um dialog com tamanho extra large (912px)."
+            size="extra-large"
+            cancelButtonLabel="Cancelar"
+            submitButtonLabel="Confirmar"
+          />
+        </div>
+      </div>
     </div>
+  );
+};
 
-    {/* Diferentes tipos de botões */}
-    <h3 className="font-bold text-2xl text-text-900">
-      Diferentes Tipos de Botões
-    </h3>
-    <div className="flex flex-col gap-4">
-      <div>
-        <Text className="font-semibold mb-2">Ação Negativa</Text>
-        <AlertDialog
-          trigger={
-            <Button variant="solid" action="negative">
-              Excluir
-            </Button>
-          }
-          title="Confirmar Exclusão"
-          description="Tem certeza que deseja excluir este item?"
-          cancelButtonLabel="Cancelar"
-          submitButtonLabel="Excluir"
-        />
-      </div>
+export const Default: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
 
-      <div>
-        <Text className="font-semibold mb-2">Ação Positiva</Text>
-        <AlertDialog
-          trigger={
-            <Button variant="solid" action="positive">
-              Salvar
-            </Button>
-          }
-          title="Confirmar Salvamento"
-          description="Deseja salvar as alterações?"
-          cancelButtonLabel="Cancelar"
-          submitButtonLabel="Salvar"
-        />
-      </div>
-
-      <div>
-        <Text className="font-semibold mb-2">Ação de Aviso</Text>
-        <AlertDialog
-          trigger={
-            <Button variant="solid" action="negative">
-              Aviso
-            </Button>
-          }
-          title="Aviso Importante"
-          description="Esta ação pode ter consequências importantes."
-          cancelButtonLabel="Cancelar"
-          submitButtonLabel="Continuar"
-        />
-      </div>
-
-      <div>
-        <Text className="font-semibold mb-2">Ação Informativa</Text>
-        <AlertDialog
-          trigger={
-            <Button variant="solid" action="primary">
-              Informação
-            </Button>
-          }
-          title="Informação"
-          description="Esta é uma informação importante para você."
-          cancelButtonLabel="Fechar"
-          submitButtonLabel="Entendi"
-        />
-      </div>
-    </div>
-
-    {/* Modo controlado */}
-    <h3 className="font-bold text-2xl text-text-900">Modo Controlado</h3>
-    <div className="flex flex-col gap-4">
+  return (
+    <div>
+      <Button
+        variant="solid"
+        action="negative"
+        size="small"
+        onClick={() => setIsOpen(true)}
+      >
+        Abrir Dialog
+      </Button>
       <AlertDialog
-        trigger={<Button variant="outline">Dialog Controlado</Button>}
-        title="Dialog Controlado"
-        description="Este dialog é controlado externamente."
+        isOpen={isOpen}
+        onChangeOpen={setIsOpen}
+        title="Confirmação"
+        description="Tem certeza que deseja prosseguir com esta ação?"
         cancelButtonLabel="Cancelar"
         submitButtonLabel="Confirmar"
-        isOpen={false}
-        onOpen={() => console.log('Dialog aberto')}
-        onClose={() => console.log('Dialog fechado')}
       />
     </div>
+  );
+};
 
-    {/* Com valores customizados */}
-    <h3 className="font-bold text-2xl text-text-900">
-      Com Valores Customizados
-    </h3>
-    <div className="flex flex-col gap-4">
+export const ExtraSmall: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <Button
+        variant="solid"
+        action="negative"
+        size="small"
+        onClick={() => setIsOpen(true)}
+      >
+        Extra Small
+      </Button>
       <AlertDialog
-        trigger={<Button variant="outline">Com Valores</Button>}
-        title="Dialog com Valores"
-        description="Este dialog passa valores customizados para as funções."
+        isOpen={isOpen}
+        onChangeOpen={setIsOpen}
+        title="Dialog Extra Small"
+        description="Este é um dialog com tamanho extra small (324px)."
+        size="extra-small"
+        cancelButtonLabel="Cancelar"
+        submitButtonLabel="Confirmar"
+      />
+    </div>
+  );
+};
+
+export const Small: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <Button
+        variant="solid"
+        action="negative"
+        size="small"
+        onClick={() => setIsOpen(true)}
+      >
+        Small
+      </Button>
+      <AlertDialog
+        isOpen={isOpen}
+        onChangeOpen={setIsOpen}
+        title="Dialog Small"
+        description="Este é um dialog com tamanho small (378px)."
+        size="small"
+        cancelButtonLabel="Cancelar"
+        submitButtonLabel="Confirmar"
+      />
+    </div>
+  );
+};
+
+export const Medium: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <Button
+        variant="solid"
+        action="negative"
+        size="small"
+        onClick={() => setIsOpen(true)}
+      >
+        Medium
+      </Button>
+      <AlertDialog
+        isOpen={isOpen}
+        onChangeOpen={setIsOpen}
+        title="Dialog Medium"
+        description="Este é um dialog com tamanho medium (459px) - tamanho padrão."
+        size="medium"
+        cancelButtonLabel="Cancelar"
+        submitButtonLabel="Confirmar"
+      />
+    </div>
+  );
+};
+
+export const Large: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <Button
+        variant="solid"
+        action="negative"
+        size="small"
+        onClick={() => setIsOpen(true)}
+      >
+        Large
+      </Button>
+      <AlertDialog
+        isOpen={isOpen}
+        onChangeOpen={setIsOpen}
+        title="Dialog Large"
+        description="Este é um dialog com tamanho large (578px)."
+        size="large"
+        cancelButtonLabel="Cancelar"
+        submitButtonLabel="Confirmar"
+      />
+    </div>
+  );
+};
+
+export const ExtraLarge: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <Button
+        variant="solid"
+        action="negative"
+        size="small"
+        onClick={() => setIsOpen(true)}
+      >
+        Extra Large
+      </Button>
+      <AlertDialog
+        isOpen={isOpen}
+        onChangeOpen={setIsOpen}
+        title="Dialog Extra Large"
+        description="Este é um dialog com tamanho extra large (912px)."
+        size="extra-large"
+        cancelButtonLabel="Cancelar"
+        submitButtonLabel="Confirmar"
+      />
+    </div>
+  );
+};
+
+export const NoBackdropClose: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <Button
+        variant="solid"
+        action="negative"
+        size="small"
+        onClick={() => setIsOpen(true)}
+      >
+        Sem Fechar no Backdrop
+      </Button>
+      <AlertDialog
+        isOpen={isOpen}
+        onChangeOpen={setIsOpen}
+        title="Dialog Sem Backdrop"
+        description="Este dialog não fecha ao clicar no backdrop."
+        closeOnBackdropClick={false}
+        cancelButtonLabel="Cancelar"
+        submitButtonLabel="Confirmar"
+      />
+    </div>
+  );
+};
+
+export const NoEscapeClose: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <Button
+        variant="solid"
+        action="negative"
+        size="small"
+        onClick={() => setIsOpen(true)}
+      >
+        Sem Fechar no Escape
+      </Button>
+      <AlertDialog
+        isOpen={isOpen}
+        onChangeOpen={setIsOpen}
+        title="Dialog Sem Escape"
+        description="Este dialog não fecha ao pressionar Escape."
+        closeOnEscape={false}
+        cancelButtonLabel="Cancelar"
+        submitButtonLabel="Confirmar"
+      />
+    </div>
+  );
+};
+
+export const CustomContent: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <Button
+        variant="solid"
+        action="negative"
+        size="small"
+        onClick={() => setIsOpen(true)}
+      >
+        Conteúdo Personalizado
+      </Button>
+      <AlertDialog
+        isOpen={isOpen}
+        onChangeOpen={setIsOpen}
+        title="Conteúdo Personalizado"
+        description="Este dialog tem conteúdo personalizado e callbacks customizados."
+        cancelButtonLabel="Não"
+        submitButtonLabel="Sim"
+        onSubmit={() => {
+          console.log('Ação confirmada!');
+          setIsOpen(false);
+        }}
+        onCancel={() => {
+          console.log('Ação cancelada!');
+          setIsOpen(false);
+        }}
+      />
+    </div>
+  );
+};
+
+export const NegativeAction: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <Button
+        variant="solid"
+        action="negative"
+        size="small"
+        onClick={() => setIsOpen(true)}
+      >
+        Ação Negativa
+      </Button>
+      <AlertDialog
+        isOpen={isOpen}
+        onChangeOpen={setIsOpen}
+        title="Ação Destrutiva"
+        description="Esta ação não pode ser desfeita. Tem certeza?"
+        cancelButtonLabel="Cancelar"
+        submitButtonLabel="Deletar"
+      />
+    </div>
+  );
+};
+
+export const PositiveAction: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <Button
+        variant="solid"
+        action="positive"
+        size="small"
+        onClick={() => setIsOpen(true)}
+      >
+        Ação Positiva
+      </Button>
+      <AlertDialog
+        isOpen={isOpen}
+        onChangeOpen={setIsOpen}
+        title="Ação Positiva"
+        description="Confirma que deseja salvar as alterações?"
+        cancelButtonLabel="Cancelar"
+        submitButtonLabel="Salvar"
+      />
+    </div>
+  );
+};
+
+export const ControlledMode: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <Button
+        variant="solid"
+        action="negative"
+        size="small"
+        onClick={() => setIsOpen(true)}
+      >
+        Modo Controlado
+      </Button>
+      <AlertDialog
+        isOpen={isOpen}
+        onChangeOpen={(open) => {
+          console.log(open ? 'Dialog aberto' : 'Dialog fechado');
+          setIsOpen(open);
+        }}
+        title="Modo Controlado"
+        description="Este dialog está em modo controlado com callback de mudança de estado."
+        cancelButtonLabel="Cancelar"
+        submitButtonLabel="Confirmar"
+      />
+    </div>
+  );
+};
+
+export const WithCustomValues: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <Button
+        variant="solid"
+        action="negative"
+        size="small"
+        onClick={() => setIsOpen(true)}
+      >
+        Com Valores Customizados
+      </Button>
+      <AlertDialog
+        isOpen={isOpen}
+        onChangeOpen={setIsOpen}
+        title="Valores Customizados"
+        description="Este dialog passa valores customizados para os callbacks."
         cancelButtonLabel="Cancelar"
         submitButtonLabel="Confirmar"
         submitValue="valor-submit"
         cancelValue="valor-cancel"
-        onSubmit={(value) => console.log('Submit com valor:', value)}
-        onCancel={(value) => console.log('Cancel com valor:', value)}
+        onSubmit={(value) => {
+          console.log('Submit com valor:', value);
+          setIsOpen(false);
+        }}
+        onCancel={(value) => {
+          console.log('Cancel com valor:', value);
+          setIsOpen(false);
+        }}
       />
     </div>
-  </div>
-);
-
-// Stories individuais para referência rápida
-
-export const Default: Story = () => (
-  <AlertDialog
-    trigger={
-      <Button variant="solid" action="negative">
-        Excluir Item
-      </Button>
-    }
-    title="Confirmar Exclusão"
-    description="Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita."
-    cancelButtonLabel="Cancelar"
-    submitButtonLabel="Excluir"
-  />
-);
-
-export const ExtraSmall: Story = () => (
-  <AlertDialog
-    trigger={
-      <Button variant="solid" action="negative" size="small">
-        Extra Small
-      </Button>
-    }
-    title="Dialog Extra Small"
-    description="Este é um dialog com tamanho extra small (324px)."
-    size="extra-small"
-    cancelButtonLabel="Cancelar"
-    submitButtonLabel="Confirmar"
-  />
-);
-
-export const Small: Story = () => (
-  <AlertDialog
-    trigger={
-      <Button variant="solid" action="negative" size="small">
-        Small
-      </Button>
-    }
-    title="Dialog Small"
-    description="Este é um dialog com tamanho small (378px)."
-    size="small"
-    cancelButtonLabel="Cancelar"
-    submitButtonLabel="Confirmar"
-  />
-);
-
-export const Medium: Story = () => (
-  <AlertDialog
-    trigger={
-      <Button variant="solid" action="negative" size="small">
-        Medium
-      </Button>
-    }
-    title="Dialog Medium"
-    description="Este é um dialog com tamanho medium (459px) - tamanho padrão."
-    size="medium"
-    cancelButtonLabel="Cancelar"
-    submitButtonLabel="Confirmar"
-  />
-);
-
-export const Large: Story = () => (
-  <AlertDialog
-    trigger={
-      <Button variant="solid" action="negative" size="small">
-        Large
-      </Button>
-    }
-    title="Dialog Large"
-    description="Este é um dialog com tamanho large (578px)."
-    size="large"
-    cancelButtonLabel="Cancelar"
-    submitButtonLabel="Confirmar"
-  />
-);
-
-export const ExtraLarge: Story = () => (
-  <AlertDialog
-    trigger={
-      <Button variant="solid" action="negative" size="small">
-        Extra Large
-      </Button>
-    }
-    title="Dialog Extra Large"
-    description="Este é um dialog com tamanho extra large (912px)."
-    size="extra-large"
-    cancelButtonLabel="Cancelar"
-    submitButtonLabel="Confirmar"
-  />
-);
-
-export const NoBackdropClose: Story = () => (
-  <AlertDialog
-    trigger={
-      <Button variant="solid" action="negative">
-        Ação Crítica
-      </Button>
-    }
-    title="Ação Crítica"
-    closeOnBackdropClick={false}
-    description="Esta é uma ação crítica que não pode ser cancelada clicando fora do dialog. Você deve escolher uma opção."
-    cancelButtonLabel="Cancelar"
-    submitButtonLabel="Confirmar"
-  />
-);
-
-export const NoEscapeClose: Story = () => (
-  <AlertDialog
-    trigger={
-      <Button variant="solid" action="negative">
-        Ação Crítica
-      </Button>
-    }
-    title="Ação Crítica"
-    closeOnEscape={false}
-    description="Esta é uma ação crítica que não pode ser cancelada pressionando Escape. Você deve escolher uma opção."
-    cancelButtonLabel="Cancelar"
-    submitButtonLabel="Confirmar"
-  />
-);
-
-export const CustomContent: Story = () => (
-  <AlertDialog
-    trigger={
-      <Button variant="outline" action="primary">
-        Ver Detalhes
-      </Button>
-    }
-    title="Informações do Usuário"
-    description="Informações do usuário"
-    cancelButtonLabel="Fechar"
-    submitButtonLabel="Fechar"
-  >
-    <div className="space-y-4">
-      <div>
-        <Text className="font-semibold">Nome:</Text>
-        <Text>João Silva</Text>
-      </div>
-      <div>
-        <Text className="font-semibold">Email:</Text>
-        <Text>joao.silva@exemplo.com</Text>
-      </div>
-      <div>
-        <Text className="font-semibold">Status:</Text>
-        <Text className="text-success-500">Ativo</Text>
-      </div>
-    </div>
-  </AlertDialog>
-);
-
-export const NegativeAction: Story = () => (
-  <AlertDialog
-    trigger={
-      <Button variant="solid" action="negative">
-        Excluir
-      </Button>
-    }
-    title="Confirmar Exclusão"
-    description="Tem certeza que deseja excluir este item?"
-    cancelButtonLabel="Cancelar"
-    submitButtonLabel="Excluir"
-  />
-);
-
-export const PositiveAction: Story = () => (
-  <AlertDialog
-    trigger={
-      <Button variant="solid" action="positive">
-        Salvar
-      </Button>
-    }
-    title="Confirmar Salvamento"
-    description="Deseja salvar as alterações?"
-    cancelButtonLabel="Cancelar"
-    submitButtonLabel="Salvar"
-  />
-);
-
-export const WarningAction: Story = () => (
-  <AlertDialog
-    trigger={
-      <Button variant="solid" action="negative">
-        Aviso
-      </Button>
-    }
-    title="Aviso Importante"
-    description="Esta ação pode ter consequências importantes."
-    cancelButtonLabel="Cancelar"
-    submitButtonLabel="Continuar"
-  />
-);
-
-export const InfoAction: Story = () => (
-  <AlertDialog
-    trigger={
-      <Button variant="solid" action="primary">
-        Informação
-      </Button>
-    }
-    title="Informação"
-    description="Esta é uma informação importante para você."
-    cancelButtonLabel="Fechar"
-    submitButtonLabel="Entendi"
-  />
-);
-
-export const ControlledMode: Story = () => (
-  <AlertDialog
-    trigger={<Button variant="outline">Dialog Controlado</Button>}
-    title="Dialog Controlado"
-    description="Este dialog é controlado externamente."
-    cancelButtonLabel="Cancelar"
-    submitButtonLabel="Confirmar"
-    isOpen={false}
-    onOpen={() => console.log('Dialog aberto')}
-    onClose={() => console.log('Dialog fechado')}
-  />
-);
-
-export const WithCustomValues: Story = () => (
-  <AlertDialog
-    trigger={<Button variant="outline">Com Valores</Button>}
-    title="Dialog com Valores"
-    description="Este dialog passa valores customizados para as funções."
-    cancelButtonLabel="Cancelar"
-    submitButtonLabel="Confirmar"
-    submitValue="valor-submit"
-    cancelValue="valor-cancel"
-    onSubmit={(value) => console.log('Submit com valor:', value)}
-    onCancel={(value) => console.log('Cancel com valor:', value)}
-  />
-);
+  );
+};

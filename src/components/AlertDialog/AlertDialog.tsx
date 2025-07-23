@@ -1,8 +1,6 @@
 import {
   forwardRef,
   HTMLAttributes,
-  ReactNode,
-  useState,
   useEffect,
   MouseEvent,
   KeyboardEvent,
@@ -21,16 +19,12 @@ const SIZE_CLASSES = {
 } as const;
 
 interface AlertDialogProps extends HTMLAttributes<HTMLDivElement> {
-  /** Trigger element that opens the alert dialog */
-  trigger: ReactNode;
   /** Title of the alert dialog */
   title: string;
   /** Whether the alert dialog is open (controlled mode) */
-  isOpen?: boolean;
-  /** Function called when the alert dialog should be opened (controlled mode) */
-  onOpen?: () => void;
-  /** Function called when the alert dialog should be closed (controlled mode) */
-  onClose?: () => void;
+  isOpen: boolean;
+  /** Function called when the alert dialog is opened or closed (controlled mode) */
+  onChangeOpen: (open: boolean) => void;
   /** Whether clicking the backdrop should close the alert dialog */
   closeOnBackdropClick?: boolean;
   /** Whether pressing Escape should close the alert dialog */
@@ -58,18 +52,16 @@ interface AlertDialogProps extends HTMLAttributes<HTMLDivElement> {
 const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
   (
     {
-      trigger,
       description,
       cancelButtonLabel = 'Cancelar',
       submitButtonLabel = 'Deletar',
       title,
-      isOpen: controlledIsOpen,
-      onOpen,
-      onClose,
+      isOpen,
       closeOnBackdropClick = true,
       closeOnEscape = true,
       className = '',
       onSubmit,
+      onChangeOpen,
       submitValue,
       onCancel,
       cancelValue,
@@ -78,26 +70,13 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
     },
     ref
   ) => {
-    // Internal state for uncontrolled mode
-    const [internalIsOpen, setInternalIsOpen] = useState(false);
-
-    // Use controlled or uncontrolled state
-    const isOpen = controlledIsOpen ?? internalIsOpen;
-    const setIsOpen = (open: boolean) => {
-      if (controlledIsOpen === undefined) {
-        setInternalIsOpen(open);
-      }
-      if (open && onOpen) onOpen();
-      if (!open && onClose) onClose();
-    };
-
     // Handle escape key
     useEffect(() => {
       if (!isOpen || !closeOnEscape) return;
 
       const handleEscape = (event: globalThis.KeyboardEvent) => {
         if (event.key === 'Escape') {
-          setIsOpen(false);
+          onChangeOpen(false);
         }
       };
 
@@ -120,27 +99,23 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
 
     const handleBackdropClick = (event: MouseEvent<HTMLDivElement>) => {
       if (event.target === event.currentTarget && closeOnBackdropClick) {
-        setIsOpen(false);
+        onChangeOpen(false);
       }
     };
 
     const handleBackdropKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
       if (event.key === 'Escape' && closeOnEscape) {
-        setIsOpen(false);
+        onChangeOpen(false);
       }
     };
 
-    const handleTriggerClick = () => {
-      setIsOpen(true);
-    };
-
     const handleSubmit = () => {
-      setIsOpen(false);
+      onChangeOpen(false);
       onSubmit?.(submitValue);
     };
 
     const handleCancel = () => {
-      setIsOpen(false);
+      onChangeOpen(false);
       onCancel?.(cancelValue);
     };
 
@@ -148,16 +123,6 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
 
     return (
       <>
-        {/* Trigger */}
-        <button
-          onClick={handleTriggerClick}
-          aria-label="Open dialog"
-          type="button"
-          className="border-none bg-transparent p-0 cursor-pointer"
-        >
-          {trigger}
-        </button>
-
         {/* Alert Dialog Overlay */}
         {isOpen && (
           <div
