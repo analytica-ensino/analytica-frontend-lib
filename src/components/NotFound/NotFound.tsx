@@ -66,8 +66,10 @@ const NotFound = ({
   customErrorCode,
 }: NotFoundProps) => {
   const getErrorCode = () => {
-    if (errorType === 'custom' && customErrorCode) {
-      return customErrorCode;
+    if (errorType === 'custom') {
+      return customErrorCode && customErrorCode.trim()
+        ? customErrorCode
+        : 'ERROR';
     }
     return errorType;
   };
@@ -99,38 +101,65 @@ const NotFound = ({
     onButtonClick?.();
   };
 
+  const errorTitle = title || getDefaultTitle();
+  const errorDescription = description || getDefaultDescription();
+  const errorCode = getErrorCode();
+
   return (
     <div
       className={`flex flex-col w-full h-screen items-center justify-center bg-background-50 px-4 ${className}`}
+      role="document"
     >
-      <div className="flex flex-col items-center text-center max-w-md space-y-6">
-        {/* Error Code */}
-        <div className="text-8xl font-bold text-primary-300 select-none">
-          {getErrorCode()}
-        </div>
-
-        {/* Main message */}
-        <div className="space-y-2">
-          <Text size="xl" weight="bold" className="text-text-950">
-            {title || getDefaultTitle()}
-          </Text>
-          <Text size="md" className="text-text-600">
-            {description || getDefaultDescription()}
-          </Text>
-        </div>
-
-        {/* Back button */}
-        {onButtonClick && (
-          <Button
-            onClick={handleButtonClick}
-            variant="solid"
-            size="medium"
-            className="mt-8"
+      <main
+        role="main"
+        aria-labelledby="error-title"
+        aria-describedby="error-description"
+        className="flex flex-col items-center text-center max-w-md space-y-6"
+      >
+        <section aria-label={`Erro ${errorCode}`}>
+          {/* Error Code */}
+          <div
+            className="text-8xl font-bold text-primary-300 select-none"
+            aria-label={`Código de erro: ${errorCode}`}
+            role="img"
           >
-            {buttonText}
-          </Button>
-        )}
-      </div>
+            {errorCode}
+          </div>
+
+          {/* Main message */}
+          <header className="space-y-2">
+            <Text
+              size="xl"
+              weight="bold"
+              className="text-text-950"
+              id="error-title"
+              role="heading"
+              aria-level={1}
+            >
+              {errorTitle}
+            </Text>
+            <Text size="md" className="text-text-600" id="error-description">
+              {errorDescription}
+            </Text>
+          </header>
+
+          {/* Back button */}
+          {onButtonClick && (
+            <nav aria-label="Navegação de erro">
+              <Button
+                onClick={handleButtonClick}
+                variant="solid"
+                size="medium"
+                className="mt-8"
+                aria-describedby="error-description"
+                aria-label={`${buttonText}. ${errorDescription}`}
+              >
+                {buttonText}
+              </Button>
+            </nav>
+          )}
+        </section>
+      </main>
     </div>
   );
 };

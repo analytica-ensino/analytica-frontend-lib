@@ -56,6 +56,20 @@ export const WithoutButton: Story<NotFoundProps> = () => (
 );
 
 /**
+ * Custom error without valid error code (fallback to ERROR)
+ */
+export const CustomErrorFallback: Story<NotFoundProps> = () => (
+  <NotFound
+    errorType="custom"
+    customErrorCode=""
+    title="Erro desconhecido"
+    description="Ocorreu um erro não identificado no sistema."
+    buttonText="Tentar novamente"
+    onButtonClick={() => console.log('Retry action')}
+  />
+);
+
+/**
  * Custom styling example
  */
 export const CustomStyling: Story<NotFoundProps> = () => (
