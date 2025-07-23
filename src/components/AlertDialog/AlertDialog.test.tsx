@@ -464,17 +464,6 @@ describe('AlertDialog', () => {
         'alert-dialog-description'
       );
     });
-
-    it('should have proper trigger button attributes', () => {
-      render(<AlertDialog {...defaultProps} />);
-
-      // Find the outer button (the trigger wrapper)
-      const triggerWrapper = screen.getByRole('button', {
-        name: 'Open Dialog',
-      }).parentElement;
-      expect(triggerWrapper).toHaveAttribute('aria-label', 'Open dialog');
-      expect(triggerWrapper).toHaveAttribute('type', 'button');
-    });
   });
 
   describe('Ref Forwarding', () => {

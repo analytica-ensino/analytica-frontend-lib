@@ -149,14 +149,13 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
     return (
       <>
         {/* Trigger */}
-        <button
+        <div
           onClick={handleTriggerClick}
           aria-label="Open dialog"
-          type="button"
           className="border-none bg-transparent p-0 cursor-pointer"
         >
           {trigger}
-        </button>
+        </div>
 
         {/* Alert Dialog Overlay */}
         {isOpen && (
