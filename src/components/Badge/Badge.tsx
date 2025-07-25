@@ -31,13 +31,13 @@ const VARIANT_ACTION_CLASSES = {
   },
   examsOutlined: {
     exam1:
-      'bg-[#E3F1FB] text-[#145B8F] border border-[#145B8F] focus-visible:outline-none',
+      'bg-exam-1 text-info-700 border border-info-700 focus-visible:outline-none',
     exam2:
-      'bg-[#FDE5FA] text-[#B00C9B] border border-[#B00C9B] focus-visible:outline-none',
+      'bg-exam-2 text-typography-1 border border-typography-1 focus-visible:outline-none',
     exam3:
-      'bg-[#FFF4D1] text-[#745A07] border border-[#745A07] focus-visible:outline-none',
+      'bg-exam-3 text-typography-2 border border-typography-2 focus-visible:outline-none',
     exam4:
-      'bg-[#DDF5E5] text-[#126D30] border border-[#126D30] focus-visible:outline-none',
+      'bg-exam-4 text-success-700 border border-success-700 focus-visible:outline-none',
   },
   resultStatus: {
     negative: 'bg-error text-error-800 focus-visible:outline-none',

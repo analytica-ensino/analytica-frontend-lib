@@ -71,37 +71,37 @@ describe('Badge', () => {
         </Badge>
       );
       const badge = screen.getByText('Exam 1');
-      expect(badge).toHaveClass('bg-[#E3F1FB]');
-      expect(badge).toHaveClass('text-[#145B8F]');
+      expect(badge).toHaveClass('bg-exam-1');
+      expect(badge).toHaveClass('text-info-700');
       expect(badge).toHaveClass('border');
-      expect(badge).toHaveClass('border-[#145B8F]');
+      expect(badge).toHaveClass('border-info-700');
     });
 
     it('applies all examsOutlined actions correctly', () => {
       const examsActions = [
         {
           action: 'exam1',
-          bg: 'bg-[#E3F1FB]',
-          text: 'text-[#145B8F]',
-          border: 'border-[#145B8F]',
+          bg: 'bg-exam-1',
+          text: 'text-info-700',
+          border: 'border-info-700',
         },
         {
           action: 'exam2',
-          bg: 'bg-[#FDE5FA]',
-          text: 'text-[#B00C9B]',
-          border: 'border-[#B00C9B]',
+          bg: 'bg-exam-2',
+          text: 'text-typography-1',
+          border: 'border-typography-1',
         },
         {
           action: 'exam3',
-          bg: 'bg-[#FFF4D1]',
-          text: 'text-[#745A07]',
-          border: 'border-[#745A07]',
+          bg: 'bg-exam-3',
+          text: 'text-typography-2',
+          border: 'border-typography-2',
         },
         {
           action: 'exam4',
-          bg: 'bg-[#DDF5E5]',
-          text: 'text-[#126D30]',
-          border: 'border-[#126D30]',
+          bg: 'bg-exam-4',
+          text: 'text-success-700',
+          border: 'border-success-700',
         },
       ];
 
