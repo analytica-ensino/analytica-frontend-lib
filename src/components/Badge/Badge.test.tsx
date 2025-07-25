@@ -64,6 +64,65 @@ describe('Badge', () => {
       expect(badge).toHaveClass('text-info-700');
     });
 
+    it('applies examsOutlined variant classes', () => {
+      render(
+        <Badge variant="examsOutlined" action="exam1">
+          Exam 1
+        </Badge>
+      );
+      const badge = screen.getByText('Exam 1');
+      expect(badge).toHaveClass('bg-[#E3F1FB]');
+      expect(badge).toHaveClass('text-[#145B8F]');
+      expect(badge).toHaveClass('border');
+      expect(badge).toHaveClass('border-[#145B8F]');
+    });
+
+    it('applies all examsOutlined actions correctly', () => {
+      const examsActions = [
+        {
+          action: 'exam1',
+          bg: 'bg-[#E3F1FB]',
+          text: 'text-[#145B8F]',
+          border: 'border-[#145B8F]',
+        },
+        {
+          action: 'exam2',
+          bg: 'bg-[#FDE5FA]',
+          text: 'text-[#B00C9B]',
+          border: 'border-[#B00C9B]',
+        },
+        {
+          action: 'exam3',
+          bg: 'bg-[#FFF4D1]',
+          text: 'text-[#745A07]',
+          border: 'border-[#745A07]',
+        },
+        {
+          action: 'exam4',
+          bg: 'bg-[#DDF5E5]',
+          text: 'text-[#126D30]',
+          border: 'border-[#126D30]',
+        },
+      ];
+
+      examsActions.forEach(({ action, bg, text, border }) => {
+        const { container } = render(
+          <Badge
+            variant="examsOutlined"
+            action={action as 'exam1' | 'exam2' | 'exam3' | 'exam4'}
+          >
+            {action}
+          </Badge>
+        );
+        const badge = screen.getByText(action);
+        expect(badge).toHaveClass(bg);
+        expect(badge).toHaveClass(text);
+        expect(badge).toHaveClass('border');
+        expect(badge).toHaveClass(border);
+        container.remove();
+      });
+    });
+
     it('applies resultStatus variant classes', () => {
       render(
         <Badge variant="resultStatus" action="positive">
@@ -137,6 +196,27 @@ describe('Badge', () => {
       );
       const iconWrapper = screen.getByTestId('test-icon').parentElement;
       expect(iconWrapper).toHaveClass('size-4');
+    });
+
+    it('applies icon size classes with examsOutlined variant', () => {
+      const sizes = ['small', 'medium', 'large'] as const;
+      const expectedClasses = ['size-3', 'size-3.5', 'size-4'];
+
+      sizes.forEach((size, index) => {
+        const { container } = render(
+          <Badge
+            size={size}
+            variant="examsOutlined"
+            action="exam1"
+            iconLeft={<TestIcon />}
+          >
+            Test
+          </Badge>
+        );
+        const iconWrapper = screen.getByTestId('test-icon').parentElement;
+        expect(iconWrapper).toHaveClass(expectedClasses[index]);
+        container.remove();
+      });
     });
   });
 

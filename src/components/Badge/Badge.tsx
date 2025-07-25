@@ -29,6 +29,16 @@ const VARIANT_ACTION_CLASSES = {
     exam3: 'bg-exam-3 text-typography-2 focus-visible:outline-none',
     exam4: 'bg-exam-4 text-success-700 focus-visible:outline-none',
   },
+  examsOutlined: {
+    exam1:
+      'bg-[#E3F1FB] text-[#145B8F] border border-[#145B8F] focus-visible:outline-none',
+    exam2:
+      'bg-[#FDE5FA] text-[#B00C9B] border border-[#B00C9B] focus-visible:outline-none',
+    exam3:
+      'bg-[#FFF4D1] text-[#745A07] border border-[#745A07] focus-visible:outline-none',
+    exam4:
+      'bg-[#DDF5E5] text-[#126D30] border border-[#126D30] focus-visible:outline-none',
+  },
   resultStatus: {
     negative: 'bg-error text-error-800 focus-visible:outline-none',
     positive: 'bg-success text-success-800 focus-visible:outline-none',
@@ -64,7 +74,13 @@ type BadgeProps = {
   /** Size of the badge */
   size?: 'small' | 'medium' | 'large';
   /** Visual variant of the badge */
-  variant?: 'solid' | 'outlined' | 'exams' | 'resultStatus' | 'notification';
+  variant?:
+    | 'solid'
+    | 'outlined'
+    | 'exams'
+    | 'examsOutlined'
+    | 'resultStatus'
+    | 'notification';
   /** Action type of the badge  */
   action?:
     | 'error'

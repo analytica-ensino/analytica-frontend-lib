@@ -7,6 +7,7 @@ const variants = [
   'solid',
   'outlined',
   'exams',
+  'examsOutlined',
   'resultStatus',
   'notification',
 ] as const;
@@ -92,6 +93,28 @@ export const AllBadges: Story = () => (
       ))}
     </div>
 
+    {/* Exams Outlined Variant */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <h4 className="font-bold text-xl text-text-900">Exams Outlined</h4>
+      {sizes.map((size) => (
+        <div key={size}>
+          <div className="font-medium text-text-900 mb-2">{size}</div>
+          <div className="flex flex-row gap-4 flex-wrap">
+            {examsActions.map((action) => (
+              <Badge
+                key={action}
+                size={size}
+                variant="examsOutlined"
+                action={action}
+              >
+                {action}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+
     {/* Result Status Variant */}
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <h4 className="font-bold text-xl text-text-900">Result Status</h4>
@@ -138,7 +161,7 @@ export const AllBadges: Story = () => (
                 key={variant}
                 variant={variant}
                 action={
-                  variant === 'exams'
+                  variant === 'exams' || variant === 'examsOutlined'
                     ? 'exam1'
                     : variant === 'resultStatus'
                       ? 'positive'
@@ -162,7 +185,7 @@ export const AllBadges: Story = () => (
                 key={variant}
                 variant={variant}
                 action={
-                  variant === 'exams'
+                  variant === 'exams' || variant === 'examsOutlined'
                     ? 'exam1'
                     : variant === 'resultStatus'
                       ? 'positive'
@@ -205,6 +228,16 @@ export const ExamsBadge: Story = () => (
   <div className="flex flex-row gap-4">
     {examsActions.map((action) => (
       <Badge key={action} variant="exams" action={action}>
+        {action}
+      </Badge>
+    ))}
+  </div>
+);
+
+export const ExamsOutlinedBadge: Story = () => (
+  <div className="flex flex-row gap-4">
+    {examsActions.map((action) => (
+      <Badge key={action} variant="examsOutlined" action={action}>
         {action}
       </Badge>
     ))}
