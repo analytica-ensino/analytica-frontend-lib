@@ -14,6 +14,7 @@ import {
   CardTopic,
   CardAudio,
   CardTest,
+  CardSimulationHistory,
 } from './Card';
 import { ChartBar, CheckCircle, Gear, Star } from 'phosphor-react';
 
@@ -2720,5 +2721,251 @@ describe('CardTest', () => {
       expect(screen.getByText('2h30min')).toBeInTheDocument();
       expect(screen.getByText('30 questões')).toBeInTheDocument();
     });
+  });
+});
+
+describe('CardSimulationHistory', () => {
+  const mockData = [
+    {
+      date: '12 Fev',
+      simulations: [
+        {
+          id: '1',
+          title: 'Simulado Enem #42',
+          type: 'enem' as const,
+          info: '45 de 90 corretas',
+        },
+        {
+          id: '2',
+          title: 'Prova no sábado',
+          type: 'prova' as const,
+          info: '08 de 10 corretas',
+        },
+      ],
+    },
+    {
+      date: '10 Fev',
+      simulations: [
+        {
+          id: '3',
+          title: 'Atividade extra',
+          type: 'simulado' as const,
+          info: '45 de 90 corretas',
+        },
+        {
+          id: '4',
+          title: 'Teste',
+          type: 'vestibular' as const,
+          info: '08 de 10 corretas',
+        },
+      ],
+    },
+  ];
+
+  const baseProps = {
+    data: mockData,
+  };
+
+  it('should render with default props', () => {
+    render(
+      <CardSimulationHistory {...baseProps} data-testid="simulation-history" />
+    );
+
+    expect(screen.getByTestId('simulation-history')).toBeInTheDocument();
+    expect(screen.getByText('Simulados')).toBeInTheDocument();
+  });
+
+  it('should render with custom title', () => {
+    render(
+      <CardSimulationHistory
+        {...baseProps}
+        title="Histórico de Simulados"
+        data-testid="simulation-history"
+      />
+    );
+
+    expect(screen.getByText('Histórico de Simulados')).toBeInTheDocument();
+  });
+
+  it('should render tabs correctly', () => {
+    render(<CardSimulationHistory {...baseProps} />);
+
+    expect(screen.getByText('Criar Simulado')).toBeInTheDocument();
+    expect(screen.getByText('Histórico')).toBeInTheDocument();
+  });
+
+  it('should highlight active tab', () => {
+    const { rerender } = render(
+      <CardSimulationHistory {...baseProps} activeTab="history" />
+    );
+
+    const historyTab = screen.getByText('Histórico').closest('button');
+    const createTab = screen.getByText('Criar Simulado').closest('button');
+
+    expect(historyTab?.querySelector('.bg-primary-950')).toBeInTheDocument();
+    expect(createTab?.querySelector('.bg-primary-950')).not.toBeInTheDocument();
+
+    rerender(<CardSimulationHistory {...baseProps} activeTab="create" />);
+
+    expect(
+      historyTab?.querySelector('.bg-primary-950')
+    ).not.toBeInTheDocument();
+    expect(createTab?.querySelector('.bg-primary-950')).toBeInTheDocument();
+  });
+
+  it('should call onTabChange when tab is clicked', () => {
+    const onTabChange = jest.fn();
+    render(<CardSimulationHistory {...baseProps} onTabChange={onTabChange} />);
+
+    fireEvent.click(screen.getByText('Criar Simulado'));
+    expect(onTabChange).toHaveBeenCalledWith('create');
+
+    fireEvent.click(screen.getByText('Histórico'));
+    expect(onTabChange).toHaveBeenCalledWith('history');
+  });
+
+  it('should render all sections and simulations', () => {
+    render(<CardSimulationHistory {...baseProps} />);
+
+    // Verificar seções por data
+    expect(screen.getByText('12 Fev')).toBeInTheDocument();
+    expect(screen.getByText('10 Fev')).toBeInTheDocument();
+
+    // Verificar simulações
+    expect(screen.getByText('Simulado Enem #42')).toBeInTheDocument();
+    expect(screen.getByText('Prova no sábado')).toBeInTheDocument();
+    expect(screen.getByText('Atividade extra')).toBeInTheDocument();
+    expect(screen.getByText('Teste')).toBeInTheDocument();
+  });
+
+  it('should render correct badge types', () => {
+    render(<CardSimulationHistory {...baseProps} />);
+
+    expect(screen.getByText('Enem')).toBeInTheDocument();
+    expect(screen.getByText('Prova')).toBeInTheDocument();
+    expect(screen.getByText('Simulado')).toBeInTheDocument();
+    expect(screen.getByText('Vestibular')).toBeInTheDocument();
+  });
+
+  it('should render simulation info', () => {
+    render(<CardSimulationHistory {...baseProps} />);
+
+    expect(screen.getAllByText('45 de 90 corretas')).toHaveLength(2);
+    expect(screen.getAllByText('08 de 10 corretas')).toHaveLength(2);
+  });
+
+  it('should render caret icons for navigation', () => {
+    render(<CardSimulationHistory {...baseProps} />);
+
+    const caretIcons = screen.getAllByTestId('caret-icon');
+    expect(caretIcons).toHaveLength(4); // Um para cada simulação
+  });
+
+  it('should call onSimulationClick when simulation is clicked', () => {
+    const onSimulationClick = jest.fn();
+    render(
+      <CardSimulationHistory
+        {...baseProps}
+        onSimulationClick={onSimulationClick}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Simulado Enem #42'));
+    expect(onSimulationClick).toHaveBeenCalledWith({
+      id: '1',
+      title: 'Simulado Enem #42',
+      type: 'enem',
+      info: '45 de 90 corretas',
+    });
+  });
+
+  it('should apply correct background colors for simulation types', () => {
+    render(<CardSimulationHistory {...baseProps} />);
+
+    const enemCard = screen
+      .getByText('Simulado Enem #42')
+      .closest('[class*="bg-exam-1"]');
+    const provaCard = screen
+      .getByText('Prova no sábado')
+      .closest('[class*="bg-exam-2"]');
+    const simuladoCard = screen
+      .getByText('Atividade extra')
+      .closest('[class*="bg-exam-3"]');
+    const vestibularCard = screen
+      .getByText('Teste')
+      .closest('[class*="bg-exam-4"]');
+
+    expect(enemCard).toBeInTheDocument();
+    expect(provaCard).toBeInTheDocument();
+    expect(simuladoCard).toBeInTheDocument();
+    expect(vestibularCard).toBeInTheDocument();
+  });
+
+  it('should render with empty data', () => {
+    render(<CardSimulationHistory data={[]} />);
+
+    expect(screen.getByText('Simulados')).toBeInTheDocument();
+    expect(screen.getByText('Criar Simulado')).toBeInTheDocument();
+    expect(screen.getByText('Histórico')).toBeInTheDocument();
+  });
+
+  it('should render footer when data is not empty', () => {
+    const { container } = render(<CardSimulationHistory {...baseProps} />);
+
+    const footer = container.querySelector('.rounded-b-3xl');
+    expect(footer).toBeInTheDocument();
+  });
+
+  it('should not render footer when data is empty', () => {
+    const { container } = render(<CardSimulationHistory data={[]} />);
+
+    const footer = container.querySelector('.rounded-b-3xl');
+    expect(footer).not.toBeInTheDocument();
+  });
+
+  it('should apply rounded-t-3xl to first section', () => {
+    const { container } = render(<CardSimulationHistory {...baseProps} />);
+
+    const firstSection = container.querySelector('.rounded-t-3xl');
+    expect(firstSection).toBeInTheDocument();
+  });
+
+  it('should apply custom className', () => {
+    render(
+      <CardSimulationHistory
+        {...baseProps}
+        className="custom-class"
+        data-testid="simulation-history"
+      />
+    );
+
+    const component = screen.getByTestId('simulation-history');
+    expect(component).toHaveClass('custom-class');
+  });
+
+  it('should forward ref correctly', () => {
+    const ref = { current: null };
+    render(<CardSimulationHistory {...baseProps} ref={ref} />);
+
+    expect(ref.current).toBeInstanceOf(HTMLDivElement);
+  });
+
+  it('should handle hover effects on simulation cards', () => {
+    const { container } = render(<CardSimulationHistory {...baseProps} />);
+
+    const simulationCards = container.querySelectorAll(
+      '[class*="hover:shadow-soft-shadow-2"]'
+    );
+    expect(simulationCards.length).toBeGreaterThan(0);
+  });
+
+  it('should have correct accessibility attributes', () => {
+    render(<CardSimulationHistory {...baseProps} />);
+
+    const createButton = screen.getByText('Criar Simulado').closest('button');
+    const historyButton = screen.getByText('Histórico').closest('button');
+
+    expect(createButton).toHaveAttribute('type', 'button');
+    expect(historyButton).toHaveAttribute('type', 'button');
   });
 });

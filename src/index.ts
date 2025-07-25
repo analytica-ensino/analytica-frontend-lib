@@ -68,6 +68,7 @@ import {
   CardStatus,
   CardTopic,
   CardTest,
+  CardSimulationHistory,
 } from './components/Card/Card';
 
 import {
@@ -158,6 +159,7 @@ export { CardSimulado };
 export { CardStatus };
 export { CardTopic };
 export { CardTest };
+export { CardSimulationHistory };
 
 export { Skeleton };
 export { SkeletonText };

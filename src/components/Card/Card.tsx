@@ -1285,6 +1285,208 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
   }
 );
 
+interface SimulationItem {
+  id: string;
+  title: string;
+  type: 'enem' | 'prova' | 'simulado' | 'vestibular';
+  info: string;
+}
+
+interface SimulationHistoryData {
+  date: string;
+  simulations: SimulationItem[];
+}
+
+interface CardSimulationHistoryProps extends HTMLAttributes<HTMLDivElement> {
+  title?: string;
+  activeTab?: 'create' | 'history';
+  data: SimulationHistoryData[];
+  onTabChange?: (tab: 'create' | 'history') => void;
+  onSimulationClick?: (simulation: SimulationItem) => void;
+}
+
+const SIMULATION_TYPE_STYLES = {
+  enem: {
+    background: 'bg-exam-1',
+    badge: 'exam1' as const,
+    text: 'Enem',
+  },
+  prova: {
+    background: 'bg-exam-2',
+    badge: 'exam2' as const,
+    text: 'Prova',
+  },
+  simulado: {
+    background: 'bg-exam-3',
+    badge: 'exam3' as const,
+    text: 'Simulado',
+  },
+  vestibular: {
+    background: 'bg-exam-4',
+    badge: 'exam4' as const,
+    text: 'Vestibular',
+  },
+};
+
+const CardSimulationHistory = forwardRef<
+  HTMLDivElement,
+  CardSimulationHistoryProps
+>(
+  (
+    {
+      title = 'Simulados',
+      activeTab = 'history',
+      data,
+      onTabChange,
+      onSimulationClick,
+      className,
+      ...props
+    },
+    ref
+  ) => {
+    return (
+      <div
+        ref={ref}
+        className={`w-full max-w-[992px] h-auto ${className}`}
+        {...props}
+      >
+        {/* Header com título e tabs */}
+        <div className="flex flex-row items-end justify-between gap-4 mb-4">
+          <Text size="2xl" weight="bold" className="text-text-950 flex-1">
+            {title}
+          </Text>
+
+          <div className="flex flex-row gap-2">
+            <button
+              type="button"
+              onClick={() => onTabChange?.('create')}
+              className={`
+                flex flex-row justify-center items-center px-4 py-3 gap-2 rounded-md relative
+                ${
+                  activeTab === 'create'
+                    ? 'text-text-950'
+                    : 'text-text-950 hover:bg-background-50'
+                }
+              `}
+            >
+              <Text size="xs" weight="bold" className="leading-4 tracking-wide">
+                Criar Simulado
+              </Text>
+              {activeTab === 'create' && (
+                <div className="absolute bottom-0 left-2 right-2 h-1 bg-primary-950 rounded-lg" />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onTabChange?.('history')}
+              className={`
+                flex flex-row justify-center items-center px-4 py-3 gap-2 rounded-md relative
+                ${
+                  activeTab === 'history'
+                    ? 'text-text-950'
+                    : 'text-text-950 hover:bg-background-50'
+                }
+              `}
+            >
+              <Text size="xs" weight="bold" className="leading-4 tracking-wide">
+                Histórico
+              </Text>
+              {activeTab === 'history' && (
+                <div className="absolute bottom-0 left-2 right-2 h-1 bg-primary-950 rounded-lg" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-col gap-0">
+          {data.map((section, sectionIndex) => (
+            <div key={section.date} className="flex flex-col">
+              {/* Seção com data */}
+              <div
+                className={`
+                  flex flex-row justify-center items-start px-4 py-6 gap-2 w-full bg-white
+                  ${sectionIndex === 0 ? 'rounded-t-3xl' : ''}
+                `}
+              >
+                <Text
+                  size="xs"
+                  weight="bold"
+                  className="text-text-800 w-11 flex-shrink-0"
+                >
+                  {section.date}
+                </Text>
+
+                <div className="flex flex-col gap-2 flex-1">
+                  {section.simulations.map((simulation) => {
+                    const typeStyles = SIMULATION_TYPE_STYLES[simulation.type];
+
+                    return (
+                      <CardBase
+                        key={simulation.id}
+                        layout="horizontal"
+                        padding="medium"
+                        minHeight="none"
+                        cursor="pointer"
+                        className={`
+                          ${typeStyles.background} rounded-xl hover:shadow-soft-shadow-2 
+                          transition-shadow duration-200 h-auto min-h-[61px]
+                        `}
+                        onClick={() => onSimulationClick?.(simulation)}
+                      >
+                        <div className="flex justify-between items-center w-full gap-2">
+                          <div className="flex flex-col gap-2 flex-1 min-w-0">
+                            <Text
+                              size="lg"
+                              weight="bold"
+                              className="text-text-950 truncate"
+                            >
+                              {simulation.title}
+                            </Text>
+
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant="examsOutlined"
+                                action={typeStyles.badge}
+                                size="medium"
+                              >
+                                {typeStyles.text}
+                              </Badge>
+
+                              <Text
+                                size="sm"
+                                className="text-text-800 truncate"
+                              >
+                                {simulation.info}
+                              </Text>
+                            </div>
+                          </div>
+
+                          <CaretRight
+                            size={24}
+                            className="text-text-800 flex-shrink-0"
+                            data-testid="caret-icon"
+                          />
+                        </div>
+                      </CardBase>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Footer rounded */}
+          {data.length > 0 && (
+            <div className="w-full h-6 bg-white rounded-b-3xl" />
+          )}
+        </div>
+      </div>
+    );
+  }
+);
+
 export {
   CardBase,
   CardActivitiesResults,
@@ -1300,4 +1502,5 @@ export {
   CardAudio,
   CardSimulado,
   CardTest,
+  CardSimulationHistory,
 };
