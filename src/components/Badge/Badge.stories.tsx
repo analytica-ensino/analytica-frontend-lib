@@ -23,6 +23,28 @@ const examsActions = ['exam1', 'exam2', 'exam3', 'exam4'] as const;
 const resultStatusActions = ['positive', 'negative'] as const;
 
 /**
+ * Mapping of variants to their default actions
+ * Resolves SonarLint issue with nested ternary operations
+ */
+const VARIANT_ACTION_MAP = {
+  solid: 'error',
+  outlined: 'error',
+  exams: 'exam1',
+  examsOutlined: 'exam1',
+  resultStatus: 'positive',
+  notification: 'error',
+} as const;
+
+/**
+ * Helper function to get the appropriate action for a variant
+ */
+const getActionForVariant = (variant: string) => {
+  return (
+    VARIANT_ACTION_MAP[variant as keyof typeof VARIANT_ACTION_MAP] ?? 'error'
+  );
+};
+
+/**
  * Showcase principal: todas as combinações possíveis do Badge
  */
 export const AllBadges: Story = () => (
@@ -160,13 +182,7 @@ export const AllBadges: Story = () => (
               <Badge
                 key={variant}
                 variant={variant}
-                action={
-                  variant === 'exams' || variant === 'examsOutlined'
-                    ? 'exam1'
-                    : variant === 'resultStatus'
-                      ? 'positive'
-                      : 'error'
-                }
+                action={getActionForVariant(variant)}
                 className="my-4"
                 iconLeft={<Plus size={16} />}
               >
@@ -184,13 +200,7 @@ export const AllBadges: Story = () => (
               <Badge
                 key={variant}
                 variant={variant}
-                action={
-                  variant === 'exams' || variant === 'examsOutlined'
-                    ? 'exam1'
-                    : variant === 'resultStatus'
-                      ? 'positive'
-                      : 'error'
-                }
+                action={getActionForVariant(variant)}
                 className="my-4"
                 iconRight={<Plus size={16} />}
               >
@@ -268,13 +278,7 @@ export const IconLeftBadge: Story = () => (
         <Badge
           key={variant}
           variant={variant}
-          action={
-            variant === 'exams'
-              ? 'exam1'
-              : variant === 'resultStatus'
-                ? 'positive'
-                : 'error'
-          }
+          action={getActionForVariant(variant)}
           iconLeft={<Plus size={16} />}
         >
           Ícone à esquerda
@@ -291,13 +295,7 @@ export const IconRightBadge: Story = () => (
         <Badge
           key={variant}
           variant={variant}
-          action={
-            variant === 'exams'
-              ? 'exam1'
-              : variant === 'resultStatus'
-                ? 'positive'
-                : 'error'
-          }
+          action={getActionForVariant(variant)}
           iconRight={<Plus size={16} />}
         >
           Ícone à direita
