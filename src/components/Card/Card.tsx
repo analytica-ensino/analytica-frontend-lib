@@ -575,7 +575,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
         layout="horizontal"
         padding="none"
         minHeight="medium"
-        className={`items-center pr-4 ${className}`}
+        className={`items-center cursor-pointer pr-4 ${className}`}
         {...props}
       >
         <div
@@ -602,7 +602,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
             <Badge
               action="success"
               variant="solid"
-              size="medium"
+              size="large"
               iconLeft={<CheckCircle />}
             >
               {correct_answers} Corretas
@@ -611,7 +611,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
             <Badge
               action="error"
               variant="solid"
-              size="medium"
+              size="large"
               iconLeft={<XCircle />}
             >
               {incorrect_answers} Incorretas
@@ -619,7 +619,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
           </span>
         </div>
 
-        <CaretRight className="min-w-6 min-h-6 text-text-800 cursor-pointer" />
+        <CaretRight className="min-w-6 min-h-6 text-text-800" />
       </CardBase>
     );
   }
@@ -628,17 +628,18 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
 interface CardStatusProps extends HTMLAttributes<HTMLDivElement> {
   header: string;
   status?: 'correct' | 'incorrect';
+  label?: string;
 }
 
 const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
-  ({ header, className, status, ...props }, ref) => {
+  ({ header, className, status, label, ...props }, ref) => {
     return (
       <CardBase
         ref={ref}
         layout="horizontal"
         padding="medium"
         minHeight="medium"
-        className={`items-center ${className}`}
+        className={`items-center cursor-pointer ${className}`}
         {...props}
       >
         <div className="flex justify-between w-full h-full flex-row items-center gap-2">
@@ -656,7 +657,7 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
                 {status == 'correct' ? 'Correta' : 'Incorreta'}
               </Badge>
 
-              <p className="text-sm text-text-800">Respondida</p>
+              {label && <p className="text-sm text-text-800">{label}</p>}
             </span>
           )}
           <CaretRight className="min-w-6 min-h-6 text-text-800 cursor-pointer flex-shrink-0 ml-2" />
