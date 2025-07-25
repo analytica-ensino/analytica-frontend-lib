@@ -486,10 +486,10 @@ describe('AlternativesList', () => {
       await user.click(labelA);
 
       // Now A should have text-primary-950, B and C should have text-text-600
-      expect(labelA).toHaveClass('text-primary-950');
+      expect(labelA).toHaveClass('text-text-950');
       expect(labelA).not.toHaveClass('text-text-600');
       expect(labelB).toHaveClass('text-text-600');
-      expect(labelB).not.toHaveClass('text-primary-950');
+      expect(labelB).not.toHaveClass('text-text-950');
       expect(labelC).toHaveClass('text-text-600');
       expect(labelC).not.toHaveClass('text-primary-950');
     });
