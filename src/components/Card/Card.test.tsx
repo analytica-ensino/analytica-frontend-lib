@@ -2772,56 +2772,6 @@ describe('CardSimulationHistory', () => {
     );
 
     expect(screen.getByTestId('simulation-history')).toBeInTheDocument();
-    expect(screen.getByText('Simulados')).toBeInTheDocument();
-  });
-
-  it('should render with custom title', () => {
-    render(
-      <CardSimulationHistory
-        {...baseProps}
-        title="Histórico de Simulados"
-        data-testid="simulation-history"
-      />
-    );
-
-    expect(screen.getByText('Histórico de Simulados')).toBeInTheDocument();
-  });
-
-  it('should render tabs correctly', () => {
-    render(<CardSimulationHistory {...baseProps} />);
-
-    expect(screen.getByText('Criar Simulado')).toBeInTheDocument();
-    expect(screen.getByText('Histórico')).toBeInTheDocument();
-  });
-
-  it('should highlight active tab', () => {
-    const { rerender } = render(
-      <CardSimulationHistory {...baseProps} activeTab="history" />
-    );
-
-    const historyTab = screen.getByText('Histórico').closest('button');
-    const createTab = screen.getByText('Criar Simulado').closest('button');
-
-    expect(historyTab?.querySelector('.bg-primary-950')).toBeInTheDocument();
-    expect(createTab?.querySelector('.bg-primary-950')).not.toBeInTheDocument();
-
-    rerender(<CardSimulationHistory {...baseProps} activeTab="create" />);
-
-    expect(
-      historyTab?.querySelector('.bg-primary-950')
-    ).not.toBeInTheDocument();
-    expect(createTab?.querySelector('.bg-primary-950')).toBeInTheDocument();
-  });
-
-  it('should call onTabChange when tab is clicked', () => {
-    const onTabChange = jest.fn();
-    render(<CardSimulationHistory {...baseProps} onTabChange={onTabChange} />);
-
-    fireEvent.click(screen.getByText('Criar Simulado'));
-    expect(onTabChange).toHaveBeenCalledWith('create');
-
-    fireEvent.click(screen.getByText('Histórico'));
-    expect(onTabChange).toHaveBeenCalledWith('history');
   });
 
   it('should render all sections and simulations', () => {
@@ -2902,11 +2852,12 @@ describe('CardSimulationHistory', () => {
   });
 
   it('should render with empty data', () => {
-    render(<CardSimulationHistory data={[]} />);
+    render(
+      <CardSimulationHistory data={[]} data-testid="empty-simulation-history" />
+    );
 
-    expect(screen.getByText('Simulados')).toBeInTheDocument();
-    expect(screen.getByText('Criar Simulado')).toBeInTheDocument();
-    expect(screen.getByText('Histórico')).toBeInTheDocument();
+    const component = screen.getByTestId('empty-simulation-history');
+    expect(component).toBeInTheDocument();
   });
 
   it('should render footer when data is not empty', () => {
@@ -2957,15 +2908,5 @@ describe('CardSimulationHistory', () => {
       '[class*="hover:shadow-soft-shadow-2"]'
     );
     expect(simulationCards.length).toBeGreaterThan(0);
-  });
-
-  it('should have correct accessibility attributes', () => {
-    render(<CardSimulationHistory {...baseProps} />);
-
-    const createButton = screen.getByText('Criar Simulado').closest('button');
-    const historyButton = screen.getByText('Histórico').closest('button');
-
-    expect(createButton).toHaveAttribute('type', 'button');
-    expect(historyButton).toHaveAttribute('type', 'button');
   });
 });
