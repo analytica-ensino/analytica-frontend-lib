@@ -187,7 +187,7 @@ const AlternativesList = ({
               <div className="mt-1">{renderRadio()}</div>
               <div className="flex-1">
                 <p
-                  className={`block font-medium ${selectedValue === alternative.value || statusBadge ? 'text-primary-950' : 'text-text-600'}`}
+                  className={`block font-medium ${selectedValue === alternative.value || statusBadge ? 'text-text-950' : 'text-text-600'}`}
                 >
                   {alternative.label}
                 </p>
@@ -214,7 +214,7 @@ const AlternativesList = ({
         <div className="flex items-center gap-2 flex-1">
           {renderRadio()}
           <span
-            className={`flex-1 ${selectedValue === alternative.value || statusBadge ? 'text-primary-950' : 'text-text-600'}`}
+            className={`flex-1 ${selectedValue === alternative.value || statusBadge ? 'text-text-950' : 'text-text-600'}`}
           >
             {alternative.label}
           </span>
@@ -276,7 +276,7 @@ const AlternativesList = ({
                     <label
                       htmlFor={alternativeId}
                       className={`block font-medium
-                        ${actualValue === alternative.value ? 'text-primary-950' : 'text-text-600'}
+                        ${actualValue === alternative.value ? 'text-text-950' : 'text-text-600'}
                         ${
                           alternative.disabled
                             ? 'cursor-not-allowed'
@@ -316,7 +316,7 @@ const AlternativesList = ({
               <label
                 htmlFor={alternativeId}
                 className={`flex-1
-                  ${actualValue === alternative.value ? 'text-primary-950' : 'text-text-600'}
+                  ${actualValue === alternative.value ? 'text-text-950' : 'text-text-600'}
                   ${
                     alternative.disabled
                       ? 'cursor-not-allowed'

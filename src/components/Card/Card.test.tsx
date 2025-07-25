@@ -725,12 +725,31 @@ describe('CardStatus', () => {
     render(<CardStatus {...baseProps} status="correct" />);
     expect(screen.getByText('Questão 1')).toBeInTheDocument();
     expect(screen.getByText('Correta')).toBeInTheDocument();
+  });
+
+  it('should render with header, "Correta" status and label', () => {
+    render(<CardStatus {...baseProps} status="correct" label="Respondida" />);
+    expect(screen.getByText('Questão 1')).toBeInTheDocument();
+    expect(screen.getByText('Correta')).toBeInTheDocument();
     expect(screen.getByText('Respondida')).toBeInTheDocument();
   });
 
   it('should render with "Incorreta" status', () => {
     render(<CardStatus {...baseProps} status="incorrect" />);
     expect(screen.getByText('Incorreta')).toBeInTheDocument();
+  });
+
+  it('should render with "Incorreta" status and label', () => {
+    render(<CardStatus {...baseProps} status="incorrect" label="Errada" />);
+    expect(screen.getByText('Incorreta')).toBeInTheDocument();
+    expect(screen.getByText('Errada')).toBeInTheDocument();
+  });
+
+  it('should not render label when not provided', () => {
+    render(<CardStatus {...baseProps} status="correct" />);
+    expect(screen.getByText('Questão 1')).toBeInTheDocument();
+    expect(screen.getByText('Correta')).toBeInTheDocument();
+    expect(screen.queryByText('Respondida')).not.toBeInTheDocument();
   });
 
   it('should apply custom className', () => {
