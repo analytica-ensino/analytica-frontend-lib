@@ -15,6 +15,7 @@ import {
   CardSupport,
   CardTopic,
   CardTest,
+  CardSimulationHistory,
 } from './Card';
 import Badge from '../Badge/Badge';
 
@@ -1155,6 +1156,205 @@ export const CardTestInteractive: Story = () => {
           <li>• Estado focus visível para acessibilidade</li>
           <li>• Callback onSelect para controle do estado</li>
           <li>• Role de button e aria-pressed para screen readers</li>
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+export const CardSimulationHistoryInteractive: Story = () => {
+  const [activeTab, setActiveTab] = useState<'create' | 'history'>('history');
+
+  const mockData = [
+    {
+      date: '12 Fev',
+      simulations: [
+        {
+          id: '1',
+          title: 'Simulado Enem #42',
+          type: 'enem' as const,
+          info: '45 de 90 corretas',
+        },
+        {
+          id: '2',
+          title: 'Prova no sábado',
+          type: 'prova' as const,
+          info: '08 de 10 corretas',
+        },
+      ],
+    },
+    {
+      date: '10 Fev',
+      simulations: [
+        {
+          id: '3',
+          title: 'Atividade extra',
+          type: 'simulado' as const,
+          info: '45 de 90 corretas',
+        },
+        {
+          id: '4',
+          title: 'Teste',
+          type: 'vestibular' as const,
+          info: '08 de 10 corretas',
+        },
+      ],
+    },
+    {
+      date: '20 Jan',
+      simulations: [
+        {
+          id: '5',
+          title: 'Teste Enem',
+          type: 'enem' as const,
+          info: '70 de 90 corretas',
+        },
+        {
+          id: '6',
+          title: 'Um nome para teste muito grande que deveria ser truncado',
+          type: 'enem' as const,
+          info: '70 de 90 corretas',
+        },
+        {
+          id: '7',
+          title: 'Teste',
+          type: 'vestibular' as const,
+          info: '08 de 10 corretas',
+        },
+      ],
+    },
+  ];
+
+  const handleTabChange = (tab: 'create' | 'history') => {
+    setActiveTab(tab);
+    console.log(`Tab alterada para: ${tab}`);
+  };
+
+  const handleSimulationClick = (simulation: {
+    id: string;
+    title: string;
+    type: 'enem' | 'prova' | 'simulado' | 'vestibular';
+    info: string;
+  }) => {
+    console.log('Simulação clicada:', simulation);
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-text-900 mb-4">
+          Card Simulation History - Histórico de Simulados
+        </h2>
+        <p className="text-text-600 text-lg">
+          Componente para exibir histórico de simulados agrupados por data com
+          tabs navegáveis
+        </p>
+      </div>
+
+      <div className="flex justify-center">
+        <CardSimulationHistory
+          title="Simulados"
+          activeTab={activeTab}
+          data={mockData}
+          onTabChange={handleTabChange}
+          onSimulationClick={handleSimulationClick}
+          className="mx-auto"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="bg-background-50 p-6 rounded-lg">
+          <h3 className="text-xl font-semibold text-text-900 mb-4">
+            Variações de Estado
+          </h3>
+
+          <div className="space-y-4">
+            <CardSimulationHistory
+              title="Tab Create Ativa"
+              activeTab="create"
+              data={[]}
+              className="scale-75 transform-gpu"
+            />
+
+            <CardSimulationHistory
+              title="Sem Dados"
+              activeTab="history"
+              data={[]}
+              className="scale-75 transform-gpu"
+            />
+          </div>
+        </div>
+
+        <div className="bg-background-50 p-6 rounded-lg">
+          <h3 className="text-xl font-semibold text-text-900 mb-4">
+            Tipos de Simulado
+          </h3>
+
+          <div className="space-y-4">
+            <CardSimulationHistory
+              title="Todos os Tipos"
+              activeTab="history"
+              data={[
+                {
+                  date: '01 Jan',
+                  simulations: [
+                    {
+                      id: 'demo-1',
+                      title: 'Simulado ENEM',
+                      type: 'enem' as const,
+                      info: '45 de 90 corretas',
+                    },
+                    {
+                      id: 'demo-2',
+                      title: 'Prova Mensal',
+                      type: 'prova' as const,
+                      info: '08 de 10 corretas',
+                    },
+                    {
+                      id: 'demo-3',
+                      title: 'Simulado Geral',
+                      type: 'simulado' as const,
+                      info: '30 de 40 corretas',
+                    },
+                    {
+                      id: 'demo-4',
+                      title: 'Vestibular FUVEST',
+                      type: 'vestibular' as const,
+                      info: '15 de 20 corretas',
+                    },
+                  ],
+                },
+              ]}
+              className="scale-75 transform-gpu"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-2xl mx-auto bg-background-50 p-6 rounded-lg">
+        <h3 className="text-xl font-semibold text-text-900 mb-2">
+          Estado atual da interação
+        </h3>
+        <p className="text-text-700 mb-4">
+          Tab ativa: <strong>{activeTab}</strong>
+        </p>
+
+        <h3 className="text-xl font-semibold text-text-900 mb-2">
+          Recursos do CardSimulationHistory
+        </h3>
+        <ul className="space-y-2 text-text-700">
+          <li>• Sistema de tabs navegáveis (Criar Simulado / Histórico)</li>
+          <li>• Agrupamento automático de simulações por data</li>
+          <li>• 4 tipos de simulados com cores e badges específicas</li>
+          <li>• Badges com outline seguindo design system</li>
+          <li>• Hover effects e transições suaves</li>
+          <li>• Textos longos truncados automaticamente</li>
+          <li>• Layout responsivo com max-width configurável</li>
+          <li>• Callbacks para mudança de tab e clique em simulação</li>
+          <li>• Footer arredondado quando há dados</li>
+          <li>• Suporte completo a acessibilidade</li>
+          <li>• Ícones de navegação com CaretRight</li>
+          <li>• Estados visuais para tab ativa</li>
         </ul>
       </div>
     </div>
