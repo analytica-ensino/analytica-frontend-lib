@@ -1163,8 +1163,6 @@ export const CardTestInteractive: Story = () => {
 };
 
 export const CardSimulationHistoryInteractive: Story = () => {
-  const [activeTab, setActiveTab] = useState<'create' | 'history'>('history');
-
   const mockData = [
     {
       date: '12 Fev',
@@ -1225,11 +1223,6 @@ export const CardSimulationHistoryInteractive: Story = () => {
     },
   ];
 
-  const handleTabChange = (tab: 'create' | 'history') => {
-    setActiveTab(tab);
-    console.log(`Tab alterada para: ${tab}`);
-  };
-
   const handleSimulationClick = (simulation: {
     id: string;
     title: string;
@@ -1246,17 +1239,13 @@ export const CardSimulationHistoryInteractive: Story = () => {
           Card Simulation History - Histórico de Simulados
         </h2>
         <p className="text-text-600 text-lg">
-          Componente para exibir histórico de simulados agrupados por data com
-          tabs navegáveis
+          Componente para exibir histórico de simulados agrupados por data
         </p>
       </div>
 
       <div className="flex justify-center">
         <CardSimulationHistory
-          title="Simulados"
-          activeTab={activeTab}
           data={mockData}
-          onTabChange={handleTabChange}
           onSimulationClick={handleSimulationClick}
           className="mx-auto"
         />
@@ -1265,20 +1254,11 @@ export const CardSimulationHistoryInteractive: Story = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         <div className="bg-background-50 p-6 rounded-lg">
           <h3 className="text-xl font-semibold text-text-900 mb-4">
-            Variações de Estado
+            Estado Vazio
           </h3>
 
           <div className="space-y-4">
             <CardSimulationHistory
-              title="Tab Create Ativa"
-              activeTab="create"
-              data={[]}
-              className="scale-75 transform-gpu"
-            />
-
-            <CardSimulationHistory
-              title="Sem Dados"
-              activeTab="history"
               data={[]}
               className="scale-75 transform-gpu"
             />
@@ -1292,8 +1272,6 @@ export const CardSimulationHistoryInteractive: Story = () => {
 
           <div className="space-y-4">
             <CardSimulationHistory
-              title="Todos os Tipos"
-              activeTab="history"
               data={[
                 {
                   date: '01 Jan',
@@ -1333,28 +1311,19 @@ export const CardSimulationHistoryInteractive: Story = () => {
 
       <div className="max-w-2xl mx-auto bg-background-50 p-6 rounded-lg">
         <h3 className="text-xl font-semibold text-text-900 mb-2">
-          Estado atual da interação
-        </h3>
-        <p className="text-text-700 mb-4">
-          Tab ativa: <strong>{activeTab}</strong>
-        </p>
-
-        <h3 className="text-xl font-semibold text-text-900 mb-2">
           Recursos do CardSimulationHistory
         </h3>
         <ul className="space-y-2 text-text-700">
-          <li>• Sistema de tabs navegáveis (Criar Simulado / Histórico)</li>
           <li>• Agrupamento automático de simulações por data</li>
           <li>• 4 tipos de simulados com cores e badges específicas</li>
           <li>• Badges com outline seguindo design system</li>
           <li>• Hover effects e transições suaves</li>
           <li>• Textos longos truncados automaticamente</li>
           <li>• Layout responsivo com max-width configurável</li>
-          <li>• Callbacks para mudança de tab e clique em simulação</li>
+          <li>• Callback para clique em simulação</li>
           <li>• Footer arredondado quando há dados</li>
           <li>• Suporte completo a acessibilidade</li>
           <li>• Ícones de navegação com CaretRight</li>
-          <li>• Estados visuais para tab ativa</li>
         </ul>
       </div>
     </div>
