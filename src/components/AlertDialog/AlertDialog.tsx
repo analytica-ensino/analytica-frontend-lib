@@ -139,7 +139,7 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
             >
               <h2
                 id="alert-dialog-title"
-                className="pb-3 text-xl font-semibold"
+                className="pb-3 text-xl font-semibold text-text-950"
               >
                 {title}
               </h2>

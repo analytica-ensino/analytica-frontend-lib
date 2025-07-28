@@ -99,6 +99,18 @@ import { createZustandAuthAdapter } from './components/Auth/zustandAuthAdapter';
 import { useUrlAuthentication } from './components/Auth/useUrlAuthentication';
 import { useApiConfig } from './components/Auth/useApiConfig';
 
+// Import Quiz components
+import {
+  Quiz,
+  QuizTitle,
+  QuizHeader,
+  QuizContent,
+  QuizAlternative,
+  QuizQuestionList,
+  QuizFooter,
+} from './components/Quiz/Quiz';
+import { useQuizStore } from './components/Quiz/useQuizStore';
+
 // Export all components for bundled usage
 export { Text };
 export { Button };
@@ -186,3 +198,13 @@ export { AlternativesList };
 export { createZustandAuthAdapter };
 export { useUrlAuthentication };
 export { useApiConfig };
+
+// Export Quiz components
+export { Quiz };
+export { QuizTitle };
+export { QuizHeader };
+export { QuizContent };
+export { QuizAlternative };
+export { QuizQuestionList };
+export { QuizFooter };
+export { useQuizStore };

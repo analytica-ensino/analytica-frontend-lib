@@ -652,7 +652,7 @@ describe('Radio', () => {
     });
   });
 
-  describe('Custom label click handling (lines 313-320)', () => {
+  describe('Custom label click handling', () => {
     it('prevents default and triggers input click when button is clicked', () => {
       render(<Radio name="test" value="1" label="Click test" />);
 
@@ -932,7 +932,7 @@ describe('RadioGroup Component', () => {
     });
 
     it('works with default parameters in store creation', () => {
-      // Test default values without explicit params to cover lines 364-365
+      // Test default values without explicit params
       render(
         <RadioGroup>
           <RadioGroupItem value="test" />

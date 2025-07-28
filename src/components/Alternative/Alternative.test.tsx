@@ -660,7 +660,7 @@ describe('AlternativesList', () => {
 
   describe('getStatusStyles function with default value', () => {
     it('applies hover classes by default when isReadonly is not provided (default value false)', () => {
-      // Test to cover line 96: isReadonly: boolean = false
+      // Test to cover default isReadonly value
       const { container } = render(
         <AlternativesList
           alternatives={mockAlternatives}
@@ -698,9 +698,9 @@ describe('AlternativesList', () => {
     });
   });
 
-  describe('Alternative.disabled in readonly mode (line 212)', () => {
+  describe('Alternative.disabled in readonly mode', () => {
     it('applies opacity-50 for disabled alternative in readonly mode', () => {
-      // Specific test for line 212: alternative.disabled ? 'opacity-50' : ''
+      // Specific test for disabled alternative styling
       const alternativesWithDisabled: Alternative[] = [
         { value: 'a', label: 'Alternativa habilitada' },
         { value: 'b', label: 'Alternativa desabilitada', disabled: true },
@@ -752,7 +752,7 @@ describe('AlternativesList', () => {
     });
 
     it('applies opacity-50 for disabled alternative in detailed readonly layout', () => {
-      // Test to ensure line 212 also works in detailed layout
+      // Test to ensure disabled styling also works in detailed layout
       const alternativesWithDisabledDetailed: Alternative[] = [
         {
           value: 'a',

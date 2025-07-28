@@ -244,7 +244,7 @@ describe('Calendar', () => {
     });
 
     it('should handle activities with unknown status correctly in navigation variant', () => {
-      // This test covers the else block in lines 271-272
+      // This test covers the else block for unknown status
       const activities: Record<string, CalendarActivity[]> = {
         '2025-01-15': [
           {

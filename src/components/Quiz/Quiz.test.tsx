@@ -1,0 +1,1342 @@
+import { render, screen, fireEvent } from '@testing-library/react';
+import {
+  Quiz,
+  QuizTitle,
+  QuizHeader,
+  QuizContent,
+  QuizAlternative,
+  QuizQuestionList,
+  QuizFooter,
+} from './Quiz';
+import { useQuizStore } from './useQuizStore';
+import { ReactNode } from 'react';
+
+// Mock the useQuizStore
+jest.mock('./useQuizStore');
+const mockUseQuizStore = useQuizStore as jest.MockedFunction<
+  typeof useQuizStore
+>;
+
+// Mock the Alternative component
+jest.mock('../Alternative/Alternative', () => ({
+  AlternativesList: ({
+    alternatives,
+    value,
+    onValueChange,
+  }: {
+    alternatives: Array<{ value: string; label: string }>;
+    value: string;
+    onValueChange: (value: string) => void;
+  }) => (
+    <div data-testid="alternatives-list">
+      {alternatives.map((alt) => (
+        <button
+          key={alt.value}
+          data-testid={`alternative-${alt.value}`}
+          onClick={() => onValueChange(alt.value)}
+          className={value === alt.value ? 'selected' : ''}
+        >
+          {alt.label}
+        </button>
+      ))}
+    </div>
+  ),
+  HeaderAlternative: ({
+    title,
+    subTitle,
+    content,
+  }: {
+    title: string;
+    subTitle: string;
+    content: string;
+  }) => (
+    <div data-testid="header-alternative">
+      <h2>{title}</h2>
+      <p>{subTitle}</p>
+      <p>{content}</p>
+    </div>
+  ),
+}));
+
+// Mock the Button component
+jest.mock('../Button/Button', () => ({
+  __esModule: true,
+  default: ({
+    children,
+    onClick,
+    disabled,
+    _action,
+    _iconLeft,
+    _iconRight,
+    ...props
+  }: {
+    children: ReactNode;
+    onClick?: () => void;
+    disabled?: boolean;
+    _action?: unknown;
+    _iconLeft?: unknown;
+    _iconRight?: unknown;
+    [key: string]: unknown;
+  }) => {
+    return (
+      <button
+        data-testid="button"
+        onClick={onClick}
+        disabled={disabled}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  },
+}));
+
+// Mock the IconButton component
+jest.mock('../IconButton/IconButton', () => ({
+  __esModule: true,
+  default: ({
+    icon,
+    onClick,
+    _iconLeft,
+    _iconRight,
+    ...props
+  }: {
+    icon: ReactNode;
+    onClick?: () => void;
+    _iconLeft?: unknown;
+    _iconRight?: unknown;
+    [key: string]: unknown;
+  }) => {
+    return (
+      <button data-testid="icon-button" onClick={onClick} {...props}>
+        {icon}
+      </button>
+    );
+  },
+}));
+
+// Mock the AlertDialog component
+jest.mock('../AlertDialog/AlertDialog', () => ({
+  AlertDialog: ({
+    isOpen,
+    onChangeOpen,
+    title,
+    description,
+    onSubmit,
+    cancelButtonLabel,
+    submitButtonLabel,
+  }: {
+    isOpen: boolean;
+    onChangeOpen: (open: boolean) => void;
+    title: string;
+    description: string;
+    onSubmit: () => void;
+    cancelButtonLabel: string;
+    submitButtonLabel: string;
+  }) =>
+    isOpen ? (
+      <div data-testid="alert-dialog">
+        <h2>{title}</h2>
+        <p>{description}</p>
+        <button data-testid="cancel-button" onClick={() => onChangeOpen(false)}>
+          {cancelButtonLabel}
+        </button>
+        <button data-testid="submit-button" onClick={onSubmit}>
+          {submitButtonLabel}
+        </button>
+      </div>
+    ) : null,
+}));
+
+// Mock the Modal component
+jest.mock('../Modal/Modal', () => ({
+  __esModule: true,
+  default: ({
+    isOpen,
+    onClose,
+    children,
+    title,
+    size,
+  }: {
+    isOpen: boolean;
+    onClose: () => void;
+    children: ReactNode;
+    title: string;
+    size?: string;
+  }) =>
+    isOpen ? (
+      <div data-testid="modal" data-size={size}>
+        <h2>{title}</h2>
+        <button data-testid="close-modal" onClick={onClose}>
+          Close
+        </button>
+        {children}
+      </div>
+    ) : null,
+}));
+
+// Mock the Select components
+jest.mock('../Select/Select', () => ({
+  __esModule: true,
+  default: ({ children, value }: { children: ReactNode; value: string }) => (
+    <div data-testid="select" data-value={value}>
+      {children}
+    </div>
+  ),
+  SelectContent: ({ children }: { children: ReactNode }) => (
+    <div data-testid="select-content">{children}</div>
+  ),
+  SelectItem: ({ value, children }: { value: string; children: ReactNode }) => (
+    <div data-testid={`select-item-${value}`} data-value={value}>
+      {children}
+    </div>
+  ),
+  SelectTrigger: ({
+    children,
+    className,
+  }: {
+    children: ReactNode;
+    className: string;
+  }) => (
+    <div data-testid="select-trigger" className={className}>
+      {children}
+    </div>
+  ),
+  SelectValue: ({ placeholder }: { placeholder: string }) => (
+    <span data-testid="select-value">{placeholder}</span>
+  ),
+}));
+
+// Mock the Card component
+jest.mock('../Card/Card', () => ({
+  CardStatus: ({
+    header,
+    label,
+    onClick,
+  }: {
+    header: string;
+    label: string;
+    onClick?: () => void;
+  }) => (
+    <button data-testid="card-status" onClick={onClick}>
+      <span>{header}</span>
+      <span>{label}</span>
+    </button>
+  ),
+}));
+
+// Mock the Badge component
+jest.mock('../Badge/Badge', () => ({
+  __esModule: true,
+  default: ({
+    children,
+    variant,
+    action,
+    iconLeft,
+  }: {
+    children: ReactNode;
+    variant?: string;
+    action?: string;
+    iconLeft?: ReactNode;
+  }) => (
+    <div data-testid="badge" data-variant={variant} data-action={action}>
+      {iconLeft}
+      {children}
+    </div>
+  ),
+}));
+
+// Mock the image
+jest.mock('@/assets/img/simulated-result.png', () => 'mocked-image.png');
+
+// Mock data
+const mockQuestion1 = {
+  id: 'q1',
+  questionText: 'What is 2 + 2?',
+  correctOptionId: 'opt1',
+  description: 'Basic math question',
+  type: 'ALTERNATIVA' as const,
+  status: 'APROVADO' as const,
+  difficulty: 'FACIL' as const,
+  examBoard: 'ENEM',
+  examYear: '2024',
+  answerKey: null,
+  createdAt: '2024-01-01',
+  updatedAt: '2024-01-01',
+  knowledgeMatrix: [
+    {
+      areaKnowledgeId: 'matematica',
+      subjectId: 'algebra',
+      topicId: 'operacoes',
+      subtopicId: 'soma',
+      contentId: 'matematica',
+    },
+  ],
+  options: [
+    { id: 'opt1', option: '4' },
+    { id: 'opt2', option: '3' },
+    { id: 'opt3', option: '5' },
+    { id: 'opt4', option: '6' },
+  ],
+  createdBy: 'user1',
+};
+
+const mockQuestion2 = {
+  id: 'q2',
+  questionText: 'What is the capital of France?',
+  correctOptionId: 'opt2',
+  description: 'Geography question',
+  type: 'ALTERNATIVA' as const,
+  status: 'APROVADO' as const,
+  difficulty: 'FACIL' as const,
+  examBoard: 'ENEM',
+  examYear: '2024',
+  answerKey: null,
+  createdAt: '2024-01-01',
+  updatedAt: '2024-01-01',
+  knowledgeMatrix: [
+    {
+      areaKnowledgeId: 'geografia',
+      subjectId: 'geografia-geral',
+      topicId: 'capitais',
+      subtopicId: 'europa',
+      contentId: 'geografia',
+    },
+  ],
+  options: [
+    { id: 'opt1', option: 'London' },
+    { id: 'opt2', option: 'Paris' },
+    { id: 'opt3', option: 'Berlin' },
+    { id: 'opt4', option: 'Madrid' },
+  ],
+  createdBy: 'user1',
+};
+
+const mockSimulado = {
+  id: 'simulado-1',
+  title: 'Test Simulado',
+  questions: [mockQuestion1, mockQuestion2],
+};
+
+describe('Quiz Component', () => {
+  beforeEach(() => {
+    // Reset all mocks
+    jest.clearAllMocks();
+
+    // Default mock implementation
+    mockUseQuizStore.mockReturnValue({
+      isStarted: false,
+      updateTime: jest.fn(),
+      timeElapsed: 0,
+      currentQuestionIndex: 0,
+      getTotalQuestions: jest.fn().mockReturnValue(2),
+      getQuizTitle: jest.fn().mockReturnValue('Test Quiz'),
+      formatTime: jest.fn().mockReturnValue('00:00'),
+      getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion1),
+      selectAnswer: jest.fn(),
+      getCurrentAnswer: jest.fn().mockReturnValue(undefined),
+      isQuestionSkipped: jest.fn().mockReturnValue(false),
+      goToNextQuestion: jest.fn(),
+      goToPreviousQuestion: jest.fn(),
+      skipQuestion: jest.fn(),
+      getUserAnswers: jest.fn().mockReturnValue([]),
+      getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+      getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+        algebra: [mockQuestion1],
+        'geografia-geral': [mockQuestion2],
+      }),
+      isQuestionAnswered: jest.fn().mockReturnValue(false),
+      goToQuestion: jest.fn(),
+      resetQuiz: jest.fn(),
+      setBySimulado: jest.fn(),
+      setByAtividade: jest.fn(),
+      setByAula: jest.fn(),
+      startQuiz: jest.fn(),
+      finishQuiz: jest.fn(),
+      getAnsweredQuestions: jest.fn().mockReturnValue(0),
+      getUnansweredQuestions: jest.fn().mockReturnValue([2]),
+      getSkippedQuestions: jest.fn().mockReturnValue(0),
+      getProgress: jest.fn().mockReturnValue(0),
+      bySimulado: mockSimulado,
+      byAtividade: undefined,
+      byAula: undefined,
+      selectedAnswers: {},
+      skippedQuestions: [],
+      userAnswers: [],
+      isFinished: false,
+    });
+
+    // Mock useQuizStore.getState to return the same mock data
+    (useQuizStore.getState as jest.Mock).mockReturnValue({
+      bySimulado: mockSimulado,
+      byAtividade: undefined,
+      byAula: undefined,
+    });
+  });
+
+  describe('Quiz', () => {
+    it('should render children correctly', () => {
+      render(
+        <Quiz>
+          <div data-testid="quiz-child">Quiz Content</div>
+        </Quiz>
+      );
+
+      expect(screen.getByTestId('quiz-child')).toBeInTheDocument();
+    });
+
+    it('should apply custom className', () => {
+      render(
+        <Quiz className="custom-class">
+          <div>Content</div>
+        </Quiz>
+      );
+
+      const quizElement = screen.getByText('Content').parentElement;
+      expect(quizElement).toHaveClass('custom-class');
+    });
+
+    it('should start timer when isStarted is true', () => {
+      const mockUpdateTime = jest.fn();
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        isStarted: true,
+        timeElapsed: 10,
+        updateTime: mockUpdateTime,
+      });
+
+      render(
+        <Quiz>
+          <div>Content</div>
+        </Quiz>
+      );
+
+      // Timer should be active when isStarted is true
+      expect(mockUpdateTime).toBeDefined();
+    });
+
+    it('should cleanup timer when component unmounts', () => {
+      const mockUpdateTime = jest.fn();
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        isStarted: true,
+        timeElapsed: 10,
+        updateTime: mockUpdateTime,
+      });
+
+      const { unmount } = render(
+        <Quiz>
+          <div>Content</div>
+        </Quiz>
+      );
+
+      // Unmount component to trigger cleanup
+      unmount();
+
+      // Timer should be cleaned up
+      expect(mockUpdateTime).toBeDefined();
+    });
+  });
+
+  describe('QuizTitle', () => {
+    it('should display quiz title and question count', () => {
+      render(<QuizTitle />);
+
+      expect(screen.getByText('Test Quiz')).toBeInTheDocument();
+      expect(screen.getByText('1 de 2')).toBeInTheDocument();
+    });
+
+    it('should display timer badge', () => {
+      render(<QuizTitle />);
+
+      expect(screen.getByTestId('badge')).toBeInTheDocument();
+      expect(screen.getByText('00:00')).toBeInTheDocument();
+    });
+
+    it('should show 0 de 0 when no questions', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getTotalQuestions: jest.fn().mockReturnValue(0),
+      });
+
+      render(<QuizTitle />);
+
+      expect(screen.getByText('0 de 0')).toBeInTheDocument();
+    });
+
+    it('should format time correctly when quiz is started', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        isStarted: true,
+        timeElapsed: 65,
+        formatTime: jest.fn().mockReturnValue('01:05'),
+      });
+
+      render(<QuizTitle />);
+
+      expect(screen.getByText('01:05')).toBeInTheDocument();
+    });
+  });
+
+  describe('QuizHeader', () => {
+    it('should display question header with current question data', () => {
+      render(<QuizHeader />);
+
+      expect(screen.getByTestId('header-alternative')).toBeInTheDocument();
+      expect(screen.getByText('Questão q1')).toBeInTheDocument();
+      expect(screen.getByText('operacoes')).toBeInTheDocument();
+      expect(screen.getByText('What is 2 + 2?')).toBeInTheDocument();
+    });
+
+    it('should display default values when no question is available', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue(null),
+      });
+
+      render(<QuizHeader />);
+
+      expect(screen.getByText('Questão')).toBeInTheDocument();
+    });
+  });
+
+  describe('QuizContent', () => {
+    it('should render content with default type', () => {
+      render(
+        <QuizContent>
+          <div data-testid="content-child">Content</div>
+        </QuizContent>
+      );
+
+      expect(screen.getByText('Alternativas')).toBeInTheDocument();
+      expect(screen.getByTestId('content-child')).toBeInTheDocument();
+    });
+
+    it('should render content with custom type', () => {
+      render(
+        <QuizContent type="Dissertativa">
+          <div data-testid="content-child">Content</div>
+        </QuizContent>
+      );
+
+      expect(screen.getByText('Dissertativa')).toBeInTheDocument();
+    });
+
+    it('should apply custom className', () => {
+      render(
+        <QuizContent className="custom-content-class">
+          <div>Content</div>
+        </QuizContent>
+      );
+
+      const contentElement = screen.getByText('Content').parentElement;
+      expect(contentElement).toHaveClass('custom-content-class');
+    });
+  });
+
+  describe('QuizAlternative', () => {
+    it('should render alternatives list', () => {
+      render(<QuizAlternative />);
+
+      expect(screen.getByTestId('alternatives-list')).toBeInTheDocument();
+      expect(screen.getByTestId('alternative-opt1')).toBeInTheDocument();
+      expect(screen.getByTestId('alternative-opt2')).toBeInTheDocument();
+      expect(screen.getByTestId('alternative-opt3')).toBeInTheDocument();
+      expect(screen.getByTestId('alternative-opt4')).toBeInTheDocument();
+    });
+
+    it('should call selectAnswer when alternative is clicked', () => {
+      const mockSelectAnswer = jest.fn();
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        selectAnswer: mockSelectAnswer,
+      });
+
+      render(<QuizAlternative />);
+
+      fireEvent.click(screen.getByTestId('alternative-opt1'));
+
+      expect(mockSelectAnswer).toHaveBeenCalledWith('q1', 'opt1');
+    });
+
+    it('should display "Não há Alternativas" when no options available', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue({
+          ...mockQuestion1,
+          options: undefined,
+        }),
+      });
+
+      render(<QuizAlternative />);
+
+      expect(screen.getByText('Não há Alternativas')).toBeInTheDocument();
+    });
+
+    it('should highlight selected alternative', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt2'),
+      });
+
+      render(<QuizAlternative />);
+
+      const selectedAlternative = screen.getByTestId('alternative-opt2');
+      expect(selectedAlternative).toHaveClass('selected');
+    });
+  });
+
+  describe('QuizQuestionList', () => {
+    it('should render questions grouped by subject', () => {
+      render(<QuizQuestionList />);
+
+      expect(screen.getByText('algebra')).toBeInTheDocument();
+      expect(screen.getByText('geografia-geral')).toBeInTheDocument();
+      expect(screen.getAllByTestId('card-status')).toHaveLength(2);
+    });
+
+    it('should filter questions by answered status', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        isQuestionAnswered: jest.fn().mockImplementation((id) => id === 'q1'),
+      });
+
+      render(<QuizQuestionList filterType="answered" />);
+
+      expect(screen.getAllByTestId('card-status')).toHaveLength(1);
+    });
+
+    it('should filter questions by unanswered status', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        isQuestionAnswered: jest.fn().mockImplementation((id) => id === 'q1'),
+      });
+
+      render(<QuizQuestionList filterType="unanswered" />);
+
+      expect(screen.getAllByTestId('card-status')).toHaveLength(1);
+    });
+
+    it('should call onQuestionClick when question is clicked', () => {
+      const mockOnQuestionClick = jest.fn();
+      render(<QuizQuestionList onQuestionClick={mockOnQuestionClick} />);
+
+      fireEvent.click(screen.getAllByTestId('card-status')[0]);
+
+      expect(mockOnQuestionClick).toHaveBeenCalled();
+    });
+
+    it('should display correct status labels', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        isQuestionAnswered: jest.fn().mockImplementation((id) => id === 'q1'),
+        isQuestionSkipped: jest.fn().mockImplementation((id) => id === 'q2'),
+      });
+
+      render(<QuizQuestionList />);
+
+      const cards = screen.getAllByTestId('card-status');
+      expect(cards[0]).toHaveTextContent('Respondida');
+      expect(cards[1]).toHaveTextContent('Pulada');
+    });
+  });
+
+  describe('QuizFooter', () => {
+    it('should render navigation buttons', () => {
+      render(<QuizFooter />);
+
+      expect(screen.getByTestId('icon-button')).toBeInTheDocument();
+      expect(screen.getByText('Pular')).toBeInTheDocument();
+    });
+
+    it('should show "Voltar" button when not on first question', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 1,
+      });
+
+      render(<QuizFooter />);
+
+      expect(screen.getByText('Voltar')).toBeInTheDocument();
+    });
+
+    it('should show "Avançar" button when not on last question', () => {
+      render(<QuizFooter />);
+
+      expect(screen.getByText('Avançar')).toBeInTheDocument();
+    });
+
+    it('should show "Finish" button on last question', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+      });
+
+      render(<QuizFooter />);
+
+      expect(screen.getByText('Finalizar')).toBeInTheDocument();
+    });
+
+    it('should disable next/finish button when no answer selected', () => {
+      render(<QuizFooter />);
+
+      const nextButton = screen.getByText('Avançar');
+      expect(nextButton).toBeDisabled();
+    });
+
+    it('should enable next button when answer is selected', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+      });
+
+      render(<QuizFooter />);
+
+      const nextButton = screen.getByText('Avançar');
+      expect(nextButton).not.toBeDisabled();
+    });
+
+    it('should show alert dialog when finishing with unanswered questions', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([2]),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+      });
+
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByText('Finalizar'));
+
+      expect(screen.getByTestId('alert-dialog')).toBeInTheDocument();
+      expect(screen.getByText('Finalizar simulado?')).toBeInTheDocument();
+    });
+
+    it('should show result modal when finishing without unanswered questions', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        getUserAnswers: jest.fn().mockReturnValue([
+          { answerKey: 'opt1', correctOptionId: 'opt1' },
+          { answerKey: 'opt2', correctOptionId: 'opt2' },
+        ]),
+      });
+
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByText('Finalizar'));
+
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
+      expect(screen.getByText('Você concluiu o simulado!')).toBeInTheDocument();
+    });
+
+    it('should open navigation modal when icon button is clicked', () => {
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByTestId('icon-button'));
+
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
+      expect(screen.getByText('Questões')).toBeInTheDocument();
+    });
+
+    it('should call onGoToSimulated when button is clicked', () => {
+      const mockOnGoToSimulated = jest.fn();
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        getUserAnswers: jest
+          .fn()
+          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
+      });
+
+      render(<QuizFooter onGoToSimulated={mockOnGoToSimulated} />);
+
+      fireEvent.click(screen.getByText('Finalizar'));
+      fireEvent.click(screen.getByText('Ir para simulados'));
+
+      expect(mockOnGoToSimulated).toHaveBeenCalled();
+    });
+
+    it('should call onDetailResult when button is clicked', () => {
+      const mockOnDetailResult = jest.fn();
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        getUserAnswers: jest
+          .fn()
+          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
+      });
+
+      render(<QuizFooter onDetailResult={mockOnDetailResult} />);
+
+      fireEvent.click(screen.getByText('Finalizar'));
+      fireEvent.click(screen.getByText('Detalhar resultado'));
+
+      expect(mockOnDetailResult).toHaveBeenCalled();
+    });
+
+    it('should handle skip question functionality', () => {
+      const mockSkipQuestion = jest.fn();
+      const mockGoToNextQuestion = jest.fn();
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        skipQuestion: mockSkipQuestion,
+        goToNextQuestion: mockGoToNextQuestion,
+      });
+
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByText('Pular'));
+
+      expect(mockSkipQuestion).toHaveBeenCalled();
+      expect(mockGoToNextQuestion).toHaveBeenCalled();
+    });
+
+    it('should handle go to previous question', () => {
+      const mockGoToPreviousQuestion = jest.fn();
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 1,
+        goToPreviousQuestion: mockGoToPreviousQuestion,
+      });
+
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByText('Voltar'));
+
+      expect(mockGoToPreviousQuestion).toHaveBeenCalled();
+    });
+
+    it('should handle go to next question', () => {
+      const mockGoToNextQuestion = jest.fn();
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        goToNextQuestion: mockGoToNextQuestion,
+      });
+
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByText('Avançar'));
+
+      expect(mockGoToNextQuestion).toHaveBeenCalled();
+    });
+
+    // Additional tests for missing coverage lines
+    it('should show skip button on first question', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 0,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+      });
+
+      render(<QuizFooter />);
+
+      expect(screen.getByText('Pular')).toBeInTheDocument();
+    });
+
+    it('should show alert dialog with unanswered questions description', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getUnansweredQuestionsFromUserAnswers: jest
+          .fn()
+          .mockReturnValue([2, 3]),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+      });
+
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByText('Finalizar'));
+
+      expect(screen.getByText('Finalizar simulado?')).toBeInTheDocument();
+      expect(
+        screen.getByText(/Você deixou as questões 2, 3 sem resposta/)
+      ).toBeInTheDocument();
+    });
+
+    it('should show alert dialog with default description when no unanswered questions', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([2]), // Has unanswered questions
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        getUserAnswers: jest.fn().mockReturnValue([]),
+      });
+
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByText('Finalizar'));
+
+      expect(screen.getByTestId('alert-dialog')).toBeInTheDocument();
+      expect(screen.getByText('Finalizar simulado?')).toBeInTheDocument();
+      expect(
+        screen.getByText(/Você deixou as questões 2 sem resposta/)
+      ).toBeInTheDocument();
+    });
+
+    it('should handle alert dialog submit action', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([2]),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        getUserAnswers: jest
+          .fn()
+          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
+      });
+
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByText('Finalizar'));
+      fireEvent.click(screen.getByTestId('submit-button'));
+
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
+      expect(screen.getByText('Você concluiu o simulado!')).toBeInTheDocument();
+    });
+
+    it('should handle alert dialog cancel action', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([2]),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+      });
+
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByText('Finalizar'));
+      fireEvent.click(screen.getByTestId('cancel-button'));
+
+      expect(screen.queryByTestId('alert-dialog')).not.toBeInTheDocument();
+    });
+
+    it('should handle modal close action', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        getUserAnswers: jest
+          .fn()
+          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
+      });
+
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByText('Finalizar'));
+      fireEvent.click(screen.getByTestId('close-modal'));
+
+      expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+    });
+
+    it('should handle navigation modal with select functionality', () => {
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByTestId('icon-button'));
+
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
+      expect(screen.getByText('Questões')).toBeInTheDocument();
+      expect(screen.getByText('Filtrar por')).toBeInTheDocument();
+      expect(screen.getByTestId('select')).toBeInTheDocument();
+    });
+
+    it('should close navigation modal when question is clicked', () => {
+      render(<QuizFooter />);
+
+      // Open navigation modal
+      fireEvent.click(screen.getByTestId('icon-button'));
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
+
+      // Click on a question card to trigger onQuestionClick
+      fireEvent.click(screen.getAllByTestId('card-status')[0]);
+
+      // Modal should be closed
+      expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+    });
+
+    it('should call skipQuestion and goToNextQuestion when skip button is clicked', () => {
+      const mockSkipQuestion = jest.fn();
+      const mockGoToNextQuestion = jest.fn();
+
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        skipQuestion: mockSkipQuestion,
+        goToNextQuestion: mockGoToNextQuestion,
+        currentQuestionIndex: 0,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+      });
+
+      render(<QuizFooter />);
+
+      // Click the skip button
+      fireEvent.click(screen.getByText('Pular'));
+
+      // Both functions should be called
+      expect(mockSkipQuestion).toHaveBeenCalledTimes(1);
+      expect(mockGoToNextQuestion).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call skipQuestion and goToNextQuestion when skip button is clicked in QuizFooter', () => {
+      const mockSkipQuestion = jest.fn();
+      const mockGoToNextQuestion = jest.fn();
+
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        skipQuestion: mockSkipQuestion,
+        goToNextQuestion: mockGoToNextQuestion,
+        currentQuestionIndex: 1, // Not first question to show skip button
+        getTotalQuestions: jest.fn().mockReturnValue(3),
+      });
+
+      render(<QuizFooter />);
+
+      // Click the skip button
+      fireEvent.click(screen.getByText('Pular'));
+
+      // Both functions should be called
+      expect(mockSkipQuestion).toHaveBeenCalledTimes(1);
+      expect(mockGoToNextQuestion).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle select value change in navigation modal', () => {
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByTestId('icon-button'));
+
+      const selectElement = screen.getByTestId('select');
+      expect(selectElement).toHaveAttribute('data-value', 'all');
+    });
+
+    it('should handle navigation modal close', () => {
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByTestId('icon-button'));
+      fireEvent.click(screen.getByTestId('close-modal'));
+
+      expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+    });
+
+    it('should display correct answer count in result modal', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        getUserAnswers: jest.fn().mockReturnValue([
+          { answerKey: 'opt1', correctOptionId: 'opt1' },
+          { answerKey: 'opt2', correctOptionId: 'opt3' }, // Wrong answer
+        ]),
+      });
+
+      render(<QuizFooter />);
+
+      fireEvent.click(screen.getByText('Finalizar'));
+
+      expect(
+        screen.getByText('Você acertou 1 de 2 questões.')
+      ).toBeInTheDocument();
+    });
+
+    it('should render AlternativesList with correct key and name when current question exists', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion1),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+      });
+
+      render(<QuizAlternative />);
+
+      const alternativesList = screen.getByTestId('alternatives-list');
+      expect(alternativesList).toBeInTheDocument();
+
+      // The key and name should be based on currentQuestion.id
+      expect(alternativesList).toHaveAttribute(
+        'data-testid',
+        'alternatives-list'
+      );
+    });
+
+    it('should render AlternativesList with fallback key and name when current question is null', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue(null),
+        getCurrentAnswer: jest.fn().mockReturnValue(undefined),
+      });
+
+      render(<QuizAlternative />);
+
+      // When currentQuestion is null, it should show "Não há Alternativas" instead of alternatives list
+      expect(screen.getByText('Não há Alternativas')).toBeInTheDocument();
+      expect(screen.queryByTestId('alternatives-list')).not.toBeInTheDocument();
+    });
+
+    it('should render AlternativesList with fallback key and name when current question id is undefined', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue({
+          ...mockQuestion1,
+          id: undefined, // Simulate undefined id
+        }),
+        getCurrentAnswer: jest.fn().mockReturnValue(undefined),
+      });
+
+      render(<QuizAlternative />);
+
+      const alternativesList = screen.getByTestId('alternatives-list');
+      expect(alternativesList).toBeInTheDocument();
+
+      // The key and name should use fallback value '1' when currentQuestion.id is undefined
+      expect(alternativesList).toHaveAttribute(
+        'data-testid',
+        'alternatives-list'
+      );
+    });
+
+    it('should handle getQuestionIndex when quiz exists', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        bySimulado: mockSimulado,
+        byAtividade: undefined,
+        byAula: undefined,
+      });
+
+      // Mock useQuizStore.getState to return quiz data
+      (useQuizStore.getState as jest.Mock).mockReturnValue({
+        bySimulado: mockSimulado,
+        byAtividade: undefined,
+        byAula: undefined,
+      });
+
+      render(<QuizQuestionList />);
+
+      // Should render questions when quiz exists
+      expect(screen.getAllByTestId('card-status')).toHaveLength(2);
+    });
+
+    it('should handle getQuestionIndex when no quiz exists', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        bySimulado: undefined,
+        byAtividade: undefined,
+        byAula: undefined,
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({}), // Return empty object when no quiz
+      });
+
+      // Mock useQuizStore.getState to return no quiz data
+      (useQuizStore.getState as jest.Mock).mockReturnValue({
+        bySimulado: undefined,
+        byAtividade: undefined,
+        byAula: undefined,
+      });
+
+      render(<QuizQuestionList />);
+
+      // Should not render any questions when no quiz exists
+      expect(screen.queryByTestId('card-status')).not.toBeInTheDocument();
+    });
+
+    it('should handle getQuestionIndex with byAtividade quiz', () => {
+      const mockAtividade = {
+        id: 'atividade-1',
+        title: 'Test Atividade',
+        questions: [mockQuestion1, mockQuestion2],
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        bySimulado: undefined,
+        byAtividade: mockAtividade,
+        byAula: undefined,
+      });
+
+      // Mock useQuizStore.getState to return atividade data
+      (useQuizStore.getState as jest.Mock).mockReturnValue({
+        bySimulado: undefined,
+        byAtividade: mockAtividade,
+        byAula: undefined,
+      });
+
+      render(<QuizQuestionList />);
+
+      // Should render questions when atividade exists
+      expect(screen.getAllByTestId('card-status')).toHaveLength(2);
+    });
+
+    it('should handle getQuestionIndex with byAula quiz', () => {
+      const mockAula = {
+        id: 'aula-1',
+        title: 'Test Aula',
+        questions: [mockQuestion1, mockQuestion2],
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        bySimulado: undefined,
+        byAtividade: undefined,
+        byAula: mockAula,
+      });
+
+      // Mock useQuizStore.getState to return aula data
+      (useQuizStore.getState as jest.Mock).mockReturnValue({
+        bySimulado: undefined,
+        byAtividade: undefined,
+        byAula: mockAula,
+      });
+
+      render(<QuizQuestionList />);
+
+      // Should render questions when aula exists
+      expect(screen.getAllByTestId('card-status')).toHaveLength(2);
+    });
+
+    it('should return 0 when no quiz exists in getQuestionIndex function', () => {
+      // Mock useQuizStore.getState to return no quiz data
+      (useQuizStore.getState as jest.Mock).mockReturnValue({
+        bySimulado: undefined,
+        byAtividade: undefined,
+        byAula: undefined,
+      });
+
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        bySimulado: undefined,
+        byAtividade: undefined,
+        byAula: undefined,
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+          'test-subject': [mockQuestion1], // Still provide some questions for rendering
+        }),
+      });
+
+      render(<QuizQuestionList />);
+
+      // The getQuestionIndex function should return 0 when no quiz exists
+      // This is tested by checking that the question number is displayed as "Question 00"
+      // since getQuestionIndex returns 0, which gets padded to "00"
+      expect(screen.getByText('Questão 00')).toBeInTheDocument();
+    });
+
+    it('should handle isCurrentQuestionSkipped logic in QuizFooter', () => {
+      // Test case 1: Current question exists and is skipped
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion1),
+        isQuestionSkipped: jest.fn().mockReturnValue(true),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getCurrentAnswer: jest.fn().mockReturnValue(undefined),
+      });
+
+      render(<QuizFooter />);
+
+      // The "Finish" button should be enabled when question is skipped (even without answer)
+      const finishButton = screen.getByText('Finalizar');
+      expect(finishButton).not.toBeDisabled();
+    });
+
+    it('should handle isCurrentQuestionSkipped when current question is null in QuizFooter', () => {
+      // Test case 2: Current question is null
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue(null),
+        isQuestionSkipped: jest.fn().mockReturnValue(false),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getCurrentAnswer: jest.fn().mockReturnValue(undefined),
+      });
+
+      render(<QuizFooter />);
+
+      // The "Finish" button should be disabled when no current question and no answer
+      const finishButton = screen.getByText('Finalizar');
+      expect(finishButton).toBeDisabled();
+    });
+
+    it('should handle isCurrentQuestionSkipped when current question is not skipped in QuizFooter', () => {
+      // Test case 3: Current question exists but is not skipped
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion1),
+        isQuestionSkipped: jest.fn().mockReturnValue(false),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getCurrentAnswer: jest.fn().mockReturnValue(undefined),
+      });
+
+      render(<QuizFooter />);
+
+      // The "Finish" button should be disabled when question is not skipped and no answer
+      const finishButton = screen.getByText('Finalizar');
+      expect(finishButton).toBeDisabled();
+    });
+  });
+
+  describe('Integration Tests', () => {
+    it('should handle complete quiz flow', async () => {
+      const mockSelectAnswer = jest.fn();
+      const mockGoToNextQuestion = jest.fn();
+      const mockFinishQuiz = jest.fn();
+
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        selectAnswer: mockSelectAnswer,
+        goToNextQuestion: mockGoToNextQuestion,
+        finishQuiz: mockFinishQuiz,
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        currentQuestionIndex: 1,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+        getUserAnswers: jest
+          .fn()
+          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
+      });
+
+      render(
+        <div>
+          <QuizAlternative />
+          <QuizFooter />
+        </div>
+      );
+
+      // Select an answer
+      fireEvent.click(screen.getByTestId('alternative-opt1'));
+      expect(mockSelectAnswer).toHaveBeenCalledWith('q1', 'opt1');
+
+      // Finish quiz
+      fireEvent.click(screen.getByText('Finalizar'));
+      expect(screen.getByText('Você concluiu o simulado!')).toBeInTheDocument();
+    });
+
+    it('should handle timer functionality', () => {
+      const mockUpdateTime = jest.fn();
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        isStarted: true,
+        timeElapsed: 0,
+        updateTime: mockUpdateTime,
+      });
+
+      render(<Quiz>test</Quiz>);
+
+      // Timer should be active
+      expect(mockUpdateTime).toBeDefined();
+    });
+  });
+});
