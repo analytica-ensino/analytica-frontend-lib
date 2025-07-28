@@ -190,7 +190,7 @@ export const useQuizStore = create<QuizState>()(
           const updatedAnswers = [...userAnswers];
           updatedAnswers[existingAnswerIndex] = {
             ...question,
-            answerKey: answerId || null,
+            answerKey: answerId || '',
             isSkipped: !answerId
           };
           set({ userAnswers: updatedAnswers });
@@ -292,11 +292,7 @@ export const useQuizStore = create<QuizState>()(
         const { getCurrentQuestion, selectedAnswers } = get();
         const currentQuestion = getCurrentQuestion();
         
-        if (!currentQuestion) {
-          return undefined;
-        }
-        
-        return selectedAnswers[currentQuestion.id];
+        return selectedAnswers[currentQuestion?.id || ''];
       },
       
       getQuizTitle: () => {
