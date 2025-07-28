@@ -283,6 +283,16 @@ describe('useQuizStore', () => {
   });
 
   describe('Timer', () => {
+    beforeEach(() => {
+      // Clear any existing timers
+      jest.clearAllTimers();
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('should update time', () => {
       const { result } = renderHook(() => useQuizStore());
       
@@ -291,6 +301,168 @@ describe('useQuizStore', () => {
       });
       
       expect(result.current.timeElapsed).toBe(120);
+    });
+
+    it('should start timer when starting quiz', () => {
+      const { result } = renderHook(() => useQuizStore());
+      
+      act(() => {
+        result.current.startQuiz();
+      });
+      
+      expect(result.current.isStarted).toBe(true);
+      expect(result.current.timeElapsed).toBe(0);
+      
+      // Advance timer by 1 second
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      
+      expect(result.current.timeElapsed).toBe(1);
+    });
+
+    it('should stop timer when finishing quiz', () => {
+      const { result } = renderHook(() => useQuizStore());
+      
+      act(() => {
+        result.current.startQuiz();
+        jest.advanceTimersByTime(2000); // Advance 2 seconds
+        result.current.finishQuiz();
+      });
+      
+      expect(result.current.isFinished).toBe(true);
+      expect(result.current.timeElapsed).toBe(2);
+      
+      // Timer should be stopped, so advancing time should not increase timeElapsed
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      
+      expect(result.current.timeElapsed).toBe(2); // Should remain at 2
+    });
+
+    it('should stop timer when resetting quiz', () => {
+      const { result } = renderHook(() => useQuizStore());
+      
+      act(() => {
+        result.current.startQuiz();
+        jest.advanceTimersByTime(3000); // Advance 3 seconds
+        result.current.resetQuiz();
+      });
+      
+      expect(result.current.timeElapsed).toBe(0);
+      expect(result.current.isStarted).toBe(false);
+      expect(result.current.isFinished).toBe(false);
+      
+      // Timer should be stopped, so advancing time should not increase timeElapsed
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      
+      expect(result.current.timeElapsed).toBe(0); // Should remain at 0
+    });
+
+    it('should clear existing timer when starting new timer', () => {
+      const { result } = renderHook(() => useQuizStore());
+      
+      act(() => {
+        result.current.startQuiz();
+        jest.advanceTimersByTime(1000); // Advance 1 second
+        result.current.stopTimer();
+        result.current.startQuiz(); // Start timer again
+      });
+      
+      expect(result.current.timeElapsed).toBe(0); // Should reset to 0
+      
+      // Advance timer again
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      
+      expect(result.current.timeElapsed).toBe(1); // Should count from 0 again
+    });
+
+    it('should handle multiple timer starts and stops', () => {
+      const { result } = renderHook(() => useQuizStore());
+      
+      act(() => {
+        result.current.startQuiz();
+        jest.advanceTimersByTime(1000);
+        result.current.stopTimer();
+        jest.advanceTimersByTime(1000); // This should not affect timeElapsed
+        result.current.startTimer(); // Start timer again
+        jest.advanceTimersByTime(1000);
+      });
+      
+      expect(result.current.timeElapsed).toBe(2); // 1 + 1 = 2
+    });
+
+    it('should stop timer when quiz is finished and then reset', () => {
+      const { result } = renderHook(() => useQuizStore());
+      
+      act(() => {
+        result.current.startQuiz();
+        jest.advanceTimersByTime(5000); // Advance 5 seconds
+        result.current.finishQuiz();
+        result.current.resetQuiz();
+      });
+      
+      expect(result.current.timeElapsed).toBe(0);
+      expect(result.current.isStarted).toBe(false);
+      expect(result.current.isFinished).toBe(false);
+      
+      // Timer should be completely stopped
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      
+      expect(result.current.timeElapsed).toBe(0);
+    });
+
+    it('should format time correctly with timer integration', () => {
+      const { result } = renderHook(() => useQuizStore());
+      
+      act(() => {
+        result.current.startQuiz();
+        jest.advanceTimersByTime(65000); // Advance 65 seconds (1:05)
+      });
+      
+      expect(result.current.formatTime(result.current.timeElapsed)).toBe('01:05');
+    });
+
+    it('should handle timer with long duration', () => {
+      const { result } = renderHook(() => useQuizStore());
+      
+      act(() => {
+        result.current.startQuiz();
+        jest.advanceTimersByTime(125000); // Advance 125 seconds (2:05)
+      });
+      
+      expect(result.current.timeElapsed).toBe(125);
+      expect(result.current.formatTime(result.current.timeElapsed)).toBe('02:05');
+    });
+
+    it('should not start timer if already running', () => {
+      const { result } = renderHook(() => useQuizStore());
+      
+      act(() => {
+        result.current.startQuiz();
+        jest.advanceTimersByTime(1000);
+        result.current.startTimer(); // Try to start timer again
+        jest.advanceTimersByTime(1000);
+      });
+      
+      expect(result.current.timeElapsed).toBe(2); // Should continue counting normally
+    });
+
+    it('should handle stopTimer when no timer is running', () => {
+      const { result } = renderHook(() => useQuizStore());
+      
+      act(() => {
+        result.current.stopTimer(); // Stop timer when not running
+      });
+      
+      expect(result.current.timeElapsed).toBe(0); // Should remain at initial state
     });
   });
 
@@ -339,6 +511,20 @@ describe('useQuizStore', () => {
       const unanswered = result.current.getUnansweredQuestions();
       
       expect(unanswered).toEqual([2]); // Only question 2 is unanswered
+    });
+
+    it('should return empty array for unanswered questions when no quiz is set', () => {
+      act(() => {
+        useQuizStore.getState().resetQuiz();
+        useQuizStore.setState({
+          bySimulado: undefined,
+          byAtividade: undefined,
+          byAula: undefined
+        });
+      });
+      
+      const { result } = renderHook(() => useQuizStore());
+      expect(result.current.getUnansweredQuestions()).toEqual([]);
     });
 
     it('should get skipped questions count', () => {

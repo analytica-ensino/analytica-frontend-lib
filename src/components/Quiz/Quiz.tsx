@@ -30,25 +30,6 @@ const Quiz = forwardRef<
   HTMLDivElement,
   { children: React.ReactNode; className?: string }
 >(({ children, className, ...props }, ref) => {
-  const { isStarted, updateTime, timeElapsed } = useQuizStore();
-
-  // Timer effect
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (isStarted) {
-      interval = setInterval(() => {
-        updateTime(timeElapsed + 1);
-      }, 1000);
-    }
-
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [isStarted, timeElapsed, updateTime]);
-
   return (
     <div
       ref={ref}
@@ -170,14 +151,6 @@ const QuizAlternative = () => {
 
   return (
     <div className="space-y-4">
-      {isCurrentQuestionSkipped && (
-        <div className="bg-warning-background border border-warning-300 rounded-lg p-3">
-          <p className="text-warning-900 text-sm font-medium">
-            ⚠️ Esta questão foi pulada. Você pode voltar e respondê-la.
-          </p>
-        </div>
-      )}
-
       <AlternativesList
         key={`question-${currentQuestion?.id || '1'}`}
         name={`question-${currentQuestion?.id || '1'}`}
@@ -287,6 +260,7 @@ const QuizQuestionList = ({
 
                 return (
                   <CardStatus
+                    key={question.id}
                     header={`Questão ${questionNumber.toString().padStart(2, '0')}`}
                     label={getStatusLabel(status)}
                     onClick={() => {

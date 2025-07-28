@@ -171,29 +171,29 @@ describe('Alert Component', () => {
     });
 
     it('explicitly tests each icon type rendering to cover all object properties', () => {
-      // Test default icon (line 55)
+      // Test default icon
       const { rerender } = render(
         <Alert description="Default test" variant="solid" action="default" />
       );
       expect(document.querySelector('svg')).toBeInTheDocument();
 
-      // Test info icon (line 56)
+      // Test info icon
       rerender(<Alert description="Info test" variant="solid" action="info" />);
       expect(document.querySelector('svg')).toBeInTheDocument();
 
-      // Test success icon (line 57)
+      // Test success icon
       rerender(
         <Alert description="Success test" variant="solid" action="success" />
       );
       expect(document.querySelector('svg')).toBeInTheDocument();
 
-      // Test warning icon (line 58)
+      // Test warning icon
       rerender(
         <Alert description="Warning test" variant="solid" action="warning" />
       );
       expect(document.querySelector('svg')).toBeInTheDocument();
 
-      // Test error icon (line 59)
+      // Test error icon
       rerender(
         <Alert description="Error test" variant="solid" action="error" />
       );

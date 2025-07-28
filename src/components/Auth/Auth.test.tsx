@@ -128,7 +128,7 @@ const TestDefaultOptionsComponent = () => {
 
 const TestRedirectComponent = () => {
   const { redirectToLogin } = useRouteAuth('/login');
-  // Call the function to cover line 391
+  // Call the function to test redirectToLogin
   redirectToLogin();
   return (
     <div data-testid="redirect-test">
@@ -813,7 +813,7 @@ describe('Auth Components', () => {
 
     it('should work with no options provided (use default)', async () => {
       const checkAuthFn = jest.fn().mockResolvedValue(true);
-      // Test the default options branch (line 331)
+      // Test the default options branch
       const WrappedComponent = withAuth(SimpleComponent); // No options provided
 
       renderWithAuth(<WrappedComponent title="Default Options" />, {
