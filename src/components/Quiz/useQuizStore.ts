@@ -228,7 +228,7 @@ export const useQuizStore = create<QuizState>()(
                 ...userAnswers,
                 {
                   ...question,
-                  answerKey: answerId || null,
+                  answerKey: answerId || '',
                   isSkipped: !answerId,
                 },
               ],
@@ -270,7 +270,7 @@ export const useQuizStore = create<QuizState>()(
             get();
           const quiz = bySimulado || byAtividade || byAula;
 
-          if (!quiz || !quiz.questions[currentQuestionIndex]) {
+          if (!quiz) {
             return null;
           }
 

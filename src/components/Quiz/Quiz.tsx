@@ -85,14 +85,9 @@ const QuizHeader = () => {
 
   return (
     <HeaderAlternative
-      title={currentQuestion ? `Questão ${currentQuestion.id}` : 'Questão 01'}
-      subTitle={
-        currentQuestion?.knowledgeMatrix?.[0]?.topicId || 'Função horária'
-      }
-      content={
-        currentQuestion?.questionText ||
-        'Um carro inicia do repouso e se desloca em linha reta com uma aceleração constante de 2 m/s². Calcule a distância que o carro percorre após 5 segundos.'
-      }
+      title={currentQuestion ? `Questão ${currentQuestion.id}` : 'Questão'}
+      subTitle={currentQuestion?.knowledgeMatrix?.[0]?.topicId ?? ''}
+      content={currentQuestion?.questionText ?? ''}
     />
   );
 };
@@ -211,7 +206,7 @@ const QuizQuestionList = ({
 
   const getQuestionIndex = (questionId: string) => {
     const { bySimulado, byAtividade, byAula } = useQuizStore.getState();
-    const quiz = bySimulado || byAtividade || byAula;
+    const quiz = bySimulado ?? byAtividade ?? byAula;
     if (!quiz) return 0;
 
     const index = quiz.questions.findIndex((q) => q.id === questionId);

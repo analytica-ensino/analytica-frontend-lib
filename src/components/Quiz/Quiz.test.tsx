@@ -496,8 +496,7 @@ describe('Quiz Component', () => {
 
       render(<QuizHeader />);
 
-      expect(screen.getByText('Questão 01')).toBeInTheDocument();
-      expect(screen.getByText('Função horária')).toBeInTheDocument();
+      expect(screen.getByText('Questão')).toBeInTheDocument();
     });
   });
 
