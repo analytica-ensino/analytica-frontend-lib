@@ -21,16 +21,16 @@ const mockQuestion1 = {
       subjectId: 'algebra',
       topicId: 'operacoes',
       subtopicId: 'soma',
-      contentId: 'matematica'
-    }
+      contentId: 'matematica',
+    },
   ],
   options: [
     { id: 'opt1', option: '4' },
     { id: 'opt2', option: '3' },
     { id: 'opt3', option: '5' },
-    { id: 'opt4', option: '6' }
+    { id: 'opt4', option: '6' },
   ],
-  createdBy: 'user1'
+  createdBy: 'user1',
 };
 
 const mockQuestion2 = {
@@ -52,22 +52,22 @@ const mockQuestion2 = {
       subjectId: 'geografia-geral',
       topicId: 'capitais',
       subtopicId: 'europa',
-      contentId: 'geografia'
-    }
+      contentId: 'geografia',
+    },
   ],
   options: [
     { id: 'opt1', option: 'London' },
     { id: 'opt2', option: 'Paris' },
     { id: 'opt3', option: 'Berlin' },
-    { id: 'opt4', option: 'Madrid' }
+    { id: 'opt4', option: 'Madrid' },
   ],
-  createdBy: 'user1'
+  createdBy: 'user1',
 };
 
 const mockSimulado = {
   id: 'simulado-1',
   title: 'Test Simulado',
-  questions: [mockQuestion1, mockQuestion2]
+  questions: [mockQuestion1, mockQuestion2],
 };
 
 describe('useQuizStore', () => {
@@ -81,7 +81,7 @@ describe('useQuizStore', () => {
   describe('Initial State', () => {
     it('should have correct initial state', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       expect(result.current.currentQuestionIndex).toBe(0);
       expect(result.current.selectedAnswers).toEqual({});
       expect(result.current.skippedQuestions).toEqual([]);
@@ -95,31 +95,31 @@ describe('useQuizStore', () => {
   describe('Setters', () => {
     it('should set bySimulado', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.setBySimulado(mockSimulado);
       });
-      
+
       expect(result.current.bySimulado).toEqual(mockSimulado);
     });
 
     it('should set byAtividade', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.setByAtividade(mockSimulado);
       });
-      
+
       expect(result.current.byAtividade).toEqual(mockSimulado);
     });
 
     it('should set byAula', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.setByAula(mockSimulado);
       });
-      
+
       expect(result.current.byAula).toEqual(mockSimulado);
     });
   });
@@ -133,63 +133,63 @@ describe('useQuizStore', () => {
 
     it('should go to next question', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.goToNextQuestion();
       });
-      
+
       expect(result.current.currentQuestionIndex).toBe(1);
     });
 
     it('should not go beyond last question', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.goToNextQuestion(); // Go to question 1
         result.current.goToNextQuestion(); // Try to go beyond
       });
-      
+
       expect(result.current.currentQuestionIndex).toBe(1); // Should stay at last question
     });
 
     it('should go to previous question', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.goToNextQuestion(); // Go to question 1
         result.current.goToPreviousQuestion(); // Go back to 0
       });
-      
+
       expect(result.current.currentQuestionIndex).toBe(0);
     });
 
     it('should not go before first question', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.goToPreviousQuestion(); // Try to go before first
       });
-      
+
       expect(result.current.currentQuestionIndex).toBe(0); // Should stay at first question
     });
 
     it('should go to specific question', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.goToQuestion(1);
       });
-      
+
       expect(result.current.currentQuestionIndex).toBe(1);
     });
 
     it('should not go to invalid question index', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.goToQuestion(5); // Invalid index
       });
-      
+
       expect(result.current.currentQuestionIndex).toBe(0); // Should stay at current
     });
   });
@@ -203,11 +203,11 @@ describe('useQuizStore', () => {
 
     it('should select answer', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.selectAnswer('q1', 'opt1');
       });
-      
+
       expect(result.current.selectedAnswers['q1']).toBe('opt1');
       expect(result.current.userAnswers).toHaveLength(1);
       expect(result.current.userAnswers[0].id).toBe('q1');
@@ -217,11 +217,11 @@ describe('useQuizStore', () => {
 
     it('should skip question', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.skipQuestion();
       });
-      
+
       expect(result.current.skippedQuestions).toContain('q1');
       expect(result.current.userAnswers).toHaveLength(1);
       expect(result.current.userAnswers[0].id).toBe('q1');
@@ -230,48 +230,48 @@ describe('useQuizStore', () => {
 
     it('should remove from skipped when answering', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.skipQuestion(); // Skip first question
         result.current.goToNextQuestion(); // Go to second question
         result.current.selectAnswer('q2', 'opt2'); // Answer second question
       });
-      
+
       expect(result.current.skippedQuestions).toContain('q1');
       expect(result.current.skippedQuestions).not.toContain('q2');
     });
 
     it('should start quiz', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.startQuiz();
       });
-      
+
       expect(result.current.isStarted).toBe(true);
       expect(result.current.timeElapsed).toBe(0);
     });
 
     it('should finish quiz', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.finishQuiz();
       });
-      
+
       expect(result.current.isFinished).toBe(true);
     });
 
     it('should reset quiz', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.selectAnswer('q1', 'opt1');
         result.current.goToNextQuestion();
         result.current.startQuiz();
         result.current.resetQuiz();
       });
-      
+
       expect(result.current.currentQuestionIndex).toBe(0);
       expect(result.current.selectedAnswers).toEqual({});
       expect(result.current.skippedQuestions).toEqual([]);
@@ -295,96 +295,96 @@ describe('useQuizStore', () => {
 
     it('should update time', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.updateTime(120);
       });
-      
+
       expect(result.current.timeElapsed).toBe(120);
     });
 
     it('should start timer when starting quiz', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.startQuiz();
       });
-      
+
       expect(result.current.isStarted).toBe(true);
       expect(result.current.timeElapsed).toBe(0);
-      
+
       // Advance timer by 1 second
       act(() => {
         jest.advanceTimersByTime(1000);
       });
-      
+
       expect(result.current.timeElapsed).toBe(1);
     });
 
     it('should stop timer when finishing quiz', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.startQuiz();
         jest.advanceTimersByTime(2000); // Advance 2 seconds
         result.current.finishQuiz();
       });
-      
+
       expect(result.current.isFinished).toBe(true);
       expect(result.current.timeElapsed).toBe(2);
-      
+
       // Timer should be stopped, so advancing time should not increase timeElapsed
       act(() => {
         jest.advanceTimersByTime(1000);
       });
-      
+
       expect(result.current.timeElapsed).toBe(2); // Should remain at 2
     });
 
     it('should stop timer when resetting quiz', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.startQuiz();
         jest.advanceTimersByTime(3000); // Advance 3 seconds
         result.current.resetQuiz();
       });
-      
+
       expect(result.current.timeElapsed).toBe(0);
       expect(result.current.isStarted).toBe(false);
       expect(result.current.isFinished).toBe(false);
-      
+
       // Timer should be stopped, so advancing time should not increase timeElapsed
       act(() => {
         jest.advanceTimersByTime(1000);
       });
-      
+
       expect(result.current.timeElapsed).toBe(0); // Should remain at 0
     });
 
     it('should clear existing timer when starting new timer', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.startQuiz();
         jest.advanceTimersByTime(1000); // Advance 1 second
         result.current.stopTimer();
         result.current.startQuiz(); // Start timer again
       });
-      
+
       expect(result.current.timeElapsed).toBe(0); // Should reset to 0
-      
+
       // Advance timer again
       act(() => {
         jest.advanceTimersByTime(1000);
       });
-      
+
       expect(result.current.timeElapsed).toBe(1); // Should count from 0 again
     });
 
     it('should handle multiple timer starts and stops', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.startQuiz();
         jest.advanceTimersByTime(1000);
@@ -393,75 +393,79 @@ describe('useQuizStore', () => {
         result.current.startTimer(); // Start timer again
         jest.advanceTimersByTime(1000);
       });
-      
+
       expect(result.current.timeElapsed).toBe(2); // 1 + 1 = 2
     });
 
     it('should stop timer when quiz is finished and then reset', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.startQuiz();
         jest.advanceTimersByTime(5000); // Advance 5 seconds
         result.current.finishQuiz();
         result.current.resetQuiz();
       });
-      
+
       expect(result.current.timeElapsed).toBe(0);
       expect(result.current.isStarted).toBe(false);
       expect(result.current.isFinished).toBe(false);
-      
+
       // Timer should be completely stopped
       act(() => {
         jest.advanceTimersByTime(1000);
       });
-      
+
       expect(result.current.timeElapsed).toBe(0);
     });
 
     it('should format time correctly with timer integration', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.startQuiz();
         jest.advanceTimersByTime(65000); // Advance 65 seconds (1:05)
       });
-      
-      expect(result.current.formatTime(result.current.timeElapsed)).toBe('01:05');
+
+      expect(result.current.formatTime(result.current.timeElapsed)).toBe(
+        '01:05'
+      );
     });
 
     it('should handle timer with long duration', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.startQuiz();
         jest.advanceTimersByTime(125000); // Advance 125 seconds (2:05)
       });
-      
+
       expect(result.current.timeElapsed).toBe(125);
-      expect(result.current.formatTime(result.current.timeElapsed)).toBe('02:05');
+      expect(result.current.formatTime(result.current.timeElapsed)).toBe(
+        '02:05'
+      );
     });
 
     it('should not start timer if already running', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.startQuiz();
         jest.advanceTimersByTime(1000);
         result.current.startTimer(); // Try to start timer again
         jest.advanceTimersByTime(1000);
       });
-      
+
       expect(result.current.timeElapsed).toBe(2); // Should continue counting normally
     });
 
     it('should handle stopTimer when no timer is running', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.stopTimer(); // Stop timer when not running
       });
-      
+
       expect(result.current.timeElapsed).toBe(0); // Should remain at initial state
     });
   });
@@ -475,41 +479,41 @@ describe('useQuizStore', () => {
 
     it('should get current question', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       const currentQuestion = result.current.getCurrentQuestion();
-      
+
       expect(currentQuestion).toEqual(mockQuestion1);
     });
 
     it('should get total questions', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       const total = result.current.getTotalQuestions();
-      
+
       expect(total).toBe(2);
     });
 
     it('should get answered questions count', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.selectAnswer('q1', 'opt1');
       });
-      
+
       const answered = result.current.getAnsweredQuestions();
-      
+
       expect(answered).toBe(1);
     });
 
     it('should get unanswered questions', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.selectAnswer('q1', 'opt1');
       });
-      
+
       const unanswered = result.current.getUnansweredQuestions();
-      
+
       expect(unanswered).toEqual([2]); // Only question 2 is unanswered
     });
 
@@ -519,83 +523,83 @@ describe('useQuizStore', () => {
         useQuizStore.setState({
           bySimulado: undefined,
           byAtividade: undefined,
-          byAula: undefined
+          byAula: undefined,
         });
       });
-      
+
       const { result } = renderHook(() => useQuizStore());
       expect(result.current.getUnansweredQuestions()).toEqual([]);
     });
 
     it('should get skipped questions count', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.skipQuestion();
       });
-      
+
       const skipped = result.current.getSkippedQuestions();
-      
+
       expect(skipped).toBe(1);
     });
 
     it('should get progress percentage', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.selectAnswer('q1', 'opt1');
       });
-      
+
       const progress = result.current.getProgress();
-      
+
       expect(progress).toBe(50); // 1 out of 2 questions = 50%
     });
 
     it('should check if question is answered', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.selectAnswer('q1', 'opt1');
       });
-      
+
       expect(result.current.isQuestionAnswered('q1')).toBe(true);
       expect(result.current.isQuestionAnswered('q2')).toBe(false);
     });
 
     it('should check if question is skipped', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.skipQuestion();
       });
-      
+
       expect(result.current.isQuestionSkipped('q1')).toBe(true);
       expect(result.current.isQuestionSkipped('q2')).toBe(false);
     });
 
     it('should get current answer', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.selectAnswer('q1', 'opt1');
       });
-      
+
       const currentAnswer = result.current.getCurrentAnswer();
-      
+
       expect(currentAnswer).toBe('opt1');
     });
 
     it('should get quiz title', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       const title = result.current.getQuizTitle();
-      
+
       expect(title).toBe('Test Simulado');
     });
 
     it('should format time correctly', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       expect(result.current.formatTime(65)).toBe('01:05');
       expect(result.current.formatTime(125)).toBe('02:05');
       expect(result.current.formatTime(0)).toBe('00:00');
@@ -603,13 +607,13 @@ describe('useQuizStore', () => {
 
     it('should get user answers', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.selectAnswer('q1', 'opt1');
       });
-      
+
       const userAnswers = result.current.getUserAnswers();
-      
+
       expect(userAnswers).toHaveLength(1);
       expect(userAnswers[0].id).toBe('q1');
       expect(userAnswers[0].answerKey).toBe('opt1');
@@ -617,21 +621,21 @@ describe('useQuizStore', () => {
 
     it('should get unanswered questions from user answers', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.selectAnswer('q1', 'opt1');
       });
-      
+
       const unanswered = result.current.getUnansweredQuestionsFromUserAnswers();
-      
+
       expect(unanswered).toEqual([2]); // Only question 2 is unanswered
     });
 
     it('should get questions grouped by subject', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       const grouped = result.current.getQuestionsGroupedBySubject();
-      
+
       expect(grouped).toHaveProperty('algebra');
       expect(grouped).toHaveProperty('geografia-geral');
       expect(grouped.algebra).toHaveLength(1);
@@ -642,21 +646,23 @@ describe('useQuizStore', () => {
       const questionWithoutMatrix = {
         ...mockQuestion1,
         id: 'q3',
-        knowledgeMatrix: []
+        knowledgeMatrix: [],
       };
-      
+
       const simuladoWithQuestionWithoutMatrix = {
         ...mockSimulado,
-        questions: [questionWithoutMatrix]
+        questions: [questionWithoutMatrix],
       };
-      
+
       act(() => {
-        useQuizStore.getState().setBySimulado(simuladoWithQuestionWithoutMatrix);
+        useQuizStore
+          .getState()
+          .setBySimulado(simuladoWithQuestionWithoutMatrix);
       });
-      
+
       const { result } = renderHook(() => useQuizStore());
       const grouped = result.current.getQuestionsGroupedBySubject();
-      
+
       expect(grouped).toHaveProperty('Sem matéria');
       expect(grouped['Sem matéria']).toHaveLength(1);
     });
@@ -671,34 +677,34 @@ describe('useQuizStore', () => {
 
     it('should return 0% when no questions are answered', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       const progress = result.current.getProgress();
-      
+
       expect(progress).toBe(0);
     });
 
     it('should return 50% when one out of two questions is answered', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.selectAnswer('q1', 'opt1');
       });
-      
+
       const progress = result.current.getProgress();
-      
+
       expect(progress).toBe(50);
     });
 
     it('should return 100% when all questions are answered', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.selectAnswer('q1', 'opt1');
         result.current.selectAnswer('q2', 'opt2');
       });
-      
+
       const progress = result.current.getProgress();
-      
+
       expect(progress).toBe(100);
     });
 
@@ -706,16 +712,16 @@ describe('useQuizStore', () => {
       const emptySimulado = {
         id: 'empty-simulado',
         title: 'Empty Quiz',
-        questions: []
+        questions: [],
       };
-      
+
       act(() => {
         useQuizStore.getState().setBySimulado(emptySimulado);
       });
-      
+
       const { result } = renderHook(() => useQuizStore());
       const progress = result.current.getProgress();
-      
+
       expect(progress).toBe(0);
     });
 
@@ -725,13 +731,13 @@ describe('useQuizStore', () => {
         useQuizStore.setState({
           bySimulado: undefined,
           byAtividade: undefined,
-          byAula: undefined
+          byAula: undefined,
         });
       });
-      
+
       const { result } = renderHook(() => useQuizStore());
       const progress = result.current.getProgress();
-      
+
       expect(progress).toBe(0);
     });
 
@@ -739,21 +745,21 @@ describe('useQuizStore', () => {
       const threeQuestionSimulado = {
         id: 'three-question-simulado',
         title: 'Three Question Quiz',
-        questions: [mockQuestion1, mockQuestion2, mockQuestion1] // 3 questions
+        questions: [mockQuestion1, mockQuestion2, mockQuestion1], // 3 questions
       };
-      
+
       act(() => {
         useQuizStore.getState().setBySimulado(threeQuestionSimulado);
       });
-      
+
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.selectAnswer('q1', 'opt1'); // 1 out of 3 = 33.33%
       });
-      
+
       const progress = result.current.getProgress();
-      
+
       expect(progress).toBeCloseTo(33.33, 1);
     });
   });
@@ -766,12 +772,12 @@ describe('useQuizStore', () => {
         useQuizStore.setState({
           bySimulado: undefined,
           byAtividade: undefined,
-          byAula: undefined
+          byAula: undefined,
         });
       });
-      
+
       const { result } = renderHook(() => useQuizStore());
-      
+
       expect(result.current.getCurrentQuestion()).toBeNull();
       expect(result.current.getTotalQuestions()).toBe(0);
       expect(result.current.getQuizTitle()).toBe('Quiz');
@@ -783,25 +789,25 @@ describe('useQuizStore', () => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.getState().setBySimulado(mockSimulado);
       });
-      
+
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.selectAnswer('q1', 'opt1');
         result.current.selectAnswer('q1', 'opt2'); // Update answer
       });
-      
+
       expect(result.current.userAnswers).toHaveLength(1);
       expect(result.current.userAnswers[0].answerKey).toBe('opt2');
     });
 
     it('should handle question not found in addUserAnswer', () => {
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.addUserAnswer('nonexistent', 'opt1');
       });
-      
+
       expect(result.current.userAnswers).toHaveLength(0);
     });
 
@@ -812,10 +818,10 @@ describe('useQuizStore', () => {
         useQuizStore.setState({
           bySimulado: undefined,
           byAtividade: undefined,
-          byAula: undefined
+          byAula: undefined,
         });
       });
-      
+
       const { result } = renderHook(() => useQuizStore());
       expect(result.current.getCurrentAnswer()).toBeUndefined();
     });
@@ -826,22 +832,24 @@ describe('useQuizStore', () => {
         useQuizStore.setState({
           bySimulado: undefined,
           byAtividade: undefined,
-          byAula: undefined
+          byAula: undefined,
         });
       });
-      
+
       const { result } = renderHook(() => useQuizStore());
-      expect(result.current.getUnansweredQuestionsFromUserAnswers()).toEqual([]);
+      expect(result.current.getUnansweredQuestionsFromUserAnswers()).toEqual(
+        []
+      );
     });
 
     it('should group questions correctly by subject', () => {
       act(() => {
         useQuizStore.getState().setBySimulado(mockSimulado);
       });
-      
+
       const { result } = renderHook(() => useQuizStore());
       const grouped = result.current.getQuestionsGroupedBySubject();
-      
+
       expect(grouped).toHaveProperty('algebra');
       expect(grouped).toHaveProperty('geografia-geral');
       expect(grouped.algebra[0].id).toBe('q1');
@@ -854,10 +862,10 @@ describe('useQuizStore', () => {
         useQuizStore.setState({
           bySimulado: undefined,
           byAtividade: undefined,
-          byAula: undefined
+          byAula: undefined,
         });
       });
-      
+
       const { result } = renderHook(() => useQuizStore());
       expect(result.current.getQuestionsGroupedBySubject()).toEqual({});
     });
@@ -868,17 +876,17 @@ describe('useQuizStore', () => {
         useQuizStore.setState({
           bySimulado: undefined,
           byAtividade: undefined,
-          byAula: undefined
+          byAula: undefined,
         });
       });
-      
+
       const { result } = renderHook(() => useQuizStore());
-      
+
       act(() => {
         result.current.addUserAnswer('invalid-id', 'option');
       });
-      
+
       expect(result.current.userAnswers).toHaveLength(0);
     });
   });
-}); 
+});

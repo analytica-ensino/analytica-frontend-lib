@@ -1,17 +1,35 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { act } from '@testing-library/react';
-import { Quiz, QuizTitle, QuizHeader, QuizContent, QuizAlternative, QuizQuestionList, QuizFooter } from './Quiz';
+import { render, screen, fireEvent } from '@testing-library/react';
+import {
+  Quiz,
+  QuizTitle,
+  QuizHeader,
+  QuizContent,
+  QuizAlternative,
+  QuizQuestionList,
+  QuizFooter,
+} from './Quiz';
 import { useQuizStore } from './useQuizStore';
+import { ReactNode } from 'react';
 
 // Mock the useQuizStore
 jest.mock('./useQuizStore');
-const mockUseQuizStore = useQuizStore as jest.MockedFunction<typeof useQuizStore>;
+const mockUseQuizStore = useQuizStore as jest.MockedFunction<
+  typeof useQuizStore
+>;
 
 // Mock the Alternative component
 jest.mock('../Alternative/Alternative', () => ({
-  AlternativesList: ({ alternatives, value, onValueChange }: any) => (
+  AlternativesList: ({
+    alternatives,
+    value,
+    onValueChange,
+  }: {
+    alternatives: Array<{ value: string; label: string }>;
+    value: string;
+    onValueChange: (value: string) => void;
+  }) => (
     <div data-testid="alternatives-list">
-      {alternatives.map((alt: any) => (
+      {alternatives.map((alt) => (
         <button
           key={alt.value}
           data-testid={`alternative-${alt.value}`}
@@ -23,7 +41,15 @@ jest.mock('../Alternative/Alternative', () => ({
       ))}
     </div>
   ),
-  HeaderAlternative: ({ title, subTitle, content }: any) => (
+  HeaderAlternative: ({
+    title,
+    subTitle,
+    content,
+  }: {
+    title: string;
+    subTitle: string;
+    content: string;
+  }) => (
     <div data-testid="header-alternative">
       <h2>{title}</h2>
       <p>{subTitle}</p>
@@ -35,15 +61,29 @@ jest.mock('../Alternative/Alternative', () => ({
 // Mock the Button component
 jest.mock('../Button/Button', () => ({
   __esModule: true,
-  default: ({ children, onClick, disabled, action, iconLeft, iconRight, ...props }: any) => {
-    // Destructure iconLeft and iconRight to prevent them from being passed to DOM
-    const { iconLeft: _, iconRight: __, ...restProps } = props;
+  default: ({
+    children,
+    onClick,
+    disabled,
+    _action,
+    _iconLeft,
+    _iconRight,
+    ...props
+  }: {
+    children: ReactNode;
+    onClick?: () => void;
+    disabled?: boolean;
+    _action?: unknown;
+    _iconLeft?: unknown;
+    _iconRight?: unknown;
+    [key: string]: unknown;
+  }) => {
     return (
       <button
         data-testid="button"
         onClick={onClick}
         disabled={disabled}
-        {...restProps}
+        {...props}
       >
         {children}
       </button>
@@ -54,11 +94,21 @@ jest.mock('../Button/Button', () => ({
 // Mock the IconButton component
 jest.mock('../IconButton/IconButton', () => ({
   __esModule: true,
-  default: ({ icon, onClick, iconLeft, iconRight, ...props }: any) => {
-    // Destructure iconLeft and iconRight to prevent them from being passed to DOM
-    const { iconLeft: _, iconRight: __, ...restProps } = props;
+  default: ({
+    icon,
+    onClick,
+    _iconLeft,
+    _iconRight,
+    ...props
+  }: {
+    icon: ReactNode;
+    onClick?: () => void;
+    _iconLeft?: unknown;
+    _iconRight?: unknown;
+    [key: string]: unknown;
+  }) => {
     return (
-      <button data-testid="icon-button" onClick={onClick} {...restProps}>
+      <button data-testid="icon-button" onClick={onClick} {...props}>
         {icon}
       </button>
     );
@@ -67,7 +117,23 @@ jest.mock('../IconButton/IconButton', () => ({
 
 // Mock the AlertDialog component
 jest.mock('../AlertDialog/AlertDialog', () => ({
-  AlertDialog: ({ isOpen, onChangeOpen, title, description, onSubmit, cancelButtonLabel, submitButtonLabel }: any) => (
+  AlertDialog: ({
+    isOpen,
+    onChangeOpen,
+    title,
+    description,
+    onSubmit,
+    cancelButtonLabel,
+    submitButtonLabel,
+  }: {
+    isOpen: boolean;
+    onChangeOpen: (open: boolean) => void;
+    title: string;
+    description: string;
+    onSubmit: () => void;
+    cancelButtonLabel: string;
+    submitButtonLabel: string;
+  }) =>
     isOpen ? (
       <div data-testid="alert-dialog">
         <h2>{title}</h2>
@@ -79,14 +145,25 @@ jest.mock('../AlertDialog/AlertDialog', () => ({
           {submitButtonLabel}
         </button>
       </div>
-    ) : null
-  ),
+    ) : null,
 }));
 
 // Mock the Modal component
 jest.mock('../Modal/Modal', () => ({
   __esModule: true,
-  default: ({ isOpen, onClose, children, title, size }: any) => (
+  default: ({
+    isOpen,
+    onClose,
+    children,
+    title,
+    size,
+  }: {
+    isOpen: boolean;
+    onClose: () => void;
+    children: ReactNode;
+    title: string;
+    size?: string;
+  }) =>
     isOpen ? (
       <div data-testid="modal" data-size={size}>
         <h2>{title}</h2>
@@ -95,35 +172,52 @@ jest.mock('../Modal/Modal', () => ({
         </button>
         {children}
       </div>
-    ) : null
-  ),
+    ) : null,
 }));
 
 // Mock the Select components
 jest.mock('../Select/Select', () => ({
   __esModule: true,
-  default: ({ children, value, onValueChange }: any) => (
+  default: ({ children, value }: { children: ReactNode; value: string }) => (
     <div data-testid="select" data-value={value}>
       {children}
     </div>
   ),
-  SelectContent: ({ children }: any) => <div data-testid="select-content">{children}</div>,
-  SelectItem: ({ value, children }: any) => (
+  SelectContent: ({ children }: { children: ReactNode }) => (
+    <div data-testid="select-content">{children}</div>
+  ),
+  SelectItem: ({ value, children }: { value: string; children: ReactNode }) => (
     <div data-testid={`select-item-${value}`} data-value={value}>
       {children}
     </div>
   ),
-  SelectTrigger: ({ children, className }: any) => (
+  SelectTrigger: ({
+    children,
+    className,
+  }: {
+    children: ReactNode;
+    className: string;
+  }) => (
     <div data-testid="select-trigger" className={className}>
       {children}
     </div>
   ),
-  SelectValue: ({ placeholder }: any) => <span data-testid="select-value">{placeholder}</span>,
+  SelectValue: ({ placeholder }: { placeholder: string }) => (
+    <span data-testid="select-value">{placeholder}</span>
+  ),
 }));
 
 // Mock the Card component
 jest.mock('../Card/Card', () => ({
-  CardStatus: ({ header, label, onClick }: any) => (
+  CardStatus: ({
+    header,
+    label,
+    onClick,
+  }: {
+    header: string;
+    label: string;
+    onClick?: () => void;
+  }) => (
     <button data-testid="card-status" onClick={onClick}>
       <span>{header}</span>
       <span>{label}</span>
@@ -134,7 +228,17 @@ jest.mock('../Card/Card', () => ({
 // Mock the Badge component
 jest.mock('../Badge/Badge', () => ({
   __esModule: true,
-  default: ({ children, variant, action, iconLeft }: any) => (
+  default: ({
+    children,
+    variant,
+    action,
+    iconLeft,
+  }: {
+    children: ReactNode;
+    variant?: string;
+    action?: string;
+    iconLeft?: ReactNode;
+  }) => (
     <div data-testid="badge" data-variant={variant} data-action={action}>
       {iconLeft}
       {children}
@@ -165,16 +269,16 @@ const mockQuestion1 = {
       subjectId: 'algebra',
       topicId: 'operacoes',
       subtopicId: 'soma',
-      contentId: 'matematica'
-    }
+      contentId: 'matematica',
+    },
   ],
   options: [
     { id: 'opt1', option: '4' },
     { id: 'opt2', option: '3' },
     { id: 'opt3', option: '5' },
-    { id: 'opt4', option: '6' }
+    { id: 'opt4', option: '6' },
   ],
-  createdBy: 'user1'
+  createdBy: 'user1',
 };
 
 const mockQuestion2 = {
@@ -196,29 +300,29 @@ const mockQuestion2 = {
       subjectId: 'geografia-geral',
       topicId: 'capitais',
       subtopicId: 'europa',
-      contentId: 'geografia'
-    }
+      contentId: 'geografia',
+    },
   ],
   options: [
     { id: 'opt1', option: 'London' },
     { id: 'opt2', option: 'Paris' },
     { id: 'opt3', option: 'Berlin' },
-    { id: 'opt4', option: 'Madrid' }
+    { id: 'opt4', option: 'Madrid' },
   ],
-  createdBy: 'user1'
+  createdBy: 'user1',
 };
 
 const mockSimulado = {
   id: 'simulado-1',
   title: 'Test Simulado',
-  questions: [mockQuestion1, mockQuestion2]
+  questions: [mockQuestion1, mockQuestion2],
 };
 
 describe('Quiz Component', () => {
   beforeEach(() => {
     // Reset all mocks
     jest.clearAllMocks();
-    
+
     // Default mock implementation
     mockUseQuizStore.mockReturnValue({
       isStarted: false,
@@ -238,8 +342,8 @@ describe('Quiz Component', () => {
       getUserAnswers: jest.fn().mockReturnValue([]),
       getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
       getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
-        'algebra': [mockQuestion1],
-        'geografia-geral': [mockQuestion2]
+        algebra: [mockQuestion1],
+        'geografia-geral': [mockQuestion2],
       }),
       isQuestionAnswered: jest.fn().mockReturnValue(false),
       goToQuestion: jest.fn(),
@@ -442,8 +546,6 @@ describe('Quiz Component', () => {
       expect(screen.getByTestId('alternative-opt4')).toBeInTheDocument();
     });
 
-
-
     it('should call selectAnswer when alternative is clicked', () => {
       const mockSelectAnswer = jest.fn();
       mockUseQuizStore.mockReturnValue({
@@ -622,7 +724,7 @@ describe('Quiz Component', () => {
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
         getUserAnswers: jest.fn().mockReturnValue([
           { answerKey: 'opt1', correctOptionId: 'opt1' },
-          { answerKey: 'opt2', correctOptionId: 'opt2' }
+          { answerKey: 'opt2', correctOptionId: 'opt2' },
         ]),
       });
 
@@ -651,9 +753,9 @@ describe('Quiz Component', () => {
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
-        getUserAnswers: jest.fn().mockReturnValue([
-          { answerKey: 'opt1', correctOptionId: 'opt1' }
-        ]),
+        getUserAnswers: jest
+          .fn()
+          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
       });
 
       render(<QuizFooter onGoToSimulated={mockOnGoToSimulated} />);
@@ -672,9 +774,9 @@ describe('Quiz Component', () => {
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
-        getUserAnswers: jest.fn().mockReturnValue([
-          { answerKey: 'opt1', correctOptionId: 'opt1' }
-        ]),
+        getUserAnswers: jest
+          .fn()
+          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
       });
 
       render(<QuizFooter onDetailResult={mockOnDetailResult} />);
@@ -750,7 +852,9 @@ describe('Quiz Component', () => {
         ...mockUseQuizStore(),
         currentQuestionIndex: 1,
         getTotalQuestions: jest.fn().mockReturnValue(2),
-        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([2, 3]),
+        getUnansweredQuestionsFromUserAnswers: jest
+          .fn()
+          .mockReturnValue([2, 3]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
       });
 
@@ -759,7 +863,9 @@ describe('Quiz Component', () => {
       fireEvent.click(screen.getByText('Finalizar'));
 
       expect(screen.getByText('Finalizar simulado?')).toBeInTheDocument();
-      expect(screen.getByText(/Você deixou as questões 2, 3 sem resposta/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Você deixou as questões 2, 3 sem resposta/)
+      ).toBeInTheDocument();
     });
 
     it('should show alert dialog with default description when no unanswered questions', () => {
@@ -778,7 +884,9 @@ describe('Quiz Component', () => {
 
       expect(screen.getByTestId('alert-dialog')).toBeInTheDocument();
       expect(screen.getByText('Finalizar simulado?')).toBeInTheDocument();
-      expect(screen.getByText(/Você deixou as questões 2 sem resposta/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Você deixou as questões 2 sem resposta/)
+      ).toBeInTheDocument();
     });
 
     it('should handle alert dialog submit action', () => {
@@ -788,9 +896,9 @@ describe('Quiz Component', () => {
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([2]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
-        getUserAnswers: jest.fn().mockReturnValue([
-          { answerKey: 'opt1', correctOptionId: 'opt1' }
-        ]),
+        getUserAnswers: jest
+          .fn()
+          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
       });
 
       render(<QuizFooter />);
@@ -826,9 +934,9 @@ describe('Quiz Component', () => {
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
-        getUserAnswers: jest.fn().mockReturnValue([
-          { answerKey: 'opt1', correctOptionId: 'opt1' }
-        ]),
+        getUserAnswers: jest
+          .fn()
+          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
       });
 
       render(<QuizFooter />);
@@ -867,7 +975,7 @@ describe('Quiz Component', () => {
     it('should call skipQuestion and goToNextQuestion when skip button is clicked', () => {
       const mockSkipQuestion = jest.fn();
       const mockGoToNextQuestion = jest.fn();
-      
+
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
         skipQuestion: mockSkipQuestion,
@@ -889,7 +997,7 @@ describe('Quiz Component', () => {
     it('should call skipQuestion and goToNextQuestion when skip button is clicked in QuizFooter', () => {
       const mockSkipQuestion = jest.fn();
       const mockGoToNextQuestion = jest.fn();
-      
+
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
         skipQuestion: mockSkipQuestion,
@@ -907,8 +1015,6 @@ describe('Quiz Component', () => {
       expect(mockSkipQuestion).toHaveBeenCalledTimes(1);
       expect(mockGoToNextQuestion).toHaveBeenCalledTimes(1);
     });
-
-
 
     it('should handle select value change in navigation modal', () => {
       render(<QuizFooter />);
@@ -937,7 +1043,7 @@ describe('Quiz Component', () => {
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
         getUserAnswers: jest.fn().mockReturnValue([
           { answerKey: 'opt1', correctOptionId: 'opt1' },
-          { answerKey: 'opt2', correctOptionId: 'opt3' } // Wrong answer
+          { answerKey: 'opt2', correctOptionId: 'opt3' }, // Wrong answer
         ]),
       });
 
@@ -945,7 +1051,9 @@ describe('Quiz Component', () => {
 
       fireEvent.click(screen.getByText('Finalizar'));
 
-      expect(screen.getByText('Você acertou 1 de 2 questões.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Você acertou 1 de 2 questões.')
+      ).toBeInTheDocument();
     });
 
     it('should render AlternativesList with correct key and name when current question exists', () => {
@@ -959,9 +1067,12 @@ describe('Quiz Component', () => {
 
       const alternativesList = screen.getByTestId('alternatives-list');
       expect(alternativesList).toBeInTheDocument();
-      
+
       // The key and name should be based on currentQuestion.id
-      expect(alternativesList).toHaveAttribute('data-testid', 'alternatives-list');
+      expect(alternativesList).toHaveAttribute(
+        'data-testid',
+        'alternatives-list'
+      );
     });
 
     it('should render AlternativesList with fallback key and name when current question is null', () => {
@@ -992,9 +1103,12 @@ describe('Quiz Component', () => {
 
       const alternativesList = screen.getByTestId('alternatives-list');
       expect(alternativesList).toBeInTheDocument();
-      
+
       // The key and name should use fallback value '1' when currentQuestion.id is undefined
-      expect(alternativesList).toHaveAttribute('data-testid', 'alternatives-list');
+      expect(alternativesList).toHaveAttribute(
+        'data-testid',
+        'alternatives-list'
+      );
     });
 
     it('should handle getQuestionIndex when quiz exists', () => {
@@ -1044,7 +1158,7 @@ describe('Quiz Component', () => {
       const mockAtividade = {
         id: 'atividade-1',
         title: 'Test Atividade',
-        questions: [mockQuestion1, mockQuestion2]
+        questions: [mockQuestion1, mockQuestion2],
       };
 
       mockUseQuizStore.mockReturnValue({
@@ -1071,7 +1185,7 @@ describe('Quiz Component', () => {
       const mockAula = {
         id: 'aula-1',
         title: 'Test Aula',
-        questions: [mockQuestion1, mockQuestion2]
+        questions: [mockQuestion1, mockQuestion2],
       };
 
       mockUseQuizStore.mockReturnValue({
@@ -1108,7 +1222,7 @@ describe('Quiz Component', () => {
         byAtividade: undefined,
         byAula: undefined,
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
-          'test-subject': [mockQuestion1] // Still provide some questions for rendering
+          'test-subject': [mockQuestion1], // Still provide some questions for rendering
         }),
       });
 
@@ -1190,9 +1304,9 @@ describe('Quiz Component', () => {
         currentQuestionIndex: 1,
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
-        getUserAnswers: jest.fn().mockReturnValue([
-          { answerKey: 'opt1', correctOptionId: 'opt1' }
-        ]),
+        getUserAnswers: jest
+          .fn()
+          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
       });
 
       render(
@@ -1220,9 +1334,7 @@ describe('Quiz Component', () => {
         updateTime: mockUpdateTime,
       });
 
-      render(<Quiz>
-        test
-      </Quiz>);
+      render(<Quiz>test</Quiz>);
 
       // Timer should be active
       expect(mockUpdateTime).toBeDefined();

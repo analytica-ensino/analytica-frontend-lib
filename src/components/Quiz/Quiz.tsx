@@ -2,7 +2,6 @@ import {
   CaretLeft,
   CaretRight,
   Clock,
-  Palette,
   SquaresFour,
   BookOpen,
 } from 'phosphor-react';
@@ -13,7 +12,7 @@ import {
 } from '../Alternative/Alternative';
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
-import { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, ReactNode, useState } from 'react';
 import { useQuizStore } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
@@ -28,7 +27,7 @@ import { CardStatus } from '../Card/Card';
 
 const Quiz = forwardRef<
   HTMLDivElement,
-  { children: React.ReactNode; className?: string }
+  { children: ReactNode; className?: string }
 >(({ children, className, ...props }, ref) => {
   return (
     <div
@@ -102,7 +101,7 @@ const QuizContent = forwardRef<
   HTMLDivElement,
   {
     type?: 'Alternativas' | 'Dissertativa';
-    children: React.ReactNode;
+    children: ReactNode;
     className?: string;
   }
 >(({ type = 'Alternativas', children, className, ...props }, ref) => {
@@ -124,18 +123,9 @@ const QuizContent = forwardRef<
 });
 
 const QuizAlternative = () => {
-  const {
-    getCurrentQuestion,
-    selectAnswer,
-    getCurrentAnswer,
-    isQuestionSkipped,
-  } = useQuizStore();
+  const { getCurrentQuestion, selectAnswer, getCurrentAnswer } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
   const currentAnswer = getCurrentAnswer();
-  const isCurrentQuestionSkipped = currentQuestion
-    ? isQuestionSkipped(currentQuestion.id)
-    : false;
-
   // Mapear as alternativas da questão atual
   const alternatives = currentQuestion?.options?.map((option) => ({
     label: option.option,
@@ -177,14 +167,11 @@ const QuizQuestionList = ({
   const {
     getQuestionsGroupedBySubject,
     goToQuestion,
-    currentQuestionIndex,
     isQuestionAnswered,
     isQuestionSkipped,
-    getTotalQuestions,
   } = useQuizStore();
 
   const groupedQuestions = getQuestionsGroupedBySubject();
-  const totalQuestions = getTotalQuestions();
 
   const getQuestionStatus = (questionId: string) => {
     if (isQuestionSkipped(questionId)) {
@@ -218,6 +205,7 @@ const QuizQuestionList = ({
 
       return acc;
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     {} as { [key: string]: any[] }
   );
 
@@ -508,4 +496,3 @@ export {
   QuizQuestionList,
   QuizFooter,
 };
-

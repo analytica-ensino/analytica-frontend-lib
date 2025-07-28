@@ -700,7 +700,7 @@ describe('AlternativesList', () => {
 
   describe('Alternative.disabled in readonly mode', () => {
     it('applies opacity-50 for disabled alternative in readonly mode', () => {
-              // Specific test for disabled alternative styling
+      // Specific test for disabled alternative styling
       const alternativesWithDisabled: Alternative[] = [
         { value: 'a', label: 'Alternativa habilitada' },
         { value: 'b', label: 'Alternativa desabilitada', disabled: true },

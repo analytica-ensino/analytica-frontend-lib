@@ -647,7 +647,7 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
             {header}
           </p>
           <span className="flex flex-row gap-1 items-center flex-shrink-0">
-          {status && (
+            {status && (
               <Badge
                 action={status == 'correct' ? 'success' : 'error'}
                 variant="solid"
@@ -656,9 +656,9 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
               >
                 {status == 'correct' ? 'Correta' : 'Incorreta'}
               </Badge>
-          )}
-              {label && <p className="text-sm text-text-800">{label}</p>}
-            </span>
+            )}
+            {label && <p className="text-sm text-text-800">{label}</p>}
+          </span>
           <CaretRight className="min-w-6 min-h-6 text-text-800 cursor-pointer flex-shrink-0 ml-2" />
         </div>
       </CardBase>
