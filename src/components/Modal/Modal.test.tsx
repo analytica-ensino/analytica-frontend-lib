@@ -117,8 +117,8 @@ describe('Modal', () => {
   it('deve aplicar classes CSS personalizadas', () => {
     render(<Modal {...defaultProps} className="custom-class" />);
 
-    // Buscar o modal content que tem as classes personalizadas
-    const modalContent = document.querySelector('.bg-background.rounded-3xl');
+    // Buscar o dialog que tem as classes personalizadas
+    const modalContent = document.querySelector('dialog');
     expect(modalContent).toHaveClass('custom-class');
   });
 
@@ -187,35 +187,35 @@ describe('Modal', () => {
     it('deve aplicar classes de tamanho XS', () => {
       render(<Modal {...defaultProps} size="xs" />);
 
-      const modalContent = document.querySelector('.bg-background.rounded-3xl');
+      const modalContent = document.querySelector('dialog');
       expect(modalContent).toHaveClass('max-w-[360px]');
     });
 
     it('deve aplicar classes de tamanho SM', () => {
       render(<Modal {...defaultProps} size="sm" />);
 
-      const modalContent = document.querySelector('.bg-background.rounded-3xl');
+      const modalContent = document.querySelector('dialog');
       expect(modalContent).toHaveClass('max-w-[420px]');
     });
 
     it('deve aplicar classes de tamanho MD (padrão)', () => {
       render(<Modal {...defaultProps} />);
 
-      const modalContent = document.querySelector('.bg-background.rounded-3xl');
+      const modalContent = document.querySelector('dialog');
       expect(modalContent).toHaveClass('max-w-[510px]');
     });
 
     it('deve aplicar classes de tamanho LG', () => {
       render(<Modal {...defaultProps} size="lg" />);
 
-      const modalContent = document.querySelector('.bg-background.rounded-3xl');
+      const modalContent = document.querySelector('dialog');
       expect(modalContent).toHaveClass('max-w-[640px]');
     });
 
     it('deve aplicar classes de tamanho XL', () => {
       render(<Modal {...defaultProps} size="xl" />);
 
-      const modalContent = document.querySelector('.bg-background.rounded-3xl');
+      const modalContent = document.querySelector('dialog');
       expect(modalContent).toHaveClass('max-w-[970px]');
     });
   });
