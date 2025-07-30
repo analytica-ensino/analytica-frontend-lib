@@ -172,67 +172,72 @@ export const useQuizStore = create<QuizState>()(
 
         // Quiz Actions
         selectAnswer: (questionId, answerId) => {
-          const { selectedAnswers, skippedQuestions, addUserAnswer } = get();
-          // Remove from skipped questions if it was skipped
-          const newSkippedQuestions = skippedQuestions.filter(
-            (id) => id !== questionId
+          const { bySimulado, byAtividade, byAula, skippedQuestions } = get();
+          const quiz = bySimulado || byAtividade || byAula;
+          
+          if (!quiz) return;
+
+          // Update the question's answerKey in the quiz
+          const updatedQuestions = quiz.questions.map(question => 
+            question.id === questionId 
+              ? { ...question, answerKey: answerId }
+              : question
           );
-          set({
-            selectedAnswers: {
-              ...selectedAnswers,
-              [questionId]: answerId,
-            },
-            skippedQuestions: newSkippedQuestions,
-          });
-          // Add to user answers
-          addUserAnswer(questionId, answerId);
+
+          // Update the appropriate quiz type
+          if (bySimulado) {
+            set({ 
+              bySimulado: { ...bySimulado, questions: updatedQuestions },
+              skippedQuestions: skippedQuestions.filter(id => id !== questionId)
+            });
+          } else if (byAtividade) {
+            set({ 
+              byAtividade: { ...byAtividade, questions: updatedQuestions },
+              skippedQuestions: skippedQuestions.filter(id => id !== questionId)
+            });
+          } else if (byAula) {
+            set({ 
+              byAula: { ...byAula, questions: updatedQuestions },
+              skippedQuestions: skippedQuestions.filter(id => id !== questionId)
+            });
+          }
         },
 
         skipQuestion: () => {
-          const { getCurrentQuestion, skippedQuestions, addUserAnswer } = get();
+          const { getCurrentQuestion, skippedQuestions } = get();
           const currentQuestion = getCurrentQuestion();
 
           if (currentQuestion) {
             set({
               skippedQuestions: [...skippedQuestions, currentQuestion.id],
             });
-            // Add to user answers as skipped
-            addUserAnswer(currentQuestion.id);
           }
         },
 
         addUserAnswer: (questionId, answerId) => {
-          const { userAnswers, bySimulado, byAtividade, byAula } = get();
+          const { bySimulado, byAtividade, byAula } = get();
           const quiz = bySimulado || byAtividade || byAula;
-          const question = quiz?.questions.find((q) => q.id === questionId);
+          
+          if (!quiz) return;
+          
+          const question = quiz.questions.find((q) => q.id === questionId);
 
           if (!question) return;
 
-          const existingAnswerIndex = userAnswers.findIndex(
-            (answer) => answer.id === questionId
+          // Update the question's answerKey in the quiz
+          const updatedQuestions = quiz.questions.map(q => 
+            q.id === questionId 
+              ? { ...q, answerKey: answerId || null }
+              : q
           );
 
-          if (existingAnswerIndex !== -1) {
-            // Update existing answer
-            const updatedAnswers = [...userAnswers];
-            updatedAnswers[existingAnswerIndex] = {
-              ...question,
-              answerKey: answerId || '',
-              isSkipped: !answerId,
-            };
-            set({ userAnswers: updatedAnswers });
-          } else {
-            // Add new answer
-            set({
-              userAnswers: [
-                ...userAnswers,
-                {
-                  ...question,
-                  answerKey: answerId || '',
-                  isSkipped: !answerId,
-                },
-              ],
-            });
+          // Update the appropriate quiz type
+          if (bySimulado) {
+            set({ bySimulado: { ...bySimulado, questions: updatedQuestions } });
+          } else if (byAtividade) {
+            set({ byAtividade: { ...byAtividade, questions: updatedQuestions } });
+          } else if (byAula) {
+            set({ byAula: { ...byAula, questions: updatedQuestions } });
           }
         },
 
@@ -285,8 +290,12 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getAnsweredQuestions: () => {
-          const { selectedAnswers } = get();
-          return Object.keys(selectedAnswers).length;
+          const { bySimulado, byAtividade, byAula } = get();
+          const quiz = bySimulado || byAtividade || byAula;
+          
+          if (!quiz) return 0;
+          
+          return quiz.questions.filter(question => question.answerKey !== null).length;
         },
 
         getUnansweredQuestions: () => {
@@ -294,7 +303,6 @@ export const useQuizStore = create<QuizState>()(
             bySimulado,
             byAtividade,
             byAula,
-            selectedAnswers,
             skippedQuestions,
           } = get();
           const quiz = bySimulado || byAtividade || byAula;
@@ -303,7 +311,7 @@ export const useQuizStore = create<QuizState>()(
           const unansweredQuestions: number[] = [];
 
           quiz.questions.forEach((question, index) => {
-            const isAnswered = question.id in selectedAnswers;
+            const isAnswered = question.answerKey !== null;
             const isSkipped = skippedQuestions.includes(question.id);
 
             if (!isAnswered && !isSkipped) {
@@ -327,8 +335,13 @@ export const useQuizStore = create<QuizState>()(
         },
 
         isQuestionAnswered: (questionId) => {
-          const { selectedAnswers } = get();
-          return questionId in selectedAnswers;
+          const { bySimulado, byAtividade, byAula } = get();
+          const quiz = bySimulado || byAtividade || byAula;
+          
+          if (!quiz) return false;
+          
+          const question = quiz.questions.find(q => q.id === questionId);
+          return question ? question.answerKey !== null : false;
         },
 
         isQuestionSkipped: (questionId) => {
@@ -337,10 +350,10 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getCurrentAnswer: () => {
-          const { getCurrentQuestion, selectedAnswers } = get();
+          const { getCurrentQuestion } = get();
           const currentQuestion = getCurrentQuestion();
 
-          return selectedAnswers[currentQuestion?.id || ''];
+          return currentQuestion?.answerKey || undefined;
         },
 
         getQuizTitle: () => {
@@ -357,24 +370,30 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getUserAnswers: () => {
-          const { userAnswers } = get();
-          return userAnswers;
+          const { bySimulado, byAtividade, byAula, skippedQuestions } = get();
+          const quiz = bySimulado || byAtividade || byAula;
+          
+          if (!quiz) return [];
+          
+          return quiz.questions.map(question => ({
+            ...question,
+            isSkipped: skippedQuestions.includes(question.id)
+          }));
         },
 
         getUnansweredQuestionsFromUserAnswers: () => {
-          const { bySimulado, byAtividade, byAula, userAnswers } = get();
+          const { bySimulado, byAtividade, byAula, skippedQuestions } = get();
           const quiz = bySimulado || byAtividade || byAula;
           if (!quiz) return [];
 
           const unansweredQuestions: number[] = [];
 
           quiz.questions.forEach((question, index) => {
-            const userAnswer = userAnswers.find(
-              (answer) => answer.id === question.id
-            );
+            const hasAnswer = question.answerKey !== null;
+            const isSkipped = skippedQuestions.includes(question.id);
 
-            // Se não há resposta do usuário OU se a questão foi pulada (isSkipped = true)
-            if (!userAnswer || userAnswer.isSkipped) {
+            // Se não há resposta do usuário OU se a questão foi pulada
+            if (!hasAnswer || isSkipped) {
               unansweredQuestions.push(index + 1); // index + 1 para mostrar número da questão
             }
           });

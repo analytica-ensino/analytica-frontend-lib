@@ -1622,6 +1622,28 @@ describe('Quiz Result Components', () => {
 
   describe('QuizResultPerformance', () => {
     it('should render performance section with correct statistics', () => {
+      // Mock with questions that have answerKey set
+      const mockQuestionsWithAnswers = [
+        { ...mockQuestion1, answerKey: 'opt1' }, // Correct answer
+        { ...mockQuestion2, answerKey: null }, // No answer
+      ];
+      
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: { ...mockSimulado, questions: mockQuestionsWithAnswers },
+        byAtividade: undefined,
+        byAula: undefined,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
+        formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+          fisica: [mockQuestionsWithAnswers[0]],
+          matematica: [mockQuestionsWithAnswers[1]],
+        }),
+        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+          return questionId === 'q1';
+        }),
+      });
+
       render(<QuizResultPerformance />);
 
       // Verificar se os elementos principais estão presentes
@@ -1661,20 +1683,22 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle all correct answers', () => {
+      // Mock with questions that have correct answerKey set
+      const mockQuestionsWithCorrectAnswers = [
+        { ...mockQuestion1, answerKey: 'opt1' }, // Correct answer
+        { ...mockQuestion2, answerKey: 'opt2' }, // Correct answer
+      ];
+      
       mockUseQuizStore.mockReturnValue({
-        bySimulado: mockSimulado,
+        bySimulado: { ...mockSimulado, questions: mockQuestionsWithCorrectAnswers },
         byAtividade: undefined,
         byAula: undefined,
-        selectedAnswers: {
-          q1: 'opt1', // Resposta correta
-          q2: 'opt1', // Resposta correta
-        },
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
-          fisica: [mockSimulado.questions[0]],
-          matematica: [mockSimulado.questions[1]],
+          fisica: [mockQuestionsWithCorrectAnswers[0]],
+          matematica: [mockQuestionsWithCorrectAnswers[1]],
         }),
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
           return questionId === 'q1' || questionId === 'q2';
@@ -1831,9 +1855,13 @@ describe('Quiz Result Components', () => {
           q2: 'opt1', // Resposta incorreta
           q3: 'opt1', // Resposta correta
         },
-        getQuestionsGroupedBySubject: jest.fn().mockReturnValue(mockQuestionsGroupedBySubject),
+        getQuestionsGroupedBySubject: jest
+          .fn()
+          .mockReturnValue(mockQuestionsGroupedBySubject),
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
-          return questionId === 'q1' || questionId === 'q2' || questionId === 'q3';
+          return (
+            questionId === 'q1' || questionId === 'q2' || questionId === 'q3'
+          );
         }),
       });
     });
@@ -1854,10 +1882,37 @@ describe('Quiz Result Components', () => {
     });
 
     it('should display correct statistics for each subject', () => {
+      // Mock with questions that have answerKey set
+      const mockQuestionsWithAnswers = [
+        { ...mockQuestion1, answerKey: 'opt1' }, // Correct answer
+        { ...mockQuestion2, answerKey: 'opt1' }, // Incorrect answer (should be opt2)
+        { ...mockQuestion1, id: 'q3', answerKey: 'opt1' }, // Correct answer
+      ];
+      
+      const mockQuestionsGroupedBySubjectWithAnswers = {
+        fisica: [mockQuestionsWithAnswers[0], mockQuestionsWithAnswers[1]],
+        matematica: [mockQuestionsWithAnswers[2]],
+      };
+      
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: { ...mockSimulado, questions: mockQuestionsWithAnswers },
+        byAtividade: undefined,
+        byAula: undefined,
+        getQuestionsGroupedBySubject: jest
+          .fn()
+          .mockReturnValue(mockQuestionsGroupedBySubjectWithAnswers),
+        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+          return (
+            questionId === 'q1' || questionId === 'q2' || questionId === 'q3'
+          );
+        }),
+      });
+
       render(<QuizListResult />);
 
       const correctAnswersElements = screen.getAllByTestId('correct-answers');
-      const incorrectAnswersElements = screen.getAllByTestId('incorrect-answers');
+      const incorrectAnswersElements =
+        screen.getAllByTestId('incorrect-answers');
 
       // Física: 1 correta (q1), 1 incorreta (q2)
       expect(correctAnswersElements[0]).toHaveTextContent('1');
@@ -1873,7 +1928,7 @@ describe('Quiz Result Components', () => {
       render(<QuizListResult onSubjectClick={handleSubjectClick} />);
 
       const resultCards = screen.getAllByTestId('card-results');
-      
+
       // Clicar no primeiro card (física)
       fireEvent.click(resultCards[0]);
       expect(handleSubjectClick).toHaveBeenCalledWith('fisica');
@@ -1905,14 +1960,17 @@ describe('Quiz Result Components', () => {
         byAtividade: undefined,
         byAula: undefined,
         selectedAnswers: {},
-        getQuestionsGroupedBySubject: jest.fn().mockReturnValue(mockQuestionsGroupedBySubject),
+        getQuestionsGroupedBySubject: jest
+          .fn()
+          .mockReturnValue(mockQuestionsGroupedBySubject),
         isQuestionAnswered: jest.fn().mockReturnValue(false),
       });
 
       render(<QuizListResult />);
 
       const correctAnswersElements = screen.getAllByTestId('correct-answers');
-      const incorrectAnswersElements = screen.getAllByTestId('incorrect-answers');
+      const incorrectAnswersElements =
+        screen.getAllByTestId('incorrect-answers');
 
       // Todas as matérias devem ter 0 corretas e 0 incorretas
       expect(correctAnswersElements[0]).toHaveTextContent('0');
@@ -1922,25 +1980,37 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle all correct answers for a subject', () => {
+      // Mock with questions that have correct answerKey set
+      const mockQuestionsWithCorrectAnswers = [
+        { ...mockQuestion1, answerKey: 'opt1' }, // Correct answer
+        { ...mockQuestion2, answerKey: 'opt2' }, // Correct answer
+        { ...mockQuestion1, id: 'q3', answerKey: 'opt1' }, // Correct answer
+      ];
+      
+      const mockQuestionsGroupedBySubjectWithCorrectAnswers = {
+        fisica: [mockQuestionsWithCorrectAnswers[0], mockQuestionsWithCorrectAnswers[1]],
+        matematica: [mockQuestionsWithCorrectAnswers[2]],
+      };
+      
       mockUseQuizStore.mockReturnValue({
-        bySimulado: mockSimulado,
+        bySimulado: { ...mockSimulado, questions: mockQuestionsWithCorrectAnswers },
         byAtividade: undefined,
         byAula: undefined,
-        selectedAnswers: {
-          q1: 'opt1', // Resposta correta
-          q2: 'opt2', // Resposta correta
-          q3: 'opt1', // Resposta correta
-        },
-        getQuestionsGroupedBySubject: jest.fn().mockReturnValue(mockQuestionsGroupedBySubject),
+        getQuestionsGroupedBySubject: jest
+          .fn()
+          .mockReturnValue(mockQuestionsGroupedBySubjectWithCorrectAnswers),
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
-          return questionId === 'q1' || questionId === 'q2' || questionId === 'q3';
+          return (
+            questionId === 'q1' || questionId === 'q2' || questionId === 'q3'
+          );
         }),
       });
 
       render(<QuizListResult />);
 
       const correctAnswersElements = screen.getAllByTestId('correct-answers');
-      const incorrectAnswersElements = screen.getAllByTestId('incorrect-answers');
+      const incorrectAnswersElements =
+        screen.getAllByTestId('incorrect-answers');
 
       // Física: 2 corretas, 0 incorretas
       expect(correctAnswersElements[0]).toHaveTextContent('2');
@@ -1961,16 +2031,21 @@ describe('Quiz Result Components', () => {
           q2: 'opt1', // Resposta incorreta
           q3: 'opt2', // Resposta incorreta
         },
-        getQuestionsGroupedBySubject: jest.fn().mockReturnValue(mockQuestionsGroupedBySubject),
+        getQuestionsGroupedBySubject: jest
+          .fn()
+          .mockReturnValue(mockQuestionsGroupedBySubject),
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
-          return questionId === 'q1' || questionId === 'q2' || questionId === 'q3';
+          return (
+            questionId === 'q1' || questionId === 'q2' || questionId === 'q3'
+          );
         }),
       });
 
       render(<QuizListResult />);
 
       const correctAnswersElements = screen.getAllByTestId('correct-answers');
-      const incorrectAnswersElements = screen.getAllByTestId('incorrect-answers');
+      const incorrectAnswersElements =
+        screen.getAllByTestId('incorrect-answers');
 
       // Física: 0 corretas, 2 incorretas
       expect(correctAnswersElements[0]).toHaveTextContent('0');
@@ -1982,16 +2057,25 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle mixed answered and unanswered questions', () => {
+      // Mock with questions that have mixed answerKey set
+      const mockQuestionsWithMixedAnswers = [
+        { ...mockQuestion1, answerKey: 'opt1' }, // Correct answer
+        { ...mockQuestion2, answerKey: null }, // No answer
+        { ...mockQuestion1, id: 'q3', answerKey: 'opt2' }, // Incorrect answer
+      ];
+      
+      const mockQuestionsGroupedBySubjectWithMixedAnswers = {
+        fisica: [mockQuestionsWithMixedAnswers[0], mockQuestionsWithMixedAnswers[1]],
+        matematica: [mockQuestionsWithMixedAnswers[2]],
+      };
+      
       mockUseQuizStore.mockReturnValue({
-        bySimulado: mockSimulado,
+        bySimulado: { ...mockSimulado, questions: mockQuestionsWithMixedAnswers },
         byAtividade: undefined,
         byAula: undefined,
-        selectedAnswers: {
-          q1: 'opt1', // Resposta correta
-          // q2 não respondida
-          q3: 'opt2', // Resposta incorreta
-        },
-        getQuestionsGroupedBySubject: jest.fn().mockReturnValue(mockQuestionsGroupedBySubject),
+        getQuestionsGroupedBySubject: jest
+          .fn()
+          .mockReturnValue(mockQuestionsGroupedBySubjectWithMixedAnswers),
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
           return questionId === 'q1' || questionId === 'q3';
         }),
@@ -2000,7 +2084,8 @@ describe('Quiz Result Components', () => {
       render(<QuizListResult />);
 
       const correctAnswersElements = screen.getAllByTestId('correct-answers');
-      const incorrectAnswersElements = screen.getAllByTestId('incorrect-answers');
+      const incorrectAnswersElements =
+        screen.getAllByTestId('incorrect-answers');
 
       // Física: 1 correta (q1), 0 incorretas (q2 não respondida)
       expect(correctAnswersElements[0]).toHaveTextContent('1');
@@ -2066,9 +2151,16 @@ describe('Quiz Result Components', () => {
           q3: 'opt1', // Resposta correta
           q4: 'opt1', // Resposta correta
         },
-        getQuestionsGroupedBySubject: jest.fn().mockReturnValue(complexMockQuestionsGroupedBySubject),
+        getQuestionsGroupedBySubject: jest
+          .fn()
+          .mockReturnValue(complexMockQuestionsGroupedBySubject),
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
-          return questionId === 'q1' || questionId === 'q2' || questionId === 'q3' || questionId === 'q4';
+          return (
+            questionId === 'q1' ||
+            questionId === 'q2' ||
+            questionId === 'q3' ||
+            questionId === 'q4'
+          );
         }),
       });
 

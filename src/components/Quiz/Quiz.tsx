@@ -579,7 +579,6 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
       getTotalQuestions,
       timeElapsed,
       formatTime,
-      selectedAnswers,
       bySimulado,
       byAtividade,
       byAula,
@@ -592,7 +591,7 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
     let correctAnswers = 0;
     if (quiz) {
       quiz.questions.forEach((question) => {
-        const userAnswer = selectedAnswers[question.id];
+        const userAnswer = question.answerKey;
         if (userAnswer && userAnswer === question.correctOptionId) {
           correctAnswers++;
         }
@@ -690,7 +689,7 @@ const QuizListResult = forwardRef<
     onSubjectClick?: (subject: string) => void;
   }
 >(({ className, onSubjectClick, ...props }, ref) => {
-  const { getQuestionsGroupedBySubject, isQuestionAnswered, selectedAnswers } =
+  const { getQuestionsGroupedBySubject, isQuestionAnswered } =
     useQuizStore();
   const groupedQuestions = getQuestionsGroupedBySubject();
 
@@ -702,7 +701,7 @@ const QuizListResult = forwardRef<
 
       questions.forEach((question) => {
         if (isQuestionAnswered(question.id)) {
-          const userAnswer = selectedAnswers[question.id];
+          const userAnswer = question.answerKey;
           if (userAnswer === question.correctOptionId) {
             correct++;
           } else {
