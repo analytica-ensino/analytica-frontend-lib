@@ -4,6 +4,7 @@ import {
   Clock,
   SquaresFour,
   BookOpen,
+  Book,
 } from 'phosphor-react';
 import Badge from '../Badge/Badge';
 import {
@@ -12,7 +13,7 @@ import {
 } from '../Alternative/Alternative';
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
-import { forwardRef, ReactNode, useState } from 'react';
+import { forwardRef, ReactNode, useEffect, useState } from 'react';
 import { useQuizStore } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
@@ -23,7 +24,9 @@ import Select, {
   SelectTrigger,
   SelectValue,
 } from '../Select/Select';
-import { CardStatus } from '../Card/Card';
+import { CardResults, CardStatus } from '../Card/Card';
+import ProgressCircle from '../ProgressCircle/ProgressCircle';
+import ProgressBar from '../ProgressBar/ProgressBar';
 
 const Quiz = forwardRef<
   HTMLDivElement,
@@ -522,6 +525,211 @@ const QuizFooter = forwardRef<
   );
 });
 
+// QUIZ RESULT COMPONENTS
+
+const QuizResultHeaderTitle = forwardRef<HTMLDivElement, { className?: string }>(
+  ({ className, ...props }, ref) => {
+    const { bySimulado, byAtividade, byAula } = useQuizStore();
+    const quizType = bySimulado?.title ?? byAtividade?.title ?? byAula?.title;
+
+    return (
+      <div ref={ref} className={`flex flex-row pt-4 justify-between ${className}`} {...props}>
+        <p className="text-text-950 font-bold text-2xl">Resultado</p>
+        <Badge variant="solid" action="info">
+          {quizType || 'Enem'}
+        </Badge>
+      </div>
+    );
+  }
+);
+
+const QuizResultTitle = forwardRef<HTMLParagraphElement, { className?: string }>(
+  ({ className, ...props }, ref) => {
+    const { getQuizTitle } = useQuizStore();
+    const quizTitle = getQuizTitle();
+
+    return (
+      <p className={`pt-6 pb-4 text-text-950 font-bold text-lg ${className}`} ref={ref} {...props}>
+        {quizTitle}
+      </p>
+    );
+  }
+);
+
+const QuizResultPerformance = forwardRef<HTMLDivElement, { className?: string }>(
+  ({ className, ...props }, ref) => {
+    const { 
+      getUserAnswers, 
+      getTotalQuestions, 
+      timeElapsed, 
+      formatTime,
+      selectedAnswers,
+      bySimulado,
+      byAtividade,
+      byAula
+    } = useQuizStore();
+    
+    const userAnswers = getUserAnswers();
+    const totalQuestions = getTotalQuestions();
+    const quiz = bySimulado || byAtividade || byAula;
+    
+    // Calcular respostas corretas baseado nas respostas selecionadas
+    let correctAnswers = 0;
+    if (quiz) {
+      quiz.questions.forEach(question => {
+        const userAnswer = selectedAnswers[question.id];
+        if (userAnswer && userAnswer === question.correctOptionId) {
+          correctAnswers++;
+        }
+      });
+    }
+    
+    const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+
+    return (
+      <div className="flex flex-row gap-6 p-6 rounded-xl bg-background justify-between" ref={ref} {...props}>
+        <div className="relative">
+          <ProgressCircle
+            size="medium"
+            variant="green"
+            value={percentage}
+            showPercentage={false}
+            label=""
+          />
+
+          {/* Custom content overlay */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            {/* Timer - acima do hit count */}
+            <div className="flex items-center gap-1 mb-1">
+              <Clock
+                size={12}
+                weight="regular"
+                className="text-text-800"
+              />
+              <span className="text-2xs font-medium text-text-800">
+                {formatTime(timeElapsed)}
+              </span>
+            </div>
+
+            {/* Hit count - no meio */}
+            <div className="text-2xl font-medium text-text-800 leading-7">
+              {correctAnswers} de {totalQuestions}
+            </div>
+
+            {/* Label - abaixo do hit count */}
+            <div className="text-2xs font-medium text-text-600 mt-1">
+              Corretas
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4 w-full">
+          <ProgressBar
+            className="w-full"
+            layout="stacked"
+            variant="green"
+            value={correctAnswers}
+            max={totalQuestions}
+            label="Total"
+            showHitCount
+            labelClassName="text-base font-medium text-text-800 leading-none"
+            percentageClassName="text-xs font-medium leading-[14px] text-right"
+          />
+
+          <ProgressBar
+            className="w-full"
+            layout="stacked"
+            variant="green"
+            value={correctAnswers}
+            max={totalQuestions}
+            label="Fáceis"
+            showHitCount
+            labelClassName="text-base font-medium text-text-800 leading-none"
+            percentageClassName="text-xs font-medium leading-[14px] text-right"
+          />
+
+          <ProgressBar
+            className="w-full"
+            layout="stacked"
+            variant="green"
+            value={correctAnswers}
+            max={totalQuestions}
+            label="Difíceis"
+            showHitCount
+            labelClassName="text-base font-medium text-text-800 leading-none"
+            percentageClassName="text-xs font-medium leading-[14px] text-right"
+          />
+        </div>
+      </div>
+    );
+  }
+);
+
+const QuizListResult = forwardRef<HTMLDivElement, { 
+  className?: string;
+  onSubjectClick?: (subject: string) => void;
+}>(
+  ({ className, onSubjectClick, ...props }, ref) => {
+    const { 
+      getQuestionsGroupedBySubject, 
+      isQuestionAnswered, 
+      selectedAnswers,
+      bySimulado,
+      byAtividade,
+      byAula
+    } = useQuizStore();
+    const groupedQuestions = getQuestionsGroupedBySubject();
+
+    // Converter groupedQuestions em estatísticas por matéria
+    const subjectsStats = Object.entries(groupedQuestions).map(([subjectId, questions]) => {
+      let correct = 0;
+      let incorrect = 0;
+
+      questions.forEach(question => {
+        if (isQuestionAnswered(question.id)) {
+          const userAnswer = selectedAnswers[question.id];
+          if (userAnswer === question.correctOptionId) {
+            correct++;
+          } else {
+            incorrect++;
+          }
+        }
+      });
+
+      return {
+        subject: subjectId,
+        correct,
+        incorrect,
+        total: questions.length
+      };
+    });
+
+    return (
+      <section ref={ref} className={className} {...props}>
+        <p className="pt-6 pb-4 text-text-950 font-bold text-lg">
+          Matérias
+        </p>
+
+        <ul className="flex flex-col gap-2">
+          {subjectsStats.map((subject) => (
+            <li key={subject.subject}>
+              <CardResults
+                onClick={() => onSubjectClick?.(subject.subject)}
+                className="max-w-full"
+                header={subject.subject}
+                correct_answers={subject.correct}
+                incorrect_answers={subject.incorrect}
+                icon={<Book size={20} />}
+                direction="row"
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
+);
+
 export {
   QuizHeaderResult,
   QuizTitle,
@@ -531,4 +739,8 @@ export {
   QuizAlternative,
   QuizQuestionList,
   QuizFooter,
+  QuizListResult,
+  QuizResultHeaderTitle,
+  QuizResultTitle,
+  QuizResultPerformance,
 };

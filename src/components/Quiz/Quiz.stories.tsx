@@ -7,9 +7,14 @@ import {
   QuizHeader,
   QuizHeaderResult,
   QuizTitle,
+  QuizListResult,
+  QuizResultHeaderTitle,
+  QuizResultTitle,
+  QuizResultPerformance,
 } from './Quiz';
 import { useQuizStore } from './useQuizStore';
 import { useEffect, useState } from 'react';
+import { QuizListResult as QuizListResultType } from './Quiz';
 
 export const AllQuizShowcase: Story = () => {
   const { setBySimulado, startQuiz } = useQuizStore();
@@ -475,6 +480,502 @@ export const QuizAlternativeVariants: Story = () => {
             }}
           />
         </Quiz>
+      </div>
+    </div>
+  );
+};
+
+export const QuizListResultShowcase: Story = () => {
+  const { setBySimulado, startQuiz, selectAnswer } = useQuizStore();
+
+  useEffect(() => {
+    // Dados de exemplo para demonstrar a funcionalidade
+    const mockSimulado = {
+      id: 'simulado-1',
+      title: 'Simulado ENEM 2024',
+      questions: [
+        {
+          id: 'q1',
+          questionText: 'Questão de Física 1',
+          correctOptionId: 'opt1',
+          description: 'Questão sobre física',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'MEDIO' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'fisica',
+              topicId: 'mecanica',
+              subtopicId: 'movimento',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Resposta correta' },
+            { id: 'opt2', option: 'Resposta incorreta' },
+            { id: 'opt3', option: 'Resposta incorreta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          createdBy: 'user1',
+        },
+        {
+          id: 'q2',
+          questionText: 'Questão de Física 2',
+          correctOptionId: 'opt2',
+          description: 'Questão sobre física',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'MEDIO' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'fisica',
+              topicId: 'mecanica',
+              subtopicId: 'movimento',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Resposta incorreta' },
+            { id: 'opt2', option: 'Resposta correta' },
+            { id: 'opt3', option: 'Resposta incorreta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          createdBy: 'user1',
+        },
+        {
+          id: 'q3',
+          questionText: 'Questão de Matemática 1',
+          correctOptionId: 'opt1',
+          description: 'Questão sobre matemática',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'MEDIO' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'matematica',
+              subjectId: 'matematica',
+              topicId: 'algebra',
+              subtopicId: 'equacoes',
+              contentId: 'algebra',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Resposta correta' },
+            { id: 'opt2', option: 'Resposta incorreta' },
+            { id: 'opt3', option: 'Resposta incorreta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          createdBy: 'user1',
+        },
+        {
+          id: 'q4',
+          questionText: 'Questão de Química 1',
+          correctOptionId: 'opt3',
+          description: 'Questão sobre química',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'MEDIO' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'quimica',
+              subjectId: 'quimica',
+              topicId: 'quimica-geral',
+              subtopicId: 'formulas',
+              contentId: 'quimica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Resposta incorreta' },
+            { id: 'opt2', option: 'Resposta incorreta' },
+            { id: 'opt3', option: 'Resposta correta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          createdBy: 'user1',
+        },
+      ],
+    };
+
+    setBySimulado(mockSimulado);
+    startQuiz();
+    
+    // Simular algumas respostas para demonstrar as estatísticas
+    selectAnswer('q1', 'opt1'); // Resposta correta
+    selectAnswer('q2', 'opt1'); // Resposta incorreta
+    selectAnswer('q3', 'opt1'); // Resposta correta
+    selectAnswer('q4', 'opt2'); // Resposta incorreta
+  }, [setBySimulado, startQuiz, selectAnswer]);
+
+  const handleSubjectClick = (subject: string) => {
+    console.log('Matéria clicada:', subject);
+  };
+
+  return (
+    <div className="space-y-12 h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Quiz List Result
+        </h1>
+        <p className="text-text-600 text-lg">
+          Lista de matérias com estatísticas de acertos e erros
+        </p>
+      </div>
+
+      <div className="h-full">
+        <QuizListResult onSubjectClick={handleSubjectClick} />
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Story para testar todos os componentes de resultado juntos
+ */
+export const QuizResultPageShowcase: Story = () => {
+  const { setBySimulado, startQuiz, selectAnswer, finishQuiz } = useQuizStore();
+
+  useEffect(() => {
+    // Dados de exemplo para demonstrar a funcionalidade
+    const mockSimulado = {
+      id: 'simulado-1',
+      title: 'Simulado Enem #42',
+      questions: [
+        {
+          id: 'q1',
+          questionText: 'Questão de Física 1',
+          correctOptionId: 'opt1',
+          description: 'Questão sobre física',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'MEDIO' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt1',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'fisica',
+              topicId: 'mecanica',
+              subtopicId: 'movimento',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Resposta correta' },
+            { id: 'opt2', option: 'Resposta incorreta' },
+            { id: 'opt3', option: 'Resposta incorreta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          createdBy: 'user1',
+        },
+        {
+          id: 'q2',
+          questionText: 'Questão de Física 2',
+          correctOptionId: 'opt2',
+          description: 'Questão sobre física',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'MEDIO' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt1',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'fisica',
+              topicId: 'mecanica',
+              subtopicId: 'movimento',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Resposta incorreta' },
+            { id: 'opt2', option: 'Resposta correta' },
+            { id: 'opt3', option: 'Resposta incorreta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          createdBy: 'user1',
+        },
+        {
+          id: 'q3',
+          questionText: 'Questão de Matemática 1',
+          correctOptionId: 'opt1',
+          description: 'Questão sobre matemática',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'MEDIO' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt1',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'matematica',
+              subjectId: 'matematica',
+              topicId: 'algebra',
+              subtopicId: 'equacoes',
+              contentId: 'algebra',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Resposta correta' },
+            { id: 'opt2', option: 'Resposta incorreta' },
+            { id: 'opt3', option: 'Resposta incorreta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          createdBy: 'user1',
+        },
+        {
+          id: 'q4',
+          questionText: 'Questão de Química 1',
+          correctOptionId: 'opt3',
+          description: 'Questão sobre química',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'MEDIO' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt2',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'quimica',
+              subjectId: 'quimica',
+              topicId: 'quimica-geral',
+              subtopicId: 'formulas',
+              contentId: 'quimica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Resposta incorreta' },
+            { id: 'opt2', option: 'Resposta incorreta' },
+            { id: 'opt3', option: 'Resposta correta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          createdBy: 'user1',
+        },
+        {
+          id: 'q5',
+          questionText: 'Questão de Física 3',
+          correctOptionId: 'opt1',
+          description: 'Questão sobre física',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'MEDIO' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt1',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'fisica',
+              topicId: 'mecanica',
+              subtopicId: 'movimento',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Resposta correta' },
+            { id: 'opt2', option: 'Resposta incorreta' },
+            { id: 'opt3', option: 'Resposta incorreta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          createdBy: 'user1',
+        },
+      ],
+    };
+
+    setBySimulado(mockSimulado);
+    startQuiz();
+    
+    // Simular algumas respostas para demonstrar as estatísticas
+    selectAnswer('q1', 'opt1'); // Resposta correta
+    selectAnswer('q2', 'opt1'); // Resposta incorreta
+    selectAnswer('q3', 'opt1'); // Resposta correta
+    selectAnswer('q4', 'opt2'); // Resposta incorreta
+    selectAnswer('q5', 'opt1'); // Resposta correta
+    
+    // Finalizar o quiz para mostrar o resultado
+    finishQuiz();
+  }, [setBySimulado, startQuiz, selectAnswer, finishQuiz]);
+
+  const handleSubjectClick = (subject: string) => {
+    console.log('Matéria clicada:', subject);
+  };
+
+  return (
+    <div className="overflow-y-auto h-full">
+      <div className="w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6">
+        {/* Header com título e badge */}
+        <QuizResultHeaderTitle />
+
+        <div>
+          {/* Título do simulado */}
+          <QuizResultTitle />
+
+          {/* Seção de performance com ProgressCircle e ProgressBars */}
+          <QuizResultPerformance />
+
+          {/* Seção de matérias */}
+          <QuizListResult onSubjectClick={handleSubjectClick} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Story para testar componentes individuais de resultado
+ */
+export const QuizResultComponentsShowcase: Story = () => {
+  const { setBySimulado, startQuiz, selectAnswer, finishQuiz } = useQuizStore();
+
+  useEffect(() => {
+    // Dados de exemplo para demonstrar a funcionalidade
+    const mockSimulado = {
+      id: 'simulado-1',
+      title: 'Simulado Enem #42',
+      questions: [
+        {
+          id: 'q1',
+          questionText: 'Questão de Física 1',
+          correctOptionId: 'opt1',
+          description: 'Questão sobre física',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'MEDIO' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt1',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'fisica',
+              topicId: 'mecanica',
+              subtopicId: 'movimento',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Resposta correta' },
+            { id: 'opt2', option: 'Resposta incorreta' },
+            { id: 'opt3', option: 'Resposta incorreta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          createdBy: 'user1',
+        },
+        {
+          id: 'q2',
+          questionText: 'Questão de Matemática 1',
+          correctOptionId: 'opt1',
+          description: 'Questão sobre matemática',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'MEDIO' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt2',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'matematica',
+              subjectId: 'matematica',
+              topicId: 'algebra',
+              subtopicId: 'equacoes',
+              contentId: 'algebra',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Resposta correta' },
+            { id: 'opt2', option: 'Resposta incorreta' },
+            { id: 'opt3', option: 'Resposta incorreta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          createdBy: 'user1',
+        },
+      ],
+    };
+
+    setBySimulado(mockSimulado);
+    startQuiz();
+    
+    // Simular algumas respostas para demonstrar as estatísticas
+    selectAnswer('q1', 'opt1'); // Resposta correta
+    selectAnswer('q2', 'opt2'); // Resposta incorreta
+    
+    // Finalizar o quiz para mostrar o resultado
+    finishQuiz();
+  }, [setBySimulado, startQuiz, selectAnswer, finishQuiz]);
+
+  return (
+    <div className="space-y-12 h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Quiz Result Components
+        </h1>
+        <p className="text-text-600 text-lg">
+          Componentes individuais de resultado de simulado
+        </p>
+      </div>
+
+      <div className="space-y-8">
+        {/* Header com título e badge */}
+        <div className="border rounded-lg p-4">
+          <h2 className="text-2xl font-semibold mb-4">Header com Título e Badge</h2>
+          <QuizResultHeaderTitle />
+        </div>
+
+        {/* Título do simulado */}
+        <div className="border rounded-lg p-4">
+          <h2 className="text-2xl font-semibold mb-4">Título do Simulado</h2>
+          <QuizResultTitle />
+        </div>
+
+        {/* Performance com ProgressCircle e ProgressBars */}
+        <div className="border rounded-lg p-4">
+          <h2 className="text-2xl font-semibold mb-4">Performance</h2>
+          <QuizResultPerformance />
+        </div>
+
+        {/* Lista de matérias */}
+        <div className="border rounded-lg p-4">
+          <h2 className="text-2xl font-semibold mb-4">Lista de Matérias</h2>
+          <QuizListResult onSubjectClick={(subject) => console.log('Matéria clicada:', subject)} />
+        </div>
       </div>
     </div>
   );
