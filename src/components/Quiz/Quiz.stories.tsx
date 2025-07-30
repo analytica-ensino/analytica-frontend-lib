@@ -5,10 +5,11 @@ import {
   QuizContent,
   QuizFooter,
   QuizHeader,
+  QuizHeaderResult,
   QuizTitle,
 } from './Quiz';
 import { useQuizStore } from './useQuizStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export const AllQuizShowcase: Story = () => {
   const { setBySimulado, startQuiz } = useQuizStore();
@@ -349,6 +350,120 @@ export const AllQuizShowcase: Story = () => {
           <QuizHeader />
           <QuizContent>
             <QuizAlternative />
+          </QuizContent>
+          <QuizFooter
+            className="bottom-15"
+            onGoToSimulated={() => {
+              console.log('Navegando para simulados...');
+            }}
+            onDetailResult={() => {
+              console.log('Detalhando resultado...');
+            }}
+          />
+        </Quiz>
+      </div>
+    </div>
+  );
+};
+
+export const QuizAlternativeVariants: Story = () => {
+  const { setBySimulado, startQuiz, selectAnswer } = useQuizStore();
+
+  useEffect(() => {
+    // Dados de exemplo para demonstrar a funcionalidade
+    const mockSimulado = {
+      id: 'simulado-1',
+      title: 'Simulado ENEM 2024',
+      questions: [
+        {
+          id: 'q1',
+          questionText:
+            'Um carro inicia do repouso e se desloca em linha reta com uma aceleração constante de 2 m/s². Calcule a distância que o carro percorre após 5 segundos.',
+          correctOptionId: 'opt1',
+          description: 'Questão sobre movimento uniformemente variado',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'MEDIO' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt3',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'muv',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: '25 metros' },
+            { id: 'opt2', option: '30 metros' },
+            { id: 'opt3', option: '40 metros' },
+            { id: 'opt4', option: '50 metros' },
+          ],
+          createdBy: 'user1',
+        },
+        {
+          id: 'q2',
+          questionText:
+            'Uma partícula se move com velocidade constante de 10 m/s. Qual a distância percorrida em 3 segundos?',
+          correctOptionId: 'opt2',
+          description: 'Questão sobre movimento uniforme',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'FACIL' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'mu',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: '25 metros' },
+            { id: 'opt2', option: '30 metros' },
+            { id: 'opt3', option: '35 metros' },
+            { id: 'opt4', option: '45 metros' },
+          ],
+          createdBy: 'user1',
+        },
+      ],
+    };
+
+    setBySimulado(mockSimulado);
+    startQuiz();
+    
+    // Simular algumas respostas para demonstrar o resultado
+    selectAnswer('q1', 'opt2'); // Resposta incorreta
+    selectAnswer('q2', 'opt2'); // Resposta correta
+  }, [setBySimulado, startQuiz, selectAnswer]);
+
+  return (
+    <div className="space-y-12 h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Quiz Alternative Variants
+        </h1>
+      </div>
+
+      <div className="flex flex-col gap-2 h-full pb-15">
+        <Quiz>
+          <QuizHeaderResult />
+          <QuizTitle />
+          <QuizHeader />
+          <QuizContent>
+            <QuizAlternative variant={'result'} />
           </QuizContent>
           <QuizFooter
             className="bottom-15"

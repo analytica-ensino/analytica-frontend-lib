@@ -40,6 +40,32 @@ const Quiz = forwardRef<
   );
 });
 
+const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
+  ({ className, ...props }, ref) => {
+    const { getCurrentQuestion, getCurrentAnswer } = useQuizStore();
+    const currentQuestion = getCurrentQuestion();
+    const userAnswer = getCurrentAnswer();
+    
+    // Verifica se o usuário acertou comparando sua resposta com a resposta correta
+    const isCorrect = userAnswer === currentQuestion?.correctOptionId;
+    
+    return (
+      <div
+        ref={ref}
+        className={`flex flex-row items-center gap-10 p-3.5 rounded-xl ${
+          isCorrect ? 'bg-success-background' : 'bg-error-background'
+        } ${className}`}
+        {...props}
+      >
+        <p className="text-text-950 font-bold text-lg">Resultado</p>
+        <p className="text-text-700 text-md">
+          {isCorrect ? '🎉 Parabéns!!' : 'Não foi dessa vez...'}
+        </p>
+      </div>
+    );
+  }
+);
+
 const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
   ({ className, ...props }, ref) => {
     const {
@@ -117,31 +143,45 @@ const QuizContent = forwardRef<
   );
 });
 
-const QuizAlternative = () => {
+const QuizAlternative = ({ variant = 'default' }: { variant?: 'result' | 'default' }) => {
   const { getCurrentQuestion, selectAnswer, getCurrentAnswer } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
   const currentAnswer = getCurrentAnswer();
-  // Mapear as alternativas da questão atual
-  const alternatives = currentQuestion?.options?.map((option) => ({
-    label: option.option,
-    value: option.id,
-  }));
+  const alternatives = currentQuestion?.options?.map((option) => {
+    let status: 'correct' | 'incorrect' | 'neutral' = 'neutral';
+    
+    if (variant === 'result') {
+      if (option.id === currentQuestion.correctOptionId) {
+        status = 'correct';
+      } else if (currentAnswer === option.id && option.id !== currentQuestion.correctOptionId) {
+        status = 'incorrect';
+      }
+    }
+    
+    return {
+      label: option.option,
+      value: option.id,
+      status: status
+    };
+  });
 
   if (!alternatives)
     return (
       <div>
         <p>Não há Alternativas</p>
       </div>
-    );
+  );
 
   return (
     <div className="space-y-4">
       <AlternativesList
+        mode={variant === 'default' ? 'interactive' : 'readonly'}
         key={`question-${currentQuestion?.id || '1'}`}
         name={`question-${currentQuestion?.id || '1'}`}
-        layout="default"
+        layout="compact"
         alternatives={alternatives}
         value={currentAnswer}
+        selectedValue={currentAnswer}
         onValueChange={(value) => {
           if (currentQuestion) {
             selectAnswer(currentQuestion.id, value);
@@ -483,6 +523,7 @@ const QuizFooter = forwardRef<
 });
 
 export {
+  QuizHeaderResult,
   QuizTitle,
   Quiz,
   QuizHeader,

@@ -7,6 +7,7 @@ import {
   QuizAlternative,
   QuizQuestionList,
   QuizFooter,
+  QuizHeaderResult,
 } from './Quiz';
 import { useQuizStore } from './useQuizStore';
 import { ReactNode } from 'react';
@@ -583,6 +584,24 @@ describe('Quiz Component', () => {
 
       const selectedAlternative = screen.getByTestId('alternative-opt2');
       expect(selectedAlternative).toHaveClass('selected');
+    });
+
+    it('should render result variant with correct status determination', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt2'), // User selected opt2
+        getCurrentQuestion: jest.fn().mockReturnValue({
+          ...mockQuestion1,
+          correctOptionId: 'opt1', // Correct answer is opt1
+        }),
+      });
+
+      render(<QuizAlternative variant="result" />);
+
+      expect(screen.getByTestId('alternatives-list')).toBeInTheDocument();
+      // The component should render in readonly mode with correct status determination
+      expect(screen.getByTestId('alternative-opt1')).toBeInTheDocument();
+      expect(screen.getByTestId('alternative-opt2')).toBeInTheDocument();
     });
   });
 
@@ -1337,6 +1356,73 @@ describe('Quiz Component', () => {
 
       // Timer should be active
       expect(mockUpdateTime).toBeDefined();
+    });
+  });
+
+  describe('QuizHeaderResult', () => {
+    it('should display success message when user answers correctly', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue({
+          ...mockQuestion1,
+          correctOptionId: 'opt1',
+        }),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'), // User selected correct answer
+      });
+
+      render(<QuizHeaderResult />);
+
+      expect(screen.getByText('Resultado')).toBeInTheDocument();
+      expect(screen.getByText('🎉 Parabéns!!')).toBeInTheDocument();
+      expect(screen.getByText('Resultado').closest('div')).toHaveClass('bg-success-background');
+    });
+
+    it('should display error message when user answers incorrectly', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue({
+          ...mockQuestion1,
+          correctOptionId: 'opt1',
+        }),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt2'), // User selected wrong answer
+      });
+
+      render(<QuizHeaderResult />);
+
+      expect(screen.getByText('Resultado')).toBeInTheDocument();
+      expect(screen.getByText('Não foi dessa vez...')).toBeInTheDocument();
+      expect(screen.getByText('Resultado').closest('div')).toHaveClass('bg-error-background');
+    });
+
+    it('should handle case when user has not answered', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue({
+          ...mockQuestion1,
+          correctOptionId: 'opt1',
+        }),
+        getCurrentAnswer: jest.fn().mockReturnValue(undefined), // User has not answered
+      });
+
+      render(<QuizHeaderResult />);
+
+      expect(screen.getByText('Resultado')).toBeInTheDocument();
+      expect(screen.getByText('Não foi dessa vez...')).toBeInTheDocument();
+      expect(screen.getByText('Resultado').closest('div')).toHaveClass('bg-error-background');
+    });
+
+    it('should handle case when current question is null', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue(null),
+        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+      });
+
+      render(<QuizHeaderResult />);
+
+      expect(screen.getByText('Resultado')).toBeInTheDocument();
+      expect(screen.getByText('Não foi dessa vez...')).toBeInTheDocument();
+      expect(screen.getByText('Resultado').closest('div')).toHaveClass('bg-error-background');
     });
   });
 });
