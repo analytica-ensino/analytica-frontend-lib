@@ -8,6 +8,9 @@ import {
   QuizQuestionList,
   QuizFooter,
   QuizHeaderResult,
+  QuizResultHeaderTitle,
+  QuizResultTitle,
+  QuizResultPerformance,
 } from './Quiz';
 import { useQuizStore } from './useQuizStore';
 import { ReactNode } from 'react';
@@ -1374,7 +1377,9 @@ describe('Quiz Component', () => {
 
       expect(screen.getByText('Resultado')).toBeInTheDocument();
       expect(screen.getByText('🎉 Parabéns!!')).toBeInTheDocument();
-      expect(screen.getByText('Resultado').closest('div')).toHaveClass('bg-success-background');
+      expect(screen.getByText('Resultado').closest('div')).toHaveClass(
+        'bg-success-background'
+      );
     });
 
     it('should display error message when user answers incorrectly', () => {
@@ -1391,7 +1396,9 @@ describe('Quiz Component', () => {
 
       expect(screen.getByText('Resultado')).toBeInTheDocument();
       expect(screen.getByText('Não foi dessa vez...')).toBeInTheDocument();
-      expect(screen.getByText('Resultado').closest('div')).toHaveClass('bg-error-background');
+      expect(screen.getByText('Resultado').closest('div')).toHaveClass(
+        'bg-error-background'
+      );
     });
 
     it('should handle case when user has not answered', () => {
@@ -1408,7 +1415,9 @@ describe('Quiz Component', () => {
 
       expect(screen.getByText('Resultado')).toBeInTheDocument();
       expect(screen.getByText('Não foi dessa vez...')).toBeInTheDocument();
-      expect(screen.getByText('Resultado').closest('div')).toHaveClass('bg-error-background');
+      expect(screen.getByText('Resultado').closest('div')).toHaveClass(
+        'bg-error-background'
+      );
     });
 
     it('should handle case when current question is null', () => {
@@ -1422,7 +1431,272 @@ describe('Quiz Component', () => {
 
       expect(screen.getByText('Resultado')).toBeInTheDocument();
       expect(screen.getByText('Não foi dessa vez...')).toBeInTheDocument();
-      expect(screen.getByText('Resultado').closest('div')).toHaveClass('bg-error-background');
+      expect(screen.getByText('Resultado').closest('div')).toHaveClass(
+        'bg-error-background'
+      );
+    });
+  });
+});
+
+describe('Quiz Result Components', () => {
+  const mockSimulado = {
+    id: 'simulado-1',
+    title: 'Simulado Enem #42',
+    questions: [
+      {
+        id: 'q1',
+        questionText: 'Questão de Física 1',
+        correctOptionId: 'opt1',
+        description: 'Questão sobre física',
+        type: 'ALTERNATIVA' as const,
+        status: 'APROVADO' as const,
+        difficulty: 'MEDIO' as const,
+        examBoard: 'ENEM',
+        examYear: '2024',
+        answerKey: null,
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+        knowledgeMatrix: [
+          {
+            areaKnowledgeId: 'fisica',
+            subjectId: 'fisica',
+            topicId: 'mecanica',
+            subtopicId: 'movimento',
+            contentId: 'cinematica',
+          },
+        ],
+        options: [
+          { id: 'opt1', option: 'Resposta correta' },
+          { id: 'opt2', option: 'Resposta incorreta' },
+          { id: 'opt3', option: 'Resposta incorreta' },
+          { id: 'opt4', option: 'Resposta incorreta' },
+        ],
+        createdBy: 'user1',
+      },
+      {
+        id: 'q2',
+        questionText: 'Questão de Matemática 1',
+        correctOptionId: 'opt1',
+        description: 'Questão sobre matemática',
+        type: 'ALTERNATIVA' as const,
+        status: 'APROVADO' as const,
+        difficulty: 'MEDIO' as const,
+        examBoard: 'ENEM',
+        examYear: '2024',
+        answerKey: null,
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+        knowledgeMatrix: [
+          {
+            areaKnowledgeId: 'matematica',
+            subjectId: 'matematica',
+            topicId: 'algebra',
+            subtopicId: 'equacoes',
+            contentId: 'algebra',
+          },
+        ],
+        options: [
+          { id: 'opt1', option: 'Resposta correta' },
+          { id: 'opt2', option: 'Resposta incorreta' },
+          { id: 'opt3', option: 'Resposta incorreta' },
+          { id: 'opt4', option: 'Resposta incorreta' },
+        ],
+        createdBy: 'user1',
+      },
+    ],
+  };
+
+  beforeEach(() => {
+    mockUseQuizStore.mockReturnValue({
+      bySimulado: mockSimulado,
+      byAtividade: undefined,
+      byAula: undefined,
+      currentQuestionIndex: 0,
+      isStarted: true,
+      timeElapsed: 3600, // 1 hora
+      selectedAnswers: {
+        q1: 'opt1', // Resposta correta
+        q2: 'opt2', // Resposta incorreta
+      },
+      getTotalQuestions: jest.fn().mockReturnValue(2),
+      getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
+      formatTime: jest.fn().mockReturnValue('00:01:00'),
+      getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+        fisica: [mockSimulado.questions[0]],
+        matematica: [mockSimulado.questions[1]],
+      }),
+      isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+        return questionId === 'q1' || questionId === 'q2';
+      }),
+    });
+  });
+
+  describe('QuizResultHeaderTitle', () => {
+    it('should render header with title and badge', () => {
+      render(<QuizResultHeaderTitle />);
+
+      expect(screen.getByText('Resultado')).toBeInTheDocument();
+      expect(screen.getByText('Simulado Enem #42')).toBeInTheDocument();
+    });
+
+    it('should show default badge when no quiz type is available', () => {
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: undefined,
+        byAtividade: undefined,
+        byAula: undefined,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
+        formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+          fisica: [mockSimulado.questions[0]],
+          matematica: [mockSimulado.questions[1]],
+        }),
+        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+          return questionId === 'q1' || questionId === 'q2';
+        }),
+      });
+
+      render(<QuizResultHeaderTitle />);
+
+      expect(screen.getByText('Resultado')).toBeInTheDocument();
+      expect(screen.getByText('Enem')).toBeInTheDocument();
+    });
+  });
+
+  describe('QuizResultTitle', () => {
+    it('should render quiz title', () => {
+      render(<QuizResultTitle />);
+
+      expect(screen.getByText('Simulado Enem #42')).toBeInTheDocument();
+    });
+
+    it('should handle empty quiz title', () => {
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: { ...mockSimulado, title: '' },
+        byAtividade: undefined,
+        byAula: undefined,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getQuizTitle: jest.fn().mockReturnValue(''),
+        formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+          fisica: [mockSimulado.questions[0]],
+          matematica: [mockSimulado.questions[1]],
+        }),
+        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+          return questionId === 'q1' || questionId === 'q2';
+        }),
+      });
+
+      render(<QuizResultTitle />);
+
+      // Verificar se o elemento está presente mesmo com texto vazio
+      const titleElement = screen.getByText((content, element) => {
+        return element?.tagName === 'P' && element?.textContent === '';
+      });
+      expect(titleElement).toBeInTheDocument();
+    });
+  });
+
+  describe('QuizResultPerformance', () => {
+    it('should render performance section with correct statistics', () => {
+      render(<QuizResultPerformance />);
+
+      // Verificar se os elementos principais estão presentes
+      expect(screen.getByText('Corretas')).toBeInTheDocument();
+      expect(screen.getAllByText('1')[0]).toBeInTheDocument(); // 1 correta
+      expect(screen.getByText('00:01:00')).toBeInTheDocument(); // 1 hora formatada
+
+      // Verificar se o texto "de 2" está presente (que contém o número 2)
+      expect(screen.getAllByText(/de 2/)[0]).toBeInTheDocument();
+    });
+
+    it('should render progress bars with correct values', () => {
+      render(<QuizResultPerformance />);
+
+      // Verificar se as progress bars estão presentes
+      expect(screen.getByText('Total')).toBeInTheDocument();
+      expect(screen.getByText('Fáceis')).toBeInTheDocument();
+      expect(screen.getByText('Difíceis')).toBeInTheDocument();
+    });
+
+    it('should handle zero questions correctly', () => {
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: { ...mockSimulado, questions: [] },
+        byAtividade: undefined,
+        byAula: undefined,
+        selectedAnswers: {},
+        getTotalQuestions: jest.fn().mockReturnValue(0),
+        getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
+        formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({}),
+        isQuestionAnswered: jest.fn().mockReturnValue(false),
+      });
+
+      render(<QuizResultPerformance />);
+
+      expect(screen.getAllByText('0')[0]).toBeInTheDocument();
+    });
+
+    it('should handle all correct answers', () => {
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: mockSimulado,
+        byAtividade: undefined,
+        byAula: undefined,
+        selectedAnswers: {
+          q1: 'opt1', // Resposta correta
+          q2: 'opt1', // Resposta correta
+        },
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
+        formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+          fisica: [mockSimulado.questions[0]],
+          matematica: [mockSimulado.questions[1]],
+        }),
+        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+          return questionId === 'q1' || questionId === 'q2';
+        }),
+      });
+
+      render(<QuizResultPerformance />);
+
+      expect(screen.getAllByText('2')[0]).toBeInTheDocument(); // 2 corretas
+    });
+  });
+
+  describe('Quiz Result Components Integration', () => {
+    it('should render all result components together', () => {
+      render(
+        <div>
+          <QuizResultHeaderTitle />
+          <QuizResultTitle />
+          <QuizResultPerformance />
+        </div>
+      );
+
+      // Verificar se todos os componentes estão presentes
+      expect(screen.getByText('Resultado')).toBeInTheDocument();
+      expect(screen.getAllByText('Simulado Enem #42')[0]).toBeInTheDocument();
+      expect(screen.getByText('Corretas')).toBeInTheDocument();
+    });
+
+    it('should handle complete result page layout', () => {
+      render(
+        <div className="overflow-y-auto h-full">
+          <div className="w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6">
+            <QuizResultHeaderTitle />
+            <div>
+              <QuizResultTitle />
+              <QuizResultPerformance />
+            </div>
+          </div>
+        </div>
+      );
+
+      // Verificar se a estrutura está correta
+      expect(screen.getByText('Resultado')).toBeInTheDocument();
+      expect(screen.getAllByText('Simulado Enem #42')[0]).toBeInTheDocument();
+      expect(screen.getByText('Corretas')).toBeInTheDocument();
     });
   });
 });

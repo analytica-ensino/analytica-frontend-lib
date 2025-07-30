@@ -13,8 +13,7 @@ import {
   QuizResultPerformance,
 } from './Quiz';
 import { useQuizStore } from './useQuizStore';
-import { useEffect, useState } from 'react';
-import { QuizListResult as QuizListResultType } from './Quiz';
+import { useEffect } from 'react';
 
 export const AllQuizShowcase: Story = () => {
   const { setBySimulado, startQuiz } = useQuizStore();
@@ -447,7 +446,7 @@ export const QuizAlternativeVariants: Story = () => {
 
     setBySimulado(mockSimulado);
     startQuiz();
-    
+
     // Simular algumas respostas para demonstrar o resultado
     selectAnswer('q1', 'opt2'); // Resposta incorreta
     selectAnswer('q2', 'opt2'); // Resposta correta
@@ -619,7 +618,7 @@ export const QuizListResultShowcase: Story = () => {
 
     setBySimulado(mockSimulado);
     startQuiz();
-    
+
     // Simular algumas respostas para demonstrar as estatísticas
     selectAnswer('q1', 'opt1'); // Resposta correta
     selectAnswer('q2', 'opt1'); // Resposta incorreta
@@ -817,14 +816,14 @@ export const QuizResultPageShowcase: Story = () => {
 
     setBySimulado(mockSimulado);
     startQuiz();
-    
+
     // Simular algumas respostas para demonstrar as estatísticas
     selectAnswer('q1', 'opt1'); // Resposta correta
     selectAnswer('q2', 'opt1'); // Resposta incorreta
     selectAnswer('q3', 'opt1'); // Resposta correta
     selectAnswer('q4', 'opt2'); // Resposta incorreta
     selectAnswer('q5', 'opt1'); // Resposta correta
-    
+
     // Finalizar o quiz para mostrar o resultado
     finishQuiz();
   }, [setBySimulado, startQuiz, selectAnswer, finishQuiz]);
@@ -931,11 +930,11 @@ export const QuizResultComponentsShowcase: Story = () => {
 
     setBySimulado(mockSimulado);
     startQuiz();
-    
+
     // Simular algumas respostas para demonstrar as estatísticas
     selectAnswer('q1', 'opt1'); // Resposta correta
     selectAnswer('q2', 'opt2'); // Resposta incorreta
-    
+
     // Finalizar o quiz para mostrar o resultado
     finishQuiz();
   }, [setBySimulado, startQuiz, selectAnswer, finishQuiz]);
@@ -955,7 +954,9 @@ export const QuizResultComponentsShowcase: Story = () => {
       <div className="space-y-8">
         {/* Header com título e badge */}
         <div className="border rounded-lg p-4">
-          <h2 className="text-2xl font-semibold mb-4">Header com Título e Badge</h2>
+          <h2 className="text-2xl font-semibold mb-4">
+            Header com Título e Badge
+          </h2>
           <QuizResultHeaderTitle />
         </div>
 
@@ -974,7 +975,11 @@ export const QuizResultComponentsShowcase: Story = () => {
         {/* Lista de matérias */}
         <div className="border rounded-lg p-4">
           <h2 className="text-2xl font-semibold mb-4">Lista de Matérias</h2>
-          <QuizListResult onSubjectClick={(subject) => console.log('Matéria clicada:', subject)} />
+          <QuizListResult
+            onSubjectClick={(subject) =>
+              console.log('Matéria clicada:', subject)
+            }
+          />
         </div>
       </div>
     </div>

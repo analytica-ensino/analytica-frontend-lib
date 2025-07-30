@@ -13,7 +13,7 @@ import {
 } from '../Alternative/Alternative';
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
-import { forwardRef, ReactNode, useEffect, useState } from 'react';
+import { forwardRef, ReactNode, useState } from 'react';
 import { useQuizStore } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
@@ -48,10 +48,10 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
     const { getCurrentQuestion, getCurrentAnswer } = useQuizStore();
     const currentQuestion = getCurrentQuestion();
     const userAnswer = getCurrentAnswer();
-    
+
     // Verifica se o usuário acertou comparando sua resposta com a resposta correta
     const isCorrect = userAnswer === currentQuestion?.correctOptionId;
-    
+
     return (
       <div
         ref={ref}
@@ -146,25 +146,32 @@ const QuizContent = forwardRef<
   );
 });
 
-const QuizAlternative = ({ variant = 'default' }: { variant?: 'result' | 'default' }) => {
+const QuizAlternative = ({
+  variant = 'default',
+}: {
+  variant?: 'result' | 'default';
+}) => {
   const { getCurrentQuestion, selectAnswer, getCurrentAnswer } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
   const currentAnswer = getCurrentAnswer();
   const alternatives = currentQuestion?.options?.map((option) => {
     let status: 'correct' | 'incorrect' | 'neutral' = 'neutral';
-    
+
     if (variant === 'result') {
       if (option.id === currentQuestion.correctOptionId) {
         status = 'correct';
-      } else if (currentAnswer === option.id && option.id !== currentQuestion.correctOptionId) {
+      } else if (
+        currentAnswer === option.id &&
+        option.id !== currentQuestion.correctOptionId
+      ) {
         status = 'incorrect';
       }
     }
-    
+
     return {
       label: option.option,
       value: option.id,
-      status: status
+      status: status,
     };
   });
 
@@ -173,7 +180,7 @@ const QuizAlternative = ({ variant = 'default' }: { variant?: 'result' | 'defaul
       <div>
         <p>Não há Alternativas</p>
       </div>
-  );
+    );
 
   return (
     <div className="space-y-4">
@@ -527,67 +534,82 @@ const QuizFooter = forwardRef<
 
 // QUIZ RESULT COMPONENTS
 
-const QuizResultHeaderTitle = forwardRef<HTMLDivElement, { className?: string }>(
-  ({ className, ...props }, ref) => {
-    const { bySimulado, byAtividade, byAula } = useQuizStore();
-    const quizType = bySimulado?.title ?? byAtividade?.title ?? byAula?.title;
+const QuizResultHeaderTitle = forwardRef<
+  HTMLDivElement,
+  { className?: string }
+>(({ className, ...props }, ref) => {
+  const { bySimulado, byAtividade, byAula } = useQuizStore();
+  const quizType = bySimulado?.title ?? byAtividade?.title ?? byAula?.title;
 
-    return (
-      <div ref={ref} className={`flex flex-row pt-4 justify-between ${className}`} {...props}>
-        <p className="text-text-950 font-bold text-2xl">Resultado</p>
-        <Badge variant="solid" action="info">
-          {quizType || 'Enem'}
-        </Badge>
-      </div>
-    );
-  }
-);
+  return (
+    <div
+      ref={ref}
+      className={`flex flex-row pt-4 justify-between ${className}`}
+      {...props}
+    >
+      <p className="text-text-950 font-bold text-2xl">Resultado</p>
+      <Badge variant="solid" action="info">
+        {quizType || 'Enem'}
+      </Badge>
+    </div>
+  );
+});
 
-const QuizResultTitle = forwardRef<HTMLParagraphElement, { className?: string }>(
-  ({ className, ...props }, ref) => {
-    const { getQuizTitle } = useQuizStore();
-    const quizTitle = getQuizTitle();
+const QuizResultTitle = forwardRef<
+  HTMLParagraphElement,
+  { className?: string }
+>(({ className, ...props }, ref) => {
+  const { getQuizTitle } = useQuizStore();
+  const quizTitle = getQuizTitle();
 
-    return (
-      <p className={`pt-6 pb-4 text-text-950 font-bold text-lg ${className}`} ref={ref} {...props}>
-        {quizTitle}
-      </p>
-    );
-  }
-);
+  return (
+    <p
+      className={`pt-6 pb-4 text-text-950 font-bold text-lg ${className}`}
+      ref={ref}
+      {...props}
+    >
+      {quizTitle}
+    </p>
+  );
+});
 
-const QuizResultPerformance = forwardRef<HTMLDivElement, { className?: string }>(
-  ({ className, ...props }, ref) => {
-    const { 
-      getUserAnswers, 
-      getTotalQuestions, 
-      timeElapsed, 
+const QuizResultPerformance = forwardRef<HTMLDivElement>(
+  ({ ...props }, ref) => {
+    const {
+      getTotalQuestions,
+      timeElapsed,
       formatTime,
       selectedAnswers,
       bySimulado,
       byAtividade,
-      byAula
+      byAula,
     } = useQuizStore();
-    
-    const userAnswers = getUserAnswers();
+
     const totalQuestions = getTotalQuestions();
     const quiz = bySimulado || byAtividade || byAula;
-    
+
     // Calcular respostas corretas baseado nas respostas selecionadas
     let correctAnswers = 0;
     if (quiz) {
-      quiz.questions.forEach(question => {
+      quiz.questions.forEach((question) => {
         const userAnswer = selectedAnswers[question.id];
         if (userAnswer && userAnswer === question.correctOptionId) {
           correctAnswers++;
         }
       });
     }
-    
-    const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+
+    const percentage =
+      totalQuestions > 0
+        ? Math.round((correctAnswers / totalQuestions) * 100)
+        : 0;
 
     return (
-      <div className="flex flex-row gap-6 p-6 rounded-xl bg-background justify-between" ref={ref} {...props}>
+      <div
+        className="flex flex-row gap-6 p-6 rounded-xl bg-background justify-between"
+        ref={ref}
+        {...props}
+      >
         <div className="relative">
           <ProgressCircle
             size="medium"
@@ -601,11 +623,7 @@ const QuizResultPerformance = forwardRef<HTMLDivElement, { className?: string }>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             {/* Timer - acima do hit count */}
             <div className="flex items-center gap-1 mb-1">
-              <Clock
-                size={12}
-                weight="regular"
-                className="text-text-800"
-              />
+              <Clock size={12} weight="regular" className="text-text-800" />
               <span className="text-2xs font-medium text-text-800">
                 {formatTime(timeElapsed)}
               </span>
@@ -665,27 +683,24 @@ const QuizResultPerformance = forwardRef<HTMLDivElement, { className?: string }>
   }
 );
 
-const QuizListResult = forwardRef<HTMLDivElement, { 
-  className?: string;
-  onSubjectClick?: (subject: string) => void;
-}>(
-  ({ className, onSubjectClick, ...props }, ref) => {
-    const { 
-      getQuestionsGroupedBySubject, 
-      isQuestionAnswered, 
-      selectedAnswers,
-      bySimulado,
-      byAtividade,
-      byAula
-    } = useQuizStore();
-    const groupedQuestions = getQuestionsGroupedBySubject();
+const QuizListResult = forwardRef<
+  HTMLDivElement,
+  {
+    className?: string;
+    onSubjectClick?: (subject: string) => void;
+  }
+>(({ className, onSubjectClick, ...props }, ref) => {
+  const { getQuestionsGroupedBySubject, isQuestionAnswered, selectedAnswers } =
+    useQuizStore();
+  const groupedQuestions = getQuestionsGroupedBySubject();
 
-    // Converter groupedQuestions em estatísticas por matéria
-    const subjectsStats = Object.entries(groupedQuestions).map(([subjectId, questions]) => {
+  // Converter groupedQuestions em estatísticas por matéria
+  const subjectsStats = Object.entries(groupedQuestions).map(
+    ([subjectId, questions]) => {
       let correct = 0;
       let incorrect = 0;
 
-      questions.forEach(question => {
+      questions.forEach((question) => {
         if (isQuestionAnswered(question.id)) {
           const userAnswer = selectedAnswers[question.id];
           if (userAnswer === question.correctOptionId) {
@@ -700,35 +715,33 @@ const QuizListResult = forwardRef<HTMLDivElement, {
         subject: subjectId,
         correct,
         incorrect,
-        total: questions.length
+        total: questions.length,
       };
-    });
+    }
+  );
 
-    return (
-      <section ref={ref} className={className} {...props}>
-        <p className="pt-6 pb-4 text-text-950 font-bold text-lg">
-          Matérias
-        </p>
+  return (
+    <section ref={ref} className={className} {...props}>
+      <p className="pt-6 pb-4 text-text-950 font-bold text-lg">Matérias</p>
 
-        <ul className="flex flex-col gap-2">
-          {subjectsStats.map((subject) => (
-            <li key={subject.subject}>
-              <CardResults
-                onClick={() => onSubjectClick?.(subject.subject)}
-                className="max-w-full"
-                header={subject.subject}
-                correct_answers={subject.correct}
-                incorrect_answers={subject.incorrect}
-                icon={<Book size={20} />}
-                direction="row"
-              />
-            </li>
-          ))}
-        </ul>
-      </section>
-    );
-  }
-);
+      <ul className="flex flex-col gap-2">
+        {subjectsStats.map((subject) => (
+          <li key={subject.subject}>
+            <CardResults
+              onClick={() => onSubjectClick?.(subject.subject)}
+              className="max-w-full"
+              header={subject.subject}
+              correct_answers={subject.correct}
+              incorrect_answers={subject.incorrect}
+              icon={<Book size={20} />}
+              direction="row"
+            />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+});
 
 export {
   QuizHeaderResult,
