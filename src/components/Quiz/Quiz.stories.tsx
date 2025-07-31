@@ -17,7 +17,7 @@ import { Question, useQuizStore } from './useQuizStore';
 import { useEffect } from 'react';
 
 export const AllQuizShowcase: Story = () => {
-  const { setBySimulado, startQuiz } = useQuizStore();
+  const { setBySimulated, startQuiz } = useQuizStore();
 
   useEffect(() => {
     // Dados de exemplo para demonstrar a funcionalidade
@@ -333,9 +333,9 @@ export const AllQuizShowcase: Story = () => {
       ],
     };
 
-    setBySimulado(mockSimulado);
+    setBySimulated(mockSimulado);
     startQuiz();
-  }, [setBySimulado, startQuiz]);
+  }, [setBySimulated, startQuiz]);
 
   return (
     <div className="space-y-12 h-[calc(100vh-180px)]">
@@ -372,7 +372,7 @@ export const AllQuizShowcase: Story = () => {
 };
 
 export const QuizAlternativeVariants: Story = () => {
-  const { setBySimulado, startQuiz, selectAnswer } = useQuizStore();
+  const { setBySimulated, startQuiz, selectAnswer } = useQuizStore();
 
   useEffect(() => {
     // Dados de exemplo para demonstrar a funcionalidade
@@ -445,13 +445,13 @@ export const QuizAlternativeVariants: Story = () => {
       ],
     };
 
-    setBySimulado(mockSimulado);
+    setBySimulated(mockSimulado);
     startQuiz();
 
     // Simular algumas respostas para demonstrar o resultado
     selectAnswer('q1', 'opt2'); // Resposta incorreta
     selectAnswer('q2', 'opt2'); // Resposta correta
-  }, [setBySimulado, startQuiz, selectAnswer]);
+  }, [setBySimulated, startQuiz, selectAnswer]);
 
   return (
     <div className="space-y-12 h-[calc(100vh-180px)]">
@@ -486,7 +486,7 @@ export const QuizAlternativeVariants: Story = () => {
 };
 
 export const QuizListResultShowcase: Story = () => {
-  const { setBySimulado, startQuiz, selectAnswer } = useQuizStore();
+  const { setBySimulated, startQuiz, selectAnswer } = useQuizStore();
 
   useEffect(() => {
     // Dados de exemplo para demonstrar a funcionalidade
@@ -617,7 +617,7 @@ export const QuizListResultShowcase: Story = () => {
       ],
     };
 
-    setBySimulado(mockSimulado);
+    setBySimulated(mockSimulado);
     startQuiz();
 
     // Simular algumas respostas para demonstrar as estatísticas
@@ -625,7 +625,7 @@ export const QuizListResultShowcase: Story = () => {
     selectAnswer('q2', 'opt1'); // Resposta incorreta
     selectAnswer('q3', 'opt1'); // Resposta correta
     selectAnswer('q4', 'opt2'); // Resposta incorreta
-  }, [setBySimulado, startQuiz, selectAnswer]);
+  }, [setBySimulated, startQuiz, selectAnswer]);
 
   const handleSubjectClick = (subject: string) => {
     console.log('Matéria clicada:', subject);
@@ -654,7 +654,8 @@ export const QuizListResultShowcase: Story = () => {
  * Story para testar todos os componentes de resultado juntos
  */
 export const QuizResultPageShowcase: Story = () => {
-  const { setBySimulado, startQuiz, selectAnswer, finishQuiz } = useQuizStore();
+  const { setBySimulated, startQuiz, selectAnswer, finishQuiz } =
+    useQuizStore();
 
   useEffect(() => {
     // Dados de exemplo para demonstrar a funcionalidade
@@ -815,7 +816,7 @@ export const QuizResultPageShowcase: Story = () => {
       ],
     };
 
-    setBySimulado(mockSimulado);
+    setBySimulated(mockSimulado);
     startQuiz();
 
     // Simular algumas respostas para demonstrar as estatísticas
@@ -827,7 +828,7 @@ export const QuizResultPageShowcase: Story = () => {
 
     // Finalizar o quiz para mostrar o resultado
     finishQuiz();
-  }, [setBySimulado, startQuiz, selectAnswer, finishQuiz]);
+  }, [setBySimulated, startQuiz, selectAnswer, finishQuiz]);
 
   const handleSubjectClick = (subject: string) => {
     console.log('Matéria clicada:', subject);
@@ -858,7 +859,8 @@ export const QuizResultPageShowcase: Story = () => {
  * Story para testar componentes individuais de resultado
  */
 export const QuizResultComponentsShowcase: Story = () => {
-  const { setBySimulado, startQuiz, selectAnswer, finishQuiz } = useQuizStore();
+  const { setBySimulated, startQuiz, selectAnswer, finishQuiz } =
+    useQuizStore();
 
   useEffect(() => {
     // Dados de exemplo para demonstrar a funcionalidade
@@ -929,7 +931,7 @@ export const QuizResultComponentsShowcase: Story = () => {
       ],
     };
 
-    setBySimulado(mockSimulado);
+    setBySimulated(mockSimulado);
     startQuiz();
 
     // Simular algumas respostas para demonstrar as estatísticas
@@ -938,7 +940,7 @@ export const QuizResultComponentsShowcase: Story = () => {
 
     // Finalizar o quiz para mostrar o resultado
     finishQuiz();
-  }, [setBySimulado, startQuiz, selectAnswer, finishQuiz]);
+  }, [setBySimulated, startQuiz, selectAnswer, finishQuiz]);
 
   return (
     <div className="space-y-12 h-[calc(100vh-180px)]">
@@ -988,7 +990,8 @@ export const QuizResultComponentsShowcase: Story = () => {
 };
 
 export const QuizListResultByMateriaShowcase: Story = () => {
-  const { setBySimulado, startQuiz, selectAnswer, finishQuiz } = useQuizStore();
+  const { setBySimulated, startQuiz, selectAnswer, finishQuiz } =
+    useQuizStore();
 
   useEffect(() => {
     // Dados de exemplo para demonstrar a funcionalidade
@@ -1092,7 +1095,7 @@ export const QuizListResultByMateriaShowcase: Story = () => {
       ],
     };
 
-    setBySimulado(mockSimulado);
+    setBySimulated(mockSimulado);
     startQuiz();
 
     // Simular algumas respostas para demonstrar as estatísticas
@@ -1102,7 +1105,7 @@ export const QuizListResultByMateriaShowcase: Story = () => {
 
     // Finalizar o quiz para mostrar o resultado
     finishQuiz();
-  }, [setBySimulado, startQuiz, selectAnswer, finishQuiz]);
+  }, [setBySimulated, startQuiz, selectAnswer, finishQuiz]);
 
   const handleQuestionClick = (question: Question) => {
     console.log('Questão clicada:', question);

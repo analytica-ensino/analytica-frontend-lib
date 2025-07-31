@@ -382,18 +382,18 @@ describe('Quiz Component', () => {
       isQuestionAnswered: jest.fn().mockReturnValue(false),
       goToQuestion: jest.fn(),
       resetQuiz: jest.fn(),
-      setBySimulado: jest.fn(),
-      setByAtividade: jest.fn(),
-      setByAula: jest.fn(),
+      setBySimulated: jest.fn(),
+      setByActivity: jest.fn(),
+      setByQuestionary: jest.fn(),
       startQuiz: jest.fn(),
       finishQuiz: jest.fn(),
       getAnsweredQuestions: jest.fn().mockReturnValue(0),
       getUnansweredQuestions: jest.fn().mockReturnValue([2]),
       getSkippedQuestions: jest.fn().mockReturnValue(0),
       getProgress: jest.fn().mockReturnValue(0),
-      bySimulado: mockSimulado,
-      byAtividade: undefined,
-      byAula: undefined,
+      bySimulated: mockSimulado,
+      byActivity: undefined,
+      byQuestionary: undefined,
       selectedAnswers: {},
       skippedQuestions: [],
       userAnswers: [],
@@ -402,9 +402,9 @@ describe('Quiz Component', () => {
 
     // Mock useQuizStore.getState to return the same mock data
     (useQuizStore.getState as jest.Mock).mockReturnValue({
-      bySimulado: mockSimulado,
-      byAtividade: undefined,
-      byAula: undefined,
+      bySimulated: mockSimulado,
+      byActivity: undefined,
+      byQuestionary: undefined,
     });
   });
 
@@ -1153,16 +1153,16 @@ describe('Quiz Component', () => {
     it('should handle getQuestionIndex when quiz exists', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
-        bySimulado: mockSimulado,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: mockSimulado,
+        byActivity: undefined,
+        byQuestionary: undefined,
       });
 
       // Mock useQuizStore.getState to return quiz data
       (useQuizStore.getState as jest.Mock).mockReturnValue({
-        bySimulado: mockSimulado,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: mockSimulado,
+        byActivity: undefined,
+        byQuestionary: undefined,
       });
 
       render(<QuizQuestionList />);
@@ -1174,17 +1174,17 @@ describe('Quiz Component', () => {
     it('should handle getQuestionIndex when no quiz exists', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
-        bySimulado: undefined,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({}), // Return empty object when no quiz
       });
 
       // Mock useQuizStore.getState to return no quiz data
       (useQuizStore.getState as jest.Mock).mockReturnValue({
-        bySimulado: undefined,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
       });
 
       render(<QuizQuestionList />);
@@ -1193,7 +1193,7 @@ describe('Quiz Component', () => {
       expect(screen.queryByTestId('card-status')).not.toBeInTheDocument();
     });
 
-    it('should handle getQuestionIndex with byAtividade quiz', () => {
+    it('should handle getQuestionIndex with byActivity quiz', () => {
       const mockAtividade = {
         id: 'atividade-1',
         title: 'Test Atividade',
@@ -1202,16 +1202,16 @@ describe('Quiz Component', () => {
 
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
-        bySimulado: undefined,
-        byAtividade: mockAtividade,
-        byAula: undefined,
+        bySimulated: undefined,
+        byActivity: mockAtividade,
+        byQuestionary: undefined,
       });
 
       // Mock useQuizStore.getState to return atividade data
       (useQuizStore.getState as jest.Mock).mockReturnValue({
-        bySimulado: undefined,
-        byAtividade: mockAtividade,
-        byAula: undefined,
+        bySimulated: undefined,
+        byActivity: mockAtividade,
+        byQuestionary: undefined,
       });
 
       render(<QuizQuestionList />);
@@ -1220,7 +1220,7 @@ describe('Quiz Component', () => {
       expect(screen.getAllByTestId('card-status')).toHaveLength(2);
     });
 
-    it('should handle getQuestionIndex with byAula quiz', () => {
+    it('should handle getQuestionIndex with byQuestionary quiz', () => {
       const mockAula = {
         id: 'aula-1',
         title: 'Test Aula',
@@ -1229,16 +1229,16 @@ describe('Quiz Component', () => {
 
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
-        bySimulado: undefined,
-        byAtividade: undefined,
-        byAula: mockAula,
+        bySimulated: undefined,
+        byActivity: undefined,
+        byQuestionary: mockAula,
       });
 
       // Mock useQuizStore.getState to return aula data
       (useQuizStore.getState as jest.Mock).mockReturnValue({
-        bySimulado: undefined,
-        byAtividade: undefined,
-        byAula: mockAula,
+        bySimulated: undefined,
+        byActivity: undefined,
+        byQuestionary: mockAula,
       });
 
       render(<QuizQuestionList />);
@@ -1250,16 +1250,16 @@ describe('Quiz Component', () => {
     it('should return 0 when no quiz exists in getQuestionIndex function', () => {
       // Mock useQuizStore.getState to return no quiz data
       (useQuizStore.getState as jest.Mock).mockReturnValue({
-        bySimulado: undefined,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
       });
 
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
-        bySimulado: undefined,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
           'test-subject': [mockQuestion1], // Still provide some questions for rendering
         }),
@@ -1526,9 +1526,9 @@ describe('Quiz Result Components', () => {
 
   beforeEach(() => {
     mockUseQuizStore.mockReturnValue({
-      bySimulado: mockSimulado,
-      byAtividade: undefined,
-      byAula: undefined,
+      bySimulated: mockSimulado,
+      byActivity: undefined,
+      byQuestionary: undefined,
       currentQuestionIndex: 0,
       isStarted: true,
       timeElapsed: 3600, // 1 hora
@@ -1554,14 +1554,14 @@ describe('Quiz Result Components', () => {
       render(<QuizResultHeaderTitle />);
 
       expect(screen.getByText('Resultado')).toBeInTheDocument();
-      expect(screen.getByText('Simulado Enem #42')).toBeInTheDocument();
+      expect(screen.getByText('Simulado')).toBeInTheDocument();
     });
 
     it('should show default badge when no quiz type is available', () => {
       mockUseQuizStore.mockReturnValue({
-        bySimulado: undefined,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
@@ -1590,9 +1590,9 @@ describe('Quiz Result Components', () => {
 
     it('should handle empty quiz title', () => {
       mockUseQuizStore.mockReturnValue({
-        bySimulado: { ...mockSimulado, title: '' },
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: { ...mockSimulado, title: '' },
+        byActivity: undefined,
+        byQuestionary: undefined,
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getQuizTitle: jest.fn().mockReturnValue(''),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
@@ -1624,9 +1624,9 @@ describe('Quiz Result Components', () => {
       ];
 
       mockUseQuizStore.mockReturnValue({
-        bySimulado: { ...mockSimulado, questions: mockQuestionsWithAnswers },
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: { ...mockSimulado, questions: mockQuestionsWithAnswers },
+        byActivity: undefined,
+        byQuestionary: undefined,
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
@@ -1661,9 +1661,9 @@ describe('Quiz Result Components', () => {
 
     it('should handle zero questions correctly', () => {
       mockUseQuizStore.mockReturnValue({
-        bySimulado: { ...mockSimulado, questions: [] },
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: { ...mockSimulado, questions: [] },
+        byActivity: undefined,
+        byQuestionary: undefined,
         selectedAnswers: {},
         getTotalQuestions: jest.fn().mockReturnValue(0),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
@@ -1685,12 +1685,12 @@ describe('Quiz Result Components', () => {
       ];
 
       mockUseQuizStore.mockReturnValue({
-        bySimulado: {
+        bySimulated: {
           ...mockSimulado,
           questions: mockQuestionsWithCorrectAnswers,
         },
-        byAtividade: undefined,
-        byAula: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
@@ -1758,12 +1758,12 @@ describe('Quiz Result Components', () => {
       ];
 
       mockUseQuizStore.mockReturnValue({
-        bySimulado: {
+        bySimulated: {
           ...mockSimulado,
           questions: mockQuestionsWithDifficulty,
         },
-        byAtividade: undefined,
-        byAula: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
         getTotalQuestions: jest.fn().mockReturnValue(3),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
@@ -1831,12 +1831,12 @@ describe('Quiz Result Components', () => {
       ];
 
       mockUseQuizStore.mockReturnValue({
-        bySimulado: {
+        bySimulated: {
           ...mockSimulado,
           questions: mockQuestionsWithDifficulty,
         },
-        byAtividade: undefined,
-        byAula: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
         getTotalQuestions: jest.fn().mockReturnValue(3),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
@@ -1904,12 +1904,12 @@ describe('Quiz Result Components', () => {
       ];
 
       mockUseQuizStore.mockReturnValue({
-        bySimulado: {
+        bySimulated: {
           ...mockSimulado,
           questions: mockQuestionsWithAllDifficulties,
         },
-        byAtividade: undefined,
-        byAula: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
         getTotalQuestions: jest.fn().mockReturnValue(3),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
@@ -1946,12 +1946,12 @@ describe('Quiz Result Components', () => {
       ];
 
       mockUseQuizStore.mockReturnValue({
-        bySimulado: {
+        bySimulated: {
           ...mockSimulado,
           questions: mockQuestionsWithNoAnswers,
         },
-        byAtividade: undefined,
-        byAula: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
@@ -1971,12 +1971,12 @@ describe('Quiz Result Components', () => {
 
     it('should handle empty questions array correctly', () => {
       mockUseQuizStore.mockReturnValue({
-        bySimulado: {
+        bySimulated: {
           ...mockSimulado,
           questions: [],
         },
-        byAtividade: undefined,
-        byAula: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
         getTotalQuestions: jest.fn().mockReturnValue(0),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
@@ -1993,9 +1993,9 @@ describe('Quiz Result Components', () => {
 
     it('should handle undefined quiz correctly', () => {
       mockUseQuizStore.mockReturnValue({
-        bySimulado: undefined,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
         getTotalQuestions: jest.fn().mockReturnValue(0),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
@@ -2090,12 +2090,12 @@ describe('Quiz Result Components', () => {
       ];
 
       mockUseQuizStore.mockReturnValue({
-        bySimulado: {
+        bySimulated: {
           ...mockSimulado,
           questions: mockQuestionsWithMixedResults,
         },
-        byAtividade: undefined,
-        byAula: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
         getTotalQuestions: jest.fn().mockReturnValue(4),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
@@ -2230,12 +2230,12 @@ describe('Quiz Result Components', () => {
       ];
 
       mockUseQuizStore.mockReturnValue({
-        bySimulado: {
+        bySimulated: {
           ...mockSimulado,
           questions: mockQuestionsWithMediumDifficulty,
         },
-        byAtividade: undefined,
-        byAula: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
         getTotalQuestions: jest.fn().mockReturnValue(4),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
@@ -2355,9 +2355,9 @@ describe('Quiz Result Components', () => {
 
     beforeEach(() => {
       mockUseQuizStore.mockReturnValue({
-        bySimulado: mockSimulado,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: mockSimulado,
+        byActivity: undefined,
+        byQuestionary: undefined,
         selectedAnswers: {
           q1: 'opt1', // Resposta correta
           q2: 'opt1', // Resposta incorreta
@@ -2403,9 +2403,9 @@ describe('Quiz Result Components', () => {
       };
 
       mockUseQuizStore.mockReturnValue({
-        bySimulado: { ...mockSimulado, questions: mockQuestionsWithAnswers },
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: { ...mockSimulado, questions: mockQuestionsWithAnswers },
+        byActivity: undefined,
+        byQuestionary: undefined,
         getQuestionsGroupedBySubject: jest
           .fn()
           .mockReturnValue(mockQuestionsGroupedBySubjectWithAnswers),
@@ -2448,9 +2448,9 @@ describe('Quiz Result Components', () => {
 
     it('should handle empty subjects list', () => {
       mockUseQuizStore.mockReturnValue({
-        bySimulado: mockSimulado,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: mockSimulado,
+        byActivity: undefined,
+        byQuestionary: undefined,
         selectedAnswers: {},
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({}),
         isQuestionAnswered: jest.fn().mockReturnValue(false),
@@ -2464,9 +2464,9 @@ describe('Quiz Result Components', () => {
 
     it('should handle subjects with no answered questions', () => {
       mockUseQuizStore.mockReturnValue({
-        bySimulado: mockSimulado,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: mockSimulado,
+        byActivity: undefined,
+        byQuestionary: undefined,
         selectedAnswers: {},
         getQuestionsGroupedBySubject: jest
           .fn()
@@ -2504,12 +2504,12 @@ describe('Quiz Result Components', () => {
       };
 
       mockUseQuizStore.mockReturnValue({
-        bySimulado: {
+        bySimulated: {
           ...mockSimulado,
           questions: mockQuestionsWithCorrectAnswers,
         },
-        byAtividade: undefined,
-        byAula: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
         getQuestionsGroupedBySubject: jest
           .fn()
           .mockReturnValue(mockQuestionsGroupedBySubjectWithCorrectAnswers),
@@ -2537,9 +2537,9 @@ describe('Quiz Result Components', () => {
 
     it('should handle all incorrect answers for a subject', () => {
       mockUseQuizStore.mockReturnValue({
-        bySimulado: mockSimulado,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: mockSimulado,
+        byActivity: undefined,
+        byQuestionary: undefined,
         selectedAnswers: {
           q1: 'opt2', // Resposta incorreta
           q2: 'opt1', // Resposta incorreta
@@ -2587,12 +2587,12 @@ describe('Quiz Result Components', () => {
       };
 
       mockUseQuizStore.mockReturnValue({
-        bySimulado: {
+        bySimulated: {
           ...mockSimulado,
           questions: mockQuestionsWithMixedAnswers,
         },
-        byAtividade: undefined,
-        byAula: undefined,
+        byActivity: undefined,
+        byQuestionary: undefined,
         getQuestionsGroupedBySubject: jest
           .fn()
           .mockReturnValue(mockQuestionsGroupedBySubjectWithMixedAnswers),
@@ -2662,9 +2662,9 @@ describe('Quiz Result Components', () => {
       };
 
       mockUseQuizStore.mockReturnValue({
-        bySimulado: mockSimulado,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: mockSimulado,
+        byActivity: undefined,
+        byQuestionary: undefined,
         selectedAnswers: {
           q1: 'opt1', // Resposta correta
           q2: 'opt1', // Resposta incorreta
@@ -2793,9 +2793,9 @@ describe('Quiz Result Components', () => {
 
     beforeEach(() => {
       mockUseQuizStore.mockReturnValue({
-        bySimulado: mockSimulado,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: mockSimulado,
+        byActivity: undefined,
+        byQuestionary: undefined,
         selectedAnswers: {
           q1: 'opt1', // Resposta correta
           q2: 'opt3', // Resposta incorreta
@@ -2894,9 +2894,9 @@ describe('Quiz Result Components', () => {
     it('should handle empty subject questions gracefully', () => {
       const mockOnQuestionClick = jest.fn();
       mockUseQuizStore.mockReturnValue({
-        bySimulado: mockSimulado,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: mockSimulado,
+        byActivity: undefined,
+        byQuestionary: undefined,
         selectedAnswers: {},
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
           mecanica: [],
@@ -2920,9 +2920,9 @@ describe('Quiz Result Components', () => {
     it('should handle undefined subject questions gracefully', () => {
       const mockOnQuestionClick = jest.fn();
       mockUseQuizStore.mockReturnValue({
-        bySimulado: mockSimulado,
-        byAtividade: undefined,
-        byAula: undefined,
+        bySimulated: mockSimulado,
+        byActivity: undefined,
+        byQuestionary: undefined,
         selectedAnswers: {},
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
           mecanica: undefined,

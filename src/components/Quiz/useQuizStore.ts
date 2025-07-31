@@ -52,9 +52,9 @@ interface UserAnswer extends Question {
 
 interface QuizState {
   // Data
-  bySimulado?: Simulado;
-  byAtividade?: Atividade;
-  byAula?: Aula;
+  bySimulated?: Simulado;
+  byActivity?: Atividade;
+  byQuestionary?: Aula;
 
   // UI State
   currentQuestionIndex: number;
@@ -66,9 +66,9 @@ interface QuizState {
   isFinished: boolean;
 
   // Actions
-  setBySimulado: (simulado: Simulado) => void;
-  setByAtividade: (atividade: Atividade) => void;
-  setByAula: (aula: Aula) => void;
+  setBySimulated: (simulado: Simulado) => void;
+  setByActivity: (atividade: Atividade) => void;
+  setByQuestionary: (aula: Aula) => void;
 
   // Quiz Navigation
   goToNextQuestion: () => void;
@@ -139,9 +139,9 @@ export const useQuizStore = create<QuizState>()(
         isFinished: false,
 
         // Setters
-        setBySimulado: (simulado) => set({ bySimulado: simulado }),
-        setByAtividade: (atividade) => set({ byAtividade: atividade }),
-        setByAula: (aula) => set({ byAula: aula }),
+        setBySimulated: (simulado) => set({ bySimulated: simulado }),
+        setByActivity: (atividade) => set({ byActivity: atividade }),
+        setByQuestionary: (aula) => set({ byQuestionary: aula }),
 
         // Navigation
         goToNextQuestion: () => {
@@ -172,8 +172,9 @@ export const useQuizStore = create<QuizState>()(
 
         // Quiz Actions
         selectAnswer: (questionId, answerId) => {
-          const { bySimulado, byAtividade, byAula, skippedQuestions } = get();
-          const quiz = bySimulado || byAtividade || byAula;
+          const { bySimulated, byActivity, byQuestionary, skippedQuestions } =
+            get();
+          const quiz = bySimulated || byActivity || byQuestionary;
 
           if (!quiz) return;
 
@@ -184,13 +185,13 @@ export const useQuizStore = create<QuizState>()(
               : question
           );
 
-          let quizType: 'bySimulado' | 'byAtividade' | 'byAula';
-          if (bySimulado) {
-            quizType = 'bySimulado';
-          } else if (byAtividade) {
-            quizType = 'byAtividade';
+          let quizType: 'bySimulated' | 'byActivity' | 'byQuestionary';
+          if (bySimulated) {
+            quizType = 'bySimulated';
+          } else if (byActivity) {
+            quizType = 'byActivity';
           } else {
-            quizType = 'byAula';
+            quizType = 'byQuestionary';
           }
           const updatedQuiz = { ...quiz, questions: updatedQuestions };
 
@@ -214,8 +215,8 @@ export const useQuizStore = create<QuizState>()(
         },
 
         addUserAnswer: (questionId, answerId) => {
-          const { bySimulado, byAtividade, byAula } = get();
-          const quiz = bySimulado || byAtividade || byAula;
+          const { bySimulated, byActivity, byQuestionary } = get();
+          const quiz = bySimulated || byActivity || byQuestionary;
 
           if (!quiz) return;
 
@@ -229,16 +230,20 @@ export const useQuizStore = create<QuizState>()(
           );
 
           // Update the appropriate quiz type
-          if (bySimulado) {
-            set({ bySimulado: { ...bySimulado, questions: updatedQuestions } });
-          }
-          if (byAtividade) {
+          if (bySimulated) {
             set({
-              byAtividade: { ...byAtividade, questions: updatedQuestions },
+              bySimulated: { ...bySimulated, questions: updatedQuestions },
             });
           }
-          if (byAula) {
-            set({ byAula: { ...byAula, questions: updatedQuestions } });
+          if (byActivity) {
+            set({
+              byActivity: { ...byActivity, questions: updatedQuestions },
+            });
+          }
+          if (byQuestionary) {
+            set({
+              byQuestionary: { ...byQuestionary, questions: updatedQuestions },
+            });
           }
         },
 
@@ -272,9 +277,13 @@ export const useQuizStore = create<QuizState>()(
 
         // Getters
         getCurrentQuestion: () => {
-          const { bySimulado, byAtividade, byAula, currentQuestionIndex } =
-            get();
-          const quiz = bySimulado || byAtividade || byAula;
+          const {
+            bySimulated,
+            byActivity,
+            byQuestionary,
+            currentQuestionIndex,
+          } = get();
+          const quiz = bySimulated || byActivity || byQuestionary;
 
           if (!quiz) {
             return null;
@@ -284,15 +293,15 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getTotalQuestions: () => {
-          const { bySimulado, byAtividade, byAula } = get();
-          const quiz = bySimulado || byAtividade || byAula;
+          const { bySimulated, byActivity, byQuestionary } = get();
+          const quiz = bySimulated || byActivity || byQuestionary;
 
           return quiz?.questions?.length || 0;
         },
 
         getAnsweredQuestions: () => {
-          const { bySimulado, byAtividade, byAula } = get();
-          const quiz = bySimulado || byAtividade || byAula;
+          const { bySimulated, byActivity, byQuestionary } = get();
+          const quiz = bySimulated || byActivity || byQuestionary;
 
           if (!quiz) return 0;
 
@@ -302,8 +311,9 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getUnansweredQuestions: () => {
-          const { bySimulado, byAtividade, byAula, skippedQuestions } = get();
-          const quiz = bySimulado || byAtividade || byAula;
+          const { bySimulated, byActivity, byQuestionary, skippedQuestions } =
+            get();
+          const quiz = bySimulated || byActivity || byQuestionary;
           if (!quiz) return [];
 
           const unansweredQuestions: number[] = [];
@@ -333,8 +343,8 @@ export const useQuizStore = create<QuizState>()(
         },
 
         isQuestionAnswered: (questionId) => {
-          const { bySimulado, byAtividade, byAula } = get();
-          const quiz = bySimulado || byAtividade || byAula;
+          const { bySimulated, byActivity, byQuestionary } = get();
+          const quiz = bySimulated || byActivity || byQuestionary;
 
           if (!quiz) return false;
 
@@ -355,8 +365,8 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getQuizTitle: () => {
-          const { bySimulado, byAtividade, byAula } = get();
-          const quiz = bySimulado || byAtividade || byAula;
+          const { bySimulated, byActivity, byQuestionary } = get();
+          const quiz = bySimulated || byActivity || byQuestionary;
 
           return quiz?.title || 'Quiz';
         },
@@ -368,8 +378,9 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getUserAnswers: () => {
-          const { bySimulado, byAtividade, byAula, skippedQuestions } = get();
-          const quiz = bySimulado || byAtividade || byAula;
+          const { bySimulated, byActivity, byQuestionary, skippedQuestions } =
+            get();
+          const quiz = bySimulated || byActivity || byQuestionary;
 
           if (!quiz) return [];
 
@@ -380,8 +391,9 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getUnansweredQuestionsFromUserAnswers: () => {
-          const { bySimulado, byAtividade, byAula, skippedQuestions } = get();
-          const quiz = bySimulado || byAtividade || byAula;
+          const { bySimulated, byActivity, byQuestionary, skippedQuestions } =
+            get();
+          const quiz = bySimulated || byActivity || byQuestionary;
           if (!quiz) return [];
 
           const unansweredQuestions: number[] = [];
@@ -400,8 +412,8 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getQuestionsGroupedBySubject: () => {
-          const { bySimulado, byAtividade, byAula } = get();
-          const quiz = bySimulado || byAtividade || byAula;
+          const { bySimulated, byActivity, byQuestionary } = get();
+          const quiz = bySimulated || byActivity || byQuestionary;
           if (!quiz) return {};
 
           const groupedQuestions: { [key: string]: Question[] } = {};

@@ -93,41 +93,41 @@ describe('useQuizStore', () => {
   });
 
   describe('Setters', () => {
-    it('should set bySimulado', () => {
+    it('should set bySimulated', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
       });
 
-      expect(result.current.bySimulado).toEqual(mockSimulado);
+      expect(result.current.bySimulated).toEqual(mockSimulado);
     });
 
-    it('should set byAtividade', () => {
+    it('should set byActivity', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setByAtividade(mockSimulado);
+        result.current.setByActivity(mockSimulado);
       });
 
-      expect(result.current.byAtividade).toEqual(mockSimulado);
+      expect(result.current.byActivity).toEqual(mockSimulado);
     });
 
-    it('should set byAula', () => {
+    it('should set byQuestionary', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setByAula(mockSimulado);
+        result.current.setByQuestionary(mockSimulado);
       });
 
-      expect(result.current.byAula).toEqual(mockSimulado);
+      expect(result.current.byQuestionary).toEqual(mockSimulado);
     });
   });
 
   describe('Navigation', () => {
     beforeEach(() => {
       act(() => {
-        useQuizStore.getState().setBySimulado(mockSimulado);
+        useQuizStore.getState().setBySimulated(mockSimulado);
       });
     });
 
@@ -197,7 +197,7 @@ describe('useQuizStore', () => {
   describe('Quiz Actions', () => {
     beforeEach(() => {
       act(() => {
-        useQuizStore.getState().setBySimulado(mockSimulado);
+        useQuizStore.getState().setBySimulated(mockSimulado);
       });
     });
 
@@ -205,7 +205,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -224,7 +224,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
         result.current.skipQuestion();
       });
 
@@ -274,7 +274,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
         result.current.selectAnswer('q1', 'opt1');
         result.current.goToNextQuestion();
         result.current.startQuiz();
@@ -477,7 +477,7 @@ describe('useQuizStore', () => {
   describe('Getters', () => {
     beforeEach(() => {
       act(() => {
-        useQuizStore.getState().setBySimulado(mockSimulado);
+        useQuizStore.getState().setBySimulated(mockSimulado);
       });
     });
 
@@ -525,9 +525,9 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -577,9 +577,9 @@ describe('useQuizStore', () => {
       act(() => {
         // Ensure no quiz is set
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -593,9 +593,9 @@ describe('useQuizStore', () => {
       act(() => {
         // Set quiz to null explicitly
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -606,7 +606,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
       });
 
       expect(result.current.isQuestionAnswered('nonexistent')).toBe(false);
@@ -617,7 +617,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
       });
 
       // Both questions start with answerKey: null
@@ -629,7 +629,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -641,7 +641,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
         result.current.addUserAnswer('q1', '');
       });
 
@@ -649,7 +649,7 @@ describe('useQuizStore', () => {
       expect(result.current.isQuestionAnswered('q1')).toBe(false);
     });
 
-    it('should work with byAtividade quiz type', () => {
+    it('should work with byActivity quiz type', () => {
       const mockAtividade = {
         id: 'atividade1',
         title: 'Test Atividade',
@@ -662,7 +662,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setByAtividade(mockAtividade);
+        result.current.setByActivity(mockAtividade);
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -670,7 +670,7 @@ describe('useQuizStore', () => {
       expect(result.current.isQuestionAnswered('q2')).toBe(false);
     });
 
-    it('should work with byAula quiz type', () => {
+    it('should work with byQuestionary quiz type', () => {
       const mockAula = {
         id: 'aula1',
         title: 'Test Aula',
@@ -683,7 +683,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setByAula(mockAula);
+        result.current.setByQuestionary(mockAula);
         result.current.selectAnswer('q2', 'opt2');
       });
 
@@ -695,7 +695,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
         result.current.selectAnswer('q1', 'opt1');
         result.current.selectAnswer('q2', 'opt2');
       });
@@ -708,7 +708,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
         result.current.selectAnswer('q1', 'opt1');
         result.current.addUserAnswer('q1', undefined); // Set to null
       });
@@ -720,7 +720,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
         result.current.selectAnswer('q1', 'opt1');
         result.current.addUserAnswer('q1', ''); // Set to empty string (converted to null)
       });
@@ -732,7 +732,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -755,7 +755,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(simuladoWithSpecialChars);
+        result.current.setBySimulated(simuladoWithSpecialChars);
       });
 
       expect(result.current.isQuestionAnswered('q1-special@#$%')).toBe(true);
@@ -778,7 +778,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(simuladoWithLongId);
+        result.current.setBySimulated(simuladoWithLongId);
       });
 
       expect(result.current.isQuestionAnswered(longId)).toBe(true);
@@ -799,7 +799,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(simuladoWithNumericId);
+        result.current.setBySimulated(simuladoWithNumericId);
       });
 
       expect(result.current.isQuestionAnswered('12345')).toBe(true);
@@ -851,7 +851,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -866,7 +866,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -901,7 +901,7 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore
           .getState()
-          .setBySimulado(simuladoWithQuestionWithoutMatrix);
+          .setBySimulated(simuladoWithQuestionWithoutMatrix);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -915,7 +915,7 @@ describe('useQuizStore', () => {
   describe('Progress Calculation', () => {
     beforeEach(() => {
       act(() => {
-        useQuizStore.getState().setBySimulado(mockSimulado);
+        useQuizStore.getState().setBySimulated(mockSimulado);
       });
     });
 
@@ -960,7 +960,7 @@ describe('useQuizStore', () => {
       };
 
       act(() => {
-        useQuizStore.getState().setBySimulado(emptySimulado);
+        useQuizStore.getState().setBySimulated(emptySimulado);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -973,9 +973,9 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -993,7 +993,7 @@ describe('useQuizStore', () => {
       };
 
       act(() => {
-        useQuizStore.getState().setBySimulado(threeQuestionSimulado);
+        useQuizStore.getState().setBySimulated(threeQuestionSimulado);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -1016,9 +1016,9 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -1033,7 +1033,7 @@ describe('useQuizStore', () => {
       // Reset and set up quiz data
       act(() => {
         useQuizStore.getState().resetQuiz();
-        useQuizStore.getState().setBySimulado(mockSimulado);
+        useQuizStore.getState().setBySimulated(mockSimulado);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -1052,7 +1052,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
         result.current.addUserAnswer('nonexistent', 'opt1');
       });
 
@@ -1065,9 +1065,9 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -1079,9 +1079,9 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -1093,7 +1093,7 @@ describe('useQuizStore', () => {
 
     it('should group questions correctly by subject', () => {
       act(() => {
-        useQuizStore.getState().setBySimulado(mockSimulado);
+        useQuizStore.getState().setBySimulated(mockSimulado);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -1109,9 +1109,9 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -1123,9 +1123,9 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -1139,7 +1139,7 @@ describe('useQuizStore', () => {
     });
 
     // Consolidated tests for quiz type handling
-    it('should handle all quiz types (bySimulado, byAtividade, byAula) in selectAnswer and addUserAnswer', () => {
+    it('should handle all quiz types (bySimulated, byActivity, byQuestionary) in selectAnswer and addUserAnswer', () => {
       const mockAtividade = {
         id: 'atividade1',
         title: 'Test Atividade',
@@ -1160,12 +1160,12 @@ describe('useQuizStore', () => {
 
       const { result } = renderHook(() => useQuizStore());
 
-      // Test bySimulado
+      // Test bySimulated
       act(() => {
         useQuizStore.setState({
-          bySimulado: mockSimulado,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: mockSimulado,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
         result.current.selectAnswer('q1', 'opt1');
       });
@@ -1174,12 +1174,12 @@ describe('useQuizStore', () => {
       let updatedQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(updatedQuestion?.answerKey).toBe('opt1');
 
-      // Test byAtividade
+      // Test byActivity
       act(() => {
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: mockAtividade,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: mockAtividade,
+          byQuestionary: undefined,
         });
         result.current.selectAnswer('q1', 'opt1');
       });
@@ -1188,12 +1188,12 @@ describe('useQuizStore', () => {
       updatedQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(updatedQuestion?.answerKey).toBe('opt1');
 
-      // Test byAula
+      // Test byQuestionary
       act(() => {
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: mockAula,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: mockAula,
         });
         result.current.selectAnswer('q2', 'opt2');
       });
@@ -1224,12 +1224,12 @@ describe('useQuizStore', () => {
 
       const { result } = renderHook(() => useQuizStore());
 
-      // Test null answerId for bySimulado
+      // Test null answerId for bySimulated
       act(() => {
         useQuizStore.setState({
-          bySimulado: mockSimulado,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: mockSimulado,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
         result.current.addUserAnswer('q1', undefined);
       });
@@ -1238,12 +1238,12 @@ describe('useQuizStore', () => {
       let updatedQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(updatedQuestion?.answerKey).toBeNull();
 
-      // Test empty string answerId for byAtividade
+      // Test empty string answerId for byActivity
       act(() => {
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: mockAtividade,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: mockAtividade,
+          byQuestionary: undefined,
         });
         result.current.addUserAnswer('q1', '');
       });
@@ -1252,12 +1252,12 @@ describe('useQuizStore', () => {
       updatedQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(updatedQuestion?.answerKey).toBeNull();
 
-      // Test null answerId for byAula
+      // Test null answerId for byQuestionary
       act(() => {
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: mockAula,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: mockAula,
         });
         result.current.addUserAnswer('q2', undefined);
       });
@@ -1273,9 +1273,9 @@ describe('useQuizStore', () => {
       act(() => {
         // Ensure no quiz is set
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
         result.current.selectAnswer('q1', 'opt1');
         result.current.addUserAnswer('q1', 'opt1');

@@ -146,25 +146,31 @@ const QuizContent = forwardRef<
   );
 });
 
-const QuizAlternative = ({
-  variant = 'default',
-}: {
+enum Status {
+  CORRECT = 'correct',
+  INCORRECT = 'incorrect',
+  NEUTRAL = 'neutral',
+}
+
+interface QuizAlternativeInterface {
   variant?: 'result' | 'default';
-}) => {
+}
+
+const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
   const { getCurrentQuestion, selectAnswer, getCurrentAnswer } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
   const currentAnswer = getCurrentAnswer();
   const alternatives = currentQuestion?.options?.map((option) => {
-    let status: 'correct' | 'incorrect' | 'neutral' = 'neutral';
+    let status: Status = Status.NEUTRAL;
 
     if (variant === 'result') {
       if (option.id === currentQuestion.correctOptionId) {
-        status = 'correct';
+        status = Status.CORRECT;
       } else if (
         currentAnswer === option.id &&
         option.id !== currentQuestion.correctOptionId
       ) {
-        status = 'incorrect';
+        status = Status.INCORRECT;
       }
     }
 
@@ -254,8 +260,8 @@ const QuizQuestionList = ({
   );
 
   const getQuestionIndex = (questionId: string) => {
-    const { bySimulado, byAtividade, byAula } = useQuizStore.getState();
-    const quiz = bySimulado ?? byAtividade ?? byAula;
+    const { bySimulated, byActivity, byQuestionary } = useQuizStore.getState();
+    const quiz = bySimulated ?? byActivity ?? byQuestionary;
     if (!quiz) return 0;
 
     const index = quiz.questions.findIndex((q) => q.id === questionId);
@@ -537,8 +543,16 @@ const QuizResultHeaderTitle = forwardRef<
   HTMLDivElement,
   { className?: string }
 >(({ className, ...props }, ref) => {
-  const { bySimulado, byAtividade, byAula } = useQuizStore();
-  const quizType = bySimulado?.title ?? byAtividade?.title ?? byAula?.title;
+  const { bySimulated, byActivity, byQuestionary } = useQuizStore();
+
+  const getQuizType = (): QuizType => {
+    if (bySimulated) return QuizType.SIMULATED;
+    if (byActivity) return QuizType.ACTIVITY;
+    if (byQuestionary) return QuizType.QUESTIONARY;
+    return QuizType.ENEM;
+  };
+
+  const quizType = getQuizType();
 
   return (
     <div
@@ -548,7 +562,7 @@ const QuizResultHeaderTitle = forwardRef<
     >
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
       <Badge variant="solid" action="info">
-        {quizType || 'Enem'}
+        {quizType}
       </Badge>
     </div>
   );
@@ -578,13 +592,13 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
       getTotalQuestions,
       timeElapsed,
       formatTime,
-      bySimulado,
-      byAtividade,
-      byAula,
+      bySimulated,
+      byActivity,
+      byQuestionary,
     } = useQuizStore();
 
     const totalQuestions = getTotalQuestions();
-    const quiz = bySimulado || byAtividade || byAula;
+    const quiz = bySimulated || byActivity || byQuestionary;
 
     let correctAnswers = 0;
     let correctEasyAnswers = 0;
@@ -804,6 +818,13 @@ const QuizListResultByMateria = ({
   );
 };
 
+enum QuizType {
+  SIMULATED = 'Simulado',
+  ACTIVITY = 'Atividade',
+  QUESTIONARY = 'Questionário',
+  ENEM = 'Enem',
+}
+
 export {
   QuizHeaderResult,
   QuizTitle,
@@ -818,4 +839,5 @@ export {
   QuizResultTitle,
   QuizResultPerformance,
   QuizListResultByMateria,
+  QuizType,
 };
