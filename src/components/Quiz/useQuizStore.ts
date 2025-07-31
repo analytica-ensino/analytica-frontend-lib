@@ -184,31 +184,19 @@ export const useQuizStore = create<QuizState>()(
               : question
           );
 
-          // Update the appropriate quiz type
-          if (bySimulado) {
-            set({
-              bySimulado: { ...bySimulado, questions: updatedQuestions },
-              skippedQuestions: skippedQuestions.filter(
-                (id) => id !== questionId
-              ),
-            });
-          }
-          if (byAtividade) {
-            set({
-              byAtividade: { ...byAtividade, questions: updatedQuestions },
-              skippedQuestions: skippedQuestions.filter(
-                (id) => id !== questionId
-              ),
-            });
-          }
-          if (byAula) {
-            set({
-              byAula: { ...byAula, questions: updatedQuestions },
-              skippedQuestions: skippedQuestions.filter(
-                (id) => id !== questionId
-              ),
-            });
-          }
+          const quizType = bySimulado
+            ? 'bySimulado'
+            : byAtividade
+              ? 'byAtividade'
+              : 'byAula';
+          const updatedQuiz = { ...quiz, questions: updatedQuestions };
+
+          set({
+            [quizType]: updatedQuiz,
+            skippedQuestions: skippedQuestions.filter(
+              (id) => id !== questionId
+            ),
+          });
         },
 
         skipQuestion: () => {

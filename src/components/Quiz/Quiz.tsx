@@ -228,7 +228,6 @@ const QuizQuestionList = ({
     return 'unanswered';
   };
 
-  // Filtrar questões baseado no tipo de filtro
   const filteredGroupedQuestions = Object.entries(groupedQuestions).reduce(
     (acc, [subjectId, questions]) => {
       const filteredQuestions = questions.filter((question) => {
@@ -240,7 +239,7 @@ const QuizQuestionList = ({
           case 'unanswered':
             return status === 'unanswered';
           default:
-            return true; // 'all' - mostrar todas
+            return true;
         }
       });
 
@@ -587,13 +586,38 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
     const totalQuestions = getTotalQuestions();
     const quiz = bySimulado || byAtividade || byAula;
 
-    // Calcular respostas corretas baseado nas respostas selecionadas
     let correctAnswers = 0;
+    let correctEasyAnswers = 0;
+    let correctMediumAnswers = 0;
+    let correctDifficultAnswers = 0;
+    let totalEasyQuestions = 0;
+    let totalMediumQuestions = 0;
+    let totalDifficultQuestions = 0;
+
     if (quiz) {
       quiz.questions.forEach((question) => {
         const userAnswer = question.answerKey;
-        if (userAnswer && userAnswer === question.correctOptionId) {
+        const isCorrect = userAnswer && userAnswer === question.correctOptionId;
+
+        if (isCorrect) {
           correctAnswers++;
+        }
+
+        if (question.difficulty === 'FACIL') {
+          totalEasyQuestions++;
+          if (isCorrect) {
+            correctEasyAnswers++;
+          }
+        } else if (question.difficulty === 'MEDIO') {
+          totalMediumQuestions++;
+          if (isCorrect) {
+            correctMediumAnswers++;
+          }
+        } else if (question.difficulty === 'DIFICIL') {
+          totalDifficultQuestions++;
+          if (isCorrect) {
+            correctDifficultAnswers++;
+          }
         }
       });
     }
@@ -618,9 +642,7 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
             label=""
           />
 
-          {/* Custom content overlay */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            {/* Timer - acima do hit count */}
             <div className="flex items-center gap-1 mb-1">
               <Clock size={12} weight="regular" className="text-text-800" />
               <span className="text-2xs font-medium text-text-800">
@@ -628,12 +650,10 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
               </span>
             </div>
 
-            {/* Hit count - no meio */}
             <div className="text-2xl font-medium text-text-800 leading-7">
               {correctAnswers} de {totalQuestions}
             </div>
 
-            {/* Label - abaixo do hit count */}
             <div className="text-2xs font-medium text-text-600 mt-1">
               Corretas
             </div>
@@ -645,20 +665,8 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
             className="w-full"
             layout="stacked"
             variant="green"
-            value={correctAnswers}
-            max={totalQuestions}
-            label="Total"
-            showHitCount
-            labelClassName="text-base font-medium text-text-800 leading-none"
-            percentageClassName="text-xs font-medium leading-[14px] text-right"
-          />
-
-          <ProgressBar
-            className="w-full"
-            layout="stacked"
-            variant="green"
-            value={correctAnswers}
-            max={totalQuestions}
+            value={correctEasyAnswers}
+            max={totalEasyQuestions}
             label="Fáceis"
             showHitCount
             labelClassName="text-base font-medium text-text-800 leading-none"
@@ -669,8 +677,20 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
             className="w-full"
             layout="stacked"
             variant="green"
-            value={correctAnswers}
-            max={totalQuestions}
+            value={correctMediumAnswers}
+            max={totalMediumQuestions}
+            label="Médias"
+            showHitCount
+            labelClassName="text-base font-medium text-text-800 leading-none"
+            percentageClassName="text-xs font-medium leading-[14px] text-right"
+          />
+
+          <ProgressBar
+            className="w-full"
+            layout="stacked"
+            variant="green"
+            value={correctDifficultAnswers}
+            max={totalDifficultQuestions}
             label="Difíceis"
             showHitCount
             labelClassName="text-base font-medium text-text-800 leading-none"
@@ -692,7 +712,6 @@ const QuizListResult = forwardRef<
   const { getQuestionsGroupedBySubject, isQuestionAnswered } = useQuizStore();
   const groupedQuestions = getQuestionsGroupedBySubject();
 
-  // Converter groupedQuestions em estatísticas por matéria
   const subjectsStats = Object.entries(groupedQuestions).map(
     ([subjectId, questions]) => {
       let correct = 0;

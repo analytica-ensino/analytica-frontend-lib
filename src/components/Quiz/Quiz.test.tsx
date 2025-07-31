@@ -831,21 +831,65 @@ describe('Quiz Component', () => {
       expect(mockOnDetailResult).toHaveBeenCalled();
     });
 
-    it('should handle skip question functionality', () => {
+    it('should handle skip question button actions correctly', () => {
       const mockSkipQuestion = jest.fn();
       const mockGoToNextQuestion = jest.fn();
+
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
+        currentQuestionIndex: 0, // First question
         skipQuestion: mockSkipQuestion,
         goToNextQuestion: mockGoToNextQuestion,
       });
 
       render(<QuizFooter />);
 
-      fireEvent.click(screen.getByText('Pular'));
+      // Find and click the skip button (should be the first "Pular" button)
+      const skipButtons = screen.getAllByText('Pular');
+      const firstSkipButton = skipButtons[0];
 
-      expect(mockSkipQuestion).toHaveBeenCalled();
-      expect(mockGoToNextQuestion).toHaveBeenCalled();
+      fireEvent.click(firstSkipButton);
+
+      // Verify both functions are called
+      expect(mockSkipQuestion).toHaveBeenCalledTimes(1);
+      expect(mockGoToNextQuestion).toHaveBeenCalledTimes(1);
+
+      // Verify the order of calls by checking mock call order
+      const skipQuestionCallOrder =
+        mockSkipQuestion.mock.invocationCallOrder[0];
+      const goToNextQuestionCallOrder =
+        mockGoToNextQuestion.mock.invocationCallOrder[0];
+      expect(skipQuestionCallOrder).toBeLessThan(goToNextQuestionCallOrder);
+    });
+
+    it('should handle skip question button actions for non-first question', () => {
+      const mockSkipQuestion = jest.fn();
+      const mockGoToNextQuestion = jest.fn();
+
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        currentQuestionIndex: 1, // Not first question
+        skipQuestion: mockSkipQuestion,
+        goToNextQuestion: mockGoToNextQuestion,
+      });
+
+      render(<QuizFooter />);
+
+      // Find and click the skip button (should be the only "Pular" button for non-first question)
+      const skipButton = screen.getByText('Pular');
+
+      fireEvent.click(skipButton);
+
+      // Verify both functions are called
+      expect(mockSkipQuestion).toHaveBeenCalledTimes(1);
+      expect(mockGoToNextQuestion).toHaveBeenCalledTimes(1);
+
+      // Verify the order of calls by checking mock call order
+      const skipQuestionCallOrder =
+        mockSkipQuestion.mock.invocationCallOrder[0];
+      const goToNextQuestionCallOrder =
+        mockGoToNextQuestion.mock.invocationCallOrder[0];
+      expect(skipQuestionCallOrder).toBeLessThan(goToNextQuestionCallOrder);
     });
 
     it('should handle go to previous question', () => {
@@ -879,18 +923,6 @@ describe('Quiz Component', () => {
     });
 
     // Additional tests for missing coverage scenarios
-    it('should show skip button on first question', () => {
-      mockUseQuizStore.mockReturnValue({
-        ...mockUseQuizStore(),
-        currentQuestionIndex: 0,
-        getTotalQuestions: jest.fn().mockReturnValue(2),
-      });
-
-      render(<QuizFooter />);
-
-      expect(screen.getByText('Pular')).toBeInTheDocument();
-    });
-
     it('should show alert dialog with unanswered questions description', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
@@ -1014,50 +1046,6 @@ describe('Quiz Component', () => {
 
       // Modal should be closed
       expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
-    });
-
-    it('should call skipQuestion and goToNextQuestion when skip button is clicked', () => {
-      const mockSkipQuestion = jest.fn();
-      const mockGoToNextQuestion = jest.fn();
-
-      mockUseQuizStore.mockReturnValue({
-        ...mockUseQuizStore(),
-        skipQuestion: mockSkipQuestion,
-        goToNextQuestion: mockGoToNextQuestion,
-        currentQuestionIndex: 0,
-        getTotalQuestions: jest.fn().mockReturnValue(2),
-      });
-
-      render(<QuizFooter />);
-
-      // Click the skip button
-      fireEvent.click(screen.getByText('Pular'));
-
-      // Both functions should be called
-      expect(mockSkipQuestion).toHaveBeenCalledTimes(1);
-      expect(mockGoToNextQuestion).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call skipQuestion and goToNextQuestion when skip button is clicked in QuizFooter', () => {
-      const mockSkipQuestion = jest.fn();
-      const mockGoToNextQuestion = jest.fn();
-
-      mockUseQuizStore.mockReturnValue({
-        ...mockUseQuizStore(),
-        skipQuestion: mockSkipQuestion,
-        goToNextQuestion: mockGoToNextQuestion,
-        currentQuestionIndex: 1, // Not first question to show skip button
-        getTotalQuestions: jest.fn().mockReturnValue(3),
-      });
-
-      render(<QuizFooter />);
-
-      // Click the skip button
-      fireEvent.click(screen.getByText('Pular'));
-
-      // Both functions should be called
-      expect(mockSkipQuestion).toHaveBeenCalledTimes(1);
-      expect(mockGoToNextQuestion).toHaveBeenCalledTimes(1);
     });
 
     it('should handle select value change in navigation modal', () => {
@@ -1658,9 +1646,9 @@ describe('Quiz Result Components', () => {
     it('should render progress bars with correct values', () => {
       render(<QuizResultPerformance />);
 
-      // Verificar se as progress bars estão presentes
-      expect(screen.getByText('Total')).toBeInTheDocument();
+      // Verificar se as progress bars estão presentes na ordem correta
       expect(screen.getByText('Fáceis')).toBeInTheDocument();
+      expect(screen.getByText('Médias')).toBeInTheDocument();
       expect(screen.getByText('Difíceis')).toBeInTheDocument();
     });
 
@@ -1712,6 +1700,412 @@ describe('Quiz Result Components', () => {
 
       expect(screen.getAllByText('2')[0]).toBeInTheDocument(); // 2 corretas
     });
+
+    // Tests for difficulty-based statistics calculation
+    it('should calculate correct statistics for easy questions', () => {
+      const mockEasyQuestion1 = {
+        ...mockQuestion1,
+        difficulty: 'FACIL' as const,
+        answerKey: 'opt1', // Correct answer
+      };
+      const mockEasyQuestion2 = {
+        ...mockQuestion2,
+        difficulty: 'FACIL' as const,
+        answerKey: 'opt1', // Wrong answer (correct is opt2)
+      };
+      const mockDifficultQuestion = {
+        id: 'q3',
+        questionText: 'Difficult question',
+        correctOptionId: 'opt1',
+        description: 'Difficult question',
+        type: 'ALTERNATIVA' as const,
+        status: 'APROVADO' as const,
+        difficulty: 'DIFICIL' as const,
+        examBoard: 'ENEM',
+        examYear: '2024',
+        answerKey: 'opt1', // Correct answer
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+        knowledgeMatrix: [
+          {
+            areaKnowledgeId: 'matematica',
+            subjectId: 'algebra',
+            topicId: 'operacoes',
+            subtopicId: 'soma',
+            contentId: 'matematica',
+          },
+        ],
+        options: [
+          { id: 'opt1', option: 'Correct' },
+          { id: 'opt2', option: 'Wrong' },
+          { id: 'opt3', option: 'Wrong' },
+          { id: 'opt4', option: 'Wrong' },
+        ],
+        createdBy: 'user1',
+      };
+
+      const mockQuestionsWithDifficulty = [
+        mockEasyQuestion1,
+        mockEasyQuestion2,
+        mockDifficultQuestion,
+      ];
+
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: {
+          ...mockSimulado,
+          questions: mockQuestionsWithDifficulty,
+        },
+        byAtividade: undefined,
+        byAula: undefined,
+        getTotalQuestions: jest.fn().mockReturnValue(3),
+        getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
+        formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+          algebra: [mockEasyQuestion1, mockEasyQuestion2],
+          'geografia-geral': [mockDifficultQuestion],
+        }),
+        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+          return ['q1', 'q2', 'q3'].includes(questionId);
+        }),
+      });
+
+      render(<QuizResultPerformance />);
+
+      // Should show 2 correct out of 3 total (1 easy correct + 1 difficult correct)
+      expect(screen.getByText('2 de 3')).toBeInTheDocument();
+    });
+
+    it('should calculate correct statistics for difficult questions', () => {
+      const mockEasyQuestion = {
+        ...mockQuestion1,
+        difficulty: 'FACIL' as const,
+        answerKey: 'opt1', // Correct answer
+      };
+      const mockDifficultQuestion1 = {
+        ...mockQuestion2,
+        difficulty: 'DIFICIL' as const,
+        answerKey: 'opt2', // Correct answer
+      };
+      const mockDifficultQuestion2 = {
+        id: 'q3',
+        questionText: 'Another difficult question',
+        correctOptionId: 'opt1',
+        description: 'Another difficult question',
+        type: 'ALTERNATIVA' as const,
+        status: 'APROVADO' as const,
+        difficulty: 'DIFICIL' as const,
+        examBoard: 'ENEM',
+        examYear: '2024',
+        answerKey: 'opt2', // Wrong answer
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+        knowledgeMatrix: [
+          {
+            areaKnowledgeId: 'matematica',
+            subjectId: 'algebra',
+            topicId: 'operacoes',
+            subtopicId: 'soma',
+            contentId: 'matematica',
+          },
+        ],
+        options: [
+          { id: 'opt1', option: 'Correct' },
+          { id: 'opt2', option: 'Wrong' },
+          { id: 'opt3', option: 'Wrong' },
+          { id: 'opt4', option: 'Wrong' },
+        ],
+        createdBy: 'user1',
+      };
+
+      const mockQuestionsWithDifficulty = [
+        mockEasyQuestion,
+        mockDifficultQuestion1,
+        mockDifficultQuestion2,
+      ];
+
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: {
+          ...mockSimulado,
+          questions: mockQuestionsWithDifficulty,
+        },
+        byAtividade: undefined,
+        byAula: undefined,
+        getTotalQuestions: jest.fn().mockReturnValue(3),
+        getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
+        formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+          algebra: [mockEasyQuestion],
+          'geografia-geral': [mockDifficultQuestion1, mockDifficultQuestion2],
+        }),
+        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+          return ['q1', 'q2', 'q3'].includes(questionId);
+        }),
+      });
+
+      render(<QuizResultPerformance />);
+
+      // Should show 2 correct out of 3 total (1 easy correct + 1 difficult correct)
+      expect(screen.getByText('2 de 3')).toBeInTheDocument();
+    });
+
+    it('should handle questions with MEDIO difficulty correctly', () => {
+      const mockEasyQuestion = {
+        ...mockQuestion1,
+        difficulty: 'FACIL' as const,
+        answerKey: 'opt1', // Correct answer
+      };
+      const mockMediumQuestion = {
+        ...mockQuestion2,
+        difficulty: 'MEDIO' as const,
+        answerKey: 'opt2', // Correct answer
+      };
+      const mockDifficultQuestion = {
+        id: 'q3',
+        questionText: 'Difficult question',
+        correctOptionId: 'opt1',
+        description: 'Difficult question',
+        type: 'ALTERNATIVA' as const,
+        status: 'APROVADO' as const,
+        difficulty: 'DIFICIL' as const,
+        examBoard: 'ENEM',
+        examYear: '2024',
+        answerKey: 'opt1', // Correct answer
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+        knowledgeMatrix: [
+          {
+            areaKnowledgeId: 'matematica',
+            subjectId: 'algebra',
+            topicId: 'operacoes',
+            subtopicId: 'soma',
+            contentId: 'matematica',
+          },
+        ],
+        options: [
+          { id: 'opt1', option: 'Correct' },
+          { id: 'opt2', option: 'Wrong' },
+          { id: 'opt3', option: 'Wrong' },
+          { id: 'opt4', option: 'Wrong' },
+        ],
+        createdBy: 'user1',
+      };
+
+      const mockQuestionsWithAllDifficulties = [
+        mockEasyQuestion,
+        mockMediumQuestion,
+        mockDifficultQuestion,
+      ];
+
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: {
+          ...mockSimulado,
+          questions: mockQuestionsWithAllDifficulties,
+        },
+        byAtividade: undefined,
+        byAula: undefined,
+        getTotalQuestions: jest.fn().mockReturnValue(3),
+        getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
+        formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+          algebra: [mockEasyQuestion, mockMediumQuestion],
+          'geografia-geral': [mockDifficultQuestion],
+        }),
+        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+          return ['q1', 'q2', 'q3'].includes(questionId);
+        }),
+      });
+
+      render(<QuizResultPerformance />);
+
+      // Should show 3 correct out of 3 total (all correct)
+      expect(screen.getByText('3 de 3')).toBeInTheDocument();
+    });
+
+    it('should handle questions with no answers correctly', () => {
+      const mockEasyQuestion = {
+        ...mockQuestion1,
+        difficulty: 'FACIL' as const,
+        answerKey: null, // No answer
+      };
+      const mockDifficultQuestion = {
+        ...mockQuestion2,
+        difficulty: 'DIFICIL' as const,
+        answerKey: null, // No answer
+      };
+
+      const mockQuestionsWithNoAnswers = [
+        mockEasyQuestion,
+        mockDifficultQuestion,
+      ];
+
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: {
+          ...mockSimulado,
+          questions: mockQuestionsWithNoAnswers,
+        },
+        byAtividade: undefined,
+        byAula: undefined,
+        getTotalQuestions: jest.fn().mockReturnValue(2),
+        getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
+        formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+          algebra: [mockEasyQuestion],
+          'geografia-geral': [mockDifficultQuestion],
+        }),
+        isQuestionAnswered: jest.fn().mockReturnValue(false),
+      });
+
+      render(<QuizResultPerformance />);
+
+      // Should show 0 correct out of 2 total
+      expect(screen.getAllByText('0')[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/de 2/)[0]).toBeInTheDocument();
+    });
+
+    it('should handle empty questions array correctly', () => {
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: {
+          ...mockSimulado,
+          questions: [],
+        },
+        byAtividade: undefined,
+        byAula: undefined,
+        getTotalQuestions: jest.fn().mockReturnValue(0),
+        getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
+        formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({}),
+        isQuestionAnswered: jest.fn().mockReturnValue(false),
+      });
+
+      render(<QuizResultPerformance />);
+
+      // Should show 0 correct out of 0 total
+      expect(screen.getAllByText('0')[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/de 0/)[0]).toBeInTheDocument();
+    });
+
+    it('should handle undefined quiz correctly', () => {
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: undefined,
+        byAtividade: undefined,
+        byAula: undefined,
+        getTotalQuestions: jest.fn().mockReturnValue(0),
+        getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
+        formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({}),
+        isQuestionAnswered: jest.fn().mockReturnValue(false),
+      });
+
+      render(<QuizResultPerformance />);
+
+      // Should show 0 correct out of 0 total
+      expect(screen.getAllByText('0')[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/de 0/)[0]).toBeInTheDocument();
+    });
+
+    it('should handle mixed correct and incorrect answers by difficulty', () => {
+      const mockEasyQuestion1 = {
+        ...mockQuestion1,
+        difficulty: 'FACIL' as const,
+        answerKey: 'opt1', // Correct answer
+      };
+      const mockEasyQuestion2 = {
+        id: 'q3',
+        questionText: 'Another easy question',
+        correctOptionId: 'opt2',
+        description: 'Another easy question',
+        type: 'ALTERNATIVA' as const,
+        status: 'APROVADO' as const,
+        difficulty: 'FACIL' as const,
+        examBoard: 'ENEM',
+        examYear: '2024',
+        answerKey: 'opt1', // Wrong answer
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+        knowledgeMatrix: [
+          {
+            areaKnowledgeId: 'matematica',
+            subjectId: 'algebra',
+            topicId: 'operacoes',
+            subtopicId: 'soma',
+            contentId: 'matematica',
+          },
+        ],
+        options: [
+          { id: 'opt1', option: 'Wrong' },
+          { id: 'opt2', option: 'Correct' },
+          { id: 'opt3', option: 'Wrong' },
+          { id: 'opt4', option: 'Wrong' },
+        ],
+        createdBy: 'user1',
+      };
+      const mockDifficultQuestion1 = {
+        ...mockQuestion2,
+        difficulty: 'DIFICIL' as const,
+        answerKey: 'opt2', // Correct answer
+      };
+      const mockDifficultQuestion2 = {
+        id: 'q4',
+        questionText: 'Another difficult question',
+        correctOptionId: 'opt1',
+        description: 'Another difficult question',
+        type: 'ALTERNATIVA' as const,
+        status: 'APROVADO' as const,
+        difficulty: 'DIFICIL' as const,
+        examBoard: 'ENEM',
+        examYear: '2024',
+        answerKey: 'opt1', // Correct answer
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+        knowledgeMatrix: [
+          {
+            areaKnowledgeId: 'matematica',
+            subjectId: 'algebra',
+            topicId: 'operacoes',
+            subtopicId: 'soma',
+            contentId: 'matematica',
+          },
+        ],
+        options: [
+          { id: 'opt1', option: 'Correct' },
+          { id: 'opt2', option: 'Wrong' },
+          { id: 'opt3', option: 'Wrong' },
+          { id: 'opt4', option: 'Wrong' },
+        ],
+        createdBy: 'user1',
+      };
+
+      const mockQuestionsWithMixedResults = [
+        mockEasyQuestion1,
+        mockEasyQuestion2,
+        mockDifficultQuestion1,
+        mockDifficultQuestion2,
+      ];
+
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: {
+          ...mockSimulado,
+          questions: mockQuestionsWithMixedResults,
+        },
+        byAtividade: undefined,
+        byAula: undefined,
+        getTotalQuestions: jest.fn().mockReturnValue(4),
+        getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
+        formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+          algebra: [mockEasyQuestion1, mockEasyQuestion2],
+          'geografia-geral': [mockDifficultQuestion1, mockDifficultQuestion2],
+        }),
+        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+          return ['q1', 'q2', 'q3', 'q4'].includes(questionId);
+        }),
+      });
+
+      render(<QuizResultPerformance />);
+
+      // Should show 3 correct out of 4 total (1 easy correct + 2 difficult correct)
+      expect(screen.getByText('3 de 4')).toBeInTheDocument();
+    });
   });
 
   describe('Quiz Result Components Integration', () => {
@@ -1747,6 +2141,110 @@ describe('Quiz Result Components', () => {
       expect(screen.getByText('Resultado')).toBeInTheDocument();
       expect(screen.getAllByText('Simulado Enem #42')[0]).toBeInTheDocument();
       expect(screen.getByText('Corretas')).toBeInTheDocument();
+    });
+
+    it('should calculate correct statistics for medium questions', () => {
+      const mockEasyQuestion = {
+        ...mockQuestion1,
+        difficulty: 'FACIL' as const,
+        answerKey: 'opt1', // Correct answer
+      };
+      const mockMediumQuestion1 = {
+        ...mockQuestion2,
+        difficulty: 'MEDIO' as const,
+        answerKey: 'opt2', // Correct answer
+      };
+      const mockMediumQuestion2 = {
+        id: 'q3',
+        questionText: 'Another medium question',
+        correctOptionId: 'opt1',
+        description: 'Another medium question',
+        type: 'ALTERNATIVA' as const,
+        status: 'APROVADO' as const,
+        difficulty: 'MEDIO' as const,
+        examBoard: 'ENEM',
+        examYear: '2024',
+        answerKey: 'opt2', // Wrong answer
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+        knowledgeMatrix: [
+          {
+            areaKnowledgeId: 'matematica',
+            subjectId: 'algebra',
+            topicId: 'operacoes',
+            subtopicId: 'soma',
+            contentId: 'matematica',
+          },
+        ],
+        options: [
+          { id: 'opt1', option: 'Correct' },
+          { id: 'opt2', option: 'Wrong' },
+          { id: 'opt3', option: 'Wrong' },
+          { id: 'opt4', option: 'Wrong' },
+        ],
+        createdBy: 'user1',
+      };
+      const mockDifficultQuestion = {
+        id: 'q4',
+        questionText: 'Difficult question',
+        correctOptionId: 'opt1',
+        description: 'Difficult question',
+        type: 'ALTERNATIVA' as const,
+        status: 'APROVADO' as const,
+        difficulty: 'DIFICIL' as const,
+        examBoard: 'ENEM',
+        examYear: '2024',
+        answerKey: 'opt1', // Correct answer
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+        knowledgeMatrix: [
+          {
+            areaKnowledgeId: 'matematica',
+            subjectId: 'algebra',
+            topicId: 'operacoes',
+            subtopicId: 'soma',
+            contentId: 'matematica',
+          },
+        ],
+        options: [
+          { id: 'opt1', option: 'Correct' },
+          { id: 'opt2', option: 'Wrong' },
+          { id: 'opt3', option: 'Wrong' },
+          { id: 'opt4', option: 'Wrong' },
+        ],
+        createdBy: 'user1',
+      };
+
+      const mockQuestionsWithMediumDifficulty = [
+        mockEasyQuestion,
+        mockMediumQuestion1,
+        mockMediumQuestion2,
+        mockDifficultQuestion,
+      ];
+
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: {
+          ...mockSimulado,
+          questions: mockQuestionsWithMediumDifficulty,
+        },
+        byAtividade: undefined,
+        byAula: undefined,
+        getTotalQuestions: jest.fn().mockReturnValue(4),
+        getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
+        formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+          algebra: [mockEasyQuestion, mockMediumQuestion1, mockMediumQuestion2],
+          'geografia-geral': [mockDifficultQuestion],
+        }),
+        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+          return ['q1', 'q2', 'q3', 'q4'].includes(questionId);
+        }),
+      });
+
+      render(<QuizResultPerformance />);
+
+      // Should show 3 correct out of 4 total (1 easy correct + 1 medium correct + 1 difficult correct)
+      expect(screen.getByText('3 de 4')).toBeInTheDocument();
     });
   });
 
