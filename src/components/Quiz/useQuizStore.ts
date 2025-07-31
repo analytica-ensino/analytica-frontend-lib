@@ -184,11 +184,14 @@ export const useQuizStore = create<QuizState>()(
               : question
           );
 
-          const quizType = bySimulado
-            ? 'bySimulado'
-            : byAtividade
-              ? 'byAtividade'
-              : 'byAula';
+          let quizType: 'bySimulado' | 'byAtividade' | 'byAula';
+          if (bySimulado) {
+            quizType = 'bySimulado';
+          } else if (byAtividade) {
+            quizType = 'byAtividade';
+          } else {
+            quizType = 'byAula';
+          }
           const updatedQuiz = { ...quiz, questions: updatedQuestions };
 
           set({
