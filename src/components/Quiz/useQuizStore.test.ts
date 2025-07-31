@@ -212,10 +212,10 @@ describe('useQuizStore', () => {
       // Verify that the question's answerKey was updated
       const currentQuestion = result.current.getCurrentQuestion();
       expect(currentQuestion?.answerKey).toBe('opt1');
-      
+
       const userAnswers = result.current.getUserAnswers();
       expect(userAnswers).toHaveLength(2); // Both questions from mockSimulado
-      const answeredQuestion = userAnswers.find(q => q.id === 'q1');
+      const answeredQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(answeredQuestion?.answerKey).toBe('opt1');
       expect(answeredQuestion?.isSkipped).toBe(false);
     });
@@ -229,10 +229,10 @@ describe('useQuizStore', () => {
       });
 
       expect(result.current.skippedQuestions).toContain('q1');
-      
+
       const userAnswers = result.current.getUserAnswers();
       expect(userAnswers).toHaveLength(2); // Both questions from mockSimulado
-      const skippedQuestion = userAnswers.find(q => q.id === 'q1');
+      const skippedQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(skippedQuestion?.isSkipped).toBe(true);
     });
 
@@ -575,6 +575,244 @@ describe('useQuizStore', () => {
       expect(result.current.isQuestionAnswered('q2')).toBe(false);
     });
 
+    // Additional comprehensive tests for isQuestionAnswered
+    it('should return false when no quiz is set', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        // Ensure no quiz is set
+        useQuizStore.setState({
+          bySimulado: undefined,
+          byAtividade: undefined,
+          byAula: undefined,
+        });
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+      expect(result.current.isQuestionAnswered('nonexistent')).toBe(false);
+    });
+
+    it('should return false when quiz is null', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        // Set quiz to null explicitly
+        useQuizStore.setState({
+          bySimulado: undefined,
+          byAtividade: undefined,
+          byAula: undefined,
+        });
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+    });
+
+    it('should return false for non-existent question ID', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulado(mockSimulado);
+      });
+
+      expect(result.current.isQuestionAnswered('nonexistent')).toBe(false);
+      expect(result.current.isQuestionAnswered('invalid-id')).toBe(false);
+    });
+
+    it('should return false for question with null answerKey', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulado(mockSimulado);
+      });
+
+      // Both questions start with answerKey: null
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+      expect(result.current.isQuestionAnswered('q2')).toBe(false);
+    });
+
+    it('should return true for question with valid answerKey', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulado(mockSimulado);
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(true);
+      expect(result.current.isQuestionAnswered('q2')).toBe(false);
+    });
+
+    it('should return true for question with empty string answerKey', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulado(mockSimulado);
+        result.current.addUserAnswer('q1', '');
+      });
+
+      // Empty string is converted to null in addUserAnswer
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+    });
+
+    it('should work with byAtividade quiz type', () => {
+      const mockAtividade = {
+        id: 'atividade1',
+        title: 'Test Atividade',
+        questions: [
+          { ...mockQuestion1, answerKey: null },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setByAtividade(mockAtividade);
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(true);
+      expect(result.current.isQuestionAnswered('q2')).toBe(false);
+    });
+
+    it('should work with byAula quiz type', () => {
+      const mockAula = {
+        id: 'aula1',
+        title: 'Test Aula',
+        questions: [
+          { ...mockQuestion1, answerKey: null },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setByAula(mockAula);
+        result.current.selectAnswer('q2', 'opt2');
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+      expect(result.current.isQuestionAnswered('q2')).toBe(true);
+    });
+
+    it('should handle multiple answered questions', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulado(mockSimulado);
+        result.current.selectAnswer('q1', 'opt1');
+        result.current.selectAnswer('q2', 'opt2');
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(true);
+      expect(result.current.isQuestionAnswered('q2')).toBe(true);
+    });
+
+    it('should handle question with answerKey set to null after being answered', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulado(mockSimulado);
+        result.current.selectAnswer('q1', 'opt1');
+        result.current.addUserAnswer('q1', undefined); // Set to null
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+    });
+
+    it('should handle question with answerKey set to empty string', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulado(mockSimulado);
+        result.current.selectAnswer('q1', 'opt1');
+        result.current.addUserAnswer('q1', ''); // Set to empty string (converted to null)
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+    });
+
+    it('should handle case sensitivity in question ID', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulado(mockSimulado);
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      expect(result.current.isQuestionAnswered('Q1')).toBe(false); // Different case
+      expect(result.current.isQuestionAnswered('q1')).toBe(true);
+    });
+
+    it('should handle special characters in question ID', () => {
+      const questionWithSpecialChars = {
+        ...mockQuestion1,
+        id: 'q1-special@#$%',
+        answerKey: 'opt1',
+      };
+
+      const simuladoWithSpecialChars = {
+        ...mockSimulado,
+        questions: [questionWithSpecialChars, mockQuestion2],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulado(simuladoWithSpecialChars);
+      });
+
+      expect(result.current.isQuestionAnswered('q1-special@#$%')).toBe(true);
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+    });
+
+    it('should handle very long question ID', () => {
+      const longId = 'q'.repeat(1000);
+      const questionWithLongId = {
+        ...mockQuestion1,
+        id: longId,
+        answerKey: 'opt1',
+      };
+
+      const simuladoWithLongId = {
+        ...mockSimulado,
+        questions: [questionWithLongId, mockQuestion2],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulado(simuladoWithLongId);
+      });
+
+      expect(result.current.isQuestionAnswered(longId)).toBe(true);
+    });
+
+    it('should handle numeric question ID as string', () => {
+      const questionWithNumericId = {
+        ...mockQuestion1,
+        id: '12345',
+        answerKey: 'opt1',
+      };
+
+      const simuladoWithNumericId = {
+        ...mockSimulado,
+        questions: [questionWithNumericId, mockQuestion2],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulado(simuladoWithNumericId);
+      });
+
+      expect(result.current.isQuestionAnswered('12345')).toBe(true);
+      expect(
+        result.current.isQuestionAnswered(12345 as unknown as string)
+      ).toBe(false); // Should handle type mismatch
+    });
+
     it('should check if question is skipped', () => {
       const { result } = renderHook(() => useQuizStore());
 
@@ -625,7 +863,7 @@ describe('useQuizStore', () => {
       const userAnswers = result.current.getUserAnswers();
 
       expect(userAnswers).toHaveLength(2); // Both questions from mockSimulado
-      const answeredQuestion = userAnswers.find(q => q.id === 'q1');
+      const answeredQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(answeredQuestion?.answerKey).toBe('opt1');
     });
 
@@ -811,7 +1049,7 @@ describe('useQuizStore', () => {
       });
 
       const userAnswers = result.current.getUserAnswers();
-      const updatedQuestion = userAnswers.find(q => q.id === 'q1');
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(updatedQuestion?.answerKey).toBe('opt2');
     });
 
@@ -905,15 +1143,15 @@ describe('useQuizStore', () => {
       expect(result.current.userAnswers).toHaveLength(0);
     });
 
-    // Tests for lines 193-201 (byAtividade and byAula in selectAnswer)
+    // Tests for byAtividade and byAula quiz types in selectAnswer function
     it('should handle selectAnswer for byAtividade quiz type', () => {
       const mockAtividade = {
         id: 'atividade1',
         title: 'Test Atividade',
         questions: [
           { ...mockQuestion1, answerKey: null },
-          { ...mockQuestion2, answerKey: null }
-        ]
+          { ...mockQuestion2, answerKey: null },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -934,8 +1172,8 @@ describe('useQuizStore', () => {
         title: 'Test Aula',
         questions: [
           { ...mockQuestion1, answerKey: null },
-          { ...mockQuestion2, answerKey: null }
-        ]
+          { ...mockQuestion2, answerKey: null },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -946,7 +1184,7 @@ describe('useQuizStore', () => {
       });
 
       const userAnswers = result.current.getUserAnswers();
-      const updatedQuestion = userAnswers.find(q => q.id === 'q2');
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q2');
       expect(updatedQuestion?.answerKey).toBe('opt2');
       expect(result.current.skippedQuestions).not.toContain('q2');
     });
@@ -957,8 +1195,8 @@ describe('useQuizStore', () => {
         title: 'Test Atividade',
         questions: [
           { ...mockQuestion1, answerKey: null },
-          { ...mockQuestion2, answerKey: null }
-        ]
+          { ...mockQuestion2, answerKey: null },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -978,8 +1216,8 @@ describe('useQuizStore', () => {
         title: 'Test Aula',
         questions: [
           { ...mockQuestion1, answerKey: null },
-          { ...mockQuestion2, answerKey: null }
-        ]
+          { ...mockQuestion2, answerKey: null },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -993,15 +1231,37 @@ describe('useQuizStore', () => {
       expect(result.current.skippedQuestions).not.toContain('q2');
     });
 
-    // Tests for lines 228-240 (byAtividade and byAula in addUserAnswer)
+    // Tests for bySimulado, byAtividade and byAula quiz types in addUserAnswer function
+    it('should handle addUserAnswer for bySimulado quiz type', () => {
+      const mockSimulado = {
+        id: 'simulado1',
+        title: 'Test Simulado',
+        questions: [
+          { ...mockQuestion1, answerKey: null },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulado(mockSimulado);
+        result.current.addUserAnswer('q1', 'opt1');
+      });
+
+      const userAnswers = result.current.getUserAnswers();
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
+      expect(updatedQuestion?.answerKey).toBe('opt1');
+    });
+
     it('should handle addUserAnswer for byAtividade quiz type', () => {
       const mockAtividade = {
         id: 'atividade1',
         title: 'Test Atividade',
         questions: [
           { ...mockQuestion1, answerKey: null },
-          { ...mockQuestion2, answerKey: null }
-        ]
+          { ...mockQuestion2, answerKey: null },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -1012,7 +1272,7 @@ describe('useQuizStore', () => {
       });
 
       const userAnswers = result.current.getUserAnswers();
-      const updatedQuestion = userAnswers.find(q => q.id === 'q1');
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(updatedQuestion?.answerKey).toBe('opt1');
     });
 
@@ -1022,8 +1282,8 @@ describe('useQuizStore', () => {
         title: 'Test Aula',
         questions: [
           { ...mockQuestion1, answerKey: null },
-          { ...mockQuestion2, answerKey: null }
-        ]
+          { ...mockQuestion2, answerKey: null },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -1034,8 +1294,30 @@ describe('useQuizStore', () => {
       });
 
       const userAnswers = result.current.getUserAnswers();
-      const updatedQuestion = userAnswers.find(q => q.id === 'q2');
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q2');
       expect(updatedQuestion?.answerKey).toBe('opt2');
+    });
+
+    it('should handle addUserAnswer with null answerId for bySimulado', () => {
+      const mockSimulado = {
+        id: 'simulado1',
+        title: 'Test Simulado',
+        questions: [
+          { ...mockQuestion1, answerKey: 'opt1' },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulado(mockSimulado);
+        result.current.addUserAnswer('q1', undefined);
+      });
+
+      const userAnswers = result.current.getUserAnswers();
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
+      expect(updatedQuestion?.answerKey).toBeNull();
     });
 
     it('should handle addUserAnswer with null answerId for byAtividade', () => {
@@ -1044,8 +1326,8 @@ describe('useQuizStore', () => {
         title: 'Test Atividade',
         questions: [
           { ...mockQuestion1, answerKey: 'opt1' },
-          { ...mockQuestion2, answerKey: null }
-        ]
+          { ...mockQuestion2, answerKey: null },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -1056,7 +1338,7 @@ describe('useQuizStore', () => {
       });
 
       const userAnswers = result.current.getUserAnswers();
-      const updatedQuestion = userAnswers.find(q => q.id === 'q1');
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(updatedQuestion?.answerKey).toBeNull();
     });
 
@@ -1066,8 +1348,8 @@ describe('useQuizStore', () => {
         title: 'Test Aula',
         questions: [
           { ...mockQuestion1, answerKey: null },
-          { ...mockQuestion2, answerKey: 'opt2' }
-        ]
+          { ...mockQuestion2, answerKey: 'opt2' },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -1078,7 +1360,29 @@ describe('useQuizStore', () => {
       });
 
       const userAnswers = result.current.getUserAnswers();
-      const updatedQuestion = userAnswers.find(q => q.id === 'q2');
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q2');
+      expect(updatedQuestion?.answerKey).toBeNull();
+    });
+
+    it('should handle addUserAnswer with empty string answerId for bySimulado', () => {
+      const mockSimulado = {
+        id: 'simulado1',
+        title: 'Test Simulado',
+        questions: [
+          { ...mockQuestion1, answerKey: 'opt1' },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulado(mockSimulado);
+        result.current.addUserAnswer('q1', '');
+      });
+
+      const userAnswers = result.current.getUserAnswers();
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(updatedQuestion?.answerKey).toBeNull();
     });
 
@@ -1088,8 +1392,8 @@ describe('useQuizStore', () => {
         title: 'Test Atividade',
         questions: [
           { ...mockQuestion1, answerKey: 'opt1' },
-          { ...mockQuestion2, answerKey: null }
-        ]
+          { ...mockQuestion2, answerKey: null },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -1100,7 +1404,7 @@ describe('useQuizStore', () => {
       });
 
       const userAnswers = result.current.getUserAnswers();
-      const updatedQuestion = userAnswers.find(q => q.id === 'q1');
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(updatedQuestion?.answerKey).toBeNull();
     });
 
@@ -1110,8 +1414,8 @@ describe('useQuizStore', () => {
         title: 'Test Aula',
         questions: [
           { ...mockQuestion1, answerKey: null },
-          { ...mockQuestion2, answerKey: 'opt2' }
-        ]
+          { ...mockQuestion2, answerKey: 'opt2' },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -1122,11 +1426,40 @@ describe('useQuizStore', () => {
       });
 
       const userAnswers = result.current.getUserAnswers();
-      const updatedQuestion = userAnswers.find(q => q.id === 'q2');
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q2');
       expect(updatedQuestion?.answerKey).toBeNull();
     });
 
-    // Tests for uncovered lines 196-201 and 236, 239-240 (no quiz defined scenarios)
+    // Test to ensure byAtividade condition in addUserAnswer function is covered
+    it('should execute byAtividade condition in addUserAnswer when only byAtividade is defined', () => {
+      const mockAtividade = {
+        id: 'atividade1',
+        title: 'Test Atividade',
+        questions: [
+          { ...mockQuestion1, answerKey: null },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        // Ensure only byAtividade is defined, leaving bySimulado and byAula as undefined
+        useQuizStore.setState({
+          bySimulado: undefined,
+          byAtividade: mockAtividade,
+          byAula: undefined,
+        });
+        // This should trigger the byAtividade condition in addUserAnswer function
+        result.current.addUserAnswer('q1', 'opt1');
+      });
+
+      const userAnswers = result.current.getUserAnswers();
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
+      expect(updatedQuestion?.answerKey).toBe('opt1');
+    });
+
+    // Tests for scenarios when no quiz is defined
     it('should handle selectAnswer when no quiz is defined', () => {
       const { result } = renderHook(() => useQuizStore());
 
@@ -1167,9 +1500,9 @@ describe('useQuizStore', () => {
       act(() => {
         // Set quiz to null explicitly
         useQuizStore.setState({
-          bySimulado: null as any,
-          byAtividade: null as any,
-          byAula: null as any,
+          bySimulado: undefined,
+          byAtividade: undefined,
+          byAula: undefined,
         });
         result.current.selectAnswer('q1', 'opt1');
       });
@@ -1184,9 +1517,9 @@ describe('useQuizStore', () => {
       act(() => {
         // Set quiz to null explicitly
         useQuizStore.setState({
-          bySimulado: null as any,
-          byAtividade: null as any,
-          byAula: null as any,
+          bySimulado: undefined,
+          byAtividade: undefined,
+          byAula: undefined,
         });
         result.current.addUserAnswer('q1', 'opt1');
       });
@@ -1195,15 +1528,15 @@ describe('useQuizStore', () => {
       expect(result.current.getUserAnswers()).toEqual([]);
     });
 
-    // Tests to cover lines 196-201 and 236, 239-240 (byAula scenarios)
+    // Tests for byAula quiz type scenarios
     it('should handle selectAnswer when only byAula is defined', () => {
       const mockAula = {
         id: 'aula1',
         title: 'Test Aula',
         questions: [
           { ...mockQuestion1, answerKey: null },
-          { ...mockQuestion2, answerKey: null }
-        ]
+          { ...mockQuestion2, answerKey: null },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -1219,7 +1552,7 @@ describe('useQuizStore', () => {
       });
 
       const userAnswers = result.current.getUserAnswers();
-      const updatedQuestion = userAnswers.find(q => q.id === 'q1');
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(updatedQuestion?.answerKey).toBe('opt1');
       expect(result.current.skippedQuestions).not.toContain('q1');
     });
@@ -1230,8 +1563,8 @@ describe('useQuizStore', () => {
         title: 'Test Aula',
         questions: [
           { ...mockQuestion1, answerKey: null },
-          { ...mockQuestion2, answerKey: null }
-        ]
+          { ...mockQuestion2, answerKey: null },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -1247,7 +1580,7 @@ describe('useQuizStore', () => {
       });
 
       const userAnswers = result.current.getUserAnswers();
-      const updatedQuestion = userAnswers.find(q => q.id === 'q2');
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q2');
       expect(updatedQuestion?.answerKey).toBe('opt2');
     });
 
@@ -1257,8 +1590,8 @@ describe('useQuizStore', () => {
         title: 'Test Aula',
         questions: [
           { ...mockQuestion1, answerKey: null },
-          { ...mockQuestion2, answerKey: null }
-        ]
+          { ...mockQuestion2, answerKey: null },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -1266,15 +1599,15 @@ describe('useQuizStore', () => {
       act(() => {
         // Set byAula but make bySimulado and byAtividade null
         useQuizStore.setState({
-          bySimulado: null as any,
-          byAtividade: null as any,
+          bySimulado: undefined,
+          byAtividade: undefined,
           byAula: mockAula,
         });
         result.current.selectAnswer('q1', 'opt1');
       });
 
       const userAnswers = result.current.getUserAnswers();
-      const updatedQuestion = userAnswers.find(q => q.id === 'q1');
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(updatedQuestion?.answerKey).toBe('opt1');
     });
 
@@ -1284,8 +1617,8 @@ describe('useQuizStore', () => {
         title: 'Test Aula',
         questions: [
           { ...mockQuestion1, answerKey: null },
-          { ...mockQuestion2, answerKey: null }
-        ]
+          { ...mockQuestion2, answerKey: null },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -1293,27 +1626,27 @@ describe('useQuizStore', () => {
       act(() => {
         // Set byAula but make bySimulado and byAtividade null
         useQuizStore.setState({
-          bySimulado: null as any,
-          byAtividade: null as any,
+          bySimulado: undefined,
+          byAtividade: undefined,
           byAula: mockAula,
         });
         result.current.addUserAnswer('q2', 'opt2');
       });
 
       const userAnswers = result.current.getUserAnswers();
-      const updatedQuestion = userAnswers.find(q => q.id === 'q2');
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q2');
       expect(updatedQuestion?.answerKey).toBe('opt2');
     });
 
-    // Test to ensure lines 196, 201, and 236 are covered
+    // Test to ensure byAula conditions in selectAnswer and addUserAnswer functions are covered
     it('should execute byAula conditions in selectAnswer and addUserAnswer', () => {
       const mockAula = {
         id: 'aula1',
         title: 'Test Aula',
         questions: [
           { ...mockQuestion1, answerKey: null },
-          { ...mockQuestion2, answerKey: null }
-        ]
+          { ...mockQuestion2, answerKey: null },
+        ],
       };
 
       const { result } = renderHook(() => useQuizStore());
@@ -1321,26 +1654,197 @@ describe('useQuizStore', () => {
       act(() => {
         // Ensure byAula is the only truthy quiz type
         useQuizStore.setState({
-          bySimulado: false as any,
-          byAtividade: false as any,
+          bySimulado: undefined,
+          byAtividade: undefined,
           byAula: mockAula,
         });
-        
-        // This should trigger the byAula condition in selectAnswer (line 196)
+
+        // This should trigger the byAula condition in selectAnswer function
         result.current.selectAnswer('q1', 'opt1');
       });
 
       let userAnswers = result.current.getUserAnswers();
-      let updatedQuestion = userAnswers.find(q => q.id === 'q1');
+      let updatedQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(updatedQuestion?.answerKey).toBe('opt1');
 
       act(() => {
-        // This should trigger the byAula condition in addUserAnswer (line 236)
+        // This should trigger the byAula condition in addUserAnswer function
         result.current.addUserAnswer('q2', 'opt2');
       });
 
       userAnswers = result.current.getUserAnswers();
-      updatedQuestion = userAnswers.find(q => q.id === 'q2');
+      updatedQuestion = userAnswers.find((q) => q.id === 'q2');
+      expect(updatedQuestion?.answerKey).toBe('opt2');
+    });
+
+    // Test to ensure byAtividade condition in selectAnswer function is covered
+    it('should execute byAtividade condition in selectAnswer when only byAtividade is defined', () => {
+      const mockAtividade = {
+        id: 'atividade1',
+        title: 'Test Atividade',
+        questions: [
+          { ...mockQuestion1, answerKey: null },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        // Ensure only byAtividade is defined, leaving bySimulado and byAula as undefined
+        useQuizStore.setState({
+          bySimulado: undefined,
+          byAtividade: mockAtividade,
+          byAula: undefined,
+        });
+        // This should trigger the byAtividade condition in selectAnswer function
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      const userAnswers = result.current.getUserAnswers();
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
+      expect(updatedQuestion?.answerKey).toBe('opt1');
+      expect(result.current.skippedQuestions).not.toContain('q1');
+    });
+
+    // Test to ensure byAula condition in selectAnswer function is covered
+    it('should execute byAula condition in selectAnswer when only byAula is defined', () => {
+      const mockAula = {
+        id: 'aula1',
+        title: 'Test Aula',
+        questions: [
+          { ...mockQuestion1, answerKey: null },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        // Ensure only byAula is defined, leaving bySimulado and byAtividade as undefined
+        useQuizStore.setState({
+          bySimulado: undefined,
+          byAtividade: undefined,
+          byAula: mockAula,
+        });
+        // This should trigger the byAula condition in selectAnswer function
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      const userAnswers = result.current.getUserAnswers();
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
+      expect(updatedQuestion?.answerKey).toBe('opt1');
+      expect(result.current.skippedQuestions).not.toContain('q1');
+    });
+
+    // Additional test to ensure byAtividade condition in selectAnswer function is covered with explicit false values
+    it('should execute byAtividade condition in selectAnswer with explicit false values', () => {
+      const mockAtividade = {
+        id: 'atividade1',
+        title: 'Test Atividade',
+        questions: [
+          { ...mockQuestion1, answerKey: null },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        // Set bySimulado and byAula to false explicitly to ensure byAtividade is the only truthy value
+        useQuizStore.setState({
+          bySimulado: undefined,
+          byAtividade: mockAtividade,
+          byAula: undefined,
+        });
+        // This should trigger the byAtividade condition in selectAnswer function
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      const userAnswers = result.current.getUserAnswers();
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
+      expect(updatedQuestion?.answerKey).toBe('opt1');
+      expect(result.current.skippedQuestions).not.toContain('q1');
+    });
+
+    // Additional test to ensure byAula condition in selectAnswer function is covered with explicit false values
+    it('should execute byAula condition in selectAnswer with explicit false values', () => {
+      const mockAula = {
+        id: 'aula1',
+        title: 'Test Aula',
+        questions: [
+          { ...mockQuestion1, answerKey: null },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        // Set bySimulado and byAtividade to false explicitly to ensure byAula is the only truthy value
+        useQuizStore.setState({
+          bySimulado: undefined,
+          byAtividade: undefined,
+          byAula: mockAula,
+        });
+        // This should trigger the byAula condition in selectAnswer function
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      const userAnswers = result.current.getUserAnswers();
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
+      expect(updatedQuestion?.answerKey).toBe('opt1');
+      expect(result.current.skippedQuestions).not.toContain('q1');
+    });
+
+    // Final comprehensive test to ensure both byAtividade and byAula conditions in selectAnswer function are covered
+    it('should execute both byAtividade and byAula conditions in selectAnswer with proper state management', () => {
+      const mockAtividade = {
+        id: 'atividade1',
+        title: 'Test Atividade',
+        questions: [
+          { ...mockQuestion1, answerKey: null },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const mockAula = {
+        id: 'aula1',
+        title: 'Test Aula',
+        questions: [
+          { ...mockQuestion1, answerKey: null },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      // Test byAtividade condition in selectAnswer function
+      act(() => {
+        useQuizStore.setState({
+          bySimulado: undefined,
+          byAtividade: mockAtividade,
+          byAula: undefined,
+        });
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      let userAnswers = result.current.getUserAnswers();
+      let updatedQuestion = userAnswers.find((q) => q.id === 'q1');
+      expect(updatedQuestion?.answerKey).toBe('opt1');
+
+      // Test byAula condition in selectAnswer function
+      act(() => {
+        useQuizStore.setState({
+          bySimulado: undefined,
+          byAtividade: undefined,
+          byAula: mockAula,
+        });
+        result.current.selectAnswer('q2', 'opt2');
+      });
+
+      userAnswers = result.current.getUserAnswers();
+      updatedQuestion = userAnswers.find((q) => q.id === 'q2');
       expect(updatedQuestion?.answerKey).toBe('opt2');
     });
   });

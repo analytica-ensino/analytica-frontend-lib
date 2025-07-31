@@ -689,8 +689,7 @@ const QuizListResult = forwardRef<
     onSubjectClick?: (subject: string) => void;
   }
 >(({ className, onSubjectClick, ...props }, ref) => {
-  const { getQuestionsGroupedBySubject, isQuestionAnswered } =
-    useQuizStore();
+  const { getQuestionsGroupedBySubject, isQuestionAnswered } = useQuizStore();
   const groupedQuestions = getQuestionsGroupedBySubject();
 
   // Converter groupedQuestions em estatísticas por matéria

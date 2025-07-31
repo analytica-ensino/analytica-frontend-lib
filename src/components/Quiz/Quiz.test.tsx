@@ -233,7 +233,7 @@ jest.mock('../Card/Card', () => ({
     correct_answers,
     incorrect_answers,
     icon,
-    direction,
+    direction: _direction,
     onClick,
   }: {
     header: string;
@@ -878,7 +878,7 @@ describe('Quiz Component', () => {
       expect(mockGoToNextQuestion).toHaveBeenCalled();
     });
 
-    // Additional tests for missing coverage lines
+    // Additional tests for missing coverage scenarios
     it('should show skip button on first question', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
@@ -1627,7 +1627,7 @@ describe('Quiz Result Components', () => {
         { ...mockQuestion1, answerKey: 'opt1' }, // Correct answer
         { ...mockQuestion2, answerKey: null }, // No answer
       ];
-      
+
       mockUseQuizStore.mockReturnValue({
         bySimulado: { ...mockSimulado, questions: mockQuestionsWithAnswers },
         byAtividade: undefined,
@@ -1688,9 +1688,12 @@ describe('Quiz Result Components', () => {
         { ...mockQuestion1, answerKey: 'opt1' }, // Correct answer
         { ...mockQuestion2, answerKey: 'opt2' }, // Correct answer
       ];
-      
+
       mockUseQuizStore.mockReturnValue({
-        bySimulado: { ...mockSimulado, questions: mockQuestionsWithCorrectAnswers },
+        bySimulado: {
+          ...mockSimulado,
+          questions: mockQuestionsWithCorrectAnswers,
+        },
         byAtividade: undefined,
         byAula: undefined,
         getTotalQuestions: jest.fn().mockReturnValue(2),
@@ -1888,12 +1891,12 @@ describe('Quiz Result Components', () => {
         { ...mockQuestion2, answerKey: 'opt1' }, // Incorrect answer (should be opt2)
         { ...mockQuestion1, id: 'q3', answerKey: 'opt1' }, // Correct answer
       ];
-      
+
       const mockQuestionsGroupedBySubjectWithAnswers = {
         fisica: [mockQuestionsWithAnswers[0], mockQuestionsWithAnswers[1]],
         matematica: [mockQuestionsWithAnswers[2]],
       };
-      
+
       mockUseQuizStore.mockReturnValue({
         bySimulado: { ...mockSimulado, questions: mockQuestionsWithAnswers },
         byAtividade: undefined,
@@ -1986,14 +1989,20 @@ describe('Quiz Result Components', () => {
         { ...mockQuestion2, answerKey: 'opt2' }, // Correct answer
         { ...mockQuestion1, id: 'q3', answerKey: 'opt1' }, // Correct answer
       ];
-      
+
       const mockQuestionsGroupedBySubjectWithCorrectAnswers = {
-        fisica: [mockQuestionsWithCorrectAnswers[0], mockQuestionsWithCorrectAnswers[1]],
+        fisica: [
+          mockQuestionsWithCorrectAnswers[0],
+          mockQuestionsWithCorrectAnswers[1],
+        ],
         matematica: [mockQuestionsWithCorrectAnswers[2]],
       };
-      
+
       mockUseQuizStore.mockReturnValue({
-        bySimulado: { ...mockSimulado, questions: mockQuestionsWithCorrectAnswers },
+        bySimulado: {
+          ...mockSimulado,
+          questions: mockQuestionsWithCorrectAnswers,
+        },
         byAtividade: undefined,
         byAula: undefined,
         getQuestionsGroupedBySubject: jest
@@ -2063,14 +2072,20 @@ describe('Quiz Result Components', () => {
         { ...mockQuestion2, answerKey: null }, // No answer
         { ...mockQuestion1, id: 'q3', answerKey: 'opt2' }, // Incorrect answer
       ];
-      
+
       const mockQuestionsGroupedBySubjectWithMixedAnswers = {
-        fisica: [mockQuestionsWithMixedAnswers[0], mockQuestionsWithMixedAnswers[1]],
+        fisica: [
+          mockQuestionsWithMixedAnswers[0],
+          mockQuestionsWithMixedAnswers[1],
+        ],
         matematica: [mockQuestionsWithMixedAnswers[2]],
       };
-      
+
       mockUseQuizStore.mockReturnValue({
-        bySimulado: { ...mockSimulado, questions: mockQuestionsWithMixedAnswers },
+        bySimulado: {
+          ...mockSimulado,
+          questions: mockQuestionsWithMixedAnswers,
+        },
         byAtividade: undefined,
         byAula: undefined,
         getQuestionsGroupedBySubject: jest

@@ -174,31 +174,39 @@ export const useQuizStore = create<QuizState>()(
         selectAnswer: (questionId, answerId) => {
           const { bySimulado, byAtividade, byAula, skippedQuestions } = get();
           const quiz = bySimulado || byAtividade || byAula;
-          
+
           if (!quiz) return;
 
           // Update the question's answerKey in the quiz
-          const updatedQuestions = quiz.questions.map(question => 
-            question.id === questionId 
+          const updatedQuestions = quiz.questions.map((question) =>
+            question.id === questionId
               ? { ...question, answerKey: answerId }
               : question
           );
 
           // Update the appropriate quiz type
           if (bySimulado) {
-            set({ 
+            set({
               bySimulado: { ...bySimulado, questions: updatedQuestions },
-              skippedQuestions: skippedQuestions.filter(id => id !== questionId)
+              skippedQuestions: skippedQuestions.filter(
+                (id) => id !== questionId
+              ),
             });
-          } else if (byAtividade) {
-            set({ 
+          }
+          if (byAtividade) {
+            set({
               byAtividade: { ...byAtividade, questions: updatedQuestions },
-              skippedQuestions: skippedQuestions.filter(id => id !== questionId)
+              skippedQuestions: skippedQuestions.filter(
+                (id) => id !== questionId
+              ),
             });
-          } else if (byAula) {
-            set({ 
+          }
+          if (byAula) {
+            set({
               byAula: { ...byAula, questions: updatedQuestions },
-              skippedQuestions: skippedQuestions.filter(id => id !== questionId)
+              skippedQuestions: skippedQuestions.filter(
+                (id) => id !== questionId
+              ),
             });
           }
         },
@@ -217,26 +225,28 @@ export const useQuizStore = create<QuizState>()(
         addUserAnswer: (questionId, answerId) => {
           const { bySimulado, byAtividade, byAula } = get();
           const quiz = bySimulado || byAtividade || byAula;
-          
+
           if (!quiz) return;
-          
+
           const question = quiz.questions.find((q) => q.id === questionId);
 
           if (!question) return;
 
           // Update the question's answerKey in the quiz
-          const updatedQuestions = quiz.questions.map(q => 
-            q.id === questionId 
-              ? { ...q, answerKey: answerId || null }
-              : q
+          const updatedQuestions = quiz.questions.map((q) =>
+            q.id === questionId ? { ...q, answerKey: answerId || null } : q
           );
 
           // Update the appropriate quiz type
           if (bySimulado) {
             set({ bySimulado: { ...bySimulado, questions: updatedQuestions } });
-          } else if (byAtividade) {
-            set({ byAtividade: { ...byAtividade, questions: updatedQuestions } });
-          } else if (byAula) {
+          }
+          if (byAtividade) {
+            set({
+              byAtividade: { ...byAtividade, questions: updatedQuestions },
+            });
+          }
+          if (byAula) {
             set({ byAula: { ...byAula, questions: updatedQuestions } });
           }
         },
@@ -292,19 +302,16 @@ export const useQuizStore = create<QuizState>()(
         getAnsweredQuestions: () => {
           const { bySimulado, byAtividade, byAula } = get();
           const quiz = bySimulado || byAtividade || byAula;
-          
+
           if (!quiz) return 0;
-          
-          return quiz.questions.filter(question => question.answerKey !== null).length;
+
+          return quiz.questions.filter(
+            (question) => question.answerKey !== null
+          ).length;
         },
 
         getUnansweredQuestions: () => {
-          const {
-            bySimulado,
-            byAtividade,
-            byAula,
-            skippedQuestions,
-          } = get();
+          const { bySimulado, byAtividade, byAula, skippedQuestions } = get();
           const quiz = bySimulado || byAtividade || byAula;
           if (!quiz) return [];
 
@@ -337,10 +344,10 @@ export const useQuizStore = create<QuizState>()(
         isQuestionAnswered: (questionId) => {
           const { bySimulado, byAtividade, byAula } = get();
           const quiz = bySimulado || byAtividade || byAula;
-          
+
           if (!quiz) return false;
-          
-          const question = quiz.questions.find(q => q.id === questionId);
+
+          const question = quiz.questions.find((q) => q.id === questionId);
           return question ? question.answerKey !== null : false;
         },
 
@@ -372,12 +379,12 @@ export const useQuizStore = create<QuizState>()(
         getUserAnswers: () => {
           const { bySimulado, byAtividade, byAula, skippedQuestions } = get();
           const quiz = bySimulado || byAtividade || byAula;
-          
+
           if (!quiz) return [];
-          
-          return quiz.questions.map(question => ({
+
+          return quiz.questions.map((question) => ({
             ...question,
-            isSkipped: skippedQuestions.includes(question.id)
+            isSkipped: skippedQuestions.includes(question.id),
           }));
         },
 
