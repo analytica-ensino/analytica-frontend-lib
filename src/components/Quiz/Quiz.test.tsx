@@ -12,6 +12,7 @@ import {
   QuizResultTitle,
   QuizResultPerformance,
   QuizListResult,
+  QuizListResultByMateria,
 } from './Quiz';
 import { useQuizStore } from './useQuizStore';
 import { ReactNode } from 'react';
@@ -216,16 +217,22 @@ jest.mock('../Select/Select', () => ({
 jest.mock('../Card/Card', () => ({
   CardStatus: ({
     header,
-    label,
+    status,
     onClick,
   }: {
     header: string;
-    label: string;
+    status?: 'correct' | 'incorrect';
     onClick?: () => void;
   }) => (
-    <button data-testid="card-status" onClick={onClick}>
+    <button data-testid="card-status" data-status={status} onClick={onClick}>
       <span>{header}</span>
-      <span>{label}</span>
+      <span>
+        {status === 'correct'
+          ? 'Correta'
+          : status === 'incorrect'
+            ? 'Incorreta'
+            : ''}
+      </span>
     </button>
   ),
   CardResults: ({
@@ -681,8 +688,8 @@ describe('Quiz Component', () => {
       render(<QuizQuestionList />);
 
       const cards = screen.getAllByTestId('card-status');
-      expect(cards[0]).toHaveTextContent('Respondida');
-      expect(cards[1]).toHaveTextContent('Pulada');
+      expect(cards[0]).toHaveTextContent('Questão 01');
+      expect(cards[1]).toHaveTextContent('Questão 02');
     });
   });
 
@@ -2685,6 +2692,284 @@ describe('Quiz Result Components', () => {
       expect(screen.getByText('fisica')).toBeInTheDocument();
       expect(screen.getByText('matematica')).toBeInTheDocument();
       expect(screen.getByText('quimica')).toBeInTheDocument();
+    });
+  });
+
+  describe('QuizListResultByMateria', () => {
+    const mockQuestionsGroupedBySubject = {
+      mecanica: [
+        {
+          id: 'q1',
+          questionText: 'Questão de Mecânica 1',
+          correctOptionId: 'opt1',
+          description: 'Questão sobre mecânica',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'MEDIO' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt1',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'muv',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Resposta correta' },
+            { id: 'opt2', option: 'Resposta incorreta' },
+            { id: 'opt3', option: 'Resposta incorreta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          createdBy: 'user1',
+        },
+        {
+          id: 'q2',
+          questionText: 'Questão de Mecânica 2',
+          correctOptionId: 'opt2',
+          description: 'Questão sobre mecânica',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'FACIL' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt3',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'mu',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Resposta incorreta' },
+            { id: 'opt2', option: 'Resposta correta' },
+            { id: 'opt3', option: 'Resposta incorreta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          createdBy: 'user1',
+        },
+        {
+          id: 'q3',
+          questionText: 'Questão de Mecânica 3',
+          correctOptionId: 'opt3',
+          description: 'Questão sobre mecânica',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'DIFICIL' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt3',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'lancamento',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Resposta incorreta' },
+            { id: 'opt2', option: 'Resposta incorreta' },
+            { id: 'opt3', option: 'Resposta correta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          createdBy: 'user1',
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: mockSimulado,
+        byAtividade: undefined,
+        byAula: undefined,
+        selectedAnswers: {
+          q1: 'opt1', // Resposta correta
+          q2: 'opt3', // Resposta incorreta
+          q3: 'opt3', // Resposta correta
+        },
+        getQuestionsGroupedBySubject: jest
+          .fn()
+          .mockReturnValue(mockQuestionsGroupedBySubject),
+        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+          return (
+            questionId === 'q1' || questionId === 'q2' || questionId === 'q3'
+          );
+        }),
+      });
+    });
+
+    it('should render the component with subject title', () => {
+      const mockOnQuestionClick = jest.fn();
+      render(
+        <QuizListResultByMateria
+          subject="mecanica"
+          onQuestionClick={mockOnQuestionClick}
+        />
+      );
+
+      expect(screen.getByText('mecanica')).toBeInTheDocument();
+      expect(screen.getByText('Resultado das questões')).toBeInTheDocument();
+    });
+
+    it('should render all questions for the specified subject', () => {
+      const mockOnQuestionClick = jest.fn();
+      render(
+        <QuizListResultByMateria
+          subject="mecanica"
+          onQuestionClick={mockOnQuestionClick}
+        />
+      );
+
+      expect(screen.getByText('Questão q1')).toBeInTheDocument();
+      expect(screen.getByText('Questão q2')).toBeInTheDocument();
+      expect(screen.getByText('Questão q3')).toBeInTheDocument();
+    });
+
+    it('should display correct status for answered questions', () => {
+      const mockOnQuestionClick = jest.fn();
+      render(
+        <QuizListResultByMateria
+          subject="mecanica"
+          onQuestionClick={mockOnQuestionClick}
+        />
+      );
+
+      // Verificar se as questões com respostas corretas mostram status 'correct'
+      const correctQuestion = screen
+        .getByText('Questão q1')
+        .closest('[data-testid="card-status"]');
+      expect(correctQuestion).toHaveAttribute('data-status', 'correct');
+
+      // Verificar se as questões com respostas incorretas mostram status 'incorrect'
+      const incorrectQuestion = screen
+        .getByText('Questão q2')
+        .closest('[data-testid="card-status"]');
+      expect(incorrectQuestion).toHaveAttribute('data-status', 'incorrect');
+
+      // Verificar se as questões com respostas corretas mostram status 'correct'
+      const correctQuestion2 = screen
+        .getByText('Questão q3')
+        .closest('[data-testid="card-status"]');
+      expect(correctQuestion2).toHaveAttribute('data-status', 'correct');
+    });
+
+    it('should call onQuestionClick when a question is clicked', () => {
+      const mockOnQuestionClick = jest.fn();
+      render(
+        <QuizListResultByMateria
+          subject="mecanica"
+          onQuestionClick={mockOnQuestionClick}
+        />
+      );
+
+      const firstQuestion = screen
+        .getByText('Questão q1')
+        .closest('[data-testid="card-status"]');
+      fireEvent.click(firstQuestion!);
+
+      expect(mockOnQuestionClick).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'q1',
+          questionText: 'Questão de Mecânica 1',
+          correctOptionId: 'opt1',
+          answerKey: 'opt1',
+        })
+      );
+    });
+
+    it('should handle empty subject questions gracefully', () => {
+      const mockOnQuestionClick = jest.fn();
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: mockSimulado,
+        byAtividade: undefined,
+        byAula: undefined,
+        selectedAnswers: {},
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+          mecanica: [],
+        }),
+        isQuestionAnswered: jest.fn().mockReturnValue(false),
+      });
+
+      render(
+        <QuizListResultByMateria
+          subject="mecanica"
+          onQuestionClick={mockOnQuestionClick}
+        />
+      );
+
+      expect(screen.getByText('mecanica')).toBeInTheDocument();
+      expect(screen.getByText('Resultado das questões')).toBeInTheDocument();
+      // Não deve renderizar nenhuma questão
+      expect(screen.queryByText(/Questão q/)).not.toBeInTheDocument();
+    });
+
+    it('should handle undefined subject questions gracefully', () => {
+      const mockOnQuestionClick = jest.fn();
+      mockUseQuizStore.mockReturnValue({
+        bySimulado: mockSimulado,
+        byAtividade: undefined,
+        byAula: undefined,
+        selectedAnswers: {},
+        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+          mecanica: undefined,
+        }),
+        isQuestionAnswered: jest.fn().mockReturnValue(false),
+      });
+
+      render(
+        <QuizListResultByMateria
+          subject="mecanica"
+          onQuestionClick={mockOnQuestionClick}
+        />
+      );
+
+      expect(screen.getByText('mecanica')).toBeInTheDocument();
+      expect(screen.getByText('Resultado das questões')).toBeInTheDocument();
+      // Não deve renderizar nenhuma questão
+      expect(screen.queryByText(/Questão q/)).not.toBeInTheDocument();
+    });
+
+    it('should render with correct layout structure', () => {
+      const mockOnQuestionClick = jest.fn();
+      render(
+        <QuizListResultByMateria
+          subject="mecanica"
+          onQuestionClick={mockOnQuestionClick}
+        />
+      );
+
+      // Verificar se o container principal tem as classes corretas
+      const container = screen.getByText('mecanica').closest('.w-full');
+      expect(container).toHaveClass(
+        'w-full',
+        'max-w-[1000px]',
+        'flex',
+        'flex-col',
+        'mx-auto',
+        'h-full',
+        'relative',
+        'not-lg:px-6'
+      );
+
+      // Verificar se a seção de questões tem a estrutura correta
+      const section = screen
+        .getByText('Resultado das questões')
+        .closest('section');
+      expect(section).toHaveClass('flex', 'flex-col');
     });
   });
 });

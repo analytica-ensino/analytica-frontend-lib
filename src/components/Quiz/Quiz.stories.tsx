@@ -11,8 +11,9 @@ import {
   QuizResultHeaderTitle,
   QuizResultTitle,
   QuizResultPerformance,
+  QuizListResultByMateria,
 } from './Quiz';
-import { useQuizStore } from './useQuizStore';
+import { Question, useQuizStore } from './useQuizStore';
 import { useEffect } from 'react';
 
 export const AllQuizShowcase: Story = () => {
@@ -979,6 +980,153 @@ export const QuizResultComponentsShowcase: Story = () => {
             onSubjectClick={(subject) =>
               console.log('Matéria clicada:', subject)
             }
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const QuizListResultByMateriaShowcase: Story = () => {
+  const { setBySimulado, startQuiz, selectAnswer, finishQuiz } = useQuizStore();
+
+  useEffect(() => {
+    // Dados de exemplo para demonstrar a funcionalidade
+    const mockSimulado = {
+      id: 'simulado-1',
+      title: 'Simulado ENEM 2024',
+      questions: [
+        {
+          id: 'q1',
+          questionText:
+            'Um carro inicia do repouso e se desloca em linha reta com uma aceleração constante de 2 m/s². Calcule a distância que o carro percorre após 5 segundos.',
+          correctOptionId: 'opt1',
+          description: 'Questão sobre movimento uniformemente variado',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'MEDIO' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt1',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'muv',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: '25 metros' },
+            { id: 'opt2', option: '30 metros' },
+            { id: 'opt3', option: '40 metros' },
+            { id: 'opt4', option: '50 metros' },
+          ],
+          createdBy: 'user1',
+        },
+        {
+          id: 'q2',
+          questionText:
+            'Uma partícula se move com velocidade constante de 10 m/s. Qual a distância percorrida em 3 segundos?',
+          correctOptionId: 'opt2',
+          description: 'Questão sobre movimento uniforme',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'FACIL' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt3',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'mu',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: '25 metros' },
+            { id: 'opt2', option: '30 metros' },
+            { id: 'opt3', option: '35 metros' },
+            { id: 'opt4', option: '45 metros' },
+          ],
+          createdBy: 'user1',
+        },
+        {
+          id: 'q3',
+          questionText:
+            'Um objeto é lançado verticalmente para cima com velocidade inicial de 20 m/s. Qual a altura máxima atingida? (Considere g = 10 m/s²)',
+          correctOptionId: 'opt3',
+          description: 'Questão sobre lançamento vertical',
+          type: 'ALTERNATIVA' as const,
+          status: 'APROVADO' as const,
+          difficulty: 'DIFICIL' as const,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt3',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'lancamento',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: '15 metros' },
+            { id: 'opt2', option: '18 metros' },
+            { id: 'opt3', option: '20 metros' },
+            { id: 'opt4', option: '25 metros' },
+          ],
+          createdBy: 'user1',
+        },
+      ],
+    };
+
+    setBySimulado(mockSimulado);
+    startQuiz();
+
+    // Simular algumas respostas para demonstrar as estatísticas
+    selectAnswer('q1', 'opt1'); // Resposta correta
+    selectAnswer('q2', 'opt3'); // Resposta incorreta
+    selectAnswer('q3', 'opt3'); // Resposta correta
+
+    // Finalizar o quiz para mostrar o resultado
+    finishQuiz();
+  }, [setBySimulado, startQuiz, selectAnswer, finishQuiz]);
+
+  const handleQuestionClick = (question: Question) => {
+    console.log('Questão clicada:', question);
+  };
+
+  return (
+    <div className="space-y-12 h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Quiz List Result By Materia
+        </h1>
+        <p className="text-text-600 text-lg">
+          Componente para mostrar resultado de questões por matéria
+        </p>
+      </div>
+
+      <div className="space-y-8">
+        {/* Resultado por matéria */}
+        <div className="border rounded-lg p-4">
+          <h2 className="text-2xl font-semibold mb-4">Resultado por Matéria</h2>
+          <QuizListResultByMateria
+            subject="mecanica"
+            onQuestionClick={handleQuestionClick}
           />
         </div>
       </div>

@@ -14,7 +14,7 @@ import {
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
 import { forwardRef, ReactNode, useState } from 'react';
-import { useQuizStore } from './useQuizStore';
+import { Question, useQuizStore } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
 import SimulatedResult from '@/assets/img/simulated-result.png';
@@ -760,6 +760,50 @@ const QuizListResult = forwardRef<
   );
 });
 
+const QuizListResultByMateria = ({
+  subject,
+  onQuestionClick,
+}: {
+  subject: string;
+  onQuestionClick: (question: Question) => void;
+}) => {
+  const { getQuestionsGroupedBySubject } = useQuizStore();
+  const groupedQuestions = getQuestionsGroupedBySubject();
+
+  const answeredQuestions = groupedQuestions[subject] || [];
+
+  return (
+    <div className="w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6">
+      <div className="flex flex-row pt-4 justify-between">
+        <p className="text-text-950 font-bold text-2xl">{subject}</p>
+      </div>
+
+      <section className="flex flex-col ">
+        <p className="pt-6 pb-4 text-text-950 font-bold text-lg">
+          Resultado das questões
+        </p>
+
+        <ul className="flex flex-col gap-2 pt-4">
+          {answeredQuestions.map((question) => (
+            <li key={question.id}>
+              <CardStatus
+                className="max-w-full"
+                header={`Questão ${question.id}`}
+                status={
+                  question.answerKey === question.correctOptionId
+                    ? 'correct'
+                    : 'incorrect'
+                }
+                onClick={() => onQuestionClick?.(question)}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  );
+};
+
 export {
   QuizHeaderResult,
   QuizTitle,
@@ -773,4 +817,5 @@ export {
   QuizResultHeaderTitle,
   QuizResultTitle,
   QuizResultPerformance,
+  QuizListResultByMateria,
 };

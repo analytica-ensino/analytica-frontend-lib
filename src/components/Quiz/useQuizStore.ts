@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-interface Question {
+export interface Question {
   id: string;
   questionText: string;
   correctOptionId: string;
