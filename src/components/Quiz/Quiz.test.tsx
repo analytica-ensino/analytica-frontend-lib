@@ -14,7 +14,7 @@ import {
   QuizListResult,
   QuizListResultByMateria,
 } from './Quiz';
-import { useQuizStore } from './useQuizStore';
+import { useQuizStore, Difficulty } from './useQuizStore';
 import { ReactNode } from 'react';
 
 // Mock the useQuizStore
@@ -291,7 +291,7 @@ const mockQuestion1 = {
   description: 'Basic math question',
   type: 'ALTERNATIVA' as const,
   status: 'APROVADO' as const,
-  difficulty: 'FACIL' as const,
+  difficulty: Difficulty.FACIL,
   examBoard: 'ENEM',
   examYear: '2024',
   answerKey: null,
@@ -322,7 +322,7 @@ const mockQuestion2 = {
   description: 'Geography question',
   type: 'ALTERNATIVA' as const,
   status: 'APROVADO' as const,
-  difficulty: 'FACIL' as const,
+  difficulty: Difficulty.FACIL,
   examBoard: 'ENEM',
   examYear: '2024',
   answerKey: null,
@@ -349,6 +349,7 @@ const mockQuestion2 = {
 const mockSimulado = {
   id: 'simulado-1',
   title: 'Test Simulado',
+  category: 'Enem',
   questions: [mockQuestion1, mockQuestion2],
 };
 
@@ -1550,14 +1551,14 @@ describe('Quiz Result Components', () => {
   });
 
   describe('QuizResultHeaderTitle', () => {
-    it('should render header with title and badge', () => {
+    it('should render header with title and badge when bySimulated is available', () => {
       render(<QuizResultHeaderTitle />);
 
       expect(screen.getByText('Resultado')).toBeInTheDocument();
-      expect(screen.getByText('Simulado')).toBeInTheDocument();
+      expect(screen.getByTestId('badge')).toBeInTheDocument();
     });
 
-    it('should show default badge when no quiz type is available', () => {
+    it('should not show badge when bySimulated is not available', () => {
       mockUseQuizStore.mockReturnValue({
         bySimulated: undefined,
         byActivity: undefined,
@@ -1577,7 +1578,7 @@ describe('Quiz Result Components', () => {
       render(<QuizResultHeaderTitle />);
 
       expect(screen.getByText('Resultado')).toBeInTheDocument();
-      expect(screen.getByText('Enem')).toBeInTheDocument();
+      expect(screen.queryByTestId('badge')).not.toBeInTheDocument();
     });
   });
 

@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+export enum Difficulty {
+  FACIL = 'FACIL',
+  MEDIO = 'MEDIO',
+  DIFICIL = 'DIFICIL',
+}
+
 export interface Question {
   id: string;
   questionText: string;
@@ -8,7 +14,7 @@ export interface Question {
   description: string;
   type: 'ALTERNATIVA' | 'DISSERTATIVA' | 'MULTIPLA_CHOICE';
   status: 'APROVADO' | 'REPROVADO';
-  difficulty: 'FACIL' | 'MEDIO' | 'DIFICIL';
+  difficulty: Difficulty;
   examBoard: string | null;
   examYear: string | null;
   answerKey: string | null;
@@ -31,6 +37,7 @@ export interface Question {
 interface Simulado {
   id: string;
   title: string;
+  category: string;
   questions: Question[];
 }
 

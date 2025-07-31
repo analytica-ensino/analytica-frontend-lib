@@ -67,6 +67,7 @@ const mockQuestion2 = {
 const mockSimulado = {
   id: 'simulado-1',
   title: 'Test Simulado',
+  category: 'Enem',
   questions: [mockQuestion1, mockQuestion2],
 };
 
@@ -956,6 +957,7 @@ describe('useQuizStore', () => {
       const emptySimulado = {
         id: 'empty-simulado',
         title: 'Empty Quiz',
+        category: 'Enem',
         questions: [],
       };
 
@@ -989,6 +991,7 @@ describe('useQuizStore', () => {
       const threeQuestionSimulado = {
         id: 'three-question-simulado',
         title: 'Three Question Quiz',
+        category: 'Enem',
         questions: [mockQuestion1, mockQuestion2, mockQuestion1], // 3 questions
       };
 

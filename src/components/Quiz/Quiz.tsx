@@ -14,7 +14,7 @@ import {
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
 import { forwardRef, ReactNode, useState } from 'react';
-import { Question, useQuizStore } from './useQuizStore';
+import { Question, useQuizStore, Difficulty } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
 import SimulatedResult from '@/assets/img/simulated-result.png';
@@ -543,16 +543,7 @@ const QuizResultHeaderTitle = forwardRef<
   HTMLDivElement,
   { className?: string }
 >(({ className, ...props }, ref) => {
-  const { bySimulated, byActivity, byQuestionary } = useQuizStore();
-
-  const getQuizType = (): QuizType => {
-    if (bySimulated) return QuizType.SIMULATED;
-    if (byActivity) return QuizType.ACTIVITY;
-    if (byQuestionary) return QuizType.QUESTIONARY;
-    return QuizType.ENEM;
-  };
-
-  const quizType = getQuizType();
+  const { bySimulated } = useQuizStore();
 
   return (
     <div
@@ -561,9 +552,11 @@ const QuizResultHeaderTitle = forwardRef<
       {...props}
     >
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
-      <Badge variant="solid" action="info">
-        {quizType}
-      </Badge>
+      {bySimulated && (
+        <Badge variant="solid" action="info">
+          {bySimulated.category}
+        </Badge>
+      )}
     </div>
   );
 });
@@ -617,17 +610,17 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
           correctAnswers++;
         }
 
-        if (question.difficulty === 'FACIL') {
+        if (question.difficulty === Difficulty.FACIL) {
           totalEasyQuestions++;
           if (isCorrect) {
             correctEasyAnswers++;
           }
-        } else if (question.difficulty === 'MEDIO') {
+        } else if (question.difficulty === Difficulty.MEDIO) {
           totalMediumQuestions++;
           if (isCorrect) {
             correctMediumAnswers++;
           }
-        } else if (question.difficulty === 'DIFICIL') {
+        } else if (question.difficulty === Difficulty.DIFICIL) {
           totalDifficultQuestions++;
           if (isCorrect) {
             correctDifficultAnswers++;
