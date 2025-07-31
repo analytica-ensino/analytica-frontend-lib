@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { useQuizStore } from './useQuizStore';
+import { Difficulty, useQuizStore } from './useQuizStore';
 
 // Mock data for testing
 const mockQuestion1 = {
@@ -9,7 +9,7 @@ const mockQuestion1 = {
   description: 'Basic math question',
   type: 'ALTERNATIVA' as const,
   status: 'APROVADO' as const,
-  difficulty: 'FACIL' as const,
+  difficulty: 'FACIL' as Difficulty,
   examBoard: 'ENEM',
   examYear: '2024',
   answerKey: null,
@@ -40,7 +40,7 @@ const mockQuestion2 = {
   description: 'Geography question',
   type: 'ALTERNATIVA' as const,
   status: 'APROVADO' as const,
-  difficulty: 'FACIL' as const,
+  difficulty: 'FACIL' as Difficulty,
   examBoard: 'ENEM',
   examYear: '2024',
   answerKey: null,
