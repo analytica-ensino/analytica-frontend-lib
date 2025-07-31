@@ -71,6 +71,18 @@ const mockSimulado = {
   questions: [mockQuestion1, mockQuestion2],
 };
 
+const mockAtividade = {
+  id: 'atividade-1',
+  title: 'Test Atividade',
+  questions: [mockQuestion1, mockQuestion2],
+};
+
+const mockQuestionary = {
+  id: 'aula-1',
+  title: 'Test Aula',
+  questions: [mockQuestion1, mockQuestion2],
+};
+
 describe('useQuizStore', () => {
   beforeEach(() => {
     // Reset store before each test
@@ -108,20 +120,20 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setByActivity(mockSimulado);
+        result.current.setByActivity(mockAtividade);
       });
 
-      expect(result.current.byActivity).toEqual(mockSimulado);
+      expect(result.current.byActivity).toEqual(mockAtividade);
     });
 
     it('should set byQuestionary', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setByQuestionary(mockSimulado);
+        result.current.setByQuestionary(mockQuestionary);
       });
 
-      expect(result.current.byQuestionary).toEqual(mockSimulado);
+      expect(result.current.byQuestionary).toEqual(mockQuestionary);
     });
   });
 
@@ -672,7 +684,7 @@ describe('useQuizStore', () => {
     });
 
     it('should work with byQuestionary quiz type', () => {
-      const mockAula = {
+      const mockQuestionary = {
         id: 'aula1',
         title: 'Test Aula',
         questions: [
@@ -684,7 +696,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setByQuestionary(mockAula);
+        result.current.setByQuestionary(mockQuestionary);
         result.current.selectAnswer('q2', 'opt2');
       });
 
@@ -1152,7 +1164,7 @@ describe('useQuizStore', () => {
         ],
       };
 
-      const mockAula = {
+      const mockQuestionary = {
         id: 'aula1',
         title: 'Test Aula',
         questions: [
@@ -1196,7 +1208,7 @@ describe('useQuizStore', () => {
         useQuizStore.setState({
           bySimulated: undefined,
           byActivity: undefined,
-          byQuestionary: mockAula,
+          byQuestionary: mockQuestionary,
         });
         result.current.selectAnswer('q2', 'opt2');
       });
@@ -1216,7 +1228,7 @@ describe('useQuizStore', () => {
         ],
       };
 
-      const mockAula = {
+      const mockQuestionary = {
         id: 'aula1',
         title: 'Test Aula',
         questions: [
@@ -1260,7 +1272,7 @@ describe('useQuizStore', () => {
         useQuizStore.setState({
           bySimulated: undefined,
           byActivity: undefined,
-          byQuestionary: mockAula,
+          byQuestionary: mockQuestionary,
         });
         result.current.addUserAnswer('q2', undefined);
       });
