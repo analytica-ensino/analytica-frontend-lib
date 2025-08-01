@@ -1,5 +1,6 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react';
 import { Check } from 'phosphor-react';
+import { cn } from '../../utils/utils';
 
 /**
  * Lookup table for chip state classes
@@ -66,7 +67,7 @@ const Chips = ({
 
   return (
     <button
-      className={`${baseClasses} ${stateClasses} ${className}`}
+      className={cn(baseClasses, stateClasses, className)}
       disabled={disabled}
       type={type}
       {...props}

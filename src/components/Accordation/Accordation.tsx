@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { CardBase } from '../Card/Card';
 import { CaretRight } from 'phosphor-react';
+import { cn } from '../../utils/utils';
 
 interface CardAccordationProps extends HTMLAttributes<HTMLDivElement> {
   trigger: ReactNode;
@@ -50,7 +51,7 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
         layout="vertical"
         padding="none"
         minHeight="none"
-        className={`overflow-hidden ${className}`}
+        className={cn('overflow-hidden', className)}
         {...props}
       >
         {/* Clickable header */}
@@ -65,9 +66,10 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
 
           <CaretRight
             size={20}
-            className={`text-text-700 transition-transform duration-200 flex-shrink-0 ${
+            className={cn(
+              'text-text-700 transition-transform duration-200 flex-shrink-0',
               isExpanded ? 'rotate-90' : 'rotate-0'
-            }`}
+            )}
             data-testid="accordion-caret"
           />
         </button>
@@ -75,9 +77,10 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
         {/* Expandable content */}
         <div
           id={contentId}
-          className={`transition-all duration-300 ease-in-out overflow-hidden ${
+          className={cn(
+            'transition-all duration-300 ease-in-out overflow-hidden',
             isExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
-          }`}
+          )}
           data-testid="accordion-content"
         >
           <div className="p-4 pt-0 border-border-50">{children}</div>

@@ -1,6 +1,7 @@
 import { MouseEvent } from 'react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
+import { cn } from '../../utils/utils';
 
 /**
  * Props interface for the NotFound component
@@ -105,7 +106,10 @@ const NotFound = ({
 
   return (
     <div
-      className={`flex flex-col w-full h-screen items-center justify-center bg-background-50 px-4 ${className}`}
+      className={cn(
+        'flex flex-col w-full h-screen items-center justify-center bg-background-50 px-4',
+        className
+      )}
     >
       <main
         role="main"

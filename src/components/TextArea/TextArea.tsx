@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { WarningCircle } from 'phosphor-react';
 import Text from '../Text/Text';
+import { cn } from '../../utils/utils';
 
 /**
  * TextArea size variants
@@ -182,7 +183,14 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     const stateClasses = STATE_CLASSES[currentState];
 
     // Get final textarea classes
-    const textareaClasses = `${BASE_TEXTAREA_CLASSES} ${sizeClasses.textarea} ${stateClasses.base} ${stateClasses.hover} ${stateClasses.focus} ${className}`;
+    const textareaClasses = cn(
+      BASE_TEXTAREA_CLASSES,
+      sizeClasses.textarea,
+      stateClasses.base,
+      stateClasses.hover,
+      stateClasses.focus,
+      className
+    );
 
     return (
       <div className={`flex flex-col`}>
@@ -194,7 +202,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
             size={sizeClasses.textSize}
             weight="medium"
             color="text-text-950"
-            className={`mb-1.5 ${labelClassName}`}
+            className={cn('mb-1.5', labelClassName)}
           >
             {label}
           </Text>

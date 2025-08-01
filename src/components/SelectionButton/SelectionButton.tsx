@@ -1,4 +1,5 @@
 import { ButtonHTMLAttributes, ReactNode, forwardRef } from 'react';
+import { cn } from '../../utils/utils';
 
 /**
  * SelectionButton component props interface
@@ -101,7 +102,7 @@ const SelectionButton = forwardRef<HTMLButtonElement, SelectionButtonProps>(
       <button
         ref={ref}
         type="button"
-        className={`${allClasses} ${className}`}
+        className={cn(allClasses, className)}
         disabled={disabled}
         aria-pressed={selected}
         {...props}

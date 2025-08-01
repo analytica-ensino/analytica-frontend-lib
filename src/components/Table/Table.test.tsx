@@ -151,7 +151,6 @@ describe('Table Components', () => {
       expect(screen.getByTestId('head')).toHaveClass('h-10');
       expect(screen.getByTestId('head')).toHaveClass('px-6');
       expect(screen.getByTestId('head')).toHaveClass('py-3.5');
-      expect(screen.getByTestId('head')).toHaveClass('bg-bg-secondary');
       expect(screen.getByTestId('head')).toHaveClass('bg-muted/50');
       expect(screen.getByTestId('head')).toHaveClass('text-left');
       expect(screen.getByTestId('head')).toHaveClass('align-middle');

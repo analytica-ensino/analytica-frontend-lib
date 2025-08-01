@@ -1,5 +1,6 @@
 import { ReactNode, MouseEvent, useEffect, KeyboardEvent } from 'react';
 import { X } from 'phosphor-react';
+import { cn } from '../../utils/utils';
 
 /**
  * Lookup table for size classes
@@ -135,7 +136,12 @@ const Modal = ({
   // Reset dialog default styles to prevent positioning issues
   const dialogResetClasses =
     'p-0 m-0 border-none outline-none max-h-none static';
-  const modalClasses = `${baseClasses} ${sizeClasses} ${dialogResetClasses} ${className}`;
+  const modalClasses = cn(
+    baseClasses,
+    sizeClasses,
+    dialogResetClasses,
+    className
+  );
 
   return (
     <div

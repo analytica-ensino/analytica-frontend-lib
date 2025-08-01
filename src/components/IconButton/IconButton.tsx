@@ -1,4 +1,5 @@
 import { ButtonHTMLAttributes, ReactNode, forwardRef } from 'react';
+import { cn } from '../../utils/utils';
 
 /**
  * IconButton component props interface
@@ -112,7 +113,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       <button
         ref={ref}
         type="button"
-        className={`${allClasses} ${className}`}
+        className={cn(allClasses, className)}
         disabled={disabled}
         aria-pressed={active}
         aria-label={ariaLabel}

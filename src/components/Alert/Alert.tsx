@@ -1,6 +1,7 @@
 import { HTMLAttributes } from 'react';
 import { CheckCircle, Info, WarningCircle, XCircle } from 'phosphor-react';
 import Text from '../Text/Text';
+import { cn } from '../../utils/utils';
 
 type AlertProps = {
   title?: string;
@@ -59,11 +60,8 @@ const Alert = ({
   const hasHeading = Boolean(title);
 
   return (
-    <div
-      className={`${baseClasses} ${variantClasses} ${className ?? ''}`}
-      {...props}
-    >
-      <span className={`mt-0.5 ${variantColor}`}>{variantIcon}</span>
+    <div className={cn(baseClasses, variantClasses, className)} {...props}>
+      <span className={cn('mt-0.5', variantColor)}>{variantIcon}</span>
       <div>
         {hasHeading && (
           <Text

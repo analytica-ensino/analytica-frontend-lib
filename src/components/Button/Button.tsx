@@ -1,4 +1,5 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react';
+import { cn } from '../../utils/utils';
 
 /**
  * Lookup table for variant and action class combinations
@@ -102,7 +103,7 @@ const Button = ({
 
   return (
     <button
-      className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`}
+      className={cn(baseClasses, variantClasses, sizeClasses, className)}
       disabled={disabled}
       type={type}
       {...props}

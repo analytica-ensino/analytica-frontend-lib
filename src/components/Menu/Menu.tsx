@@ -14,6 +14,7 @@ import {
   useState,
 } from 'react';
 import { CaretLeft, CaretRight } from 'phosphor-react';
+import { cn } from '../../utils/utils';
 
 type MenuVariant = 'menu' | 'menu2' | 'breadcrumb';
 
@@ -209,7 +210,10 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
           {...commonProps}
         >
           <span
-            className={`flex flex-row items-center gap-2 px-4 text-text-950 text-xs font-bold ${className ?? ''}`}
+            className={cn(
+              'flex flex-row items-center gap-2 px-4 text-text-950 text-xs font-bold',
+              className
+            )}
           >
             {children}
           </span>
@@ -230,10 +234,12 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
           {...commonProps}
         >
           <span
-            className={`
-              border-b border-text-600 hover:border-primary-600 text-inherit text-xs
-              ${selectedValue === value ? 'border-b-0 font-bold' : 'border-b-text-600'}
-            `}
+            className={cn(
+              'border-b border-text-600 hover:border-primary-600 text-inherit text-xs',
+              selectedValue === value
+                ? 'border-b-0 font-bold'
+                : 'border-b-primary-200'
+            )}
           >
             {children}
           </span>
@@ -260,10 +266,10 @@ const MenuItemIcon = ({
   ...props
 }: HTMLAttributes<HTMLSpanElement> & { icon: ReactNode }) => (
   <span
-    className={`
-      bg-background-500 w-[21px] h-[21px] flex items-center justify-center
-      [&>svg]:w-[17px] [&>svg]:h-[17px] rounded-sm ${className ?? ''}
-    `}
+    className={cn(
+      'bg-background-500 w-[21px] h-[21px] flex items-center justify-center [&>svg]:w-[17px] [&>svg]:h-[17px] rounded-sm',
+      className
+    )}
     {...props}
   >
     {icon}
@@ -331,7 +337,7 @@ const MenuOverflow = ({
   return (
     <div
       data-testid="menu-overflow-wrapper"
-      className={`relative w-full overflow-hidden ${className ?? ''}`}
+      className={cn('relative w-full overflow-hidden', className)}
     >
       {showLeftArrow && (
         <button

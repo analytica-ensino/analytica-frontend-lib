@@ -1,5 +1,6 @@
-import { ReactNode, HTMLAttributes } from 'react';
+import { HTMLAttributes, ReactNode } from 'react';
 import { Bell } from 'phosphor-react';
+import { cn } from '../../utils/utils';
 
 /**
  * Lookup table for variant and action class combinations
@@ -148,7 +149,7 @@ const Badge = ({
   if (variant === 'notification') {
     return (
       <div
-        className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`}
+        className={cn(baseClasses, variantClasses, sizeClasses, className)}
         {...props}
       >
         <Bell size={24} className="text-current" aria-hidden="true" />
@@ -164,17 +165,15 @@ const Badge = ({
   }
   return (
     <div
-      className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`}
+      className={cn(baseClasses, variantClasses, sizeClasses, className)}
       {...props}
     >
       {iconLeft && (
-        <span className={`${baseClassesIcon} ${sizeClassesIcon}`}>
-          {iconLeft}
-        </span>
+        <span className={cn(baseClassesIcon, sizeClassesIcon)}>{iconLeft}</span>
       )}
       {children}
       {iconRight && (
-        <span className={`${baseClassesIcon} ${sizeClassesIcon}`}>
+        <span className={cn(baseClassesIcon, sizeClassesIcon)}>
           {iconRight}
         </span>
       )}

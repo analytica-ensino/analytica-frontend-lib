@@ -8,6 +8,7 @@ import {
 } from 'react';
 import Text from '../Text/Text';
 import { Check, Minus } from 'phosphor-react';
+import { cn } from '../../utils/utils';
 
 /**
  * CheckBox size variants
@@ -184,7 +185,13 @@ const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
         : sizeClasses.borderWidth;
 
     // Get final checkbox classes
-    const checkboxClasses = `${BASE_CHECKBOX_CLASSES} ${sizeClasses.checkbox} ${borderWidthClass} ${stylingClasses} ${className}`;
+    const checkboxClasses = cn(
+      BASE_CHECKBOX_CLASSES,
+      sizeClasses.checkbox,
+      borderWidthClass,
+      stylingClasses,
+      className
+    );
 
     // Render appropriate icon based on state
     const renderIcon = () => {
@@ -214,7 +221,11 @@ const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     return (
       <div className="flex flex-col">
         <div
-          className={`flex flex-row items-center ${sizeClasses.spacing} ${disabled ? 'opacity-40' : ''}`}
+          className={cn(
+            'flex flex-row items-center',
+            sizeClasses.spacing,
+            disabled ? 'opacity-40' : ''
+          )}
         >
           {/* Hidden native input for accessibility and form submission */}
           <input
@@ -237,14 +248,20 @@ const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
           {/* Label text */}
           {label && (
             <div
-              className={`flex flex-row items-center ${sizeClasses.labelHeight}`}
+              className={cn(
+                'flex flex-row items-center',
+                sizeClasses.labelHeight
+              )}
             >
               <Text
                 as="label"
                 htmlFor={inputId}
                 size={sizeClasses.textSize}
                 weight="normal"
-                className={`cursor-pointer select-none leading-[150%] flex items-center font-roboto ${labelClassName}`}
+                className={cn(
+                  'cursor-pointer select-none leading-[150%] flex items-center font-roboto',
+                  labelClassName
+                )}
               >
                 {label}
               </Text>

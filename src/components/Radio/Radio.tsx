@@ -15,6 +15,7 @@ import {
 } from 'react';
 import { create, StoreApi, useStore } from 'zustand';
 import Text from '../Text/Text';
+import { cn } from '../../utils/utils';
 
 /**
  * Radio size variants
@@ -240,10 +241,21 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     const borderWidthClass = getBorderWidth();
 
     // Get final radio classes
-    const radioClasses = `${BASE_RADIO_CLASSES} ${actualRadioSize} ${borderWidthClass} ${stylingClasses} ${className}`;
+    const radioClasses = cn(
+      BASE_RADIO_CLASSES,
+      actualRadioSize,
+      borderWidthClass,
+      stylingClasses,
+      className
+    );
 
     // Get dot classes
-    const dotClasses = `${actualDotSize} rounded-full ${DOT_CLASSES[currentState]} transition-all duration-200`;
+    const dotClasses = cn(
+      actualDotSize,
+      'rounded-full',
+      DOT_CLASSES[currentState],
+      'transition-all duration-200'
+    );
 
     // Determine if wrapper is needed only for focused or invalid states
     const isWrapperNeeded =
@@ -276,11 +288,13 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     return (
       <div className="flex flex-col">
         <div
-          className={`flex flex-row items-center ${
+          className={cn(
+            'flex flex-row items-center',
             isWrapperNeeded
-              ? `p-1 border-2 ${wrapperBorderColor} rounded-lg gap-1.5`
-              : sizeClasses.spacing
-          } ${disabled ? 'opacity-40' : ''}`}
+              ? cn('p-1 border-2', wrapperBorderColor, 'rounded-lg gap-1.5')
+              : sizeClasses.spacing,
+            disabled ? 'opacity-40' : ''
+          )}
         >
           {/* Hidden native input for accessibility and form submission */}
           <input
@@ -341,14 +355,22 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
           {/* Label text */}
           {label && (
             <div
-              className={`flex flex-row items-center ${sizeClasses.labelHeight} flex-1 min-w-0`}
+              className={cn(
+                'flex flex-row items-center',
+                sizeClasses.labelHeight,
+                'flex-1 min-w-0'
+              )}
             >
               <Text
                 as="label"
                 htmlFor={inputId}
                 size={sizeClasses.textSize}
                 weight="normal"
-                className={`${getCursorClass()} select-none leading-normal flex items-center font-roboto truncate ${labelClassName}`}
+                className={cn(
+                  getCursorClass(),
+                  'select-none leading-normal flex items-center font-roboto truncate',
+                  labelClassName
+                )}
                 color={getTextColor()}
               >
                 {label}

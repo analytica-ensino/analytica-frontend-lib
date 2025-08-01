@@ -1,4 +1,5 @@
 import { forwardRef, HTMLAttributes, TdHTMLAttributes } from 'react';
+import { cn } from '../../utils/utils';
 
 type TableRowState = 'default' | 'selected' | 'invalid' | 'disabled';
 
@@ -11,7 +12,7 @@ const Table = forwardRef<HTMLTableElement, HTMLAttributes<HTMLTableElement>>(
     <div className="border border-border-200 rounded-xl relative w-full overflow-hidden">
       <table
         ref={ref}
-        className={`w-full caption-bottom text-sm ${className ?? ''}`}
+        className={cn('w-full caption-bottom text-sm', className)}
         {...props}
       >
         {/* Fix Sonnar */}
@@ -30,7 +31,7 @@ const TableHeader = forwardRef<
 >(({ className, ...props }, ref) => (
   <thead
     ref={ref}
-    className={`[&_tr:first-child]:border-0 ${className}`}
+    className={cn('[&_tr:first-child]:border-0', className)}
     {...props}
   />
 ));
@@ -42,7 +43,10 @@ const TableBody = forwardRef<
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
-    className={`[&_tr:last-child]:border-0 border-t border-border-200 ${className}`}
+    className={cn(
+      '[&_tr:last-child]:border-0 border-t border-border-200',
+      className
+    )}
     {...props}
   />
 ));
@@ -54,7 +58,10 @@ const TableFooter = forwardRef<
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={`border-t bg-background-50 border-border-200 font-medium [&>tr]:last:border-b-0 px-6 py-3.5 ${className}`}
+    className={cn(
+      'border-t bg-background-50 border-border-200 font-medium [&>tr]:last:border-b-0 px-6 py-3.5',
+      className
+    )}
     {...props}
   />
 ));
@@ -73,12 +80,12 @@ const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
     return (
       <tr
         ref={ref}
-        className={`
-        transition-colors
-        ${state !== 'disabled' ? 'hover:bg-muted/50' : ''}
-        ${VARIANT_STATES_ROW[state]}
-        ${className}
-      `}
+        className={cn(
+          'transition-colors',
+          state !== 'disabled' ? 'hover:bg-muted/50' : '',
+          VARIANT_STATES_ROW[state],
+          className
+        )}
         aria-disabled={state === 'disabled'}
         {...props}
       />
@@ -93,7 +100,10 @@ const TableHead = forwardRef<
 >(({ className, ...props }, ref) => (
   <th
     ref={ref}
-    className={`h-10 px-6 py-3.5 bg-bg-secondary bg-muted/50 text-left align-middle font-bold text-text-800 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] ${className}`}
+    className={cn(
+      'h-10 px-6 py-3.5 bg-muted/50 text-left align-middle font-bold text-text-800 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
+      className
+    )}
     {...props}
   />
 ));
@@ -105,7 +115,10 @@ const TableCell = forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={`p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-md text-text-800 px-6 py-3.5 ${className}`}
+    className={cn(
+      'p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-md text-text-800 px-6 py-3.5',
+      className
+    )}
     {...props}
   />
 ));
@@ -117,7 +130,10 @@ const TableCaption = forwardRef<
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
-    className={`border-t border-border-200 text-sm text-text-800 px-6 py-3.5 ${className}`}
+    className={cn(
+      'border-t border-border-200 text-sm text-text-800 px-6 py-3.5',
+      className
+    )}
     {...props}
   />
 ));

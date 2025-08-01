@@ -15,6 +15,7 @@ import {
   useId,
 } from 'react';
 import { CaretDown, Check, WarningCircle } from 'phosphor-react';
+import { cn } from '../../utils/utils';
 
 const VARIANT_CLASSES = {
   outlined: 'border rounded-lg focus:border-primary-950',
@@ -278,14 +279,14 @@ const Select = ({
       {label && (
         <label
           htmlFor={selectId}
-          className={`block font-bold text-text-900 mb-1.5 ${sizeClasses}`}
+          className={cn('block font-bold text-text-900 mb-1.5', sizeClasses)}
         >
           {label}
         </label>
       )}
 
       {/* Select Container */}
-      <div className={`relative ${sizeClasses}`} ref={selectRef}>
+      <div className={cn('relative', sizeClasses)} ref={selectRef}>
         {injectStore(children, store, size, selectId)}
       </div>
 
@@ -376,7 +377,10 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
       >
         {props.children}
         <CaretDown
-          className={`h-[1em] w-[1em] opacity-50 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={cn(
+            'h-[1em] w-[1em] opacity-50 transition-transform',
+            open ? 'rotate-180' : ''
+          )}
         />
       </button>
     );
@@ -415,7 +419,11 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
       <div
         role="menu"
         ref={ref}
-        className={`bg-background z-50 min-w-[210px] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md border-border-100 ${getPositionClasses()} ${className}`}
+        className={cn(
+          'bg-background z-50 min-w-[210px] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md border-border-100',
+          getPositionClasses(),
+          className
+        )}
         {...props}
       >
         {children}

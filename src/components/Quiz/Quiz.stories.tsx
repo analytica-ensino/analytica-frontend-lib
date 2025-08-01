@@ -60,13 +60,6 @@ export const AllQuizShowcase: Story = () => {
             { id: 'opt2', option: '30 metros' },
             { id: 'opt3', option: '40 metros' },
             { id: 'opt4', option: '50 metros' },
-            { id: 'opt5', option: '60 metros' },
-            { id: 'opt6', option: '70 metros' },
-            // { id: 'opt7', option: '80 metros' },
-            // { id: 'opt8', option: '90 metros' },
-            // { id: 'opt9', option: '100 metros' },
-            // { id: 'opt10', option: '110 metros' },
-            // { id: 'opt11', option: '120 metros' },
           ],
           createdBy: 'user1',
         },
@@ -367,7 +360,7 @@ export const AllQuizShowcase: Story = () => {
         <Quiz>
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className='!pb-[150px]'>
+          <QuizContent className="pb-[150px]">
             <QuizAlternative />
           </QuizContent>
           <QuizFooter
@@ -482,7 +475,7 @@ export const QuizAlternativeVariants: Story = () => {
           <QuizHeaderResult />
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className='!pb-[150px]'>
+          <QuizContent className="pb-[150px]">
             <QuizAlternative variant={'result'} />
           </QuizContent>
           <QuizFooter
