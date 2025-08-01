@@ -401,7 +401,6 @@ describe('Quiz Component', () => {
       skippedQuestions: [],
       userAnswers: [],
       isFinished: false,
-      // Adiciona a função mockada para evitar erro nos testes
       getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
     });
 

@@ -13,7 +13,13 @@ import {
   QuizResultPerformance,
   QuizListResultByMateria,
 } from './Quiz';
-import { QUESTION_DIFFICULTY, QUESTION_STATUS, QUESTION_TYPE, Question, useQuizStore } from './useQuizStore';
+import {
+  QUESTION_DIFFICULTY,
+  QUESTION_STATUS,
+  QUESTION_TYPE,
+  Question,
+  useQuizStore,
+} from './useQuizStore';
 import { useEffect } from 'react';
 
 export const AllQuizShowcase: Story = () => {

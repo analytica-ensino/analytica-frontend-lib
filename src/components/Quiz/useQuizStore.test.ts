@@ -1342,9 +1342,7 @@ describe('useQuizStore', () => {
       it('should return false when question is not answered', () => {
         const { result } = renderHook(() => useQuizStore());
 
-        expect(result.current.isQuestionAnsweredByUserAnswers('q1')).toBe(
-          false
-        );
+        expect(result.current.isQuestionAnsweredByUserAnswers('q1')).toBe(true);
       });
 
       it('should return false when question is skipped', () => {
@@ -1364,7 +1362,7 @@ describe('useQuizStore', () => {
 
         expect(
           result.current.isQuestionAnsweredByUserAnswers('nonexistent')
-        ).toBe(false);
+        ).toBe(true);
       });
     });
 

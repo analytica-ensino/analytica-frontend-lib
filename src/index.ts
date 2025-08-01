@@ -106,6 +106,10 @@ import {
   QuizHeader,
   QuizContent,
   QuizAlternative,
+  QuizResultHeaderTitle,
+  QuizResultTitle,
+  QuizResultPerformance,
+  QuizListResultByMateria,
   QuizQuestionList,
   QuizFooter,
 } from './components/Quiz/Quiz';
@@ -205,6 +209,10 @@ export { QuizTitle };
 export { QuizHeader };
 export { QuizContent };
 export { QuizAlternative };
+export { QuizResultHeaderTitle };
+export { QuizResultTitle };
+export { QuizResultPerformance };
+export { QuizListResultByMateria };
 export { QuizQuestionList };
 export { QuizFooter };
 export { useQuizStore };

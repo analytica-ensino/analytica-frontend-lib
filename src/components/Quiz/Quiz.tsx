@@ -804,13 +804,6 @@ const QuizListResultByMateria = ({
   );
 };
 
-enum QuizType {
-  SIMULATED = 'Simulado',
-  ACTIVITY = 'Atividade',
-  QUESTIONARY = 'Questionário',
-  ENEM = 'Enem',
-}
-
 export {
   QuizHeaderResult,
   QuizTitle,
@@ -825,5 +818,4 @@ export {
   QuizResultTitle,
   QuizResultPerformance,
   QuizListResultByMateria,
-  QuizType,
 };

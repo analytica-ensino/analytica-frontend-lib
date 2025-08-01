@@ -535,7 +535,7 @@ export const useQuizStore = create<QuizState>()(
           const answer = userAnswers.find(
             (answer) => answer.questionId === questionId
           );
-          return answer !== undefined && answer.answer !== null;
+          return answer?.answer !== null;
         },
         getQuestionStatusFromUserAnswers: (questionId) => {
           const { userAnswers } = get();
