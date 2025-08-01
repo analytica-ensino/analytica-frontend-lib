@@ -137,7 +137,7 @@ const QuizContent = forwardRef<
 
       <div
         ref={ref}
-        className={`rounded-t-xl bg-background px-4 pt-4 pb-[80px] h-full flex flex-col gap-4 mb-auto ${className}`}
+        className={`rounded-t-xl px-4 pt-4 pb-[80px] h-full flex flex-col gap-4 mb-auto ${className}`}
         {...props}
       >
         {children}
