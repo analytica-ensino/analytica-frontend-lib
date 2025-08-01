@@ -728,7 +728,7 @@ describe('Quiz Component', () => {
 
       render(<QuizQuestionList />);
 
-      // Verifica se os labels corretos são exibidos
+      // Check if correct labels are displayed
       expect(screen.getByText('Respondida')).toBeInTheDocument();
       expect(screen.getByText('Não respondida')).toBeInTheDocument();
     });
@@ -1164,7 +1164,7 @@ describe('Quiz Component', () => {
 
       render(<QuizAlternative />);
 
-      // When currentQuestion is null, it should show "Não há Alternativas" instead of alternatives list
+      // When currentQuestion is null, it should show "No Alternatives" instead of alternatives list
       expect(screen.getByText('Não há Alternativas')).toBeInTheDocument();
       expect(screen.queryByTestId('alternatives-list')).not.toBeInTheDocument();
     });
@@ -1649,7 +1649,7 @@ describe('Quiz Result Components', () => {
 
       render(<QuizResultTitle />);
 
-      // Verificar se o elemento está presente mesmo com texto vazio
+      // Check if element is present even with empty text
       const titleElement = screen.getByText((content, element) => {
         return element?.tagName === 'P' && element?.textContent === '';
       });
@@ -1683,19 +1683,16 @@ describe('Quiz Result Components', () => {
 
       render(<QuizResultPerformance />);
 
-      // Verificar se os elementos principais estão presentes
       expect(screen.getByText('Corretas')).toBeInTheDocument();
-      expect(screen.getAllByText('1')[0]).toBeInTheDocument(); // 1 correta
-      expect(screen.getByText('00:01:00')).toBeInTheDocument(); // 1 hora formatada
+      expect(screen.getAllByText('1')[0]).toBeInTheDocument();
+      expect(screen.getByText('00:01:00')).toBeInTheDocument();
 
-      // Verificar se o texto "de 2" está presente (que contém o número 2)
       expect(screen.getAllByText(/de 2/)[0]).toBeInTheDocument();
     });
 
     it('should render progress bars with correct values', () => {
       render(<QuizResultPerformance />);
 
-      // Verificar se as progress bars estão presentes na ordem correta
       expect(screen.getByText('Fáceis')).toBeInTheDocument();
       expect(screen.getByText('Médias')).toBeInTheDocument();
       expect(screen.getByText('Difíceis')).toBeInTheDocument();
@@ -1720,10 +1717,9 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle all correct answers', () => {
-      // Mock with questions that have correct answerKey set
       const mockQuestionsWithCorrectAnswers = [
-        { ...mockQuestion1, answerKey: 'opt1' }, // Correct answer
-        { ...mockQuestion2, answerKey: 'opt2' }, // Correct answer
+        { ...mockQuestion1, answerKey: 'opt1' },
+        { ...mockQuestion2, answerKey: 'opt2' },
       ];
 
       mockUseQuizStore.mockReturnValue({
@@ -1747,7 +1743,7 @@ describe('Quiz Result Components', () => {
 
       render(<QuizResultPerformance />);
 
-      expect(screen.getAllByText('2')[0]).toBeInTheDocument(); // 2 corretas
+      expect(screen.getAllByText('2')[0]).toBeInTheDocument();
     });
 
     // Tests for difficulty-based statistics calculation
@@ -2167,7 +2163,7 @@ describe('Quiz Result Components', () => {
         </div>
       );
 
-      // Verificar se todos os componentes estão presentes
+      // Check if all components are present
       expect(screen.getByText('Resultado')).toBeInTheDocument();
       expect(screen.getAllByText('Simulado Enem #42')[0]).toBeInTheDocument();
       expect(screen.getByText('Corretas')).toBeInTheDocument();
@@ -2186,7 +2182,7 @@ describe('Quiz Result Components', () => {
         </div>
       );
 
-      // Verificar se a estrutura está correta
+      // Check if structure is correct
       expect(screen.getByText('Resultado')).toBeInTheDocument();
       expect(screen.getAllByText('Simulado Enem #42')[0]).toBeInTheDocument();
       expect(screen.getByText('Corretas')).toBeInTheDocument();
@@ -2419,14 +2415,14 @@ describe('Quiz Result Components', () => {
     it('should render subjects list with correct statistics', () => {
       render(<QuizListResult />);
 
-      // Verificar se o título está presente
+      // Check if title is present
       expect(screen.getByText('Matérias')).toBeInTheDocument();
 
-      // Verificar se os cards de resultados estão presentes
+      // Check if result cards are present
       const resultCards = screen.getAllByTestId('card-results');
       expect(resultCards).toHaveLength(2); // fisica e matematica
 
-      // Verificar se os headers dos cards estão corretos
+      // Check if card headers are correct
       expect(screen.getByText('fisica')).toBeInTheDocument();
       expect(screen.getByText('matematica')).toBeInTheDocument();
     });
@@ -2464,11 +2460,11 @@ describe('Quiz Result Components', () => {
       const incorrectAnswersElements =
         screen.getAllByTestId('incorrect-answers');
 
-      // Física: 1 correta (q1), 1 incorreta (q2)
+      // Physics: 1 correct (q1), 1 incorrect (q2)
       expect(correctAnswersElements[0]).toHaveTextContent('1');
       expect(incorrectAnswersElements[0]).toHaveTextContent('1');
 
-      // Matemática: 1 correta (q3), 0 incorretas
+      // Mathematics: 1 correct (q3), 0 incorrect
       expect(correctAnswersElements[1]).toHaveTextContent('1');
       expect(incorrectAnswersElements[1]).toHaveTextContent('0');
     });
@@ -2479,11 +2475,11 @@ describe('Quiz Result Components', () => {
 
       const resultCards = screen.getAllByTestId('card-results');
 
-      // Clicar no primeiro card (física)
+      // Click on first card (physics)
       fireEvent.click(resultCards[0]);
       expect(handleSubjectClick).toHaveBeenCalledWith('fisica');
 
-      // Clicar no segundo card (matemática)
+      // Click on second card (mathematics)
       fireEvent.click(resultCards[1]);
       expect(handleSubjectClick).toHaveBeenCalledWith('matematica');
     });
@@ -2522,7 +2518,7 @@ describe('Quiz Result Components', () => {
       const incorrectAnswersElements =
         screen.getAllByTestId('incorrect-answers');
 
-      // Todas as matérias devem ter 0 corretas e 0 incorretas
+      // All subjects should have 0 correct and 0 incorrect
       expect(correctAnswersElements[0]).toHaveTextContent('0');
       expect(incorrectAnswersElements[0]).toHaveTextContent('0');
       expect(correctAnswersElements[1]).toHaveTextContent('0');
@@ -2568,11 +2564,11 @@ describe('Quiz Result Components', () => {
       const incorrectAnswersElements =
         screen.getAllByTestId('incorrect-answers');
 
-      // Física: 2 corretas, 0 incorretas
+      // Physics: 2 correct, 0 incorrect
       expect(correctAnswersElements[0]).toHaveTextContent('2');
       expect(incorrectAnswersElements[0]).toHaveTextContent('0');
 
-      // Matemática: 1 correta, 0 incorretas
+      // Mathematics: 1 correct, 0 incorrect
       expect(correctAnswersElements[1]).toHaveTextContent('1');
       expect(incorrectAnswersElements[1]).toHaveTextContent('0');
     });
@@ -2603,11 +2599,11 @@ describe('Quiz Result Components', () => {
       const incorrectAnswersElements =
         screen.getAllByTestId('incorrect-answers');
 
-      // Física: 0 corretas, 2 incorretas
+      // Physics: 0 correct, 2 incorrect
       expect(correctAnswersElements[0]).toHaveTextContent('0');
       expect(incorrectAnswersElements[0]).toHaveTextContent('2');
 
-      // Matemática: 0 corretas, 1 incorreta
+      // Mathematics: 0 correct, 1 incorrect
       expect(correctAnswersElements[1]).toHaveTextContent('0');
       expect(incorrectAnswersElements[1]).toHaveTextContent('1');
     });
@@ -2649,11 +2645,11 @@ describe('Quiz Result Components', () => {
       const incorrectAnswersElements =
         screen.getAllByTestId('incorrect-answers');
 
-      // Física: 1 correta (q1), 0 incorretas (q2 não respondida)
+      // Physics: 1 correct (q1), 0 incorrect (q2 not answered)
       expect(correctAnswersElements[0]).toHaveTextContent('1');
       expect(incorrectAnswersElements[0]).toHaveTextContent('0');
 
-      // Matemática: 0 corretas, 1 incorreta (q3)
+      // Mathematics: 0 correct, 1 incorrect (q3)
       expect(correctAnswersElements[1]).toHaveTextContent('0');
       expect(incorrectAnswersElements[1]).toHaveTextContent('1');
     });
@@ -2890,19 +2886,19 @@ describe('Quiz Result Components', () => {
         />
       );
 
-      // Verificar se as questões com respostas corretas mostram status 'correct'
+      // Check if questions with correct answers show 'correct' status
       const correctQuestion = screen
         .getByText('Questão q1')
         .closest('[data-testid="card-status"]');
       expect(correctQuestion).toHaveAttribute('data-status', 'correct');
 
-      // Verificar se as questões com respostas incorretas mostram status 'incorrect'
+      // Check if questions with incorrect answers show 'incorrect' status
       const incorrectQuestion = screen
         .getByText('Questão q2')
         .closest('[data-testid="card-status"]');
       expect(incorrectQuestion).toHaveAttribute('data-status', 'incorrect');
 
-      // Verificar se as questões com respostas corretas mostram status 'correct'
+      // Check if questions with correct answers show 'correct' status
       const correctQuestion2 = screen
         .getByText('Questão q3')
         .closest('[data-testid="card-status"]');
@@ -2955,7 +2951,7 @@ describe('Quiz Result Components', () => {
 
       expect(screen.getByText('mecanica')).toBeInTheDocument();
       expect(screen.getByText('Resultado das questões')).toBeInTheDocument();
-      // Não deve renderizar nenhuma questão
+      // Should not render any questions
       expect(screen.queryByText(/Questão q/)).not.toBeInTheDocument();
     });
 
@@ -2981,7 +2977,7 @@ describe('Quiz Result Components', () => {
 
       expect(screen.getByText('mecanica')).toBeInTheDocument();
       expect(screen.getByText('Resultado das questões')).toBeInTheDocument();
-      // Não deve renderizar nenhuma questão
+      // Should not render any questions
       expect(screen.queryByText(/Questão q/)).not.toBeInTheDocument();
     });
 
@@ -2994,7 +2990,7 @@ describe('Quiz Result Components', () => {
         />
       );
 
-      // Verificar se o container principal tem as classes corretas
+      // Check if main container has correct classes
       const container = screen.getByText('mecanica').closest('.w-full');
       expect(container).toHaveClass(
         'w-full',
@@ -3007,7 +3003,7 @@ describe('Quiz Result Components', () => {
         'not-lg:px-6'
       );
 
-      // Verificar se a seção de questões tem a estrutura correta
+      // Check if questions section has correct structure
       const section = screen
         .getByText('Resultado das questões')
         .closest('section');

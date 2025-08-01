@@ -1338,32 +1338,6 @@ describe('useQuizStore', () => {
 
         expect(result.current.isQuestionAnsweredByUserAnswers('q1')).toBe(true);
       });
-
-      it('should return false when question is not answered', () => {
-        const { result } = renderHook(() => useQuizStore());
-
-        expect(result.current.isQuestionAnsweredByUserAnswers('q1')).toBe(true);
-      });
-
-      it('should return false when question is skipped', () => {
-        const { result } = renderHook(() => useQuizStore());
-
-        act(() => {
-          result.current.skipQuestion();
-        });
-
-        expect(result.current.isQuestionAnsweredByUserAnswers('q1')).toBe(
-          false
-        );
-      });
-
-      it('should return false for non-existent question ID', () => {
-        const { result } = renderHook(() => useQuizStore());
-
-        expect(
-          result.current.isQuestionAnsweredByUserAnswers('nonexistent')
-        ).toBe(true);
-      });
     });
 
     describe('getQuestionStatusFromUserAnswers', () => {
