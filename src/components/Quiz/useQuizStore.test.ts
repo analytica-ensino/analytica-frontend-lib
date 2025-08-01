@@ -234,6 +234,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -246,6 +247,34 @@ describe('useQuizStore', () => {
       const answeredQuestion = userAnswers.find((q) => q.id === 'q1');
       expect(answeredQuestion?.answerKey).toBe('opt1');
       expect(answeredQuestion?.isSkipped).toBe(false);
+    });
+
+    it('should warn and return early when selectAnswer is called without userId set', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const consoleSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        // Don't set userId - it should be empty string by default
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      // Verify that console.warn was called with the expected message
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'selectAnswer called before userId is set'
+      );
+
+      // Verify that no user answer was created (since userId is falsy)
+      const userAnswerItem = result.current.getUserAnswerByQuestionId('q1');
+      expect(userAnswerItem).toBeNull();
+
+      // Verify that the question's answerKey was NOT updated (since the function returns early when userId is falsy)
+      const currentQuestion = result.current.getCurrentQuestion();
+      expect(currentQuestion?.answerKey).toBe(null);
+
+      consoleSpy.mockRestore();
     });
 
     it('should skip question', () => {
@@ -269,6 +298,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         // First, answer the current question
         result.current.selectAnswer('q1', 'opt1');
       });
@@ -304,6 +334,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.skipQuestion(); // Skip first question
         result.current.goToNextQuestion(); // Go to second question
         result.current.selectAnswer('q2', 'opt2'); // Answer second question
@@ -339,6 +370,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
         result.current.goToNextQuestion();
         result.current.startQuiz();
@@ -564,6 +596,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -576,6 +609,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -614,6 +648,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -626,6 +661,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -693,6 +729,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -726,6 +763,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setByActivity(mockAtividade);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -747,6 +785,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setByQuestionary(mockQuestionary);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q2', 'opt2');
       });
 
@@ -759,6 +798,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
         result.current.selectAnswer('q2', 'opt2');
       });
@@ -772,6 +812,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
         result.current.addUserAnswer('q1', undefined); // Set to null
       });
@@ -784,6 +825,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
         result.current.addUserAnswer('q1', ''); // Set to empty string (converted to null)
       });
@@ -796,6 +838,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -818,6 +861,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(simuladoWithSpecialChars);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1-special@#$%', 'opt1');
       });
 
@@ -841,6 +885,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(simuladoWithLongId);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer(longId, 'opt1');
       });
 
@@ -862,6 +907,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(simuladoWithNumericId);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('12345', 'opt1');
       });
 
@@ -886,6 +932,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -915,6 +962,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -930,6 +978,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -994,6 +1043,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -1006,6 +1056,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
         result.current.selectAnswer('q2', 'opt2');
       });
@@ -1079,6 +1130,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
         result.current.selectAnswer('q1', 'opt2'); // Update answer
       });
@@ -1211,6 +1263,7 @@ describe('useQuizStore', () => {
           byActivity: undefined,
           byQuestionary: undefined,
         });
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -1298,6 +1351,7 @@ describe('useQuizStore', () => {
         const { result } = renderHook(() => useQuizStore());
 
         act(() => {
+          result.current.setUserId('test-user-id');
           result.current.selectAnswer('q1', 'opt1');
         });
 
@@ -1343,6 +1397,7 @@ describe('useQuizStore', () => {
         const { result } = renderHook(() => useQuizStore());
 
         act(() => {
+          result.current.setUserId('test-user-id');
           result.current.selectAnswer('q1', 'opt1');
         });
 
@@ -1355,6 +1410,7 @@ describe('useQuizStore', () => {
         const { result } = renderHook(() => useQuizStore());
 
         act(() => {
+          result.current.setUserId('test-user-id');
           result.current.selectAnswer('q1', 'opt1');
         });
 
@@ -1395,6 +1451,7 @@ describe('useQuizStore', () => {
         const { result } = renderHook(() => useQuizStore());
 
         act(() => {
+          result.current.setUserId('test-user-id');
           result.current.selectAnswer('q1', 'opt1'); // Answered
           result.current.skipQuestion(); // Skip current question (q1 again, should update)
           result.current.goToNextQuestion(); // Go to q2
@@ -1415,6 +1472,7 @@ describe('useQuizStore', () => {
         const { result } = renderHook(() => useQuizStore());
 
         act(() => {
+          result.current.setUserId('test-user-id');
           result.current.selectAnswer('q1', 'opt1');
           result.current.goToNextQuestion();
           result.current.skipQuestion();
@@ -1445,6 +1503,7 @@ describe('useQuizStore', () => {
         const { result } = renderHook(() => useQuizStore());
 
         act(() => {
+          result.current.setUserId('test-user-id');
           result.current.selectAnswer('q1', 'opt1');
         });
 
@@ -1461,6 +1520,113 @@ describe('useQuizStore', () => {
         expect(answer.questionId).toBe('q1');
         expect(answer.answer).toBe('opt1');
         expect(answer.optionId).toBe('opt1');
+      });
+
+      it('should return false when no answer is found for isQuestionAnsweredByUserAnswers', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setBySimulated(mockSimulado);
+        });
+
+        // Test with a questionId that doesn't exist in userAnswers
+        const isAnswered = result.current.isQuestionAnsweredByUserAnswers(
+          'nonexistent-question'
+        );
+        expect(isAnswered).toBe(false);
+      });
+
+      it('should return true when answer exists and is not null for isQuestionAnsweredByUserAnswers', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setUserId('test-user-id');
+          result.current.setBySimulated(mockSimulado);
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        const isAnswered = result.current.isQuestionAnsweredByUserAnswers('q1');
+        expect(isAnswered).toBe(true);
+      });
+
+      it('should return false when answer exists but is null (skipped question) for isQuestionAnsweredByUserAnswers', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setUserId('test-user-id');
+          result.current.setBySimulated(mockSimulado);
+          result.current.skipQuestion(); // This creates an answer with null value
+        });
+
+        const isAnswered = result.current.isQuestionAnsweredByUserAnswers('q1');
+        expect(isAnswered).toBe(false);
+      });
+    });
+  });
+
+  describe('Specific Line Coverage Tests', () => {
+    describe('startTimer isFinished guard', () => {
+      beforeEach(() => {
+        // Clear any existing timers
+        jest.clearAllTimers();
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('should not start timer when quiz is finished', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setBySimulated(mockSimulado);
+          result.current.finishQuiz(); // Set isFinished to true
+          result.current.startTimer(); // Try to start timer
+        });
+
+        // Timer should not be running because quiz is finished
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+
+        expect(result.current.timeElapsed).toBe(0);
+      });
+
+      it('should start timer normally when quiz is not finished', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setBySimulated(mockSimulado);
+          result.current.startTimer(); // Start timer when not finished
+        });
+
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+
+        expect(result.current.timeElapsed).toBe(1);
+      });
+
+      it('should prevent timer from starting after quiz is finished', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setBySimulated(mockSimulado);
+          result.current.startQuiz(); // Start quiz normally
+          jest.advanceTimersByTime(1000);
+        });
+
+        expect(result.current.timeElapsed).toBe(1);
+
+        act(() => {
+          result.current.finishQuiz(); // Finish the quiz
+          result.current.startTimer(); // Try to start timer again
+          jest.advanceTimersByTime(1000);
+        });
+
+        // Time should not increase because timer is blocked by isFinished guard
+        expect(result.current.timeElapsed).toBe(1);
       });
     });
   });

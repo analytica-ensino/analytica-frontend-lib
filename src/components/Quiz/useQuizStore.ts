@@ -151,6 +151,10 @@ export const useQuizStore = create<QuizState>()(
       let timerInterval: ReturnType<typeof setInterval> | null = null;
 
       const startTimer = () => {
+        if (get().isFinished) {
+          return;
+        }
+
         if (timerInterval) {
           clearInterval(timerInterval);
         }
@@ -176,6 +180,7 @@ export const useQuizStore = create<QuizState>()(
         timeElapsed: 0,
         isStarted: false,
         isFinished: false,
+        userId: '',
 
         // Setters
         setBySimulated: (simulado) => set({ bySimulated: simulado }),
@@ -241,6 +246,11 @@ export const useQuizStore = create<QuizState>()(
 
           const activityId = activeQuiz.quiz.id;
           const userId = get().getUserId();
+
+          if (!userId) {
+            console.warn('selectAnswer called before userId is set');
+            return;
+          }
 
           const existingAnswerIndex = userAnswers.findIndex(
             (answer) => answer.questionId === questionId
@@ -359,6 +369,7 @@ export const useQuizStore = create<QuizState>()(
             timeElapsed: 0,
             isStarted: false,
             isFinished: false,
+            userId: '',
           });
         },
 
@@ -540,7 +551,7 @@ export const useQuizStore = create<QuizState>()(
           const answer = userAnswers.find(
             (answer) => answer.questionId === questionId
           );
-          return answer?.answer !== null;
+          return answer ? answer.answer !== null : false;
         },
         getQuestionStatusFromUserAnswers: (questionId) => {
           const { userAnswers } = get();
