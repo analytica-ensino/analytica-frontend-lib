@@ -238,7 +238,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
               'border-b border-text-600 hover:border-primary-600 text-inherit text-xs',
               selectedValue === value
                 ? 'border-b-0 font-bold'
-                : 'border-b-text-600'
+                : 'border-b-primary-200'
             )}
           >
             {children}
