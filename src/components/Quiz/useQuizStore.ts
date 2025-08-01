@@ -1,10 +1,21 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-export enum Difficulty {
+export enum QUESTION_DIFFICULTY {
   FACIL = 'FACIL',
   MEDIO = 'MEDIO',
   DIFICIL = 'DIFICIL',
+}
+
+export enum QUESTION_TYPE {
+  ALTERNATIVA = 'ALTERNATIVA',
+  DISSERTATIVA = 'DISSERTATIVA',
+  MULTIPLA_CHOICE = 'MULTIPLA_CHOICE',
+}
+
+export enum QUESTION_STATUS {
+  APROVADO = 'APROVADO',
+  REPROVADO = 'REPROVADO',
 }
 
 export interface Question {
@@ -12,9 +23,9 @@ export interface Question {
   questionText: string;
   correctOptionId: string;
   description: string;
-  type: 'ALTERNATIVA' | 'DISSERTATIVA' | 'MULTIPLA_CHOICE';
-  status: 'APROVADO' | 'REPROVADO';
-  difficulty: Difficulty;
+  type: QUESTION_TYPE;
+  status: QUESTION_STATUS;
+  difficulty: QUESTION_DIFFICULTY;
   examBoard: string | null;
   examYear: string | null;
   answerKey: string | null;
@@ -53,6 +64,14 @@ interface Aula {
   questions: Question[];
 }
 
+interface UserAnswerItem {
+  questionId: string;
+  activityId: string;
+  userId: string;
+  answer: string | null;
+  optionId: string | null;
+}
+
 interface UserAnswer extends Question {
   isSkipped: boolean;
 }
@@ -66,8 +85,7 @@ interface QuizState {
   // UI State
   currentQuestionIndex: number;
   selectedAnswers: Record<string, string>;
-  skippedQuestions: string[];
-  userAnswers: UserAnswer[];
+  userAnswers: UserAnswerItem[];
   timeElapsed: number;
   isStarted: boolean;
   isFinished: boolean;
@@ -81,6 +99,10 @@ interface QuizState {
   goToNextQuestion: () => void;
   goToPreviousQuestion: () => void;
   goToQuestion: (index: number) => void;
+  getActiveQuiz: () => {
+    quiz: Simulado | Atividade | Aula;
+    type: 'bySimulated' | 'byActivity' | 'byQuestionary';
+  } | null;
 
   // Quiz Actions
   selectAnswer: (questionId: string, answerId: string) => void;
@@ -110,6 +132,14 @@ interface QuizState {
   getUserAnswers: () => UserAnswer[];
   getUnansweredQuestionsFromUserAnswers: () => number[];
   getQuestionsGroupedBySubject: () => { [key: string]: Question[] };
+
+  // New methods for userAnswers
+  getUserAnswerByQuestionId: (questionId: string) => UserAnswerItem | null;
+  isQuestionAnsweredByUserAnswers: (questionId: string) => boolean;
+  getQuestionStatusFromUserAnswers: (
+    questionId: string
+  ) => 'answered' | 'unanswered' | 'skipped';
+  getUserAnswersForActivity: () => UserAnswerItem[];
 }
 
 export const useQuizStore = create<QuizState>()(
@@ -139,7 +169,6 @@ export const useQuizStore = create<QuizState>()(
         // Initial State
         currentQuestionIndex: 0,
         selectedAnswers: {},
-        skippedQuestions: [],
         userAnswers: [],
         timeElapsed: 0,
         isStarted: false,
@@ -177,80 +206,132 @@ export const useQuizStore = create<QuizState>()(
           }
         },
 
-        // Quiz Actions
+        getActiveQuiz: () => {
+          const { bySimulated, byActivity, byQuestionary } = get();
+          if (bySimulated)
+            return { quiz: bySimulated, type: 'bySimulated' as const };
+          if (byActivity)
+            return { quiz: byActivity, type: 'byActivity' as const };
+          if (byQuestionary)
+            return { quiz: byQuestionary, type: 'byQuestionary' as const };
+          return null;
+        },
+
         selectAnswer: (questionId, answerId) => {
-          const { bySimulated, byActivity, byQuestionary, skippedQuestions } =
-            get();
-          const quiz = bySimulated || byActivity || byQuestionary;
+          const { getActiveQuiz, userAnswers } = get();
+          const activeQuiz = getActiveQuiz();
 
-          if (!quiz) return;
+          if (!activeQuiz) return;
 
-          // Update the question's answerKey in the quiz
-          const updatedQuestions = quiz.questions.map((question) =>
+          const updatedQuestions = activeQuiz.quiz.questions.map((question) =>
             question.id === questionId
               ? { ...question, answerKey: answerId }
               : question
           );
 
-          let quizType: 'bySimulated' | 'byActivity' | 'byQuestionary';
-          if (bySimulated) {
-            quizType = 'bySimulated';
-          } else if (byActivity) {
-            quizType = 'byActivity';
+          const updatedQuiz = {
+            ...activeQuiz.quiz,
+            questions: updatedQuestions,
+          };
+
+          const activityId = activeQuiz.quiz.id;
+          const userId = 'user-id';
+
+          const existingAnswerIndex = userAnswers.findIndex(
+            (answer) => answer.questionId === questionId
+          );
+
+          const newUserAnswer: UserAnswerItem = {
+            questionId,
+            activityId,
+            userId,
+            answer: answerId,
+            optionId: answerId,
+          };
+
+          let updatedUserAnswers;
+          if (existingAnswerIndex !== -1) {
+            updatedUserAnswers = [...userAnswers];
+            updatedUserAnswers[existingAnswerIndex] = newUserAnswer;
           } else {
-            quizType = 'byQuestionary';
+            updatedUserAnswers = [...userAnswers, newUserAnswer];
           }
-          const updatedQuiz = { ...quiz, questions: updatedQuestions };
 
           set({
-            [quizType]: updatedQuiz,
-            skippedQuestions: skippedQuestions.filter(
-              (id) => id !== questionId
-            ),
+            [activeQuiz.type]: updatedQuiz,
+            userAnswers: updatedUserAnswers,
           });
         },
 
         skipQuestion: () => {
-          const { getCurrentQuestion, skippedQuestions } = get();
+          const { getCurrentQuestion, userAnswers, getActiveQuiz } = get();
           const currentQuestion = getCurrentQuestion();
+          const activeQuiz = getActiveQuiz();
+
+          if (!activeQuiz) return;
 
           if (currentQuestion) {
+            const activityId = activeQuiz.quiz.id;
+            const userId = 'user-id';
+
+            const existingAnswerIndex = userAnswers.findIndex(
+              (answer) => answer.questionId === currentQuestion.id
+            );
+
+            const newUserAnswer: UserAnswerItem = {
+              questionId: currentQuestion.id,
+              activityId,
+              userId,
+              answer: null,
+              optionId: null,
+            };
+
+            let updatedUserAnswers;
+            if (existingAnswerIndex !== -1) {
+              // Update existing answer
+              updatedUserAnswers = [...userAnswers];
+              updatedUserAnswers[existingAnswerIndex] = newUserAnswer;
+            } else {
+              // Add new answer
+              updatedUserAnswers = [...userAnswers, newUserAnswer];
+            }
+
             set({
-              skippedQuestions: [...skippedQuestions, currentQuestion.id],
+              userAnswers: updatedUserAnswers,
             });
           }
         },
 
         addUserAnswer: (questionId, answerId) => {
-          const { bySimulated, byActivity, byQuestionary } = get();
-          const quiz = bySimulated || byActivity || byQuestionary;
+          const { getActiveQuiz, userAnswers } = get();
+          const activeQuiz = getActiveQuiz();
 
-          if (!quiz) return;
+          if (!activeQuiz) return;
 
-          const question = quiz.questions.find((q) => q.id === questionId);
+          // Add to userAnswers array with new structure
+          const activityId = activeQuiz.quiz.id;
+          const userId = 'user-id'; // This should come from auth context or be passed as parameter
 
-          if (!question) return;
-
-          // Update the question's answerKey in the quiz
-          const updatedQuestions = quiz.questions.map((q) =>
-            q.id === questionId ? { ...q, answerKey: answerId || null } : q
+          const existingAnswerIndex = userAnswers.findIndex(
+            (answer) => answer.questionId === questionId
           );
 
-          // Update the appropriate quiz type
-          if (bySimulated) {
-            set({
-              bySimulated: { ...bySimulated, questions: updatedQuestions },
-            });
-          }
-          if (byActivity) {
-            set({
-              byActivity: { ...byActivity, questions: updatedQuestions },
-            });
-          }
-          if (byQuestionary) {
-            set({
-              byQuestionary: { ...byQuestionary, questions: updatedQuestions },
-            });
+          const newUserAnswer: UserAnswerItem = {
+            questionId,
+            activityId,
+            userId,
+            answer: answerId || null,
+            optionId: answerId || null,
+          };
+
+          if (existingAnswerIndex !== -1) {
+            // Update existing answer
+            const updatedUserAnswers = [...userAnswers];
+            updatedUserAnswers[existingAnswerIndex] = newUserAnswer;
+            set({ userAnswers: updatedUserAnswers });
+          } else {
+            // Add new answer
+            set({ userAnswers: [...userAnswers, newUserAnswer] });
           }
         },
 
@@ -269,7 +350,6 @@ export const useQuizStore = create<QuizState>()(
           set({
             currentQuestionIndex: 0,
             selectedAnswers: {},
-            skippedQuestions: [],
             userAnswers: [],
             timeElapsed: 0,
             isStarted: false,
@@ -284,50 +364,41 @@ export const useQuizStore = create<QuizState>()(
 
         // Getters
         getCurrentQuestion: () => {
-          const {
-            bySimulated,
-            byActivity,
-            byQuestionary,
-            currentQuestionIndex,
-          } = get();
-          const quiz = bySimulated || byActivity || byQuestionary;
+          const { currentQuestionIndex, getActiveQuiz } = get();
+          const activeQuiz = getActiveQuiz();
 
-          if (!quiz) {
+          if (!activeQuiz) {
             return null;
           }
 
-          return quiz.questions[currentQuestionIndex];
+          return activeQuiz.quiz.questions[currentQuestionIndex];
         },
 
         getTotalQuestions: () => {
-          const { bySimulated, byActivity, byQuestionary } = get();
-          const quiz = bySimulated || byActivity || byQuestionary;
+          const { getActiveQuiz } = get();
+          const activeQuiz = getActiveQuiz();
 
-          return quiz?.questions?.length || 0;
+          return activeQuiz?.quiz?.questions?.length || 0;
         },
 
         getAnsweredQuestions: () => {
-          const { bySimulated, byActivity, byQuestionary } = get();
-          const quiz = bySimulated || byActivity || byQuestionary;
-
-          if (!quiz) return 0;
-
-          return quiz.questions.filter(
-            (question) => question.answerKey !== null
-          ).length;
+          const { userAnswers } = get();
+          return userAnswers.filter((answer) => answer.answer !== null).length;
         },
 
         getUnansweredQuestions: () => {
-          const { bySimulated, byActivity, byQuestionary, skippedQuestions } =
-            get();
-          const quiz = bySimulated || byActivity || byQuestionary;
-          if (!quiz) return [];
+          const { getActiveQuiz, userAnswers } = get();
+          const activeQuiz = getActiveQuiz();
+          if (!activeQuiz) return [];
 
           const unansweredQuestions: number[] = [];
 
-          quiz.questions.forEach((question, index) => {
-            const isAnswered = question.answerKey !== null;
-            const isSkipped = skippedQuestions.includes(question.id);
+          activeQuiz.quiz.questions.forEach((question, index) => {
+            const userAnswer = userAnswers.find(
+              (answer) => answer.questionId === question.id
+            );
+            const isAnswered = userAnswer && userAnswer.answer !== null;
+            const isSkipped = userAnswer && userAnswer.answer === null;
 
             if (!isAnswered && !isSkipped) {
               unansweredQuestions.push(index + 1); // index + 1 para mostrar número da questão
@@ -337,8 +408,8 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getSkippedQuestions: () => {
-          const { skippedQuestions } = get();
-          return skippedQuestions.length;
+          const { userAnswers } = get();
+          return userAnswers.filter((answer) => answer.answer === null).length;
         },
 
         getProgress: () => {
@@ -350,32 +421,38 @@ export const useQuizStore = create<QuizState>()(
         },
 
         isQuestionAnswered: (questionId) => {
-          const { bySimulated, byActivity, byQuestionary } = get();
-          const quiz = bySimulated || byActivity || byQuestionary;
-
-          if (!quiz) return false;
-
-          const question = quiz.questions.find((q) => q.id === questionId);
-          return question ? question.answerKey !== null : false;
+          const { userAnswers } = get();
+          const userAnswer = userAnswers.find(
+            (answer) => answer.questionId === questionId
+          );
+          return userAnswer ? userAnswer.answer !== null : false;
         },
 
         isQuestionSkipped: (questionId) => {
-          const { skippedQuestions } = get();
-          return skippedQuestions.includes(questionId);
+          const { userAnswers } = get();
+          const userAnswer = userAnswers.find(
+            (answer) => answer.questionId === questionId
+          );
+          return userAnswer ? userAnswer.answer === null : false;
         },
 
         getCurrentAnswer: () => {
-          const { getCurrentQuestion } = get();
+          const { getCurrentQuestion, userAnswers } = get();
           const currentQuestion = getCurrentQuestion();
 
-          return currentQuestion?.answerKey || undefined;
+          if (!currentQuestion) return undefined;
+
+          const userAnswer = userAnswers.find(
+            (answer) => answer.questionId === currentQuestion.id
+          );
+          return userAnswer?.answer;
         },
 
         getQuizTitle: () => {
-          const { bySimulated, byActivity, byQuestionary } = get();
-          const quiz = bySimulated || byActivity || byQuestionary;
+          const { getActiveQuiz } = get();
+          const activeQuiz = getActiveQuiz();
 
-          return quiz?.title || 'Quiz';
+          return activeQuiz?.quiz?.title || 'Quiz';
         },
 
         formatTime: (seconds: number) => {
@@ -385,29 +462,35 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getUserAnswers: () => {
-          const { bySimulated, byActivity, byQuestionary, skippedQuestions } =
-            get();
-          const quiz = bySimulated || byActivity || byQuestionary;
+          const { getActiveQuiz, userAnswers } = get();
+          const activeQuiz = getActiveQuiz();
 
-          if (!quiz) return [];
+          if (!activeQuiz) return [];
 
-          return quiz.questions.map((question) => ({
-            ...question,
-            isSkipped: skippedQuestions.includes(question.id),
-          }));
+          return activeQuiz.quiz.questions.map((question) => {
+            const userAnswer = userAnswers.find(
+              (answer) => answer.questionId === question.id
+            );
+            return {
+              ...question,
+              isSkipped: userAnswer ? userAnswer.answer === null : false,
+            };
+          });
         },
 
         getUnansweredQuestionsFromUserAnswers: () => {
-          const { bySimulated, byActivity, byQuestionary, skippedQuestions } =
-            get();
-          const quiz = bySimulated || byActivity || byQuestionary;
-          if (!quiz) return [];
+          const { getActiveQuiz, userAnswers } = get();
+          const activeQuiz = getActiveQuiz();
+          if (!activeQuiz) return [];
 
           const unansweredQuestions: number[] = [];
 
-          quiz.questions.forEach((question, index) => {
-            const hasAnswer = question.answerKey !== null;
-            const isSkipped = skippedQuestions.includes(question.id);
+          activeQuiz.quiz.questions.forEach((question, index) => {
+            const userAnswer = userAnswers.find(
+              (answer) => answer.questionId === question.id
+            );
+            const hasAnswer = userAnswer && userAnswer.answer !== null;
+            const isSkipped = userAnswer && userAnswer.answer === null;
 
             // Se não há resposta do usuário OU se a questão foi pulada
             if (!hasAnswer || isSkipped) {
@@ -419,13 +502,13 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getQuestionsGroupedBySubject: () => {
-          const { bySimulated, byActivity, byQuestionary } = get();
-          const quiz = bySimulated || byActivity || byQuestionary;
-          if (!quiz) return {};
+          const { getActiveQuiz } = get();
+          const activeQuiz = getActiveQuiz();
+          if (!activeQuiz) return {};
 
           const groupedQuestions: { [key: string]: Question[] } = {};
 
-          quiz.questions.forEach((question) => {
+          activeQuiz.quiz.questions.forEach((question) => {
             const subjectId =
               question.knowledgeMatrix?.[0]?.subjectId || 'Sem matéria';
 
@@ -437,6 +520,35 @@ export const useQuizStore = create<QuizState>()(
           });
 
           return groupedQuestions;
+        },
+
+        // New methods for userAnswers
+        getUserAnswerByQuestionId: (questionId) => {
+          const { userAnswers } = get();
+          return (
+            userAnswers.find((answer) => answer.questionId === questionId) ||
+            null
+          );
+        },
+        isQuestionAnsweredByUserAnswers: (questionId) => {
+          const { userAnswers } = get();
+          const answer = userAnswers.find(
+            (answer) => answer.questionId === questionId
+          );
+          return answer !== undefined && answer.answer !== null;
+        },
+        getQuestionStatusFromUserAnswers: (questionId) => {
+          const { userAnswers } = get();
+          const answer = userAnswers.find(
+            (answer) => answer.questionId === questionId
+          );
+          if (!answer) return 'unanswered';
+          if (answer.answer === null) return 'skipped';
+          return 'answered';
+        },
+        getUserAnswersForActivity: () => {
+          const { userAnswers } = get();
+          return userAnswers;
         },
       };
     },

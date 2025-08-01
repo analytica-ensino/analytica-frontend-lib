@@ -14,7 +14,7 @@ import {
   QuizListResult,
   QuizListResultByMateria,
 } from './Quiz';
-import { useQuizStore, Difficulty } from './useQuizStore';
+import { useQuizStore, QUESTION_DIFFICULTY } from './useQuizStore';
 import { ReactNode } from 'react';
 
 // Mock the useQuizStore
@@ -218,10 +218,12 @@ jest.mock('../Card/Card', () => ({
   CardStatus: ({
     header,
     status,
+    label,
     onClick,
   }: {
     header: string;
     status?: 'correct' | 'incorrect';
+    label?: string;
     onClick?: () => void;
   }) => (
     <button data-testid="card-status" data-status={status} onClick={onClick}>
@@ -231,7 +233,7 @@ jest.mock('../Card/Card', () => ({
           ? 'Correta'
           : status === 'incorrect'
             ? 'Incorreta'
-            : ''}
+            : label || ''}
       </span>
     </button>
   ),
@@ -291,7 +293,7 @@ const mockQuestion1 = {
   description: 'Basic math question',
   type: 'ALTERNATIVA' as const,
   status: 'APROVADO' as const,
-  difficulty: Difficulty.FACIL,
+  difficulty: QUESTION_DIFFICULTY.FACIL,
   examBoard: 'ENEM',
   examYear: '2024',
   answerKey: null,
@@ -322,7 +324,7 @@ const mockQuestion2 = {
   description: 'Geography question',
   type: 'ALTERNATIVA' as const,
   status: 'APROVADO' as const,
-  difficulty: Difficulty.FACIL,
+  difficulty: QUESTION_DIFFICULTY.FACIL,
   examBoard: 'ENEM',
   examYear: '2024',
   answerKey: null,
@@ -399,6 +401,8 @@ describe('Quiz Component', () => {
       skippedQuestions: [],
       userAnswers: [],
       isFinished: false,
+      // Adiciona a função mockada para evitar erro nos testes
+      getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
     });
 
     // Mock useQuizStore.getState to return the same mock data
@@ -652,6 +656,9 @@ describe('Quiz Component', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
         isQuestionAnswered: jest.fn().mockImplementation((id) => id === 'q1'),
+        getQuestionStatusFromUserAnswers: jest.fn((id) =>
+          id === 'q1' ? 'answered' : 'unanswered'
+        ),
       });
 
       render(<QuizQuestionList filterType="answered" />);
@@ -663,6 +670,9 @@ describe('Quiz Component', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
         isQuestionAnswered: jest.fn().mockImplementation((id) => id === 'q1'),
+        getQuestionStatusFromUserAnswers: jest.fn((id) =>
+          id === 'q2' ? 'unanswered' : 'answered'
+        ),
       });
 
       render(<QuizQuestionList filterType="unanswered" />);
@@ -691,6 +701,37 @@ describe('Quiz Component', () => {
       const cards = screen.getAllByTestId('card-status');
       expect(cards[0]).toHaveTextContent('Questão 01');
       expect(cards[1]).toHaveTextContent('Questão 02');
+    });
+
+    it('should return correct status labels for different question statuses', () => {
+      const mockGetQuestionStatusFromUserAnswers = jest
+        .fn()
+        .mockImplementation((id) => {
+          if (id === 'q1') return 'answered';
+          if (id === 'q2') return 'skipped';
+          return 'unanswered';
+        });
+
+      const mockGetQuestionsGroupedBySubject = jest.fn().mockReturnValue({
+        algebra: [mockQuestion1],
+        'geografia-geral': [mockQuestion2],
+      });
+
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getQuestionStatusFromUserAnswers: mockGetQuestionStatusFromUserAnswers,
+        getQuestionsGroupedBySubject: mockGetQuestionsGroupedBySubject,
+        bySimulated: {
+          id: 'sim1',
+          questions: [mockQuestion1, mockQuestion2],
+        },
+      });
+
+      render(<QuizQuestionList />);
+
+      // Verifica se os labels corretos são exibidos
+      expect(screen.getByText('Respondida')).toBeInTheDocument();
+      expect(screen.getByText('Não respondida')).toBeInTheDocument();
     });
   });
 
@@ -1280,6 +1321,7 @@ describe('Quiz Component', () => {
         ...mockUseQuizStore(),
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion1),
         isQuestionSkipped: jest.fn().mockReturnValue(true),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('skipped'),
         currentQuestionIndex: 1,
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getCurrentAnswer: jest.fn().mockReturnValue(undefined),

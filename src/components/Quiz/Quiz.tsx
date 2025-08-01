@@ -14,7 +14,7 @@ import {
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
 import { forwardRef, ReactNode, useState } from 'react';
-import { Question, useQuizStore, Difficulty } from './useQuizStore';
+import { Question, useQuizStore, QUESTION_DIFFICULTY } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
 import SimulatedResult from '@/assets/img/simulated-result.png';
@@ -218,20 +218,13 @@ const QuizQuestionList = ({
   const {
     getQuestionsGroupedBySubject,
     goToQuestion,
-    isQuestionAnswered,
-    isQuestionSkipped,
+    getQuestionStatusFromUserAnswers,
   } = useQuizStore();
 
   const groupedQuestions = getQuestionsGroupedBySubject();
 
   const getQuestionStatus = (questionId: string) => {
-    if (isQuestionSkipped(questionId)) {
-      return 'skipped';
-    }
-    if (isQuestionAnswered(questionId)) {
-      return 'answered';
-    }
-    return 'unanswered';
+    return getQuestionStatusFromUserAnswers(questionId);
   };
 
   const filteredGroupedQuestions = Object.entries(groupedQuestions).reduce(
@@ -273,7 +266,7 @@ const QuizQuestionList = ({
       case 'answered':
         return 'Respondida';
       case 'skipped':
-        return 'Pulada';
+        return 'Não respondida';
       default:
         return 'Em branco';
     }
@@ -334,7 +327,7 @@ const QuizFooter = forwardRef<
     getCurrentAnswer,
     skipQuestion,
     getCurrentQuestion,
-    isQuestionSkipped,
+    getQuestionStatusFromUserAnswers,
   } = useQuizStore();
 
   const totalQuestions = getTotalQuestions();
@@ -343,7 +336,7 @@ const QuizFooter = forwardRef<
   const currentAnswer = getCurrentAnswer();
   const currentQuestion = getCurrentQuestion();
   const isCurrentQuestionSkipped = currentQuestion
-    ? isQuestionSkipped(currentQuestion.id)
+    ? getQuestionStatusFromUserAnswers(currentQuestion.id) === 'skipped'
     : false;
   const [alertDialogOpen, setAlertDialogOpen] = useState(false);
   const [modalResultOpen, setModalResultOpen] = useState(false);
@@ -610,17 +603,17 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
           correctAnswers++;
         }
 
-        if (question.difficulty === Difficulty.FACIL) {
+        if (question.difficulty === QUESTION_DIFFICULTY.FACIL) {
           totalEasyQuestions++;
           if (isCorrect) {
             correctEasyAnswers++;
           }
-        } else if (question.difficulty === Difficulty.MEDIO) {
+        } else if (question.difficulty === QUESTION_DIFFICULTY.MEDIO) {
           totalMediumQuestions++;
           if (isCorrect) {
             correctMediumAnswers++;
           }
-        } else if (question.difficulty === Difficulty.DIFICIL) {
+        } else if (question.difficulty === QUESTION_DIFFICULTY.DIFICIL) {
           totalDifficultQuestions++;
           if (isCorrect) {
             correctDifficultAnswers++;
