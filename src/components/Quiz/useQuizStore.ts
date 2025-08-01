@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { useAuth } from '../Auth/Auth';
 
 export enum QUESTION_DIFFICULTY {
   FACIL = 'FACIL',
