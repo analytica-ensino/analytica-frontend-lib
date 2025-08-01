@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { useAuth } from '../Auth/Auth';
 
 export enum QUESTION_DIFFICULTY {
   FACIL = 'FACIL',
@@ -89,11 +90,13 @@ interface QuizState {
   timeElapsed: number;
   isStarted: boolean;
   isFinished: boolean;
+  userId: string;
 
   // Actions
   setBySimulated: (simulado: Simulado) => void;
   setByActivity: (atividade: Atividade) => void;
   setByQuestionary: (aula: Aula) => void;
+  setUserId: (userId: string) => void;
 
   // Quiz Navigation
   goToNextQuestion: () => void;
@@ -132,6 +135,7 @@ interface QuizState {
   getUserAnswers: () => UserAnswer[];
   getUnansweredQuestionsFromUserAnswers: () => number[];
   getQuestionsGroupedBySubject: () => { [key: string]: Question[] };
+  getUserId: () => string;
 
   // New methods for userAnswers
   getUserAnswerByQuestionId: (questionId: string) => UserAnswerItem | null;
@@ -178,6 +182,8 @@ export const useQuizStore = create<QuizState>()(
         setBySimulated: (simulado) => set({ bySimulated: simulado }),
         setByActivity: (atividade) => set({ byActivity: atividade }),
         setByQuestionary: (aula) => set({ byQuestionary: aula }),
+        setUserId: (userId) => set({ userId }),
+        getUserId: () => get().userId,
 
         // Navigation
         goToNextQuestion: () => {
@@ -235,7 +241,7 @@ export const useQuizStore = create<QuizState>()(
           };
 
           const activityId = activeQuiz.quiz.id;
-          const userId = 'user-id';
+          const userId = get().getUserId();
 
           const existingAnswerIndex = userAnswers.findIndex(
             (answer) => answer.questionId === questionId
@@ -272,7 +278,7 @@ export const useQuizStore = create<QuizState>()(
 
           if (currentQuestion) {
             const activityId = activeQuiz.quiz.id;
-            const userId = 'user-id';
+            const userId = get().getUserId();
 
             const existingAnswerIndex = userAnswers.findIndex(
               (answer) => answer.questionId === currentQuestion.id
@@ -310,7 +316,7 @@ export const useQuizStore = create<QuizState>()(
 
           // Add to userAnswers array with new structure
           const activityId = activeQuiz.quiz.id;
-          const userId = 'user-id'; // This should come from auth context or be passed as parameter
+          const userId = get().getUserId();
 
           const existingAnswerIndex = userAnswers.findIndex(
             (answer) => answer.questionId === questionId

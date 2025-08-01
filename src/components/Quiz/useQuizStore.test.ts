@@ -140,6 +140,16 @@ describe('useQuizStore', () => {
 
       expect(result.current.byQuestionary).toEqual(mockQuestionary);
     });
+
+    it('should set userId', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+      });
+
+      expect(result.current.userId).toBe('test-user-id');
+    });
   });
 
   describe('Navigation', () => {
