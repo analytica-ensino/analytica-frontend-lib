@@ -1,5 +1,6 @@
 import { HTMLAttributes } from 'react';
 import { CheckCircle, WarningCircle, Info, X } from 'phosphor-react';
+import { cn } from '../../utils/utils';
 
 /**
  * Lookup table for variant and action class combinations
@@ -80,7 +81,12 @@ const Toast = ({
       role="alert"
       aria-live="assertive"
       aria-atomic="true"
-      className={`${baseClasses} ${positionClasses[position]} ${variantClasses} ${className}`}
+      className={cn(
+        baseClasses,
+        positionClasses[position],
+        variantClasses,
+        className
+      )}
       {...props}
     >
       <div className="flex flex-row items-start gap-3">

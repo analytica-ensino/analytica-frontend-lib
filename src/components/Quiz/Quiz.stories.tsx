@@ -367,7 +367,7 @@ export const AllQuizShowcase: Story = () => {
         <Quiz>
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className='!pb-[150px]'>
+          <QuizContent className="!pb-[150px]">
             <QuizAlternative />
           </QuizContent>
           <QuizFooter
@@ -482,7 +482,7 @@ export const QuizAlternativeVariants: Story = () => {
           <QuizHeaderResult />
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className='!pb-[150px]'>
+          <QuizContent className="!pb-[150px]">
             <QuizAlternative variant={'result'} />
           </QuizContent>
           <QuizFooter

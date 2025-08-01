@@ -1,4 +1,5 @@
 import { HTMLAttributes } from 'react';
+import { cn } from '../../utils/utils';
 
 /**
  * Divider component props interface
@@ -41,7 +42,7 @@ const Divider = ({
 
   return (
     <hr
-      className={`${baseClasses} ${orientationClasses[orientation]} ${className}`}
+      className={cn(baseClasses, orientationClasses[orientation], className)}
       aria-orientation={orientation}
       {...props}
     />

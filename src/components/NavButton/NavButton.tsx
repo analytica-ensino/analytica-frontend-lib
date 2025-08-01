@@ -1,4 +1,5 @@
 import { ButtonHTMLAttributes, ReactNode, forwardRef } from 'react';
+import { cn } from '../../utils/utils';
 
 /**
  * NavButton component props interface
@@ -94,7 +95,7 @@ const NavButton = forwardRef<HTMLButtonElement, NavButtonProps>(
       <button
         ref={ref}
         type="button"
-        className={`${allClasses} ${className}`}
+        className={cn(allClasses, className)}
         disabled={disabled}
         aria-pressed={selected}
         {...props}

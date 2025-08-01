@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import Text from '../Text/Text';
+import { cn } from '../../utils/utils';
 
 /**
  * Progress circle size variants
@@ -131,7 +132,12 @@ const ProgressCircle = ({
 
   return (
     <div
-      className={`relative flex flex-col items-center justify-center ${sizeClasses.container} rounded-lg ${className}`}
+      className={cn(
+        'relative flex flex-col items-center justify-center',
+        sizeClasses.container,
+        'rounded-lg',
+        className
+      )}
     >
       {/* Progress circle SVG */}
       <svg
@@ -148,7 +154,7 @@ const ProgressCircle = ({
           r={radius}
           fill="none"
           strokeWidth={sizeClasses.strokeWidth}
-          className={`${variantClasses.background} rounded-lg`}
+          className={cn(variantClasses.background, 'rounded-lg')}
         />
         {/* Progress circle - SVG stroke properties require style for animation */}
         <circle
@@ -160,7 +166,10 @@ const ProgressCircle = ({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
-          className={`${variantClasses.fill} transition-all duration-500 ease-out shadow-soft-shadow-3 rounded-lg`}
+          className={cn(
+            variantClasses.fill,
+            'transition-all duration-500 ease-out shadow-soft-shadow-3 rounded-lg'
+          )}
         />
       </svg>
 
@@ -174,14 +183,22 @@ const ProgressCircle = ({
 
       {/* Content overlay - centered content */}
       <div
-        className={`relative z-10 flex flex-col items-center justify-center ${sizeClasses.spacing} ${sizeClasses.contentWidth}`}
+        className={cn(
+          'relative z-10 flex flex-col items-center justify-center',
+          sizeClasses.spacing,
+          sizeClasses.contentWidth
+        )}
       >
         {/* Percentage text */}
         {showPercentage && (
           <Text
             size={sizeClasses.textSize}
             weight={sizeClasses.textWeight}
-            className={`text-center w-full ${variantClasses.textColor} ${percentageClassName}`}
+            className={cn(
+              'text-center w-full',
+              variantClasses.textColor,
+              percentageClassName
+            )}
           >
             {Math.round(percentage)}%
           </Text>
@@ -193,7 +210,11 @@ const ProgressCircle = ({
             as="span"
             size={sizeClasses.labelSize}
             weight={sizeClasses.labelWeight}
-            className={`${variantClasses.labelColor} text-center uppercase tracking-wide truncate w-full ${size === 'small' ? 'text-[8px] leading-[9px]' : ''} ${labelClassName}`}
+            className={cn(
+              variantClasses.labelColor,
+              'text-center uppercase tracking-wide truncate w-full',
+              labelClassName
+            )}
           >
             {label}
           </Text>

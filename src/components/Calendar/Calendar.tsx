@@ -6,6 +6,7 @@ import {
   MouseEvent,
   RefObject,
 } from 'react';
+import { cn } from '../../utils/utils';
 
 /**
  * Activity status types for calendar days
@@ -334,7 +335,7 @@ const Calendar = ({
   // Navigation variant (compact)
   if (variant === 'navigation') {
     return (
-      <div className={`bg-background rounded-xl pt-6 ${className}`}>
+      <div className={cn('bg-background rounded-xl pt-6', className)}>
         {/* Compact header */}
         <div className="flex items-center justify-between mb-4 px-6">
           <div className="relative" ref={monthPickerContainerRef}>
@@ -486,7 +487,7 @@ const Calendar = ({
 
   // Selection variant (full)
   return (
-    <div className={`bg-background rounded-xl p-4 ${className}`}>
+    <div className={cn('bg-background rounded-xl p-4', className)}>
       {/* Full header */}
       <div className="flex items-center justify-between mb-3.5">
         <div className="relative" ref={monthPickerContainerRef}>

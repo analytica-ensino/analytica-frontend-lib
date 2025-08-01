@@ -26,6 +26,7 @@ import {
   XCircle,
 } from 'phosphor-react';
 import Text from '../Text/Text';
+import { cn } from '../../utils/utils';
 
 // Componente base reutilizável para todos os cards
 interface CardBaseProps extends HTMLAttributes<HTMLDivElement> {
@@ -170,17 +171,24 @@ const CardActivitiesResults = forwardRef<
     return (
       <div
         ref={ref}
-        className={`w-full flex flex-col border border-border-50  bg-background rounded-xl ${className}`}
+        className={cn(
+          'w-full flex flex-col border border-border-50  bg-background rounded-xl',
+          className
+        )}
         {...props}
       >
         <div
-          className={`
-          flex flex-col gap-1 items-center justify-center p-4 
-          ${actionCardClasses}
-          ${extended ? 'rounded-t-xl' : 'rounded-xl'}`}
+          className={cn(
+            'flex flex-col gap-1 items-center justify-center p-4',
+            actionCardClasses,
+            extended ? 'rounded-t-xl' : 'rounded-xl'
+          )}
         >
           <span
-            className={`size-7.5 rounded-full flex items-center justify-center ${actionIconClasses}`}
+            className={cn(
+              'size-7.5 rounded-full flex items-center justify-center',
+              actionIconClasses
+            )}
           >
             {icon}
           </span>
@@ -193,7 +201,9 @@ const CardActivitiesResults = forwardRef<
             {title}
           </Text>
 
-          <p className={`text-lg font-bold truncate ${actionSubTitleClasses}`}>
+          <p
+            className={cn('text-lg font-bold truncate', actionSubTitleClasses)}
+          >
             {subTitle}
           </p>
         </div>
@@ -201,7 +211,10 @@ const CardActivitiesResults = forwardRef<
         {extended && (
           <div className="flex flex-col items-center gap-2.5 pb-9.5 pt-2.5">
             <p
-              className={`text-2xs font-medium uppercase truncate ${actionHeaderClasses}`}
+              className={cn(
+                'text-2xs font-medium uppercase truncate',
+                actionHeaderClasses
+              )}
             >
               {header}
             </p>
@@ -244,7 +257,7 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
         layout="horizontal"
         padding="medium"
         minHeight="medium"
-        className={`justify-between gap-4 ${className}`}
+        className={cn('justify-between gap-4', className)}
         {...props}
       >
         <section className="flex flex-col gap-1 flex-1 min-w-0">
@@ -346,7 +359,9 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
             <Text
               size="xs"
               weight="medium"
-              className={`text-text-950 leading-none tracking-normal text-center flex-none`}
+              className={cn(
+                'text-text-950 leading-none tracking-normal text-center flex-none'
+              )}
             >
               {Math.round(progress)}%
             </Text>
@@ -363,19 +378,17 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
         padding="none"
         minHeight="medium"
         cursor="pointer"
-        className={`${isHorizontal ? 'h-20' : ''} ${className}`}
+        className={cn(isHorizontal ? 'h-20' : '', className)}
         {...props}
       >
         <div
-          className={`
-            flex justify-center items-center [&>svg]:size-6 text-text-950
-            ${
-              isHorizontal
-                ? 'min-w-[80px] min-h-[80px] rounded-l-xl'
-                : 'min-h-[50px] w-full rounded-t-xl'
-            }
-            ${!color.startsWith('#') ? `bg-${color}` : ''}
-          `}
+          className={cn(
+            'flex justify-center items-center [&>svg]:size-6 text-text-950',
+            isHorizontal
+              ? 'min-w-[80px] min-h-[80px] rounded-l-xl'
+              : 'min-h-[50px] w-full rounded-t-xl',
+            !color.startsWith('#') ? `bg-${color}` : ''
+          )}
           style={color.startsWith('#') ? { backgroundColor: color } : undefined}
           data-testid="icon-container"
         >
@@ -383,10 +396,10 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
         </div>
 
         <div
-          className={`
-            p-4 flex flex-col justify-between w-full h-full
-            ${!isHorizontal && 'gap-4'}
-          `}
+          className={cn(
+            'p-4 flex flex-col justify-between w-full h-full',
+            !isHorizontal && 'gap-4'
+          )}
         >
           <Text size="sm" weight="bold" className="text-text-950 truncate">
             {header}
@@ -426,7 +439,7 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
         padding="small"
         minHeight="medium"
         cursor="pointer"
-        className={`justify-center gap-2  py-2 px-4 ${className}`}
+        className={cn('justify-center gap-2  py-2 px-4', className)}
         {...props}
       >
         {subHead && (
@@ -453,7 +466,9 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
             <Text
               size="xs"
               weight="medium"
-              className={`text-text-950 leading-none tracking-normal text-center flex-none`}
+              className={cn(
+                'text-text-950 leading-none tracking-normal text-center flex-none'
+              )}
             >
               {Math.round(progress)}%
             </Text>
@@ -499,7 +514,10 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
         layout="horizontal"
         padding="medium"
         minHeight="none"
-        className={`justify-between gap-2 ${actionVariant == 'caret' ? 'cursor-pointer' : ''} ${className}`}
+        className={cn(
+          actionVariant == 'caret' ? 'cursor-pointer' : '',
+          className
+        )}
         onClick={() => actionVariant == 'caret' && onClickButton?.(valueButton)}
         {...props}
       >
@@ -575,13 +593,13 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
         layout="horizontal"
         padding="none"
         minHeight="medium"
-        className={`items-center cursor-pointer pr-4 ${className}`}
+        className={cn('items-center cursor-pointer pr-4', className)}
         {...props}
       >
         <div
-          className={`
-              flex justify-center items-center [&>svg]:size-8 text-text-950 min-w-20 max-w-20 min-h-20 h-full rounded-l-xl
-            `}
+          className={cn(
+            'flex justify-center items-center [&>svg]:size-8 text-text-950 min-w-20 max-w-20 min-h-20 h-full rounded-l-xl'
+          )}
           style={{
             backgroundColor: color,
           }}
@@ -590,10 +608,10 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
         </div>
 
         <div
-          className={`
-            p-4 flex justify-between w-full h-full
-            ${isRow ? 'flex-row items-center gap-2' : 'flex-col'}
-          `}
+          className={cn(
+            'p-4 flex justify-between w-full h-full',
+            isRow ? 'flex-row items-center gap-2' : 'flex-col'
+          )}
         >
           <p className="text-sm font-bold text-text-950 truncate flex-1 min-w-0">
             {header}
@@ -639,7 +657,7 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
         layout="horizontal"
         padding="medium"
         minHeight="medium"
-        className={`items-center cursor-pointer ${className}`}
+        className={cn('items-center cursor-pointer', className)}
         {...props}
       >
         <div className="flex justify-between w-full h-full flex-row items-center gap-2">
@@ -679,7 +697,10 @@ const CardSettings = forwardRef<HTMLDivElement, CardSettingsProps>(
         layout="horizontal"
         padding="small"
         minHeight="none"
-        className={`border-none items-center gap-2 text-text-700 ${className}`}
+        className={cn(
+          'border-none items-center gap-2 text-text-700',
+          className
+        )}
         {...props}
       >
         <span className="[&>svg]:size-6">{icon}</span>
@@ -706,13 +727,17 @@ const CardSupport = forwardRef<HTMLDivElement, CardSupportProps>(
         layout="horizontal"
         padding="medium"
         minHeight="none"
-        className={`border-none items-center gap-2 text-text-700 ${className}`}
+        className={cn(
+          'border-none items-center gap-2 text-text-700',
+          className
+        )}
         {...props}
       >
         <div
-          className={`
-              w-full flex ${direction == 'col' ? 'flex-col' : 'flex-row items-center'}  gap-2
-          `}
+          className={cn(
+            'w-full flex',
+            direction == 'col' ? 'flex-col' : 'flex-row items-center'
+          )}
         >
           <span className="w-full min-w-0">
             <p className="text-sm text-text-950 font-bold truncate">{header}</p>
@@ -762,7 +787,7 @@ const CardForum = forwardRef<HTMLDivElement, CardForumProps>(
         padding="medium"
         minHeight="none"
         variant="minimal"
-        className={`w-auto h-auto gap-3 ${className}`}
+        className={cn('w-auto h-auto gap-3', className)}
         {...props}
       >
         <button
@@ -921,7 +946,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
         layout="horizontal"
         padding="medium"
         minHeight="none"
-        className={`w-auto h-14 items-center gap-2 ${className}`}
+        className={cn('w-auto h-14 items-center gap-2', className)}
         {...props}
       >
         {/* Audio element */}
@@ -1110,7 +1135,10 @@ const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
         padding="medium"
         minHeight="none"
         cursor="pointer"
-        className={`${backgroundClass} hover:shadow-soft-shadow-2 transition-shadow duration-200 ${className}`}
+        className={cn(
+          `${backgroundClass} hover:shadow-soft-shadow-2 transition-shadow duration-200`,
+          className
+        )}
         {...props}
       >
         <div className="flex justify-between items-center w-full gap-4">
@@ -1203,7 +1231,9 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
         <button
           ref={ref as Ref<HTMLButtonElement>}
           type="button"
-          className={`${baseClasses} ${interactiveClasses} ${selectedClasses} ${className}`.trim()}
+          className={cn(
+            `${baseClasses} ${interactiveClasses} ${selectedClasses} ${className}`.trim()
+          )}
           onClick={handleClick}
           onKeyDown={handleKeyDown}
           aria-pressed={selected}
@@ -1246,7 +1276,7 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
     return (
       <div
         ref={ref as Ref<HTMLDivElement>}
-        className={`${baseClasses} ${className}`.trim()}
+        className={cn(`${baseClasses} ${className}`.trim())}
         {...(props as HTMLAttributes<HTMLDivElement>)}
       >
         <div className="flex flex-col justify-between gap-[27px] flex-grow min-h-[67px] w-full min-w-0">
@@ -1331,7 +1361,7 @@ const CardSimulationHistory = forwardRef<
   return (
     <div
       ref={ref}
-      className={`w-full max-w-[992px] h-auto ${className}`}
+      className={cn('w-full max-w-[992px] h-auto', className)}
       {...props}
     >
       {/* Content */}
@@ -1340,10 +1370,10 @@ const CardSimulationHistory = forwardRef<
           <div key={section.date} className="flex flex-col">
             {/* Seção com data */}
             <div
-              className={`
-                  flex flex-row justify-center items-start px-4 py-6 gap-2 w-full bg-white
-                  ${sectionIndex === 0 ? 'rounded-t-3xl' : ''}
-                `}
+              className={cn(
+                'flex flex-row justify-center items-start px-4 py-6 gap-2 w-full bg-white',
+                sectionIndex === 0 ? 'rounded-t-3xl' : ''
+              )}
             >
               <Text
                 size="xs"
@@ -1364,10 +1394,10 @@ const CardSimulationHistory = forwardRef<
                       padding="medium"
                       minHeight="none"
                       cursor="pointer"
-                      className={`
-                          ${typeStyles.background} rounded-xl hover:shadow-soft-shadow-2 
-                          transition-shadow duration-200 h-auto min-h-[61px]
-                        `}
+                      className={cn(
+                        `${typeStyles.background} rounded-xl hover:shadow-soft-shadow-2 
+                          transition-shadow duration-200 h-auto min-h-[61px]`
+                      )}
                       onClick={() => onSimulationClick?.(simulation)}
                     >
                       <div className="flex justify-between items-center w-full gap-2">

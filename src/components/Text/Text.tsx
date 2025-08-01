@@ -1,4 +1,5 @@
 import { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react';
+import { cn } from '../../utils/utils';
 
 /**
  * Base text component props
@@ -121,7 +122,7 @@ const Text = <T extends ElementType = 'p'>({
 
   return (
     <Component
-      className={`${baseClasses} ${sizeClasses} ${weightClasses} ${color} ${className}`}
+      className={cn(baseClasses, sizeClasses, weightClasses, color, className)}
       {...props}
     >
       {children}

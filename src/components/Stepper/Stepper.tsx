@@ -1,6 +1,6 @@
-// ReactNode removed as it's not used in this component
 import Text from '../Text/Text';
 import { Check } from 'phosphor-react';
+import { cn } from '../../utils/utils';
 
 /**
  * Stepper size variants
@@ -202,7 +202,10 @@ export const Step = ({
               size={sizeClasses.indicatorTextSize as '2xs' | 'xs' | 'sm'}
               weight="medium"
               color=""
-              className={`${stateClasses.indicatorText} leading-none text-2xs sm:text-xs`}
+              className={cn(
+                stateClasses.indicatorText,
+                'leading-none text-2xs sm:text-xs'
+              )}
             >
               {stepNumber}
             </Text>
@@ -214,13 +217,10 @@ export const Step = ({
           size={sizeClasses.labelTextSize as '2xs' | 'xs' | 'sm' | 'md'}
           weight="medium"
           color=""
-          className={`
-            ${stateClasses.label} leading-tight flex-none
-            text-center sm:text-left break-words
-            px-1 sm:px-0 max-w-full
-            text-2xs sm:text-xs md:text-xs lg:text-sm
-            whitespace-normal
-          `}
+          className={cn(
+            stateClasses.label,
+            'leading-tight flex-none text-center sm:text-left break-words px-1 sm:px-0 max-w-full text-2xs sm:text-xs md:text-xs lg:text-sm whitespace-normal'
+          )}
         >
           {step.label}
         </Text>
@@ -333,7 +333,11 @@ const Stepper = ({
 
   return (
     <fieldset
-      className={`flex flex-col gap-4 sm:gap-5 md:gap-6 ${className} border-0 p-0 m-0`}
+      className={cn(
+        'flex flex-col gap-4 sm:gap-5 md:gap-6',
+        className,
+        'border-0 p-0 m-0'
+      )}
     >
       <legend className="absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0">
         Stepper de formulário
@@ -351,18 +355,14 @@ const Stepper = ({
 
       {/* Stepper container - Fully responsive for all devices with horizontal scroll only */}
       <div
-        className={`
-          flex items-center
-          ${sizeClasses.container}
-          ${
-            responsive
-              ? 'flex-row overflow-x-auto overflow-y-hidden scrollbar-hide justify-start sm:justify-center md:justify-center lg:justify-center'
-              : 'flex-row justify-center'
-          }
-          px-2 sm:px-4 md:px-6 lg:px-0
-          max-w-full min-w-0
-          gap-2 sm:gap-3 md:gap-4 lg:gap-4
-        `}
+        className={cn(
+          'flex items-center',
+          sizeClasses.container,
+          responsive
+            ? 'flex-row overflow-x-auto overflow-y-hidden scrollbar-hide justify-start sm:justify-center md:justify-center lg:justify-center'
+            : 'flex-row justify-center',
+          'px-2 sm:px-4 md:px-6 lg:px-0 max-w-full min-w-0 gap-2 sm:gap-3 md:gap-4 lg:gap-4'
+        )}
         role="tablist"
         aria-label="Progress steps"
       >

@@ -6,6 +6,7 @@ import {
   KeyboardEvent,
 } from 'react';
 import Button from '../Button/Button';
+import { cn } from '../../utils/utils';
 
 /**
  * Lookup table for size classes
@@ -134,7 +135,11 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
             {/* Alert Dialog Content */}
             <div
               ref={ref}
-              className={`bg-background border border-border-100 rounded-lg shadow-lg p-6 m-3 ${sizeClasses} ${className}`}
+              className={cn(
+                'bg-background border border-border-100 rounded-lg shadow-lg p-6 m-3',
+                sizeClasses,
+                className
+              )}
               {...props}
             >
               <h2

@@ -16,6 +16,7 @@ import {
 } from 'react';
 import { create, StoreApi, useStore } from 'zustand';
 import Button from '../Button/Button';
+import { cn } from '../../utils/utils';
 
 interface DropdownStore {
   open: boolean;
@@ -190,7 +191,7 @@ const DropdownMenuTrigger = ({
         if (onClick) onClick(e);
       }}
       aria-expanded={open}
-      className={`${className}`}
+      className={cn(className)}
       {...props}
     >
       {children}
@@ -232,7 +233,7 @@ const MenuLabel = forwardRef<
   return (
     <div
       ref={ref}
-      className={`text-sm w-full ${inset ? 'pl-8' : ''} ${className ?? ''}`}
+      className={cn('text-sm w-full', inset ? 'pl-8' : '', className)}
       {...props}
     />
   );
@@ -404,7 +405,7 @@ const DropdownMenuSeparator = forwardRef<
 >(({ className, store: _store, ...props }, ref) => (
   <div
     ref={ref}
-    className={`my-1 h-px bg-border-200 ${className}`}
+    className={cn('my-1 h-px bg-border-200', className)}
     {...props}
   />
 ));
@@ -422,7 +423,10 @@ const ProfileMenuTrigger = forwardRef<
   return (
     <button
       ref={ref}
-      className={`rounded-lg size-10 bg-primary-50 flex items-center justify-center cursor-pointer ${className}`}
+      className={cn(
+        'rounded-lg size-10 bg-primary-50 flex items-center justify-center cursor-pointer',
+        className
+      )}
       onClick={(e) => {
         e.stopPropagation();
         toggleOpen();
@@ -451,10 +455,7 @@ const ProfileMenuHeader = forwardRef<
     <div
       ref={ref}
       data-component="ProfileMenuHeader"
-      className={`
-          flex flex-row gap-4 items-center
-          ${className}
-        `}
+      className={cn('flex flex-row gap-4 items-center', className)}
       {...props}
     >
       <span className="size-16 bg-primary-100 rounded-full flex items-center justify-center">
@@ -474,14 +475,7 @@ const ProfileMenuSection = forwardRef<
   HTMLAttributes<HTMLDivElement> & { store?: DropdownStoreApi }
 >(({ className, children, store: _store, ...props }, ref) => {
   return (
-    <div
-      ref={ref}
-      className={`
-          flex flex-col p-2
-          ${className}
-        `}
-      {...props}
-    >
+    <div ref={ref} className={cn('flex flex-col p-2', className)} {...props}>
       {children}
     </div>
   );
@@ -504,7 +498,7 @@ const ProfileMenuFooter = ({
   return (
     <Button
       variant="outline"
-      className={`w-full ${className}`}
+      className={cn('w-full', className)}
       disabled={disabled}
       onClick={(e) => {
         setOpen(false);

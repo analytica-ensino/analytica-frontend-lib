@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import Text from '../Text/Text';
+import { cn } from '../../utils/utils';
 
 /**
  * Progress bar size variants
@@ -329,7 +330,10 @@ const renderStackedHitCountDisplay = (
 
   return (
     <div
-      className={`text-xs font-medium leading-[14px] text-right ${percentageClassName}`}
+      className={cn(
+        'text-xs font-medium leading-[14px] text-right',
+        percentageClassName
+      )}
     >
       {displayPriority.type === 'hitCount' ? (
         <>
@@ -366,7 +370,11 @@ const ProgressBarBase = ({
   fillClassName: string;
 }) => (
   <div
-    className={`${containerClassName} ${variantClasses.background} overflow-hidden relative`}
+    className={cn(
+      containerClassName,
+      variantClasses.background,
+      'overflow-hidden relative'
+    )}
   >
     <progress
       value={clampedValue}
@@ -379,7 +387,11 @@ const ProgressBarBase = ({
       className="absolute inset-0 w-full h-full opacity-0"
     />
     <div
-      className={`${fillClassName} ${variantClasses.fill} transition-all duration-300 ease-out`}
+      className={cn(
+        fillClassName,
+        variantClasses.fill,
+        'transition-all duration-300 ease-out'
+      )}
       style={{ width: `${percentage}%` }}
     />
   </div>
@@ -402,7 +414,12 @@ const StackedLayout = ({
   dimensions,
 }: StackedLayoutProps) => (
   <div
-    className={`flex flex-col items-start gap-2 ${dimensions.width} ${dimensions.height} ${className}`}
+    className={cn(
+      'flex flex-col items-start gap-2',
+      dimensions.width,
+      dimensions.height,
+      className
+    )}
   >
     {shouldShowHeader(label, showPercentage, showHitCount) && (
       <div className="flex flex-row justify-between items-center w-full h-[19px]">
@@ -411,7 +428,7 @@ const StackedLayout = ({
             as="div"
             size="md"
             weight="medium"
-            className={`text-text-600 leading-[19px] ${labelClassName}`}
+            className={cn('text-text-600 leading-[19px]', labelClassName)}
           >
             {label}
           </Text>
@@ -473,7 +490,12 @@ const CompactLayout = ({
 
   return (
     <div
-      className={`flex flex-col items-start gap-1 ${dimensions.width} ${dimensions.height} ${className}`}
+      className={cn(
+        'flex flex-col items-start gap-1',
+        dimensions.width,
+        dimensions.height,
+        className
+      )}
     >
       {shouldShowHeader(label, showPercentage, showHitCount) && (
         <Text
@@ -481,7 +503,7 @@ const CompactLayout = ({
           size="sm"
           weight="medium"
           color={color}
-          className={`leading-4 w-full ${compactClassName}`}
+          className={cn('leading-4 w-full', compactClassName)}
         >
           {content}
         </Text>
@@ -525,7 +547,7 @@ const DefaultLayout = ({
   );
 
   return (
-    <div className={`flex ${sizeClasses.layout} ${gapClass} ${className}`}>
+    <div className={cn('flex', sizeClasses.layout, gapClass, className)}>
       {displayConfig.showHeader && (
         <div className="flex flex-row items-center justify-between w-full">
           {label && (
@@ -533,7 +555,10 @@ const DefaultLayout = ({
               as="div"
               size="xs"
               weight="medium"
-              className={`text-text-950 leading-none tracking-normal text-center ${labelClassName}`}
+              className={cn(
+                'text-text-950 leading-none tracking-normal text-center',
+                labelClassName
+              )}
             >
               {label}
             </Text>
@@ -543,7 +568,10 @@ const DefaultLayout = ({
             <Text
               size="xs"
               weight="medium"
-              className={`text-text-950 leading-none tracking-normal text-center ${percentageClassName}`}
+              className={cn(
+                'text-text-950 leading-none tracking-normal text-center',
+                percentageClassName
+              )}
             >
               {Math.round(percentage)}%
             </Text>
@@ -557,15 +585,26 @@ const DefaultLayout = ({
         percentage={percentage}
         label={label}
         variantClasses={variantClasses}
-        containerClassName={`${progressBarClass} ${sizeClasses.container} ${sizeClasses.borderRadius}`}
-        fillClassName={`${sizeClasses.bar} ${sizeClasses.borderRadius} shadow-hard-shadow-3`}
+        containerClassName={cn(
+          progressBarClass,
+          sizeClasses.container,
+          sizeClasses.borderRadius
+        )}
+        fillClassName={cn(
+          sizeClasses.bar,
+          sizeClasses.borderRadius,
+          'shadow-hard-shadow-3'
+        )}
       />
 
       {displayConfig.showPercentage && (
         <Text
           size="xs"
           weight="medium"
-          className={`text-text-950 leading-none tracking-normal text-center flex-none ${percentageClassName}`}
+          className={cn(
+            'text-text-950 leading-none tracking-normal text-center flex-none',
+            percentageClassName
+          )}
         >
           {Math.round(percentage)}%
         </Text>
@@ -576,7 +615,10 @@ const DefaultLayout = ({
           as="div"
           size="xs"
           weight="medium"
-          className={`text-text-950 leading-none tracking-normal text-center flex-none ${labelClassName}`}
+          className={cn(
+            'text-text-950 leading-none tracking-normal text-center flex-none',
+            labelClassName
+          )}
         >
           {label}
         </Text>

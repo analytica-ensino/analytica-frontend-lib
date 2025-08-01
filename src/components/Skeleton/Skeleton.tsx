@@ -1,4 +1,5 @@
 import { forwardRef, HTMLAttributes, CSSProperties } from 'react';
+import { cn } from '../../utils/utils';
 
 interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
   variant?: 'text' | 'circular' | 'rectangular' | 'rounded';
@@ -57,13 +58,13 @@ const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(
       return (
         <div
           ref={ref}
-          className={`flex flex-col ${spacingClass} ${className}`}
+          className={cn('flex flex-col', spacingClass, className)}
           {...props}
         >
           {Array.from({ length: lines }, (_, index) => (
             <div
               key={index}
-              className={`${variantClass} ${animationClass}`}
+              className={cn(variantClass, animationClass)}
               style={index === lines - 1 ? { width: '60%' } : undefined}
             />
           ))}
@@ -75,7 +76,7 @@ const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(
     return (
       <div
         ref={ref}
-        className={`${variantClass} ${animationClass} ${className}`}
+        className={cn(variantClass, animationClass, className)}
         style={style}
         {...props}
       >
@@ -130,7 +131,10 @@ const SkeletonCard = forwardRef<HTMLDivElement, SkeletonCardProps>(
     return (
       <div
         ref={ref}
-        className={`w-full p-4 bg-background border border-border-200 rounded-lg ${className}`}
+        className={cn(
+          'w-full p-4 bg-background border border-border-200 rounded-lg',
+          className
+        )}
         {...props}
       >
         <div className="flex items-start space-x-3">
@@ -177,7 +181,7 @@ const SkeletonList = forwardRef<HTMLDivElement, SkeletonListProps>(
     ref
   ) => {
     return (
-      <div ref={ref} className={`space-y-3 ${className}`} {...props}>
+      <div ref={ref} className={cn('space-y-3', className)} {...props}>
         {Array.from({ length: items }, (_, index) => (
           <div key={index} className="flex items-start space-x-3 p-3">
             {showAvatar && <SkeletonCircle width={32} height={32} />}
@@ -209,7 +213,7 @@ const SkeletonTable = forwardRef<HTMLDivElement, SkeletonTableProps>(
     ref
   ) => {
     return (
-      <div ref={ref} className={`w-full ${className}`} {...props}>
+      <div ref={ref} className={cn('w-full', className)} {...props}>
         {showHeader && (
           <div className="flex space-x-2 mb-3">
             {Array.from({ length: columns }, (_, index) => (

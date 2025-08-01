@@ -27,6 +27,7 @@ import Select, {
 import { CardResults, CardStatus } from '../Card/Card';
 import ProgressCircle from '../ProgressCircle/ProgressCircle';
 import ProgressBar from '../ProgressBar/ProgressBar';
+import { cn } from '../../utils/utils';
 
 const Quiz = forwardRef<
   HTMLDivElement,
@@ -35,7 +36,10 @@ const Quiz = forwardRef<
   return (
     <div
       ref={ref}
-      className={`w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6 ${className}`}
+      className={cn(
+        'w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6',
+        className
+      )}
       {...props}
     >
       {children}
@@ -55,9 +59,11 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
     return (
       <div
         ref={ref}
-        className={`flex flex-row items-center gap-10 p-3.5 rounded-xl ${
-          isCorrect ? 'bg-success-background' : 'bg-error-background'
-        } ${className}`}
+        className={cn(
+          'flex flex-row items-center gap-10 p-3.5 rounded-xl',
+          isCorrect ? 'bg-success-background' : 'bg-error-background',
+          className
+        )}
         {...props}
       >
         <p className="text-text-950 font-bold text-lg">Resultado</p>
@@ -86,7 +92,10 @@ const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
     return (
       <div
         ref={ref}
-        className={`flex flex-row justify-center items-center relative p-2 ${className}`}
+        className={cn(
+          'flex flex-row justify-center items-center relative p-2',
+          className
+        )}
         {...props}
       >
         <span className="flex flex-col gap-2 text-center">
@@ -137,7 +146,10 @@ const QuizContent = forwardRef<
 
       <div
         ref={ref}
-        className={`rounded-t-xl px-4 pt-4 pb-[80px] h-full flex flex-col gap-4 mb-auto ${className}`}
+        className={cn(
+          'rounded-t-xl px-4 pt-4 pb-[80px] h-full flex flex-col gap-4 mb-auto',
+          className
+        )}
         {...props}
       >
         {children}
@@ -350,7 +362,10 @@ const QuizFooter = forwardRef<
     <>
       <footer
         ref={ref}
-        className={`w-full px-2 bg-background lg:max-w-[1000px] not-lg:max-w-[calc(100vw-32px)] border-t border-border-50 fixed bottom-0 min-h-[80px] flex flex-row justify-between items-center ${className}`}
+        className={cn(
+          'w-full px-2 bg-background lg:max-w-[1000px] not-lg:max-w-[calc(100vw-32px)] border-t border-border-50 fixed bottom-0 min-h-[80px] flex flex-row justify-between items-center',
+          className
+        )}
         {...props}
       >
         <div className="flex flex-row items-center gap-1">
@@ -541,7 +556,7 @@ const QuizResultHeaderTitle = forwardRef<
   return (
     <div
       ref={ref}
-      className={`flex flex-row pt-4 justify-between ${className}`}
+      className={cn('flex flex-row pt-4 justify-between', className)}
       {...props}
     >
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
@@ -563,7 +578,7 @@ const QuizResultTitle = forwardRef<
 
   return (
     <p
-      className={`pt-6 pb-4 text-text-950 font-bold text-lg ${className}`}
+      className={cn('pt-6 pb-4 text-text-950 font-bold text-lg', className)}
       ref={ref}
       {...props}
     >

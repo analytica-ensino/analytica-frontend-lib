@@ -2,6 +2,7 @@ import { CheckCircle, XCircle } from 'phosphor-react';
 import Badge from '../Badge/Badge';
 import { RadioGroup, RadioGroupItem } from '../Radio/Radio';
 import { forwardRef, HTMLAttributes, useId, useState } from 'react';
+import { cn } from '../../utils/utils';
 
 /**
  * Interface para definir uma alternativa
@@ -178,16 +179,23 @@ const AlternativesList = ({
       return (
         <div
           key={alternativeId}
-          className={`border-2 rounded-lg p-4 w-full ${statusStyles} ${
+          className={cn(
+            'border-2 rounded-lg p-4 w-full',
+            statusStyles,
             alternative.disabled ? 'opacity-50' : ''
-          }`}
+          )}
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3 flex-1">
               <div className="mt-1">{renderRadio()}</div>
               <div className="flex-1">
                 <p
-                  className={`block font-medium ${selectedValue === alternative.value || statusBadge ? 'text-text-950' : 'text-text-600'}`}
+                  className={cn(
+                    'block font-medium',
+                    selectedValue === alternative.value || statusBadge
+                      ? 'text-text-950'
+                      : 'text-text-600'
+                  )}
                 >
                   {alternative.label}
                 </p>
@@ -207,14 +215,21 @@ const AlternativesList = ({
     return (
       <div
         key={alternativeId}
-        className={`flex flex-row justify-between items-start gap-2 p-2 rounded-lg w-full ${statusStyles} ${
+        className={cn(
+          'flex flex-row justify-between items-start gap-2 p-2 rounded-lg w-full',
+          statusStyles,
           alternative.disabled ? 'opacity-50' : ''
-        }`}
+        )}
       >
         <div className="flex items-center gap-2 flex-1">
           {renderRadio()}
           <span
-            className={`flex-1 ${selectedValue === alternative.value || statusBadge ? 'text-text-950' : 'text-text-600'}`}
+            className={cn(
+              'flex-1',
+              selectedValue === alternative.value || statusBadge
+                ? 'text-text-950'
+                : 'text-text-600'
+            )}
           >
             {alternative.label}
           </span>
@@ -228,7 +243,7 @@ const AlternativesList = ({
   if (isReadonly) {
     return (
       <div
-        className={`flex flex-col ${getLayoutClasses()} w-full ${className}`}
+        className={cn('flex flex-col', getLayoutClasses(), 'w-full', className)}
       >
         {alternatives.map((alternative) =>
           renderReadonlyAlternative(alternative)
@@ -247,7 +262,7 @@ const AlternativesList = ({
         onValueChange?.(value);
       }}
       disabled={disabled}
-      className={`flex flex-col ${getLayoutClasses()} ${className}`}
+      className={cn('flex flex-col', getLayoutClasses(), className)}
     >
       {alternatives.map((alternative, index) => {
         const alternativeId = alternative.value || `alt-${index}`;
@@ -258,11 +273,13 @@ const AlternativesList = ({
           return (
             <div
               key={alternativeId}
-              className={`border-2 rounded-lg p-4 transition-all ${statusStyles} ${
+              className={cn(
+                'border-2 rounded-lg p-4 transition-all',
+                statusStyles,
                 alternative.disabled
                   ? 'opacity-50 cursor-not-allowed'
                   : 'cursor-pointer'
-              }`}
+              )}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 flex-1">
@@ -275,13 +292,15 @@ const AlternativesList = ({
                   <div className="flex-1">
                     <label
                       htmlFor={alternativeId}
-                      className={`block font-medium
-                        ${actualValue === alternative.value ? 'text-text-950' : 'text-text-600'}
-                        ${
-                          alternative.disabled
-                            ? 'cursor-not-allowed'
-                            : 'cursor-pointer'
-                        }`}
+                      className={cn(
+                        'block font-medium',
+                        actualValue === alternative.value
+                          ? 'text-text-950'
+                          : 'text-text-600',
+                        alternative.disabled
+                          ? 'cursor-not-allowed'
+                          : 'cursor-pointer'
+                      )}
                     >
                       {alternative.label}
                     </label>
@@ -303,9 +322,11 @@ const AlternativesList = ({
         return (
           <div
             key={alternativeId}
-            className={`flex flex-row justify-between gap-2 items-start p-2 rounded-lg transition-all ${statusStyles} ${
+            className={cn(
+              'flex flex-row justify-between gap-2 items-start p-2 rounded-lg transition-all',
+              statusStyles,
               alternative.disabled ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+            )}
           >
             <div className="flex items-center gap-2 flex-1">
               <RadioGroupItem
@@ -315,13 +336,13 @@ const AlternativesList = ({
               />
               <label
                 htmlFor={alternativeId}
-                className={`flex-1
-                  ${actualValue === alternative.value ? 'text-text-950' : 'text-text-600'}
-                  ${
-                    alternative.disabled
-                      ? 'cursor-not-allowed'
-                      : 'cursor-pointer'
-                  }`}
+                className={cn(
+                  'flex-1',
+                  actualValue === alternative.value
+                    ? 'text-text-950'
+                    : 'text-text-600',
+                  alternative.disabled ? 'cursor-not-allowed' : 'cursor-pointer'
+                )}
               >
                 {alternative.label}
               </label>
@@ -345,7 +366,10 @@ const HeaderAlternative = forwardRef<HTMLDivElement, HeaderAlternativeProps>(
     return (
       <div
         ref={ref}
-        className={`bg-background p-4 flex flex-col gap-4 rounded-xl ${className}`}
+        className={cn(
+          'bg-background p-4 flex flex-col gap-4 rounded-xl',
+          className
+        )}
         {...props}
       >
         <span className="flex flex-col">
