@@ -4,6 +4,7 @@ import {
   Clock,
   SquaresFour,
   BookOpen,
+  Book,
 } from 'phosphor-react';
 import Badge from '../Badge/Badge';
 import {
@@ -13,7 +14,7 @@ import {
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
 import { forwardRef, ReactNode, useState } from 'react';
-import { useQuizStore } from './useQuizStore';
+import { Question, useQuizStore, QUESTION_DIFFICULTY } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
 import SimulatedResult from '@/assets/img/simulated-result.png';
@@ -23,7 +24,9 @@ import Select, {
   SelectTrigger,
   SelectValue,
 } from '../Select/Select';
-import { CardStatus } from '../Card/Card';
+import { CardResults, CardStatus } from '../Card/Card';
+import ProgressCircle from '../ProgressCircle/ProgressCircle';
+import ProgressBar from '../ProgressBar/ProgressBar';
 
 const Quiz = forwardRef<
   HTMLDivElement,
@@ -39,6 +42,32 @@ const Quiz = forwardRef<
     </div>
   );
 });
+
+const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
+  ({ className, ...props }, ref) => {
+    const { getCurrentQuestion, getCurrentAnswer } = useQuizStore();
+    const currentQuestion = getCurrentQuestion();
+    const userAnswer = getCurrentAnswer();
+
+    // Verifica se o usuário acertou comparando sua resposta com a resposta correta
+    const isCorrect = userAnswer === currentQuestion?.correctOptionId;
+
+    return (
+      <div
+        ref={ref}
+        className={`flex flex-row items-center gap-10 p-3.5 rounded-xl ${
+          isCorrect ? 'bg-success-background' : 'bg-error-background'
+        } ${className}`}
+        {...props}
+      >
+        <p className="text-text-950 font-bold text-lg">Resultado</p>
+        <p className="text-text-700 text-md">
+          {isCorrect ? '🎉 Parabéns!!' : 'Não foi dessa vez...'}
+        </p>
+      </div>
+    );
+  }
+);
 
 const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
   ({ className, ...props }, ref) => {
@@ -108,7 +137,7 @@ const QuizContent = forwardRef<
 
       <div
         ref={ref}
-        className={`rounded-t-xl bg-background px-4 pt-4 pb-[80px] h-full flex flex-col gap-4 mb-auto ${className}`}
+        className={`rounded-t-xl px-4 pt-4 pb-[80px] h-full flex flex-col gap-4 mb-auto ${className}`}
         {...props}
       >
         {children}
@@ -117,15 +146,40 @@ const QuizContent = forwardRef<
   );
 });
 
-const QuizAlternative = () => {
+enum Status {
+  CORRECT = 'correct',
+  INCORRECT = 'incorrect',
+  NEUTRAL = 'neutral',
+}
+
+interface QuizAlternativeInterface {
+  variant?: 'result' | 'default';
+}
+
+const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
   const { getCurrentQuestion, selectAnswer, getCurrentAnswer } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
   const currentAnswer = getCurrentAnswer();
-  // Mapear as alternativas da questão atual
-  const alternatives = currentQuestion?.options?.map((option) => ({
-    label: option.option,
-    value: option.id,
-  }));
+  const alternatives = currentQuestion?.options?.map((option) => {
+    let status: Status = Status.NEUTRAL;
+
+    if (variant === 'result') {
+      if (option.id === currentQuestion.correctOptionId) {
+        status = Status.CORRECT;
+      } else if (
+        currentAnswer === option.id &&
+        option.id !== currentQuestion.correctOptionId
+      ) {
+        status = Status.INCORRECT;
+      }
+    }
+
+    return {
+      label: option.option,
+      value: option.id,
+      status: status,
+    };
+  });
 
   if (!alternatives)
     return (
@@ -137,11 +191,13 @@ const QuizAlternative = () => {
   return (
     <div className="space-y-4">
       <AlternativesList
+        mode={variant === 'default' ? 'interactive' : 'readonly'}
         key={`question-${currentQuestion?.id || '1'}`}
         name={`question-${currentQuestion?.id || '1'}`}
-        layout="default"
+        layout="compact"
         alternatives={alternatives}
         value={currentAnswer}
+        selectedValue={currentAnswer}
         onValueChange={(value) => {
           if (currentQuestion) {
             selectAnswer(currentQuestion.id, value);
@@ -162,23 +218,15 @@ const QuizQuestionList = ({
   const {
     getQuestionsGroupedBySubject,
     goToQuestion,
-    isQuestionAnswered,
-    isQuestionSkipped,
+    getQuestionStatusFromUserAnswers,
   } = useQuizStore();
 
   const groupedQuestions = getQuestionsGroupedBySubject();
 
   const getQuestionStatus = (questionId: string) => {
-    if (isQuestionSkipped(questionId)) {
-      return 'skipped';
-    }
-    if (isQuestionAnswered(questionId)) {
-      return 'answered';
-    }
-    return 'unanswered';
+    return getQuestionStatusFromUserAnswers(questionId);
   };
 
-  // Filtrar questões baseado no tipo de filtro
   const filteredGroupedQuestions = Object.entries(groupedQuestions).reduce(
     (acc, [subjectId, questions]) => {
       const filteredQuestions = questions.filter((question) => {
@@ -190,7 +238,7 @@ const QuizQuestionList = ({
           case 'unanswered':
             return status === 'unanswered';
           default:
-            return true; // 'all' - mostrar todas
+            return true;
         }
       });
 
@@ -205,8 +253,8 @@ const QuizQuestionList = ({
   );
 
   const getQuestionIndex = (questionId: string) => {
-    const { bySimulado, byAtividade, byAula } = useQuizStore.getState();
-    const quiz = bySimulado ?? byAtividade ?? byAula;
+    const { bySimulated, byActivity, byQuestionary } = useQuizStore.getState();
+    const quiz = bySimulated ?? byActivity ?? byQuestionary;
     if (!quiz) return 0;
 
     const index = quiz.questions.findIndex((q) => q.id === questionId);
@@ -218,7 +266,7 @@ const QuizQuestionList = ({
       case 'answered':
         return 'Respondida';
       case 'skipped':
-        return 'Pulada';
+        return 'Não respondida';
       default:
         return 'Em branco';
     }
@@ -279,7 +327,7 @@ const QuizFooter = forwardRef<
     getCurrentAnswer,
     skipQuestion,
     getCurrentQuestion,
-    isQuestionSkipped,
+    getQuestionStatusFromUserAnswers,
   } = useQuizStore();
 
   const totalQuestions = getTotalQuestions();
@@ -288,7 +336,7 @@ const QuizFooter = forwardRef<
   const currentAnswer = getCurrentAnswer();
   const currentQuestion = getCurrentQuestion();
   const isCurrentQuestionSkipped = currentQuestion
-    ? isQuestionSkipped(currentQuestion.id)
+    ? getQuestionStatusFromUserAnswers(currentQuestion.id) === 'skipped'
     : false;
   const [alertDialogOpen, setAlertDialogOpen] = useState(false);
   const [modalResultOpen, setModalResultOpen] = useState(false);
@@ -482,7 +530,282 @@ const QuizFooter = forwardRef<
   );
 });
 
+// QUIZ RESULT COMPONENTS
+
+const QuizResultHeaderTitle = forwardRef<
+  HTMLDivElement,
+  { className?: string }
+>(({ className, ...props }, ref) => {
+  const { bySimulated } = useQuizStore();
+
+  return (
+    <div
+      ref={ref}
+      className={`flex flex-row pt-4 justify-between ${className}`}
+      {...props}
+    >
+      <p className="text-text-950 font-bold text-2xl">Resultado</p>
+      {bySimulated && (
+        <Badge variant="solid" action="info">
+          {bySimulated.category}
+        </Badge>
+      )}
+    </div>
+  );
+});
+
+const QuizResultTitle = forwardRef<
+  HTMLParagraphElement,
+  { className?: string }
+>(({ className, ...props }, ref) => {
+  const { getQuizTitle } = useQuizStore();
+  const quizTitle = getQuizTitle();
+
+  return (
+    <p
+      className={`pt-6 pb-4 text-text-950 font-bold text-lg ${className}`}
+      ref={ref}
+      {...props}
+    >
+      {quizTitle}
+    </p>
+  );
+});
+
+const QuizResultPerformance = forwardRef<HTMLDivElement>(
+  ({ ...props }, ref) => {
+    const {
+      getTotalQuestions,
+      timeElapsed,
+      formatTime,
+      bySimulated,
+      byActivity,
+      byQuestionary,
+    } = useQuizStore();
+
+    const totalQuestions = getTotalQuestions();
+    const quiz = bySimulated || byActivity || byQuestionary;
+
+    let correctAnswers = 0;
+    let correctEasyAnswers = 0;
+    let correctMediumAnswers = 0;
+    let correctDifficultAnswers = 0;
+    let totalEasyQuestions = 0;
+    let totalMediumQuestions = 0;
+    let totalDifficultQuestions = 0;
+
+    if (quiz) {
+      quiz.questions.forEach((question) => {
+        const userAnswer = question.answerKey;
+        const isCorrect = userAnswer && userAnswer === question.correctOptionId;
+
+        if (isCorrect) {
+          correctAnswers++;
+        }
+
+        if (question.difficulty === QUESTION_DIFFICULTY.FACIL) {
+          totalEasyQuestions++;
+          if (isCorrect) {
+            correctEasyAnswers++;
+          }
+        } else if (question.difficulty === QUESTION_DIFFICULTY.MEDIO) {
+          totalMediumQuestions++;
+          if (isCorrect) {
+            correctMediumAnswers++;
+          }
+        } else if (question.difficulty === QUESTION_DIFFICULTY.DIFICIL) {
+          totalDifficultQuestions++;
+          if (isCorrect) {
+            correctDifficultAnswers++;
+          }
+        }
+      });
+    }
+
+    const percentage =
+      totalQuestions > 0
+        ? Math.round((correctAnswers / totalQuestions) * 100)
+        : 0;
+
+    return (
+      <div
+        className="flex flex-row gap-6 p-6 rounded-xl bg-background justify-between"
+        ref={ref}
+        {...props}
+      >
+        <div className="relative">
+          <ProgressCircle
+            size="medium"
+            variant="green"
+            value={percentage}
+            showPercentage={false}
+            label=""
+          />
+
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="flex items-center gap-1 mb-1">
+              <Clock size={12} weight="regular" className="text-text-800" />
+              <span className="text-2xs font-medium text-text-800">
+                {formatTime(timeElapsed)}
+              </span>
+            </div>
+
+            <div className="text-2xl font-medium text-text-800 leading-7">
+              {correctAnswers} de {totalQuestions}
+            </div>
+
+            <div className="text-2xs font-medium text-text-600 mt-1">
+              Corretas
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4 w-full">
+          <ProgressBar
+            className="w-full"
+            layout="stacked"
+            variant="green"
+            value={correctEasyAnswers}
+            max={totalEasyQuestions}
+            label="Fáceis"
+            showHitCount
+            labelClassName="text-base font-medium text-text-800 leading-none"
+            percentageClassName="text-xs font-medium leading-[14px] text-right"
+          />
+
+          <ProgressBar
+            className="w-full"
+            layout="stacked"
+            variant="green"
+            value={correctMediumAnswers}
+            max={totalMediumQuestions}
+            label="Médias"
+            showHitCount
+            labelClassName="text-base font-medium text-text-800 leading-none"
+            percentageClassName="text-xs font-medium leading-[14px] text-right"
+          />
+
+          <ProgressBar
+            className="w-full"
+            layout="stacked"
+            variant="green"
+            value={correctDifficultAnswers}
+            max={totalDifficultQuestions}
+            label="Difíceis"
+            showHitCount
+            labelClassName="text-base font-medium text-text-800 leading-none"
+            percentageClassName="text-xs font-medium leading-[14px] text-right"
+          />
+        </div>
+      </div>
+    );
+  }
+);
+
+const QuizListResult = forwardRef<
+  HTMLDivElement,
+  {
+    className?: string;
+    onSubjectClick?: (subject: string) => void;
+  }
+>(({ className, onSubjectClick, ...props }, ref) => {
+  const { getQuestionsGroupedBySubject, isQuestionAnswered } = useQuizStore();
+  const groupedQuestions = getQuestionsGroupedBySubject();
+
+  const subjectsStats = Object.entries(groupedQuestions).map(
+    ([subjectId, questions]) => {
+      let correct = 0;
+      let incorrect = 0;
+
+      questions.forEach((question) => {
+        if (isQuestionAnswered(question.id)) {
+          const userAnswer = question.answerKey;
+          if (userAnswer === question.correctOptionId) {
+            correct++;
+          } else {
+            incorrect++;
+          }
+        }
+      });
+
+      return {
+        subject: subjectId,
+        correct,
+        incorrect,
+        total: questions.length,
+      };
+    }
+  );
+
+  return (
+    <section ref={ref} className={className} {...props}>
+      <p className="pt-6 pb-4 text-text-950 font-bold text-lg">Matérias</p>
+
+      <ul className="flex flex-col gap-2">
+        {subjectsStats.map((subject) => (
+          <li key={subject.subject}>
+            <CardResults
+              onClick={() => onSubjectClick?.(subject.subject)}
+              className="max-w-full"
+              header={subject.subject}
+              correct_answers={subject.correct}
+              incorrect_answers={subject.incorrect}
+              icon={<Book size={20} />}
+              direction="row"
+            />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+});
+
+const QuizListResultByMateria = ({
+  subject,
+  onQuestionClick,
+}: {
+  subject: string;
+  onQuestionClick: (question: Question) => void;
+}) => {
+  const { getQuestionsGroupedBySubject } = useQuizStore();
+  const groupedQuestions = getQuestionsGroupedBySubject();
+
+  const answeredQuestions = groupedQuestions[subject] || [];
+
+  return (
+    <div className="w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6">
+      <div className="flex flex-row pt-4 justify-between">
+        <p className="text-text-950 font-bold text-2xl">{subject}</p>
+      </div>
+
+      <section className="flex flex-col ">
+        <p className="pt-6 pb-4 text-text-950 font-bold text-lg">
+          Resultado das questões
+        </p>
+
+        <ul className="flex flex-col gap-2 pt-4">
+          {answeredQuestions.map((question) => (
+            <li key={question.id}>
+              <CardStatus
+                className="max-w-full"
+                header={`Questão ${question.id}`}
+                status={
+                  question.answerKey === question.correctOptionId
+                    ? 'correct'
+                    : 'incorrect'
+                }
+                onClick={() => onQuestionClick?.(question)}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  );
+};
+
 export {
+  QuizHeaderResult,
   QuizTitle,
   Quiz,
   QuizHeader,
@@ -490,4 +813,9 @@ export {
   QuizAlternative,
   QuizQuestionList,
   QuizFooter,
+  QuizListResult,
+  QuizResultHeaderTitle,
+  QuizResultTitle,
+  QuizResultPerformance,
+  QuizListResultByMateria,
 };

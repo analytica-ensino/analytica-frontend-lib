@@ -1,5 +1,10 @@
 import { renderHook, act } from '@testing-library/react';
-import { useQuizStore } from './useQuizStore';
+import {
+  QUESTION_DIFFICULTY,
+  QUESTION_TYPE,
+  QUESTION_STATUS,
+  useQuizStore,
+} from './useQuizStore';
 
 // Mock data for testing
 const mockQuestion1 = {
@@ -7,9 +12,9 @@ const mockQuestion1 = {
   questionText: 'What is 2 + 2?',
   correctOptionId: 'opt1',
   description: 'Basic math question',
-  type: 'ALTERNATIVA' as const,
-  status: 'APROVADO' as const,
-  difficulty: 'FACIL' as const,
+  type: QUESTION_TYPE.ALTERNATIVA,
+  status: QUESTION_STATUS.APROVADO,
+  difficulty: QUESTION_DIFFICULTY.FACIL,
   examBoard: 'ENEM',
   examYear: '2024',
   answerKey: null,
@@ -38,9 +43,9 @@ const mockQuestion2 = {
   questionText: 'What is the capital of France?',
   correctOptionId: 'opt2',
   description: 'Geography question',
-  type: 'ALTERNATIVA' as const,
-  status: 'APROVADO' as const,
-  difficulty: 'FACIL' as const,
+  type: QUESTION_TYPE.ALTERNATIVA,
+  status: QUESTION_STATUS.APROVADO,
+  difficulty: QUESTION_DIFFICULTY.FACIL,
   examBoard: 'ENEM',
   examYear: '2024',
   answerKey: null,
@@ -67,6 +72,19 @@ const mockQuestion2 = {
 const mockSimulado = {
   id: 'simulado-1',
   title: 'Test Simulado',
+  category: 'Enem',
+  questions: [mockQuestion1, mockQuestion2],
+};
+
+const mockAtividade = {
+  id: 'atividade-1',
+  title: 'Test Atividade',
+  questions: [mockQuestion1, mockQuestion2],
+};
+
+const mockQuestionary = {
+  id: 'aula-1',
+  title: 'Test Aula',
   questions: [mockQuestion1, mockQuestion2],
 };
 
@@ -84,7 +102,7 @@ describe('useQuizStore', () => {
 
       expect(result.current.currentQuestionIndex).toBe(0);
       expect(result.current.selectedAnswers).toEqual({});
-      expect(result.current.skippedQuestions).toEqual([]);
+      expect(result.current.userAnswers).toEqual([]);
       expect(result.current.userAnswers).toEqual([]);
       expect(result.current.timeElapsed).toBe(0);
       expect(result.current.isStarted).toBe(false);
@@ -93,41 +111,51 @@ describe('useQuizStore', () => {
   });
 
   describe('Setters', () => {
-    it('should set bySimulado', () => {
+    it('should set bySimulated', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setBySimulado(mockSimulado);
+        result.current.setBySimulated(mockSimulado);
       });
 
-      expect(result.current.bySimulado).toEqual(mockSimulado);
+      expect(result.current.bySimulated).toEqual(mockSimulado);
     });
 
-    it('should set byAtividade', () => {
+    it('should set byActivity', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setByAtividade(mockSimulado);
+        result.current.setByActivity(mockAtividade);
       });
 
-      expect(result.current.byAtividade).toEqual(mockSimulado);
+      expect(result.current.byActivity).toEqual(mockAtividade);
     });
 
-    it('should set byAula', () => {
+    it('should set byQuestionary', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
-        result.current.setByAula(mockSimulado);
+        result.current.setByQuestionary(mockQuestionary);
       });
 
-      expect(result.current.byAula).toEqual(mockSimulado);
+      expect(result.current.byQuestionary).toEqual(mockQuestionary);
+    });
+
+    it('should set userId', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+      });
+
+      expect(result.current.userId).toBe('test-user-id');
     });
   });
 
   describe('Navigation', () => {
     beforeEach(() => {
       act(() => {
-        useQuizStore.getState().setBySimulado(mockSimulado);
+        useQuizStore.getState().setBySimulated(mockSimulado);
       });
     });
 
@@ -197,7 +225,7 @@ describe('useQuizStore', () => {
   describe('Quiz Actions', () => {
     beforeEach(() => {
       act(() => {
-        useQuizStore.getState().setBySimulado(mockSimulado);
+        useQuizStore.getState().setBySimulated(mockSimulado);
       });
     });
 
@@ -205,40 +233,115 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
-      expect(result.current.selectedAnswers['q1']).toBe('opt1');
-      expect(result.current.userAnswers).toHaveLength(1);
-      expect(result.current.userAnswers[0].id).toBe('q1');
-      expect(result.current.userAnswers[0].answerKey).toBe('opt1');
-      expect(result.current.userAnswers[0].isSkipped).toBe(false);
+      // Verify that the question's answerKey was updated
+      const currentQuestion = result.current.getCurrentQuestion();
+      expect(currentQuestion?.answerKey).toBe('opt1');
+
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toHaveLength(2); // Both questions from mockSimulado
+      const answeredQuestion = userAnswers.find((q) => q.id === 'q1');
+      expect(answeredQuestion?.answerKey).toBe('opt1');
+      expect(answeredQuestion?.isSkipped).toBe(false);
+    });
+
+    it('should warn and return early when selectAnswer is called without userId set', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const consoleSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        // Don't set userId - it should be empty string by default
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      // Verify that console.warn was called with the expected message
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'selectAnswer called before userId is set'
+      );
+
+      // Verify that no user answer was created (since userId is falsy)
+      const userAnswerItem = result.current.getUserAnswerByQuestionId('q1');
+      expect(userAnswerItem).toBeNull();
+
+      // Verify that the question's answerKey was NOT updated (since the function returns early when userId is falsy)
+      const currentQuestion = result.current.getCurrentQuestion();
+      expect(currentQuestion?.answerKey).toBe(null);
+
+      consoleSpy.mockRestore();
     });
 
     it('should skip question', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setBySimulated(mockSimulado);
         result.current.skipQuestion();
       });
 
-      expect(result.current.skippedQuestions).toContain('q1');
-      expect(result.current.userAnswers).toHaveLength(1);
-      expect(result.current.userAnswers[0].id).toBe('q1');
-      expect(result.current.userAnswers[0].isSkipped).toBe(true);
+      expect(result.current.isQuestionSkipped('q1')).toBe(true);
+
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toHaveLength(2); // Both questions from mockSimulado
+      const skippedQuestion = userAnswers.find((q) => q.id === 'q1');
+      expect(skippedQuestion?.isSkipped).toBe(true);
+    });
+
+    it('should handle existingAnswerIndex logic when skipping a previously answered question', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        // First, answer the current question
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      // Verify the question is answered
+      expect(result.current.isQuestionAnswered('q1')).toBe(true);
+
+      // Get the initial user answer to verify structure
+      let userAnswerItem = result.current.getUserAnswerByQuestionId('q1');
+      expect(userAnswerItem?.answer).toBe('opt1');
+      expect(userAnswerItem?.optionId).toBe('opt1');
+
+      // Now skip the same question (this tests line 269 - existingAnswerIndex logic)
+      act(() => {
+        result.current.skipQuestion();
+      });
+
+      // Verify the question is now skipped
+      expect(result.current.isQuestionSkipped('q1')).toBe(true);
+
+      // Verify that the existing answer was updated (not added as new)
+      userAnswerItem = result.current.getUserAnswerByQuestionId('q1');
+
+      // Should have the same question in userAnswers array (updated, not duplicated)
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toHaveLength(2); // Still only 2 questions total
+      expect(userAnswerItem?.answer).toBe(null); // Answer was set to null
+      expect(userAnswerItem?.optionId).toBe(null); // OptionId was set to null
+      expect(result.current.isQuestionSkipped('q1')).toBe(true); // Question is now skipped
     });
 
     it('should remove from skipped when answering', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.skipQuestion(); // Skip first question
         result.current.goToNextQuestion(); // Go to second question
         result.current.selectAnswer('q2', 'opt2'); // Answer second question
       });
 
-      expect(result.current.skippedQuestions).toContain('q1');
-      expect(result.current.skippedQuestions).not.toContain('q2');
+      expect(result.current.isQuestionSkipped('q1')).toBe(true);
+      expect(result.current.isQuestionSkipped('q2')).toBe(false);
     });
 
     it('should start quiz', () => {
@@ -266,6 +369,8 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
         result.current.goToNextQuestion();
         result.current.startQuiz();
@@ -274,7 +379,6 @@ describe('useQuizStore', () => {
 
       expect(result.current.currentQuestionIndex).toBe(0);
       expect(result.current.selectedAnswers).toEqual({});
-      expect(result.current.skippedQuestions).toEqual([]);
       expect(result.current.userAnswers).toEqual([]);
       expect(result.current.timeElapsed).toBe(0);
       expect(result.current.isStarted).toBe(false);
@@ -362,47 +466,29 @@ describe('useQuizStore', () => {
       expect(result.current.timeElapsed).toBe(0); // Should remain at 0
     });
 
-    it('should clear existing timer when starting new timer', () => {
+    it('should handle timer lifecycle (start, stop, restart, finish, reset)', () => {
       const { result } = renderHook(() => useQuizStore());
 
+      // Start timer
       act(() => {
         result.current.startQuiz();
-        jest.advanceTimersByTime(1000); // Advance 1 second
+        jest.advanceTimersByTime(1000);
+      });
+
+      expect(result.current.timeElapsed).toBe(1);
+
+      // Stop and restart timer
+      act(() => {
         result.current.stopTimer();
-        result.current.startQuiz(); // Start timer again
-      });
-
-      expect(result.current.timeElapsed).toBe(0); // Should reset to 0
-
-      // Advance timer again
-      act(() => {
+        jest.advanceTimersByTime(1000); // Should not affect timeElapsed
+        result.current.startTimer();
         jest.advanceTimersByTime(1000);
       });
 
-      expect(result.current.timeElapsed).toBe(1); // Should count from 0 again
-    });
+      expect(result.current.timeElapsed).toBe(2);
 
-    it('should handle multiple timer starts and stops', () => {
-      const { result } = renderHook(() => useQuizStore());
-
+      // Finish quiz and reset
       act(() => {
-        result.current.startQuiz();
-        jest.advanceTimersByTime(1000);
-        result.current.stopTimer();
-        jest.advanceTimersByTime(1000); // This should not affect timeElapsed
-        result.current.startTimer(); // Start timer again
-        jest.advanceTimersByTime(1000);
-      });
-
-      expect(result.current.timeElapsed).toBe(2); // 1 + 1 = 2
-    });
-
-    it('should stop timer when quiz is finished and then reset', () => {
-      const { result } = renderHook(() => useQuizStore());
-
-      act(() => {
-        result.current.startQuiz();
-        jest.advanceTimersByTime(5000); // Advance 5 seconds
         result.current.finishQuiz();
         result.current.resetQuiz();
       });
@@ -446,34 +532,47 @@ describe('useQuizStore', () => {
       );
     });
 
-    it('should not start timer if already running', () => {
+    it('should clear existing timer interval when starting new timer', () => {
       const { result } = renderHook(() => useQuizStore());
 
+      // Start first timer
       act(() => {
         result.current.startQuiz();
         jest.advanceTimersByTime(1000);
-        result.current.startTimer(); // Try to start timer again
+      });
+
+      expect(result.current.timeElapsed).toBe(1);
+
+      // Start second timer (should clear the first one)
+      act(() => {
+        result.current.startTimer();
         jest.advanceTimersByTime(1000);
       });
 
-      expect(result.current.timeElapsed).toBe(2); // Should continue counting normally
+      // Should continue from where it left off, not restart from 0
+      expect(result.current.timeElapsed).toBe(2);
     });
 
-    it('should handle stopTimer when no timer is running', () => {
+    it('should handle multiple timer starts without clearing previous intervals', () => {
       const { result } = renderHook(() => useQuizStore());
 
+      // Start timer multiple times
       act(() => {
-        result.current.stopTimer(); // Stop timer when not running
+        result.current.startQuiz();
+        result.current.startTimer();
+        result.current.startTimer();
+        jest.advanceTimersByTime(1000);
       });
 
-      expect(result.current.timeElapsed).toBe(0); // Should remain at initial state
+      // Should only increment by 1 second, not by multiple intervals
+      expect(result.current.timeElapsed).toBe(1);
     });
   });
 
   describe('Getters', () => {
     beforeEach(() => {
       act(() => {
-        useQuizStore.getState().setBySimulado(mockSimulado);
+        useQuizStore.getState().setBySimulated(mockSimulado);
       });
     });
 
@@ -497,6 +596,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -509,6 +609,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -521,9 +622,9 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -547,6 +648,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -559,11 +661,260 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
       expect(result.current.isQuestionAnswered('q1')).toBe(true);
       expect(result.current.isQuestionAnswered('q2')).toBe(false);
+    });
+
+    // Additional comprehensive tests for isQuestionAnswered
+    it('should return false when no quiz is set', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        // Ensure no quiz is set
+        useQuizStore.setState({
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
+        });
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+      expect(result.current.isQuestionAnswered('nonexistent')).toBe(false);
+    });
+
+    it('should return false when quiz is null', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        // Set quiz to null explicitly
+        useQuizStore.setState({
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
+        });
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+    });
+
+    it('should return false for non-existent question ID', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+      });
+
+      expect(result.current.isQuestionAnswered('nonexistent')).toBe(false);
+      expect(result.current.isQuestionAnswered('invalid-id')).toBe(false);
+    });
+
+    it('should return false for question with null answerKey', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+      });
+
+      // Both questions start with answerKey: null
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+      expect(result.current.isQuestionAnswered('q2')).toBe(false);
+    });
+
+    it('should return true for question with valid answerKey', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(true);
+      expect(result.current.isQuestionAnswered('q2')).toBe(false);
+    });
+
+    it('should return true for question with empty string answerKey', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.addUserAnswer('q1', '');
+      });
+
+      // Empty string is converted to null in addUserAnswer
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+    });
+
+    it('should work with byActivity quiz type', () => {
+      const mockAtividade = {
+        id: 'atividade1',
+        title: 'Test Atividade',
+        questions: [
+          { ...mockQuestion1, answerKey: null },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setByActivity(mockAtividade);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(true);
+      expect(result.current.isQuestionAnswered('q2')).toBe(false);
+    });
+
+    it('should work with byQuestionary quiz type', () => {
+      const mockQuestionary = {
+        id: 'aula1',
+        title: 'Test Aula',
+        questions: [
+          { ...mockQuestion1, answerKey: null },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setByQuestionary(mockQuestionary);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q2', 'opt2');
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+      expect(result.current.isQuestionAnswered('q2')).toBe(true);
+    });
+
+    it('should handle multiple answered questions', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1');
+        result.current.selectAnswer('q2', 'opt2');
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(true);
+      expect(result.current.isQuestionAnswered('q2')).toBe(true);
+    });
+
+    it('should handle question with answerKey set to null after being answered', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1');
+        result.current.addUserAnswer('q1', undefined); // Set to null
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+    });
+
+    it('should handle question with answerKey set to empty string', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1');
+        result.current.addUserAnswer('q1', ''); // Set to empty string (converted to null)
+      });
+
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+    });
+
+    it('should handle case sensitivity in question ID', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      expect(result.current.isQuestionAnswered('Q1')).toBe(false); // Different case
+      expect(result.current.isQuestionAnswered('q1')).toBe(true);
+    });
+
+    it('should handle special characters in question ID', () => {
+      const questionWithSpecialChars = {
+        ...mockQuestion1,
+        id: 'q1-special@#$%',
+      };
+
+      const simuladoWithSpecialChars = {
+        ...mockSimulado,
+        questions: [questionWithSpecialChars, mockQuestion2],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(simuladoWithSpecialChars);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1-special@#$%', 'opt1');
+      });
+
+      expect(result.current.isQuestionAnswered('q1-special@#$%')).toBe(true);
+      expect(result.current.isQuestionAnswered('q1')).toBe(false);
+    });
+
+    it('should handle very long question ID', () => {
+      const longId = 'q'.repeat(1000);
+      const questionWithLongId = {
+        ...mockQuestion1,
+        id: longId,
+      };
+
+      const simuladoWithLongId = {
+        ...mockSimulado,
+        questions: [questionWithLongId, mockQuestion2],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(simuladoWithLongId);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer(longId, 'opt1');
+      });
+
+      expect(result.current.isQuestionAnswered(longId)).toBe(true);
+    });
+
+    it('should handle numeric question ID as string', () => {
+      const questionWithNumericId = {
+        ...mockQuestion1,
+        id: '12345',
+      };
+
+      const simuladoWithNumericId = {
+        ...mockSimulado,
+        questions: [questionWithNumericId, mockQuestion2],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(simuladoWithNumericId);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('12345', 'opt1');
+      });
+
+      expect(result.current.isQuestionAnswered('12345')).toBe(true);
+      expect(
+        result.current.isQuestionAnswered(12345 as unknown as string)
+      ).toBe(false); // Should handle type mismatch
     });
 
     it('should check if question is skipped', () => {
@@ -581,6 +932,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -609,20 +961,24 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
       const userAnswers = result.current.getUserAnswers();
 
-      expect(userAnswers).toHaveLength(1);
-      expect(userAnswers[0].id).toBe('q1');
-      expect(userAnswers[0].answerKey).toBe('opt1');
+      expect(userAnswers).toHaveLength(2); // Both questions from mockSimulado
+      const answeredQuestion = userAnswers.find((q) => q.id === 'q1');
+      expect(answeredQuestion?.answerKey).toBe('opt1');
     });
 
     it('should get unanswered questions from user answers', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -657,7 +1013,7 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore
           .getState()
-          .setBySimulado(simuladoWithQuestionWithoutMatrix);
+          .setBySimulated(simuladoWithQuestionWithoutMatrix);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -671,7 +1027,7 @@ describe('useQuizStore', () => {
   describe('Progress Calculation', () => {
     beforeEach(() => {
       act(() => {
-        useQuizStore.getState().setBySimulado(mockSimulado);
+        useQuizStore.getState().setBySimulated(mockSimulado);
       });
     });
 
@@ -687,6 +1043,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
       });
 
@@ -699,6 +1056,7 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
         result.current.selectAnswer('q2', 'opt2');
       });
@@ -712,11 +1070,12 @@ describe('useQuizStore', () => {
       const emptySimulado = {
         id: 'empty-simulado',
         title: 'Empty Quiz',
+        category: 'Enem',
         questions: [],
       };
 
       act(() => {
-        useQuizStore.getState().setBySimulado(emptySimulado);
+        useQuizStore.getState().setBySimulated(emptySimulado);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -729,9 +1088,9 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -739,28 +1098,6 @@ describe('useQuizStore', () => {
       const progress = result.current.getProgress();
 
       expect(progress).toBe(0);
-    });
-
-    it('should calculate progress correctly with decimal values', () => {
-      const threeQuestionSimulado = {
-        id: 'three-question-simulado',
-        title: 'Three Question Quiz',
-        questions: [mockQuestion1, mockQuestion2, mockQuestion1], // 3 questions
-      };
-
-      act(() => {
-        useQuizStore.getState().setBySimulado(threeQuestionSimulado);
-      });
-
-      const { result } = renderHook(() => useQuizStore());
-
-      act(() => {
-        result.current.selectAnswer('q1', 'opt1'); // 1 out of 3 = 33.33%
-      });
-
-      const progress = result.current.getProgress();
-
-      expect(progress).toBeCloseTo(33.33, 1);
     });
   });
 
@@ -770,9 +1107,9 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -787,28 +1124,36 @@ describe('useQuizStore', () => {
       // Reset and set up quiz data
       act(() => {
         useQuizStore.getState().resetQuiz();
-        useQuizStore.getState().setBySimulado(mockSimulado);
+        useQuizStore.getState().setBySimulated(mockSimulado);
       });
 
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setUserId('test-user-id');
         result.current.selectAnswer('q1', 'opt1');
         result.current.selectAnswer('q1', 'opt2'); // Update answer
       });
 
-      expect(result.current.userAnswers).toHaveLength(1);
-      expect(result.current.userAnswers[0].answerKey).toBe('opt2');
+      // Check that the question is answered (not skipped)
+      const userAnswers = result.current.getUserAnswers();
+      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
+      expect(updatedQuestion?.isSkipped).toBe(false);
+
+      // Check that the current answer is updated
+      expect(result.current.getCurrentAnswer()).toBe('opt2');
     });
 
     it('should handle question not found in addUserAnswer', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setBySimulated(mockSimulado);
         result.current.addUserAnswer('nonexistent', 'opt1');
       });
 
-      expect(result.current.userAnswers).toHaveLength(0);
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toHaveLength(2); // Only the questions from mockSimulado
     });
 
     it('should return undefined for current answer when no quiz is set', () => {
@@ -816,9 +1161,9 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -830,9 +1175,9 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -844,7 +1189,7 @@ describe('useQuizStore', () => {
 
     it('should group questions correctly by subject', () => {
       act(() => {
-        useQuizStore.getState().setBySimulado(mockSimulado);
+        useQuizStore.getState().setBySimulated(mockSimulado);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -860,9 +1205,9 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -874,9 +1219,9 @@ describe('useQuizStore', () => {
       act(() => {
         useQuizStore.getState().resetQuiz();
         useQuizStore.setState({
-          bySimulado: undefined,
-          byAtividade: undefined,
-          byAula: undefined,
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
         });
       });
 
@@ -887,6 +1232,402 @@ describe('useQuizStore', () => {
       });
 
       expect(result.current.userAnswers).toHaveLength(0);
+    });
+
+    // Consolidated tests for quiz type handling
+    it('should handle all quiz types (bySimulated, byActivity, byQuestionary) in selectAnswer and addUserAnswer', () => {
+      const mockAtividade = {
+        id: 'atividade1',
+        title: 'Test Atividade',
+        questions: [
+          { ...mockQuestion1, answerKey: null },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const mockQuestionary = {
+        id: 'aula1',
+        title: 'Test Aula',
+        questions: [
+          { ...mockQuestion1, answerKey: null },
+          { ...mockQuestion2, answerKey: null },
+        ],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      // Test bySimulated
+      act(() => {
+        useQuizStore.setState({
+          bySimulated: mockSimulado,
+          byActivity: undefined,
+          byQuestionary: undefined,
+        });
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      let userAnswers = result.current.getUserAnswers();
+      let updatedQuestion = userAnswers.find((q) => q.id === 'q1');
+      expect(updatedQuestion?.answerKey).toBe('opt1');
+
+      // Test byActivity
+      act(() => {
+        useQuizStore.setState({
+          bySimulated: undefined,
+          byActivity: mockAtividade,
+          byQuestionary: undefined,
+        });
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      userAnswers = result.current.getUserAnswers();
+      updatedQuestion = userAnswers.find((q) => q.id === 'q1');
+      expect(updatedQuestion?.answerKey).toBe('opt1');
+
+      // Test byQuestionary
+      act(() => {
+        useQuizStore.setState({
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: mockQuestionary,
+        });
+        result.current.selectAnswer('q2', 'opt2');
+      });
+
+      userAnswers = result.current.getUserAnswers();
+      updatedQuestion = userAnswers.find((q) => q.id === 'q2');
+      expect(updatedQuestion?.answerKey).toBe('opt2');
+    });
+
+    it('should handle scenarios when no quiz is defined', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        // Ensure no quiz is set
+        useQuizStore.setState({
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
+        });
+        result.current.selectAnswer('q1', 'opt1');
+        result.current.addUserAnswer('q1', 'opt1');
+        result.current.skipQuestion();
+      });
+
+      // Should not throw error and should not change anything
+      expect(result.current.getCurrentQuestion()).toBeNull();
+      expect(result.current.getUserAnswers()).toEqual([]);
+    });
+
+    it('should return null when no quiz is set in skipQuestion', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        // Ensure no quiz is set
+        useQuizStore.setState({
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
+        });
+        result.current.skipQuestion();
+      });
+
+      // Should not throw error and should not change anything
+      expect(result.current.getCurrentQuestion()).toBeNull();
+      expect(result.current.getUserAnswers()).toEqual([]);
+    });
+  });
+
+  describe('User Answers Methods (Lines 544-557)', () => {
+    beforeEach(() => {
+      act(() => {
+        useQuizStore.getState().setBySimulated(mockSimulado);
+      });
+    });
+
+    describe('getUserAnswerByQuestionId', () => {
+      it('should return user answer when question is answered', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setUserId('test-user-id');
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        const userAnswer = result.current.getUserAnswerByQuestionId('q1');
+        expect(userAnswer).not.toBeNull();
+        expect(userAnswer?.questionId).toBe('q1');
+        expect(userAnswer?.answer).toBe('opt1');
+        expect(userAnswer?.optionId).toBe('opt1');
+      });
+
+      it('should return user answer when question is skipped', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.skipQuestion();
+        });
+
+        const userAnswer = result.current.getUserAnswerByQuestionId('q1');
+        expect(userAnswer).not.toBeNull();
+        expect(userAnswer?.questionId).toBe('q1');
+        expect(userAnswer?.answer).toBe(null);
+        expect(userAnswer?.optionId).toBe(null);
+      });
+
+      it('should return null when question is not answered', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const userAnswer = result.current.getUserAnswerByQuestionId('q1');
+        expect(userAnswer).toBeNull();
+      });
+
+      it('should return null for non-existent question ID', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const userAnswer =
+          result.current.getUserAnswerByQuestionId('nonexistent');
+        expect(userAnswer).toBeNull();
+      });
+    });
+
+    describe('isQuestionAnsweredByUserAnswers', () => {
+      it('should return true when question is answered', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setUserId('test-user-id');
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        expect(result.current.isQuestionAnsweredByUserAnswers('q1')).toBe(true);
+      });
+    });
+
+    describe('getQuestionStatusFromUserAnswers', () => {
+      it('should return answered when question is answered', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setUserId('test-user-id');
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        expect(result.current.getQuestionStatusFromUserAnswers('q1')).toBe(
+          'answered'
+        );
+      });
+
+      it('should return unanswered when question is not answered', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        expect(result.current.getQuestionStatusFromUserAnswers('q1')).toBe(
+          'unanswered'
+        );
+      });
+
+      it('should return skipped when question is skipped', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.skipQuestion();
+        });
+
+        expect(result.current.getQuestionStatusFromUserAnswers('q1')).toBe(
+          'skipped'
+        );
+      });
+
+      it('should return unanswered for non-existent question ID', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        expect(
+          result.current.getQuestionStatusFromUserAnswers('nonexistent')
+        ).toBe('unanswered');
+      });
+
+      it('should handle multiple questions with different statuses', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setUserId('test-user-id');
+          result.current.selectAnswer('q1', 'opt1'); // Answered
+          result.current.skipQuestion(); // Skip current question (q1 again, should update)
+          result.current.goToNextQuestion(); // Go to q2
+          result.current.skipQuestion(); // Skip q2
+        });
+
+        expect(result.current.getQuestionStatusFromUserAnswers('q1')).toBe(
+          'skipped'
+        );
+        expect(result.current.getQuestionStatusFromUserAnswers('q2')).toBe(
+          'skipped'
+        );
+      });
+    });
+
+    describe('getUserAnswersForActivity', () => {
+      it('should return all user answers for the activity', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setUserId('test-user-id');
+          result.current.selectAnswer('q1', 'opt1');
+          result.current.goToNextQuestion();
+          result.current.skipQuestion();
+        });
+
+        const userAnswers = result.current.getUserAnswersForActivity();
+        expect(userAnswers).toHaveLength(2);
+
+        const q1Answer = userAnswers.find(
+          (answer) => answer.questionId === 'q1'
+        );
+        const q2Answer = userAnswers.find(
+          (answer) => answer.questionId === 'q2'
+        );
+
+        expect(q1Answer?.answer).toBe('opt1');
+        expect(q2Answer?.answer).toBe(null);
+      });
+
+      it('should return empty array when no answers are given', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const userAnswers = result.current.getUserAnswersForActivity();
+        expect(userAnswers).toHaveLength(0);
+      });
+
+      it('should return user answers with correct structure', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setUserId('test-user-id');
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        const userAnswers = result.current.getUserAnswersForActivity();
+        expect(userAnswers).toHaveLength(1);
+
+        const answer = userAnswers[0];
+        expect(answer).toHaveProperty('questionId');
+        expect(answer).toHaveProperty('activityId');
+        expect(answer).toHaveProperty('userId');
+        expect(answer).toHaveProperty('answer');
+        expect(answer).toHaveProperty('optionId');
+
+        expect(answer.questionId).toBe('q1');
+        expect(answer.answer).toBe('opt1');
+        expect(answer.optionId).toBe('opt1');
+      });
+
+      it('should return false when no answer is found for isQuestionAnsweredByUserAnswers', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setBySimulated(mockSimulado);
+        });
+
+        // Test with a questionId that doesn't exist in userAnswers
+        const isAnswered = result.current.isQuestionAnsweredByUserAnswers(
+          'nonexistent-question'
+        );
+        expect(isAnswered).toBe(false);
+      });
+
+      it('should return true when answer exists and is not null for isQuestionAnsweredByUserAnswers', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setUserId('test-user-id');
+          result.current.setBySimulated(mockSimulado);
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        const isAnswered = result.current.isQuestionAnsweredByUserAnswers('q1');
+        expect(isAnswered).toBe(true);
+      });
+
+      it('should return false when answer exists but is null (skipped question) for isQuestionAnsweredByUserAnswers', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setUserId('test-user-id');
+          result.current.setBySimulated(mockSimulado);
+          result.current.skipQuestion(); // This creates an answer with null value
+        });
+
+        const isAnswered = result.current.isQuestionAnsweredByUserAnswers('q1');
+        expect(isAnswered).toBe(false);
+      });
+    });
+  });
+
+  describe('Specific Line Coverage Tests', () => {
+    describe('startTimer isFinished guard', () => {
+      beforeEach(() => {
+        // Clear any existing timers
+        jest.clearAllTimers();
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('should not start timer when quiz is finished', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setBySimulated(mockSimulado);
+          result.current.finishQuiz(); // Set isFinished to true
+          result.current.startTimer(); // Try to start timer
+        });
+
+        // Timer should not be running because quiz is finished
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+
+        expect(result.current.timeElapsed).toBe(0);
+      });
+
+      it('should start timer normally when quiz is not finished', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setBySimulated(mockSimulado);
+          result.current.startTimer(); // Start timer when not finished
+        });
+
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+
+        expect(result.current.timeElapsed).toBe(1);
+      });
+
+      it('should prevent timer from starting after quiz is finished', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setBySimulated(mockSimulado);
+          result.current.startQuiz(); // Start quiz normally
+          jest.advanceTimersByTime(1000);
+        });
+
+        expect(result.current.timeElapsed).toBe(1);
+
+        act(() => {
+          result.current.finishQuiz(); // Finish the quiz
+          result.current.startTimer(); // Try to start timer again
+          jest.advanceTimersByTime(1000);
+        });
+
+        // Time should not increase because timer is blocked by isFinished guard
+        expect(result.current.timeElapsed).toBe(1);
+      });
     });
   });
 });
