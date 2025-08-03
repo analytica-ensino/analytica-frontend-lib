@@ -17,11 +17,27 @@ const states = [
 export const Default: Story = () => {
   const [selectedValues, setSelectedValues] = useState(['option1']);
 
+  const toggleOption2 = () => {
+    if (selectedValues.includes('option2')) {
+      setSelectedValues(selectedValues.filter((value) => value !== 'option2'));
+    } else {
+      setSelectedValues([...selectedValues, 'option2']);
+    }
+  };
+
+  const selectAll = () => {
+    setSelectedValues(['option1', 'option2', 'option3']);
+  };
+
+  const clearAll = () => {
+    setSelectedValues([]);
+  };
+
   return (
     <div className="flex flex-col gap-8 p-8">
       <div>
         <h3 className="text-lg font-semibold mb-4 text-text-950">
-          Basic Usage
+          Basic Usage with External Control
         </h3>
         <div className="flex flex-col gap-4">
           <CheckboxList
@@ -53,6 +69,27 @@ export const Default: Story = () => {
               <strong>Selected:</strong>{' '}
               {selectedValues.length > 0 ? selectedValues.join(', ') : 'None'}
             </p>
+          </div>
+
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={toggleOption2}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            >
+              Toggle Option 2
+            </button>
+            <button
+              onClick={selectAll}
+              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+            >
+              Select All
+            </button>
+            <button
+              onClick={clearAll}
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+            >
+              Clear All
+            </button>
           </div>
         </div>
       </div>
