@@ -350,6 +350,7 @@ const QuizFooter = forwardRef<
       skipQuestion,
       getCurrentQuestion,
       getQuestionStatusFromUserAnswers,
+      getActiveQuiz,
     } = useQuizStore();
 
     const totalQuestions = getTotalQuestions();
@@ -505,7 +506,6 @@ const QuizFooter = forwardRef<
               <p className="text-text-500 font-sm">
                 Você acertou{' '}
                 {(() => {
-                  const { getActiveQuiz } = useQuizStore();
                   const activeQuiz = getActiveQuiz();
                   if (!activeQuiz) return 0;
 
