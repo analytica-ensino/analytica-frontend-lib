@@ -160,7 +160,7 @@ describe('MultipleChoiceList', () => {
       checkboxA = screen.getByDisplayValue('a');
       checkboxB = screen.getByDisplayValue('b');
 
-      expect(checkboxA).toBeChecked();
+      expect(checkboxA).not.toBeChecked();
     });
   });
 
@@ -430,7 +430,7 @@ describe('MultipleChoiceList', () => {
 
       checkboxA = screen.getByDisplayValue('a');
 
-      expect(checkboxA).toBeChecked();
+      expect(checkboxA).not.toBeChecked();
     });
 
     it('maintains state consistency between interactive and readonly modes', () => {

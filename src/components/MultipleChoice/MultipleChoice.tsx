@@ -1,4 +1,4 @@
-import { HtmlHTMLAttributes, useState } from 'react';
+import { HtmlHTMLAttributes, useEffect, useState } from 'react';
 import CheckboxList, { CheckboxListItem } from '../CheckBox/CheckboxList';
 import { cn } from '@/utils/utils';
 import { CheckCircle, XCircle, Check } from 'phosphor-react';
@@ -29,6 +29,9 @@ const MultipleChoiceList = ({
 }: MultipleChoiceListProps) => {
   const [actualValue, setActualValue] = useState(selectedValues);
 
+  useEffect(() => {
+    setActualValue(selectedValues);
+  }, [selectedValues]);
   const getStatusBadge = (status: Choice['status']) => {
     switch (status) {
       case 'correct':

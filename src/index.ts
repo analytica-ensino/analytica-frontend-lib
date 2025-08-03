@@ -34,7 +34,7 @@ import Modal from './components/Modal/Modal';
 import { CardAccordation } from './components/Accordation/Accordation';
 import { AlternativesList } from './components/Alternative/Alternative';
 import { AlertDialog } from './components/AlertDialog/AlertDialog';
-import {MultipleChoiceList} from './components/MultipleChoice/MultipleChoice';
+import { MultipleChoiceList } from './components/MultipleChoice/MultipleChoice';
 
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
