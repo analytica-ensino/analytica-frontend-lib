@@ -282,6 +282,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.skipQuestion();
       });
 
@@ -637,6 +638,8 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.skipQuestion();
       });
 
@@ -922,6 +925,8 @@ describe('useQuizStore', () => {
       const { result } = renderHook(() => useQuizStore());
 
       act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.skipQuestion();
       });
 
@@ -1150,11 +1155,12 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
         result.current.addUserAnswer('nonexistent', 'opt1');
       });
 
       const userAnswers = result.current.getUserAnswers();
-      expect(userAnswers).toHaveLength(2); // Only the questions from mockSimulado
+      expect(userAnswers).toHaveLength(1); // Only the added answer
     });
 
     it('should return undefined for current answer when no quiz is set', () => {
@@ -1367,6 +1373,8 @@ describe('useQuizStore', () => {
         const { result } = renderHook(() => useQuizStore());
 
         act(() => {
+          result.current.setBySimulated(mockSimulado);
+          result.current.setUserId('test-user-id');
           result.current.skipQuestion();
         });
 
@@ -1432,6 +1440,8 @@ describe('useQuizStore', () => {
         const { result } = renderHook(() => useQuizStore());
 
         act(() => {
+          result.current.setBySimulated(mockSimulado);
+          result.current.setUserId('test-user-id');
           result.current.skipQuestion();
         });
 
@@ -1629,6 +1639,213 @@ describe('useQuizStore', () => {
         // Time should not increase because timer is blocked by isFinished guard
         expect(result.current.timeElapsed).toBe(1);
       });
+    });
+  });
+
+  describe('setUserAnswers Tests', () => {
+    it('should set userAnswers correctly', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      const mockUserAnswers = [
+        {
+          questionId: 'q1',
+          activityId: 'activity-1',
+          userId: 'user-1',
+          answer: 'opt1',
+          optionId: 'opt1',
+        },
+        {
+          questionId: 'q2',
+          activityId: 'activity-1',
+          userId: 'user-1',
+          answer: null,
+          optionId: null,
+        },
+      ];
+
+      act(() => {
+        result.current.setUserAnswers(mockUserAnswers);
+      });
+
+      expect(result.current.getUserAnswers()).toEqual(mockUserAnswers);
+    });
+
+    it('should replace existing userAnswers when setUserAnswers is called', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      const initialUserAnswers = [
+        {
+          questionId: 'q1',
+          activityId: 'activity-1',
+          userId: 'user-1',
+          answer: 'opt1',
+          optionId: 'opt1',
+        },
+      ];
+
+      const newUserAnswers = [
+        {
+          questionId: 'q2',
+          activityId: 'activity-1',
+          userId: 'user-1',
+          answer: 'opt2',
+          optionId: 'opt2',
+        },
+      ];
+
+      act(() => {
+        result.current.setUserAnswers(initialUserAnswers);
+      });
+
+      expect(result.current.getUserAnswers()).toEqual(initialUserAnswers);
+
+      act(() => {
+        result.current.setUserAnswers(newUserAnswers);
+      });
+
+      expect(result.current.getUserAnswers()).toEqual(newUserAnswers);
+      expect(result.current.getUserAnswers()).not.toEqual(initialUserAnswers);
+    });
+  });
+
+  describe('skipQuestion userId validation Tests', () => {
+    it('should return early when userId is not set in skipQuestion', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const consoleSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        // Don't set userId - it should be empty string by default
+        result.current.skipQuestion();
+      });
+
+      // Verify that console.warn was called with the expected message
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'skipQuestion called before userId is set'
+      );
+
+      // Verify that no user answer was created (since userId is falsy)
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toEqual([]);
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should return early when userId is empty string in skipQuestion', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const consoleSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId(''); // Set empty string
+        result.current.skipQuestion();
+      });
+
+      // Verify that console.warn was called with the expected message
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'skipQuestion called before userId is set'
+      );
+
+      // Verify that no user answer was created (since userId is empty)
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toEqual([]);
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('setCurrentQuestion Tests', () => {
+    it('should set current question index when question exists in quiz', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setCurrentQuestion(mockQuestion2); // q2 is at index 1
+      });
+
+      expect(result.current.currentQuestionIndex).toBe(1);
+      expect(result.current.getCurrentQuestion()).toEqual(mockQuestion2);
+    });
+
+    it('should set current question index to 0 when question is first in quiz', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setCurrentQuestion(mockQuestion1); // q1 is at index 0
+      });
+
+      expect(result.current.currentQuestionIndex).toBe(0);
+      expect(result.current.getCurrentQuestion()).toEqual(mockQuestion1);
+    });
+
+    it('should not change current question index when no quiz is set', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      // Ensure no quiz is set by explicitly clearing any existing quiz
+      act(() => {
+        useQuizStore.setState({
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
+        });
+      });
+
+      const initialIndex = result.current.currentQuestionIndex;
+
+      act(() => {
+        // Don't set any quiz
+        result.current.setCurrentQuestion(mockQuestion1);
+      });
+
+      expect(result.current.currentQuestionIndex).toBe(initialIndex);
+      expect(result.current.getCurrentQuestion()).toBeNull();
+    });
+
+    it('should set current question index to -1 when question does not exist in quiz', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      const nonExistentQuestion = {
+        ...mockQuestion1,
+        id: 'non-existent-question',
+      };
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setCurrentQuestion(nonExistentQuestion);
+      });
+
+      // Should set to -1 since question was not found (findIndex returns -1)
+      expect(result.current.currentQuestionIndex).toBe(-1);
+      expect(result.current.getCurrentQuestion()).toBeUndefined();
+    });
+
+    it('should work with atividade quiz type', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setByActivity(mockAtividade);
+        result.current.setCurrentQuestion(mockQuestion2); // q2 is at index 1
+      });
+
+      expect(result.current.currentQuestionIndex).toBe(1);
+      expect(result.current.getCurrentQuestion()).toEqual(mockQuestion2);
+    });
+
+    it('should work with questionary quiz type', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setByQuestionary(mockQuestionary);
+        result.current.setCurrentQuestion(mockQuestion1); // q1 is at index 0
+      });
+
+      expect(result.current.currentQuestionIndex).toBe(0);
+      expect(result.current.getCurrentQuestion()).toEqual(mockQuestion1);
     });
   });
 });

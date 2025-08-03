@@ -504,18 +504,20 @@ const QuizFooter = forwardRef<
               </h2>
               <p className="text-text-500 font-sm">
                 Você acertou{' '}
-                {
-                  userAnswers.filter(
-                    (answer) => {
-                      const { getActiveQuiz } = useQuizStore.getState();
-                      const activeQuiz = getActiveQuiz();
-                      if (!activeQuiz) return false;
-                      
-                      const question = activeQuiz.quiz.questions.find(q => q.id === answer.questionId);
-                      return question && answer.answer === question.correctOptionId;
-                    }
-                  ).length
-                }{' '}
+                {(() => {
+                  const { getActiveQuiz } = useQuizStore();
+                  const activeQuiz = getActiveQuiz();
+                  if (!activeQuiz) return 0;
+
+                  return userAnswers.filter((answer) => {
+                    const question = activeQuiz.quiz.questions.find(
+                      (q) => q.id === answer.questionId
+                    );
+                    return (
+                      question && answer.answer === question.correctOptionId
+                    );
+                  }).length;
+                })()}{' '}
                 de {allQuestions} questões.
               </p>
             </div>
@@ -624,6 +626,7 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
       bySimulated,
       byActivity,
       byQuestionary,
+      getUserAnswerByQuestionId,
     } = useQuizStore();
 
     const totalQuestions = getTotalQuestions();
@@ -639,7 +642,6 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
 
     if (quiz) {
       quiz.questions.forEach((question) => {
-        const { getUserAnswerByQuestionId } = useQuizStore.getState();
         const userAnswerItem = getUserAnswerByQuestionId(question.id);
         const userAnswer = userAnswerItem?.answer;
         const isCorrect = userAnswer && userAnswer === question.correctOptionId;
@@ -754,7 +756,11 @@ const QuizListResult = forwardRef<
     onSubjectClick?: (subject: string) => void;
   }
 >(({ className, onSubjectClick, ...props }, ref) => {
-  const { getQuestionsGroupedBySubject, isQuestionAnswered } = useQuizStore();
+  const {
+    getQuestionsGroupedBySubject,
+    isQuestionAnswered,
+    getUserAnswerByQuestionId,
+  } = useQuizStore();
   const groupedQuestions = getQuestionsGroupedBySubject();
 
   const subjectsStats = Object.entries(groupedQuestions).map(
@@ -764,7 +770,6 @@ const QuizListResult = forwardRef<
 
       questions.forEach((question) => {
         if (isQuestionAnswered(question.id)) {
-          const { getUserAnswerByQuestionId } = useQuizStore.getState();
           const userAnswerItem = getUserAnswerByQuestionId(question.id);
           const userAnswer = userAnswerItem?.answer;
           if (userAnswer === question.correctOptionId) {
@@ -814,7 +819,8 @@ const QuizListResultByMateria = ({
   subject: string;
   onQuestionClick: (question: Question) => void;
 }) => {
-  const { getQuestionsGroupedBySubject } = useQuizStore();
+  const { getQuestionsGroupedBySubject, getUserAnswerByQuestionId } =
+    useQuizStore();
   const groupedQuestions = getQuestionsGroupedBySubject();
 
   const answeredQuestions = groupedQuestions[subject] || [];
@@ -836,15 +842,13 @@ const QuizListResultByMateria = ({
               <CardStatus
                 className="max-w-full"
                 header={`Questão ${question.id}`}
-                status={
-                  (() => {
-                    const { getUserAnswerByQuestionId } = useQuizStore.getState();
-                    const userAnswer = getUserAnswerByQuestionId(question.id);
-                    return userAnswer && userAnswer.answer === question.correctOptionId
-                      ? 'correct'
-                      : 'incorrect';
-                  })()
-                }
+                status={(() => {
+                  const userAnswer = getUserAnswerByQuestionId(question.id);
+                  return userAnswer &&
+                    userAnswer.answer === question.correctOptionId
+                    ? 'correct'
+                    : 'incorrect';
+                })()}
                 onClick={() => onQuestionClick?.(question)}
               />
             </li>

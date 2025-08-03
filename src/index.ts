@@ -101,19 +101,19 @@ import { useApiConfig } from './components/Auth/useApiConfig';
 
 // Import Quiz components
 import {
-  Quiz,
+  QuizHeaderResult,
   QuizTitle,
+  Quiz,
   QuizHeader,
   QuizContent,
   QuizAlternative,
+  QuizQuestionList,
+  QuizFooter,
+  QuizListResult,
   QuizResultHeaderTitle,
   QuizResultTitle,
   QuizResultPerformance,
   QuizListResultByMateria,
-  QuizQuestionList,
-  QuizFooter,
-  QuizListResult,
-  QuizHeaderResult,
 } from './components/Quiz/Quiz';
 import { useQuizStore } from './components/Quiz/useQuizStore';
 
@@ -210,13 +210,13 @@ export { Quiz };
 export { QuizTitle };
 export { QuizHeader };
 export { QuizContent };
+export { useQuizStore };
+export { QuizHeaderResult };
 export { QuizAlternative };
+export { QuizQuestionList };
+export { QuizFooter };
+export { QuizListResult };
 export { QuizResultHeaderTitle };
 export { QuizResultTitle };
 export { QuizResultPerformance };
 export { QuizListResultByMateria };
-export { QuizQuestionList };
-export { QuizFooter };
-export { useQuizStore };
-export { QuizListResult };
-export { QuizHeaderResult };

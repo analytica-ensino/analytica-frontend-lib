@@ -402,6 +402,11 @@ describe('Quiz Component', () => {
       userAnswers: [],
       isFinished: false,
       getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+      getActiveQuiz: jest.fn().mockReturnValue({
+        quiz: mockSimulado,
+        type: 'bySimulated',
+      }),
+      getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
     });
 
     // Mock useQuizStore.getState to return the same mock data
@@ -815,8 +820,20 @@ describe('Quiz Component', () => {
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
         getUserAnswers: jest.fn().mockReturnValue([
-          { questionId: 'q1', activityId: 'simulado-1', userId: 'user-1', answer: 'opt1', optionId: 'opt1' },
-          { questionId: 'q2', activityId: 'simulado-1', userId: 'user-1', answer: 'opt2', optionId: 'opt2' },
+          {
+            questionId: 'q1',
+            activityId: 'simulado-1',
+            userId: 'user-1',
+            answer: 'opt1',
+            optionId: 'opt1',
+          },
+          {
+            questionId: 'q2',
+            activityId: 'simulado-1',
+            userId: 'user-1',
+            answer: 'opt2',
+            optionId: 'opt2',
+          },
         ]),
       });
 
@@ -845,9 +862,15 @@ describe('Quiz Component', () => {
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
-        getUserAnswers: jest
-          .fn()
-          .mockReturnValue([{ questionId: 'q1', activityId: 'simulado-1', userId: 'user-1', answer: 'opt1', optionId: 'opt1' }]),
+        getUserAnswers: jest.fn().mockReturnValue([
+          {
+            questionId: 'q1',
+            activityId: 'simulado-1',
+            userId: 'user-1',
+            answer: 'opt1',
+            optionId: 'opt1',
+          },
+        ]),
       });
 
       render(<QuizFooter onGoToSimulated={mockOnGoToSimulated} />);
@@ -866,9 +889,15 @@ describe('Quiz Component', () => {
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
-        getUserAnswers: jest
-          .fn()
-          .mockReturnValue([{ questionId: 'q1', activityId: 'simulado-1', userId: 'user-1', answer: 'opt1', optionId: 'opt1' }]),
+        getUserAnswers: jest.fn().mockReturnValue([
+          {
+            questionId: 'q1',
+            activityId: 'simulado-1',
+            userId: 'user-1',
+            answer: 'opt1',
+            optionId: 'opt1',
+          },
+        ]),
       });
 
       render(<QuizFooter onDetailResult={mockOnDetailResult} />);
@@ -1020,9 +1049,15 @@ describe('Quiz Component', () => {
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([2]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
-        getUserAnswers: jest
-          .fn()
-          .mockReturnValue([{ questionId: 'q1', activityId: 'simulado-1', userId: 'user-1', answer: 'opt1', optionId: 'opt1' }]),
+        getUserAnswers: jest.fn().mockReturnValue([
+          {
+            questionId: 'q1',
+            activityId: 'simulado-1',
+            userId: 'user-1',
+            answer: 'opt1',
+            optionId: 'opt1',
+          },
+        ]),
       });
 
       render(<QuizFooter />);
@@ -1058,9 +1093,15 @@ describe('Quiz Component', () => {
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
-        getUserAnswers: jest
-          .fn()
-          .mockReturnValue([{ questionId: 'q1', activityId: 'simulado-1', userId: 'user-1', answer: 'opt1', optionId: 'opt1' }]),
+        getUserAnswers: jest.fn().mockReturnValue([
+          {
+            questionId: 'q1',
+            activityId: 'simulado-1',
+            userId: 'user-1',
+            answer: 'opt1',
+            optionId: 'opt1',
+          },
+        ]),
       });
 
       render(<QuizFooter />);
@@ -1122,8 +1163,20 @@ describe('Quiz Component', () => {
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
         getUserAnswers: jest.fn().mockReturnValue([
-          { questionId: 'q1', activityId: 'simulado-1', userId: 'user-1', answer: 'opt1', optionId: 'opt1' },
-          { questionId: 'q2', activityId: 'simulado-1', userId: 'user-1', answer: 'opt2', optionId: 'opt2' }, // Wrong answer
+          {
+            questionId: 'q1',
+            activityId: 'simulado-1',
+            userId: 'user-1',
+            answer: 'opt1',
+            optionId: 'opt1',
+          },
+          {
+            questionId: 'q2',
+            activityId: 'simulado-1',
+            userId: 'user-1',
+            answer: 'opt1',
+            optionId: 'opt1',
+          }, // Wrong answer (correct is opt2)
         ]),
       });
 
@@ -1385,9 +1438,15 @@ describe('Quiz Component', () => {
         currentQuestionIndex: 1,
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
-        getUserAnswers: jest
-          .fn()
-          .mockReturnValue([{ questionId: 'q1', activityId: 'simulado-1', userId: 'user-1', answer: 'opt1', optionId: 'opt1' }]),
+        getUserAnswers: jest.fn().mockReturnValue([
+          {
+            questionId: 'q1',
+            activityId: 'simulado-1',
+            userId: 'user-1',
+            answer: 'opt1',
+            optionId: 'opt1',
+          },
+        ]),
       });
 
       render(
@@ -1679,6 +1738,20 @@ describe('Quiz Result Components', () => {
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
           return questionId === 'q1';
         }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            return null;
+          }),
       });
 
       render(<QuizResultPerformance />);
@@ -1691,6 +1764,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render progress bars with correct values', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
+      });
+
       render(<QuizResultPerformance />);
 
       expect(screen.getByText('Fáceis')).toBeInTheDocument();
@@ -1709,6 +1787,7 @@ describe('Quiz Result Components', () => {
         formatTime: jest.fn().mockReturnValue('00:01:00'),
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({}),
         isQuestionAnswered: jest.fn().mockReturnValue(false),
+        getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
       });
 
       render(<QuizResultPerformance />);
@@ -1739,6 +1818,29 @@ describe('Quiz Result Components', () => {
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
           return questionId === 'q1' || questionId === 'q2';
         }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q2') {
+              return {
+                questionId: 'q2',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt2',
+                optionId: 'opt2',
+              };
+            }
+            return null;
+          }),
       });
 
       render(<QuizResultPerformance />);
@@ -1812,6 +1914,38 @@ describe('Quiz Result Components', () => {
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
           return ['q1', 'q2', 'q3'].includes(questionId);
         }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q2') {
+              return {
+                questionId: 'q2',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q3') {
+              return {
+                questionId: 'q3',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            return null;
+          }),
       });
 
       render(<QuizResultPerformance />);
@@ -1885,6 +2019,38 @@ describe('Quiz Result Components', () => {
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
           return ['q1', 'q2', 'q3'].includes(questionId);
         }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q2') {
+              return {
+                questionId: 'q2',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt2',
+                optionId: 'opt2',
+              };
+            }
+            if (questionId === 'q3') {
+              return {
+                questionId: 'q3',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt2',
+                optionId: 'opt2',
+              };
+            }
+            return null;
+          }),
       });
 
       render(<QuizResultPerformance />);
@@ -1958,6 +2124,38 @@ describe('Quiz Result Components', () => {
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
           return ['q1', 'q2', 'q3'].includes(questionId);
         }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q2') {
+              return {
+                questionId: 'q2',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt2',
+                optionId: 'opt2',
+              };
+            }
+            if (questionId === 'q3') {
+              return {
+                questionId: 'q3',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            return null;
+          }),
       });
 
       render(<QuizResultPerformance />);
@@ -1998,6 +2196,7 @@ describe('Quiz Result Components', () => {
           'geografia-geral': [mockDifficultQuestion],
         }),
         isQuestionAnswered: jest.fn().mockReturnValue(false),
+        getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
       });
 
       render(<QuizResultPerformance />);
@@ -2144,6 +2343,47 @@ describe('Quiz Result Components', () => {
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
           return ['q1', 'q2', 'q3', 'q4'].includes(questionId);
         }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q2') {
+              return {
+                questionId: 'q2',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q3') {
+              return {
+                questionId: 'q3',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt2',
+                optionId: 'opt2',
+              };
+            }
+            if (questionId === 'q4') {
+              return {
+                questionId: 'q4',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            return null;
+          }),
       });
 
       render(<QuizResultPerformance />);
@@ -2155,6 +2395,11 @@ describe('Quiz Result Components', () => {
 
   describe('Quiz Result Components Integration', () => {
     it('should render all result components together', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
+      });
+
       render(
         <div>
           <QuizResultHeaderTitle />
@@ -2170,6 +2415,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle complete result page layout', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
+      });
+
       render(
         <div className="overflow-y-auto h-full">
           <div className="w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6">
@@ -2284,6 +2534,47 @@ describe('Quiz Result Components', () => {
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
           return ['q1', 'q2', 'q3', 'q4'].includes(questionId);
         }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q2') {
+              return {
+                questionId: 'q2',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt2',
+                optionId: 'opt2',
+              };
+            }
+            if (questionId === 'q3') {
+              return {
+                questionId: 'q3',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt2',
+                optionId: 'opt2',
+              };
+            }
+            if (questionId === 'q4') {
+              return {
+                questionId: 'q4',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            return null;
+          }),
       });
 
       render(<QuizResultPerformance />);
@@ -2409,6 +2700,38 @@ describe('Quiz Result Components', () => {
             questionId === 'q1' || questionId === 'q2' || questionId === 'q3'
           );
         }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q2') {
+              return {
+                questionId: 'q2',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q3') {
+              return {
+                questionId: 'q3',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            return null;
+          }),
       });
     });
 
@@ -2452,6 +2775,38 @@ describe('Quiz Result Components', () => {
             questionId === 'q1' || questionId === 'q2' || questionId === 'q3'
           );
         }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q2') {
+              return {
+                questionId: 'q2',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q3') {
+              return {
+                questionId: 'q3',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            return null;
+          }),
       });
 
       render(<QuizListResult />);
@@ -2556,6 +2911,38 @@ describe('Quiz Result Components', () => {
             questionId === 'q1' || questionId === 'q2' || questionId === 'q3'
           );
         }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q2') {
+              return {
+                questionId: 'q2',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt2',
+                optionId: 'opt2',
+              };
+            }
+            if (questionId === 'q3') {
+              return {
+                questionId: 'q3',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            return null;
+          }),
       });
 
       render(<QuizListResult />);
@@ -2591,6 +2978,38 @@ describe('Quiz Result Components', () => {
             questionId === 'q1' || questionId === 'q2' || questionId === 'q3'
           );
         }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt2',
+                optionId: 'opt2',
+              };
+            }
+            if (questionId === 'q2') {
+              return {
+                questionId: 'q2',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q3') {
+              return {
+                questionId: 'q3',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt2',
+                optionId: 'opt2',
+              };
+            }
+            return null;
+          }),
       });
 
       render(<QuizListResult />);
@@ -2637,6 +3056,29 @@ describe('Quiz Result Components', () => {
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
           return questionId === 'q1' || questionId === 'q3';
         }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q3') {
+              return {
+                questionId: 'q3',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt2',
+                optionId: 'opt2',
+              };
+            }
+            return null;
+          }),
       });
 
       render(<QuizListResult />);
@@ -2720,6 +3162,47 @@ describe('Quiz Result Components', () => {
             questionId === 'q4'
           );
         }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q2') {
+              return {
+                questionId: 'q2',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q3') {
+              return {
+                questionId: 'q3',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q4') {
+              return {
+                questionId: 'q4',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            return null;
+          }),
       });
 
       render(<QuizListResult />);
@@ -2847,6 +3330,38 @@ describe('Quiz Result Components', () => {
             questionId === 'q1' || questionId === 'q2' || questionId === 'q3'
           );
         }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+              };
+            }
+            if (questionId === 'q2') {
+              return {
+                questionId: 'q2',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt3',
+                optionId: 'opt3',
+              };
+            }
+            if (questionId === 'q3') {
+              return {
+                questionId: 'q3',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt3',
+                optionId: 'opt3',
+              };
+            }
+            return null;
+          }),
       });
     });
 

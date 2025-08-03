@@ -380,7 +380,13 @@ export const AllQuizShowcase: Story = () => {
 };
 
 export const QuizAlternativeVariants: Story = () => {
-  const { setBySimulated, startQuiz, setUserAnswers, setUserId, setCurrentQuestion } = useQuizStore();
+  const {
+    setBySimulated,
+    startQuiz,
+    setUserAnswers,
+    setUserId,
+    setCurrentQuestion,
+  } = useQuizStore();
 
   useEffect(() => {
     // Dados de exemplo para demonstrar a funcionalidade
@@ -466,15 +472,15 @@ export const QuizAlternativeVariants: Story = () => {
         activityId: 'simulado-1',
         userId: 'demo-user-id',
         answer: 'opt2',
-        optionId: 'opt2'
+        optionId: 'opt2',
       },
       {
         questionId: 'q2',
         activityId: 'simulado-1',
         userId: 'demo-user-id',
         answer: 'opt2',
-        optionId: 'opt2'
-      }
+        optionId: 'opt2',
+      },
     ]);
   }, [setBySimulated, startQuiz, setUserAnswers, setUserId]);
 
@@ -502,7 +508,8 @@ export const QuizAlternativeVariants: Story = () => {
 };
 
 export const QuizListResultShowcase: Story = () => {
-  const { setBySimulated, startQuiz, setUserAnswers, setUserId } = useQuizStore();
+  const { setBySimulated, startQuiz, setUserAnswers, setUserId } =
+    useQuizStore();
 
   useEffect(() => {
     // Dados de exemplo para demonstrar a funcionalidade
@@ -645,29 +652,29 @@ export const QuizListResultShowcase: Story = () => {
         activityId: 'simulado-1',
         userId: 'demo-user-id',
         answer: 'opt1',
-        optionId: 'opt1'
+        optionId: 'opt1',
       },
       {
         questionId: 'q2',
         activityId: 'simulado-1',
         userId: 'demo-user-id',
         answer: 'opt1',
-        optionId: 'opt1'
+        optionId: 'opt1',
       },
       {
         questionId: 'q3',
         activityId: 'simulado-1',
         userId: 'demo-user-id',
         answer: 'opt1',
-        optionId: 'opt1'
+        optionId: 'opt1',
       },
       {
         questionId: 'q4',
         activityId: 'simulado-1',
         userId: 'demo-user-id',
         answer: 'opt2',
-        optionId: 'opt2'
-      }
+        optionId: 'opt2',
+      },
     ]);
   }, [setBySimulated, startQuiz, setUserAnswers, setUserId]);
 
@@ -872,36 +879,36 @@ export const QuizResultPageShowcase: Story = () => {
         activityId: 'simulado-1',
         userId: 'demo-user-id',
         answer: 'opt1',
-        optionId: 'opt1'
+        optionId: 'opt1',
       },
       {
         questionId: 'q2',
         activityId: 'simulado-1',
         userId: 'demo-user-id',
         answer: 'opt1',
-        optionId: 'opt1'
+        optionId: 'opt1',
       },
       {
         questionId: 'q3',
         activityId: 'simulado-1',
         userId: 'demo-user-id',
         answer: 'opt1',
-        optionId: 'opt1'
+        optionId: 'opt1',
       },
       {
         questionId: 'q4',
         activityId: 'simulado-1',
         userId: 'demo-user-id',
         answer: 'opt2',
-        optionId: 'opt2'
+        optionId: 'opt2',
       },
       {
         questionId: 'q5',
         activityId: 'simulado-1',
         userId: 'demo-user-id',
         answer: 'opt1',
-        optionId: 'opt1'
-      }
+        optionId: 'opt1',
+      },
     ]);
 
     // Finalizar o quiz para mostrar o resultado
