@@ -60,7 +60,7 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
       <div
         ref={ref}
         className={cn(
-          'flex flex-row items-center gap-10 p-3.5 rounded-xl',
+          'flex flex-row items-center gap-10 p-3.5 rounded-xl mb-4',
           isCorrect ? 'bg-success-background' : 'bg-error-background',
           className
         )}
@@ -283,7 +283,6 @@ const QuizQuestionList = ({
         return 'Em branco';
     }
   };
-
   return (
     <div className="space-y-6 px-4">
       {Object.entries(filteredGroupedQuestions).map(
@@ -325,225 +324,254 @@ const QuizFooter = forwardRef<
   HTMLDivElement,
   {
     className?: string;
+    variant?: 'result' | 'default';
     onGoToSimulated?: () => void;
     onDetailResult?: () => void;
   }
->(({ className, onGoToSimulated, onDetailResult, ...props }, ref) => {
-  const {
-    currentQuestionIndex,
-    getUserAnswers,
-    getTotalQuestions,
-    goToNextQuestion,
-    goToPreviousQuestion,
-    getUnansweredQuestionsFromUserAnswers,
-    getCurrentAnswer,
-    skipQuestion,
-    getCurrentQuestion,
-    getQuestionStatusFromUserAnswers,
-  } = useQuizStore();
+>(
+  (
+    {
+      className,
+      onGoToSimulated,
+      onDetailResult,
+      variant = 'default',
+      ...props
+    },
+    ref
+  ) => {
+    const {
+      currentQuestionIndex,
+      getUserAnswers,
+      getTotalQuestions,
+      goToNextQuestion,
+      goToPreviousQuestion,
+      getUnansweredQuestionsFromUserAnswers,
+      getCurrentAnswer,
+      skipQuestion,
+      getCurrentQuestion,
+      getQuestionStatusFromUserAnswers,
+    } = useQuizStore();
 
-  const totalQuestions = getTotalQuestions();
-  const isFirstQuestion = currentQuestionIndex === 0;
-  const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
-  const currentAnswer = getCurrentAnswer();
-  const currentQuestion = getCurrentQuestion();
-  const isCurrentQuestionSkipped = currentQuestion
-    ? getQuestionStatusFromUserAnswers(currentQuestion.id) === 'skipped'
-    : false;
-  const [alertDialogOpen, setAlertDialogOpen] = useState(false);
-  const [modalResultOpen, setModalResultOpen] = useState(false);
-  const [modalNavigateOpen, setModalNavigateOpen] = useState(false);
-  const [filterType, setFilterType] = useState('all');
-  const unansweredQuestions = getUnansweredQuestionsFromUserAnswers();
-  const userAnswers = getUserAnswers();
-  const allQuestions = getTotalQuestions();
+    const totalQuestions = getTotalQuestions();
+    const isFirstQuestion = currentQuestionIndex === 0;
+    const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
+    const currentAnswer = getCurrentAnswer();
+    const currentQuestion = getCurrentQuestion();
+    const isCurrentQuestionSkipped = currentQuestion
+      ? getQuestionStatusFromUserAnswers(currentQuestion.id) === 'skipped'
+      : false;
+    const [alertDialogOpen, setAlertDialogOpen] = useState(false);
+    const [modalResultOpen, setModalResultOpen] = useState(false);
+    const [modalNavigateOpen, setModalNavigateOpen] = useState(false);
+    const [filterType, setFilterType] = useState('all');
+    const unansweredQuestions = getUnansweredQuestionsFromUserAnswers();
+    const userAnswers = getUserAnswers();
+    const allQuestions = getTotalQuestions();
 
-  return (
-    <>
-      <footer
-        ref={ref}
-        className={cn(
-          'w-full px-2 bg-background lg:max-w-[1000px] not-lg:max-w-[calc(100vw-32px)] border-t border-border-50 fixed bottom-0 min-h-[80px] flex flex-row justify-between items-center',
-          className
-        )}
-        {...props}
-      >
-        <div className="flex flex-row items-center gap-1">
-          <IconButton
-            icon={<SquaresFour size={24} className="text-text-950" />}
-            size="md"
-            onClick={() => setModalNavigateOpen(true)}
-          />
-
-          {isFirstQuestion ? (
-            <Button
-              variant="outline"
-              size="small"
-              onClick={() => {
-                skipQuestion();
-                goToNextQuestion();
-              }}
-            >
-              Pular
-            </Button>
-          ) : (
-            <Button
-              size="medium"
-              variant="link"
-              action="primary"
-              iconLeft={<CaretLeft size={18} />}
-              onClick={() => {
-                goToPreviousQuestion();
-              }}
-            >
-              Voltar
-            </Button>
+    return (
+      <>
+        <footer
+          ref={ref}
+          className={cn(
+            'w-full px-2 bg-background lg:max-w-[1000px] not-lg:max-w-[calc(100vw-32px)] border-t border-border-50 fixed bottom-0 min-h-[80px] flex flex-row justify-between items-center',
+            className
           )}
-        </div>
+          {...props}
+        >
+          {variant === 'default' ? (
+            <>
+              <div className="flex flex-row items-center gap-1">
+                <IconButton
+                  icon={<SquaresFour size={24} className="text-text-950" />}
+                  size="md"
+                  onClick={() => setModalNavigateOpen(true)}
+                />
 
-        {!isFirstQuestion && (
-          <Button
-            size="small"
-            variant="outline"
-            action="primary"
-            onClick={() => {
-              skipQuestion();
-              goToNextQuestion();
-            }}
-          >
-            Pular
-          </Button>
-        )}
+                {isFirstQuestion ? (
+                  <Button
+                    variant="outline"
+                    size="small"
+                    onClick={() => {
+                      skipQuestion();
+                      goToNextQuestion();
+                    }}
+                  >
+                    Pular
+                  </Button>
+                ) : (
+                  <Button
+                    size="medium"
+                    variant="link"
+                    action="primary"
+                    iconLeft={<CaretLeft size={18} />}
+                    onClick={() => {
+                      goToPreviousQuestion();
+                    }}
+                  >
+                    Voltar
+                  </Button>
+                )}
+              </div>
 
-        {isLastQuestion ? (
-          <Button
-            size="medium"
-            variant="solid"
-            action="primary"
-            disabled={!currentAnswer && !isCurrentQuestionSkipped}
-            onClick={() => {
-              if (unansweredQuestions.length > 0) {
-                setAlertDialogOpen(true);
-              } else {
-                setModalResultOpen(true);
-              }
-            }}
-          >
-            Finalizar
-          </Button>
-        ) : (
-          <Button
-            size="medium"
-            variant="link"
-            action="primary"
-            iconRight={<CaretRight size={18} />}
-            disabled={!currentAnswer && !isCurrentQuestionSkipped}
-            onClick={() => {
-              goToNextQuestion();
-            }}
-          >
-            Avançar
-          </Button>
-        )}
-      </footer>
+              {!isFirstQuestion && (
+                <Button
+                  size="small"
+                  variant="outline"
+                  action="primary"
+                  onClick={() => {
+                    skipQuestion();
+                    goToNextQuestion();
+                  }}
+                >
+                  Pular
+                </Button>
+              )}
 
-      <AlertDialog
-        isOpen={alertDialogOpen}
-        onChangeOpen={setAlertDialogOpen}
-        title="Finalizar simulado?"
-        description={
-          unansweredQuestions.length > 0
-            ? `Você deixou as questões ${unansweredQuestions.join(', ')} sem resposta. Finalizar agora pode impactar seu desempenho.`
-            : 'Tem certeza que deseja finalizar o simulado?'
-        }
-        cancelButtonLabel="Voltar e revisar"
-        submitButtonLabel="Finalizar Mesmo Assim"
-        onSubmit={() => {
-          setModalResultOpen(true);
-        }}
-      />
+              {isLastQuestion ? (
+                <Button
+                  size="medium"
+                  variant="solid"
+                  action="primary"
+                  disabled={!currentAnswer && !isCurrentQuestionSkipped}
+                  onClick={() => {
+                    if (unansweredQuestions.length > 0) {
+                      setAlertDialogOpen(true);
+                    } else {
+                      setModalResultOpen(true);
+                    }
+                  }}
+                >
+                  Finalizar
+                </Button>
+              ) : (
+                <Button
+                  size="medium"
+                  variant="link"
+                  action="primary"
+                  iconRight={<CaretRight size={18} />}
+                  disabled={!currentAnswer && !isCurrentQuestionSkipped}
+                  onClick={() => {
+                    goToNextQuestion();
+                  }}
+                >
+                  Avançar
+                </Button>
+              )}
+            </>
+          ) : (
+            <div className="flex flex-row items-center justify-end w-full">
+              <Button variant="solid" action="primary" size="medium">
+                Ver Resolução
+              </Button>
+            </div>
+          )}
+        </footer>
 
-      <Modal
-        isOpen={modalResultOpen}
-        onClose={() => setModalResultOpen(false)}
-        title=""
-        closeOnBackdropClick={false}
-        closeOnEscape={false}
-        hideCloseButton
-        size={'md'}
-      >
-        <div className="flex flex-col w-full h-full items-center justify-center gap-4">
-          <img
-            src={SimulatedResult}
-            alt="Simulated Result"
-            className="w-[282px] h-auto object-cover"
-          />
-          <div className="flex flex-col gap-2 text-center">
-            <h2 className="text-text-950 font-bold text-lg">
-              Você concluiu o simulado!
-            </h2>
-            <p className="text-text-500 font-sm">
-              Você acertou{' '}
-              {
-                userAnswers.filter(
-                  (answer) => answer.answerKey === answer.correctOptionId
-                ).length
-              }{' '}
-              de {allQuestions} questões.
-            </p>
-          </div>
+        <AlertDialog
+          isOpen={alertDialogOpen}
+          onChangeOpen={setAlertDialogOpen}
+          title="Finalizar simulado?"
+          description={
+            unansweredQuestions.length > 0
+              ? `Você deixou as questões ${unansweredQuestions.join(', ')} sem resposta. Finalizar agora pode impactar seu desempenho.`
+              : 'Tem certeza que deseja finalizar o simulado?'
+          }
+          cancelButtonLabel="Voltar e revisar"
+          submitButtonLabel="Finalizar Mesmo Assim"
+          onSubmit={() => {
+            setModalResultOpen(true);
+          }}
+        />
 
-          <div className="px-6 flex flex-row items-center gap-2 w-full">
-            <Button
-              variant="outline"
-              className="w-full"
-              size="small"
-              onClick={onGoToSimulated}
-            >
-              Ir para simulados
-            </Button>
-
-            <Button className="w-full" onClick={onDetailResult}>
-              Detalhar resultado
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      <Modal
-        isOpen={modalNavigateOpen}
-        onClose={() => setModalNavigateOpen(false)}
-        title="Questões"
-        size={'lg'}
-      >
-        <div className="flex flex-col w-full h-full">
-          <div className="flex flex-row justify-between items-center py-6 pt-6 pb-4 border-b border-border-200">
-            <p className="text-text-950 font-bold text-lg">Filtrar por</p>
-            <span className="max-w-[266px]">
-              <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger variant="rounded" className="max-w-[266px]">
-                  <SelectValue placeholder="Selecione uma opção" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="unanswered">Em branco</SelectItem>
-                  <SelectItem value="answered">Respondidas</SelectItem>
-                </SelectContent>
-              </Select>
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-2 not-lg:h-[calc(100vh-200px)] lg:max-h-[687px] overflow-y-auto">
-            <QuizQuestionList
-              filterType={filterType}
-              onQuestionClick={() => setModalNavigateOpen(false)}
+        <Modal
+          isOpen={modalResultOpen}
+          onClose={() => setModalResultOpen(false)}
+          title=""
+          closeOnBackdropClick={false}
+          closeOnEscape={false}
+          hideCloseButton
+          size={'md'}
+        >
+          <div className="flex flex-col w-full h-full items-center justify-center gap-4">
+            <img
+              src={SimulatedResult}
+              alt="Simulated Result"
+              className="w-[282px] h-auto object-cover"
             />
+            <div className="flex flex-col gap-2 text-center">
+              <h2 className="text-text-950 font-bold text-lg">
+                Você concluiu o simulado!
+              </h2>
+              <p className="text-text-500 font-sm">
+                Você acertou{' '}
+                {
+                  userAnswers.filter(
+                    (answer) => {
+                      const { getActiveQuiz } = useQuizStore.getState();
+                      const activeQuiz = getActiveQuiz();
+                      if (!activeQuiz) return false;
+                      
+                      const question = activeQuiz.quiz.questions.find(q => q.id === answer.questionId);
+                      return question && answer.answer === question.correctOptionId;
+                    }
+                  ).length
+                }{' '}
+                de {allQuestions} questões.
+              </p>
+            </div>
+
+            <div className="px-6 flex flex-row items-center gap-2 w-full">
+              <Button
+                variant="outline"
+                className="w-full"
+                size="small"
+                onClick={onGoToSimulated}
+              >
+                Ir para simulados
+              </Button>
+
+              <Button className="w-full" onClick={onDetailResult}>
+                Detalhar resultado
+              </Button>
+            </div>
           </div>
-        </div>
-      </Modal>
-    </>
-  );
-});
+        </Modal>
+
+        <Modal
+          isOpen={modalNavigateOpen}
+          onClose={() => setModalNavigateOpen(false)}
+          title="Questões"
+          size={'lg'}
+        >
+          <div className="flex flex-col w-full h-full">
+            <div className="flex flex-row justify-between items-center py-6 pt-6 pb-4 border-b border-border-200">
+              <p className="text-text-950 font-bold text-lg">Filtrar por</p>
+              <span className="max-w-[266px]">
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger variant="rounded" className="max-w-[266px]">
+                    <SelectValue placeholder="Selecione uma opção" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="unanswered">Em branco</SelectItem>
+                    <SelectItem value="answered">Respondidas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-2 not-lg:h-[calc(100vh-200px)] lg:max-h-[687px] overflow-y-auto">
+              <QuizQuestionList
+                filterType={filterType}
+                onQuestionClick={() => setModalNavigateOpen(false)}
+              />
+            </div>
+          </div>
+        </Modal>
+      </>
+    );
+  }
+);
 
 // QUIZ RESULT COMPONENTS
 
@@ -611,7 +639,9 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
 
     if (quiz) {
       quiz.questions.forEach((question) => {
-        const userAnswer = question.answerKey;
+        const { getUserAnswerByQuestionId } = useQuizStore.getState();
+        const userAnswerItem = getUserAnswerByQuestionId(question.id);
+        const userAnswer = userAnswerItem?.answer;
         const isCorrect = userAnswer && userAnswer === question.correctOptionId;
 
         if (isCorrect) {
@@ -734,7 +764,9 @@ const QuizListResult = forwardRef<
 
       questions.forEach((question) => {
         if (isQuestionAnswered(question.id)) {
-          const userAnswer = question.answerKey;
+          const { getUserAnswerByQuestionId } = useQuizStore.getState();
+          const userAnswerItem = getUserAnswerByQuestionId(question.id);
+          const userAnswer = userAnswerItem?.answer;
           if (userAnswer === question.correctOptionId) {
             correct++;
           } else {
@@ -805,9 +837,13 @@ const QuizListResultByMateria = ({
                 className="max-w-full"
                 header={`Questão ${question.id}`}
                 status={
-                  question.answerKey === question.correctOptionId
-                    ? 'correct'
-                    : 'incorrect'
+                  (() => {
+                    const { getUserAnswerByQuestionId } = useQuizStore.getState();
+                    const userAnswer = getUserAnswerByQuestionId(question.id);
+                    return userAnswer && userAnswer.answer === question.correctOptionId
+                      ? 'correct'
+                      : 'incorrect';
+                  })()
                 }
                 onClick={() => onQuestionClick?.(question)}
               />

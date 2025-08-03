@@ -243,10 +243,10 @@ describe('useQuizStore', () => {
       expect(currentQuestion?.answerKey).toBe('opt1');
 
       const userAnswers = result.current.getUserAnswers();
-      expect(userAnswers).toHaveLength(2); // Both questions from mockSimulado
-      const answeredQuestion = userAnswers.find((q) => q.id === 'q1');
-      expect(answeredQuestion?.answerKey).toBe('opt1');
-      expect(answeredQuestion?.isSkipped).toBe(false);
+      expect(userAnswers).toHaveLength(1); // Apenas as respondidas
+      const answeredQuestion = userAnswers.find((q) => q.questionId === 'q1');
+      expect(answeredQuestion?.answer).toBe('opt1');
+      expect(answeredQuestion?.optionId).toBe('opt1');
     });
 
     it('should warn and return early when selectAnswer is called without userId set', () => {
@@ -288,9 +288,10 @@ describe('useQuizStore', () => {
       expect(result.current.isQuestionSkipped('q1')).toBe(true);
 
       const userAnswers = result.current.getUserAnswers();
-      expect(userAnswers).toHaveLength(2); // Both questions from mockSimulado
-      const skippedQuestion = userAnswers.find((q) => q.id === 'q1');
-      expect(skippedQuestion?.isSkipped).toBe(true);
+      expect(userAnswers).toHaveLength(1); // Apenas as respondidas/skipped
+      const skippedQuestion = userAnswers.find((q) => q.questionId === 'q1');
+      expect(skippedQuestion?.answer).toBe(null);
+      expect(skippedQuestion?.optionId).toBe(null);
     });
 
     it('should handle existingAnswerIndex logic when skipping a previously answered question', () => {
@@ -324,7 +325,7 @@ describe('useQuizStore', () => {
 
       // Should have the same question in userAnswers array (updated, not duplicated)
       const userAnswers = result.current.getUserAnswers();
-      expect(userAnswers).toHaveLength(2); // Still only 2 questions total
+      expect(userAnswers).toHaveLength(1); // Apenas as respondidas/skipped
       expect(userAnswerItem?.answer).toBe(null); // Answer was set to null
       expect(userAnswerItem?.optionId).toBe(null); // OptionId was set to null
       expect(result.current.isQuestionSkipped('q1')).toBe(true); // Question is now skipped
@@ -968,9 +969,9 @@ describe('useQuizStore', () => {
 
       const userAnswers = result.current.getUserAnswers();
 
-      expect(userAnswers).toHaveLength(2); // Both questions from mockSimulado
-      const answeredQuestion = userAnswers.find((q) => q.id === 'q1');
-      expect(answeredQuestion?.answerKey).toBe('opt1');
+      expect(userAnswers).toHaveLength(1);
+      const answeredQuestion = userAnswers.find((q) => q.questionId === 'q1');
+      expect(answeredQuestion?.answer).toBe('opt1');
     });
 
     it('should get unanswered questions from user answers', () => {
@@ -1137,8 +1138,8 @@ describe('useQuizStore', () => {
 
       // Check that the question is answered (not skipped)
       const userAnswers = result.current.getUserAnswers();
-      const updatedQuestion = userAnswers.find((q) => q.id === 'q1');
-      expect(updatedQuestion?.isSkipped).toBe(false);
+      const updatedQuestion = userAnswers.find((q) => q.questionId === 'q1');
+      expect(updatedQuestion?.answer).not.toBe(null);
 
       // Check that the current answer is updated
       expect(result.current.getCurrentAnswer()).toBe('opt2');
@@ -1268,8 +1269,8 @@ describe('useQuizStore', () => {
       });
 
       let userAnswers = result.current.getUserAnswers();
-      let updatedQuestion = userAnswers.find((q) => q.id === 'q1');
-      expect(updatedQuestion?.answerKey).toBe('opt1');
+      let updatedQuestion = userAnswers.find((q) => q.questionId === 'q1');
+      expect(updatedQuestion?.answer).toBe('opt1');
 
       // Test byActivity
       act(() => {
@@ -1282,8 +1283,8 @@ describe('useQuizStore', () => {
       });
 
       userAnswers = result.current.getUserAnswers();
-      updatedQuestion = userAnswers.find((q) => q.id === 'q1');
-      expect(updatedQuestion?.answerKey).toBe('opt1');
+      updatedQuestion = userAnswers.find((q) => q.questionId === 'q1');
+      expect(updatedQuestion?.answer).toBe('opt1');
 
       // Test byQuestionary
       act(() => {
@@ -1296,8 +1297,8 @@ describe('useQuizStore', () => {
       });
 
       userAnswers = result.current.getUserAnswers();
-      updatedQuestion = userAnswers.find((q) => q.id === 'q2');
-      expect(updatedQuestion?.answerKey).toBe('opt2');
+      updatedQuestion = userAnswers.find((q) => q.questionId === 'q2');
+      expect(updatedQuestion?.answer).toBe('opt2');
     });
 
     it('should handle scenarios when no quiz is defined', () => {

@@ -72,10 +72,6 @@ interface UserAnswerItem {
   optionId: string | null;
 }
 
-interface UserAnswer extends Question {
-  isSkipped: boolean;
-}
-
 interface QuizState {
   // Data
   bySimulated?: Simulado;
@@ -96,6 +92,7 @@ interface QuizState {
   setByActivity: (atividade: Atividade) => void;
   setByQuestionary: (aula: Aula) => void;
   setUserId: (userId: string) => void;
+  setUserAnswers: (userAnswers: UserAnswerItem[]) => void;
 
   // Quiz Navigation
   goToNextQuestion: () => void;
@@ -131,10 +128,11 @@ interface QuizState {
   getCurrentAnswer: () => string | undefined;
   getQuizTitle: () => string;
   formatTime: (seconds: number) => string;
-  getUserAnswers: () => UserAnswer[];
+  getUserAnswers: () => UserAnswerItem[];
   getUnansweredQuestionsFromUserAnswers: () => number[];
   getQuestionsGroupedBySubject: () => { [key: string]: Question[] };
   getUserId: () => string;
+  setCurrentQuestion: (question: Question) => void;
 
   // New methods for userAnswers
   getUserAnswerByQuestionId: (questionId: string) => UserAnswerItem | null;
@@ -187,6 +185,7 @@ export const useQuizStore = create<QuizState>()(
         setByActivity: (atividade) => set({ byActivity: atividade }),
         setByQuestionary: (aula) => set({ byQuestionary: aula }),
         setUserId: (userId) => set({ userId }),
+        setUserAnswers: (userAnswers) => set({ userAnswers }),
         getUserId: () => get().userId,
 
         // Navigation
@@ -247,7 +246,7 @@ export const useQuizStore = create<QuizState>()(
           const activityId = activeQuiz.quiz.id;
           const userId = get().getUserId();
 
-          if (!userId) {
+          if (!userId || userId === '') {
             console.warn('selectAnswer called before userId is set');
             return;
           }
@@ -289,6 +288,11 @@ export const useQuizStore = create<QuizState>()(
             const activityId = activeQuiz.quiz.id;
             const userId = get().getUserId();
 
+            if (!userId || userId === '') {
+              console.warn('skipQuestion called before userId is set');
+              return;
+            }
+
             const existingAnswerIndex = userAnswers.findIndex(
               (answer) => answer.questionId === currentQuestion.id
             );
@@ -326,6 +330,11 @@ export const useQuizStore = create<QuizState>()(
           // Add to userAnswers array with new structure
           const activityId = activeQuiz.quiz.id;
           const userId = get().getUserId();
+
+          if (!userId || userId === '') {
+            console.warn('addUserAnswer called before userId is set');
+            return;
+          }
 
           const existingAnswerIndex = userAnswers.findIndex(
             (answer) => answer.questionId === questionId
@@ -478,20 +487,8 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getUserAnswers: () => {
-          const { getActiveQuiz, userAnswers } = get();
-          const activeQuiz = getActiveQuiz();
-
-          if (!activeQuiz) return [];
-
-          return activeQuiz.quiz.questions.map((question) => {
-            const userAnswer = userAnswers.find(
-              (answer) => answer.questionId === question.id
-            );
-            return {
-              ...question,
-              isSkipped: userAnswer ? userAnswer.answer === null : false,
-            };
-          });
+          const { userAnswers } = get();
+          return userAnswers;
         },
 
         getUnansweredQuestionsFromUserAnswers: () => {
@@ -565,6 +562,16 @@ export const useQuizStore = create<QuizState>()(
         getUserAnswersForActivity: () => {
           const { userAnswers } = get();
           return userAnswers;
+        },
+        setCurrentQuestion: (question) => {
+          const { getActiveQuiz } = get();
+          const activeQuiz = getActiveQuiz();
+          if (!activeQuiz) return;
+
+          const questionIndex = activeQuiz.quiz.questions.findIndex(
+            (q) => q.id === question.id
+          );
+          set({ currentQuestionIndex: questionIndex });
         },
       };
     },

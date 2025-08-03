@@ -112,6 +112,8 @@ import {
   QuizListResultByMateria,
   QuizQuestionList,
   QuizFooter,
+  QuizListResult,
+  QuizHeaderResult,
 } from './components/Quiz/Quiz';
 import { useQuizStore } from './components/Quiz/useQuizStore';
 
@@ -216,3 +218,5 @@ export { QuizListResultByMateria };
 export { QuizQuestionList };
 export { QuizFooter };
 export { useQuizStore };
+export { QuizListResult };
+export { QuizHeaderResult };

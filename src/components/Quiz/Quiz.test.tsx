@@ -815,8 +815,8 @@ describe('Quiz Component', () => {
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
         getUserAnswers: jest.fn().mockReturnValue([
-          { answerKey: 'opt1', correctOptionId: 'opt1' },
-          { answerKey: 'opt2', correctOptionId: 'opt2' },
+          { questionId: 'q1', activityId: 'simulado-1', userId: 'user-1', answer: 'opt1', optionId: 'opt1' },
+          { questionId: 'q2', activityId: 'simulado-1', userId: 'user-1', answer: 'opt2', optionId: 'opt2' },
         ]),
       });
 
@@ -847,7 +847,7 @@ describe('Quiz Component', () => {
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
         getUserAnswers: jest
           .fn()
-          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
+          .mockReturnValue([{ questionId: 'q1', activityId: 'simulado-1', userId: 'user-1', answer: 'opt1', optionId: 'opt1' }]),
       });
 
       render(<QuizFooter onGoToSimulated={mockOnGoToSimulated} />);
@@ -868,7 +868,7 @@ describe('Quiz Component', () => {
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
         getUserAnswers: jest
           .fn()
-          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
+          .mockReturnValue([{ questionId: 'q1', activityId: 'simulado-1', userId: 'user-1', answer: 'opt1', optionId: 'opt1' }]),
       });
 
       render(<QuizFooter onDetailResult={mockOnDetailResult} />);
@@ -1022,7 +1022,7 @@ describe('Quiz Component', () => {
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
         getUserAnswers: jest
           .fn()
-          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
+          .mockReturnValue([{ questionId: 'q1', activityId: 'simulado-1', userId: 'user-1', answer: 'opt1', optionId: 'opt1' }]),
       });
 
       render(<QuizFooter />);
@@ -1060,7 +1060,7 @@ describe('Quiz Component', () => {
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
         getUserAnswers: jest
           .fn()
-          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
+          .mockReturnValue([{ questionId: 'q1', activityId: 'simulado-1', userId: 'user-1', answer: 'opt1', optionId: 'opt1' }]),
       });
 
       render(<QuizFooter />);
@@ -1122,8 +1122,8 @@ describe('Quiz Component', () => {
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
         getUserAnswers: jest.fn().mockReturnValue([
-          { answerKey: 'opt1', correctOptionId: 'opt1' },
-          { answerKey: 'opt2', correctOptionId: 'opt3' }, // Wrong answer
+          { questionId: 'q1', activityId: 'simulado-1', userId: 'user-1', answer: 'opt1', optionId: 'opt1' },
+          { questionId: 'q2', activityId: 'simulado-1', userId: 'user-1', answer: 'opt2', optionId: 'opt2' }, // Wrong answer
         ]),
       });
 
@@ -1387,7 +1387,7 @@ describe('Quiz Component', () => {
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getUserAnswers: jest
           .fn()
-          .mockReturnValue([{ answerKey: 'opt1', correctOptionId: 'opt1' }]),
+          .mockReturnValue([{ questionId: 'q1', activityId: 'simulado-1', userId: 'user-1', answer: 'opt1', optionId: 'opt1' }]),
       });
 
       render(

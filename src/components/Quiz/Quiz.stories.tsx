@@ -23,7 +23,7 @@ import {
 import { useEffect } from 'react';
 
 export const AllQuizShowcase: Story = () => {
-  const { setBySimulated, startQuiz } = useQuizStore();
+  const { setBySimulated, startQuiz, setUserId } = useQuizStore();
 
   useEffect(() => {
     // Dados de exemplo para demonstrar a funcionalidade
@@ -340,9 +340,10 @@ export const AllQuizShowcase: Story = () => {
       ],
     };
 
+    setUserId('demo-user-id');
     setBySimulated(mockSimulado);
     startQuiz();
-  }, [setBySimulated, startQuiz]);
+  }, [setBySimulated, startQuiz, setUserId]);
 
   return (
     <div className="space-y-12 h-[calc(100vh-180px)]">
@@ -379,7 +380,7 @@ export const AllQuizShowcase: Story = () => {
 };
 
 export const QuizAlternativeVariants: Story = () => {
-  const { setBySimulated, startQuiz, selectAnswer } = useQuizStore();
+  const { setBySimulated, startQuiz, setUserAnswers, setUserId, setCurrentQuestion } = useQuizStore();
 
   useEffect(() => {
     // Dados de exemplo para demonstrar a funcionalidade
@@ -453,13 +454,29 @@ export const QuizAlternativeVariants: Story = () => {
       ],
     };
 
+    setUserId('demo-user-id');
     setBySimulated(mockSimulado);
+    setCurrentQuestion(mockSimulado.questions[0]);
     startQuiz();
 
-    // Simular algumas respostas para demonstrar o resultado
-    selectAnswer('q1', 'opt2'); // Resposta incorreta
-    selectAnswer('q2', 'opt2'); // Resposta correta
-  }, [setBySimulated, startQuiz, selectAnswer]);
+    // Simular algumas respostas para demonstrar o resultado usando setUserAnswers
+    setUserAnswers([
+      {
+        questionId: 'q1',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt2',
+        optionId: 'opt2'
+      },
+      {
+        questionId: 'q2',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt2',
+        optionId: 'opt2'
+      }
+    ]);
+  }, [setBySimulated, startQuiz, setUserAnswers, setUserId]);
 
   return (
     <div className="space-y-12 h-[calc(100vh-180px)]">
@@ -478,15 +495,6 @@ export const QuizAlternativeVariants: Story = () => {
           <QuizContent className="pb-[150px]">
             <QuizAlternative variant={'result'} />
           </QuizContent>
-          <QuizFooter
-            className="bottom-15"
-            onGoToSimulated={() => {
-              console.log('Navegando para simulados...');
-            }}
-            onDetailResult={() => {
-              console.log('Detalhando resultado...');
-            }}
-          />
         </Quiz>
       </div>
     </div>
@@ -494,7 +502,7 @@ export const QuizAlternativeVariants: Story = () => {
 };
 
 export const QuizListResultShowcase: Story = () => {
-  const { setBySimulated, startQuiz, selectAnswer } = useQuizStore();
+  const { setBySimulated, startQuiz, setUserAnswers, setUserId } = useQuizStore();
 
   useEffect(() => {
     // Dados de exemplo para demonstrar a funcionalidade
@@ -626,15 +634,42 @@ export const QuizListResultShowcase: Story = () => {
       ],
     };
 
+    setUserId('demo-user-id');
     setBySimulated(mockSimulado);
     startQuiz();
 
-    // Simular algumas respostas para demonstrar as estatísticas
-    selectAnswer('q1', 'opt1'); // Resposta correta
-    selectAnswer('q2', 'opt1'); // Resposta incorreta
-    selectAnswer('q3', 'opt1'); // Resposta correta
-    selectAnswer('q4', 'opt2'); // Resposta incorreta
-  }, [setBySimulated, startQuiz, selectAnswer]);
+    // Simular algumas respostas para demonstrar as estatísticas usando setUserAnswers
+    setUserAnswers([
+      {
+        questionId: 'q1',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt1',
+        optionId: 'opt1'
+      },
+      {
+        questionId: 'q2',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt1',
+        optionId: 'opt1'
+      },
+      {
+        questionId: 'q3',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt1',
+        optionId: 'opt1'
+      },
+      {
+        questionId: 'q4',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt2',
+        optionId: 'opt2'
+      }
+    ]);
+  }, [setBySimulated, startQuiz, setUserAnswers, setUserId]);
 
   const handleSubjectClick = (subject: string) => {
     console.log('Matéria clicada:', subject);
@@ -663,7 +698,7 @@ export const QuizListResultShowcase: Story = () => {
  * Story para testar todos os componentes de resultado juntos
  */
 export const QuizResultPageShowcase: Story = () => {
-  const { setBySimulated, startQuiz, selectAnswer, finishQuiz } =
+  const { setBySimulated, startQuiz, setUserAnswers, finishQuiz, setUserId } =
     useQuizStore();
 
   useEffect(() => {
@@ -826,19 +861,52 @@ export const QuizResultPageShowcase: Story = () => {
       ],
     };
 
+    setUserId('demo-user-id');
     setBySimulated(mockSimulado);
     startQuiz();
 
-    // Simular algumas respostas para demonstrar as estatísticas
-    selectAnswer('q1', 'opt1'); // Resposta correta
-    selectAnswer('q2', 'opt1'); // Resposta incorreta
-    selectAnswer('q3', 'opt1'); // Resposta correta
-    selectAnswer('q4', 'opt2'); // Resposta incorreta
-    selectAnswer('q5', 'opt1'); // Resposta correta
+    // Simular algumas respostas para demonstrar as estatísticas usando setUserAnswers
+    setUserAnswers([
+      {
+        questionId: 'q1',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt1',
+        optionId: 'opt1'
+      },
+      {
+        questionId: 'q2',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt1',
+        optionId: 'opt1'
+      },
+      {
+        questionId: 'q3',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt1',
+        optionId: 'opt1'
+      },
+      {
+        questionId: 'q4',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt2',
+        optionId: 'opt2'
+      },
+      {
+        questionId: 'q5',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt1',
+        optionId: 'opt1'
+      }
+    ]);
 
     // Finalizar o quiz para mostrar o resultado
     finishQuiz();
-  }, [setBySimulated, startQuiz, selectAnswer, finishQuiz]);
+  }, [setBySimulated, startQuiz, setUserAnswers, finishQuiz, setUserId]);
 
   const handleSubjectClick = (subject: string) => {
     console.log('Matéria clicada:', subject);
@@ -869,7 +937,7 @@ export const QuizResultPageShowcase: Story = () => {
  * Story para testar componentes individuais de resultado
  */
 export const QuizResultComponentsShowcase: Story = () => {
-  const { setBySimulated, startQuiz, selectAnswer, finishQuiz } =
+  const { setBySimulated, startQuiz, selectAnswer, finishQuiz, setUserId } =
     useQuizStore();
 
   useEffect(() => {
@@ -942,6 +1010,7 @@ export const QuizResultComponentsShowcase: Story = () => {
       ],
     };
 
+    setUserId('demo-user-id');
     setBySimulated(mockSimulado);
     startQuiz();
 
@@ -951,7 +1020,7 @@ export const QuizResultComponentsShowcase: Story = () => {
 
     // Finalizar o quiz para mostrar o resultado
     finishQuiz();
-  }, [setBySimulated, startQuiz, selectAnswer, finishQuiz]);
+  }, [setBySimulated, startQuiz, selectAnswer, finishQuiz, setUserId]);
 
   return (
     <div className="space-y-12 h-[calc(100vh-180px)]">
@@ -1001,7 +1070,7 @@ export const QuizResultComponentsShowcase: Story = () => {
 };
 
 export const QuizListResultByMateriaShowcase: Story = () => {
-  const { setBySimulated, startQuiz, selectAnswer, finishQuiz } =
+  const { setBySimulated, startQuiz, selectAnswer, finishQuiz, setUserId } =
     useQuizStore();
 
   useEffect(() => {
@@ -1107,6 +1176,7 @@ export const QuizListResultByMateriaShowcase: Story = () => {
       ],
     };
 
+    setUserId('demo-user-id');
     setBySimulated(mockSimulado);
     startQuiz();
 
@@ -1117,7 +1187,7 @@ export const QuizListResultByMateriaShowcase: Story = () => {
 
     // Finalizar o quiz para mostrar o resultado
     finishQuiz();
-  }, [setBySimulated, startQuiz, selectAnswer, finishQuiz]);
+  }, [setBySimulated, startQuiz, selectAnswer, finishQuiz, setUserId]);
 
   const handleQuestionClick = (question: Question) => {
     console.log('Questão clicada:', question);
