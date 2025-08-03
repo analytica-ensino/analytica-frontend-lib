@@ -23,7 +23,12 @@ type CheckboxListSize = 'small' | 'medium' | 'large';
 /**
  * CheckboxList visual state
  */
-type CheckboxListState = 'default' | 'hovered' | 'focused' | 'invalid' | 'disabled';
+type CheckboxListState =
+  | 'default'
+  | 'hovered'
+  | 'focused'
+  | 'invalid'
+  | 'disabled';
 
 /**
  * CheckboxList store interface
@@ -60,7 +65,7 @@ const createCheckboxListStore = (
       if (!get().disabled) {
         const currentValues = get().values;
         const newValues = currentValues.includes(value)
-          ? currentValues.filter(v => v !== value)
+          ? currentValues.filter((v) => v !== value)
           : [...currentValues, value];
         set({ values: newValues });
         get().onValuesChange?.(newValues);
@@ -115,10 +120,6 @@ export type CheckboxListProps = {
   name?: string;
   /** Disabled state for the entire group */
   disabled?: boolean;
-  /** Size variant for all checkboxes */
-  size?: CheckboxListSize;
-  /** Visual state for all checkboxes */
-  state?: CheckboxListState;
   /** Additional CSS classes */
   className?: string;
   /** Children components */
@@ -153,8 +154,6 @@ const CheckboxList = forwardRef<HTMLDivElement, CheckboxListProps>(
       onValuesChange,
       name: propName,
       disabled = false,
-      size = 'medium',
-      state = 'default',
       className = '',
       children,
       ...props
@@ -295,7 +294,7 @@ const CheckboxListItem = forwardRef<HTMLInputElement, CheckboxListItemProps>(
         size={size}
         state={currentState}
         className={className}
-        onChange={(e) => {
+        onChange={() => {
           if (!isDisabled) {
             toggleValue(value);
           }
@@ -309,4 +308,4 @@ const CheckboxListItem = forwardRef<HTMLInputElement, CheckboxListItemProps>(
 CheckboxListItem.displayName = 'CheckboxListItem';
 
 export default CheckboxList;
-export { CheckboxListItem }; 
+export { CheckboxListItem };

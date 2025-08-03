@@ -1,5 +1,4 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import CheckboxList, { CheckboxListItem } from './CheckboxList';
 
@@ -147,14 +146,21 @@ describe('CheckboxList', () => {
 
       expect(handleChange).toHaveBeenCalledWith(['option1']);
       expect(handleChange).toHaveBeenCalledWith(['option1', 'option2']);
-      expect(handleChange).toHaveBeenCalledWith(['option1', 'option2', 'option3']);
+      expect(handleChange).toHaveBeenCalledWith([
+        'option1',
+        'option2',
+        'option3',
+      ]);
     });
 
     it('handles deselection correctly', () => {
       const handleChange = jest.fn();
 
       render(
-        <CheckboxList defaultValues={['option1', 'option2']} onValuesChange={handleChange}>
+        <CheckboxList
+          defaultValues={['option1', 'option2']}
+          onValuesChange={handleChange}
+        >
           <CheckboxListItem value="option1" data-testid="checkbox1" />
           <CheckboxListItem value="option2" data-testid="checkbox2" />
         </CheckboxList>
@@ -205,7 +211,10 @@ describe('CheckboxList', () => {
 
       // Update controlled values
       rerender(
-        <CheckboxList values={['option1', 'option2']} onValuesChange={handleChange}>
+        <CheckboxList
+          values={['option1', 'option2']}
+          onValuesChange={handleChange}
+        >
           <CheckboxListItem value="option1" data-testid="checkbox1" />
           <CheckboxListItem value="option2" data-testid="checkbox2" />
         </CheckboxList>
@@ -327,7 +336,11 @@ describe('CheckboxList', () => {
 
       expect(handleChange).toHaveBeenCalledWith(['option2']);
       expect(handleChange).toHaveBeenCalledWith(['option2', 'option1']);
-      expect(handleChange).toHaveBeenCalledWith(['option2', 'option1', 'option3']);
+      expect(handleChange).toHaveBeenCalledWith([
+        'option2',
+        'option1',
+        'option3',
+      ]);
     });
   });
 
@@ -453,9 +466,17 @@ describe('CheckboxList', () => {
   describe('Size and state props', () => {
     it('applies size prop to all checkboxes', () => {
       render(
-        <CheckboxList size="small">
-          <CheckboxListItem value="option1" data-testid="checkbox1" />
-          <CheckboxListItem value="option2" data-testid="checkbox2" />
+        <CheckboxList>
+          <CheckboxListItem
+            value="option1"
+            data-testid="checkbox1"
+            size="small"
+          />
+          <CheckboxListItem
+            value="option2"
+            data-testid="checkbox2"
+            size="small"
+          />
         </CheckboxList>
       );
 
@@ -469,9 +490,17 @@ describe('CheckboxList', () => {
 
     it('applies state prop to all checkboxes', () => {
       render(
-        <CheckboxList state="invalid">
-          <CheckboxListItem value="option1" data-testid="checkbox1" />
-          <CheckboxListItem value="option2" data-testid="checkbox2" />
+        <CheckboxList>
+          <CheckboxListItem
+            value="option1"
+            data-testid="checkbox1"
+            state="invalid"
+          />
+          <CheckboxListItem
+            value="option2"
+            data-testid="checkbox2"
+            state="invalid"
+          />
         </CheckboxList>
       );
 
@@ -531,4 +560,4 @@ describe('CheckboxList', () => {
       expect(checkboxElement).toBeInTheDocument();
     });
   });
-}); 
+});

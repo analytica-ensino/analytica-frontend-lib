@@ -23,14 +23,12 @@ export const AllAlternativesShowcase: Story = () => {
             <h3 className="text-xl font-semibold text-text-800">
               Layout Padrão
             </h3>
-            
           </div>
 
           <div className="space-y-4">
             <h3 className="text-xl font-semibold text-text-800">
               Layout Compacto
             </h3>
-           
           </div>
         </div>
       </div>

@@ -15,7 +15,9 @@ import NavButton from './components/NavButton/NavButton';
 import SelectionButton from './components/SelectionButton/SelectionButton';
 import Table from './components/Table/Table';
 import CheckBox from './components/CheckBox/CheckBox';
-import CheckboxList, { CheckboxListItem } from './components/CheckBox/CheckboxList';
+import CheckboxList, {
+  CheckboxListItem,
+} from './components/CheckBox/CheckboxList';
 import Radio, { RadioGroup, RadioGroupItem } from './components/Radio/Radio';
 import TextArea from './components/TextArea/TextArea';
 import Toast from './components/Toast/Toast';
