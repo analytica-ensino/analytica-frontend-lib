@@ -521,7 +521,7 @@ const QuizFooter = forwardRef<
                     const isCorrectOption = question?.options.find(
                       (op) => op.isCorrect
                     );
-                    return question && answer.answer === isCorrectOption?.id;
+                    return question && answer.optionId === isCorrectOption?.id;
                   }).length;
                 })()}{' '}
                 de {allQuestions} questões.
@@ -649,7 +649,7 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
     if (quiz) {
       quiz.questions.forEach((question) => {
         const userAnswerItem = getUserAnswerByQuestionId(question.id);
-        const userAnswer = userAnswerItem?.answer;
+        const userAnswer = userAnswerItem?.optionId;
         const isCorrectOption = question?.options.find((op) => op.isCorrect);
         const isCorrect = userAnswer && userAnswer === isCorrectOption?.id;
 
@@ -778,7 +778,7 @@ const QuizListResult = forwardRef<
       questions.forEach((question) => {
         if (isQuestionAnswered(question.id)) {
           const userAnswerItem = getUserAnswerByQuestionId(question.id);
-          const userAnswer = userAnswerItem?.answer;
+          const userAnswer = userAnswerItem?.optionId;
           const isCorrectOption = question?.options.find((op) => op.isCorrect);
           if (userAnswer === isCorrectOption?.id) {
             correct++;
@@ -856,7 +856,8 @@ const QuizListResultByMateria = ({
                     (op) => op.isCorrect
                   );
 
-                  return userAnswer && userAnswer.answer === isCorrectOption?.id
+                  return userAnswer &&
+                    userAnswer.optionId === isCorrectOption?.id
                     ? 'correct'
                     : 'incorrect';
                 })()}

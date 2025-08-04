@@ -193,8 +193,8 @@ export const AllQuizShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'x = 1 e x = 4', isCorrect: false },
-            { id: 'opt2', option: 'x = 2 e x = 3', isCorrect: false },
+            { id: 'opt1', option: 'x = 1 e x = 6', isCorrect: false },
+            { id: 'opt2', option: 'x = 1 e x = 4', isCorrect: false },
             { id: 'opt3', option: 'x = 2 e x = 3', isCorrect: true },
             { id: 'opt4', option: 'x = -2 e x = -3', isCorrect: false },
           ],
@@ -302,7 +302,7 @@ export const AllQuizShowcase: Story = () => {
           ],
           options: [
             { id: 'opt1', option: '90°', isCorrect: false },
-            { id: 'opt2', option: '180°', isCorrect: false },
+            { id: 'opt2', option: '270°', isCorrect: false },
             { id: 'opt3', option: '180°', isCorrect: true },
             { id: 'opt4', option: '360°', isCorrect: false },
           ],
@@ -429,7 +429,6 @@ export const QuizAlternativeVariants: Story = () => {
     setCurrentQuestion(mockSimulado.questions[0]);
     startQuiz();
 
-    // Simular algumas respostas para demonstrar o resultado usando setUserAnswers
     setUserAnswers([
       {
         questionId: 'q1',
@@ -446,7 +445,13 @@ export const QuizAlternativeVariants: Story = () => {
         optionId: 'opt2',
       },
     ]);
-  }, [setBySimulated, startQuiz, setUserAnswers, setUserId]);
+  }, [
+    setBySimulated,
+    startQuiz,
+    setUserAnswers,
+    setUserId,
+    setCurrentQuestion,
+  ]);
 
   return (
     <div className="space-y-12 h-[calc(100vh-180px)]">
@@ -477,7 +482,6 @@ export const QuizListResultShowcase: Story = () => {
     useQuizStore();
 
   useEffect(() => {
-    // Dados de exemplo para demonstrar a funcionalidade
     const mockSimulado = {
       id: 'simulado-1',
       title: 'Simulado ENEM 2024',
@@ -598,7 +602,6 @@ export const QuizListResultShowcase: Story = () => {
     setBySimulated(mockSimulado);
     startQuiz();
 
-    // Simular algumas respostas para demonstrar as estatísticas usando setUserAnswers
     setUserAnswers([
       {
         questionId: 'q1',
@@ -662,7 +665,6 @@ export const QuizResultPageShowcase: Story = () => {
     useQuizStore();
 
   useEffect(() => {
-    // Dados de exemplo para demonstrar a funcionalidade
     const mockSimulado = {
       id: 'simulado-1',
       title: 'Simulado Enem #42',
@@ -810,7 +812,6 @@ export const QuizResultPageShowcase: Story = () => {
     setBySimulated(mockSimulado);
     startQuiz();
 
-    // Simular algumas respostas para demonstrar as estatísticas usando setUserAnswers
     setUserAnswers([
       {
         questionId: 'q1',
@@ -849,7 +850,6 @@ export const QuizResultPageShowcase: Story = () => {
       },
     ]);
 
-    // Finalizar o quiz para mostrar o resultado
     finishQuiz();
   }, [setBySimulated, startQuiz, setUserAnswers, finishQuiz, setUserId]);
 
@@ -886,7 +886,6 @@ export const QuizResultComponentsShowcase: Story = () => {
     useQuizStore();
 
   useEffect(() => {
-    // Dados de exemplo para demonstrar a funcionalidade
     const mockSimulado = {
       id: 'simulado-1',
       title: 'Simulado Enem #42',
@@ -953,11 +952,9 @@ export const QuizResultComponentsShowcase: Story = () => {
     setBySimulated(mockSimulado);
     startQuiz();
 
-    // Simular algumas respostas para demonstrar as estatísticas
-    selectAnswer('q1', 'opt1'); // Resposta correta
-    selectAnswer('q2', 'opt2'); // Resposta incorreta
+    selectAnswer('q1', 'opt1');
+    selectAnswer('q2', 'opt2');
 
-    // Finalizar o quiz para mostrar o resultado
     finishQuiz();
   }, [setBySimulated, startQuiz, selectAnswer, finishQuiz, setUserId]);
 
@@ -1013,7 +1010,6 @@ export const QuizListResultByMateriaShowcase: Story = () => {
     useQuizStore();
 
   useEffect(() => {
-    // Dados de exemplo para demonstrar a funcionalidade
     const mockSimulado = {
       id: 'simulado-1',
       title: 'Simulado ENEM 2024',
@@ -1110,12 +1106,10 @@ export const QuizListResultByMateriaShowcase: Story = () => {
     setBySimulated(mockSimulado);
     startQuiz();
 
-    // Simular algumas respostas para demonstrar as estatísticas
-    selectAnswer('q1', 'opt1'); // Resposta correta
-    selectAnswer('q2', 'opt3'); // Resposta incorreta
-    selectAnswer('q3', 'opt3'); // Resposta correta
+    selectAnswer('q1', 'opt1');
+    selectAnswer('q2', 'opt3');
+    selectAnswer('q3', 'opt3');
 
-    // Finalizar o quiz para mostrar o resultado
     finishQuiz();
   }, [setBySimulated, startQuiz, selectAnswer, finishQuiz, setUserId]);
 

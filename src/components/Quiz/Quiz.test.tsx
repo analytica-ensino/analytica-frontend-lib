@@ -1847,12 +1847,12 @@ describe('Quiz Result Components', () => {
       const mockEasyQuestion1 = {
         ...mockQuestion1,
         difficulty: 'FACIL' as const,
-        answerKey: 'opt1', // Correct answer
+        answerKey: null,
       };
       const mockEasyQuestion2 = {
         ...mockQuestion2,
         difficulty: 'FACIL' as const,
-        answerKey: 'opt1', // Wrong answer (correct is opt2)
+        answerKey: null,
       };
       const mockDifficultQuestion = {
         id: 'q3',
@@ -1863,7 +1863,7 @@ describe('Quiz Result Components', () => {
         difficulty: 'DIFICIL' as const,
         examBoard: 'ENEM',
         examYear: '2024',
-        answerKey: 'opt1', // Correct answer
+        answerKey: null,
         institutionIds: ['inst1', 'inst2'],
         knowledgeMatrix: [
           {
@@ -1949,24 +1949,23 @@ describe('Quiz Result Components', () => {
       const mockEasyQuestion = {
         ...mockQuestion1,
         difficulty: 'FACIL' as const,
-        answerKey: 'opt1', // Correct answer
+        answerKey: null,
       };
       const mockDifficultQuestion1 = {
         ...mockQuestion2,
         difficulty: 'DIFICIL' as const,
-        answerKey: 'opt2', // Correct answer
+        answerKey: null,
       };
       const mockDifficultQuestion2 = {
         id: 'q3',
         questionText: 'Another difficult question',
-        correctOptionId: 'opt1',
         description: 'Another difficult question',
         type: 'ALTERNATIVA' as const,
         status: 'APROVADO' as const,
         difficulty: 'DIFICIL' as const,
         examBoard: 'ENEM',
         examYear: '2024',
-        answerKey: 'opt2', // Wrong answer
+        answerKey: null,
         createdAt: '2024-01-01',
         updatedAt: '2024-01-01',
         knowledgeMatrix: [
@@ -2054,12 +2053,12 @@ describe('Quiz Result Components', () => {
       const mockEasyQuestion = {
         ...mockQuestion1,
         difficulty: 'FACIL' as const,
-        answerKey: 'opt1', // Correct answer
+        answerKey: null,
       };
       const mockMediumQuestion = {
         ...mockQuestion2,
         difficulty: 'MEDIO' as const,
-        answerKey: 'opt2', // Correct answer
+        answerKey: null,
       };
       const mockDifficultQuestion = {
         id: 'q3',
@@ -2070,7 +2069,7 @@ describe('Quiz Result Components', () => {
         difficulty: 'DIFICIL' as const,
         examBoard: 'ENEM',
         examYear: '2024',
-        answerKey: 'opt1', // Correct answer
+        answerKey: null,
         institutionIds: ['inst1', 'inst2'],
         knowledgeMatrix: [
           {
@@ -2239,19 +2238,18 @@ describe('Quiz Result Components', () => {
       const mockEasyQuestion1 = {
         ...mockQuestion1,
         difficulty: 'FACIL' as const,
-        answerKey: 'opt1', // Correct answer
+        answerKey: null,
       };
       const mockEasyQuestion2 = {
         id: 'q3',
         questionText: 'Another easy question',
-        correctOptionId: 'opt2',
         description: 'Another easy question',
         type: 'ALTERNATIVA' as const,
         status: 'APROVADO' as const,
         difficulty: 'FACIL' as const,
         examBoard: 'ENEM',
         examYear: '2024',
-        answerKey: 'opt1', // Wrong answer
+        answerKey: null,
         createdAt: '2024-01-01',
         updatedAt: '2024-01-01',
         knowledgeMatrix: [
@@ -2274,19 +2272,18 @@ describe('Quiz Result Components', () => {
       const mockDifficultQuestion1 = {
         ...mockQuestion2,
         difficulty: 'DIFICIL' as const,
-        answerKey: 'opt2', // Correct answer
+        answerKey: null,
       };
       const mockDifficultQuestion2 = {
         id: 'q4',
         questionText: 'Another difficult question',
-        correctOptionId: 'opt1',
         description: 'Another difficult question',
         type: 'ALTERNATIVA' as const,
         status: 'APROVADO' as const,
         difficulty: 'DIFICIL' as const,
         examBoard: 'ENEM',
         examYear: '2024',
-        answerKey: 'opt1', // Correct answer
+        answerKey: null,
         createdAt: '2024-01-01',
         updatedAt: '2024-01-01',
         knowledgeMatrix: [
@@ -2339,7 +2336,7 @@ describe('Quiz Result Components', () => {
                 questionId: 'q1',
                 activityId: 'simulado-1',
                 userId: 'user-1',
-                answer: 'opt1',
+                answer: '',
                 optionId: 'opt1',
               };
             }
