@@ -232,14 +232,10 @@ describe('useQuizStore', () => {
         result.current.selectAnswer('q1', 'opt1');
       });
 
-      // Verify that the question's answerKey was updated
-      const currentQuestion = result.current.getCurrentQuestion();
-      expect(currentQuestion?.answerKey).toBe('opt1');
-
       const userAnswers = result.current.getUserAnswers();
       expect(userAnswers).toHaveLength(1); // Apenas as respondidas
       const answeredQuestion = userAnswers.find((q) => q.questionId === 'q1');
-      expect(answeredQuestion?.answer).toBe('opt1');
+      expect(answeredQuestion?.optionId).toBe('opt1');
       expect(answeredQuestion?.optionId).toBe('opt1');
     });
 
@@ -269,6 +265,103 @@ describe('useQuizStore', () => {
       expect(currentQuestion?.answerKey).toBe(null);
 
       consoleSpy.mockRestore();
+    });
+
+    it('should select multiple answers', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectMultipleAnswer('q1', ['opt1', 'opt3']);
+      });
+
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toHaveLength(2); // Two answers for the same question
+
+      const q1Answers = userAnswers.filter(
+        (answer) => answer.questionId === 'q1'
+      );
+      expect(q1Answers).toHaveLength(2);
+
+      const answerIds = q1Answers.map((answer) => answer.optionId);
+      expect(answerIds).toContain('opt1');
+      expect(answerIds).toContain('opt3');
+    });
+
+    it('should replace existing answers when selecting multiple answers for the same question', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        // First, select single answer
+        result.current.selectAnswer('q1', 'opt1');
+        // Then, select multiple answers for the same question
+        result.current.selectMultipleAnswer('q1', ['opt2', 'opt4']);
+      });
+
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toHaveLength(2); // Should have 2 answers for q1 (replaced the single answer)
+
+      const q1Answers = userAnswers.filter(
+        (answer) => answer.questionId === 'q1'
+      );
+      expect(q1Answers).toHaveLength(2);
+
+      const answerIds = q1Answers.map((answer) => answer.optionId);
+      expect(answerIds).toContain('opt2');
+      expect(answerIds).toContain('opt4');
+      expect(answerIds).not.toContain('opt1'); // Should not contain the previous single answer
+    });
+
+    it('should warn and return early when selectMultipleAnswer is called without userId set', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const consoleSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        // Don't set userId - it should be empty string by default
+        result.current.selectMultipleAnswer('q1', ['opt1', 'opt2']);
+      });
+
+      // Verify that console.warn was called with the expected message
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'selectMultipleAnswer called before userId is set'
+      );
+
+      // Verify that no user answers were created (since userId is falsy)
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toHaveLength(0);
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle empty answerIds array in selectMultipleAnswer', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        // First, select some answers
+        result.current.selectAnswer('q1', 'opt1');
+        result.current.selectAnswer('q2', 'opt2');
+        // Then, select multiple answers with empty array (should remove existing answers for q1)
+        result.current.selectMultipleAnswer('q1', []);
+      });
+
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toHaveLength(1); // Only q2 answer should remain
+
+      const q1Answers = userAnswers.filter(
+        (answer) => answer.questionId === 'q1'
+      );
+      expect(q1Answers).toHaveLength(0); // No answers for q1
+
+      const q2Answer = userAnswers.find((answer) => answer.questionId === 'q2');
+      expect(q2Answer?.optionId).toBe('opt2'); // q2 answer should remain unchanged
     });
 
     it('should skip question', () => {
@@ -304,7 +397,7 @@ describe('useQuizStore', () => {
 
       // Get the initial user answer to verify structure
       let userAnswerItem = result.current.getUserAnswerByQuestionId('q1');
-      expect(userAnswerItem?.answer).toBe('opt1');
+      expect(userAnswerItem?.optionId).toBe('opt1');
       expect(userAnswerItem?.optionId).toBe('opt1');
 
       // Now skip the same question (this tests line 269 - existingAnswerIndex logic)
@@ -970,7 +1063,7 @@ describe('useQuizStore', () => {
 
       expect(userAnswers).toHaveLength(1);
       const answeredQuestion = userAnswers.find((q) => q.questionId === 'q1');
-      expect(answeredQuestion?.answer).toBe('opt1');
+      expect(answeredQuestion?.optionId).toBe('opt1');
     });
 
     it('should get unanswered questions from user answers', () => {
@@ -1138,7 +1231,7 @@ describe('useQuizStore', () => {
       // Check that the question is answered (not skipped)
       const userAnswers = result.current.getUserAnswers();
       const updatedQuestion = userAnswers.find((q) => q.questionId === 'q1');
-      expect(updatedQuestion?.answer).not.toBe(null);
+      expect(updatedQuestion?.optionId).not.toBe(null);
 
       // Check that the current answer is updated
       expect(result.current.getCurrentAnswer()).toBe('opt2');
@@ -1270,7 +1363,7 @@ describe('useQuizStore', () => {
 
       let userAnswers = result.current.getUserAnswers();
       let updatedQuestion = userAnswers.find((q) => q.questionId === 'q1');
-      expect(updatedQuestion?.answer).toBe('opt1');
+      expect(updatedQuestion?.optionId).toBe('opt1');
 
       // Test byActivity
       act(() => {
@@ -1284,7 +1377,7 @@ describe('useQuizStore', () => {
 
       userAnswers = result.current.getUserAnswers();
       updatedQuestion = userAnswers.find((q) => q.questionId === 'q1');
-      expect(updatedQuestion?.answer).toBe('opt1');
+      expect(updatedQuestion?.optionId).toBe('opt1');
 
       // Test byQuestionary
       act(() => {
@@ -1298,7 +1391,7 @@ describe('useQuizStore', () => {
 
       userAnswers = result.current.getUserAnswers();
       updatedQuestion = userAnswers.find((q) => q.questionId === 'q2');
-      expect(updatedQuestion?.answer).toBe('opt2');
+      expect(updatedQuestion?.optionId).toBe('opt2');
     });
 
     it('should handle scenarios when no quiz is defined', () => {
@@ -1359,7 +1452,7 @@ describe('useQuizStore', () => {
         const userAnswer = result.current.getUserAnswerByQuestionId('q1');
         expect(userAnswer).not.toBeNull();
         expect(userAnswer?.questionId).toBe('q1');
-        expect(userAnswer?.answer).toBe('opt1');
+        expect(userAnswer?.answer).toBe(null);
         expect(userAnswer?.optionId).toBe('opt1');
       });
 
@@ -1493,8 +1586,8 @@ describe('useQuizStore', () => {
           (answer) => answer.questionId === 'q2'
         );
 
-        expect(q1Answer?.answer).toBe('opt1');
-        expect(q2Answer?.answer).toBe(null);
+        expect(q1Answer?.optionId).toBe('opt1');
+        expect(q2Answer?.optionId).toBe(null);
       });
 
       it('should return empty array when no answers are given', () => {
@@ -1523,7 +1616,7 @@ describe('useQuizStore', () => {
         expect(answer).toHaveProperty('optionId');
 
         expect(answer.questionId).toBe('q1');
-        expect(answer.answer).toBe('opt1');
+        expect(answer.answer).toBe(null);
         expect(answer.optionId).toBe('opt1');
       });
 

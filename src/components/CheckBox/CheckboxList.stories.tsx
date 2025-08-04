@@ -523,6 +523,306 @@ export const WithDisabledItems: Story = () => {
 /**
  * All combinations showcase
  */
+/**
+ * Multiple CheckboxList components on the same page to test isolation
+ */
+export const MultipleInstances: Story = () => {
+  const [group1Values, setGroup1Values] = useState(['option1']);
+  const [group2Values, setGroup2Values] = useState(['option4']);
+  const [group3Values, setGroup3Values] = useState(['option7', 'option8']);
+
+  return (
+    <div className="flex flex-col gap-8 p-8">
+      <h2 className="text-2xl font-bold text-text-950 mb-6">
+        Multiple CheckboxList Instances - Testing Isolation
+      </h2>
+
+      {/* First CheckboxList */}
+      <div className="border border-border-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4 text-text-950">
+          Group 1 - Fruits
+        </h3>
+        <CheckboxList values={group1Values} onValuesChange={setGroup1Values}>
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="option1" id="fruit1" />
+            <label htmlFor="fruit1" className="cursor-pointer">
+              Apple
+            </label>
+          </div>
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="option2" id="fruit2" />
+            <label htmlFor="fruit2" className="cursor-pointer">
+              Banana
+            </label>
+          </div>
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="option3" id="fruit3" />
+            <label htmlFor="fruit3" className="cursor-pointer">
+              Orange
+            </label>
+          </div>
+        </CheckboxList>
+        <div className="mt-4 p-3 bg-gray-100 rounded">
+          <p className="text-sm">
+            <strong>Group 1 Selected:</strong>{' '}
+            {group1Values.length > 0 ? group1Values.join(', ') : 'None'}
+          </p>
+        </div>
+      </div>
+
+      {/* Second CheckboxList */}
+      <div className="border border-border-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4 text-text-950">
+          Group 2 - Colors
+        </h3>
+        <CheckboxList values={group2Values} onValuesChange={setGroup2Values}>
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="option4" id="color1" />
+            <label htmlFor="color1" className="cursor-pointer">
+              Red
+            </label>
+          </div>
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="option5" id="color2" />
+            <label htmlFor="color2" className="cursor-pointer">
+              Blue
+            </label>
+          </div>
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="option6" id="color3" />
+            <label htmlFor="color3" className="cursor-pointer">
+              Green
+            </label>
+          </div>
+        </CheckboxList>
+        <div className="mt-4 p-3 bg-gray-100 rounded">
+          <p className="text-sm">
+            <strong>Group 2 Selected:</strong>{' '}
+            {group2Values.length > 0 ? group2Values.join(', ') : 'None'}
+          </p>
+        </div>
+      </div>
+
+      {/* Third CheckboxList */}
+      <div className="border border-border-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4 text-text-950">
+          Group 3 - Numbers
+        </h3>
+        <CheckboxList values={group3Values} onValuesChange={setGroup3Values}>
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="option7" id="num1" />
+            <label htmlFor="num1" className="cursor-pointer">
+              One
+            </label>
+          </div>
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="option8" id="num2" />
+            <label htmlFor="num2" className="cursor-pointer">
+              Two
+            </label>
+          </div>
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="option9" id="num3" />
+            <label htmlFor="num3" className="cursor-pointer">
+              Three
+            </label>
+          </div>
+        </CheckboxList>
+        <div className="mt-4 p-3 bg-gray-100 rounded">
+          <p className="text-sm">
+            <strong>Group 3 Selected:</strong>{' '}
+            {group3Values.length > 0 ? group3Values.join(', ') : 'None'}
+          </p>
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div className="border border-border-200 rounded-lg p-6 bg-blue-50">
+        <h3 className="text-lg font-semibold mb-4 text-text-950">
+          Summary - All Groups
+        </h3>
+        <div className="space-y-2">
+          <p>
+            <strong>Group 1 (Fruits):</strong>{' '}
+            {group1Values.join(', ') || 'None'}
+          </p>
+          <p>
+            <strong>Group 2 (Colors):</strong>{' '}
+            {group2Values.join(', ') || 'None'}
+          </p>
+          <p>
+            <strong>Group 3 (Numbers):</strong>{' '}
+            {group3Values.join(', ') || 'None'}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Multiple CheckboxList with different configurations to test isolation
+ */
+export const MultipleConfigurations: Story = () => {
+  const [controlledValues, setControlledValues] = useState(['controlled1']);
+  const [uncontrolledValues, setUncontrolledValues] = useState([
+    'uncontrolled1',
+  ]);
+  const [disabledValues, setDisabledValues] = useState(['disabled1']);
+
+  return (
+    <div className="flex flex-col gap-8 p-8">
+      <h2 className="text-2xl font-bold text-text-950 mb-6">
+        Multiple CheckboxList Configurations - Advanced Isolation Test
+      </h2>
+
+      {/* Controlled CheckboxList */}
+      <div className="border border-border-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4 text-text-950">
+          Controlled CheckboxList
+        </h3>
+        <CheckboxList
+          values={controlledValues}
+          onValuesChange={setControlledValues}
+        >
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="controlled1" id="controlled1" />
+            <label htmlFor="controlled1" className="cursor-pointer">
+              Controlled Option 1
+            </label>
+          </div>
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="controlled2" id="controlled2" />
+            <label htmlFor="controlled2" className="cursor-pointer">
+              Controlled Option 2
+            </label>
+          </div>
+        </CheckboxList>
+        <div className="mt-4 p-3 bg-gray-100 rounded">
+          <p className="text-sm">
+            <strong>Controlled Selected:</strong>{' '}
+            {controlledValues.length > 0 ? controlledValues.join(', ') : 'None'}
+          </p>
+        </div>
+      </div>
+
+      {/* Uncontrolled CheckboxList */}
+      <div className="border border-border-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4 text-text-950">
+          Uncontrolled CheckboxList
+        </h3>
+        <CheckboxList
+          defaultValues={['uncontrolled1']}
+          onValuesChange={setUncontrolledValues}
+        >
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="uncontrolled1" id="uncontrolled1" />
+            <label htmlFor="uncontrolled1" className="cursor-pointer">
+              Uncontrolled Option 1
+            </label>
+          </div>
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="uncontrolled2" id="uncontrolled2" />
+            <label htmlFor="uncontrolled2" className="cursor-pointer">
+              Uncontrolled Option 2
+            </label>
+          </div>
+        </CheckboxList>
+        <div className="mt-4 p-3 bg-gray-100 rounded">
+          <p className="text-sm">
+            <strong>Uncontrolled Selected:</strong>{' '}
+            {uncontrolledValues.length > 0
+              ? uncontrolledValues.join(', ')
+              : 'None'}
+          </p>
+        </div>
+      </div>
+
+      {/* Disabled CheckboxList */}
+      <div className="border border-border-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4 text-text-950">
+          Disabled CheckboxList
+        </h3>
+        <CheckboxList
+          values={disabledValues}
+          onValuesChange={setDisabledValues}
+          disabled={true}
+        >
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="disabled1" id="disabled1" />
+            <label htmlFor="disabled1" className="cursor-pointer">
+              Disabled Option 1
+            </label>
+          </div>
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="disabled2" id="disabled2" />
+            <label htmlFor="disabled2" className="cursor-pointer">
+              Disabled Option 2
+            </label>
+          </div>
+        </CheckboxList>
+        <div className="mt-4 p-3 bg-gray-100 rounded">
+          <p className="text-sm">
+            <strong>Disabled Selected:</strong>{' '}
+            {disabledValues.length > 0 ? disabledValues.join(', ') : 'None'}
+          </p>
+        </div>
+      </div>
+
+      {/* Mixed CheckboxList with some disabled items */}
+      <div className="border border-border-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4 text-text-950">
+          Mixed CheckboxList (Some Disabled)
+        </h3>
+        <CheckboxList
+          defaultValues={['mixed1']}
+          onValuesChange={(values) =>
+            console.log('Mixed values changed:', values)
+          }
+        >
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="mixed1" id="mixed1" />
+            <label htmlFor="mixed1" className="cursor-pointer">
+              Mixed Option 1 (Enabled)
+            </label>
+          </div>
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="mixed2" id="mixed2" disabled />
+            <label htmlFor="mixed2" className="cursor-pointer">
+              Mixed Option 2 (Disabled)
+            </label>
+          </div>
+          <div className="flex items-center gap-3">
+            <CheckboxListItem value="mixed3" id="mixed3" />
+            <label htmlFor="mixed3" className="cursor-pointer">
+              Mixed Option 3 (Enabled)
+            </label>
+          </div>
+        </CheckboxList>
+      </div>
+
+      {/* Summary */}
+      <div className="border border-border-200 rounded-lg p-6 bg-blue-50">
+        <h3 className="text-lg font-semibold mb-4 text-text-950">
+          Summary - All Configurations
+        </h3>
+        <div className="space-y-2">
+          <p>
+            <strong>Controlled:</strong> {controlledValues.join(', ') || 'None'}
+          </p>
+          <p>
+            <strong>Uncontrolled:</strong>{' '}
+            {uncontrolledValues.join(', ') || 'None'}
+          </p>
+          <p>
+            <strong>Disabled:</strong> {disabledValues.join(', ') || 'None'}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const AllCombinations: Story = () => (
   <div className="flex flex-col gap-8 p-8">
     <div>

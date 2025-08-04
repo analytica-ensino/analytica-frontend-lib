@@ -183,7 +183,7 @@ const CheckboxList = forwardRef<HTMLDivElement, CheckboxListProps>(
       if (currentValues.length > 0 && onValuesChange) {
         onValuesChange(currentValues);
       }
-    }, [store, onValuesChange]);
+    }, []);
 
     // Handle controlled values changes
     useEffect(() => {

@@ -14,6 +14,7 @@ interface Choice {
 interface MultipleChoiceListProps extends HtmlHTMLAttributes<HTMLDivElement> {
   choices: Choice[];
   disabled?: boolean;
+  name?: string;
   selectedValues?: string[];
   onHandleSelectedValues?: (values: string[]) => void;
   mode?: 'interactive' | 'readonly';
@@ -23,6 +24,7 @@ const MultipleChoiceList = ({
   disabled = false,
   className = '',
   choices,
+  name,
   selectedValues,
   onHandleSelectedValues,
   mode = 'interactive',
@@ -129,6 +131,7 @@ const MultipleChoiceList = ({
       )}
     >
       <CheckboxList
+        name={name}
         values={actualValue}
         onValuesChange={(v) => {
           setActualValue(v);

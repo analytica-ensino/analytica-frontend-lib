@@ -13,8 +13,21 @@ import {
 } from '../Alternative/Alternative';
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
-import { forwardRef, ReactNode, useState } from 'react';
-import { Question, useQuizStore, QUESTION_DIFFICULTY } from './useQuizStore';
+import {
+  forwardRef,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+} from 'react';
+import {
+  Question,
+  useQuizStore,
+  QUESTION_DIFFICULTY,
+  QUESTION_TYPE,
+} from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
 import SimulatedResult from '@/assets/img/simulated-result.png';
@@ -28,6 +41,7 @@ import { CardResults, CardStatus } from '../Card/Card';
 import ProgressCircle from '../ProgressCircle/ProgressCircle';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { cn } from '../../utils/utils';
+import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 
 const Quiz = forwardRef<
   HTMLDivElement,
@@ -49,14 +63,42 @@ const Quiz = forwardRef<
 
 const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
   ({ className, ...props }, ref) => {
-    const { getCurrentQuestion, getCurrentAnswer } = useQuizStore();
+    const { getCurrentQuestion, getCurrentAnswer, getAllCurrentAnswer } =
+      useQuizStore();
     const currentQuestion = getCurrentQuestion();
     const userAnswer = getCurrentAnswer();
+    const [isCorrect, setIsCorrect] = useState(false);
 
-    // Verifica se o usuário acertou comparando sua resposta com a resposta correta
-    const isCorrect = currentQuestion?.options.find(
-      (op) => op.id == userAnswer
-    )?.isCorrect;
+    useEffect(() => {
+      if (currentQuestion?.type === QUESTION_TYPE.MULTIPLA_CHOICE) {
+        const allCurrentAnswers = getAllCurrentAnswer();
+        const isCorrectOption = currentQuestion.options.filter(
+          (op) => op.isCorrect
+        );
+
+        if (allCurrentAnswers?.length != isCorrectOption.length) {
+          setIsCorrect(false);
+          return;
+        }
+
+        setIsCorrect(true);
+
+        allCurrentAnswers.map((answer) => {
+          const findInCorrectOptions = isCorrectOption.find(
+            (op) => op.id == answer.optionId
+          );
+          if (!findInCorrectOptions) {
+            setIsCorrect(false);
+            return;
+          }
+        });
+      } else {
+        setIsCorrect(
+          currentQuestion?.options.find((op) => op.id == userAnswer)
+            ?.isCorrect || false
+        );
+      }
+    }, [currentQuestion]);
 
     return (
       <div
@@ -220,6 +262,116 @@ const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
             selectAnswer(currentQuestion.id, value);
           }
         }}
+      />
+    </div>
+  );
+};
+
+interface QuizMultipleChoiceInterface {
+  variant?: 'result' | 'default';
+}
+
+const QuizMultipleChoice = ({
+  variant = 'default',
+}: QuizMultipleChoiceInterface) => {
+  const { getCurrentQuestion, selectMultipleAnswer, getAllCurrentAnswer } =
+    useQuizStore();
+  const currentQuestion = getCurrentQuestion();
+  const allCurrentAnswers = getAllCurrentAnswer();
+
+  // Use ref to track previous values and prevent unnecessary updates
+  const prevSelectedValuesRef = useRef<string[]>([]);
+  const prevQuestionIdRef = useRef<string>('');
+
+  // Memoize the answer IDs to prevent unnecessary re-renders
+  const allCurrentAnswerIds = useMemo(() => {
+    return allCurrentAnswers?.map((answer) => answer.optionId) || [];
+  }, [allCurrentAnswers]);
+
+  // Memoize the selected values to prevent infinite loops
+  const selectedValues = useMemo(() => {
+    return allCurrentAnswerIds?.filter((id): id is string => id !== null) || [];
+  }, [allCurrentAnswerIds]);
+
+  // Only update selectedValues if they actually changed or question changed
+  const stableSelectedValues = useMemo(() => {
+    const currentQuestionId = currentQuestion?.id || '';
+    const hasQuestionChanged = prevQuestionIdRef.current !== currentQuestionId;
+
+    if (hasQuestionChanged) {
+      prevQuestionIdRef.current = currentQuestionId;
+      prevSelectedValuesRef.current = selectedValues;
+      return selectedValues;
+    }
+
+    // Only update if values actually changed
+    const hasValuesChanged =
+      JSON.stringify(prevSelectedValuesRef.current) !==
+      JSON.stringify(selectedValues);
+    if (hasValuesChanged) {
+      prevSelectedValuesRef.current = selectedValues;
+      return selectedValues;
+    }
+
+    return prevSelectedValuesRef.current;
+  }, [selectedValues, currentQuestion?.id]);
+
+  // Memoize the callback to prevent unnecessary re-renders
+  const handleSelectedValues = useCallback(
+    (values: string[]) => {
+      if (currentQuestion) {
+        selectMultipleAnswer(currentQuestion.id, values);
+      }
+    },
+    [currentQuestion, selectMultipleAnswer]
+  );
+
+  // Create a stable key to force re-mount when question changes
+  const questionKey = useMemo(
+    () => `question-${currentQuestion?.id || '1'}`,
+    [currentQuestion?.id]
+  );
+  const choices = currentQuestion?.options?.map((option) => {
+    let status: Status = Status.NEUTRAL;
+
+    if (variant === 'result') {
+      const isAllCorrectOptionId = currentQuestion.options
+        .filter((op) => op.isCorrect)
+        .map((op) => op.id);
+
+      if (isAllCorrectOptionId.includes(option.id)) {
+        status = Status.CORRECT;
+      } else if (
+        allCurrentAnswerIds?.includes(option.id) &&
+        !isAllCorrectOptionId.includes(option.id)
+      ) {
+        status = Status.INCORRECT;
+      }
+    }
+
+    return {
+      label: option.option,
+      value: option.id,
+      status: status,
+    };
+  });
+
+  if (!choices)
+    return (
+      <div>
+        <p>Não há Escolhas Multiplas</p>
+      </div>
+    );
+
+  return (
+    <div className="space-y-4">
+      <MultipleChoiceList
+        choices={choices}
+        key={questionKey}
+        name={questionKey}
+        selectedValues={stableSelectedValues}
+        onHandleSelectedValues={handleSelectedValues}
+        mode={variant === 'default' ? 'interactive' : 'readonly'}
       />
     </div>
   );
@@ -885,4 +1037,5 @@ export {
   QuizResultTitle,
   QuizResultPerformance,
   QuizListResultByMateria,
+  QuizMultipleChoice,
 };

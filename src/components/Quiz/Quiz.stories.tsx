@@ -12,6 +12,7 @@ import {
   QuizResultTitle,
   QuizResultPerformance,
   QuizListResultByMateria,
+  QuizMultipleChoice,
 } from './Quiz';
 import {
   QUESTION_DIFFICULTY,
@@ -469,6 +470,167 @@ export const QuizAlternativeVariants: Story = () => {
           <QuizHeader />
           <QuizContent className="pb-[150px]">
             <QuizAlternative variant={'result'} />
+          </QuizContent>
+          <QuizFooter className="bottom-15" />
+        </Quiz>
+      </div>
+    </div>
+  );
+};
+
+export const QuizMultipleChoiceVariants: Story = () => {
+  const {
+    setBySimulated,
+    startQuiz,
+    setUserAnswers,
+    setUserId,
+    setCurrentQuestion,
+  } = useQuizStore();
+
+  useEffect(() => {
+    // Dados de exemplo para demonstrar a funcionalidade de múltipla escolha
+    const mockSimulado = {
+      id: 'simulado-1',
+      title: 'Simulado ENEM 2024 - Múltipla Escolha',
+      category: 'Enem',
+      questions: [
+        {
+          id: 'q1',
+          questionText:
+            'Quais das seguintes opções são características de um movimento uniformemente variado? (Selecione todas as opções corretas)',
+          description:
+            'Questão sobre movimento uniformemente variado - múltipla escolha',
+          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'muv',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Aceleração constante', isCorrect: true },
+            { id: 'opt2', option: 'Velocidade variável', isCorrect: true },
+            { id: 'opt3', option: 'Trajetória retilínea', isCorrect: true },
+            { id: 'opt4', option: 'Velocidade constante', isCorrect: false },
+          ],
+        },
+        {
+          id: 'q2',
+          questionText:
+            'Quais das seguintes grandezas são vetoriais? (Selecione todas as opções corretas)',
+          description: 'Questão sobre grandezas vetoriais - múltipla escolha',
+          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'grandezas',
+              subtopicId: 'vetores',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Velocidade', isCorrect: true },
+            { id: 'opt2', option: 'Aceleração', isCorrect: true },
+            { id: 'opt3', option: 'Força', isCorrect: true },
+            { id: 'opt4', option: 'Temperatura', isCorrect: false },
+          ],
+        },
+      ],
+    };
+
+    setUserId('demo-user-id');
+    setBySimulated(mockSimulado);
+    setCurrentQuestion(mockSimulado.questions[0]);
+    startQuiz();
+
+    // Simular respostas do usuário para mostrar o resultado
+    setUserAnswers([
+      {
+        questionId: 'q1',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: null,
+        optionId: 'opt1',
+      },
+      {
+        questionId: 'q1',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: null,
+        optionId: 'opt2',
+      },
+      {
+        questionId: 'q1',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: null,
+        optionId: 'opt4', // Resposta incorreta
+      },
+      {
+        questionId: 'q2',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: null,
+        optionId: 'opt1',
+      },
+      {
+        questionId: 'q2',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: null,
+        optionId: 'opt2',
+      },
+      {
+        questionId: 'q2',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: null,
+        optionId: 'opt3',
+      },
+    ]);
+  }, [
+    setBySimulated,
+    startQuiz,
+    setUserAnswers,
+    setUserId,
+    setCurrentQuestion,
+  ]);
+
+  return (
+    <div className="space-y-12 h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Quiz Multiple Choice Variants
+        </h1>
+        <p className="text-text-600 text-lg">
+          Variantes de resultado para questões de múltipla escolha
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2 h-full pb-15">
+        <Quiz>
+          <QuizHeaderResult />
+          <QuizTitle />
+          <QuizHeader />
+          <QuizContent className="pb-[150px]">
+            <QuizMultipleChoice variant={'result'} />
           </QuizContent>
           <QuizFooter className="bottom-15" />
         </Quiz>
@@ -1138,6 +1300,146 @@ export const QuizListResultByMateriaShowcase: Story = () => {
             onQuestionClick={handleQuestionClick}
           />
         </div>
+      </div>
+    </div>
+  );
+};
+
+export const QuizMultipleChoiceShowcase: Story = () => {
+  const { setBySimulated, startQuiz, setUserId, setCurrentQuestion } =
+    useQuizStore();
+
+  useEffect(() => {
+    // Dados de exemplo para demonstrar a funcionalidade de múltipla escolha
+    const mockSimulado = {
+      id: 'simulado-1',
+      title: 'Simulado ENEM 2024 - Múltipla Escolha',
+      category: 'Enem',
+      questions: [
+        {
+          id: 'q1',
+          questionText:
+            'Quais das seguintes opções são características de um movimento uniformemente variado? (Selecione todas as opções corretas)',
+          description:
+            'Questão sobre movimento uniformemente variado - múltipla escolha',
+          type: 'ALTERNATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'muv',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Aceleração constante', isCorrect: true },
+            { id: 'opt2', option: 'Velocidade variável', isCorrect: true },
+            { id: 'opt3', option: 'Trajetória retilínea', isCorrect: true },
+            { id: 'opt4', option: 'Velocidade constante', isCorrect: false },
+          ],
+        },
+        {
+          id: 'q2',
+          questionText:
+            'Quais das seguintes grandezas são vetoriais? (Selecione todas as opções corretas)',
+          description: 'Questão sobre grandezas vetoriais - múltipla escolha',
+          type: 'ALTERNATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'grandezas',
+              subtopicId: 'vetores',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Velocidade', isCorrect: true },
+            { id: 'opt2', option: 'Aceleração', isCorrect: true },
+            { id: 'opt3', option: 'Força', isCorrect: true },
+            { id: 'opt4', option: 'Temperatura', isCorrect: false },
+          ],
+        },
+        {
+          id: 'q3',
+          questionText:
+            'Quais das seguintes equações são do segundo grau? (Selecione todas as opções corretas)',
+          description:
+            'Questão sobre equações do segundo grau - múltipla escolha',
+          type: 'ALTERNATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'matematica',
+              subjectId: 'algebra',
+              topicId: 'equacoes',
+              subtopicId: 'segundo-grau',
+              contentId: 'algebra',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'x² - 5x + 6 = 0', isCorrect: true },
+            { id: 'opt2', option: '2x² + 3x - 1 = 0', isCorrect: true },
+            { id: 'opt3', option: 'x + 2 = 0', isCorrect: false },
+            { id: 'opt4', option: 'x³ - 2x = 0', isCorrect: false },
+          ],
+        },
+      ],
+    };
+
+    setUserId('demo-user-id');
+    setBySimulated(mockSimulado);
+    setCurrentQuestion(mockSimulado.questions[0]);
+    startQuiz();
+  }, [setBySimulated, startQuiz, setUserId, setCurrentQuestion]);
+
+  return (
+    <div className="space-y-12 h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Quiz Multiple Choice
+        </h1>
+        <p className="text-text-600 text-lg">
+          Componente para questões de múltipla escolha
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2 h-full pb-15">
+        <Quiz>
+          <QuizTitle />
+          <QuizHeader />
+          <QuizContent className="pb-[150px]">
+            <QuizMultipleChoice />
+          </QuizContent>
+          <QuizFooter
+            className="bottom-15"
+            onGoToSimulated={() => {
+              console.log('Navegando para simulados...');
+            }}
+            onDetailResult={() => {
+              console.log('Detalhando resultado...');
+            }}
+          />
+        </Quiz>
       </div>
     </div>
   );
