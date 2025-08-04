@@ -10,7 +10,6 @@ import {
 const mockQuestion1 = {
   id: 'q1',
   questionText: 'What is 2 + 2?',
-  correctOptionId: 'opt1',
   description: 'Basic math question',
   type: QUESTION_TYPE.ALTERNATIVA,
   status: QUESTION_STATUS.APROVADO,
@@ -18,8 +17,7 @@ const mockQuestion1 = {
   examBoard: 'ENEM',
   examYear: '2024',
   answerKey: null,
-  createdAt: '2024-01-01',
-  updatedAt: '2024-01-01',
+  institutionIds: ['inst1', 'inst2'],
   knowledgeMatrix: [
     {
       areaKnowledgeId: 'matematica',
@@ -30,18 +28,16 @@ const mockQuestion1 = {
     },
   ],
   options: [
-    { id: 'opt1', option: '4' },
-    { id: 'opt2', option: '3' },
-    { id: 'opt3', option: '5' },
-    { id: 'opt4', option: '6' },
+    { id: 'opt1', option: '4', isCorrect: true },
+    { id: 'opt2', option: '3', isCorrect: false },
+    { id: 'opt3', option: '5', isCorrect: false },
+    { id: 'opt4', option: '6', isCorrect: false },
   ],
-  createdBy: 'user1',
 };
 
 const mockQuestion2 = {
   id: 'q2',
   questionText: 'What is the capital of France?',
-  correctOptionId: 'opt2',
   description: 'Geography question',
   type: QUESTION_TYPE.ALTERNATIVA,
   status: QUESTION_STATUS.APROVADO,
@@ -49,8 +45,7 @@ const mockQuestion2 = {
   examBoard: 'ENEM',
   examYear: '2024',
   answerKey: null,
-  createdAt: '2024-01-01',
-  updatedAt: '2024-01-01',
+  institutionIds: ['inst1', 'inst2'],
   knowledgeMatrix: [
     {
       areaKnowledgeId: 'geografia',
@@ -61,12 +56,11 @@ const mockQuestion2 = {
     },
   ],
   options: [
-    { id: 'opt1', option: 'London' },
-    { id: 'opt2', option: 'Paris' },
-    { id: 'opt3', option: 'Berlin' },
-    { id: 'opt4', option: 'Madrid' },
+    { id: 'opt1', option: 'London', isCorrect: false },
+    { id: 'opt2', option: 'Paris', isCorrect: true },
+    { id: 'opt3', option: 'Berlin', isCorrect: false },
+    { id: 'opt4', option: 'Madrid', isCorrect: false },
   ],
-  createdBy: 'user1',
 };
 
 const mockSimulado = {

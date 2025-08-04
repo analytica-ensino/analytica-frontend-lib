@@ -54,7 +54,9 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
     const userAnswer = getCurrentAnswer();
 
     // Verifica se o usuário acertou comparando sua resposta com a resposta correta
-    const isCorrect = userAnswer === currentQuestion?.correctOptionId;
+    const isCorrect = currentQuestion?.options.find(
+      (op) => op.id == userAnswer
+    )?.isCorrect;
 
     return (
       <div
@@ -176,11 +178,14 @@ const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
     let status: Status = Status.NEUTRAL;
 
     if (variant === 'result') {
-      if (option.id === currentQuestion.correctOptionId) {
+      const isCorrectOption = currentQuestion.options.find(
+        (op) => op.isCorrect
+      );
+      if (isCorrectOption?.id == option.id) {
         status = Status.CORRECT;
       } else if (
         currentAnswer === option.id &&
-        option.id !== currentQuestion.correctOptionId
+        option.id !== isCorrectOption?.id
       ) {
         status = Status.INCORRECT;
       }
@@ -513,9 +518,10 @@ const QuizFooter = forwardRef<
                     const question = activeQuiz.quiz.questions.find(
                       (q) => q.id === answer.questionId
                     );
-                    return (
-                      question && answer.answer === question.correctOptionId
+                    const isCorrectOption = question?.options.find(
+                      (op) => op.isCorrect
                     );
+                    return question && answer.answer === isCorrectOption?.id;
                   }).length;
                 })()}{' '}
                 de {allQuestions} questões.
@@ -644,7 +650,8 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
       quiz.questions.forEach((question) => {
         const userAnswerItem = getUserAnswerByQuestionId(question.id);
         const userAnswer = userAnswerItem?.answer;
-        const isCorrect = userAnswer && userAnswer === question.correctOptionId;
+        const isCorrectOption = question?.options.find((op) => op.isCorrect);
+        const isCorrect = userAnswer && userAnswer === isCorrectOption?.id;
 
         if (isCorrect) {
           correctAnswers++;
@@ -772,7 +779,8 @@ const QuizListResult = forwardRef<
         if (isQuestionAnswered(question.id)) {
           const userAnswerItem = getUserAnswerByQuestionId(question.id);
           const userAnswer = userAnswerItem?.answer;
-          if (userAnswer === question.correctOptionId) {
+          const isCorrectOption = question?.options.find((op) => op.isCorrect);
+          if (userAnswer === isCorrectOption?.id) {
             correct++;
           } else {
             incorrect++;
@@ -844,8 +852,11 @@ const QuizListResultByMateria = ({
                 header={`Questão ${question.id}`}
                 status={(() => {
                   const userAnswer = getUserAnswerByQuestionId(question.id);
-                  return userAnswer &&
-                    userAnswer.answer === question.correctOptionId
+                  const isCorrectOption = question?.options.find(
+                    (op) => op.isCorrect
+                  );
+
+                  return userAnswer && userAnswer.answer === isCorrectOption?.id
                     ? 'correct'
                     : 'incorrect';
                 })()}

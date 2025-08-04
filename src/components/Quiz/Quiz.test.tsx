@@ -289,7 +289,6 @@ jest.mock('@/assets/img/simulated-result.png', () => 'mocked-image.png');
 const mockQuestion1 = {
   id: 'q1',
   questionText: 'What is 2 + 2?',
-  correctOptionId: 'opt1',
   description: 'Basic math question',
   type: 'ALTERNATIVA' as const,
   status: 'APROVADO' as const,
@@ -297,8 +296,7 @@ const mockQuestion1 = {
   examBoard: 'ENEM',
   examYear: '2024',
   answerKey: null,
-  createdAt: '2024-01-01',
-  updatedAt: '2024-01-01',
+  institutionIds: ['inst1', 'inst2'],
   knowledgeMatrix: [
     {
       areaKnowledgeId: 'matematica',
@@ -309,18 +307,16 @@ const mockQuestion1 = {
     },
   ],
   options: [
-    { id: 'opt1', option: '4' },
-    { id: 'opt2', option: '3' },
-    { id: 'opt3', option: '5' },
-    { id: 'opt4', option: '6' },
+    { id: 'opt1', option: '4', isCorrect: true },
+    { id: 'opt2', option: '3', isCorrect: false },
+    { id: 'opt3', option: '5', isCorrect: false },
+    { id: 'opt4', option: '6', isCorrect: false },
   ],
-  createdBy: 'user1',
 };
 
 const mockQuestion2 = {
   id: 'q2',
   questionText: 'What is the capital of France?',
-  correctOptionId: 'opt2',
   description: 'Geography question',
   type: 'ALTERNATIVA' as const,
   status: 'APROVADO' as const,
@@ -328,8 +324,7 @@ const mockQuestion2 = {
   examBoard: 'ENEM',
   examYear: '2024',
   answerKey: null,
-  createdAt: '2024-01-01',
-  updatedAt: '2024-01-01',
+  institutionIds: ['inst1', 'inst2'],
   knowledgeMatrix: [
     {
       areaKnowledgeId: 'geografia',
@@ -340,12 +335,11 @@ const mockQuestion2 = {
     },
   ],
   options: [
-    { id: 'opt1', option: 'London' },
-    { id: 'opt2', option: 'Paris' },
-    { id: 'opt3', option: 'Berlin' },
-    { id: 'opt4', option: 'Madrid' },
+    { id: 'opt1', option: 'London', isCorrect: false },
+    { id: 'opt2', option: 'Paris', isCorrect: true },
+    { id: 'opt3', option: 'Berlin', isCorrect: false },
+    { id: 'opt4', option: 'Madrid', isCorrect: false },
   ],
-  createdBy: 'user1',
 };
 
 const mockSimulado = {
@@ -1863,7 +1857,6 @@ describe('Quiz Result Components', () => {
       const mockDifficultQuestion = {
         id: 'q3',
         questionText: 'Difficult question',
-        correctOptionId: 'opt1',
         description: 'Difficult question',
         type: 'ALTERNATIVA' as const,
         status: 'APROVADO' as const,
@@ -1871,8 +1864,7 @@ describe('Quiz Result Components', () => {
         examBoard: 'ENEM',
         examYear: '2024',
         answerKey: 'opt1', // Correct answer
-        createdAt: '2024-01-01',
-        updatedAt: '2024-01-01',
+        institutionIds: ['inst1', 'inst2'],
         knowledgeMatrix: [
           {
             areaKnowledgeId: 'matematica',
@@ -1883,12 +1875,11 @@ describe('Quiz Result Components', () => {
           },
         ],
         options: [
-          { id: 'opt1', option: 'Correct' },
-          { id: 'opt2', option: 'Wrong' },
-          { id: 'opt3', option: 'Wrong' },
-          { id: 'opt4', option: 'Wrong' },
+          { id: 'opt1', option: 'Correct', isCorrect: true },
+          { id: 'opt2', option: 'Wrong', isCorrect: false },
+          { id: 'opt3', option: 'Wrong', isCorrect: false },
+          { id: 'opt4', option: 'Wrong', isCorrect: false },
         ],
-        createdBy: 'user1',
       };
 
       const mockQuestionsWithDifficulty = [
@@ -2073,7 +2064,6 @@ describe('Quiz Result Components', () => {
       const mockDifficultQuestion = {
         id: 'q3',
         questionText: 'Difficult question',
-        correctOptionId: 'opt1',
         description: 'Difficult question',
         type: 'ALTERNATIVA' as const,
         status: 'APROVADO' as const,
@@ -2081,8 +2071,7 @@ describe('Quiz Result Components', () => {
         examBoard: 'ENEM',
         examYear: '2024',
         answerKey: 'opt1', // Correct answer
-        createdAt: '2024-01-01',
-        updatedAt: '2024-01-01',
+        institutionIds: ['inst1', 'inst2'],
         knowledgeMatrix: [
           {
             areaKnowledgeId: 'matematica',
@@ -2093,12 +2082,11 @@ describe('Quiz Result Components', () => {
           },
         ],
         options: [
-          { id: 'opt1', option: 'Correct' },
-          { id: 'opt2', option: 'Wrong' },
-          { id: 'opt3', option: 'Wrong' },
-          { id: 'opt4', option: 'Wrong' },
+          { id: 'opt1', option: 'Correct', isCorrect: true },
+          { id: 'opt2', option: 'Wrong', isCorrect: false },
+          { id: 'opt3', option: 'Wrong', isCorrect: false },
+          { id: 'opt4', option: 'Wrong', isCorrect: false },
         ],
-        createdBy: 'user1',
       };
 
       const mockQuestionsWithAllDifficulties = [
@@ -2360,7 +2348,7 @@ describe('Quiz Result Components', () => {
                 questionId: 'q2',
                 activityId: 'simulado-1',
                 userId: 'user-1',
-                answer: 'opt1',
+                answer: '',
                 optionId: 'opt1',
               };
             }
@@ -2369,7 +2357,7 @@ describe('Quiz Result Components', () => {
                 questionId: 'q3',
                 activityId: 'simulado-1',
                 userId: 'user-1',
-                answer: 'opt2',
+                answer: '',
                 optionId: 'opt2',
               };
             }
@@ -2378,7 +2366,7 @@ describe('Quiz Result Components', () => {
                 questionId: 'q4',
                 activityId: 'simulado-1',
                 userId: 'user-1',
-                answer: 'opt1',
+                answer: '',
                 optionId: 'opt1',
               };
             }
@@ -2388,8 +2376,8 @@ describe('Quiz Result Components', () => {
 
       render(<QuizResultPerformance />);
 
-      // Should show 3 correct out of 4 total (1 easy correct + 2 difficult correct)
-      expect(screen.getByText('3 de 4')).toBeInTheDocument();
+      // Should show 1 correct out of 4 total (1 easy correct + 0 medium correct + 0 difficult correct)
+      expect(screen.getByText('1 de 4')).toBeInTheDocument();
     });
   });
 
@@ -2452,7 +2440,6 @@ describe('Quiz Result Components', () => {
       const mockMediumQuestion2 = {
         id: 'q3',
         questionText: 'Another medium question',
-        correctOptionId: 'opt1',
         description: 'Another medium question',
         type: 'ALTERNATIVA' as const,
         status: 'APROVADO' as const,
@@ -2460,8 +2447,7 @@ describe('Quiz Result Components', () => {
         examBoard: 'ENEM',
         examYear: '2024',
         answerKey: 'opt2', // Wrong answer
-        createdAt: '2024-01-01',
-        updatedAt: '2024-01-01',
+        institutionIds: ['inst1', 'inst2'],
         knowledgeMatrix: [
           {
             areaKnowledgeId: 'matematica',
@@ -2472,17 +2458,15 @@ describe('Quiz Result Components', () => {
           },
         ],
         options: [
-          { id: 'opt1', option: 'Correct' },
-          { id: 'opt2', option: 'Wrong' },
-          { id: 'opt3', option: 'Wrong' },
-          { id: 'opt4', option: 'Wrong' },
+          { id: 'opt1', option: 'Correct', isCorrect: true },
+          { id: 'opt2', option: 'Wrong', isCorrect: false },
+          { id: 'opt3', option: 'Wrong', isCorrect: false },
+          { id: 'opt4', option: 'Wrong', isCorrect: false },
         ],
-        createdBy: 'user1',
       };
       const mockDifficultQuestion = {
         id: 'q4',
         questionText: 'Difficult question',
-        correctOptionId: 'opt1',
         description: 'Difficult question',
         type: 'ALTERNATIVA' as const,
         status: 'APROVADO' as const,
@@ -2579,8 +2563,8 @@ describe('Quiz Result Components', () => {
 
       render(<QuizResultPerformance />);
 
-      // Should show 3 correct out of 4 total (1 easy correct + 1 medium correct + 1 difficult correct)
-      expect(screen.getByText('3 de 4')).toBeInTheDocument();
+      // Should show 2 correct out of 4 total (1 easy correct + 0 medium correct + 1 difficult correct)
+      expect(screen.getByText('2 de 4')).toBeInTheDocument();
     });
   });
 
@@ -2590,7 +2574,6 @@ describe('Quiz Result Components', () => {
         {
           id: 'q1',
           questionText: 'Questão de Física 1',
-          correctOptionId: 'opt1',
           description: 'Questão sobre física',
           type: 'ALTERNATIVA' as const,
           status: 'APROVADO' as const,
@@ -2598,8 +2581,7 @@ describe('Quiz Result Components', () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -2610,17 +2592,15 @@ describe('Quiz Result Components', () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta correta' },
-            { id: 'opt2', option: 'Resposta incorreta' },
-            { id: 'opt3', option: 'Resposta incorreta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q2',
           questionText: 'Questão de Física 2',
-          correctOptionId: 'opt2',
           description: 'Questão sobre física',
           type: 'ALTERNATIVA' as const,
           status: 'APROVADO' as const,
@@ -2628,8 +2608,7 @@ describe('Quiz Result Components', () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -2640,19 +2619,17 @@ describe('Quiz Result Components', () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta incorreta' },
-            { id: 'opt2', option: 'Resposta correta' },
-            { id: 'opt3', option: 'Resposta incorreta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt2', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
       ],
       matematica: [
         {
           id: 'q3',
           questionText: 'Questão de Matemática 1',
-          correctOptionId: 'opt1',
           description: 'Questão sobre matemática',
           type: 'ALTERNATIVA' as const,
           status: 'APROVADO' as const,
@@ -2660,8 +2637,7 @@ describe('Quiz Result Components', () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'matematica',
@@ -2672,12 +2648,11 @@ describe('Quiz Result Components', () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta correta' },
-            { id: 'opt2', option: 'Resposta incorreta' },
-            { id: 'opt3', option: 'Resposta incorreta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
       ],
     };
@@ -3222,7 +3197,6 @@ describe('Quiz Result Components', () => {
         {
           id: 'q1',
           questionText: 'Questão de Mecânica 1',
-          correctOptionId: 'opt1',
           description: 'Questão sobre mecânica',
           type: 'ALTERNATIVA' as const,
           status: 'APROVADO' as const,
@@ -3230,8 +3204,7 @@ describe('Quiz Result Components', () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt1',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -3242,17 +3215,15 @@ describe('Quiz Result Components', () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta correta' },
-            { id: 'opt2', option: 'Resposta incorreta' },
-            { id: 'opt3', option: 'Resposta incorreta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q2',
           questionText: 'Questão de Mecânica 2',
-          correctOptionId: 'opt2',
           description: 'Questão sobre mecânica',
           type: 'ALTERNATIVA' as const,
           status: 'APROVADO' as const,
@@ -3260,8 +3231,7 @@ describe('Quiz Result Components', () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt3',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -3272,17 +3242,15 @@ describe('Quiz Result Components', () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta incorreta' },
-            { id: 'opt2', option: 'Resposta correta' },
-            { id: 'opt3', option: 'Resposta incorreta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt2', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q3',
           questionText: 'Questão de Mecânica 3',
-          correctOptionId: 'opt3',
           description: 'Questão sobre mecânica',
           type: 'ALTERNATIVA' as const,
           status: 'APROVADO' as const,
@@ -3290,8 +3258,7 @@ describe('Quiz Result Components', () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt3',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -3302,12 +3269,11 @@ describe('Quiz Result Components', () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta incorreta' },
-            { id: 'opt2', option: 'Resposta incorreta' },
-            { id: 'opt3', option: 'Resposta correta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
       ],
     };
@@ -3438,7 +3404,6 @@ describe('Quiz Result Components', () => {
         expect.objectContaining({
           id: 'q1',
           questionText: 'Questão de Mecânica 1',
-          correctOptionId: 'opt1',
           answerKey: 'opt1',
         })
       );

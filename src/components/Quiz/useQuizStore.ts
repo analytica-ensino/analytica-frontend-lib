@@ -21,16 +21,14 @@ export enum QUESTION_STATUS {
 export interface Question {
   id: string;
   questionText: string;
-  correctOptionId: string;
   description: string;
   type: QUESTION_TYPE;
   status: QUESTION_STATUS;
   difficulty: QUESTION_DIFFICULTY;
-  examBoard: string | null;
-  examYear: string | null;
-  answerKey: string | null;
-  createdAt: string;
-  updatedAt: string;
+  examBoard: string;
+  examYear: string;
+  answerKey: null | string;
+  institutionIds: string[];
   knowledgeMatrix: {
     areaKnowledgeId: string;
     subjectId: string;
@@ -41,8 +39,8 @@ export interface Question {
   options: {
     id: string;
     option: string;
+    isCorrect: boolean;
   }[];
-  createdBy: string;
 }
 
 interface Simulado {
