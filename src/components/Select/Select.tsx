@@ -420,7 +420,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
         role="menu"
         ref={ref}
         className={cn(
-          'bg-background z-50 min-w-[210px] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md border-border-100',
+          'bg-white z-50 min-w-[210px] overflow-hidden rounded-md border p-1 shadow-md border-border-100',
           getPositionClasses(),
           className
         )}
@@ -479,7 +479,7 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
         aria-disabled={disabled}
         ref={ref}
         className={`
-          focus-visible:bg-background-50
+          bg-white focus-visible:bg-background-50
           relative flex select-none items-center gap-2 rounded-sm p-3 outline-none transition-colors [&>svg]:size-4 [&>svg]:shrink-0
           ${className}
           ${
