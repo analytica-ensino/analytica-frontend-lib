@@ -17,7 +17,7 @@ export default defineConfig([
     minify: false,
     treeshake: false,
   },
-  // Individual components without types (to reduce memory usage)
+  // Individual components with JS bundles
   {
     entry: {
       // Main components (alphabetical order)

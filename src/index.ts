@@ -32,7 +32,10 @@ import Stepper from './components/Stepper/Stepper';
 import Calendar from './components/Calendar/Calendar';
 import Modal from './components/Modal/Modal';
 import { CardAccordation } from './components/Accordation/Accordation';
-import { AlternativesList } from './components/Alternative/Alternative';
+import {
+  AlternativesList,
+  HeaderAlternative,
+} from './components/Alternative/Alternative';
 import { AlertDialog } from './components/AlertDialog/AlertDialog';
 import { MultipleChoiceList } from './components/MultipleChoice/MultipleChoice';
 
@@ -71,6 +74,7 @@ import {
   CardSimulado,
   CardStatus,
   CardTopic,
+  CardAudio,
   CardTest,
   CardSimulationHistory,
 } from './components/Card/Card';
@@ -182,6 +186,7 @@ export { CardResults };
 export { CardSimulado };
 export { CardStatus };
 export { CardTopic };
+export { CardAudio };
 export { CardTest };
 export { CardSimulationHistory };
 
@@ -207,6 +212,7 @@ export { useRouteAuth };
 export { getRootDomain };
 export { CardAccordation };
 export { AlternativesList };
+export { HeaderAlternative };
 export { createZustandAuthAdapter };
 export { useUrlAuthentication };
 export { useApiConfig };
