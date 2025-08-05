@@ -21,16 +21,14 @@ export enum QUESTION_STATUS {
 export interface Question {
   id: string;
   questionText: string;
-  correctOptionId: string;
   description: string;
   type: QUESTION_TYPE;
   status: QUESTION_STATUS;
   difficulty: QUESTION_DIFFICULTY;
-  examBoard: string | null;
-  examYear: string | null;
-  answerKey: string | null;
-  createdAt: string;
-  updatedAt: string;
+  examBoard: string;
+  examYear: string;
+  answerKey: null | string;
+  institutionIds: string[];
   knowledgeMatrix: {
     areaKnowledgeId: string;
     subjectId: string;
@@ -41,8 +39,8 @@ export interface Question {
   options: {
     id: string;
     option: string;
+    isCorrect: boolean;
   }[];
-  createdBy: string;
 }
 
 interface Simulado {
@@ -72,10 +70,6 @@ interface UserAnswerItem {
   optionId: string | null;
 }
 
-interface UserAnswer extends Question {
-  isSkipped: boolean;
-}
-
 interface QuizState {
   // Data
   bySimulated?: Simulado;
@@ -90,12 +84,12 @@ interface QuizState {
   isStarted: boolean;
   isFinished: boolean;
   userId: string;
-
   // Actions
   setBySimulated: (simulado: Simulado) => void;
   setByActivity: (atividade: Atividade) => void;
   setByQuestionary: (aula: Aula) => void;
   setUserId: (userId: string) => void;
+  setUserAnswers: (userAnswers: UserAnswerItem[]) => void;
 
   // Quiz Navigation
   goToNextQuestion: () => void;
@@ -108,6 +102,7 @@ interface QuizState {
 
   // Quiz Actions
   selectAnswer: (questionId: string, answerId: string) => void;
+  selectMultipleAnswer: (questionId: string, answerIds: string[]) => void;
   skipQuestion: () => void;
   addUserAnswer: (questionId: string, answerId?: string) => void;
   startQuiz: () => void;
@@ -129,12 +124,14 @@ interface QuizState {
   isQuestionAnswered: (questionId: string) => boolean;
   isQuestionSkipped: (questionId: string) => boolean;
   getCurrentAnswer: () => string | undefined;
+  getAllCurrentAnswer: () => UserAnswerItem[] | undefined;
   getQuizTitle: () => string;
   formatTime: (seconds: number) => string;
-  getUserAnswers: () => UserAnswer[];
+  getUserAnswers: () => UserAnswerItem[];
   getUnansweredQuestionsFromUserAnswers: () => number[];
   getQuestionsGroupedBySubject: () => { [key: string]: Question[] };
   getUserId: () => string;
+  setCurrentQuestion: (question: Question) => void;
 
   // New methods for userAnswers
   getUserAnswerByQuestionId: (questionId: string) => UserAnswerItem | null;
@@ -187,6 +184,7 @@ export const useQuizStore = create<QuizState>()(
         setByActivity: (atividade) => set({ byActivity: atividade }),
         setByQuestionary: (aula) => set({ byQuestionary: aula }),
         setUserId: (userId) => set({ userId }),
+        setUserAnswers: (userAnswers) => set({ userAnswers }),
         getUserId: () => get().userId,
 
         // Navigation
@@ -233,21 +231,10 @@ export const useQuizStore = create<QuizState>()(
 
           if (!activeQuiz) return;
 
-          const updatedQuestions = activeQuiz.quiz.questions.map((question) =>
-            question.id === questionId
-              ? { ...question, answerKey: answerId }
-              : question
-          );
-
-          const updatedQuiz = {
-            ...activeQuiz.quiz,
-            questions: updatedQuestions,
-          };
-
           const activityId = activeQuiz.quiz.id;
           const userId = get().getUserId();
 
-          if (!userId) {
+          if (!userId || userId === '') {
             console.warn('selectAnswer called before userId is set');
             return;
           }
@@ -260,7 +247,7 @@ export const useQuizStore = create<QuizState>()(
             questionId,
             activityId,
             userId,
-            answer: answerId,
+            answer: null,
             optionId: answerId,
           };
 
@@ -273,7 +260,47 @@ export const useQuizStore = create<QuizState>()(
           }
 
           set({
-            [activeQuiz.type]: updatedQuiz,
+            userAnswers: updatedUserAnswers,
+          });
+        },
+
+        selectMultipleAnswer: (questionId, answerIds) => {
+          const { getActiveQuiz, userAnswers } = get();
+          const activeQuiz = getActiveQuiz();
+
+          if (!activeQuiz) return;
+
+          const activityId = activeQuiz.quiz.id;
+          const userId = get().getUserId();
+
+          if (!userId || userId === '') {
+            console.warn('selectMultipleAnswer called before userId is set');
+            return;
+          }
+
+          // Remove all existing answers for this questionId
+          const filteredUserAnswers = userAnswers.filter(
+            (answer) => answer.questionId !== questionId
+          );
+
+          // Create new UserAnswerItem objects for each answerId
+          const newUserAnswers: UserAnswerItem[] = answerIds.map(
+            (answerId) => ({
+              questionId,
+              activityId,
+              userId,
+              answer: null,
+              optionId: answerId,
+            })
+          );
+
+          // Combine filtered answers with new answers
+          const updatedUserAnswers = [
+            ...filteredUserAnswers,
+            ...newUserAnswers,
+          ];
+
+          set({
             userAnswers: updatedUserAnswers,
           });
         },
@@ -288,6 +315,11 @@ export const useQuizStore = create<QuizState>()(
           if (currentQuestion) {
             const activityId = activeQuiz.quiz.id;
             const userId = get().getUserId();
+
+            if (!userId || userId === '') {
+              console.warn('skipQuestion called before userId is set');
+              return;
+            }
 
             const existingAnswerIndex = userAnswers.findIndex(
               (answer) => answer.questionId === currentQuestion.id
@@ -327,6 +359,11 @@ export const useQuizStore = create<QuizState>()(
           const activityId = activeQuiz.quiz.id;
           const userId = get().getUserId();
 
+          if (!userId || userId === '') {
+            console.warn('addUserAnswer called before userId is set');
+            return;
+          }
+
           const existingAnswerIndex = userAnswers.findIndex(
             (answer) => answer.questionId === questionId
           );
@@ -335,7 +372,7 @@ export const useQuizStore = create<QuizState>()(
             questionId,
             activityId,
             userId,
-            answer: answerId || null,
+            answer: null,
             optionId: answerId || null,
           };
 
@@ -399,7 +436,8 @@ export const useQuizStore = create<QuizState>()(
 
         getAnsweredQuestions: () => {
           const { userAnswers } = get();
-          return userAnswers.filter((answer) => answer.answer !== null).length;
+          return userAnswers.filter((answer) => answer.optionId !== null)
+            .length;
         },
 
         getUnansweredQuestions: () => {
@@ -413,8 +451,8 @@ export const useQuizStore = create<QuizState>()(
             const userAnswer = userAnswers.find(
               (answer) => answer.questionId === question.id
             );
-            const isAnswered = userAnswer && userAnswer.answer !== null;
-            const isSkipped = userAnswer && userAnswer.answer === null;
+            const isAnswered = userAnswer && userAnswer.optionId !== null;
+            const isSkipped = userAnswer && userAnswer.optionId === null;
 
             if (!isAnswered && !isSkipped) {
               unansweredQuestions.push(index + 1); // index + 1 para mostrar número da questão
@@ -425,7 +463,8 @@ export const useQuizStore = create<QuizState>()(
 
         getSkippedQuestions: () => {
           const { userAnswers } = get();
-          return userAnswers.filter((answer) => answer.answer === null).length;
+          return userAnswers.filter((answer) => answer.optionId === null)
+            .length;
         },
 
         getProgress: () => {
@@ -441,7 +480,7 @@ export const useQuizStore = create<QuizState>()(
           const userAnswer = userAnswers.find(
             (answer) => answer.questionId === questionId
           );
-          return userAnswer ? userAnswer.answer !== null : false;
+          return userAnswer ? userAnswer.optionId !== null : false;
         },
 
         isQuestionSkipped: (questionId) => {
@@ -449,7 +488,7 @@ export const useQuizStore = create<QuizState>()(
           const userAnswer = userAnswers.find(
             (answer) => answer.questionId === questionId
           );
-          return userAnswer ? userAnswer.answer === null : false;
+          return userAnswer ? userAnswer.optionId === null : false;
         },
 
         getCurrentAnswer: () => {
@@ -461,7 +500,20 @@ export const useQuizStore = create<QuizState>()(
           const userAnswer = userAnswers.find(
             (answer) => answer.questionId === currentQuestion.id
           );
-          return userAnswer?.answer;
+          return userAnswer?.optionId;
+        },
+
+        getAllCurrentAnswer: () => {
+          const { getCurrentQuestion, userAnswers } = get();
+          const currentQuestion = getCurrentQuestion();
+
+          if (!currentQuestion) return undefined;
+
+          const userAnswer = userAnswers.filter(
+            (answer) => answer.questionId === currentQuestion.id
+          );
+
+          return userAnswer;
         },
 
         getQuizTitle: () => {
@@ -478,20 +530,8 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getUserAnswers: () => {
-          const { getActiveQuiz, userAnswers } = get();
-          const activeQuiz = getActiveQuiz();
-
-          if (!activeQuiz) return [];
-
-          return activeQuiz.quiz.questions.map((question) => {
-            const userAnswer = userAnswers.find(
-              (answer) => answer.questionId === question.id
-            );
-            return {
-              ...question,
-              isSkipped: userAnswer ? userAnswer.answer === null : false,
-            };
-          });
+          const { userAnswers } = get();
+          return userAnswers;
         },
 
         getUnansweredQuestionsFromUserAnswers: () => {
@@ -505,8 +545,8 @@ export const useQuizStore = create<QuizState>()(
             const userAnswer = userAnswers.find(
               (answer) => answer.questionId === question.id
             );
-            const hasAnswer = userAnswer && userAnswer.answer !== null;
-            const isSkipped = userAnswer && userAnswer.answer === null;
+            const hasAnswer = userAnswer && userAnswer.optionId !== null;
+            const isSkipped = userAnswer && userAnswer.optionId === null;
 
             // Se não há resposta do usuário OU se a questão foi pulada
             if (!hasAnswer || isSkipped) {
@@ -551,7 +591,7 @@ export const useQuizStore = create<QuizState>()(
           const answer = userAnswers.find(
             (answer) => answer.questionId === questionId
           );
-          return answer ? answer.answer !== null : false;
+          return answer ? answer.optionId !== null : false;
         },
         getQuestionStatusFromUserAnswers: (questionId) => {
           const { userAnswers } = get();
@@ -559,12 +599,31 @@ export const useQuizStore = create<QuizState>()(
             (answer) => answer.questionId === questionId
           );
           if (!answer) return 'unanswered';
-          if (answer.answer === null) return 'skipped';
+          if (answer.optionId === null) return 'skipped';
           return 'answered';
         },
         getUserAnswersForActivity: () => {
           const { userAnswers } = get();
           return userAnswers;
+        },
+        setCurrentQuestion: (question) => {
+          const { getActiveQuiz } = get();
+          const activeQuiz = getActiveQuiz();
+          if (!activeQuiz) return;
+
+          const questionIndex = activeQuiz.quiz.questions.findIndex(
+            (q) => q.id === question.id
+          );
+
+          // Validate that the question was found before updating currentQuestionIndex
+          if (questionIndex === -1) {
+            console.warn(
+              `Question with id "${question.id}" not found in active quiz`
+            );
+            return;
+          }
+
+          set({ currentQuestionIndex: questionIndex });
         },
       };
     },

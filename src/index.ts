@@ -15,6 +15,9 @@ import NavButton from './components/NavButton/NavButton';
 import SelectionButton from './components/SelectionButton/SelectionButton';
 import Table from './components/Table/Table';
 import CheckBox from './components/CheckBox/CheckBox';
+import CheckboxList, {
+  CheckboxListItem,
+} from './components/CheckBox/CheckboxList';
 import Radio, { RadioGroup, RadioGroupItem } from './components/Radio/Radio';
 import TextArea from './components/TextArea/TextArea';
 import Toast from './components/Toast/Toast';
@@ -31,6 +34,7 @@ import Modal from './components/Modal/Modal';
 import { CardAccordation } from './components/Accordation/Accordation';
 import { AlternativesList } from './components/Alternative/Alternative';
 import { AlertDialog } from './components/AlertDialog/AlertDialog';
+import { MultipleChoiceList } from './components/MultipleChoice/MultipleChoice';
 
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
@@ -101,17 +105,19 @@ import { useApiConfig } from './components/Auth/useApiConfig';
 
 // Import Quiz components
 import {
-  Quiz,
+  QuizHeaderResult,
   QuizTitle,
+  Quiz,
   QuizHeader,
   QuizContent,
   QuizAlternative,
+  QuizQuestionList,
+  QuizFooter,
+  QuizListResult,
   QuizResultHeaderTitle,
   QuizResultTitle,
   QuizResultPerformance,
   QuizListResultByMateria,
-  QuizQuestionList,
-  QuizFooter,
 } from './components/Quiz/Quiz';
 import { useQuizStore } from './components/Quiz/useQuizStore';
 
@@ -126,6 +132,8 @@ export { NavButton };
 export { SelectionButton };
 export { Table };
 export { CheckBox };
+export { CheckboxList };
+export { CheckboxListItem };
 export { Radio };
 export { RadioGroup };
 export { RadioGroupItem };
@@ -208,11 +216,15 @@ export { Quiz };
 export { QuizTitle };
 export { QuizHeader };
 export { QuizContent };
+export { useQuizStore };
+export { QuizHeaderResult };
 export { QuizAlternative };
+export { QuizQuestionList };
+export { QuizFooter };
+export { QuizListResult };
 export { QuizResultHeaderTitle };
 export { QuizResultTitle };
 export { QuizResultPerformance };
 export { QuizListResultByMateria };
-export { QuizQuestionList };
-export { QuizFooter };
-export { useQuizStore };
+
+export { MultipleChoiceList };

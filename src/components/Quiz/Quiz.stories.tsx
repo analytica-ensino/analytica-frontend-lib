@@ -1,7 +1,6 @@
 import type { Story } from '@ladle/react';
 import {
   Quiz,
-  QuizAlternative,
   QuizContent,
   QuizFooter,
   QuizHeader,
@@ -23,7 +22,7 @@ import {
 import { useEffect } from 'react';
 
 export const AllQuizShowcase: Story = () => {
-  const { setBySimulated, startQuiz } = useQuizStore();
+  const { setBySimulated, startQuiz, setUserId } = useQuizStore();
 
   useEffect(() => {
     // Dados de exemplo para demonstrar a funcionalidade
@@ -36,7 +35,6 @@ export const AllQuizShowcase: Story = () => {
           id: 'q1',
           questionText:
             'Um carro inicia do repouso e se desloca em linha reta com uma aceleração constante de 2 m/s². Calcule a distância que o carro percorre após 5 segundos.',
-          correctOptionId: 'opt1',
           description: 'Questão sobre movimento uniformemente variado',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -44,8 +42,7 @@ export const AllQuizShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -56,18 +53,16 @@ export const AllQuizShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: '25 metros' },
-            { id: 'opt2', option: '30 metros' },
-            { id: 'opt3', option: '40 metros' },
-            { id: 'opt4', option: '50 metros' },
+            { id: 'opt1', option: '25 metros', isCorrect: true },
+            { id: 'opt2', option: '30 metros', isCorrect: false },
+            { id: 'opt3', option: '40 metros', isCorrect: false },
+            { id: 'opt4', option: '50 metros', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q2',
           questionText:
             'Uma partícula se move com velocidade constante de 10 m/s. Qual a distância percorrida em 3 segundos?',
-          correctOptionId: 'opt2',
           description: 'Questão sobre movimento uniforme',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -75,8 +70,7 @@ export const AllQuizShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -87,18 +81,16 @@ export const AllQuizShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: '25 metros' },
-            { id: 'opt2', option: '30 metros' },
-            { id: 'opt3', option: '35 metros' },
-            { id: 'opt4', option: '45 metros' },
+            { id: 'opt1', option: '25 metros', isCorrect: false },
+            { id: 'opt2', option: '30 metros', isCorrect: true },
+            { id: 'opt3', option: '35 metros', isCorrect: false },
+            { id: 'opt4', option: '45 metros', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q3',
           questionText:
             'Um objeto é lançado verticalmente para cima com velocidade inicial de 20 m/s. Qual a altura máxima atingida? (Considere g = 10 m/s²)',
-          correctOptionId: 'opt3',
           description: 'Questão sobre lançamento vertical',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -106,8 +98,7 @@ export const AllQuizShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -118,18 +109,16 @@ export const AllQuizShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: '15 metros' },
-            { id: 'opt2', option: '18 metros' },
-            { id: 'opt3', option: '20 metros' },
-            { id: 'opt4', option: '22 metros' },
+            { id: 'opt1', option: '15 metros', isCorrect: false },
+            { id: 'opt2', option: '18 metros', isCorrect: false },
+            { id: 'opt3', option: '20 metros', isCorrect: true },
+            { id: 'opt4', option: '22 metros', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q4',
           questionText:
             'Qual é a velocidade média de um móvel que percorre 120 km em 2 horas?',
-          correctOptionId: 'opt2',
           description: 'Questão sobre velocidade média',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -137,8 +126,7 @@ export const AllQuizShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -149,18 +137,16 @@ export const AllQuizShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: '50 km/h' },
-            { id: 'opt2', option: '60 km/h' },
-            { id: 'opt3', option: '70 km/h' },
-            { id: 'opt4', option: '80 km/h' },
+            { id: 'opt1', option: '50 km/h', isCorrect: false },
+            { id: 'opt2', option: '60 km/h', isCorrect: true },
+            { id: 'opt3', option: '70 km/h', isCorrect: false },
+            { id: 'opt4', option: '80 km/h', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q5',
           questionText:
             'Um corpo em queda livre atinge o solo com velocidade de 30 m/s. Qual foi a altura de onde foi solto? (Considere g = 10 m/s²)',
-          correctOptionId: 'opt1',
           description: 'Questão sobre queda livre',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -168,8 +154,7 @@ export const AllQuizShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -180,17 +165,15 @@ export const AllQuizShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: '45 metros' },
-            { id: 'opt2', option: '50 metros' },
-            { id: 'opt3', option: '55 metros' },
-            { id: 'opt4', option: '60 metros' },
+            { id: 'opt1', option: '45 metros', isCorrect: true },
+            { id: 'opt2', option: '50 metros', isCorrect: false },
+            { id: 'opt3', option: '55 metros', isCorrect: false },
+            { id: 'opt4', option: '60 metros', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q6',
           questionText: 'Resolva a equação do segundo grau: x² - 5x + 6 = 0',
-          correctOptionId: 'opt3',
           description: 'Questão sobre equações do segundo grau',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -198,8 +181,7 @@ export const AllQuizShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'matematica',
@@ -210,17 +192,15 @@ export const AllQuizShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'x = 1 e x = 4' },
-            { id: 'opt2', option: 'x = 2 e x = 3' },
-            { id: 'opt3', option: 'x = 2 e x = 3' },
-            { id: 'opt4', option: 'x = -2 e x = -3' },
+            { id: 'opt1', option: 'x = 1 e x = 6', isCorrect: false },
+            { id: 'opt2', option: 'x = 1 e x = 4', isCorrect: false },
+            { id: 'opt3', option: 'x = 2 e x = 3', isCorrect: true },
+            { id: 'opt4', option: 'x = -2 e x = -3', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q7',
           questionText: 'Calcule a área de um círculo com raio de 5 cm',
-          correctOptionId: 'opt2',
           description: 'Questão sobre área do círculo',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -228,8 +208,7 @@ export const AllQuizShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'matematica',
@@ -240,17 +219,15 @@ export const AllQuizShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: '15π cm²' },
-            { id: 'opt2', option: '25π cm²' },
-            { id: 'opt3', option: '30π cm²' },
-            { id: 'opt4', option: '35π cm²' },
+            { id: 'opt1', option: '15π cm²', isCorrect: false },
+            { id: 'opt2', option: '25π cm²', isCorrect: true },
+            { id: 'opt3', option: '30π cm²', isCorrect: false },
+            { id: 'opt4', option: '35π cm²', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q8',
           questionText: 'Qual é a fórmula molecular da água?',
-          correctOptionId: 'opt1',
           description: 'Questão sobre fórmula molecular',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -258,8 +235,7 @@ export const AllQuizShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'quimica',
@@ -270,17 +246,15 @@ export const AllQuizShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'H₂O' },
-            { id: 'opt2', option: 'CO₂' },
-            { id: 'opt3', option: 'O₂' },
-            { id: 'opt4', option: 'H₂' },
+            { id: 'opt1', option: 'H₂O', isCorrect: true },
+            { id: 'opt2', option: 'CO₂', isCorrect: false },
+            { id: 'opt3', option: 'O₂', isCorrect: false },
+            { id: 'opt4', option: 'H₂', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q9',
           questionText: 'Qual é o pH de uma solução neutra?',
-          correctOptionId: 'opt2',
           description: 'Questão sobre pH',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -288,8 +262,7 @@ export const AllQuizShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'quimica',
@@ -300,17 +273,15 @@ export const AllQuizShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'pH = 0' },
-            { id: 'opt2', option: 'pH = 7' },
-            { id: 'opt3', option: 'pH = 14' },
-            { id: 'opt4', option: 'pH = 10' },
+            { id: 'opt1', option: 'pH = 0', isCorrect: false },
+            { id: 'opt2', option: 'pH = 7', isCorrect: true },
+            { id: 'opt3', option: 'pH = 14', isCorrect: false },
+            { id: 'opt4', option: 'pH = 10', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q10',
           questionText: 'Qual é a soma dos ângulos internos de um triângulo?',
-          correctOptionId: 'opt3',
           description: 'Questão sobre ângulos internos',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -318,8 +289,7 @@ export const AllQuizShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'matematica',
@@ -330,19 +300,19 @@ export const AllQuizShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: '90°' },
-            { id: 'opt2', option: '180°' },
-            { id: 'opt3', option: '180°' },
-            { id: 'opt4', option: '360°' },
+            { id: 'opt1', option: '90°', isCorrect: false },
+            { id: 'opt2', option: '270°', isCorrect: false },
+            { id: 'opt3', option: '180°', isCorrect: true },
+            { id: 'opt4', option: '360°', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
       ],
     };
 
+    setUserId('demo-user-id');
     setBySimulated(mockSimulado);
     startQuiz();
-  }, [setBySimulated, startQuiz]);
+  }, [setBySimulated, startQuiz, setUserId]);
 
   return (
     <div className="space-y-12 h-[calc(100vh-180px)]">
@@ -360,9 +330,7 @@ export const AllQuizShowcase: Story = () => {
         <Quiz>
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]">
-            <QuizAlternative />
-          </QuizContent>
+          <QuizContent className="pb-[150px]" />
           <QuizFooter
             className="bottom-15"
             onGoToSimulated={() => {
@@ -379,7 +347,13 @@ export const AllQuizShowcase: Story = () => {
 };
 
 export const QuizAlternativeVariants: Story = () => {
-  const { setBySimulated, startQuiz, selectAnswer } = useQuizStore();
+  const {
+    setBySimulated,
+    startQuiz,
+    setUserAnswers,
+    setUserId,
+    setCurrentQuestion,
+  } = useQuizStore();
 
   useEffect(() => {
     // Dados de exemplo para demonstrar a funcionalidade
@@ -392,7 +366,6 @@ export const QuizAlternativeVariants: Story = () => {
           id: 'q1',
           questionText:
             'Um carro inicia do repouso e se desloca em linha reta com uma aceleração constante de 2 m/s². Calcule a distância que o carro percorre após 5 segundos.',
-          correctOptionId: 'opt1',
           description: 'Questão sobre movimento uniformemente variado',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -400,8 +373,7 @@ export const QuizAlternativeVariants: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt3',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -412,18 +384,16 @@ export const QuizAlternativeVariants: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: '25 metros' },
-            { id: 'opt2', option: '30 metros' },
-            { id: 'opt3', option: '40 metros' },
-            { id: 'opt4', option: '50 metros' },
+            { id: 'opt1', option: '25 metros', isCorrect: true },
+            { id: 'opt2', option: '30 metros', isCorrect: false },
+            { id: 'opt3', option: '40 metros', isCorrect: false },
+            { id: 'opt4', option: '50 metros', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q2',
           questionText:
             'Uma partícula se move com velocidade constante de 10 m/s. Qual a distância percorrida em 3 segundos?',
-          correctOptionId: 'opt2',
           description: 'Questão sobre movimento uniforme',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -431,8 +401,7 @@ export const QuizAlternativeVariants: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -443,23 +412,43 @@ export const QuizAlternativeVariants: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: '25 metros' },
-            { id: 'opt2', option: '30 metros' },
-            { id: 'opt3', option: '35 metros' },
-            { id: 'opt4', option: '45 metros' },
+            { id: 'opt1', option: '25 metros', isCorrect: false },
+            { id: 'opt2', option: '30 metros', isCorrect: true },
+            { id: 'opt3', option: '35 metros', isCorrect: false },
+            { id: 'opt4', option: '45 metros', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
       ],
     };
 
+    setUserId('demo-user-id');
     setBySimulated(mockSimulado);
+    setCurrentQuestion(mockSimulado.questions[0]);
     startQuiz();
 
-    // Simular algumas respostas para demonstrar o resultado
-    selectAnswer('q1', 'opt2'); // Resposta incorreta
-    selectAnswer('q2', 'opt2'); // Resposta correta
-  }, [setBySimulated, startQuiz, selectAnswer]);
+    setUserAnswers([
+      {
+        questionId: 'q1',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt2',
+        optionId: 'opt2',
+      },
+      {
+        questionId: 'q2',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt2',
+        optionId: 'opt2',
+      },
+    ]);
+  }, [
+    setBySimulated,
+    startQuiz,
+    setUserAnswers,
+    setUserId,
+    setCurrentQuestion,
+  ]);
 
   return (
     <div className="space-y-12 h-[calc(100vh-180px)]">
@@ -475,18 +464,167 @@ export const QuizAlternativeVariants: Story = () => {
           <QuizHeaderResult />
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]">
-            <QuizAlternative variant={'result'} />
-          </QuizContent>
-          <QuizFooter
-            className="bottom-15"
-            onGoToSimulated={() => {
-              console.log('Navegando para simulados...');
-            }}
-            onDetailResult={() => {
-              console.log('Detalhando resultado...');
-            }}
-          />
+          <QuizContent className="pb-[150px]" />
+          <QuizFooter className="bottom-15" />
+        </Quiz>
+      </div>
+    </div>
+  );
+};
+
+export const QuizMultipleChoiceVariants: Story = () => {
+  const {
+    setBySimulated,
+    startQuiz,
+    setUserAnswers,
+    setUserId,
+    setCurrentQuestion,
+  } = useQuizStore();
+
+  useEffect(() => {
+    // Dados de exemplo para demonstrar a funcionalidade de múltipla escolha
+    const mockSimulado = {
+      id: 'simulado-1',
+      title: 'Simulado ENEM 2024 - Múltipla Escolha',
+      category: 'Enem',
+      questions: [
+        {
+          id: 'q1',
+          questionText:
+            'Quais das seguintes opções são características de um movimento uniformemente variado? (Selecione todas as opções corretas)',
+          description:
+            'Questão sobre movimento uniformemente variado - múltipla escolha',
+          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'muv',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Aceleração constante', isCorrect: true },
+            { id: 'opt2', option: 'Velocidade variável', isCorrect: true },
+            { id: 'opt3', option: 'Trajetória retilínea', isCorrect: true },
+            { id: 'opt4', option: 'Velocidade constante', isCorrect: false },
+          ],
+        },
+        {
+          id: 'q2',
+          questionText:
+            'Quais das seguintes grandezas são vetoriais? (Selecione todas as opções corretas)',
+          description: 'Questão sobre grandezas vetoriais - múltipla escolha',
+          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'grandezas',
+              subtopicId: 'vetores',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Velocidade', isCorrect: true },
+            { id: 'opt2', option: 'Aceleração', isCorrect: true },
+            { id: 'opt3', option: 'Força', isCorrect: true },
+            { id: 'opt4', option: 'Temperatura', isCorrect: false },
+          ],
+        },
+      ],
+    };
+
+    setUserId('demo-user-id');
+    setBySimulated(mockSimulado);
+    setCurrentQuestion(mockSimulado.questions[0]);
+    startQuiz();
+
+    // Simular respostas do usuário para mostrar o resultado
+    setUserAnswers([
+      {
+        questionId: 'q1',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: null,
+        optionId: 'opt1',
+      },
+      {
+        questionId: 'q1',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: null,
+        optionId: 'opt2',
+      },
+      {
+        questionId: 'q1',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: null,
+        optionId: 'opt4', // Resposta incorreta
+      },
+      {
+        questionId: 'q2',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: null,
+        optionId: 'opt1',
+      },
+      {
+        questionId: 'q2',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: null,
+        optionId: 'opt2',
+      },
+      {
+        questionId: 'q2',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: null,
+        optionId: 'opt3',
+      },
+    ]);
+  }, [
+    setBySimulated,
+    startQuiz,
+    setUserAnswers,
+    setUserId,
+    setCurrentQuestion,
+  ]);
+
+  return (
+    <div className="space-y-12 h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Quiz Multiple Choice Variants
+        </h1>
+        <p className="text-text-600 text-lg">
+          Variantes de resultado para questões de múltipla escolha
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2 h-full pb-15">
+        <Quiz>
+          <QuizHeaderResult />
+          <QuizTitle />
+          <QuizHeader />
+          <QuizContent className="pb-[150px]" />
+          <QuizFooter className="bottom-15" />
         </Quiz>
       </div>
     </div>
@@ -494,10 +632,10 @@ export const QuizAlternativeVariants: Story = () => {
 };
 
 export const QuizListResultShowcase: Story = () => {
-  const { setBySimulated, startQuiz, selectAnswer } = useQuizStore();
+  const { setBySimulated, startQuiz, setUserAnswers, setUserId } =
+    useQuizStore();
 
   useEffect(() => {
-    // Dados de exemplo para demonstrar a funcionalidade
     const mockSimulado = {
       id: 'simulado-1',
       title: 'Simulado ENEM 2024',
@@ -506,7 +644,6 @@ export const QuizListResultShowcase: Story = () => {
         {
           id: 'q1',
           questionText: 'Questão de Física 1',
-          correctOptionId: 'opt1',
           description: 'Questão sobre física',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -514,8 +651,7 @@ export const QuizListResultShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -526,17 +662,15 @@ export const QuizListResultShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta correta' },
-            { id: 'opt2', option: 'Resposta incorreta' },
-            { id: 'opt3', option: 'Resposta incorreta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q2',
           questionText: 'Questão de Física 2',
-          correctOptionId: 'opt2',
           description: 'Questão sobre física',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -544,8 +678,7 @@ export const QuizListResultShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -556,17 +689,15 @@ export const QuizListResultShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta incorreta' },
-            { id: 'opt2', option: 'Resposta correta' },
-            { id: 'opt3', option: 'Resposta incorreta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt2', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q3',
           questionText: 'Questão de Matemática 1',
-          correctOptionId: 'opt1',
           description: 'Questão sobre matemática',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -574,8 +705,7 @@ export const QuizListResultShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'matematica',
@@ -586,17 +716,15 @@ export const QuizListResultShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta correta' },
-            { id: 'opt2', option: 'Resposta incorreta' },
-            { id: 'opt3', option: 'Resposta incorreta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q4',
           questionText: 'Questão de Química 1',
-          correctOptionId: 'opt3',
           description: 'Questão sobre química',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -604,8 +732,7 @@ export const QuizListResultShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: null,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'quimica',
@@ -616,25 +743,50 @@ export const QuizListResultShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta incorreta' },
-            { id: 'opt2', option: 'Resposta incorreta' },
-            { id: 'opt3', option: 'Resposta correta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
       ],
     };
 
+    setUserId('demo-user-id');
     setBySimulated(mockSimulado);
     startQuiz();
 
-    // Simular algumas respostas para demonstrar as estatísticas
-    selectAnswer('q1', 'opt1'); // Resposta correta
-    selectAnswer('q2', 'opt1'); // Resposta incorreta
-    selectAnswer('q3', 'opt1'); // Resposta correta
-    selectAnswer('q4', 'opt2'); // Resposta incorreta
-  }, [setBySimulated, startQuiz, selectAnswer]);
+    setUserAnswers([
+      {
+        questionId: 'q1',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt1',
+        optionId: 'opt1',
+      },
+      {
+        questionId: 'q2',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt1',
+        optionId: 'opt1',
+      },
+      {
+        questionId: 'q3',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt1',
+        optionId: 'opt1',
+      },
+      {
+        questionId: 'q4',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt2',
+        optionId: 'opt2',
+      },
+    ]);
+  }, [setBySimulated, startQuiz, setUserAnswers, setUserId]);
 
   const handleSubjectClick = (subject: string) => {
     console.log('Matéria clicada:', subject);
@@ -663,11 +815,10 @@ export const QuizListResultShowcase: Story = () => {
  * Story para testar todos os componentes de resultado juntos
  */
 export const QuizResultPageShowcase: Story = () => {
-  const { setBySimulated, startQuiz, selectAnswer, finishQuiz } =
+  const { setBySimulated, startQuiz, setUserAnswers, finishQuiz, setUserId } =
     useQuizStore();
 
   useEffect(() => {
-    // Dados de exemplo para demonstrar a funcionalidade
     const mockSimulado = {
       id: 'simulado-1',
       title: 'Simulado Enem #42',
@@ -676,7 +827,6 @@ export const QuizResultPageShowcase: Story = () => {
         {
           id: 'q1',
           questionText: 'Questão de Física 1',
-          correctOptionId: 'opt1',
           description: 'Questão sobre física',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -684,8 +834,7 @@ export const QuizResultPageShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt1',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -696,17 +845,15 @@ export const QuizResultPageShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta correta' },
-            { id: 'opt2', option: 'Resposta incorreta' },
-            { id: 'opt3', option: 'Resposta incorreta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q2',
           questionText: 'Questão de Física 2',
-          correctOptionId: 'opt2',
           description: 'Questão sobre física',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -714,8 +861,7 @@ export const QuizResultPageShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt1',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -726,17 +872,15 @@ export const QuizResultPageShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta incorreta' },
-            { id: 'opt2', option: 'Resposta correta' },
-            { id: 'opt3', option: 'Resposta incorreta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt2', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q3',
           questionText: 'Questão de Matemática 1',
-          correctOptionId: 'opt1',
           description: 'Questão sobre matemática',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -744,8 +888,7 @@ export const QuizResultPageShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt1',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'matematica',
@@ -756,17 +899,15 @@ export const QuizResultPageShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta correta' },
-            { id: 'opt2', option: 'Resposta incorreta' },
-            { id: 'opt3', option: 'Resposta incorreta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q4',
           questionText: 'Questão de Química 1',
-          correctOptionId: 'opt3',
           description: 'Questão sobre química',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -774,8 +915,7 @@ export const QuizResultPageShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt2',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'quimica',
@@ -786,17 +926,15 @@ export const QuizResultPageShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta incorreta' },
-            { id: 'opt2', option: 'Resposta incorreta' },
-            { id: 'opt3', option: 'Resposta correta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q5',
           questionText: 'Questão de Física 3',
-          correctOptionId: 'opt1',
           description: 'Questão sobre física',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -804,8 +942,7 @@ export const QuizResultPageShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt1',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -816,29 +953,59 @@ export const QuizResultPageShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta correta' },
-            { id: 'opt2', option: 'Resposta incorreta' },
-            { id: 'opt3', option: 'Resposta incorreta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
       ],
     };
 
+    setUserId('demo-user-id');
     setBySimulated(mockSimulado);
     startQuiz();
 
-    // Simular algumas respostas para demonstrar as estatísticas
-    selectAnswer('q1', 'opt1'); // Resposta correta
-    selectAnswer('q2', 'opt1'); // Resposta incorreta
-    selectAnswer('q3', 'opt1'); // Resposta correta
-    selectAnswer('q4', 'opt2'); // Resposta incorreta
-    selectAnswer('q5', 'opt1'); // Resposta correta
+    setUserAnswers([
+      {
+        questionId: 'q1',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt1',
+        optionId: 'opt1',
+      },
+      {
+        questionId: 'q2',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt1',
+        optionId: 'opt1',
+      },
+      {
+        questionId: 'q3',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt1',
+        optionId: 'opt1',
+      },
+      {
+        questionId: 'q4',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt2',
+        optionId: 'opt2',
+      },
+      {
+        questionId: 'q5',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt1',
+        optionId: 'opt1',
+      },
+    ]);
 
-    // Finalizar o quiz para mostrar o resultado
     finishQuiz();
-  }, [setBySimulated, startQuiz, selectAnswer, finishQuiz]);
+  }, [setBySimulated, startQuiz, setUserAnswers, finishQuiz, setUserId]);
 
   const handleSubjectClick = (subject: string) => {
     console.log('Matéria clicada:', subject);
@@ -869,11 +1036,10 @@ export const QuizResultPageShowcase: Story = () => {
  * Story para testar componentes individuais de resultado
  */
 export const QuizResultComponentsShowcase: Story = () => {
-  const { setBySimulated, startQuiz, selectAnswer, finishQuiz } =
+  const { setBySimulated, startQuiz, selectAnswer, finishQuiz, setUserId } =
     useQuizStore();
 
   useEffect(() => {
-    // Dados de exemplo para demonstrar a funcionalidade
     const mockSimulado = {
       id: 'simulado-1',
       title: 'Simulado Enem #42',
@@ -882,7 +1048,6 @@ export const QuizResultComponentsShowcase: Story = () => {
         {
           id: 'q1',
           questionText: 'Questão de Física 1',
-          correctOptionId: 'opt1',
           description: 'Questão sobre física',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -890,8 +1055,7 @@ export const QuizResultComponentsShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt1',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -902,17 +1066,15 @@ export const QuizResultComponentsShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta correta' },
-            { id: 'opt2', option: 'Resposta incorreta' },
-            { id: 'opt3', option: 'Resposta incorreta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q2',
           questionText: 'Questão de Matemática 1',
-          correctOptionId: 'opt1',
           description: 'Questão sobre matemática',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -920,8 +1082,7 @@ export const QuizResultComponentsShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt2',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'matematica',
@@ -932,26 +1093,24 @@ export const QuizResultComponentsShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta correta' },
-            { id: 'opt2', option: 'Resposta incorreta' },
-            { id: 'opt3', option: 'Resposta incorreta' },
-            { id: 'opt4', option: 'Resposta incorreta' },
+            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
       ],
     };
 
+    setUserId('demo-user-id');
     setBySimulated(mockSimulado);
     startQuiz();
 
-    // Simular algumas respostas para demonstrar as estatísticas
-    selectAnswer('q1', 'opt1'); // Resposta correta
-    selectAnswer('q2', 'opt2'); // Resposta incorreta
+    selectAnswer('q1', 'opt1');
+    selectAnswer('q2', 'opt2');
 
-    // Finalizar o quiz para mostrar o resultado
     finishQuiz();
-  }, [setBySimulated, startQuiz, selectAnswer, finishQuiz]);
+  }, [setBySimulated, startQuiz, selectAnswer, finishQuiz, setUserId]);
 
   return (
     <div className="space-y-12 h-[calc(100vh-180px)]">
@@ -1001,11 +1160,10 @@ export const QuizResultComponentsShowcase: Story = () => {
 };
 
 export const QuizListResultByMateriaShowcase: Story = () => {
-  const { setBySimulated, startQuiz, selectAnswer, finishQuiz } =
+  const { setBySimulated, startQuiz, selectAnswer, finishQuiz, setUserId } =
     useQuizStore();
 
   useEffect(() => {
-    // Dados de exemplo para demonstrar a funcionalidade
     const mockSimulado = {
       id: 'simulado-1',
       title: 'Simulado ENEM 2024',
@@ -1015,7 +1173,6 @@ export const QuizListResultByMateriaShowcase: Story = () => {
           id: 'q1',
           questionText:
             'Um carro inicia do repouso e se desloca em linha reta com uma aceleração constante de 2 m/s². Calcule a distância que o carro percorre após 5 segundos.',
-          correctOptionId: 'opt1',
           description: 'Questão sobre movimento uniformemente variado',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -1023,8 +1180,7 @@ export const QuizListResultByMateriaShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt1',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -1035,18 +1191,16 @@ export const QuizListResultByMateriaShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: '25 metros' },
-            { id: 'opt2', option: '30 metros' },
-            { id: 'opt3', option: '40 metros' },
-            { id: 'opt4', option: '50 metros' },
+            { id: 'opt1', option: '25 metros', isCorrect: true },
+            { id: 'opt2', option: '30 metros', isCorrect: false },
+            { id: 'opt3', option: '40 metros', isCorrect: false },
+            { id: 'opt4', option: '50 metros', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q2',
           questionText:
             'Uma partícula se move com velocidade constante de 10 m/s. Qual a distância percorrida em 3 segundos?',
-          correctOptionId: 'opt2',
           description: 'Questão sobre movimento uniforme',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -1054,8 +1208,7 @@ export const QuizListResultByMateriaShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt3',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -1066,18 +1219,16 @@ export const QuizListResultByMateriaShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: '25 metros' },
-            { id: 'opt2', option: '30 metros' },
-            { id: 'opt3', option: '35 metros' },
-            { id: 'opt4', option: '45 metros' },
+            { id: 'opt1', option: '25 metros', isCorrect: false },
+            { id: 'opt2', option: '30 metros', isCorrect: true },
+            { id: 'opt3', option: '35 metros', isCorrect: false },
+            { id: 'opt4', option: '45 metros', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
         {
           id: 'q3',
           questionText:
             'Um objeto é lançado verticalmente para cima com velocidade inicial de 20 m/s. Qual a altura máxima atingida? (Considere g = 10 m/s²)',
-          correctOptionId: 'opt3',
           description: 'Questão sobre lançamento vertical',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
@@ -1085,8 +1236,7 @@ export const QuizListResultByMateriaShowcase: Story = () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt3',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
+          institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -1097,27 +1247,25 @@ export const QuizListResultByMateriaShowcase: Story = () => {
             },
           ],
           options: [
-            { id: 'opt1', option: '15 metros' },
-            { id: 'opt2', option: '18 metros' },
-            { id: 'opt3', option: '20 metros' },
-            { id: 'opt4', option: '25 metros' },
+            { id: 'opt1', option: '15 metros', isCorrect: false },
+            { id: 'opt2', option: '18 metros', isCorrect: false },
+            { id: 'opt3', option: '20 metros', isCorrect: true },
+            { id: 'opt4', option: '25 metros', isCorrect: false },
           ],
-          createdBy: 'user1',
         },
       ],
     };
 
+    setUserId('demo-user-id');
     setBySimulated(mockSimulado);
     startQuiz();
 
-    // Simular algumas respostas para demonstrar as estatísticas
-    selectAnswer('q1', 'opt1'); // Resposta correta
-    selectAnswer('q2', 'opt3'); // Resposta incorreta
-    selectAnswer('q3', 'opt3'); // Resposta correta
+    selectAnswer('q1', 'opt1');
+    selectAnswer('q2', 'opt3');
+    selectAnswer('q3', 'opt3');
 
-    // Finalizar o quiz para mostrar o resultado
     finishQuiz();
-  }, [setBySimulated, startQuiz, selectAnswer, finishQuiz]);
+  }, [setBySimulated, startQuiz, selectAnswer, finishQuiz, setUserId]);
 
   const handleQuestionClick = (question: Question) => {
     console.log('Questão clicada:', question);
@@ -1144,6 +1292,144 @@ export const QuizListResultByMateriaShowcase: Story = () => {
             onQuestionClick={handleQuestionClick}
           />
         </div>
+      </div>
+    </div>
+  );
+};
+
+export const QuizMultipleChoiceShowcase: Story = () => {
+  const { setBySimulated, startQuiz, setUserId, setCurrentQuestion } =
+    useQuizStore();
+
+  useEffect(() => {
+    // Dados de exemplo para demonstrar a funcionalidade de múltipla escolha
+    const mockSimulado = {
+      id: 'simulado-1',
+      title: 'Simulado ENEM 2024 - Múltipla Escolha',
+      category: 'Enem',
+      questions: [
+        {
+          id: 'q1',
+          questionText:
+            'Quais das seguintes opções são características de um movimento uniformemente variado? (Selecione todas as opções corretas)',
+          description:
+            'Questão sobre movimento uniformemente variado - múltipla escolha',
+          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'muv',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Aceleração constante', isCorrect: true },
+            { id: 'opt2', option: 'Velocidade variável', isCorrect: true },
+            { id: 'opt3', option: 'Trajetória retilínea', isCorrect: true },
+            { id: 'opt4', option: 'Velocidade constante', isCorrect: false },
+          ],
+        },
+        {
+          id: 'q2',
+          questionText:
+            'Quais das seguintes grandezas são vetoriais? (Selecione todas as opções corretas)',
+          description: 'Questão sobre grandezas vetoriais - múltipla escolha',
+          type: 'ALTERNATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'grandezas',
+              subtopicId: 'vetores',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Velocidade', isCorrect: true },
+            { id: 'opt2', option: 'Aceleração', isCorrect: true },
+            { id: 'opt3', option: 'Força', isCorrect: true },
+            { id: 'opt4', option: 'Temperatura', isCorrect: false },
+          ],
+        },
+        {
+          id: 'q3',
+          questionText:
+            'Quais das seguintes equações são do segundo grau? (Selecione todas as opções corretas)',
+          description:
+            'Questão sobre equações do segundo grau - múltipla escolha',
+          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'matematica',
+              subjectId: 'algebra',
+              topicId: 'equacoes',
+              subtopicId: 'segundo-grau',
+              contentId: 'algebra',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'x² - 5x + 6 = 0', isCorrect: true },
+            { id: 'opt2', option: '2x² + 3x - 1 = 0', isCorrect: true },
+            { id: 'opt3', option: 'x + 2 = 0', isCorrect: false },
+            { id: 'opt4', option: 'x³ - 2x = 0', isCorrect: false },
+          ],
+        },
+      ],
+    };
+
+    setUserId('demo-user-id');
+    setBySimulated(mockSimulado);
+    setCurrentQuestion(mockSimulado.questions[0]);
+    startQuiz();
+  }, [setBySimulated, startQuiz, setUserId, setCurrentQuestion]);
+
+  return (
+    <div className="space-y-12 h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Quiz Multiple Choice
+        </h1>
+        <p className="text-text-600 text-lg">
+          Componente para questões de múltipla escolha
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2 h-full pb-15">
+        <Quiz>
+          <QuizTitle />
+          <QuizHeader />
+          <QuizContent className="pb-[150px]" />
+          <QuizFooter
+            className="bottom-15"
+            onGoToSimulated={() => {
+              console.log('Navegando para simulados...');
+            }}
+            onDetailResult={() => {
+              console.log('Detalhando resultado...');
+            }}
+          />
+        </Quiz>
       </div>
     </div>
   );

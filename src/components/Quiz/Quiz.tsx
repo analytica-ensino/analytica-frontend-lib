@@ -13,8 +13,21 @@ import {
 } from '../Alternative/Alternative';
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
-import { forwardRef, ReactNode, useState } from 'react';
-import { Question, useQuizStore, QUESTION_DIFFICULTY } from './useQuizStore';
+import {
+  forwardRef,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+} from 'react';
+import {
+  Question,
+  useQuizStore,
+  QUESTION_DIFFICULTY,
+  QUESTION_TYPE,
+} from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
 import SimulatedResult from '@/assets/img/simulated-result.png';
@@ -28,6 +41,7 @@ import { CardResults, CardStatus } from '../Card/Card';
 import ProgressCircle from '../ProgressCircle/ProgressCircle';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { cn } from '../../utils/utils';
+import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 
 const Quiz = forwardRef<
   HTMLDivElement,
@@ -49,18 +63,47 @@ const Quiz = forwardRef<
 
 const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
   ({ className, ...props }, ref) => {
-    const { getCurrentQuestion, getCurrentAnswer } = useQuizStore();
+    const { getCurrentQuestion, getCurrentAnswer, getAllCurrentAnswer } =
+      useQuizStore();
     const currentQuestion = getCurrentQuestion();
     const userAnswer = getCurrentAnswer();
+    const [isCorrect, setIsCorrect] = useState(false);
 
-    // Verifica se o usuário acertou comparando sua resposta com a resposta correta
-    const isCorrect = userAnswer === currentQuestion?.correctOptionId;
+    useEffect(() => {
+      if (currentQuestion?.type === QUESTION_TYPE.MULTIPLA_CHOICE) {
+        const allCurrentAnswers = getAllCurrentAnswer();
+        const isCorrectOption = currentQuestion.options.filter(
+          (op) => op.isCorrect
+        );
+
+        if (allCurrentAnswers?.length !== isCorrectOption.length) {
+          setIsCorrect(false);
+          return;
+        }
+
+        setIsCorrect(true);
+
+        allCurrentAnswers.forEach((answer) => {
+          const findInCorrectOptions = isCorrectOption.find(
+            (op) => op.id === answer.optionId
+          );
+          if (!findInCorrectOptions) {
+            setIsCorrect(false);
+          }
+        });
+      } else {
+        setIsCorrect(
+          currentQuestion?.options.find((op) => op.id === userAnswer)
+            ?.isCorrect || false
+        );
+      }
+    }, [currentQuestion, getAllCurrentAnswer]);
 
     return (
       <div
         ref={ref}
         className={cn(
-          'flex flex-row items-center gap-10 p-3.5 rounded-xl',
+          'flex flex-row items-center gap-10 p-3.5 rounded-xl mb-4',
           isCorrect ? 'bg-success-background' : 'bg-error-background',
           className
         )}
@@ -134,10 +177,13 @@ const QuizContent = forwardRef<
   HTMLDivElement,
   {
     type?: 'Alternativas' | 'Dissertativa';
-    children: ReactNode;
+    variant?: 'result' | 'default';
     className?: string;
   }
->(({ type = 'Alternativas', children, className, ...props }, ref) => {
+>(({ type = 'Alternativas', className, variant, ...props }, ref) => {
+  const { getCurrentQuestion } = useQuizStore();
+  const currentQuestion = getCurrentQuestion();
+
   return (
     <>
       <div className="px-4 pb-2 pt-6">
@@ -152,7 +198,19 @@ const QuizContent = forwardRef<
         )}
         {...props}
       >
-        {children}
+        {currentQuestion && (
+          <>
+            {currentQuestion.type === QUESTION_TYPE.ALTERNATIVA && (
+              <QuizAlternative variant={variant} />
+            )}
+            {currentQuestion.type === QUESTION_TYPE.MULTIPLA_CHOICE && (
+              <QuizMultipleChoice variant={variant} />
+            )}
+            {currentQuestion.type === QUESTION_TYPE.DISSERTATIVA && (
+              <div>Componente de dissertativa</div>
+            )}
+          </>
+        )}
       </div>
     </>
   );
@@ -176,11 +234,14 @@ const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
     let status: Status = Status.NEUTRAL;
 
     if (variant === 'result') {
-      if (option.id === currentQuestion.correctOptionId) {
+      const isCorrectOption = currentQuestion.options.find(
+        (op) => op.isCorrect
+      );
+      if (isCorrectOption?.id === option.id) {
         status = Status.CORRECT;
       } else if (
         currentAnswer === option.id &&
-        option.id !== currentQuestion.correctOptionId
+        option.id !== isCorrectOption?.id
       ) {
         status = Status.INCORRECT;
       }
@@ -215,6 +276,116 @@ const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
             selectAnswer(currentQuestion.id, value);
           }
         }}
+      />
+    </div>
+  );
+};
+
+interface QuizMultipleChoiceInterface {
+  variant?: 'result' | 'default';
+}
+
+const QuizMultipleChoice = ({
+  variant = 'default',
+}: QuizMultipleChoiceInterface) => {
+  const { getCurrentQuestion, selectMultipleAnswer, getAllCurrentAnswer } =
+    useQuizStore();
+  const currentQuestion = getCurrentQuestion();
+  const allCurrentAnswers = getAllCurrentAnswer();
+
+  // Use ref to track previous values and prevent unnecessary updates
+  const prevSelectedValuesRef = useRef<string[]>([]);
+  const prevQuestionIdRef = useRef<string>('');
+
+  // Memoize the answer IDs to prevent unnecessary re-renders
+  const allCurrentAnswerIds = useMemo(() => {
+    return allCurrentAnswers?.map((answer) => answer.optionId) || [];
+  }, [allCurrentAnswers]);
+
+  // Memoize the selected values to prevent infinite loops
+  const selectedValues = useMemo(() => {
+    return allCurrentAnswerIds?.filter((id): id is string => id !== null) || [];
+  }, [allCurrentAnswerIds]);
+
+  // Only update selectedValues if they actually changed or question changed
+  const stableSelectedValues = useMemo(() => {
+    const currentQuestionId = currentQuestion?.id || '';
+    const hasQuestionChanged = prevQuestionIdRef.current !== currentQuestionId;
+
+    if (hasQuestionChanged) {
+      prevQuestionIdRef.current = currentQuestionId;
+      prevSelectedValuesRef.current = selectedValues;
+      return selectedValues;
+    }
+
+    // Only update if values actually changed
+    const hasValuesChanged =
+      JSON.stringify(prevSelectedValuesRef.current) !==
+      JSON.stringify(selectedValues);
+    if (hasValuesChanged) {
+      prevSelectedValuesRef.current = selectedValues;
+      return selectedValues;
+    }
+
+    return prevSelectedValuesRef.current;
+  }, [selectedValues, currentQuestion?.id]);
+
+  // Memoize the callback to prevent unnecessary re-renders
+  const handleSelectedValues = useCallback(
+    (values: string[]) => {
+      if (currentQuestion) {
+        selectMultipleAnswer(currentQuestion.id, values);
+      }
+    },
+    [currentQuestion, selectMultipleAnswer]
+  );
+
+  // Create a stable key to force re-mount when question changes
+  const questionKey = useMemo(
+    () => `question-${currentQuestion?.id || '1'}`,
+    [currentQuestion?.id]
+  );
+  const choices = currentQuestion?.options?.map((option) => {
+    let status: Status = Status.NEUTRAL;
+
+    if (variant === 'result') {
+      const isAllCorrectOptionId = currentQuestion.options
+        .filter((op) => op.isCorrect)
+        .map((op) => op.id);
+
+      if (isAllCorrectOptionId.includes(option.id)) {
+        status = Status.CORRECT;
+      } else if (
+        allCurrentAnswerIds?.includes(option.id) &&
+        !isAllCorrectOptionId.includes(option.id)
+      ) {
+        status = Status.INCORRECT;
+      }
+    }
+
+    return {
+      label: option.option,
+      value: option.id,
+      status: status,
+    };
+  });
+
+  if (!choices)
+    return (
+      <div>
+        <p>Não há Escolhas Multiplas</p>
+      </div>
+    );
+
+  return (
+    <div className="space-y-4">
+      <MultipleChoiceList
+        choices={choices}
+        key={questionKey}
+        name={questionKey}
+        selectedValues={stableSelectedValues}
+        onHandleSelectedValues={handleSelectedValues}
+        mode={variant === 'default' ? 'interactive' : 'readonly'}
       />
     </div>
   );
@@ -283,7 +454,6 @@ const QuizQuestionList = ({
         return 'Em branco';
     }
   };
-
   return (
     <div className="space-y-6 px-4">
       {Object.entries(filteredGroupedQuestions).map(
@@ -325,225 +495,257 @@ const QuizFooter = forwardRef<
   HTMLDivElement,
   {
     className?: string;
+    variant?: 'result' | 'default';
     onGoToSimulated?: () => void;
     onDetailResult?: () => void;
   }
->(({ className, onGoToSimulated, onDetailResult, ...props }, ref) => {
-  const {
-    currentQuestionIndex,
-    getUserAnswers,
-    getTotalQuestions,
-    goToNextQuestion,
-    goToPreviousQuestion,
-    getUnansweredQuestionsFromUserAnswers,
-    getCurrentAnswer,
-    skipQuestion,
-    getCurrentQuestion,
-    getQuestionStatusFromUserAnswers,
-  } = useQuizStore();
+>(
+  (
+    {
+      className,
+      onGoToSimulated,
+      onDetailResult,
+      variant = 'default',
+      ...props
+    },
+    ref
+  ) => {
+    const {
+      currentQuestionIndex,
+      getUserAnswers,
+      getTotalQuestions,
+      goToNextQuestion,
+      goToPreviousQuestion,
+      getUnansweredQuestionsFromUserAnswers,
+      getCurrentAnswer,
+      skipQuestion,
+      getCurrentQuestion,
+      getQuestionStatusFromUserAnswers,
+      getActiveQuiz,
+    } = useQuizStore();
 
-  const totalQuestions = getTotalQuestions();
-  const isFirstQuestion = currentQuestionIndex === 0;
-  const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
-  const currentAnswer = getCurrentAnswer();
-  const currentQuestion = getCurrentQuestion();
-  const isCurrentQuestionSkipped = currentQuestion
-    ? getQuestionStatusFromUserAnswers(currentQuestion.id) === 'skipped'
-    : false;
-  const [alertDialogOpen, setAlertDialogOpen] = useState(false);
-  const [modalResultOpen, setModalResultOpen] = useState(false);
-  const [modalNavigateOpen, setModalNavigateOpen] = useState(false);
-  const [filterType, setFilterType] = useState('all');
-  const unansweredQuestions = getUnansweredQuestionsFromUserAnswers();
-  const userAnswers = getUserAnswers();
-  const allQuestions = getTotalQuestions();
+    const totalQuestions = getTotalQuestions();
+    const isFirstQuestion = currentQuestionIndex === 0;
+    const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
+    const currentAnswer = getCurrentAnswer();
+    const currentQuestion = getCurrentQuestion();
+    const isCurrentQuestionSkipped = currentQuestion
+      ? getQuestionStatusFromUserAnswers(currentQuestion.id) === 'skipped'
+      : false;
+    const [alertDialogOpen, setAlertDialogOpen] = useState(false);
+    const [modalResultOpen, setModalResultOpen] = useState(false);
+    const [modalNavigateOpen, setModalNavigateOpen] = useState(false);
+    const [filterType, setFilterType] = useState('all');
+    const unansweredQuestions = getUnansweredQuestionsFromUserAnswers();
+    const userAnswers = getUserAnswers();
+    const allQuestions = getTotalQuestions();
 
-  return (
-    <>
-      <footer
-        ref={ref}
-        className={cn(
-          'w-full px-2 bg-background lg:max-w-[1000px] not-lg:max-w-[calc(100vw-32px)] border-t border-border-50 fixed bottom-0 min-h-[80px] flex flex-row justify-between items-center',
-          className
-        )}
-        {...props}
-      >
-        <div className="flex flex-row items-center gap-1">
-          <IconButton
-            icon={<SquaresFour size={24} className="text-text-950" />}
-            size="md"
-            onClick={() => setModalNavigateOpen(true)}
-          />
-
-          {isFirstQuestion ? (
-            <Button
-              variant="outline"
-              size="small"
-              onClick={() => {
-                skipQuestion();
-                goToNextQuestion();
-              }}
-            >
-              Pular
-            </Button>
-          ) : (
-            <Button
-              size="medium"
-              variant="link"
-              action="primary"
-              iconLeft={<CaretLeft size={18} />}
-              onClick={() => {
-                goToPreviousQuestion();
-              }}
-            >
-              Voltar
-            </Button>
+    return (
+      <>
+        <footer
+          ref={ref}
+          className={cn(
+            'w-full px-2 bg-background lg:max-w-[1000px] not-lg:max-w-[calc(100vw-32px)] border-t border-border-50 fixed bottom-0 min-h-[80px] flex flex-row justify-between items-center',
+            className
           )}
-        </div>
+          {...props}
+        >
+          {variant === 'default' ? (
+            <>
+              <div className="flex flex-row items-center gap-1">
+                <IconButton
+                  icon={<SquaresFour size={24} className="text-text-950" />}
+                  size="md"
+                  onClick={() => setModalNavigateOpen(true)}
+                />
 
-        {!isFirstQuestion && (
-          <Button
-            size="small"
-            variant="outline"
-            action="primary"
-            onClick={() => {
-              skipQuestion();
-              goToNextQuestion();
-            }}
-          >
-            Pular
-          </Button>
-        )}
+                {isFirstQuestion ? (
+                  <Button
+                    variant="outline"
+                    size="small"
+                    onClick={() => {
+                      skipQuestion();
+                      goToNextQuestion();
+                    }}
+                  >
+                    Pular
+                  </Button>
+                ) : (
+                  <Button
+                    size="medium"
+                    variant="link"
+                    action="primary"
+                    iconLeft={<CaretLeft size={18} />}
+                    onClick={() => {
+                      goToPreviousQuestion();
+                    }}
+                  >
+                    Voltar
+                  </Button>
+                )}
+              </div>
 
-        {isLastQuestion ? (
-          <Button
-            size="medium"
-            variant="solid"
-            action="primary"
-            disabled={!currentAnswer && !isCurrentQuestionSkipped}
-            onClick={() => {
-              if (unansweredQuestions.length > 0) {
-                setAlertDialogOpen(true);
-              } else {
-                setModalResultOpen(true);
-              }
-            }}
-          >
-            Finalizar
-          </Button>
-        ) : (
-          <Button
-            size="medium"
-            variant="link"
-            action="primary"
-            iconRight={<CaretRight size={18} />}
-            disabled={!currentAnswer && !isCurrentQuestionSkipped}
-            onClick={() => {
-              goToNextQuestion();
-            }}
-          >
-            Avançar
-          </Button>
-        )}
-      </footer>
+              {!isFirstQuestion && (
+                <Button
+                  size="small"
+                  variant="outline"
+                  action="primary"
+                  onClick={() => {
+                    skipQuestion();
+                    goToNextQuestion();
+                  }}
+                >
+                  Pular
+                </Button>
+              )}
 
-      <AlertDialog
-        isOpen={alertDialogOpen}
-        onChangeOpen={setAlertDialogOpen}
-        title="Finalizar simulado?"
-        description={
-          unansweredQuestions.length > 0
-            ? `Você deixou as questões ${unansweredQuestions.join(', ')} sem resposta. Finalizar agora pode impactar seu desempenho.`
-            : 'Tem certeza que deseja finalizar o simulado?'
-        }
-        cancelButtonLabel="Voltar e revisar"
-        submitButtonLabel="Finalizar Mesmo Assim"
-        onSubmit={() => {
-          setModalResultOpen(true);
-        }}
-      />
+              {isLastQuestion ? (
+                <Button
+                  size="medium"
+                  variant="solid"
+                  action="primary"
+                  disabled={!currentAnswer && !isCurrentQuestionSkipped}
+                  onClick={() => {
+                    if (unansweredQuestions.length > 0) {
+                      setAlertDialogOpen(true);
+                    } else {
+                      setModalResultOpen(true);
+                    }
+                  }}
+                >
+                  Finalizar
+                </Button>
+              ) : (
+                <Button
+                  size="medium"
+                  variant="link"
+                  action="primary"
+                  iconRight={<CaretRight size={18} />}
+                  disabled={!currentAnswer && !isCurrentQuestionSkipped}
+                  onClick={() => {
+                    goToNextQuestion();
+                  }}
+                >
+                  Avançar
+                </Button>
+              )}
+            </>
+          ) : (
+            <div className="flex flex-row items-center justify-end w-full">
+              <Button variant="solid" action="primary" size="medium">
+                Ver Resolução
+              </Button>
+            </div>
+          )}
+        </footer>
 
-      <Modal
-        isOpen={modalResultOpen}
-        onClose={() => setModalResultOpen(false)}
-        title=""
-        closeOnBackdropClick={false}
-        closeOnEscape={false}
-        hideCloseButton
-        size={'md'}
-      >
-        <div className="flex flex-col w-full h-full items-center justify-center gap-4">
-          <img
-            src={SimulatedResult}
-            alt="Simulated Result"
-            className="w-[282px] h-auto object-cover"
-          />
-          <div className="flex flex-col gap-2 text-center">
-            <h2 className="text-text-950 font-bold text-lg">
-              Você concluiu o simulado!
-            </h2>
-            <p className="text-text-500 font-sm">
-              Você acertou{' '}
-              {
-                userAnswers.filter(
-                  (answer) => answer.answerKey === answer.correctOptionId
-                ).length
-              }{' '}
-              de {allQuestions} questões.
-            </p>
-          </div>
+        <AlertDialog
+          isOpen={alertDialogOpen}
+          onChangeOpen={setAlertDialogOpen}
+          title="Finalizar simulado?"
+          description={
+            unansweredQuestions.length > 0
+              ? `Você deixou as questões ${unansweredQuestions.join(', ')} sem resposta. Finalizar agora pode impactar seu desempenho.`
+              : 'Tem certeza que deseja finalizar o simulado?'
+          }
+          cancelButtonLabel="Voltar e revisar"
+          submitButtonLabel="Finalizar Mesmo Assim"
+          onSubmit={() => {
+            setModalResultOpen(true);
+          }}
+        />
 
-          <div className="px-6 flex flex-row items-center gap-2 w-full">
-            <Button
-              variant="outline"
-              className="w-full"
-              size="small"
-              onClick={onGoToSimulated}
-            >
-              Ir para simulados
-            </Button>
-
-            <Button className="w-full" onClick={onDetailResult}>
-              Detalhar resultado
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      <Modal
-        isOpen={modalNavigateOpen}
-        onClose={() => setModalNavigateOpen(false)}
-        title="Questões"
-        size={'lg'}
-      >
-        <div className="flex flex-col w-full h-full">
-          <div className="flex flex-row justify-between items-center py-6 pt-6 pb-4 border-b border-border-200">
-            <p className="text-text-950 font-bold text-lg">Filtrar por</p>
-            <span className="max-w-[266px]">
-              <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger variant="rounded" className="max-w-[266px]">
-                  <SelectValue placeholder="Selecione uma opção" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="unanswered">Em branco</SelectItem>
-                  <SelectItem value="answered">Respondidas</SelectItem>
-                </SelectContent>
-              </Select>
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-2 not-lg:h-[calc(100vh-200px)] lg:max-h-[687px] overflow-y-auto">
-            <QuizQuestionList
-              filterType={filterType}
-              onQuestionClick={() => setModalNavigateOpen(false)}
+        <Modal
+          isOpen={modalResultOpen}
+          onClose={() => setModalResultOpen(false)}
+          title=""
+          closeOnBackdropClick={false}
+          closeOnEscape={false}
+          hideCloseButton
+          size={'md'}
+        >
+          <div className="flex flex-col w-full h-full items-center justify-center gap-4">
+            <img
+              src={SimulatedResult}
+              alt="Simulated Result"
+              className="w-[282px] h-auto object-cover"
             />
+            <div className="flex flex-col gap-2 text-center">
+              <h2 className="text-text-950 font-bold text-lg">
+                Você concluiu o simulado!
+              </h2>
+              <p className="text-text-500 font-sm">
+                Você acertou{' '}
+                {(() => {
+                  const activeQuiz = getActiveQuiz();
+                  if (!activeQuiz) return 0;
+
+                  return userAnswers.filter((answer) => {
+                    const question = activeQuiz.quiz.questions.find(
+                      (q) => q.id === answer.questionId
+                    );
+                    const isCorrectOption = question?.options.find(
+                      (op) => op.isCorrect
+                    );
+                    return question && answer.optionId === isCorrectOption?.id;
+                  }).length;
+                })()}{' '}
+                de {allQuestions} questões.
+              </p>
+            </div>
+
+            <div className="px-6 flex flex-row items-center gap-2 w-full">
+              <Button
+                variant="outline"
+                className="w-full"
+                size="small"
+                onClick={onGoToSimulated}
+              >
+                Ir para simulados
+              </Button>
+
+              <Button className="w-full" onClick={onDetailResult}>
+                Detalhar resultado
+              </Button>
+            </div>
           </div>
-        </div>
-      </Modal>
-    </>
-  );
-});
+        </Modal>
+
+        <Modal
+          isOpen={modalNavigateOpen}
+          onClose={() => setModalNavigateOpen(false)}
+          title="Questões"
+          size={'lg'}
+        >
+          <div className="flex flex-col w-full h-full">
+            <div className="flex flex-row justify-between items-center py-6 pt-6 pb-4 border-b border-border-200">
+              <p className="text-text-950 font-bold text-lg">Filtrar por</p>
+              <span className="max-w-[266px]">
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger variant="rounded" className="max-w-[266px]">
+                    <SelectValue placeholder="Selecione uma opção" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="unanswered">Em branco</SelectItem>
+                    <SelectItem value="answered">Respondidas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-2 not-lg:h-[calc(100vh-200px)] lg:max-h-[687px] overflow-y-auto">
+              <QuizQuestionList
+                filterType={filterType}
+                onQuestionClick={() => setModalNavigateOpen(false)}
+              />
+            </div>
+          </div>
+        </Modal>
+      </>
+    );
+  }
+);
 
 // QUIZ RESULT COMPONENTS
 
@@ -596,6 +798,7 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
       bySimulated,
       byActivity,
       byQuestionary,
+      getUserAnswerByQuestionId,
     } = useQuizStore();
 
     const totalQuestions = getTotalQuestions();
@@ -611,8 +814,10 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
 
     if (quiz) {
       quiz.questions.forEach((question) => {
-        const userAnswer = question.answerKey;
-        const isCorrect = userAnswer && userAnswer === question.correctOptionId;
+        const userAnswerItem = getUserAnswerByQuestionId(question.id);
+        const userAnswer = userAnswerItem?.optionId;
+        const isCorrectOption = question?.options.find((op) => op.isCorrect);
+        const isCorrect = userAnswer && userAnswer === isCorrectOption?.id;
 
         if (isCorrect) {
           correctAnswers++;
@@ -724,7 +929,11 @@ const QuizListResult = forwardRef<
     onSubjectClick?: (subject: string) => void;
   }
 >(({ className, onSubjectClick, ...props }, ref) => {
-  const { getQuestionsGroupedBySubject, isQuestionAnswered } = useQuizStore();
+  const {
+    getQuestionsGroupedBySubject,
+    isQuestionAnswered,
+    getUserAnswerByQuestionId,
+  } = useQuizStore();
   const groupedQuestions = getQuestionsGroupedBySubject();
 
   const subjectsStats = Object.entries(groupedQuestions).map(
@@ -734,8 +943,10 @@ const QuizListResult = forwardRef<
 
       questions.forEach((question) => {
         if (isQuestionAnswered(question.id)) {
-          const userAnswer = question.answerKey;
-          if (userAnswer === question.correctOptionId) {
+          const userAnswerItem = getUserAnswerByQuestionId(question.id);
+          const userAnswer = userAnswerItem?.optionId;
+          const isCorrectOption = question?.options.find((op) => op.isCorrect);
+          if (userAnswer === isCorrectOption?.id) {
             correct++;
           } else {
             incorrect++;
@@ -782,7 +993,8 @@ const QuizListResultByMateria = ({
   subject: string;
   onQuestionClick: (question: Question) => void;
 }) => {
-  const { getQuestionsGroupedBySubject } = useQuizStore();
+  const { getQuestionsGroupedBySubject, getUserAnswerByQuestionId } =
+    useQuizStore();
   const groupedQuestions = getQuestionsGroupedBySubject();
 
   const answeredQuestions = groupedQuestions[subject] || [];
@@ -804,11 +1016,17 @@ const QuizListResultByMateria = ({
               <CardStatus
                 className="max-w-full"
                 header={`Questão ${question.id}`}
-                status={
-                  question.answerKey === question.correctOptionId
+                status={(() => {
+                  const userAnswer = getUserAnswerByQuestionId(question.id);
+                  const isCorrectOption = question?.options.find(
+                    (op) => op.isCorrect
+                  );
+
+                  return userAnswer &&
+                    userAnswer.optionId === isCorrectOption?.id
                     ? 'correct'
-                    : 'incorrect'
-                }
+                    : 'incorrect';
+                })()}
                 onClick={() => onQuestionClick?.(question)}
               />
             </li>
@@ -833,4 +1051,5 @@ export {
   QuizResultTitle,
   QuizResultPerformance,
   QuizListResultByMateria,
+  QuizMultipleChoice,
 };
