@@ -56,14 +56,14 @@ export default defineConfig([
 
       'MultipleChoice/index': 'src/components/MultipleChoice/MultipleChoice.tsx',
       // Individual Auth components
-      'Auth/AuthProvider/index': 'src/components/Auth/Auth.tsx',
-      'Auth/ProtectedRoute/index': 'src/components/Auth/Auth.tsx',
-      'Auth/PublicRoute/index': 'src/components/Auth/Auth.tsx',
-      'Auth/withAuth/index': 'src/components/Auth/Auth.tsx',
-      'Auth/useAuth/index': 'src/components/Auth/Auth.tsx',
-      'Auth/useAuthGuard/index': 'src/components/Auth/Auth.tsx',
-      'Auth/useRouteAuth/index': 'src/components/Auth/Auth.tsx',
-      'Auth/getRootDomain/index': 'src/components/Auth/Auth.tsx',
+      'Auth/AuthProvider/index': 'src/components/Auth/AuthProvider.tsx',
+      'Auth/ProtectedRoute/index': 'src/components/Auth/ProtectedRoute.tsx',
+      'Auth/PublicRoute/index': 'src/components/Auth/PublicRoute.tsx',
+      'Auth/withAuth/index': 'src/components/Auth/withAuth.tsx',
+      'Auth/useAuth/index': 'src/components/Auth/useAuth.ts',
+      'Auth/useAuthGuard/index': 'src/components/Auth/useAuthGuard.ts',
+      'Auth/useRouteAuth/index': 'src/components/Auth/useRouteAuth.ts',
+      'Auth/getRootDomain/index': 'src/components/Auth/getRootDomain.ts',
       'Auth/zustandAuthAdapter/index':
         'src/components/Auth/zustandAuthAdapter.ts',
       'Auth/useUrlAuthentication/index':
