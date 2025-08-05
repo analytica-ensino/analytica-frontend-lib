@@ -31,7 +31,7 @@
     "ladle:build": "ladle build",
     "add:exports": "node scripts/add-exports.mjs",
     "remove:exports": "node scripts/remove-exports.mjs",
-    "prepack": "npm run add:exports && npm run build:clean",
+    "prepack": "npm run add:exports && npm run build",
     "postpack": "npm run remove:exports",
     "publish:dry": "npm run prepack && npm publish --dry-run && npm run postpack"
   },
