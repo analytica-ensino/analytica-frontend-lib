@@ -83,7 +83,7 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
 
         setIsCorrect(true);
 
-        allCurrentAnswers.map((answer) => {
+        allCurrentAnswers.forEach((answer) => {
           const findInCorrectOptions = isCorrectOption.find(
             (op) => op.id == answer.optionId
           );
