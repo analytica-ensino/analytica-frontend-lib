@@ -78,17 +78,11 @@ jest.mock('../Button/Button', () => ({
     children,
     onClick,
     disabled,
-    _action,
-    _iconLeft,
-    _iconRight,
     ...props
   }: {
     children: ReactNode;
     onClick?: () => void;
     disabled?: boolean;
-    _action?: unknown;
-    _iconLeft?: unknown;
-    _iconRight?: unknown;
     [key: string]: unknown;
   }) => {
     return (
@@ -110,14 +104,10 @@ jest.mock('../IconButton/IconButton', () => ({
   default: ({
     icon,
     onClick,
-    _iconLeft,
-    _iconRight,
     ...props
   }: {
     icon: ReactNode;
     onClick?: () => void;
-    _iconLeft?: unknown;
-    _iconRight?: unknown;
     [key: string]: unknown;
   }) => {
     return (
@@ -289,6 +279,69 @@ jest.mock('../Badge/Badge', () => ({
   ),
 }));
 
+// Mock the MultipleChoiceList component
+jest.mock('../MultipleChoice/MultipleChoice', () => {
+  let mockSelectedValues: string[] = [];
+
+  return {
+    MultipleChoiceList: ({
+      choices,
+      selectedValues,
+      onHandleSelectedValues,
+      mode,
+    }: {
+      choices: Array<{ label: string; value: string; status?: string }>;
+      selectedValues?: string[];
+      onHandleSelectedValues?: (values: string[]) => void;
+      mode?: string;
+    }) => {
+      // Update mock state when selectedValues prop changes
+      if (selectedValues) {
+        mockSelectedValues = [...selectedValues];
+      }
+
+      // In readonly mode, don't render checkboxes
+      if (mode === 'readonly') {
+        return (
+          <div data-testid="multiple-choice-list">
+            {choices.map((choice) => (
+              <div
+                key={choice.value}
+                data-testid={`multiple-choice-${choice.value}`}
+              >
+                {choice.label}
+              </div>
+            ))}
+          </div>
+        );
+      }
+
+      return (
+        <div data-testid="multiple-choice-list">
+          {choices.map((choice) => (
+            <label key={choice.value}>
+              <input
+                type="checkbox"
+                data-testid={`multiple-choice-${choice.value}`}
+                data-status={choice.status}
+                checked={mockSelectedValues.includes(choice.value)}
+                onChange={() => {
+                  const newValues = mockSelectedValues.includes(choice.value)
+                    ? mockSelectedValues.filter((v) => v !== choice.value)
+                    : [...mockSelectedValues, choice.value];
+                  mockSelectedValues = newValues;
+                  onHandleSelectedValues?.(newValues);
+                }}
+              />
+              {choice.label}
+            </label>
+          ))}
+        </div>
+      );
+    },
+  };
+});
+
 // Mock the image
 jest.mock('@/assets/img/simulated-result.png', () => 'mocked-image.png');
 
@@ -319,6 +372,57 @@ const mockQuestion1 = {
     { id: 'opt3', option: '5', isCorrect: false },
     { id: 'opt4', option: '6', isCorrect: false },
   ],
+};
+
+const mockQuestionMultipleChoice = {
+  id: 'q3',
+  questionText: 'Select all correct answers about planets',
+  description: 'Multiple choice question',
+  type: 'MULTIPLA_CHOICE' as const,
+  status: 'APROVADO' as const,
+  difficulty: QUESTION_DIFFICULTY.MEDIO,
+  examBoard: 'ENEM',
+  examYear: '2024',
+  answerKey: null,
+  institutionIds: ['inst1', 'inst2'],
+  knowledgeMatrix: [
+    {
+      areaKnowledgeId: 'ciencias',
+      subjectId: 'astronomia',
+      topicId: 'sistema-solar',
+      subtopicId: 'planetas',
+      contentId: 'ciencias',
+    },
+  ],
+  options: [
+    { id: 'opt1', option: 'Earth', isCorrect: true },
+    { id: 'opt2', option: 'Mars', isCorrect: true },
+    { id: 'opt3', option: 'Pluto', isCorrect: false },
+    { id: 'opt4', option: 'Jupiter', isCorrect: true },
+  ],
+};
+
+const mockQuestionDissertativa = {
+  id: 'q4',
+  questionText: 'Explain the process of photosynthesis',
+  description: 'Essay question',
+  type: 'DISSERTATIVA' as const,
+  status: 'APROVADO' as const,
+  difficulty: QUESTION_DIFFICULTY.DIFICIL,
+  examBoard: 'ENEM',
+  examYear: '2024',
+  answerKey: null,
+  institutionIds: ['inst1', 'inst2'],
+  knowledgeMatrix: [
+    {
+      areaKnowledgeId: 'ciencias',
+      subjectId: 'biologia',
+      topicId: 'fotossintese',
+      subtopicId: 'processo',
+      contentId: 'ciencias',
+    },
+  ],
+  options: [],
 };
 
 const mockQuestion2 = {
@@ -546,35 +650,84 @@ describe('Quiz Component', () => {
 
   describe('QuizContent', () => {
     it('should render content with default type', () => {
-      render(
-        <QuizContent>
-          <div data-testid="content-child">Content</div>
-        </QuizContent>
-      );
+      render(<QuizContent />);
 
       expect(screen.getByText('Alternativas')).toBeInTheDocument();
-      expect(screen.getByTestId('content-child')).toBeInTheDocument();
+      expect(screen.getByTestId('alternatives-list')).toBeInTheDocument();
     });
 
     it('should render content with custom type', () => {
-      render(
-        <QuizContent type="Dissertativa">
-          <div data-testid="content-child">Content</div>
-        </QuizContent>
-      );
+      render(<QuizContent type="Dissertativa" />);
 
       expect(screen.getByText('Dissertativa')).toBeInTheDocument();
     });
 
     it('should apply custom className', () => {
-      render(
-        <QuizContent className="custom-content-class">
-          <div>Content</div>
-        </QuizContent>
-      );
+      render(<QuizContent className="custom-content-class" />);
 
-      const contentElement = screen.getByText('Content').parentElement;
+      const contentElement = screen
+        .getByTestId('alternatives-list')
+        .closest('div')?.parentElement?.parentElement;
       expect(contentElement).toHaveClass('custom-content-class');
+    });
+
+    it('should render QuizAlternative when question type is ALTERNATIVA', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion1),
+      });
+
+      render(<QuizContent />);
+
+      expect(screen.getByTestId('alternatives-list')).toBeInTheDocument();
+      expect(screen.getByTestId('alternative-opt1')).toBeInTheDocument();
+      expect(screen.getByTestId('alternative-opt2')).toBeInTheDocument();
+    });
+
+    it('should render QuizMultipleChoice when question type is MULTIPLA_CHOICE', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest
+          .fn()
+          .mockReturnValue(mockQuestionMultipleChoice),
+        getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+      });
+
+      render(<QuizContent />);
+
+      expect(screen.getByTestId('multiple-choice-list')).toBeInTheDocument();
+      expect(screen.getByTestId('multiple-choice-opt1')).toBeInTheDocument();
+      expect(screen.getByTestId('multiple-choice-opt2')).toBeInTheDocument();
+    });
+
+    it('should render dissertative component when question type is DISSERTATIVA', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue(mockQuestionDissertativa),
+      });
+
+      render(<QuizContent />);
+
+      expect(
+        screen.getByText('Componente de dissertativa')
+      ).toBeInTheDocument();
+    });
+
+    it('should not render any component when currentQuestion is null', () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        getCurrentQuestion: jest.fn().mockReturnValue(null),
+      });
+
+      render(<QuizContent />);
+
+      expect(screen.queryByTestId('alternatives-list')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('multiple-choice-list')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Componente de dissertativa')
+      ).not.toBeInTheDocument();
     });
   });
 

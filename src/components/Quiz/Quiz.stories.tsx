@@ -1,7 +1,6 @@
 import type { Story } from '@ladle/react';
 import {
   Quiz,
-  QuizAlternative,
   QuizContent,
   QuizFooter,
   QuizHeader,
@@ -12,7 +11,6 @@ import {
   QuizResultTitle,
   QuizResultPerformance,
   QuizListResultByMateria,
-  QuizMultipleChoice,
 } from './Quiz';
 import {
   QUESTION_DIFFICULTY,
@@ -332,9 +330,7 @@ export const AllQuizShowcase: Story = () => {
         <Quiz>
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]">
-            <QuizAlternative />
-          </QuizContent>
+          <QuizContent className="pb-[150px]" />
           <QuizFooter
             className="bottom-15"
             onGoToSimulated={() => {
@@ -468,9 +464,7 @@ export const QuizAlternativeVariants: Story = () => {
           <QuizHeaderResult />
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]">
-            <QuizAlternative variant={'result'} />
-          </QuizContent>
+          <QuizContent className="pb-[150px]" />
           <QuizFooter className="bottom-15" />
         </Quiz>
       </div>
@@ -629,9 +623,7 @@ export const QuizMultipleChoiceVariants: Story = () => {
           <QuizHeaderResult />
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]">
-            <QuizMultipleChoice variant={'result'} />
-          </QuizContent>
+          <QuizContent className="pb-[150px]" />
           <QuizFooter className="bottom-15" />
         </Quiz>
       </div>
@@ -1322,7 +1314,7 @@ export const QuizMultipleChoiceShowcase: Story = () => {
             'Quais das seguintes opções são características de um movimento uniformemente variado? (Selecione todas as opções corretas)',
           description:
             'Questão sobre movimento uniformemente variado - múltipla escolha',
-          type: 'ALTERNATIVA' as QUESTION_TYPE,
+          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
@@ -1379,7 +1371,7 @@ export const QuizMultipleChoiceShowcase: Story = () => {
             'Quais das seguintes equações são do segundo grau? (Selecione todas as opções corretas)',
           description:
             'Questão sobre equações do segundo grau - múltipla escolha',
-          type: 'ALTERNATIVA' as QUESTION_TYPE,
+          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
@@ -1427,9 +1419,7 @@ export const QuizMultipleChoiceShowcase: Story = () => {
         <Quiz>
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]">
-            <QuizMultipleChoice />
-          </QuizContent>
+          <QuizContent className="pb-[150px]" />
           <QuizFooter
             className="bottom-15"
             onGoToSimulated={() => {

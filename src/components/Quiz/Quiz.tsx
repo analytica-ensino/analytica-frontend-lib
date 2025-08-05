@@ -177,10 +177,13 @@ const QuizContent = forwardRef<
   HTMLDivElement,
   {
     type?: 'Alternativas' | 'Dissertativa';
-    children: ReactNode;
+    variant?: 'result' | 'default';
     className?: string;
   }
->(({ type = 'Alternativas', children, className, ...props }, ref) => {
+>(({ type = 'Alternativas', className, variant, ...props }, ref) => {
+  const { getCurrentQuestion } = useQuizStore();
+  const currentQuestion = getCurrentQuestion();
+
   return (
     <>
       <div className="px-4 pb-2 pt-6">
@@ -195,7 +198,19 @@ const QuizContent = forwardRef<
         )}
         {...props}
       >
-        {children}
+        {currentQuestion && (
+          <>
+            {currentQuestion.type === QUESTION_TYPE.ALTERNATIVA && (
+              <QuizAlternative variant={variant} />
+            )}
+            {currentQuestion.type === QUESTION_TYPE.MULTIPLA_CHOICE && (
+              <QuizMultipleChoice variant={variant} />
+            )}
+            {currentQuestion.type === QUESTION_TYPE.DISSERTATIVA && (
+              <div>Componente de dissertativa</div>
+            )}
+          </>
+        )}
       </div>
     </>
   );
