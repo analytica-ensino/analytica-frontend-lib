@@ -236,7 +236,6 @@ describe('useQuizStore', () => {
       expect(userAnswers).toHaveLength(1); // Apenas as respondidas
       const answeredQuestion = userAnswers.find((q) => q.questionId === 'q1');
       expect(answeredQuestion?.optionId).toBe('opt1');
-      expect(answeredQuestion?.optionId).toBe('opt1');
     });
 
     it('should warn and return early when selectAnswer is called without userId set', () => {
@@ -2203,7 +2202,7 @@ describe('useQuizStore', () => {
       expect(result.current.getCurrentQuestion()).toBeNull();
     });
 
-    it('should set current question index to -1 when question does not exist in quiz', () => {
+    it('should not change current question index when question does not exist in quiz', () => {
       const { result } = renderHook(() => useQuizStore());
 
       const nonExistentQuestion = {
@@ -2213,12 +2212,19 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
+        // Set to a known question first to establish a baseline
+        result.current.setCurrentQuestion(mockQuestion1);
+      });
+
+      const initialIndex = result.current.currentQuestionIndex;
+
+      act(() => {
         result.current.setCurrentQuestion(nonExistentQuestion);
       });
 
-      // Should set to -1 since question was not found (findIndex returns -1)
-      expect(result.current.currentQuestionIndex).toBe(-1);
-      expect(result.current.getCurrentQuestion()).toBeUndefined();
+      // Should not change the index since question was not found
+      expect(result.current.currentQuestionIndex).toBe(initialIndex);
+      expect(result.current.getCurrentQuestion()).toEqual(mockQuestion1);
     });
 
     it('should work with atividade quiz type', () => {

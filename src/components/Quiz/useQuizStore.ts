@@ -614,6 +614,15 @@ export const useQuizStore = create<QuizState>()(
           const questionIndex = activeQuiz.quiz.questions.findIndex(
             (q) => q.id === question.id
           );
+
+          // Validate that the question was found before updating currentQuestionIndex
+          if (questionIndex === -1) {
+            console.warn(
+              `Question with id "${question.id}" not found in active quiz`
+            );
+            return;
+          }
+
           set({ currentQuestionIndex: questionIndex });
         },
       };

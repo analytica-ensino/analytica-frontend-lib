@@ -76,7 +76,7 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
           (op) => op.isCorrect
         );
 
-        if (allCurrentAnswers?.length != isCorrectOption.length) {
+        if (allCurrentAnswers?.length !== isCorrectOption.length) {
           setIsCorrect(false);
           return;
         }
@@ -85,20 +85,19 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
 
         allCurrentAnswers.forEach((answer) => {
           const findInCorrectOptions = isCorrectOption.find(
-            (op) => op.id == answer.optionId
+            (op) => op.id === answer.optionId
           );
           if (!findInCorrectOptions) {
             setIsCorrect(false);
-            return;
           }
         });
       } else {
         setIsCorrect(
-          currentQuestion?.options.find((op) => op.id == userAnswer)
+          currentQuestion?.options.find((op) => op.id === userAnswer)
             ?.isCorrect || false
         );
       }
-    }, [currentQuestion]);
+    }, [currentQuestion, getAllCurrentAnswer]);
 
     return (
       <div
@@ -223,7 +222,7 @@ const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
       const isCorrectOption = currentQuestion.options.find(
         (op) => op.isCorrect
       );
-      if (isCorrectOption?.id == option.id) {
+      if (isCorrectOption?.id === option.id) {
         status = Status.CORRECT;
       } else if (
         currentAnswer === option.id &&
