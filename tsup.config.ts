@@ -70,13 +70,7 @@ export default defineConfig({
   outDir: 'dist',
   splitting: false,
   clean: true,
-  dts: {
-    resolve: true,
-    compilerOptions: {
-      composite: false,
-      incremental: false
-    }
-  },
+  dts: false,
   external: ['react', 'react-dom'],
   target: 'es2022',
   sourcemap: false,
