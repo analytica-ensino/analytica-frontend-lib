@@ -1,6 +1,6 @@
 {
   "name": "analytica-frontend-lib",
-  "version": "1.0.87",
+  "version": "1.0.88",
   "description": "Repositório público dos componentes utilizados nas plataformas da Analytica Ensino",
   "main": "dist/index.cjs",
   "module": "./dist/index.js",
@@ -31,7 +31,7 @@
     "ladle:build": "ladle build",
     "add:exports": "node scripts/add-exports.mjs",
     "remove:exports": "node scripts/remove-exports.mjs",
-    "prepack": "npm run add:exports && npm run build:clean",
+    "prepack": "npm run add:exports && npm run build",
     "postpack": "npm run remove:exports",
     "publish:dry": "npm run prepack && npm publish --dry-run && npm run postpack"
   },
