@@ -7,7 +7,14 @@ const __dirname = dirname(__filename);
 
 // Load configuration
 const configPath = join(__dirname, 'component-config.json');
-const componentConfig = JSON.parse(readFileSync(configPath, 'utf8'));
+let componentConfig;
+try {
+  componentConfig = JSON.parse(readFileSync(configPath, 'utf8'));
+} catch (error) {
+  console.error(`Failed to load component configuration from ${configPath}:`, error.message);
+  // Provide sensible defaults or throw with a more descriptive error
+  throw new Error(`Component configuration is required but could not be loaded: ${error.message}`);
+}
 
 /**
  * Dynamically discovers all files in a component directory
@@ -39,6 +46,15 @@ function discoverSubdirectories(componentPath) {
 }
 
 /**
+ * Escapes regex special characters in a pattern string
+ * @param {string} pattern - Pattern string to escape
+ * @returns {string} Escaped pattern string
+ */
+function escapeRegexPattern(pattern) {
+  return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Checks if a filename matches any pattern in a pattern array
  * @param {string} filename - Filename to check
  * @param {Array} patterns - Array of patterns to match against
@@ -46,7 +62,9 @@ function discoverSubdirectories(componentPath) {
  */
 function matchesPattern(filename, patterns) {
   return patterns.some(pattern => {
-    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+    // Escape regex special characters, then replace * with .*
+    const escapedPattern = escapeRegexPattern(pattern).replace(/\\\*/g, '.*');
+    const regex = new RegExp(`^${escapedPattern}$`);
     return regex.test(filename);
   });
 }
@@ -58,10 +76,7 @@ function matchesPattern(filename, patterns) {
  */
 function shouldSkipFile(filename) {
   const skipPatterns = componentConfig.defaults.skipPatterns;
-  return skipPatterns.some(pattern => {
-    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
-    return regex.test(filename);
-  });
+  return matchesPattern(filename, skipPatterns);
 }
 
 /**
@@ -90,7 +105,7 @@ function determineCategory(componentName, filename, subdirectory = null) {
   
   // Check if file matches category patterns
   const category = componentConfig.componentCategories[mapping.category];
-  if (category && category.patterns) {
+  if (category?.patterns) {
     if (matchesPattern(filename, category.patterns)) {
       return mapping.category;
     }
@@ -122,6 +137,126 @@ function getConfigKey(category) {
 }
 
 /**
+ * Processes a single component file and returns configuration data
+ * @param {string} file - File name to process
+ * @param {string} componentName - Name of the component
+ * @param {string} filePath - Full path to the file
+ * @param {string} subdir - Optional subdirectory name
+ * @param {string} mainFile - Main component file name (for skip check)
+ * @returns {Object|null} Object with key, value, and configKey, or null if skipped
+ */
+function processComponentFile(file, componentName, filePath, subdir = null, mainFile = null) {
+  const fileName = file.replace(/\.(tsx?|jsx?)$/, '');
+  
+  // Skip files that should be ignored
+  if (shouldSkipFile(file) || (mainFile && file === mainFile)) {
+    return null;
+  }
+  
+  // Handle TypeScript/JavaScript files as potential sub-components
+  if (matchesPattern(file, componentConfig.filePatterns.componentFiles)) {
+    const category = determineCategory(componentName, file, subdir);
+    const configKey = getConfigKey(category);
+    
+    return {
+      key: `${componentName}/${fileName}/index`,
+      value: filePath,
+      configKey
+    };
+  }
+  
+  return null;
+}
+
+/**
+ * Processes individual files in a component directory
+ * @param {string} componentName - Name of the component
+ * @param {string} componentPath - Path to component directory
+ * @param {string} mainFile - Main component file name
+ * @param {Object} config - Configuration object to update
+ */
+function processComponentFiles(componentName, componentPath, mainFile, config) {
+  const componentFiles = discoverComponentFiles(componentPath);
+  
+  componentFiles.forEach(file => {
+    const filePath = `src/components/${componentName}/${file}`;
+    const result = processComponentFile(file, componentName, filePath, null, mainFile);
+    
+    if (result) {
+      config[result.configKey][result.key] = result.value;
+    }
+  });
+}
+
+/**
+ * Processes files in subdirectories of a component
+ * @param {string} componentName - Name of the component
+ * @param {string} componentPath - Path to component directory
+ * @param {Object} config - Configuration object to update
+ */
+function processSubdirectories(componentName, componentPath, config) {
+  const subdirectories = discoverSubdirectories(componentPath);
+  
+  subdirectories.forEach(subdir => {
+    const subdirPath = join(componentPath, subdir);
+    const subdirFiles = discoverComponentFiles(subdirPath);
+    
+    subdirFiles.forEach(file => {
+      const filePath = `src/components/${componentName}/${subdir}/${file}`;
+      const result = processComponentFile(file, componentName, filePath, subdir);
+      
+      if (result) {
+        config[result.configKey][result.key] = result.value;
+      }
+    });
+  });
+}
+
+/**
+ * Processes special exports for a component
+ * @param {string} componentName - Name of the component
+ * @param {Object} mapping - Component mapping configuration
+ * @param {string} mainFile - Main component file name
+ * @param {Object} config - Configuration object to update
+ */
+function processSpecialExports(componentName, mapping, mainFile, config) {
+  if (!mapping?.exports) {
+    return;
+  }
+  
+  mapping.exports.forEach(exportName => {
+    const category = mapping.category;
+    const configKey = getConfigKey(category);
+    const mainFilePath = `src/components/${componentName}/${mainFile}`;
+    
+    config[configKey][`${componentName}/${exportName}/index`] = mainFilePath;
+  });
+}
+
+/**
+ * Processes a single component directory
+ * @param {string} componentName - Name of the component
+ * @param {string} componentPath - Path to component directory
+ * @param {Object} config - Configuration object to update
+ */
+function processComponentDirectory(componentName, componentPath, config) {
+  const mapping = componentConfig.componentMappings[componentName];
+  
+  // Main component entry (always exists)
+  const mainFile = mapping?.mainFile || `${componentName}.tsx`;
+  config.mainComponents[`${componentName}/index`] = `src/components/${componentName}/${mainFile}`;
+  
+  // Process individual files in component directory
+  processComponentFiles(componentName, componentPath, mainFile, config);
+  
+  // Process subdirectories
+  processSubdirectories(componentName, componentPath, config);
+  
+  // Handle special exports
+  processSpecialExports(componentName, mapping, mainFile, config);
+}
+
+/**
  * Scans the components directory and generates component configurations
  * @returns {Object} Component configuration object
  */
@@ -145,70 +280,7 @@ export function generateComponentsConfig() {
   // Process each component directory dynamically
   componentDirs.forEach(componentName => {
     const componentPath = join(componentsDir, componentName);
-    const mapping = componentConfig.componentMappings[componentName];
-    
-    // Main component entry (always exists)
-    const mainFile = mapping?.mainFile || `${componentName}.tsx`;
-    config.mainComponents[`${componentName}/index`] = `src/components/${componentName}/${mainFile}`;
-    
-    // Dynamically discover additional files in component directory
-    const componentFiles = discoverComponentFiles(componentPath);
-    
-    // Process individual files in component directory
-    componentFiles.forEach(file => {
-      const fileName = file.replace(/\.(tsx?|jsx?|jsx?)$/, '');
-      
-      // Skip files that should be ignored
-      if (shouldSkipFile(file) || file === mainFile) {
-        return;
-      }
-      
-      // Handle TypeScript/JavaScript files as potential sub-components
-      if (matchesPattern(file, componentConfig.filePatterns.componentFiles)) {
-        const filePath = `src/components/${componentName}/${file}`;
-        const category = determineCategory(componentName, file);
-        const configKey = getConfigKey(category);
-        
-        config[configKey][`${componentName}/${fileName}/index`] = filePath;
-      }
-    });
-    
-    // Dynamically discover subdirectories
-    const subdirectories = discoverSubdirectories(componentPath);
-    
-    subdirectories.forEach(subdir => {
-      const subdirPath = join(componentPath, subdir);
-      const subdirFiles = discoverComponentFiles(subdirPath);
-      
-      subdirFiles.forEach(file => {
-        const fileName = file.replace(/\.(tsx?|jsx?|jsx?)$/, '');
-        
-        // Skip files that should be ignored
-        if (shouldSkipFile(file)) {
-          return;
-        }
-        
-        // Handle TypeScript/JavaScript files in subdirectories
-        if (matchesPattern(file, componentConfig.filePatterns.componentFiles)) {
-          const filePath = `src/components/${componentName}/${subdir}/${file}`;
-          const category = determineCategory(componentName, file, subdir);
-          const configKey = getConfigKey(category);
-          
-          config[configKey][`${componentName}/${fileName}/index`] = filePath;
-        }
-      });
-    });
-    
-    // Handle special exports (like Auth exports)
-    if (mapping?.exports) {
-      mapping.exports.forEach(exportName => {
-        const category = mapping.category;
-        const configKey = getConfigKey(category);
-        const mainFilePath = `src/components/${componentName}/${mainFile}`;
-        
-        config[configKey][`${componentName}/${exportName}/index`] = mainFilePath;
-      });
-    }
+    processComponentDirectory(componentName, componentPath, config);
   });
 
   // Add styles
