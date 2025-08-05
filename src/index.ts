@@ -60,9 +60,10 @@ import Select, {
 } from './components/Select/Select';
 
 import Menu, {
+  MenuContent,
   MenuItem,
   MenuOverflow,
-  MenuContent,
+  MenuItemIcon,
 } from './components/Menu/Menu';
 
 import {
@@ -177,6 +178,7 @@ export { Menu };
 export { MenuItem };
 export { MenuOverflow };
 export { MenuContent };
+export { MenuItemIcon };
 
 export { CardActivitiesResults };
 export { CardPerformance };
