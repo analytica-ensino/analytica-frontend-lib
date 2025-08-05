@@ -34,7 +34,7 @@ jobs:
           fail-on-cache-miss: true
 
       - name: Build and generate exports
-        run:  NODE_OPTIONS="--max-old-space-size=4096" yarn prepack
+        run:  NODE_OPTIONS="--max-old-space-size=8192" yarn prepack
 
       - name: Publish package
         run: npm publish --access public
