@@ -1,0 +1,101 @@
+{
+  "componentCategories": {
+    "auth": {
+      "description": "Authentication related components and utilities",
+      "patterns": ["use*", "*Adapter", "*Config", "*Authentication"],
+      "subdirectoryPatterns": ["utils", "hooks", "adapters"]
+    },
+    "toast": {
+      "description": "Toast notification components and utilities",
+      "patterns": ["*Store", "*Toaster"],
+      "subdirectoryPatterns": ["utils"]
+    },
+    "quiz": {
+      "description": "Quiz related components and utilities",
+      "patterns": ["use*", "*Store"],
+      "subdirectoryPatterns": ["hooks", "stores"]
+    },
+    "checkbox": {
+      "description": "Checkbox related components",
+      "patterns": ["*List", "*Group"],
+      "subdirectoryPatterns": ["variants"]
+    }
+  },
+  "componentMappings": {
+    "Auth": {
+      "category": "auth",
+      "mainFile": "Auth.tsx",
+      "exports": [
+        "AuthProvider",
+        "ProtectedRoute",
+        "PublicRoute", 
+        "withAuth",
+        "useAuth",
+        "useAuthGuard",
+        "useRouteAuth",
+        "getRootDomain"
+      ],
+      "individualFiles": [
+        "zustandAuthAdapter.ts",
+        "useUrlAuthentication.ts", 
+        "useApiConfig.ts"
+      ]
+    },
+    "Toast": {
+      "category": "toast",
+      "mainFile": "Toast.tsx",
+      "subdirectories": {
+        "utils": {
+          "category": "toast",
+          "description": "Toast utility components"
+        }
+      }
+    },
+    "Quiz": {
+      "category": "quiz", 
+      "mainFile": "Quiz.tsx",
+      "individualFiles": [
+        "useQuizStore.ts"
+      ]
+    },
+    "CheckBox": {
+      "category": "checkbox",
+      "mainFile": "CheckBox.tsx", 
+      "individualFiles": [
+        "CheckboxList.tsx"
+      ]
+    }
+  },
+  "filePatterns": {
+    "utilityFiles": [
+      "use*",
+      "*Adapter", 
+      "*Store",
+      "*Config",
+      "*Authentication",
+      "*List",
+      "*Group"
+    ],
+    "testFiles": [
+      "*.test.tsx",
+      "*.test.ts",
+      "*.stories.tsx", 
+      "*.stories.ts"
+    ],
+    "componentFiles": [
+      "*.tsx",
+      "*.ts",
+      "*.jsx",
+      "*.js"
+    ]
+  },
+  "defaults": {
+    "mainComponentPattern": "{componentName}.tsx",
+    "defaultCategory": "subComponents",
+    "skipPatterns": [
+      "*.test.*",
+      "*.stories.*",
+      "index.*"
+    ]
+  }
+} 
