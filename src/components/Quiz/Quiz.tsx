@@ -717,7 +717,7 @@ const QuizFooter = forwardRef<
           title="Questões"
           size={'lg'}
         >
-          <div className="flex flex-col w-full h-full">
+          <div className="flex flex-col w-full h-full not-lg:max-h-[calc(100vh-200px)] lg:max-h-[calc(687px-76px)]">
             <div className="flex flex-row justify-between items-center py-6 pt-6 pb-4 border-b border-border-200">
               <p className="text-text-950 font-bold text-lg">Filtrar por</p>
               <span className="max-w-[266px]">
@@ -734,7 +734,7 @@ const QuizFooter = forwardRef<
               </span>
             </div>
 
-            <div className="flex flex-col gap-2 not-lg:h-[calc(100vh-200px)] lg:max-h-[687px] overflow-y-auto">
+            <div className="flex flex-col gap-2 overflow-y-auto">
               <QuizQuestionList
                 filterType={filterType}
                 onQuestionClick={() => setModalNavigateOpen(false)}

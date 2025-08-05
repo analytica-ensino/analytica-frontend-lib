@@ -464,7 +464,7 @@ export const QuizAlternativeVariants: Story = () => {
           <QuizHeaderResult />
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]" />
+          <QuizContent className="pb-[150px]" variant="result" />
           <QuizFooter className="bottom-15" />
         </Quiz>
       </div>
@@ -623,7 +623,7 @@ export const QuizMultipleChoiceVariants: Story = () => {
           <QuizHeaderResult />
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]" />
+          <QuizContent className="pb-[150px]" variant="result" />
           <QuizFooter className="bottom-15" />
         </Quiz>
       </div>
