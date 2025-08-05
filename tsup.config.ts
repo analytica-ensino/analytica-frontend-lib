@@ -35,19 +35,23 @@ export default defineConfig([
       'Divider/index': 'src/components/Divider/Divider.tsx',
       'DropdownMenu/index': 'src/components/DropdownMenu/DropdownMenu.tsx',
       'IconButton/index': 'src/components/IconButton/IconButton.tsx',
-      'IconRoundedButton/index': 'src/components/IconRoundedButton/IconRoundedButton.tsx',
+      'IconRoundedButton/index':
+        'src/components/IconRoundedButton/IconRoundedButton.tsx',
       'Input/index': 'src/components/Input/Input.tsx',
       'Menu/index': 'src/components/Menu/Menu.tsx',
       'Modal/index': 'src/components/Modal/Modal.tsx',
-      'MultipleChoice/index': 'src/components/MultipleChoice/MultipleChoice.tsx',
+      'MultipleChoice/index':
+        'src/components/MultipleChoice/MultipleChoice.tsx',
       'NavButton/index': 'src/components/NavButton/NavButton.tsx',
       'NotFound/index': 'src/components/NotFound/NotFound.tsx',
       'ProgressBar/index': 'src/components/ProgressBar/ProgressBar.tsx',
-      'ProgressCircle/index': 'src/components/ProgressCircle/ProgressCircle.tsx',
+      'ProgressCircle/index':
+        'src/components/ProgressCircle/ProgressCircle.tsx',
       'Quiz/index': 'src/components/Quiz/Quiz.tsx',
       'Radio/index': 'src/components/Radio/Radio.tsx',
       'Select/index': 'src/components/Select/Select.tsx',
-      'SelectionButton/index': 'src/components/SelectionButton/SelectionButton.tsx',
+      'SelectionButton/index':
+        'src/components/SelectionButton/SelectionButton.tsx',
       'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
       'Stepper/index': 'src/components/Stepper/Stepper.tsx',
       'Table/index': 'src/components/Table/Table.tsx',
