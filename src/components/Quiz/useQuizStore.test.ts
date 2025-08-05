@@ -1117,6 +1117,316 @@ describe('useQuizStore', () => {
     });
   });
 
+  describe('getAllCurrentAnswer', () => {
+    beforeEach(() => {
+      act(() => {
+        useQuizStore.getState().setBySimulated(mockSimulado);
+      });
+    });
+
+    it('should return undefined when no current question exists', () => {
+      // Reset to ensure no quiz data
+      act(() => {
+        useQuizStore.getState().resetQuiz();
+        useQuizStore.setState({
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
+        });
+      });
+
+      const { result } = renderHook(() => useQuizStore());
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      expect(allCurrentAnswer).toBeUndefined();
+    });
+
+    it('should return empty array when current question has no user answers', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      expect(allCurrentAnswer).toEqual([]);
+    });
+
+    it('should return user answers for current question when answers exist', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      expect(allCurrentAnswer).toHaveLength(1);
+      expect(allCurrentAnswer?.[0].questionId).toBe('q1');
+      expect(allCurrentAnswer?.[0].optionId).toBe('opt1');
+    });
+
+    it('should return multiple user answers for current question when multiple answers exist', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+        result.current.selectMultipleAnswer('q1', ['opt1', 'opt3']);
+      });
+
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      expect(allCurrentAnswer).toHaveLength(2);
+      expect(allCurrentAnswer?.[0].questionId).toBe('q1');
+      expect(allCurrentAnswer?.[1].questionId).toBe('q1');
+      expect(allCurrentAnswer?.map((answer) => answer.optionId)).toContain(
+        'opt1'
+      );
+      expect(allCurrentAnswer?.map((answer) => answer.optionId)).toContain(
+        'opt3'
+      );
+    });
+
+    it('should return skipped answer for current question when question is skipped', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+        result.current.skipQuestion();
+      });
+
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      expect(allCurrentAnswer).toHaveLength(1);
+      expect(allCurrentAnswer?.[0].questionId).toBe('q1');
+      expect(allCurrentAnswer?.[0].optionId).toBe(null);
+      expect(allCurrentAnswer?.[0].answer).toBe(null);
+    });
+
+    it('should return answers for different current question when navigating', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1');
+        result.current.goToNextQuestion(); // Go to q2
+        result.current.selectAnswer('q2', 'opt2');
+      });
+
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      expect(allCurrentAnswer).toHaveLength(1);
+      expect(allCurrentAnswer?.[0].questionId).toBe('q2');
+      expect(allCurrentAnswer?.[0].optionId).toBe('opt2');
+    });
+
+    it('should not return answers for other questions when on current question', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1');
+        result.current.goToNextQuestion(); // Go to q2
+        result.current.selectAnswer('q2', 'opt2');
+        result.current.goToPreviousQuestion(); // Go back to q1
+      });
+
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      expect(allCurrentAnswer).toHaveLength(1);
+      expect(allCurrentAnswer?.[0].questionId).toBe('q1');
+      expect(allCurrentAnswer?.[0].optionId).toBe('opt1');
+      // Should not include q2 answer
+      expect(
+        allCurrentAnswer?.find((answer) => answer.questionId === 'q2')
+      ).toBeUndefined();
+    });
+
+    it('should work with byActivity quiz type', () => {
+      const mockAtividade = {
+        id: 'atividade-1',
+        title: 'Test Atividade',
+        questions: [mockQuestion1, mockQuestion2],
+      };
+
+      act(() => {
+        useQuizStore.getState().setByActivity(mockAtividade);
+      });
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      expect(allCurrentAnswer).toHaveLength(1);
+      expect(allCurrentAnswer?.[0].questionId).toBe('q1');
+      expect(allCurrentAnswer?.[0].optionId).toBe('opt1');
+    });
+
+    it('should work with byQuestionary quiz type', () => {
+      const mockQuestionary = {
+        id: 'aula-1',
+        title: 'Test Aula',
+        questions: [mockQuestion1, mockQuestion2],
+      };
+
+      act(() => {
+        useQuizStore.getState().setByQuestionary(mockQuestionary);
+      });
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1');
+      });
+
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      expect(allCurrentAnswer).toHaveLength(1);
+      expect(allCurrentAnswer?.[0].questionId).toBe('q1');
+      expect(allCurrentAnswer?.[0].optionId).toBe('opt1');
+    });
+
+    it('should handle case sensitivity in question ID matching', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+        // Add answer with different case
+        result.current.addUserAnswer('Q1', 'opt1');
+      });
+
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      // Should not find the answer because case doesn't match
+      expect(allCurrentAnswer).toEqual([]);
+    });
+
+    it('should handle special characters in question ID', () => {
+      const questionWithSpecialChars = {
+        ...mockQuestion1,
+        id: 'q1-special@#$%',
+      };
+
+      const simuladoWithSpecialChars = {
+        ...mockSimulado,
+        questions: [questionWithSpecialChars, mockQuestion2],
+      };
+
+      act(() => {
+        useQuizStore.getState().setBySimulated(simuladoWithSpecialChars);
+      });
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1-special@#$%', 'opt1');
+      });
+
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      expect(allCurrentAnswer).toHaveLength(1);
+      expect(allCurrentAnswer?.[0].questionId).toBe('q1-special@#$%');
+      expect(allCurrentAnswer?.[0].optionId).toBe('opt1');
+    });
+
+    it('should return empty array when current question exists but has no matching user answers', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+        // Add answer for a different question
+        result.current.addUserAnswer('q2', 'opt2');
+      });
+
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      // Should return empty array because current question is q1 but we answered q2
+      expect(allCurrentAnswer).toEqual([]);
+    });
+
+    it('should handle multiple answers for the same question with different optionIds', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+        // First answer
+        result.current.selectAnswer('q1', 'opt1');
+        // Second answer (should replace the first)
+        result.current.selectAnswer('q1', 'opt2');
+      });
+
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      expect(allCurrentAnswer).toHaveLength(1);
+      expect(allCurrentAnswer?.[0].questionId).toBe('q1');
+      expect(allCurrentAnswer?.[0].optionId).toBe('opt2');
+    });
+
+    it('should handle very long question ID', () => {
+      const longId = 'q'.repeat(1000);
+      const questionWithLongId = {
+        ...mockQuestion1,
+        id: longId,
+      };
+
+      const simuladoWithLongId = {
+        ...mockSimulado,
+        questions: [questionWithLongId, mockQuestion2],
+      };
+
+      act(() => {
+        useQuizStore.getState().setBySimulated(simuladoWithLongId);
+      });
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer(longId, 'opt1');
+      });
+
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      expect(allCurrentAnswer).toHaveLength(1);
+      expect(allCurrentAnswer?.[0].questionId).toBe(longId);
+      expect(allCurrentAnswer?.[0].optionId).toBe('opt1');
+    });
+
+    it('should handle numeric question ID as string', () => {
+      const questionWithNumericId = {
+        ...mockQuestion1,
+        id: '12345',
+      };
+
+      const simuladoWithNumericId = {
+        ...mockSimulado,
+        questions: [questionWithNumericId, mockQuestion2],
+      };
+
+      act(() => {
+        useQuizStore.getState().setBySimulated(simuladoWithNumericId);
+      });
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('12345', 'opt1');
+      });
+
+      const allCurrentAnswer = result.current.getAllCurrentAnswer();
+
+      expect(allCurrentAnswer).toHaveLength(1);
+      expect(allCurrentAnswer?.[0].questionId).toBe('12345');
+      expect(allCurrentAnswer?.[0].optionId).toBe('opt1');
+    });
+  });
+
   describe('Progress Calculation', () => {
     beforeEach(() => {
       act(() => {
