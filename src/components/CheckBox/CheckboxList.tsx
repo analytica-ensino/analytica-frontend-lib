@@ -95,8 +95,7 @@ const injectStore = (
 ): ReactNode =>
   Children.map(children, (child) => {
     if (!isValidElement(child)) return child;
-    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-    const typedChild = child as ReactElement<any>;
+    const typedChild = child as ReactElement<CheckboxListItemProps>;
     const shouldInject = typedChild.type === CheckboxListItem;
     return cloneElement(typedChild, {
       ...(shouldInject ? { store } : {}),
@@ -201,7 +200,6 @@ const CheckboxList = forwardRef<HTMLDivElement, CheckboxListProps>(
       <div
         ref={ref}
         className={cn('flex flex-col gap-2 w-full', className)}
-        role="group"
         aria-label={name}
         {...props}
       >
