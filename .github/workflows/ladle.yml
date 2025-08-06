@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       cache-key:
-        description: "Cache key for node_modules"
+        description: 'Cache key for node_modules'
         required: true
         type: string
   workflow_dispatch:
@@ -35,6 +35,8 @@ jobs:
 
       - name: Build Ladle
         run: yarn ladle:build
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
 
       - name: Configure AWS CLI for DigitalOcean Spaces
         run: |
