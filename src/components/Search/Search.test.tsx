@@ -559,5 +559,35 @@ describe('Search Component', () => {
       // The ref should be used when available
       expect(ref.current?.value).toBe('');
     });
+
+    it('should handle selection without onChange callback', async () => {
+      const user = userEvent.setup();
+      const handleSelect = jest.fn();
+
+      render(
+        <Search options={defaultOptions} value="Fi" onSelect={handleSelect} />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+      });
+
+      const firstItem = screen.getAllByTestId('dropdown-item')[0];
+      await user.click(firstItem);
+
+      expect(handleSelect).toHaveBeenCalledWith('Filosofia');
+      // Should not throw error even without onChange
+    });
+
+    it('should handle clear without onChange callback', async () => {
+      const user = userEvent.setup();
+
+      render(<Search options={defaultOptions} value="Test" />);
+
+      const clearButton = screen.getByLabelText('Limpar busca');
+      await user.click(clearButton);
+
+      // Should not throw error even without onChange
+    });
   });
 });

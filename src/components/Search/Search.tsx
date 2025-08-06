@@ -88,6 +88,37 @@ const filterOptions = (options: string[], query: string): string[] => {
   );
 };
 
+/**
+ * Updates input value and creates appropriate change event
+ */
+const updateInputValue = (
+  value: string,
+  ref:
+    | { current: HTMLInputElement | null }
+    | ((instance: HTMLInputElement | null) => void)
+    | null,
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void
+) => {
+  if (!onChange) return;
+
+  if (ref && 'current' in ref && ref.current) {
+    ref.current.value = value;
+    const event = new Event('input', { bubbles: true });
+    Object.defineProperty(event, 'target', {
+      writable: false,
+      value: ref.current,
+    });
+    onChange(event as unknown as ChangeEvent<HTMLInputElement>);
+  } else {
+    // Fallback for cases where ref is not available
+    const event = {
+      target: { value },
+      currentTarget: { value },
+    } as ChangeEvent<HTMLInputElement>;
+    onChange(event);
+  }
+};
+
 const Search = forwardRef<HTMLInputElement, SearchProps>(
   (
     {
@@ -145,24 +176,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       dropdownStore.setState({ open: false });
 
       // Update input value if onChange is provided
-      if (onChange) {
-        if (ref && 'current' in ref && ref.current) {
-          ref.current.value = option;
-          const event = new Event('input', { bubbles: true });
-          Object.defineProperty(event, 'target', {
-            writable: false,
-            value: ref.current,
-          });
-          onChange(event as unknown as ChangeEvent<HTMLInputElement>);
-        } else {
-          // Fallback for cases where ref is not available
-          const event = {
-            target: { value: option },
-            currentTarget: { value: option },
-          } as ChangeEvent<HTMLInputElement>;
-          onChange(event);
-        }
-      }
+      updateInputValue(option, ref, onChange);
     };
 
     // Handle click outside dropdown
@@ -194,23 +208,8 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
     const handleClear = () => {
       if (onClear) {
         onClear();
-      } else if (onChange) {
-        if (ref && 'current' in ref && ref.current) {
-          ref.current.value = '';
-          const event = new Event('input', { bubbles: true });
-          Object.defineProperty(event, 'target', {
-            writable: false,
-            value: ref.current,
-          });
-          onChange(event as unknown as ChangeEvent<HTMLInputElement>);
-        } else {
-          // Fallback for cases where ref is not available
-          const event = {
-            target: { value: '' },
-            currentTarget: { value: '' },
-          } as ChangeEvent<HTMLInputElement>;
-          onChange(event);
-        }
+      } else {
+        updateInputValue('', ref, onChange);
       }
     };
 
