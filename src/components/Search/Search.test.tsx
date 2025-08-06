@@ -25,7 +25,11 @@ interface MockDropdownItemProps {
 jest.mock('../DropdownMenu/DropdownMenu', () => {
   return {
     __esModule: true,
-    default: ({ children, open, onOpenChange }: MockDropdownProps) => {
+    default: function MockDropdownMenu({
+      children,
+      open,
+      onOpenChange,
+    }: MockDropdownProps) {
       React.useEffect(() => {
         if (onOpenChange && typeof onOpenChange === 'function') {
           onOpenChange(open);
@@ -48,14 +52,14 @@ jest.mock('../DropdownMenu/DropdownMenu', () => {
       onClick,
       className,
     }: MockDropdownItemProps) => (
-      <div
+      <button
         data-testid="dropdown-item"
         className={className}
         onClick={onClick}
-        role="button"
+        type="button"
       >
         {children}
-      </div>
+      </button>
     ),
     createDropdownStore: () => ({
       setState: jest.fn(),
