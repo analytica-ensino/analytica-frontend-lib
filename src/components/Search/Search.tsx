@@ -227,7 +227,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
           <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
             <button
               type="button"
-              className="w-5 h-5 text-text-400 flex items-center justify-center bg-transparent border-0 p-0 cursor-pointer hover:text-text-600 transition-colors"
+              className="w-6 h-6 text-text-800 flex items-center justify-center bg-transparent border-0 p-0 cursor-pointer hover:text-text-600 transition-colors"
               onClick={handleLeftIconClick}
               aria-label="Voltar"
             >
@@ -267,7 +267,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
                 onMouseDown={handleClearClick}
                 aria-label="Limpar busca"
               >
-                <span className="w-5 h-5 text-text-400 flex items-center justify-center hover:text-text-600 transition-colors">
+                <span className="w-6 h-6 text-text-800 flex items-center justify-center hover:text-text-600 transition-colors">
                   <X />
                 </span>
               </button>
