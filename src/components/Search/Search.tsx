@@ -221,7 +221,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
             ref={ref}
             id={inputId}
             type="text"
-            className={`w-full py-0 px-4 pl-10 ${showClearButton ? 'pr-10' : 'pr-4'} font-normal text-text-900 focus:outline-primary-950 border-2 rounded-full bg-primary border-primary-950 h-10 placeholder:text-text-600 ${
+            className={`w-full py-0 px-4 pl-10 ${showClearButton ? 'pr-10' : 'pr-4'} font-normal text-text-900 focus:outline-primary-950 border rounded-full bg-primary border-border-300 focus:border-2 focus:border-primary-950 h-10 placeholder:text-text-600 ${
               disabled
                 ? 'cursor-not-allowed opacity-40'
                 : readOnly
