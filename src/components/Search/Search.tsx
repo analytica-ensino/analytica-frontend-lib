@@ -193,6 +193,13 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       }
     };
 
+    // Handle clear button click - mantém foco no input
+    const handleClearClick = (e: React.MouseEvent) => {
+      e.preventDefault(); // Evita que o input perca foco
+      e.stopPropagation(); // Para propagação do evento
+      handleClear();
+    };
+
     // Handle input change
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange?.(e);
@@ -245,7 +252,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
               <button
                 type="button"
                 className="p-0 border-0 bg-transparent cursor-pointer"
-                onClick={handleClear}
+                onMouseDown={handleClearClick}
                 aria-label="Limpar busca"
               >
                 <span className="w-5 h-5 text-text-400 flex items-center justify-center hover:text-text-600 transition-colors">
