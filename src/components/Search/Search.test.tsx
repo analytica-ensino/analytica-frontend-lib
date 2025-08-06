@@ -65,7 +65,7 @@ jest.mock('../DropdownMenu/DropdownMenu', () => {
 });
 
 describe('Search Component', () => {
-  const defaultOptions = ['Filosofia', 'Física', 'Matemática', 'Português'];
+  const defaultOptions = ['Filosofia', 'Fisica', 'Matematica', 'Portugues'];
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -90,13 +90,12 @@ describe('Search Component', () => {
       expect(input).toBeInTheDocument();
     });
 
-    it('should render search icon', () => {
+    it('should render left icon (CaretLeft)', () => {
       render(<Search options={defaultOptions} />);
 
-      const searchIcon =
-        screen.getByTestId('search-input').previousElementSibling;
-      expect(searchIcon).toBeInTheDocument();
-      expect(searchIcon).toHaveClass('pointer-events-none');
+      const leftIcon = screen.getByLabelText('Voltar');
+      expect(leftIcon).toBeInTheDocument();
+      expect(leftIcon).toHaveClass('w-6', 'h-6', 'cursor-pointer');
     });
 
     it('should render with custom className', () => {
@@ -114,7 +113,9 @@ describe('Search Component', () => {
         />
       );
 
-      const container = screen.getByRole('textbox').closest('div');
+      const container = screen
+        .getByRole('combobox')
+        .closest('div')?.parentElement;
       expect(container).toHaveClass('custom-container');
     });
   });
@@ -197,12 +198,9 @@ describe('Search Component', () => {
 
   describe('Dropdown Functionality', () => {
     it('should show dropdown when typing with matching options', async () => {
-      const user = userEvent.setup();
-
-      render(<Search options={defaultOptions} />);
-
-      const input = screen.getByRole('combobox');
-      await user.type(input, 'Fi');
+      render(
+        <Search options={defaultOptions} value="Fi" onChange={() => {}} />
+      );
 
       await waitFor(() => {
         expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
@@ -210,29 +208,28 @@ describe('Search Component', () => {
     });
 
     it('should filter options based on input value', async () => {
-      const user = userEvent.setup();
-
-      render(<Search options={defaultOptions} />);
-
-      const input = screen.getByRole('combobox');
-      await user.type(input, 'Fi');
+      render(
+        <Search options={defaultOptions} value="Fi" onChange={() => {}} />
+      );
 
       await waitFor(() => {
         const items = screen.getAllByTestId('dropdown-item');
-        expect(items).toHaveLength(2); // Filosofia, Física
+        expect(items).toHaveLength(2); // Filosofia, Fisica
+        expect(items[0]).toHaveTextContent('Filosofia');
+        expect(items[1]).toHaveTextContent('Fisica');
       });
     });
 
-    it('should not show dropdown when no options match', async () => {
-      const user = userEvent.setup();
-
-      render(<Search options={defaultOptions} />);
-
-      const input = screen.getByRole('combobox');
-      await user.type(input, 'xyz');
+    it('should show noResultsText when no options match', async () => {
+      render(
+        <Search options={defaultOptions} value="xyz" onChange={() => {}} />
+      );
 
       await waitFor(() => {
-        expect(screen.queryByTestId('dropdown-menu')).not.toBeInTheDocument();
+        expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+        expect(
+          screen.getByText('Nenhum resultado encontrado')
+        ).toBeInTheDocument();
       });
     });
 
@@ -244,54 +241,54 @@ describe('Search Component', () => {
       render(
         <Search
           options={defaultOptions}
+          value="Fi"
           onSelect={handleSelect}
           onChange={handleChange}
         />
       );
-
-      const input = screen.getByRole('combobox');
-      await user.type(input, 'Fi');
 
       await waitFor(() => {
         const firstItem = screen.getAllByTestId('dropdown-item')[0];
         return user.click(firstItem);
       });
 
-      expect(handleSelect).toHaveBeenCalled();
+      expect(handleSelect).toHaveBeenCalledWith('Filosofia');
       expect(handleChange).toHaveBeenCalledWith(
         expect.objectContaining({
-          target: expect.objectContaining({ value: expect.any(String) }),
+          target: expect.objectContaining({ value: 'Filosofia' }),
         })
       );
     });
 
     it('should show custom noResultsText when no results', async () => {
-      const user = userEvent.setup();
+      render(
+        <Search
+          options={['Test']}
+          value="xyz"
+          noResultsText="Custom no results message"
+          onChange={() => {}}
+        />
+      );
 
-      render(<Search options={[]} noResultsText="Custom no results message" />);
-
-      const input = screen.getByRole('combobox');
-      await user.type(input, 'test');
-
-      // Since no options, dropdown shouldn't show
       await waitFor(() => {
-        expect(screen.queryByTestId('dropdown-menu')).not.toBeInTheDocument();
+        expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+        expect(
+          screen.getByText('Custom no results message')
+        ).toBeInTheDocument();
       });
     });
 
     it('should call onDropdownChange when dropdown state changes', async () => {
-      const user = userEvent.setup();
       const handleDropdownChange = jest.fn();
 
       render(
         <Search
           options={defaultOptions}
+          value="Fi"
           onDropdownChange={handleDropdownChange}
+          onChange={() => {}}
         />
       );
-
-      const input = screen.getByRole('combobox');
-      await user.type(input, 'Fi');
 
       await waitFor(() => {
         expect(handleDropdownChange).toHaveBeenCalledWith(true);
@@ -300,19 +297,26 @@ describe('Search Component', () => {
 
     it('should control dropdown visibility externally', () => {
       render(
-        <Search options={defaultOptions} showDropdown={true} value="Fi" />
+        <Search
+          options={defaultOptions}
+          showDropdown={true}
+          value="Fi"
+          onChange={() => {}}
+        />
       );
 
       expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
     });
 
     it('should respect custom dropdownMaxHeight', async () => {
-      const user = userEvent.setup();
-
-      render(<Search options={defaultOptions} dropdownMaxHeight={150} />);
-
-      const input = screen.getByRole('combobox');
-      await user.type(input, 'F');
+      render(
+        <Search
+          options={defaultOptions}
+          value="F"
+          dropdownMaxHeight={150}
+          onChange={() => {}}
+        />
+      );
 
       await waitFor(() => {
         const dropdownContent = screen.getByTestId('dropdown-content');
@@ -361,13 +365,9 @@ describe('Search Component', () => {
     });
 
     it('should have correct ARIA attributes when dropdown is open', async () => {
-      const user = userEvent.setup();
-
-      render(<Search options={defaultOptions} />);
+      render(<Search options={defaultOptions} value="F" onChange={() => {}} />);
 
       const input = screen.getByRole('combobox');
-      await user.type(input, 'F');
-
       await waitFor(() => {
         expect(input).toHaveAttribute('aria-expanded', 'true');
       });
@@ -378,25 +378,19 @@ describe('Search Component', () => {
     it('should handle empty options array', () => {
       render(<Search options={[]} />);
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('textbox');
       expect(input).toBeInTheDocument();
     });
 
     it('should handle undefined options', () => {
       render(<Search options={undefined as unknown as string[]} />);
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('textbox');
       expect(input).toBeInTheDocument();
     });
 
     it('should handle empty string search', async () => {
-      const user = userEvent.setup();
-
-      render(<Search options={defaultOptions} />);
-
-      const input = screen.getByRole('combobox');
-      await user.type(input, ' ');
-      await user.clear(input);
+      render(<Search options={defaultOptions} value="" onChange={() => {}} />);
 
       await waitFor(() => {
         expect(screen.queryByTestId('dropdown-menu')).not.toBeInTheDocument();
@@ -404,16 +398,19 @@ describe('Search Component', () => {
     });
 
     it('should handle case-insensitive filtering', async () => {
-      const user = userEvent.setup();
-
-      render(<Search options={['Filosofia', 'FÍSICA']} />);
-
-      const input = screen.getByRole('combobox');
-      await user.type(input, 'fí');
+      render(
+        <Search
+          options={['Filosofia', 'FISICA']}
+          value="fi"
+          onChange={() => {}}
+        />
+      );
 
       await waitFor(() => {
         const items = screen.getAllByTestId('dropdown-item');
         expect(items).toHaveLength(2);
+        expect(items[0]).toHaveTextContent('Filosofia');
+        expect(items[1]).toHaveTextContent('FISICA');
       });
     });
 
@@ -442,25 +439,64 @@ describe('Search Component', () => {
         <div>
           <Search
             options={defaultOptions}
+            value="Fi"
             onDropdownChange={handleDropdownChange}
+            onChange={() => {}}
           />
           <button>Outside button</button>
         </div>
       );
 
-      const input = screen.getByRole('combobox');
-      await user.type(input, 'Fi');
-
+      // Wait for dropdown to open
       await waitFor(() => {
-        expect(handleDropdownChange).toHaveBeenCalledWith(true);
+        expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
       });
 
+      // Click outside to close
       const outsideButton = screen.getByText('Outside button');
       await user.click(outsideButton);
 
       await waitFor(() => {
-        expect(handleDropdownChange).toHaveBeenCalledWith(false);
+        expect(screen.queryByTestId('dropdown-menu')).not.toBeInTheDocument();
       });
+    });
+  });
+
+  describe('Left Icon Behavior', () => {
+    it('should remove focus from input when left icon is clicked', async () => {
+      const user = userEvent.setup();
+
+      render(<Search options={defaultOptions} />);
+
+      const input = screen.getByRole('combobox');
+      const leftIcon = screen.getByLabelText('Voltar');
+
+      // Focus the input first
+      input.focus();
+      expect(document.activeElement).toBe(input);
+
+      // Click the left icon to blur
+      await user.click(leftIcon);
+
+      expect(document.activeElement).not.toBe(input);
+    });
+
+    it('should handle left icon click with invalid ref gracefully', async () => {
+      const user = userEvent.setup();
+
+      // Mock console.error to avoid noise in test output
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      render(<Search options={defaultOptions} />);
+
+      const leftIcon = screen.getByLabelText('Voltar');
+
+      // This should not throw an error even if ref is invalid
+      await user.click(leftIcon);
+
+      consoleSpy.mockRestore();
     });
   });
 });

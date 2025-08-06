@@ -1,5 +1,5 @@
 import { CaretLeft, X } from 'phosphor-react';
-import React, {
+import {
   InputHTMLAttributes,
   forwardRef,
   useState,
@@ -7,6 +7,8 @@ import React, {
   useMemo,
   useEffect,
   useRef,
+  ChangeEvent,
+  MouseEvent,
 } from 'react';
 import DropdownMenu, {
   DropdownMenuContent,
@@ -147,14 +149,14 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
         const event = {
           target: { value: option },
           currentTarget: { value: option },
-        } as React.ChangeEvent<HTMLInputElement>;
+        } as ChangeEvent<HTMLInputElement>;
         onChange(event);
       }
     };
 
     // Handle click outside dropdown
     useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
+      const handleClickOutside = (event: globalThis.MouseEvent) => {
         if (
           dropdownRef.current &&
           !dropdownRef.current.contains(event.target as Node)
@@ -185,13 +187,13 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
         const event = {
           target: { value: '' },
           currentTarget: { value: '' },
-        } as React.ChangeEvent<HTMLInputElement>;
+        } as ChangeEvent<HTMLInputElement>;
         onChange(event);
       }
     };
 
     // Handle clear button click - mantém foco no input
-    const handleClearClick = (e: React.MouseEvent) => {
+    const handleClearClick = (e: MouseEvent) => {
       e.preventDefault(); // Evita que o input perca foco
       e.stopPropagation(); // Para propagação do evento
       handleClear();
@@ -205,7 +207,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
     };
 
     // Handle input change
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
       onChange?.(e);
       onSearch?.(e.target.value);
     };

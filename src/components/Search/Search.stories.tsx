@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import type { Story } from '@ladle/react';
 import Search from './Search';
 
@@ -6,8 +6,8 @@ import Search from './Search';
  * Showcase principal: todas as variações possíveis do Search
  */
 export const AllSearchVariants: Story = () => {
-  const [searchValue, setSearchValue] = React.useState('');
-  const [searchValue2, setSearchValue2] = React.useState('Texto inicial');
+  const [searchValue, setSearchValue] = useState('');
+  const [searchValue2, setSearchValue2] = useState('Texto inicial');
 
   const materias = [
     'Filosofia',
@@ -101,8 +101,8 @@ export const AllSearchVariants: Story = () => {
 };
 
 export const SearchWithDropdown: Story = () => {
-  const [searchValue, setSearchValue] = React.useState('');
-  const [selectedItem, setSelectedItem] = React.useState('');
+  const [searchValue, setSearchValue] = useState('');
+  const [selectedItem, setSelectedItem] = useState('');
 
   const materias = [
     'Filosofia',
@@ -185,9 +185,9 @@ export const SearchWithDropdown: Story = () => {
 };
 
 export const SearchDebug: Story = () => {
-  const [searchValue, setSearchValue] = React.useState('');
-  const [selectedItem, setSelectedItem] = React.useState('');
-  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const [selectedItem, setSelectedItem] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const materias = [
     'Filosofia',
@@ -329,9 +329,9 @@ export const SearchDebug: Story = () => {
 };
 
 export const SearchAdvanced: Story = () => {
-  const [searchValue, setSearchValue] = React.useState('');
-  const [customOptions, setCustomOptions] = React.useState<string[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const [customOptions, setCustomOptions] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const allMaterias = [
     'Filosofia',
@@ -353,7 +353,7 @@ export const SearchAdvanced: Story = () => {
   ];
 
   // Simulate API call with debounce
-  React.useEffect(() => {
+  useEffect(() => {
     if (!searchValue) {
       setCustomOptions([]);
       return;

@@ -8,7 +8,8 @@ import Select, {
   getLabelAsNode,
   createSelectStore,
 } from './Select';
-import React, { ComponentProps } from 'react';
+import { ComponentProps } from 'react';
+import * as React from 'react';
 
 describe('Select component', () => {
   const setup = (props?: Partial<ComponentProps<typeof Select>>) => {
