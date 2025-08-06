@@ -30,8 +30,6 @@ type SearchProps = {
   onDropdownChange?: (open: boolean) => void;
   /** Maximum height of dropdown in pixels */
   dropdownMaxHeight?: number;
-  /** Whether to highlight matching text in options */
-  highlightMatch?: boolean;
   /** Text to show when no results are found */
   noResultsText?: string;
   /** Additional CSS classes to apply to the input */
@@ -90,24 +88,6 @@ const filterOptions = (options: string[], query: string): string[] => {
   );
 };
 
-/**
- * Highlight matching text in options
- */
-const highlightText = (text: string, query: string): React.ReactNode => {
-  if (!query) return text;
-
-  const parts = text.split(new RegExp(`(${query})`, 'gi'));
-  return parts.map((part, i) =>
-    part.toLowerCase() === query.toLowerCase() ? (
-      <strong key={i} className="font-bold text-primary-950">
-        {part}
-      </strong>
-    ) : (
-      part
-    )
-  );
-};
-
 const Search = forwardRef<HTMLInputElement, SearchProps>(
   (
     {
@@ -117,7 +97,6 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       showDropdown: controlledShowDropdown,
       onDropdownChange,
       dropdownMaxHeight = 240,
-      highlightMatch = true,
       noResultsText = 'Nenhum resultado',
       className = '',
       containerClassName = '',
@@ -292,9 +271,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
                     onClick={() => handleSelectOption(option)}
                     className="text-text-700 text-base leading-6 cursor-pointer"
                   >
-                    {highlightMatch
-                      ? highlightText(option, (value as string) || '')
-                      : option}
+                    {option}
                   </DropdownMenuItem>
                 ))
               ) : (

@@ -75,10 +75,10 @@ describe('Search Component', () => {
     it('should render search input with default props', () => {
       render(<Search options={defaultOptions} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       expect(input).toBeInTheDocument();
       expect(input).toHaveAttribute('placeholder', 'Buscar...');
-      expect(input).toHaveClass('border-[#124393]', 'bg-[#F4FAFF]');
+      expect(input).toHaveClass('border-primary-950', 'bg-primary');
     });
 
     it('should render with custom placeholder', () => {
@@ -102,7 +102,7 @@ describe('Search Component', () => {
     it('should render with custom className', () => {
       render(<Search options={defaultOptions} className="custom-class" />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       expect(input).toHaveClass('custom-class');
     });
 
@@ -126,7 +126,7 @@ describe('Search Component', () => {
 
       render(<Search options={defaultOptions} onChange={handleChange} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       await user.type(input, 'Fi');
 
       expect(handleChange).toHaveBeenCalledTimes(2);
@@ -139,7 +139,7 @@ describe('Search Component', () => {
 
       render(<Search options={defaultOptions} onSearch={handleSearch} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       await user.type(input, 'Fi');
 
       expect(handleSearch).toHaveBeenCalledWith('F');
@@ -201,7 +201,7 @@ describe('Search Component', () => {
 
       render(<Search options={defaultOptions} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       await user.type(input, 'Fi');
 
       await waitFor(() => {
@@ -214,7 +214,7 @@ describe('Search Component', () => {
 
       render(<Search options={defaultOptions} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       await user.type(input, 'Fi');
 
       await waitFor(() => {
@@ -228,7 +228,7 @@ describe('Search Component', () => {
 
       render(<Search options={defaultOptions} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       await user.type(input, 'xyz');
 
       await waitFor(() => {
@@ -249,7 +249,7 @@ describe('Search Component', () => {
         />
       );
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       await user.type(input, 'Fi');
 
       await waitFor(() => {
@@ -265,43 +265,12 @@ describe('Search Component', () => {
       );
     });
 
-    it('should highlight matching text when highlightMatch is true', async () => {
-      const user = userEvent.setup();
-
-      render(<Search options={defaultOptions} highlightMatch={true} />);
-
-      const input = screen.getByRole('textbox');
-      await user.type(input, 'Fi');
-
-      await waitFor(() => {
-        const strongElements = screen.getAllByText('Fi');
-        expect(strongElements.length).toBeGreaterThan(0);
-      });
-    });
-
-    it('should not highlight matching text when highlightMatch is false', async () => {
-      const user = userEvent.setup();
-
-      render(<Search options={defaultOptions} highlightMatch={false} />);
-
-      const input = screen.getByRole('textbox');
-      await user.type(input, 'Fi');
-
-      await waitFor(() => {
-        expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
-      });
-
-      const strongElements = screen.queryAllByText('Fi');
-      // Should still find the text but not in <strong> elements
-      expect(strongElements.length).toBe(0);
-    });
-
     it('should show custom noResultsText when no results', async () => {
       const user = userEvent.setup();
 
       render(<Search options={[]} noResultsText="Custom no results message" />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       await user.type(input, 'test');
 
       // Since no options, dropdown shouldn't show
@@ -321,7 +290,7 @@ describe('Search Component', () => {
         />
       );
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       await user.type(input, 'Fi');
 
       await waitFor(() => {
@@ -342,7 +311,7 @@ describe('Search Component', () => {
 
       render(<Search options={defaultOptions} dropdownMaxHeight={150} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       await user.type(input, 'F');
 
       await waitFor(() => {
@@ -356,7 +325,7 @@ describe('Search Component', () => {
     it('should be disabled when disabled prop is true', () => {
       render(<Search options={defaultOptions} disabled />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       expect(input).toBeDisabled();
       expect(input).toHaveClass('cursor-not-allowed', 'opacity-40');
     });
@@ -364,7 +333,7 @@ describe('Search Component', () => {
     it('should be read-only when readOnly prop is true', () => {
       render(<Search options={defaultOptions} readOnly />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       expect(input).toHaveAttribute('readonly');
       expect(input).toHaveClass('cursor-default');
     });
@@ -386,7 +355,7 @@ describe('Search Component', () => {
     it('should have correct ARIA attributes', () => {
       render(<Search options={defaultOptions} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       expect(input).toHaveAttribute('role', 'combobox');
       expect(input).toHaveAttribute('aria-haspopup', 'listbox');
     });
@@ -396,7 +365,7 @@ describe('Search Component', () => {
 
       render(<Search options={defaultOptions} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       await user.type(input, 'F');
 
       await waitFor(() => {
@@ -409,14 +378,14 @@ describe('Search Component', () => {
     it('should handle empty options array', () => {
       render(<Search options={[]} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       expect(input).toBeInTheDocument();
     });
 
     it('should handle undefined options', () => {
       render(<Search options={undefined as unknown as string[]} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       expect(input).toBeInTheDocument();
     });
 
@@ -425,7 +394,7 @@ describe('Search Component', () => {
 
       render(<Search options={defaultOptions} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       await user.type(input, ' ');
       await user.clear(input);
 
@@ -439,7 +408,7 @@ describe('Search Component', () => {
 
       render(<Search options={['Filosofia', 'FÍSICA']} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       await user.type(input, 'fí');
 
       await waitFor(() => {
@@ -451,7 +420,7 @@ describe('Search Component', () => {
     it('should generate unique ID when not provided', () => {
       render(<Search options={defaultOptions} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       expect(input).toHaveAttribute('id');
       expect(input.id).toMatch(/^search-/);
     });
@@ -459,7 +428,7 @@ describe('Search Component', () => {
     it('should use provided ID', () => {
       render(<Search options={defaultOptions} id="custom-search" />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       expect(input).toHaveAttribute('id', 'custom-search');
     });
   });
@@ -479,7 +448,7 @@ describe('Search Component', () => {
         </div>
       );
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       await user.type(input, 'Fi');
 
       await waitFor(() => {

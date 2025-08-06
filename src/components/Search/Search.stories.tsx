@@ -138,7 +138,6 @@ export const SearchWithDropdown: Story = () => {
             setSelectedItem(item);
             setSearchValue(item);
           }}
-          highlightMatch={true}
           noResultsText="Nenhuma matéria encontrada"
         />
         {selectedItem && (
@@ -151,14 +150,11 @@ export const SearchWithDropdown: Story = () => {
       </div>
 
       <div>
-        <h3 className="font-bold text-lg text-text-900 mb-4">
-          Busca com Highlight Desabilitado
-        </h3>
+        <h3 className="font-bold text-lg text-text-900 mb-4">Busca Simples</h3>
         <Search
           options={materias.slice(0, 5)}
-          placeholder="Buscar sem highlight"
+          placeholder="Buscar matérias"
           onSelect={(item) => alert(`Selecionado: ${item}`)}
-          highlightMatch={false}
         />
       </div>
 
@@ -280,7 +276,6 @@ export const SearchDebug: Story = () => {
           onSearch={(query) => {
             console.log('🔍 Pesquisando por:', query);
           }}
-          highlightMatch={true}
           noResultsText="Nenhuma matéria encontrada"
         />
       </div>
