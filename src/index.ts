@@ -36,6 +36,7 @@ import { CardAccordation } from './components/Accordation/Accordation';
 import { AlternativesList } from './components/Alternative/Alternative';
 import { AlertDialog } from './components/AlertDialog/AlertDialog';
 import { MultipleChoiceList } from './components/MultipleChoice/MultipleChoice';
+import IconRender from './components/IconRender/IconRender';
 
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
@@ -230,3 +231,4 @@ export { QuizResultPerformance };
 export { QuizListResultByMateria };
 
 export { MultipleChoiceList };
+export { IconRender };
