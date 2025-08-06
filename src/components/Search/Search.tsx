@@ -146,11 +146,22 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
 
       // Update input value if onChange is provided
       if (onChange) {
-        const event = {
-          target: { value: option },
-          currentTarget: { value: option },
-        } as ChangeEvent<HTMLInputElement>;
-        onChange(event);
+        if (ref && 'current' in ref && ref.current) {
+          ref.current.value = option;
+          const event = new Event('input', { bubbles: true });
+          Object.defineProperty(event, 'target', {
+            writable: false,
+            value: ref.current,
+          });
+          onChange(event as unknown as ChangeEvent<HTMLInputElement>);
+        } else {
+          // Fallback for cases where ref is not available
+          const event = {
+            target: { value: option },
+            currentTarget: { value: option },
+          } as ChangeEvent<HTMLInputElement>;
+          onChange(event);
+        }
       }
     };
 
@@ -184,11 +195,22 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       if (onClear) {
         onClear();
       } else if (onChange) {
-        const event = {
-          target: { value: '' },
-          currentTarget: { value: '' },
-        } as ChangeEvent<HTMLInputElement>;
-        onChange(event);
+        if (ref && 'current' in ref && ref.current) {
+          ref.current.value = '';
+          const event = new Event('input', { bubbles: true });
+          Object.defineProperty(event, 'target', {
+            writable: false,
+            value: ref.current,
+          });
+          onChange(event as unknown as ChangeEvent<HTMLInputElement>);
+        } else {
+          // Fallback for cases where ref is not available
+          const event = {
+            target: { value: '' },
+            currentTarget: { value: '' },
+          } as ChangeEvent<HTMLInputElement>;
+          onChange(event);
+        }
       }
     };
 

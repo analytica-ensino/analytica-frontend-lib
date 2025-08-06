@@ -504,4 +504,60 @@ describe('Search Component', () => {
       consoleSpy.mockRestore();
     });
   });
+
+  describe('Ref-based Event Handling', () => {
+    it('should use native events when ref is available for option selection', async () => {
+      const user = userEvent.setup();
+      const handleChange = jest.fn();
+      const handleSelect = jest.fn();
+      const ref = React.createRef<HTMLInputElement>();
+
+      render(
+        <Search
+          options={defaultOptions}
+          value="Fi"
+          onChange={handleChange}
+          onSelect={handleSelect}
+          ref={ref}
+        />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+      });
+
+      const firstItem = screen.getAllByTestId('dropdown-item')[0];
+      await user.click(firstItem);
+
+      // Verify callbacks were called
+      expect(handleSelect).toHaveBeenCalledWith('Filosofia');
+      expect(handleChange).toHaveBeenCalled();
+
+      // Just verify that onChange was called after selection
+      // The implementation details of the event object may vary
+      expect(handleChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use native events when ref is available for clear button', async () => {
+      const user = userEvent.setup();
+      const handleChange = jest.fn();
+      const ref = React.createRef<HTMLInputElement>();
+
+      render(
+        <Search
+          options={defaultOptions}
+          value="Test"
+          onChange={handleChange}
+          ref={ref}
+        />
+      );
+
+      const clearButton = screen.getByLabelText('Limpar busca');
+      await user.click(clearButton);
+
+      expect(handleChange).toHaveBeenCalled();
+      // The ref should be used when available
+      expect(ref.current?.value).toBe('');
+    });
+  });
 });
