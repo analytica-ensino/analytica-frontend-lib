@@ -1,4 +1,3 @@
-import React from 'react';
 import type { Story } from '@ladle/react';
 import Input from './Input';
 import {
@@ -10,7 +9,7 @@ import {
 } from 'phosphor-react';
 
 const sizes = ['small', 'medium', 'large', 'extra-large'] as const;
-const variants = ['outlined', 'underlined', 'rounded', 'search'] as const;
+const variants = ['outlined', 'underlined', 'rounded'] as const;
 
 /**
  * Showcase principal: todas as variações possíveis do Input
@@ -217,118 +216,3 @@ export const RoundedVariant: Story = () => (
     />
   </div>
 );
-
-export const SearchVariant: Story = () => {
-  const [searchValue, setSearchValue] = React.useState('');
-  const [searchValue2, setSearchValue2] = React.useState('Texto inicial');
-
-  return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h3 className="font-bold text-lg text-text-900 mb-2">
-          Estado padrão (vazio)
-        </h3>
-        <Input
-          variant="search"
-          placeholder="Buscar Matéria"
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-        />
-      </div>
-
-      <div>
-        <h3 className="font-bold text-lg text-text-900 mb-2">
-          Com texto (mostra botão limpar)
-        </h3>
-        <Input
-          variant="search"
-          placeholder="Buscar Matéria"
-          value={searchValue2}
-          onChange={(e) => setSearchValue2(e.target.value)}
-        />
-      </div>
-
-      <div>
-        <h3 className="font-bold text-lg text-text-900 mb-2">Estado de erro</h3>
-        <Input
-          variant="search"
-          placeholder="Buscar Matéria"
-          state="error"
-          value="Busca inválida"
-          onChange={() => {}}
-        />
-      </div>
-
-      <div>
-        <h3 className="font-bold text-lg text-text-900 mb-2">Desabilitado</h3>
-        <Input
-          variant="search"
-          placeholder="Buscar Matéria"
-          disabled
-          value="Busca desabilitada"
-        />
-      </div>
-
-      <div>
-        <h3 className="font-bold text-lg text-text-900 mb-2">
-          Somente leitura
-        </h3>
-        <Input
-          variant="search"
-          placeholder="Buscar Matéria"
-          readOnly
-          value="Valor fixo"
-        />
-      </div>
-
-      <div>
-        <h3 className="font-bold text-lg text-text-900 mb-2">
-          Diferentes tamanhos
-        </h3>
-        <div className="flex flex-col gap-4">
-          <Input
-            variant="search"
-            size="small"
-            placeholder="Small"
-            value="Small"
-            onChange={() => {}}
-          />
-          <Input
-            variant="search"
-            size="medium"
-            placeholder="Medium"
-            value="Medium"
-            onChange={() => {}}
-          />
-          <Input
-            variant="search"
-            size="large"
-            placeholder="Large"
-            value="Large"
-            onChange={() => {}}
-          />
-          <Input
-            variant="search"
-            size="extra-large"
-            placeholder="Extra Large"
-            value="Extra Large"
-            onChange={() => {}}
-          />
-        </div>
-      </div>
-
-      <div>
-        <h3 className="font-bold text-lg text-text-900 mb-2">
-          Com callback customizado onClear
-        </h3>
-        <Input
-          variant="search"
-          placeholder="Buscar com onClear customizado"
-          value="Clique no X"
-          onChange={() => {}}
-          onClear={() => alert('Limpeza customizada!')}
-        />
-      </div>
-    </div>
-  );
-};
