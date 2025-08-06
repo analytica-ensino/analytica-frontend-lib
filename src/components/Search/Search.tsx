@@ -1,4 +1,4 @@
-import { MagnifyingGlass, X } from 'phosphor-react';
+import { CaretLeft, X } from 'phosphor-react';
 import React, {
   InputHTMLAttributes,
   forwardRef,
@@ -200,6 +200,13 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       handleClear();
     };
 
+    // Handle left icon click - remove focus from input
+    const handleLeftIconClick = () => {
+      if (ref && 'current' in ref && ref.current) {
+        ref.current.blur();
+      }
+    };
+
     // Handle input change
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange?.(e);
@@ -216,11 +223,16 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       >
         {/* Search Input Container */}
         <div className="relative flex items-center">
-          {/* Left Icon - Search */}
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-            <span className="w-5 h-5 text-text-400 flex items-center justify-center">
-              <MagnifyingGlass />
-            </span>
+          {/* Left Icon - Back */}
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+            <button
+              type="button"
+              className="w-5 h-5 text-text-400 flex items-center justify-center bg-transparent border-0 p-0 cursor-pointer hover:text-text-600 transition-colors"
+              onClick={handleLeftIconClick}
+              aria-label="Voltar"
+            >
+              <CaretLeft />
+            </button>
           </div>
 
           {/* Search Input Field */}
