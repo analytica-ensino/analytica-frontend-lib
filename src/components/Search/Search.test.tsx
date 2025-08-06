@@ -465,8 +465,9 @@ describe('Search Component', () => {
   describe('Left Icon Behavior', () => {
     it('should remove focus from input when left icon is clicked', async () => {
       const user = userEvent.setup();
+      const ref = React.createRef<HTMLInputElement>();
 
-      render(<Search options={defaultOptions} />);
+      render(<Search options={defaultOptions} ref={ref} />);
 
       const input = screen.getByRole('combobox');
       const leftIcon = screen.getByLabelText('Voltar');
