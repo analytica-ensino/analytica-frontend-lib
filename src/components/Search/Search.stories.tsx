@@ -25,14 +25,7 @@ export const AllSearchVariants: Story = () => {
   ];
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 32,
-        maxWidth: 600,
-      }}
-    >
+    <div className="flex flex-col gap-8 max-w-[600px]">
       <h2 className="font-bold text-3xl text-text-900">Search</h2>
       <p className="text-text-700">
         Variações possíveis do componente <code>Search</code>:

@@ -40,7 +40,7 @@ type SearchProps = {
   containerClassName?: string;
   /** Callback when clear button is clicked */
   onClear?: () => void;
-} & Omit<InputHTMLAttributes<HTMLInputElement>, 'size'>;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'onSelect'>;
 
 /**
  * Search component for Analytica Ensino platforms
@@ -99,7 +99,7 @@ const highlightText = (text: string, query: string): React.ReactNode => {
   const parts = text.split(new RegExp(`(${query})`, 'gi'));
   return parts.map((part, i) =>
     part.toLowerCase() === query.toLowerCase() ? (
-      <strong key={i} className="font-bold text-[#124393]">
+      <strong key={i} className="font-bold text-primary-950">
         {part}
       </strong>
     ) : (
@@ -242,7 +242,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
             ref={ref}
             id={inputId}
             type="text"
-            className={`w-full py-0 px-4 pl-10 ${showClearButton ? 'pr-10' : 'pr-4'} font-normal text-text-900 focus:outline-primary-950 border-2 rounded-full bg-[#F4FAFF] border-[#124393] h-10 placeholder:text-text-600 ${
+            className={`w-full py-0 px-4 pl-10 ${showClearButton ? 'pr-10' : 'pr-4'} font-normal text-text-900 focus:outline-primary-950 border-2 rounded-full bg-primary border-primary-950 h-10 placeholder:text-text-600 ${
               disabled
                 ? 'cursor-not-allowed opacity-40'
                 : readOnly
@@ -290,7 +290,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
                   <DropdownMenuItem
                     key={option}
                     onClick={() => handleSelectOption(option)}
-                    className="text-[#525252] text-base leading-6 cursor-pointer"
+                    className="text-text-700 text-base leading-6 cursor-pointer"
                   >
                     {highlightMatch
                       ? highlightText(option, (value as string) || '')
@@ -298,7 +298,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
                   </DropdownMenuItem>
                 ))
               ) : (
-                <div className="px-3 py-3 text-[#525252] text-base">
+                <div className="px-3 py-3 text-text-700 text-base">
                   {noResultsText}
                 </div>
               )}
