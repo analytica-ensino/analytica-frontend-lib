@@ -138,7 +138,7 @@ export const SearchWithDropdown: Story = () => {
             setSelectedItem(item);
             setSearchValue(item);
           }}
-          noResultsText="Nenhuma matéria encontrada"
+          noResultsText="Nenhum resultado encontrado"
         />
         {selectedItem && (
           <div className="mt-4 p-3 bg-blue-50 rounded border-l-4 border-blue-400">
@@ -276,7 +276,7 @@ export const SearchDebug: Story = () => {
           onSearch={(query) => {
             console.log('🔍 Pesquisando por:', query);
           }}
-          noResultsText="Nenhuma matéria encontrada"
+          noResultsText="Nenhum resultado encontrado"
         />
       </div>
 
@@ -387,7 +387,7 @@ export const SearchAdvanced: Story = () => {
           onChange={(e) => setSearchValue(e.target.value)}
           onSelect={(item) => setSearchValue(item)}
           noResultsText={
-            isLoading ? 'Buscando...' : 'Nenhuma matéria encontrada'
+            isLoading ? 'Buscando...' : 'Nenhum resultado encontrado'
           }
           className={isLoading ? 'opacity-75' : ''}
         />

@@ -44,13 +44,12 @@ type SearchProps = {
  * Search component for Analytica Ensino platforms
  *
  * A specialized search input component with dropdown suggestions.
- * Features filtering, highlighting, keyboard navigation, and customizable options.
+ * Features filtering, keyboard navigation, and customizable options.
  *
  * @param options - Array of search options to display in dropdown
  * @param onSelect - Callback when an option is selected
  * @param onSearch - Callback when search query changes
  * @param placeholder - Placeholder text for the input
- * @param highlightMatch - Whether to highlight matching text in options
  * @param noResultsText - Text to show when no results are found
  * @param dropdownMaxHeight - Maximum height of dropdown in pixels
  * @param className - Additional CSS classes for the input
@@ -71,8 +70,7 @@ type SearchProps = {
  * <Search
  *   options={materias}
  *   onSearch={(query) => setFilteredMaterias(filterMaterias(query))}
- *   highlightMatch={true}
- *   noResultsText="Nenhuma matéria encontrada"
+ *   noResultsText="Nenhum resultado encontrado"
  * />
  * ```
  */
@@ -127,9 +125,8 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
 
     // Control dropdown visibility
     const showDropdown =
-      controlledShowDropdown !== undefined
-        ? controlledShowDropdown
-        : dropdownOpen && value && String(value).length > 0;
+      controlledShowDropdown ??
+      (dropdownOpen && value && String(value).length > 0);
 
     // Handle dropdown visibility changes
     useEffect(() => {
@@ -213,6 +210,13 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       onSearch?.(e.target.value);
     };
 
+    // Helper function for input state classes
+    const getInputStateClasses = (disabled?: boolean, readOnly?: boolean) => {
+      if (disabled) return 'cursor-not-allowed opacity-40';
+      if (readOnly) return 'cursor-default focus:outline-none !text-text-900';
+      return 'hover:border-border-400';
+    };
+
     // Determine if we should show clear button
     const showClearButton = value && !disabled && !readOnly;
 
@@ -240,13 +244,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
             ref={ref}
             id={inputId}
             type="text"
-            className={`w-full py-0 px-4 pl-10 ${showClearButton ? 'pr-10' : 'pr-4'} font-normal text-text-900 focus:outline-primary-950 border rounded-full bg-primary border-border-300 focus:border-2 focus:border-primary-950 h-10 placeholder:text-text-600 ${
-              disabled
-                ? 'cursor-not-allowed opacity-40'
-                : readOnly
-                  ? 'cursor-default focus:outline-none !text-text-900'
-                  : 'hover:border-border-400'
-            } ${className}`}
+            className={`w-full py-0 px-4 pl-10 ${showClearButton ? 'pr-10' : 'pr-4'} font-normal text-text-900 focus:outline-primary-950 border rounded-full bg-primary border-border-300 focus:border-2 focus:border-primary-950 h-10 placeholder:text-text-600 ${getInputStateClasses(disabled, readOnly)} ${className}`}
             value={value}
             onChange={handleInputChange}
             disabled={disabled}
