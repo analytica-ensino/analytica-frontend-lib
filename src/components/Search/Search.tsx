@@ -97,7 +97,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       showDropdown: controlledShowDropdown,
       onDropdownChange,
       dropdownMaxHeight = 240,
-      noResultsText = 'Nenhum resultado',
+      noResultsText = 'Nenhum resultado encontrado',
       className = '',
       containerClassName = '',
       disabled,
@@ -129,15 +129,15 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
     const showDropdown =
       controlledShowDropdown !== undefined
         ? controlledShowDropdown
-        : dropdownOpen && filteredOptions.length > 0;
+        : dropdownOpen && value && String(value).length > 0;
 
     // Handle dropdown visibility changes
     useEffect(() => {
-      const shouldShow = Boolean(value && filteredOptions.length > 0);
+      const shouldShow = Boolean(value && String(value).length > 0);
       setDropdownOpen(shouldShow);
       dropdownStore.setState({ open: shouldShow });
       onDropdownChange?.(shouldShow);
-    }, [value, filteredOptions.length, onDropdownChange, dropdownStore]);
+    }, [value, onDropdownChange, dropdownStore]);
 
     // Handle option selection
     const handleSelectOption = (option: string) => {
@@ -276,7 +276,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
         </div>
 
         {/* Search Dropdown */}
-        {filteredOptions.length > 0 && (
+        {showDropdown && (
           <DropdownMenu open={showDropdown} onOpenChange={setDropdownOpen}>
             <DropdownMenuContent
               className="w-full mt-1"
