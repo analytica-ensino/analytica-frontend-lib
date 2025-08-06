@@ -1,5 +1,11 @@
-import { WarningCircle, Eye, EyeSlash } from 'phosphor-react';
 import {
+  WarningCircle,
+  Eye,
+  EyeSlash,
+  MagnifyingGlass,
+  X,
+} from 'phosphor-react';
+import React, {
   InputHTMLAttributes,
   ReactNode,
   forwardRef,
@@ -39,6 +45,7 @@ const VARIANT_CLASSES = {
   underlined:
     'border-0 border-b rounded-none bg-transparent focus:outline-none focus:border-primary-950 focus:border-b-2',
   rounded: 'border rounded-full',
+  search: 'border-2 rounded-full bg-[#F4FAFF] border-[#124393] h-10',
 } as const;
 
 /**
@@ -54,7 +61,7 @@ type InputProps = {
   /** Size of the input */
   size?: 'small' | 'medium' | 'large' | 'extra-large';
   /** Visual variant of the input */
-  variant?: 'outlined' | 'underlined' | 'rounded';
+  variant?: 'outlined' | 'underlined' | 'rounded' | 'search';
   /** Current state of the input */
   state?: 'default' | 'error' | 'disabled' | 'read-only';
   /** Icon to display on the left side of the input */
@@ -65,6 +72,8 @@ type InputProps = {
   className?: string;
   /** Additional CSS classes to apply to the container */
   containerClassName?: string;
+  /** Callback when clear button is clicked (for search variant) */
+  onClear?: () => void;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, 'size'>;
 
 /**
@@ -163,6 +172,20 @@ const getCombinedClasses = (
   const stateClasses = STATE_CLASSES[actualState];
   const variantClasses = VARIANT_CLASSES[variant];
 
+  // Special case: search variant
+  if (variant === 'search') {
+    if (actualState === 'error') {
+      return 'border-2 rounded-full bg-[#F4FAFF] border-indicator-error h-10 placeholder:text-text-600';
+    }
+    if (actualState === 'disabled') {
+      return 'border-2 rounded-full bg-[#F4FAFF] border-[#124393] h-10 cursor-not-allowed opacity-40 placeholder:text-text-600';
+    }
+    if (actualState === 'read-only') {
+      return 'border-2 rounded-full bg-[#F4FAFF] border-[#124393] h-10 cursor-default focus:outline-none !text-text-900';
+    }
+    return variantClasses;
+  }
+
   // Special case: error state with underlined variant
   if (actualState === 'error' && variant === 'underlined') {
     return 'border-0 border-b-2 border-indicator-error rounded-none bg-transparent focus:outline-none focus:border-primary-950 placeholder:text-text-600';
@@ -193,6 +216,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       readOnly,
       id,
       type = 'text',
+      onClear,
+      value,
+      onChange,
       ...props
     },
     ref
@@ -211,8 +237,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     );
     const iconSize = getIconSize(size);
 
-    const baseClasses = `bg-background w-full py-2 ${
-      actualState === 'read-only' ? 'px-0' : 'px-3'
+    const baseClasses = `${
+      variant === 'search' ? '' : 'bg-background'
+    } w-full ${variant === 'search' ? 'py-0' : 'py-2'} ${
+      actualState === 'read-only'
+        ? 'px-0'
+        : variant === 'search'
+          ? 'px-4'
+          : 'px-3'
     } font-normal text-text-900 focus:outline-primary-950`;
 
     // Generate unique ID if not provided
@@ -222,18 +254,59 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     // Handle password visibility toggle
     const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
+    // Handle clear for search variant
+    const handleClear = () => {
+      if (onClear) {
+        onClear();
+      } else if (onChange) {
+        const event = {
+          target: { value: '' },
+          currentTarget: { value: '' },
+        } as React.ChangeEvent<HTMLInputElement>;
+        onChange(event);
+      }
+    };
+
+    // Determine if we should show clear button for search variant
+    const showClearButton =
+      variant === 'search' && value && !disabled && !readOnly;
+
+    // Set default icons for search variant
+    const actualIconLeft =
+      variant === 'search' ? <MagnifyingGlass /> : iconLeft;
+    const searchIconRight = showClearButton ? (
+      <button
+        type="button"
+        className="p-0 border-0 bg-transparent cursor-pointer"
+        onClick={handleClear}
+        aria-label="Limpar busca"
+      >
+        <X />
+      </button>
+    ) : null;
+
     // Get password toggle configuration
     const { shouldShowPasswordToggle, actualIconRight, ariaLabel } =
-      getPasswordToggleConfig(
-        type,
-        disabled,
-        readOnly,
-        showPassword,
-        iconRight
-      );
+      variant === 'search'
+        ? {
+            shouldShowPasswordToggle: false,
+            actualIconRight: searchIconRight,
+            ariaLabel: undefined,
+          }
+        : getPasswordToggleConfig(
+            type,
+            disabled,
+            readOnly,
+            showPassword,
+            iconRight
+          );
 
     return (
-      <div className={`${containerClassName}`}>
+      <div
+        className={`${
+          variant === 'search' ? 'w-full max-w-lg md:w-[488px]' : ''
+        } ${containerClassName}`}
+      >
         {/* Label */}
         {label && (
           <label
@@ -245,14 +318,16 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
 
         {/* Input Container */}
-        <div className="relative">
+        <div
+          className={`relative ${variant === 'search' ? 'flex items-center' : ''}`}
+        >
           {/* Left Icon */}
-          {iconLeft && (
+          {actualIconLeft && (
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
               <span
                 className={`${iconSize} text-text-400 flex items-center justify-center`}
               >
-                {iconLeft}
+                {actualIconLeft}
               </span>
             </div>
           )}
@@ -263,8 +338,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             type={actualType}
             className={`${baseClasses} ${sizeClasses} ${combinedClasses} ${
-              iconLeft ? 'pl-10' : ''
-            } ${actualIconRight ? 'pr-10' : ''} ${className}`}
+              actualIconLeft ? (variant === 'search' ? 'pl-10' : 'pl-10') : ''
+            } ${actualIconRight ? (variant === 'search' ? 'pr-10' : 'pr-10') : ''} ${className}`}
+            value={value}
+            onChange={onChange}
             disabled={disabled}
             readOnly={readOnly}
             aria-invalid={actualState === 'error' ? 'true' : undefined}
@@ -273,7 +350,15 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
           {/* Right Icon */}
           {actualIconRight &&
-            (shouldShowPasswordToggle ? (
+            (variant === 'search' && showClearButton ? (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <span
+                  className={`${iconSize} text-text-400 flex items-center justify-center hover:text-text-600 transition-colors`}
+                >
+                  {actualIconRight}
+                </span>
+              </div>
+            ) : shouldShowPasswordToggle ? (
               <button
                 type="button"
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer border-0 bg-transparent p-0"
@@ -298,14 +383,18 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         </div>
 
         {/* Helper Text or Error Message */}
-        <div className="mt-1.5 gap-1.5">
-          {helperText && <p className="text-sm text-text-500">{helperText}</p>}
-          {errorMessage && (
-            <p className="flex gap-1 items-center text-sm text-indicator-error">
-              <WarningCircle size={16} /> {errorMessage}
-            </p>
-          )}
-        </div>
+        {(helperText || errorMessage) && variant !== 'search' && (
+          <div className="mt-1.5 gap-1.5">
+            {helperText && (
+              <p className="text-sm text-text-500">{helperText}</p>
+            )}
+            {errorMessage && (
+              <p className="flex gap-1 items-center text-sm text-indicator-error">
+                <WarningCircle size={16} /> {errorMessage}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     );
   }
