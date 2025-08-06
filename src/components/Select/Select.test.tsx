@@ -8,7 +8,7 @@ import Select, {
   getLabelAsNode,
   createSelectStore,
 } from './Select';
-import React, { ComponentProps } from 'react';
+import { ComponentProps } from 'react';
 
 describe('Select component', () => {
   const setup = (props?: Partial<ComponentProps<typeof Select>>) => {
@@ -702,9 +702,7 @@ describe('Select label finding behavior', () => {
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <>
-            <SelectItem value="fragment-option">Fragment Option</SelectItem>
-          </>
+          <SelectItem value="fragment-option">Fragment Option</SelectItem>
         </SelectContent>
       </Select>
     );
@@ -733,13 +731,9 @@ describe('useSelectStore', () => {
     const originalUseSelectStore =
       jest.requireActual('./Select').useSelectStore;
 
-    jest.spyOn(React, 'useRef').mockReturnValue({ current: null });
-
     expect(() => {
       renderHook(() => originalUseSelectStore(undefined));
     }).toThrow('Component must be used within a Select (store is missing)');
-
-    jest.restoreAllMocks();
   });
 });
 
