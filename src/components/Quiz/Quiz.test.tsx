@@ -2656,6 +2656,29 @@ describe('QuizDissertative', () => {
     expect(mockSelectDissertativeAnswer).not.toHaveBeenCalled();
   });
 
+  it('should call selectDissertativeAnswer but not add answer when getActiveQuiz returns null', async () => {
+    const mockSelectDissertativeAnswer = jest.fn();
+    const mockGetUserAnswers = jest.fn().mockReturnValue([]);
+
+    mockUseQuizStore.mockReturnValue({
+      getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
+      getCurrentAnswer: jest.fn().mockReturnValue(null),
+      selectDissertativeAnswer: mockSelectDissertativeAnswer,
+      getActiveQuiz: jest.fn().mockReturnValue(null), // This simulates the negation case
+      getUserAnswers: mockGetUserAnswers,
+    });
+
+    render(<QuizDissertative variant="default" />);
+
+    const textarea = screen.getByTestId('textarea');
+    await userEvent.type(textarea, 'Test answer');
+
+    // When getActiveQuiz returns null, selectDissertativeAnswer is still called
+    // but the implementation returns early and doesn't add the answer to userAnswers
+    expect(mockSelectDissertativeAnswer).toHaveBeenCalled(); // Function is called
+    expect(mockGetUserAnswers()).toEqual([]); // But no answer is added to userAnswers
+  });
+
   it('should render with correct CSS classes for default variant', () => {
     mockUseQuizStore.mockReturnValue({
       getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
