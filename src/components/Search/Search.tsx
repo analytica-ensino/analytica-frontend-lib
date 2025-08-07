@@ -79,9 +79,10 @@ type SearchProps = {
 
 /**
  * Filter options based on search query
+ * Returns all options when query is empty to show dropdown on focus
  */
 const filterOptions = (options: string[], query: string): string[] => {
-  if (!query || query.length < 1) return [];
+  if (!query || query.length < 1) return options;
 
   return options.filter((option) =>
     option.toLowerCase().includes(query.toLowerCase())
@@ -156,18 +157,21 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       return filtered;
     }, [options, value]);
 
-    // Control dropdown visibility
+    // Control dropdown visibility - show when there are filtered options OR when searching with no results
     const showDropdown =
       controlledShowDropdown ??
-      (dropdownOpen && value && String(value).length > 0);
+      (dropdownOpen &&
+        (filteredOptions.length > 0 || (value && String(value).length > 0)));
 
     // Handle dropdown visibility changes
     useEffect(() => {
-      const shouldShow = Boolean(value && String(value).length > 0);
+      const shouldShow = Boolean(
+        filteredOptions.length > 0 || (value && String(value).length > 0)
+      );
       setDropdownOpen(shouldShow);
       dropdownStore.setState({ open: shouldShow });
       onDropdownChange?.(shouldShow);
-    }, [value, onDropdownChange, dropdownStore]);
+    }, [filteredOptions, value, onDropdownChange, dropdownStore]);
 
     // Handle option selection
     const handleSelectOption = (option: string) => {

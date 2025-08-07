@@ -393,11 +393,17 @@ describe('Search Component', () => {
       expect(input).toBeInTheDocument();
     });
 
-    it('should handle empty string search', async () => {
+    it('should show all options when search is empty', async () => {
       render(<Search options={defaultOptions} value="" onChange={() => {}} />);
 
       await waitFor(() => {
-        expect(screen.queryByTestId('dropdown-menu')).not.toBeInTheDocument();
+        expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+        const items = screen.getAllByTestId('dropdown-item');
+        expect(items).toHaveLength(4); // All options should be shown
+        expect(items[0]).toHaveTextContent('Filosofia');
+        expect(items[1]).toHaveTextContent('Fisica');
+        expect(items[2]).toHaveTextContent('Matematica');
+        expect(items[3]).toHaveTextContent('Portugues');
       });
     });
 
