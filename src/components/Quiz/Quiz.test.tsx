@@ -20,6 +20,7 @@ import {
   QUESTION_DIFFICULTY,
   QUESTION_STATUS,
   QUESTION_TYPE,
+  ANSWER_STATUS,
 } from './useQuizStore';
 import { ReactNode } from 'react';
 import userEvent from '@testing-library/user-event';
@@ -512,6 +513,7 @@ describe('Quiz Component', () => {
         type: 'bySimulated',
       }),
       getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
+      getAnswerStatus: jest.fn().mockReturnValue(null),
     });
 
     // Mock useQuizStore.getState to return the same mock data
@@ -709,7 +711,7 @@ describe('Quiz Component', () => {
       render(<QuizContent />);
 
       expect(
-        screen.getByText('Componente de dissertativa')
+        screen.getByPlaceholderText('Escreva sua resposta')
       ).toBeInTheDocument();
     });
 
@@ -773,7 +775,7 @@ describe('Quiz Component', () => {
     it('should highlight selected alternative', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
-        getCurrentAnswer: jest.fn().mockReturnValue('opt2'),
+        getCurrentAnswer: jest.fn().mockReturnValue({ optionId: 'opt2' }),
       });
 
       render(<QuizAlternative />);
@@ -785,7 +787,7 @@ describe('Quiz Component', () => {
     it('should render result variant with correct status determination', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
-        getCurrentAnswer: jest.fn().mockReturnValue('opt2'), // User selected opt2
+        getCurrentAnswer: jest.fn().mockReturnValue({ optionId: 'opt2' }), // User selected opt2
         getCurrentQuestion: jest.fn().mockReturnValue({
           ...mockQuestion1,
           correctOptionId: 'opt1', // Correct answer is opt1
@@ -1672,7 +1674,10 @@ describe('Quiz Component', () => {
           ...mockQuestion1,
           correctOptionId: 'opt1',
         }),
-        getCurrentAnswer: jest.fn().mockReturnValue('opt1'), // User selected correct answer
+        getCurrentAnswer: jest.fn().mockReturnValue({
+          optionId: 'opt1',
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+        }), // User selected correct answer
       });
 
       render(<QuizHeaderResult />);
@@ -1691,7 +1696,10 @@ describe('Quiz Component', () => {
           ...mockQuestion1,
           correctOptionId: 'opt1',
         }),
-        getCurrentAnswer: jest.fn().mockReturnValue('opt2'), // User selected wrong answer
+        getCurrentAnswer: jest.fn().mockReturnValue({
+          optionId: 'opt2',
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+        }), // User selected wrong answer
       });
 
       render(<QuizHeaderResult />);
@@ -1726,7 +1734,10 @@ describe('Quiz Component', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
         getCurrentQuestion: jest.fn().mockReturnValue(null),
-        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        getCurrentAnswer: jest.fn().mockReturnValue({
+          optionId: 'opt1',
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+        }),
       });
 
       render(<QuizHeaderResult />);
@@ -1758,6 +1769,7 @@ describe('Quiz Component', () => {
             userId: 'user1',
             answer: null,
             optionId: 'opt1',
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           },
           {
             questionId: 'q1',
@@ -1765,8 +1777,17 @@ describe('Quiz Component', () => {
             userId: 'user1',
             answer: null,
             optionId: 'opt2',
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           },
         ]),
+        getCurrentAnswer: jest.fn().mockReturnValue({
+          questionId: 'q1',
+          activityId: 'act1',
+          userId: 'user1',
+          answer: null,
+          optionId: 'opt1',
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+        }),
       });
 
       render(<QuizHeaderResult />);

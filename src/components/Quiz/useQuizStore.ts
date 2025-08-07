@@ -18,6 +18,12 @@ export enum QUESTION_STATUS {
   REPROVADO = 'REPROVADO',
 }
 
+export enum ANSWER_STATUS {
+  RESPOSTA_CORRETA = 'RESPOSTA_CORRETA',
+  RESPOSTA_INCORRETA = 'RESPOSTA_INCORRETA',
+  PENDENTE_AVALIACAO = 'PENDENTE_AVALIACAO',
+}
+
 export interface Question {
   id: string;
   questionText: string;
@@ -68,6 +74,8 @@ interface UserAnswerItem {
   userId: string;
   answer: string | null;
   optionId: string | null;
+  questionType: QUESTION_TYPE;
+  answerStatus: ANSWER_STATUS;
 }
 
 interface QuizState {
@@ -103,6 +111,7 @@ interface QuizState {
   // Quiz Actions
   selectAnswer: (questionId: string, answerId: string) => void;
   selectMultipleAnswer: (questionId: string, answerIds: string[]) => void;
+  selectDissertativeAnswer: (questionId: string, answer: string) => void;
   skipQuestion: () => void;
   addUserAnswer: (questionId: string, answerId?: string) => void;
   startQuiz: () => void;
@@ -123,7 +132,7 @@ interface QuizState {
   getProgress: () => number;
   isQuestionAnswered: (questionId: string) => boolean;
   isQuestionSkipped: (questionId: string) => boolean;
-  getCurrentAnswer: () => string | undefined;
+  getCurrentAnswer: () => UserAnswerItem | undefined;
   getAllCurrentAnswer: () => UserAnswerItem[] | undefined;
   getQuizTitle: () => string;
   formatTime: (seconds: number) => string;
@@ -140,6 +149,10 @@ interface QuizState {
     questionId: string
   ) => 'answered' | 'unanswered' | 'skipped';
   getUserAnswersForActivity: () => UserAnswerItem[];
+
+  // Answer status management
+  setAnswerStatus: (questionId: string, status: ANSWER_STATUS) => void;
+  getAnswerStatus: (questionId: string) => ANSWER_STATUS | null;
 }
 
 export const useQuizStore = create<QuizState>()(
@@ -239,6 +252,11 @@ export const useQuizStore = create<QuizState>()(
             return;
           }
 
+          const question = activeQuiz.quiz.questions.find(
+            (q) => q.id === questionId
+          );
+          if (!question) return;
+
           const existingAnswerIndex = userAnswers.findIndex(
             (answer) => answer.questionId === questionId
           );
@@ -247,8 +265,12 @@ export const useQuizStore = create<QuizState>()(
             questionId,
             activityId,
             userId,
-            answer: null,
-            optionId: answerId,
+            answer:
+              question.type === QUESTION_TYPE.DISSERTATIVA ? answerId : null,
+            optionId:
+              question.type === QUESTION_TYPE.DISSERTATIVA ? null : answerId,
+            questionType: question.type,
+            answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
           };
 
           let updatedUserAnswers;
@@ -278,6 +300,11 @@ export const useQuizStore = create<QuizState>()(
             return;
           }
 
+          const question = activeQuiz.quiz.questions.find(
+            (q) => q.id === questionId
+          );
+          if (!question) return;
+
           // Remove all existing answers for this questionId
           const filteredUserAnswers = userAnswers.filter(
             (answer) => answer.questionId !== questionId
@@ -289,8 +316,12 @@ export const useQuizStore = create<QuizState>()(
               questionId,
               activityId,
               userId,
-              answer: null,
-              optionId: answerId,
+              answer:
+                question.type === QUESTION_TYPE.DISSERTATIVA ? answerId : null,
+              optionId:
+                question.type === QUESTION_TYPE.DISSERTATIVA ? null : answerId,
+              questionType: question.type,
+              answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
             })
           );
 
@@ -299,6 +330,59 @@ export const useQuizStore = create<QuizState>()(
             ...filteredUserAnswers,
             ...newUserAnswers,
           ];
+
+          set({
+            userAnswers: updatedUserAnswers,
+          });
+        },
+
+        selectDissertativeAnswer: (questionId, answer) => {
+          const { getActiveQuiz, userAnswers } = get();
+          const activeQuiz = getActiveQuiz();
+
+          if (!activeQuiz) return;
+
+          const activityId = activeQuiz.quiz.id;
+          const userId = get().getUserId();
+
+          if (!userId || userId === '') {
+            console.warn(
+              'selectDissertativeAnswer called before userId is set'
+            );
+            return;
+          }
+
+          const question = activeQuiz.quiz.questions.find(
+            (q) => q.id === questionId
+          );
+          if (!question || question.type !== QUESTION_TYPE.DISSERTATIVA) {
+            console.warn(
+              'selectDissertativeAnswer called for non-dissertative question'
+            );
+            return;
+          }
+
+          const existingAnswerIndex = userAnswers.findIndex(
+            (answerItem) => answerItem.questionId === questionId
+          );
+
+          const newUserAnswer: UserAnswerItem = {
+            questionId,
+            activityId,
+            userId,
+            answer: answer,
+            optionId: null,
+            questionType: QUESTION_TYPE.DISSERTATIVA,
+            answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+          };
+
+          let updatedUserAnswers;
+          if (existingAnswerIndex !== -1) {
+            updatedUserAnswers = [...userAnswers];
+            updatedUserAnswers[existingAnswerIndex] = newUserAnswer;
+          } else {
+            updatedUserAnswers = [...userAnswers, newUserAnswer];
+          }
 
           set({
             userAnswers: updatedUserAnswers,
@@ -331,6 +415,8 @@ export const useQuizStore = create<QuizState>()(
               userId,
               answer: null,
               optionId: null,
+              questionType: currentQuestion.type,
+              answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
             };
 
             let updatedUserAnswers;
@@ -364,6 +450,11 @@ export const useQuizStore = create<QuizState>()(
             return;
           }
 
+          const question = activeQuiz.quiz.questions.find(
+            (q) => q.id === questionId
+          );
+          if (!question) return;
+
           const existingAnswerIndex = userAnswers.findIndex(
             (answer) => answer.questionId === questionId
           );
@@ -372,8 +463,16 @@ export const useQuizStore = create<QuizState>()(
             questionId,
             activityId,
             userId,
-            answer: null,
-            optionId: answerId || null,
+            answer:
+              question.type === QUESTION_TYPE.DISSERTATIVA
+                ? answerId || null
+                : null,
+            optionId:
+              question.type === QUESTION_TYPE.DISSERTATIVA
+                ? null
+                : answerId || null,
+            questionType: question.type,
+            answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
           };
 
           if (existingAnswerIndex !== -1) {
@@ -436,8 +535,9 @@ export const useQuizStore = create<QuizState>()(
 
         getAnsweredQuestions: () => {
           const { userAnswers } = get();
-          return userAnswers.filter((answer) => answer.optionId !== null)
-            .length;
+          return userAnswers.filter(
+            (answer) => answer.optionId !== null || answer.answer !== null
+          ).length;
         },
 
         getUnansweredQuestions: () => {
@@ -451,8 +551,13 @@ export const useQuizStore = create<QuizState>()(
             const userAnswer = userAnswers.find(
               (answer) => answer.questionId === question.id
             );
-            const isAnswered = userAnswer && userAnswer.optionId !== null;
-            const isSkipped = userAnswer && userAnswer.optionId === null;
+            const isAnswered =
+              userAnswer &&
+              (userAnswer.optionId !== null || userAnswer.answer !== null);
+            const isSkipped =
+              userAnswer &&
+              userAnswer.optionId === null &&
+              userAnswer.answer === null;
 
             if (!isAnswered && !isSkipped) {
               unansweredQuestions.push(index + 1); // index + 1 para mostrar número da questão
@@ -463,8 +568,9 @@ export const useQuizStore = create<QuizState>()(
 
         getSkippedQuestions: () => {
           const { userAnswers } = get();
-          return userAnswers.filter((answer) => answer.optionId === null)
-            .length;
+          return userAnswers.filter(
+            (answer) => answer.optionId === null && answer.answer === null
+          ).length;
         },
 
         getProgress: () => {
@@ -480,7 +586,9 @@ export const useQuizStore = create<QuizState>()(
           const userAnswer = userAnswers.find(
             (answer) => answer.questionId === questionId
           );
-          return userAnswer ? userAnswer.optionId !== null : false;
+          return userAnswer
+            ? userAnswer.optionId !== null || userAnswer.answer !== null
+            : false;
         },
 
         isQuestionSkipped: (questionId) => {
@@ -488,7 +596,9 @@ export const useQuizStore = create<QuizState>()(
           const userAnswer = userAnswers.find(
             (answer) => answer.questionId === questionId
           );
-          return userAnswer ? userAnswer.optionId === null : false;
+          return userAnswer
+            ? userAnswer.optionId === null && userAnswer.answer === null
+            : false;
         },
 
         getCurrentAnswer: () => {
@@ -500,7 +610,8 @@ export const useQuizStore = create<QuizState>()(
           const userAnswer = userAnswers.find(
             (answer) => answer.questionId === currentQuestion.id
           );
-          return userAnswer?.optionId;
+
+          return userAnswer;
         },
 
         getAllCurrentAnswer: () => {
@@ -545,8 +656,13 @@ export const useQuizStore = create<QuizState>()(
             const userAnswer = userAnswers.find(
               (answer) => answer.questionId === question.id
             );
-            const hasAnswer = userAnswer && userAnswer.optionId !== null;
-            const isSkipped = userAnswer && userAnswer.optionId === null;
+            const hasAnswer =
+              userAnswer &&
+              (userAnswer.optionId !== null || userAnswer.answer !== null);
+            const isSkipped =
+              userAnswer &&
+              userAnswer.optionId === null &&
+              userAnswer.answer === null;
 
             // Se não há resposta do usuário OU se a questão foi pulada
             if (!hasAnswer || isSkipped) {
@@ -591,7 +707,9 @@ export const useQuizStore = create<QuizState>()(
           const answer = userAnswers.find(
             (answer) => answer.questionId === questionId
           );
-          return answer ? answer.optionId !== null : false;
+          return answer
+            ? answer.optionId !== null || answer.answer !== null
+            : false;
         },
         getQuestionStatusFromUserAnswers: (questionId) => {
           const { userAnswers } = get();
@@ -624,6 +742,30 @@ export const useQuizStore = create<QuizState>()(
           }
 
           set({ currentQuestionIndex: questionIndex });
+        },
+
+        setAnswerStatus: (questionId, status) => {
+          const { userAnswers } = get();
+          const existingAnswerIndex = userAnswers.findIndex(
+            (answer) => answer.questionId === questionId
+          );
+
+          if (existingAnswerIndex !== -1) {
+            const updatedUserAnswers = [...userAnswers];
+            updatedUserAnswers[existingAnswerIndex] = {
+              ...updatedUserAnswers[existingAnswerIndex],
+              answerStatus: status,
+            };
+            set({ userAnswers: updatedUserAnswers });
+          }
+        },
+
+        getAnswerStatus: (questionId) => {
+          const { userAnswers } = get();
+          const userAnswer = userAnswers.find(
+            (answer) => answer.questionId === questionId
+          );
+          return userAnswer ? userAnswer.answerStatus : null;
         },
       };
     },

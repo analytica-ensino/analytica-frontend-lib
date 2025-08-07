@@ -11,11 +11,13 @@ import {
   QuizResultTitle,
   QuizResultPerformance,
   QuizListResultByMateria,
+  QuizDissertative,
 } from './Quiz';
 import {
   QUESTION_DIFFICULTY,
   QUESTION_STATUS,
   QUESTION_TYPE,
+  ANSWER_STATUS,
   Question,
   useQuizStore,
 } from './useQuizStore';
@@ -306,6 +308,59 @@ export const AllQuizShowcase: Story = () => {
             { id: 'opt4', option: '360°', isCorrect: false },
           ],
         },
+        {
+          id: 'q11',
+          questionText:
+            'Quais das seguintes grandezas são escalares? (Selecione todas as opções corretas)',
+          description: 'Questão de múltipla escolha sobre grandezas escalares',
+          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'grandezas',
+              subtopicId: 'escalares',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Tempo', isCorrect: true },
+            { id: 'opt2', option: 'Massa', isCorrect: true },
+            { id: 'opt3', option: 'Temperatura', isCorrect: true },
+            { id: 'opt4', option: 'Velocidade', isCorrect: false },
+            { id: 'opt5', option: 'Aceleração', isCorrect: false },
+            { id: 'opt6', option: 'Força', isCorrect: false },
+          ],
+        },
+        {
+          id: 'q12',
+          questionText:
+            'Elabore uma redação dissertativa-argumentativa sobre o tema "A importância da preservação ambiental para o futuro das próximas gerações". Sua redação deve ter entre 20 e 25 linhas, apresentar argumentos bem fundamentados, respeitar a estrutura dissertativa e demonstrar domínio da norma culta da língua escrita.',
+          description: 'Questão dissertativa sobre preservação ambiental',
+          type: 'DISSERTATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'linguagens',
+              subjectId: 'portugues',
+              topicId: 'redacao',
+              subtopicId: 'dissertativa',
+              contentId: 'linguagens',
+            },
+          ],
+          options: [],
+        },
       ],
     };
 
@@ -322,7 +377,139 @@ export const AllQuizShowcase: Story = () => {
           Quiz Component Library
         </h1>
         <p className="text-text-600 text-lg">
-          Componente de QUIZ com navegação integrada
+          Componente de QUIZ com navegação integrada - Inclui questões de
+          Alternativa, Múltipla Escolha e Dissertativa
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2 h-full pb-15">
+        <Quiz>
+          <QuizTitle />
+          <QuizHeader />
+          <QuizContent className="pb-[150px]" />
+          <QuizFooter
+            className="bottom-15"
+            onGoToSimulated={() => {
+              console.log('Navegando para simulados...');
+            }}
+            onDetailResult={() => {
+              console.log('Detalhando resultado...');
+            }}
+          />
+        </Quiz>
+      </div>
+    </div>
+  );
+};
+
+export const QuizComponentLibrary: Story = () => {
+  const { setBySimulated, startQuiz, setUserId } = useQuizStore();
+
+  useEffect(() => {
+    // Dados de exemplo com diferentes tipos de questões
+    const mockSimulado = {
+      id: 'simulado-component-library',
+      title: 'Quiz Component Library - Diferentes Tipos',
+      category: 'Demonstração',
+      questions: [
+        {
+          id: 'q1',
+          questionText: 'Qual é a capital do Brasil?',
+          description: 'Questão de alternativa simples',
+          type: 'ALTERNATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'geografia',
+              subjectId: 'geografia-geral',
+              topicId: 'capitais',
+              subtopicId: 'brasil',
+              contentId: 'geografia',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'São Paulo', isCorrect: false },
+            { id: 'opt2', option: 'Rio de Janeiro', isCorrect: false },
+            { id: 'opt3', option: 'Brasília', isCorrect: true },
+            { id: 'opt4', option: 'Salvador', isCorrect: false },
+          ],
+        },
+        {
+          id: 'q2',
+          questionText:
+            'Quais são os planetas do sistema solar que possuem anéis? (Selecione todas as opções corretas)',
+          description: 'Questão de múltipla escolha',
+          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'ciencias',
+              subjectId: 'astronomia',
+              topicId: 'sistema-solar',
+              subtopicId: 'planetas',
+              contentId: 'ciencias',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'Saturno', isCorrect: true },
+            { id: 'opt2', option: 'Júpiter', isCorrect: true },
+            { id: 'opt3', option: 'Urano', isCorrect: true },
+            { id: 'opt4', option: 'Netuno', isCorrect: true },
+            { id: 'opt5', option: 'Marte', isCorrect: false },
+            { id: 'opt6', option: 'Vênus', isCorrect: false },
+          ],
+        },
+        {
+          id: 'q3',
+          questionText:
+            'Elabore uma redação dissertativa-argumentativa sobre o tema "O impacto das redes sociais na formação da opinião pública contemporânea". Sua redação deve ter entre 25 e 30 linhas, apresentar argumentos bem fundamentados, respeitar a estrutura dissertativa e demonstrar domínio da norma culta da língua escrita.',
+          description: 'Questão dissertativa',
+          type: 'DISSERTATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'linguagens',
+              subjectId: 'portugues',
+              topicId: 'redacao',
+              subtopicId: 'dissertativa',
+              contentId: 'linguagens',
+            },
+          ],
+          options: [],
+        },
+      ],
+    };
+
+    setUserId('demo-user-id');
+    setBySimulated(mockSimulado);
+    startQuiz();
+  }, [setBySimulated, startQuiz, setUserId]);
+
+  return (
+    <div className="space-y-12 h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Quiz Component Library
+        </h1>
+        <p className="text-text-600 text-lg">
+          Demonstração de diferentes tipos de questões: Alternativa, Múltipla
+          Escolha e Dissertativa
         </p>
       </div>
 
@@ -433,6 +620,8 @@ export const QuizAlternativeVariants: Story = () => {
         userId: 'demo-user-id',
         answer: 'opt2',
         optionId: 'opt2',
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
       },
       {
         questionId: 'q2',
@@ -440,6 +629,8 @@ export const QuizAlternativeVariants: Story = () => {
         userId: 'demo-user-id',
         answer: 'opt2',
         optionId: 'opt2',
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
     ]);
   }, [
@@ -464,7 +655,130 @@ export const QuizAlternativeVariants: Story = () => {
           <QuizHeaderResult />
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]" />
+          <QuizContent className="pb-[150px]" variant="result" />
+          <QuizFooter className="bottom-15" />
+        </Quiz>
+      </div>
+    </div>
+  );
+};
+
+export const QuizAllCasesVariants: Story = () => {
+  const {
+    setBySimulated,
+    startQuiz,
+    setUserAnswers,
+    setUserId,
+    setCurrentQuestion,
+  } = useQuizStore();
+
+  useEffect(() => {
+    // Dados de exemplo para demonstrar a funcionalidade
+    const mockSimulado = {
+      id: 'simulado-1',
+      title: 'Simulado ENEM 2024',
+      category: 'Enem',
+      questions: [
+        // DISSERTATIVA - Correta
+        {
+          id: 'q5',
+          questionText:
+            'Explique o conceito de aceleração e como ela se relaciona com a velocidade.',
+          description: 'Questão sobre aceleração',
+          type: 'DISSERTATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'aceleracao',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [],
+        },
+        // DISSERTATIVA - Incorreta
+        {
+          id: 'q6',
+          questionText:
+            'Descreva as leis de Newton e suas aplicações na mecânica clássica.',
+          description: 'Questão sobre leis de Newton',
+          type: 'DISSERTATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'dinamica',
+              subtopicId: 'leis-newton',
+              contentId: 'dinamica',
+            },
+          ],
+          options: [],
+        },
+      ],
+    };
+
+    setUserId('demo-user-id');
+    setBySimulated(mockSimulado);
+    setCurrentQuestion(mockSimulado.questions[0]);
+    startQuiz();
+
+    setUserAnswers([
+      {
+        questionId: 'q5',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer:
+          'Aceleração é a taxa de variação da velocidade em relação ao tempo. Quando um objeto acelera, sua velocidade muda, podendo aumentar (aceleração positiva) ou diminuir (aceleração negativa).',
+        optionId: null,
+        questionType: QUESTION_TYPE.DISSERTATIVA,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+      },
+      {
+        questionId: 'q6',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'As leis de Newton são fundamentais para a mecânica clássica.',
+        optionId: null,
+        questionType: QUESTION_TYPE.DISSERTATIVA,
+        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+      },
+    ]);
+  }, [
+    setBySimulated,
+    startQuiz,
+    setUserAnswers,
+    setUserId,
+    setCurrentQuestion,
+  ]);
+
+  return (
+    <div className="space-y-12 h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Quiz All Cases Variants
+        </h1>
+      </div>
+
+      <div className="flex flex-col gap-2 h-full pb-15">
+        <Quiz>
+          <QuizHeaderResult />
+          <QuizTitle />
+          <QuizHeader />
+          <QuizContent className="pb-[150px]" variant="result" />
           <QuizFooter className="bottom-15" />
         </Quiz>
       </div>
@@ -561,6 +875,8 @@ export const QuizMultipleChoiceVariants: Story = () => {
         userId: 'demo-user-id',
         answer: null,
         optionId: 'opt1',
+        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
       {
         questionId: 'q1',
@@ -568,6 +884,8 @@ export const QuizMultipleChoiceVariants: Story = () => {
         userId: 'demo-user-id',
         answer: null,
         optionId: 'opt2',
+        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
       {
         questionId: 'q1',
@@ -575,6 +893,8 @@ export const QuizMultipleChoiceVariants: Story = () => {
         userId: 'demo-user-id',
         answer: null,
         optionId: 'opt4', // Resposta incorreta
+        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
       },
       {
         questionId: 'q2',
@@ -582,6 +902,8 @@ export const QuizMultipleChoiceVariants: Story = () => {
         userId: 'demo-user-id',
         answer: null,
         optionId: 'opt1',
+        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
       {
         questionId: 'q2',
@@ -589,6 +911,8 @@ export const QuizMultipleChoiceVariants: Story = () => {
         userId: 'demo-user-id',
         answer: null,
         optionId: 'opt2',
+        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
       {
         questionId: 'q2',
@@ -596,6 +920,8 @@ export const QuizMultipleChoiceVariants: Story = () => {
         userId: 'demo-user-id',
         answer: null,
         optionId: 'opt3',
+        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
     ]);
   }, [
@@ -623,7 +949,7 @@ export const QuizMultipleChoiceVariants: Story = () => {
           <QuizHeaderResult />
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]" />
+          <QuizContent className="pb-[150px]" variant="result" />
           <QuizFooter className="bottom-15" />
         </Quiz>
       </div>
@@ -638,13 +964,13 @@ export const QuizListResultShowcase: Story = () => {
   useEffect(() => {
     const mockSimulado = {
       id: 'simulado-1',
-      title: 'Simulado ENEM 2024',
+      title: 'Simulado ENEM 2024 - Todas as Variantes',
       category: 'Enem',
       questions: [
         {
           id: 'q1',
-          questionText: 'Questão de Física 1',
-          description: 'Questão sobre física',
+          questionText: 'Questão de Física 1 - Alternativa',
+          description: 'Questão sobre física - tipo alternativa',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
@@ -670,8 +996,8 @@ export const QuizListResultShowcase: Story = () => {
         },
         {
           id: 'q2',
-          questionText: 'Questão de Física 2',
-          description: 'Questão sobre física',
+          questionText: 'Questão de Física 2 - Alternativa',
+          description: 'Questão sobre física - tipo alternativa',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
@@ -697,9 +1023,9 @@ export const QuizListResultShowcase: Story = () => {
         },
         {
           id: 'q3',
-          questionText: 'Questão de Matemática 1',
-          description: 'Questão sobre matemática',
-          type: 'ALTERNATIVA' as QUESTION_TYPE,
+          questionText: 'Questão de Matemática 1 - Múltipla Escolha',
+          description: 'Questão sobre matemática - tipo múltipla escolha',
+          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
@@ -717,16 +1043,16 @@ export const QuizListResultShowcase: Story = () => {
           ],
           options: [
             { id: 'opt1', option: 'Resposta correta', isCorrect: true },
-            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt2', option: 'Resposta correta', isCorrect: true },
             { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
             { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
         },
         {
           id: 'q4',
-          questionText: 'Questão de Química 1',
-          description: 'Questão sobre química',
-          type: 'ALTERNATIVA' as QUESTION_TYPE,
+          questionText: 'Questão de Química 1 - Dissertativa',
+          description: 'Questão sobre química - tipo dissertativa',
+          type: 'DISSERTATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
@@ -740,6 +1066,28 @@ export const QuizListResultShowcase: Story = () => {
               topicId: 'quimica-geral',
               subtopicId: 'formulas',
               contentId: 'quimica',
+            },
+          ],
+          options: [],
+        },
+        {
+          id: 'q5',
+          questionText: 'Questão de Biologia 1 - Alternativa',
+          description: 'Questão sobre biologia - tipo alternativa',
+          type: 'ALTERNATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'biologia',
+              subjectId: 'biologia',
+              topicId: 'biologia-geral',
+              subtopicId: 'celulas',
+              contentId: 'biologia',
             },
           ],
           options: [
@@ -763,6 +1111,8 @@ export const QuizListResultShowcase: Story = () => {
         userId: 'demo-user-id',
         answer: 'opt1',
         optionId: 'opt1',
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
       {
         questionId: 'q2',
@@ -770,20 +1120,36 @@ export const QuizListResultShowcase: Story = () => {
         userId: 'demo-user-id',
         answer: 'opt1',
         optionId: 'opt1',
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
       },
       {
         questionId: 'q3',
         activityId: 'simulado-1',
         userId: 'demo-user-id',
-        answer: 'opt1',
-        optionId: 'opt1',
+        answer: 'opt1,opt2',
+        optionId: 'opt1,opt2',
+        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
       {
         questionId: 'q4',
         activityId: 'simulado-1',
         userId: 'demo-user-id',
-        answer: 'opt2',
-        optionId: 'opt2',
+        answer:
+          'A química é uma ciência que estuda a composição, estrutura e propriedades da matéria, bem como as mudanças que ela sofre durante as reações químicas. Ela é fundamental para entender diversos fenômenos naturais e tecnológicos.',
+        optionId: null,
+        questionType: QUESTION_TYPE.DISSERTATIVA,
+        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+      },
+      {
+        questionId: 'q5',
+        activityId: 'simulado-1',
+        userId: 'demo-user-id',
+        answer: 'opt3',
+        optionId: 'opt3',
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
     ]);
   }, [setBySimulated, startQuiz, setUserAnswers, setUserId]);
@@ -821,13 +1187,13 @@ export const QuizResultPageShowcase: Story = () => {
   useEffect(() => {
     const mockSimulado = {
       id: 'simulado-1',
-      title: 'Simulado Enem #42',
+      title: 'Simulado Enem #42 - Todas as Variantes',
       category: 'Enem',
       questions: [
         {
           id: 'q1',
-          questionText: 'Questão de Física 1',
-          description: 'Questão sobre física',
+          questionText: 'Questão de Física 1 - Alternativa',
+          description: 'Questão sobre física - tipo alternativa',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
@@ -853,14 +1219,14 @@ export const QuizResultPageShowcase: Story = () => {
         },
         {
           id: 'q2',
-          questionText: 'Questão de Física 2',
-          description: 'Questão sobre física',
+          questionText: 'Questão de Física 2 - Alternativa',
+          description: 'Questão sobre física - tipo alternativa',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'opt1',
+          answerKey: 'opt2',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -880,14 +1246,14 @@ export const QuizResultPageShowcase: Story = () => {
         },
         {
           id: 'q3',
-          questionText: 'Questão de Matemática 1',
-          description: 'Questão sobre matemática',
-          type: 'ALTERNATIVA' as QUESTION_TYPE,
+          questionText: 'Questão de Matemática 1 - Múltipla Escolha',
+          description: 'Questão sobre matemática - tipo múltipla escolha',
+          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'opt1',
+          answerKey: 'opt1,opt2',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -900,21 +1266,21 @@ export const QuizResultPageShowcase: Story = () => {
           ],
           options: [
             { id: 'opt1', option: 'Resposta correta', isCorrect: true },
-            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt2', option: 'Resposta correta', isCorrect: true },
             { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
             { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
         },
         {
           id: 'q4',
-          questionText: 'Questão de Química 1',
-          description: 'Questão sobre química',
-          type: 'ALTERNATIVA' as QUESTION_TYPE,
+          questionText: 'Questão de Química 1 - Dissertativa',
+          description: 'Questão sobre química - tipo dissertativa',
+          type: 'DISSERTATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'opt2',
+          answerKey: null,
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -925,37 +1291,32 @@ export const QuizResultPageShowcase: Story = () => {
               contentId: 'quimica',
             },
           ],
-          options: [
-            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
-            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
-            { id: 'opt3', option: 'Resposta correta', isCorrect: true },
-            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
-          ],
+          options: [],
         },
         {
           id: 'q5',
-          questionText: 'Questão de Física 3',
-          description: 'Questão sobre física',
+          questionText: 'Questão de Biologia 1 - Alternativa',
+          description: 'Questão sobre biologia - tipo alternativa',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'opt1',
+          answerKey: 'opt3',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'fisica',
-              subjectId: 'fisica',
-              topicId: 'mecanica',
-              subtopicId: 'movimento',
-              contentId: 'cinematica',
+              areaKnowledgeId: 'biologia',
+              subjectId: 'biologia',
+              topicId: 'biologia-geral',
+              subtopicId: 'celulas',
+              contentId: 'biologia',
             },
           ],
           options: [
-            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
             { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
-            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta correta', isCorrect: true },
             { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
         },
@@ -973,6 +1334,8 @@ export const QuizResultPageShowcase: Story = () => {
         userId: 'demo-user-id',
         answer: 'opt1',
         optionId: 'opt1',
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
       {
         questionId: 'q2',
@@ -980,27 +1343,36 @@ export const QuizResultPageShowcase: Story = () => {
         userId: 'demo-user-id',
         answer: 'opt1',
         optionId: 'opt1',
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
       },
       {
         questionId: 'q3',
         activityId: 'simulado-1',
         userId: 'demo-user-id',
-        answer: 'opt1',
-        optionId: 'opt1',
+        answer: 'opt1,opt2',
+        optionId: 'opt1,opt2',
+        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
       {
         questionId: 'q4',
         activityId: 'simulado-1',
         userId: 'demo-user-id',
-        answer: 'opt2',
-        optionId: 'opt2',
+        answer:
+          'A química é uma ciência fundamental que estuda a composição, estrutura e propriedades da matéria. Ela é essencial para entender diversos fenômenos naturais e tecnológicos, desde a fotossíntese até a produção de medicamentos.',
+        optionId: null,
+        questionType: QUESTION_TYPE.DISSERTATIVA,
+        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
       },
       {
         questionId: 'q5',
         activityId: 'simulado-1',
         userId: 'demo-user-id',
-        answer: 'opt1',
-        optionId: 'opt1',
+        answer: 'opt3',
+        optionId: 'opt3',
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
     ]);
 
@@ -1042,13 +1414,13 @@ export const QuizResultComponentsShowcase: Story = () => {
   useEffect(() => {
     const mockSimulado = {
       id: 'simulado-1',
-      title: 'Simulado Enem #42',
+      title: 'Simulado Enem #42 - Todas as Variantes',
       category: 'Enem',
       questions: [
         {
           id: 'q1',
-          questionText: 'Questão de Física 1',
-          description: 'Questão sobre física',
+          questionText: 'Questão de Física 1 - Alternativa',
+          description: 'Questão sobre física - tipo alternativa',
           type: 'ALTERNATIVA' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
@@ -1074,14 +1446,14 @@ export const QuizResultComponentsShowcase: Story = () => {
         },
         {
           id: 'q2',
-          questionText: 'Questão de Matemática 1',
-          description: 'Questão sobre matemática',
-          type: 'ALTERNATIVA' as QUESTION_TYPE,
+          questionText: 'Questão de Matemática 1 - Múltipla Escolha',
+          description: 'Questão sobre matemática - tipo múltipla escolha',
+          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'opt2',
+          answerKey: 'opt1,opt2',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -1094,10 +1466,32 @@ export const QuizResultComponentsShowcase: Story = () => {
           ],
           options: [
             { id: 'opt1', option: 'Resposta correta', isCorrect: true },
-            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt2', option: 'Resposta correta', isCorrect: true },
             { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
             { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
+        },
+        {
+          id: 'q3',
+          questionText: 'Questão de Química 1 - Dissertativa',
+          description: 'Questão sobre química - tipo dissertativa',
+          type: 'DISSERTATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'quimica',
+              subjectId: 'quimica',
+              topicId: 'quimica-geral',
+              subtopicId: 'formulas',
+              contentId: 'quimica',
+            },
+          ],
+          options: [],
         },
       ],
     };
@@ -1107,7 +1501,11 @@ export const QuizResultComponentsShowcase: Story = () => {
     startQuiz();
 
     selectAnswer('q1', 'opt1');
-    selectAnswer('q2', 'opt2');
+    selectAnswer('q2', 'opt1,opt2');
+    selectAnswer(
+      'q3',
+      'A química é uma ciência fundamental que estuda a composição, estrutura e propriedades da matéria. Ela é essencial para entender diversos fenômenos naturais e tecnológicos.'
+    );
 
     finishQuiz();
   }, [setBySimulated, startQuiz, selectAnswer, finishQuiz, setUserId]);
@@ -1430,6 +1828,429 @@ export const QuizMultipleChoiceShowcase: Story = () => {
             }}
           />
         </Quiz>
+      </div>
+    </div>
+  );
+};
+
+export const QuizDissertativeShowcase: Story = () => {
+  const { setBySimulated, startQuiz, setUserId, setCurrentQuestion } =
+    useQuizStore();
+
+  useEffect(() => {
+    // Dados de exemplo para demonstrar a funcionalidade dissertativa
+    const mockSimulado = {
+      id: 'simulado-dissertativo-1',
+      title: 'Simulado ENEM 2024 - Questões Dissertativas',
+      category: 'Enem',
+      questions: [
+        {
+          id: 'q1',
+          questionText:
+            'Elabore uma redação dissertativa-argumentativa sobre o tema "O impacto das redes sociais na formação da opinião pública contemporânea". Sua redação deve ter entre 25 e 30 linhas, apresentar argumentos bem fundamentados, respeitar a estrutura dissertativa e demonstrar domínio da norma culta da língua escrita.',
+          description: 'Redação dissertativa-argumentativa sobre redes sociais',
+          type: 'DISSERTATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'linguagens',
+              subjectId: 'portugues',
+              topicId: 'redacao',
+              subtopicId: 'dissertativa',
+              contentId: 'producao-textual',
+            },
+          ],
+          options: [],
+        },
+        {
+          id: 'q2',
+          questionText:
+            'Desenvolva um texto dissertativo sobre "A importância da preservação ambiental para o futuro das próximas gerações". Sua resposta deve abordar aspectos como sustentabilidade, desenvolvimento econômico, responsabilidade social e políticas públicas, com argumentos consistentes e exemplos relevantes.',
+          description: 'Redação dissertativa sobre preservação ambiental',
+          type: 'DISSERTATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'linguagens',
+              subjectId: 'portugues',
+              topicId: 'redacao',
+              subtopicId: 'dissertativa',
+              contentId: 'producao-textual',
+            },
+          ],
+          options: [],
+        },
+        {
+          id: 'q3',
+          questionText:
+            'Escreva um texto dissertativo sobre "O papel da tecnologia na educação do século XXI". Aborde como as ferramentas digitais têm transformado o processo de ensino-aprendizagem, os desafios enfrentados e as oportunidades criadas para democratizar o acesso ao conhecimento.',
+          description: 'Redação dissertativa sobre tecnologia na educação',
+          type: 'DISSERTATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'linguagens',
+              subjectId: 'portugues',
+              topicId: 'redacao',
+              subtopicId: 'dissertativa',
+              contentId: 'producao-textual',
+            },
+          ],
+          options: [],
+        },
+      ],
+    };
+
+    setUserId('demo-user-id');
+    setBySimulated(mockSimulado);
+    setCurrentQuestion(mockSimulado.questions[0]);
+    startQuiz();
+  }, [setBySimulated, startQuiz, setUserId, setCurrentQuestion]);
+
+  return (
+    <div className="space-y-12 h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Quiz Dissertativo
+        </h1>
+        <p className="text-text-600 text-lg">
+          Componente para questões dissertativas e redações
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2 h-full pb-15">
+        <Quiz>
+          <QuizTitle />
+          <QuizHeader />
+          <QuizContent className="pb-[150px]" />
+          <QuizFooter
+            className="bottom-15"
+            onGoToSimulated={() => {
+              console.log('Navegando para simulados...');
+            }}
+            onDetailResult={() => {
+              console.log('Detalhando resultado...');
+            }}
+          />
+        </Quiz>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Story para demonstrar variantes do QuizDissertative
+ */
+export const QuizDissertativeVariants: Story = () => {
+  const {
+    setBySimulated,
+    startQuiz,
+    setUserId,
+    setCurrentQuestion,
+    setUserAnswers,
+  } = useQuizStore();
+
+  useEffect(() => {
+    // Dados de exemplo para demonstrar as variantes dissertativas
+    const mockSimulado = {
+      id: 'simulado-dissertativo-variants',
+      title: 'Simulado ENEM 2024 - Variantes Dissertativas',
+      category: 'Enem',
+      questions: [
+        {
+          id: 'q1',
+          questionText:
+            'Elabore uma redação dissertativa-argumentativa sobre o tema "O impacto das redes sociais na formação da opinião pública contemporânea". Sua redação deve ter entre 25 e 30 linhas, apresentar argumentos bem fundamentados, respeitar a estrutura dissertativa e demonstrar domínio da norma culta da língua escrita.',
+          description: 'Redação dissertativa-argumentativa sobre redes sociais',
+          type: 'DISSERTATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'linguagens',
+              subjectId: 'portugues',
+              topicId: 'redacao',
+              subtopicId: 'dissertativa',
+              contentId: 'producao-textual',
+            },
+          ],
+          options: [],
+        },
+      ],
+    };
+
+    setUserId('demo-user-id');
+    setBySimulated(mockSimulado);
+    setCurrentQuestion(mockSimulado.questions[0]);
+    startQuiz();
+
+    // Configurar respostas para demonstrar diferentes status
+    setUserAnswers([
+      {
+        questionId: 'q1',
+        activityId: 'simulado-dissertativo-variants',
+        userId: 'demo-user-id',
+        answer:
+          'As redes sociais têm um impacto significativo na formação da opinião pública contemporânea. Elas democratizaram o acesso à informação, mas também criaram bolhas de filtro que podem polarizar a sociedade. É fundamental desenvolver o pensamento crítico para navegar neste ambiente digital.',
+        optionId: null,
+        questionType: QUESTION_TYPE.DISSERTATIVA,
+        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+      },
+    ]);
+  }, [
+    setBySimulated,
+    startQuiz,
+    setUserId,
+    setCurrentQuestion,
+    setUserAnswers,
+  ]);
+
+  return (
+    <div className="space-y-12 h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Variantes do Quiz Dissertativo
+        </h1>
+        <p className="text-text-600 text-lg">
+          Demonstração das diferentes variantes do componente dissertativo
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Variante Default - Pendente de Avaliação */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-text-900">
+            Default - Pendente
+          </h2>
+          <div className="border rounded-lg p-6 bg-white">
+            <QuizDissertative variant="default" />
+          </div>
+        </div>
+
+        {/* Variante Result - Resposta Correta */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-text-900">Result - Correta</h2>
+          <div className="border rounded-lg p-6 bg-white">
+            <QuizDissertative variant="result" />
+          </div>
+        </div>
+
+        {/* Variante Result - Resposta Incorreta */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-text-900">
+            Result - Incorreta
+          </h2>
+          <div className="border rounded-lg p-6 bg-white">
+            <QuizDissertative variant="result" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Story para demonstrar respostas corretas do QuizDissertative
+ */
+export const QuizDissertativeCorrectAnswer: Story = () => {
+  const {
+    setBySimulated,
+    startQuiz,
+    setUserId,
+    setCurrentQuestion,
+    setUserAnswers,
+    setAnswerStatus,
+  } = useQuizStore();
+
+  useEffect(() => {
+    const mockSimulado = {
+      id: 'simulado-dissertativo-correct',
+      title: 'Simulado ENEM 2024 - Resposta Correta',
+      category: 'Enem',
+      questions: [
+        {
+          id: 'q1',
+          questionText:
+            'Elabore uma redação dissertativa-argumentativa sobre o tema "O impacto das redes sociais na formação da opinião pública contemporânea". Sua redação deve ter entre 25 e 30 linhas, apresentar argumentos bem fundamentados, respeitar a estrutura dissertativa e demonstrar domínio da norma culta da língua escrita.',
+          description: 'Redação dissertativa-argumentativa sobre redes sociais',
+          type: 'DISSERTATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'linguagens',
+              subjectId: 'portugues',
+              topicId: 'redacao',
+              subtopicId: 'dissertativa',
+              contentId: 'producao-textual',
+            },
+          ],
+          options: [],
+        },
+      ],
+    };
+
+    setUserId('demo-user-id');
+    setBySimulated(mockSimulado);
+    setCurrentQuestion(mockSimulado.questions[0]);
+    startQuiz();
+
+    // Configurar resposta correta
+    setUserAnswers([
+      {
+        questionId: 'q1',
+        activityId: 'simulado-dissertativo-correct',
+        userId: 'demo-user-id',
+        answer:
+          'As redes sociais revolucionaram a forma como a opinião pública é formada na contemporaneidade. Por um lado, democratizaram o acesso à informação, permitindo que diferentes vozes sejam ouvidas. Por outro, criaram algoritmos que podem reforçar preconceitos e criar bolhas de filtro. É essencial desenvolver o pensamento crítico para navegar neste ambiente digital de forma consciente e responsável.',
+        optionId: null,
+        questionType: QUESTION_TYPE.DISSERTATIVA,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+      },
+    ]);
+  }, [
+    setBySimulated,
+    startQuiz,
+    setUserId,
+    setCurrentQuestion,
+    setUserAnswers,
+    setAnswerStatus,
+  ]);
+
+  return (
+    <div className="space-y-12 h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Quiz Dissertativo - Resposta Correta
+        </h1>
+        <p className="text-text-600 text-lg">
+          Demonstração de uma resposta dissertativa avaliada como correta
+        </p>
+      </div>
+
+      <div className="max-w-4xl mx-auto">
+        <div className="border rounded-lg p-6 bg-white">
+          <QuizDissertative variant="result" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Story para demonstrar respostas incorretas do QuizDissertative
+ */
+export const QuizDissertativeIncorrectAnswer: Story = () => {
+  const {
+    setBySimulated,
+    startQuiz,
+    setUserId,
+    setCurrentQuestion,
+    setUserAnswers,
+    setAnswerStatus,
+  } = useQuizStore();
+
+  useEffect(() => {
+    const mockSimulado = {
+      id: 'simulado-dissertativo-incorrect',
+      title: 'Simulado ENEM 2024 - Resposta Incorreta',
+      category: 'Enem',
+      questions: [
+        {
+          id: 'q1',
+          questionText:
+            'Elabore uma redação dissertativa-argumentativa sobre o tema "O impacto das redes sociais na formação da opinião pública contemporânea". Sua redação deve ter entre 25 e 30 linhas, apresentar argumentos bem fundamentados, respeitar a estrutura dissertativa e demonstrar domínio da norma culta da língua escrita.',
+          description: 'Redação dissertativa-argumentativa sobre redes sociais',
+          type: 'DISSERTATIVA' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'linguagens',
+              subjectId: 'portugues',
+              topicId: 'redacao',
+              subtopicId: 'dissertativa',
+              contentId: 'producao-textual',
+            },
+          ],
+          options: [],
+        },
+      ],
+    };
+
+    setUserId('demo-user-id');
+    setBySimulated(mockSimulado);
+    setCurrentQuestion(mockSimulado.questions[0]);
+    startQuiz();
+
+    // Configurar resposta incorreta
+    setUserAnswers([
+      {
+        questionId: 'q1',
+        activityId: 'simulado-dissertativo-incorrect',
+        userId: 'demo-user-id',
+        answer:
+          'Redes sociais são legais. Eu uso muito Instagram e TikTok. Tem muita coisa interessante lá. As pessoas postam fotos e vídeos. É muito divertido.',
+        optionId: null,
+        questionType: QUESTION_TYPE.DISSERTATIVA,
+        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+      },
+    ]);
+  }, [
+    setBySimulated,
+    startQuiz,
+    setUserId,
+    setCurrentQuestion,
+    setUserAnswers,
+    setAnswerStatus,
+  ]);
+
+  return (
+    <div className="space-y-12 h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Quiz Dissertativo - Resposta Incorreta
+        </h1>
+        <p className="text-text-600 text-lg">
+          Demonstração de uma resposta dissertativa avaliada como incorreta
+        </p>
+      </div>
+
+      <div className="max-w-4xl mx-auto">
+        <div className="border rounded-lg p-6 bg-white">
+          <QuizDissertative variant="result" />
+        </div>
       </div>
     </div>
   );

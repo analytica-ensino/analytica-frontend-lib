@@ -27,6 +27,7 @@ import {
   useQuizStore,
   QUESTION_DIFFICULTY,
   QUESTION_TYPE,
+  ANSWER_STATUS,
 } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
@@ -42,6 +43,7 @@ import ProgressCircle from '../ProgressCircle/ProgressCircle';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { cn } from '../../utils/utils';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
+import TextArea from '../TextArea/TextArea';
 
 const Quiz = forwardRef<
   HTMLDivElement,
@@ -63,41 +65,19 @@ const Quiz = forwardRef<
 
 const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
   ({ className, ...props }, ref) => {
-    const { getCurrentQuestion, getCurrentAnswer, getAllCurrentAnswer } =
-      useQuizStore();
-    const currentQuestion = getCurrentQuestion();
+    const { getCurrentAnswer } = useQuizStore();
     const userAnswer = getCurrentAnswer();
     const [isCorrect, setIsCorrect] = useState(false);
 
     useEffect(() => {
-      if (currentQuestion?.type === QUESTION_TYPE.MULTIPLA_CHOICE) {
-        const allCurrentAnswers = getAllCurrentAnswer();
-        const isCorrectOption = currentQuestion.options.filter(
-          (op) => op.isCorrect
-        );
-
-        if (allCurrentAnswers?.length !== isCorrectOption.length) {
-          setIsCorrect(false);
-          return;
-        }
-
-        setIsCorrect(true);
-
-        allCurrentAnswers.forEach((answer) => {
-          const findInCorrectOptions = isCorrectOption.find(
-            (op) => op.id === answer.optionId
-          );
-          if (!findInCorrectOptions) {
-            setIsCorrect(false);
-          }
-        });
-      } else {
+      if (userAnswer) {
         setIsCorrect(
-          currentQuestion?.options.find((op) => op.id === userAnswer)
-            ?.isCorrect || false
+          userAnswer.answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA
+            ? true
+            : false
         );
       }
-    }, [currentQuestion, getAllCurrentAnswer]);
+    }, [userAnswer]);
 
     return (
       <div
@@ -207,7 +187,7 @@ const QuizContent = forwardRef<
               <QuizMultipleChoice variant={variant} />
             )}
             {currentQuestion.type === QUESTION_TYPE.DISSERTATIVA && (
-              <div>Componente de dissertativa</div>
+              <QuizDissertative variant={variant} />
             )}
           </>
         )}
@@ -237,10 +217,11 @@ const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
       const isCorrectOption = currentQuestion.options.find(
         (op) => op.isCorrect
       );
+
       if (isCorrectOption?.id === option.id) {
         status = Status.CORRECT;
       } else if (
-        currentAnswer === option.id &&
+        currentAnswer?.optionId === option.id &&
         option.id !== isCorrectOption?.id
       ) {
         status = Status.INCORRECT;
@@ -269,8 +250,8 @@ const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
         name={`question-${currentQuestion?.id || '1'}`}
         layout="compact"
         alternatives={alternatives}
-        value={currentAnswer}
-        selectedValue={currentAnswer}
+        value={currentAnswer?.optionId || ''}
+        selectedValue={currentAnswer?.optionId || ''}
         onValueChange={(value) => {
           if (currentQuestion) {
             selectAnswer(currentQuestion.id, value);
@@ -391,6 +372,74 @@ const QuizMultipleChoice = ({
   );
 };
 
+interface QuizDissertativeInterface {
+  variant?: 'result' | 'default';
+}
+
+const QuizDissertative = ({
+  variant = 'default',
+}: QuizDissertativeInterface) => {
+  const { getCurrentQuestion, getCurrentAnswer, selectDissertativeAnswer } =
+    useQuizStore();
+
+  const currentQuestion = getCurrentQuestion();
+  const currentAnswer = getCurrentAnswer();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleAnswerChange = (value: string) => {
+    if (currentQuestion) {
+      selectDissertativeAnswer(currentQuestion.id, value);
+    }
+  };
+
+  // Auto-resize function
+  const adjustTextareaHeight = useCallback(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      const scrollHeight = textareaRef.current.scrollHeight;
+      const minHeight = 120; // 120px minimum height
+      const maxHeight = 400; // 400px maximum height
+      const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
+      textareaRef.current.style.height = `${newHeight}px`;
+    }
+  }, []);
+
+  // Adjust height when currentAnswer changes
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [currentAnswer, adjustTextareaHeight]);
+
+  if (!currentQuestion) {
+    return (
+      <div className="space-y-4">
+        <p className="text-text-600 text-md">Nenhuma questão disponível</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 max-h-[600px] overflow-y-auto">
+      {variant === 'default' ? (
+        <div className="space-y-4">
+          <TextArea
+            ref={textareaRef}
+            placeholder="Escreva sua resposta"
+            value={currentAnswer?.answer || ''}
+            onChange={(e) => handleAnswerChange(e.target.value)}
+            rows={4}
+            className="min-h-[120px] max-h-[400px] resize-none overflow-y-auto"
+          />
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <p className="text-text-600 text-md whitespace-pre-wrap">
+            {currentAnswer?.answer || 'Nenhuma resposta fornecida'}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
 const QuizQuestionList = ({
   filterType = 'all',
   onQuestionClick,
@@ -1052,4 +1101,5 @@ export {
   QuizResultPerformance,
   QuizListResultByMateria,
   QuizMultipleChoice,
+  QuizDissertative,
 };
