@@ -65,19 +65,24 @@ const Quiz = forwardRef<
 
 const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
   ({ className, ...props }, ref) => {
-    const { getCurrentAnswer } = useQuizStore();
-    const userAnswer = getCurrentAnswer();
+    const { getAllCurrentAnswer } = useQuizStore();
+    const usersAnswer = getAllCurrentAnswer();
     const [isCorrect, setIsCorrect] = useState(false);
 
     useEffect(() => {
-      if (userAnswer) {
+      if (usersAnswer) {
         setIsCorrect(
-          userAnswer.answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA
-            ? true
+          usersAnswer.length > 0
+            ? usersAnswer
+                .map(
+                  (answer) =>
+                    answer.answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA
+                )
+                .every(Boolean)
             : false
         );
       }
-    }, [userAnswer]);
+    }, [usersAnswer]);
 
     return (
       <div

@@ -277,7 +277,9 @@ describe('useQuizStore', () => {
       });
 
       // Verify that no user answer was created for non-existent question
-      const userAnswerItem = result.current.getUserAnswerByQuestionId('non-existent-question');
+      const userAnswerItem = result.current.getUserAnswerByQuestionId(
+        'non-existent-question'
+      );
       expect(userAnswerItem).toBeNull();
 
       // Verify that no user answers were created at all
@@ -388,11 +390,16 @@ describe('useQuizStore', () => {
       act(() => {
         result.current.setBySimulated(mockSimulado);
         result.current.setUserId('test-user-id');
-        result.current.selectMultipleAnswer('non-existent-question', ['opt1', 'opt2']);
+        result.current.selectMultipleAnswer('non-existent-question', [
+          'opt1',
+          'opt2',
+        ]);
       });
 
       // Verify that no user answer was created for non-existent question
-      const userAnswerItem = result.current.getUserAnswerByQuestionId('non-existent-question');
+      const userAnswerItem = result.current.getUserAnswerByQuestionId(
+        'non-existent-question'
+      );
       expect(userAnswerItem).toBeNull();
 
       // Verify that no user answers were created at all
@@ -2413,7 +2420,8 @@ describe('useQuizStore', () => {
         );
       });
 
-      let userAnswer = result.current.getUserAnswerByQuestionId('dissertative-q1');
+      let userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
       expect(userAnswer).toBeTruthy();
       expect(userAnswer?.answer).toBe('Primeira resposta dissertativa');
       expect(userAnswer?.optionId).toBeNull();
@@ -2493,7 +2501,9 @@ describe('useQuizStore', () => {
       });
 
       // Should not create any answer for non-existent question
-      const userAnswer = result.current.getUserAnswerByQuestionId('non-existent-question');
+      const userAnswer = result.current.getUserAnswerByQuestionId(
+        'non-existent-question'
+      );
       expect(userAnswer).toBeNull();
     });
 
@@ -2506,7 +2516,8 @@ describe('useQuizStore', () => {
         result.current.selectDissertativeAnswer('dissertative-q1', '');
       });
 
-      const userAnswer = result.current.getUserAnswerByQuestionId('dissertative-q1');
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
       expect(userAnswer).toBeTruthy();
       expect(userAnswer?.answer).toBe('');
       expect(userAnswer?.optionId).toBeNull();

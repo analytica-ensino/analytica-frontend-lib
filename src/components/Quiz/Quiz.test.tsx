@@ -1707,10 +1707,12 @@ describe('Quiz Component', () => {
           ...mockQuestion1,
           correctOptionId: 'opt1',
         }),
-        getCurrentAnswer: jest.fn().mockReturnValue({
-          optionId: 'opt1',
-          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-        }), // User selected correct answer
+        getAllCurrentAnswer: jest.fn().mockReturnValue([
+          {
+            optionId: 'opt1',
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          },
+        ]), // User selected correct answer
       });
 
       render(<QuizHeaderResult />);
@@ -1729,10 +1731,12 @@ describe('Quiz Component', () => {
           ...mockQuestion1,
           correctOptionId: 'opt1',
         }),
-        getCurrentAnswer: jest.fn().mockReturnValue({
-          optionId: 'opt2',
-          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-        }), // User selected wrong answer
+        getAllCurrentAnswer: jest.fn().mockReturnValue([
+          {
+            optionId: 'opt2',
+            answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+          },
+        ]), // User selected wrong answer
       });
 
       render(<QuizHeaderResult />);
@@ -1751,7 +1755,7 @@ describe('Quiz Component', () => {
           ...mockQuestion1,
           correctOptionId: 'opt1',
         }),
-        getCurrentAnswer: jest.fn().mockReturnValue(undefined), // User has not answered
+        getAllCurrentAnswer: jest.fn().mockReturnValue([]), // User has not answered
       });
 
       render(<QuizHeaderResult />);
@@ -1767,10 +1771,12 @@ describe('Quiz Component', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
         getCurrentQuestion: jest.fn().mockReturnValue(null),
-        getCurrentAnswer: jest.fn().mockReturnValue({
-          optionId: 'opt1',
-          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-        }),
+        getAllCurrentAnswer: jest.fn().mockReturnValue([
+          {
+            optionId: 'opt1',
+            answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+          },
+        ]),
       });
 
       render(<QuizHeaderResult />);
@@ -1813,14 +1819,6 @@ describe('Quiz Component', () => {
             answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           },
         ]),
-        getCurrentAnswer: jest.fn().mockReturnValue({
-          questionId: 'q1',
-          activityId: 'act1',
-          userId: 'user1',
-          answer: null,
-          optionId: 'opt1',
-          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-        }),
       });
 
       render(<QuizHeaderResult />);
@@ -2492,7 +2490,8 @@ describe('QuizDissertative', () => {
     questionId: 'q1',
     activityId: 'activity1',
     userId: 'user1',
-    answer: 'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.',
+    answer:
+      'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.',
     optionId: null,
   };
 
@@ -2510,7 +2509,9 @@ describe('QuizDissertative', () => {
     render(<QuizDissertative variant="default" />);
 
     expect(screen.getByTestId('textarea')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Escreva sua resposta')).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText('Escreva sua resposta')
+    ).toBeInTheDocument();
   });
 
   it('should render dissertative component with result variant', () => {
@@ -2522,7 +2523,11 @@ describe('QuizDissertative', () => {
 
     render(<QuizDissertative variant="result" />);
 
-    expect(screen.getByText('A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.'
+      )
+    ).toBeInTheDocument();
     expect(screen.queryByTestId('textarea')).not.toBeInTheDocument();
   });
 
@@ -2567,7 +2572,10 @@ describe('QuizDissertative', () => {
     // Check that selectDissertativeAnswer was called multiple times (once per character)
     expect(mockSelectDissertativeAnswer).toHaveBeenCalledTimes(26);
     // Check that it was called with the correct question ID
-    expect(mockSelectDissertativeAnswer).toHaveBeenCalledWith('q1', expect.any(String));
+    expect(mockSelectDissertativeAnswer).toHaveBeenCalledWith(
+      'q1',
+      expect.any(String)
+    );
   });
 
   it('should display existing answer in textarea when available', () => {
@@ -2580,7 +2588,9 @@ describe('QuizDissertative', () => {
     render(<QuizDissertative variant="default" />);
 
     const textarea = screen.getByTestId('textarea');
-    expect(textarea).toHaveValue('A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.');
+    expect(textarea).toHaveValue(
+      'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.'
+    );
   });
 
   it('should handle empty answer in textarea', () => {
@@ -2656,8 +2666,14 @@ describe('QuizDissertative', () => {
     render(<QuizDissertative variant="default" />);
 
     // The main container should have the correct classes
-    const mainContainer = screen.getByTestId('textarea').closest('div')?.parentElement;
-    expect(mainContainer).toHaveClass('space-y-4', 'max-h-[600px]', 'overflow-y-auto');
+    const mainContainer = screen
+      .getByTestId('textarea')
+      .closest('div')?.parentElement;
+    expect(mainContainer).toHaveClass(
+      'space-y-4',
+      'max-h-[600px]',
+      'overflow-y-auto'
+    );
   });
 
   it('should render with correct CSS classes for result variant', () => {
@@ -2670,8 +2686,16 @@ describe('QuizDissertative', () => {
     render(<QuizDissertative variant="result" />);
 
     // The main container should have the correct classes
-    const mainContainer = screen.getByText('A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.').closest('div')?.parentElement;
-    expect(mainContainer).toHaveClass('space-y-4', 'max-h-[600px]', 'overflow-y-auto');
+    const mainContainer = screen
+      .getByText(
+        'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.'
+      )
+      .closest('div')?.parentElement;
+    expect(mainContainer).toHaveClass(
+      'space-y-4',
+      'max-h-[600px]',
+      'overflow-y-auto'
+    );
   });
 });
 

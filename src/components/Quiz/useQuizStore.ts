@@ -316,10 +316,8 @@ export const useQuizStore = create<QuizState>()(
               questionId,
               activityId,
               userId,
-              answer:
-                question.type === QUESTION_TYPE.DISSERTATIVA ? answerId : null,
-              optionId:
-                question.type === QUESTION_TYPE.DISSERTATIVA ? null : answerId,
+              answer: null, // selectMultipleAnswer is for non-dissertative questions
+              optionId: answerId, // selectMultipleAnswer should only set optionId
               questionType: question.type,
               answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
             })
@@ -468,9 +466,9 @@ export const useQuizStore = create<QuizState>()(
                 ? answerId || null
                 : null,
             optionId:
-              question.type === QUESTION_TYPE.DISSERTATIVA
-                ? null
-                : answerId || null,
+              question.type !== QUESTION_TYPE.DISSERTATIVA
+                ? answerId || null
+                : null,
             questionType: question.type,
             answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
           };
