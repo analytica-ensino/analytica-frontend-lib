@@ -821,3 +821,84 @@ describe('SelectTrigger invalid + variant classes', () => {
     expect(trigger.className).toMatch(/text-text-600/);
   });
 });
+
+describe('SelectItem deselect functionality', () => {
+  it('should deselect when clicking on the same selected item', async () => {
+    const onValueChange = jest.fn();
+    render(
+      <Select value="option1" onValueChange={onValueChange}>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+          <SelectItem value="option2">Option 2</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    // Initially shows Option 1 as selected
+    expect(screen.getByText('Option 1')).toBeInTheDocument();
+
+    // Open select and click on the same option (Option 1)
+    await userEvent.click(screen.getByRole('button'));
+
+    // Use getAllByText to get all elements with "Option 1" and click the second one (menu item)
+    const option1Elements = screen.getAllByText('Option 1');
+    await userEvent.click(option1Elements[1]); // Index 1 is the menu item, index 0 is the trigger
+
+    // Should call onValueChange with empty string to deselect
+    expect(onValueChange).toHaveBeenCalledWith('');
+  });
+
+  it('should select new option when clicking on different item', async () => {
+    const onValueChange = jest.fn();
+    render(
+      <Select value="option1" onValueChange={onValueChange}>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+          <SelectItem value="option2">Option 2</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    // Open select and click on different option (Option 2)
+    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByText('Option 2'));
+
+    // Should call onValueChange with new value
+    expect(onValueChange).toHaveBeenCalledWith('option2');
+  });
+
+  it('should handle deselect and then select different option', async () => {
+    const onValueChange = jest.fn();
+    render(
+      <Select value="option1" onValueChange={onValueChange}>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+          <SelectItem value="option2">Option 2</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    // First, deselect the current option
+    await userEvent.click(screen.getByRole('button'));
+    const option1Elements = screen.getAllByText('Option 1');
+    await userEvent.click(option1Elements[1]); // Index 1 is the menu item
+    expect(onValueChange).toHaveBeenCalledWith('');
+
+    // Reset mock to test next interaction
+    onValueChange.mockClear();
+
+    // Then select a different option
+    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByText('Option 2'));
+    expect(onValueChange).toHaveBeenCalledWith('option2');
+  });
+});

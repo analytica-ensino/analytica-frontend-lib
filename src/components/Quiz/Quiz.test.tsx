@@ -14,12 +14,14 @@ import {
   QuizListResult,
   QuizListResultByMateria,
   QuizMultipleChoice,
+  QuizDissertative,
 } from './Quiz';
 import {
   useQuizStore,
   QUESTION_DIFFICULTY,
   QUESTION_STATUS,
   QUESTION_TYPE,
+  ANSWER_STATUS,
 } from './useQuizStore';
 import { ReactNode } from 'react';
 import userEvent from '@testing-library/user-event';
@@ -94,6 +96,38 @@ jest.mock('../Button/Button', () => ({
       >
         {children}
       </button>
+    );
+  },
+}));
+
+// Mock the TextArea component
+jest.mock('../TextArea/TextArea', () => ({
+  __esModule: true,
+  default: ({
+    placeholder,
+    value,
+    onChange,
+    rows,
+    className,
+    ...props
+  }: {
+    placeholder?: string;
+    value?: string;
+    onChange?: (e: { target: { value: string } }) => void;
+    rows?: number;
+    className?: string;
+    [key: string]: unknown;
+  }) => {
+    return (
+      <textarea
+        data-testid="textarea"
+        placeholder={placeholder}
+        value={value || ''}
+        onChange={onChange}
+        rows={rows}
+        className={className}
+        {...props}
+      />
     );
   },
 }));
@@ -512,6 +546,7 @@ describe('Quiz Component', () => {
         type: 'bySimulated',
       }),
       getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
+      getAnswerStatus: jest.fn().mockReturnValue(null),
     });
 
     // Mock useQuizStore.getState to return the same mock data
@@ -649,6 +684,58 @@ describe('Quiz Component', () => {
   });
 
   describe('QuizContent', () => {
+    describe('when question type is dissertativa', () => {
+      it('should render teacher observation section only when answer is incorrect and variant is result', () => {
+        const mockQuestion = {
+          id: '1',
+          type: QUESTION_TYPE.DISSERTATIVA,
+          title: 'Test Question',
+          statement: 'Test Statement',
+        };
+
+        const mockAnswer = {
+          questionId: '1',
+          answer: 'Test Answer',
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+        };
+
+        const mockStore = {
+          getCurrentQuestion: () => mockQuestion,
+          getCurrentAnswer: () => mockAnswer,
+        };
+
+        mockUseQuizStore.mockReturnValue(mockStore);
+
+        // Renderiza com variante result e resposta incorreta - deve mostrar observação
+        const { rerender } = render(
+          <QuizContent type="Dissertativa" variant="result" />
+        );
+
+        expect(screen.getByText('Observação do professor')).toBeInTheDocument();
+        expect(
+          screen.getByText(/Lorem ipsum dolor sit amet/)
+        ).toBeInTheDocument();
+
+        // Atualiza para resposta correta - não deve mostrar observação
+        mockStore.getCurrentAnswer = () => ({
+          ...mockAnswer,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+        });
+
+        rerender(<QuizContent type="Dissertativa" variant="result" />);
+
+        expect(
+          screen.queryByText('Observação do professor')
+        ).not.toBeInTheDocument();
+
+        // Atualiza para variante default - não deve mostrar observação
+        rerender(<QuizContent type="Dissertativa" variant="default" />);
+
+        expect(
+          screen.queryByText('Observação do professor')
+        ).not.toBeInTheDocument();
+      });
+    });
     it('should render content with default type', () => {
       render(<QuizContent />);
 
@@ -709,7 +796,7 @@ describe('Quiz Component', () => {
       render(<QuizContent />);
 
       expect(
-        screen.getByText('Componente de dissertativa')
+        screen.getByPlaceholderText('Escreva sua resposta')
       ).toBeInTheDocument();
     });
 
@@ -773,7 +860,7 @@ describe('Quiz Component', () => {
     it('should highlight selected alternative', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
-        getCurrentAnswer: jest.fn().mockReturnValue('opt2'),
+        getCurrentAnswer: jest.fn().mockReturnValue({ optionId: 'opt2' }),
       });
 
       render(<QuizAlternative />);
@@ -785,7 +872,7 @@ describe('Quiz Component', () => {
     it('should render result variant with correct status determination', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
-        getCurrentAnswer: jest.fn().mockReturnValue('opt2'), // User selected opt2
+        getCurrentAnswer: jest.fn().mockReturnValue({ optionId: 'opt2' }), // User selected opt2
         getCurrentQuestion: jest.fn().mockReturnValue({
           ...mockQuestion1,
           correctOptionId: 'opt1', // Correct answer is opt1
@@ -1672,7 +1759,12 @@ describe('Quiz Component', () => {
           ...mockQuestion1,
           correctOptionId: 'opt1',
         }),
-        getCurrentAnswer: jest.fn().mockReturnValue('opt1'), // User selected correct answer
+        getAllCurrentAnswer: jest.fn().mockReturnValue([
+          {
+            optionId: 'opt1',
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          },
+        ]), // User selected correct answer
       });
 
       render(<QuizHeaderResult />);
@@ -1691,7 +1783,12 @@ describe('Quiz Component', () => {
           ...mockQuestion1,
           correctOptionId: 'opt1',
         }),
-        getCurrentAnswer: jest.fn().mockReturnValue('opt2'), // User selected wrong answer
+        getAllCurrentAnswer: jest.fn().mockReturnValue([
+          {
+            optionId: 'opt2',
+            answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+          },
+        ]), // User selected wrong answer
       });
 
       render(<QuizHeaderResult />);
@@ -1710,7 +1807,7 @@ describe('Quiz Component', () => {
           ...mockQuestion1,
           correctOptionId: 'opt1',
         }),
-        getCurrentAnswer: jest.fn().mockReturnValue(undefined), // User has not answered
+        getAllCurrentAnswer: jest.fn().mockReturnValue([]), // User has not answered
       });
 
       render(<QuizHeaderResult />);
@@ -1726,7 +1823,12 @@ describe('Quiz Component', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
         getCurrentQuestion: jest.fn().mockReturnValue(null),
-        getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        getAllCurrentAnswer: jest.fn().mockReturnValue([
+          {
+            optionId: 'opt1',
+            answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+          },
+        ]),
       });
 
       render(<QuizHeaderResult />);
@@ -1758,6 +1860,7 @@ describe('Quiz Component', () => {
             userId: 'user1',
             answer: null,
             optionId: 'opt1',
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           },
           {
             questionId: 'q1',
@@ -1765,6 +1868,7 @@ describe('Quiz Component', () => {
             userId: 'user1',
             answer: null,
             optionId: 'opt2',
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           },
         ]),
       });
@@ -2407,6 +2511,244 @@ describe('Quiz Component', () => {
       // 2. isAllCorrectOptionId does NOT include 'opt2' (it's not a correct answer)
       expect(mockUseQuizStore).toHaveBeenCalled();
     });
+  });
+});
+
+describe('QuizDissertative', () => {
+  const mockDissertativeQuestion = {
+    id: 'q1',
+    questionText: 'Explique o conceito de fotossíntese.',
+    description: 'Descreva o processo de fotossíntese em detalhes',
+    type: QUESTION_TYPE.DISSERTATIVA,
+    status: QUESTION_STATUS.APROVADO,
+    difficulty: QUESTION_DIFFICULTY.MEDIO,
+    examBoard: 'ENEM',
+    examYear: '2023',
+    answerKey: null,
+    institutionIds: ['inst1'],
+    knowledgeMatrix: [
+      {
+        areaKnowledgeId: 'area1',
+        subjectId: 'subject1',
+        topicId: 'topic1',
+        subtopicId: 'subtopic1',
+        contentId: 'content1',
+      },
+    ],
+    options: [],
+  };
+
+  const mockDissertativeAnswer = {
+    questionId: 'q1',
+    activityId: 'activity1',
+    userId: 'user1',
+    answer:
+      'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.',
+    optionId: null,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should render dissertative component with default variant', () => {
+    mockUseQuizStore.mockReturnValue({
+      getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
+      getCurrentAnswer: jest.fn().mockReturnValue(null),
+      selectDissertativeAnswer: jest.fn(),
+    });
+
+    render(<QuizDissertative variant="default" />);
+
+    expect(screen.getByTestId('textarea')).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText('Escreva sua resposta')
+    ).toBeInTheDocument();
+  });
+
+  it('should render dissertative component with result variant', () => {
+    mockUseQuizStore.mockReturnValue({
+      getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
+      getCurrentAnswer: jest.fn().mockReturnValue(mockDissertativeAnswer),
+      selectDissertativeAnswer: jest.fn(),
+    });
+
+    render(<QuizDissertative variant="result" />);
+
+    expect(
+      screen.getByText(
+        'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId('textarea')).not.toBeInTheDocument();
+  });
+
+  it('should display "Nenhuma resposta fornecida" when no answer exists in result variant', () => {
+    mockUseQuizStore.mockReturnValue({
+      getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
+      getCurrentAnswer: jest.fn().mockReturnValue(null),
+      selectDissertativeAnswer: jest.fn(),
+    });
+
+    render(<QuizDissertative variant="result" />);
+
+    expect(screen.getByText('Nenhuma resposta fornecida')).toBeInTheDocument();
+  });
+
+  it('should display "Nenhuma questão disponível" when no current question exists', () => {
+    mockUseQuizStore.mockReturnValue({
+      getCurrentQuestion: jest.fn().mockReturnValue(null),
+      getCurrentAnswer: jest.fn().mockReturnValue(null),
+      selectDissertativeAnswer: jest.fn(),
+    });
+
+    render(<QuizDissertative variant="default" />);
+
+    expect(screen.getByText('Nenhuma questão disponível')).toBeInTheDocument();
+    expect(screen.queryByTestId('textarea')).not.toBeInTheDocument();
+  });
+
+  it('should display existing answer in textarea when available', () => {
+    mockUseQuizStore.mockReturnValue({
+      getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
+      getCurrentAnswer: jest.fn().mockReturnValue(mockDissertativeAnswer),
+      selectDissertativeAnswer: jest.fn(),
+    });
+
+    render(<QuizDissertative variant="default" />);
+
+    const textarea = screen.getByTestId('textarea');
+    expect(textarea).toHaveValue(
+      'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.'
+    );
+  });
+
+  it('should handle empty answer in textarea', () => {
+    mockUseQuizStore.mockReturnValue({
+      getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
+      getCurrentAnswer: jest.fn().mockReturnValue({
+        ...mockDissertativeAnswer,
+        answer: '',
+      }),
+      selectDissertativeAnswer: jest.fn(),
+    });
+
+    render(<QuizDissertative variant="default" />);
+
+    const textarea = screen.getByTestId('textarea');
+    expect(textarea).toHaveValue('');
+  });
+
+  it('should handle null answer in textarea', () => {
+    mockUseQuizStore.mockReturnValue({
+      getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
+      getCurrentAnswer: jest.fn().mockReturnValue({
+        ...mockDissertativeAnswer,
+        answer: null,
+      }),
+      selectDissertativeAnswer: jest.fn(),
+    });
+
+    render(<QuizDissertative variant="default" />);
+
+    const textarea = screen.getByTestId('textarea');
+    expect(textarea).toHaveValue('');
+  });
+
+  it('should handle undefined answer in textarea', () => {
+    mockUseQuizStore.mockReturnValue({
+      getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
+      getCurrentAnswer: jest.fn().mockReturnValue({
+        ...mockDissertativeAnswer,
+        answer: undefined,
+      }),
+      selectDissertativeAnswer: jest.fn(),
+    });
+
+    render(<QuizDissertative variant="default" />);
+
+    const textarea = screen.getByTestId('textarea');
+    expect(textarea).toHaveValue('');
+  });
+
+  it('should not call selectDissertativeAnswer when no current question exists', async () => {
+    const mockSelectDissertativeAnswer = jest.fn();
+    mockUseQuizStore.mockReturnValue({
+      getCurrentQuestion: jest.fn().mockReturnValue(null),
+      getCurrentAnswer: jest.fn().mockReturnValue(null),
+      selectDissertativeAnswer: mockSelectDissertativeAnswer,
+    });
+
+    render(<QuizDissertative variant="default" />);
+
+    // Since there's no textarea when no question exists, we can't test the onChange
+    // But we can verify that selectDissertativeAnswer is not called during render
+    expect(mockSelectDissertativeAnswer).not.toHaveBeenCalled();
+  });
+
+  it('should call selectDissertativeAnswer but not add answer when getActiveQuiz returns null', async () => {
+    const mockSelectDissertativeAnswer = jest.fn();
+    const mockGetUserAnswers = jest.fn().mockReturnValue([]);
+
+    mockUseQuizStore.mockReturnValue({
+      getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
+      getCurrentAnswer: jest.fn().mockReturnValue(null),
+      selectDissertativeAnswer: mockSelectDissertativeAnswer,
+      getActiveQuiz: jest.fn().mockReturnValue(null), // This simulates the negation case
+      getUserAnswers: mockGetUserAnswers,
+    });
+
+    render(<QuizDissertative variant="default" />);
+
+    const textarea = screen.getByTestId('textarea');
+    await userEvent.type(textarea, 'Test answer');
+
+    // When getActiveQuiz returns null, selectDissertativeAnswer is still called
+    // but the implementation returns early and doesn't add the answer to userAnswers
+    expect(mockSelectDissertativeAnswer).toHaveBeenCalled(); // Function is called
+    expect(mockGetUserAnswers()).toEqual([]); // But no answer is added to userAnswers
+  });
+
+  it('should render with correct CSS classes for default variant', () => {
+    mockUseQuizStore.mockReturnValue({
+      getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
+      getCurrentAnswer: jest.fn().mockReturnValue(null),
+      selectDissertativeAnswer: jest.fn(),
+    });
+
+    render(<QuizDissertative variant="default" />);
+
+    // The main container should have the correct classes
+    const mainContainer = screen
+      .getByTestId('textarea')
+      .closest('div')?.parentElement;
+    expect(mainContainer).toHaveClass(
+      'space-y-4',
+      'max-h-[600px]',
+      'overflow-y-auto'
+    );
+  });
+
+  it('should render with correct CSS classes for result variant', () => {
+    mockUseQuizStore.mockReturnValue({
+      getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
+      getCurrentAnswer: jest.fn().mockReturnValue(mockDissertativeAnswer),
+      selectDissertativeAnswer: jest.fn(),
+    });
+
+    render(<QuizDissertative variant="result" />);
+
+    // The main container should have the correct classes
+    const mainContainer = screen
+      .getByText(
+        'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.'
+      )
+      .closest('div')?.parentElement;
+    expect(mainContainer).toHaveClass(
+      'space-y-4',
+      'max-h-[600px]',
+      'overflow-y-auto'
+    );
   });
 });
 

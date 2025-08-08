@@ -27,6 +27,7 @@ import {
   useQuizStore,
   QUESTION_DIFFICULTY,
   QUESTION_TYPE,
+  ANSWER_STATUS,
 } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
@@ -42,6 +43,7 @@ import ProgressCircle from '../ProgressCircle/ProgressCircle';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { cn } from '../../utils/utils';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
+import TextArea from '../TextArea/TextArea';
 
 const Quiz = forwardRef<
   HTMLDivElement,
@@ -63,41 +65,24 @@ const Quiz = forwardRef<
 
 const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
   ({ className, ...props }, ref) => {
-    const { getCurrentQuestion, getCurrentAnswer, getAllCurrentAnswer } =
-      useQuizStore();
-    const currentQuestion = getCurrentQuestion();
-    const userAnswer = getCurrentAnswer();
+    const { getAllCurrentAnswer } = useQuizStore();
+    const usersAnswer = getAllCurrentAnswer();
     const [isCorrect, setIsCorrect] = useState(false);
 
     useEffect(() => {
-      if (currentQuestion?.type === QUESTION_TYPE.MULTIPLA_CHOICE) {
-        const allCurrentAnswers = getAllCurrentAnswer();
-        const isCorrectOption = currentQuestion.options.filter(
-          (op) => op.isCorrect
-        );
-
-        if (allCurrentAnswers?.length !== isCorrectOption.length) {
-          setIsCorrect(false);
-          return;
-        }
-
-        setIsCorrect(true);
-
-        allCurrentAnswers.forEach((answer) => {
-          const findInCorrectOptions = isCorrectOption.find(
-            (op) => op.id === answer.optionId
-          );
-          if (!findInCorrectOptions) {
-            setIsCorrect(false);
-          }
-        });
-      } else {
+      if (usersAnswer) {
         setIsCorrect(
-          currentQuestion?.options.find((op) => op.id === userAnswer)
-            ?.isCorrect || false
+          usersAnswer.length > 0
+            ? usersAnswer
+                .map(
+                  (answer) =>
+                    answer.answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA
+                )
+                .every(Boolean)
+            : false
         );
       }
-    }, [currentQuestion, getAllCurrentAnswer]);
+    }, [usersAnswer]);
 
     return (
       <div
@@ -181,8 +166,9 @@ const QuizContent = forwardRef<
     className?: string;
   }
 >(({ type = 'Alternativas', className, variant, ...props }, ref) => {
-  const { getCurrentQuestion } = useQuizStore();
+  const { getCurrentQuestion, getCurrentAnswer } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
+  const currentAnswer = getCurrentAnswer();
 
   return (
     <>
@@ -193,7 +179,7 @@ const QuizContent = forwardRef<
       <div
         ref={ref}
         className={cn(
-          'rounded-t-xl px-4 pt-4 pb-[80px] h-full flex flex-col gap-4 mb-auto',
+          'bg-background rounded-t-xl px-4 pt-4 pb-[80px] h-full flex flex-col gap-4 mb-auto',
           className
         )}
         {...props}
@@ -207,11 +193,73 @@ const QuizContent = forwardRef<
               <QuizMultipleChoice variant={variant} />
             )}
             {currentQuestion.type === QUESTION_TYPE.DISSERTATIVA && (
-              <div>Componente de dissertativa</div>
+              <QuizDissertative variant={variant} />
             )}
           </>
         )}
       </div>
+
+      {currentQuestion?.type === QUESTION_TYPE.DISSERTATIVA &&
+        variant === 'result' &&
+        currentAnswer?.answerStatus == ANSWER_STATUS.RESPOSTA_INCORRETA && (
+          <>
+            <div className="px-4 pb-2 pt-6">
+              <p className="font-bold text-lg text-text-950">
+                Observação do professor
+              </p>
+            </div>
+
+            <div
+              ref={ref}
+              className={cn(
+                'bg-background rounded-t-xl px-4 pt-4 pb-[80px] h-full flex flex-col gap-4 mb-auto',
+                className
+              )}
+              {...props}
+            >
+              <p className="text-text-600 text-md whitespace-pre-wrap">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+                euismod, urna eu tincidunt consectetur, nisi nisl aliquam nunc,
+                eget aliquam massa nisl quis neque. Pellentesque habitant morbi
+                tristique senectus et netus et malesuada fames ac turpis
+                egestas. Vestibulum ante ipsum primis in faucibus orci luctus et
+                ultrices posuere cubilia curae; Integer euismod, urna eu
+                tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam
+                massa nisl quis neque. Pellentesque habitant morbi tristique
+                senectus et netus et malesuada fames ac turpis egestas.
+                Suspendisse potenti. Nullam ac urna eu felis dapibus condimentum
+                sit amet a augue. Sed non neque elit. Sed ut imperdiet nisi.
+                Proin condimentum fermentum nunc. Etiam pharetra, erat sed
+                fermentum feugiat, velit mauris egestas quam, ut aliquam massa
+                nisl quis neque. Suspendisse in orci enim. Mauris euismod, urna
+                eu tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam
+                massa nisl quis neque. Pellentesque habitant morbi tristique
+                senectus et netus et malesuada fames ac turpis egestas.
+                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
+                posuere cubilia curae; Integer euismod, urna eu tincidunt
+                consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl
+                quis neque. Pellentesque habitant morbi tristique senectus et
+                netus et malesuada fames ac turpis egestas. Suspendisse potenti.
+                Nullam ac urna eu felis dapibus condimentum sit amet a augue.
+                Sed non neque elit. Sed ut imperdiet nisi. Proin condimentum
+                fermentum nunc. Etiam pharetra, erat sed fermentum feugiat,
+                velit mauris egestas quam, ut aliquam massa nisl quis neque.
+                Suspendisse in orci enim. Pellentesque habitant morbi tristique
+                senectus et netus et malesuada fames ac turpis egestas.
+                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
+                posuere cubilia curae; Integer euismod, urna eu tincidunt
+                consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl
+                quis neque. Pellentesque habitant morbi tristique senectus et
+                netus et malesuada fames ac turpis egestas. Suspendisse potenti.
+                Nullam ac urna eu felis dapibus condimentum sit amet a augue.
+                Sed non neque elit. Sed ut imperdiet nisi. Proin condimentum
+                fermentum nunc. Etiam pharetra, erat sed fermentum feugiat,
+                velit mauris egestas quam, ut aliquam massa nisl quis neque.
+                Suspendisse in orci enim.
+              </p>
+            </div>
+          </>
+        )}
     </>
   );
 });
@@ -237,10 +285,11 @@ const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
       const isCorrectOption = currentQuestion.options.find(
         (op) => op.isCorrect
       );
+
       if (isCorrectOption?.id === option.id) {
         status = Status.CORRECT;
       } else if (
-        currentAnswer === option.id &&
+        currentAnswer?.optionId === option.id &&
         option.id !== isCorrectOption?.id
       ) {
         status = Status.INCORRECT;
@@ -269,8 +318,8 @@ const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
         name={`question-${currentQuestion?.id || '1'}`}
         layout="compact"
         alternatives={alternatives}
-        value={currentAnswer}
-        selectedValue={currentAnswer}
+        value={currentAnswer?.optionId || ''}
+        selectedValue={currentAnswer?.optionId || ''}
         onValueChange={(value) => {
           if (currentQuestion) {
             selectAnswer(currentQuestion.id, value);
@@ -391,6 +440,74 @@ const QuizMultipleChoice = ({
   );
 };
 
+interface QuizDissertativeInterface {
+  variant?: 'result' | 'default';
+}
+
+const QuizDissertative = ({
+  variant = 'default',
+}: QuizDissertativeInterface) => {
+  const { getCurrentQuestion, getCurrentAnswer, selectDissertativeAnswer } =
+    useQuizStore();
+
+  const currentQuestion = getCurrentQuestion();
+  const currentAnswer = getCurrentAnswer();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleAnswerChange = (value: string) => {
+    if (currentQuestion) {
+      selectDissertativeAnswer(currentQuestion.id, value);
+    }
+  };
+
+  // Auto-resize function
+  const adjustTextareaHeight = useCallback(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      const scrollHeight = textareaRef.current.scrollHeight;
+      const minHeight = 120; // 120px minimum height
+      const maxHeight = 400; // 400px maximum height
+      const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
+      textareaRef.current.style.height = `${newHeight}px`;
+    }
+  }, []);
+
+  // Adjust height when currentAnswer changes
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [currentAnswer, adjustTextareaHeight]);
+
+  if (!currentQuestion) {
+    return (
+      <div className="space-y-4">
+        <p className="text-text-600 text-md">Nenhuma questão disponível</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 max-h-[600px] overflow-y-auto">
+      {variant === 'default' ? (
+        <div className="space-y-4">
+          <TextArea
+            ref={textareaRef}
+            placeholder="Escreva sua resposta"
+            value={currentAnswer?.answer || ''}
+            onChange={(e) => handleAnswerChange(e.target.value)}
+            rows={4}
+            className="min-h-[120px] max-h-[400px] resize-none overflow-y-auto"
+          />
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <p className="text-text-600 text-md whitespace-pre-wrap">
+            {currentAnswer?.answer || 'Nenhuma resposta fornecida'}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
 const QuizQuestionList = ({
   filterType = 'all',
   onQuestionClick,
@@ -1052,4 +1169,5 @@ export {
   QuizResultPerformance,
   QuizListResultByMateria,
   QuizMultipleChoice,
+  QuizDissertative,
 };
