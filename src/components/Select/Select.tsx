@@ -18,9 +18,9 @@ import { CaretDown, Check, WarningCircle } from 'phosphor-react';
 import { cn } from '../../utils/utils';
 
 const VARIANT_CLASSES = {
-  outlined: 'border rounded-lg focus:border-primary-950',
-  underlined: 'border-b focus:border-primary-950',
-  rounded: 'border rounded-full focus:border-primary-950',
+  outlined: 'border-2 rounded-lg focus:border-primary-950',
+  underlined: 'border-b-2 focus:border-primary-950',
+  rounded: 'border-2 rounded-full focus:border-primary-950',
 } as const;
 
 const SIZE_CLASSES = {
@@ -104,6 +104,7 @@ export function getLabelAsNode(children: ReactNode): ReactNode {
 }
 
 interface SelectProps {
+  className?: string;
   children: ReactNode;
   defaultValue?: string;
   value?: string;
@@ -163,6 +164,7 @@ const injectStore = (
 const Select = ({
   children,
   defaultValue = '',
+  className,
   value: propValue,
   onValueChange,
   size = 'small',
@@ -274,7 +276,7 @@ const Select = ({
   const sizeClasses = SIZE_CLASSES[size];
 
   return (
-    <div className="w-full">
+    <div className={cn("w-auto", className)}>
       {/* Label */}
       {label && (
         <label
@@ -286,19 +288,21 @@ const Select = ({
       )}
 
       {/* Select Container */}
-      <div className={cn('relative', sizeClasses)} ref={selectRef}>
+      <div className={cn('relative')} ref={selectRef}>
         {injectStore(children, store, size, selectId)}
       </div>
 
       {/* Helper Text or Error Message */}
-      <div className="mt-1.5 gap-1.5">
-        {helperText && <p className="text-sm text-text-500">{helperText}</p>}
-        {errorMessage && (
-          <p className="flex gap-1 items-center text-sm text-indicator-error">
-            <WarningCircle size={16} /> {errorMessage}
-          </p>
-        )}
-      </div>
+      {(helperText || errorMessage) && (
+        <div className="mt-1.5 gap-1.5">
+          {helperText && <p className="text-sm text-text-500">{helperText}</p>}
+          {errorMessage && (
+            <p className="flex gap-1 items-center text-sm text-indicator-error">
+              <WarningCircle size={16} /> {errorMessage}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -356,19 +360,29 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
       <button
         ref={ref}
         id={selectId}
-        className={`
-        flex min-w-[220px] w-full items-center justify-between border-border-300
-        ${heightClasses} ${paddingClasses}
-        ${invalid && `${variant == 'underlined' ? 'border-b-2' : 'border-2'} border-indicator-error text-text-600`}
-        ${
-          disabled
-            ? 'cursor-not-allowed text-text-400 pointer-events-none opacity-50'
-            : 'cursor-pointer hover:bg-background-50 focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground'
-        }
-        ${!invalid && !disabled ? 'text-text-700' : ''}
-        ${variantClasses}
-        ${className}
-      `}
+        className={cn(
+          'flex w-full items-center justify-between border-border-300',
+          heightClasses,
+          paddingClasses,
+          invalid && `${variant == 'underlined' ? 'border-b-2' : 'border-2'} border-indicator-error text-text-600`,
+          disabled ? 'cursor-not-allowed text-text-400 pointer-events-none opacity-50' : 'cursor-pointer hover:bg-background-50 focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground',
+          (!invalid && !disabled) ? 'text-text-700' : '',
+          variantClasses,
+          className
+        )}
+        //   className={`
+      //   flex min-w-[220px] w-full items-center justify-between border-border-300
+      //   ${heightClasses} ${paddingClasses}
+      //   ${invalid && `${variant == 'underlined' ? 'border-b-2' : 'border-2'} border-indicator-error text-text-600`}
+      //   ${
+      //     disabled
+      //       ? 'cursor-not-allowed text-text-400 pointer-events-none opacity-50'
+      //       : 'cursor-pointer hover:bg-background-50 focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground'
+      //   }
+      //   ${!invalid && !disabled ? 'text-text-700' : ''}
+      //   ${variantClasses}
+      //   ${className}
+      // `}
         onClick={toggleOpen}
         aria-expanded={open}
         aria-haspopup="listbox"
