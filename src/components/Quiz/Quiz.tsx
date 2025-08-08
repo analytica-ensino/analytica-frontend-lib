@@ -166,8 +166,9 @@ const QuizContent = forwardRef<
     className?: string;
   }
 >(({ type = 'Alternativas', className, variant, ...props }, ref) => {
-  const { getCurrentQuestion } = useQuizStore();
+  const { getCurrentQuestion, getCurrentAnswer } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
+  const currentAnswer = getCurrentAnswer();
 
   return (
     <>
@@ -178,7 +179,7 @@ const QuizContent = forwardRef<
       <div
         ref={ref}
         className={cn(
-          'rounded-t-xl px-4 pt-4 pb-[80px] h-full flex flex-col gap-4 mb-auto',
+          'bg-background rounded-t-xl px-4 pt-4 pb-[80px] h-full flex flex-col gap-4 mb-auto',
           className
         )}
         {...props}
@@ -197,6 +198,68 @@ const QuizContent = forwardRef<
           </>
         )}
       </div>
+
+      {currentQuestion?.type === QUESTION_TYPE.DISSERTATIVA &&
+        variant === 'result' &&
+        currentAnswer?.answerStatus == ANSWER_STATUS.RESPOSTA_INCORRETA && (
+          <>
+            <div className="px-4 pb-2 pt-6">
+              <p className="font-bold text-lg text-text-950">
+                Observação do professor
+              </p>
+            </div>
+
+            <div
+              ref={ref}
+              className={cn(
+                'bg-background rounded-t-xl px-4 pt-4 pb-[80px] h-full flex flex-col gap-4 mb-auto',
+                className
+              )}
+              {...props}
+            >
+              <p className="text-text-600 text-md whitespace-pre-wrap">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+                euismod, urna eu tincidunt consectetur, nisi nisl aliquam nunc,
+                eget aliquam massa nisl quis neque. Pellentesque habitant morbi
+                tristique senectus et netus et malesuada fames ac turpis
+                egestas. Vestibulum ante ipsum primis in faucibus orci luctus et
+                ultrices posuere cubilia curae; Integer euismod, urna eu
+                tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam
+                massa nisl quis neque. Pellentesque habitant morbi tristique
+                senectus et netus et malesuada fames ac turpis egestas.
+                Suspendisse potenti. Nullam ac urna eu felis dapibus condimentum
+                sit amet a augue. Sed non neque elit. Sed ut imperdiet nisi.
+                Proin condimentum fermentum nunc. Etiam pharetra, erat sed
+                fermentum feugiat, velit mauris egestas quam, ut aliquam massa
+                nisl quis neque. Suspendisse in orci enim. Mauris euismod, urna
+                eu tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam
+                massa nisl quis neque. Pellentesque habitant morbi tristique
+                senectus et netus et malesuada fames ac turpis egestas.
+                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
+                posuere cubilia curae; Integer euismod, urna eu tincidunt
+                consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl
+                quis neque. Pellentesque habitant morbi tristique senectus et
+                netus et malesuada fames ac turpis egestas. Suspendisse potenti.
+                Nullam ac urna eu felis dapibus condimentum sit amet a augue.
+                Sed non neque elit. Sed ut imperdiet nisi. Proin condimentum
+                fermentum nunc. Etiam pharetra, erat sed fermentum feugiat,
+                velit mauris egestas quam, ut aliquam massa nisl quis neque.
+                Suspendisse in orci enim. Pellentesque habitant morbi tristique
+                senectus et netus et malesuada fames ac turpis egestas.
+                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
+                posuere cubilia curae; Integer euismod, urna eu tincidunt
+                consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl
+                quis neque. Pellentesque habitant morbi tristique senectus et
+                netus et malesuada fames ac turpis egestas. Suspendisse potenti.
+                Nullam ac urna eu felis dapibus condimentum sit amet a augue.
+                Sed non neque elit. Sed ut imperdiet nisi. Proin condimentum
+                fermentum nunc. Etiam pharetra, erat sed fermentum feugiat,
+                velit mauris egestas quam, ut aliquam massa nisl quis neque.
+                Suspendisse in orci enim.
+              </p>
+            </div>
+          </>
+        )}
     </>
   );
 });

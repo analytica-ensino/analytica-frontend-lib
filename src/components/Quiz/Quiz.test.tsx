@@ -684,6 +684,58 @@ describe('Quiz Component', () => {
   });
 
   describe('QuizContent', () => {
+    describe('when question type is dissertativa', () => {
+      it('should render teacher observation section only when answer is incorrect and variant is result', () => {
+        const mockQuestion = {
+          id: '1',
+          type: QUESTION_TYPE.DISSERTATIVA,
+          title: 'Test Question',
+          statement: 'Test Statement',
+        };
+
+        const mockAnswer = {
+          questionId: '1',
+          answer: 'Test Answer',
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+        };
+
+        const mockStore = {
+          getCurrentQuestion: () => mockQuestion,
+          getCurrentAnswer: () => mockAnswer,
+        };
+
+        mockUseQuizStore.mockReturnValue(mockStore);
+
+        // Renderiza com variante result e resposta incorreta - deve mostrar observação
+        const { rerender } = render(
+          <QuizContent type="Dissertativa" variant="result" />
+        );
+
+        expect(screen.getByText('Observação do professor')).toBeInTheDocument();
+        expect(
+          screen.getByText(/Lorem ipsum dolor sit amet/)
+        ).toBeInTheDocument();
+
+        // Atualiza para resposta correta - não deve mostrar observação
+        mockStore.getCurrentAnswer = () => ({
+          ...mockAnswer,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+        });
+
+        rerender(<QuizContent type="Dissertativa" variant="result" />);
+
+        expect(
+          screen.queryByText('Observação do professor')
+        ).not.toBeInTheDocument();
+
+        // Atualiza para variante default - não deve mostrar observação
+        rerender(<QuizContent type="Dissertativa" variant="default" />);
+
+        expect(
+          screen.queryByText('Observação do professor')
+        ).not.toBeInTheDocument();
+      });
+    });
     it('should render content with default type', () => {
       render(<QuizContent />);
 
