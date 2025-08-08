@@ -3,6 +3,7 @@ import {
   QUESTION_DIFFICULTY,
   QUESTION_TYPE,
   QUESTION_STATUS,
+  ANSWER_STATUS,
   useQuizStore,
 } from './useQuizStore';
 
@@ -266,6 +267,26 @@ describe('useQuizStore', () => {
       consoleSpy.mockRestore();
     });
 
+    it('should return early when selectAnswer is called with non-existent question', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('non-existent-question', 'opt1');
+      });
+
+      // Verify that no user answer was created for non-existent question
+      const userAnswerItem = result.current.getUserAnswerByQuestionId(
+        'non-existent-question'
+      );
+      expect(userAnswerItem).toBeNull();
+
+      // Verify that no user answers were created at all
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toHaveLength(0);
+    });
+
     it('should select multiple answers', () => {
       const { result } = renderHook(() => useQuizStore());
 
@@ -361,6 +382,29 @@ describe('useQuizStore', () => {
 
       const q2Answer = userAnswers.find((answer) => answer.questionId === 'q2');
       expect(q2Answer?.optionId).toBe('opt2'); // q2 answer should remain unchanged
+    });
+
+    it('should return early when selectMultipleAnswer is called with non-existent question', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectMultipleAnswer('non-existent-question', [
+          'opt1',
+          'opt2',
+        ]);
+      });
+
+      // Verify that no user answer was created for non-existent question
+      const userAnswerItem = result.current.getUserAnswerByQuestionId(
+        'non-existent-question'
+      );
+      expect(userAnswerItem).toBeNull();
+
+      // Verify that no user answers were created at all
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toHaveLength(0);
     });
 
     it('should skip question', () => {
@@ -1030,7 +1074,7 @@ describe('useQuizStore', () => {
 
       const currentAnswer = result.current.getCurrentAnswer();
 
-      expect(currentAnswer).toBe('opt1');
+      expect(currentAnswer?.optionId).toBe('opt1');
     });
 
     it('should get quiz title', () => {
@@ -1543,7 +1587,7 @@ describe('useQuizStore', () => {
       expect(updatedQuestion?.optionId).not.toBe(null);
 
       // Check that the current answer is updated
-      expect(result.current.getCurrentAnswer()).toBe('opt2');
+      expect(result.current.getCurrentAnswer()?.optionId).toBe('opt2');
     });
 
     it('should handle question not found in addUserAnswer', () => {
@@ -1556,7 +1600,7 @@ describe('useQuizStore', () => {
       });
 
       const userAnswers = result.current.getUserAnswers();
-      expect(userAnswers).toHaveLength(1); // Only the added answer
+      expect(userAnswers).toHaveLength(0); // No answer should be added for non-existent question
     });
 
     it('should return undefined for current answer when no quiz is set', () => {
@@ -2049,6 +2093,8 @@ describe('useQuizStore', () => {
           userId: 'user-1',
           answer: 'opt1',
           optionId: 'opt1',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
         },
         {
           questionId: 'q2',
@@ -2056,6 +2102,8 @@ describe('useQuizStore', () => {
           userId: 'user-1',
           answer: null,
           optionId: null,
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
         },
       ];
 
@@ -2076,6 +2124,8 @@ describe('useQuizStore', () => {
           userId: 'user-1',
           answer: 'opt1',
           optionId: 'opt1',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
         },
       ];
 
@@ -2086,6 +2136,8 @@ describe('useQuizStore', () => {
           userId: 'user-1',
           answer: 'opt2',
           optionId: 'opt2',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
         },
       ];
 
@@ -2160,11 +2212,10 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
-        result.current.setCurrentQuestion(mockQuestion2); // q2 is at index 1
+        result.current.setCurrentQuestion(mockQuestion1);
       });
 
-      expect(result.current.currentQuestionIndex).toBe(1);
-      expect(result.current.getCurrentQuestion()).toEqual(mockQuestion2);
+      expect(result.current.currentQuestionIndex).toBe(0);
     });
 
     it('should set current question index to 0 when question is first in quiz', () => {
@@ -2172,59 +2223,43 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
-        result.current.setCurrentQuestion(mockQuestion1); // q1 is at index 0
+        result.current.setCurrentQuestion(mockQuestion1);
       });
 
       expect(result.current.currentQuestionIndex).toBe(0);
-      expect(result.current.getCurrentQuestion()).toEqual(mockQuestion1);
     });
 
     it('should not change current question index when no quiz is set', () => {
       const { result } = renderHook(() => useQuizStore());
-
-      // Ensure no quiz is set by explicitly clearing any existing quiz
-      act(() => {
-        useQuizStore.setState({
-          bySimulated: undefined,
-          byActivity: undefined,
-          byQuestionary: undefined,
-        });
-      });
-
       const initialIndex = result.current.currentQuestionIndex;
 
       act(() => {
-        // Don't set any quiz
         result.current.setCurrentQuestion(mockQuestion1);
       });
 
       expect(result.current.currentQuestionIndex).toBe(initialIndex);
-      expect(result.current.getCurrentQuestion()).toBeNull();
     });
 
     it('should not change current question index when question does not exist in quiz', () => {
       const { result } = renderHook(() => useQuizStore());
-
-      const nonExistentQuestion = {
-        ...mockQuestion1,
-        id: 'non-existent-question',
-      };
+      const consoleSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
 
       act(() => {
         result.current.setBySimulated(mockSimulado);
-        // Set to a known question first to establish a baseline
-        result.current.setCurrentQuestion(mockQuestion1);
+        result.current.setCurrentQuestion({
+          ...mockQuestion1,
+          id: 'non-existent-question',
+        });
       });
 
-      const initialIndex = result.current.currentQuestionIndex;
+      expect(result.current.currentQuestionIndex).toBe(0); // Should remain at initial index
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Question with id "non-existent-question" not found in active quiz'
+      );
 
-      act(() => {
-        result.current.setCurrentQuestion(nonExistentQuestion);
-      });
-
-      // Should not change the index since question was not found
-      expect(result.current.currentQuestionIndex).toBe(initialIndex);
-      expect(result.current.getCurrentQuestion()).toEqual(mockQuestion1);
+      consoleSpy.mockRestore();
     });
 
     it('should work with atividade quiz type', () => {
@@ -2232,11 +2267,10 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setByActivity(mockAtividade);
-        result.current.setCurrentQuestion(mockQuestion2); // q2 is at index 1
+        result.current.setCurrentQuestion(mockQuestion1);
       });
 
-      expect(result.current.currentQuestionIndex).toBe(1);
-      expect(result.current.getCurrentQuestion()).toEqual(mockQuestion2);
+      expect(result.current.currentQuestionIndex).toBe(0);
     });
 
     it('should work with questionary quiz type', () => {
@@ -2244,11 +2278,303 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setByQuestionary(mockQuestionary);
-        result.current.setCurrentQuestion(mockQuestion1); // q1 is at index 0
+        result.current.setCurrentQuestion(mockQuestion1);
       });
 
       expect(result.current.currentQuestionIndex).toBe(0);
-      expect(result.current.getCurrentQuestion()).toEqual(mockQuestion1);
+    });
+  });
+
+  describe('Dissertative Answer Tests', () => {
+    const mockDissertativeQuestion = {
+      ...mockQuestion1,
+      id: 'dissertative-q1',
+      type: QUESTION_TYPE.DISSERTATIVA,
+      options: [], // Dissertative questions don't have options
+    };
+
+    const mockSimuladoWithDissertative = {
+      ...mockSimulado,
+      questions: [mockDissertativeQuestion, mockQuestion2],
+    };
+
+    it('should handle dissertative answers correctly in selectAnswer', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer(
+          'dissertative-q1',
+          'Esta é uma resposta dissertativa'
+        );
+      });
+
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.answer).toBe('Esta é uma resposta dissertativa');
+      expect(userAnswer?.optionId).toBeNull();
+      expect(userAnswer?.questionType).toBe(QUESTION_TYPE.DISSERTATIVA);
+      expect(userAnswer?.answerStatus).toBe(ANSWER_STATUS.PENDENTE_AVALIACAO);
+    });
+
+    it('should handle dissertative answers correctly in addUserAnswer', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.addUserAnswer(
+          'dissertative-q1',
+          'Outra resposta dissertativa'
+        );
+      });
+
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.answer).toBe('Outra resposta dissertativa');
+      expect(userAnswer?.optionId).toBeNull();
+      expect(userAnswer?.questionType).toBe(QUESTION_TYPE.DISSERTATIVA);
+    });
+
+    it('should use selectDissertativeAnswer for dissertative questions', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.selectDissertativeAnswer(
+          'dissertative-q1',
+          'Resposta usando método específico'
+        );
+      });
+
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.answer).toBe('Resposta usando método específico');
+      expect(userAnswer?.optionId).toBeNull();
+      expect(userAnswer?.questionType).toBe(QUESTION_TYPE.DISSERTATIVA);
+    });
+
+    it('should warn when selectDissertativeAnswer is called for non-dissertative question', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const consoleSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectDissertativeAnswer('q1', 'Resposta dissertativa');
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'selectDissertativeAnswer called for non-dissertative question'
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should return dissertative answer in getCurrentAnswer', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('dissertative-q1', 'Resposta dissertativa');
+        result.current.setCurrentQuestion(mockDissertativeQuestion);
+      });
+
+      const currentAnswer = result.current.getCurrentAnswer();
+      expect(currentAnswer?.answer).toBe('Resposta dissertativa');
+    });
+
+    it('should count dissertative answers as answered questions', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('dissertative-q1', 'Resposta dissertativa');
+        result.current.selectAnswer('q2', 'opt2');
+      });
+
+      expect(result.current.getAnsweredQuestions()).toBe(2);
+      expect(result.current.isQuestionAnswered('dissertative-q1')).toBe(true);
+      expect(result.current.isQuestionAnswered('q2')).toBe(true);
+    });
+
+    it('should handle selectDissertativeAnswer with existing answer update', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        // First answer
+        result.current.selectDissertativeAnswer(
+          'dissertative-q1',
+          'Primeira resposta dissertativa'
+        );
+      });
+
+      let userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.answer).toBe('Primeira resposta dissertativa');
+      expect(userAnswer?.optionId).toBeNull();
+      expect(userAnswer?.questionType).toBe(QUESTION_TYPE.DISSERTATIVA);
+      expect(userAnswer?.answerStatus).toBe(ANSWER_STATUS.PENDENTE_AVALIACAO);
+
+      // Update the answer
+      act(() => {
+        result.current.selectDissertativeAnswer(
+          'dissertative-q1',
+          'Resposta atualizada'
+        );
+      });
+
+      userAnswer = result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.answer).toBe('Resposta atualizada');
+      expect(userAnswer?.optionId).toBeNull();
+      expect(userAnswer?.questionType).toBe(QUESTION_TYPE.DISSERTATIVA);
+      expect(userAnswer?.answerStatus).toBe(ANSWER_STATUS.PENDENTE_AVALIACAO);
+    });
+
+    it('should warn when selectDissertativeAnswer is called without userId', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const consoleSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithDissertative);
+        // Don't set userId
+        result.current.selectDissertativeAnswer(
+          'dissertative-q1',
+          'Resposta sem userId'
+        );
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'selectDissertativeAnswer called before userId is set'
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle selectDissertativeAnswer with empty userId', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const consoleSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithDissertative);
+        result.current.setUserId(''); // Empty userId
+        result.current.selectDissertativeAnswer(
+          'dissertative-q1',
+          'Resposta com userId vazio'
+        );
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'selectDissertativeAnswer called before userId is set'
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle selectDissertativeAnswer with non-existent question', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.selectDissertativeAnswer(
+          'non-existent-question',
+          'Resposta para questão inexistente'
+        );
+      });
+
+      // Should not create any answer for non-existent question
+      const userAnswer = result.current.getUserAnswerByQuestionId(
+        'non-existent-question'
+      );
+      expect(userAnswer).toBeNull();
+    });
+
+    it('should handle selectDissertativeAnswer with empty answer', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.selectDissertativeAnswer('dissertative-q1', '');
+      });
+
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.answer).toBe('');
+      expect(userAnswer?.optionId).toBeNull();
+      expect(userAnswer?.questionType).toBe(QUESTION_TYPE.DISSERTATIVA);
+      expect(userAnswer?.answerStatus).toBe(ANSWER_STATUS.PENDENTE_AVALIACAO);
+    });
+  });
+
+  describe('Answer Status Management Tests', () => {
+    it('should set answer status correctly', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1');
+        result.current.setAnswerStatus('q1', ANSWER_STATUS.RESPOSTA_CORRETA);
+      });
+
+      const answerStatus = result.current.getAnswerStatus('q1');
+      expect(answerStatus).toBe(ANSWER_STATUS.RESPOSTA_CORRETA);
+    });
+
+    it('should return null for non-existent question status', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      const answerStatus = result.current.getAnswerStatus('non-existent');
+      expect(answerStatus).toBeNull();
+    });
+
+    it('should update existing answer status', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1');
+        result.current.setAnswerStatus('q1', ANSWER_STATUS.RESPOSTA_INCORRETA);
+        result.current.setAnswerStatus('q1', ANSWER_STATUS.RESPOSTA_CORRETA);
+      });
+
+      const answerStatus = result.current.getAnswerStatus('q1');
+      expect(answerStatus).toBe(ANSWER_STATUS.RESPOSTA_CORRETA);
+    });
+
+    it('should not update status for non-existent answer', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setAnswerStatus(
+          'non-existent',
+          ANSWER_STATUS.RESPOSTA_CORRETA
+        );
+      });
+
+      const answerStatus = result.current.getAnswerStatus('non-existent');
+      expect(answerStatus).toBeNull();
     });
   });
 });

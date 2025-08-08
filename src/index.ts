@@ -113,6 +113,8 @@ import {
   QuizHeader,
   QuizContent,
   QuizAlternative,
+  QuizMultipleChoice,
+  QuizDissertative,
   QuizQuestionList,
   QuizFooter,
   QuizListResult,
@@ -222,6 +224,8 @@ export { QuizContent };
 export { useQuizStore };
 export { QuizHeaderResult };
 export { QuizAlternative };
+export { QuizMultipleChoice };
+export { QuizDissertative };
 export { QuizQuestionList };
 export { QuizFooter };
 export { QuizListResult };
