@@ -5,6 +5,8 @@ import {
   SquaresFour,
   BookOpen,
   Book,
+  CheckCircle,
+  XCircle,
 } from 'phosphor-react';
 import Badge from '../Badge/Badge';
 import {
@@ -45,6 +47,24 @@ import { cn } from '../../utils/utils';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import TextArea from '../TextArea/TextArea';
 
+export const getStatusBadge = (status?: 'correct' | 'incorrect') => {
+  switch (status) {
+    case 'correct':
+      return (
+        <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
+          Resposta correta
+        </Badge>
+      );
+    case 'incorrect':
+      return (
+        <Badge variant="solid" action="error" iconLeft={<XCircle />}>
+          Resposta incorreta
+        </Badge>
+      );
+    default:
+      return null;
+  }
+};
 const Quiz = forwardRef<
   HTMLDivElement,
   { children: ReactNode; className?: string }
@@ -195,6 +215,12 @@ const QuizContent = forwardRef<
             {currentQuestion.type === QUESTION_TYPE.DISSERTATIVA && (
               <QuizDissertative variant={variant} />
             )}
+            {currentQuestion.type === QUESTION_TYPE.VERDADEIRO_FALSO && (
+              <QuizTrueOrFalse variant={variant} />
+            )}
+            {currentQuestion.type === QUESTION_TYPE.LIGAR_PONTOS && (
+              <QuizConnectDots variant={variant} />
+            )}
           </>
         )}
       </div>
@@ -270,11 +296,11 @@ enum Status {
   NEUTRAL = 'neutral',
 }
 
-interface QuizAlternativeInterface {
+interface QuizVariantInterface {
   variant?: 'result' | 'default';
 }
 
-const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
+const QuizAlternative = ({ variant = 'default' }: QuizVariantInterface) => {
   const { getCurrentQuestion, selectAnswer, getCurrentAnswer } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
   const currentAnswer = getCurrentAnswer();
@@ -330,13 +356,7 @@ const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
   );
 };
 
-interface QuizMultipleChoiceInterface {
-  variant?: 'result' | 'default';
-}
-
-const QuizMultipleChoice = ({
-  variant = 'default',
-}: QuizMultipleChoiceInterface) => {
+const QuizMultipleChoice = ({ variant = 'default' }: QuizVariantInterface) => {
   const { getCurrentQuestion, selectMultipleAnswer, getAllCurrentAnswer } =
     useQuizStore();
   const currentQuestion = getCurrentQuestion();
@@ -440,13 +460,7 @@ const QuizMultipleChoice = ({
   );
 };
 
-interface QuizDissertativeInterface {
-  variant?: 'result' | 'default';
-}
-
-const QuizDissertative = ({
-  variant = 'default',
-}: QuizDissertativeInterface) => {
+const QuizDissertative = ({ variant = 'default' }: QuizVariantInterface) => {
   const { getCurrentQuestion, getCurrentAnswer, selectDissertativeAnswer } =
     useQuizStore();
 
@@ -508,6 +522,245 @@ const QuizDissertative = ({
     </div>
   );
 };
+
+const QuizTrueOrFalse = ({ variant = 'default' }: QuizVariantInterface) => {
+  const options = [
+    {
+      label: '25 metros',
+      isCorrect: true,
+    },
+    {
+      label: '30 metros',
+      isCorrect: false,
+    },
+    {
+      label: '40 metros',
+      isCorrect: false,
+    },
+    {
+      label: '50 metros',
+      isCorrect: false,
+    },
+  ];
+
+  const getLetterByIndex = (index: number) => String.fromCharCode(97 + index); // 97 = 'a' in ASCII
+
+  const isDefaultVariant = variant == 'default';
+
+  return (
+    <div className="flex flex-col gap-3.5">
+      {options.map((option, index) => (
+        <section key={index} className="flex flex-col gap-2">
+          <div
+            className={cn(
+              'flex flex-row justify-between items-center gap-2 p-2 rounded-md',
+              !isDefaultVariant
+                ? option.isCorrect
+                  ? 'bg-success-background border-success-300'
+                  : 'bg-error-background border-error-300'
+                : ''
+            )}
+          >
+            <p className="text-text-900 text-sm">
+              {getLetterByIndex(index).concat(') ').concat(option.label)}
+            </p>
+
+            {isDefaultVariant ? (
+              <Select size="medium">
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Selecione opcão" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="V">Verdadeiro</SelectItem>
+                  <SelectItem value="F">Falso</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="flex-shrink-0">
+                {getStatusBadge(option.isCorrect ? 'correct' : 'incorrect')}
+              </div>
+            )}
+          </div>
+
+          {!isDefaultVariant && (
+            <span className="flex flex-row gap-2 items-center">
+              <p className="text-text-800 text-2xs">Resposta selecionada: V</p>
+              {!option.isCorrect && (
+                <p className="text-text-800 text-2xs">Resposta correta: F</p>
+              )}
+            </span>
+          )}
+        </section>
+      ))}
+    </div>
+  );
+};
+
+interface UserAnswer {
+  option: string;
+  dotOption: string | null;
+  correctOption: string;
+  isCorrect: boolean | null;
+}
+
+const QuizConnectDots = ({ variant = 'default' }: QuizVariantInterface) => {
+  const dotsOptions = [
+    { label: 'Ração' },
+    { label: 'Rato' },
+    { label: 'Grama' },
+    { label: 'Peixe' },
+  ];
+
+  const options = [
+    {
+      label: 'Cachorro',
+      correctOption: 'Ração',
+    },
+    {
+      label: 'Gato',
+      correctOption: 'Rato',
+    },
+    {
+      label: 'Cabra',
+      correctOption: 'Grama',
+    },
+    {
+      label: 'Baleia',
+      correctOption: 'Peixe',
+    },
+  ];
+
+  const mockUserAnswers = [
+    {
+      option: 'Cachorro',
+      dotOption: 'Ração',
+      correctOption: 'Ração',
+      isCorrect: true,
+    },
+    {
+      option: 'Gato',
+      dotOption: 'Rato',
+      correctOption: 'Rato',
+      isCorrect: true,
+    },
+    {
+      option: 'Cabra',
+      dotOption: 'Peixe',
+      correctOption: 'Grama',
+      isCorrect: false,
+    },
+    {
+      option: 'Baleia',
+      dotOption: 'Grama',
+      correctOption: 'Peixe',
+      isCorrect: false,
+    },
+  ];
+
+  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>(() => {
+    if (variant === 'result') {
+      return mockUserAnswers;
+    }
+    return options.map((option) => ({
+      option: option.label,
+      dotOption: null,
+      correctOption: option.correctOption,
+      isCorrect: null,
+    }));
+  });
+
+  const handleSelectDot = (optionIndex: number, dotValue: string) => {
+    setUserAnswers((prev) => {
+      const next = [...prev];
+      const { label: optionLabel, correctOption } = options[optionIndex];
+      next[optionIndex] = {
+        option: optionLabel,
+        dotOption: dotValue,
+        correctOption,
+        isCorrect: dotValue ? dotValue === correctOption : null,
+      };
+      return next;
+    });
+  };
+
+  const getLetterByIndex = (index: number) => String.fromCharCode(97 + index); // 'a', 'b', 'c'...
+
+  const isDefaultVariant = variant === 'default';
+  const assignedDots = new Set(
+    userAnswers.map((a) => a.dotOption).filter(Boolean)
+  );
+
+  return (
+    <div className="flex flex-col gap-3.5">
+      {options.map((option, index) => {
+        const answer = userAnswers[index];
+        return (
+          <section key={option.label} className="flex flex-col gap-2">
+            <div
+              className={cn(
+                'flex flex-row justify-between items-center gap-2 p-2 rounded-md',
+                !isDefaultVariant
+                  ? answer.isCorrect
+                    ? 'bg-success-background border-success-300'
+                    : 'bg-error-background border-error-300'
+                  : ''
+              )}
+            >
+              <p className="text-text-900 text-sm">
+                {getLetterByIndex(index) + ') ' + option.label}
+              </p>
+
+              {isDefaultVariant ? (
+                <Select
+                  size="medium"
+                  value={answer.dotOption || undefined}
+                  onValueChange={(value) => handleSelectDot(index, value)}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Selecione opção" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {dotsOptions
+                      .filter(
+                        (dot) =>
+                          !assignedDots.has(dot.label) ||
+                          answer.dotOption === dot.label
+                      )
+                      .map((dot) => (
+                        <SelectItem key={dot.label} value={dot.label}>
+                          {dot.label}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex-shrink-0">
+                  {getStatusBadge(answer.isCorrect ? 'correct' : 'incorrect')}
+                </div>
+              )}
+            </div>
+
+            {!isDefaultVariant && (
+              <span className="flex flex-row gap-2 items-center">
+                <p className="text-text-800 text-2xs">
+                  Resposta selecionada: {answer.dotOption || 'Nenhuma'}
+                </p>
+                {!answer.isCorrect && (
+                  <p className="text-text-800 text-2xs">
+                    Resposta correta: {answer.correctOption}
+                  </p>
+                )}
+              </span>
+            )}
+          </section>
+        );
+      })}
+    </div>
+  );
+};
+
 const QuizQuestionList = ({
   filterType = 'all',
   onQuestionClick,
@@ -1170,4 +1423,6 @@ export {
   QuizListResultByMateria,
   QuizMultipleChoice,
   QuizDissertative,
+  QuizTrueOrFalse,
+  QuizConnectDots,
 };

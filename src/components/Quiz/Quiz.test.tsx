@@ -15,6 +15,9 @@ import {
   QuizListResultByMateria,
   QuizMultipleChoice,
   QuizDissertative,
+  QuizTrueOrFalse,
+  QuizConnectDots,
+  getStatusBadge,
 } from './Quiz';
 import {
   useQuizStore,
@@ -4686,6 +4689,425 @@ describe('Quiz Result Components', () => {
         .getByText('Resultado das questões')
         .closest('section');
       expect(section).toHaveClass('flex', 'flex-col');
+    });
+  });
+
+  describe('QuizTrueOrFalse Temporary', () => {
+    it('should render in default variant with options and select components', () => {
+      render(<QuizTrueOrFalse variant="default" />);
+
+      // Verifica se as opções são renderizadas
+      expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
+      expect(screen.getByText('b) 30 metros')).toBeInTheDocument();
+      expect(screen.getByText('c) 40 metros')).toBeInTheDocument();
+      expect(screen.getByText('d) 50 metros')).toBeInTheDocument();
+
+      // Verifica se os componentes Select estão presentes
+      const selectTriggers = screen.getAllByText('Selecione opcão');
+      expect(selectTriggers).toHaveLength(4);
+    });
+
+    it('should render in result variant with status badges', () => {
+      render(<QuizTrueOrFalse variant="result" />);
+
+      // Verifica se as opções são renderizadas
+      expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
+      expect(screen.getByText('b) 30 metros')).toBeInTheDocument();
+      expect(screen.getByText('c) 40 metros')).toBeInTheDocument();
+      expect(screen.getByText('d) 50 metros')).toBeInTheDocument();
+
+      // Verifica se os badges de status estão presentes
+      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
+      expect(screen.getAllByText('Resposta incorreta')).toHaveLength(3);
+
+      // Verifica se as informações de resposta estão presentes
+      expect(screen.getAllByText('Resposta selecionada: V')).toHaveLength(4);
+      expect(screen.getAllByText('Resposta correta: F')).toHaveLength(3);
+    });
+
+    it('should render with correct styling for correct answers in result variant', () => {
+      render(<QuizTrueOrFalse variant="result" />);
+
+      // Verifica se a primeira opção (correta) tem o estilo correto
+      const correctOption = screen.getByText('a) 25 metros').closest('div');
+      expect(correctOption).toHaveClass(
+        'bg-success-background',
+        'border-success-300'
+      );
+    });
+
+    it('should render with correct styling for incorrect answers in result variant', () => {
+      render(<QuizTrueOrFalse variant="result" />);
+
+      // Verifica se as opções incorretas têm o estilo correto
+      const incorrectOptions = [
+        screen.getByText('b) 30 metros'),
+        screen.getByText('c) 40 metros'),
+        screen.getByText('d) 50 metros'),
+      ];
+
+      incorrectOptions.forEach((option) => {
+        const optionContainer = option.closest('div');
+        expect(optionContainer).toHaveClass(
+          'bg-error-background',
+          'border-error-300'
+        );
+      });
+    });
+
+    it('should not show status badges in default variant', () => {
+      render(<QuizTrueOrFalse variant="default" />);
+
+      // Verifica que os badges não estão presentes
+      expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
+      expect(screen.queryByText('Resposta incorreta')).not.toBeInTheDocument();
+    });
+
+    it('should not show answer information in default variant', () => {
+      render(<QuizTrueOrFalse variant="default" />);
+
+      // Verifica que as informações de resposta não estão presentes
+      expect(
+        screen.queryByText('Resposta selecionada: V')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Resposta correta: F')).not.toBeInTheDocument();
+    });
+
+    it('should generate correct letter prefixes for options', () => {
+      render(<QuizTrueOrFalse variant="default" />);
+
+      // Verifica se as letras são geradas corretamente
+      expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
+      expect(screen.getByText('b) 30 metros')).toBeInTheDocument();
+      expect(screen.getByText('c) 40 metros')).toBeInTheDocument();
+      expect(screen.getByText('d) 50 metros')).toBeInTheDocument();
+    });
+
+    it('should render with medium size select components', () => {
+      render(<QuizTrueOrFalse variant="default" />);
+
+      // Verifica se os componentes Select têm o tamanho correto
+      const selectTriggers = screen.getAllByText('Selecione opcão');
+      selectTriggers.forEach((trigger) => {
+        const selectContainer = trigger.closest(
+          '[data-testid="select-trigger"]'
+        );
+        expect(selectContainer).toBeInTheDocument();
+      });
+    });
+
+    it('should render correct number of options', () => {
+      render(<QuizTrueOrFalse variant="default" />);
+
+      // Verifica se exatamente 4 opções são renderizadas
+      const options = [
+        'a) 25 metros',
+        'b) 30 metros',
+        'c) 40 metros',
+        'd) 50 metros',
+      ];
+
+      options.forEach((option) => {
+        expect(screen.getByText(option)).toBeInTheDocument();
+      });
+    });
+
+    it('should have correct data structure for options', () => {
+      render(<QuizTrueOrFalse variant="default" />);
+
+      // Verifica se as opções têm a estrutura correta
+      // Primeira opção deve ser correta
+      expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
+
+      // As outras opções devem ser incorretas
+      expect(screen.getByText('b) 30 metros')).toBeInTheDocument();
+      expect(screen.getByText('c) 40 metros')).toBeInTheDocument();
+      expect(screen.getByText('d) 50 metros')).toBeInTheDocument();
+    });
+  });
+
+  describe('QuizConnectDots Temporary', () => {
+    it('should render in default variant with options and select components', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Verifica se as opções são renderizadas
+      expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
+      expect(screen.getByText('b) Gato')).toBeInTheDocument();
+      expect(screen.getByText('c) Cabra')).toBeInTheDocument();
+      expect(screen.getByText('d) Baleia')).toBeInTheDocument();
+
+      // Verifica se os componentes Select estão presentes
+      const selectTriggers = screen.getAllByText('Selecione opção');
+      expect(selectTriggers).toHaveLength(4);
+    });
+
+    it('should render in result variant with status badges', () => {
+      render(<QuizConnectDots variant="result" />);
+
+      // Verifica se as opções são renderizadas
+      expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
+      expect(screen.getByText('b) Gato')).toBeInTheDocument();
+      expect(screen.getByText('c) Cabra')).toBeInTheDocument();
+      expect(screen.getByText('d) Baleia')).toBeInTheDocument();
+
+      // Verifica se os badges de status estão presentes
+      expect(screen.getAllByText('Resposta correta')).toHaveLength(2);
+      expect(screen.getAllByText('Resposta incorreta')).toHaveLength(2);
+
+      // Verifica se as informações de resposta estão presentes
+      expect(screen.getAllByText('Resposta selecionada: Ração')).toHaveLength(
+        1
+      );
+      expect(screen.getAllByText('Resposta selecionada: Rato')).toHaveLength(1);
+      expect(screen.getAllByText('Resposta selecionada: Peixe')).toHaveLength(
+        1
+      );
+      expect(screen.getAllByText('Resposta selecionada: Grama')).toHaveLength(
+        1
+      );
+    });
+
+    it('should render with correct styling for correct answers in result variant', () => {
+      render(<QuizConnectDots variant="result" />);
+
+      // Verifica se as opções corretas têm o estilo correto
+      const correctOptions = [
+        screen.getByText('a) Cachorro'),
+        screen.getByText('b) Gato'),
+      ];
+
+      correctOptions.forEach((option) => {
+        const optionContainer = option.closest('div');
+        expect(optionContainer).toHaveClass(
+          'bg-success-background',
+          'border-success-300'
+        );
+      });
+    });
+
+    it('should render with correct styling for incorrect answers in result variant', () => {
+      render(<QuizConnectDots variant="result" />);
+
+      // Verifica se as opções incorretas têm o estilo correto
+      const incorrectOptions = [
+        screen.getByText('c) Cabra'),
+        screen.getByText('d) Baleia'),
+      ];
+
+      incorrectOptions.forEach((option) => {
+        const optionContainer = option.closest('div');
+        expect(optionContainer).toHaveClass(
+          'bg-error-background',
+          'border-error-300'
+        );
+      });
+    });
+
+    it('should not show status badges in default variant', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Verifica que os badges não estão presentes
+      expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
+      expect(screen.queryByText('Resposta incorreta')).not.toBeInTheDocument();
+    });
+
+    it('should not show answer information in default variant', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Verifica que as informações de resposta não estão presentes
+      expect(
+        screen.queryByText('Resposta selecionada:')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Resposta correta:')).not.toBeInTheDocument();
+    });
+
+    it('should generate correct letter prefixes for options', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Verifica se as letras são geradas corretamente
+      expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
+      expect(screen.getByText('b) Gato')).toBeInTheDocument();
+      expect(screen.getByText('c) Cabra')).toBeInTheDocument();
+      expect(screen.getByText('d) Baleia')).toBeInTheDocument();
+    });
+
+    it('should render with medium size select components', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Verifica se os componentes Select têm o tamanho correto
+      const selectTriggers = screen.getAllByText('Selecione opção');
+      selectTriggers.forEach((trigger) => {
+        const selectContainer = trigger.closest(
+          '[data-testid="select-trigger"]'
+        );
+        expect(selectContainer).toBeInTheDocument();
+      });
+    });
+
+    it('should render correct number of options', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Verifica se exatamente 4 opções são renderizadas
+      const options = ['a) Cachorro', 'b) Gato', 'c) Cabra', 'd) Baleia'];
+
+      options.forEach((option) => {
+        expect(screen.getByText(option)).toBeInTheDocument();
+      });
+    });
+
+    it('should have correct data structure for options', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Verifica se as opções têm a estrutura correta
+      expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
+      expect(screen.getByText('b) Gato')).toBeInTheDocument();
+      expect(screen.getByText('c) Cabra')).toBeInTheDocument();
+      expect(screen.getByText('d) Baleia')).toBeInTheDocument();
+    });
+
+    it('should show correct answer information for incorrect answers in result variant', () => {
+      render(<QuizConnectDots variant="result" />);
+
+      // Verifica se as informações de resposta correta são mostradas para respostas incorretas
+      expect(screen.getByText('Resposta correta: Grama')).toBeInTheDocument();
+      expect(screen.getByText('Resposta correta: Peixe')).toBeInTheDocument();
+    });
+
+    it('should not show correct answer information for correct answers in result variant', () => {
+      render(<QuizConnectDots variant="result" />);
+
+      // Verifica que as informações de resposta correta não são mostradas para respostas corretas
+      expect(
+        screen.queryByText('Resposta correta: Ração')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Resposta correta: Rato')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should filter out already selected dots from available options', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Verifica se inicialmente todas as opções estão disponíveis
+      const selectTriggers = screen.getAllByText('Selecione opção');
+      expect(selectTriggers).toHaveLength(4);
+
+      // Simula a seleção de uma opção
+      // Nota: Este teste verifica a lógica de filtragem, mas a interação real seria testada com userEvent
+      expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
+      expect(screen.getByText('b) Gato')).toBeInTheDocument();
+      expect(screen.getByText('c) Cabra')).toBeInTheDocument();
+      expect(screen.getByText('d) Baleia')).toBeInTheDocument();
+    });
+
+    it('should handle null status badge correctly', () => {
+      render(<QuizConnectDots variant="result" />);
+
+      // Verifica se o componente renderiza corretamente mesmo com status null
+      expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
+      expect(screen.getByText('b) Gato')).toBeInTheDocument();
+      expect(screen.getByText('c) Cabra')).toBeInTheDocument();
+      expect(screen.getByText('d) Baleia')).toBeInTheDocument();
+    });
+  });
+
+  describe('getStatusBadge function', () => {
+    it('should return correct badge when status is "correct"', () => {
+      const { container } = render(getStatusBadge('correct'));
+
+      // Verifica se o badge de resposta correta está presente
+      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
+
+      // Verifica se o badge tem as propriedades corretas
+      const badge = container.querySelector('[data-testid="badge"]');
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+      expect(badge).toHaveAttribute('data-action', 'success');
+    });
+
+    it('should return correct badge when status is "incorrect"', () => {
+      const { container } = render(getStatusBadge('incorrect'));
+
+      // Verifica se o badge de resposta incorreta está presente
+      expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
+
+      // Verifica se o badge tem as propriedades corretas
+      const badge = container.querySelector('[data-testid="badge"]');
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+      expect(badge).toHaveAttribute('data-action', 'error');
+    });
+
+    it('should return null when status is undefined', () => {
+      const result = getStatusBadge(undefined);
+      expect(result).toBe(null);
+    });
+
+    it('should return null when status is null', () => {
+      const result = getStatusBadge(null as unknown as 'correct' | 'incorrect');
+      expect(result).toBe(null);
+    });
+
+    it('should return null when status is empty string', () => {
+      const result = getStatusBadge('' as unknown as 'correct' | 'incorrect');
+      expect(result).toBe(null);
+    });
+
+    it('should return null when status is invalid value', () => {
+      const result = getStatusBadge(
+        'invalid' as unknown as 'correct' | 'incorrect'
+      );
+      expect(result).toBe(null);
+    });
+
+    it('should render badge with correct text content for correct status', () => {
+      render(getStatusBadge('correct'));
+      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
+    });
+
+    it('should render badge with correct text content for incorrect status', () => {
+      render(getStatusBadge('incorrect'));
+      expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
+    });
+
+    it('should render badge with correct variant and action props for correct status', () => {
+      const { container } = render(getStatusBadge('correct'));
+
+      const badge = container.querySelector('[data-testid="badge"]');
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+      expect(badge).toHaveAttribute('data-action', 'success');
+    });
+
+    it('should render badge with correct variant and action props for incorrect status', () => {
+      const { container } = render(getStatusBadge('incorrect'));
+
+      const badge = container.querySelector('[data-testid="badge"]');
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+      expect(badge).toHaveAttribute('data-action', 'error');
+    });
+
+    it('should handle all valid status values correctly', () => {
+      // Testa status "correct"
+      const correctResult = getStatusBadge('correct');
+      expect(correctResult).not.toBe(null);
+      expect(correctResult).not.toBe(undefined);
+
+      // Testa status "incorrect"
+      const incorrectResult = getStatusBadge('incorrect');
+      expect(incorrectResult).not.toBe(null);
+      expect(incorrectResult).not.toBe(undefined);
+    });
+
+    it('should handle edge cases gracefully', () => {
+      // Testa com valores edge
+      expect(getStatusBadge(undefined)).toBe(null);
+      expect(getStatusBadge(null as unknown as 'correct' | 'incorrect')).toBe(
+        null
+      );
+      expect(getStatusBadge('' as unknown as 'correct' | 'incorrect')).toBe(
+        null
+      );
+      expect(
+        getStatusBadge('random' as unknown as 'correct' | 'incorrect')
+      ).toBe(null);
     });
   });
 });

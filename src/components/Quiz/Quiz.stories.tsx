@@ -33,6 +33,62 @@ export const AllQuizShowcase: Story = () => {
       category: 'Enem',
       questions: [
         {
+          id: 'q-1',
+          questionText:
+            'Um carro inicia do repouso e se desloca em linha reta com uma aceleração constante de 2 m/s². Calcule a distância que o carro percorre após 5 segundos.',
+          description: 'Questão sobre movimento uniformemente variado',
+          type: 'LIGAR_PONTOS' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'muv',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: '25 metros', isCorrect: true },
+            { id: 'opt2', option: '30 metros', isCorrect: false },
+            { id: 'opt3', option: '40 metros', isCorrect: false },
+            { id: 'opt4', option: '50 metros', isCorrect: false },
+          ],
+        },
+        {
+          id: 'q0',
+          questionText:
+            'Um carro inicia do repouso e se desloca em linha reta com uma aceleração constante de 2 m/s². Calcule a distância que o carro percorre após 5 segundos.',
+          description: 'Questão sobre movimento uniformemente variado',
+          type: 'VERDADEIRO_FALSO' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'muv',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: '25 metros', isCorrect: true },
+            { id: 'opt2', option: '30 metros', isCorrect: false },
+            { id: 'opt3', option: '40 metros', isCorrect: false },
+            { id: 'opt4', option: '50 metros', isCorrect: false },
+          ],
+        },
+        {
           id: 'q1',
           questionText:
             'Um carro inicia do repouso e se desloca em linha reta com uma aceleração constante de 2 m/s². Calcule a distância que o carro percorre após 5 segundos.',
@@ -548,6 +604,62 @@ export const QuizAlternativeVariants: Story = () => {
       title: 'Simulado ENEM 2024',
       category: 'Enem',
       questions: [
+        {
+          id: 'q1',
+          questionText:
+            'Um carro inicia do repouso e se desloca em linha reta com uma aceleração constante de 2 m/s². Calcule a distância que o carro percorre após 5 segundos.',
+          description: 'Questão sobre movimento uniformemente variado',
+          type: 'LIGAR_PONTOS' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt3',
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'muv',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: '25 metros', isCorrect: true },
+            { id: 'opt2', option: '30 metros', isCorrect: false },
+            { id: 'opt3', option: '40 metros', isCorrect: false },
+            { id: 'opt4', option: '50 metros', isCorrect: false },
+          ],
+        },
+        {
+          id: 'q1',
+          questionText:
+            'Um carro inicia do repouso e se desloca em linha reta com uma aceleração constante de 2 m/s². Calcule a distância que o carro percorre após 5 segundos.',
+          description: 'Questão sobre movimento uniformemente variado',
+          type: 'VERDADEIRO_FALSO' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: 'opt3',
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'fisica',
+              subjectId: 'mecanica',
+              topicId: 'movimento',
+              subtopicId: 'muv',
+              contentId: 'cinematica',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: '25 metros', isCorrect: true },
+            { id: 'opt2', option: '30 metros', isCorrect: false },
+            { id: 'opt3', option: '40 metros', isCorrect: false },
+            { id: 'opt4', option: '50 metros', isCorrect: false },
+          ],
+        },
         {
           id: 'q1',
           questionText:
