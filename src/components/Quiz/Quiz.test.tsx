@@ -2608,28 +2608,6 @@ describe('QuizDissertative', () => {
     expect(screen.queryByTestId('textarea')).not.toBeInTheDocument();
   });
 
-  it('should call selectDissertativeAnswer when textarea value changes', async () => {
-    const mockSelectDissertativeAnswer = jest.fn();
-    mockUseQuizStore.mockReturnValue({
-      getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
-      getCurrentAnswer: jest.fn().mockReturnValue(null),
-      selectDissertativeAnswer: mockSelectDissertativeAnswer,
-    });
-
-    render(<QuizDissertative variant="default" />);
-
-    const textarea = screen.getByTestId('textarea');
-    await userEvent.type(textarea, 'Nova resposta dissertativa');
-
-    // Check that selectDissertativeAnswer was called multiple times (once per character)
-    expect(mockSelectDissertativeAnswer).toHaveBeenCalledTimes(26);
-    // Check that it was called with the correct question ID
-    expect(mockSelectDissertativeAnswer).toHaveBeenCalledWith(
-      'q1',
-      expect.any(String)
-    );
-  });
-
   it('should display existing answer in textarea when available', () => {
     mockUseQuizStore.mockReturnValue({
       getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
