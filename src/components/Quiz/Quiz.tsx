@@ -750,9 +750,7 @@ const QuizConnectDots = ({ variant = 'default' }: QuizVariantInterface) => {
                 <div className="flex-shrink-0">
                   {answer.isCorrect === null
                     ? null
-                    : getStatusBadge(
-                        answer.isCorrect ? 'correct' : 'incorrect'
-                      )}
+                    : getStatusBadge(variantCorrect)}
                 </div>
               )}
             </div>
