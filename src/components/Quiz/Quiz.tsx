@@ -65,6 +65,16 @@ export const getStatusBadge = (status?: 'correct' | 'incorrect') => {
       return null;
   }
 };
+
+const getStatusStyles = (variantCorrect?: string) => {
+  switch (variantCorrect) {
+    case 'correct':
+      return 'bg-success-background border-success-300';
+    case 'incorrect':
+      return 'bg-error-background border-error-300';
+  }
+};
+
 const Quiz = forwardRef<
   HTMLDivElement,
   { children: ReactNode; className?: string }
@@ -549,50 +559,54 @@ const QuizTrueOrFalse = ({ variant = 'default' }: QuizVariantInterface) => {
 
   return (
     <div className="flex flex-col gap-3.5">
-      {options.map((option, index) => (
-        <section key={index} className="flex flex-col gap-2">
-          <div
-            className={cn(
-              'flex flex-row justify-between items-center gap-2 p-2 rounded-md',
-              !isDefaultVariant
-                ? option.isCorrect
-                  ? 'bg-success-background border-success-300'
-                  : 'bg-error-background border-error-300'
-                : ''
-            )}
+      {options.map((option, index) => {
+        const variantCorrect = option.isCorrect ? 'correct' : 'incorrect';
+        return (
+          <section
+            key={option.label.concat(`-${index}`)}
+            className="flex flex-col gap-2"
           >
-            <p className="text-text-900 text-sm">
-              {getLetterByIndex(index).concat(') ').concat(option.label)}
-            </p>
-
-            {isDefaultVariant ? (
-              <Select size="medium">
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Selecione opcão" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="V">Verdadeiro</SelectItem>
-                  <SelectItem value="F">Falso</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <div className="flex-shrink-0">
-                {getStatusBadge(option.isCorrect ? 'correct' : 'incorrect')}
-              </div>
-            )}
-          </div>
-
-          {!isDefaultVariant && (
-            <span className="flex flex-row gap-2 items-center">
-              <p className="text-text-800 text-2xs">Resposta selecionada: V</p>
-              {!option.isCorrect && (
-                <p className="text-text-800 text-2xs">Resposta correta: F</p>
+            <div
+              className={cn(
+                'flex flex-row justify-between items-center gap-2 p-2 rounded-md',
+                !isDefaultVariant ? getStatusStyles(variantCorrect) : ''
               )}
-            </span>
-          )}
-        </section>
-      ))}
+            >
+              <p className="text-text-900 text-sm">
+                {getLetterByIndex(index).concat(') ').concat(option.label)}
+              </p>
+
+              {isDefaultVariant ? (
+                <Select size="medium">
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Selecione opcão" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="V">Verdadeiro</SelectItem>
+                    <SelectItem value="F">Falso</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex-shrink-0">
+                  {getStatusBadge(variantCorrect)}
+                </div>
+              )}
+            </div>
+
+            {!isDefaultVariant && (
+              <span className="flex flex-row gap-2 items-center">
+                <p className="text-text-800 text-2xs">
+                  Resposta selecionada: V
+                </p>
+                {!option.isCorrect && (
+                  <p className="text-text-800 text-2xs">Resposta correta: F</p>
+                )}
+              </span>
+            )}
+          </section>
+        );
+      })}
     </div>
   );
 };
@@ -695,16 +709,13 @@ const QuizConnectDots = ({ variant = 'default' }: QuizVariantInterface) => {
     <div className="flex flex-col gap-3.5">
       {options.map((option, index) => {
         const answer = userAnswers[index];
+        const variantCorrect = answer.isCorrect ? 'correct' : 'incorrect';
         return (
           <section key={option.label} className="flex flex-col gap-2">
             <div
               className={cn(
                 'flex flex-row justify-between items-center gap-2 p-2 rounded-md',
-                !isDefaultVariant
-                  ? answer.isCorrect
-                    ? 'bg-success-background border-success-300'
-                    : 'bg-error-background border-error-300'
-                  : ''
+                !isDefaultVariant ? getStatusStyles(variantCorrect) : ''
               )}
             >
               <p className="text-text-900 text-sm">
