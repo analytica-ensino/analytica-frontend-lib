@@ -1,4 +1,10 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
+import React, {
+  Children,
+  isValidElement,
+  cloneElement,
+  ReactNode,
+} from 'react';
 import {
   Quiz,
   QuizTitle,
@@ -26,7 +32,7 @@ import {
   QUESTION_TYPE,
   ANSWER_STATUS,
 } from './useQuizStore';
-import { ReactNode } from 'react';
+
 import userEvent from '@testing-library/user-event';
 
 // Mock the useQuizStore
@@ -216,22 +222,79 @@ jest.mock('../Modal/Modal', () => ({
 }));
 
 // Mock the Select components
-jest.mock('../Select/Select', () => ({
-  __esModule: true,
-  default: ({ children, value }: { children: ReactNode; value: string }) => (
-    <div data-testid="select" data-value={value}>
+jest.mock('../Select/Select', () => {
+  type SelectItemProps = {
+    value: string;
+    children: ReactNode;
+    onClick?: () => void;
+  };
+
+  type SelectItemComponent = React.FC<SelectItemProps> & { mockId: string };
+
+  const SelectItem: SelectItemComponent = ({
+    value,
+    children,
+    onClick,
+  }: SelectItemProps) => (
+    <div
+      data-testid={`select-item-${value}`}
+      data-value={value}
+      onClick={onClick}
+    >
       {children}
     </div>
-  ),
-  SelectContent: ({ children }: { children: ReactNode }) => (
+  );
+  SelectItem.mockId = 'SelectItem';
+
+  const Select = ({
+    children,
+    value,
+    onValueChange,
+  }: {
+    children: ReactNode;
+    value?: string;
+    onValueChange?: (value: string) => void;
+  }) => {
+    const isElementOf = <P,>(
+      node: React.ReactNode,
+      component: React.ComponentType<P>
+    ): node is React.ReactElement<P> =>
+      isValidElement(node) && node.type === component;
+
+    const inject = (nodes: React.ReactNode): React.ReactNode =>
+      Children.map(nodes, (child) => {
+        if (!isValidElement(child)) return child;
+        if (isElementOf<SelectItemProps>(child, SelectItem)) {
+          const itemValue = child.props.value;
+          const handleClick = () => {
+            if (onValueChange) {
+              const next = (value ?? '') === itemValue ? '' : itemValue;
+              onValueChange(next);
+            }
+          };
+          return cloneElement(child, { onClick: handleClick });
+        }
+        const childChildren = (child.props as { children?: React.ReactNode })
+          .children;
+        if (childChildren) {
+          const newChildren = inject(childChildren);
+          return cloneElement(child, {}, newChildren);
+        }
+        return child;
+      });
+
+    return (
+      <div data-testid="select" data-value={value ?? ''}>
+        {inject(children)}
+      </div>
+    );
+  };
+
+  const SelectContent = ({ children }: { children: React.ReactNode }) => (
     <div data-testid="select-content">{children}</div>
-  ),
-  SelectItem: ({ value, children }: { value: string; children: ReactNode }) => (
-    <div data-testid={`select-item-${value}`} data-value={value}>
-      {children}
-    </div>
-  ),
-  SelectTrigger: ({
+  );
+
+  const SelectTrigger = ({
     children,
     className,
   }: {
@@ -241,11 +304,21 @@ jest.mock('../Select/Select', () => ({
     <div data-testid="select-trigger" className={className}>
       {children}
     </div>
-  ),
-  SelectValue: ({ placeholder }: { placeholder: string }) => (
+  );
+
+  const SelectValue = ({ placeholder }: { placeholder: string }) => (
     <span data-testid="select-value">{placeholder}</span>
-  ),
-}));
+  );
+
+  return {
+    __esModule: true,
+    default: Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  };
+});
 
 // Mock the Card component
 jest.mock('../Card/Card', () => ({
@@ -5008,6 +5081,46 @@ describe('Quiz Result Components', () => {
       expect(screen.getByText('b) Gato')).toBeInTheDocument();
       expect(screen.getByText('c) Cabra')).toBeInTheDocument();
       expect(screen.getByText('d) Baleia')).toBeInTheDocument();
+    });
+
+    it('should set dot selection and compute isCorrect=true for correct match (handleSelectDot)', async () => {
+      const user = userEvent.setup();
+      render(<QuizConnectDots variant="default" />);
+
+      // Row 0 (a) picks "Ração" (correct for Cachorro)
+      const menus = screen.getAllByTestId('select-content');
+      await user.click(within(menus[0]).getByText('Ração'));
+
+      // After selection, row 1 (b) menu should not contain "Ração" anymore
+      expect(within(menus[1]).queryByText('Ração')).not.toBeInTheDocument();
+    });
+
+    it('should toggle off selection when picking the same item again (handleSelectDot)', async () => {
+      const user = userEvent.setup();
+      render(<QuizConnectDots variant="default" />);
+
+      const menus = screen.getAllByTestId('select-content');
+
+      // Select "Ração" on row 0
+      await user.click(within(menus[0]).getByText('Ração'));
+      // Now toggle off by clicking the same option again
+      await user.click(within(menus[0]).getByText('Ração'));
+
+      // After unselecting, row 1 (b) should see "Ração" available again
+      expect(within(menus[1]).getByText('Ração')).toBeInTheDocument();
+    });
+
+    it('should set isCorrect=false when selecting a wrong match (handleSelectDot)', async () => {
+      const user = userEvent.setup();
+      render(<QuizConnectDots variant="default" />);
+
+      const menus = screen.getAllByTestId('select-content');
+
+      // Row 2 (c) Cabra: correct is "Grama". Select a wrong one: "Peixe"
+      await user.click(within(menus[2]).getByText('Peixe'));
+
+      // After selection, row 3 (d) should not offer "Peixe" anymore
+      expect(within(menus[3]).queryByText('Peixe')).not.toBeInTheDocument();
     });
   });
 

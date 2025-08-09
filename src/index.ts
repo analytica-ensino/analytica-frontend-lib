@@ -124,7 +124,7 @@ import {
   QuizResultTitle,
   QuizResultPerformance,
   QuizListResultByMateria,
-  getStatusBadge
+  getStatusBadge,
 } from './components/Quiz/Quiz';
 import { useQuizStore } from './components/Quiz/useQuizStore';
 
