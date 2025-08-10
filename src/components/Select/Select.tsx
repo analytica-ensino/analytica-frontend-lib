@@ -424,7 +424,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
         role="menu"
         ref={ref}
         className={cn(
-          'bg-secondary z-50 min-w-[210px] overflow-hidden rounded-md border p-1 shadow-md border-border-100',
+          'bg-secondary z-50 min-w-[210px] max-h-[300px] overflow-y-auto overflow-x-hidden rounded-md border p-1 shadow-md border-border-100',
           getPositionClasses(),
           className
         )}

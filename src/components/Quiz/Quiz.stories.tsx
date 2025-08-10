@@ -469,7 +469,7 @@ export const AllQuizShowcase: Story = () => {
         <Quiz>
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]" />
+          <QuizContent paddingBottom="pb-[150px]" />
           <QuizFooter
             className="bottom-15"
             onGoToSimulated={() => {
@@ -600,7 +600,7 @@ export const QuizComponentLibrary: Story = () => {
         <Quiz>
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]" />
+          <QuizContent paddingBottom="pb-[150px]" />
           <QuizFooter
             className="bottom-15"
             onGoToSimulated={() => {
@@ -794,7 +794,7 @@ export const QuizAlternativeVariants: Story = () => {
           <QuizHeaderResult />
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]" variant="result" />
+          <QuizContent paddingBottom="pb-[150px]" variant="result" />
           <QuizFooter className="bottom-15" />
         </Quiz>
       </div>
@@ -818,13 +818,12 @@ export const QuizAllCasesVariants: Story = () => {
       title: 'Simulado ENEM 2024',
       category: 'Enem',
       questions: [
-        // DISSERTATIVA - Correta
         {
           id: 'q5',
           questionText:
             'Explique o conceito de aceleração e como ela se relaciona com a velocidade.',
           description: 'Questão sobre aceleração',
-          type: 'DISSERTATIVA' as QUESTION_TYPE,
+          type: 'PREENCHER' as QUESTION_TYPE,
           status: 'APROVADO' as QUESTION_STATUS,
           difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
@@ -917,7 +916,7 @@ export const QuizAllCasesVariants: Story = () => {
           <QuizHeaderResult />
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]" variant="result" />
+          <QuizContent variant="result" paddingBottom="pb-[150px]" />
           <QuizFooter className="bottom-15" />
         </Quiz>
       </div>
@@ -1088,7 +1087,7 @@ export const QuizMultipleChoiceVariants: Story = () => {
           <QuizHeaderResult />
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]" variant="result" />
+          <QuizContent paddingBottom="pb-[150px]" variant="result" />
           <QuizFooter className="bottom-15" />
         </Quiz>
       </div>
@@ -1956,7 +1955,7 @@ export const QuizMultipleChoiceShowcase: Story = () => {
         <Quiz>
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]" />
+          <QuizContent paddingBottom="pb-[150px]" />
           <QuizFooter
             className="bottom-15"
             onGoToSimulated={() => {
@@ -2077,7 +2076,7 @@ export const QuizDissertativeShowcase: Story = () => {
         <Quiz>
           <QuizTitle />
           <QuizHeader />
-          <QuizContent className="pb-[150px]" />
+          <QuizContent paddingBottom="pb-[150px]" />
           <QuizFooter
             className="bottom-15"
             onGoToSimulated={() => {

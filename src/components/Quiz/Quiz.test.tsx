@@ -783,9 +783,7 @@ describe('Quiz Component', () => {
         mockUseQuizStore.mockReturnValue(mockStore);
 
         // Renderiza com variante result e resposta incorreta - deve mostrar observação
-        const { rerender } = render(
-          <QuizContent type="Dissertativa" variant="result" />
-        );
+        const { rerender } = render(<QuizContent variant="result" />);
 
         expect(screen.getByText('Observação do professor')).toBeInTheDocument();
         expect(
@@ -798,14 +796,14 @@ describe('Quiz Component', () => {
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
         });
 
-        rerender(<QuizContent type="Dissertativa" variant="result" />);
+        rerender(<QuizContent variant="result" />);
 
         expect(
           screen.queryByText('Observação do professor')
         ).not.toBeInTheDocument();
 
         // Atualiza para variante default - não deve mostrar observação
-        rerender(<QuizContent type="Dissertativa" variant="default" />);
+        rerender(<QuizContent variant="default" />);
 
         expect(
           screen.queryByText('Observação do professor')
@@ -817,21 +815,6 @@ describe('Quiz Component', () => {
 
       expect(screen.getByText('Alternativas')).toBeInTheDocument();
       expect(screen.getByTestId('alternatives-list')).toBeInTheDocument();
-    });
-
-    it('should render content with custom type', () => {
-      render(<QuizContent type="Dissertativa" />);
-
-      expect(screen.getByText('Dissertativa')).toBeInTheDocument();
-    });
-
-    it('should apply custom className', () => {
-      render(<QuizContent className="custom-content-class" />);
-
-      const contentElement = screen
-        .getByTestId('alternatives-list')
-        .closest('div')?.parentElement?.parentElement;
-      expect(contentElement).toHaveClass('custom-content-class');
     });
 
     it('should render QuizAlternative when question type is ALTERNATIVA', () => {
