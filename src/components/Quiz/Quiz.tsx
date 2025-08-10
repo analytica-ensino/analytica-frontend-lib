@@ -23,6 +23,7 @@ import {
   useState,
   useCallback,
   useRef,
+  ComponentType,
 } from 'react';
 import {
   Question,
@@ -175,6 +176,16 @@ const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
   }
 );
 
+const QuizSubTitle = forwardRef<HTMLDivElement, { subTitle: string }>(
+  ({ subTitle, ...props }, ref) => {
+    return (
+      <div className="px-4 pb-2 pt-6" {...props} ref={ref}>
+        <p className="font-bold text-lg text-text-950">{subTitle}</p>
+      </div>
+    );
+  }
+);
+
 const QuizHeader = () => {
   const { getCurrentQuestion } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
@@ -216,35 +227,25 @@ const QuizContent = forwardRef<
   const { getCurrentQuestion } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
 
-  return (
-    <>
-      {currentQuestion && (
-        <>
-          {currentQuestion.type === QUESTION_TYPE.ALTERNATIVA && (
-            <QuizAlternative variant={variant} paddingBottom={paddingBottom} />
-          )}
-          {currentQuestion.type === QUESTION_TYPE.MULTIPLA_CHOICE && (
-            <QuizMultipleChoice
-              variant={variant}
-              paddingBottom={paddingBottom}
-            />
-          )}
-          {currentQuestion.type === QUESTION_TYPE.DISSERTATIVA && (
-            <QuizDissertative variant={variant} paddingBottom={paddingBottom} />
-          )}
-          {currentQuestion.type === QUESTION_TYPE.VERDADEIRO_FALSO && (
-            <QuizTrueOrFalse variant={variant} paddingBottom={paddingBottom} />
-          )}
-          {currentQuestion.type === QUESTION_TYPE.LIGAR_PONTOS && (
-            <QuizConnectDots variant={variant} paddingBottom={paddingBottom} />
-          )}
-          {currentQuestion.type === QUESTION_TYPE.PREENCHER && (
-            <QuizFill variant={variant} paddingBottom={paddingBottom} />
-          )}
-        </>
-      )}
-    </>
-  );
+  const questionComponents: Record<
+    string,
+    ComponentType<QuizVariantInterface>
+  > = {
+    [QUESTION_TYPE.ALTERNATIVA]: QuizAlternative,
+    [QUESTION_TYPE.MULTIPLA_CHOICE]: QuizMultipleChoice,
+    [QUESTION_TYPE.DISSERTATIVA]: QuizDissertative,
+    [QUESTION_TYPE.VERDADEIRO_FALSO]: QuizTrueOrFalse,
+    [QUESTION_TYPE.LIGAR_PONTOS]: QuizConnectDots,
+    [QUESTION_TYPE.PREENCHER]: QuizFill,
+  };
+
+  const QuestionComponent = currentQuestion
+    ? questionComponents[currentQuestion.type]
+    : null;
+
+  return QuestionComponent ? (
+    <QuestionComponent variant={variant} paddingBottom={paddingBottom} />
+  ) : null;
 });
 
 enum Status {
@@ -299,9 +300,7 @@ const QuizAlternative = ({
 
   return (
     <>
-      <div className="px-4 pb-2 pt-6">
-        <p className="font-bold text-lg text-text-950">Alternativas</p>
-      </div>
+      <QuizSubTitle subTitle="Alternativas" />
 
       <QuizContainer className={cn('', paddingBottom)}>
         <div className="space-y-4">
@@ -420,9 +419,7 @@ const QuizMultipleChoice = ({
 
   return (
     <>
-      <div className="px-4 pb-2 pt-6">
-        <p className="font-bold text-lg text-text-950">Alternativas</p>
-      </div>
+      <QuizSubTitle subTitle="Alternativas" />
 
       <QuizContainer className={cn('', paddingBottom)}>
         <div className="space-y-4">
@@ -484,9 +481,7 @@ const QuizDissertative = ({
 
   return (
     <>
-      <div className="px-4 pb-2 pt-6">
-        <p className="font-bold text-lg text-text-950">Resposta</p>
-      </div>
+      <QuizSubTitle subTitle="Resposta" />
 
       <QuizContainer className={cn(variant != 'result' && paddingBottom)}>
         <div className="space-y-4 max-h-[600px] overflow-y-auto">
@@ -514,11 +509,7 @@ const QuizDissertative = ({
       {variant === 'result' &&
         currentAnswer?.answerStatus == ANSWER_STATUS.RESPOSTA_INCORRETA && (
           <>
-            <div className="px-4 pb-2 pt-6">
-              <p className="font-bold text-lg text-text-950">
-                Observação do professor
-              </p>
-            </div>
+            <QuizSubTitle subTitle="Observação do professor" />
 
             <QuizContainer className={cn('', paddingBottom)}>
               <p className="text-text-600 text-md whitespace-pre-wrap">
@@ -597,9 +588,7 @@ const QuizTrueOrFalse = ({
 
   return (
     <>
-      <div className="px-4 pb-2 pt-6">
-        <p className="font-bold text-lg text-text-950">Alternativas</p>
-      </div>
+      <QuizSubTitle subTitle="Alternativas" />
 
       <QuizContainer className={cn('', paddingBottom)}>
         <div className="flex flex-col gap-3.5">
@@ -758,9 +747,7 @@ const QuizConnectDots = ({
 
   return (
     <>
-      <div className="px-4 pb-2 pt-6">
-        <p className="font-bold text-lg text-text-950">Alternativas</p>
-      </div>
+      <QuizSubTitle subTitle="Alternativas" />
 
       <QuizContainer className={cn('', paddingBottom)}>
         <div className="flex flex-col gap-3.5">
@@ -850,33 +837,11 @@ const QuizFill = ({
     'área',
     'especialidade',
     'variações',
-    'mudanças',
-    'alterações',
-    'transformações',
-    'compreender',
-    'analisar',
-    'estudar',
-    'investigar',
-    'instrumentos',
-    'equipamentos',
-    'dispositivos',
-    'aparelhos',
-    'tecnologias',
-    'sistemas',
-    'processados',
-    'analisados',
-    'interpretados',
   ];
 
-  const exampleText = `A meteorologia é a {{ciencia}} que estuda os fenômenos atmosféricos e suas {{variações}}. Esta disciplina científica tem como objetivo principal {{objetivo}} o comportamento da atmosfera terrestre em diferentes escalas de tempo e espaço.
+  const exampleText = `A meteorologia é a {{ciencia}} que estuda os fenômenos atmosféricos e suas {{variações}}. Esta disciplina científica tem como objetivo principal {{objetivo}} o comportamento da atmosfera terrestre.
 
-  Os meteorologistas utilizam diversos {{instrumentos}} para coletar dados atmosféricos, incluindo termômetros, barômetros, anemômetros e {{equipamentos}} modernos como radares meteorológicos. Estes dados são {{processados}} através de modelos matemáticos complexos que permitem {{acao}} as condições climáticas futuras.
-  
-  O clima de uma região é determinado por vários {{fatores}}, sendo os principais: latitude, altitude, proximidade de corpos d'água, correntes oceânicas e {{elementos}} geográficos. A {{temperatura}} média anual, a precipitação e os ventos predominantes são {{caracteristicas}} fundamentais para classificar os diferentes tipos climáticos.
-  
-  As mudanças climáticas representam um dos maiores {{desafios}} da atualidade. O aquecimento global, causado principalmente pela {{emissao}} de gases do efeito estufa, tem provocado alterações significativas nos padrões climáticos {{mundiais}}. Os cientistas {{monitoram}} constantemente estes fenômenos para {{desenvolver}} estratégias de mitigação e adaptação.
-  
-  A previsão do tempo é uma {{aplicacao}} prática da meteorologia que beneficia diversos setores da sociedade, desde a {{agricultura}} até a aviação civil. Os modelos de previsão {{evoluiram}} significativamente nas últimas décadas, proporcionando {{precisao}} cada vez maior nas previsões de curto e médio prazo.`;
+  Os meteorologistas utilizam diversos {{instrumentos}} para coletar dados atmosféricos, incluindo termômetros, barômetros e {{equipamentos}} modernos como radares meteorológicos.`;
 
   // Mock data for result variant - simulating user answers
   const mockUserAnswers: FillUserAnswer[] = [
@@ -909,96 +874,6 @@ const QuizFill = ({
       userAnswer: 'equipamentos',
       correctAnswer: 'equipamentos',
       isCorrect: true,
-    },
-    {
-      selectId: 'processados',
-      userAnswer: 'analisados',
-      correctAnswer: 'processados',
-      isCorrect: false,
-    },
-    {
-      selectId: 'acao',
-      userAnswer: 'analisar',
-      correctAnswer: 'analisar',
-      isCorrect: true,
-    },
-    {
-      selectId: 'fatores',
-      userAnswer: 'mudanças',
-      correctAnswer: 'fatores',
-      isCorrect: false,
-    },
-    {
-      selectId: 'elementos',
-      userAnswer: 'componentes',
-      correctAnswer: 'elementos',
-      isCorrect: false,
-    },
-    {
-      selectId: 'temperatura',
-      userAnswer: 'temperatura',
-      correctAnswer: 'temperatura',
-      isCorrect: true,
-    },
-    {
-      selectId: 'caracteristicas',
-      userAnswer: 'propriedades',
-      correctAnswer: 'caracteristicas',
-      isCorrect: false,
-    },
-    {
-      selectId: 'desafios',
-      userAnswer: 'problemas',
-      correctAnswer: 'desafios',
-      isCorrect: false,
-    },
-    {
-      selectId: 'emissao',
-      userAnswer: 'emissao',
-      correctAnswer: 'emissao',
-      isCorrect: true,
-    },
-    {
-      selectId: 'mundiais',
-      userAnswer: 'globais',
-      correctAnswer: 'mundiais',
-      isCorrect: false,
-    },
-    {
-      selectId: 'monitoram',
-      userAnswer: 'estudar',
-      correctAnswer: 'monitoram',
-      isCorrect: false,
-    },
-    {
-      selectId: 'desenvolver',
-      userAnswer: 'criar',
-      correctAnswer: 'desenvolver',
-      isCorrect: false,
-    },
-    {
-      selectId: 'aplicacao',
-      userAnswer: 'uso',
-      correctAnswer: 'aplicacao',
-      isCorrect: false,
-    },
-    {
-      selectId: 'agricultura',
-      userAnswer: 'agricultura',
-      correctAnswer: 'agricultura',
-      isCorrect: true,
-    },
-    {
-      selectId: 'evoluiram',
-      userAnswer: 'cresceram',
-      correctAnswer: 'evoluiram',
-      isCorrect: false,
-    },
-    {
-      selectId: 'precisao',
-      userAnswer: 'exatidao',
-      correctAnswer: 'precisao',
-      isCorrect: false,
     },
   ];
 
@@ -1103,9 +978,7 @@ const QuizFill = ({
 
   return (
     <>
-      <div className="px-4 pb-2 pt-6">
-        <p className="font-bold text-lg text-text-950">Alternativas</p>
-      </div>
+      <QuizSubTitle subTitle="Alternativas" />
 
       <QuizContainer className="h-auto pb-0">
         <div className="space-y-6 px-4 h-auto">
@@ -1124,9 +997,7 @@ const QuizFill = ({
 
       {variant === 'result' && (
         <>
-          <div className="px-4 pb-2 pt-6">
-            <p className="font-bold text-lg text-text-950">Resultado</p>
-          </div>
+          <QuizSubTitle subTitle="Resultado" />
 
           <QuizContainer className="h-auto pb-0">
             <div className="space-y-6 px-4">
@@ -1811,4 +1682,5 @@ export {
   QuizDissertative,
   QuizTrueOrFalse,
   QuizConnectDots,
+  QuizFill,
 };

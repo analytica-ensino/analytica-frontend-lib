@@ -23,6 +23,7 @@ import {
   QuizDissertative,
   QuizTrueOrFalse,
   QuizConnectDots,
+  QuizFill,
   getStatusBadge,
 } from './Quiz';
 import {
@@ -5104,6 +5105,127 @@ describe('Quiz Result Components', () => {
 
       // After selection, row 3 (d) should not offer "Peixe" anymore
       expect(within(menus[3]).queryByText('Peixe')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('QuizFill Temporary', () => {
+    it('should render in default variant with text and select components', () => {
+      render(<QuizFill variant="default" />);
+
+      // Verifica se o texto base está presente
+      expect(screen.getByText(/A meteorologia é a/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/que estuda os fenômenos atmosféricos/)
+      ).toBeInTheDocument();
+
+      // Verifica se os componentes Select estão presentes
+      const selectTriggers = screen.getAllByText('Selecione opção');
+      expect(selectTriggers).toHaveLength(4);
+    });
+
+    it('should render in result variant with badges showing user answers', () => {
+      render(<QuizFill variant="result" />);
+
+      // Verifica se o texto base está presente
+      expect(screen.getAllByText(/A meteorologia é a/)).toHaveLength(2);
+
+      // Verifica se os badges estão presentes com as respostas do usuário
+      expect(screen.getByText('tecnologia')).toBeInTheDocument(); // Resposta incorreta
+      expect(screen.getByText('estudar')).toBeInTheDocument(); // Resposta incorreta
+      expect(screen.getByText('ferramentas')).toBeInTheDocument(); // Resposta incorreta
+      expect(screen.getAllByText('equipamentos')).toHaveLength(2); // Resposta correta (aparece no badge e no resultado)
+    });
+
+    it('should show correct answer badges in result variant', () => {
+      render(<QuizFill variant="result" />);
+
+      // Verifica se a seção de resultado está presente
+      expect(screen.getByText('Resultado')).toBeInTheDocument();
+
+      // Verifica se as respostas corretas estão sendo mostradas
+      expect(screen.getByText('ciência')).toBeInTheDocument();
+      expect(screen.getByText('compreender')).toBeInTheDocument();
+      expect(screen.getByText('instrumentos')).toBeInTheDocument();
+    });
+
+    it('should render success badges for correct answers in result variant', () => {
+      render(<QuizFill variant="result" />);
+
+      // Verifica se os badges de sucesso estão presentes para respostas corretas
+      expect(screen.getAllByText('equipamentos')).toHaveLength(2); // Resposta correta (aparece no badge e no resultado)
+    });
+
+    it('should render error badges for incorrect answers in result variant', () => {
+      render(<QuizFill variant="result" />);
+
+      // Verifica se os badges de erro estão presentes para respostas incorretas
+      expect(screen.getByText('tecnologia')).toBeInTheDocument();
+      expect(screen.getByText('estudar')).toBeInTheDocument();
+      expect(screen.getByText('ferramentas')).toBeInTheDocument();
+    });
+
+    it('should not show select components in result variant', () => {
+      render(<QuizFill variant="result" />);
+
+      // Verifica que os componentes Select não estão presentes
+      expect(screen.queryByText('Selecione opção')).not.toBeInTheDocument();
+    });
+
+    it('should not show result section in default variant', () => {
+      render(<QuizFill variant="default" />);
+
+      // Verifica que a seção de resultado não está presente
+      expect(screen.queryByText('Resultado')).not.toBeInTheDocument();
+    });
+
+    it('should render with correct text content', () => {
+      render(<QuizFill variant="default" />);
+
+      // Verifica se o texto completo está sendo renderizado
+      expect(screen.getByText(/A meteorologia é a/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/que estuda os fenômenos atmosféricos e suas/)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /Esta disciplina científica tem como objetivo principal/
+        )
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/o comportamento da atmosfera terrestre/)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/Os meteorologistas utilizam diversos/)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /para coletar dados atmosféricos, incluindo termômetros, barômetros e/
+        )
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/modernos como radares meteorológicos/)
+      ).toBeInTheDocument();
+    });
+
+    it('should handle select changes correctly', () => {
+      render(<QuizFill variant="default" />);
+
+      // Verifica se os selects estão funcionando
+      const selectTriggers = screen.getAllByText('Selecione opção');
+      expect(selectTriggers).toHaveLength(4);
+
+      // Verifica se cada select tem as opções corretas disponíveis
+      selectTriggers.forEach((trigger) => {
+        expect(trigger).toBeInTheDocument();
+      });
+    });
+
+    it('should render with correct padding bottom class', () => {
+      render(<QuizFill variant="default" paddingBottom="pb-[100px]" />);
+
+      // Verifica se a classe de padding personalizada está sendo aplicada
+      const container = screen.getByText(/A meteorologia é a/).closest('div');
+      expect(container).toHaveClass('pb-[100px]');
     });
   });
 
