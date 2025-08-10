@@ -893,6 +893,69 @@ const QuizFill = ({
     setAnswers(newAnswers);
   };
 
+  const renderResolutionElement = (selectId: string) => {
+    const mockAnswer = mockUserAnswers.find(
+      (answer) => answer.selectId === selectId
+    );
+
+    return (
+      <p className="inline-flex mb-2.5 text-success-600 font-semibold text-md border-b-2 border-success-600">
+        {mockAnswer?.correctAnswer}
+      </p>
+    );
+  };
+
+  const renderDefaultElement = (
+    selectId: string,
+    startIndex: number,
+    selectedValue: string,
+    availableOptionsForThisSelect: string[]
+  ) => {
+    return (
+      <Select
+        key={`${selectId}-${startIndex}`}
+        value={selectedValue}
+        onValueChange={(value) => handleSelectChange(selectId, value)}
+        className="inline-flex mb-2.5"
+      >
+        <SelectTrigger className="inline-flex w-auto min-w-[140px] h-8 mx-1 bg-white border-gray-300">
+          <SelectValue placeholder="Selecione opção" />
+        </SelectTrigger>
+        <SelectContent>
+          {availableOptionsForThisSelect.map((option, index) => (
+            <SelectItem key={`${option}-${index}`} value={option}>
+              {option}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  };
+
+  const renderResultElement = (selectId: string) => {
+    const mockAnswer = mockUserAnswers.find(
+      (answer) => answer.selectId === selectId
+    );
+
+    if (!mockAnswer) return null;
+
+    const action = mockAnswer.isCorrect ? 'success' : 'error';
+    const icon = mockAnswer.isCorrect ? <CheckCircle /> : <XCircle />;
+
+    return (
+      <Badge
+        key={selectId}
+        variant="solid"
+        action={action}
+        iconRight={icon}
+        size="large"
+        className="py-3 w-[180px] justify-between mb-2.5"
+      >
+        <span className="text-text-900">{mockAnswer.userAnswer}</span>
+      </Badge>
+    );
+  };
+
   const renderTextWithSelects = (text: string, isResolution?: boolean) => {
     const elements: (string | ReactNode)[] = [];
     let lastIndex = 0;
@@ -914,56 +977,20 @@ const QuizFill = ({
         getAvailableOptionsForSelect(selectId);
 
       if (isResolution) {
-        const mockAnswer = mockUserAnswers.find(
-          (answer) => answer.selectId === selectId
-        );
-
-        elements.push(
-          <p className="inline-flex mb-2.5 text-success-600 font-semibold text-md border-b-2 border-success-600">
-            {mockAnswer?.correctAnswer}
-          </p>
-        );
+        elements.push(renderResolutionElement(selectId));
       } else if (variant === 'default') {
         elements.push(
-          <Select
-            key={`${selectId}-${startIndex}`}
-            value={selectedValue}
-            onValueChange={(value) => handleSelectChange(selectId, value)}
-            className="inline-flex mb-2.5"
-          >
-            <SelectTrigger className="inline-flex w-auto min-w-[140px] h-8 mx-1 bg-white border-gray-300">
-              <SelectValue placeholder="Selecione opção" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableOptionsForThisSelect.map((option, index) => (
-                <SelectItem key={index} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          renderDefaultElement(
+            selectId,
+            startIndex,
+            selectedValue,
+            availableOptionsForThisSelect
+          )
         );
       } else {
-        // Find the mock answer for this select
-        const mockAnswer = mockUserAnswers.find(
-          (answer) => answer.selectId === selectId
-        );
-        if (mockAnswer) {
-          const action = mockAnswer.isCorrect ? 'success' : 'error';
-          const icon = mockAnswer.isCorrect ? <CheckCircle /> : <XCircle />;
-
-          elements.push(
-            <Badge
-              key={selectId}
-              variant="solid"
-              action={action}
-              iconRight={icon}
-              size="large"
-              className="py-3 w-[180px] justify-between mb-2.5"
-            >
-              <span className="text-text-900">{mockAnswer.userAnswer}</span>
-            </Badge>
-          );
+        const resultElement = renderResultElement(selectId);
+        if (resultElement) {
+          elements.push(resultElement);
         }
       }
 
@@ -990,7 +1017,7 @@ const QuizFill = ({
             )}
           >
             {renderTextWithSelects(exampleText).map((element, index) => (
-              <span key={index}>{element}</span>
+              <span key={`Element-${index}`}>{element}</span>
             ))}
           </div>
         </div>
@@ -1007,7 +1034,7 @@ const QuizFill = ({
               >
                 {renderTextWithSelects(exampleText, true).map(
                   (element, index) => (
-                    <span key={index}>{element}</span>
+                    <span key={`Element-${index}`}>{element}</span>
                   )
                 )}
               </div>
