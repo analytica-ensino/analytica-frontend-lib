@@ -897,7 +897,8 @@ const QuizFill = ({
     const elements: (string | ReactNode)[] = [];
     let lastIndex = 0;
 
-    const regex = /\{\{(\w+)\}\}/g;
+    // Support Unicode letters/marks and digits: allows placeholders like {{variações}}
+    const regex = /\{\{([\p{L}\p{M}\d_]+)\}\}/gu;
     let match;
 
     while ((match = regex.exec(text)) !== null) {
@@ -925,7 +926,7 @@ const QuizFill = ({
       } else if (variant === 'default') {
         elements.push(
           <Select
-            key={selectId}
+            key={`${selectId}-${startIndex}`}
             value={selectedValue}
             onValueChange={(value) => handleSelectChange(selectId, value)}
             className="inline-flex mb-2.5"
