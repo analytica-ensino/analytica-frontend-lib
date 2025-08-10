@@ -276,7 +276,7 @@ const Select = ({
   const sizeClasses = SIZE_CLASSES[size];
 
   return (
-    <div className={cn('w-auto', className)}>
+    <div className={cn('w-fit', className)}>
       {/* Label */}
       {label && (
         <label
@@ -288,7 +288,7 @@ const Select = ({
       )}
 
       {/* Select Container */}
-      <div className={cn('relative')} ref={selectRef}>
+      <div className={cn('relative w-fit')} ref={selectRef}>
         {injectStore(children, store, size, selectId)}
       </div>
 
@@ -373,19 +373,6 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
           variantClasses,
           className
         )}
-        //   className={`
-        //   flex min-w-[220px] w-full items-center justify-between border-border-300
-        //   ${heightClasses} ${paddingClasses}
-        //   ${invalid && `${variant == 'underlined' ? 'border-b-2' : 'border-2'} border-indicator-error text-text-600`}
-        //   ${
-        //     disabled
-        //       ? 'cursor-not-allowed text-text-400 pointer-events-none opacity-50'
-        //       : 'cursor-pointer hover:bg-background-50 focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground'
-        //   }
-        //   ${!invalid && !disabled ? 'text-text-700' : ''}
-        //   ${variantClasses}
-        //   ${className}
-        // `}
         onClick={toggleOpen}
         aria-expanded={open}
         aria-haspopup="listbox"

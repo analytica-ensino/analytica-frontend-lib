@@ -231,6 +231,9 @@ const QuizContent = forwardRef<
             {currentQuestion.type === QUESTION_TYPE.LIGAR_PONTOS && (
               <QuizConnectDots variant={variant} />
             )}
+            {currentQuestion.type === QUESTION_TYPE.PREENCHER && (
+              <QuizFill variant={variant} />
+            )}
           </>
         )}
       </div>
@@ -770,6 +773,117 @@ const QuizConnectDots = ({ variant = 'default' }: QuizVariantInterface) => {
           </section>
         );
       })}
+    </div>
+  );
+};
+
+const QuizFill = ({ variant: _variant = 'default' }: QuizVariantInterface) => {
+  const options = [
+    'ciência',
+    'disciplina',
+    'área',
+    'especialidade',
+    'variações',
+    'mudanças',
+    'alterações',
+    'transformações',
+    'compreender',
+    'analisar',
+    'estudar',
+    'investigar',
+    'instrumentos',
+    'equipamentos',
+    'dispositivos',
+    'aparelhos',
+    'tecnologias',
+    'sistemas',
+    'processados',
+    'analisados',
+    'interpretados',
+  ];
+
+  const exampleText = `A meteorologia é a {{ciencia}} que estuda os fenômenos atmosféricos e suas {{variações}}. Esta disciplina científica tem como objetivo principal {{objetivo}} o comportamento da atmosfera terrestre em diferentes escalas de tempo e espaço.
+
+  Os meteorologistas utilizam diversos {{instrumentos}} para coletar dados atmosféricos, incluindo termômetros, barômetros, anemômetros e {{equipamentos}} modernos como radares meteorológicos. Estes dados são {{processados}} através de modelos matemáticos complexos que permitem {{acao}} as condições climáticas futuras.
+  
+  O clima de uma região é determinado por vários {{fatores}}, sendo os principais: latitude, altitude, proximidade de corpos d'água, correntes oceânicas e {{elementos}} geográficos. A {{temperatura}} média anual, a precipitação e os ventos predominantes são {{caracteristicas}} fundamentais para classificar os diferentes tipos climáticos.
+  
+  As mudanças climáticas representam um dos maiores {{desafios}} da atualidade. O aquecimento global, causado principalmente pela {{emissao}} de gases do efeito estufa, tem provocado alterações significativas nos padrões climáticos {{mundiais}}. Os cientistas {{monitoram}} constantemente estes fenômenos para {{desenvolver}} estratégias de mitigação e adaptação.
+  
+  A previsão do tempo é uma {{aplicacao}} prática da meteorologia que beneficia diversos setores da sociedade, desde a {{agricultura}} até a aviação civil. Os modelos de previsão {{evoluiram}} significativamente nas últimas décadas, proporcionando {{precisao}} cada vez maior nas previsões de curto e médio prazo.`;
+
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+
+  // Get available options for a specific select
+  const getAvailableOptionsForSelect = (selectId: string) => {
+    const usedOptions = Object.entries(answers)
+      .filter(([key]) => key !== selectId) // Exclude the current selection itself
+      .map(([, value]) => value);
+
+    return options.filter((option) => !usedOptions.includes(option));
+  };
+
+  const handleSelectChange = (selectId: string, value: string) => {
+    const newAnswers = { ...answers, [selectId]: value };
+    setAnswers(newAnswers);
+  };
+
+  const renderTextWithSelects = (text: string) => {
+    const elements: (string | ReactNode)[] = [];
+    let lastIndex = 0;
+
+    const regex = /\{\{(\w+)\}\}/g;
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+      const [fullMatch, selectId] = match;
+      const startIndex = match.index;
+
+      if (startIndex > lastIndex) {
+        elements.push(text.slice(lastIndex, startIndex));
+      }
+
+      const selectedValue = answers[selectId];
+      const availableOptionsForThisSelect =
+        getAvailableOptionsForSelect(selectId);
+
+      elements.push(
+        <Select
+          key={selectId}
+          value={selectedValue}
+          onValueChange={(value) => handleSelectChange(selectId, value)}
+          className="inline-flex"
+        >
+          <SelectTrigger className="inline-flex w-auto min-w-[140px] h-8 mx-1 bg-white border-gray-300">
+            <SelectValue placeholder="Selecione opção" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableOptionsForThisSelect.map((option, index) => (
+              <SelectItem key={index} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      );
+
+      lastIndex = match.index + fullMatch.length;
+    }
+
+    if (lastIndex < text.length) {
+      elements.push(text.slice(lastIndex));
+    }
+
+    return elements;
+  };
+
+  return (
+    <div className="space-y-6 px-4">
+      <div className="text-lg leading-8">
+        {renderTextWithSelects(exampleText).map((element, index) => (
+          <span key={index}>{element}</span>
+        ))}
+      </div>
     </div>
   );
 };
