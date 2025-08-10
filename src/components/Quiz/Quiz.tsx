@@ -20,11 +20,11 @@ import {
   ReactNode,
   useEffect,
   useMemo,
+  useId,
   useState,
   useCallback,
   useRef,
   ComponentType,
-  useId,
 } from 'react';
 import {
   Question,
@@ -879,6 +879,7 @@ const QuizFill = ({
   ];
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const baseId = useId(); // Generate base ID for this component instance
 
   // Get available options for a specific select
   const getAvailableOptionsForSelect = (selectId: string) => {
@@ -960,7 +961,7 @@ const QuizFill = ({
   const renderTextWithSelects = (text: string, isResolution?: boolean) => {
     const elements: Array<{ element: string | ReactNode; id: string }> = [];
     let lastIndex = 0;
-    const uniqueId = useId();
+    let elementCounter = 0;
 
     // Support Unicode letters/marks and digits: allows placeholders like {{variações}}
     const regex = /\{\{([\p{L}\p{M}\d_]+)\}\}/gu;
@@ -973,7 +974,7 @@ const QuizFill = ({
       if (startIndex > lastIndex) {
         elements.push({
           element: text.slice(lastIndex, startIndex),
-          id: uniqueId,
+          id: `${baseId}-text-${++elementCounter}`,
         });
       }
 
@@ -984,7 +985,7 @@ const QuizFill = ({
       if (isResolution) {
         elements.push({
           element: renderResolutionElement(selectId),
-          id: uniqueId,
+          id: `${baseId}-resolution-${++elementCounter}`,
         });
       } else if (variant === 'default') {
         elements.push({
@@ -994,14 +995,14 @@ const QuizFill = ({
             selectedValue,
             availableOptionsForThisSelect
           ),
-          id: uniqueId,
+          id: `${baseId}-select-${++elementCounter}`,
         });
       } else {
         const resultElement = renderResultElement(selectId);
         if (resultElement) {
           elements.push({
             element: resultElement,
-            id: uniqueId,
+            id: `${baseId}-result-${++elementCounter}`,
           });
         }
       }
@@ -1012,7 +1013,7 @@ const QuizFill = ({
     if (lastIndex < text.length) {
       elements.push({
         element: text.slice(lastIndex),
-        id: uniqueId,
+        id: `${baseId}-text-${++elementCounter}`,
       });
     }
 
