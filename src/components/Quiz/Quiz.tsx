@@ -24,6 +24,7 @@ import {
   useCallback,
   useRef,
   ComponentType,
+  useId,
 } from 'react';
 import {
   Question,
@@ -957,8 +958,9 @@ const QuizFill = ({
   };
 
   const renderTextWithSelects = (text: string, isResolution?: boolean) => {
-    const elements: (string | ReactNode)[] = [];
+    const elements: Array<{ element: string | ReactNode; id: string }> = [];
     let lastIndex = 0;
+    const uniqueId = useId();
 
     // Support Unicode letters/marks and digits: allows placeholders like {{variações}}
     const regex = /\{\{([\p{L}\p{M}\d_]+)\}\}/gu;
@@ -969,7 +971,10 @@ const QuizFill = ({
       const startIndex = match.index;
 
       if (startIndex > lastIndex) {
-        elements.push(text.slice(lastIndex, startIndex));
+        elements.push({
+          element: text.slice(lastIndex, startIndex),
+          id: uniqueId,
+        });
       }
 
       const selectedValue = answers[selectId];
@@ -977,20 +982,27 @@ const QuizFill = ({
         getAvailableOptionsForSelect(selectId);
 
       if (isResolution) {
-        elements.push(renderResolutionElement(selectId));
+        elements.push({
+          element: renderResolutionElement(selectId),
+          id: uniqueId,
+        });
       } else if (variant === 'default') {
-        elements.push(
-          renderDefaultElement(
+        elements.push({
+          element: renderDefaultElement(
             selectId,
             startIndex,
             selectedValue,
             availableOptionsForThisSelect
-          )
-        );
+          ),
+          id: uniqueId,
+        });
       } else {
         const resultElement = renderResultElement(selectId);
         if (resultElement) {
-          elements.push(resultElement);
+          elements.push({
+            element: resultElement,
+            id: uniqueId,
+          });
         }
       }
 
@@ -998,7 +1010,10 @@ const QuizFill = ({
     }
 
     if (lastIndex < text.length) {
-      elements.push(text.slice(lastIndex));
+      elements.push({
+        element: text.slice(lastIndex),
+        id: uniqueId,
+      });
     }
 
     return elements;
@@ -1016,12 +1031,8 @@ const QuizFill = ({
               variant != 'result' && paddingBottom
             )}
           >
-            {renderTextWithSelects(exampleText).map((element, index) => (
-              <span
-                key={`Element-${element?.toString().slice(0, 20)}-${index}`}
-              >
-                {element}
-              </span>
+            {renderTextWithSelects(exampleText).map((element) => (
+              <span key={element.id}>{element.element}</span>
             ))}
           </div>
         </div>
@@ -1036,15 +1047,9 @@ const QuizFill = ({
               <div
                 className={cn('text-lg text-text-900 leading-8', paddingBottom)}
               >
-                {renderTextWithSelects(exampleText, true).map(
-                  (element, index) => (
-                    <span
-                      key={`Element-${element?.toString().slice(0, 20)}-${index}`}
-                    >
-                      {element}
-                    </span>
-                  )
-                )}
+                {renderTextWithSelects(exampleText, true).map((element) => (
+                  <span key={element.id}>{element.element}</span>
+                ))}
               </div>
             </div>
           </QuizContainer>
