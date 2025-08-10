@@ -1017,7 +1017,11 @@ const QuizFill = ({
             )}
           >
             {renderTextWithSelects(exampleText).map((element, index) => (
-              <span key={`Element-${index}`}>{element}</span>
+              <span
+                key={`Element-${element?.toString().slice(0, 20)}-${index}`}
+              >
+                {element}
+              </span>
             ))}
           </div>
         </div>
@@ -1034,7 +1038,11 @@ const QuizFill = ({
               >
                 {renderTextWithSelects(exampleText, true).map(
                   (element, index) => (
-                    <span key={`Element-${index}`}>{element}</span>
+                    <span
+                      key={`Element-${element?.toString().slice(0, 20)}-${index}`}
+                    >
+                      {element}
+                    </span>
                   )
                 )}
               </div>
