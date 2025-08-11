@@ -115,6 +115,8 @@ import {
   QuizAlternative,
   QuizMultipleChoice,
   QuizDissertative,
+  QuizTrueOrFalse,
+  QuizConnectDots,
   QuizQuestionList,
   QuizFooter,
   QuizListResult,
@@ -122,6 +124,7 @@ import {
   QuizResultTitle,
   QuizResultPerformance,
   QuizListResultByMateria,
+  getStatusBadge,
 } from './components/Quiz/Quiz';
 import { useQuizStore } from './components/Quiz/useQuizStore';
 
@@ -226,6 +229,8 @@ export { QuizHeaderResult };
 export { QuizAlternative };
 export { QuizMultipleChoice };
 export { QuizDissertative };
+export { QuizTrueOrFalse };
+export { QuizConnectDots };
 export { QuizQuestionList };
 export { QuizFooter };
 export { QuizListResult };
@@ -233,6 +238,7 @@ export { QuizResultHeaderTitle };
 export { QuizResultTitle };
 export { QuizResultPerformance };
 export { QuizListResultByMateria };
+export { getStatusBadge };
 
 export { MultipleChoiceList };
 export { IconRender };

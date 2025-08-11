@@ -5,6 +5,8 @@ import {
   SquaresFour,
   BookOpen,
   Book,
+  CheckCircle,
+  XCircle,
 } from 'phosphor-react';
 import Badge from '../Badge/Badge';
 import {
@@ -18,9 +20,11 @@ import {
   ReactNode,
   useEffect,
   useMemo,
+  useId,
   useState,
   useCallback,
   useRef,
+  ComponentType,
 } from 'react';
 import {
   Question,
@@ -44,6 +48,34 @@ import ProgressBar from '../ProgressBar/ProgressBar';
 import { cn } from '../../utils/utils';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import TextArea from '../TextArea/TextArea';
+
+export const getStatusBadge = (status?: 'correct' | 'incorrect') => {
+  switch (status) {
+    case 'correct':
+      return (
+        <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
+          Resposta correta
+        </Badge>
+      );
+    case 'incorrect':
+      return (
+        <Badge variant="solid" action="error" iconLeft={<XCircle />}>
+          Resposta incorreta
+        </Badge>
+      );
+    default:
+      return null;
+  }
+};
+
+const getStatusStyles = (variantCorrect?: string) => {
+  switch (variantCorrect) {
+    case 'correct':
+      return 'bg-success-background border-success-300';
+    case 'incorrect':
+      return 'bg-error-background border-error-300';
+  }
+};
 
 const Quiz = forwardRef<
   HTMLDivElement,
@@ -145,6 +177,16 @@ const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
   }
 );
 
+const QuizSubTitle = forwardRef<HTMLDivElement, { subTitle: string }>(
+  ({ subTitle, ...props }, ref) => {
+    return (
+      <div className="px-4 pb-2 pt-6" {...props} ref={ref}>
+        <p className="font-bold text-lg text-text-950">{subTitle}</p>
+      </div>
+    );
+  }
+);
+
 const QuizHeader = () => {
   const { getCurrentQuestion } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
@@ -158,110 +200,53 @@ const QuizHeader = () => {
   );
 };
 
+const QuizContainer = forwardRef<
+  HTMLDivElement,
+  { children: ReactNode; className?: string }
+>(({ children, className, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        'bg-background rounded-t-xl px-4 pt-4 pb-[80px] h-auto flex flex-col gap-4 mb-auto',
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+});
+
 const QuizContent = forwardRef<
   HTMLDivElement,
   {
-    type?: 'Alternativas' | 'Dissertativa';
     variant?: 'result' | 'default';
-    className?: string;
+    paddingBottom?: string;
   }
->(({ type = 'Alternativas', className, variant, ...props }, ref) => {
-  const { getCurrentQuestion, getCurrentAnswer } = useQuizStore();
+>(({ variant, paddingBottom }) => {
+  const { getCurrentQuestion } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
-  const currentAnswer = getCurrentAnswer();
 
-  return (
-    <>
-      <div className="px-4 pb-2 pt-6">
-        <p className="font-bold text-lg text-text-950">{type}</p>
-      </div>
+  const questionComponents: Record<
+    string,
+    ComponentType<QuizVariantInterface>
+  > = {
+    [QUESTION_TYPE.ALTERNATIVA]: QuizAlternative,
+    [QUESTION_TYPE.MULTIPLA_CHOICE]: QuizMultipleChoice,
+    [QUESTION_TYPE.DISSERTATIVA]: QuizDissertative,
+    [QUESTION_TYPE.VERDADEIRO_FALSO]: QuizTrueOrFalse,
+    [QUESTION_TYPE.LIGAR_PONTOS]: QuizConnectDots,
+    [QUESTION_TYPE.PREENCHER]: QuizFill,
+  };
 
-      <div
-        ref={ref}
-        className={cn(
-          'bg-background rounded-t-xl px-4 pt-4 pb-[80px] h-full flex flex-col gap-4 mb-auto',
-          className
-        )}
-        {...props}
-      >
-        {currentQuestion && (
-          <>
-            {currentQuestion.type === QUESTION_TYPE.ALTERNATIVA && (
-              <QuizAlternative variant={variant} />
-            )}
-            {currentQuestion.type === QUESTION_TYPE.MULTIPLA_CHOICE && (
-              <QuizMultipleChoice variant={variant} />
-            )}
-            {currentQuestion.type === QUESTION_TYPE.DISSERTATIVA && (
-              <QuizDissertative variant={variant} />
-            )}
-          </>
-        )}
-      </div>
+  const QuestionComponent = currentQuestion
+    ? questionComponents[currentQuestion.type]
+    : null;
 
-      {currentQuestion?.type === QUESTION_TYPE.DISSERTATIVA &&
-        variant === 'result' &&
-        currentAnswer?.answerStatus == ANSWER_STATUS.RESPOSTA_INCORRETA && (
-          <>
-            <div className="px-4 pb-2 pt-6">
-              <p className="font-bold text-lg text-text-950">
-                Observação do professor
-              </p>
-            </div>
-
-            <div
-              ref={ref}
-              className={cn(
-                'bg-background rounded-t-xl px-4 pt-4 pb-[80px] h-full flex flex-col gap-4 mb-auto',
-                className
-              )}
-              {...props}
-            >
-              <p className="text-text-600 text-md whitespace-pre-wrap">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-                euismod, urna eu tincidunt consectetur, nisi nisl aliquam nunc,
-                eget aliquam massa nisl quis neque. Pellentesque habitant morbi
-                tristique senectus et netus et malesuada fames ac turpis
-                egestas. Vestibulum ante ipsum primis in faucibus orci luctus et
-                ultrices posuere cubilia curae; Integer euismod, urna eu
-                tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam
-                massa nisl quis neque. Pellentesque habitant morbi tristique
-                senectus et netus et malesuada fames ac turpis egestas.
-                Suspendisse potenti. Nullam ac urna eu felis dapibus condimentum
-                sit amet a augue. Sed non neque elit. Sed ut imperdiet nisi.
-                Proin condimentum fermentum nunc. Etiam pharetra, erat sed
-                fermentum feugiat, velit mauris egestas quam, ut aliquam massa
-                nisl quis neque. Suspendisse in orci enim. Mauris euismod, urna
-                eu tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam
-                massa nisl quis neque. Pellentesque habitant morbi tristique
-                senectus et netus et malesuada fames ac turpis egestas.
-                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
-                posuere cubilia curae; Integer euismod, urna eu tincidunt
-                consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl
-                quis neque. Pellentesque habitant morbi tristique senectus et
-                netus et malesuada fames ac turpis egestas. Suspendisse potenti.
-                Nullam ac urna eu felis dapibus condimentum sit amet a augue.
-                Sed non neque elit. Sed ut imperdiet nisi. Proin condimentum
-                fermentum nunc. Etiam pharetra, erat sed fermentum feugiat,
-                velit mauris egestas quam, ut aliquam massa nisl quis neque.
-                Suspendisse in orci enim. Pellentesque habitant morbi tristique
-                senectus et netus et malesuada fames ac turpis egestas.
-                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
-                posuere cubilia curae; Integer euismod, urna eu tincidunt
-                consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl
-                quis neque. Pellentesque habitant morbi tristique senectus et
-                netus et malesuada fames ac turpis egestas. Suspendisse potenti.
-                Nullam ac urna eu felis dapibus condimentum sit amet a augue.
-                Sed non neque elit. Sed ut imperdiet nisi. Proin condimentum
-                fermentum nunc. Etiam pharetra, erat sed fermentum feugiat,
-                velit mauris egestas quam, ut aliquam massa nisl quis neque.
-                Suspendisse in orci enim.
-              </p>
-            </div>
-          </>
-        )}
-    </>
-  );
+  return QuestionComponent ? (
+    <QuestionComponent variant={variant} paddingBottom={paddingBottom} />
+  ) : null;
 });
 
 enum Status {
@@ -270,11 +255,15 @@ enum Status {
   NEUTRAL = 'neutral',
 }
 
-interface QuizAlternativeInterface {
+interface QuizVariantInterface {
   variant?: 'result' | 'default';
+  paddingBottom?: string;
 }
 
-const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
+const QuizAlternative = ({
+  variant = 'default',
+  paddingBottom,
+}: QuizVariantInterface) => {
   const { getCurrentQuestion, selectAnswer, getCurrentAnswer } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
   const currentAnswer = getCurrentAnswer();
@@ -311,32 +300,35 @@ const QuizAlternative = ({ variant = 'default' }: QuizAlternativeInterface) => {
     );
 
   return (
-    <div className="space-y-4">
-      <AlternativesList
-        mode={variant === 'default' ? 'interactive' : 'readonly'}
-        key={`question-${currentQuestion?.id || '1'}`}
-        name={`question-${currentQuestion?.id || '1'}`}
-        layout="compact"
-        alternatives={alternatives}
-        value={currentAnswer?.optionId || ''}
-        selectedValue={currentAnswer?.optionId || ''}
-        onValueChange={(value) => {
-          if (currentQuestion) {
-            selectAnswer(currentQuestion.id, value);
-          }
-        }}
-      />
-    </div>
+    <>
+      <QuizSubTitle subTitle="Alternativas" />
+
+      <QuizContainer className={cn('', paddingBottom)}>
+        <div className="space-y-4">
+          <AlternativesList
+            mode={variant === 'default' ? 'interactive' : 'readonly'}
+            key={`question-${currentQuestion?.id || '1'}`}
+            name={`question-${currentQuestion?.id || '1'}`}
+            layout="compact"
+            alternatives={alternatives}
+            value={currentAnswer?.optionId || ''}
+            selectedValue={currentAnswer?.optionId || ''}
+            onValueChange={(value) => {
+              if (currentQuestion) {
+                selectAnswer(currentQuestion.id, value);
+              }
+            }}
+          />
+        </div>
+      </QuizContainer>
+    </>
   );
 };
 
-interface QuizMultipleChoiceInterface {
-  variant?: 'result' | 'default';
-}
-
 const QuizMultipleChoice = ({
   variant = 'default',
-}: QuizMultipleChoiceInterface) => {
+  paddingBottom,
+}: QuizVariantInterface) => {
   const { getCurrentQuestion, selectMultipleAnswer, getAllCurrentAnswer } =
     useQuizStore();
   const currentQuestion = getCurrentQuestion();
@@ -427,26 +419,29 @@ const QuizMultipleChoice = ({
     );
 
   return (
-    <div className="space-y-4">
-      <MultipleChoiceList
-        choices={choices}
-        key={questionKey}
-        name={questionKey}
-        selectedValues={stableSelectedValues}
-        onHandleSelectedValues={handleSelectedValues}
-        mode={variant === 'default' ? 'interactive' : 'readonly'}
-      />
-    </div>
+    <>
+      <QuizSubTitle subTitle="Alternativas" />
+
+      <QuizContainer className={cn('', paddingBottom)}>
+        <div className="space-y-4">
+          <MultipleChoiceList
+            choices={choices}
+            key={questionKey}
+            name={questionKey}
+            selectedValues={stableSelectedValues}
+            onHandleSelectedValues={handleSelectedValues}
+            mode={variant === 'default' ? 'interactive' : 'readonly'}
+          />
+        </div>
+      </QuizContainer>
+    </>
   );
 };
 
-interface QuizDissertativeInterface {
-  variant?: 'result' | 'default';
-}
-
 const QuizDissertative = ({
   variant = 'default',
-}: QuizDissertativeInterface) => {
+  paddingBottom,
+}: QuizVariantInterface) => {
   const { getCurrentQuestion, getCurrentAnswer, selectDissertativeAnswer } =
     useQuizStore();
 
@@ -486,28 +481,585 @@ const QuizDissertative = ({
   }
 
   return (
-    <div className="space-y-4 max-h-[600px] overflow-y-auto">
-      {variant === 'default' ? (
-        <div className="space-y-4">
-          <TextArea
-            ref={textareaRef}
-            placeholder="Escreva sua resposta"
-            value={currentAnswer?.answer || ''}
-            onChange={(e) => handleAnswerChange(e.target.value)}
-            rows={4}
-            className="min-h-[120px] max-h-[400px] resize-none overflow-y-auto"
-          />
+    <>
+      <QuizSubTitle subTitle="Resposta" />
+
+      <QuizContainer className={cn(variant != 'result' && paddingBottom)}>
+        <div className="space-y-4 max-h-[600px] overflow-y-auto">
+          {variant === 'default' ? (
+            <div className="space-y-4">
+              <TextArea
+                ref={textareaRef}
+                placeholder="Escreva sua resposta"
+                value={currentAnswer?.answer || ''}
+                onChange={(e) => handleAnswerChange(e.target.value)}
+                rows={4}
+                className="min-h-[120px] max-h-[400px] resize-none overflow-y-auto"
+              />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-text-600 text-md whitespace-pre-wrap">
+                {currentAnswer?.answer || 'Nenhuma resposta fornecida'}
+              </p>
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="space-y-4">
-          <p className="text-text-600 text-md whitespace-pre-wrap">
-            {currentAnswer?.answer || 'Nenhuma resposta fornecida'}
-          </p>
-        </div>
-      )}
-    </div>
+      </QuizContainer>
+
+      {variant === 'result' &&
+        currentAnswer?.answerStatus == ANSWER_STATUS.RESPOSTA_INCORRETA && (
+          <>
+            <QuizSubTitle subTitle="Observação do professor" />
+
+            <QuizContainer className={cn('', paddingBottom)}>
+              <p className="text-text-600 text-md whitespace-pre-wrap">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+                euismod, urna eu tincidunt consectetur, nisi nisl aliquam nunc,
+                eget aliquam massa nisl quis neque. Pellentesque habitant morbi
+                tristique senectus et netus et malesuada fames ac turpis
+                egestas. Vestibulum ante ipsum primis in faucibus orci luctus et
+                ultrices posuere cubilia curae; Integer euismod, urna eu
+                tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam
+                massa nisl quis neque. Pellentesque habitant morbi tristique
+                senectus et netus et malesuada fames ac turpis egestas.
+                Suspendisse potenti. Nullam ac urna eu felis dapibus condimentum
+                sit amet a augue. Sed non neque elit. Sed ut imperdiet nisi.
+                Proin condimentum fermentum nunc. Etiam pharetra, erat sed
+                fermentum feugiat, velit mauris egestas quam, ut aliquam massa
+                nisl quis neque. Suspendisse in orci enim. Mauris euismod, urna
+                eu tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam
+                massa nisl quis neque. Pellentesque habitant morbi tristique
+                senectus et netus et malesuada fames ac turpis egestas.
+                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
+                posuere cubilia curae; Integer euismod, urna eu tincidunt
+                consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl
+                quis neque. Pellentesque habitant morbi tristique senectus et
+                netus et malesuada fames ac turpis egestas. Suspendisse potenti.
+                Nullam ac urna eu felis dapibus condimentum sit amet a augue.
+                Sed non neque elit. Sed ut imperdiet nisi. Proin condimentum
+                fermentum nunc. Etiam pharetra, erat sed fermentum feugiat,
+                velit mauris egestas quam, ut aliquam massa nisl quis neque.
+                Suspendisse in orci enim. Pellentesque habitant morbi tristique
+                senectus et netus et malesuada fames ac turpis egestas.
+                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
+                posuere cubilia curae; Integer euismod, urna eu tincidunt
+                consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl
+                quis neque. Pellentesque habitant morbi tristique senectus et
+                netus et malesuada fames ac turpis egestas. Suspendisse potenti.
+                Nullam ac urna eu felis dapibus condimentum sit amet a augue.
+                Sed non neque elit. Sed ut imperdiet nisi. Proin condimentum
+                fermentum nunc. Etiam pharetra, erat sed fermentum feugiat,
+                velit mauris egestas quam, ut aliquam massa nisl quis neque.
+                Suspendisse in orci enim.
+              </p>
+            </QuizContainer>
+          </>
+        )}
+    </>
   );
 };
+
+const QuizTrueOrFalse = ({
+  variant = 'default',
+  paddingBottom,
+}: QuizVariantInterface) => {
+  const options = [
+    {
+      label: '25 metros',
+      isCorrect: true,
+    },
+    {
+      label: '30 metros',
+      isCorrect: false,
+    },
+    {
+      label: '40 metros',
+      isCorrect: false,
+    },
+    {
+      label: '50 metros',
+      isCorrect: false,
+    },
+  ];
+
+  const getLetterByIndex = (index: number) => String.fromCharCode(97 + index); // 97 = 'a' in ASCII
+
+  const isDefaultVariant = variant == 'default';
+
+  return (
+    <>
+      <QuizSubTitle subTitle="Alternativas" />
+
+      <QuizContainer className={cn('', paddingBottom)}>
+        <div className="flex flex-col gap-3.5">
+          {options.map((option, index) => {
+            const variantCorrect = option.isCorrect ? 'correct' : 'incorrect';
+            return (
+              <section
+                key={option.label.concat(`-${index}`)}
+                className="flex flex-col gap-2"
+              >
+                <div
+                  className={cn(
+                    'flex flex-row justify-between items-center gap-2 p-2 rounded-md',
+                    !isDefaultVariant ? getStatusStyles(variantCorrect) : ''
+                  )}
+                >
+                  <p className="text-text-900 text-sm">
+                    {getLetterByIndex(index).concat(') ').concat(option.label)}
+                  </p>
+
+                  {isDefaultVariant ? (
+                    <Select size="medium">
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Selecione opcão" />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        <SelectItem value="V">Verdadeiro</SelectItem>
+                        <SelectItem value="F">Falso</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="flex-shrink-0">
+                      {getStatusBadge(variantCorrect)}
+                    </div>
+                  )}
+                </div>
+
+                {!isDefaultVariant && (
+                  <span className="flex flex-row gap-2 items-center">
+                    <p className="text-text-800 text-2xs">
+                      Resposta selecionada: V
+                    </p>
+                    {!option.isCorrect && (
+                      <p className="text-text-800 text-2xs">
+                        Resposta correta: F
+                      </p>
+                    )}
+                  </span>
+                )}
+              </section>
+            );
+          })}
+        </div>
+      </QuizContainer>
+    </>
+  );
+};
+
+interface UserAnswer {
+  option: string;
+  dotOption: string | null;
+  correctOption: string;
+  isCorrect: boolean | null;
+}
+
+const QuizConnectDots = ({
+  variant = 'default',
+  paddingBottom,
+}: QuizVariantInterface) => {
+  const dotsOptions = [
+    { label: 'Ração' },
+    { label: 'Rato' },
+    { label: 'Grama' },
+    { label: 'Peixe' },
+  ];
+
+  const options = [
+    {
+      label: 'Cachorro',
+      correctOption: 'Ração',
+    },
+    {
+      label: 'Gato',
+      correctOption: 'Rato',
+    },
+    {
+      label: 'Cabra',
+      correctOption: 'Grama',
+    },
+    {
+      label: 'Baleia',
+      correctOption: 'Peixe',
+    },
+  ];
+
+  const mockUserAnswers = [
+    {
+      option: 'Cachorro',
+      dotOption: 'Ração',
+      correctOption: 'Ração',
+      isCorrect: true,
+    },
+    {
+      option: 'Gato',
+      dotOption: 'Rato',
+      correctOption: 'Rato',
+      isCorrect: true,
+    },
+    {
+      option: 'Cabra',
+      dotOption: 'Peixe',
+      correctOption: 'Grama',
+      isCorrect: false,
+    },
+    {
+      option: 'Baleia',
+      dotOption: 'Grama',
+      correctOption: 'Peixe',
+      isCorrect: false,
+    },
+  ];
+
+  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>(() => {
+    if (variant === 'result') {
+      return mockUserAnswers;
+    }
+    return options.map((option) => ({
+      option: option.label,
+      dotOption: null,
+      correctOption: option.correctOption,
+      isCorrect: null,
+    }));
+  });
+
+  const handleSelectDot = (optionIndex: number, dotValue: string) => {
+    setUserAnswers((prev) => {
+      const next = [...prev];
+      const { label: optionLabel, correctOption } = options[optionIndex];
+      next[optionIndex] = {
+        option: optionLabel,
+        dotOption: dotValue,
+        correctOption,
+        isCorrect: dotValue ? dotValue === correctOption : null,
+      };
+      return next;
+    });
+  };
+
+  const getLetterByIndex = (index: number) => String.fromCharCode(97 + index); // 'a', 'b', 'c'...
+
+  const isDefaultVariant = variant === 'default';
+  const assignedDots = new Set(
+    userAnswers.map((a) => a.dotOption).filter(Boolean)
+  );
+
+  return (
+    <>
+      <QuizSubTitle subTitle="Alternativas" />
+
+      <QuizContainer className={cn('', paddingBottom)}>
+        <div className="flex flex-col gap-3.5">
+          {options.map((option, index) => {
+            const answer = userAnswers[index];
+            const variantCorrect = answer.isCorrect ? 'correct' : 'incorrect';
+            return (
+              <section key={option.label} className="flex flex-col gap-2">
+                <div
+                  className={cn(
+                    'flex flex-row justify-between items-center gap-2 p-2 rounded-md',
+                    !isDefaultVariant ? getStatusStyles(variantCorrect) : ''
+                  )}
+                >
+                  <p className="text-text-900 text-sm">
+                    {getLetterByIndex(index) + ') ' + option.label}
+                  </p>
+
+                  {isDefaultVariant ? (
+                    <Select
+                      size="medium"
+                      value={answer.dotOption || undefined}
+                      onValueChange={(value) => handleSelectDot(index, value)}
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Selecione opção" />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        {dotsOptions
+                          .filter(
+                            (dot) =>
+                              !assignedDots.has(dot.label) ||
+                              answer.dotOption === dot.label
+                          )
+                          .map((dot) => (
+                            <SelectItem key={dot.label} value={dot.label}>
+                              {dot.label}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="flex-shrink-0">
+                      {answer.isCorrect === null
+                        ? null
+                        : getStatusBadge(variantCorrect)}
+                    </div>
+                  )}
+                </div>
+
+                {!isDefaultVariant && (
+                  <span className="flex flex-row gap-2 items-center">
+                    <p className="text-text-800 text-2xs">
+                      Resposta selecionada: {answer.dotOption || 'Nenhuma'}
+                    </p>
+                    {!answer.isCorrect && (
+                      <p className="text-text-800 text-2xs">
+                        Resposta correta: {answer.correctOption}
+                      </p>
+                    )}
+                  </span>
+                )}
+              </section>
+            );
+          })}
+        </div>
+      </QuizContainer>
+    </>
+  );
+};
+
+interface FillUserAnswer {
+  selectId: string;
+  userAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+}
+
+const QuizFill = ({
+  variant = 'default',
+  paddingBottom = 'pb-[80px]',
+}: QuizVariantInterface) => {
+  const options = [
+    'ciência',
+    'disciplina',
+    'área',
+    'especialidade',
+    'variações',
+  ];
+
+  const exampleText = `A meteorologia é a {{ciencia}} que estuda os fenômenos atmosféricos e suas {{variações}}. Esta disciplina científica tem como objetivo principal {{objetivo}} o comportamento da atmosfera terrestre.
+
+  Os meteorologistas utilizam diversos {{instrumentos}} para coletar dados atmosféricos, incluindo termômetros, barômetros e {{equipamentos}} modernos como radares meteorológicos.`;
+
+  // Mock data for result variant - simulating user answers
+  const mockUserAnswers: FillUserAnswer[] = [
+    {
+      selectId: 'ciencia',
+      userAnswer: 'tecnologia',
+      correctAnswer: 'ciência',
+      isCorrect: false,
+    },
+    {
+      selectId: 'variações',
+      userAnswer: 'variações',
+      correctAnswer: 'variações',
+      isCorrect: true,
+    },
+    {
+      selectId: 'objetivo',
+      userAnswer: 'estudar',
+      correctAnswer: 'compreender',
+      isCorrect: false,
+    },
+    {
+      selectId: 'instrumentos',
+      userAnswer: 'ferramentas',
+      correctAnswer: 'instrumentos',
+      isCorrect: false,
+    },
+    {
+      selectId: 'equipamentos',
+      userAnswer: 'equipamentos',
+      correctAnswer: 'equipamentos',
+      isCorrect: true,
+    },
+  ];
+
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const baseId = useId(); // Generate base ID for this component instance
+
+  // Get available options for a specific select
+  const getAvailableOptionsForSelect = (selectId: string) => {
+    const usedOptions = Object.entries(answers)
+      .filter(([key]) => key !== selectId) // Exclude the current selection itself
+      .map(([, value]) => value);
+
+    return options.filter((option) => !usedOptions.includes(option));
+  };
+
+  const handleSelectChange = (selectId: string, value: string) => {
+    const newAnswers = { ...answers, [selectId]: value };
+    setAnswers(newAnswers);
+  };
+
+  const renderResolutionElement = (selectId: string) => {
+    const mockAnswer = mockUserAnswers.find(
+      (answer) => answer.selectId === selectId
+    );
+
+    return (
+      <p className="inline-flex mb-2.5 text-success-600 font-semibold text-md border-b-2 border-success-600">
+        {mockAnswer?.correctAnswer}
+      </p>
+    );
+  };
+
+  const renderDefaultElement = (
+    selectId: string,
+    startIndex: number,
+    selectedValue: string,
+    availableOptionsForThisSelect: string[]
+  ) => {
+    return (
+      <Select
+        key={`${selectId}-${startIndex}`}
+        value={selectedValue}
+        onValueChange={(value) => handleSelectChange(selectId, value)}
+        className="inline-flex mb-2.5"
+      >
+        <SelectTrigger className="inline-flex w-auto min-w-[140px] h-8 mx-1 bg-white border-gray-300">
+          <SelectValue placeholder="Selecione opção" />
+        </SelectTrigger>
+        <SelectContent>
+          {availableOptionsForThisSelect.map((option, index) => (
+            <SelectItem key={`${option}-${index}`} value={option}>
+              {option}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  };
+
+  const renderResultElement = (selectId: string) => {
+    const mockAnswer = mockUserAnswers.find(
+      (answer) => answer.selectId === selectId
+    );
+
+    if (!mockAnswer) return null;
+
+    const action = mockAnswer.isCorrect ? 'success' : 'error';
+    const icon = mockAnswer.isCorrect ? <CheckCircle /> : <XCircle />;
+
+    return (
+      <Badge
+        key={selectId}
+        variant="solid"
+        action={action}
+        iconRight={icon}
+        size="large"
+        className="py-3 w-[180px] justify-between mb-2.5"
+      >
+        <span className="text-text-900">{mockAnswer.userAnswer}</span>
+      </Badge>
+    );
+  };
+
+  const renderTextWithSelects = (text: string, isResolution?: boolean) => {
+    const elements: Array<{ element: string | ReactNode; id: string }> = [];
+    let lastIndex = 0;
+    let elementCounter = 0;
+
+    // Support Unicode letters/marks and digits: allows placeholders like {{variações}}
+    const regex = /\{\{([\p{L}\p{M}\d_]+)\}\}/gu;
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+      const [fullMatch, selectId] = match;
+      const startIndex = match.index;
+
+      if (startIndex > lastIndex) {
+        elements.push({
+          element: text.slice(lastIndex, startIndex),
+          id: `${baseId}-text-${++elementCounter}`,
+        });
+      }
+
+      const selectedValue = answers[selectId];
+      const availableOptionsForThisSelect =
+        getAvailableOptionsForSelect(selectId);
+
+      if (isResolution) {
+        elements.push({
+          element: renderResolutionElement(selectId),
+          id: `${baseId}-resolution-${++elementCounter}`,
+        });
+      } else if (variant === 'default') {
+        elements.push({
+          element: renderDefaultElement(
+            selectId,
+            startIndex,
+            selectedValue,
+            availableOptionsForThisSelect
+          ),
+          id: `${baseId}-select-${++elementCounter}`,
+        });
+      } else {
+        const resultElement = renderResultElement(selectId);
+        if (resultElement) {
+          elements.push({
+            element: resultElement,
+            id: `${baseId}-result-${++elementCounter}`,
+          });
+        }
+      }
+
+      lastIndex = match.index + fullMatch.length;
+    }
+
+    if (lastIndex < text.length) {
+      elements.push({
+        element: text.slice(lastIndex),
+        id: `${baseId}-text-${++elementCounter}`,
+      });
+    }
+
+    return elements;
+  };
+
+  return (
+    <>
+      <QuizSubTitle subTitle="Alternativas" />
+
+      <QuizContainer className="h-auto pb-0">
+        <div className="space-y-6 px-4 h-auto">
+          <div
+            className={cn(
+              'text-lg text-text-900 leading-8 h-auto',
+              variant != 'result' && paddingBottom
+            )}
+          >
+            {renderTextWithSelects(exampleText).map((element) => (
+              <span key={element.id}>{element.element}</span>
+            ))}
+          </div>
+        </div>
+      </QuizContainer>
+
+      {variant === 'result' && (
+        <>
+          <QuizSubTitle subTitle="Resultado" />
+
+          <QuizContainer className="h-auto pb-0">
+            <div className="space-y-6 px-4">
+              <div
+                className={cn('text-lg text-text-900 leading-8', paddingBottom)}
+              >
+                {renderTextWithSelects(exampleText, true).map((element) => (
+                  <span key={element.id}>{element.element}</span>
+                ))}
+              </div>
+            </div>
+          </QuizContainer>
+        </>
+      )}
+    </>
+  );
+};
+
 const QuizQuestionList = ({
   filterType = 'all',
   onQuestionClick,
@@ -1170,4 +1722,7 @@ export {
   QuizListResultByMateria,
   QuizMultipleChoice,
   QuizDissertative,
+  QuizTrueOrFalse,
+  QuizConnectDots,
+  QuizFill,
 };

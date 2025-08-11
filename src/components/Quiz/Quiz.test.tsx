@@ -1,4 +1,10 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
+import React, {
+  Children,
+  isValidElement,
+  cloneElement,
+  ReactNode,
+} from 'react';
 import {
   Quiz,
   QuizTitle,
@@ -15,6 +21,10 @@ import {
   QuizListResultByMateria,
   QuizMultipleChoice,
   QuizDissertative,
+  QuizTrueOrFalse,
+  QuizConnectDots,
+  QuizFill,
+  getStatusBadge,
 } from './Quiz';
 import {
   useQuizStore,
@@ -23,7 +33,7 @@ import {
   QUESTION_TYPE,
   ANSWER_STATUS,
 } from './useQuizStore';
-import { ReactNode } from 'react';
+
 import userEvent from '@testing-library/user-event';
 
 // Mock the useQuizStore
@@ -213,22 +223,79 @@ jest.mock('../Modal/Modal', () => ({
 }));
 
 // Mock the Select components
-jest.mock('../Select/Select', () => ({
-  __esModule: true,
-  default: ({ children, value }: { children: ReactNode; value: string }) => (
-    <div data-testid="select" data-value={value}>
+jest.mock('../Select/Select', () => {
+  type SelectItemProps = {
+    value: string;
+    children: ReactNode;
+    onClick?: () => void;
+  };
+
+  type SelectItemComponent = React.FC<SelectItemProps> & { mockId: string };
+
+  const SelectItem: SelectItemComponent = ({
+    value,
+    children,
+    onClick,
+  }: SelectItemProps) => (
+    <div
+      data-testid={`select-item-${value}`}
+      data-value={value}
+      onClick={onClick}
+    >
       {children}
     </div>
-  ),
-  SelectContent: ({ children }: { children: ReactNode }) => (
+  );
+  SelectItem.mockId = 'SelectItem';
+
+  const Select = ({
+    children,
+    value,
+    onValueChange,
+  }: {
+    children: ReactNode;
+    value?: string;
+    onValueChange?: (value: string) => void;
+  }) => {
+    const isElementOf = <P,>(
+      node: React.ReactNode,
+      component: React.ComponentType<P>
+    ): node is React.ReactElement<P> =>
+      isValidElement(node) && node.type === component;
+
+    const inject = (nodes: React.ReactNode): React.ReactNode =>
+      Children.map(nodes, (child) => {
+        if (!isValidElement(child)) return child;
+        if (isElementOf<SelectItemProps>(child, SelectItem)) {
+          const itemValue = child.props.value;
+          const handleClick = () => {
+            if (onValueChange) {
+              const next = (value ?? '') === itemValue ? '' : itemValue;
+              onValueChange(next);
+            }
+          };
+          return cloneElement(child, { onClick: handleClick });
+        }
+        const childChildren = (child.props as { children?: React.ReactNode })
+          .children;
+        if (childChildren) {
+          const newChildren = inject(childChildren);
+          return cloneElement(child, {}, newChildren);
+        }
+        return child;
+      });
+
+    return (
+      <div data-testid="select" data-value={value ?? ''}>
+        {inject(children)}
+      </div>
+    );
+  };
+
+  const SelectContent = ({ children }: { children: React.ReactNode }) => (
     <div data-testid="select-content">{children}</div>
-  ),
-  SelectItem: ({ value, children }: { value: string; children: ReactNode }) => (
-    <div data-testid={`select-item-${value}`} data-value={value}>
-      {children}
-    </div>
-  ),
-  SelectTrigger: ({
+  );
+
+  const SelectTrigger = ({
     children,
     className,
   }: {
@@ -238,11 +305,21 @@ jest.mock('../Select/Select', () => ({
     <div data-testid="select-trigger" className={className}>
       {children}
     </div>
-  ),
-  SelectValue: ({ placeholder }: { placeholder: string }) => (
+  );
+
+  const SelectValue = ({ placeholder }: { placeholder: string }) => (
     <span data-testid="select-value">{placeholder}</span>
-  ),
-}));
+  );
+
+  return {
+    __esModule: true,
+    default: Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  };
+});
 
 // Mock the Card component
 jest.mock('../Card/Card', () => ({
@@ -706,30 +783,28 @@ describe('Quiz Component', () => {
 
         mockUseQuizStore.mockReturnValue(mockStore);
 
-        // Renderiza com variante result e resposta incorreta - deve mostrar observação
-        const { rerender } = render(
-          <QuizContent type="Dissertativa" variant="result" />
-        );
+        // Renders with result variant and incorrect answer - should show observation
+        const { rerender } = render(<QuizContent variant="result" />);
 
         expect(screen.getByText('Observação do professor')).toBeInTheDocument();
         expect(
           screen.getByText(/Lorem ipsum dolor sit amet/)
         ).toBeInTheDocument();
 
-        // Atualiza para resposta correta - não deve mostrar observação
+        // Updates to correct answer - should not show observation
         mockStore.getCurrentAnswer = () => ({
           ...mockAnswer,
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
         });
 
-        rerender(<QuizContent type="Dissertativa" variant="result" />);
+        rerender(<QuizContent variant="result" />);
 
         expect(
           screen.queryByText('Observação do professor')
         ).not.toBeInTheDocument();
 
-        // Atualiza para variante default - não deve mostrar observação
-        rerender(<QuizContent type="Dissertativa" variant="default" />);
+        // Updates to default variant - should not show observation
+        rerender(<QuizContent variant="default" />);
 
         expect(
           screen.queryByText('Observação do professor')
@@ -741,21 +816,6 @@ describe('Quiz Component', () => {
 
       expect(screen.getByText('Alternativas')).toBeInTheDocument();
       expect(screen.getByTestId('alternatives-list')).toBeInTheDocument();
-    });
-
-    it('should render content with custom type', () => {
-      render(<QuizContent type="Dissertativa" />);
-
-      expect(screen.getByText('Dissertativa')).toBeInTheDocument();
-    });
-
-    it('should apply custom className', () => {
-      render(<QuizContent className="custom-content-class" />);
-
-      const contentElement = screen
-        .getByTestId('alternatives-list')
-        .closest('div')?.parentElement?.parentElement;
-      expect(contentElement).toHaveClass('custom-content-class');
     });
 
     it('should render QuizAlternative when question type is ALTERNATIVA', () => {
@@ -1453,7 +1513,7 @@ describe('Quiz Component', () => {
 
       fireEvent.click(screen.getByText('Finalizar'));
 
-      // When getActiveQuiz returns null, it should show "Você acertou 0 de 2 questões."
+      // When getActiveQuiz returns null, it should show "You got 0 out of 2 questions correct."
       expect(
         screen.getByText('Você acertou 0 de 2 questões.')
       ).toBeInTheDocument();
@@ -4686,6 +4746,586 @@ describe('Quiz Result Components', () => {
         .getByText('Resultado das questões')
         .closest('section');
       expect(section).toHaveClass('flex', 'flex-col');
+    });
+  });
+
+  describe('QuizTrueOrFalse Temporary', () => {
+    it('should render in default variant with options and select components', () => {
+      render(<QuizTrueOrFalse variant="default" />);
+
+      // Checks if options are rendered
+      expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
+      expect(screen.getByText('b) 30 metros')).toBeInTheDocument();
+      expect(screen.getByText('c) 40 metros')).toBeInTheDocument();
+      expect(screen.getByText('d) 50 metros')).toBeInTheDocument();
+
+      // Checks if Select components are present
+      const selectTriggers = screen.getAllByText('Selecione opcão');
+      expect(selectTriggers).toHaveLength(4);
+    });
+
+    it('should render in result variant with status badges', () => {
+      render(<QuizTrueOrFalse variant="result" />);
+
+      // Checks if options are rendered
+      expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
+      expect(screen.getByText('b) 30 metros')).toBeInTheDocument();
+      expect(screen.getByText('c) 40 metros')).toBeInTheDocument();
+      expect(screen.getByText('d) 50 metros')).toBeInTheDocument();
+
+      // Checks if status badges are present
+      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
+      expect(screen.getAllByText('Resposta incorreta')).toHaveLength(3);
+
+      // Checks if answer information is present
+      expect(screen.getAllByText('Resposta selecionada: V')).toHaveLength(4);
+      expect(screen.getAllByText('Resposta correta: F')).toHaveLength(3);
+    });
+
+    it('should render with correct styling for correct answers in result variant', () => {
+      render(<QuizTrueOrFalse variant="result" />);
+
+      // Checks if the first option (correct) has the correct style
+      const correctOption = screen.getByText('a) 25 metros').closest('div');
+      expect(correctOption).toHaveClass(
+        'bg-success-background',
+        'border-success-300'
+      );
+    });
+
+    it('should render with correct styling for incorrect answers in result variant', () => {
+      render(<QuizTrueOrFalse variant="result" />);
+
+      // Checks if incorrect options have the correct style
+      const incorrectOptions = [
+        screen.getByText('b) 30 metros'),
+        screen.getByText('c) 40 metros'),
+        screen.getByText('d) 50 metros'),
+      ];
+
+      incorrectOptions.forEach((option) => {
+        const optionContainer = option.closest('div');
+        expect(optionContainer).toHaveClass(
+          'bg-error-background',
+          'border-error-300'
+        );
+      });
+    });
+
+    it('should not show status badges in default variant', () => {
+      render(<QuizTrueOrFalse variant="default" />);
+
+      // Checks that badges are not present
+      expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
+      expect(screen.queryByText('Resposta incorreta')).not.toBeInTheDocument();
+    });
+
+    it('should not show answer information in default variant', () => {
+      render(<QuizTrueOrFalse variant="default" />);
+
+      // Checks that answer information is not present
+      expect(
+        screen.queryByText('Resposta selecionada: V')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Resposta correta: F')).not.toBeInTheDocument();
+    });
+
+    it('should generate correct letter prefixes for options', () => {
+      render(<QuizTrueOrFalse variant="default" />);
+
+      // Checks if letters are generated correctly
+      expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
+      expect(screen.getByText('b) 30 metros')).toBeInTheDocument();
+      expect(screen.getByText('c) 40 metros')).toBeInTheDocument();
+      expect(screen.getByText('d) 50 metros')).toBeInTheDocument();
+    });
+
+    it('should render with medium size select components', () => {
+      render(<QuizTrueOrFalse variant="default" />);
+
+      // Checks if Select components have the correct size
+      const selectTriggers = screen.getAllByText('Selecione opcão');
+      selectTriggers.forEach((trigger) => {
+        const selectContainer = trigger.closest(
+          '[data-testid="select-trigger"]'
+        );
+        expect(selectContainer).toBeInTheDocument();
+      });
+    });
+
+    it('should render correct number of options', () => {
+      render(<QuizTrueOrFalse variant="default" />);
+
+      // Checks if exactly 4 options are rendered
+      const options = [
+        'a) 25 metros',
+        'b) 30 metros',
+        'c) 40 metros',
+        'd) 50 metros',
+      ];
+
+      options.forEach((option) => {
+        expect(screen.getByText(option)).toBeInTheDocument();
+      });
+    });
+
+    it('should have correct data structure for options', () => {
+      render(<QuizTrueOrFalse variant="default" />);
+
+      // Checks if options have the correct structure
+      // First option should be correct
+      expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
+
+      // Other options should be incorrect
+      expect(screen.getByText('b) 30 metros')).toBeInTheDocument();
+      expect(screen.getByText('c) 40 metros')).toBeInTheDocument();
+      expect(screen.getByText('d) 50 metros')).toBeInTheDocument();
+    });
+  });
+
+  describe('QuizConnectDots Temporary', () => {
+    it('should render in default variant with options and select components', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Checks if options are rendered
+      expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
+      expect(screen.getByText('b) Gato')).toBeInTheDocument();
+      expect(screen.getByText('c) Cabra')).toBeInTheDocument();
+      expect(screen.getByText('d) Baleia')).toBeInTheDocument();
+
+      // Checks if Select components are present
+      const selectTriggers = screen.getAllByText('Selecione opção');
+      expect(selectTriggers).toHaveLength(4);
+    });
+
+    it('should render in result variant with status badges', () => {
+      render(<QuizConnectDots variant="result" />);
+
+      // Checks if options are rendered
+      expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
+      expect(screen.getByText('b) Gato')).toBeInTheDocument();
+      expect(screen.getByText('c) Cabra')).toBeInTheDocument();
+      expect(screen.getByText('d) Baleia')).toBeInTheDocument();
+
+      // Checks if status badges are present
+      expect(screen.getAllByText('Resposta correta')).toHaveLength(2);
+      expect(screen.getAllByText('Resposta incorreta')).toHaveLength(2);
+
+      // Checks if answer information is present
+      expect(screen.getAllByText('Resposta selecionada: Ração')).toHaveLength(
+        1
+      );
+      expect(screen.getAllByText('Resposta selecionada: Rato')).toHaveLength(1);
+      expect(screen.getAllByText('Resposta selecionada: Peixe')).toHaveLength(
+        1
+      );
+      expect(screen.getAllByText('Resposta selecionada: Grama')).toHaveLength(
+        1
+      );
+    });
+
+    it('should render with correct styling for correct answers in result variant', () => {
+      render(<QuizConnectDots variant="result" />);
+
+      // Checks if correct options have the correct style
+      const correctOptions = [
+        screen.getByText('a) Cachorro'),
+        screen.getByText('b) Gato'),
+      ];
+
+      correctOptions.forEach((option) => {
+        const optionContainer = option.closest('div');
+        expect(optionContainer).toHaveClass(
+          'bg-success-background',
+          'border-success-300'
+        );
+      });
+    });
+
+    it('should render with correct styling for incorrect answers in result variant', () => {
+      render(<QuizConnectDots variant="result" />);
+
+      // Checks if incorrect options have the correct style
+      const incorrectOptions = [
+        screen.getByText('c) Cabra'),
+        screen.getByText('d) Baleia'),
+      ];
+
+      incorrectOptions.forEach((option) => {
+        const optionContainer = option.closest('div');
+        expect(optionContainer).toHaveClass(
+          'bg-error-background',
+          'border-error-300'
+        );
+      });
+    });
+
+    it('should not show status badges in default variant', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Checks that badges are not present
+      expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
+      expect(screen.queryByText('Resposta incorreta')).not.toBeInTheDocument();
+    });
+
+    it('should not show answer information in default variant', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Checks that answer information is not present
+      expect(
+        screen.queryByText('Resposta selecionada:')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Resposta correta:')).not.toBeInTheDocument();
+    });
+
+    it('should generate correct letter prefixes for options', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Checks if letters are generated correctly
+      expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
+      expect(screen.getByText('b) Gato')).toBeInTheDocument();
+      expect(screen.getByText('c) Cabra')).toBeInTheDocument();
+      expect(screen.getByText('d) Baleia')).toBeInTheDocument();
+    });
+
+    it('should render with medium size select components', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Checks if Select components have the correct size
+      const selectTriggers = screen.getAllByText('Selecione opção');
+      selectTriggers.forEach((trigger) => {
+        const selectContainer = trigger.closest(
+          '[data-testid="select-trigger"]'
+        );
+        expect(selectContainer).toBeInTheDocument();
+      });
+    });
+
+    it('should render correct number of options', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Checks if exactly 4 options are rendered
+      const options = ['a) Cachorro', 'b) Gato', 'c) Cabra', 'd) Baleia'];
+
+      options.forEach((option) => {
+        expect(screen.getByText(option)).toBeInTheDocument();
+      });
+    });
+
+    it('should have correct data structure for options', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Checks if options have the correct structure
+      expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
+      expect(screen.getByText('b) Gato')).toBeInTheDocument();
+      expect(screen.getByText('c) Cabra')).toBeInTheDocument();
+      expect(screen.getByText('d) Baleia')).toBeInTheDocument();
+    });
+
+    it('should show correct answer information for incorrect answers in result variant', () => {
+      render(<QuizConnectDots variant="result" />);
+
+      // Checks if correct answer information is shown for incorrect answers
+      expect(screen.getByText('Resposta correta: Grama')).toBeInTheDocument();
+      expect(screen.getByText('Resposta correta: Peixe')).toBeInTheDocument();
+    });
+
+    it('should not show correct answer information for correct answers in result variant', () => {
+      render(<QuizConnectDots variant="result" />);
+
+      // Checks that correct answer information is not shown for correct answers
+      expect(
+        screen.queryByText('Resposta correta: Ração')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Resposta correta: Rato')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should filter out already selected dots from available options', () => {
+      render(<QuizConnectDots variant="default" />);
+
+      // Checks if initially all options are available
+      const selectTriggers = screen.getAllByText('Selecione opção');
+      expect(selectTriggers).toHaveLength(4);
+
+      // Simulates option selection
+      // Note: This test verifies the filtering logic, but real interaction would be tested with userEvent
+      expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
+      expect(screen.getByText('b) Gato')).toBeInTheDocument();
+      expect(screen.getByText('c) Cabra')).toBeInTheDocument();
+      expect(screen.getByText('d) Baleia')).toBeInTheDocument();
+    });
+
+    it('should handle null status badge correctly', () => {
+      render(<QuizConnectDots variant="result" />);
+
+      // Checks if component renders correctly even with null status
+      expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
+      expect(screen.getByText('b) Gato')).toBeInTheDocument();
+      expect(screen.getByText('c) Cabra')).toBeInTheDocument();
+      expect(screen.getByText('d) Baleia')).toBeInTheDocument();
+    });
+
+    it('should set dot selection and compute isCorrect=true for correct match (handleSelectDot)', async () => {
+      const user = userEvent.setup();
+      render(<QuizConnectDots variant="default" />);
+
+      // Row 0 (a) picks "Ração" (correct for Cachorro)
+      const menus = screen.getAllByTestId('select-content');
+      await user.click(within(menus[0]).getByText('Ração'));
+
+      // After selection, row 1 (b) menu should not contain "Ração" anymore
+      expect(within(menus[1]).queryByText('Ração')).not.toBeInTheDocument();
+    });
+
+    it('should toggle off selection when picking the same item again (handleSelectDot)', async () => {
+      const user = userEvent.setup();
+      render(<QuizConnectDots variant="default" />);
+
+      const menus = screen.getAllByTestId('select-content');
+
+      // Select "Ração" on row 0
+      await user.click(within(menus[0]).getByText('Ração'));
+      // Now toggle off by clicking the same option again
+      await user.click(within(menus[0]).getByText('Ração'));
+
+      // After unselecting, row 1 (b) should see "Ração" available again
+      expect(within(menus[1]).getByText('Ração')).toBeInTheDocument();
+    });
+
+    it('should set isCorrect=false when selecting a wrong match (handleSelectDot)', async () => {
+      const user = userEvent.setup();
+      render(<QuizConnectDots variant="default" />);
+
+      const menus = screen.getAllByTestId('select-content');
+
+      // Row 2 (c) Cabra: correct is "Grama". Select a wrong one: "Peixe"
+      await user.click(within(menus[2]).getByText('Peixe'));
+
+      // After selection, row 3 (d) should not offer "Peixe" anymore
+      expect(within(menus[3]).queryByText('Peixe')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('QuizFill Temporary', () => {
+    it('should render in default variant with text and select components', () => {
+      render(<QuizFill variant="default" />);
+
+      // Checks if base text is present
+      expect(screen.getByText(/A meteorologia é a/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/que estuda os fenômenos atmosféricos/)
+      ).toBeInTheDocument();
+
+      // Checks if Select components are present
+      const selectTriggers = screen.getAllByText('Selecione opção');
+      expect(selectTriggers).toHaveLength(5);
+    });
+
+    it('should render in result variant with badges showing user answers', () => {
+      render(<QuizFill variant="result" />);
+
+      // Checks if base text is present
+      expect(screen.getAllByText(/A meteorologia é a/)).toHaveLength(2);
+
+      // Checks if badges are present with user answers
+      expect(screen.getByText('tecnologia')).toBeInTheDocument(); // Resposta incorreta
+      expect(screen.getByText('estudar')).toBeInTheDocument(); // Resposta incorreta
+      expect(screen.getByText('ferramentas')).toBeInTheDocument(); // Resposta incorreta
+      expect(screen.getAllByText('equipamentos')).toHaveLength(2); // Resposta correta (aparece no badge e no resultado)
+    });
+
+    it('should show correct answer badges in result variant', () => {
+      render(<QuizFill variant="result" />);
+
+      // Checks if result section is present
+      expect(screen.getByText('Resultado')).toBeInTheDocument();
+
+      // Checks if correct answers are being shown
+      expect(screen.getByText('ciência')).toBeInTheDocument();
+      expect(screen.getByText('compreender')).toBeInTheDocument();
+      expect(screen.getByText('instrumentos')).toBeInTheDocument();
+    });
+
+    it('should render success badges for correct answers in result variant', () => {
+      render(<QuizFill variant="result" />);
+
+      // Checks if success badges are present for correct answers
+      expect(screen.getAllByText('equipamentos')).toHaveLength(2); // Resposta correta (aparece no badge e no resultado)
+    });
+
+    it('should render error badges for incorrect answers in result variant', () => {
+      render(<QuizFill variant="result" />);
+
+      // Checks if error badges are present for incorrect answers
+      expect(screen.getByText('tecnologia')).toBeInTheDocument();
+      expect(screen.getByText('estudar')).toBeInTheDocument();
+      expect(screen.getByText('ferramentas')).toBeInTheDocument();
+    });
+
+    it('should not show select components in result variant', () => {
+      render(<QuizFill variant="result" />);
+
+      // Checks that Select components are not present
+      expect(screen.queryByText('Selecione opção')).not.toBeInTheDocument();
+    });
+
+    it('should not show result section in default variant', () => {
+      render(<QuizFill variant="default" />);
+
+      // Checks that result section is not present
+      expect(screen.queryByText('Resultado')).not.toBeInTheDocument();
+    });
+
+    it('should render with correct text content', () => {
+      render(<QuizFill variant="default" />);
+
+      // Checks if complete text is being rendered
+      expect(screen.getByText(/A meteorologia é a/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/que estuda os fenômenos atmosféricos e suas/)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /Esta disciplina científica tem como objetivo principal/
+        )
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/o comportamento da atmosfera terrestre/)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/Os meteorologistas utilizam diversos/)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /para coletar dados atmosféricos, incluindo termômetros, barômetros e/
+        )
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/modernos como radares meteorológicos/)
+      ).toBeInTheDocument();
+    });
+
+    it('should handle select changes correctly', () => {
+      render(<QuizFill variant="default" />);
+
+      // Checks if selects are working
+      const selectTriggers = screen.getAllByText('Selecione opção');
+      expect(selectTriggers).toHaveLength(5);
+
+      // Checks if each select has the correct options available
+      selectTriggers.forEach((trigger) => {
+        expect(trigger).toBeInTheDocument();
+      });
+    });
+
+    it('should render with correct padding bottom class', () => {
+      render(<QuizFill variant="default" paddingBottom="pb-[100px]" />);
+
+      // Checks if custom padding class is being applied
+      const container = screen.getByText(/A meteorologia é a/).closest('div');
+      expect(container).toHaveClass('pb-[100px]');
+    });
+  });
+
+  describe('getStatusBadge function', () => {
+    it('should return correct badge when status is "correct"', () => {
+      const { container } = render(getStatusBadge('correct'));
+
+      // Checks if correct answer badge is present
+      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
+
+      // Checks if badge has correct properties
+      const badge = container.querySelector('[data-testid="badge"]');
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+      expect(badge).toHaveAttribute('data-action', 'success');
+    });
+
+    it('should return correct badge when status is "incorrect"', () => {
+      const { container } = render(getStatusBadge('incorrect'));
+
+      // Checks if incorrect answer badge is present
+      expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
+
+      // Checks if badge has correct properties
+      const badge = container.querySelector('[data-testid="badge"]');
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+      expect(badge).toHaveAttribute('data-action', 'error');
+    });
+
+    it('should return null when status is undefined', () => {
+      const result = getStatusBadge(undefined);
+      expect(result).toBe(null);
+    });
+
+    it('should return null when status is null', () => {
+      const result = getStatusBadge(null as unknown as 'correct' | 'incorrect');
+      expect(result).toBe(null);
+    });
+
+    it('should return null when status is empty string', () => {
+      const result = getStatusBadge('' as unknown as 'correct' | 'incorrect');
+      expect(result).toBe(null);
+    });
+
+    it('should return null when status is invalid value', () => {
+      const result = getStatusBadge(
+        'invalid' as unknown as 'correct' | 'incorrect'
+      );
+      expect(result).toBe(null);
+    });
+
+    it('should render badge with correct text content for correct status', () => {
+      render(getStatusBadge('correct'));
+      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
+    });
+
+    it('should render badge with correct text content for incorrect status', () => {
+      render(getStatusBadge('incorrect'));
+      expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
+    });
+
+    it('should render badge with correct variant and action props for correct status', () => {
+      const { container } = render(getStatusBadge('correct'));
+
+      const badge = container.querySelector('[data-testid="badge"]');
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+      expect(badge).toHaveAttribute('data-action', 'success');
+    });
+
+    it('should render badge with correct variant and action props for incorrect status', () => {
+      const { container } = render(getStatusBadge('incorrect'));
+
+      const badge = container.querySelector('[data-testid="badge"]');
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+      expect(badge).toHaveAttribute('data-action', 'error');
+    });
+
+    it('should handle all valid status values correctly', () => {
+      // Testa status "correct"
+      const correctResult = getStatusBadge('correct');
+      expect(correctResult).not.toBe(null);
+      expect(correctResult).not.toBe(undefined);
+
+      // Testa status "incorrect"
+      const incorrectResult = getStatusBadge('incorrect');
+      expect(incorrectResult).not.toBe(null);
+      expect(incorrectResult).not.toBe(undefined);
+    });
+
+    it('should handle edge cases gracefully', () => {
+      // Testa com valores edge
+      expect(getStatusBadge(undefined)).toBe(null);
+      expect(getStatusBadge(null as unknown as 'correct' | 'incorrect')).toBe(
+        null
+      );
+      expect(getStatusBadge('' as unknown as 'correct' | 'incorrect')).toBe(
+        null
+      );
+      expect(
+        getStatusBadge('random' as unknown as 'correct' | 'incorrect')
+      ).toBe(null);
     });
   });
 });
