@@ -5573,13 +5573,15 @@ describe('Quiz Result Components', () => {
       expect(userCircles?.length).toBeGreaterThanOrEqual(2); // Correct answer + user answer
 
       // Find the user answer circle (smaller one)
-      const userCircle = Array.from(userCircles || []).find(circle => {
+      const userCircle = Array.from(userCircles || []).find((circle) => {
         const style = circle.getAttribute('style');
-        return style && style.includes('width: 5%') && style.includes('height: 10%');
+        return (
+          style && style.includes('width: 5%') && style.includes('height: 10%')
+        );
       });
-      
+
       expect(userCircle).toBeInTheDocument();
-      
+
       // The user circle should remain at the mock position (0.72, 0.348)
       const circleStyle = userCircle?.getAttribute('style');
       expect(circleStyle).toContain('left: calc(72% - 2.5%)');
@@ -5591,13 +5593,6 @@ describe('Quiz Result Components', () => {
 
       const imageButton = screen.getByAltText('Question').closest('button');
       expect(imageButton).toBeInTheDocument();
-
-      // Simulate click at edge coordinates
-      const mockEvent = {
-        currentTarget: imageButton,
-        clientX: 0, // Left edge
-        clientY: 0, // Top edge
-      } as any;
 
       // Trigger click manually to test edge case
       fireEvent.click(imageButton!);
@@ -5614,7 +5609,8 @@ describe('Quiz Result Components', () => {
       expect(imageButton).toBeInTheDocument();
 
       // Mock getBoundingClientRect with very small dimensions
-      const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
+      const originalGetBoundingClientRect =
+        Element.prototype.getBoundingClientRect;
       Element.prototype.getBoundingClientRect = jest.fn(() => ({
         width: 0.0001, // Very small width
         height: 0.0001, // Very small height
@@ -5650,11 +5646,13 @@ describe('Quiz Result Components', () => {
       expect(userCircles?.length).toBeGreaterThanOrEqual(2); // Correct answer + user answer
 
       // Find the user answer circle (smaller one)
-      const userCircle = Array.from(userCircles || []).find(circle => {
+      const userCircle = Array.from(userCircles || []).find((circle) => {
         const style = circle.getAttribute('style');
-        return style && style.includes('width: 5%') && style.includes('height: 10%');
+        return (
+          style && style.includes('width: 5%') && style.includes('height: 10%')
+        );
       });
-      
+
       expect(userCircle).toBeInTheDocument();
 
       // Should have red color for incorrect answer
@@ -5698,7 +5696,10 @@ describe('Quiz Result Components', () => {
 
       // Should have proper accessibility attributes
       expect(imageButton).toHaveAttribute('type', 'button');
-      expect(imageButton).toHaveAttribute('aria-label', 'Área da imagem interativa');
+      expect(imageButton).toHaveAttribute(
+        'aria-label',
+        'Área da imagem interativa'
+      );
       expect(imageButton).toHaveClass('cursor-pointer');
     });
 
@@ -5725,7 +5726,8 @@ describe('Quiz Result Components', () => {
       expect(imageButton).toBeInTheDocument();
 
       // Mock getBoundingClientRect with specific dimensions
-      const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
+      const originalGetBoundingClientRect =
+        Element.prototype.getBoundingClientRect;
       Element.prototype.getBoundingClientRect = jest.fn(() => ({
         width: 100,
         height: 100,
@@ -5737,13 +5739,6 @@ describe('Quiz Result Components', () => {
         y: 0,
         toJSON: () => {},
       }));
-
-      // Simulate click at coordinates that would result in values outside [0,1] range
-      const mockEvent = {
-        currentTarget: imageButton,
-        clientX: 150, // Outside right boundary
-        clientY: -50, // Outside top boundary
-      } as any;
 
       // Trigger click manually
       fireEvent.click(imageButton!);
@@ -5763,7 +5758,8 @@ describe('Quiz Result Components', () => {
       expect(imageButton).toBeInTheDocument();
 
       // Mock getBoundingClientRect with zero dimensions
-      const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
+      const originalGetBoundingClientRect =
+        Element.prototype.getBoundingClientRect;
       Element.prototype.getBoundingClientRect = jest.fn(() => ({
         width: 0,
         height: 0,
