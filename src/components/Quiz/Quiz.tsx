@@ -1139,14 +1139,28 @@ const QuizImageQuestion = ({
     return distance <= correctRadiusRelative;
   };
 
+  const getUserCircleColorClasses = () => {
+    if (variant === 'default') {
+      return 'bg-[#373737B2] border-[#F8CC2E]';
+    }
+    
+    if (variant === 'result') {
+      return isCorrect()
+        ? 'bg-[#2A7948B2] border-white' // Green for correct answer
+        : 'bg-[#B91C1C] border-white'; // Red for incorrect answer
+    }
+    
+    return 'bg-[#2A7948B2] border-white';
+  };
+
   return (
     <>
       <QuizSubTitle subTitle="Clique na área correta" />
 
       <QuizContainer className={cn('', paddingBottom)}>
-        <div className="space-y-6 p-3 relative inline-block">
+        <div data-testid="quiz-image-container" className="space-y-6 p-3 relative inline-block">
           {variant == 'result' && (
-            <div className="flex items-center gap-4 text-xs">
+            <div data-testid="quiz-legend" className="flex items-center gap-4 text-xs">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-[#373737B2] border border-[#F8CC2E]"></div>
                 <span className="text-text-600 font-medium text-sm">
@@ -1169,6 +1183,7 @@ const QuizImageQuestion = ({
           )}
 
           <button
+            data-testid="quiz-image-button"
             type="button"
             className="relative cursor-pointer w-full h-full border-0 bg-transparent p-0"
             onClick={handleImageClick}
@@ -1181,6 +1196,7 @@ const QuizImageQuestion = ({
             aria-label="Área da imagem interativa"
           >
             <img
+              data-testid="quiz-image"
               src={ImageQuestion}
               alt="Question"
               className="w-full h-auto rounded-md"
@@ -1189,6 +1205,7 @@ const QuizImageQuestion = ({
             {/* Correct answer circle - only show in result variant */}
             {variant === 'result' && (
               <div
+                data-testid="quiz-correct-circle"
                 className="absolute rounded-full bg-[#373737B2] border-4 border-[#F8CC2E] pointer-events-none"
                 style={{
                   minWidth: '50px',
@@ -1206,15 +1223,8 @@ const QuizImageQuestion = ({
             {/* User's answer circle */}
             {clickPositionRelative && (
               <div
-                className={`absolute rounded-full border-4 pointer-events-none ${
-                  variant === 'default'
-                    ? 'bg-[#373737B2] border-[#F8CC2E]'
-                    : variant === 'result'
-                      ? isCorrect()
-                        ? 'bg-[#2A7948B2] border-white' // Green for correct answer
-                        : 'bg-[#B91C1C] border-white' // Red for incorrect answer
-                      : 'bg-[#2A7948B2] border-white'
-                }`}
+                data-testid="quiz-user-circle"
+                className={`absolute rounded-full border-4 pointer-events-none ${getUserCircleColorClasses()}`}
                 style={{
                   minWidth: '30px',
                   minHeight: '30px',
