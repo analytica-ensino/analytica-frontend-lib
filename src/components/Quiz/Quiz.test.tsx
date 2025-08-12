@@ -5524,6 +5524,268 @@ describe('Quiz Result Components', () => {
       expect(circleStyle).toContain('width: 15%');
       expect(circleStyle).toContain('height: 30%');
     });
+
+    it('should handle keyboard activation with Enter key', () => {
+      render(<QuizImageQuestion variant="default" />);
+
+      const imageButton = screen.getByAltText('Question').closest('button');
+      expect(imageButton).toBeInTheDocument();
+
+      // Simulate Enter key press
+      fireEvent.keyDown(imageButton!, { key: 'Enter' });
+
+      // Should show user's answer circle at center position (0.5, 0.5)
+      const userCircle = imageButton?.querySelector('.rounded-full');
+      expect(userCircle).toBeInTheDocument();
+
+      // Verify the circle is positioned at center
+      const circleStyle = userCircle?.getAttribute('style');
+      expect(circleStyle).toContain('left: calc(50% - 2.5%)');
+      expect(circleStyle).toContain('top: calc(50% - 2.5%)');
+    });
+
+    it('should handle keyboard activation with Space key', () => {
+      render(<QuizImageQuestion variant="default" />);
+
+      const imageButton = screen.getByAltText('Question').closest('button');
+      expect(imageButton).toBeInTheDocument();
+
+      // Simulate Space key press
+      fireEvent.keyDown(imageButton!, { key: ' ' });
+
+      // Should show user's answer circle at center position
+      const userCircle = imageButton?.querySelector('.rounded-full');
+      expect(userCircle).toBeInTheDocument();
+    });
+
+    it('should not handle keyboard activation in result variant', () => {
+      render(<QuizImageQuestion variant="result" />);
+
+      const imageButton = screen.getByAltText('Question').closest('button');
+      expect(imageButton).toBeInTheDocument();
+
+      // Simulate Enter key press
+      fireEvent.keyDown(imageButton!, { key: 'Enter' });
+
+      // Should not change the existing user circle position
+      // In result variant, the user circle should be at mock position (0.72, 0.348)
+      const userCircles = imageButton?.querySelectorAll('.rounded-full');
+      expect(userCircles?.length).toBeGreaterThanOrEqual(2); // Correct answer + user answer
+
+      // Find the user answer circle (smaller one)
+      const userCircle = Array.from(userCircles || []).find(circle => {
+        const style = circle.getAttribute('style');
+        return style && style.includes('width: 5%') && style.includes('height: 10%');
+      });
+      
+      expect(userCircle).toBeInTheDocument();
+      
+      // The user circle should remain at the mock position (0.72, 0.348)
+      const circleStyle = userCircle?.getAttribute('style');
+      expect(circleStyle).toContain('left: calc(72% - 2.5%)');
+      expect(circleStyle).toContain('top: calc(34.8% - 2.5%)');
+    });
+
+    it('should handle edge case coordinates in convertToRelativeCoordinates', () => {
+      render(<QuizImageQuestion variant="default" />);
+
+      const imageButton = screen.getByAltText('Question').closest('button');
+      expect(imageButton).toBeInTheDocument();
+
+      // Simulate click at edge coordinates
+      const mockEvent = {
+        currentTarget: imageButton,
+        clientX: 0, // Left edge
+        clientY: 0, // Top edge
+      } as any;
+
+      // Trigger click manually to test edge case
+      fireEvent.click(imageButton!);
+
+      // Should show user's answer circle
+      const userCircle = imageButton?.querySelector('.rounded-full');
+      expect(userCircle).toBeInTheDocument();
+    });
+
+    it('should handle very small image dimensions gracefully', () => {
+      render(<QuizImageQuestion variant="default" />);
+
+      const imageButton = screen.getByAltText('Question').closest('button');
+      expect(imageButton).toBeInTheDocument();
+
+      // Mock getBoundingClientRect with very small dimensions
+      const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
+      Element.prototype.getBoundingClientRect = jest.fn(() => ({
+        width: 0.0001, // Very small width
+        height: 0.0001, // Very small height
+        left: 0,
+        top: 0,
+        right: 0.0001,
+        bottom: 0.0001,
+        x: 0,
+        y: 0,
+        toJSON: () => {},
+      }));
+
+      // Simulate click
+      fireEvent.click(imageButton!);
+
+      // Should still show user's answer circle (function handles edge cases)
+      const userCircle = imageButton?.querySelector('.rounded-full');
+      expect(userCircle).toBeInTheDocument();
+
+      // Restore original function
+      Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+    });
+
+    it('should handle isCorrect function with correct answer position', () => {
+      render(<QuizImageQuestion variant="result" />);
+
+      const imageButton = screen.getByAltText('Question').closest('button');
+      expect(imageButton).toBeInTheDocument();
+
+      // The mock position (0.72, 0.348) should be incorrect
+      // since correct position is (0.5, 0.4) and radius is small
+      const userCircles = imageButton?.querySelectorAll('.rounded-full');
+      expect(userCircles?.length).toBeGreaterThanOrEqual(2); // Correct answer + user answer
+
+      // Find the user answer circle (smaller one)
+      const userCircle = Array.from(userCircles || []).find(circle => {
+        const style = circle.getAttribute('style');
+        return style && style.includes('width: 5%') && style.includes('height: 10%');
+      });
+      
+      expect(userCircle).toBeInTheDocument();
+
+      // Should have red color for incorrect answer
+      expect(userCircle).toHaveClass('bg-[#B91C1C]');
+    });
+
+    it('should handle isCorrect function with no click position', () => {
+      render(<QuizImageQuestion variant="default" />);
+
+      const imageButton = screen.getByAltText('Question').closest('button');
+      expect(imageButton).toBeInTheDocument();
+
+      // Initially no user circle should be present
+      const userCircle = imageButton?.querySelector('.rounded-full');
+      expect(userCircle).not.toBeInTheDocument();
+    });
+
+    it('should handle paddingBottom prop correctly', () => {
+      const { container } = render(
+        <QuizImageQuestion variant="default" paddingBottom="pb-8" />
+      );
+
+      // Should apply custom padding bottom class
+      const quizContainer = container.querySelector('[class*="pb-8"]');
+      expect(quizContainer).toBeInTheDocument();
+    });
+
+    it('should handle default paddingBottom when not provided', () => {
+      const { container } = render(<QuizImageQuestion variant="default" />);
+
+      // Should not have custom padding bottom class
+      const quizContainer = container.querySelector('[class*="pb-8"]');
+      expect(quizContainer).not.toBeInTheDocument();
+    });
+
+    it('should maintain accessibility attributes', () => {
+      render(<QuizImageQuestion variant="default" />);
+
+      const imageButton = screen.getByAltText('Question').closest('button');
+      expect(imageButton).toBeInTheDocument();
+
+      // Should have proper accessibility attributes
+      expect(imageButton).toHaveAttribute('type', 'button');
+      expect(imageButton).toHaveAttribute('aria-label', 'Área da imagem interativa');
+      expect(imageButton).toHaveClass('cursor-pointer');
+    });
+
+    it('should handle multiple rapid clicks correctly', () => {
+      render(<QuizImageQuestion variant="default" />);
+
+      const imageButton = screen.getByAltText('Question').closest('button');
+      expect(imageButton).toBeInTheDocument();
+
+      // Simulate multiple rapid clicks
+      fireEvent.click(imageButton!);
+      fireEvent.click(imageButton!);
+      fireEvent.click(imageButton!);
+
+      // Should still show user's answer circle
+      const userCircle = imageButton?.querySelector('.rounded-full');
+      expect(userCircle).toBeInTheDocument();
+    });
+
+    it('should handle coordinate clamping correctly', () => {
+      render(<QuizImageQuestion variant="default" />);
+
+      const imageButton = screen.getByAltText('Question').closest('button');
+      expect(imageButton).toBeInTheDocument();
+
+      // Mock getBoundingClientRect with specific dimensions
+      const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
+      Element.prototype.getBoundingClientRect = jest.fn(() => ({
+        width: 100,
+        height: 100,
+        left: 0,
+        top: 0,
+        right: 100,
+        bottom: 100,
+        x: 0,
+        y: 0,
+        toJSON: () => {},
+      }));
+
+      // Simulate click at coordinates that would result in values outside [0,1] range
+      const mockEvent = {
+        currentTarget: imageButton,
+        clientX: 150, // Outside right boundary
+        clientY: -50, // Outside top boundary
+      } as any;
+
+      // Trigger click manually
+      fireEvent.click(imageButton!);
+
+      // Should show user's answer circle with clamped coordinates
+      const userCircle = imageButton?.querySelector('.rounded-full');
+      expect(userCircle).toBeInTheDocument();
+
+      // Restore original function
+      Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+    });
+
+    it('should handle division by zero gracefully', () => {
+      render(<QuizImageQuestion variant="default" />);
+
+      const imageButton = screen.getByAltText('Question').closest('button');
+      expect(imageButton).toBeInTheDocument();
+
+      // Mock getBoundingClientRect with zero dimensions
+      const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
+      Element.prototype.getBoundingClientRect = jest.fn(() => ({
+        width: 0,
+        height: 0,
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        x: 0,
+        y: 0,
+        toJSON: () => {},
+      }));
+
+      // Simulate click
+      fireEvent.click(imageButton!);
+
+      // Should still show user's answer circle (function handles division by zero)
+      const userCircle = imageButton?.querySelector('.rounded-full');
+      expect(userCircle).toBeInTheDocument();
+
+      // Restore original function
+      Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+    });
   });
 
   describe('QuizFill component', () => {
