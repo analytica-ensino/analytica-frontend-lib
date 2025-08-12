@@ -190,12 +190,14 @@ const QuizSubTitle = forwardRef<HTMLDivElement, { subTitle: string }>(
 );
 
 const QuizHeader = () => {
-  const { getCurrentQuestion } = useQuizStore();
+  const { getCurrentQuestion, currentQuestionIndex } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
 
   return (
     <HeaderAlternative
-      title={currentQuestion ? `Questão ${currentQuestion.id}` : 'Questão'}
+      title={
+        currentQuestion ? `Questão ${currentQuestionIndex + 1}` : 'Questão'
+      }
       subTitle={currentQuestion?.knowledgeMatrix?.[0]?.topicId ?? ''}
       content={currentQuestion?.questionText ?? ''}
     />
