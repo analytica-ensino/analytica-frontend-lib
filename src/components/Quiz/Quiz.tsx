@@ -1854,4 +1854,5 @@ export {
   QuizTrueOrFalse,
   QuizConnectDots,
   QuizFill,
+  QuizImageQuestion,
 };
