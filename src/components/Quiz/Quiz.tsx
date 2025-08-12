@@ -1067,7 +1067,7 @@ const QuizImageQuestion = ({
   variant = 'default',
   paddingBottom,
 }: QuizVariantInterface) => {
-  const correctPositionRelative = { x: 0.5, y: 0.4 };
+  const correctPositionRelative = { x: 0.48, y: 0.45 };
 
   // Calculate correctRadiusRelative automatically based on the circle dimensions
   const calculateCorrectRadiusRelative = (): number => {
@@ -1141,16 +1141,16 @@ const QuizImageQuestion = ({
 
   const getUserCircleColorClasses = () => {
     if (variant === 'default') {
-      return 'bg-[#373737B2] border-[#F8CC2E]';
+      return 'bg-indicator-primary/70 border-[#F8CC2E]';
     }
-    
+
     if (variant === 'result') {
       return isCorrect()
-        ? 'bg-[#2A7948B2] border-white' // Green for correct answer
-        : 'bg-[#B91C1C] border-white'; // Red for incorrect answer
+        ? 'bg-success-600/70 border-white' // Green for correct answer
+        : 'bg-indicator-error/70 border-white'; // Red for incorrect answer
     }
-    
-    return 'bg-[#2A7948B2] border-white';
+
+    return 'bg-success-600/70 border-white';
   };
 
   return (
@@ -1158,23 +1158,29 @@ const QuizImageQuestion = ({
       <QuizSubTitle subTitle="Clique na área correta" />
 
       <QuizContainer className={cn('', paddingBottom)}>
-        <div data-testid="quiz-image-container" className="space-y-6 p-3 relative inline-block">
+        <div
+          data-testid="quiz-image-container"
+          className="space-y-6 p-3 relative inline-block"
+        >
           {variant == 'result' && (
-            <div data-testid="quiz-legend" className="flex items-center gap-4 text-xs">
+            <div
+              data-testid="quiz-legend"
+              className="flex items-center gap-4 text-xs"
+            >
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[#373737B2] border border-[#F8CC2E]"></div>
+                <div className="w-3 h-3 rounded-full bg-indicator-primary/70 border border-[#F8CC2E]"></div>
                 <span className="text-text-600 font-medium text-sm">
                   Área correta
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[#2A7948B2] border border-white"></div>
+                <div className="w-3 h-3 rounded-full bg-success-600/70 border border-white"></div>
                 <span className="text-text-600 font-medium text-sm">
                   Resposta correta
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[#B91C1C] border border-white"></div>
+                <div className="w-3 h-3 rounded-full bg-indicator-error/70 border border-white"></div>
                 <span className="text-text-600 font-medium text-sm">
                   Resposta incorreta
                 </span>
@@ -1206,14 +1212,12 @@ const QuizImageQuestion = ({
             {variant === 'result' && (
               <div
                 data-testid="quiz-correct-circle"
-                className="absolute rounded-full bg-[#373737B2] border-4 border-[#F8CC2E] pointer-events-none"
+                className="absolute rounded-full bg-indicator-primary/70 border-4 border-[#F8CC2E] pointer-events-none"
                 style={{
                   minWidth: '50px',
-                  minHeight: '50px',
                   maxWidth: '160px',
-                  maxHeight: '160px',
                   width: '15%',
-                  height: '30%',
+                  aspectRatio: '1 / 1',
                   left: `calc(${correctPositionRelative.x * 100}% - 7.5%)`,
                   top: `calc(${correctPositionRelative.y * 100}% - 15%)`,
                 }}
@@ -1227,11 +1231,9 @@ const QuizImageQuestion = ({
                 className={`absolute rounded-full border-4 pointer-events-none ${getUserCircleColorClasses()}`}
                 style={{
                   minWidth: '30px',
-                  minHeight: '30px',
                   maxWidth: '52px',
-                  maxHeight: '52px',
                   width: '5%',
-                  height: '10%',
+                  aspectRatio: '1 / 1',
                   left: `calc(${clickPositionRelative.x * 100}% - 2.5%)`,
                   top: `calc(${clickPositionRelative.y * 100}% - 2.5%)`,
                 }}

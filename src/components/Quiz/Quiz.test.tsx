@@ -5376,14 +5376,16 @@ describe('Quiz Result Components', () => {
       expect(imageButton).toBeInTheDocument();
 
       // Count total elements with .rounded-full class before click
-      const initialRoundedElements = imageButton.querySelectorAll('.rounded-full');
+      const initialRoundedElements =
+        imageButton.querySelectorAll('.rounded-full');
       const initialCount = initialRoundedElements.length;
 
       // In result variant, click should not change anything
       fireEvent.click(imageButton);
 
       // Count total elements with .rounded-full class after click
-      const afterClickRoundedElements = imageButton.querySelectorAll('.rounded-full');
+      const afterClickRoundedElements =
+        imageButton.querySelectorAll('.rounded-full');
       const afterClickCount = afterClickRoundedElements.length;
 
       // Should have the same count (no new circles created)
@@ -5437,7 +5439,9 @@ describe('Quiz Result Components', () => {
       render(<QuizImageQuestion variant="default" />);
 
       // Checks that correct answer circle is not present
-      expect(screen.queryByTestId('quiz-correct-circle')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('quiz-correct-circle')
+      ).not.toBeInTheDocument();
     });
 
     it('should render image with correct attributes and classes', () => {
@@ -5474,10 +5478,9 @@ describe('Quiz Result Components', () => {
       const correctCircle = screen.getByTestId('quiz-correct-circle');
       expect(correctCircle).toBeInTheDocument();
 
-      // Verify that the circle has the expected dimensions (15% width, 30% height)
+      // Verify that the circle has the expected dimensions (15% width)
       const circleStyle = correctCircle.getAttribute('style');
       expect(circleStyle).toContain('width: 15%');
-      expect(circleStyle).toContain('height: 30%');
     });
 
     it('should handle keyboard activation with Enter key', () => {
@@ -5487,7 +5490,12 @@ describe('Quiz Result Components', () => {
       expect(imageButton).toBeInTheDocument();
 
       // Simulate Enter key press
-      fireEvent.keyDown(imageButton, { key: 'Enter', code: 'Enter', keyCode: 13, charCode: 13});
+      fireEvent.keyDown(imageButton, {
+        key: 'Enter',
+        code: 'Enter',
+        keyCode: 13,
+        charCode: 13,
+      });
 
       // Should show user's answer circle at center position (0.5, 0.5)
       expect(screen.getByTestId('quiz-user-circle')).toBeInTheDocument();
@@ -5500,7 +5508,12 @@ describe('Quiz Result Components', () => {
       expect(imageButton).toBeInTheDocument();
 
       // Simulate Space key press
-      fireEvent.keyDown(imageButton, { key: ' ', code: 'Space', keyCode: 32, charCode: 32 });
+      fireEvent.keyDown(imageButton, {
+        key: ' ',
+        code: 'Space',
+        keyCode: 32,
+        charCode: 32,
+      });
 
       // Should show user's answer circle at center position
       expect(screen.getByTestId('quiz-user-circle')).toBeInTheDocument();
@@ -5513,7 +5526,12 @@ describe('Quiz Result Components', () => {
       expect(imageButton).toBeInTheDocument();
 
       // Simulate Enter key press
-      fireEvent.keyDown(imageButton, { key: 'Enter', code: 'Enter', keyCode: 13, charCode: 13 });
+      fireEvent.keyDown(imageButton, {
+        key: 'Enter',
+        code: 'Enter',
+        keyCode: 13,
+        charCode: 13,
+      });
 
       // Should not change the existing user circle position
       // In result variant, the user circle should remain visible
@@ -5584,9 +5602,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle paddingBottom prop correctly', () => {
-      render(
-        <QuizImageQuestion variant="default" paddingBottom="pb-8" />
-      );
+      render(<QuizImageQuestion variant="default" paddingBottom="pb-8" />);
 
       // Should apply custom padding bottom class
       expect(screen.getByTestId('quiz-image-container')).toBeInTheDocument();
