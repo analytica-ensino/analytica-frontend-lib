@@ -1088,8 +1088,6 @@ const QuizImageQuestion = ({
     const yRelative = y / rect.height;
 
     const positionRelative = { x: xRelative, y: yRelative };
-    console.log('Posição relativa:', positionRelative);
-    console.log('Posição absoluta:', { x, y });
     setClickPositionRelative(positionRelative);
   };
 
@@ -1128,21 +1126,24 @@ const QuizImageQuestion = ({
             </div>
           )}
 
-          <div className="relative cursor-pointer" onClick={handleImageClick}>
+          <div
+            className="relative cursor-pointer"
+            onClick={handleImageClick}
+            tabIndex={0}
+            role="button"
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                handleImageClick(
+                  event as unknown as MouseEvent<HTMLDivElement>
+                );
+              }
+            }}
+            aria-label="Área da imagem interativa"
+          >
             <img
               src={ImageQuestion}
               alt="Image Question"
               className="w-full h-auto rounded-md"
-              onLoad={(e) => {
-                // Log para debug - mostrar as dimensões da imagem carregada
-                const img = e.currentTarget;
-                console.log('Imagem carregada com dimensões:', {
-                  naturalWidth: img.naturalWidth,
-                  naturalHeight: img.naturalHeight,
-                  displayWidth: img.width,
-                  displayHeight: img.height,
-                });
-              }}
             />
 
             {/* Correct answer circle - only show in result variant */}
