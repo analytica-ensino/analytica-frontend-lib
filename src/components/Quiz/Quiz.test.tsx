@@ -5339,7 +5339,7 @@ describe('Quiz Result Components', () => {
       expect(screen.getByText('Clique na área correta')).toBeInTheDocument();
 
       // Checks if image is present
-      const image = screen.getByAltText('Image Question');
+      const image = screen.getByAltText('Question');
       expect(image).toBeInTheDocument();
       expect(image).toHaveClass('w-full', 'h-auto', 'rounded-md');
     });
@@ -5352,7 +5352,8 @@ describe('Quiz Result Components', () => {
 
       // Checks if legend is present
       expect(screen.getByText('Área correta')).toBeInTheDocument();
-      expect(screen.getByText('Resposta')).toBeInTheDocument();
+      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
+      expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
 
       // Checks if correct answer circle is present
       const correctCircle = screen
@@ -5365,31 +5366,26 @@ describe('Quiz Result Components', () => {
     it('should handle image click in default variant', () => {
       render(<QuizImageQuestion variant="default" />);
 
-      const imageContainer = screen
-        .getByAltText('Image Question')
-        .closest('div');
-      expect(imageContainer).toHaveClass('cursor-pointer');
+      const imageButton = screen.getByAltText('Question').closest('button');
+      expect(imageButton).toHaveClass('cursor-pointer');
 
       // Simulate click
-      fireEvent.click(imageContainer!);
+      fireEvent.click(imageButton!);
 
       // Should show user's answer circle after click
-      const userCircle = imageContainer?.querySelector('.rounded-full');
+      const userCircle = imageButton?.querySelector('.rounded-full');
       expect(userCircle).toBeInTheDocument();
     });
 
     it('should not handle image click in result variant', () => {
       render(<QuizImageQuestion variant="result" />);
 
-      const imageContainer = screen
-        .getByAltText('Image Question')
-        .closest('div');
+      const imageButton = screen.getByAltText('Question').closest('button');
 
       // In result variant, click should not change anything
-      const initialUserCircle = imageContainer?.querySelector('.rounded-full');
-      fireEvent.click(imageContainer!);
-      const afterClickUserCircle =
-        imageContainer?.querySelector('.rounded-full');
+      const initialUserCircle = imageButton?.querySelector('.rounded-full');
+      fireEvent.click(imageButton!);
+      const afterClickUserCircle = imageButton?.querySelector('.rounded-full');
 
       // Should remain the same
       expect(initialUserCircle).toBe(afterClickUserCircle);
@@ -5398,12 +5394,10 @@ describe('Quiz Result Components', () => {
     it('should render with correct styling for user answer circle in default variant', () => {
       render(<QuizImageQuestion variant="default" />);
 
-      const imageContainer = screen
-        .getByAltText('Image Question')
-        .closest('div');
-      fireEvent.click(imageContainer!);
+      const imageButton = screen.getByAltText('Question').closest('button');
+      fireEvent.click(imageButton!);
 
-      const userCircle = imageContainer?.querySelector('.rounded-full');
+      const userCircle = imageButton?.querySelector('.rounded-full');
       expect(userCircle).toHaveClass('bg-[#373737B2]', 'border-[#F8CC2E]');
     });
 
@@ -5411,11 +5405,11 @@ describe('Quiz Result Components', () => {
       render(<QuizImageQuestion variant="result" />);
 
       // In result variant, the user circle should have the green styling
-      const imageContainer = screen
-        .getByAltText('Image Question')
-        .closest('div');
-      const userCircle = imageContainer?.querySelector(
-        '.rounded-full.bg-\\[\\#2A7948B2\\]'
+      const imageButton = screen.getByAltText('Question').closest('button');
+      // Since we're now using the isCorrect() function to determine color,
+      // the user circle will be red (#B91C1C) for incorrect answers in result variant
+      const userCircle = imageButton?.querySelector(
+        '.rounded-full.bg-\\[\\#B91C1C\\]'
       );
       expect(userCircle).toBeInTheDocument();
     });
@@ -5435,15 +5429,14 @@ describe('Quiz Result Components', () => {
 
       // Checks that legend is not present
       expect(screen.queryByText('Área correta')).not.toBeInTheDocument();
-      expect(screen.queryByText('Resposta')).not.toBeInTheDocument();
+      expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
+      expect(screen.queryByText('Resposta incorreta')).not.toBeInTheDocument();
     });
 
     it('should handle image onLoad event correctly', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
       render(<QuizImageQuestion variant="default" />);
-
-      const image = screen.getByAltText('Image Question');
+      const image = screen.getByAltText('Question');
 
       // Trigger the onLoad handler manually by accessing the onLoad prop
       const onLoadHandler = image.getAttribute('onload');
@@ -5459,10 +5452,8 @@ describe('Quiz Result Components', () => {
       render(<QuizImageQuestion variant="default" />);
 
       // Checks that correct answer circle is not present
-      const imageContainer = screen
-        .getByAltText('Image Question')
-        .closest('div');
-      const correctCircle = imageContainer?.querySelector(
+      const imageButton = screen.getByAltText('Question').closest('button');
+      const correctCircle = imageButton?.querySelector(
         '.rounded-full.bg-\\[\\#373737B2\\]'
       );
       expect(correctCircle).not.toBeInTheDocument();
@@ -5471,7 +5462,7 @@ describe('Quiz Result Components', () => {
     it('should render image with correct attributes and classes', () => {
       render(<QuizImageQuestion variant="default" />);
 
-      const image = screen.getByAltText('Image Question');
+      const image = screen.getByAltText('Question');
       expect(image).toHaveAttribute('src');
       expect(image).toHaveClass('w-full', 'h-auto', 'rounded-md');
     });
@@ -5485,7 +5476,7 @@ describe('Quiz Result Components', () => {
         .closest('div')
         ?.parentElement?.querySelector('.rounded-full');
       const userCircle = screen
-        .getByText('Resposta')
+        .getByText('Resposta correta')
         .closest('div')
         ?.parentElement?.querySelector('.rounded-full');
 
@@ -5496,19 +5487,42 @@ describe('Quiz Result Components', () => {
     it('should maintain relative positioning for circles', () => {
       render(<QuizImageQuestion variant="result" />);
 
-      // Find the circles within the image container
-      const imageContainer = screen
-        .getByAltText('Image Question')
-        .closest('div');
-      const circles = imageContainer?.querySelectorAll('.rounded-full');
+      // Find the circles within the image button
+      const imageButton = screen.getByAltText('Question').closest('button');
+      const circles = imageButton?.querySelectorAll('.rounded-full');
 
       // Should have at least 2 circles (correct answer and user answer)
       expect(circles?.length).toBeGreaterThanOrEqual(2);
 
-      // All circles should be positioned absolutely
-      circles?.forEach((circle) => {
+      // Filter out legend circles (they don't have absolute positioning)
+      const positionedCircles = Array.from(circles || []).filter((circle) =>
+        circle.classList.contains('absolute')
+      );
+
+      // All positioned circles should have absolute positioning
+      expect(positionedCircles.length).toBeGreaterThan(0);
+      positionedCircles.forEach((circle) => {
         expect(circle).toHaveClass('absolute');
       });
+    });
+
+    it('should calculate correctRadiusRelative automatically based on circle dimensions', () => {
+      render(<QuizImageQuestion variant="result" />);
+
+      const imageContainer = screen
+        .getByAltText('Question')
+        .closest('.relative');
+
+      // The correct answer circle should be visible in result variant
+      const correctCircle = imageContainer?.querySelector(
+        '.rounded-full.bg-\\[\\#373737B2\\]'
+      );
+      expect(correctCircle).toBeInTheDocument();
+
+      // Verify that the circle has the expected dimensions (15% width, 30% height)
+      const circleStyle = correctCircle?.getAttribute('style');
+      expect(circleStyle).toContain('width: 15%');
+      expect(circleStyle).toContain('height: 30%');
     });
   });
 
