@@ -33,6 +33,33 @@ export const General: Story = () => {
       category: 'Enem',
       questions: [
         {
+          id: 'q1-image',
+          questionText: 'Qual é a capital do Brasil?',
+          description: 'Questão de alternativa simples',
+          type: 'IMAGEM' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'geografia',
+              subjectId: 'geografia-geral',
+              topicId: 'capitais',
+              subtopicId: 'brasil',
+              contentId: 'geografia',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'São Paulo', isCorrect: false },
+            { id: 'opt2', option: 'Rio de Janeiro', isCorrect: false },
+            { id: 'opt3', option: 'Brasília', isCorrect: true },
+            { id: 'opt4', option: 'Salvador', isCorrect: false },
+          ],
+        },
+        {
           id: 'q1-alternativa',
           questionText: 'Qual é a capital do Brasil?',
           description: 'Questão de alternativa simples',
@@ -310,6 +337,62 @@ export const GeneralForResults: Story = () => {
       title: 'Simulado ENEM 2024 - Resultados',
       category: 'Enem',
       questions: [
+        // IMAGE - Correct
+        {
+          id: 'q1-image',
+          questionText: 'Qual é a capital do Brasil?',
+          description: 'Questão de alternativa simples',
+          type: 'IMAGEM' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'geografia',
+              subjectId: 'geografia-geral',
+              topicId: 'capitais',
+              subtopicId: 'brasil',
+              contentId: 'geografia',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'São Paulo', isCorrect: false },
+            { id: 'opt2', option: 'Rio de Janeiro', isCorrect: false },
+            { id: 'opt3', option: 'Brasília', isCorrect: true },
+            { id: 'opt4', option: 'Salvador', isCorrect: false },
+          ],
+        },
+        // IMAGE - Incorrect
+        {
+          id: 'q1-image-incorreta',
+          questionText: 'Qual é a capital do Brasil?',
+          description: 'Questão de alternativa simples',
+          type: 'IMAGEM' as QUESTION_TYPE,
+          status: 'APROVADO' as QUESTION_STATUS,
+          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1', 'inst2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'geografia',
+              subjectId: 'geografia-geral',
+              topicId: 'capitais',
+              subtopicId: 'brasil',
+              contentId: 'geografia',
+            },
+          ],
+          options: [
+            { id: 'opt1', option: 'São Paulo', isCorrect: false },
+            { id: 'opt2', option: 'Rio de Janeiro', isCorrect: false },
+            { id: 'opt3', option: 'Brasília', isCorrect: true },
+            { id: 'opt4', option: 'Salvador', isCorrect: false },
+          ],
+        },
         // ALTERNATIVE - Correct
         {
           id: 'q1-alt-correta',
@@ -542,6 +625,24 @@ export const GeneralForResults: Story = () => {
 
     // Simulate user answers
     setUserAnswers([
+      {
+        questionId: 'q1-image',
+        activityId: 'simulado-resultados',
+        userId: 'demo-user-id',
+        answer: '',
+        optionId: '',
+        questionType: QUESTION_TYPE.IMAGEM,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+      },
+      {
+        questionId: 'q1-image-incorreta',
+        activityId: 'simulado-resultados',
+        userId: 'demo-user-id',
+        answer: '',
+        optionId: '',
+        questionType: QUESTION_TYPE.IMAGEM,
+        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+      },
       {
         questionId: 'q1-alt-correta',
         activityId: 'simulado-resultados',

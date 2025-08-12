@@ -118,6 +118,7 @@ import {
   QuizTrueOrFalse,
   QuizConnectDots,
   QuizQuestionList,
+  QuizImageQuestion,
   QuizFooter,
   QuizListResult,
   QuizResultHeaderTitle,
@@ -232,6 +233,7 @@ export { QuizDissertative };
 export { QuizTrueOrFalse };
 export { QuizConnectDots };
 export { QuizQuestionList };
+export { QuizImageQuestion };
 export { QuizFooter };
 export { QuizListResult };
 export { QuizResultHeaderTitle };
