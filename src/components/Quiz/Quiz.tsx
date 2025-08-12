@@ -25,6 +25,7 @@ import {
   useCallback,
   useRef,
   ComponentType,
+  MouseEvent,
 } from 'react';
 import {
   Question,
@@ -48,6 +49,7 @@ import ProgressBar from '../ProgressBar/ProgressBar';
 import { cn } from '../../utils/utils';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import TextArea from '../TextArea/TextArea';
+import ImageQuestion from '@/assets/img/mock-image-question.png';
 
 export const getStatusBadge = (status?: 'correct' | 'incorrect') => {
   switch (status) {
@@ -238,6 +240,7 @@ const QuizContent = forwardRef<
     [QUESTION_TYPE.VERDADEIRO_FALSO]: QuizTrueOrFalse,
     [QUESTION_TYPE.LIGAR_PONTOS]: QuizConnectDots,
     [QUESTION_TYPE.PREENCHER]: QuizFill,
+    [QUESTION_TYPE.IMAGEM]: QuizImageQuestion,
   };
 
   const QuestionComponent = currentQuestion
@@ -1056,6 +1059,132 @@ const QuizFill = ({
           </QuizContainer>
         </>
       )}
+    </>
+  );
+};
+
+const QuizImageQuestion = ({
+  variant = 'default',
+  paddingBottom,
+}: QuizVariantInterface) => {
+  const correctPositionRelative = { x: 0.5, y: 0.4 };
+  // const correctRadiusRelative = 0.163;
+  const mockUserAnswerRelative = { x: 0.72, y: 0.348 };
+
+  const [clickPositionRelative, setClickPositionRelative] = useState<{
+    x: number;
+    y: number;
+  } | null>(variant == 'result' ? mockUserAnswerRelative : null);
+
+  const handleImageClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (variant === 'result') return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Converter para coordenadas relativas (percentuais)
+    const xRelative = x / rect.width;
+    const yRelative = y / rect.height;
+
+    const positionRelative = { x: xRelative, y: yRelative };
+    console.log('Posição relativa:', positionRelative);
+    console.log('Posição absoluta:', { x, y });
+    setClickPositionRelative(positionRelative);
+  };
+
+  /* Lógica utilizada no componente em uso real */
+  // const isCorrect = () => {
+  //   if (!clickPositionRelative) return false;
+
+  //   const distance = Math.sqrt(
+  //     Math.pow(clickPositionRelative.x - correctPositionRelative.x, 2) +
+  //       Math.pow(clickPositionRelative.y - correctPositionRelative.y, 2)
+  //   );
+
+  //   return distance <= correctRadiusRelative;
+  // };
+
+  return (
+    <>
+      <QuizSubTitle subTitle="Clique na área correta" />
+
+      <QuizContainer className={cn('', paddingBottom)}>
+        <div className="space-y-6 p-3 relative inline-block">
+          {variant == 'result' && (
+            <div className="flex items-center gap-4 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#373737B2] border border-[#F8CC2E]"></div>
+                <span className="text-text-600 font-medium text-sm">
+                  Área correta
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#2A7948B2] border border-white"></div>
+                <span className="text-text-600 font-medium text-sm">
+                  Resposta
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="relative cursor-pointer" onClick={handleImageClick}>
+            <img
+              src={ImageQuestion}
+              alt="Image Question"
+              className="w-full h-auto rounded-md"
+              onLoad={(e) => {
+                // Log para debug - mostrar as dimensões da imagem carregada
+                const img = e.currentTarget;
+                console.log('Imagem carregada com dimensões:', {
+                  naturalWidth: img.naturalWidth,
+                  naturalHeight: img.naturalHeight,
+                  displayWidth: img.width,
+                  displayHeight: img.height,
+                });
+              }}
+            />
+
+            {/* Correct answer circle - only show in result variant */}
+            {variant === 'result' && (
+              <div
+                className="absolute rounded-full bg-[#373737B2] border-4 border-[#F8CC2E] pointer-events-none"
+                style={{
+                  minWidth: '50px',
+                  minHeight: '50px',
+                  maxWidth: '160px',
+                  maxHeight: '160px',
+                  width: '15%',
+                  height: '30%',
+                  left: `calc(${correctPositionRelative.x * 100}% - 7.5%)`,
+                  top: `calc(${correctPositionRelative.y * 100}% - 15%)`,
+                }}
+              />
+            )}
+
+            {/* User's answer circle */}
+            {clickPositionRelative && (
+              <div
+                className={`absolute rounded-full border-4 pointer-events-none ${
+                  variant === 'default'
+                    ? 'bg-[#373737B2] border-[#F8CC2E]'
+                    : 'bg-[#2A7948B2] border-white'
+                }`}
+                style={{
+                  minWidth: '30px',
+                  minHeight: '30px',
+                  maxWidth: '52px',
+                  maxHeight: '52px',
+                  width: '5%',
+                  height: '10%',
+                  left: `calc(${clickPositionRelative.x * 100}% - 2.5%)`,
+                  top: `calc(${clickPositionRelative.y * 100}% - 2.5%)`,
+                }}
+              />
+            )}
+          </div>
+        </div>
+      </QuizContainer>
     </>
   );
 };
