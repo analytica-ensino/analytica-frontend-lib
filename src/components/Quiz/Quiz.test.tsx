@@ -743,7 +743,7 @@ describe('Quiz Component', () => {
       render(<QuizHeader />);
 
       expect(screen.getByTestId('header-alternative')).toBeInTheDocument();
-      expect(screen.getByText('Questão q1')).toBeInTheDocument();
+      expect(screen.getByText('Questão 1')).toBeInTheDocument();
       expect(screen.getByText('operacoes')).toBeInTheDocument();
       expect(screen.getByText('What is 2 + 2?')).toBeInTheDocument();
     });
