@@ -1355,6 +1355,7 @@ const QuizFooter = forwardRef<
     variant?: 'result' | 'default';
     onGoToSimulated?: () => void;
     onDetailResult?: () => void;
+    handleFinishSimulated?: () => void;
   }
 >(
   (
@@ -1362,6 +1363,7 @@ const QuizFooter = forwardRef<
       className,
       onGoToSimulated,
       onDetailResult,
+      handleFinishSimulated,
       variant = 'default',
       ...props
     },
@@ -1466,6 +1468,7 @@ const QuizFooter = forwardRef<
                     if (unansweredQuestions.length > 0) {
                       setAlertDialogOpen(true);
                     } else {
+                      handleFinishSimulated?.();
                       setModalResultOpen(true);
                     }
                   }}
@@ -1508,6 +1511,7 @@ const QuizFooter = forwardRef<
           cancelButtonLabel="Voltar e revisar"
           submitButtonLabel="Finalizar Mesmo Assim"
           onSubmit={() => {
+            handleFinishSimulated?.();
             setModalResultOpen(true);
           }}
         />
