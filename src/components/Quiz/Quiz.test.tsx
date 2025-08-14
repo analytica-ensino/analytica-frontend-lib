@@ -1302,6 +1302,349 @@ describe('Quiz Component', () => {
       expect(mockGoToNextQuestion).toHaveBeenCalled();
     });
 
+    describe('handleFinishQuiz function', () => {
+      it('should open alert dialog when there are unanswered questions', () => {
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          currentQuestionIndex: 1,
+          getTotalQuestions: jest.fn().mockReturnValue(2),
+          getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([2]),
+          getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        });
+
+        render(<QuizFooter />);
+
+        fireEvent.click(screen.getByText('Finalizar'));
+
+        expect(screen.getByTestId('alert-dialog')).toBeInTheDocument();
+        expect(screen.getByText('Finalizar simulado?')).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            (content) =>
+              content.startsWith('Você deixou') &&
+              content.includes('2') &&
+              content.includes('sem resposta')
+          )
+        ).toBeInTheDocument();
+      });
+
+      it('should call handleFinishSimulated and open result modal when no unanswered questions', async () => {
+        const mockHandleFinishSimulated = jest
+          .fn()
+          .mockResolvedValue(undefined);
+
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          currentQuestionIndex: 1,
+          getTotalQuestions: jest.fn().mockReturnValue(2),
+          getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+          getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+          getUserAnswers: jest.fn().mockReturnValue([
+            {
+              questionId: 'q1',
+              activityId: 'simulado-1',
+              userId: 'user-1',
+              answer: 'opt1',
+              optionId: 'opt1',
+            },
+            {
+              questionId: 'q2',
+              activityId: 'simulado-1',
+              userId: 'user-1',
+              answer: 'opt2',
+              optionId: 'opt2',
+            },
+          ]),
+        });
+
+        render(
+          <QuizFooter handleFinishSimulated={mockHandleFinishSimulated} />
+        );
+
+        fireEvent.click(screen.getByText('Finalizar'));
+
+        // Wait for the async operation to complete
+        await screen.findByText('Você concluiu o simulado!');
+
+        expect(mockHandleFinishSimulated).toHaveBeenCalledTimes(1);
+        expect(screen.getByTestId('modal')).toBeInTheDocument();
+        expect(
+          screen.getByText('Você concluiu o simulado!')
+        ).toBeInTheDocument();
+      });
+
+      it('should open result modal even when handleFinishSimulated is not provided', async () => {
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          currentQuestionIndex: 1,
+          getTotalQuestions: jest.fn().mockReturnValue(2),
+          getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+          getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+          getUserAnswers: jest.fn().mockReturnValue([
+            {
+              questionId: 'q1',
+              activityId: 'simulado-1',
+              userId: 'user-1',
+              answer: 'opt1',
+              optionId: 'opt1',
+            },
+            {
+              questionId: 'q2',
+              activityId: 'simulado-1',
+              userId: 'user-1',
+              answer: 'opt2',
+              optionId: 'opt2',
+            },
+          ]),
+        });
+
+        render(<QuizFooter />);
+
+        fireEvent.click(screen.getByText('Finalizar'));
+
+        await screen.findByText('Você concluiu o simulado!');
+        expect(screen.getByTestId('modal')).toBeInTheDocument();
+        expect(
+          screen.getByText('Você concluiu o simulado!')
+        ).toBeInTheDocument();
+      });
+
+      it('should handle handleFinishSimulated error gracefully and still open result modal', async () => {
+        const mockHandleFinishSimulated = jest
+          .fn()
+          .mockRejectedValue(new Error('API Error'));
+        const consoleSpy = jest
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
+
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          currentQuestionIndex: 1,
+          getTotalQuestions: jest.fn().mockReturnValue(2),
+          getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+          getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+          getUserAnswers: jest.fn().mockReturnValue([
+            {
+              questionId: 'q1',
+              activityId: 'simulado-1',
+              userId: 'user-1',
+              answer: 'opt1',
+              optionId: 'opt1',
+            },
+            {
+              questionId: 'q2',
+              activityId: 'simulado-1',
+              userId: 'user-1',
+              answer: 'opt2',
+              optionId: 'opt2',
+            },
+          ]),
+        });
+
+        render(
+          <QuizFooter handleFinishSimulated={mockHandleFinishSimulated} />
+        );
+
+        fireEvent.click(screen.getByText('Finalizar'));
+
+        // Wait for the async operation to complete
+        await screen.findByText('Você concluiu o simulado!');
+
+        expect(mockHandleFinishSimulated).toHaveBeenCalledTimes(1);
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'handleFinishSimulated failed:',
+          expect.any(Error)
+        );
+        expect(screen.getByTestId('modal')).toBeInTheDocument();
+        expect(
+          screen.getByText('Você concluiu o simulado!')
+        ).toBeInTheDocument();
+
+        consoleSpy.mockRestore();
+      });
+    });
+
+    describe('handleAlertSubmit function', () => {
+      it('should call handleFinishSimulated and open result modal when confirmed', async () => {
+        const mockHandleFinishSimulated = jest
+          .fn()
+          .mockResolvedValue(undefined);
+
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          currentQuestionIndex: 1,
+          getTotalQuestions: jest.fn().mockReturnValue(2),
+          getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([2]),
+          getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+          getUserAnswers: jest.fn().mockReturnValue([
+            {
+              questionId: 'q1',
+              activityId: 'simulado-1',
+              userId: 'user-1',
+              answer: 'opt1',
+              optionId: 'opt1',
+            },
+            {
+              questionId: 'q2',
+              activityId: 'simulado-1',
+              userId: 'user-1',
+              answer: 'opt2',
+              optionId: 'opt2',
+            },
+          ]),
+        });
+
+        render(
+          <QuizFooter handleFinishSimulated={mockHandleFinishSimulated} />
+        );
+
+        // First click Finalizar to open alert dialog
+        fireEvent.click(screen.getByText('Finalizar'));
+
+        // Then confirm from alert dialog
+        fireEvent.click(screen.getByTestId('submit-button'));
+
+        // Wait for the async operation to complete
+        await screen.findByText('Você concluiu o simulado!');
+
+        expect(mockHandleFinishSimulated).toHaveBeenCalledTimes(1);
+        expect(screen.getByTestId('modal')).toBeInTheDocument();
+        expect(
+          screen.getByText('Você concluiu o simulado!')
+        ).toBeInTheDocument();
+        // Alert dialog should be closed
+        expect(screen.queryByTestId('alert-dialog')).not.toBeInTheDocument();
+      });
+
+      it('should open result modal even when handleFinishSimulated is not provided in alert submit', async () => {
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          currentQuestionIndex: 1,
+          getTotalQuestions: jest.fn().mockReturnValue(2),
+          getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([2]),
+          getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+          getUserAnswers: jest.fn().mockReturnValue([
+            {
+              questionId: 'q1',
+              activityId: 'simulado-1',
+              userId: 'user-1',
+              answer: 'opt1',
+              optionId: 'opt1',
+            },
+            {
+              questionId: 'q2',
+              activityId: 'simulado-1',
+              userId: 'user-1',
+              answer: 'opt2',
+              optionId: 'opt2',
+            },
+          ]),
+        });
+
+        render(<QuizFooter />);
+
+        // First click Finalizar to open alert dialog
+        fireEvent.click(screen.getByText('Finalizar'));
+
+        // Then confirm from alert dialog
+        fireEvent.click(screen.getByTestId('submit-button'));
+
+        await screen.findByText('Você concluiu o simulado!');
+        expect(screen.getByTestId('modal')).toBeInTheDocument();
+        expect(
+          screen.getByText('Você concluiu o simulado!')
+        ).toBeInTheDocument();
+        // Alert dialog should be closed
+        expect(screen.queryByTestId('alert-dialog')).not.toBeInTheDocument();
+      });
+
+      it('should handle handleFinishSimulated error gracefully in alert submit and still open result modal', async () => {
+        const mockHandleFinishSimulated = jest
+          .fn()
+          .mockRejectedValue(new Error('API Error'));
+        const consoleSpy = jest
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
+
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          currentQuestionIndex: 1,
+          getTotalQuestions: jest.fn().mockReturnValue(2),
+          getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([2]),
+          getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+          getUserAnswers: jest.fn().mockReturnValue([
+            {
+              questionId: 'q1',
+              activityId: 'simulado-1',
+              userId: 'user-1',
+              answer: 'opt1',
+              optionId: 'opt1',
+            },
+            {
+              questionId: 'q2',
+              activityId: 'simulado-1',
+              userId: 'user-1',
+              answer: 'opt2',
+              optionId: 'opt2',
+            },
+          ]),
+        });
+
+        render(
+          <QuizFooter handleFinishSimulated={mockHandleFinishSimulated} />
+        );
+
+        // First click Finalizar to open alert dialog
+        fireEvent.click(screen.getByText('Finalizar'));
+
+        // Then confirm from alert dialog
+        fireEvent.click(screen.getByTestId('submit-button'));
+
+        // Wait for the async operation to complete
+        await screen.findByText('Você concluiu o simulado!');
+
+        expect(mockHandleFinishSimulated).toHaveBeenCalledTimes(1);
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'handleFinishSimulated failed:',
+          expect.any(Error)
+        );
+        expect(screen.getByTestId('modal')).toBeInTheDocument();
+        expect(
+          screen.getByText('Você concluiu o simulado!')
+        ).toBeInTheDocument();
+        // Alert dialog should be closed
+        expect(screen.queryByTestId('alert-dialog')).not.toBeInTheDocument();
+
+        consoleSpy.mockRestore();
+      });
+
+      it('should close alert dialog when cancel button is clicked', () => {
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          currentQuestionIndex: 1,
+          getTotalQuestions: jest.fn().mockReturnValue(2),
+          getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([2]),
+          getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        });
+
+        render(<QuizFooter />);
+
+        // First click Finalizar to open alert dialog
+        fireEvent.click(screen.getByText('Finalizar'));
+
+        // Verify alert dialog is open
+        expect(screen.getByTestId('alert-dialog')).toBeInTheDocument();
+
+        // Then click cancel button
+        fireEvent.click(screen.getByTestId('cancel-button'));
+
+        // Alert dialog should be closed
+        expect(screen.queryByTestId('alert-dialog')).not.toBeInTheDocument();
+        // Result modal should not be open
+        expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+      });
+    });
+
     // Additional tests for missing coverage scenarios
     it('should show alert dialog with unanswered questions description', () => {
       mockUseQuizStore.mockReturnValue({
