@@ -1399,6 +1399,37 @@ const QuizFooter = forwardRef<
     const userAnswers = getUserAnswers();
     const allQuestions = getTotalQuestions();
 
+    const handleFinishQuiz = async () => {
+      if (unansweredQuestions.length > 0) {
+        setAlertDialogOpen(true);
+        return;
+      }
+
+      try {
+        if (handleFinishSimulated) {
+          await Promise.resolve(handleFinishSimulated());
+        }
+        setModalResultOpen(true);
+      } catch (err) {
+        console.error('handleFinishSimulated failed:', err);
+        setModalResultOpen(true);
+      }
+    };
+
+    const handleAlertSubmit = async () => {
+      try {
+        if (handleFinishSimulated) {
+          await Promise.resolve(handleFinishSimulated());
+        }
+        setModalResultOpen(true);
+        setAlertDialogOpen(false);
+      } catch (err) {
+        console.error('handleFinishSimulated failed:', err);
+        setModalResultOpen(true);
+        setAlertDialogOpen(false);
+      }
+    };
+
     return (
       <>
         <footer
@@ -1464,14 +1495,7 @@ const QuizFooter = forwardRef<
                   variant="solid"
                   action="primary"
                   disabled={!currentAnswer && !isCurrentQuestionSkipped}
-                  onClick={() => {
-                    if (unansweredQuestions.length > 0) {
-                      setAlertDialogOpen(true);
-                    } else {
-                      handleFinishSimulated?.();
-                      setModalResultOpen(true);
-                    }
-                  }}
+                  onClick={handleFinishQuiz}
                 >
                   Finalizar
                 </Button>
@@ -1510,10 +1534,7 @@ const QuizFooter = forwardRef<
           }
           cancelButtonLabel="Voltar e revisar"
           submitButtonLabel="Finalizar Mesmo Assim"
-          onSubmit={() => {
-            handleFinishSimulated?.();
-            setModalResultOpen(true);
-          }}
+          onSubmit={handleAlertSubmit}
         />
 
         <Modal
