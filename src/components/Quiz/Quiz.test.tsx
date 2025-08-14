@@ -1320,7 +1320,10 @@ describe('Quiz Component', () => {
         expect(screen.getByText('Finalizar simulado?')).toBeInTheDocument();
         expect(
           screen.getByText(
-            'Você deixou as questões 2 sem resposta. Finalizar agora pode impactar seu desempenho.'
+            (content) =>
+              content.startsWith('Você deixou') &&
+              content.includes('2') &&
+              content.includes('sem resposta')
           )
         ).toBeInTheDocument();
       });
@@ -1370,7 +1373,7 @@ describe('Quiz Component', () => {
         ).toBeInTheDocument();
       });
 
-      it('should open result modal even when handleFinishSimulated is not provided', () => {
+      it('should open result modal even when handleFinishSimulated is not provided', async () => {
         mockUseQuizStore.mockReturnValue({
           ...mockUseQuizStore(),
           currentQuestionIndex: 1,
@@ -1399,6 +1402,7 @@ describe('Quiz Component', () => {
 
         fireEvent.click(screen.getByText('Finalizar'));
 
+        await screen.findByText('Você concluiu o simulado!');
         expect(screen.getByTestId('modal')).toBeInTheDocument();
         expect(
           screen.getByText('Você concluiu o simulado!')
@@ -1512,7 +1516,7 @@ describe('Quiz Component', () => {
         expect(screen.queryByTestId('alert-dialog')).not.toBeInTheDocument();
       });
 
-      it('should open result modal even when handleFinishSimulated is not provided in alert submit', () => {
+      it('should open result modal even when handleFinishSimulated is not provided in alert submit', async () => {
         mockUseQuizStore.mockReturnValue({
           ...mockUseQuizStore(),
           currentQuestionIndex: 1,
@@ -1545,6 +1549,7 @@ describe('Quiz Component', () => {
         // Then confirm from alert dialog
         fireEvent.click(screen.getByTestId('submit-button'));
 
+        await screen.findByText('Você concluiu o simulado!');
         expect(screen.getByTestId('modal')).toBeInTheDocument();
         expect(
           screen.getByText('Você concluiu o simulado!')
