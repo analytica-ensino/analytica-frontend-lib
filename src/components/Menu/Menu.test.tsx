@@ -9,6 +9,7 @@ import {
   MenuItem,
   MenuItemIcon,
   MenuOverflow,
+  Breadcrumb,
 } from './Menu';
 import { House } from 'phosphor-react';
 
@@ -255,6 +256,172 @@ describe('useMenuStore Hook', () => {
     }).toThrow('MenuItem must be inside Menu');
 
     jest.restoreAllMocks();
+  });
+});
+
+describe('Breadcrumb Component', () => {
+  it('renders parent and current page correctly', () => {
+    const onBackClick = jest.fn();
+
+    render(
+      <Breadcrumb
+        parentPageName="Home"
+        currentPage="Dashboard"
+        onBackClick={onBackClick}
+      />
+    );
+
+    expect(screen.getByText('Home')).toBeInTheDocument();
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+  });
+
+  it('calls onBackClick when parent page is clicked', () => {
+    const onBackClick = jest.fn();
+
+    render(
+      <Breadcrumb
+        parentPageName="Home"
+        currentPage="Dashboard"
+        onBackClick={onBackClick}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Home'));
+    expect(onBackClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('current page is not clickable', () => {
+    const onBackClick = jest.fn();
+
+    render(
+      <Breadcrumb
+        parentPageName="Home"
+        currentPage="Dashboard"
+        onBackClick={onBackClick}
+      />
+    );
+
+    const currentPageItem = screen.getByText('Dashboard');
+    expect(
+      currentPageItem.closest('[aria-disabled="true"]')
+    ).toBeInTheDocument();
+    expect(currentPageItem.closest('li')).toHaveClass('text-text-950');
+    expect(currentPageItem.closest('li')).toHaveClass('font-bold');
+  });
+
+  it('parent page has correct styles', () => {
+    const onBackClick = jest.fn();
+
+    render(
+      <Breadcrumb
+        parentPageName="Products"
+        currentPage="Details"
+        onBackClick={onBackClick}
+      />
+    );
+
+    const parentItem = screen.getByText('Products').closest('li');
+    expect(parentItem).toHaveClass('text-text-600');
+    expect(parentItem).toHaveClass('underline');
+    expect(parentItem).toHaveClass('cursor-pointer');
+    expect(parentItem).toHaveClass('hover:text-text-950');
+  });
+
+  it('shows separator between items', () => {
+    const onBackClick = jest.fn();
+
+    render(
+      <Breadcrumb
+        parentPageName="Home"
+        currentPage="Dashboard"
+        onBackClick={onBackClick}
+      />
+    );
+
+    const separator = screen.getByTestId('separator');
+    expect(separator).toBeInTheDocument();
+    expect(separator).toHaveClass('text-text-600');
+  });
+
+  it('applies custom className', () => {
+    const onBackClick = jest.fn();
+
+    render(
+      <Breadcrumb
+        parentPageName="Home"
+        currentPage="Dashboard"
+        onBackClick={onBackClick}
+        className="custom-class"
+      />
+    );
+
+    const breadcrumb = document.querySelector('.custom-class');
+    expect(breadcrumb).toBeInTheDocument();
+  });
+
+  it('forwards additional props', () => {
+    const onBackClick = jest.fn();
+
+    const { container } = render(
+      <Breadcrumb
+        parentPageName="Home"
+        currentPage="Dashboard"
+        onBackClick={onBackClick}
+        data-testid="breadcrumb-test"
+      />
+    );
+
+    const breadcrumb = container.querySelector(
+      '[data-testid="breadcrumb-test"]'
+    );
+    expect(breadcrumb).toBeInTheDocument();
+  });
+
+  it('handles long page names', () => {
+    const onBackClick = jest.fn();
+    const longParentName =
+      'Very Long Parent Page Name That Should Still Render';
+    const longCurrentName = 'Another Very Long Current Page Name';
+
+    render(
+      <Breadcrumb
+        parentPageName={longParentName}
+        currentPage={longCurrentName}
+        onBackClick={onBackClick}
+      />
+    );
+
+    expect(screen.getByText(longParentName)).toBeInTheDocument();
+    expect(screen.getByText(longCurrentName)).toBeInTheDocument();
+  });
+
+  it('onBackClick callback updates when prop changes', () => {
+    const firstCallback = jest.fn();
+    const secondCallback = jest.fn();
+
+    const { rerender } = render(
+      <Breadcrumb
+        parentPageName="Home"
+        currentPage="Dashboard"
+        onBackClick={firstCallback}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Home'));
+    expect(firstCallback).toHaveBeenCalledTimes(1);
+    expect(secondCallback).toHaveBeenCalledTimes(0);
+
+    rerender(
+      <Breadcrumb
+        parentPageName="Home"
+        currentPage="Dashboard"
+        onBackClick={secondCallback}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Home'));
+    expect(firstCallback).toHaveBeenCalledTimes(1);
+    expect(secondCallback).toHaveBeenCalledTimes(1);
   });
 });
 
