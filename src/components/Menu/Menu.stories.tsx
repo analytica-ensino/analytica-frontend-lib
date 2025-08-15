@@ -4,7 +4,6 @@ import Menu, {
   MenuItem,
   MenuItemIcon,
   MenuOverflow,
-  Breadcrumb,
 } from './Menu';
 import {
   Headphones,
@@ -83,16 +82,6 @@ export const AllMenus: Story = () => {
             </MenuItem>
           </MenuContent>
         </Menu>
-
-        <h3 className="font-bold text-xl text-text-900 mt-4">
-          Breadcrumb Component (Simplified API)
-        </h3>
-        <Breadcrumb
-          parentPageName="Home"
-          currentPage="Dashboard"
-          onBackClick={() => setValue('home')}
-          className="max-w-[500px]"
-        />
 
         <MenuOverflow className="max-w-[500px]" defaultValue="home">
           <MenuItem variant="menu2" value="home">
