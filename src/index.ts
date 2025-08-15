@@ -62,6 +62,7 @@ import Menu, {
   MenuItem,
   MenuOverflow,
   MenuContent,
+  Breadcrumb,
 } from './components/Menu/Menu';
 
 import {
@@ -182,6 +183,7 @@ export { Menu };
 export { MenuItem };
 export { MenuOverflow };
 export { MenuContent };
+export { Breadcrumb };
 
 export { CardActivitiesResults };
 export { CardPerformance };
