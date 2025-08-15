@@ -1891,14 +1891,20 @@ const QuizListResultByMateria = ({
               <li key={question.id}>
                 <CardStatus
                   className="max-w-full"
-                  header={`Questão ${questionIndex}`}
+                  header={`Questão ${questionIndex.toString().padStart(2, '0')}`}
                   status={(() => {
                     const userAnswer = getUserAnswerByQuestionId(question.id);
-
-                    return userAnswer?.answerStatus ==
+                    if (
+                      userAnswer?.answerStatus ===
                       ANSWER_STATUS.RESPOSTA_CORRETA
-                      ? 'correct'
-                      : 'incorrect';
+                    )
+                      return 'correct';
+                    if (
+                      userAnswer?.answerStatus ===
+                      ANSWER_STATUS.RESPOSTA_INCORRETA
+                    )
+                      return 'incorrect';
+                    return undefined;
                   })()}
                   onClick={() => onQuestionClick?.(question)}
                 />

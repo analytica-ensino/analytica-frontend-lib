@@ -4088,7 +4088,7 @@ describe('Quiz Result Components', () => {
 
       render(<QuizResultPerformance />);
 
-      // Should show 3 correct out of 4 total (1 easy correct + 1 easy correct + 1 difficult correct)
+      // Should show 3 correct out of 4 total (1 easy correct + 1 difficult correct + 1 medium correct)
       expect(screen.getByText('3 de 4')).toBeInTheDocument();
     });
   });
@@ -5100,9 +5100,9 @@ describe('Quiz Result Components', () => {
         />
       );
 
-      expect(screen.getByText('Questão 1')).toBeInTheDocument();
-      expect(screen.getByText('Questão 2')).toBeInTheDocument();
-      expect(screen.getByText('Questão 3')).toBeInTheDocument();
+      expect(screen.getByText('Questão 01')).toBeInTheDocument();
+      expect(screen.getByText('Questão 02')).toBeInTheDocument();
+      expect(screen.getByText('Questão 03')).toBeInTheDocument();
     });
 
     it('should display correct status for answered questions', () => {
@@ -5116,19 +5116,19 @@ describe('Quiz Result Components', () => {
 
       // Check if questions with correct answers show 'correct' status
       const correctQuestion = screen
-        .getByText('Questão 1')
+        .getByText('Questão 01')
         .closest('[data-testid="card-status"]');
       expect(correctQuestion).toHaveAttribute('data-status', 'correct');
 
       // Check if questions with incorrect answers show 'incorrect' status
       const incorrectQuestion = screen
-        .getByText('Questão 2')
+        .getByText('Questão 02')
         .closest('[data-testid="card-status"]');
       expect(incorrectQuestion).toHaveAttribute('data-status', 'incorrect');
 
       // Check if questions with correct answers show 'correct' status
       const correctQuestion2 = screen
-        .getByText('Questão 3')
+        .getByText('Questão 03')
         .closest('[data-testid="card-status"]');
       expect(correctQuestion2).toHaveAttribute('data-status', 'correct');
     });
@@ -5143,7 +5143,7 @@ describe('Quiz Result Components', () => {
       );
 
       const firstQuestion = screen
-        .getByText('Questão 1')
+        .getByText('Questão 01')
         .closest('[data-testid="card-status"]');
       fireEvent.click(firstQuestion!);
 
