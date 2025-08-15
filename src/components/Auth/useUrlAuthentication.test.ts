@@ -288,7 +288,7 @@ describe('useUrlAuthentication', () => {
             endpoint: '/auth/session-info',
             clearParamsFromURL: mockClearParams,
           }),
-        { wrapper }
+        { wrapper: wrapper }
       );
     });
     await waitFor(() => {
@@ -299,6 +299,429 @@ describe('useUrlAuthentication', () => {
       // setSelectedProfile não deve ser chamado quando response.data.data não é objeto
       expect(mockSetSelectedProfile).not.toHaveBeenCalled();
       expect(mockClearParams).toHaveBeenCalled();
+    });
+  });
+
+  describe('setUser Tests', () => {
+    const mockSetUser = jest.fn();
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('deve chamar setUser quando userId está presente na resposta', async () => {
+      mockApi.get.mockResolvedValue({
+        data: {
+          data: {
+            profileId: 'p1',
+            userId: 'user123',
+            userName: 'João Silva',
+            userEmail: 'joao@example.com',
+          },
+        },
+      });
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              setUser: mockSetUser,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+            }),
+          { wrapper: wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockSetUser).toHaveBeenCalledWith({
+          id: 'user123',
+          name: 'João Silva',
+          email: 'joao@example.com',
+        });
+      });
+    });
+
+    it('deve chamar setUser apenas com id quando apenas userId está presente', async () => {
+      mockApi.get.mockResolvedValue({
+        data: {
+          data: {
+            profileId: 'p1',
+            userId: 'user123',
+            // userName e userEmail não estão presentes
+          },
+        },
+      });
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              setUser: mockSetUser,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+            }),
+          { wrapper: wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockSetUser).toHaveBeenCalledWith({
+          id: 'user123',
+        });
+      });
+    });
+
+    it('deve chamar setUser com id e name quando apenas userId e userName estão presentes', async () => {
+      mockApi.get.mockResolvedValue({
+        data: {
+          data: {
+            profileId: 'p1',
+            userId: 'user123',
+            userName: 'João Silva',
+            // userEmail não está presente
+          },
+        },
+      });
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              setUser: mockSetUser,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+            }),
+          { wrapper: wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockSetUser).toHaveBeenCalledWith({
+          id: 'user123',
+          name: 'João Silva',
+        });
+      });
+    });
+
+    it('deve chamar setUser com id e email quando apenas userId e userEmail estão presentes', async () => {
+      mockApi.get.mockResolvedValue({
+        data: {
+          data: {
+            profileId: 'p1',
+            userId: 'user123',
+            userEmail: 'joao@example.com',
+            // userName não está presente
+          },
+        },
+      });
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              setUser: mockSetUser,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+            }),
+          { wrapper: wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockSetUser).toHaveBeenCalledWith({
+          id: 'user123',
+          email: 'joao@example.com',
+        });
+      });
+    });
+
+    it('não deve chamar setUser quando userId não está presente', async () => {
+      mockApi.get.mockResolvedValue({
+        data: {
+          data: {
+            profileId: 'p1',
+            userName: 'João Silva',
+            userEmail: 'joao@example.com',
+            // userId não está presente
+          },
+        },
+      });
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              setUser: mockSetUser,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+            }),
+          { wrapper: wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockSetUser).not.toHaveBeenCalled();
+      });
+    });
+
+    it('não deve chamar setUser quando setUser não é fornecido', async () => {
+      mockApi.get.mockResolvedValue({
+        data: {
+          data: {
+            profileId: 'p1',
+            userId: 'user123',
+            userName: 'João Silva',
+            userEmail: 'joao@example.com',
+          },
+        },
+      });
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              // setUser não fornecido
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+            }),
+          { wrapper: wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockSetUser).not.toHaveBeenCalled();
+      });
+    });
+
+    it('não deve chamar setUser quando response.data.data é null', async () => {
+      mockApi.get.mockResolvedValue({
+        data: { data: null },
+      });
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              setUser: mockSetUser,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+            }),
+          { wrapper: wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockSetUser).not.toHaveBeenCalled();
+      });
+    });
+
+    it('não deve chamar setUser quando response.data.data não é um objeto', async () => {
+      mockApi.get.mockResolvedValue({
+        data: { data: 'string inválida' },
+      });
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              setUser: mockSetUser,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+            }),
+          { wrapper: wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockSetUser).not.toHaveBeenCalled();
+      });
+    });
+
+    it('deve lidar com userId sendo null ou undefined', async () => {
+      mockApi.get.mockResolvedValue({
+        data: {
+          data: {
+            profileId: 'p1',
+            userId: null,
+            userName: 'João Silva',
+            userEmail: 'joao@example.com',
+          },
+        },
+      });
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              setUser: mockSetUser,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+            }),
+          { wrapper: wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockSetUser).not.toHaveBeenCalled();
+      });
+    });
+
+    it('deve lidar com userName sendo null ou undefined', async () => {
+      mockApi.get.mockResolvedValue({
+        data: {
+          data: {
+            profileId: 'p1',
+            userId: 'user123',
+            userName: null,
+            userEmail: 'joao@example.com',
+          },
+        },
+      });
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              setUser: mockSetUser,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+            }),
+          { wrapper: wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockSetUser).toHaveBeenCalledWith({
+          id: 'user123',
+          email: 'joao@example.com',
+        });
+      });
+    });
+
+    it('deve lidar com userEmail sendo null ou undefined', async () => {
+      mockApi.get.mockResolvedValue({
+        data: {
+          data: {
+            profileId: 'p1',
+            userId: 'user123',
+            userName: 'João Silva',
+            userEmail: null,
+          },
+        },
+      });
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              setUser: mockSetUser,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+            }),
+          { wrapper: wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockSetUser).toHaveBeenCalledWith({
+          id: 'user123',
+          name: 'João Silva',
+        });
+      });
+    });
+
+    it('deve funcionar corretamente com todos os campos de usuário preenchidos', async () => {
+      mockApi.get.mockResolvedValue({
+        data: {
+          data: {
+            profileId: 'p1',
+            userId: 'user123',
+            userName: 'João Silva',
+            userEmail: 'joao@example.com',
+            // Campos adicionais que não são processados pelo handleUserData
+            extraField: 'extra value',
+            anotherField: 'another value',
+          },
+        },
+      });
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              setUser: mockSetUser,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+            }),
+          { wrapper: wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockSetUser).toHaveBeenCalledWith({
+          id: 'user123',
+          name: 'João Silva',
+          email: 'joao@example.com',
+        });
+        // Verificar que setSessionInfo recebe todos os campos, incluindo os extras
+        expect(mockSetSessionInfo).toHaveBeenCalledWith({
+          profileId: 'p1',
+          userId: 'user123',
+          userName: 'João Silva',
+          userEmail: 'joao@example.com',
+          extraField: 'extra value',
+          anotherField: 'another value',
+        });
+      });
     });
   });
 });
