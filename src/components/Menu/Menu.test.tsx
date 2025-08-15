@@ -305,8 +305,12 @@ describe('Breadcrumb Component', () => {
     expect(
       currentPageItem.closest('[aria-disabled="true"]')
     ).toBeInTheDocument();
-    expect(currentPageItem.closest('li')).toHaveClass('text-text-950');
-    expect(currentPageItem.closest('li')).toHaveClass('font-bold');
+    expect(currentPageItem.closest('li')).toHaveClass('text-text-950'); // Selecionado
+
+    // Verificar que o span interno não tem border-bottom (selecionado)
+    const currentSpan = screen.getByText('Dashboard').closest('span');
+    expect(currentSpan).toHaveClass('border-b-0');
+    expect(currentSpan).toHaveClass('font-bold');
   });
 
   it('parent page has correct styles', () => {
@@ -321,10 +325,13 @@ describe('Breadcrumb Component', () => {
     );
 
     const parentItem = screen.getByText('Products').closest('li');
-    expect(parentItem).toHaveClass('text-text-600');
-    expect(parentItem).toHaveClass('underline');
+    expect(parentItem).toHaveClass('text-text-600'); // Não selecionado
     expect(parentItem).toHaveClass('cursor-pointer');
-    expect(parentItem).toHaveClass('hover:text-text-950');
+    expect(parentItem).toHaveClass('hover:text-primary-600');
+
+    // Verificar que o span interno tem border-bottom
+    const parentSpan = screen.getByText('Products').closest('span');
+    expect(parentSpan).toHaveClass('border-b');
   });
 
   it('shows separator between items', () => {

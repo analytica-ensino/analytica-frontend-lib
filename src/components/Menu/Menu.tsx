@@ -55,7 +55,7 @@ interface MenuProps extends HTMLAttributes<HTMLDivElement> {
 const VARIANT_CLASSES = {
   menu: 'bg-background shadow-soft-shadow-1 px-6',
   menu2: '',
-  breadcrumb: '',
+  breadcrumb: 'bg-transparent shadow-none !px-0 !-ml-2',
 };
 
 const Menu = forwardRef<HTMLDivElement, MenuProps>(
@@ -205,7 +205,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
           data-variant="menu2"
           className={`
             w-full flex flex-col items-center px-2 pt-4 gap-3 cursor-pointer focus:rounded-sm justify-center hover:bg-background-100 rounded-lg
-            focus:outline-none focus:border-indicator-info focus:border-2 
+            focus:outline-none focus:border-indicator-info focus:border-2
             ${selectedValue === value ? '' : 'pb-4'}
           `}
           {...commonProps}
@@ -423,38 +423,39 @@ const Breadcrumb = forwardRef<HTMLDivElement, BreadcrumbProps>(
       onBackClick();
     }, [onBackClick]);
 
-    const breadcrumbClassName = `bg-transparent shadow-none !px-0 py-4 !-ml-2 ${
+    const breadcrumbClassName = `py-4 ${
       typeof className === 'string' ? className : ''
     }`;
 
+    const { defaultValue: _unused, ...menuProps } =
+      props as HTMLAttributes<HTMLDivElement> & { defaultValue?: string };
+
     return (
-      <div ref={ref} {...props}>
-        <Menu
-          variant="breadcrumb"
-          defaultValue=""
-          className={breadcrumbClassName}
-        >
-          <MenuContent variant="breadcrumb">
-            <MenuItem
-              variant="breadcrumb"
-              value={parentPageName.toLowerCase()}
-              onClick={handleBackToParent}
-              separator
-              className="text-text-600 underline cursor-pointer hover:text-text-950"
-            >
-              {parentPageName}
-            </MenuItem>
-            <MenuItem
-              variant="breadcrumb"
-              value={currentPage.toLowerCase()}
-              className="text-text-950 font-bold"
-              disabled
-            >
-              {currentPage}
-            </MenuItem>
-          </MenuContent>
-        </Menu>
-      </div>
+      <Menu
+        ref={ref}
+        variant="breadcrumb"
+        defaultValue={currentPage.toLowerCase()}
+        className={breadcrumbClassName}
+        {...menuProps}
+      >
+        <MenuContent variant="breadcrumb">
+          <MenuItem
+            variant="breadcrumb"
+            value={parentPageName.toLowerCase()}
+            onClick={handleBackToParent}
+            separator={true}
+          >
+            {parentPageName}
+          </MenuItem>
+          <MenuItem
+            variant="breadcrumb"
+            value={currentPage.toLowerCase()}
+            disabled
+          >
+            {currentPage}
+          </MenuItem>
+        </MenuContent>
+      </Menu>
     );
   }
 );
