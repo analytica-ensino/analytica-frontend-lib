@@ -7,11 +7,13 @@ import { useLocation } from 'react-router-dom';
  * @template Tokens - Type for authentication tokens
  * @template Session - Type for session information
  * @template Profile - Type for profile information
+ * @template User - Type for user information
  *
  * @interface UseUrlAuthOptions
  * @property {(tokens: Tokens) => void} setTokens - Function to set authentication tokens
  * @property {(session: Session) => void} setSessionInfo - Function to set session information
  * @property {(profile: Profile) => void} [setSelectedProfile] - Optional function to set selected profile
+ * @property {(user: User) => void} [setUser] - Optional function to set user data
  * @property {object} api - API instance with get method
  * @property {(endpoint: string, config: unknown) => Promise<unknown>} api.get - API get method
  * @property {string} endpoint - API endpoint to fetch session data
@@ -22,10 +24,12 @@ export interface UseUrlAuthOptions<
   Tokens = unknown,
   Session = unknown,
   Profile = unknown,
+  User = unknown,
 > {
   setTokens: (tokens: Tokens) => void;
   setSessionInfo: (session: Session) => void;
   setSelectedProfile?: (profile: Profile) => void;
+  setUser?: (user: User) => void;
   api: { get: (endpoint: string, config: unknown) => Promise<unknown> };
   endpoint: string;
   extractParams?: (searchParams: URLSearchParams) => {
@@ -129,14 +133,55 @@ const handleProfileSelection = <Profile>(
 };
 
 /**
+ * Helper function to handle user data extraction from response data
+ *
+ * @template User - User type
+ * @param {unknown} responseData - Response data from API
+ * @param {(user: User) => void} [setUser] - Optional function to set user data
+ * @returns {void}
+ *
+ * @private
+ */
+const handleUserData = <User>(
+  responseData: unknown,
+  setUser?: (user: User) => void
+) => {
+  if (!setUser) return;
+  if (!hasValidProfileData(responseData)) return;
+
+  // Extrair dados do usuário da resposta da API
+  const userId = responseData.userId;
+  const userName = responseData.userName;
+  const userEmail = responseData.userEmail;
+
+  if (userId) {
+    const userData: Record<string, unknown> = {
+      id: userId,
+    };
+
+    if (userName) {
+      userData.name = userName;
+    }
+
+    if (userEmail) {
+      userData.email = userEmail;
+    }
+
+    // Adicionar outros campos conforme necessário
+    setUser(userData as User);
+  }
+};
+
+/**
  * Hook for handling URL-based authentication
  * Extracts authentication parameters from URL and processes them
  *
  * @template Tokens - Type for authentication tokens
  * @template Session - Type for session information
  * @template Profile - Type for profile information
+ * @template User - Type for user information
  *
- * @param {UseUrlAuthOptions<Tokens, Session, Profile>} options - Configuration options
+ * @param {UseUrlAuthOptions<Tokens, Session, Profile, User>} options - Configuration options
  * @returns {void}
  *
  * @example
@@ -145,6 +190,7 @@ const handleProfileSelection = <Profile>(
  *   setTokens: (tokens) => authStore.setTokens(tokens),
  *   setSessionInfo: (session) => authStore.setSessionInfo(session),
  *   setSelectedProfile: (profile) => authStore.setProfile(profile),
+ *   setUser: (user) => authStore.setUser(user),
  *   api: apiInstance,
  *   endpoint: '/auth/session',
  *   clearParamsFromURL: () => navigate('/', { replace: true })
@@ -155,7 +201,8 @@ export function useUrlAuthentication<
   Tokens = unknown,
   Session = unknown,
   Profile = unknown,
->(options: UseUrlAuthOptions<Tokens, Session, Profile>) {
+  User = unknown,
+>(options: UseUrlAuthOptions<Tokens, Session, Profile, User>) {
   const location = useLocation();
 
   useEffect(() => {
@@ -186,6 +233,7 @@ export function useUrlAuthentication<
 
         options.setSessionInfo(response.data.data as Session);
         handleProfileSelection(response.data.data, options.setSelectedProfile);
+        handleUserData(response.data.data, options.setUser);
         options.clearParamsFromURL?.();
       } catch (error) {
         console.error('Erro ao obter informações da sessão:', error);
@@ -197,6 +245,7 @@ export function useUrlAuthentication<
     location.search,
     options.setSessionInfo,
     options.setSelectedProfile,
+    options.setUser,
     options.setTokens,
     options.api,
     options.endpoint,
