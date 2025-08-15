@@ -147,6 +147,7 @@ interface QuizState {
   setCurrentQuestion: (question: Question) => void;
 
   // New methods for userAnswers
+  getQuestionIndex: (questionId: string) => number;
   getUserAnswerByQuestionId: (questionId: string) => UserAnswerItem | null;
   isQuestionAnsweredByUserAnswers: (questionId: string) => boolean;
   getQuestionStatusFromUserAnswers: (
@@ -768,6 +769,16 @@ export const useQuizStore = create<QuizState>()(
             (answer) => answer.questionId === questionId
           );
           return userAnswer ? userAnswer.answerStatus : null;
+        },
+        getQuestionIndex: (questionId) => {
+          const { getActiveQuiz } = get();
+          const activeQuiz = getActiveQuiz();
+          if (!activeQuiz) return 0;
+
+          const questionIndex = activeQuiz.quiz.questions.findIndex(
+            (q) => q.id === questionId
+          );
+          return questionIndex + 1;
         },
       };
     },

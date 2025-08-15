@@ -2577,4 +2577,273 @@ describe('useQuizStore', () => {
       expect(answerStatus).toBeNull();
     });
   });
+
+  describe('getQuestionIndex Tests', () => {
+    beforeEach(() => {
+      act(() => {
+        useQuizStore.getState().setBySimulated(mockSimulado);
+      });
+    });
+
+    it('should return correct question index for existing questions', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      const questionIndex1 = result.current.getQuestionIndex('q1');
+      const questionIndex2 = result.current.getQuestionIndex('q2');
+
+      expect(questionIndex1).toBe(1); // First question (index 0 + 1)
+      expect(questionIndex2).toBe(2); // Second question (index 1 + 1)
+    });
+
+    it('should return 0 when no quiz is set', () => {
+      act(() => {
+        useQuizStore.getState().resetQuiz();
+        useQuizStore.setState({
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
+        });
+      });
+
+      const { result } = renderHook(() => useQuizStore());
+      const questionIndex = result.current.getQuestionIndex('q1');
+
+      expect(questionIndex).toBe(0);
+    });
+
+    it('should return 0 when quiz has no questions', () => {
+      const emptySimulado = {
+        id: 'empty-simulado',
+        title: 'Empty Quiz',
+        category: 'Enem',
+        questions: [],
+      };
+
+      act(() => {
+        useQuizStore.getState().setBySimulated(emptySimulado);
+      });
+
+      const { result } = renderHook(() => useQuizStore());
+      const questionIndex = result.current.getQuestionIndex('q1');
+
+      expect(questionIndex).toBe(0);
+    });
+
+    it('should return 0 for non-existent question ID', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      const questionIndex = result.current.getQuestionIndex(
+        'non-existent-question'
+      );
+
+      expect(questionIndex).toBe(0);
+    });
+
+    it('should work with byActivity quiz type', () => {
+      const mockAtividade = {
+        id: 'atividade-1',
+        title: 'Test Atividade',
+        questions: [mockQuestion1, mockQuestion2],
+      };
+
+      act(() => {
+        useQuizStore.getState().setByActivity(mockAtividade);
+      });
+
+      const { result } = renderHook(() => useQuizStore());
+
+      const questionIndex1 = result.current.getQuestionIndex('q1');
+      const questionIndex2 = result.current.getQuestionIndex('q2');
+
+      expect(questionIndex1).toBe(1);
+      expect(questionIndex2).toBe(2);
+    });
+
+    it('should work with byQuestionary quiz type', () => {
+      const mockQuestionary = {
+        id: 'aula-1',
+        title: 'Test Aula',
+        questions: [mockQuestion1, mockQuestion2],
+      };
+
+      act(() => {
+        useQuizStore.getState().setByQuestionary(mockQuestionary);
+      });
+
+      const { result } = renderHook(() => useQuizStore());
+
+      const questionIndex1 = result.current.getQuestionIndex('q1');
+      const questionIndex2 = result.current.getQuestionIndex('q2');
+
+      expect(questionIndex1).toBe(1);
+      expect(questionIndex2).toBe(2);
+    });
+
+    it('should handle case sensitivity in question ID', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      const questionIndexLower = result.current.getQuestionIndex('q1');
+      const questionIndexUpper = result.current.getQuestionIndex('Q1');
+
+      expect(questionIndexLower).toBe(1);
+      expect(questionIndexUpper).toBe(0); // Different case, not found
+    });
+
+    it('should handle special characters in question ID', () => {
+      const questionWithSpecialChars = {
+        ...mockQuestion1,
+        id: 'q1-special@#$%',
+      };
+
+      const simuladoWithSpecialChars = {
+        ...mockSimulado,
+        questions: [questionWithSpecialChars, mockQuestion2],
+      };
+
+      act(() => {
+        useQuizStore.getState().setBySimulated(simuladoWithSpecialChars);
+      });
+
+      const { result } = renderHook(() => useQuizStore());
+
+      const questionIndex = result.current.getQuestionIndex('q1-special@#$%');
+
+      expect(questionIndex).toBe(1);
+    });
+
+    it('should handle very long question ID', () => {
+      const longId = 'q'.repeat(1000);
+      const questionWithLongId = {
+        ...mockQuestion1,
+        id: longId,
+      };
+
+      const simuladoWithLongId = {
+        ...mockSimulado,
+        questions: [questionWithLongId, mockQuestion2],
+      };
+
+      act(() => {
+        useQuizStore.getState().setBySimulated(simuladoWithLongId);
+      });
+
+      const { result } = renderHook(() => useQuizStore());
+
+      const questionIndex = result.current.getQuestionIndex(longId);
+
+      expect(questionIndex).toBe(1);
+    });
+
+    it('should handle numeric question ID as string', () => {
+      const questionWithNumericId = {
+        ...mockQuestion1,
+        id: '12345',
+      };
+
+      const simuladoWithNumericId = {
+        ...mockSimulado,
+        questions: [questionWithNumericId, mockQuestion2],
+      };
+
+      act(() => {
+        useQuizStore.getState().setBySimulated(simuladoWithNumericId);
+      });
+
+      const { result } = renderHook(() => useQuizStore());
+
+      const questionIndex = result.current.getQuestionIndex('12345');
+
+      expect(questionIndex).toBe(1);
+    });
+
+    it('should return correct index when quiz has many questions', () => {
+      const manyQuestions = Array.from({ length: 100 }, (_, index) => ({
+        ...mockQuestion1,
+        id: `q${index + 1}`,
+      }));
+
+      const simuladoWithManyQuestions = {
+        ...mockSimulado,
+        questions: manyQuestions,
+      };
+
+      act(() => {
+        useQuizStore.getState().setBySimulated(simuladoWithManyQuestions);
+      });
+
+      const { result } = renderHook(() => useQuizStore());
+
+      const questionIndex1 = result.current.getQuestionIndex('q1');
+      const questionIndex50 = result.current.getQuestionIndex('q50');
+      const questionIndex100 = result.current.getQuestionIndex('q100');
+
+      expect(questionIndex1).toBe(1);
+      expect(questionIndex50).toBe(50);
+      expect(questionIndex100).toBe(100);
+    });
+
+    it('should handle quiz type switching correctly', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      // Start with bySimulated
+      let questionIndex = result.current.getQuestionIndex('q1');
+      expect(questionIndex).toBe(1);
+
+      // Switch to byActivity
+      const mockAtividade = {
+        id: 'atividade-1',
+        title: 'Test Atividade',
+        questions: [mockQuestion1, mockQuestion2],
+      };
+
+      act(() => {
+        useQuizStore.getState().setByActivity(mockAtividade);
+      });
+
+      questionIndex = result.current.getQuestionIndex('q1');
+      expect(questionIndex).toBe(1);
+
+      // Switch to byQuestionary
+      const mockQuestionary = {
+        id: 'aula-1',
+        title: 'Test Aula',
+        questions: [mockQuestion1, mockQuestion2],
+      };
+
+      act(() => {
+        useQuizStore.getState().setByQuestionary(mockQuestionary);
+      });
+
+      questionIndex = result.current.getQuestionIndex('q1');
+      expect(questionIndex).toBe(1);
+    });
+
+    it('should handle empty string question ID', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      const questionIndex = result.current.getQuestionIndex('');
+
+      expect(questionIndex).toBe(0);
+    });
+
+    it('should handle null question ID', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      const questionIndex = result.current.getQuestionIndex(
+        null as unknown as string
+      );
+
+      expect(questionIndex).toBe(0);
+    });
+
+    it('should handle undefined question ID', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      const questionIndex = result.current.getQuestionIndex(
+        undefined as unknown as string
+      );
+
+      expect(questionIndex).toBe(0);
+    });
+  });
 });
