@@ -12,7 +12,6 @@ import {
   Children,
   cloneElement,
   useState,
-  useCallback,
 } from 'react';
 import { CaretLeft, CaretRight } from 'phosphor-react';
 import { cn } from '../../utils/utils';
@@ -391,75 +390,5 @@ const injectStore = (children: ReactNode, store: MenuStoreApi): ReactNode =>
     });
   });
 
-/**
- * Props for the Breadcrumb component
- */
-interface BreadcrumbProps extends HTMLAttributes<HTMLDivElement> {
-  /**
-   * Current page name to display in breadcrumb
-   */
-  currentPage: string;
-  /**
-   * Parent page name to display as first breadcrumb item
-   */
-  parentPageName: string;
-  /**
-   * Callback function to handle navigation back to parent page
-   */
-  onBackClick: () => void;
-}
-
-/**
- * Breadcrumb navigation component for displaying hierarchical page structure
- * @param currentPage - Current page name to display
- * @param parentPageName - Parent page name for navigation
- * @param onBackClick - Callback when clicking parent page
- * @param className - Optional CSS classes to apply
- * @param props - Additional HTML div attributes
- */
-const Breadcrumb = forwardRef<HTMLDivElement, BreadcrumbProps>(
-  ({ currentPage, parentPageName, onBackClick, className, ...props }, ref) => {
-    const handleBackToParent = useCallback(() => {
-      onBackClick();
-    }, [onBackClick]);
-
-    const breadcrumbClassName = `py-4 ${
-      typeof className === 'string' ? className : ''
-    }`;
-
-    const { defaultValue: _unused, ...menuProps } =
-      props as HTMLAttributes<HTMLDivElement> & { defaultValue?: string };
-
-    return (
-      <Menu
-        ref={ref}
-        variant="breadcrumb"
-        defaultValue={currentPage.toLowerCase()}
-        className={breadcrumbClassName}
-        {...menuProps}
-      >
-        <MenuContent variant="breadcrumb">
-          <MenuItem
-            variant="breadcrumb"
-            value={parentPageName.toLowerCase()}
-            onClick={handleBackToParent}
-            separator={true}
-          >
-            {parentPageName}
-          </MenuItem>
-          <MenuItem
-            variant="breadcrumb"
-            value={currentPage.toLowerCase()}
-            disabled
-          >
-            {currentPage}
-          </MenuItem>
-        </MenuContent>
-      </Menu>
-    );
-  }
-);
-Breadcrumb.displayName = 'Breadcrumb';
-
 export default Menu;
-export { Menu, MenuContent, MenuItem, MenuOverflow, MenuItemIcon, Breadcrumb };
+export { Menu, MenuContent, MenuItem, MenuOverflow, MenuItemIcon };
