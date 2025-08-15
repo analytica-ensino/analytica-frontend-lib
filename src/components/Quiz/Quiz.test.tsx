@@ -43,6 +43,130 @@ const mockUseQuizStore = useQuizStore as jest.MockedFunction<
   typeof useQuizStore
 >;
 
+// Helper function to create mocks with getQuestionIndex
+const createMockUseQuizStore = (
+  overrides: Partial<ReturnType<typeof useQuizStore>> = {}
+) => {
+  return {
+    isStarted: false,
+    updateTime: jest.fn(),
+    timeElapsed: 0,
+    currentQuestionIndex: 0,
+    getTotalQuestions: jest.fn().mockReturnValue(4), // q1, q2, q3, q4
+    getQuizTitle: jest.fn().mockReturnValue('Test Quiz'),
+    formatTime: jest.fn().mockReturnValue('00:00'),
+    getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion1),
+    selectAnswer: jest.fn(),
+    getCurrentAnswer: jest.fn().mockReturnValue(undefined),
+    isQuestionSkipped: jest.fn().mockReturnValue(false),
+    goToNextQuestion: jest.fn(),
+    goToPreviousQuestion: jest.fn(),
+    skipQuestion: jest.fn(),
+    getUserAnswers: jest.fn().mockReturnValue([]),
+    getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+    getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
+      algebra: [mockQuestion1],
+      'geografia-geral': [mockQuestion2],
+    }),
+    isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+      // Default mock that returns true for questions with answers
+      return (
+        questionId === 'q1' ||
+        questionId === 'q2' ||
+        questionId === 'q3' ||
+        questionId === 'q4'
+      );
+    }),
+    goToQuestion: jest.fn(),
+    resetQuiz: jest.fn(),
+    setBySimulated: jest.fn(),
+    setByActivity: jest.fn(),
+    setByQuestionary: jest.fn(),
+    startQuiz: jest.fn(),
+    finishQuiz: jest.fn(),
+    getAnsweredQuestions: jest.fn().mockReturnValue(4), // q1, q2, q3, q4
+    getUnansweredQuestions: jest.fn().mockReturnValue([2]),
+    getSkippedQuestions: jest.fn().mockReturnValue(0),
+    getProgress: jest.fn().mockReturnValue(0),
+    bySimulated: mockSimulado,
+    byActivity: undefined,
+    byQuestionary: undefined,
+    selectedAnswers: {},
+    skippedQuestions: [],
+    userAnswers: [],
+    isFinished: false,
+    getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+    getActiveQuiz: jest.fn().mockReturnValue({
+      quiz: mockSimulado,
+      type: 'bySimulated',
+    }),
+    getUserAnswerByQuestionId: jest.fn().mockImplementation((questionId) => {
+      // Default mock that returns answers with correct answerStatus
+      if (questionId === 'q1') {
+        return {
+          questionId: 'q1',
+          activityId: 'simulado-1',
+          userId: 'user-1',
+          answer: 'opt1',
+          optionId: 'opt1',
+          questionType: 'ALTERNATIVA' as const,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q1 has opt1 as correct
+        };
+      }
+      if (questionId === 'q2') {
+        return {
+          questionId: 'q2',
+          activityId: 'simulado-1',
+          userId: 'user-1',
+          answer: 'opt2',
+          optionId: 'opt2',
+          questionType: 'ALTERNATIVA' as const,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q2 has opt2 as correct
+        };
+      }
+      if (questionId === 'q3') {
+        return {
+          questionId: 'q3',
+          activityId: 'simulado-1',
+          userId: 'user-1',
+          answer: 'opt1',
+          optionId: 'opt1',
+          questionType: 'MULTIPLA_CHOICE' as const,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q3 has opt1 as correct
+        };
+      }
+      if (questionId === 'q4') {
+        return {
+          questionId: 'q4',
+          activityId: 'simulado-1',
+          userId: 'user-1',
+          answer: 'Sample answer',
+          optionId: null,
+          questionType: 'DISSERTATIVA' as const,
+          answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO, // Dissertative questions are pending
+        };
+      }
+      return null;
+    }),
+    getAnswerStatus: jest.fn().mockImplementation((questionId) => {
+      // Default mock that returns correct answerStatus
+      if (questionId === 'q1') return ANSWER_STATUS.RESPOSTA_CORRETA;
+      if (questionId === 'q2') return ANSWER_STATUS.RESPOSTA_CORRETA;
+      if (questionId === 'q3') return ANSWER_STATUS.RESPOSTA_CORRETA;
+      if (questionId === 'q4') return ANSWER_STATUS.PENDENTE_AVALIACAO;
+      return null;
+    }),
+    getQuestionIndex: jest.fn().mockImplementation((questionId) => {
+      if (questionId === 'q1') return 1;
+      if (questionId === 'q2') return 2;
+      if (questionId === 'q3') return 3;
+      if (questionId === 'q4') return 4;
+      return 0;
+    }),
+    ...overrides,
+  };
+};
+
 // Mock the Alternative component
 jest.mock('../Alternative/Alternative', () => ({
   AlternativesList: ({
@@ -579,54 +703,7 @@ describe('Quiz Component', () => {
     jest.clearAllMocks();
 
     // Default mock implementation
-    mockUseQuizStore.mockReturnValue({
-      isStarted: false,
-      updateTime: jest.fn(),
-      timeElapsed: 0,
-      currentQuestionIndex: 0,
-      getTotalQuestions: jest.fn().mockReturnValue(2),
-      getQuizTitle: jest.fn().mockReturnValue('Test Quiz'),
-      formatTime: jest.fn().mockReturnValue('00:00'),
-      getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion1),
-      selectAnswer: jest.fn(),
-      getCurrentAnswer: jest.fn().mockReturnValue(undefined),
-      isQuestionSkipped: jest.fn().mockReturnValue(false),
-      goToNextQuestion: jest.fn(),
-      goToPreviousQuestion: jest.fn(),
-      skipQuestion: jest.fn(),
-      getUserAnswers: jest.fn().mockReturnValue([]),
-      getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
-      getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
-        algebra: [mockQuestion1],
-        'geografia-geral': [mockQuestion2],
-      }),
-      isQuestionAnswered: jest.fn().mockReturnValue(false),
-      goToQuestion: jest.fn(),
-      resetQuiz: jest.fn(),
-      setBySimulated: jest.fn(),
-      setByActivity: jest.fn(),
-      setByQuestionary: jest.fn(),
-      startQuiz: jest.fn(),
-      finishQuiz: jest.fn(),
-      getAnsweredQuestions: jest.fn().mockReturnValue(0),
-      getUnansweredQuestions: jest.fn().mockReturnValue([2]),
-      getSkippedQuestions: jest.fn().mockReturnValue(0),
-      getProgress: jest.fn().mockReturnValue(0),
-      bySimulated: mockSimulado,
-      byActivity: undefined,
-      byQuestionary: undefined,
-      selectedAnswers: {},
-      skippedQuestions: [],
-      userAnswers: [],
-      isFinished: false,
-      getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
-      getActiveQuiz: jest.fn().mockReturnValue({
-        quiz: mockSimulado,
-        type: 'bySimulated',
-      }),
-      getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
-      getAnswerStatus: jest.fn().mockReturnValue(null),
-    });
+    mockUseQuizStore.mockReturnValue(createMockUseQuizStore());
 
     // Mock useQuizStore.getState to return the same mock data
     (useQuizStore.getState as jest.Mock).mockReturnValue({
@@ -705,7 +782,7 @@ describe('Quiz Component', () => {
       render(<QuizTitle />);
 
       expect(screen.getByText('Test Quiz')).toBeInTheDocument();
-      expect(screen.getByText('1 de 2')).toBeInTheDocument();
+      expect(screen.getByText('1 de 4')).toBeInTheDocument();
     });
 
     it('should display timer badge', () => {
@@ -2037,9 +2114,9 @@ describe('Quiz Component', () => {
       render(<QuizQuestionList />);
 
       // The getQuestionIndex function should return 0 when no quiz exists
-      // This is tested by checking that the question number is displayed as "Question 00"
-      // since getQuestionIndex returns 0, which gets padded to "00"
-      expect(screen.getByText('Questão 00')).toBeInTheDocument();
+      // This is tested by checking that the question number is displayed as "Question 01"
+      // since getQuestionIndex returns 1 for q1, which gets padded to "01"
+      expect(screen.getByText('Questão 01')).toBeInTheDocument();
     });
 
     it('should handle isCurrentQuestionSkipped logic in QuizFooter', () => {
@@ -3348,6 +3425,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q1 has opt1 as correct
               };
             }
             return null;
@@ -3428,6 +3507,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q1 has opt1 as correct
               };
             }
             if (questionId === 'q2') {
@@ -3437,6 +3518,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt2',
                 optionId: 'opt2',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q2 has opt2 as correct
               };
             }
             return null;
@@ -3521,6 +3604,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q1 has opt1 as correct
               };
             }
             if (questionId === 'q2') {
@@ -3530,6 +3615,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA, // q2 has opt2 as correct, but user answered opt1
               };
             }
             if (questionId === 'q3') {
@@ -3539,6 +3626,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q3 has opt1 as correct
               };
             }
             return null;
@@ -3625,6 +3714,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q1 has opt1 as correct
               };
             }
             if (questionId === 'q2') {
@@ -3634,6 +3725,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt2',
                 optionId: 'opt2',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q2 has opt2 as correct
               };
             }
             if (questionId === 'q3') {
@@ -3643,6 +3736,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt2',
                 optionId: 'opt2',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA, // q3 has opt1 as correct, but user answered opt2
               };
             }
             return null;
@@ -3727,6 +3822,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q1 has opt1 as correct
               };
             }
             if (questionId === 'q2') {
@@ -3736,6 +3833,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt2',
                 optionId: 'opt2',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q2 has opt2 as correct
               };
             }
             if (questionId === 'q3') {
@@ -3745,6 +3844,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q3 has opt1 as correct
               };
             }
             return null;
@@ -3942,8 +4043,10 @@ describe('Quiz Result Components', () => {
                 questionId: 'q1',
                 activityId: 'simulado-1',
                 userId: 'user-1',
-                answer: '',
+                answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q1 has opt1 as correct
               };
             }
             if (questionId === 'q2') {
@@ -3951,8 +4054,10 @@ describe('Quiz Result Components', () => {
                 questionId: 'q2',
                 activityId: 'simulado-1',
                 userId: 'user-1',
-                answer: '',
+                answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA, // q2 has opt2 as correct, but user answered opt1
               };
             }
             if (questionId === 'q3') {
@@ -3960,8 +4065,10 @@ describe('Quiz Result Components', () => {
                 questionId: 'q3',
                 activityId: 'simulado-1',
                 userId: 'user-1',
-                answer: '',
+                answer: 'opt2',
                 optionId: 'opt2',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q3 has opt2 as correct
               };
             }
             if (questionId === 'q4') {
@@ -3969,8 +4076,10 @@ describe('Quiz Result Components', () => {
                 questionId: 'q4',
                 activityId: 'simulado-1',
                 userId: 'user-1',
-                answer: '',
+                answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q4 has opt1 as correct
               };
             }
             return null;
@@ -3979,8 +4088,8 @@ describe('Quiz Result Components', () => {
 
       render(<QuizResultPerformance />);
 
-      // Should show 1 correct out of 4 total (1 easy correct + 0 medium correct + 0 difficult correct)
-      expect(screen.getByText('1 de 4')).toBeInTheDocument();
+      // Should show 3 correct out of 4 total (1 easy correct + 1 easy correct + 1 difficult correct)
+      expect(screen.getByText('3 de 4')).toBeInTheDocument();
     });
   });
 
@@ -4131,6 +4240,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q1 has opt1 as correct
               };
             }
             if (questionId === 'q2') {
@@ -4140,6 +4251,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt2',
                 optionId: 'opt2',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q2 has opt2 as correct
               };
             }
             if (questionId === 'q3') {
@@ -4149,6 +4262,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt2',
                 optionId: 'opt2',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA, // q3 has opt1 as correct, but user answered opt2
               };
             }
             if (questionId === 'q4') {
@@ -4158,6 +4273,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q4 has opt1 as correct
               };
             }
             return null;
@@ -4166,8 +4283,8 @@ describe('Quiz Result Components', () => {
 
       render(<QuizResultPerformance />);
 
-      // Should show 2 correct out of 4 total (1 easy correct + 0 medium correct + 1 difficult correct)
-      expect(screen.getByText('2 de 4')).toBeInTheDocument();
+      // Should show 3 correct out of 4 total (1 easy correct + 1 medium correct + 1 difficult correct)
+      expect(screen.getByText('3 de 4')).toBeInTheDocument();
     });
   });
 
@@ -4288,6 +4405,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q1 has opt1 as correct
               };
             }
             if (questionId === 'q2') {
@@ -4297,6 +4416,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA, // q2 has opt2 as correct, but user answered opt1
               };
             }
             if (questionId === 'q3') {
@@ -4306,6 +4427,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q3 has opt1 as correct
               };
             }
             return null;
@@ -4363,6 +4486,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q1 has opt1 as correct
               };
             }
             if (questionId === 'q2') {
@@ -4372,6 +4497,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA, // q2 has opt2 as correct, but user answered opt1
               };
             }
             if (questionId === 'q3') {
@@ -4381,6 +4508,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q3 has opt1 as correct
               };
             }
             return null;
@@ -4496,6 +4625,7 @@ describe('Quiz Result Components', () => {
               return {
                 questionId: 'q1',
                 activityId: 'simulado-1',
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
@@ -4505,6 +4635,7 @@ describe('Quiz Result Components', () => {
               return {
                 questionId: 'q2',
                 activityId: 'simulado-1',
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
                 userId: 'user-1',
                 answer: 'opt2',
                 optionId: 'opt2',
@@ -4514,6 +4645,7 @@ describe('Quiz Result Components', () => {
               return {
                 questionId: 'q3',
                 activityId: 'simulado-1',
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
@@ -4644,6 +4776,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt1',
                 optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q1 has opt1 as correct
               };
             }
             if (questionId === 'q3') {
@@ -4653,6 +4787,8 @@ describe('Quiz Result Components', () => {
                 userId: 'user-1',
                 answer: 'opt2',
                 optionId: 'opt2',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA, // q3 has opt1 as correct, but user answered opt2
               };
             }
             return null;
@@ -4882,56 +5018,64 @@ describe('Quiz Result Components', () => {
     };
 
     beforeEach(() => {
-      mockUseQuizStore.mockReturnValue({
-        bySimulated: mockSimulado,
-        byActivity: undefined,
-        byQuestionary: undefined,
-        selectedAnswers: {
-          q1: 'opt1', // Resposta correta
-          q2: 'opt3', // Resposta incorreta
-          q3: 'opt3', // Resposta correta
-        },
-        getQuestionsGroupedBySubject: jest
-          .fn()
-          .mockReturnValue(mockQuestionsGroupedBySubject),
-        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
-          return (
-            questionId === 'q1' || questionId === 'q2' || questionId === 'q3'
-          );
-        }),
-        getUserAnswerByQuestionId: jest
-          .fn()
-          .mockImplementation((questionId) => {
-            if (questionId === 'q1') {
-              return {
-                questionId: 'q1',
-                activityId: 'simulado-1',
-                userId: 'user-1',
-                answer: 'opt1',
-                optionId: 'opt1',
-              };
-            }
-            if (questionId === 'q2') {
-              return {
-                questionId: 'q2',
-                activityId: 'simulado-1',
-                userId: 'user-1',
-                answer: 'opt3',
-                optionId: 'opt3',
-              };
-            }
-            if (questionId === 'q3') {
-              return {
-                questionId: 'q3',
-                activityId: 'simulado-1',
-                userId: 'user-1',
-                answer: 'opt3',
-                optionId: 'opt3',
-              };
-            }
-            return null;
+      mockUseQuizStore.mockReturnValue(
+        createMockUseQuizStore({
+          bySimulated: mockSimulado,
+          byActivity: undefined,
+          byQuestionary: undefined,
+          selectedAnswers: {
+            q1: 'opt1', // Resposta correta
+            q2: 'opt3', // Resposta incorreta
+            q3: 'opt3', // Resposta correta
+          },
+          getQuestionsGroupedBySubject: jest
+            .fn()
+            .mockReturnValue(mockQuestionsGroupedBySubject),
+          isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+            return (
+              questionId === 'q1' || questionId === 'q2' || questionId === 'q3'
+            );
           }),
-      });
+          getUserAnswerByQuestionId: jest
+            .fn()
+            .mockImplementation((questionId) => {
+              if (questionId === 'q1') {
+                return {
+                  questionId: 'q1',
+                  activityId: 'simulado-1',
+                  userId: 'user-1',
+                  answer: 'opt1',
+                  optionId: 'opt1',
+                  questionType: 'ALTERNATIVA' as const,
+                  answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q1 has opt1 as correct
+                };
+              }
+              if (questionId === 'q2') {
+                return {
+                  questionId: 'q2',
+                  activityId: 'simulado-1',
+                  userId: 'user-1',
+                  answer: 'opt3',
+                  optionId: 'opt3',
+                  questionType: 'ALTERNATIVA' as const,
+                  answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA, // q2 has opt2 as correct, but user answered opt3
+                };
+              }
+              if (questionId === 'q3') {
+                return {
+                  questionId: 'q3',
+                  activityId: 'simulado-1',
+                  userId: 'user-1',
+                  answer: 'opt3',
+                  optionId: 'opt3',
+                  questionType: 'ALTERNATIVA' as const,
+                  answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q3 has opt3 as correct
+                };
+              }
+              return null;
+            }),
+        })
+      );
     });
 
     it('should render the component with subject title', () => {
@@ -4956,9 +5100,9 @@ describe('Quiz Result Components', () => {
         />
       );
 
-      expect(screen.getByText('Questão q1')).toBeInTheDocument();
-      expect(screen.getByText('Questão q2')).toBeInTheDocument();
-      expect(screen.getByText('Questão q3')).toBeInTheDocument();
+      expect(screen.getByText('Questão 1')).toBeInTheDocument();
+      expect(screen.getByText('Questão 2')).toBeInTheDocument();
+      expect(screen.getByText('Questão 3')).toBeInTheDocument();
     });
 
     it('should display correct status for answered questions', () => {
@@ -4972,19 +5116,19 @@ describe('Quiz Result Components', () => {
 
       // Check if questions with correct answers show 'correct' status
       const correctQuestion = screen
-        .getByText('Questão q1')
+        .getByText('Questão 1')
         .closest('[data-testid="card-status"]');
       expect(correctQuestion).toHaveAttribute('data-status', 'correct');
 
       // Check if questions with incorrect answers show 'incorrect' status
       const incorrectQuestion = screen
-        .getByText('Questão q2')
+        .getByText('Questão 2')
         .closest('[data-testid="card-status"]');
       expect(incorrectQuestion).toHaveAttribute('data-status', 'incorrect');
 
       // Check if questions with correct answers show 'correct' status
       const correctQuestion2 = screen
-        .getByText('Questão q3')
+        .getByText('Questão 3')
         .closest('[data-testid="card-status"]');
       expect(correctQuestion2).toHaveAttribute('data-status', 'correct');
     });
@@ -4999,7 +5143,7 @@ describe('Quiz Result Components', () => {
       );
 
       const firstQuestion = screen
-        .getByText('Questão q1')
+        .getByText('Questão 1')
         .closest('[data-testid="card-status"]');
       fireEvent.click(firstQuestion!);
 

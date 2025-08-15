@@ -49,7 +49,7 @@ import ProgressBar from '../ProgressBar/ProgressBar';
 import { cn } from '../../utils/utils';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import TextArea from '../TextArea/TextArea';
-import ImageQuestion from '@/assets/img/mock-image-question.png';
+import ImageQuestion from '../../assets/img/mock-image-question.png';
 
 export const getStatusBadge = (status?: 'correct' | 'incorrect') => {
   switch (status) {
@@ -1259,6 +1259,7 @@ const QuizQuestionList = ({
     getQuestionsGroupedBySubject,
     goToQuestion,
     getQuestionStatusFromUserAnswers,
+    getQuestionIndex,
   } = useQuizStore();
 
   const groupedQuestions = getQuestionsGroupedBySubject();
@@ -1291,15 +1292,6 @@ const QuizQuestionList = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     {} as { [key: string]: any[] }
   );
-
-  const getQuestionIndex = (questionId: string) => {
-    const { bySimulated, byActivity, byQuestionary } = useQuizStore.getState();
-    const quiz = bySimulated ?? byActivity ?? byQuestionary;
-    if (!quiz) return 0;
-
-    const index = quiz.questions.findIndex((q) => q.id === questionId);
-    return index + 1;
-  };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
@@ -1697,9 +1689,8 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
     if (quiz) {
       quiz.questions.forEach((question) => {
         const userAnswerItem = getUserAnswerByQuestionId(question.id);
-        const userAnswer = userAnswerItem?.optionId;
-        const isCorrectOption = question?.options.find((op) => op.isCorrect);
-        const isCorrect = userAnswer && userAnswer === isCorrectOption?.id;
+        const isCorrect =
+          userAnswerItem?.answerStatus == ANSWER_STATUS.RESPOSTA_CORRETA;
 
         if (isCorrect) {
           correctAnswers++;
@@ -1826,9 +1817,7 @@ const QuizListResult = forwardRef<
       questions.forEach((question) => {
         if (isQuestionAnswered(question.id)) {
           const userAnswerItem = getUserAnswerByQuestionId(question.id);
-          const userAnswer = userAnswerItem?.optionId;
-          const isCorrectOption = question?.options.find((op) => op.isCorrect);
-          if (userAnswer === isCorrectOption?.id) {
+          if (userAnswerItem?.answerStatus == ANSWER_STATUS.RESPOSTA_CORRETA) {
             correct++;
           } else {
             incorrect++;
@@ -1875,8 +1864,11 @@ const QuizListResultByMateria = ({
   subject: string;
   onQuestionClick: (question: Question) => void;
 }) => {
-  const { getQuestionsGroupedBySubject, getUserAnswerByQuestionId } =
-    useQuizStore();
+  const {
+    getQuestionsGroupedBySubject,
+    getUserAnswerByQuestionId,
+    getQuestionIndex,
+  } = useQuizStore();
   const groupedQuestions = getQuestionsGroupedBySubject();
 
   const answeredQuestions = groupedQuestions[subject] || [];
@@ -1893,26 +1885,26 @@ const QuizListResultByMateria = ({
         </p>
 
         <ul className="flex flex-col gap-2 pt-4">
-          {answeredQuestions.map((question) => (
-            <li key={question.id}>
-              <CardStatus
-                className="max-w-full"
-                header={`Questão ${question.id}`}
-                status={(() => {
-                  const userAnswer = getUserAnswerByQuestionId(question.id);
-                  const isCorrectOption = question?.options.find(
-                    (op) => op.isCorrect
-                  );
+          {answeredQuestions.map((question) => {
+            const questionIndex = getQuestionIndex(question.id);
+            return (
+              <li key={question.id}>
+                <CardStatus
+                  className="max-w-full"
+                  header={`Questão ${questionIndex}`}
+                  status={(() => {
+                    const userAnswer = getUserAnswerByQuestionId(question.id);
 
-                  return userAnswer &&
-                    userAnswer.optionId === isCorrectOption?.id
-                    ? 'correct'
-                    : 'incorrect';
-                })()}
-                onClick={() => onQuestionClick?.(question)}
-              />
-            </li>
-          ))}
+                    return userAnswer?.answerStatus ==
+                      ANSWER_STATUS.RESPOSTA_CORRETA
+                      ? 'correct'
+                      : 'incorrect';
+                  })()}
+                  onClick={() => onQuestionClick?.(question)}
+                />
+              </li>
+            );
+          })}
         </ul>
       </section>
     </div>
