@@ -327,7 +327,7 @@ const VideoPlayer = ({
       {/* Video Container */}
       <div
         className={cn(
-          'relative w-full bg-background overflow-hidden group pb-6',
+          'relative w-full bg-background overflow-hidden group',
           title || subtitleText ? 'rounded-b-xl' : 'rounded-xl'
         )}
         onMouseMove={handleMouseMove}
