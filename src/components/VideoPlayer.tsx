@@ -6,17 +6,11 @@ import {
   SpeakerSlash,
   ArrowsOutSimple,
   ArrowsInSimple,
-  DotsThreeVertical,
 } from 'phosphor-react';
 import { cn } from '../utils/utils';
 import IconButton from './IconButton/IconButton';
 import Text from './Text/Text';
 import IconRender from './IconRender/IconRender';
-import DropdownMenu, {
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from './DropdownMenu/DropdownMenu';
 
 /**
  * VideoPlayer component props interface
@@ -94,7 +88,6 @@ const VideoPlayer = ({
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [hasCompleted, setHasCompleted] = useState(false);
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
@@ -183,15 +176,6 @@ const VideoPlayer = ({
     document.body.removeChild(link);
     onDownload?.();
   }, [src, title, onDownload]);
-
-  /**
-   * Handle playback speed change
-   */
-  const handleSpeedChange = useCallback((speed: number) => {
-    if (!videoRef.current) return;
-    videoRef.current.playbackRate = speed;
-    setPlaybackSpeed(speed);
-  }, []);
 
   /**
    * Handle time update
@@ -300,8 +284,6 @@ const VideoPlayer = ({
           'relative w-full bg-background overflow-hidden group',
           title || subtitleText ? 'rounded-b-xl' : 'rounded-xl'
         )}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => isPlaying && setShowControls(false)}
       >
         {/* Video Element */}
         <video
@@ -312,6 +294,8 @@ const VideoPlayer = ({
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onClick={togglePlayPause}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => isPlaying && setShowControls(false)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
@@ -426,33 +410,6 @@ const VideoPlayer = ({
               <Text size="sm" weight="medium" color="text-white">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </Text>
-            </div>
-
-            {/* Right Controls */}
-            <div className="flex items-center gap-2">
-              {/* Speed Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  className="!bg-transparent !text-white hover:!bg-white/20 p-2 rounded-lg"
-                  aria-label="Playback speed"
-                >
-                  <DotsThreeVertical size={24} />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-neutral-800 border-neutral-700">
-                  {[0.5, 1, 1.5, 2].map((speed) => (
-                    <DropdownMenuItem
-                      key={speed}
-                      onClick={() => handleSpeedChange(speed)}
-                      className={cn(
-                        'text-white hover:bg-white/20 focus:bg-white/20',
-                        playbackSpeed === speed && 'bg-white/10'
-                      )}
-                    >
-                      {speed}x
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </div>
         </div>
