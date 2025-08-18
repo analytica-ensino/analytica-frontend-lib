@@ -6,6 +6,7 @@ import {
   SpeakerSlash,
   ArrowsOutSimple,
   ArrowsInSimple,
+  ClosedCaptioning,
 } from 'phosphor-react';
 import { cn } from '../utils/utils';
 import IconButton from './IconButton/IconButton';
@@ -89,10 +90,12 @@ const VideoPlayer = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [hasCompleted, setHasCompleted] = useState(false);
+  const [showCaptions, setShowCaptions] = useState(false);
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
   );
   const lastSaveTimeRef = useRef(0);
+  const trackRef = useRef<HTMLTrackElement>(null);
 
   /**
    * Load saved progress from localStorage
@@ -176,6 +179,19 @@ const VideoPlayer = ({
     document.body.removeChild(link);
     onDownload?.();
   }, [src, title, onDownload]);
+
+  /**
+   * Toggle captions visibility
+   */
+  const toggleCaptions = useCallback(() => {
+    if (!trackRef.current?.track) return;
+
+    const newShowCaptions = !showCaptions;
+    setShowCaptions(newShowCaptions);
+
+    // Control track mode programmatically
+    trackRef.current.track.mode = newShowCaptions ? 'showing' : 'hidden';
+  }, [showCaptions]);
 
   /**
    * Handle time update
@@ -284,6 +300,8 @@ const VideoPlayer = ({
           'relative w-full bg-background overflow-hidden group',
           title || subtitleText ? 'rounded-b-xl' : 'rounded-xl'
         )}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => isPlaying && setShowControls(false)}
       >
         {/* Video Element */}
         <video
@@ -294,8 +312,6 @@ const VideoPlayer = ({
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onClick={togglePlayPause}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={() => isPlaying && setShowControls(false)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
@@ -306,6 +322,7 @@ const VideoPlayer = ({
           aria-label={title ? `Video: ${title}` : 'Video player'}
         >
           <track
+            ref={trackRef}
             kind="captions"
             src={
               subtitles ||
@@ -313,7 +330,7 @@ const VideoPlayer = ({
             }
             srcLang="en"
             label={subtitles ? 'Subtitles' : 'No captions available'}
-            default={!!subtitles}
+            default={false}
           />
         </video>
 
@@ -405,6 +422,19 @@ const VideoPlayer = ({
                 aria-label={isMuted ? 'Unmute' : 'Mute'}
                 className="!bg-transparent !text-white hover:!bg-white/20"
               />
+
+              {/* Captions */}
+              {subtitles && (
+                <IconButton
+                  icon={<ClosedCaptioning size={24} />}
+                  onClick={toggleCaptions}
+                  aria-label={showCaptions ? 'Hide captions' : 'Show captions'}
+                  className={cn(
+                    '!bg-transparent hover:!bg-white/20',
+                    showCaptions ? '!text-primary-400' : '!text-white'
+                  )}
+                />
+              )}
 
               {/* Time Display */}
               <Text size="sm" weight="medium" color="text-white">
