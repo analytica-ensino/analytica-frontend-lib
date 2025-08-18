@@ -6,12 +6,12 @@ import {
   SpeakerSlash,
   ArrowsOutSimple,
   ArrowsInSimple,
-  DownloadSimple,
   DotsThreeVertical,
 } from 'phosphor-react';
 import { cn } from '../utils/utils';
 import IconButton from './IconButton/IconButton';
 import Text from './Text/Text';
+import IconRender from './IconRender/IconRender';
 import DropdownMenu, {
   DropdownMenuTrigger,
   DropdownMenuContent,
@@ -266,25 +266,41 @@ const VideoPlayer = ({
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className={cn('flex flex-col gap-4', className)}>
-      {/* Header */}
+    <div className={cn('flex flex-col', className)}>
+      {/* Integrated Header */}
       {(title || subtitleText) && (
-        <div className="flex flex-col gap-1">
-          {title && (
-            <Text as="h2" size="lg" weight="bold" color="text-neutral-900">
-              {title}
-            </Text>
-          )}
-          {subtitleText && (
-            <Text as="p" size="sm" weight="normal" color="text-neutral-600">
-              {subtitleText}
-            </Text>
+        <div className="bg-subject-1 rounded-t-xl px-4 py-3 flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            {title && (
+              <Text as="h2" size="lg" weight="bold" color="text-text-900">
+                {title}
+              </Text>
+            )}
+            {subtitleText && (
+              <Text as="p" size="sm" weight="normal" color="text-text-600">
+                {subtitleText}
+              </Text>
+            )}
+          </div>
+          {showDownload && (
+            <button
+              className="cursor-pointer hover:opacity-70 transition-opacity bg-transparent border-none p-0"
+              onClick={handleDownload}
+              aria-label="Download video"
+            >
+              <IconRender iconName="DownloadSimple" size={24} color="#404040" />
+            </button>
           )}
         </div>
       )}
 
       {/* Video Container */}
-      <div className="relative w-full bg-black rounded-xl overflow-hidden group">
+      <div
+        className={cn(
+          'relative w-full bg-background overflow-hidden group',
+          title || subtitleText ? 'rounded-b-xl' : 'rounded-xl'
+        )}
+      >
         {/* Video Element */}
         <video
           ref={videoRef}
@@ -416,16 +432,6 @@ const VideoPlayer = ({
 
             {/* Right Controls */}
             <div className="flex items-center gap-2">
-              {/* Download */}
-              {showDownload && (
-                <IconButton
-                  icon={<DownloadSimple size={24} />}
-                  onClick={handleDownload}
-                  aria-label="Download video"
-                  className="!bg-transparent !text-white hover:!bg-white/20"
-                />
-              )}
-
               {/* Speed Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger
