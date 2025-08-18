@@ -28,15 +28,14 @@ export const WithTitleAndSubtitle: Story = () => (
 );
 
 /**
- * Video player without download button
+ * Video player with speed controls
  */
-export const WithoutDownload: Story = () => (
+export const WithSpeedControls: Story = () => (
   <VideoPlayer
     src="https://www.w3schools.com/html/mov_bbb.mp4"
-    poster="https://via.placeholder.com/800x450/2271C4/FFFFFF?text=No+Download"
-    title="Aula sem download"
-    subtitle="Este vídeo não pode ser baixado"
-    showDownload={false}
+    poster="https://via.placeholder.com/800x450/2271C4/FFFFFF?text=Speed+Controls"
+    title="Controle de velocidade"
+    subtitle="Clique no menu de três pontos para alterar a velocidade"
   />
 );
 
@@ -82,10 +81,6 @@ export const WithCallbacks: Story = () => {
     console.log('Video completed (watched 95% or more)');
   };
 
-  const handleDownload = () => {
-    console.log('Video download requested');
-  };
-
   return (
     <VideoPlayer
       src="https://www.w3schools.com/html/mov_bbb.mp4"
@@ -95,7 +90,6 @@ export const WithCallbacks: Story = () => {
       onTimeUpdate={handleTimeUpdate}
       onProgress={handleProgress}
       onVideoComplete={handleVideoComplete}
-      onDownload={handleDownload}
     />
   );
 };
@@ -200,10 +194,6 @@ export const LessonIntegration: Story = () => {
     console.log('Mark video as watched in backend (video: true)');
   };
 
-  const handleDownload = () => {
-    console.log('Mark content as downloaded (contentDownloaded: true)');
-  };
-
   return (
     <div className="space-y-4">
       <div className="bg-blue-50 p-4 rounded-lg">
@@ -222,7 +212,6 @@ export const LessonIntegration: Story = () => {
         onTimeUpdate={handleTimeUpdate}
         onProgress={handleProgress}
         onVideoComplete={handleVideoComplete}
-        onDownload={handleDownload}
         storageKey="lesson-physics-001"
       />
     </div>

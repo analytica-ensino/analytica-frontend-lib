@@ -7,11 +7,11 @@ import {
   ArrowsOutSimple,
   ArrowsInSimple,
   ClosedCaptioning,
+  DotsThreeVertical,
 } from 'phosphor-react';
 import { cn } from '../utils/utils';
 import IconButton from './IconButton/IconButton';
 import Text from './Text/Text';
-import IconRender from './IconRender/IconRender';
 
 /**
  * VideoPlayer component props interface
@@ -35,12 +35,8 @@ interface VideoPlayerProps {
   onProgress?: (progress: number) => void;
   /** Callback fired when video completes (>95% watched) */
   onVideoComplete?: () => void;
-  /** Callback fired when video is downloaded */
-  onDownload?: () => void;
   /** Additional CSS classes */
   className?: string;
-  /** Show download button */
-  showDownload?: boolean;
   /** Auto-save progress to localStorage */
   autoSave?: boolean;
   /** localStorage key for saving progress */
@@ -76,9 +72,7 @@ const VideoPlayer = ({
   onTimeUpdate,
   onProgress,
   onVideoComplete,
-  onDownload,
   className,
-  showDownload = true,
   autoSave = true,
   storageKey = 'video-progress',
 }: VideoPlayerProps) => {
@@ -91,6 +85,8 @@ const VideoPlayer = ({
   const [showControls, setShowControls] = useState(true);
   const [hasCompleted, setHasCompleted] = useState(false);
   const [showCaptions, setShowCaptions] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
   );
@@ -168,17 +164,21 @@ const VideoPlayer = ({
   }, [isFullscreen]);
 
   /**
-   * Handle video download
+   * Handle playback speed change
    */
-  const handleDownload = useCallback(() => {
-    const link = document.createElement('a');
-    link.href = src;
-    link.download = title || 'video';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    onDownload?.();
-  }, [src, title, onDownload]);
+  const handleSpeedChange = useCallback((speed: number) => {
+    if (!videoRef.current) return;
+    videoRef.current.playbackRate = speed;
+    setPlaybackRate(speed);
+    setShowSpeedMenu(false);
+  }, []);
+
+  /**
+   * Toggle speed menu visibility
+   */
+  const toggleSpeedMenu = useCallback(() => {
+    setShowSpeedMenu(!showSpeedMenu);
+  }, [showSpeedMenu]);
 
   /**
    * Toggle captions visibility
@@ -253,6 +253,33 @@ const VideoPlayer = ({
   }, [isPlaying]);
 
   /**
+   * Handle visibility change and blur to pause video when losing focus
+   */
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isPlaying && videoRef.current) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    };
+
+    const handleBlur = () => {
+      if (isPlaying && videoRef.current) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [isPlaying]);
+
+  /**
    * Cleanup on unmount
    */
   useEffect(() => {
@@ -294,15 +321,6 @@ const VideoPlayer = ({
               </Text>
             )}
           </div>
-          {showDownload && (
-            <button
-              className="cursor-pointer hover:opacity-70 transition-opacity bg-transparent border-none p-0"
-              onClick={handleDownload}
-              aria-label="Download video"
-            >
-              <IconRender iconName="DownloadSimple" size={24} color="#404040" />
-            </button>
-          )}
         </div>
       )}
 
@@ -452,6 +470,36 @@ const VideoPlayer = ({
               <Text size="sm" weight="medium" color="text-white">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </Text>
+            </div>
+
+            {/* Right Controls */}
+            <div className="flex items-center gap-4">
+              {/* Speed Control */}
+              <div className="relative">
+                <IconButton
+                  icon={<DotsThreeVertical size={24} />}
+                  onClick={toggleSpeedMenu}
+                  aria-label="Playback speed"
+                  className="!bg-transparent !text-white hover:!bg-white/20"
+                />
+                {showSpeedMenu && (
+                  <div className="absolute bottom-12 right-0 bg-black/90 rounded-lg p-2 min-w-20">
+                    {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+                      <button
+                        key={speed}
+                        onClick={() => handleSpeedChange(speed)}
+                        className={`block w-full text-left px-3 py-1 text-sm rounded hover:bg-white/20 transition-colors ${
+                          playbackRate === speed
+                            ? 'text-primary-400'
+                            : 'text-white'
+                        }`}
+                      >
+                        {speed}x
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -11,8 +11,8 @@ jest.mock('phosphor-react', () => ({
   SpeakerSlash: () => <div data-testid="speaker-slash-icon" />,
   ArrowsOutSimple: () => <div data-testid="fullscreen-icon" />,
   ArrowsInSimple: () => <div data-testid="exit-fullscreen-icon" />,
-  DownloadSimple: () => <div data-testid="download-icon" />,
   DotsThreeVertical: () => <div data-testid="menu-icon" />,
+  ClosedCaptioning: () => <div data-testid="captions-icon" />,
 }));
 
 // Mock HTMLMediaElement methods
@@ -95,20 +95,12 @@ describe('VideoPlayer', () => {
       expect(video).toHaveAttribute('poster', posterUrl);
     });
 
-    it('should render download button when showDownload is true', () => {
-      render(<VideoPlayer {...defaultProps} showDownload />);
-      const downloadButton = screen.getByRole('button', {
-        name: /download video/i,
+    it('should render speed control button', () => {
+      render(<VideoPlayer {...defaultProps} />);
+      const speedButton = screen.getByRole('button', {
+        name: /playback speed/i,
       });
-      expect(downloadButton).toBeInTheDocument();
-    });
-
-    it('should not render download button when showDownload is false', () => {
-      render(<VideoPlayer {...defaultProps} showDownload={false} />);
-      const downloadButton = screen.queryByRole('button', {
-        name: /download video/i,
-      });
-      expect(downloadButton).not.toBeInTheDocument();
+      expect(speedButton).toBeInTheDocument();
     });
   });
 
@@ -175,24 +167,47 @@ describe('VideoPlayer', () => {
     });
   });
 
-  describe('Callbacks', () => {
-    it('should call onDownload when download button is clicked', () => {
-      const mockOnDownload = jest.fn();
+  describe('Visibility and focus handling', () => {
+    it('should pause video when document becomes hidden', () => {
+      render(<VideoPlayer {...defaultProps} />);
+      const playButton = screen.getByRole('button', { name: /play video/i });
+      fireEvent.click(playButton);
 
+      // Simulate document becoming hidden
+      Object.defineProperty(document, 'hidden', {
+        writable: true,
+        value: true,
+      });
+
+      fireEvent(document, new Event('visibilitychange'));
+      expect(mockPause).toHaveBeenCalled();
+    });
+
+    it('should pause video when window loses focus', () => {
+      render(<VideoPlayer {...defaultProps} />);
+      const playButton = screen.getByRole('button', { name: /play video/i });
+      fireEvent.click(playButton);
+
+      fireEvent(window, new Event('blur'));
+      expect(mockPause).toHaveBeenCalled();
+    });
+  });
+
+  describe('Callbacks', () => {
+    it('should call onVideoComplete when video reaches 95% completion', () => {
+      const mockOnVideoComplete = jest.fn();
       render(
-        <VideoPlayer
-          {...defaultProps}
-          onDownload={mockOnDownload}
-          showDownload
-        />
+        <VideoPlayer {...defaultProps} onVideoComplete={mockOnVideoComplete} />
       );
 
-      const downloadButton = screen.getByRole('button', {
-        name: /download video/i,
-      });
-      fireEvent.click(downloadButton);
+      const video = document.querySelector('video');
+      if (video) {
+        Object.defineProperty(video, 'duration', { value: 100 });
+        Object.defineProperty(video, 'currentTime', { value: 95 });
+        fireEvent.timeUpdate(video);
+      }
 
-      expect(mockOnDownload).toHaveBeenCalledTimes(1);
+      expect(mockOnVideoComplete).toHaveBeenCalled();
     });
   });
 });
