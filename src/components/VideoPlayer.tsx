@@ -336,14 +336,12 @@ const VideoPlayer = ({
         {/* Center Play Button */}
         {!isPlaying && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity">
-            <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-colors">
-              <IconButton
-                icon={<Play size={32} weight="fill" className="ml-1" />}
-                onClick={togglePlayPause}
-                aria-label="Play video"
-                className="!bg-transparent !text-neutral-900 !w-auto !h-auto hover:!bg-transparent"
-              />
-            </div>
+            <IconButton
+              icon={<Play size={32} weight="regular" className="ml-1" />}
+              onClick={togglePlayPause}
+              aria-label="Play video"
+              className="!bg-transparent !text-white !w-auto !h-auto hover:!bg-transparent hover:!text-gray-200"
+            />
           </div>
         )}
 
