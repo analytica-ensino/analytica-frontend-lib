@@ -81,6 +81,7 @@ const VideoPlayer = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [hasCompleted, setHasCompleted] = useState(false);
@@ -92,6 +93,17 @@ const VideoPlayer = ({
   );
   const lastSaveTimeRef = useRef(0);
   const trackRef = useRef<HTMLTrackElement>(null);
+
+  /**
+   * Initialize video element properties
+   */
+  useEffect(() => {
+    if (!videoRef.current) return;
+
+    // Set initial volume
+    videoRef.current.volume = volume;
+    videoRef.current.muted = isMuted;
+  }, [volume, isMuted]);
 
   /**
    * Load saved progress from localStorage
@@ -138,13 +150,46 @@ const VideoPlayer = ({
   }, [isPlaying]);
 
   /**
+   * Handle volume change
+   */
+  const handleVolumeChange = useCallback(
+    (newVolume: number) => {
+      if (!videoRef.current) return;
+      const volumeValue = newVolume / 100; // Convert 0-100 to 0-1
+      videoRef.current.volume = volumeValue;
+      setVolume(volumeValue);
+
+      // Auto mute/unmute based on volume
+      if (volumeValue === 0) {
+        videoRef.current.muted = true;
+        setIsMuted(true);
+      } else if (isMuted) {
+        videoRef.current.muted = false;
+        setIsMuted(false);
+      }
+    },
+    [isMuted]
+  );
+
+  /**
    * Handle mute toggle
    */
   const toggleMute = useCallback(() => {
     if (!videoRef.current) return;
-    videoRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
-  }, [isMuted]);
+
+    if (isMuted) {
+      // Unmute: restore volume or set to 50% if it was 0
+      const restoreVolume = volume > 0 ? volume : 0.5;
+      videoRef.current.volume = restoreVolume;
+      videoRef.current.muted = false;
+      setVolume(restoreVolume);
+      setIsMuted(false);
+    } else {
+      // Mute: set volume to 0 and mute
+      videoRef.current.muted = true;
+      setIsMuted(true);
+    }
+  }, [isMuted, volume]);
 
   /**
    * Handle fullscreen toggle
@@ -441,18 +486,34 @@ const VideoPlayer = ({
               />
 
               {/* Volume */}
-              <IconButton
-                icon={
-                  isMuted ? (
-                    <SpeakerSlash size={24} />
-                  ) : (
-                    <SpeakerHigh size={24} />
-                  )
-                }
-                onClick={toggleMute}
-                aria-label={isMuted ? 'Unmute' : 'Mute'}
-                className="!bg-transparent !text-white hover:!bg-white/20"
-              />
+              <div className="flex items-center gap-2">
+                <IconButton
+                  icon={
+                    isMuted ? (
+                      <SpeakerSlash size={24} />
+                    ) : (
+                      <SpeakerHigh size={24} />
+                    )
+                  }
+                  onClick={toggleMute}
+                  aria-label={isMuted ? 'Unmute' : 'Mute'}
+                  className="!bg-transparent !text-white hover:!bg-white/20"
+                />
+
+                {/* Volume Slider */}
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={Math.round(volume * 100)}
+                  onChange={(e) => handleVolumeChange(parseInt(e.target.value))}
+                  className="w-20 h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  aria-label="Volume control"
+                  style={{
+                    background: `linear-gradient(to right, #2271C4 ${volume * 100}%, #D5D4D4 ${volume * 100}%)`,
+                  }}
+                />
+              </div>
 
               {/* Captions */}
               {subtitles && (
