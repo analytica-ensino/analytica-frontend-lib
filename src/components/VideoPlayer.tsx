@@ -300,6 +300,8 @@ const VideoPlayer = ({
           'relative w-full bg-background overflow-hidden group',
           title || subtitleText ? 'rounded-b-xl' : 'rounded-xl'
         )}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => isPlaying && setShowControls(false)}
       >
         {/* Video Element */}
         <video
@@ -310,8 +312,6 @@ const VideoPlayer = ({
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onClick={togglePlayPause}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={() => isPlaying && setShowControls(false)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
