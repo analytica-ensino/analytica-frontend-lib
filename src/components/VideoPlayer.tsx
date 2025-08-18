@@ -269,15 +269,27 @@ const VideoPlayer = ({
     <div className={cn('flex flex-col', className)}>
       {/* Integrated Header */}
       {(title || subtitleText) && (
-        <div className="bg-subject-1 rounded-t-xl px-4 py-3 flex items-center justify-between">
+        <div className="bg-subject-1 rounded-t-xl px-8 py-4 flex items-end justify-between min-h-20">
           <div className="flex flex-col gap-1">
             {title && (
-              <Text as="h2" size="lg" weight="bold" color="text-text-900">
+              <Text
+                as="h2"
+                size="lg"
+                weight="bold"
+                color="text-text-900"
+                className="leading-5 tracking-wide"
+              >
                 {title}
               </Text>
             )}
             {subtitleText && (
-              <Text as="p" size="sm" weight="normal" color="text-text-600">
+              <Text
+                as="p"
+                size="sm"
+                weight="normal"
+                color="text-text-600"
+                className="leading-5"
+              >
                 {subtitleText}
               </Text>
             )}
@@ -297,7 +309,7 @@ const VideoPlayer = ({
       {/* Video Container */}
       <div
         className={cn(
-          'relative w-full bg-background overflow-hidden group',
+          'relative w-full bg-background overflow-hidden group pb-6',
           title || subtitleText ? 'rounded-b-xl' : 'rounded-xl'
         )}
         onMouseMove={handleMouseMove}
@@ -392,7 +404,7 @@ const VideoPlayer = ({
               className="w-full h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer slider:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
               aria-label="Video progress"
               style={{
-                background: `linear-gradient(to right, #2563eb ${progressPercentage}%, #525252 ${progressPercentage}%)`,
+                background: `linear-gradient(to right, #2271C4 ${progressPercentage}%, #D5D4D4 ${progressPercentage}%)`,
               }}
             />
           </div>
