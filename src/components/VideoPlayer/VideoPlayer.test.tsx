@@ -553,14 +553,16 @@ describe('VideoPlayer', () => {
 
       fireEvent.timeUpdate(video);
 
-      // Fast forward time to trigger save
-      act(() => {
-        jest.advanceTimersByTime(6000);
-      });
+      // Mock Date.now to simulate passage of time for throttling
+      const originalDateNow = Date.now;
+      Date.now = jest.fn().mockReturnValue(originalDateNow() + 6000);
 
       fireEvent.timeUpdate(video);
 
       expect(localStorageMock.setItem).toHaveBeenCalled();
+
+      // Restore Date.now mock
+      Date.now = originalDateNow;
     });
 
     it('should load saved progress from localStorage', () => {
