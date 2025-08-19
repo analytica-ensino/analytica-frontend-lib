@@ -81,8 +81,14 @@ const getStatusStyles = (variantCorrect?: string) => {
 
 const Quiz = forwardRef<
   HTMLDivElement,
-  { children: ReactNode; className?: string }
->(({ children, className, ...props }, ref) => {
+  { children: ReactNode; className?: string; variant?: 'result' | 'default' }
+>(({ children, className, variant = 'default', ...props }, ref) => {
+  const { setVariant } = useQuizStore();
+
+  useEffect(() => {
+    setVariant(variant);
+  }, [variant]);
+
   return (
     <div
       ref={ref}
@@ -225,11 +231,10 @@ const QuizContainer = forwardRef<
 const QuizContent = forwardRef<
   HTMLDivElement,
   {
-    variant?: 'result' | 'default';
     paddingBottom?: string;
   }
->(({ variant, paddingBottom }) => {
-  const { getCurrentQuestion } = useQuizStore();
+>(({ paddingBottom }) => {
+  const { getCurrentQuestion, variant } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
 
   const questionComponents: Record<
@@ -1344,7 +1349,6 @@ const QuizFooter = forwardRef<
   HTMLDivElement,
   {
     className?: string;
-    variant?: 'result' | 'default';
     onGoToSimulated?: () => void;
     onDetailResult?: () => void;
     handleFinishSimulated?: () => void;
@@ -1356,7 +1360,6 @@ const QuizFooter = forwardRef<
       onGoToSimulated,
       onDetailResult,
       handleFinishSimulated,
-      variant = 'default',
       ...props
     },
     ref
@@ -1372,6 +1375,7 @@ const QuizFooter = forwardRef<
       skipQuestion,
       getCurrentQuestion,
       getQuestionStatusFromUserAnswers,
+      variant,
       getActiveQuiz,
     } = useQuizStore();
 
@@ -1386,6 +1390,7 @@ const QuizFooter = forwardRef<
     const [alertDialogOpen, setAlertDialogOpen] = useState(false);
     const [modalResultOpen, setModalResultOpen] = useState(false);
     const [modalNavigateOpen, setModalNavigateOpen] = useState(false);
+    const [modalResolutionOpen, setModalResolutionOpen] = useState(false);
     const [filterType, setFilterType] = useState('all');
     const unansweredQuestions = getUnansweredQuestionsFromUserAnswers();
     const userAnswers = getUserAnswers();
@@ -1508,7 +1513,12 @@ const QuizFooter = forwardRef<
             </>
           ) : (
             <div className="flex flex-row items-center justify-end w-full">
-              <Button variant="solid" action="primary" size="medium">
+              <Button
+                variant="solid"
+                action="primary"
+                size="medium"
+                onClick={() => setModalResolutionOpen(true)}
+              >
                 Ver Resolução
               </Button>
             </div>
@@ -1615,6 +1625,15 @@ const QuizFooter = forwardRef<
               />
             </div>
           </div>
+        </Modal>
+
+        <Modal
+          isOpen={modalResolutionOpen}
+          onClose={() => setModalResolutionOpen(false)}
+          title="Resolução"
+          size={'lg'}
+        >
+          {currentQuestion?.answerKey}
         </Modal>
       </>
     );

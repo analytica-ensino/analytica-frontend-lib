@@ -95,6 +95,8 @@ const createMockUseQuizStore = (
     skippedQuestions: [],
     userAnswers: [],
     isFinished: false,
+    variant: 'default', // Add default variant
+    setVariant: jest.fn(), // Add setVariant function
     getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
     getActiveQuiz: jest.fn().mockReturnValue({
       quiz: mockSimulado,
@@ -844,26 +846,47 @@ describe('Quiz Component', () => {
       it('should render teacher observation section only when answer is incorrect and variant is result', () => {
         const mockQuestion = {
           id: '1',
+          questionText: 'Test Question',
+          description: 'Test Statement',
           type: QUESTION_TYPE.DISSERTATIVA,
-          title: 'Test Question',
-          statement: 'Test Statement',
+          status: QUESTION_STATUS.APROVADO,
+          difficulty: QUESTION_DIFFICULTY.MEDIO,
+          examBoard: 'ENEM',
+          examYear: '2024',
+          answerKey: null,
+          institutionIds: ['inst1'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'ciencias',
+              subjectId: 'biologia',
+              topicId: 'fotossintese',
+              subtopicId: 'processo',
+              contentId: 'ciencias',
+            },
+          ],
+          options: [],
         };
 
         const mockAnswer = {
           questionId: '1',
+          activityId: 'simulado-1',
+          userId: 'user-1',
           answer: 'Test Answer',
+          optionId: null,
+          questionType: QUESTION_TYPE.DISSERTATIVA,
           answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
         };
 
         const mockStore = {
           getCurrentQuestion: () => mockQuestion,
           getCurrentAnswer: () => mockAnswer,
+          variant: 'result',
         };
 
         mockUseQuizStore.mockReturnValue(mockStore);
 
         // Renders with result variant and incorrect answer - should show observation
-        const { rerender } = render(<QuizContent variant="result" />);
+        const { rerender } = render(<QuizContent />);
 
         expect(screen.getByText('Observação do professor')).toBeInTheDocument();
         expect(
@@ -876,14 +899,14 @@ describe('Quiz Component', () => {
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
         });
 
-        rerender(<QuizContent variant="result" />);
+        rerender(<QuizContent />);
 
         expect(
           screen.queryByText('Observação do professor')
         ).not.toBeInTheDocument();
 
         // Updates to default variant - should not show observation
-        rerender(<QuizContent variant="default" />);
+        rerender(<QuizContent />);
 
         expect(
           screen.queryByText('Observação do professor')
@@ -1383,6 +1406,7 @@ describe('Quiz Component', () => {
       it('should open alert dialog when there are unanswered questions', () => {
         mockUseQuizStore.mockReturnValue({
           ...mockUseQuizStore(),
+          variant: 'default',
           currentQuestionIndex: 1,
           getTotalQuestions: jest.fn().mockReturnValue(2),
           getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([2]),
@@ -1412,6 +1436,7 @@ describe('Quiz Component', () => {
 
         mockUseQuizStore.mockReturnValue({
           ...mockUseQuizStore(),
+          variant: 'default',
           currentQuestionIndex: 1,
           getTotalQuestions: jest.fn().mockReturnValue(2),
           getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
@@ -1453,6 +1478,7 @@ describe('Quiz Component', () => {
       it('should open result modal even when handleFinishSimulated is not provided', async () => {
         mockUseQuizStore.mockReturnValue({
           ...mockUseQuizStore(),
+          variant: 'default',
           currentQuestionIndex: 1,
           getTotalQuestions: jest.fn().mockReturnValue(2),
           getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
@@ -2172,6 +2198,144 @@ describe('Quiz Component', () => {
       // The "Finish" button should be disabled when question is not skipped and no answer
       const finishButton = screen.getByText('Finalizar');
       expect(finishButton).toBeDisabled();
+    });
+
+    describe('QuizFooter with variant result', () => {
+      it('should render "Ver Resolução" button when variant is result', () => {
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          variant: 'result',
+          getCurrentQuestion: jest.fn().mockReturnValue({
+            ...mockQuestion1,
+            answerKey: 'Esta é a resolução da questão 1',
+          }),
+        });
+
+        render(<QuizFooter />);
+
+        expect(screen.getByText('Ver Resolução')).toBeInTheDocument();
+        expect(screen.queryByText('Finalizar')).not.toBeInTheDocument();
+        expect(screen.queryByText('Avançar')).not.toBeInTheDocument();
+        expect(screen.queryByText('Voltar')).not.toBeInTheDocument();
+      });
+
+      it('should open resolution modal when "Ver Resolução" button is clicked', () => {
+        const mockAnswerKey = 'Esta é a resolução detalhada da questão';
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          variant: 'result',
+          getCurrentQuestion: jest.fn().mockReturnValue({
+            ...mockQuestion1,
+            answerKey: mockAnswerKey,
+          }),
+        });
+
+        render(<QuizFooter />);
+
+        fireEvent.click(screen.getByText('Ver Resolução'));
+
+        expect(screen.getByTestId('modal')).toBeInTheDocument();
+        expect(screen.getByText('Resolução')).toBeInTheDocument();
+        expect(screen.getByText(mockAnswerKey)).toBeInTheDocument();
+      });
+
+      it('should close resolution modal when close button is clicked', () => {
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          variant: 'result',
+          getCurrentQuestion: jest.fn().mockReturnValue({
+            ...mockQuestion1,
+            answerKey: 'Resolução da questão',
+          }),
+        });
+
+        render(<QuizFooter />);
+
+        fireEvent.click(screen.getByText('Ver Resolução'));
+        expect(screen.getByTestId('modal')).toBeInTheDocument();
+
+        fireEvent.click(screen.getByTestId('close-modal'));
+        expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+      });
+
+      it('should display empty content when currentQuestion has no answerKey', () => {
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          variant: 'result',
+          getCurrentQuestion: jest.fn().mockReturnValue({
+            ...mockQuestion1,
+            answerKey: undefined,
+          }),
+        });
+
+        render(<QuizFooter />);
+
+        fireEvent.click(screen.getByText('Ver Resolução'));
+
+        expect(screen.getByTestId('modal')).toBeInTheDocument();
+        expect(screen.getByText('Resolução')).toBeInTheDocument();
+        // Modal should be empty when no answerKey
+        const modalContent = screen.getByTestId('modal');
+        expect(modalContent).toBeInTheDocument();
+      });
+
+      it('should display empty content when currentQuestion is null', () => {
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          variant: 'result',
+          getCurrentQuestion: jest.fn().mockReturnValue(null),
+        });
+
+        render(<QuizFooter />);
+
+        fireEvent.click(screen.getByText('Ver Resolução'));
+
+        expect(screen.getByTestId('modal')).toBeInTheDocument();
+        expect(screen.getByText('Resolução')).toBeInTheDocument();
+        // Modal should be empty when currentQuestion is null
+        const modalContent = screen.getByTestId('modal');
+        expect(modalContent).toBeInTheDocument();
+      });
+
+      it('should not show navigation buttons when variant is result', () => {
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          variant: 'result',
+          getCurrentQuestion: jest.fn().mockReturnValue({
+            ...mockQuestion1,
+            answerKey: 'Resolução da questão',
+          }),
+        });
+
+        render(<QuizFooter />);
+
+        expect(screen.getByText('Ver Resolução')).toBeInTheDocument();
+        expect(screen.queryByTestId('icon-button')).not.toBeInTheDocument();
+        expect(screen.queryByText('Pular')).not.toBeInTheDocument();
+        expect(screen.queryByText('Voltar')).not.toBeInTheDocument();
+        expect(screen.queryByText('Avançar')).not.toBeInTheDocument();
+        expect(screen.queryByText('Finalizar')).not.toBeInTheDocument();
+      });
+
+      it('should render resolution modal with correct size', () => {
+        mockUseQuizStore.mockReturnValue({
+          ...mockUseQuizStore(),
+          variant: 'result',
+          getCurrentQuestion: jest.fn().mockReturnValue({
+            ...mockQuestion1,
+            answerKey: 'Resolução da questão',
+          }),
+        });
+
+        render(<QuizFooter />);
+
+        fireEvent.click(screen.getByText('Ver Resolução'));
+
+        const modal = screen.getByTestId('modal');
+        expect(modal).toBeInTheDocument();
+        // The modal should have the 'lg' size as specified in the component
+        expect(modal).toHaveAttribute('data-size', 'lg');
+      });
     });
   });
 
@@ -5235,6 +5399,96 @@ describe('Quiz Result Components', () => {
         .getByText('Resultado das questões')
         .closest('section');
       expect(section).toHaveClass('flex', 'flex-col');
+    });
+
+    it('should handle undefined status when userAnswer has no answerStatus', () => {
+      const mockOnQuestionClick = jest.fn();
+
+      // Mock getUserAnswerByQuestionId to return an answer without answerStatus
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        bySimulated: mockSimulado,
+        byActivity: undefined,
+        byQuestionary: undefined,
+        selectedAnswers: {
+          q1: 'opt1',
+          q2: 'opt3',
+          q3: 'opt3',
+        },
+        getQuestionsGroupedBySubject: jest
+          .fn()
+          .mockReturnValue(mockQuestionsGroupedBySubject),
+        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
+          return (
+            questionId === 'q1' || questionId === 'q2' || questionId === 'q3'
+          );
+        }),
+        getUserAnswerByQuestionId: jest
+          .fn()
+          .mockImplementation((questionId) => {
+            if (questionId === 'q1') {
+              return {
+                questionId: 'q1',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt1',
+                optionId: 'opt1',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              };
+            }
+            if (questionId === 'q2') {
+              return {
+                questionId: 'q2',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt3',
+                optionId: 'opt3',
+                questionType: 'ALTERNATIVA' as const,
+                answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+              };
+            }
+            if (questionId === 'q3') {
+              // This answer has no answerStatus, which should result in undefined status
+              return {
+                questionId: 'q3',
+                activityId: 'simulado-1',
+                userId: 'user-1',
+                answer: 'opt3',
+                optionId: 'opt3',
+                questionType: 'ALTERNATIVA' as const,
+                // answerStatus is missing, which should trigger the return undefined case
+              };
+            }
+            return null;
+          }),
+      });
+
+      render(
+        <QuizListResultByMateria
+          subject="mecanica"
+          onQuestionClick={mockOnQuestionClick}
+        />
+      );
+
+      // Check if questions with correct answers show 'correct' status
+      const correctQuestion = screen
+        .getByText('Questão 01')
+        .closest('[data-testid="card-status"]');
+      expect(correctQuestion).toHaveAttribute('data-status', 'correct');
+
+      // Check if questions with incorrect answers show 'incorrect' status
+      const incorrectQuestion = screen
+        .getByText('Questão 02')
+        .closest('[data-testid="card-status"]');
+      expect(incorrectQuestion).toHaveAttribute('data-status', 'incorrect');
+
+      // Check if question with undefined answerStatus has no status attribute
+      const undefinedStatusQuestion = screen
+        .getByText('Questão 03')
+        .closest('[data-testid="card-status"]');
+      // When status is undefined, the data-status attribute should not be present
+      expect(undefinedStatusQuestion).not.toHaveAttribute('data-status');
     });
   });
 
