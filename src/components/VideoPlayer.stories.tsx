@@ -16,43 +16,6 @@ export const Default: Story = () => (
 );
 
 /**
- * Video player with title and subtitle
- */
-export const WithTitleAndSubtitle: Story = () => (
-  <VideoPlayer
-    src="https://www.w3schools.com/html/mov_bbb.mp4"
-    poster="https://via.placeholder.com/800x450/2271C4/FFFFFF?text=Movimento+Uniforme"
-    title="Movimento uniforme"
-    subtitle="Função horária"
-  />
-);
-
-/**
- * Video player with speed controls
- */
-export const WithSpeedControls: Story = () => (
-  <VideoPlayer
-    src="https://www.w3schools.com/html/mov_bbb.mp4"
-    poster="https://via.placeholder.com/800x450/2271C4/FFFFFF?text=Speed+Controls"
-    title="Controle de velocidade"
-    subtitle="Clique no menu de três pontos para alterar a velocidade"
-  />
-);
-
-/**
- * Video player with initial time
- */
-export const WithInitialTime: Story = () => (
-  <VideoPlayer
-    src="https://www.w3schools.com/html/mov_bbb.mp4"
-    poster="https://via.placeholder.com/800x450/2271C4/FFFFFF?text=Start+at+5s"
-    title="Vídeo com tempo inicial"
-    subtitle="Este vídeo começa aos 5 segundos"
-    initialTime={5}
-  />
-);
-
-/**
  * Video player with subtitles
  */
 export const WithSubtitles: Story = () => (
@@ -95,45 +58,6 @@ export const WithCallbacks: Story = () => {
 };
 
 /**
- * Video player with localStorage disabled
- */
-export const WithoutAutoSave: Story = () => (
-  <VideoPlayer
-    src="https://www.w3schools.com/html/mov_bbb.mp4"
-    poster="https://via.placeholder.com/800x450/2271C4/FFFFFF?text=No+AutoSave"
-    title="Sem salvamento automático"
-    subtitle="O progresso não será salvo no localStorage"
-    autoSave={false}
-  />
-);
-
-/**
- * Video player with custom storage key
- */
-export const WithCustomStorageKey: Story = () => (
-  <VideoPlayer
-    src="https://www.w3schools.com/html/mov_bbb.mp4"
-    poster="https://via.placeholder.com/800x450/2271C4/FFFFFF?text=Custom+Storage"
-    title="Chave personalizada"
-    subtitle="Usa uma chave específica para salvar o progresso"
-    storageKey="lesson-123-video"
-  />
-);
-
-/**
- * Video player with custom className
- */
-export const WithCustomClassName: Story = () => (
-  <VideoPlayer
-    src="https://www.w3schools.com/html/mov_bbb.mp4"
-    poster="https://via.placeholder.com/800x450/2271C4/FFFFFF?text=Custom+Style"
-    title="Estilo personalizado"
-    subtitle="Com classe CSS customizada"
-    className="max-w-4xl mx-auto shadow-2xl"
-  />
-);
-
-/**
  * Video player in mobile view
  */
 export const MobileView: Story = () => (
@@ -146,74 +70,3 @@ export const MobileView: Story = () => (
     />
   </div>
 );
-
-/**
- * Multiple video players
- */
-export const MultipleVideos: Story = () => (
-  <div className="space-y-8">
-    <VideoPlayer
-      src="https://www.w3schools.com/html/mov_bbb.mp4"
-      poster="https://via.placeholder.com/800x450/2271C4/FFFFFF?text=Video+1"
-      title="Vídeo 1: Introdução"
-      subtitle="Primeira parte da aula"
-      storageKey="video-1"
-    />
-    <VideoPlayer
-      src="https://www.w3schools.com/html/mov_bbb.mp4"
-      poster="https://via.placeholder.com/800x450/10B981/FFFFFF?text=Video+2"
-      title="Vídeo 2: Desenvolvimento"
-      subtitle="Segunda parte da aula"
-      storageKey="video-2"
-    />
-    <VideoPlayer
-      src="https://www.w3schools.com/html/mov_bbb.mp4"
-      poster="https://via.placeholder.com/800x450/EF4444/FFFFFF?text=Video+3"
-      title="Vídeo 3: Conclusão"
-      subtitle="Parte final da aula"
-      storageKey="video-3"
-    />
-  </div>
-);
-
-/**
- * Video player simulating lesson progress integration
- */
-export const LessonIntegration: Story = () => {
-  const handleTimeUpdate = (seconds: number) => {
-    // Convert seconds to minutes for backend
-    const minutes = Math.floor(seconds / 60);
-    console.log(`Time spent: ${minutes} minutes`);
-  };
-
-  const handleProgress = (percentage: number) => {
-    console.log(`Lesson progress: ${percentage.toFixed(0)}%`);
-  };
-
-  const handleVideoComplete = () => {
-    console.log('Mark video as watched in backend (video: true)');
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="bg-blue-50 p-4 rounded-lg">
-        <h3 className="font-bold text-blue-900 mb-2">Integração com Backend</h3>
-        <p className="text-sm text-blue-700">
-          Este exemplo simula a integração com o modelo de progresso de aulas do
-          backend. Abra o console para ver os eventos que seriam enviados para a
-          API.
-        </p>
-      </div>
-      <VideoPlayer
-        src="https://www.w3schools.com/html/mov_bbb.mp4"
-        poster="https://via.placeholder.com/800x450/2271C4/FFFFFF?text=Lesson+Video"
-        title="Física - Movimento Uniforme"
-        subtitle="Aula 1: Introdução à cinemática"
-        onTimeUpdate={handleTimeUpdate}
-        onProgress={handleProgress}
-        onVideoComplete={handleVideoComplete}
-        storageKey="lesson-physics-001"
-      />
-    </div>
-  );
-};
