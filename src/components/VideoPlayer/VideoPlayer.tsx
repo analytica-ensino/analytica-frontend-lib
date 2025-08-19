@@ -1,0 +1,588 @@
+import { useRef, useState, useEffect, useCallback } from 'react';
+import {
+  Play,
+  Pause,
+  SpeakerHigh,
+  SpeakerSlash,
+  ArrowsOutSimple,
+  ArrowsInSimple,
+  ClosedCaptioning,
+  DotsThreeVertical,
+} from 'phosphor-react';
+import { cn } from '../../utils/utils';
+import IconButton from '../IconButton/IconButton';
+import Text from '../Text/Text';
+
+/**
+ * VideoPlayer component props interface
+ */
+interface VideoPlayerProps {
+  /** Video source URL */
+  src: string;
+  /** Video poster/thumbnail URL */
+  poster?: string;
+  /** Subtitles URL */
+  subtitles?: string;
+  /** Video title */
+  title?: string;
+  /** Video subtitle/description */
+  subtitle?: string;
+  /** Initial playback time in seconds */
+  initialTime?: number;
+  /** Callback fired when video time updates (seconds) */
+  onTimeUpdate?: (seconds: number) => void;
+  /** Callback fired with progress percentage (0-100) */
+  onProgress?: (progress: number) => void;
+  /** Callback fired when video completes (>95% watched) */
+  onVideoComplete?: () => void;
+  /** Additional CSS classes */
+  className?: string;
+  /** Auto-save progress to localStorage */
+  autoSave?: boolean;
+  /** localStorage key for saving progress */
+  storageKey?: string;
+}
+
+/**
+ * Format seconds to MM:SS display format
+ * @param seconds - Time in seconds
+ * @returns Formatted time string
+ */
+const formatTime = (seconds: number): string => {
+  if (!seconds || isNaN(seconds)) return '0:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+/**
+ * Video player component with controls and progress tracking
+ * Integrates with backend lesson progress system
+ *
+ * @param props - VideoPlayer component props
+ * @returns Video player element with controls
+ */
+const VideoPlayer = ({
+  src,
+  poster,
+  subtitles,
+  title,
+  subtitle: subtitleText,
+  initialTime = 0,
+  onTimeUpdate,
+  onProgress,
+  onVideoComplete,
+  className,
+  autoSave = true,
+  storageKey = 'video-progress',
+}: VideoPlayerProps) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const [hasCompleted, setHasCompleted] = useState(false);
+  const [showCaptions, setShowCaptions] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const lastSaveTimeRef = useRef(0);
+  const trackRef = useRef<HTMLTrackElement>(null);
+
+  /**
+   * Initialize video element properties
+   */
+  useEffect(() => {
+    // Set initial volume
+    if (videoRef.current) {
+      videoRef.current.volume = volume;
+      videoRef.current.muted = isMuted;
+    }
+  }, [volume, isMuted]);
+
+  /**
+   * Load saved progress from localStorage
+   */
+  useEffect(() => {
+    if (!autoSave || !storageKey) return;
+
+    const raw = localStorage.getItem(`${storageKey}-${src}`);
+    const saved = raw !== null ? Number(raw) : NaN;
+    const hasValidSaved = Number.isFinite(saved) && saved >= 0;
+    const hasValidInitial = Number.isFinite(initialTime) && initialTime >= 0;
+
+    let start: number | undefined;
+    if (hasValidInitial) {
+      start = initialTime;
+    } else if (hasValidSaved) {
+      start = saved;
+    } else {
+      start = undefined;
+    }
+    if (start !== undefined && videoRef.current) {
+      videoRef.current.currentTime = start;
+      setCurrentTime(start);
+    }
+  }, [src, storageKey, autoSave, initialTime]);
+
+  /**
+   * Save progress to localStorage periodically
+   */
+  const saveProgress = useCallback(() => {
+    if (!autoSave || !storageKey) return;
+
+    const now = Date.now();
+    if (now - lastSaveTimeRef.current > 5000) {
+      localStorage.setItem(`${storageKey}-${src}`, currentTime.toString());
+      lastSaveTimeRef.current = now;
+    }
+  }, [autoSave, storageKey, src, currentTime]);
+
+  /**
+   * Handle play/pause toggle
+   */
+  const togglePlayPause = useCallback(() => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  }, [isPlaying]);
+
+  /**
+   * Handle volume change
+   */
+  const handleVolumeChange = useCallback(
+    (newVolume: number) => {
+      if (videoRef.current) {
+        const volumeValue = newVolume / 100; // Convert 0-100 to 0-1
+        videoRef.current.volume = volumeValue;
+        setVolume(volumeValue);
+
+        // Auto mute/unmute based on volume
+        if (volumeValue === 0) {
+          videoRef.current.muted = true;
+          setIsMuted(true);
+        } else if (isMuted) {
+          videoRef.current.muted = false;
+          setIsMuted(false);
+        }
+      }
+    },
+    [isMuted]
+  );
+
+  /**
+   * Handle mute toggle
+   */
+  const toggleMute = useCallback(() => {
+    if (videoRef.current) {
+      if (isMuted) {
+        // Unmute: restore volume or set to 50% if it was 0
+        const restoreVolume = volume > 0 ? volume : 0.5;
+        videoRef.current.volume = restoreVolume;
+        videoRef.current.muted = false;
+        setVolume(restoreVolume);
+        setIsMuted(false);
+      } else {
+        // Mute: set volume to 0 and mute
+        videoRef.current.muted = true;
+        setIsMuted(true);
+      }
+    }
+  }, [isMuted, volume]);
+
+  /**
+   * Handle fullscreen toggle
+   */
+  const toggleFullscreen = useCallback(() => {
+    const container = videoRef.current?.parentElement;
+    if (!container) return;
+
+    if (!isFullscreen) {
+      if (container.requestFullscreen) {
+        container.requestFullscreen();
+      }
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+    setIsFullscreen(!isFullscreen);
+  }, [isFullscreen]);
+
+  /**
+   * Handle playback speed change
+   */
+  const handleSpeedChange = useCallback((speed: number) => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = speed;
+      setPlaybackRate(speed);
+      setShowSpeedMenu(false);
+    }
+  }, []);
+
+  /**
+   * Toggle speed menu visibility
+   */
+  const toggleSpeedMenu = useCallback(() => {
+    setShowSpeedMenu(!showSpeedMenu);
+  }, [showSpeedMenu]);
+
+  /**
+   * Toggle captions visibility
+   */
+  const toggleCaptions = useCallback(() => {
+    if (!trackRef.current?.track) return;
+
+    const newShowCaptions = !showCaptions;
+    setShowCaptions(newShowCaptions);
+
+    // Control track mode programmatically
+    trackRef.current.track.mode = newShowCaptions ? 'showing' : 'hidden';
+  }, [showCaptions]);
+
+  /**
+   * Handle time update
+   */
+  const handleTimeUpdate = useCallback(() => {
+    if (videoRef.current) {
+      const current = videoRef.current.currentTime;
+      setCurrentTime(current);
+
+      // Save progress periodically
+      saveProgress();
+
+      // Fire callbacks
+      onTimeUpdate?.(current);
+
+      if (duration > 0) {
+        const progressPercent = (current / duration) * 100;
+        onProgress?.(progressPercent);
+
+        // Check for completion (>95% watched)
+        if (progressPercent >= 95 && !hasCompleted) {
+          setHasCompleted(true);
+          onVideoComplete?.();
+        }
+      }
+    }
+  }, [
+    duration,
+    saveProgress,
+    onTimeUpdate,
+    onProgress,
+    onVideoComplete,
+    hasCompleted,
+  ]);
+
+  /**
+   * Handle loaded metadata
+   */
+  const handleLoadedMetadata = useCallback(() => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
+    }
+  }, []);
+
+  /**
+   * Handle visibility change and blur to pause video when losing focus
+   */
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isPlaying && videoRef.current) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    };
+
+    const handleBlur = () => {
+      if (isPlaying && videoRef.current) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [isPlaying]);
+
+  const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  return (
+    <div className={cn('flex flex-col', className)}>
+      {/* Integrated Header */}
+      {(title || subtitleText) && (
+        <div className="bg-subject-1 rounded-t-xl px-8 py-4 flex items-end justify-between min-h-20">
+          <div className="flex flex-col gap-1">
+            {title && (
+              <Text
+                as="h2"
+                size="lg"
+                weight="bold"
+                color="text-text-900"
+                className="leading-5 tracking-wide"
+              >
+                {title}
+              </Text>
+            )}
+            {subtitleText && (
+              <Text
+                as="p"
+                size="sm"
+                weight="normal"
+                color="text-text-600"
+                className="leading-5"
+              >
+                {subtitleText}
+              </Text>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Video Container */}
+      <div
+        className={cn(
+          'relative w-full bg-background overflow-hidden group',
+          title || subtitleText ? 'rounded-b-xl' : 'rounded-xl'
+        )}
+      >
+        {/* Video Element */}
+        <video
+          ref={videoRef}
+          src={src}
+          poster={poster}
+          className="w-full h-full object-contain"
+          controlsList="nodownload"
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onClick={togglePlayPause}
+          onKeyDown={(e) => {
+            // Show controls when any key is pressed
+            if (e.key) {
+              setShowControls(true);
+            }
+            // Space or Enter to play/pause
+            if (e.key === ' ' || e.key === 'Enter') {
+              e.preventDefault();
+              togglePlayPause();
+            }
+            // Arrow keys for seeking
+            if (e.key === 'ArrowLeft' && videoRef.current) {
+              e.preventDefault();
+              videoRef.current.currentTime -= 10;
+            }
+            if (e.key === 'ArrowRight' && videoRef.current) {
+              e.preventDefault();
+              videoRef.current.currentTime += 10;
+            }
+            // Arrow keys for volume
+            if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              handleVolumeChange(Math.min(100, volume * 100 + 10));
+            }
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              handleVolumeChange(Math.max(0, volume * 100 - 10));
+            }
+            // M for mute
+            if (e.key === 'm' || e.key === 'M') {
+              e.preventDefault();
+              toggleMute();
+            }
+            // F for fullscreen
+            if (e.key === 'f' || e.key === 'F') {
+              e.preventDefault();
+              toggleFullscreen();
+            }
+          }}
+          tabIndex={0}
+          aria-label={title ? `Video: ${title}` : 'Video player'}
+        >
+          <track
+            ref={trackRef}
+            kind="captions"
+            src={
+              subtitles ||
+              'data:text/vtt;charset=utf-8,WEBVTT%0A%0ANOTE%20No%20captions%20available'
+            }
+            srcLang="en"
+            label={subtitles ? 'Subtitles' : 'No captions available'}
+            default={false}
+          />
+        </video>
+
+        {/* Center Play Button */}
+        {!isPlaying && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity">
+            <IconButton
+              icon={<Play size={32} weight="regular" className="ml-1" />}
+              onClick={togglePlayPause}
+              aria-label="Play video"
+              className="!bg-transparent !text-white !w-auto !h-auto hover:!bg-transparent hover:!text-gray-200"
+            />
+          </div>
+        )}
+
+        {/* Top Controls */}
+        <div
+          className={cn(
+            'absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/70 to-transparent transition-opacity',
+            !isPlaying || showControls
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100'
+          )}
+        >
+          <div className="ml-auto block">
+            <IconButton
+              icon={
+                isFullscreen ? (
+                  <ArrowsInSimple size={24} />
+                ) : (
+                  <ArrowsOutSimple size={24} />
+                )
+              }
+              onClick={toggleFullscreen}
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              className="!bg-transparent !text-white hover:!bg-white/20"
+            />
+          </div>
+        </div>
+
+        {/* Bottom Controls */}
+        <div
+          className={cn(
+            'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent transition-opacity',
+            !isPlaying || showControls
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100'
+          )}
+        >
+          {/* Progress Bar */}
+          <div className="px-4 pb-2">
+            <input
+              type="range"
+              min={0}
+              max={duration || 100}
+              value={currentTime}
+              onChange={(e) => {
+                const newTime = parseFloat(e.target.value);
+                if (videoRef.current) {
+                  videoRef.current.currentTime = newTime;
+                }
+              }}
+              className="w-full h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer slider:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              aria-label="Video progress"
+              style={{
+                background: `linear-gradient(to right, #2271C4 ${progressPercentage}%, #D5D4D4 ${progressPercentage}%)`,
+              }}
+            />
+          </div>
+
+          {/* Control Buttons */}
+          <div className="flex items-center justify-between px-4 pb-4">
+            {/* Left Controls */}
+            <div className="flex items-center gap-4">
+              {/* Play/Pause */}
+              <IconButton
+                icon={isPlaying ? <Pause size={24} /> : <Play size={24} />}
+                onClick={togglePlayPause}
+                aria-label={isPlaying ? 'Pause' : 'Play'}
+                className="!bg-transparent !text-white hover:!bg-white/20"
+              />
+
+              {/* Volume */}
+              <div className="flex items-center gap-2">
+                <IconButton
+                  icon={
+                    isMuted ? (
+                      <SpeakerSlash size={24} />
+                    ) : (
+                      <SpeakerHigh size={24} />
+                    )
+                  }
+                  onClick={toggleMute}
+                  aria-label={isMuted ? 'Unmute' : 'Mute'}
+                  className="!bg-transparent !text-white hover:!bg-white/20"
+                />
+
+                {/* Volume Slider */}
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={Math.round(volume * 100)}
+                  onChange={(e) => handleVolumeChange(parseInt(e.target.value))}
+                  className="w-20 h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  aria-label="Volume control"
+                  style={{
+                    background: `linear-gradient(to right, #2271C4 ${volume * 100}%, #D5D4D4 ${volume * 100}%)`,
+                  }}
+                />
+              </div>
+
+              {/* Captions */}
+              {subtitles && (
+                <IconButton
+                  icon={<ClosedCaptioning size={24} />}
+                  onClick={toggleCaptions}
+                  aria-label={showCaptions ? 'Hide captions' : 'Show captions'}
+                  className={cn(
+                    '!bg-transparent hover:!bg-white/20',
+                    showCaptions ? '!text-primary-400' : '!text-white'
+                  )}
+                />
+              )}
+
+              {/* Time Display */}
+              <Text size="sm" weight="medium" color="text-white">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </Text>
+            </div>
+
+            {/* Right Controls */}
+            <div className="flex items-center gap-4">
+              {/* Speed Control */}
+              <div className="relative">
+                <IconButton
+                  icon={<DotsThreeVertical size={24} />}
+                  onClick={toggleSpeedMenu}
+                  aria-label="Playback speed"
+                  className="!bg-transparent !text-white hover:!bg-white/20"
+                />
+                {showSpeedMenu && (
+                  <div className="absolute bottom-12 right-0 bg-black/90 rounded-lg p-2 min-w-20">
+                    {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+                      <button
+                        key={speed}
+                        onClick={() => handleSpeedChange(speed)}
+                        className={`block w-full text-left px-3 py-1 text-sm rounded hover:bg-white/20 transition-colors ${
+                          playbackRate === speed
+                            ? 'text-primary-400'
+                            : 'text-white'
+                        }`}
+                      >
+                        {speed}x
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default VideoPlayer;
