@@ -88,9 +88,6 @@ const VideoPlayer = ({
   const [showCaptions, setShowCaptions] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
-  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined
-  );
   const lastSaveTimeRef = useRef(0);
   const trackRef = useRef<HTMLTrackElement>(null);
 
@@ -98,11 +95,11 @@ const VideoPlayer = ({
    * Initialize video element properties
    */
   useEffect(() => {
-    if (!videoRef.current) return;
-
     // Set initial volume
-    videoRef.current.volume = volume;
-    videoRef.current.muted = isMuted;
+    if (videoRef.current) {
+      videoRef.current.volume = volume;
+      videoRef.current.muted = isMuted;
+    }
   }, [volume, isMuted]);
 
   /**
@@ -139,14 +136,14 @@ const VideoPlayer = ({
    * Handle play/pause toggle
    */
   const togglePlayPause = useCallback(() => {
-    if (!videoRef.current) return;
-
-    if (isPlaying) {
-      videoRef.current.pause();
-    } else {
-      videoRef.current.play();
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
     }
-    setIsPlaying(!isPlaying);
   }, [isPlaying]);
 
   /**
@@ -154,18 +151,19 @@ const VideoPlayer = ({
    */
   const handleVolumeChange = useCallback(
     (newVolume: number) => {
-      if (!videoRef.current) return;
-      const volumeValue = newVolume / 100; // Convert 0-100 to 0-1
-      videoRef.current.volume = volumeValue;
-      setVolume(volumeValue);
+      if (videoRef.current) {
+        const volumeValue = newVolume / 100; // Convert 0-100 to 0-1
+        videoRef.current.volume = volumeValue;
+        setVolume(volumeValue);
 
-      // Auto mute/unmute based on volume
-      if (volumeValue === 0) {
-        videoRef.current.muted = true;
-        setIsMuted(true);
-      } else if (isMuted) {
-        videoRef.current.muted = false;
-        setIsMuted(false);
+        // Auto mute/unmute based on volume
+        if (volumeValue === 0) {
+          videoRef.current.muted = true;
+          setIsMuted(true);
+        } else if (isMuted) {
+          videoRef.current.muted = false;
+          setIsMuted(false);
+        }
       }
     },
     [isMuted]
@@ -175,19 +173,19 @@ const VideoPlayer = ({
    * Handle mute toggle
    */
   const toggleMute = useCallback(() => {
-    if (!videoRef.current) return;
-
-    if (isMuted) {
-      // Unmute: restore volume or set to 50% if it was 0
-      const restoreVolume = volume > 0 ? volume : 0.5;
-      videoRef.current.volume = restoreVolume;
-      videoRef.current.muted = false;
-      setVolume(restoreVolume);
-      setIsMuted(false);
-    } else {
-      // Mute: set volume to 0 and mute
-      videoRef.current.muted = true;
-      setIsMuted(true);
+    if (videoRef.current) {
+      if (isMuted) {
+        // Unmute: restore volume or set to 50% if it was 0
+        const restoreVolume = volume > 0 ? volume : 0.5;
+        videoRef.current.volume = restoreVolume;
+        videoRef.current.muted = false;
+        setVolume(restoreVolume);
+        setIsMuted(false);
+      } else {
+        // Mute: set volume to 0 and mute
+        videoRef.current.muted = true;
+        setIsMuted(true);
+      }
     }
   }, [isMuted, volume]);
 
@@ -212,10 +210,11 @@ const VideoPlayer = ({
    * Handle playback speed change
    */
   const handleSpeedChange = useCallback((speed: number) => {
-    if (!videoRef.current) return;
-    videoRef.current.playbackRate = speed;
-    setPlaybackRate(speed);
-    setShowSpeedMenu(false);
+    if (videoRef.current) {
+      videoRef.current.playbackRate = speed;
+      setPlaybackRate(speed);
+      setShowSpeedMenu(false);
+    }
   }, []);
 
   /**
@@ -242,25 +241,25 @@ const VideoPlayer = ({
    * Handle time update
    */
   const handleTimeUpdate = useCallback(() => {
-    if (!videoRef.current) return;
+    if (videoRef.current) {
+      const current = videoRef.current.currentTime;
+      setCurrentTime(current);
 
-    const current = videoRef.current.currentTime;
-    setCurrentTime(current);
+      // Save progress periodically
+      saveProgress();
 
-    // Save progress periodically
-    saveProgress();
+      // Fire callbacks
+      onTimeUpdate?.(current);
 
-    // Fire callbacks
-    onTimeUpdate?.(current);
+      if (duration > 0) {
+        const progressPercent = (current / duration) * 100;
+        onProgress?.(progressPercent);
 
-    if (duration > 0) {
-      const progressPercent = (current / duration) * 100;
-      onProgress?.(progressPercent);
-
-      // Check for completion (>95% watched)
-      if (progressPercent >= 95 && !hasCompleted) {
-        setHasCompleted(true);
-        onVideoComplete?.();
+        // Check for completion (>95% watched)
+        if (progressPercent >= 95 && !hasCompleted) {
+          setHasCompleted(true);
+          onVideoComplete?.();
+        }
       }
     }
   }, [
@@ -276,8 +275,9 @@ const VideoPlayer = ({
    * Handle loaded metadata
    */
   const handleLoadedMetadata = useCallback(() => {
-    if (!videoRef.current) return;
-    setDuration(videoRef.current.duration);
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
+    }
   }, []);
 
   /**
@@ -306,17 +306,6 @@ const VideoPlayer = ({
       window.removeEventListener('blur', handleBlur);
     };
   }, [isPlaying]);
-
-  /**
-   * Cleanup on unmount
-   */
-  useEffect(() => {
-    return () => {
-      if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
