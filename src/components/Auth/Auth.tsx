@@ -508,15 +508,36 @@ export const useRouteAuth = (fallbackPath = '/') => {
 
 /**
  * Get the root domain from the current window location
- * Handles localhost and subdomain cases, including Brazilian .com.br domains
+ * Handles localhost, IP addresses, and subdomain cases, including Brazilian .com.br domains
  *
  * @returns {string} The root domain URL
+ *
+ * @example
+ * ```typescript
+ * // Domain examples
+ * aluno.analiticaensino.com.br -> analiticaensino.com.br
+ * subdomain.example.com -> example.com
+ *
+ * // IP address examples
+ * 127.0.0.1:3000 -> 127.0.0.1:3000
+ * [::1]:8080 -> [::1]:8080
+ *
+ * // Localhost examples
+ * localhost:3000 -> localhost:3000
+ * ```
  */
 export const getRootDomain = () => {
   const { hostname, protocol, port } = window.location;
   const portStr = port ? ':' + port : '';
 
   if (hostname === 'localhost') {
+    return `${protocol}//${hostname}${portStr}`;
+  }
+
+  // IP literals: return as-is (no subdomain logic)
+  const isIPv4 = /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname);
+  const isIPv6 = hostname.includes(':'); // simple check is sufficient here
+  if (isIPv4 || isIPv6) {
     return `${protocol}//${hostname}${portStr}`;
   }
 
