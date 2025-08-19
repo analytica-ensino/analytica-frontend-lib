@@ -9,6 +9,7 @@ import {
   useAuthGuard,
   useRouteAuth,
   withAuth,
+  getRootDomain,
 } from './Auth';
 
 // Componentes separados para testar hooks (evita uso condicional)
@@ -996,6 +997,148 @@ describe('Auth Components', () => {
       // Should be in loading state
       expect(screen.getByTestId('authenticated')).toHaveTextContent('false'); // initial state
       expect(screen.getByTestId('loading')).toHaveTextContent('true');
+    });
+  });
+
+  describe('getRootDomain', () => {
+    let originalLocation: Location;
+
+    beforeEach(() => {
+      originalLocation = window.location;
+    });
+
+    afterEach(() => {
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    it('should handle Brazilian .com.br domains correctly', () => {
+      const mockLocation = {
+        hostname: 'aluno.analiticaensino.com.br',
+        protocol: 'https:',
+        port: '',
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      const result = getRootDomain();
+
+      expect(result).toBe('https://analiticaensino.com.br');
+    });
+
+    it('should handle multi-level .com.br domains', () => {
+      const mockLocation = {
+        hostname: 'portal.admin.analiticaensino.com.br',
+        protocol: 'https:',
+        port: '',
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      const result = getRootDomain();
+
+      expect(result).toBe('https://analiticaensino.com.br');
+    });
+
+    it('should handle regular .com domains', () => {
+      const mockLocation = {
+        hostname: 'aluno.example.com',
+        protocol: 'https:',
+        port: '',
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      const result = getRootDomain();
+
+      expect(result).toBe('https://example.com');
+    });
+
+    it('should handle localhost correctly', () => {
+      const mockLocation = {
+        hostname: 'localhost',
+        protocol: 'http:',
+        port: '3000',
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      const result = getRootDomain();
+
+      expect(result).toBe('http://localhost:3000');
+    });
+
+    it('should handle two-part domain without subdomain', () => {
+      const mockLocation = {
+        hostname: 'example.com',
+        protocol: 'https:',
+        port: '',
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      const result = getRootDomain();
+
+      expect(result).toBe('https://example.com');
+    });
+
+    it('should handle .com.br without subdomain', () => {
+      const mockLocation = {
+        hostname: 'analiticaensino.com.br',
+        protocol: 'https:',
+        port: '',
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      const result = getRootDomain();
+
+      expect(result).toBe('https://analiticaensino.com.br');
+    });
+
+    it('should handle port numbers correctly', () => {
+      const mockLocation = {
+        hostname: 'aluno.analiticaensino.com.br',
+        protocol: 'https:',
+        port: '8080',
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      const result = getRootDomain();
+
+      expect(result).toBe('https://analiticaensino.com.br:8080');
     });
   });
 

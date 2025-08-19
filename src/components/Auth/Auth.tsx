@@ -508,23 +508,42 @@ export const useRouteAuth = (fallbackPath = '/') => {
 
 /**
  * Get the root domain from the current window location
- * Handles localhost and subdomain cases
+ * Handles localhost and subdomain cases, including Brazilian .com.br domains
  *
  * @returns {string} The root domain URL
  */
 export const getRootDomain = () => {
   const { hostname, protocol, port } = window.location;
   const portStr = port ? ':' + port : '';
+
   if (hostname === 'localhost') {
     return `${protocol}//${hostname}${portStr}`;
   }
+
   const parts = hostname.split('.');
+
+  // Handle Brazilian .com.br domains and similar patterns
+  if (
+    parts.length >= 3 &&
+    parts[parts.length - 2] === 'com' &&
+    parts[parts.length - 1] === 'br'
+  ) {
+    if (parts.length === 3) {
+      // Already at root level for .com.br (e.g., analiticaensino.com.br)
+      return `${protocol}//${hostname}${portStr}`;
+    }
+    // For domains like aluno.analiticaensino.com.br, return analiticaensino.com.br
+    const base = parts.slice(-3).join('.');
+    return `${protocol}//${base}${portStr}`;
+  }
+
   // Only treat as subdomain if there are 3+ parts (e.g., subdomain.example.com)
   if (parts.length > 2) {
     // Return the last 2 parts as the root domain (example.com)
     const base = parts.slice(-2).join('.');
     return `${protocol}//${base}${portStr}`;
   }
+
   // For 2-part domains (example.com) or single domains, return as-is
   return `${protocol}//${hostname}${portStr}`;
 };
