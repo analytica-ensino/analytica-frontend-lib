@@ -1,0 +1,313 @@
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import Whiteboard, { WhiteboardImage, WhiteboardProps } from './Whiteboard';
+
+afterEach(() => {
+  jest.clearAllMocks();
+});
+
+describe('Whiteboard Component', () => {
+  const mockImages: WhiteboardImage[] = [
+    {
+      id: '1',
+      imageUrl: 'https://example.com/image1.jpg',
+      title: 'Board 1',
+    },
+    {
+      id: '2',
+      imageUrl: 'https://example.com/image2.jpg',
+      title: 'Board 2',
+    },
+  ];
+
+  const defaultProps: WhiteboardProps = {
+    images: mockImages,
+  };
+
+  describe('Rendering', () => {
+    it('should render whiteboard with images', () => {
+      render(<Whiteboard {...defaultProps} />);
+
+      const images = screen.getAllByRole('img');
+      expect(images).toHaveLength(2);
+      expect(images[0]).toHaveAttribute('src', mockImages[0].imageUrl);
+      expect(images[1]).toHaveAttribute('src', mockImages[1].imageUrl);
+    });
+
+    it('should render with custom className', () => {
+      const { container } = render(
+        <Whiteboard {...defaultProps} className="custom-class" />
+      );
+
+      const whiteboard = container.firstChild;
+      expect(whiteboard).toHaveClass('custom-class');
+    });
+
+    it('should render empty state when no images provided', () => {
+      render(<Whiteboard images={[]} />);
+
+      expect(screen.getByText('Nenhuma imagem disponível')).toBeInTheDocument();
+    });
+
+    it('should render download buttons by default', () => {
+      render(<Whiteboard {...defaultProps} />);
+
+      const downloadButtons = screen.getAllByLabelText(/Download/);
+      expect(downloadButtons).toHaveLength(2);
+    });
+
+    it('should not render download buttons when showDownload is false', () => {
+      render(<Whiteboard {...defaultProps} showDownload={false} />);
+
+      const downloadButtons = screen.queryAllByLabelText(/Download/);
+      expect(downloadButtons).toHaveLength(0);
+    });
+
+    it('should render correct alt text for images', () => {
+      render(<Whiteboard {...defaultProps} />);
+
+      expect(screen.getByAltText('Board 1')).toBeInTheDocument();
+      expect(screen.getByAltText('Board 2')).toBeInTheDocument();
+    });
+
+    it('should render fallback alt text when title is not provided', () => {
+      const imagesWithoutTitle = [
+        { id: '1', imageUrl: 'https://example.com/image1.jpg' },
+      ];
+
+      render(<Whiteboard images={imagesWithoutTitle} />);
+
+      expect(screen.getByAltText('Whiteboard 1')).toBeInTheDocument();
+    });
+
+    it('should apply lazy loading to images', () => {
+      render(<Whiteboard {...defaultProps} />);
+
+      const images = screen.getAllByRole('img');
+      images.forEach((img) => {
+        expect(img).toHaveAttribute('loading', 'lazy');
+      });
+    });
+
+    it('should pass additional HTML attributes to container', () => {
+      const { container } = render(
+        <Whiteboard
+          {...defaultProps}
+          data-testid="whiteboard"
+          id="my-whiteboard"
+        />
+      );
+
+      const whiteboard = container.firstChild;
+      expect(whiteboard).toHaveAttribute('data-testid', 'whiteboard');
+      expect(whiteboard).toHaveAttribute('id', 'my-whiteboard');
+    });
+  });
+
+  describe('Grid Layout', () => {
+    it('should render with 2 columns by default', () => {
+      const { container } = render(<Whiteboard {...defaultProps} />);
+
+      const grid = container.querySelector('.grid');
+      expect(grid).toHaveClass('grid-cols-1', 'sm:grid-cols-2');
+    });
+
+    it('should render with 3 columns when specified', () => {
+      const { container } = render(
+        <Whiteboard {...defaultProps} imagesPerRow={3} />
+      );
+
+      const grid = container.querySelector('.grid');
+      expect(grid).toHaveClass(
+        'grid-cols-1',
+        'sm:grid-cols-2',
+        'lg:grid-cols-3'
+      );
+    });
+
+    it('should render with 4 columns when specified', () => {
+      const { container } = render(
+        <Whiteboard {...defaultProps} imagesPerRow={4} />
+      );
+
+      const grid = container.querySelector('.grid');
+      expect(grid).toHaveClass(
+        'grid-cols-1',
+        'sm:grid-cols-2',
+        'lg:grid-cols-4'
+      );
+    });
+
+    it('should handle single image correctly', () => {
+      const singleImage = [mockImages[0]];
+      render(<Whiteboard images={singleImage} />);
+
+      const images = screen.getAllByRole('img');
+      expect(images).toHaveLength(1);
+    });
+
+    it('should handle many images correctly', () => {
+      const manyImages = Array.from({ length: 6 }, (_, i) => ({
+        id: `${i + 1}`,
+        imageUrl: `https://example.com/image${i + 1}.jpg`,
+        title: `Board ${i + 1}`,
+      }));
+
+      render(<Whiteboard images={manyImages} />);
+
+      const images = screen.getAllByRole('img');
+      expect(images).toHaveLength(6);
+    });
+  });
+
+  describe('Download Functionality', () => {
+    let createElementSpy: jest.SpyInstance;
+    let appendChildSpy: jest.SpyInstance;
+    let removeChildSpy: jest.SpyInstance;
+    let clickSpy: jest.Mock;
+
+    it('should trigger default download behavior on button click', async () => {
+      render(<Whiteboard {...defaultProps} />);
+
+      const downloadButton = screen.getAllByLabelText(/Download/)[0];
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        expect(createElementSpy).toHaveBeenCalledWith('a');
+        expect(clickSpy).toHaveBeenCalled();
+        expect(appendChildSpy).toHaveBeenCalled();
+        expect(removeChildSpy).toHaveBeenCalled();
+      });
+    });
+
+    it('should set correct download attributes', async () => {
+      render(<Whiteboard {...defaultProps} />);
+
+      const downloadButton = screen.getAllByLabelText(/Download/)[0];
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        const linkElement = createElementSpy.mock.results[0].value;
+        expect(linkElement.href).toBe(mockImages[0].imageUrl);
+        expect(linkElement.download).toBe(mockImages[0].title);
+        expect(linkElement.target).toBe('_blank');
+        expect(linkElement.rel).toBe('noopener noreferrer');
+      });
+    });
+
+    it('should use fallback filename when title is not provided', async () => {
+      const imagesWithoutTitle = [
+        { id: '1', imageUrl: 'https://example.com/image1.jpg' },
+      ];
+
+      render(<Whiteboard images={imagesWithoutTitle} />);
+
+      const downloadButton = screen.getByLabelText(/Download/);
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        const linkElement = createElementSpy.mock.results[0].value;
+        expect(linkElement.download).toBe('whiteboard-1');
+      });
+    });
+
+    it('should call custom onDownload callback when provided', () => {
+      const onDownloadMock = jest.fn();
+      render(<Whiteboard {...defaultProps} onDownload={onDownloadMock} />);
+
+      const downloadButton = screen.getAllByLabelText(/Download/)[0];
+      fireEvent.click(downloadButton);
+
+      expect(onDownloadMock).toHaveBeenCalledWith(mockImages[0]);
+      expect(createElementSpy).not.toHaveBeenCalled();
+    });
+
+    it('should handle multiple download clicks', () => {
+      const onDownloadMock = jest.fn();
+      render(<Whiteboard {...defaultProps} onDownload={onDownloadMock} />);
+
+      const downloadButtons = screen.getAllByLabelText(/Download/);
+
+      fireEvent.click(downloadButtons[0]);
+      expect(onDownloadMock).toHaveBeenCalledWith(mockImages[0]);
+
+      fireEvent.click(downloadButtons[1]);
+      expect(onDownloadMock).toHaveBeenCalledWith(mockImages[1]);
+
+      expect(onDownloadMock).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('Accessibility', () => {
+    it('should have proper aria-label for download buttons', () => {
+      render(<Whiteboard {...defaultProps} />);
+
+      expect(screen.getByLabelText('Download Board 1')).toBeInTheDocument();
+      expect(screen.getByLabelText('Download Board 2')).toBeInTheDocument();
+    });
+
+    it('should have fallback aria-label when title is not provided', () => {
+      const imagesWithoutTitle = [
+        { id: '1', imageUrl: 'https://example.com/image1.jpg' },
+      ];
+
+      render(<Whiteboard images={imagesWithoutTitle} />);
+
+      expect(screen.getByLabelText('Download imagem')).toBeInTheDocument();
+    });
+
+    it('should have semantic HTML structure', () => {
+      const { container } = render(<Whiteboard {...defaultProps} />);
+
+      const images = container.querySelectorAll('img');
+      const buttons = container.querySelectorAll('button');
+
+      expect(images).toHaveLength(2);
+      expect(buttons).toHaveLength(2);
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle undefined images array', () => {
+      render(<Whiteboard images={undefined as unknown as WhiteboardImage[]} />);
+
+      expect(screen.getByText('Nenhuma imagem disponível')).toBeInTheDocument();
+    });
+
+    it('should handle null images array', () => {
+      render(<Whiteboard images={null as unknown as WhiteboardImage[]} />);
+
+      expect(screen.getByText('Nenhuma imagem disponível')).toBeInTheDocument();
+    });
+
+    it('should handle images with special characters in URL', () => {
+      const specialImages = [
+        {
+          id: '1',
+          imageUrl: 'https://example.com/image%20with%20spaces.jpg',
+          title: 'Special Image',
+        },
+      ];
+
+      render(<Whiteboard images={specialImages} />);
+
+      const image = screen.getByAltText('Special Image');
+      expect(image).toHaveAttribute('src', specialImages[0].imageUrl);
+    });
+
+    it('should handle very long titles', () => {
+      const longTitleImages = [
+        {
+          id: '1',
+          imageUrl: 'https://example.com/image.jpg',
+          title: 'A'.repeat(100),
+        },
+      ];
+
+      render(<Whiteboard images={longTitleImages} />);
+
+      const image = screen.getByAltText('A'.repeat(100));
+      expect(image).toBeInTheDocument();
+    });
+  });
+});
