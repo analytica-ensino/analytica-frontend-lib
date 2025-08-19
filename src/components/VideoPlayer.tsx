@@ -281,23 +281,6 @@ const VideoPlayer = ({
   }, []);
 
   /**
-   * Handle controls visibility
-   */
-  const handleMouseMove = useCallback(() => {
-    setShowControls(true);
-
-    if (controlsTimeoutRef.current) {
-      clearTimeout(controlsTimeoutRef.current);
-    }
-
-    controlsTimeoutRef.current = setTimeout(() => {
-      if (isPlaying) {
-        setShowControls(false);
-      }
-    }, 3000);
-  }, [isPlaying]);
-
-  /**
    * Handle visibility change and blur to pause video when losing focus
    */
   useEffect(() => {
@@ -375,8 +358,6 @@ const VideoPlayer = ({
           'relative w-full bg-background overflow-hidden group',
           title || subtitleText ? 'rounded-b-xl' : 'rounded-xl'
         )}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => isPlaying && setShowControls(false)}
       >
         {/* Video Element */}
         <video
@@ -389,9 +370,42 @@ const VideoPlayer = ({
           onLoadedMetadata={handleLoadedMetadata}
           onClick={togglePlayPause}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
+            // Show controls when any key is pressed
+            if (e.key) {
+              setShowControls(true);
+            }
+            // Space or Enter to play/pause
+            if (e.key === ' ' || e.key === 'Enter') {
               e.preventDefault();
               togglePlayPause();
+            }
+            // Arrow keys for seeking
+            if (e.key === 'ArrowLeft' && videoRef.current) {
+              e.preventDefault();
+              videoRef.current.currentTime -= 10;
+            }
+            if (e.key === 'ArrowRight' && videoRef.current) {
+              e.preventDefault();
+              videoRef.current.currentTime += 10;
+            }
+            // Arrow keys for volume
+            if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              handleVolumeChange(Math.min(100, volume * 100 + 10));
+            }
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              handleVolumeChange(Math.max(0, volume * 100 - 10));
+            }
+            // M for mute
+            if (e.key === 'm' || e.key === 'M') {
+              e.preventDefault();
+              toggleMute();
+            }
+            // F for fullscreen
+            if (e.key === 'f' || e.key === 'F') {
+              e.preventDefault();
+              toggleFullscreen();
             }
           }}
           tabIndex={0}
@@ -426,7 +440,9 @@ const VideoPlayer = ({
         <div
           className={cn(
             'absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/70 to-transparent transition-opacity',
-            showControls ? 'opacity-100' : 'opacity-0'
+            !isPlaying || showControls
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100'
           )}
         >
           <div className="ml-auto block">
@@ -449,7 +465,9 @@ const VideoPlayer = ({
         <div
           className={cn(
             'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent transition-opacity',
-            showControls ? 'opacity-100' : 'opacity-0'
+            !isPlaying || showControls
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100'
           )}
         >
           {/* Progress Bar */}
