@@ -89,6 +89,7 @@ import {
 } from './components/Skeleton/Skeleton';
 
 import NotFound from './components/NotFound/NotFound';
+import VideoPlayer from './components/VideoPlayer/VideoPlayer';
 
 import {
   AuthProvider,
@@ -204,6 +205,7 @@ export { SkeletonList };
 export { SkeletonTable };
 
 export { NotFound };
+export { VideoPlayer };
 
 // Export Auth components
 export { AuthProvider };

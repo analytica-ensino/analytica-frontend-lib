@@ -41,7 +41,8 @@ export const General: Story = () => {
           difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: null,
+          answerKey:
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -68,7 +69,8 @@ export const General: Story = () => {
           difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: null,
+          answerKey:
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -96,7 +98,8 @@ export const General: Story = () => {
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: null,
+          answerKey:
+            'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -126,7 +129,8 @@ export const General: Story = () => {
           difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: null,
+          answerKey:
+            'A preservação ambiental é fundamental para garantir um futuro sustentável para as próximas gerações. O equilíbrio ecológico, a biodiversidade e os recursos naturais são essenciais para a sobrevivência humana e devem ser protegidos através de políticas públicas eficazes, educação ambiental e mudanças nos padrões de consumo.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -149,7 +153,8 @@ export const General: Story = () => {
           difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: null,
+          answerKey:
+            'Verdadeiro. A Terra é o terceiro planeta do sistema solar, localizada entre Vênus (segundo) e Marte (quarto). A ordem dos planetas a partir do Sol é: Mercúrio, Vênus, Terra, Marte, Júpiter, Saturno, Urano e Netuno.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -174,7 +179,8 @@ export const General: Story = () => {
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: null,
+          answerKey:
+            'Velocidade é a distância percorrida por unidade de tempo (v = d/t). Aceleração é a variação da velocidade por unidade de tempo (a = Δv/t). Estas são grandezas fundamentais da cinemática que descrevem o movimento dos corpos.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -210,7 +216,7 @@ export const General: Story = () => {
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: null,
+          answerKey: 'd,t',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -236,8 +242,9 @@ export const General: Story = () => {
         questionId: 'q1-alternativa',
         activityId: 'simulado-geral',
         userId: 'demo-user-id',
-        answer: 'opt3',
-        optionId: 'opt3',
+        answer:
+          'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
+        optionId: null,
         questionType: QUESTION_TYPE.ALTERNATIVA,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
@@ -245,8 +252,9 @@ export const General: Story = () => {
         questionId: 'q2-multipla-escolha',
         activityId: 'simulado-geral',
         userId: 'demo-user-id',
-        answer: 'opt1,opt2,opt3,opt4',
-        optionId: 'opt1,opt2,opt3,opt4',
+        answer:
+          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
+        optionId: null,
         questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
@@ -264,8 +272,9 @@ export const General: Story = () => {
         questionId: 'q4-verdadeiro-falso',
         activityId: 'simulado-geral',
         userId: 'demo-user-id',
-        answer: 'opt1',
-        optionId: 'opt1',
+        answer:
+          'Verdadeiro. A Terra é o terceiro planeta do sistema solar, localizada entre Vênus (segundo) e Marte (quarto). A ordem dos planetas a partir do Sol é: Mercúrio, Vênus, Terra, Marte, Júpiter, Saturno, Urano e Netuno.',
+        optionId: null,
         questionType: QUESTION_TYPE.VERDADEIRO_FALSO,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
@@ -273,8 +282,9 @@ export const General: Story = () => {
         questionId: 'q5-ligar-pontos',
         activityId: 'simulado-geral',
         userId: 'demo-user-id',
-        answer: 'opt1,opt2,opt3,opt4',
-        optionId: 'opt1,opt2,opt3,opt4',
+        answer:
+          'Velocidade é a distância percorrida por unidade de tempo (v = d/t). Aceleração é a variação da velocidade por unidade de tempo (a = Δv/t). Estas são grandezas fundamentais da cinemática que descrevem o movimento dos corpos.',
+        optionId: null,
         questionType: QUESTION_TYPE.LIGAR_PONTOS,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
@@ -329,6 +339,10 @@ export const GeneralForResults: Story = () => {
     setUserAnswers,
     setUserId,
     setCurrentQuestion,
+    goToNextQuestion,
+    goToPreviousQuestion,
+    currentQuestionIndex,
+    getTotalQuestions,
   } = useQuizStore();
 
   useEffect(() => {
@@ -347,7 +361,8 @@ export const GeneralForResults: Story = () => {
           difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: null,
+          answerKey:
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -375,7 +390,8 @@ export const GeneralForResults: Story = () => {
           difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: null,
+          answerKey:
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -403,8 +419,10 @@ export const GeneralForResults: Story = () => {
           difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'opt3',
-          correctAnswer: 'opt3',
+          answerKey:
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
+          correctAnswer:
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -432,7 +450,8 @@ export const GeneralForResults: Story = () => {
           difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'opt1',
+          answerKey:
+            'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -461,7 +480,8 @@ export const GeneralForResults: Story = () => {
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'opt1,opt2,opt3,opt4',
+          answerKey:
+            'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -492,7 +512,8 @@ export const GeneralForResults: Story = () => {
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: '',
+          answerKey:
+            'Velocidade, Aceleração e Força são grandezas vetoriais. Temperatura é uma grandeza escalar.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -521,7 +542,8 @@ export const GeneralForResults: Story = () => {
           difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: null,
+          answerKey:
+            'A preservação ambiental é fundamental para garantir um futuro sustentável para as próximas gerações. O equilíbrio ecológico, a biodiversidade e os recursos naturais são essenciais para a sobrevivência humana e devem ser protegidos através de políticas públicas eficazes, educação ambiental e mudanças nos padrões de consumo.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -545,7 +567,8 @@ export const GeneralForResults: Story = () => {
           difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: null,
+          answerKey:
+            'As três leis de Newton são fundamentais para a mecânica clássica: 1) Primeira Lei (Inércia): um corpo permanece em repouso ou em movimento retilíneo uniforme a menos que uma força resultante atue sobre ele; 2) Segunda Lei: a força resultante é igual ao produto da massa pela aceleração (F = ma); 3) Terceira Lei: para toda ação há uma reação igual e oposta. Estas leis são aplicadas em sistemas mecânicos, análise de movimento, equilíbrio de forças e dinâmica de partículas.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -568,8 +591,10 @@ export const GeneralForResults: Story = () => {
           difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'opt3',
-          correctAnswer: 'opt3',
+          answerKey:
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
+          correctAnswer:
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -597,7 +622,8 @@ export const GeneralForResults: Story = () => {
           difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'opt1',
+          answerKey:
+            'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -629,8 +655,9 @@ export const GeneralForResults: Story = () => {
         questionId: 'q1-image',
         activityId: 'simulado-resultados',
         userId: 'demo-user-id',
-        answer: '',
-        optionId: '',
+        answer:
+          'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
+        optionId: null,
         questionType: QUESTION_TYPE.IMAGEM,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
@@ -638,8 +665,9 @@ export const GeneralForResults: Story = () => {
         questionId: 'q1-image-incorreta',
         activityId: 'simulado-resultados',
         userId: 'demo-user-id',
-        answer: '',
-        optionId: '',
+        answer:
+          'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
+        optionId: null,
         questionType: QUESTION_TYPE.IMAGEM,
         answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
       },
@@ -647,8 +675,9 @@ export const GeneralForResults: Story = () => {
         questionId: 'q1-alt-correta',
         activityId: 'simulado-resultados',
         userId: 'demo-user-id',
-        answer: 'opt3',
-        optionId: 'opt3',
+        answer:
+          'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
+        optionId: null,
         questionType: QUESTION_TYPE.ALTERNATIVA,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
@@ -656,8 +685,9 @@ export const GeneralForResults: Story = () => {
         questionId: 'q2-alt-incorreta',
         activityId: 'simulado-resultados',
         userId: 'demo-user-id',
-        answer: 'opt2',
-        optionId: 'opt2',
+        answer:
+          'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
+        optionId: null,
         questionType: QUESTION_TYPE.ALTERNATIVA,
         answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
       },
@@ -665,8 +695,9 @@ export const GeneralForResults: Story = () => {
         questionId: 'q3-mult-correta',
         activityId: 'simulado-resultados',
         userId: 'demo-user-id',
-        answer: '',
-        optionId: 'opt1',
+        answer:
+          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
+        optionId: null,
         questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
@@ -674,8 +705,9 @@ export const GeneralForResults: Story = () => {
         questionId: 'q3-mult-correta',
         activityId: 'simulado-resultados',
         userId: 'demo-user-id',
-        answer: '',
-        optionId: 'opt2',
+        answer:
+          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
+        optionId: null,
         questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
@@ -683,8 +715,9 @@ export const GeneralForResults: Story = () => {
         questionId: 'q3-mult-correta',
         activityId: 'simulado-resultados',
         userId: 'demo-user-id',
-        answer: '',
-        optionId: 'opt3',
+        answer:
+          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
+        optionId: null,
         questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
@@ -692,8 +725,9 @@ export const GeneralForResults: Story = () => {
         questionId: 'q3-mult-correta',
         activityId: 'simulado-resultados',
         userId: 'demo-user-id',
-        answer: '',
-        optionId: 'opt4',
+        answer:
+          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
+        optionId: null,
         questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
@@ -701,8 +735,9 @@ export const GeneralForResults: Story = () => {
         questionId: 'q4-mult-incorreta',
         activityId: 'simulado-resultados',
         userId: 'demo-user-id',
-        answer: '',
-        optionId: 'opt2',
+        answer:
+          'Velocidade, Aceleração e Força são grandezas vetoriais. Temperatura é uma grandeza escalar.',
+        optionId: null,
         questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
         answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
       },
@@ -710,8 +745,9 @@ export const GeneralForResults: Story = () => {
         questionId: 'q4-mult-incorreta',
         activityId: 'simulado-resultados',
         userId: 'demo-user-id',
-        answer: '',
-        optionId: 'opt1',
+        answer:
+          'Velocidade, Aceleração e Força são grandezas vetoriais. Temperatura é uma grandeza escalar.',
+        optionId: null,
         questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
         answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
       },
@@ -749,17 +785,43 @@ export const GeneralForResults: Story = () => {
         <h1 className="text-4xl font-bold text-text-900 mb-4">
           Quiz - Resultados
         </h1>
-        <p className="text-text-600 text-lg">
+        <p className="text-2xl font-semibold text-text-700 mb-2">
           Demonstração de resultados com questões corretas e incorretas
         </p>
       </div>
 
       <div className="flex flex-col gap-2 h-full pb-15">
-        <Quiz>
+        {/* Manual navigation buttons for result variant */}
+        <div className="flex justify-center gap-4 mb-4">
+          <button
+            onClick={() => goToPreviousQuestion()}
+            disabled={currentQuestionIndex === 0}
+            className={`px-6 py-3 rounded-lg transition-colors font-medium shadow-lg ${
+              currentQuestionIndex === 0
+                ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                : 'bg-primary-600 text-white hover:bg-primary-700'
+            }`}
+          >
+            ← Anterior
+          </button>
+          <button
+            onClick={() => goToNextQuestion()}
+            disabled={currentQuestionIndex === getTotalQuestions() - 1}
+            className={`px-6 py-3 rounded-lg transition-colors font-medium shadow-lg ${
+              currentQuestionIndex === getTotalQuestions() - 1
+                ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                : 'bg-primary-600 text-white hover:bg-primary-700'
+            }`}
+          >
+            Próximo →
+          </button>
+        </div>
+
+        <Quiz variant="result">
           <QuizHeaderResult />
           <QuizTitle />
           <QuizHeader />
-          <QuizContent paddingBottom="pb-[150px]" variant="result" />
+          <QuizContent paddingBottom="pb-[150px]" />
           <QuizFooter className="bottom-15" />
         </Quiz>
       </div>
@@ -769,8 +831,17 @@ export const GeneralForResults: Story = () => {
 
 // 3° Results page and separated components
 export const ResultsPageAndSeparatedComponents: Story = () => {
-  const { setBySimulated, startQuiz, setUserAnswers, finishQuiz, setUserId } =
-    useQuizStore();
+  const {
+    setBySimulated,
+    startQuiz,
+    setUserAnswers,
+    finishQuiz,
+    setUserId,
+    goToNextQuestion,
+    goToPreviousQuestion,
+    currentQuestionIndex,
+    getTotalQuestions,
+  } = useQuizStore();
 
   useEffect(() => {
     const mockSimulated = {
@@ -787,7 +858,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'opt1',
+          answerKey:
+            'A resposta correta é a primeira opção porque ela representa corretamente o conceito físico abordado na questão. Em física, é fundamental entender os princípios básicos que governam os fenômenos naturais.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -814,7 +886,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'opt1,opt2',
+          answerKey:
+            'As duas primeiras opções são corretas porque ambas representam soluções válidas para o problema matemático apresentado. Em matemática, é comum que uma equação tenha múltiplas soluções válidas.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -841,7 +914,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: null,
+          answerKey:
+            'A química é uma ciência fundamental que estuda a composição, estrutura e propriedades da matéria. Ela é essencial para entender diversos fenômenos naturais e tecnológicos, desde a fotossíntese até a produção de medicamentos. A química está presente em todos os aspectos da vida moderna, incluindo agricultura, medicina, indústria e meio ambiente.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -863,7 +937,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'opt3',
+          answerKey:
+            'A terceira opção é a resposta correta porque representa o conceito biológico correto abordado na questão. Em biologia, é essencial compreender os processos celulares e suas funções no organismo.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -890,7 +965,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'opt2',
+          answerKey:
+            'A segunda opção é a resposta correta porque representa o fato histórico correto sobre o período colonial brasileiro. Em história, é fundamental conhecer os eventos e contextos que moldaram a formação do país.',
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -920,8 +996,9 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
         questionId: 'q1',
         activityId: 'simulado-resultados-completos',
         userId: 'demo-user-id',
-        answer: 'opt1',
-        optionId: 'opt1',
+        answer:
+          'A resposta correta é a primeira opção porque ela representa corretamente o conceito físico abordado na questão. Em física, é fundamental entender os princípios básicos que governam os fenômenos naturais.',
+        optionId: null,
         questionType: QUESTION_TYPE.ALTERNATIVA,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
@@ -929,8 +1006,9 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
         questionId: 'q2',
         activityId: 'simulado-resultados-completos',
         userId: 'demo-user-id',
-        answer: 'opt1,opt2',
-        optionId: 'opt1,opt2',
+        answer:
+          'As duas primeiras opções são corretas porque ambas representam soluções válidas para o problema matemático apresentado. Em matemática, é comum que uma equação tenha múltiplas soluções válidas.',
+        optionId: null,
         questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
@@ -939,7 +1017,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
         activityId: 'simulado-resultados-completos',
         userId: 'demo-user-id',
         answer:
-          'A química é uma ciência fundamental que estuda a composição, estrutura e propriedades da matéria. Ela é essencial para entender diversos fenômenos naturais e tecnológicos, desde a fotossíntese até a produção de medicamentos.',
+          'A química é uma ciência fundamental que estuda a composição, estrutura e propriedades da matéria. Ela é essencial para entender diversos fenômenos naturais e tecnológicos, desde a fotossíntese até a produção de medicamentos. A química está presente em todos os aspectos da vida moderna, incluindo agricultura, medicina, indústria e meio ambiente.',
         optionId: null,
         questionType: QUESTION_TYPE.DISSERTATIVA,
         answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
@@ -948,8 +1026,9 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
         questionId: 'q4',
         activityId: 'simulado-resultados-completos',
         userId: 'demo-user-id',
-        answer: 'opt3',
-        optionId: 'opt3',
+        answer:
+          'A terceira opção é a resposta correta porque representa o conceito biológico correto abordado na questão. Em biologia, é essencial compreender os processos celulares e suas funções no organismo.',
+        optionId: null,
         questionType: QUESTION_TYPE.ALTERNATIVA,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
@@ -957,8 +1036,9 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
         questionId: 'q5',
         activityId: 'simulado-resultados-completos',
         userId: 'demo-user-id',
-        answer: 'opt2',
-        optionId: 'opt2',
+        answer:
+          'A segunda opção é a resposta correta porque representa o fato histórico correto sobre o período colonial brasileiro. Em história, é fundamental conhecer os eventos e contextos que moldaram a formação do país.',
+        optionId: null,
         questionType: QUESTION_TYPE.ALTERNATIVA,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       },
@@ -1043,6 +1123,44 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               console.log('Question clicked:', question)
             }
           />
+        </div>
+
+        {/* Manual navigation buttons for result variant */}
+        <div className="flex justify-center gap-4 mt-8 mb-4">
+          <button
+            onClick={() => goToPreviousQuestion()}
+            disabled={currentQuestionIndex === 0}
+            className={`px-6 py-3 rounded-lg transition-colors font-medium shadow-lg ${
+              currentQuestionIndex === 0
+                ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                : 'bg-primary-600 text-white hover:bg-primary-700'
+            }`}
+          >
+            ← Anterior
+          </button>
+          <button
+            onClick={() => goToNextQuestion()}
+            disabled={currentQuestionIndex === getTotalQuestions() - 1}
+            className={`px-6 py-3 rounded-lg transition-colors font-medium shadow-lg ${
+              currentQuestionIndex === getTotalQuestions() - 1
+                ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                : 'bg-primary-600 text-white hover:bg-primary-700'
+            }`}
+          >
+            Próximo →
+          </button>
+        </div>
+
+        {/* Quiz component */}
+        <div className="border rounded-lg p-6">
+          <h2 className="text-2xl font-semibold mb-6">Quiz Component</h2>
+          <Quiz variant="result">
+            <QuizHeaderResult />
+            <QuizTitle />
+            <QuizHeader />
+            <QuizContent paddingBottom="pb-[150px]" />
+            <QuizFooter className="bottom-15" />
+          </Quiz>
         </div>
       </div>
     </div>
