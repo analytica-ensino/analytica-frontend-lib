@@ -96,13 +96,14 @@ interface QuizState {
   isStarted: boolean;
   isFinished: boolean;
   userId: string;
+  variant: 'result' | 'default';
   // Actions
   setBySimulated: (simulado: Simulado) => void;
   setByActivity: (atividade: Atividade) => void;
   setByQuestionary: (aula: Aula) => void;
   setUserId: (userId: string) => void;
   setUserAnswers: (userAnswers: UserAnswerItem[]) => void;
-
+  setVariant: (variant: 'result' | 'default') => void;
   // Quiz Navigation
   goToNextQuestion: () => void;
   goToPreviousQuestion: () => void;
@@ -196,7 +197,7 @@ export const useQuizStore = create<QuizState>()(
         isStarted: false,
         isFinished: false,
         userId: '',
-
+        variant: 'default',
         // Setters
         setBySimulated: (simulado) => set({ bySimulated: simulado }),
         setByActivity: (atividade) => set({ byActivity: atividade }),
@@ -204,7 +205,7 @@ export const useQuizStore = create<QuizState>()(
         setUserId: (userId) => set({ userId }),
         setUserAnswers: (userAnswers) => set({ userAnswers }),
         getUserId: () => get().userId,
-
+        setVariant: (variant) => set({ variant }),
         // Navigation
         goToNextQuestion: () => {
           const { currentQuestionIndex, getTotalQuestions } = get();
