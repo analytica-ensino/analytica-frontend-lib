@@ -9,9 +9,9 @@ import {
   ClosedCaptioning,
   DotsThreeVertical,
 } from 'phosphor-react';
-import { cn } from '../utils/utils';
-import IconButton from './IconButton/IconButton';
-import Text from './Text/Text';
+import { cn } from '../../utils/utils';
+import IconButton from '../IconButton/IconButton';
+import Text from '../Text/Text';
 
 /**
  * VideoPlayer component props interface
@@ -108,14 +108,22 @@ const VideoPlayer = ({
   useEffect(() => {
     if (!autoSave || !storageKey) return;
 
-    const savedTime = localStorage.getItem(`${storageKey}-${src}`);
-    if (savedTime && videoRef.current) {
-      const time = parseFloat(savedTime);
-      videoRef.current.currentTime = initialTime || time;
-      setCurrentTime(initialTime || time);
-    } else if (initialTime && videoRef.current) {
-      videoRef.current.currentTime = initialTime;
-      setCurrentTime(initialTime);
+    const raw = localStorage.getItem(`${storageKey}-${src}`);
+    const saved = raw !== null ? Number(raw) : NaN;
+    const hasValidSaved = Number.isFinite(saved) && saved >= 0;
+    const hasValidInitial = Number.isFinite(initialTime) && initialTime >= 0;
+
+    let start: number | undefined;
+    if (hasValidInitial) {
+      start = initialTime;
+    } else if (hasValidSaved) {
+      start = saved;
+    } else {
+      start = undefined;
+    }
+    if (start !== undefined && videoRef.current) {
+      videoRef.current.currentTime = start;
+      setCurrentTime(start);
     }
   }, [src, storageKey, autoSave, initialTime]);
 

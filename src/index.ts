@@ -89,7 +89,7 @@ import {
 } from './components/Skeleton/Skeleton';
 
 import NotFound from './components/NotFound/NotFound';
-import VideoPlayer from './components/VideoPlayer';
+import VideoPlayer from './components/VideoPlayer/VideoPlayer';
 
 import {
   AuthProvider,

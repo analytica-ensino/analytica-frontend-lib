@@ -37,7 +37,7 @@ export default defineConfig({
     'Stepper/index': 'src/components/Stepper/Stepper.tsx',
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
     'NotFound/index': 'src/components/NotFound/NotFound.tsx',
-    'VideoPlayer/index': 'src/components/VideoPlayer.tsx',
+    'VideoPlayer/index': 'src/components/VideoPlayer/VideoPlayer.tsx',
     'Auth/index': 'src/components/Auth/Auth.tsx',
     'Quiz/index': 'src/components/Quiz/Quiz.tsx',
     'Quiz/useQuizStore/index': 'src/components/Quiz/useQuizStore.ts',
