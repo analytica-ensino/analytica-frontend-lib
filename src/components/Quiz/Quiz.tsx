@@ -87,7 +87,7 @@ const Quiz = forwardRef<
 
   useEffect(() => {
     setVariant(variant);
-  }, [variant]);
+  }, [variant, setVariant]);
 
   return (
     <div
