@@ -508,23 +508,63 @@ export const useRouteAuth = (fallbackPath = '/') => {
 
 /**
  * Get the root domain from the current window location
- * Handles localhost and subdomain cases
+ * Handles localhost, IP addresses, and subdomain cases, including Brazilian .com.br domains
  *
  * @returns {string} The root domain URL
+ *
+ * @example
+ * ```typescript
+ * // Domain examples
+ * aluno.analiticaensino.com.br -> analiticaensino.com.br
+ * subdomain.example.com -> example.com
+ *
+ * // IP address examples
+ * 127.0.0.1:3000 -> 127.0.0.1:3000
+ * [::1]:8080 -> [::1]:8080
+ *
+ * // Localhost examples
+ * localhost:3000 -> localhost:3000
+ * ```
  */
 export const getRootDomain = () => {
   const { hostname, protocol, port } = window.location;
   const portStr = port ? ':' + port : '';
+
   if (hostname === 'localhost') {
     return `${protocol}//${hostname}${portStr}`;
   }
+
+  // IP literals: return as-is (no subdomain logic)
+  const isIPv4 = /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname);
+  const isIPv6 = hostname.includes(':'); // simple check is sufficient here
+  if (isIPv4 || isIPv6) {
+    return `${protocol}//${hostname}${portStr}`;
+  }
+
   const parts = hostname.split('.');
+
+  // Handle Brazilian .com.br domains and similar patterns
+  if (
+    parts.length >= 3 &&
+    parts[parts.length - 2] === 'com' &&
+    parts[parts.length - 1] === 'br'
+  ) {
+    if (parts.length === 3) {
+      // Already at root level for .com.br (e.g., analiticaensino.com.br)
+      return `${protocol}//${hostname}${portStr}`;
+    }
+    // For domains like aluno.analiticaensino.com.br, return analiticaensino.com.br
+    const base = parts.slice(-3).join('.');
+    return `${protocol}//${base}${portStr}`;
+  }
+
   // Only treat as subdomain if there are 3+ parts (e.g., subdomain.example.com)
   if (parts.length > 2) {
     // Return the last 2 parts as the root domain (example.com)
     const base = parts.slice(-2).join('.');
     return `${protocol}//${base}${portStr}`;
   }
+
   // For 2-part domains (example.com) or single domains, return as-is
   return `${protocol}//${hostname}${portStr}`;
 };
