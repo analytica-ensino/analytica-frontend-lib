@@ -2,15 +2,10 @@ import { HTMLAttributes, useCallback, useState } from 'react';
 import { DownloadSimple } from 'phosphor-react';
 import { cn } from '../../utils/utils';
 
-// Design constants based on Figma specifications
+// Design constants for critical layout dimensions
 const CONTAINER_WIDTH = 500;
-const CONTAINER_PADDING = 16;
 const IMAGE_WIDTH = 225;
 const IMAGE_HEIGHT = 90;
-const GRID_GAP = 16;
-const DOWNLOAD_BUTTON_SIZE = 24;
-const IMAGE_BORDER_RADIUS = 8;
-const CONTAINER_BORDER_RADIUS = 12;
 
 /**
  * Whiteboard image item interface
@@ -89,9 +84,7 @@ const Whiteboard = ({
 
   // Calculate dynamic container width based on number of images
   const containerWidth =
-    images?.length === 1
-      ? IMAGE_WIDTH + 2 * CONTAINER_PADDING
-      : CONTAINER_WIDTH;
+    images?.length === 1 ? IMAGE_WIDTH + 32 : CONTAINER_WIDTH;
 
   // Calculate dynamic container height based on number of images and rows
   const calculateContainerHeight = () => {
@@ -99,9 +92,9 @@ const Whiteboard = ({
 
     const rows = Math.ceil(images.length / imagesPerRow);
     const imagesHeight = rows * IMAGE_HEIGHT;
-    const gapsHeight = (rows - 1) * GRID_GAP;
+    const gapsHeight = (rows - 1) * 16;
     const containerGap = 8; // gap between container elements
-    return imagesHeight + gapsHeight + 2 * CONTAINER_PADDING + containerGap;
+    return imagesHeight + gapsHeight + 32 + containerGap;
   };
 
   const containerHeight = calculateContainerHeight();
@@ -122,32 +115,26 @@ const Whiteboard = ({
 
   return (
     <div
-      className={cn('flex flex-col bg-white border border-gray-100', className)}
+      className={cn(
+        'flex flex-col bg-white border border-gray-100 p-4 gap-2 rounded-xl',
+        className
+      )}
       style={{
         width: `${containerWidth}px`,
         height:
           typeof containerHeight === 'number'
             ? `${containerHeight}px`
             : containerHeight,
-        padding: `${CONTAINER_PADDING}px`,
-        gap: '8px',
-        borderRadius: `${CONTAINER_BORDER_RADIUS}px`,
       }}
       {...rest}
     >
-      <div
-        className={cn('grid', gridColsClass)}
-        style={{
-          gap: `${GRID_GAP}px`,
-        }}
-      >
+      <div className={cn('grid gap-4', gridColsClass)}>
         {images.map((image) => (
           <div
             key={image.id}
-            className="relative group overflow-hidden bg-gray-100"
+            className="relative group overflow-hidden bg-gray-100 rounded-lg"
             style={{
               width: `${IMAGE_WIDTH}px`,
-              borderRadius: `${IMAGE_BORDER_RADIUS}px`,
             }}
           >
             <div
@@ -179,15 +166,11 @@ const Whiteboard = ({
             {showDownload && (
               <button
                 onClick={() => handleDownload(image)}
-                className="absolute bottom-3 right-3 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded hover:bg-black/30 transition-colors duration-200 group/button"
-                style={{
-                  width: `${DOWNLOAD_BUTTON_SIZE}px`,
-                  height: `${DOWNLOAD_BUTTON_SIZE}px`,
-                }}
+                className="absolute bottom-3 right-3 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded hover:bg-black/30 transition-colors duration-200 group/button w-6 h-6"
                 aria-label={`Download ${image.title || 'imagem'}`}
               >
                 <DownloadSimple
-                  size={DOWNLOAD_BUTTON_SIZE}
+                  size={24}
                   weight="regular"
                   className="text-white group-hover/button:scale-110 transition-transform duration-200"
                 />
