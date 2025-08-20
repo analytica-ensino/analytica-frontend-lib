@@ -47,6 +47,19 @@ const sixImages: WhiteboardImage[] = [
   },
 ];
 
+const imagesWithErrors: WhiteboardImage[] = [
+  {
+    id: '1',
+    imageUrl: 'https://picsum.photos/seed/board1/450/180',
+    title: 'Imagem válida',
+  },
+  {
+    id: '2',
+    imageUrl: 'https://invalid-url-that-will-fail.com/image.jpg',
+    title: 'Imagem inválida',
+  },
+];
+
 /**
  * Default whiteboard with two images
  */
@@ -73,4 +86,11 @@ export const SingleImage: Story = () => (
  */
 export const ManyImages: Story = () => (
   <Whiteboard images={sixImages} showDownload={true} imagesPerRow={2} />
+);
+
+/**
+ * Whiteboard demonstrating error handling for failed image loads
+ */
+export const WithImageErrors: Story = () => (
+  <Whiteboard images={imagesWithErrors} showDownload={true} imagesPerRow={2} />
 );

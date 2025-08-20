@@ -1,4 +1,4 @@
-import { HTMLAttributes, useCallback } from 'react';
+import { HTMLAttributes, useCallback, useState } from 'react';
 import { DownloadSimple } from 'phosphor-react';
 import { cn } from '../../utils/utils';
 
@@ -50,6 +50,9 @@ const Whiteboard = ({
   imagesPerRow = 2,
   ...rest
 }: WhiteboardProps) => {
+  // State to track images that failed to load
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+
   /**
    * Handle image download
    */
@@ -70,6 +73,13 @@ const Whiteboard = ({
     },
     [onDownload]
   );
+
+  /**
+   * Handle image loading error
+   */
+  const handleImageError = useCallback((imageId: string) => {
+    setImageErrors((prev) => new Set(prev).add(imageId));
+  }, []);
 
   const gridColsClass = {
     2: 'grid-cols-1 sm:grid-cols-2',
@@ -147,13 +157,24 @@ const Whiteboard = ({
                 height: `${IMAGE_HEIGHT}px`,
               }}
             >
-              <img
-                src={image.imageUrl}
-                alt={image.title || `Whiteboard ${image.id}`}
-                className="absolute inset-0 w-full h-full object-cover"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              {imageErrors.has(image.id) ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+                  <p className="text-gray-500 text-sm text-center px-2">
+                    Imagem indisponível
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <img
+                    src={image.imageUrl}
+                    alt={image.title || `Whiteboard ${image.id}`}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="lazy"
+                    onError={() => handleImageError(image.id)}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                </>
+              )}
             </div>
             {showDownload && (
               <button
