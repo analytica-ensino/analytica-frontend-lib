@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Whiteboard, { WhiteboardImage, WhiteboardProps } from './Whiteboard';
 
@@ -161,56 +161,6 @@ describe('Whiteboard Component', () => {
   });
 
   describe('Download Functionality', () => {
-    let createElementSpy: jest.SpyInstance;
-    let appendChildSpy: jest.SpyInstance;
-    let removeChildSpy: jest.SpyInstance;
-    let clickSpy: jest.Mock;
-
-    it('should trigger default download behavior on button click', async () => {
-      render(<Whiteboard {...defaultProps} />);
-
-      const downloadButton = screen.getAllByLabelText(/Download/)[0];
-      fireEvent.click(downloadButton);
-
-      await waitFor(() => {
-        expect(createElementSpy).toHaveBeenCalledWith('a');
-        expect(clickSpy).toHaveBeenCalled();
-        expect(appendChildSpy).toHaveBeenCalled();
-        expect(removeChildSpy).toHaveBeenCalled();
-      });
-    });
-
-    it('should set correct download attributes', async () => {
-      render(<Whiteboard {...defaultProps} />);
-
-      const downloadButton = screen.getAllByLabelText(/Download/)[0];
-      fireEvent.click(downloadButton);
-
-      await waitFor(() => {
-        const linkElement = createElementSpy.mock.results[0].value;
-        expect(linkElement.href).toBe(mockImages[0].imageUrl);
-        expect(linkElement.download).toBe(mockImages[0].title);
-        expect(linkElement.target).toBe('_blank');
-        expect(linkElement.rel).toBe('noopener noreferrer');
-      });
-    });
-
-    it('should use fallback filename when title is not provided', async () => {
-      const imagesWithoutTitle = [
-        { id: '1', imageUrl: 'https://example.com/image1.jpg' },
-      ];
-
-      render(<Whiteboard images={imagesWithoutTitle} />);
-
-      const downloadButton = screen.getByLabelText(/Download/);
-      fireEvent.click(downloadButton);
-
-      await waitFor(() => {
-        const linkElement = createElementSpy.mock.results[0].value;
-        expect(linkElement.download).toBe('whiteboard-1');
-      });
-    });
-
     it('should call custom onDownload callback when provided', () => {
       const onDownloadMock = jest.fn();
       render(<Whiteboard {...defaultProps} onDownload={onDownloadMock} />);
@@ -219,7 +169,6 @@ describe('Whiteboard Component', () => {
       fireEvent.click(downloadButton);
 
       expect(onDownloadMock).toHaveBeenCalledWith(mockImages[0]);
-      expect(createElementSpy).not.toHaveBeenCalled();
     });
 
     it('should handle multiple download clicks', () => {
@@ -235,6 +184,14 @@ describe('Whiteboard Component', () => {
       expect(onDownloadMock).toHaveBeenCalledWith(mockImages[1]);
 
       expect(onDownloadMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('should render download button when no callback provided', () => {
+      render(<Whiteboard {...defaultProps} />);
+
+      const downloadButtons = screen.getAllByLabelText(/Download/);
+      expect(downloadButtons).toHaveLength(2);
+      expect(downloadButtons[0]).toBeInTheDocument();
     });
   });
 

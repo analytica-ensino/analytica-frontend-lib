@@ -2,6 +2,16 @@ import { HTMLAttributes, useCallback } from 'react';
 import { DownloadSimple } from 'phosphor-react';
 import { cn } from '../../utils/utils';
 
+// Design constants based on Figma specifications
+const CONTAINER_WIDTH = 500;
+const CONTAINER_PADDING = 16;
+const IMAGE_WIDTH = 225;
+const IMAGE_HEIGHT = 90;
+const GRID_GAP = 16;
+const DOWNLOAD_BUTTON_SIZE = 24;
+const IMAGE_BORDER_RADIUS = 8;
+const CONTAINER_BORDER_RADIUS = 12;
+
 /**
  * Whiteboard image item interface
  */
@@ -71,49 +81,71 @@ const Whiteboard = ({
     return (
       <div
         className={cn(
-          'flex items-center justify-center p-8 bg-background border border-border-50 rounded-xl',
+          'flex items-center justify-center p-8 bg-white border border-gray-100 rounded-xl',
           className
         )}
         {...rest}
       >
-        <p className="text-text-400 text-sm">Nenhuma imagem disponível</p>
+        <p className="text-gray-400 text-sm">Nenhuma imagem disponível</p>
       </div>
     );
   }
 
   return (
     <div
-      className={cn(
-        'flex flex-col gap-2 p-4 bg-background border border-border-50 rounded-xl',
-        className
-      )}
+      className={cn('flex flex-col bg-white border border-gray-100', className)}
+      style={{
+        width: `${CONTAINER_WIDTH}px`,
+        padding: `${CONTAINER_PADDING}px`,
+        gap: '8px',
+        borderRadius: `${CONTAINER_BORDER_RADIUS}px`,
+      }}
       {...rest}
     >
-      <div className={cn('grid gap-4', gridColsClass)}>
+      <div
+        className={cn('grid', gridColsClass)}
+        style={{
+          gap: `${GRID_GAP}px`,
+        }}
+      >
         {images.map((image) => (
           <div
             key={image.id}
-            className="relative group overflow-hidden rounded-lg bg-background-100"
+            className="relative group overflow-hidden bg-gray-100"
+            style={{
+              width: `${IMAGE_WIDTH}px`,
+              borderRadius: `${IMAGE_BORDER_RADIUS}px`,
+            }}
           >
-            <div className="relative aspect-[5/2] sm:aspect-[5/2] lg:aspect-[5/2] w-full">
+            <div
+              className="relative"
+              style={{
+                width: `${IMAGE_WIDTH}px`,
+                height: `${IMAGE_HEIGHT}px`,
+              }}
+            >
               <img
                 src={image.imageUrl}
                 alt={image.title || `Whiteboard ${image.id}`}
                 className="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
             </div>
             {showDownload && (
               <button
                 onClick={() => handleDownload(image)}
-                className="absolute bottom-3 right-3 flex items-center justify-center w-9 h-9 bg-black/20 backdrop-blur-sm rounded-lg hover:bg-black/30 transition-colors duration-200 group/button"
+                className="absolute bottom-3 right-3 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded hover:bg-black/30 transition-colors duration-200 group/button"
+                style={{
+                  width: `${DOWNLOAD_BUTTON_SIZE}px`,
+                  height: `${DOWNLOAD_BUTTON_SIZE}px`,
+                }}
                 aria-label={`Download ${image.title || 'imagem'}`}
               >
                 <DownloadSimple
-                  size={18}
-                  weight="bold"
-                  className="text-text group-hover/button:scale-110 transition-transform duration-200"
+                  size={DOWNLOAD_BUTTON_SIZE}
+                  weight="regular"
+                  className="text-white group-hover/button:scale-110 transition-transform duration-200"
                 />
               </button>
             )}
