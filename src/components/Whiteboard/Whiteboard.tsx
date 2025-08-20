@@ -77,6 +77,12 @@ const Whiteboard = ({
     4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
   }[imagesPerRow];
 
+  // Calculate dynamic container width based on number of images
+  const containerWidth =
+    images?.length === 1
+      ? IMAGE_WIDTH + 2 * CONTAINER_PADDING
+      : CONTAINER_WIDTH;
+
   if (!images || images.length === 0) {
     return (
       <div
@@ -95,7 +101,7 @@ const Whiteboard = ({
     <div
       className={cn('flex flex-col bg-white border border-gray-100', className)}
       style={{
-        width: `${CONTAINER_WIDTH}px`,
+        width: `${containerWidth}px`,
         padding: `${CONTAINER_PADDING}px`,
         gap: '8px',
         borderRadius: `${CONTAINER_BORDER_RADIUS}px`,
