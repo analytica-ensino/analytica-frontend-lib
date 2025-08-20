@@ -11,14 +11,21 @@ import {
 const mockQuestion1 = {
   id: 'q1',
   questionText: 'What is 2 + 2?',
+  questionType: QUESTION_TYPE.ALTERNATIVA,
+  difficultyLevel: QUESTION_DIFFICULTY.FACIL,
   description: 'Basic math question',
-  type: QUESTION_TYPE.ALTERNATIVA,
-  status: QUESTION_STATUS.APROVADO,
-  difficulty: QUESTION_DIFFICULTY.FACIL,
   examBoard: 'ENEM',
   examYear: '2024',
-  answerKey: null,
-  institutionIds: ['inst1', 'inst2'],
+  solutionExplanation: null,
+  answer: null,
+  answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+  options: [
+    { id: 'opt1', option: '4' },
+    { id: 'opt2', option: '3' },
+    { id: 'opt3', option: '5' },
+    { id: 'opt4', option: '6' },
+  ],
+  correctOptionIds: ['opt1'],
   knowledgeMatrix: [
     {
       areaKnowledgeId: 'matematica',
@@ -28,25 +35,26 @@ const mockQuestion1 = {
       contentId: 'matematica',
     },
   ],
-  options: [
-    { id: 'opt1', option: '4', isCorrect: true },
-    { id: 'opt2', option: '3', isCorrect: false },
-    { id: 'opt3', option: '5', isCorrect: false },
-    { id: 'opt4', option: '6', isCorrect: false },
-  ],
 };
 
 const mockQuestion2 = {
   id: 'q2',
   questionText: 'What is the capital of France?',
+  questionType: QUESTION_TYPE.ALTERNATIVA,
+  difficultyLevel: QUESTION_DIFFICULTY.FACIL,
   description: 'Geography question',
-  type: QUESTION_TYPE.ALTERNATIVA,
-  status: QUESTION_STATUS.APROVADO,
-  difficulty: QUESTION_DIFFICULTY.FACIL,
   examBoard: 'ENEM',
   examYear: '2024',
-  answerKey: null,
-  institutionIds: ['inst1', 'inst2'],
+  solutionExplanation: null,
+  answer: null,
+  answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+  options: [
+    { id: 'opt1', option: 'London' },
+    { id: 'opt2', option: 'Paris' },
+    { id: 'opt3', option: 'Berlin' },
+    { id: 'opt4', option: 'Madrid' },
+  ],
+  correctOptionIds: ['opt2'],
   knowledgeMatrix: [
     {
       areaKnowledgeId: 'geografia',
@@ -56,18 +64,21 @@ const mockQuestion2 = {
       contentId: 'geografia',
     },
   ],
-  options: [
-    { id: 'opt1', option: 'London', isCorrect: false },
-    { id: 'opt2', option: 'Paris', isCorrect: true },
-    { id: 'opt3', option: 'Berlin', isCorrect: false },
-    { id: 'opt4', option: 'Madrid', isCorrect: false },
-  ],
 };
 
 const mockSimulado = {
   id: 'simulado-1',
   title: 'Test Simulado',
-  category: 'Enem',
+  type: 'ENEM',
+  subtype: 'Simulado',
+  difficulty: 'MEDIO',
+  notification: null,
+  status: 'ATIVO',
+  startDate: new Date('2024-01-01'),
+  finalDate: new Date('2024-12-31'),
+  canRetry: true,
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
   questions: [mockQuestion1, mockQuestion2],
 };
 
@@ -260,9 +271,9 @@ describe('useQuizStore', () => {
       const userAnswerItem = result.current.getUserAnswerByQuestionId('q1');
       expect(userAnswerItem).toBeNull();
 
-      // Verify that the question's answerKey was NOT updated (since the function returns early when userId is falsy)
+      // Verify that the question's answer was NOT updated (since the function returns early when userId is falsy)
       const currentQuestion = result.current.getCurrentQuestion();
-      expect(currentQuestion?.answerKey).toBe(null);
+      expect(currentQuestion?.answer).toBe(null);
 
       consoleSpy.mockRestore();
     });
@@ -1516,7 +1527,16 @@ describe('useQuizStore', () => {
       const emptySimulado = {
         id: 'empty-simulado',
         title: 'Empty Quiz',
-        category: 'Enem',
+        type: 'ENEM',
+        subtype: 'Simulado',
+        difficulty: 'MEDIO',
+        notification: null,
+        status: 'ATIVO',
+        startDate: new Date('2024-01-01'),
+        finalDate: new Date('2024-12-31'),
+        canRetry: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01'),
         questions: [],
       };
 
@@ -2615,7 +2635,16 @@ describe('useQuizStore', () => {
       const emptySimulado = {
         id: 'empty-simulado',
         title: 'Empty Quiz',
-        category: 'Enem',
+        type: 'ENEM',
+        subtype: 'Simulado',
+        difficulty: 'MEDIO',
+        notification: null,
+        status: 'ATIVO',
+        startDate: new Date('2024-01-01'),
+        finalDate: new Date('2024-12-31'),
+        canRetry: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01'),
         questions: [],
       };
 
