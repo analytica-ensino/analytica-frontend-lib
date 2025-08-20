@@ -83,6 +83,19 @@ const Whiteboard = ({
       ? IMAGE_WIDTH + 2 * CONTAINER_PADDING
       : CONTAINER_WIDTH;
 
+  // Calculate dynamic container height based on number of images and rows
+  const calculateContainerHeight = () => {
+    if (!images || images.length === 0) return 'auto';
+
+    const rows = Math.ceil(images.length / imagesPerRow);
+    const imagesHeight = rows * IMAGE_HEIGHT;
+    const gapsHeight = (rows - 1) * GRID_GAP;
+    const containerGap = 8; // gap between container elements
+    return imagesHeight + gapsHeight + 2 * CONTAINER_PADDING + containerGap;
+  };
+
+  const containerHeight = calculateContainerHeight();
+
   if (!images || images.length === 0) {
     return (
       <div
@@ -102,6 +115,10 @@ const Whiteboard = ({
       className={cn('flex flex-col bg-white border border-gray-100', className)}
       style={{
         width: `${containerWidth}px`,
+        height:
+          typeof containerHeight === 'number'
+            ? `${containerHeight}px`
+            : containerHeight,
         padding: `${CONTAINER_PADDING}px`,
         gap: '8px',
         borderRadius: `${CONTAINER_BORDER_RADIUS}px`,
