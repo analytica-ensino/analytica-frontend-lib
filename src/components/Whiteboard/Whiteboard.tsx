@@ -1,5 +1,5 @@
 import { HTMLAttributes, useCallback } from 'react';
-import { Download } from 'phosphor-react';
+import { DownloadSimple } from 'phosphor-react';
 import { cn } from '../../utils/utils';
 
 /**
@@ -110,7 +110,7 @@ const Whiteboard = ({
                 className="absolute bottom-3 right-3 flex items-center justify-center w-9 h-9 bg-black/20 backdrop-blur-sm rounded-lg hover:bg-black/30 transition-colors duration-200 group/button"
                 aria-label={`Download ${image.title || 'imagem'}`}
               >
-                <Download
+                <DownloadSimple
                   size={18}
                   weight="bold"
                   className="text-text group-hover/button:scale-110 transition-transform duration-200"
