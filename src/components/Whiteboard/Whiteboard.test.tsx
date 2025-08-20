@@ -197,18 +197,14 @@ describe('Whiteboard Component', () => {
     it('should trigger default download when no callback provided', () => {
       render(<Whiteboard {...defaultProps} />);
 
-      // Mock DOM methods
-      const mockLink = {
-        href: '',
-        download: '',
-        target: '',
-        rel: '',
-        click: jest.fn(),
-      };
-
+      // Use a real anchor to avoid API mismatch with the component implementation
+      const linkEl = document.createElement('a');
+      const clickSpy = jest
+        .spyOn(linkEl, 'click')
+        .mockImplementation(jest.fn());
       const createElementSpy = jest
         .spyOn(document, 'createElement')
-        .mockReturnValue(mockLink as unknown as HTMLAnchorElement);
+        .mockReturnValue(linkEl);
 
       const appendChildSpy = jest
         .spyOn(document.body, 'appendChild')
@@ -223,18 +219,19 @@ describe('Whiteboard Component', () => {
 
       // Verify DOM operations
       expect(createElementSpy).toHaveBeenCalledWith('a');
-      expect(mockLink.href).toBe(mockImages[0].imageUrl);
-      expect(mockLink.download).toBe(mockImages[0].title);
-      expect(mockLink.target).toBe('_blank');
-      expect(mockLink.rel).toBe('noopener noreferrer');
-      expect(appendChildSpy).toHaveBeenCalledWith(mockLink);
-      expect(mockLink.click).toHaveBeenCalled();
-      expect(removeChildSpy).toHaveBeenCalledWith(mockLink);
+      expect(linkEl.href).toBe(mockImages[0].imageUrl);
+      expect(linkEl.download).toBe(mockImages[0].title);
+      expect(linkEl.target).toBe('_blank');
+      expect(linkEl.rel).toBe('noopener noreferrer');
+      expect(appendChildSpy).toHaveBeenCalledWith(linkEl);
+      expect(clickSpy).toHaveBeenCalled();
+      expect(removeChildSpy).toHaveBeenCalledWith(linkEl);
 
       // Cleanup
       createElementSpy.mockRestore();
       appendChildSpy.mockRestore();
       removeChildSpy.mockRestore();
+      clickSpy.mockRestore();
     });
 
     it('should use fallback download name when title not provided', () => {
@@ -244,18 +241,14 @@ describe('Whiteboard Component', () => {
 
       render(<Whiteboard images={imageWithoutTitle} />);
 
-      // Mock DOM methods
-      const mockLink = {
-        href: '',
-        download: '',
-        target: '',
-        rel: '',
-        click: jest.fn(),
-      };
-
+      // Use a real anchor to avoid API mismatch with the component implementation
+      const linkEl = document.createElement('a');
+      const clickSpy = jest
+        .spyOn(linkEl, 'click')
+        .mockImplementation(jest.fn());
       const createElementSpy = jest
         .spyOn(document, 'createElement')
-        .mockReturnValue(mockLink as unknown as HTMLAnchorElement);
+        .mockReturnValue(linkEl);
 
       const appendChildSpy = jest
         .spyOn(document.body, 'appendChild')
@@ -268,12 +261,13 @@ describe('Whiteboard Component', () => {
       const downloadButton = screen.getByLabelText(/Download/);
       fireEvent.click(downloadButton);
 
-      expect(mockLink.download).toBe('whiteboard-1');
+      expect(linkEl.download).toBe('whiteboard-1');
 
       // Cleanup
       createElementSpy.mockRestore();
       appendChildSpy.mockRestore();
       removeChildSpy.mockRestore();
+      clickSpy.mockRestore();
     });
   });
 

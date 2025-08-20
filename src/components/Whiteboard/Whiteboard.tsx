@@ -3,7 +3,6 @@ import { DownloadSimple } from 'phosphor-react';
 import { cn } from '../../utils/utils';
 
 // Design constants for critical layout dimensions
-const CONTAINER_WIDTH = 500;
 const IMAGE_WIDTH = 225;
 const IMAGE_HEIGHT = 90;
 
@@ -76,28 +75,16 @@ const Whiteboard = ({
     setImageErrors((prev) => new Set(prev).add(imageId));
   }, []);
 
-  const gridColsClass = {
-    2: 'grid-cols-1 sm:grid-cols-2',
-    3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-    4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
-  }[imagesPerRow];
+  const gridColsClass =
+    images?.length === 1
+      ? 'grid-cols-1'
+      : {
+          2: 'grid-cols-1 sm:grid-cols-2',
+          3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+          4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+        }[imagesPerRow];
 
-  // Calculate dynamic container width based on number of images
-  const containerWidth =
-    images?.length === 1 ? IMAGE_WIDTH + 32 : CONTAINER_WIDTH;
-
-  // Calculate dynamic container height based on number of images and rows
-  const calculateContainerHeight = () => {
-    if (!images || images.length === 0) return 'auto';
-
-    const rows = Math.ceil(images.length / imagesPerRow);
-    const imagesHeight = rows * IMAGE_HEIGHT;
-    const gapsHeight = (rows - 1) * 16;
-    const containerGap = 8; // gap between container elements
-    return imagesHeight + gapsHeight + 32 + containerGap;
-  };
-
-  const containerHeight = calculateContainerHeight();
+  // Let CSS handle sizing responsively
 
   if (!images || images.length === 0) {
     return (
@@ -116,16 +103,9 @@ const Whiteboard = ({
   return (
     <div
       className={cn(
-        'flex flex-col bg-white border border-gray-100 p-4 gap-2 rounded-xl',
+        'flex flex-col bg-white border border-gray-100 p-4 gap-2 rounded-xl w-fit mx-auto',
         className
       )}
-      style={{
-        width: `${containerWidth}px`,
-        height:
-          typeof containerHeight === 'number'
-            ? `${containerHeight}px`
-            : containerHeight,
-      }}
       {...rest}
     >
       <div className={cn('grid gap-4', gridColsClass)}>
@@ -165,8 +145,9 @@ const Whiteboard = ({
             </div>
             {showDownload && (
               <button
+                type="button"
                 onClick={() => handleDownload(image)}
-                className="absolute bottom-3 right-3 flex items-center justify-center"
+                className="absolute bottom-3 right-3 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded hover:bg-black/30 transition-colors duration-200 group/button w-6 h-6"
                 aria-label={`Download ${image.title || 'imagem'}`}
               >
                 <DownloadSimple
