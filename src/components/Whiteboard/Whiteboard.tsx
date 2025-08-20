@@ -166,7 +166,7 @@ const Whiteboard = ({
             {showDownload && (
               <button
                 onClick={() => handleDownload(image)}
-                className="absolute bottom-3 right-3 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded hover:bg-black/30 transition-colors duration-200 group/button w-6 h-6"
+                className="absolute bottom-3 right-3 flex items-center justify-center"
                 aria-label={`Download ${image.title || 'imagem'}`}
               >
                 <DownloadSimple

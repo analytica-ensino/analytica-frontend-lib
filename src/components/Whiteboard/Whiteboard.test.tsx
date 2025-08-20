@@ -193,6 +193,88 @@ describe('Whiteboard Component', () => {
       expect(downloadButtons).toHaveLength(2);
       expect(downloadButtons[0]).toBeInTheDocument();
     });
+
+    it('should trigger default download when no callback provided', () => {
+      render(<Whiteboard {...defaultProps} />);
+
+      // Mock DOM methods
+      const mockLink = {
+        href: '',
+        download: '',
+        target: '',
+        rel: '',
+        click: jest.fn(),
+      };
+
+      const createElementSpy = jest
+        .spyOn(document, 'createElement')
+        .mockReturnValue(mockLink as unknown as HTMLAnchorElement);
+
+      const appendChildSpy = jest
+        .spyOn(document.body, 'appendChild')
+        .mockImplementation(jest.fn());
+
+      const removeChildSpy = jest
+        .spyOn(document.body, 'removeChild')
+        .mockImplementation(jest.fn());
+
+      const downloadButton = screen.getAllByLabelText(/Download/)[0];
+      fireEvent.click(downloadButton);
+
+      // Verify DOM operations
+      expect(createElementSpy).toHaveBeenCalledWith('a');
+      expect(mockLink.href).toBe(mockImages[0].imageUrl);
+      expect(mockLink.download).toBe(mockImages[0].title);
+      expect(mockLink.target).toBe('_blank');
+      expect(mockLink.rel).toBe('noopener noreferrer');
+      expect(appendChildSpy).toHaveBeenCalledWith(mockLink);
+      expect(mockLink.click).toHaveBeenCalled();
+      expect(removeChildSpy).toHaveBeenCalledWith(mockLink);
+
+      // Cleanup
+      createElementSpy.mockRestore();
+      appendChildSpy.mockRestore();
+      removeChildSpy.mockRestore();
+    });
+
+    it('should use fallback download name when title not provided', () => {
+      const imageWithoutTitle = [
+        { id: '1', imageUrl: 'https://example.com/image1.jpg' },
+      ];
+
+      render(<Whiteboard images={imageWithoutTitle} />);
+
+      // Mock DOM methods
+      const mockLink = {
+        href: '',
+        download: '',
+        target: '',
+        rel: '',
+        click: jest.fn(),
+      };
+
+      const createElementSpy = jest
+        .spyOn(document, 'createElement')
+        .mockReturnValue(mockLink as unknown as HTMLAnchorElement);
+
+      const appendChildSpy = jest
+        .spyOn(document.body, 'appendChild')
+        .mockImplementation(jest.fn());
+
+      const removeChildSpy = jest
+        .spyOn(document.body, 'removeChild')
+        .mockImplementation(jest.fn());
+
+      const downloadButton = screen.getByLabelText(/Download/);
+      fireEvent.click(downloadButton);
+
+      expect(mockLink.download).toBe('whiteboard-1');
+
+      // Cleanup
+      createElementSpy.mockRestore();
+      appendChildSpy.mockRestore();
+      removeChildSpy.mockRestore();
+    });
   });
 
   describe('Accessibility', () => {
@@ -265,6 +347,55 @@ describe('Whiteboard Component', () => {
 
       const image = screen.getByAltText('A'.repeat(100));
       expect(image).toBeInTheDocument();
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle image loading error', () => {
+      const { container } = render(<Whiteboard {...defaultProps} />);
+
+      // Get the first image
+      const image = container.querySelector('img') as HTMLImageElement;
+      expect(image).toBeInTheDocument();
+
+      // Simulate image error
+      fireEvent.error(image);
+
+      // Check if error placeholder is shown
+      expect(screen.getByText('Imagem indisponível')).toBeInTheDocument();
+    });
+
+    it('should handle multiple image errors', () => {
+      const { container } = render(<Whiteboard {...defaultProps} />);
+
+      // Get all images
+      const images = container.querySelectorAll('img');
+      expect(images).toHaveLength(2);
+
+      // Simulate error on both images
+      fireEvent.error(images[0]);
+      fireEvent.error(images[1]);
+
+      // Check if both error placeholders are shown
+      const errorMessages = screen.getAllByText('Imagem indisponível');
+      expect(errorMessages).toHaveLength(2);
+    });
+
+    it('should maintain error state when component re-renders', () => {
+      const { rerender, container } = render(<Whiteboard {...defaultProps} />);
+
+      // Trigger image error
+      const image = container.querySelector('img') as HTMLImageElement;
+      fireEvent.error(image);
+
+      // Verify error state
+      expect(screen.getByText('Imagem indisponível')).toBeInTheDocument();
+
+      // Re-render with same props
+      rerender(<Whiteboard {...defaultProps} />);
+
+      // Error state should persist
+      expect(screen.getByText('Imagem indisponível')).toBeInTheDocument();
     });
   });
 });
