@@ -38,6 +38,7 @@ export default defineConfig({
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
     'NotFound/index': 'src/components/NotFound/NotFound.tsx',
     'VideoPlayer/index': 'src/components/VideoPlayer/VideoPlayer.tsx',
+    'Whiteboard/index': 'src/components/Whiteboard/Whiteboard.tsx',
     'Auth/index': 'src/components/Auth/Auth.tsx',
     'Quiz/index': 'src/components/Quiz/Quiz.tsx',
     'Quiz/useQuizStore/index': 'src/components/Quiz/useQuizStore.ts',

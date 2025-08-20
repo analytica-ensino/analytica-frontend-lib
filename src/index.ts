@@ -90,6 +90,7 @@ import {
 
 import NotFound from './components/NotFound/NotFound';
 import VideoPlayer from './components/VideoPlayer/VideoPlayer';
+import Whiteboard from './components/Whiteboard/Whiteboard';
 
 import {
   AuthProvider,
@@ -206,6 +207,7 @@ export { SkeletonTable };
 
 export { NotFound };
 export { VideoPlayer };
+export { Whiteboard };
 
 // Export Auth components
 export { AuthProvider };
