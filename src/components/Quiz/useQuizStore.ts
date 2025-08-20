@@ -18,8 +18,10 @@ export enum QUESTION_TYPE {
 }
 
 export enum QUESTION_STATUS {
-  APROVADO = 'APROVADO',
-  REPROVADO = 'REPROVADO',
+  PENDENTE_AVALIACAO = 'PENDENTE_AVALIACAO',
+  RESPOSTA_CORRETA = 'RESPOSTA_CORRETA',
+  RESPOSTA_INCORRETA = 'RESPOSTA_INCORRETA',
+  NAO_RESPONDIDO = 'NAO_RESPONDIDO',
 }
 
 export enum ANSWER_STATUS {
@@ -28,17 +30,30 @@ export enum ANSWER_STATUS {
   PENDENTE_AVALIACAO = 'PENDENTE_AVALIACAO',
 }
 
-export interface Question {
-  id: string;
-  questionText: string;
-  description: string;
-  type: QUESTION_TYPE;
-  status: QUESTION_STATUS;
-  difficulty: QUESTION_DIFFICULTY;
-  examBoard: string;
-  examYear: string;
-  answerKey: null | string;
-  institutionIds: string[];
+export interface QuestionResult {
+  id: string,
+  questionId: string,
+  answer: string | null,
+  optionId: string | null,
+  selectedOptionText: string | null,
+  answerStatus: QUESTION_STATUS,
+  statement: string,
+  questionType: QUESTION_TYPE,
+  difficultyLevel: QUESTION_DIFFICULTY,
+  solutionExplanation: string | null,
+  correctOption: string,
+  teacherFeedback: string | null,
+  attachment: string | null,
+  score: number | null,
+  gradedAt: string | null,
+  gradedBy: string | null,
+  createdAt: string,
+  updatedAt: string,
+  options: {
+    id: string;
+    option: string;
+    isCorrect: boolean;
+  }[];
   knowledgeMatrix: {
     areaKnowledgeId: string;
     subjectId: string;
@@ -46,30 +61,59 @@ export interface Question {
     subtopicId: string;
     contentId: string;
   }[];
+}
+
+export interface Question {
+  id: string,
+  questionText: string,
+  questionType: QUESTION_TYPE,
+  difficultyLevel: QUESTION_DIFFICULTY,
+  description: string,
+  examBoard: string | null,
+  examYear: string | null,
+  solutionExplanation:  string | null,
+  answer: null,
+  answerStatus: QUESTION_STATUS,
   options: {
     id: string;
     option: string;
-    isCorrect: boolean;
+  }[];
+  correctOptionIds?: string[];
+  knowledgeMatrix: {
+    areaKnowledgeId: string;
+    subjectId: string;
+    topicId: string;
+    subtopicId: string;
+    contentId: string;
   }[];
 }
 
 interface Simulado {
-  id: string;
-  title: string;
-  category: string;
-  questions: Question[];
+  id: string,
+  title: string,
+  type: string,
+  subtype: string,
+  difficulty: string | null,
+  notification: string | null,
+  status: string,
+  startDate: Date | null,
+  finalDate: Date | null,
+  canRetry: boolean,
+  createdAt: Date | null,
+  updatedAt: Date | null,
+  questions: Question[] | QuestionResult[];
 }
 
 interface Atividade {
   id: string;
   title: string;
-  questions: Question[];
+  questions: Question[] | QuestionResult[];
 }
 
 interface Aula {
   id: string;
   title: string;
-  questions: Question[];
+  questions: Question[] | QuestionResult[];
 }
 
 interface UserAnswerItem {
@@ -90,6 +134,7 @@ interface QuizState {
 
   // UI State
   currentQuestionIndex: number;
+  questionsResult: QuestionResult | null;
   selectedAnswers: Record<string, string>;
   userAnswers: UserAnswerItem[];
   timeElapsed: number;
@@ -101,6 +146,7 @@ interface QuizState {
   setBySimulated: (simulado: Simulado) => void;
   setByActivity: (atividade: Atividade) => void;
   setByQuestionary: (aula: Aula) => void;
+  setQuestionResult: (questionResult: QuestionResult) => void;
   setUserId: (userId: string) => void;
   setUserAnswers: (userAnswers: UserAnswerItem[]) => void;
   setVariant: (variant: 'result' | 'default') => void;
@@ -143,7 +189,7 @@ interface QuizState {
   formatTime: (seconds: number) => string;
   getUserAnswers: () => UserAnswerItem[];
   getUnansweredQuestionsFromUserAnswers: () => number[];
-  getQuestionsGroupedBySubject: () => { [key: string]: Question[] };
+  getQuestionsGroupedBySubject: () => { [key: string]: QuestionResult[] };
   getUserId: () => string;
   setCurrentQuestion: (question: Question) => void;
 
@@ -206,6 +252,7 @@ export const useQuizStore = create<QuizState>()(
         setUserAnswers: (userAnswers) => set({ userAnswers }),
         getUserId: () => get().userId,
         setVariant: (variant) => set({ variant }),
+        setQuestionResult: (questionsResult) => set({ questionsResult }),
         // Navigation
         goToNextQuestion: () => {
           const { currentQuestionIndex, getTotalQuestions } = get();
@@ -272,10 +319,10 @@ export const useQuizStore = create<QuizState>()(
             activityId,
             userId,
             answer:
-              question.type === QUESTION_TYPE.DISSERTATIVA ? answerId : null,
+              question.questionType === QUESTION_TYPE.DISSERTATIVA ? answerId : null,
             optionId:
-              question.type === QUESTION_TYPE.DISSERTATIVA ? null : answerId,
-            questionType: question.type,
+              question.questionType === QUESTION_TYPE.DISSERTATIVA ? null : answerId,
+            questionType: question.questionType,
             answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
           };
 
@@ -324,7 +371,7 @@ export const useQuizStore = create<QuizState>()(
               userId,
               answer: null, // selectMultipleAnswer is for non-dissertative questions
               optionId: answerId, // selectMultipleAnswer should only set optionId
-              questionType: question.type,
+              questionType: question.questionType,
               answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
             })
           );
@@ -359,7 +406,7 @@ export const useQuizStore = create<QuizState>()(
           const question = activeQuiz.quiz.questions.find(
             (q) => q.id === questionId
           );
-          if (!question || question.type !== QUESTION_TYPE.DISSERTATIVA) {
+          if (!question || question.questionType !== QUESTION_TYPE.DISSERTATIVA) {
             console.warn(
               'selectDissertativeAnswer called for non-dissertative question'
             );
@@ -419,7 +466,7 @@ export const useQuizStore = create<QuizState>()(
               userId,
               answer: null,
               optionId: null,
-              questionType: currentQuestion.type,
+              questionType: currentQuestion.questionType,
               answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
             };
 
@@ -468,14 +515,14 @@ export const useQuizStore = create<QuizState>()(
             activityId,
             userId,
             answer:
-              question.type === QUESTION_TYPE.DISSERTATIVA
+              question.questionType === QUESTION_TYPE.DISSERTATIVA
                 ? answerId || null
                 : null,
             optionId:
-              question.type !== QUESTION_TYPE.DISSERTATIVA
+              question.questionType !== QUESTION_TYPE.DISSERTATIVA
                 ? answerId || null
                 : null,
-            questionType: question.type,
+            questionType: question.questionType,
             answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
           };
 
@@ -686,13 +733,13 @@ export const useQuizStore = create<QuizState>()(
 
           activeQuiz.quiz.questions.forEach((question) => {
             const subjectId =
-              question.knowledgeMatrix?.[0]?.subjectId || 'Sem matéria';
+              (question as QuestionResult).knowledgeMatrix?.[0]?.subjectId || 'Sem matéria';
 
             if (!groupedQuestions[subjectId]) {
               groupedQuestions[subjectId] = [];
             }
 
-            groupedQuestions[subjectId].push(question);
+            groupedQuestions[subjectId].push(question as Question);
           });
 
           return groupedQuestions;

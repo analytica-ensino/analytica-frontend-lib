@@ -33,6 +33,7 @@ import {
   QUESTION_DIFFICULTY,
   QUESTION_TYPE,
   ANSWER_STATUS,
+  QuestionResult,
 } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
@@ -251,7 +252,7 @@ const QuizContent = forwardRef<
   };
 
   const QuestionComponent = currentQuestion
-    ? questionComponents[currentQuestion.type]
+    ? questionComponents[currentQuestion.questionType]
     : null;
 
   return QuestionComponent ? (
@@ -282,7 +283,7 @@ const QuizAlternative = ({
 
     if (variant === 'result') {
       const isCorrectOption = currentQuestion.options.find(
-        (op) => op.isCorrect
+        (op) => currentQuestion.correctOptionIds?.includes(op.id)
       );
 
       if (isCorrectOption?.id === option.id) {
@@ -401,7 +402,7 @@ const QuizMultipleChoice = ({
 
     if (variant === 'result') {
       const isAllCorrectOptionId = currentQuestion.options
-        .filter((op) => op.isCorrect)
+        .filter((op) => currentQuestion.correctOptionIds?.includes(op.id))
         .map((op) => op.id);
 
       if (isAllCorrectOptionId.includes(option.id)) {
@@ -1560,7 +1561,7 @@ const QuizFooter = forwardRef<
               </h2>
               <p className="text-text-500 font-sm">
                 Você acertou{' '}
-                {(() => {
+                {/* {(() => {
                   const activeQuiz = getActiveQuiz();
                   if (!activeQuiz) return 0;
 
@@ -1569,11 +1570,12 @@ const QuizFooter = forwardRef<
                       (q) => q.id === answer.questionId
                     );
                     const isCorrectOption = question?.options.find(
-                      (op) => op.isCorrect
+                      (op) => currentQuestion.correctOptionIds?.includes(op.id)
                     );
                     return question && answer.optionId === isCorrectOption?.id;
                   }).length;
-                })()}{' '}
+                })()}{' '} */}
+                {'Atualizando'}
                 de {allQuestions} questões.
               </p>
             </div>
@@ -1633,7 +1635,7 @@ const QuizFooter = forwardRef<
           title="Resolução"
           size={'lg'}
         >
-          {currentQuestion?.answerKey}
+          {currentQuestion?.solutionExplanation}
         </Modal>
       </>
     );
@@ -1657,7 +1659,7 @@ const QuizResultHeaderTitle = forwardRef<
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
       {bySimulated && (
         <Badge variant="solid" action="info">
-          {bySimulated.category}
+          {bySimulated.type}
         </Badge>
       )}
     </div>
@@ -1715,17 +1717,17 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
           correctAnswers++;
         }
 
-        if (question.difficulty === QUESTION_DIFFICULTY.FACIL) {
+        if (question.difficultyLevel === QUESTION_DIFFICULTY.FACIL) {
           totalEasyQuestions++;
           if (isCorrect) {
             correctEasyAnswers++;
           }
-        } else if (question.difficulty === QUESTION_DIFFICULTY.MEDIO) {
+        } else if (question.difficultyLevel === QUESTION_DIFFICULTY.MEDIO) {
           totalMediumQuestions++;
           if (isCorrect) {
             correctMediumAnswers++;
           }
-        } else if (question.difficulty === QUESTION_DIFFICULTY.DIFICIL) {
+        } else if (question.difficultyLevel === QUESTION_DIFFICULTY.DIFICIL) {
           totalDifficultQuestions++;
           if (isCorrect) {
             correctDifficultAnswers++;
@@ -1881,7 +1883,7 @@ const QuizListResultByMateria = ({
   onQuestionClick,
 }: {
   subject: string;
-  onQuestionClick: (question: Question) => void;
+  onQuestionClick: (question: QuestionResult) => void;
 }) => {
   const {
     getQuestionsGroupedBySubject,
