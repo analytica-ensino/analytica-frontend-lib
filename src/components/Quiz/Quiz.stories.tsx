@@ -355,6 +355,7 @@ export const GeneralForResults: Story = () => {
     goToPreviousQuestion,
     currentQuestionIndex,
     getTotalQuestions,
+    setQuestionsResult,
   } = useQuizStore();
 
   useEffect(() => {
@@ -793,12 +794,68 @@ export const GeneralForResults: Story = () => {
         answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
       },
     ]);
+
+    // Configure QuestionResult data for components that need it
+    setQuestionsResult({
+      answers: [
+        {
+          id: 'answer1',
+          questionId: 'q1-image',
+          answer: 'brasilia_coordinates',
+          optionId: 'img_opt1',
+          selectedOptionText: 'Coordenadas de Brasília',
+          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Qual é a capital do Brasil?',
+          questionType: QUESTION_TYPE.IMAGEM,
+          correctOption: 'brasilia_coordinates',
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          solutionExplanation: 'Brasília é a capital do Brasil desde 1960.',
+          options: [],
+          teacherFeedback: null,
+          attachment: null,
+          score: 100,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+        {
+          id: 'answer2',
+          questionId: 'q1-image-incorreta',
+          answer: 'wrong_coordinates',
+          optionId: 'img_opt2',
+          selectedOptionText: 'Coordenadas incorretas',
+          answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Qual é a capital do Brasil? (Questão Incorreta)',
+          questionType: QUESTION_TYPE.IMAGEM,
+          correctOption: 'brasilia_coordinates',
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          solutionExplanation: 'Brasília é a capital do Brasil desde 1960.',
+          options: [],
+          teacherFeedback: 'Resposta incorreta. A capital do Brasil é Brasília.',
+          attachment: null,
+          score: 0,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+      ],
+      statistics: {
+        totalAnswered: 2,
+        correctAnswers: 1,
+        incorrectAnswers: 1,
+        pendingAnswers: 0,
+        score: 50,
+      },
+    });
   }, [
     setBySimulated,
     startQuiz,
     setUserAnswers,
     setUserId,
     setCurrentQuestion,
+    setQuestionsResult,
   ]);
 
   return (
@@ -863,6 +920,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
     goToPreviousQuestion,
     currentQuestionIndex,
     getTotalQuestions,
+    setQuestionsResult,
   } = useQuizStore();
 
   useEffect(() => {
@@ -1079,8 +1137,151 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
       },
     ]);
 
+    // Configure QuestionResult data for components that need it
+    setQuestionsResult({
+      answers: [
+        {
+          id: 'answer1',
+          questionId: 'q1',
+          answer: 'opt1',
+          optionId: 'opt1',
+          selectedOptionText: 'Resposta correta',
+          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão de Física 1 - Alternativa',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          correctOption: 'opt1',
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          solutionExplanation:
+            'A resposta correta é a primeira opção porque ela representa corretamente o conceito físico abordado na questão.',
+          options: [
+            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
+          ],
+          teacherFeedback: null,
+          attachment: null,
+          score: 100,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+        {
+          id: 'answer2',
+          questionId: 'q2',
+          answer: 'opt1,opt2',
+          optionId: 'opt1,opt2',
+          selectedOptionText: 'Resposta correta, Resposta correta',
+          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão de Matemática 1 - Múltipla Escolha',
+          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          correctOption: 'opt1,opt2',
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          solutionExplanation:
+            'As duas primeiras opções são corretas porque ambas representam soluções válidas para o problema matemático.',
+          options: [
+            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt2', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
+          ],
+          teacherFeedback: null,
+          attachment: null,
+          score: 100,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+        {
+          id: 'answer3',
+          questionId: 'q3',
+          answer: 'A química é uma ciência fundamental...',
+          optionId: 'dissertativa_opt1',
+          selectedOptionText: 'Resposta dissertativa',
+          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão de Química 1 - Dissertativa',
+          questionType: QUESTION_TYPE.DISSERTATIVA,
+          correctOption: '',
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          solutionExplanation:
+            'A química é uma ciência fundamental que estuda a composição, estrutura e propriedades da matéria.',
+          options: [],
+          teacherFeedback: 'Excelente resposta, demonstra conhecimento aprofundado.',
+          attachment: null,
+          score: 95,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'teacher',
+        },
+        {
+          id: 'answer4',
+          questionId: 'q4',
+          answer: 'opt3',
+          optionId: 'opt3',
+          selectedOptionText: 'Resposta correta',
+          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão de Biologia 1 - Alternativa',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          correctOption: 'opt3',
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          solutionExplanation:
+            'A terceira opção é a resposta correta porque representa o conceito biológico correto.',
+          options: [
+            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
+          ],
+          teacherFeedback: null,
+          attachment: null,
+          score: 100,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+        {
+          id: 'answer5',
+          questionId: 'q5',
+          answer: 'opt2',
+          optionId: 'opt2',
+          selectedOptionText: 'Resposta correta',
+          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão de História 1 - Alternativa',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          correctOption: 'opt2',
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          solutionExplanation:
+            'A segunda opção é a resposta correta porque representa o fato histórico correto.',
+          options: [
+            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt2', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
+          ],
+          teacherFeedback: null,
+          attachment: null,
+          score: 100,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+      ],
+      statistics: {
+        totalAnswered: 5,
+        correctAnswers: 5,
+        incorrectAnswers: 0,
+        pendingAnswers: 0,
+        score: 99, // Average of all scores
+      },
+    });
+
     finishQuiz();
-  }, [setBySimulated, startQuiz, setUserAnswers, finishQuiz, setUserId]);
+  }, [setBySimulated, startQuiz, setUserAnswers, finishQuiz, setUserId, setQuestionsResult]);
 
   const handleSubjectClick = (subject: string) => {
     console.log('Subject clicked:', subject);
