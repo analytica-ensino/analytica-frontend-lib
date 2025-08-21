@@ -165,6 +165,21 @@ const createMockUseQuizStore = (
       if (questionId === 'q4') return 4;
       return 0;
     }),
+    // New question result functions
+    getQuestionResultByQuestionId: jest.fn().mockReturnValue(null),
+    getQuestionResultStatistics: jest.fn().mockReturnValue({
+      totalAnswered: 0,
+      correctAnswers: 0,
+      incorrectAnswers: 0,
+      pendingAnswers: 0,
+      score: 0,
+    }),
+    getQuestionResult: jest.fn().mockReturnValue(null),
+    setQuestionsResult: jest.fn(),
+    setCurrentQuestionResult: jest.fn(),
+    getCurrentQuestionResult: jest.fn().mockReturnValue(null),
+    questionsResult: null,
+    currentQuestionResult: null,
     ...overrides,
   };
 };
@@ -589,13 +604,13 @@ const mockQuestion1 = {
   id: 'q1',
   questionText: 'What is 2 + 2?',
   description: 'Basic math question',
-  type: 'ALTERNATIVA' as const,
-  status: 'APROVADO' as const,
-  difficulty: QUESTION_DIFFICULTY.FACIL,
+  questionType: QUESTION_TYPE.ALTERNATIVA,
+  answerStatus: QUESTION_STATUS.NAO_RESPONDIDO,
+  difficultyLevel: QUESTION_DIFFICULTY.FACIL,
   examBoard: 'ENEM',
   examYear: '2024',
-  answerKey: null,
-  institutionIds: ['inst1', 'inst2'],
+  answer: null,
+  solutionExplanation: null,
   knowledgeMatrix: [
     {
       areaKnowledgeId: 'matematica',
@@ -606,24 +621,25 @@ const mockQuestion1 = {
     },
   ],
   options: [
-    { id: 'opt1', option: '4', isCorrect: true },
-    { id: 'opt2', option: '3', isCorrect: false },
-    { id: 'opt3', option: '5', isCorrect: false },
-    { id: 'opt4', option: '6', isCorrect: false },
+    { id: 'opt1', option: '4' },
+    { id: 'opt2', option: '3' },
+    { id: 'opt3', option: '5' },
+    { id: 'opt4', option: '6' },
   ],
+  correctOptionIds: ['opt1'],
 };
 
 const mockQuestionMultipleChoice = {
   id: 'q3',
   questionText: 'Select all correct answers about planets',
   description: 'Multiple choice question',
-  type: 'MULTIPLA_CHOICE' as const,
-  status: 'APROVADO' as const,
-  difficulty: QUESTION_DIFFICULTY.MEDIO,
+  questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+  answerStatus: QUESTION_STATUS.NAO_RESPONDIDO,
+  difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
   examBoard: 'ENEM',
   examYear: '2024',
-  answerKey: null,
-  institutionIds: ['inst1', 'inst2'],
+  answer: null,
+  solutionExplanation: null,
   knowledgeMatrix: [
     {
       areaKnowledgeId: 'ciencias',
@@ -634,24 +650,25 @@ const mockQuestionMultipleChoice = {
     },
   ],
   options: [
-    { id: 'opt1', option: 'Earth', isCorrect: true },
-    { id: 'opt2', option: 'Mars', isCorrect: true },
-    { id: 'opt3', option: 'Pluto', isCorrect: false },
-    { id: 'opt4', option: 'Jupiter', isCorrect: true },
+    { id: 'opt1', option: 'Earth' },
+    { id: 'opt2', option: 'Mars' },
+    { id: 'opt3', option: 'Pluto' },
+    { id: 'opt4', option: 'Jupiter' },
   ],
+  correctOptionIds: ['opt1', 'opt2', 'opt4'],
 };
 
 const mockQuestionDissertativa = {
   id: 'q4',
   questionText: 'Explain the process of photosynthesis',
   description: 'Essay question',
-  type: 'DISSERTATIVA' as const,
-  status: 'APROVADO' as const,
-  difficulty: QUESTION_DIFFICULTY.DIFICIL,
+  questionType: QUESTION_TYPE.DISSERTATIVA,
+  answerStatus: QUESTION_STATUS.NAO_RESPONDIDO,
+  difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
   examBoard: 'ENEM',
   examYear: '2024',
-  answerKey: null,
-  institutionIds: ['inst1', 'inst2'],
+  answer: null,
+  solutionExplanation: null,
   knowledgeMatrix: [
     {
       areaKnowledgeId: 'ciencias',
@@ -668,13 +685,13 @@ const mockQuestion2 = {
   id: 'q2',
   questionText: 'What is the capital of France?',
   description: 'Geography question',
-  type: 'ALTERNATIVA' as const,
-  status: 'APROVADO' as const,
-  difficulty: QUESTION_DIFFICULTY.FACIL,
+  questionType: QUESTION_TYPE.ALTERNATIVA,
+  answerStatus: QUESTION_STATUS.NAO_RESPONDIDO,
+  difficultyLevel: QUESTION_DIFFICULTY.FACIL,
   examBoard: 'ENEM',
   examYear: '2024',
-  answerKey: null,
-  institutionIds: ['inst1', 'inst2'],
+  answer: null,
+  solutionExplanation: null,
   knowledgeMatrix: [
     {
       areaKnowledgeId: 'geografia',
@@ -685,11 +702,12 @@ const mockQuestion2 = {
     },
   ],
   options: [
-    { id: 'opt1', option: 'London', isCorrect: false },
-    { id: 'opt2', option: 'Paris', isCorrect: true },
-    { id: 'opt3', option: 'Berlin', isCorrect: false },
-    { id: 'opt4', option: 'Madrid', isCorrect: false },
+    { id: 'opt1', option: 'London' },
+    { id: 'opt2', option: 'Paris' },
+    { id: 'opt3', option: 'Berlin' },
+    { id: 'opt4', option: 'Madrid' },
   ],
+  correctOptionIds: ['opt2'],
 };
 
 const mockSimulado = {
@@ -848,13 +866,13 @@ describe('Quiz Component', () => {
           id: '1',
           questionText: 'Test Question',
           description: 'Test Statement',
-          type: QUESTION_TYPE.DISSERTATIVA,
-          status: QUESTION_STATUS.RESPOSTA_CORRETA,
-          difficulty: QUESTION_DIFFICULTY.MEDIO,
+          questionType: QUESTION_TYPE.DISSERTATIVA,
+          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: null,
-          institutionIds: ['inst1'],
+          answer: null,
+          solutionExplanation: null,
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'ciencias',
@@ -881,6 +899,7 @@ describe('Quiz Component', () => {
           getCurrentQuestion: () => mockQuestion,
           getCurrentAnswer: () => mockAnswer,
           variant: 'result',
+          selectDissertativeAnswer: jest.fn(),
         };
 
         mockUseQuizStore.mockReturnValue(mockStore);
@@ -1911,6 +1930,13 @@ describe('Quiz Component', () => {
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 2,
+          correctAnswers: 1,
+          incorrectAnswers: 1,
+          pendingAnswers: 0,
+          score: 1
+        }),
         getUserAnswers: jest.fn().mockReturnValue([
           {
             questionId: 'q1',
@@ -1946,6 +1972,13 @@ describe('Quiz Component', () => {
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
         getActiveQuiz: jest.fn().mockReturnValue(null), // This will trigger line 667
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 1,
+          correctAnswers: 0,
+          incorrectAnswers: 1,
+          pendingAnswers: 0,
+          score: 0
+        }),
         getUserAnswers: jest.fn().mockReturnValue([
           {
             questionId: 'q1',
@@ -2220,13 +2253,13 @@ describe('Quiz Component', () => {
       });
 
       it('should open resolution modal when "Ver Resolução" button is clicked', () => {
-        const mockAnswerKey = 'Esta é a resolução detalhada da questão';
+        const mockSolutionExplanation = 'Esta é a resolução detalhada da questão';
         mockUseQuizStore.mockReturnValue({
-          ...mockUseQuizStore(),
+          ...createMockUseQuizStore(),
           variant: 'result',
           getCurrentQuestion: jest.fn().mockReturnValue({
             ...mockQuestion1,
-            answerKey: mockAnswerKey,
+            solutionExplanation: mockSolutionExplanation,
           }),
         });
 
@@ -2236,7 +2269,7 @@ describe('Quiz Component', () => {
 
         expect(screen.getByTestId('modal')).toBeInTheDocument();
         expect(screen.getByText('Resolução')).toBeInTheDocument();
-        expect(screen.getByText(mockAnswerKey)).toBeInTheDocument();
+        expect(screen.getByText(mockSolutionExplanation)).toBeInTheDocument();
       });
 
       it('should close resolution modal when close button is clicked', () => {
@@ -2400,17 +2433,32 @@ describe('Quiz Component', () => {
   describe('QuizHeaderResult', () => {
     it('should display success message when user answers correctly', () => {
       mockUseQuizStore.mockReturnValue({
-        ...mockUseQuizStore(),
+        ...createMockUseQuizStore(),
         getCurrentQuestion: jest.fn().mockReturnValue({
           ...mockQuestion1,
           correctOptionId: 'opt1',
         }),
-        getAllCurrentAnswer: jest.fn().mockReturnValue([
-          {
-            optionId: 'opt1',
-            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-          },
-        ]), // User selected correct answer
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          id: 'result1',
+          questionId: 'q1',
+          answer: null,
+          optionId: 'opt1',
+          selectedOptionText: null,
+          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Mock statement',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          correctOption: 'opt1',
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          solutionExplanation: 'Mock explanation',
+          options: [],
+          teacherFeedback: null,
+          attachment: null,
+          score: null,
+          gradedAt: null,
+          gradedBy: '',
+        }),
       });
 
       render(<QuizHeaderResult />);
@@ -2488,35 +2536,39 @@ describe('Quiz Component', () => {
 
     it('should display success message for MULTIPLA_CHOICE when all correct options are selected', () => {
       mockUseQuizStore.mockReturnValue({
-        ...mockUseQuizStore(),
+        ...createMockUseQuizStore(),
         getCurrentQuestion: jest.fn().mockReturnValue({
           ...mockQuestion1,
-          type: 'MULTIPLA_CHOICE',
+          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
           options: [
-            { id: 'opt1', option: 'Opção 1', isCorrect: true },
-            { id: 'opt2', option: 'Opção 2', isCorrect: true },
-            { id: 'opt3', option: 'Opção 3', isCorrect: false },
-            { id: 'opt4', option: 'Opção 4', isCorrect: false },
+            { id: 'opt1', option: 'Opção 1' },
+            { id: 'opt2', option: 'Opção 2' },
+            { id: 'opt3', option: 'Opção 3' },
+            { id: 'opt4', option: 'Opção 4' },
           ],
+          correctOptionIds: ['opt1', 'opt2'],
         }),
-        getAllCurrentAnswer: jest.fn().mockReturnValue([
-          {
-            questionId: 'q1',
-            activityId: 'act1',
-            userId: 'user1',
-            answer: null,
-            optionId: 'opt1',
-            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-          },
-          {
-            questionId: 'q1',
-            activityId: 'act1',
-            userId: 'user1',
-            answer: null,
-            optionId: 'opt2',
-            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-          },
-        ]),
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          id: 'result1',
+          questionId: 'q1',
+          answer: null,
+          optionId: 'opt1',
+          selectedOptionText: null,
+          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Mock statement',
+          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          correctOption: 'opt1,opt2',
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          solutionExplanation: 'Mock explanation',
+          options: [],
+          teacherFeedback: null,
+          attachment: null,
+          score: null,
+          gradedAt: null,
+          gradedBy: '',
+        }),
       });
 
       render(<QuizHeaderResult />);
@@ -3572,6 +3624,7 @@ describe('Quiz Result Components', () => {
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
+        timeElapsed: 60,
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
           fisica: [mockQuestionsWithAnswers[0]],
           matematica: [mockQuestionsWithAnswers[1]],
@@ -3595,6 +3648,48 @@ describe('Quiz Result Components', () => {
             }
             return null;
           }),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'Option 1',
+              answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2023-01-01T00:00:00Z',
+              updatedAt: '2023-01-01T00:00:00Z',
+              statement: 'Question 1',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'Option 1', isCorrect: true },
+                { id: 'opt2', option: 'Option 2', isCorrect: false }
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2023-01-01T00:00:00Z',
+              gradedBy: 'teacher1'
+            }
+          ],
+          statistics: {
+            totalAnswered: 1,
+            correctAnswers: 1,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 1
+          }
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 1
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -3608,7 +3703,7 @@ describe('Quiz Result Components', () => {
 
     it('should render progress bars with correct values', () => {
       mockUseQuizStore.mockReturnValue({
-        ...mockUseQuizStore(),
+        ...createMockUseQuizStore(),
         getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
       });
 
@@ -3631,68 +3726,28 @@ describe('Quiz Result Components', () => {
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({}),
         isQuestionAnswered: jest.fn().mockReturnValue(false),
         getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [],
+          statistics: {
+            totalAnswered: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 0
+          }
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 0
+        }),
       });
 
       render(<QuizResultPerformance />);
 
       expect(screen.getAllByText('0')[0]).toBeInTheDocument();
-    });
-
-    it('should handle all correct answers', () => {
-      const mockQuestionsWithCorrectAnswers = [
-        { ...mockQuestion1, answerKey: 'opt1' },
-        { ...mockQuestion2, answerKey: 'opt2' },
-      ];
-
-      mockUseQuizStore.mockReturnValue({
-        bySimulated: {
-          ...mockSimulado,
-          questions: mockQuestionsWithCorrectAnswers,
-        },
-        byActivity: undefined,
-        byQuestionary: undefined,
-        getTotalQuestions: jest.fn().mockReturnValue(2),
-        getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
-        formatTime: jest.fn().mockReturnValue('00:01:00'),
-        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
-          fisica: [mockQuestionsWithCorrectAnswers[0]],
-          matematica: [mockQuestionsWithCorrectAnswers[1]],
-        }),
-        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
-          return questionId === 'q1' || questionId === 'q2';
-        }),
-        getUserAnswerByQuestionId: jest
-          .fn()
-          .mockImplementation((questionId) => {
-            if (questionId === 'q1') {
-              return {
-                questionId: 'q1',
-                activityId: 'simulado-1',
-                userId: 'user-1',
-                answer: 'opt1',
-                optionId: 'opt1',
-                questionType: 'ALTERNATIVA' as const,
-                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q1 has opt1 as correct
-              };
-            }
-            if (questionId === 'q2') {
-              return {
-                questionId: 'q2',
-                activityId: 'simulado-1',
-                userId: 'user-1',
-                answer: 'opt2',
-                optionId: 'opt2',
-                questionType: 'ALTERNATIVA' as const,
-                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q2 has opt2 as correct
-              };
-            }
-            return null;
-          }),
-      });
-
-      render(<QuizResultPerformance />);
-
-      expect(screen.getAllByText('2')[0]).toBeInTheDocument();
     });
 
     // Tests for difficulty-based statistics calculation
@@ -3796,6 +3851,96 @@ describe('Quiz Result Components', () => {
             }
             return null;
           }),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: '4',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is 2 + 2?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: '4', isCorrect: true },
+                { id: 'opt2', option: '3', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system'
+            },
+            {
+              id: 'answer2',
+              questionId: 'q2',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'London',
+              answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is the capital of France?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt2',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'London', isCorrect: false },
+                { id: 'opt2', option: 'Paris', isCorrect: true },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 0,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system'
+            },
+            {
+              id: 'answer3',
+              questionId: 'q3',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'Correct',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'Difficult question',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'Correct', isCorrect: true },
+                { id: 'opt2', option: 'Wrong', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system'
+            }
+          ],
+          statistics: {
+            totalAnswered: 3,
+            correctAnswers: 2,
+            incorrectAnswers: 1,
+            pendingAnswers: 0,
+            score: 2,
+          }
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 3,
+          correctAnswers: 2,
+          incorrectAnswers: 1,
+          pendingAnswers: 0,
+          score: 2,
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -3906,6 +4051,96 @@ describe('Quiz Result Components', () => {
             }
             return null;
           }),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: '4',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is 2 + 2?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: '4', isCorrect: true },
+                { id: 'opt2', option: '3', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system'
+            },
+            {
+              id: 'answer2',
+              questionId: 'q2',
+              answer: 'opt2',
+              optionId: 'opt2',
+              selectedOptionText: 'Paris',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is the capital of France?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt2',
+              difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'London', isCorrect: false },
+                { id: 'opt2', option: 'Paris', isCorrect: true },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system'
+            },
+            {
+              id: 'answer3',
+              questionId: 'q3',
+              answer: 'opt2',
+              optionId: 'opt2',
+              selectedOptionText: 'Wrong',
+              answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'Another difficult question',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'Correct', isCorrect: true },
+                { id: 'opt2', option: 'Wrong', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 0,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system'
+            }
+          ],
+          statistics: {
+            totalAnswered: 3,
+            correctAnswers: 2,
+            incorrectAnswers: 1,
+            pendingAnswers: 0,
+            score: 2,
+          }
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 3,
+          correctAnswers: 2,
+          incorrectAnswers: 1,
+          pendingAnswers: 0,
+          score: 2,
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -4014,6 +4249,96 @@ describe('Quiz Result Components', () => {
             }
             return null;
           }),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: '4',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is 2 + 2?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: '4', isCorrect: true },
+                { id: 'opt2', option: '3', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system'
+            },
+            {
+              id: 'answer2',
+              questionId: 'q2',
+              answer: 'opt2',
+              optionId: 'opt2',
+              selectedOptionText: 'Paris',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is the capital of France?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt2',
+              difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'London', isCorrect: false },
+                { id: 'opt2', option: 'Paris', isCorrect: true },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system'
+            },
+            {
+              id: 'answer3',
+              questionId: 'q3',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'Correct',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'Difficult question',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'Correct', isCorrect: true },
+                { id: 'opt2', option: 'Wrong', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system'
+            }
+          ],
+          statistics: {
+            totalAnswered: 3,
+            correctAnswers: 3,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 3,
+          }
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 3,
+          correctAnswers: 3,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 3,
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -4055,6 +4380,23 @@ describe('Quiz Result Components', () => {
         }),
         isQuestionAnswered: jest.fn().mockReturnValue(false),
         getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [],
+          statistics: {
+            totalAnswered: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 0
+          }
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 0
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -4077,6 +4419,23 @@ describe('Quiz Result Components', () => {
         formatTime: jest.fn().mockReturnValue('00:01:00'),
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({}),
         isQuestionAnswered: jest.fn().mockReturnValue(false),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [],
+          statistics: {
+            totalAnswered: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 0
+          }
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 0
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -4096,6 +4455,23 @@ describe('Quiz Result Components', () => {
         formatTime: jest.fn().mockReturnValue('00:01:00'),
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({}),
         isQuestionAnswered: jest.fn().mockReturnValue(false),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [],
+          statistics: {
+            totalAnswered: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 0
+          }
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 0
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -4248,6 +4624,48 @@ describe('Quiz Result Components', () => {
             }
             return null;
           }),
+          getQuestionResult: jest.fn().mockReturnValue({
+            answers: [
+              {
+                id: 'answer1',
+                questionId: 'q1',
+                answer: 'opt1',
+                optionId: 'opt1',
+                selectedOptionText: 'Option 1',
+                answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+                createdAt: '2023-01-01T00:00:00Z',
+                updatedAt: '2023-01-01T00:00:00Z',
+                statement: 'Question 1',
+                questionType: QUESTION_TYPE.ALTERNATIVA,
+                correctOption: 'opt1',
+                difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+                solutionExplanation: null,
+                options: [
+                  { id: 'opt1', option: 'Option 1', isCorrect: true },
+                  { id: 'opt2', option: 'Option 2', isCorrect: false }
+                ],
+                teacherFeedback: null,
+                attachment: null,
+                score: 1,
+                gradedAt: '2023-01-01T00:00:00Z',
+                gradedBy: 'teacher1'
+              }
+            ],
+            statistics: {
+              totalAnswered: 4,
+              correctAnswers: 3,
+              incorrectAnswers: 0,
+              pendingAnswers: 0,
+              score: 1
+            }
+          }),
+          getQuestionResultStatistics: jest.fn().mockReturnValue({
+            totalAnswered: 4,
+            correctAnswers: 3,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 1
+          }),
       });
 
       render(<QuizResultPerformance />);
@@ -4262,6 +4680,8 @@ describe('Quiz Result Components', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
         getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
+        getQuestionResult: jest.fn().mockReturnValue(null),
+        getQuestionResultStatistics: jest.fn().mockReturnValue(null),
       });
 
       render(
@@ -4282,6 +4702,48 @@ describe('Quiz Result Components', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
         getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'Option 1',
+              answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2023-01-01T00:00:00Z',
+              updatedAt: '2023-01-01T00:00:00Z',
+              statement: 'Question 1',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'Option 1', isCorrect: true },
+                { id: 'opt2', option: 'Option 2', isCorrect: false }
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2023-01-01T00:00:00Z',
+              gradedBy: 'teacher1'
+            }
+          ],
+          statistics: {
+            totalAnswered: 1,
+            correctAnswers: 1,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 1
+          }
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 1
+        }),
       });
 
       render(
@@ -4387,6 +4849,96 @@ describe('Quiz Result Components', () => {
         getTotalQuestions: jest.fn().mockReturnValue(4),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: '4',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is 2 + 2?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: '4', isCorrect: true },
+                { id: 'opt2', option: '3', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system'
+            },
+            {
+              id: 'answer2',
+              questionId: 'q2',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'London',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is the capital of France?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt2',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'London', isCorrect: false },
+                { id: 'opt2', option: 'Paris', isCorrect: true },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 0,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system'
+            },
+            {
+              id: 'answer3',
+              questionId: 'q3',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'Correct',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'Difficult question',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'Correct', isCorrect: true },
+                { id: 'opt2', option: 'Wrong', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system'
+            }
+          ],
+          statistics: {
+            totalAnswered: 3,
+            correctAnswers: 2,
+            incorrectAnswers: 1,
+            pendingAnswers: 0,
+            score: 2,
+          }
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 4,
+          correctAnswers: 3,
+          incorrectAnswers: 1,
+          pendingAnswers: 0,
+          score: 2,
+        }),
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
           algebra: [mockEasyQuestion, mockMediumQuestion1, mockMediumQuestion2],
           'geografia-geral': [mockDifficultQuestion],

@@ -31,49 +31,51 @@ export enum ANSWER_STATUS {
 }
 
 export interface QuestionResult {
-  id: string,
-  questionId: string,
-  answer: string | null,
-  optionId: string | null,
-  selectedOptionText: string | null,
-  answerStatus: QUESTION_STATUS,
-  statement: string,
-  questionType: QUESTION_TYPE,
-  difficultyLevel: QUESTION_DIFFICULTY,
-  solutionExplanation: string | null,
-  correctOption: string,
-  teacherFeedback: string | null,
-  attachment: string | null,
-  score: number | null,
-  gradedAt: string | null,
-  gradedBy: string | null,
-  createdAt: string,
-  updatedAt: string,
-  options: {
+  answers: {
     id: string;
-    option: string;
-    isCorrect: boolean;
+    questionId: string;
+    answer: string | null;
+    optionId: string;
+    selectedOptionText: string | null;
+    answerStatus: QUESTION_STATUS;
+    createdAt: string;
+    updatedAt: string;
+    statement: string;
+    questionType: QUESTION_TYPE;
+    correctOption: string;
+    difficultyLevel: QUESTION_DIFFICULTY;
+    solutionExplanation: string | null;
+    options: {
+      id: string;
+      option: string;
+      isCorrect: boolean;
+    }[];
+    teacherFeedback: string | null;
+    attachment: string | null;
+    score: number | null;
+    gradedAt: string | null;
+    gradedBy: string;
   }[];
-  knowledgeMatrix: {
-    areaKnowledgeId: string;
-    subjectId: string;
-    topicId: string;
-    subtopicId: string;
-    contentId: string;
-  }[];
+  statistics: {
+    totalAnswered: number;
+    correctAnswers: number;
+    incorrectAnswers: number;
+    pendingAnswers: number;
+    score: number;
+  };
 }
 
 export interface Question {
-  id: string,
-  questionText: string,
-  questionType: QUESTION_TYPE,
-  difficultyLevel: QUESTION_DIFFICULTY,
-  description: string,
-  examBoard: string | null,
-  examYear: string | null,
-  solutionExplanation:  string | null,
-  answer: null,
-  answerStatus: QUESTION_STATUS,
+  id: string;
+  questionText: string;
+  questionType: QUESTION_TYPE;
+  difficultyLevel: QUESTION_DIFFICULTY;
+  description: string;
+  examBoard: string | null;
+  examYear: string | null;
+  solutionExplanation: string | null;
+  answer: null;
+  answerStatus: QUESTION_STATUS;
   options: {
     id: string;
     option: string;
@@ -89,31 +91,31 @@ export interface Question {
 }
 
 interface Simulado {
-  id: string,
-  title: string,
-  type: string,
-  subtype: string,
-  difficulty: string | null,
-  notification: string | null,
-  status: string,
-  startDate: Date | null,
-  finalDate: Date | null,
-  canRetry: boolean,
-  createdAt: Date | null,
-  updatedAt: Date | null,
-  questions: Question[] | QuestionResult[];
+  id: string;
+  title: string;
+  type: string;
+  subtype: string;
+  difficulty: string | null;
+  notification: string | null;
+  status: string;
+  startDate: Date | null;
+  finalDate: Date | null;
+  canRetry: boolean;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+  questions: Question[];
 }
 
 interface Atividade {
   id: string;
   title: string;
-  questions: Question[] | QuestionResult[];
+  questions: Question[];
 }
 
 interface Aula {
   id: string;
   title: string;
-  questions: Question[] | QuestionResult[];
+  questions: Question[];
 }
 
 interface UserAnswerItem {
@@ -134,7 +136,6 @@ interface QuizState {
 
   // UI State
   currentQuestionIndex: number;
-  questionsResult: QuestionResult | null;
   selectedAnswers: Record<string, string>;
   userAnswers: UserAnswerItem[];
   timeElapsed: number;
@@ -189,7 +190,7 @@ interface QuizState {
   formatTime: (seconds: number) => string;
   getUserAnswers: () => UserAnswerItem[];
   getUnansweredQuestionsFromUserAnswers: () => number[];
-  getQuestionsGroupedBySubject: () => { [key: string]: QuestionResult[] };
+  getQuestionsGroupedBySubject: () => { [key: string]: Question[] };
   getUserId: () => string;
   setCurrentQuestion: (question: Question) => void;
 
@@ -201,10 +202,19 @@ interface QuizState {
     questionId: string
   ) => 'answered' | 'unanswered' | 'skipped';
   getUserAnswersForActivity: () => UserAnswerItem[];
-
   // Answer status management
   setAnswerStatus: (questionId: string, status: ANSWER_STATUS) => void;
   getAnswerStatus: (questionId: string) => ANSWER_STATUS | null;
+
+  // Question Result
+  questionsResult: QuestionResult | null;
+  currentQuestionResult: QuestionResult['answers'] | null;
+  setQuestionsResult: (questionsResult: QuestionResult) => void;
+  setCurrentQuestionResult: (currentQuestionResult: QuestionResult['answers']) => void;
+  getQuestionResultByQuestionId: (questionId: string) => QuestionResult['answers'][number] | null;
+  getQuestionResultStatistics: () => QuestionResult['statistics'] | null;
+  getQuestionResult: () => QuestionResult | null;
+  getCurrentQuestionResult: () => QuestionResult['answers'] | null;
 }
 
 export const useQuizStore = create<QuizState>()(
@@ -244,6 +254,8 @@ export const useQuizStore = create<QuizState>()(
         isFinished: false,
         userId: '',
         variant: 'default',
+        questionsResult: null,
+        currentQuestionResult: null,
         // Setters
         setBySimulated: (simulado) => set({ bySimulated: simulado }),
         setByActivity: (atividade) => set({ byActivity: atividade }),
@@ -319,9 +331,13 @@ export const useQuizStore = create<QuizState>()(
             activityId,
             userId,
             answer:
-              question.questionType === QUESTION_TYPE.DISSERTATIVA ? answerId : null,
+              question.questionType === QUESTION_TYPE.DISSERTATIVA
+                ? answerId
+                : null,
             optionId:
-              question.questionType === QUESTION_TYPE.DISSERTATIVA ? null : answerId,
+              question.questionType === QUESTION_TYPE.DISSERTATIVA
+                ? null
+                : answerId,
             questionType: question.questionType,
             answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
           };
@@ -406,7 +422,10 @@ export const useQuizStore = create<QuizState>()(
           const question = activeQuiz.quiz.questions.find(
             (q) => q.id === questionId
           );
-          if (!question || question.questionType !== QUESTION_TYPE.DISSERTATIVA) {
+          if (
+            !question ||
+            question.questionType !== QUESTION_TYPE.DISSERTATIVA
+          ) {
             console.warn(
               'selectDissertativeAnswer called for non-dissertative question'
             );
@@ -733,7 +752,7 @@ export const useQuizStore = create<QuizState>()(
 
           activeQuiz.quiz.questions.forEach((question) => {
             const subjectId =
-              (question as QuestionResult).knowledgeMatrix?.[0]?.subjectId || 'Sem matéria';
+              question.knowledgeMatrix?.[0]?.subjectId || 'Sem matéria';
 
             if (!groupedQuestions[subjectId]) {
               groupedQuestions[subjectId] = [];
@@ -822,11 +841,37 @@ export const useQuizStore = create<QuizState>()(
           const { getActiveQuiz } = get();
           const activeQuiz = getActiveQuiz();
           if (!activeQuiz) return 0;
-
+          
           const questionIndex = activeQuiz.quiz.questions.findIndex(
             (q) => q.id === questionId
           );
           return questionIndex + 1;
+        },
+        
+        // Question Result
+        getQuestionResultByQuestionId: (questionId) => {
+          const { questionsResult } = get();
+          return questionsResult?.answers.find(
+            (answer) => answer.questionId === questionId
+          ) || null;
+        },
+        getQuestionResultStatistics: () => {
+          const { questionsResult } = get();
+          return questionsResult?.statistics || null;
+        },
+        getQuestionResult: () => {
+          const { questionsResult } = get();
+          return questionsResult;
+        },
+        setQuestionsResult: (questionsResult) => {
+          set({ questionsResult });
+        },
+        setCurrentQuestionResult: (currentQuestionResult) => {
+          set({ currentQuestionResult });
+        },
+        getCurrentQuestionResult: () => {
+          const { currentQuestionResult } = get();
+          return currentQuestionResult;
         },
       };
     },

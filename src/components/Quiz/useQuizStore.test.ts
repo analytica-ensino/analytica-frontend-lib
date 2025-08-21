@@ -2309,7 +2309,7 @@ describe('useQuizStore', () => {
     const mockDissertativeQuestion = {
       ...mockQuestion1,
       id: 'dissertative-q1',
-      type: QUESTION_TYPE.DISSERTATIVA,
+      questionType: QUESTION_TYPE.DISSERTATIVA,
       options: [], // Dissertative questions don't have options
     };
 
