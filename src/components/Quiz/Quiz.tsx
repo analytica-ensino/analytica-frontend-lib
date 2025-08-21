@@ -33,7 +33,6 @@ import {
   QUESTION_DIFFICULTY,
   QUESTION_TYPE,
   ANSWER_STATUS,
-  QuestionResult,
   QUESTION_STATUS,
 } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
@@ -107,17 +106,22 @@ const Quiz = forwardRef<
 
 const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
   ({ className, ...props }, ref) => {
-    const { getQuestionResultByQuestionId, getCurrentQuestion } = useQuizStore();
+    const { getQuestionResultByQuestionId, getCurrentQuestion } =
+      useQuizStore();
     const [isCorrect, setIsCorrect] = useState(false);
 
     useEffect(() => {
       const currentQuestion = getCurrentQuestion();
       if (currentQuestion) {
-        const questionResult = getQuestionResultByQuestionId(currentQuestion.id);
-        
+        const questionResult = getQuestionResultByQuestionId(
+          currentQuestion.id
+        );
+
         if (questionResult) {
           // QuestionResult contains the answer status from backend
-          setIsCorrect(questionResult.answerStatus === QUESTION_STATUS.RESPOSTA_CORRETA);
+          setIsCorrect(
+            questionResult.answerStatus === QUESTION_STATUS.RESPOSTA_CORRETA
+          );
         } else {
           setIsCorrect(false);
         }
@@ -233,7 +237,7 @@ const QuizContent = forwardRef<
   {
     paddingBottom?: string;
   }
->(({ paddingBottom }, ref) => {
+>(({ paddingBottom }) => {
   const { getCurrentQuestion, variant } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
 
@@ -281,8 +285,8 @@ const QuizAlternative = ({
     let status: Status = Status.NEUTRAL;
 
     if (variant === 'result') {
-      const isCorrectOption = currentQuestion.options.find(
-        (op) => currentQuestion.correctOptionIds?.includes(op.id)
+      const isCorrectOption = currentQuestion.options.find((op) =>
+        currentQuestion.correctOptionIds?.includes(op.id)
       );
 
       if (isCorrectOption?.id === option.id) {
@@ -1366,7 +1370,6 @@ const QuizFooter = forwardRef<
   ) => {
     const {
       currentQuestionIndex,
-      getUserAnswers,
       getTotalQuestions,
       goToNextQuestion,
       goToPreviousQuestion,
@@ -1376,7 +1379,7 @@ const QuizFooter = forwardRef<
       getCurrentQuestion,
       getQuestionStatusFromUserAnswers,
       variant,
-      getQuestionResultStatistics
+      getQuestionResultStatistics,
     } = useQuizStore();
 
     const totalQuestions = getTotalQuestions();
@@ -1393,7 +1396,6 @@ const QuizFooter = forwardRef<
     const [modalResolutionOpen, setModalResolutionOpen] = useState(false);
     const [filterType, setFilterType] = useState('all');
     const unansweredQuestions = getUnansweredQuestionsFromUserAnswers();
-    const userAnswers = getUserAnswers();
     const allQuestions = getTotalQuestions();
 
     const handleFinishQuiz = async () => {
@@ -1559,7 +1561,9 @@ const QuizFooter = forwardRef<
                 Você concluiu o simulado!
               </h2>
               <p className="text-text-500 font-sm">
-                Você acertou {getQuestionResultStatistics()?.correctAnswers ?? '--'} de {allQuestions} questões.
+                Você acertou{' '}
+                {getQuestionResultStatistics()?.correctAnswers ?? '--'} de{' '}
+                {allQuestions} questões.
               </p>
             </div>
 
@@ -1673,17 +1677,12 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
       getTotalQuestions,
       timeElapsed,
       formatTime,
-      bySimulated,
-      byActivity,
-      byQuestionary,
-      getUserAnswerByQuestionId,
       getQuestionResultStatistics,
-      getQuestionResult
+      getQuestionResult,
     } = useQuizStore();
 
     const totalQuestions = getTotalQuestions();
     const questionResult = getQuestionResult();
-    const quiz = bySimulated || byActivity || byQuestionary;
 
     let correctAnswers = 0;
     let correctEasyAnswers = 0;
@@ -1695,7 +1694,8 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
 
     if (questionResult) {
       questionResult.answers.forEach((answer) => {
-        const isCorrect = answer.answerStatus == QUESTION_STATUS.RESPOSTA_CORRETA;
+        const isCorrect =
+          answer.answerStatus == QUESTION_STATUS.RESPOSTA_CORRETA;
 
         if (isCorrect) {
           correctAnswers++;
@@ -1749,7 +1749,8 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
             </div>
 
             <div className="text-2xl font-medium text-text-800 leading-7">
-              {getQuestionResultStatistics()?.correctAnswers ?? '--'} de {totalQuestions}
+              {getQuestionResultStatistics()?.correctAnswers ?? '--'} de{' '}
+              {totalQuestions}
             </div>
 
             <div className="text-2xs font-medium text-text-600 mt-1">

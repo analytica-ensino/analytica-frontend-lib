@@ -1935,7 +1935,7 @@ describe('Quiz Component', () => {
           correctAnswers: 1,
           incorrectAnswers: 1,
           pendingAnswers: 0,
-          score: 1
+          score: 1,
         }),
         getUserAnswers: jest.fn().mockReturnValue([
           {
@@ -1977,7 +1977,7 @@ describe('Quiz Component', () => {
           correctAnswers: 0,
           incorrectAnswers: 1,
           pendingAnswers: 0,
-          score: 0
+          score: 0,
         }),
         getUserAnswers: jest.fn().mockReturnValue([
           {
@@ -2253,7 +2253,8 @@ describe('Quiz Component', () => {
       });
 
       it('should open resolution modal when "Ver Resolução" button is clicked', () => {
-        const mockSolutionExplanation = 'Esta é a resolução detalhada da questão';
+        const mockSolutionExplanation =
+          'Esta é a resolução detalhada da questão';
         mockUseQuizStore.mockReturnValue({
           ...createMockUseQuizStore(),
           variant: 'result',
@@ -3666,29 +3667,29 @@ describe('Quiz Result Components', () => {
               solutionExplanation: null,
               options: [
                 { id: 'opt1', option: 'Option 1', isCorrect: true },
-                { id: 'opt2', option: 'Option 2', isCorrect: false }
+                { id: 'opt2', option: 'Option 2', isCorrect: false },
               ],
               teacherFeedback: null,
               attachment: null,
               score: 1,
               gradedAt: '2023-01-01T00:00:00Z',
-              gradedBy: 'teacher1'
-            }
+              gradedBy: 'teacher1',
+            },
           ],
           statistics: {
             totalAnswered: 1,
             correctAnswers: 1,
             incorrectAnswers: 0,
             pendingAnswers: 0,
-            score: 1
-          }
+            score: 1,
+          },
         }),
         getQuestionResultStatistics: jest.fn().mockReturnValue({
           totalAnswered: 1,
           correctAnswers: 1,
           incorrectAnswers: 0,
           pendingAnswers: 0,
-          score: 1
+          score: 1,
         }),
       });
 
@@ -3733,15 +3734,15 @@ describe('Quiz Result Components', () => {
             correctAnswers: 0,
             incorrectAnswers: 0,
             pendingAnswers: 0,
-            score: 0
-          }
+            score: 0,
+          },
         }),
         getQuestionResultStatistics: jest.fn().mockReturnValue({
           totalAnswered: 0,
           correctAnswers: 0,
           incorrectAnswers: 0,
           pendingAnswers: 0,
-          score: 0
+          score: 0,
         }),
       });
 
@@ -3875,7 +3876,7 @@ describe('Quiz Result Components', () => {
               attachment: null,
               score: 1,
               gradedAt: '2024-01-01T00:00:00Z',
-              gradedBy: 'system'
+              gradedBy: 'system',
             },
             {
               id: 'answer2',
@@ -3899,7 +3900,7 @@ describe('Quiz Result Components', () => {
               attachment: null,
               score: 0,
               gradedAt: '2024-01-01T00:00:00Z',
-              gradedBy: 'system'
+              gradedBy: 'system',
             },
             {
               id: 'answer3',
@@ -3923,8 +3924,8 @@ describe('Quiz Result Components', () => {
               attachment: null,
               score: 1,
               gradedAt: '2024-01-01T00:00:00Z',
-              gradedBy: 'system'
-            }
+              gradedBy: 'system',
+            },
           ],
           statistics: {
             totalAnswered: 3,
@@ -3932,7 +3933,7 @@ describe('Quiz Result Components', () => {
             incorrectAnswers: 1,
             pendingAnswers: 0,
             score: 2,
-          }
+          },
         }),
         getQuestionResultStatistics: jest.fn().mockReturnValue({
           totalAnswered: 3,
@@ -4075,7 +4076,7 @@ describe('Quiz Result Components', () => {
               attachment: null,
               score: 1,
               gradedAt: '2024-01-01T00:00:00Z',
-              gradedBy: 'system'
+              gradedBy: 'system',
             },
             {
               id: 'answer2',
@@ -4099,7 +4100,7 @@ describe('Quiz Result Components', () => {
               attachment: null,
               score: 1,
               gradedAt: '2024-01-01T00:00:00Z',
-              gradedBy: 'system'
+              gradedBy: 'system',
             },
             {
               id: 'answer3',
@@ -4123,8 +4124,8 @@ describe('Quiz Result Components', () => {
               attachment: null,
               score: 0,
               gradedAt: '2024-01-01T00:00:00Z',
-              gradedBy: 'system'
-            }
+              gradedBy: 'system',
+            },
           ],
           statistics: {
             totalAnswered: 3,
@@ -4132,7 +4133,7 @@ describe('Quiz Result Components', () => {
             incorrectAnswers: 1,
             pendingAnswers: 0,
             score: 2,
-          }
+          },
         }),
         getQuestionResultStatistics: jest.fn().mockReturnValue({
           totalAnswered: 3,
@@ -4273,7 +4274,7 @@ describe('Quiz Result Components', () => {
               attachment: null,
               score: 1,
               gradedAt: '2024-01-01T00:00:00Z',
-              gradedBy: 'system'
+              gradedBy: 'system',
             },
             {
               id: 'answer2',
@@ -4297,7 +4298,7 @@ describe('Quiz Result Components', () => {
               attachment: null,
               score: 1,
               gradedAt: '2024-01-01T00:00:00Z',
-              gradedBy: 'system'
+              gradedBy: 'system',
             },
             {
               id: 'answer3',
@@ -4321,8 +4322,8 @@ describe('Quiz Result Components', () => {
               attachment: null,
               score: 1,
               gradedAt: '2024-01-01T00:00:00Z',
-              gradedBy: 'system'
-            }
+              gradedBy: 'system',
+            },
           ],
           statistics: {
             totalAnswered: 3,
@@ -4330,7 +4331,7 @@ describe('Quiz Result Components', () => {
             incorrectAnswers: 0,
             pendingAnswers: 0,
             score: 3,
-          }
+          },
         }),
         getQuestionResultStatistics: jest.fn().mockReturnValue({
           totalAnswered: 3,
@@ -4387,15 +4388,15 @@ describe('Quiz Result Components', () => {
             correctAnswers: 0,
             incorrectAnswers: 0,
             pendingAnswers: 0,
-            score: 0
-          }
+            score: 0,
+          },
         }),
         getQuestionResultStatistics: jest.fn().mockReturnValue({
           totalAnswered: 0,
           correctAnswers: 0,
           incorrectAnswers: 0,
           pendingAnswers: 0,
-          score: 0
+          score: 0,
         }),
       });
 
@@ -4426,15 +4427,15 @@ describe('Quiz Result Components', () => {
             correctAnswers: 0,
             incorrectAnswers: 0,
             pendingAnswers: 0,
-            score: 0
-          }
+            score: 0,
+          },
         }),
         getQuestionResultStatistics: jest.fn().mockReturnValue({
           totalAnswered: 0,
           correctAnswers: 0,
           incorrectAnswers: 0,
           pendingAnswers: 0,
-          score: 0
+          score: 0,
         }),
       });
 
@@ -4462,15 +4463,15 @@ describe('Quiz Result Components', () => {
             correctAnswers: 0,
             incorrectAnswers: 0,
             pendingAnswers: 0,
-            score: 0
-          }
+            score: 0,
+          },
         }),
         getQuestionResultStatistics: jest.fn().mockReturnValue({
           totalAnswered: 0,
           correctAnswers: 0,
           incorrectAnswers: 0,
           pendingAnswers: 0,
-          score: 0
+          score: 0,
         }),
       });
 
@@ -4624,48 +4625,48 @@ describe('Quiz Result Components', () => {
             }
             return null;
           }),
-          getQuestionResult: jest.fn().mockReturnValue({
-            answers: [
-              {
-                id: 'answer1',
-                questionId: 'q1',
-                answer: 'opt1',
-                optionId: 'opt1',
-                selectedOptionText: 'Option 1',
-                answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
-                createdAt: '2023-01-01T00:00:00Z',
-                updatedAt: '2023-01-01T00:00:00Z',
-                statement: 'Question 1',
-                questionType: QUESTION_TYPE.ALTERNATIVA,
-                correctOption: 'opt1',
-                difficultyLevel: QUESTION_DIFFICULTY.FACIL,
-                solutionExplanation: null,
-                options: [
-                  { id: 'opt1', option: 'Option 1', isCorrect: true },
-                  { id: 'opt2', option: 'Option 2', isCorrect: false }
-                ],
-                teacherFeedback: null,
-                attachment: null,
-                score: 1,
-                gradedAt: '2023-01-01T00:00:00Z',
-                gradedBy: 'teacher1'
-              }
-            ],
-            statistics: {
-              totalAnswered: 4,
-              correctAnswers: 3,
-              incorrectAnswers: 0,
-              pendingAnswers: 0,
-              score: 1
-            }
-          }),
-          getQuestionResultStatistics: jest.fn().mockReturnValue({
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'Option 1',
+              answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2023-01-01T00:00:00Z',
+              updatedAt: '2023-01-01T00:00:00Z',
+              statement: 'Question 1',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'Option 1', isCorrect: true },
+                { id: 'opt2', option: 'Option 2', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2023-01-01T00:00:00Z',
+              gradedBy: 'teacher1',
+            },
+          ],
+          statistics: {
             totalAnswered: 4,
             correctAnswers: 3,
             incorrectAnswers: 0,
             pendingAnswers: 0,
-            score: 1
-          }),
+            score: 1,
+          },
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 4,
+          correctAnswers: 3,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 1,
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -4720,29 +4721,29 @@ describe('Quiz Result Components', () => {
               solutionExplanation: null,
               options: [
                 { id: 'opt1', option: 'Option 1', isCorrect: true },
-                { id: 'opt2', option: 'Option 2', isCorrect: false }
+                { id: 'opt2', option: 'Option 2', isCorrect: false },
               ],
               teacherFeedback: null,
               attachment: null,
               score: 1,
               gradedAt: '2023-01-01T00:00:00Z',
-              gradedBy: 'teacher1'
-            }
+              gradedBy: 'teacher1',
+            },
           ],
           statistics: {
             totalAnswered: 1,
             correctAnswers: 1,
             incorrectAnswers: 0,
             pendingAnswers: 0,
-            score: 1
-          }
+            score: 1,
+          },
         }),
         getQuestionResultStatistics: jest.fn().mockReturnValue({
           totalAnswered: 1,
           correctAnswers: 1,
           incorrectAnswers: 0,
           pendingAnswers: 0,
-          score: 1
+          score: 1,
         }),
       });
 
@@ -4873,7 +4874,7 @@ describe('Quiz Result Components', () => {
               attachment: null,
               score: 1,
               gradedAt: '2024-01-01T00:00:00Z',
-              gradedBy: 'system'
+              gradedBy: 'system',
             },
             {
               id: 'answer2',
@@ -4897,7 +4898,7 @@ describe('Quiz Result Components', () => {
               attachment: null,
               score: 0,
               gradedAt: '2024-01-01T00:00:00Z',
-              gradedBy: 'system'
+              gradedBy: 'system',
             },
             {
               id: 'answer3',
@@ -4921,8 +4922,8 @@ describe('Quiz Result Components', () => {
               attachment: null,
               score: 1,
               gradedAt: '2024-01-01T00:00:00Z',
-              gradedBy: 'system'
-            }
+              gradedBy: 'system',
+            },
           ],
           statistics: {
             totalAnswered: 3,
@@ -4930,7 +4931,7 @@ describe('Quiz Result Components', () => {
             incorrectAnswers: 1,
             pendingAnswers: 0,
             score: 2,
-          }
+          },
         }),
         getQuestionResultStatistics: jest.fn().mockReturnValue({
           totalAnswered: 4,

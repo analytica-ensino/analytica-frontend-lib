@@ -210,8 +210,12 @@ interface QuizState {
   questionsResult: QuestionResult | null;
   currentQuestionResult: QuestionResult['answers'] | null;
   setQuestionsResult: (questionsResult: QuestionResult) => void;
-  setCurrentQuestionResult: (currentQuestionResult: QuestionResult['answers']) => void;
-  getQuestionResultByQuestionId: (questionId: string) => QuestionResult['answers'][number] | null;
+  setCurrentQuestionResult: (
+    currentQuestionResult: QuestionResult['answers']
+  ) => void;
+  getQuestionResultByQuestionId: (
+    questionId: string
+  ) => QuestionResult['answers'][number] | null;
   getQuestionResultStatistics: () => QuestionResult['statistics'] | null;
   getQuestionResult: () => QuestionResult | null;
   getCurrentQuestionResult: () => QuestionResult['answers'] | null;
@@ -841,19 +845,21 @@ export const useQuizStore = create<QuizState>()(
           const { getActiveQuiz } = get();
           const activeQuiz = getActiveQuiz();
           if (!activeQuiz) return 0;
-          
+
           const questionIndex = activeQuiz.quiz.questions.findIndex(
             (q) => q.id === questionId
           );
           return questionIndex + 1;
         },
-        
+
         // Question Result
         getQuestionResultByQuestionId: (questionId) => {
           const { questionsResult } = get();
-          return questionsResult?.answers.find(
-            (answer) => answer.questionId === questionId
-          ) || null;
+          return (
+            questionsResult?.answers.find(
+              (answer) => answer.questionId === questionId
+            ) || null
+          );
         },
         getQuestionResultStatistics: () => {
           const { questionsResult } = get();
