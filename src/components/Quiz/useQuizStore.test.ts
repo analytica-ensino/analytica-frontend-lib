@@ -2875,4 +2875,327 @@ describe('useQuizStore', () => {
       expect(questionIndex).toBe(0);
     });
   });
+
+  describe('Question Result Functions', () => {
+    // Reset store state before each test in this describe block
+    beforeEach(() => {
+      act(() => {
+        useQuizStore.getState().setQuestionsResult(null as any);
+        useQuizStore.getState().setCurrentQuestionResult(null as any);
+      });
+    });
+
+    const mockQuestionResult = {
+      answers: [
+        {
+          id: 'answer1',
+          questionId: 'q1',
+          answer: 'opt1',
+          optionId: 'opt1',
+          selectedOptionText: '4',
+          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'What is 2 + 2?',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          correctOption: 'opt1',
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          solutionExplanation: 'The answer is 4',
+          options: [
+            { id: 'opt1', option: '4', isCorrect: true },
+            { id: 'opt2', option: '3', isCorrect: false },
+          ],
+          teacherFeedback: null,
+          attachment: null,
+          score: 100,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+        {
+          id: 'answer2',
+          questionId: 'q2',
+          answer: 'opt2',
+          optionId: 'opt2',
+          selectedOptionText: 'Paris',
+          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'What is the capital of France?',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          correctOption: 'opt2',
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          solutionExplanation: 'Paris is the capital of France',
+          options: [
+            { id: 'opt1', option: 'London', isCorrect: false },
+            { id: 'opt2', option: 'Paris', isCorrect: true },
+          ],
+          teacherFeedback: null,
+          attachment: null,
+          score: 100,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+      ],
+      statistics: {
+        totalAnswered: 2,
+        correctAnswers: 2,
+        incorrectAnswers: 0,
+        pendingAnswers: 0,
+        score: 100,
+      },
+    };
+
+    describe('setQuestionsResult', () => {
+      it('should set questions result data', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setQuestionsResult(mockQuestionResult);
+        });
+
+        expect(useQuizStore.getState().questionsResult).toEqual(mockQuestionResult);
+      });
+
+      it('should handle null questions result', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setQuestionsResult(null as any);
+        });
+
+        expect(useQuizStore.getState().questionsResult).toBeNull();
+      });
+    });
+
+    describe('getQuestionResult', () => {
+      it('should return complete question result data', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setQuestionsResult(mockQuestionResult);
+        });
+
+        const questionResult = result.current.getQuestionResult();
+
+        expect(questionResult).toEqual(mockQuestionResult);
+      });
+
+      it('should return null when no question result is set', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const questionResult = result.current.getQuestionResult();
+
+        expect(questionResult).toBeNull();
+      });
+    });
+
+    describe('getQuestionResultStatistics', () => {
+      it('should return statistics from question result', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setQuestionsResult(mockQuestionResult);
+        });
+
+        const statistics = result.current.getQuestionResultStatistics();
+
+        expect(statistics).toEqual(mockQuestionResult.statistics);
+      });
+
+      it('should return null when no question result is set', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const statistics = result.current.getQuestionResultStatistics();
+
+        expect(statistics).toBeNull();
+      });
+
+      it('should return null when question result has no statistics', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const questionResultWithoutStats = {
+          answers: mockQuestionResult.answers,
+          statistics: null as any,
+        };
+
+        act(() => {
+          result.current.setQuestionsResult(questionResultWithoutStats);
+        });
+
+        const statistics = result.current.getQuestionResultStatistics();
+
+        expect(statistics).toBeNull();
+      });
+    });
+
+    describe('getQuestionResultByQuestionId', () => {
+      it('should return answer for existing question ID', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setQuestionsResult(mockQuestionResult);
+        });
+
+        const answer = result.current.getQuestionResultByQuestionId('q1');
+
+        expect(answer).toEqual(mockQuestionResult.answers[0]);
+      });
+
+      it('should return null for non-existing question ID', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setQuestionsResult(mockQuestionResult);
+        });
+
+        const answer = result.current.getQuestionResultByQuestionId('q999');
+
+        expect(answer).toBeNull();
+      });
+
+      it('should return null when no question result is set', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const answer = result.current.getQuestionResultByQuestionId('q1');
+
+        expect(answer).toBeNull();
+      });
+
+      it('should handle empty question ID', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setQuestionsResult(mockQuestionResult);
+        });
+
+        const answer = result.current.getQuestionResultByQuestionId('');
+
+        expect(answer).toBeNull();
+      });
+
+      it('should handle multiple answers for same question ID', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const questionResultWithDuplicates = {
+          ...mockQuestionResult,
+          answers: [
+            ...mockQuestionResult.answers,
+            {
+              ...mockQuestionResult.answers[0],
+              id: 'answer1_duplicate',
+            },
+          ],
+        };
+
+        act(() => {
+          result.current.setQuestionsResult(questionResultWithDuplicates);
+        });
+
+        const answer = result.current.getQuestionResultByQuestionId('q1');
+
+        // Should return the first match
+        expect(answer?.id).toBe('answer1');
+      });
+    });
+
+    describe('setCurrentQuestionResult', () => {
+      it('should set current question result data', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const currentQuestionResult = mockQuestionResult.answers;
+
+        act(() => {
+          result.current.setCurrentQuestionResult(currentQuestionResult);
+        });
+
+        expect(useQuizStore.getState().currentQuestionResult).toEqual(currentQuestionResult);
+      });
+
+      it('should handle null current question result', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setCurrentQuestionResult(null as any);
+        });
+
+        expect(useQuizStore.getState().currentQuestionResult).toBeNull();
+      });
+    });
+
+    describe('getCurrentQuestionResult', () => {
+      it('should return current question result data', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const currentQuestionResult = mockQuestionResult.answers;
+
+        act(() => {
+          result.current.setCurrentQuestionResult(currentQuestionResult);
+        });
+
+        const retrieved = result.current.getCurrentQuestionResult();
+
+        expect(retrieved).toEqual(currentQuestionResult);
+      });
+
+      it('should return null when no current question result is set', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const retrieved = result.current.getCurrentQuestionResult();
+
+        expect(retrieved).toBeNull();
+      });
+    });
+
+    describe('Integration tests', () => {
+      it('should work correctly with question result and statistics together', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setQuestionsResult(mockQuestionResult);
+        });
+
+        // Test getting specific question result
+        const q1Result = result.current.getQuestionResultByQuestionId('q1');
+        expect(q1Result?.answerStatus).toBe(QUESTION_STATUS.RESPOSTA_CORRETA);
+
+        // Test getting statistics
+        const stats = result.current.getQuestionResultStatistics();
+        expect(stats?.correctAnswers).toBe(2);
+        expect(stats?.score).toBe(100);
+
+        // Test getting complete result
+        const fullResult = result.current.getQuestionResult();
+        expect(fullResult?.answers).toHaveLength(2);
+      });
+
+      it('should handle question result updates correctly', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        // Set initial result
+        act(() => {
+          result.current.setQuestionsResult(mockQuestionResult);
+        });
+
+        expect(result.current.getQuestionResultStatistics()?.correctAnswers).toBe(2);
+
+        // Update with different result
+        const updatedResult = {
+          ...mockQuestionResult,
+          statistics: {
+            ...mockQuestionResult.statistics,
+            correctAnswers: 1,
+            incorrectAnswers: 1,
+            score: 50,
+          },
+        };
+
+        act(() => {
+          result.current.setQuestionsResult(updatedResult);
+        });
+
+        expect(result.current.getQuestionResultStatistics()?.correctAnswers).toBe(1);
+        expect(result.current.getQuestionResultStatistics()?.score).toBe(50);
+      });
+    });
+  });
 });
