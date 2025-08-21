@@ -580,6 +580,9 @@ export const useQuizStore = create<QuizState>()(
             isStarted: false,
             isFinished: false,
             userId: '',
+            variant: 'default',
+            questionsResult: null,
+            currentQuestionResult: null,
           });
         },
 
