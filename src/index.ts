@@ -75,6 +75,7 @@ import {
   CardTopic,
   CardTest,
   CardSimulationHistory,
+  CardAudio,
 } from './components/Card/Card';
 
 import {
@@ -195,6 +196,7 @@ export { CardStatus };
 export { CardTopic };
 export { CardTest };
 export { CardSimulationHistory };
+export { CardAudio };
 
 export { Skeleton };
 export { SkeletonText };
