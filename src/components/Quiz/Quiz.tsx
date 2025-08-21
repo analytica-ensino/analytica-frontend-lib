@@ -111,22 +111,18 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
     const [isCorrect, setIsCorrect] = useState(false);
 
     useEffect(() => {
-      const currentQuestion = getCurrentQuestion();
-      if (currentQuestion) {
-        const questionResult = getQuestionResultByQuestionId(
-          currentQuestion.id
-        );
-
-        if (questionResult) {
-          // QuestionResult contains the answer status from backend
-          setIsCorrect(
-            questionResult.answerStatus === QUESTION_STATUS.RESPOSTA_CORRETA
-          );
-        } else {
-          setIsCorrect(false);
-        }
+      const cq = getCurrentQuestion();
+      if (!cq) {
+        setIsCorrect(false);
+        return;
       }
-    }, [getCurrentQuestion(), getQuestionResultByQuestionId]);
+      const qr = getQuestionResultByQuestionId(cq.id);
+      setIsCorrect(qr?.answerStatus === QUESTION_STATUS.RESPOSTA_CORRETA);
+    }, [
+      getCurrentQuestion,
+      getQuestionResultByQuestionId,
+      getCurrentQuestion()?.id,
+    ]);
 
     return (
       <div

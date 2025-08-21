@@ -762,7 +762,7 @@ export const useQuizStore = create<QuizState>()(
               groupedQuestions[subjectId] = [];
             }
 
-            groupedQuestions[subjectId].push(question as Question);
+            groupedQuestions[subjectId].push(question);
           });
 
           return groupedQuestions;
