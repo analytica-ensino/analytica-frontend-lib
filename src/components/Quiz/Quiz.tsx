@@ -117,7 +117,7 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
           currentQuestion.id
         );
 
-        console.log(currentQuestion.id)
+        console.log(currentQuestion.id);
 
         if (questionResult) {
           // QuestionResult contains the answer status from backend

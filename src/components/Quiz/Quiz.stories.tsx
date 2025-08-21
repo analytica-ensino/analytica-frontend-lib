@@ -801,7 +801,8 @@ export const GeneralForResults: Story = () => {
         {
           id: 'answer1',
           questionId: 'q1-image',
-          answer: 'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
+          answer:
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           optionId: 'img_opt1',
           selectedOptionText: 'Resposta de imagem correta',
           answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
@@ -822,7 +823,8 @@ export const GeneralForResults: Story = () => {
         {
           id: 'answer2',
           questionId: 'q1-image-incorreta',
-          answer: 'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
+          answer:
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           optionId: 'img_opt2',
           selectedOptionText: 'Resposta de imagem incorreta',
           answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
@@ -834,7 +836,8 @@ export const GeneralForResults: Story = () => {
           difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           solutionExplanation: 'Brasília é a capital do Brasil desde 1960.',
           options: [],
-          teacherFeedback: 'Resposta incorreta. A capital do Brasil é Brasília.',
+          teacherFeedback:
+            'Resposta incorreta. A capital do Brasil é Brasília.',
           attachment: null,
           score: 0,
           gradedAt: '2024-01-01T00:00:00Z',
@@ -843,7 +846,8 @@ export const GeneralForResults: Story = () => {
         {
           id: 'answer3',
           questionId: 'q1-alt-correta',
-          answer: 'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
+          answer:
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           optionId: 'alt_opt1',
           selectedOptionText: 'Brasília',
           answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
@@ -869,7 +873,8 @@ export const GeneralForResults: Story = () => {
         {
           id: 'answer4',
           questionId: 'q2-alt-incorreta',
-          answer: 'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
+          answer:
+            'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
           optionId: 'alt_opt2',
           selectedOptionText: 'Resposta incorreta',
           answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
@@ -895,7 +900,8 @@ export const GeneralForResults: Story = () => {
         {
           id: 'answer5',
           questionId: 'q3-mult-correta',
-          answer: 'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
+          answer:
+            'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
           optionId: 'mult_opt1,mult_opt2',
           selectedOptionText: 'Saturno, Júpiter',
           answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
@@ -905,7 +911,8 @@ export const GeneralForResults: Story = () => {
           questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
           correctOption: 'mult_opt1,mult_opt2,mult_opt3',
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
-          solutionExplanation: 'Saturno, Júpiter, Urano e Netuno possuem anéis.',
+          solutionExplanation:
+            'Saturno, Júpiter, Urano e Netuno possuem anéis.',
           options: [
             { id: 'mult_opt1', option: 'Saturno', isCorrect: true },
             { id: 'mult_opt2', option: 'Júpiter', isCorrect: true },
@@ -921,7 +928,8 @@ export const GeneralForResults: Story = () => {
         {
           id: 'answer6',
           questionId: 'q4-mult-incorreta',
-          answer: 'Velocidade, Aceleração e Força são grandezas vetoriais. Temperatura é uma grandeza escalar.',
+          answer:
+            'Velocidade, Aceleração e Força são grandezas vetoriais. Temperatura é uma grandeza escalar.',
           optionId: 'mult_opt1,mult_opt3',
           selectedOptionText: 'Velocidade, Força',
           answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
@@ -947,7 +955,8 @@ export const GeneralForResults: Story = () => {
         {
           id: 'answer7',
           questionId: 'q5-diss-correta',
-          answer: 'A preservação ambiental é fundamental para garantir um futuro sustentável para as próximas gerações. O equilíbrio ecológico, a biodiversidade e os recursos naturais são essenciais para a sobrevivência humana e devem ser protegidos através de políticas públicas eficazes, educação ambiental e mudanças nos padrões de consumo.',
+          answer:
+            'A preservação ambiental é fundamental para garantir um futuro sustentável para as próximas gerações. O equilíbrio ecológico, a biodiversidade e os recursos naturais são essenciais para a sobrevivência humana e devem ser protegidos através de políticas públicas eficazes, educação ambiental e mudanças nos padrões de consumo.',
           optionId: 'diss_opt1',
           selectedOptionText: 'Resposta dissertativa sobre meio ambiente',
           answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
@@ -957,9 +966,11 @@ export const GeneralForResults: Story = () => {
           questionType: QUESTION_TYPE.DISSERTATIVA,
           correctOption: '',
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
-          solutionExplanation: 'A preservação ambiental é fundamental para sustentabilidade.',
+          solutionExplanation:
+            'A preservação ambiental é fundamental para sustentabilidade.',
           options: [],
-          teacherFeedback: 'Excelente resposta! Abordou todos os pontos importantes sobre preservação ambiental.',
+          teacherFeedback:
+            'Excelente resposta! Abordou todos os pontos importantes sobre preservação ambiental.',
           attachment: null,
           score: 95,
           gradedAt: '2024-01-01T00:00:00Z',
@@ -978,9 +989,11 @@ export const GeneralForResults: Story = () => {
           questionType: QUESTION_TYPE.DISSERTATIVA,
           correctOption: '',
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
-          solutionExplanation: 'Esperava-se uma resposta mais detalhada sobre as leis de Newton.',
+          solutionExplanation:
+            'Esperava-se uma resposta mais detalhada sobre as leis de Newton.',
           options: [],
-          teacherFeedback: 'Resposta muito superficial. Explique melhor as três leis de Newton e suas aplicações.',
+          teacherFeedback:
+            'Resposta muito superficial. Explique melhor as três leis de Newton e suas aplicações.',
           attachment: null,
           score: 20,
           gradedAt: '2024-01-01T00:00:00Z',
@@ -1356,7 +1369,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           solutionExplanation:
             'A química é uma ciência fundamental que estuda a composição, estrutura e propriedades da matéria.',
           options: [],
-          teacherFeedback: 'Excelente resposta, demonstra conhecimento aprofundado.',
+          teacherFeedback:
+            'Excelente resposta, demonstra conhecimento aprofundado.',
           attachment: null,
           score: 95,
           gradedAt: '2024-01-01T00:00:00Z',
@@ -1427,7 +1441,14 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
     });
 
     finishQuiz();
-  }, [setBySimulated, startQuiz, setUserAnswers, finishQuiz, setUserId, setQuestionsResult]);
+  }, [
+    setBySimulated,
+    startQuiz,
+    setUserAnswers,
+    finishQuiz,
+    setUserId,
+    setQuestionsResult,
+  ]);
 
   const handleSubjectClick = (subject: string) => {
     console.log('Subject clicked:', subject);
