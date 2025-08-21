@@ -5,6 +5,7 @@ import {
   QUESTION_STATUS,
   ANSWER_STATUS,
   useQuizStore,
+  QuestionResult,
 } from './useQuizStore';
 
 // Mock data for testing
@@ -2880,8 +2881,14 @@ describe('useQuizStore', () => {
     // Reset store state before each test in this describe block
     beforeEach(() => {
       act(() => {
-        useQuizStore.getState().setQuestionsResult(null as any);
-        useQuizStore.getState().setCurrentQuestionResult(null as any);
+        useQuizStore
+          .getState()
+          .setQuestionsResult(null as unknown as QuestionResult);
+        useQuizStore
+          .getState()
+          .setCurrentQuestionResult(
+            null as unknown as QuestionResult['answers']
+          );
       });
     });
 
@@ -2953,14 +2960,16 @@ describe('useQuizStore', () => {
           result.current.setQuestionsResult(mockQuestionResult);
         });
 
-        expect(useQuizStore.getState().questionsResult).toEqual(mockQuestionResult);
+        expect(useQuizStore.getState().questionsResult).toEqual(
+          mockQuestionResult
+        );
       });
 
       it('should handle null questions result', () => {
         const { result } = renderHook(() => useQuizStore());
 
         act(() => {
-          result.current.setQuestionsResult(null as any);
+          result.current.setQuestionsResult(null as unknown as QuestionResult);
         });
 
         expect(useQuizStore.getState().questionsResult).toBeNull();
@@ -3015,7 +3024,7 @@ describe('useQuizStore', () => {
 
         const questionResultWithoutStats = {
           answers: mockQuestionResult.answers,
-          statistics: null as any,
+          statistics: null as unknown as QuestionResult['statistics'],
         };
 
         act(() => {
@@ -3108,14 +3117,18 @@ describe('useQuizStore', () => {
           result.current.setCurrentQuestionResult(currentQuestionResult);
         });
 
-        expect(useQuizStore.getState().currentQuestionResult).toEqual(currentQuestionResult);
+        expect(useQuizStore.getState().currentQuestionResult).toEqual(
+          currentQuestionResult
+        );
       });
 
       it('should handle null current question result', () => {
         const { result } = renderHook(() => useQuizStore());
 
         act(() => {
-          result.current.setCurrentQuestionResult(null as any);
+          result.current.setCurrentQuestionResult(
+            null as unknown as QuestionResult['answers']
+          );
         });
 
         expect(useQuizStore.getState().currentQuestionResult).toBeNull();
@@ -3176,7 +3189,9 @@ describe('useQuizStore', () => {
           result.current.setQuestionsResult(mockQuestionResult);
         });
 
-        expect(result.current.getQuestionResultStatistics()?.correctAnswers).toBe(2);
+        expect(
+          result.current.getQuestionResultStatistics()?.correctAnswers
+        ).toBe(2);
 
         // Update with different result
         const updatedResult = {
@@ -3193,7 +3208,9 @@ describe('useQuizStore', () => {
           result.current.setQuestionsResult(updatedResult);
         });
 
-        expect(result.current.getQuestionResultStatistics()?.correctAnswers).toBe(1);
+        expect(
+          result.current.getQuestionResultStatistics()?.correctAnswers
+        ).toBe(1);
         expect(result.current.getQuestionResultStatistics()?.score).toBe(50);
       });
     });
