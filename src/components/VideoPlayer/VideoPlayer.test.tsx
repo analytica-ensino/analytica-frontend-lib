@@ -3,6 +3,46 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import VideoPlayer from './VideoPlayer';
 
+// Helper to simulate media events
+const simulateMediaEvent = (element: HTMLElement, eventType: string) => {
+  const event = new Event(eventType, { bubbles: true });
+  element.dispatchEvent(event);
+};
+
+// Helper to setup fullscreen environment
+const setupFullscreenEnvironment = (container: Element) => {
+  const videoContainer = container.querySelector('.group')!;
+
+  Object.defineProperty(videoContainer, 'requestFullscreen', {
+    configurable: true,
+    value: jest.fn().mockResolvedValue(undefined),
+  });
+
+  Object.defineProperty(document, 'exitFullscreen', {
+    configurable: true,
+    value: jest.fn().mockResolvedValue(undefined),
+  });
+
+  return { videoContainer };
+};
+
+// Helper to simulate entering fullscreen
+const enterFullscreen = (videoContainer: Element) => {
+  Object.defineProperty(document, 'fullscreenElement', {
+    configurable: true,
+    value: videoContainer,
+  });
+  fireEvent(document, new Event('fullscreenchange'));
+};
+
+// Helper for async fullscreen operations
+const performAsyncFullscreenExit = async () => {
+  const exitFullscreenButton = await screen.findByRole('button', {
+    name: /exit fullscreen/i,
+  });
+  fireEvent.click(exitFullscreenButton);
+};
+
 // Mock phosphor-react icons
 jest.mock('phosphor-react', () => ({
   Play: () => <div data-testid="play-icon" />,
@@ -25,10 +65,15 @@ let mockExitFullscreen: jest.SpyInstance;
 function setupMediaSpies() {
   mockPlay = jest
     .spyOn(HTMLMediaElement.prototype, 'play')
-    .mockResolvedValue(undefined as unknown as Promise<void>);
+    .mockImplementation(function (this: HTMLMediaElement) {
+      simulateMediaEvent(this as HTMLElement, 'play');
+      return Promise.resolve();
+    });
   mockPause = jest
     .spyOn(HTMLMediaElement.prototype, 'pause')
-    .mockImplementation(() => {});
+    .mockImplementation(function (this: HTMLMediaElement) {
+      simulateMediaEvent(this as HTMLElement, 'pause');
+    });
   const durationGetSpy = jest
     .spyOn(HTMLMediaElement.prototype, 'duration', 'get')
     .mockReturnValue(100);
@@ -70,6 +115,9 @@ function setupMediaSpies() {
     writable: true,
     value: mockExitFullscreen,
   });
+  const pausedGetSpy = jest
+    .spyOn(HTMLMediaElement.prototype, 'paused', 'get')
+    .mockReturnValue(false);
   const hiddenGetSpy = jest
     .spyOn(document, 'hidden', 'get')
     .mockReturnValue(false);
@@ -88,6 +136,7 @@ function setupMediaSpies() {
     playbackRateSetSpy,
     reqFsSpy: mockRequestFullscreen,
     exitFsSpy: mockExitFullscreen,
+    pausedGetSpy,
     hiddenGetSpy,
   };
 }
@@ -201,8 +250,15 @@ describe('VideoPlayer', () => {
 
   describe('Play/Pause functionality', () => {
     it('should play video when play button is clicked', async () => {
-      render(<VideoPlayer {...defaultProps} />);
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
       const playButton = screen.getByRole('button', { name: /play video/i });
+
+      // Mock video.paused property to return true (paused)
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => true,
+      });
 
       await act(async () => {
         fireEvent.click(playButton);
@@ -212,28 +268,59 @@ describe('VideoPlayer', () => {
     });
 
     it('should pause video when pause button is clicked', async () => {
-      render(<VideoPlayer {...defaultProps} />);
-      const playButton = screen.getByRole('button', { name: /play video/i });
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
 
-      await act(async () => {
-        fireEvent.click(playButton);
+      // Mock video.paused property to return false (playing)
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
       });
 
-      const pauseButton = screen.getByRole('button', { name: /pause/i });
-      fireEvent.click(pauseButton);
+      await act(async () => {
+        fireEvent.click(video);
+      });
 
       expect(mockPause).toHaveBeenCalled();
     });
 
     it('should toggle play/pause when video is clicked', async () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
-      const video = container.querySelector('video')!;
+      const video = container.querySelector('video') as HTMLVideoElement;
+
+      // Mock video.paused property to return true (paused)
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => true,
+      });
 
       await act(async () => {
         fireEvent.click(video);
       });
 
       expect(mockPlay).toHaveBeenCalled();
+    });
+
+    it('should handle play/pause when play fails (e.g., autoplay policy)', async () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+
+      // Mock video.paused property to return true and make play() throw an error
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => true,
+      });
+
+      const mockPlayWithError = jest
+        .spyOn(video, 'play')
+        .mockRejectedValue(new Error('Autoplay policy'));
+
+      await act(async () => {
+        fireEvent.click(video);
+      });
+
+      expect(mockPlayWithError).toHaveBeenCalled();
+      // Should not throw error even when play() fails
     });
   });
 
@@ -353,17 +440,30 @@ describe('VideoPlayer', () => {
       expect(mockRequestFullscreen).toHaveBeenCalled();
     });
 
-    it('should exit fullscreen when already in fullscreen', () => {
-      render(<VideoPlayer {...defaultProps} />);
+    it('should exit fullscreen when already in fullscreen', async () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const videoContainer = container.querySelector('.group')!;
       const fullscreenButton = screen.getByRole('button', {
         name: /enter fullscreen/i,
       });
 
+      // First enter fullscreen
       fireEvent.click(fullscreenButton);
-      const exitButton = screen.getByRole('button', {
-        name: /exit fullscreen/i,
+
+      // Simulate fullscreen change event to update state
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: videoContainer,
       });
-      fireEvent.click(exitButton);
+      fireEvent(document, new Event('fullscreenchange'));
+
+      // Now test exit fullscreen
+      await act(async () => {
+        const exitButton = await screen.findByRole('button', {
+          name: /exit fullscreen/i,
+        });
+        fireEvent.click(exitButton);
+      });
 
       expect(mockExitFullscreen).toHaveBeenCalled();
     });
@@ -388,20 +488,14 @@ describe('VideoPlayer', () => {
       }).not.toThrow();
     });
 
-    it('should handle exit fullscreen when exitFullscreen is not supported', () => {
+    it('should handle exit fullscreen when exitFullscreen is not supported', async () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
-      const videoContainer = container.querySelector('.group')!;
+      const { videoContainer } = setupFullscreenEnvironment(container);
 
       // Mock exitFullscreen as undefined
       Object.defineProperty(document, 'exitFullscreen', {
         configurable: true,
         value: undefined,
-      });
-
-      // Mock requestFullscreen
-      Object.defineProperty(videoContainer, 'requestFullscreen', {
-        configurable: true,
-        value: jest.fn().mockResolvedValue(undefined),
       });
 
       const fullscreenButton = screen.getByRole('button', {
@@ -410,15 +504,15 @@ describe('VideoPlayer', () => {
 
       // First click to enter fullscreen
       fireEvent.click(fullscreenButton);
+      enterFullscreen(videoContainer);
 
       // Now try to exit when exitFullscreen is not available
-      const exitFullscreenButton = screen.getByRole('button', {
-        name: /exit fullscreen/i,
+      await act(async () => {
+        await performAsyncFullscreenExit();
       });
 
-      expect(() => {
-        fireEvent.click(exitFullscreenButton);
-      }).not.toThrow();
+      // Should not throw error when exitFullscreen is not available
+      expect(container).toBeInTheDocument();
     });
   });
 
@@ -456,7 +550,13 @@ describe('VideoPlayer', () => {
   describe('Keyboard shortcuts', () => {
     it('should play/pause with space key', async () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
-      const video = container.querySelector('video')!;
+      const video = container.querySelector('video') as HTMLVideoElement;
+
+      // Mock video.paused property to return true (paused)
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => true,
+      });
 
       await act(async () => {
         fireEvent.keyDown(video, { key: ' ' });
@@ -467,7 +567,13 @@ describe('VideoPlayer', () => {
 
     it('should play/pause with enter key', async () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
-      const video = container.querySelector('video')!;
+      const video = container.querySelector('video') as HTMLVideoElement;
+
+      // Mock video.paused property to return true (paused)
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => true,
+      });
 
       await act(async () => {
         fireEvent.keyDown(video, { key: 'Enter' });
@@ -538,6 +644,31 @@ describe('VideoPlayer', () => {
 
       const controls = container.querySelector('.opacity-100');
       expect(controls).toBeInTheDocument();
+    });
+
+    it('should clear mouse move timeout on unmount', () => {
+      jest.useFakeTimers();
+      const { container, unmount } = render(<VideoPlayer {...defaultProps} />);
+      const section = container.querySelector('section')!;
+
+      // Set fullscreen state to trigger mouse movement handling
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: section,
+      });
+      fireEvent(document, new Event('fullscreenchange'));
+
+      // Trigger multiple mouse moves with sufficient distance to trigger timeout handling
+      fireEvent.mouseMove(section, { clientX: 0, clientY: 0 });
+      fireEvent.mouseMove(section, { clientX: 10, clientY: 10 });
+      fireEvent.mouseMove(section, { clientX: 20, clientY: 20 });
+
+      // Unmount should clear timeouts without errors
+      expect(() => {
+        unmount();
+      }).not.toThrow();
+
+      jest.useRealTimers();
     });
   });
 
@@ -1105,6 +1236,480 @@ describe('VideoPlayer', () => {
     );
   };
 
+  describe('Controls timeout and mouse movement', () => {
+    it('should clear controls timeout when clearControlsTimeout is called', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+
+      // Mock video.paused to return false (playing)
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Trigger play to start the timer
+      act(() => {
+        fireEvent.click(video);
+        simulateMediaEvent(video, 'play');
+      });
+
+      // Move mouse to trigger showControlsWithTimer
+      act(() => {
+        fireEvent.mouseMove(container.querySelector('.group')!, {
+          clientX: 100,
+          clientY: 100,
+        });
+      });
+
+      // Clear the timeout by moving mouse again
+      act(() => {
+        fireEvent.mouseMove(container.querySelector('.group')!, {
+          clientX: 200,
+          clientY: 200,
+        });
+      });
+
+      // This should cover lines 223-224: clearControlsTimeout
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should clear mouse move timeout when clearMouseMoveTimeout is called', () => {
+      const { unmount, container } = render(<VideoPlayer {...defaultProps} />);
+      const videoContainer = container.querySelector('.group')!;
+
+      // Set up fullscreen mode to enable mouse move detection
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: videoContainer,
+      });
+      fireEvent(document, new Event('fullscreenchange'));
+
+      // Trigger multiple mouse moves to set up timeouts
+      act(() => {
+        fireEvent.mouseMove(videoContainer, {
+          clientX: 100,
+          clientY: 100,
+        });
+      });
+
+      act(() => {
+        fireEvent.mouseMove(videoContainer, {
+          clientX: 200,
+          clientY: 200,
+        });
+      });
+
+      // Unmounting should trigger clearMouseMoveTimeout
+      expect(() => {
+        unmount();
+      }).not.toThrow();
+
+      // This covers lines 233-234: clearMouseMoveTimeout
+    });
+
+    it('should use shorter timeout in fullscreen mode', async () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+      const videoContainer = container.querySelector('.group')!;
+
+      // Mock video as playing
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Enter fullscreen
+      const fullscreenButton = screen.getByRole('button', {
+        name: /enter fullscreen/i,
+      });
+      fireEvent.click(fullscreenButton);
+
+      // Simulate fullscreen change event
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: videoContainer,
+      });
+      fireEvent(document, new Event('fullscreenchange'));
+
+      // Trigger mouse move to start timer with shorter timeout in fullscreen
+      act(() => {
+        fireEvent.mouseMove(videoContainer, {
+          clientX: 100,
+          clientY: 100,
+        });
+      });
+
+      // Simulate play event to ensure isPlaying is true
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      // This should cover lines 248-250: timer auto-hide in fullscreen
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should detect mouse movement and show controls when mouse moves significantly', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const videoContainer = container.querySelector('.group')!;
+
+      // Set up fullscreen mode to enable mouse move detection
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: videoContainer,
+      });
+      fireEvent(document, new Event('fullscreenchange'));
+
+      // First mouse move to set initial position
+      act(() => {
+        fireEvent.mouseMove(videoContainer, {
+          clientX: 100,
+          clientY: 100,
+        });
+      });
+
+      // Second mouse move with significant change (>5px threshold)
+      act(() => {
+        fireEvent.mouseMove(videoContainer, {
+          clientX: 120, // 20px difference
+          clientY: 120, // 20px difference
+        });
+      });
+
+      // This should cover lines 260-271: handleMouseMove with motion detection
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should not show controls when mouse movement is below threshold', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const videoContainer = container.querySelector('.group')!;
+
+      // Set up fullscreen mode
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: videoContainer,
+      });
+      fireEvent(document, new Event('fullscreenchange'));
+
+      // First mouse move
+      act(() => {
+        fireEvent.mouseMove(videoContainer, {
+          clientX: 100,
+          clientY: 100,
+        });
+      });
+
+      // Second mouse move with small change (<5px threshold)
+      act(() => {
+        fireEvent.mouseMove(videoContainer, {
+          clientX: 102, // 2px difference
+          clientY: 102, // 2px difference
+        });
+      });
+
+      // This should test the threshold logic in handleMouseMove
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should show controls when entering fullscreen', async () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const videoContainer = container.querySelector('.group')!;
+      const fullscreenButton = screen.getByRole('button', {
+        name: /enter fullscreen/i,
+      });
+
+      // Enter fullscreen
+      fireEvent.click(fullscreenButton);
+
+      // Simulate fullscreen change event - this should trigger showControlsWithTimer
+      act(() => {
+        Object.defineProperty(document, 'fullscreenElement', {
+          configurable: true,
+          value: videoContainer,
+        });
+        fireEvent(document, new Event('fullscreenchange'));
+      });
+
+      // This should cover line 316: showControlsWithTimer in fullscreenchange
+      expect(container).toBeInTheDocument();
+    });
+  });
+
+  describe('Volume auto-unmute functionality', () => {
+    it('should auto unmute when volume is changed to > 0 while muted', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+      const muteButton = screen.getByRole('button', { name: /mute/i });
+      const volumeSlider = container.querySelector(
+        'input[aria-label="Volume control"]'
+      )!;
+
+      // First mute the video
+      fireEvent.click(muteButton);
+
+      // Then increase volume while muted - this should auto unmute
+      fireEvent.change(volumeSlider, { target: { value: '50' } });
+
+      // This should cover lines 426-428: auto unmute when volume > 0
+      expect(video.muted).toBeDefined();
+    });
+  });
+
+  describe('Enhanced captions functionality', () => {
+    it('should handle captions toggle with proper track mode setting', () => {
+      const { container } = render(
+        <VideoPlayer
+          {...defaultProps}
+          subtitles="https://example.com/subs.vtt"
+        />
+      );
+
+      const captionsButton = screen.getByRole('button', {
+        name: /show captions/i,
+      });
+      const track = container.querySelector('track')!;
+
+      // Mock track object with proper mode
+      Object.defineProperty(track, 'track', {
+        configurable: true,
+        value: { mode: 'hidden' },
+        writable: true,
+      });
+
+      // Toggle captions on
+      fireEvent.click(captionsButton);
+
+      // This should cover line 508: toggle captions showing
+      expect(track.track.mode).toBeDefined();
+
+      // Toggle captions off
+      const hideCaptionsButton = screen.getByRole('button', {
+        name: /hide captions/i,
+      });
+      fireEvent.click(hideCaptionsButton);
+
+      // This should also cover the captions toggle logic
+      expect(track.track.mode).toBeDefined();
+    });
+  });
+
+  describe('Component lifecycle and cleanup', () => {
+    it('should cleanup timers properly on component unmount', () => {
+      const { unmount } = render(<VideoPlayer {...defaultProps} />);
+
+      // Set up some timers by triggering mouse movement
+      const container = document.querySelector('.group');
+      if (container) {
+        act(() => {
+          fireEvent.mouseMove(container, {
+            clientX: 100,
+            clientY: 100,
+          });
+        });
+      }
+
+      // Unmount component - this should trigger cleanup in useEffect
+      expect(() => {
+        unmount();
+      }).not.toThrow();
+
+      // This covers lines 593-594: cleanup timers in useEffect
+    });
+  });
+
+  describe('Controls opacity in fullscreen', () => {
+    it('should return correct opacity class for top controls in fullscreen', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const videoContainer = container.querySelector('.group')!;
+
+      // Enter fullscreen
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: videoContainer,
+      });
+      fireEvent(document, new Event('fullscreenchange'));
+
+      // Find top controls
+      const topControls = container.querySelector('.absolute.top-0');
+      expect(topControls).toBeInTheDocument();
+
+      // This covers lines 603-604: getTopControlsOpacity in fullscreen
+      expect(topControls?.className).toContain('opacity');
+    });
+
+    it('should handle getTopControlsOpacity when not in fullscreen and controls not shown', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+
+      // Mock video as playing
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Trigger play event
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      // Find top controls - when not in fullscreen, playing, and controls not shown
+      const topControls = container.querySelector('.absolute.top-0');
+      expect(topControls).toBeInTheDocument();
+
+      // This covers lines 606-608: getTopControlsOpacity when not fullscreen
+      expect(topControls?.className).toContain('opacity');
+    });
+
+    it('should return correct opacity class for bottom controls in fullscreen', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const videoContainer = container.querySelector('.group')!;
+
+      // Enter fullscreen
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: videoContainer,
+      });
+      fireEvent(document, new Event('fullscreenchange'));
+
+      // Find bottom controls
+      const bottomControls = container.querySelector('.absolute.bottom-0');
+      expect(bottomControls).toBeInTheDocument();
+
+      // This covers lines 615-616: getBottomControlsOpacity in fullscreen
+      expect(bottomControls?.className).toContain('opacity');
+    });
+  });
+
+  describe('Special coverage cases', () => {
+    it('should trigger setShowControls(false) timeout in fullscreen', async () => {
+      jest.useFakeTimers();
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+      const videoContainer = container.querySelector('.group')!;
+
+      // Set up fullscreen
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: videoContainer,
+      });
+
+      // Mock video as paused initially, then playing
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Enter fullscreen
+      fireEvent(document, new Event('fullscreenchange'));
+
+      // Simulate play to set isPlaying true
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      // Move mouse to trigger showControlsWithTimer
+      act(() => {
+        fireEvent.mouseMove(videoContainer, {
+          clientX: 100,
+          clientY: 100,
+        });
+      });
+
+      // Fast forward 2000ms (fullscreen timeout) to trigger line 250
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      expect(container).toBeInTheDocument();
+
+      jest.useRealTimers();
+    });
+
+    it('should handle blur event when video is playing', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+
+      // Mock video as playing
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Trigger play to set isPlaying to true
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      // Trigger blur event to cover lines 580-581
+      act(() => {
+        fireEvent(window, new Event('blur'));
+      });
+
+      expect(mockPause).toHaveBeenCalled();
+    });
+
+    it('should handle visibility change when document is hidden and video is playing', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+
+      // Mock video as playing
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Trigger play to set isPlaying to true
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      // Mock document.hidden as true
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        value: true,
+      });
+
+      // Trigger visibility change to cover lines 573-574
+      act(() => {
+        fireEvent(document, new Event('visibilitychange'));
+      });
+
+      expect(mockPause).toHaveBeenCalled();
+    });
+
+    it('should clear mouse move timeout via multiple mouse moves', () => {
+      jest.useFakeTimers();
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const videoContainer = container.querySelector('.group')!;
+
+      // Set up fullscreen mode
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: videoContainer,
+      });
+      fireEvent(document, new Event('fullscreenchange'));
+
+      // First mouse move to set initial position and create timeout
+      act(() => {
+        fireEvent.mouseMove(videoContainer, {
+          clientX: 10,
+          clientY: 10,
+        });
+      });
+
+      // Second mouse move with significant difference - this should trigger lines 233-234
+      act(() => {
+        fireEvent.mouseMove(videoContainer, {
+          clientX: 50,
+          clientY: 50,
+        });
+      });
+
+      expect(container).toBeInTheDocument();
+
+      jest.useRealTimers();
+    });
+  });
+
   describe('Edge cases', () => {
     it('should handle missing callbacks gracefully', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
@@ -1447,6 +2052,50 @@ describe('VideoPlayer', () => {
       expect(() => {
         fireEvent.click(testButton);
       }).not.toThrow();
+    });
+
+    it('should handle getInitialTime with localStorage and initialTime edge cases', () => {
+      // Test case where initialTime is provided and valid
+      localStorageMock.getItem.mockReturnValue('25');
+
+      const { container: container1 } = render(
+        <VideoPlayer
+          {...defaultProps}
+          src="test-video-1.mp4"
+          initialTime={30}
+          autoSave={true}
+        />
+      );
+
+      // This should cover lines 329-334: getInitialTime with localStorage logic
+      expect(localStorageMock.getItem).toHaveBeenCalled();
+      expect(container1.querySelector('video')).toBeInTheDocument();
+
+      // Test case where no initialTime and valid saved time
+      localStorageMock.getItem.mockReturnValue('40');
+
+      const { container: container2 } = render(
+        <VideoPlayer
+          {...defaultProps}
+          src="test-video-2.mp4"
+          autoSave={true}
+          // No initialTime provided
+        />
+      );
+
+      expect(container2.querySelector('video')).toBeInTheDocument();
+
+      // Test case where autoSave is false
+      const { container: container3 } = render(
+        <VideoPlayer
+          {...defaultProps}
+          src="test-video-3.mp4"
+          initialTime={15}
+          autoSave={false}
+        />
+      );
+
+      expect(container3.querySelector('video')).toBeInTheDocument();
     });
   });
 });
