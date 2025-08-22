@@ -812,7 +812,7 @@ export const GeneralForResults: Story = () => {
         correctAnswers: 4,
         incorrectAnswers: 4,
         pendingAnswers: 0,
-        score: 64, // Average of all scores
+        score: 52, // Average of all scores (415 / 8 ≈ 51.875, rounded)
       },
     });
   }, [

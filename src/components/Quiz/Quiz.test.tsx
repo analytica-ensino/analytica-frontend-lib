@@ -928,7 +928,7 @@ describe('Quiz Component', () => {
           questionId: 'q1',
           answer:
             'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.',
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
         });
 
         rerender(<QuizContent />);

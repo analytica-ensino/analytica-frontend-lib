@@ -2,7 +2,6 @@ import { renderHook, act } from '@testing-library/react';
 import {
   QUESTION_DIFFICULTY,
   QUESTION_TYPE,
-  QUESTION_STATUS,
   ANSWER_STATUS,
   useQuizStore,
   QuestionResult,
@@ -3169,7 +3168,7 @@ describe('useQuizStore', () => {
 
         // Test getting specific question result
         const q1Result = result.current.getQuestionResultByQuestionId('q1');
-        expect(q1Result?.answerStatus).toBe(QUESTION_STATUS.RESPOSTA_CORRETA);
+        expect(q1Result?.answerStatus).toBe(ANSWER_STATUS.RESPOSTA_CORRETA);
 
         // Test getting statistics
         const stats = result.current.getQuestionResultStatistics();
