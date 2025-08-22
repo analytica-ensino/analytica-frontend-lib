@@ -18,8 +18,10 @@ export enum QUESTION_TYPE {
 }
 
 export enum QUESTION_STATUS {
-  APROVADO = 'APROVADO',
-  REPROVADO = 'REPROVADO',
+  PENDENTE_AVALIACAO = 'PENDENTE_AVALIACAO',
+  RESPOSTA_CORRETA = 'RESPOSTA_CORRETA',
+  RESPOSTA_INCORRETA = 'RESPOSTA_INCORRETA',
+  NAO_RESPONDIDO = 'NAO_RESPONDIDO',
 }
 
 export enum ANSWER_STATUS {
@@ -28,17 +30,57 @@ export enum ANSWER_STATUS {
   PENDENTE_AVALIACAO = 'PENDENTE_AVALIACAO',
 }
 
+export interface QuestionResult {
+  answers: {
+    id: string;
+    questionId: string;
+    answer: string | null;
+    optionId: string;
+    selectedOptionText: string | null;
+    answerStatus: ANSWER_STATUS;
+    createdAt: string;
+    updatedAt: string;
+    statement: string;
+    questionType: QUESTION_TYPE;
+    correctOption: string;
+    difficultyLevel: QUESTION_DIFFICULTY;
+    solutionExplanation: string | null;
+    options: {
+      id: string;
+      option: string;
+      isCorrect: boolean;
+    }[];
+    teacherFeedback: string | null;
+    attachment: string | null;
+    score: number | null;
+    gradedAt: string | null;
+    gradedBy: string;
+  }[];
+  statistics: {
+    totalAnswered: number;
+    correctAnswers: number;
+    incorrectAnswers: number;
+    pendingAnswers: number;
+    score: number;
+  };
+}
+
 export interface Question {
   id: string;
   questionText: string;
+  questionType: QUESTION_TYPE;
+  difficultyLevel: QUESTION_DIFFICULTY;
   description: string;
-  type: QUESTION_TYPE;
-  status: QUESTION_STATUS;
-  difficulty: QUESTION_DIFFICULTY;
-  examBoard: string;
-  examYear: string;
-  answerKey: null | string;
-  institutionIds: string[];
+  examBoard: string | null;
+  examYear: string | null;
+  solutionExplanation: string | null;
+  answer: null;
+  answerStatus: ANSWER_STATUS;
+  options: {
+    id: string;
+    option: string;
+  }[];
+  correctOptionIds?: string[];
   knowledgeMatrix: {
     areaKnowledgeId: string;
     subjectId: string;
@@ -46,17 +88,21 @@ export interface Question {
     subtopicId: string;
     contentId: string;
   }[];
-  options: {
-    id: string;
-    option: string;
-    isCorrect: boolean;
-  }[];
 }
 
 interface Simulado {
   id: string;
   title: string;
-  category: string;
+  type: string;
+  subtype: string;
+  difficulty: string | null;
+  notification: string | null;
+  status: string;
+  startDate: Date | null;
+  finalDate: Date | null;
+  canRetry: boolean;
+  createdAt: Date | null;
+  updatedAt: Date | null;
   questions: Question[];
 }
 
@@ -101,6 +147,7 @@ interface QuizState {
   setBySimulated: (simulado: Simulado) => void;
   setByActivity: (atividade: Atividade) => void;
   setByQuestionary: (aula: Aula) => void;
+  setQuestionResult: (questionResult: QuestionResult) => void;
   setUserId: (userId: string) => void;
   setUserAnswers: (userAnswers: UserAnswerItem[]) => void;
   setVariant: (variant: 'result' | 'default') => void;
@@ -155,10 +202,23 @@ interface QuizState {
     questionId: string
   ) => 'answered' | 'unanswered' | 'skipped';
   getUserAnswersForActivity: () => UserAnswerItem[];
-
   // Answer status management
   setAnswerStatus: (questionId: string, status: ANSWER_STATUS) => void;
   getAnswerStatus: (questionId: string) => ANSWER_STATUS | null;
+
+  // Question Result
+  questionsResult: QuestionResult | null;
+  currentQuestionResult: QuestionResult['answers'] | null;
+  setQuestionsResult: (questionsResult: QuestionResult) => void;
+  setCurrentQuestionResult: (
+    currentQuestionResult: QuestionResult['answers']
+  ) => void;
+  getQuestionResultByQuestionId: (
+    questionId: string
+  ) => QuestionResult['answers'][number] | null;
+  getQuestionResultStatistics: () => QuestionResult['statistics'] | null;
+  getQuestionResult: () => QuestionResult | null;
+  getCurrentQuestionResult: () => QuestionResult['answers'] | null;
 }
 
 export const useQuizStore = create<QuizState>()(
@@ -198,6 +258,8 @@ export const useQuizStore = create<QuizState>()(
         isFinished: false,
         userId: '',
         variant: 'default',
+        questionsResult: null,
+        currentQuestionResult: null,
         // Setters
         setBySimulated: (simulado) => set({ bySimulated: simulado }),
         setByActivity: (atividade) => set({ byActivity: atividade }),
@@ -206,6 +268,7 @@ export const useQuizStore = create<QuizState>()(
         setUserAnswers: (userAnswers) => set({ userAnswers }),
         getUserId: () => get().userId,
         setVariant: (variant) => set({ variant }),
+        setQuestionResult: (questionsResult) => set({ questionsResult }),
         // Navigation
         goToNextQuestion: () => {
           const { currentQuestionIndex, getTotalQuestions } = get();
@@ -272,10 +335,14 @@ export const useQuizStore = create<QuizState>()(
             activityId,
             userId,
             answer:
-              question.type === QUESTION_TYPE.DISSERTATIVA ? answerId : null,
+              question.questionType === QUESTION_TYPE.DISSERTATIVA
+                ? answerId
+                : null,
             optionId:
-              question.type === QUESTION_TYPE.DISSERTATIVA ? null : answerId,
-            questionType: question.type,
+              question.questionType === QUESTION_TYPE.DISSERTATIVA
+                ? null
+                : answerId,
+            questionType: question.questionType,
             answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
           };
 
@@ -324,7 +391,7 @@ export const useQuizStore = create<QuizState>()(
               userId,
               answer: null, // selectMultipleAnswer is for non-dissertative questions
               optionId: answerId, // selectMultipleAnswer should only set optionId
-              questionType: question.type,
+              questionType: question.questionType,
               answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
             })
           );
@@ -359,7 +426,10 @@ export const useQuizStore = create<QuizState>()(
           const question = activeQuiz.quiz.questions.find(
             (q) => q.id === questionId
           );
-          if (!question || question.type !== QUESTION_TYPE.DISSERTATIVA) {
+          if (
+            !question ||
+            question.questionType !== QUESTION_TYPE.DISSERTATIVA
+          ) {
             console.warn(
               'selectDissertativeAnswer called for non-dissertative question'
             );
@@ -419,7 +489,7 @@ export const useQuizStore = create<QuizState>()(
               userId,
               answer: null,
               optionId: null,
-              questionType: currentQuestion.type,
+              questionType: currentQuestion.questionType,
               answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
             };
 
@@ -468,14 +538,14 @@ export const useQuizStore = create<QuizState>()(
             activityId,
             userId,
             answer:
-              question.type === QUESTION_TYPE.DISSERTATIVA
+              question.questionType === QUESTION_TYPE.DISSERTATIVA
                 ? answerId || null
                 : null,
             optionId:
-              question.type !== QUESTION_TYPE.DISSERTATIVA
+              question.questionType !== QUESTION_TYPE.DISSERTATIVA
                 ? answerId || null
                 : null,
-            questionType: question.type,
+            questionType: question.questionType,
             answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
           };
 
@@ -510,6 +580,9 @@ export const useQuizStore = create<QuizState>()(
             isStarted: false,
             isFinished: false,
             userId: '',
+            variant: 'default',
+            questionsResult: null,
+            currentQuestionResult: null,
           });
         },
 
@@ -780,6 +853,34 @@ export const useQuizStore = create<QuizState>()(
             (q) => q.id === questionId
           );
           return questionIndex + 1;
+        },
+
+        // Question Result
+        getQuestionResultByQuestionId: (questionId) => {
+          const { questionsResult } = get();
+          return (
+            questionsResult?.answers.find(
+              (answer) => answer.questionId === questionId
+            ) || null
+          );
+        },
+        getQuestionResultStatistics: () => {
+          const { questionsResult } = get();
+          return questionsResult?.statistics || null;
+        },
+        getQuestionResult: () => {
+          const { questionsResult } = get();
+          return questionsResult;
+        },
+        setQuestionsResult: (questionsResult) => {
+          set({ questionsResult });
+        },
+        setCurrentQuestionResult: (currentQuestionResult) => {
+          set({ currentQuestionResult });
+        },
+        getCurrentQuestionResult: () => {
+          const { currentQuestionResult } = get();
+          return currentQuestionResult;
         },
       };
     },

@@ -14,7 +14,6 @@ import {
 } from './Quiz';
 import {
   QUESTION_DIFFICULTY,
-  QUESTION_STATUS,
   QUESTION_TYPE,
   ANSWER_STATUS,
   useQuizStore,
@@ -30,20 +29,36 @@ export const General: Story = () => {
     const mockSimulated = {
       id: 'simulado-geral',
       title: 'Simulado ENEM 2024 - Todas as Variantes',
-      category: 'Enem',
+      type: 'ENEM',
+      subtype: 'Simulado',
+      difficulty: 'MEDIO',
+      notification: null,
+      status: 'ATIVO',
+      startDate: new Date('2024-01-01'),
+      finalDate: new Date('2024-12-31'),
+      canRetry: true,
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-01-01'),
       questions: [
         {
           id: 'q1-image',
           questionText: 'Qual é a capital do Brasil?',
+          questionType: QUESTION_TYPE.IMAGEM,
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           description: 'Questão de alternativa simples',
-          type: 'IMAGEM' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [
+            { id: 'opt1', option: 'São Paulo' },
+            { id: 'opt2', option: 'Rio de Janeiro' },
+            { id: 'opt3', option: 'Brasília' },
+            { id: 'opt4', option: 'Salvador' },
+          ],
+          correctOptionIds: ['opt3'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'geografia',
@@ -52,26 +67,27 @@ export const General: Story = () => {
               subtopicId: 'brasil',
               contentId: 'geografia',
             },
-          ],
-          options: [
-            { id: 'opt1', option: 'São Paulo', isCorrect: false },
-            { id: 'opt2', option: 'Rio de Janeiro', isCorrect: false },
-            { id: 'opt3', option: 'Brasília', isCorrect: true },
-            { id: 'opt4', option: 'Salvador', isCorrect: false },
           ],
         },
         {
           id: 'q1-alternativa',
           questionText: 'Qual é a capital do Brasil?',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           description: 'Questão de alternativa simples',
-          type: 'ALTERNATIVA' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [
+            { id: 'opt1', option: 'São Paulo' },
+            { id: 'opt2', option: 'Rio de Janeiro' },
+            { id: 'opt3', option: 'Brasília' },
+            { id: 'opt4', option: 'Salvador' },
+          ],
+          correctOptionIds: ['opt3'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'geografia',
@@ -80,27 +96,30 @@ export const General: Story = () => {
               subtopicId: 'brasil',
               contentId: 'geografia',
             },
-          ],
-          options: [
-            { id: 'opt1', option: 'São Paulo', isCorrect: false },
-            { id: 'opt2', option: 'Rio de Janeiro', isCorrect: false },
-            { id: 'opt3', option: 'Brasília', isCorrect: true },
-            { id: 'opt4', option: 'Salvador', isCorrect: false },
           ],
         },
         {
           id: 'q2-multipla-escolha',
           questionText:
             'Quais são os planetas do sistema solar que possuem anéis? (Selecione todas as opções corretas)',
+          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão de múltipla escolha',
-          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [
+            { id: 'opt1', option: 'Saturno' },
+            { id: 'opt2', option: 'Júpiter' },
+            { id: 'opt3', option: 'Urano' },
+            { id: 'opt4', option: 'Netuno' },
+            { id: 'opt5', option: 'Marte' },
+            { id: 'opt6', option: 'Vênus' },
+          ],
+          correctOptionIds: ['opt1', 'opt2', 'opt3', 'opt4'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'ciencias',
@@ -110,28 +129,21 @@ export const General: Story = () => {
               contentId: 'ciencias',
             },
           ],
-          options: [
-            { id: 'opt1', option: 'Saturno', isCorrect: true },
-            { id: 'opt2', option: 'Júpiter', isCorrect: true },
-            { id: 'opt3', option: 'Urano', isCorrect: true },
-            { id: 'opt4', option: 'Netuno', isCorrect: true },
-            { id: 'opt5', option: 'Marte', isCorrect: false },
-            { id: 'opt6', option: 'Vênus', isCorrect: false },
-          ],
         },
         {
           id: 'q3-dissertativa',
           questionText:
             'Elabore uma redação dissertativa-argumentativa sobre o tema "A importância da preservação ambiental para o futuro das próximas gerações". Sua redação deve ter entre 20 e 25 linhas, apresentar argumentos bem fundamentados, respeitar a estrutura dissertativa e demonstrar domínio da norma culta da língua escrita.',
+          questionType: QUESTION_TYPE.DISSERTATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
           description: 'Questão dissertativa sobre preservação ambiental',
-          type: 'DISSERTATIVA' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'A preservação ambiental é fundamental para garantir um futuro sustentável para as próximas gerações. O equilíbrio ecológico, a biodiversidade e os recursos naturais são essenciais para a sobrevivência humana e devem ser protegidos através de políticas públicas eficazes, educação ambiental e mudanças nos padrões de consumo.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'linguagens',
@@ -141,21 +153,25 @@ export const General: Story = () => {
               contentId: 'linguagens',
             },
           ],
-          options: [],
         },
         {
           id: 'q4-verdadeiro-falso',
           questionText:
             'A Terra é o terceiro planeta do sistema solar em ordem de distância do Sol.',
+          questionType: QUESTION_TYPE.VERDADEIRO_FALSO,
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           description: 'Questão de verdadeiro ou falso',
-          type: 'VERDADEIRO_FALSO' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'Verdadeiro. A Terra é o terceiro planeta do sistema solar, localizada entre Vênus (segundo) e Marte (quarto). A ordem dos planetas a partir do Sol é: Mercúrio, Vênus, Terra, Marte, Júpiter, Saturno, Urano e Netuno.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [
+            { id: 'opt1', option: 'Verdadeiro' },
+            { id: 'opt2', option: 'Falso' },
+          ],
+          correctOptionIds: ['opt1'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'ciencias',
@@ -165,23 +181,32 @@ export const General: Story = () => {
               contentId: 'ciencias',
             },
           ],
-          options: [
-            { id: 'opt1', option: 'Verdadeiro', isCorrect: true },
-            { id: 'opt2', option: 'Falso', isCorrect: false },
-          ],
         },
         {
           id: 'q5-ligar-pontos',
           questionText: 'Ligue os conceitos às suas definições corretas.',
+          questionType: QUESTION_TYPE.LIGAR_PONTOS,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão de ligar pontos',
-          type: 'LIGAR_PONTOS' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'Velocidade é a distância percorrida por unidade de tempo (v = d/t). Aceleração é a variação da velocidade por unidade de tempo (a = Δv/t). Estas são grandezas fundamentais da cinemática que descrevem o movimento dos corpos.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [
+            { id: 'opt1', option: 'Velocidade' },
+            {
+              id: 'opt2',
+              option: 'Distância percorrida por unidade de tempo',
+            },
+            { id: 'opt3', option: 'Aceleração' },
+            {
+              id: 'opt4',
+              option: 'Variação da velocidade por unidade de tempo',
+            },
+          ],
+          correctOptionIds: ['opt1', 'opt2', 'opt3', 'opt4'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -189,20 +214,6 @@ export const General: Story = () => {
               topicId: 'movimento',
               subtopicId: 'cinematica',
               contentId: 'fisica',
-            },
-          ],
-          options: [
-            { id: 'opt1', option: 'Velocidade', isCorrect: true },
-            {
-              id: 'opt2',
-              option: 'Distância percorrida por unidade de tempo',
-              isCorrect: true,
-            },
-            { id: 'opt3', option: 'Aceleração', isCorrect: true },
-            {
-              id: 'opt4',
-              option: 'Variação da velocidade por unidade de tempo',
-              isCorrect: true,
             },
           ],
         },
@@ -210,14 +221,15 @@ export const General: Story = () => {
           id: 'q6-preencher',
           questionText:
             'Complete a frase: "A fórmula da velocidade média é v = ___ / ___", onde v é velocidade, ___ é distância e ___ é tempo.',
+          questionType: QUESTION_TYPE.PREENCHER,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão de preenchimento',
-          type: 'PREENCHER' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: 'd,t',
-          institutionIds: ['inst1', 'inst2'],
+          solutionExplanation: 'd,t',
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -227,7 +239,6 @@ export const General: Story = () => {
               contentId: 'fisica',
             },
           ],
-          options: [],
         },
       ],
     };
@@ -235,69 +246,6 @@ export const General: Story = () => {
     setUserId('demo-user-id');
     setBySimulated(mockSimulated);
     startQuiz();
-
-    // Simulate some user answers for demonstration
-    setUserAnswers([
-      {
-        questionId: 'q1-alternativa',
-        activityId: 'simulado-geral',
-        userId: 'demo-user-id',
-        answer:
-          'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-        optionId: null,
-        questionType: QUESTION_TYPE.ALTERNATIVA,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q2-multipla-escolha',
-        activityId: 'simulado-geral',
-        userId: 'demo-user-id',
-        answer:
-          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q3-dissertativa',
-        activityId: 'simulado-geral',
-        userId: 'demo-user-id',
-        answer:
-          'A preservação ambiental é fundamental para o futuro sustentável.',
-        optionId: null,
-        questionType: QUESTION_TYPE.DISSERTATIVA,
-        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
-      },
-      {
-        questionId: 'q4-verdadeiro-falso',
-        activityId: 'simulado-geral',
-        userId: 'demo-user-id',
-        answer:
-          'Verdadeiro. A Terra é o terceiro planeta do sistema solar, localizada entre Vênus (segundo) e Marte (quarto). A ordem dos planetas a partir do Sol é: Mercúrio, Vênus, Terra, Marte, Júpiter, Saturno, Urano e Netuno.',
-        optionId: null,
-        questionType: QUESTION_TYPE.VERDADEIRO_FALSO,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q5-ligar-pontos',
-        activityId: 'simulado-geral',
-        userId: 'demo-user-id',
-        answer:
-          'Velocidade é a distância percorrida por unidade de tempo (v = d/t). Aceleração é a variação da velocidade por unidade de tempo (a = Δv/t). Estas são grandezas fundamentais da cinemática que descrevem o movimento dos corpos.',
-        optionId: null,
-        questionType: QUESTION_TYPE.LIGAR_PONTOS,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q6-preencher',
-        activityId: 'simulado-geral',
-        userId: 'demo-user-id',
-        answer: 'd,t',
-        optionId: null,
-        questionType: QUESTION_TYPE.PREENCHER,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-    ]);
   }, [setBySimulated, startQuiz, setUserId, setUserAnswers]);
 
   return (
@@ -343,27 +291,44 @@ export const GeneralForResults: Story = () => {
     goToPreviousQuestion,
     currentQuestionIndex,
     getTotalQuestions,
+    setQuestionsResult,
   } = useQuizStore();
 
   useEffect(() => {
     const mockSimulated = {
       id: 'simulado-resultados',
       title: 'Simulado ENEM 2024 - Resultados',
-      category: 'Enem',
+      type: 'ENEM',
+      subtype: 'Simulado',
+      difficulty: 'MEDIO',
+      notification: null,
+      status: 'ATIVO',
+      startDate: new Date('2024-01-01'),
+      finalDate: new Date('2024-12-31'),
+      canRetry: true,
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-01-01'),
       questions: [
         // IMAGE - Correct
         {
           id: 'q1-image',
           questionText: 'Qual é a capital do Brasil?',
+          questionType: QUESTION_TYPE.IMAGEM,
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           description: 'Questão de alternativa simples',
-          type: 'IMAGEM' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [
+            { id: 'opt1', option: 'São Paulo' },
+            { id: 'opt2', option: 'Rio de Janeiro' },
+            { id: 'opt3', option: 'Brasília' },
+            { id: 'opt4', option: 'Salvador' },
+          ],
+          correctOptionIds: ['opt3'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'geografia',
@@ -373,26 +338,27 @@ export const GeneralForResults: Story = () => {
               contentId: 'geografia',
             },
           ],
-          options: [
-            { id: 'opt1', option: 'São Paulo', isCorrect: false },
-            { id: 'opt2', option: 'Rio de Janeiro', isCorrect: false },
-            { id: 'opt3', option: 'Brasília', isCorrect: true },
-            { id: 'opt4', option: 'Salvador', isCorrect: false },
-          ],
         },
-        // IMAGE - Incorrect
+        // // IMAGE - Incorrect
         {
           id: 'q1-image-incorreta',
           questionText: 'Qual é a capital do Brasil?',
+          questionType: QUESTION_TYPE.IMAGEM,
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           description: 'Questão de alternativa simples',
-          type: 'IMAGEM' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [
+            { id: 'opt1', option: 'São Paulo' },
+            { id: 'opt2', option: 'Rio de Janeiro' },
+            { id: 'opt3', option: 'Brasília' },
+            { id: 'opt4', option: 'Salvador' },
+          ],
+          correctOptionIds: ['opt3'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'geografia',
@@ -401,29 +367,28 @@ export const GeneralForResults: Story = () => {
               subtopicId: 'brasil',
               contentId: 'geografia',
             },
-          ],
-          options: [
-            { id: 'opt1', option: 'São Paulo', isCorrect: false },
-            { id: 'opt2', option: 'Rio de Janeiro', isCorrect: false },
-            { id: 'opt3', option: 'Brasília', isCorrect: true },
-            { id: 'opt4', option: 'Salvador', isCorrect: false },
           ],
         },
         // ALTERNATIVE - Correct
         {
           id: 'q1-alt-correta',
           questionText: 'Qual é a capital do Brasil?',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           description: 'Questão de alternativa - resposta correta',
-          type: 'ALTERNATIVA' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-          correctAnswer:
-            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [
+            { id: 'alt-opt1', option: 'São Paulo' },
+            { id: 'alt-opt2', option: 'Rio de Janeiro' },
+            { id: 'alt-opt3', option: 'Brasília' },
+            { id: 'alt-opt4', option: 'Salvador' },
+          ],
+          correctOptionIds: ['alt-opt3'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'geografia',
@@ -433,26 +398,27 @@ export const GeneralForResults: Story = () => {
               contentId: 'geografia',
             },
           ],
-          options: [
-            { id: 'opt1', option: 'São Paulo', isCorrect: false },
-            { id: 'opt2', option: 'Rio de Janeiro', isCorrect: false },
-            { id: 'opt3', option: 'Brasília', isCorrect: true },
-            { id: 'opt4', option: 'Salvador', isCorrect: false },
-          ],
         },
-        // ALTERNATIVE - Incorrect
+        // // ALTERNATIVE - Incorrect
         {
           id: 'q2-alt-incorreta',
           questionText: 'Qual é o maior planeta do sistema solar?',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           description: 'Questão de alternativa - resposta incorreta',
-          type: 'ALTERNATIVA' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+          options: [
+            { id: 'alt-opt1', option: 'Júpiter' },
+            { id: 'alt-opt2', option: 'Saturno' },
+            { id: 'alt-opt3', option: 'Urano' },
+            { id: 'alt-opt4', option: 'Netuno' },
+          ],
+          correctOptionIds: ['alt-opt1'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'ciencias',
@@ -461,28 +427,36 @@ export const GeneralForResults: Story = () => {
               subtopicId: 'planetas',
               contentId: 'ciencias',
             },
-          ],
-          options: [
-            { id: 'opt1', option: 'Júpiter', isCorrect: true },
-            { id: 'opt2', option: 'Saturno', isCorrect: false },
-            { id: 'opt3', option: 'Urano', isCorrect: false },
-            { id: 'opt4', option: 'Netuno', isCorrect: false },
           ],
         },
         // MULTIPLE CHOICE - Correct
         {
-          id: 'q3-mult-correta',
+          id: 'q3-multi-correta',
           questionText:
             'Quais são os planetas do sistema solar que possuem anéis? (Selecione todas as opções corretas)',
+          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão de múltipla escolha - resposta correta',
-          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [
+            { id: 'multi-opt1', option: 'Saturno' },
+            { id: 'multi-opt2', option: 'Júpiter' },
+            { id: 'multi-opt3', option: 'Urano' },
+            { id: 'multi-opt4', option: 'Netuno' },
+            { id: 'multi-opt5', option: 'Marte' },
+            { id: 'multi-opt6', option: 'Vênus' },
+          ],
+          correctOptionIds: [
+            'multi-opt1',
+            'multi-opt2',
+            'multi-opt3',
+            'multi-opt4',
+          ],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'ciencias',
@@ -492,29 +466,28 @@ export const GeneralForResults: Story = () => {
               contentId: 'ciencias',
             },
           ],
-          options: [
-            { id: 'opt1', option: 'Saturno', isCorrect: true },
-            { id: 'opt2', option: 'Júpiter', isCorrect: true },
-            { id: 'opt3', option: 'Urano', isCorrect: true },
-            { id: 'opt4', option: 'Netuno', isCorrect: true },
-            { id: 'opt5', option: 'Marte', isCorrect: false },
-            { id: 'opt6', option: 'Vênus', isCorrect: false },
-          ],
         },
-        // MULTIPLE CHOICE - Incorrect
+        // // MULTIPLE CHOICE - Incorrect
         {
-          id: 'q4-mult-incorreta',
+          id: 'q4-multi-incorreta',
           questionText:
             'Quais das seguintes grandezas são vetoriais? (Selecione todas as opções corretas)',
+          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão de múltipla escolha - resposta incorreta',
-          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'Velocidade, Aceleração e Força são grandezas vetoriais. Temperatura é uma grandeza escalar.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+          options: [
+            { id: 'multi-opt1', option: 'Velocidade' },
+            { id: 'multi-opt2', option: 'Aceleração' },
+            { id: 'multi-opt3', option: 'Força' },
+            { id: 'multi-opt4', option: 'Temperatura' },
+          ],
+          correctOptionIds: ['multi-opt1', 'multi-opt2', 'multi-opt3'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -524,27 +497,22 @@ export const GeneralForResults: Story = () => {
               contentId: 'cinematica',
             },
           ],
-          options: [
-            { id: 'opt1', option: 'Velocidade', isCorrect: true },
-            { id: 'opt2', option: 'Aceleração', isCorrect: true },
-            { id: 'opt3', option: 'Força', isCorrect: true },
-            { id: 'opt4', option: 'Temperatura', isCorrect: false },
-          ],
         },
         // DISSERTATIVE - Correct
         {
           id: 'q5-diss-correta',
           questionText:
             'Elabore uma redação dissertativa-argumentativa sobre o tema "A importância da preservação ambiental para o futuro das próximas gerações". Sua redação deve ter entre 20 e 25 linhas, apresentar argumentos bem fundamentados, respeitar a estrutura dissertativa e demonstrar domínio da norma culta da língua escrita.',
+          questionType: QUESTION_TYPE.DISSERTATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
           description: 'Questão dissertativa - resposta correta',
-          type: 'DISSERTATIVA' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'A preservação ambiental é fundamental para garantir um futuro sustentável para as próximas gerações. O equilíbrio ecológico, a biodiversidade e os recursos naturais são essenciais para a sobrevivência humana e devem ser protegidos através de políticas públicas eficazes, educação ambiental e mudanças nos padrões de consumo.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'linguagens',
@@ -554,22 +522,22 @@ export const GeneralForResults: Story = () => {
               contentId: 'linguagens',
             },
           ],
-          options: [],
         },
         // DISSERTATIVE - Incorrect
         {
           id: 'q6-diss-incorreta',
           questionText:
             'Descreva as leis de Newton e suas aplicações na mecânica clássica.',
+          questionType: QUESTION_TYPE.DISSERTATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
           description: 'Questão dissertativa - resposta incorreta',
-          type: 'DISSERTATIVA' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'DIFICIL' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'As três leis de Newton são fundamentais para a mecânica clássica: 1) Primeira Lei (Inércia): um corpo permanece em repouso ou em movimento retilíneo uniforme a menos que uma força resultante atue sobre ele; 2) Segunda Lei: a força resultante é igual ao produto da massa pela aceleração (F = ma); 3) Terceira Lei: para toda ação há uma reação igual e oposta. Estas leis são aplicadas em sistemas mecânicos, análise de movimento, equilíbrio de forças e dinâmica de partículas.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -579,52 +547,26 @@ export const GeneralForResults: Story = () => {
               contentId: 'dinamica',
             },
           ],
-          options: [],
         },
         // True or False - Correct
         {
-          id: 'q1-alt-correta',
-          questionText: 'Qual é a capital do Brasil?',
-          description: 'Questão de alternativa - resposta correta',
-          type: 'VERDADEIRO_FALSO' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
+          id: 'q7-vf-correta',
+          questionText:
+            'A Terra é o terceiro planeta do sistema solar em ordem de distância do Sol.',
+          questionType: QUESTION_TYPE.VERDADEIRO_FALSO,
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          description: 'Questão de verdadeiro ou falso - resposta correta',
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
-            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-          correctAnswer:
-            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-          institutionIds: ['inst1', 'inst2'],
-          knowledgeMatrix: [
-            {
-              areaKnowledgeId: 'geografia',
-              subjectId: 'geografia-geral',
-              topicId: 'capitais',
-              subtopicId: 'brasil',
-              contentId: 'geografia',
-            },
-          ],
+          solutionExplanation:
+            'Verdadeiro. A Terra é o terceiro planeta do sistema solar, localizada entre Vênus (segundo) e Marte (quarto). A ordem dos planetas a partir do Sol é: Mercúrio, Vênus, Terra, Marte, Júpiter, Saturno, Urano e Netuno.',
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
-            { id: 'opt1', option: 'São Paulo', isCorrect: false },
-            { id: 'opt2', option: 'Rio de Janeiro', isCorrect: false },
-            { id: 'opt3', option: 'Brasília', isCorrect: true },
-            { id: 'opt4', option: 'Salvador', isCorrect: false },
+            { id: 'opt1', option: 'Verdadeiro' },
+            { id: 'opt2', option: 'Falso' },
           ],
-        },
-        // ALTERNATIVE - Incorrect
-        {
-          id: 'q2-alt-incorreta',
-          questionText: 'Qual é o maior planeta do sistema solar?',
-          description: 'Questão de alternativa - resposta incorreta',
-          type: 'VERDADEIRO_FALSO' as QUESTION_TYPE,
-          status: 'REPROVADO' as QUESTION_STATUS,
-          difficulty: 'FACIL' as QUESTION_DIFFICULTY,
-          examBoard: 'ENEM',
-          examYear: '2024',
-          answerKey:
-            'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
-          institutionIds: ['inst1', 'inst2'],
+          correctOptionIds: ['opt1'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'ciencias',
@@ -634,11 +576,33 @@ export const GeneralForResults: Story = () => {
               contentId: 'ciencias',
             },
           ],
+        },
+        // True or False - Incorrect
+        {
+          id: 'q8-vf-incorreta',
+          questionText: 'O Sol é uma estrela anã branca.',
+          questionType: QUESTION_TYPE.VERDADEIRO_FALSO,
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          description: 'Questão de verdadeiro ou falso - resposta incorreta',
+          examBoard: 'ENEM',
+          examYear: '2024',
+          solutionExplanation:
+            'Falso. O Sol é uma estrela anã amarela (sequência principal). As anãs brancas são estrelas que já esgotaram seu combustível nuclear e são muito menores e mais densas.',
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
-            { id: 'opt1', option: 'Júpiter', isCorrect: true },
-            { id: 'opt2', option: 'Saturno', isCorrect: false },
-            { id: 'opt3', option: 'Urano', isCorrect: false },
-            { id: 'opt4', option: 'Netuno', isCorrect: false },
+            { id: 'opt1', option: 'Verdadeiro' },
+            { id: 'opt2', option: 'Falso' },
+          ],
+          correctOptionIds: ['opt2'],
+          knowledgeMatrix: [
+            {
+              areaKnowledgeId: 'ciencias',
+              subjectId: 'astronomia',
+              topicId: 'sistema-solar',
+              subtopicId: 'sol',
+              contentId: 'ciencias',
+            },
           ],
         },
       ],
@@ -649,134 +613,215 @@ export const GeneralForResults: Story = () => {
     setCurrentQuestion(mockSimulated.questions[0]);
     startQuiz();
 
-    // Simulate user answers
-    setUserAnswers([
-      {
-        questionId: 'q1-image',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-        optionId: null,
-        questionType: QUESTION_TYPE.IMAGEM,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+    // Configure QuestionResult data for components that need it
+    setQuestionsResult({
+      answers: [
+        {
+          id: 'answer1',
+          questionId: 'q1-image',
+          answer:
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
+          optionId: 'img_opt1',
+          selectedOptionText: 'Resposta de imagem correta',
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Qual é a capital do Brasil?',
+          questionType: QUESTION_TYPE.IMAGEM,
+          correctOption: 'img_opt1',
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          solutionExplanation: 'Brasília é a capital do Brasil desde 1960.',
+          options: [],
+          teacherFeedback: null,
+          attachment: null,
+          score: 100,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+        {
+          id: 'answer2',
+          questionId: 'q1-image-incorreta',
+          answer:
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
+          optionId: 'img_opt2',
+          selectedOptionText: 'Resposta de imagem incorreta',
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Qual é a capital do Brasil? (Questão Incorreta)',
+          questionType: QUESTION_TYPE.IMAGEM,
+          correctOption: 'img_opt1',
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          solutionExplanation: 'Brasília é a capital do Brasil desde 1960.',
+          options: [],
+          teacherFeedback:
+            'Resposta incorreta. A capital do Brasil é Brasília.',
+          attachment: null,
+          score: 0,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+        {
+          id: 'answer3',
+          questionId: 'q1-alt-correta',
+          answer:
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
+          optionId: 'alt-opt1',
+          selectedOptionText: 'Brasília',
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão de Alternativa Correta',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          correctOption: 'alt-opt1',
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          solutionExplanation: 'Brasília é a capital do Brasil.',
+          options: [{ id: 'alt-opt3', option: 'Brasília', isCorrect: false }],
+          teacherFeedback: null,
+          attachment: null,
+          score: 100,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+        {
+          id: 'answer4',
+          questionId: 'q2-alt-incorreta',
+          answer:
+            'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
+          optionId: 'alt-opt2',
+          selectedOptionText: 'Resposta incorreta',
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão de Alternativa Incorreta',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          correctOption: 'alt-opt2',
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          solutionExplanation: 'A resposta correta é a primeira opção.',
+          options: [
+            { id: 'alt-opt2', option: 'Resposta incorreta', isCorrect: false },
+          ],
+          teacherFeedback: 'Resposta incorreta. Revise o conceito.',
+          attachment: null,
+          score: 0,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+        {
+          id: 'answer5',
+          questionId: 'q3-multi-correta',
+          answer: null,
+          optionId: 'multi-opt1,multi-opt2',
+          selectedOptionText: 'Saturno, Júpiter',
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão de Múltipla Escolha Correta',
+          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          correctOption: 'multi-opt1,multi-opt2,multi-opt3',
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          solutionExplanation:
+            'Saturno, Júpiter, Urano e Netuno possuem anéis.',
+          options: [
+            { id: 'multi-opt1', option: 'Saturno', isCorrect: true },
+            { id: 'multi-opt2', option: 'Júpiter', isCorrect: true },
+            { id: 'multi-opt3', option: 'Urano', isCorrect: true },
+          ],
+          teacherFeedback: null,
+          attachment: null,
+          score: 75, // Partial score for partial answer
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+        {
+          id: 'answer6',
+          questionId: 'q4-multi-incorreta',
+          answer: null,
+          optionId: 'multi-opt1,multi-opt3',
+          selectedOptionText: 'Velocidade, Força',
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão de Múltipla Escolha Incorreta',
+          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          correctOption: 'multi-opt1,multi-opt2,multi-opt3',
+          difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
+          solutionExplanation: 'Velocidade, Aceleração e Força são vetoriais.',
+          options: [
+            { id: 'multi-opt1', option: 'Velocidade', isCorrect: true },
+            { id: 'multi-opt2', option: 'Aceleração', isCorrect: true },
+            { id: 'multi-opt3', option: 'Força', isCorrect: true },
+            { id: 'multi-opt4', option: 'Temperatura', isCorrect: false },
+          ],
+          teacherFeedback: 'Faltou incluir a Aceleração na resposta.',
+          attachment: null,
+          score: 25, // Partial score
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'teacher',
+        },
+        {
+          id: 'answer7',
+          questionId: 'q5-diss-correta',
+          answer:
+            'A preservação ambiental é fundamental para garantir um futuro sustentável para as próximas gerações. O equilíbrio ecológico, a biodiversidade e os recursos naturais são essenciais para a sobrevivência humana e devem ser protegidos através de políticas públicas eficazes, educação ambiental e mudanças nos padrões de consumo.',
+          optionId: 'diss_opt1',
+          selectedOptionText: 'Resposta dissertativa sobre meio ambiente',
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão Dissertativa Correta sobre Meio Ambiente',
+          questionType: QUESTION_TYPE.DISSERTATIVA,
+          correctOption: '',
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          solutionExplanation:
+            'A preservação ambiental é fundamental para sustentabilidade.',
+          options: [],
+          teacherFeedback:
+            'Excelente resposta! Abordou todos os pontos importantes sobre preservação ambiental.',
+          attachment: null,
+          score: 95,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'teacher',
+        },
+        {
+          id: 'answer8',
+          questionId: 'q6-diss-incorreta',
+          answer: 'As leis de Newton são importantes para a física.',
+          optionId: 'diss_opt2',
+          selectedOptionText: 'Resposta dissertativa sobre física',
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão Dissertativa Incorreta sobre Física',
+          questionType: QUESTION_TYPE.DISSERTATIVA,
+          correctOption: '',
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          solutionExplanation:
+            'Esperava-se uma resposta mais detalhada sobre as leis de Newton.',
+          options: [],
+          teacherFeedback:
+            'Resposta muito superficial. Explique melhor as três leis de Newton e suas aplicações.',
+          attachment: null,
+          score: 20,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'teacher',
+        },
+      ],
+      statistics: {
+        totalAnswered: 8,
+        correctAnswers: 4,
+        incorrectAnswers: 4,
+        pendingAnswers: 0,
+        score: 52, // Average of all scores (415 / 8 ≈ 51.875, rounded)
       },
-      {
-        questionId: 'q1-image-incorreta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-        optionId: null,
-        questionType: QUESTION_TYPE.IMAGEM,
-        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-      },
-      {
-        questionId: 'q1-alt-correta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-        optionId: null,
-        questionType: QUESTION_TYPE.ALTERNATIVA,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q2-alt-incorreta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
-        optionId: null,
-        questionType: QUESTION_TYPE.ALTERNATIVA,
-        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-      },
-      {
-        questionId: 'q3-mult-correta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q3-mult-correta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q3-mult-correta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q3-mult-correta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q4-mult-incorreta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Velocidade, Aceleração e Força são grandezas vetoriais. Temperatura é uma grandeza escalar.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-      },
-      {
-        questionId: 'q4-mult-incorreta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Velocidade, Aceleração e Força são grandezas vetoriais. Temperatura é uma grandeza escalar.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-      },
-      {
-        questionId: 'q5-diss-correta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'A preservação ambiental é fundamental para garantir um futuro sustentável para as próximas gerações. O equilíbrio ecológico, a biodiversidade e os recursos naturais são essenciais para a sobrevivência humana e devem ser protegidos através de políticas públicas eficazes, educação ambiental e mudanças nos padrões de consumo.',
-        optionId: null,
-        questionType: QUESTION_TYPE.DISSERTATIVA,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q6-diss-incorreta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer: 'As leis de Newton são importantes para a física.',
-        optionId: null,
-        questionType: QUESTION_TYPE.DISSERTATIVA,
-        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-      },
-    ]);
+    });
   }, [
     setBySimulated,
     startQuiz,
     setUserAnswers,
     setUserId,
     setCurrentQuestion,
+    setQuestionsResult,
   ]);
 
   return (
@@ -841,26 +886,43 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
     goToPreviousQuestion,
     currentQuestionIndex,
     getTotalQuestions,
+    setQuestionsResult,
   } = useQuizStore();
 
   useEffect(() => {
     const mockSimulated = {
       id: 'simulado-resultados-completos',
       title: 'Simulado Enem #42 - Resultados Completos',
-      category: 'Enem',
+      type: 'ENEM',
+      subtype: 'Simulado',
+      difficulty: 'MEDIO',
+      notification: null,
+      status: 'ATIVO',
+      startDate: new Date('2024-01-01'),
+      finalDate: new Date('2024-12-31'),
+      canRetry: true,
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-01-01'),
       questions: [
         {
           id: 'q1',
           questionText: 'Questão de Física 1 - Alternativa',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão sobre física - tipo alternativa',
-          type: 'ALTERNATIVA' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'A resposta correta é a primeira opção porque ela representa corretamente o conceito físico abordado na questão. Em física, é fundamental entender os princípios básicos que governam os fenômenos naturais.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [
+            { id: 'opt1', option: 'Resposta correta' },
+            { id: 'opt2', option: 'Resposta incorreta' },
+            { id: 'opt3', option: 'Resposta incorreta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          correctOptionIds: ['opt1'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -870,25 +932,26 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               contentId: 'cinematica',
             },
           ],
-          options: [
-            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
-            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
-            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
-            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
-          ],
         },
         {
           id: 'q2',
           questionText: 'Questão de Matemática 1 - Múltipla Escolha',
+          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão sobre matemática - tipo múltipla escolha',
-          type: 'MULTIPLA_CHOICE' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'As duas primeiras opções são corretas porque ambas representam soluções válidas para o problema matemático apresentado. Em matemática, é comum que uma equação tenha múltiplas soluções válidas.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [
+            { id: 'opt1', option: 'Resposta correta' },
+            { id: 'opt2', option: 'Resposta correta' },
+            { id: 'opt3', option: 'Resposta incorreta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          correctOptionIds: ['opt1', 'opt2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'matematica',
@@ -898,25 +961,20 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               contentId: 'algebra',
             },
           ],
-          options: [
-            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
-            { id: 'opt2', option: 'Resposta correta', isCorrect: true },
-            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
-            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
-          ],
         },
         {
           id: 'q3',
           questionText: 'Questão de Química 1 - Dissertativa',
+          questionType: QUESTION_TYPE.DISSERTATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão sobre química - tipo dissertativa',
-          type: 'DISSERTATIVA' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'A química é uma ciência fundamental que estuda a composição, estrutura e propriedades da matéria. Ela é essencial para entender diversos fenômenos naturais e tecnológicos, desde a fotossíntese até a produção de medicamentos. A química está presente em todos os aspectos da vida moderna, incluindo agricultura, medicina, indústria e meio ambiente.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'quimica',
@@ -926,20 +984,26 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               contentId: 'quimica',
             },
           ],
-          options: [],
         },
         {
           id: 'q4',
           questionText: 'Questão de Biologia 1 - Alternativa',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão sobre biologia - tipo alternativa',
-          type: 'ALTERNATIVA' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'A terceira opção é a resposta correta porque representa o conceito biológico correto abordado na questão. Em biologia, é essencial compreender os processos celulares e suas funções no organismo.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [
+            { id: 'opt1', option: 'Resposta incorreta' },
+            { id: 'opt2', option: 'Resposta incorreta' },
+            { id: 'opt3', option: 'Resposta correta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          correctOptionIds: ['opt3'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'biologia',
@@ -949,25 +1013,26 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               contentId: 'biologia',
             },
           ],
-          options: [
-            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
-            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
-            { id: 'opt3', option: 'Resposta correta', isCorrect: true },
-            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
-          ],
         },
         {
           id: 'q5',
           questionText: 'Questão de História 1 - Alternativa',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão sobre história - tipo alternativa',
-          type: 'ALTERNATIVA' as QUESTION_TYPE,
-          status: 'APROVADO' as QUESTION_STATUS,
-          difficulty: 'MEDIO' as QUESTION_DIFFICULTY,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey:
+          solutionExplanation:
             'A segunda opção é a resposta correta porque representa o fato histórico correto sobre o período colonial brasileiro. Em história, é fundamental conhecer os eventos e contextos que moldaram a formação do país.',
-          institutionIds: ['inst1', 'inst2'],
+          answer: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          options: [
+            { id: 'opt1', option: 'Resposta incorreta' },
+            { id: 'opt2', option: 'Resposta correta' },
+            { id: 'opt3', option: 'Resposta incorreta' },
+            { id: 'opt4', option: 'Resposta incorreta' },
+          ],
+          correctOptionIds: ['opt2'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'humanas',
@@ -976,12 +1041,6 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               subtopicId: 'brasil-colonia',
               contentId: 'historia',
             },
-          ],
-          options: [
-            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
-            { id: 'opt2', option: 'Resposta correta', isCorrect: true },
-            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
-            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
           ],
         },
       ],
@@ -1044,8 +1103,159 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
       },
     ]);
 
+    // Configure QuestionResult data for components that need it
+    setQuestionsResult({
+      answers: [
+        {
+          id: 'answer1',
+          questionId: 'q1',
+          answer: 'opt1',
+          optionId: 'opt1',
+          selectedOptionText: 'Resposta correta',
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão de Física 1 - Alternativa',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          correctOption: 'opt1',
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          solutionExplanation:
+            'A resposta correta é a primeira opção porque ela representa corretamente o conceito físico abordado na questão.',
+          options: [
+            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
+          ],
+          teacherFeedback: null,
+          attachment: null,
+          score: 100,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+        {
+          id: 'answer2',
+          questionId: 'q2',
+          answer: 'opt1,opt2',
+          optionId: 'opt1,opt2',
+          selectedOptionText: 'Resposta correta, Resposta correta',
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão de Matemática 1 - Múltipla Escolha',
+          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          correctOption: 'opt1,opt2',
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          solutionExplanation:
+            'As duas primeiras opções são corretas porque ambas representam soluções válidas para o problema matemático.',
+          options: [
+            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt2', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
+          ],
+          teacherFeedback: null,
+          attachment: null,
+          score: 100,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+        {
+          id: 'answer3',
+          questionId: 'q3',
+          answer: 'A química é uma ciência fundamental...',
+          optionId: 'dissertativa_opt1',
+          selectedOptionText: 'Resposta dissertativa',
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão de Química 1 - Dissertativa',
+          questionType: QUESTION_TYPE.DISSERTATIVA,
+          correctOption: '',
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          solutionExplanation:
+            'A química é uma ciência fundamental que estuda a composição, estrutura e propriedades da matéria.',
+          options: [],
+          teacherFeedback:
+            'Excelente resposta, demonstra conhecimento aprofundado.',
+          attachment: null,
+          score: 95,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'teacher',
+        },
+        {
+          id: 'answer4',
+          questionId: 'q4',
+          answer: 'opt3',
+          optionId: 'opt3',
+          selectedOptionText: 'Resposta correta',
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão de Biologia 1 - Alternativa',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          correctOption: 'opt3',
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          solutionExplanation:
+            'A terceira opção é a resposta correta porque representa o conceito biológico correto.',
+          options: [
+            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt3', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
+          ],
+          teacherFeedback: null,
+          attachment: null,
+          score: 100,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+        {
+          id: 'answer5',
+          questionId: 'q5',
+          answer: 'opt2',
+          optionId: 'opt2',
+          selectedOptionText: 'Resposta correta',
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Questão de História 1 - Alternativa',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          correctOption: 'opt2',
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          solutionExplanation:
+            'A segunda opção é a resposta correta porque representa o fato histórico correto.',
+          options: [
+            { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt2', option: 'Resposta correta', isCorrect: true },
+            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
+          ],
+          teacherFeedback: null,
+          attachment: null,
+          score: 100,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        },
+      ],
+      statistics: {
+        totalAnswered: 5,
+        correctAnswers: 5,
+        incorrectAnswers: 0,
+        pendingAnswers: 0,
+        score: 99, // Average of all scores
+      },
+    });
+
     finishQuiz();
-  }, [setBySimulated, startQuiz, setUserAnswers, finishQuiz, setUserId]);
+  }, [
+    setBySimulated,
+    startQuiz,
+    setUserAnswers,
+    finishQuiz,
+    setUserId,
+    setQuestionsResult,
+  ]);
 
   const handleSubjectClick = (subject: string) => {
     console.log('Subject clicked:', subject);

@@ -165,6 +165,21 @@ const createMockUseQuizStore = (
       if (questionId === 'q4') return 4;
       return 0;
     }),
+    // New question result functions
+    getQuestionResultByQuestionId: jest.fn().mockReturnValue(null),
+    getQuestionResultStatistics: jest.fn().mockReturnValue({
+      totalAnswered: 0,
+      correctAnswers: 0,
+      incorrectAnswers: 0,
+      pendingAnswers: 0,
+      score: 0,
+    }),
+    getQuestionResult: jest.fn().mockReturnValue(null),
+    setQuestionsResult: jest.fn(),
+    setCurrentQuestionResult: jest.fn(),
+    getCurrentQuestionResult: jest.fn().mockReturnValue(null),
+    questionsResult: null,
+    currentQuestionResult: null,
     ...overrides,
   };
 };
@@ -589,13 +604,13 @@ const mockQuestion1 = {
   id: 'q1',
   questionText: 'What is 2 + 2?',
   description: 'Basic math question',
-  type: 'ALTERNATIVA' as const,
-  status: 'APROVADO' as const,
-  difficulty: QUESTION_DIFFICULTY.FACIL,
+  questionType: QUESTION_TYPE.ALTERNATIVA,
+  answerStatus: QUESTION_STATUS.NAO_RESPONDIDO,
+  difficultyLevel: QUESTION_DIFFICULTY.FACIL,
   examBoard: 'ENEM',
   examYear: '2024',
-  answerKey: null,
-  institutionIds: ['inst1', 'inst2'],
+  answer: null,
+  solutionExplanation: null,
   knowledgeMatrix: [
     {
       areaKnowledgeId: 'matematica',
@@ -606,24 +621,25 @@ const mockQuestion1 = {
     },
   ],
   options: [
-    { id: 'opt1', option: '4', isCorrect: true },
-    { id: 'opt2', option: '3', isCorrect: false },
-    { id: 'opt3', option: '5', isCorrect: false },
-    { id: 'opt4', option: '6', isCorrect: false },
+    { id: 'opt1', option: '4' },
+    { id: 'opt2', option: '3' },
+    { id: 'opt3', option: '5' },
+    { id: 'opt4', option: '6' },
   ],
+  correctOptionIds: ['opt1'],
 };
 
 const mockQuestionMultipleChoice = {
   id: 'q3',
   questionText: 'Select all correct answers about planets',
   description: 'Multiple choice question',
-  type: 'MULTIPLA_CHOICE' as const,
-  status: 'APROVADO' as const,
-  difficulty: QUESTION_DIFFICULTY.MEDIO,
+  questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+  answerStatus: QUESTION_STATUS.NAO_RESPONDIDO,
+  difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
   examBoard: 'ENEM',
   examYear: '2024',
-  answerKey: null,
-  institutionIds: ['inst1', 'inst2'],
+  answer: null,
+  solutionExplanation: null,
   knowledgeMatrix: [
     {
       areaKnowledgeId: 'ciencias',
@@ -634,24 +650,25 @@ const mockQuestionMultipleChoice = {
     },
   ],
   options: [
-    { id: 'opt1', option: 'Earth', isCorrect: true },
-    { id: 'opt2', option: 'Mars', isCorrect: true },
-    { id: 'opt3', option: 'Pluto', isCorrect: false },
-    { id: 'opt4', option: 'Jupiter', isCorrect: true },
+    { id: 'opt1', option: 'Earth' },
+    { id: 'opt2', option: 'Mars' },
+    { id: 'opt3', option: 'Pluto' },
+    { id: 'opt4', option: 'Jupiter' },
   ],
+  correctOptionIds: ['opt1', 'opt2', 'opt4'],
 };
 
 const mockQuestionDissertativa = {
   id: 'q4',
   questionText: 'Explain the process of photosynthesis',
   description: 'Essay question',
-  type: 'DISSERTATIVA' as const,
-  status: 'APROVADO' as const,
-  difficulty: QUESTION_DIFFICULTY.DIFICIL,
+  questionType: QUESTION_TYPE.DISSERTATIVA,
+  answerStatus: QUESTION_STATUS.NAO_RESPONDIDO,
+  difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
   examBoard: 'ENEM',
   examYear: '2024',
-  answerKey: null,
-  institutionIds: ['inst1', 'inst2'],
+  answer: null,
+  solutionExplanation: null,
   knowledgeMatrix: [
     {
       areaKnowledgeId: 'ciencias',
@@ -668,13 +685,13 @@ const mockQuestion2 = {
   id: 'q2',
   questionText: 'What is the capital of France?',
   description: 'Geography question',
-  type: 'ALTERNATIVA' as const,
-  status: 'APROVADO' as const,
-  difficulty: QUESTION_DIFFICULTY.FACIL,
+  questionType: QUESTION_TYPE.ALTERNATIVA,
+  answerStatus: QUESTION_STATUS.NAO_RESPONDIDO,
+  difficultyLevel: QUESTION_DIFFICULTY.FACIL,
   examBoard: 'ENEM',
   examYear: '2024',
-  answerKey: null,
-  institutionIds: ['inst1', 'inst2'],
+  answer: null,
+  solutionExplanation: null,
   knowledgeMatrix: [
     {
       areaKnowledgeId: 'geografia',
@@ -685,11 +702,12 @@ const mockQuestion2 = {
     },
   ],
   options: [
-    { id: 'opt1', option: 'London', isCorrect: false },
-    { id: 'opt2', option: 'Paris', isCorrect: true },
-    { id: 'opt3', option: 'Berlin', isCorrect: false },
-    { id: 'opt4', option: 'Madrid', isCorrect: false },
+    { id: 'opt1', option: 'London' },
+    { id: 'opt2', option: 'Paris' },
+    { id: 'opt3', option: 'Berlin' },
+    { id: 'opt4', option: 'Madrid' },
   ],
+  correctOptionIds: ['opt2'],
 };
 
 const mockSimulado = {
@@ -848,13 +866,13 @@ describe('Quiz Component', () => {
           id: '1',
           questionText: 'Test Question',
           description: 'Test Statement',
-          type: QUESTION_TYPE.DISSERTATIVA,
-          status: QUESTION_STATUS.APROVADO,
-          difficulty: QUESTION_DIFFICULTY.MEDIO,
+          questionType: QUESTION_TYPE.DISSERTATIVA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           examBoard: 'ENEM',
           examYear: '2024',
-          answerKey: null,
-          institutionIds: ['inst1'],
+          answer: null,
+          solutionExplanation: null,
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'ciencias',
@@ -881,6 +899,13 @@ describe('Quiz Component', () => {
           getCurrentQuestion: () => mockQuestion,
           getCurrentAnswer: () => mockAnswer,
           variant: 'result',
+          selectDissertativeAnswer: jest.fn(),
+          getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+            questionId: 'q1',
+            answer:
+              'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.',
+            answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
+          }),
         };
 
         mockUseQuizStore.mockReturnValue(mockStore);
@@ -896,6 +921,13 @@ describe('Quiz Component', () => {
         // Updates to correct answer - should not show observation
         mockStore.getCurrentAnswer = () => ({
           ...mockAnswer,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+        });
+
+        mockStore.getQuestionResultByQuestionId = jest.fn().mockReturnValue({
+          questionId: 'q1',
+          answer:
+            'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.',
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
         });
 
@@ -1041,7 +1073,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizAlternative variant="result" />);
+      render(<QuizAlternative />);
 
       expect(screen.getByTestId('alternatives-list')).toBeInTheDocument();
       // The component should render in readonly mode with correct status determination
@@ -1911,6 +1943,13 @@ describe('Quiz Component', () => {
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 2,
+          correctAnswers: 1,
+          incorrectAnswers: 1,
+          pendingAnswers: 0,
+          score: 1,
+        }),
         getUserAnswers: jest.fn().mockReturnValue([
           {
             questionId: 'q1',
@@ -1946,6 +1985,13 @@ describe('Quiz Component', () => {
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
         getCurrentAnswer: jest.fn().mockReturnValue('opt1'),
         getActiveQuiz: jest.fn().mockReturnValue(null), // This will trigger line 667
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 1,
+          correctAnswers: 0,
+          incorrectAnswers: 1,
+          pendingAnswers: 0,
+          score: 0,
+        }),
         getUserAnswers: jest.fn().mockReturnValue([
           {
             questionId: 'q1',
@@ -2220,13 +2266,14 @@ describe('Quiz Component', () => {
       });
 
       it('should open resolution modal when "Ver Resolução" button is clicked', () => {
-        const mockAnswerKey = 'Esta é a resolução detalhada da questão';
+        const mockSolutionExplanation =
+          'Esta é a resolução detalhada da questão';
         mockUseQuizStore.mockReturnValue({
-          ...mockUseQuizStore(),
+          ...createMockUseQuizStore(),
           variant: 'result',
           getCurrentQuestion: jest.fn().mockReturnValue({
             ...mockQuestion1,
-            answerKey: mockAnswerKey,
+            solutionExplanation: mockSolutionExplanation,
           }),
         });
 
@@ -2236,7 +2283,7 @@ describe('Quiz Component', () => {
 
         expect(screen.getByTestId('modal')).toBeInTheDocument();
         expect(screen.getByText('Resolução')).toBeInTheDocument();
-        expect(screen.getByText(mockAnswerKey)).toBeInTheDocument();
+        expect(screen.getByText(mockSolutionExplanation)).toBeInTheDocument();
       });
 
       it('should close resolution modal when close button is clicked', () => {
@@ -2400,17 +2447,32 @@ describe('Quiz Component', () => {
   describe('QuizHeaderResult', () => {
     it('should display success message when user answers correctly', () => {
       mockUseQuizStore.mockReturnValue({
-        ...mockUseQuizStore(),
+        ...createMockUseQuizStore(),
         getCurrentQuestion: jest.fn().mockReturnValue({
           ...mockQuestion1,
           correctOptionId: 'opt1',
         }),
-        getAllCurrentAnswer: jest.fn().mockReturnValue([
-          {
-            optionId: 'opt1',
-            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-          },
-        ]), // User selected correct answer
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          id: 'result1',
+          questionId: 'q1',
+          answer: null,
+          optionId: 'opt1',
+          selectedOptionText: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Mock statement',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          correctOption: 'opt1',
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          solutionExplanation: 'Mock explanation',
+          options: [],
+          teacherFeedback: null,
+          attachment: null,
+          score: null,
+          gradedAt: null,
+          gradedBy: '',
+        }),
       });
 
       render(<QuizHeaderResult />);
@@ -2488,35 +2550,39 @@ describe('Quiz Component', () => {
 
     it('should display success message for MULTIPLA_CHOICE when all correct options are selected', () => {
       mockUseQuizStore.mockReturnValue({
-        ...mockUseQuizStore(),
+        ...createMockUseQuizStore(),
         getCurrentQuestion: jest.fn().mockReturnValue({
           ...mockQuestion1,
-          type: 'MULTIPLA_CHOICE',
+          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
           options: [
-            { id: 'opt1', option: 'Opção 1', isCorrect: true },
-            { id: 'opt2', option: 'Opção 2', isCorrect: true },
-            { id: 'opt3', option: 'Opção 3', isCorrect: false },
-            { id: 'opt4', option: 'Opção 4', isCorrect: false },
+            { id: 'opt1', option: 'Opção 1' },
+            { id: 'opt2', option: 'Opção 2' },
+            { id: 'opt3', option: 'Opção 3' },
+            { id: 'opt4', option: 'Opção 4' },
           ],
+          correctOptionIds: ['opt1', 'opt2'],
         }),
-        getAllCurrentAnswer: jest.fn().mockReturnValue([
-          {
-            questionId: 'q1',
-            activityId: 'act1',
-            userId: 'user1',
-            answer: null,
-            optionId: 'opt1',
-            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-          },
-          {
-            questionId: 'q1',
-            activityId: 'act1',
-            userId: 'user1',
-            answer: null,
-            optionId: 'opt2',
-            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-          },
-        ]),
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          id: 'result1',
+          questionId: 'q1',
+          answer: null,
+          optionId: 'opt1',
+          selectedOptionText: null,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: 'Mock statement',
+          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          correctOption: 'opt1,opt2',
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          solutionExplanation: 'Mock explanation',
+          options: [],
+          teacherFeedback: null,
+          attachment: null,
+          score: null,
+          gradedAt: null,
+          gradedBy: '',
+        }),
       });
 
       render(<QuizHeaderResult />);
@@ -2658,7 +2724,7 @@ describe('Quiz Component', () => {
       questionText: 'Qual das seguintes opções são corretas?',
       description: 'Selecione todas as opções corretas',
       type: QUESTION_TYPE.MULTIPLA_CHOICE,
-      status: QUESTION_STATUS.APROVADO,
+      status: QUESTION_STATUS.RESPOSTA_CORRETA,
       difficulty: QUESTION_DIFFICULTY.MEDIO,
       examBoard: 'ENEM',
       examYear: '2023',
@@ -2707,9 +2773,13 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue(mockUserAnswers),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       expect(screen.getByText('Opção A')).toBeInTheDocument();
       expect(screen.getByText('Opção B')).toBeInTheDocument();
@@ -2722,9 +2792,19 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue(mockUserAnswers),
+        variant: 'result',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+          options: [
+            { id: 'opt1', option: 'Opção A', isCorrect: true },
+            { id: 'opt2', option: 'Opção B', isCorrect: false },
+            { id: 'opt3', option: 'Opção C', isCorrect: true },
+            { id: 'opt4', option: 'Opção D', isCorrect: true },
+          ],
+        }),
       });
 
-      render(<QuizMultipleChoice variant="result" />);
+      render(<QuizMultipleChoice />);
 
       // Should show all options with their status
       expect(screen.getByText('Opção A')).toBeInTheDocument();
@@ -2743,9 +2823,13 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(questionWithoutOptions),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       expect(screen.getByText('Não há Escolhas Multiplas')).toBeInTheDocument();
     });
@@ -2755,9 +2839,13 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(null),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       expect(screen.getByText('Não há Escolhas Multiplas')).toBeInTheDocument();
     });
@@ -2768,9 +2856,13 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       // Find and click on checkboxes
       const checkboxes = screen.getAllByRole('checkbox');
@@ -2793,9 +2885,13 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue(mockUserAnswers),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       // Check that selected options are checked
       const checkboxes = screen.getAllByRole('checkbox');
@@ -2810,9 +2906,13 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue(undefined),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       // Should render without errors
       expect(screen.getByText('Opção A')).toBeInTheDocument();
@@ -2832,9 +2932,13 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       // Should render without errors
       expect(screen.getByText('Opção A')).toBeInTheDocument();
@@ -2878,9 +2982,13 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue(userAnswersWithNull),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       // Only opt1 and opt3 should be selected (null optionId filtered out)
       const checkboxes = screen.getAllByRole('checkbox');
@@ -2895,12 +3003,16 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
-      const { rerender } = render(<QuizMultipleChoice variant="default" />);
+      const { rerender } = render(<QuizMultipleChoice />);
 
       // Re-render with same question
-      rerender(<QuizMultipleChoice variant="default" />);
+      rerender(<QuizMultipleChoice />);
 
       // Component should still render correctly
       expect(screen.getByText('Opção A')).toBeInTheDocument();
@@ -2915,9 +3027,19 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'result',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+          options: [
+            { id: 'opt1', option: 'Opção A', isCorrect: true },
+            { id: 'opt2', option: 'Opção B', isCorrect: false },
+            { id: 'opt3', option: 'Opção C', isCorrect: true },
+            { id: 'opt4', option: 'Opção D', isCorrect: true },
+          ],
+        }),
       });
 
-      const { rerender } = render(<QuizMultipleChoice variant="default" />);
+      const { rerender } = render(<QuizMultipleChoice />);
 
       // Change to a different question
       const newQuestion = {
@@ -2933,9 +3055,17 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(newQuestion),
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+          options: [
+            { id: 'opt5', option: 'Nova Opção A', isCorrect: true },
+            { id: 'opt6', option: 'Nova Opção B', isCorrect: false },
+          ],
+        }),
       });
 
-      rerender(<QuizMultipleChoice variant="default" />);
+      rerender(<QuizMultipleChoice />);
 
       // Should show new options
       expect(screen.getByText('Nova Opção A')).toBeInTheDocument();
@@ -2952,12 +3082,22 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: jest.fn().mockReturnValue(mockUserAnswers),
+        variant: 'result',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+          options: [
+            { id: 'opt1', option: 'Opção A', isCorrect: true },
+            { id: 'opt2', option: 'Opção B', isCorrect: false },
+            { id: 'opt3', option: 'Opção C', isCorrect: true },
+            { id: 'opt4', option: 'Opção D', isCorrect: true },
+          ],
+        }),
       });
 
-      const { rerender } = render(<QuizMultipleChoice variant="default" />);
+      const { rerender } = render(<QuizMultipleChoice />);
 
       // Re-render with same data
-      rerender(<QuizMultipleChoice variant="default" />);
+      rerender(<QuizMultipleChoice />);
 
       // Component should still work correctly
       expect(screen.getByText('Opção A')).toBeInTheDocument();
@@ -2971,9 +3111,19 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue(mockUserAnswers),
+        variant: 'result',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+          options: [
+            { id: 'opt1', option: 'Opção A', isCorrect: true },
+            { id: 'opt2', option: 'Opção B', isCorrect: false },
+            { id: 'opt3', option: 'Opção C', isCorrect: true },
+            { id: 'opt4', option: 'Opção D', isCorrect: true },
+          ],
+        }),
       });
 
-      render(<QuizMultipleChoice variant="result" />);
+      render(<QuizMultipleChoice />);
 
       // In readonly mode, there should be no checkboxes
       const checkboxes = screen.queryAllByRole('checkbox');
@@ -2991,9 +3141,13 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       // In interactive mode, checkboxes should be enabled
       const checkboxes = screen.getAllByRole('checkbox');
@@ -3008,9 +3162,13 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(null),
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       // Should not call selectMultipleAnswer when there's no current question
       expect(mockSelectMultipleAnswer).not.toHaveBeenCalled();
@@ -3022,9 +3180,13 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       const checkboxes = screen.getAllByRole('checkbox');
 
@@ -3051,16 +3213,20 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: mockGetAllCurrentAnswer,
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       // First render - no selected values
-      const { rerender } = render(<QuizMultipleChoice variant="default" />);
+      const { rerender } = render(<QuizMultipleChoice />);
 
       // Second render - one selected value (should trigger hasValuesChanged)
-      rerender(<QuizMultipleChoice variant="default" />);
+      rerender(<QuizMultipleChoice />);
 
       // Third render - two selected values (should trigger hasValuesChanged again)
-      rerender(<QuizMultipleChoice variant="default" />);
+      rerender(<QuizMultipleChoice />);
 
       // Verify that getAllCurrentAnswer was called multiple times with different values
       expect(mockGetAllCurrentAnswer).toHaveBeenCalledTimes(3);
@@ -3097,14 +3263,18 @@ describe('Quiz Component', () => {
         getCurrentQuestion: mockGetCurrentQuestion,
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: mockGetAllCurrentAnswer,
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       // First render - no selected values
-      const { rerender } = render(<QuizMultipleChoice variant="default" />);
+      const { rerender } = render(<QuizMultipleChoice />);
 
       // Second render - one selected value
       // This should trigger the hasValuesChanged condition in the stableSelectedValues useMemo
-      rerender(<QuizMultipleChoice variant="default" />);
+      rerender(<QuizMultipleChoice />);
 
       // Verify that the component handled the value change correctly
       // The stableSelectedValues should have updated from [] to ['opt1']
@@ -3139,9 +3309,19 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue(incorrectUserAnswers),
+        variant: 'result',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+          options: [
+            { id: 'opt1', option: 'Opção A', isCorrect: true },
+            { id: 'opt2', option: 'Opção B', isCorrect: false },
+            { id: 'opt3', option: 'Opção C', isCorrect: true },
+            { id: 'opt4', option: 'Opção D', isCorrect: true },
+          ],
+        }),
       });
 
-      render(<QuizMultipleChoice variant="result" />);
+      render(<QuizMultipleChoice />);
 
       // The component should render with the incorrect status for opt2
       // In result variant, the MultipleChoiceList component should receive choices with status
@@ -3166,7 +3346,7 @@ describe('QuizDissertative', () => {
     questionText: 'Explique o conceito de fotossíntese.',
     description: 'Descreva o processo de fotossíntese em detalhes',
     type: QUESTION_TYPE.DISSERTATIVA,
-    status: QUESTION_STATUS.APROVADO,
+    status: QUESTION_STATUS.RESPOSTA_CORRETA,
     difficulty: QUESTION_DIFFICULTY.MEDIO,
     examBoard: 'ENEM',
     examYear: '2023',
@@ -3202,9 +3382,13 @@ describe('QuizDissertative', () => {
       getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
       getCurrentAnswer: jest.fn().mockReturnValue(null),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     expect(screen.getByTestId('textarea')).toBeInTheDocument();
     expect(
@@ -3217,9 +3401,15 @@ describe('QuizDissertative', () => {
       getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
       getCurrentAnswer: jest.fn().mockReturnValue(mockDissertativeAnswer),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'result',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+        answer:
+          'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.',
+      }),
     });
 
-    render(<QuizDissertative variant="result" />);
+    render(<QuizDissertative />);
 
     expect(
       screen.getByText(
@@ -3234,9 +3424,13 @@ describe('QuizDissertative', () => {
       getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
       getCurrentAnswer: jest.fn().mockReturnValue(null),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'result',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
-    render(<QuizDissertative variant="result" />);
+    render(<QuizDissertative />);
 
     expect(screen.getByText('Nenhuma resposta fornecida')).toBeInTheDocument();
   });
@@ -3246,9 +3440,13 @@ describe('QuizDissertative', () => {
       getCurrentQuestion: jest.fn().mockReturnValue(null),
       getCurrentAnswer: jest.fn().mockReturnValue(null),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     expect(screen.getByText('Nenhuma questão disponível')).toBeInTheDocument();
     expect(screen.queryByTestId('textarea')).not.toBeInTheDocument();
@@ -3259,9 +3457,13 @@ describe('QuizDissertative', () => {
       getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
       getCurrentAnswer: jest.fn().mockReturnValue(mockDissertativeAnswer),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     const textarea = screen.getByTestId('textarea');
     expect(textarea).toHaveValue(
@@ -3277,9 +3479,13 @@ describe('QuizDissertative', () => {
         answer: '',
       }),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     const textarea = screen.getByTestId('textarea');
     expect(textarea).toHaveValue('');
@@ -3293,9 +3499,13 @@ describe('QuizDissertative', () => {
         answer: null,
       }),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     const textarea = screen.getByTestId('textarea');
     expect(textarea).toHaveValue('');
@@ -3309,9 +3519,13 @@ describe('QuizDissertative', () => {
         answer: undefined,
       }),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     const textarea = screen.getByTestId('textarea');
     expect(textarea).toHaveValue('');
@@ -3323,9 +3537,13 @@ describe('QuizDissertative', () => {
       getCurrentQuestion: jest.fn().mockReturnValue(null),
       getCurrentAnswer: jest.fn().mockReturnValue(null),
       selectDissertativeAnswer: mockSelectDissertativeAnswer,
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     // Since there's no textarea when no question exists, we can't test the onChange
     // But we can verify that selectDissertativeAnswer is not called during render
@@ -3342,9 +3560,13 @@ describe('QuizDissertative', () => {
       selectDissertativeAnswer: mockSelectDissertativeAnswer,
       getActiveQuiz: jest.fn().mockReturnValue(null), // This simulates the negation case
       getUserAnswers: mockGetUserAnswers,
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     const textarea = screen.getByTestId('textarea');
     await userEvent.type(textarea, 'Test answer');
@@ -3359,10 +3581,14 @@ describe('QuizDissertative', () => {
     mockUseQuizStore.mockReturnValue({
       getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
       getCurrentAnswer: jest.fn().mockReturnValue(null),
+      variant: 'default',
       selectDissertativeAnswer: jest.fn(),
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     // The main container should have the correct classes
     const mainContainer = screen
@@ -3380,9 +3606,12 @@ describe('QuizDissertative', () => {
       getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
       getCurrentAnswer: jest.fn().mockReturnValue(mockDissertativeAnswer),
       selectDissertativeAnswer: jest.fn(),
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
-    render(<QuizDissertative variant="result" />);
+    render(<QuizDissertative />);
 
     // The main container should have the correct classes
     const mainContainer = screen
@@ -3572,6 +3801,7 @@ describe('Quiz Result Components', () => {
         getTotalQuestions: jest.fn().mockReturnValue(2),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
+        timeElapsed: 60,
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
           fisica: [mockQuestionsWithAnswers[0]],
           matematica: [mockQuestionsWithAnswers[1]],
@@ -3595,6 +3825,48 @@ describe('Quiz Result Components', () => {
             }
             return null;
           }),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'Option 1',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2023-01-01T00:00:00Z',
+              updatedAt: '2023-01-01T00:00:00Z',
+              statement: 'Question 1',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'Option 1', isCorrect: true },
+                { id: 'opt2', option: 'Option 2', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2023-01-01T00:00:00Z',
+              gradedBy: 'teacher1',
+            },
+          ],
+          statistics: {
+            totalAnswered: 1,
+            correctAnswers: 1,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 1,
+          },
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 1,
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -3608,7 +3880,7 @@ describe('Quiz Result Components', () => {
 
     it('should render progress bars with correct values', () => {
       mockUseQuizStore.mockReturnValue({
-        ...mockUseQuizStore(),
+        ...createMockUseQuizStore(),
         getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
       });
 
@@ -3631,68 +3903,28 @@ describe('Quiz Result Components', () => {
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({}),
         isQuestionAnswered: jest.fn().mockReturnValue(false),
         getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [],
+          statistics: {
+            totalAnswered: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 0,
+          },
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 0,
+        }),
       });
 
       render(<QuizResultPerformance />);
 
       expect(screen.getAllByText('0')[0]).toBeInTheDocument();
-    });
-
-    it('should handle all correct answers', () => {
-      const mockQuestionsWithCorrectAnswers = [
-        { ...mockQuestion1, answerKey: 'opt1' },
-        { ...mockQuestion2, answerKey: 'opt2' },
-      ];
-
-      mockUseQuizStore.mockReturnValue({
-        bySimulated: {
-          ...mockSimulado,
-          questions: mockQuestionsWithCorrectAnswers,
-        },
-        byActivity: undefined,
-        byQuestionary: undefined,
-        getTotalQuestions: jest.fn().mockReturnValue(2),
-        getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
-        formatTime: jest.fn().mockReturnValue('00:01:00'),
-        getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
-          fisica: [mockQuestionsWithCorrectAnswers[0]],
-          matematica: [mockQuestionsWithCorrectAnswers[1]],
-        }),
-        isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
-          return questionId === 'q1' || questionId === 'q2';
-        }),
-        getUserAnswerByQuestionId: jest
-          .fn()
-          .mockImplementation((questionId) => {
-            if (questionId === 'q1') {
-              return {
-                questionId: 'q1',
-                activityId: 'simulado-1',
-                userId: 'user-1',
-                answer: 'opt1',
-                optionId: 'opt1',
-                questionType: 'ALTERNATIVA' as const,
-                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q1 has opt1 as correct
-              };
-            }
-            if (questionId === 'q2') {
-              return {
-                questionId: 'q2',
-                activityId: 'simulado-1',
-                userId: 'user-1',
-                answer: 'opt2',
-                optionId: 'opt2',
-                questionType: 'ALTERNATIVA' as const,
-                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA, // q2 has opt2 as correct
-              };
-            }
-            return null;
-          }),
-      });
-
-      render(<QuizResultPerformance />);
-
-      expect(screen.getAllByText('2')[0]).toBeInTheDocument();
     });
 
     // Tests for difficulty-based statistics calculation
@@ -3796,6 +4028,96 @@ describe('Quiz Result Components', () => {
             }
             return null;
           }),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: '4',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is 2 + 2?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: '4', isCorrect: true },
+                { id: 'opt2', option: '3', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+            {
+              id: 'answer2',
+              questionId: 'q2',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'London',
+              answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is the capital of France?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt2',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'London', isCorrect: false },
+                { id: 'opt2', option: 'Paris', isCorrect: true },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 0,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+            {
+              id: 'answer3',
+              questionId: 'q3',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'Correct',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'Difficult question',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'Correct', isCorrect: true },
+                { id: 'opt2', option: 'Wrong', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+          ],
+          statistics: {
+            totalAnswered: 3,
+            correctAnswers: 2,
+            incorrectAnswers: 1,
+            pendingAnswers: 0,
+            score: 2,
+          },
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 3,
+          correctAnswers: 2,
+          incorrectAnswers: 1,
+          pendingAnswers: 0,
+          score: 2,
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -3906,6 +4228,96 @@ describe('Quiz Result Components', () => {
             }
             return null;
           }),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: '4',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is 2 + 2?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: '4', isCorrect: true },
+                { id: 'opt2', option: '3', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+            {
+              id: 'answer2',
+              questionId: 'q2',
+              answer: 'opt2',
+              optionId: 'opt2',
+              selectedOptionText: 'Paris',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is the capital of France?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt2',
+              difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'London', isCorrect: false },
+                { id: 'opt2', option: 'Paris', isCorrect: true },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+            {
+              id: 'answer3',
+              questionId: 'q3',
+              answer: 'opt2',
+              optionId: 'opt2',
+              selectedOptionText: 'Wrong',
+              answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'Another difficult question',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'Correct', isCorrect: true },
+                { id: 'opt2', option: 'Wrong', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 0,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+          ],
+          statistics: {
+            totalAnswered: 3,
+            correctAnswers: 2,
+            incorrectAnswers: 1,
+            pendingAnswers: 0,
+            score: 2,
+          },
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 3,
+          correctAnswers: 2,
+          incorrectAnswers: 1,
+          pendingAnswers: 0,
+          score: 2,
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -4014,6 +4426,96 @@ describe('Quiz Result Components', () => {
             }
             return null;
           }),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: '4',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is 2 + 2?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: '4', isCorrect: true },
+                { id: 'opt2', option: '3', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+            {
+              id: 'answer2',
+              questionId: 'q2',
+              answer: 'opt2',
+              optionId: 'opt2',
+              selectedOptionText: 'Paris',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is the capital of France?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt2',
+              difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'London', isCorrect: false },
+                { id: 'opt2', option: 'Paris', isCorrect: true },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+            {
+              id: 'answer3',
+              questionId: 'q3',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'Correct',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'Difficult question',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'Correct', isCorrect: true },
+                { id: 'opt2', option: 'Wrong', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+          ],
+          statistics: {
+            totalAnswered: 3,
+            correctAnswers: 3,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 3,
+          },
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 3,
+          correctAnswers: 3,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 3,
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -4055,6 +4557,23 @@ describe('Quiz Result Components', () => {
         }),
         isQuestionAnswered: jest.fn().mockReturnValue(false),
         getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [],
+          statistics: {
+            totalAnswered: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 0,
+          },
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 0,
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -4077,6 +4596,23 @@ describe('Quiz Result Components', () => {
         formatTime: jest.fn().mockReturnValue('00:01:00'),
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({}),
         isQuestionAnswered: jest.fn().mockReturnValue(false),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [],
+          statistics: {
+            totalAnswered: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 0,
+          },
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 0,
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -4096,6 +4632,23 @@ describe('Quiz Result Components', () => {
         formatTime: jest.fn().mockReturnValue('00:01:00'),
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({}),
         isQuestionAnswered: jest.fn().mockReturnValue(false),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [],
+          statistics: {
+            totalAnswered: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 0,
+          },
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 0,
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -4248,6 +4801,48 @@ describe('Quiz Result Components', () => {
             }
             return null;
           }),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'Option 1',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2023-01-01T00:00:00Z',
+              updatedAt: '2023-01-01T00:00:00Z',
+              statement: 'Question 1',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'Option 1', isCorrect: true },
+                { id: 'opt2', option: 'Option 2', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2023-01-01T00:00:00Z',
+              gradedBy: 'teacher1',
+            },
+          ],
+          statistics: {
+            totalAnswered: 4,
+            correctAnswers: 3,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 1,
+          },
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 4,
+          correctAnswers: 3,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 1,
+        }),
       });
 
       render(<QuizResultPerformance />);
@@ -4262,6 +4857,8 @@ describe('Quiz Result Components', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
         getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
+        getQuestionResult: jest.fn().mockReturnValue(null),
+        getQuestionResultStatistics: jest.fn().mockReturnValue(null),
       });
 
       render(
@@ -4282,6 +4879,48 @@ describe('Quiz Result Components', () => {
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
         getUserAnswerByQuestionId: jest.fn().mockReturnValue(null),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'Option 1',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2023-01-01T00:00:00Z',
+              updatedAt: '2023-01-01T00:00:00Z',
+              statement: 'Question 1',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'Option 1', isCorrect: true },
+                { id: 'opt2', option: 'Option 2', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2023-01-01T00:00:00Z',
+              gradedBy: 'teacher1',
+            },
+          ],
+          statistics: {
+            totalAnswered: 1,
+            correctAnswers: 1,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 1,
+          },
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 1,
+        }),
       });
 
       render(
@@ -4387,6 +5026,96 @@ describe('Quiz Result Components', () => {
         getTotalQuestions: jest.fn().mockReturnValue(4),
         getQuizTitle: jest.fn().mockReturnValue('Simulado Enem #42'),
         formatTime: jest.fn().mockReturnValue('00:01:00'),
+        getQuestionResult: jest.fn().mockReturnValue({
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: '4',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is 2 + 2?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: '4', isCorrect: true },
+                { id: 'opt2', option: '3', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+            {
+              id: 'answer2',
+              questionId: 'q2',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'London',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is the capital of France?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt2',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'London', isCorrect: false },
+                { id: 'opt2', option: 'Paris', isCorrect: true },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 0,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+            {
+              id: 'answer3',
+              questionId: 'q3',
+              answer: 'opt1',
+              optionId: 'opt1',
+              selectedOptionText: 'Correct',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'Difficult question',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
+              solutionExplanation: null,
+              options: [
+                { id: 'opt1', option: 'Correct', isCorrect: true },
+                { id: 'opt2', option: 'Wrong', isCorrect: false },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 1,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+          ],
+          statistics: {
+            totalAnswered: 3,
+            correctAnswers: 2,
+            incorrectAnswers: 1,
+            pendingAnswers: 0,
+            score: 2,
+          },
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 4,
+          correctAnswers: 3,
+          incorrectAnswers: 1,
+          pendingAnswers: 0,
+          score: 2,
+        }),
         getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
           algebra: [mockEasyQuestion, mockMediumQuestion1, mockMediumQuestion2],
           'geografia-geral': [mockDifficultQuestion],
@@ -5494,7 +6223,11 @@ describe('Quiz Result Components', () => {
 
   describe('QuizTrueOrFalse Temporary', () => {
     it('should render in default variant with options and select components', () => {
-      render(<QuizTrueOrFalse variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizTrueOrFalse />);
 
       // Checks if options are rendered
       expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
@@ -5508,7 +6241,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render in result variant with status badges', () => {
-      render(<QuizTrueOrFalse variant="result" />);
+      render(<QuizTrueOrFalse />);
 
       // Checks if options are rendered
       expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
@@ -5526,7 +6259,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct styling for correct answers in result variant', () => {
-      render(<QuizTrueOrFalse variant="result" />);
+      render(<QuizTrueOrFalse />);
 
       // Checks if the first option (correct) has the correct style
       const correctOption = screen.getByText('a) 25 metros').closest('div');
@@ -5537,7 +6270,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct styling for incorrect answers in result variant', () => {
-      render(<QuizTrueOrFalse variant="result" />);
+      render(<QuizTrueOrFalse />);
 
       // Checks if incorrect options have the correct style
       const incorrectOptions = [
@@ -5556,7 +6289,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show status badges in default variant', () => {
-      render(<QuizTrueOrFalse variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizTrueOrFalse />);
 
       // Checks that badges are not present
       expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
@@ -5564,7 +6301,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show answer information in default variant', () => {
-      render(<QuizTrueOrFalse variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizTrueOrFalse />);
 
       // Checks that answer information is not present
       expect(
@@ -5574,7 +6315,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should generate correct letter prefixes for options', () => {
-      render(<QuizTrueOrFalse variant="default" />);
+      render(<QuizTrueOrFalse />);
 
       // Checks if letters are generated correctly
       expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
@@ -5584,7 +6325,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with medium size select components', () => {
-      render(<QuizTrueOrFalse variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizTrueOrFalse />);
 
       // Checks if Select components have the correct size
       const selectTriggers = screen.getAllByText('Selecione opcão');
@@ -5597,7 +6342,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render correct number of options', () => {
-      render(<QuizTrueOrFalse variant="default" />);
+      render(<QuizTrueOrFalse />);
 
       // Checks if exactly 4 options are rendered
       const options = [
@@ -5613,7 +6358,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should have correct data structure for options', () => {
-      render(<QuizTrueOrFalse variant="default" />);
+      render(<QuizTrueOrFalse />);
 
       // Checks if options have the correct structure
       // First option should be correct
@@ -5628,7 +6373,11 @@ describe('Quiz Result Components', () => {
 
   describe('QuizConnectDots Temporary', () => {
     it('should render in default variant with options and select components', () => {
-      render(<QuizConnectDots variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks if options are rendered
       expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
@@ -5642,7 +6391,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render in result variant with status badges', () => {
-      render(<QuizConnectDots variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks if options are rendered
       expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
@@ -5668,7 +6421,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct styling for correct answers in result variant', () => {
-      render(<QuizConnectDots variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks if correct options have the correct style
       const correctOptions = [
@@ -5686,7 +6443,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct styling for incorrect answers in result variant', () => {
-      render(<QuizConnectDots variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks if incorrect options have the correct style
       const incorrectOptions = [
@@ -5704,7 +6465,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show status badges in default variant', () => {
-      render(<QuizConnectDots variant="default" />);
+      render(<QuizConnectDots />);
 
       // Checks that badges are not present
       expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
@@ -5712,7 +6473,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show answer information in default variant', () => {
-      render(<QuizConnectDots variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks that answer information is not present
       expect(
@@ -5722,7 +6487,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should generate correct letter prefixes for options', () => {
-      render(<QuizConnectDots variant="default" />);
+      render(<QuizConnectDots />);
 
       // Checks if letters are generated correctly
       expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
@@ -5732,7 +6497,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with medium size select components', () => {
-      render(<QuizConnectDots variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks if Select components have the correct size
       const selectTriggers = screen.getAllByText('Selecione opção');
@@ -5745,7 +6514,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render correct number of options', () => {
-      render(<QuizConnectDots variant="default" />);
+      render(<QuizConnectDots />);
 
       // Checks if exactly 4 options are rendered
       const options = ['a) Cachorro', 'b) Gato', 'c) Cabra', 'd) Baleia'];
@@ -5756,7 +6525,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should have correct data structure for options', () => {
-      render(<QuizConnectDots variant="default" />);
+      render(<QuizConnectDots />);
 
       // Checks if options have the correct structure
       expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
@@ -5766,7 +6535,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should show correct answer information for incorrect answers in result variant', () => {
-      render(<QuizConnectDots variant="result" />);
+      render(<QuizConnectDots />);
 
       // Checks if correct answer information is shown for incorrect answers
       expect(screen.getByText('Resposta correta: Grama')).toBeInTheDocument();
@@ -5774,7 +6543,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show correct answer information for correct answers in result variant', () => {
-      render(<QuizConnectDots variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks that correct answer information is not shown for correct answers
       expect(
@@ -5786,7 +6559,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should filter out already selected dots from available options', () => {
-      render(<QuizConnectDots variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks if initially all options are available
       const selectTriggers = screen.getAllByText('Selecione opção');
@@ -5801,7 +6578,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle null status badge correctly', () => {
-      render(<QuizConnectDots variant="result" />);
+      render(<QuizConnectDots />);
 
       // Checks if component renders correctly even with null status
       expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
@@ -5812,7 +6589,11 @@ describe('Quiz Result Components', () => {
 
     it('should set dot selection and compute isCorrect=true for correct match (handleSelectDot)', async () => {
       const user = userEvent.setup();
-      render(<QuizConnectDots variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizConnectDots />);
 
       // Row 0 (a) picks "Ração" (correct for Cachorro)
       const menus = screen.getAllByTestId('select-content');
@@ -5824,7 +6605,11 @@ describe('Quiz Result Components', () => {
 
     it('should toggle off selection when picking the same item again (handleSelectDot)', async () => {
       const user = userEvent.setup();
-      render(<QuizConnectDots variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizConnectDots />);
 
       const menus = screen.getAllByTestId('select-content');
 
@@ -5839,7 +6624,11 @@ describe('Quiz Result Components', () => {
 
     it('should set isCorrect=false when selecting a wrong match (handleSelectDot)', async () => {
       const user = userEvent.setup();
-      render(<QuizConnectDots variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizConnectDots />);
 
       const menus = screen.getAllByTestId('select-content');
 
@@ -5853,7 +6642,11 @@ describe('Quiz Result Components', () => {
 
   describe('QuizFill Temporary', () => {
     it('should render in default variant with text and select components', () => {
-      render(<QuizFill variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizFill />);
 
       // Checks if base text is present
       expect(screen.getByText(/A meteorologia é a/)).toBeInTheDocument();
@@ -5867,7 +6660,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render in result variant with badges showing user answers', () => {
-      render(<QuizFill variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizFill />);
 
       // Checks if base text is present
       expect(screen.getAllByText(/A meteorologia é a/)).toHaveLength(2);
@@ -5880,7 +6677,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should show correct answer badges in result variant', () => {
-      render(<QuizFill variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizFill />);
 
       // Checks if result section is present
       expect(screen.getByText('Resultado')).toBeInTheDocument();
@@ -5892,14 +6693,18 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render success badges for correct answers in result variant', () => {
-      render(<QuizFill variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizFill />);
 
       // Checks if success badges are present for correct answers
       expect(screen.getAllByText('equipamentos')).toHaveLength(2); // Resposta correta (aparece no badge e no resultado)
     });
 
     it('should render error badges for incorrect answers in result variant', () => {
-      render(<QuizFill variant="result" />);
+      render(<QuizFill />);
 
       // Checks if error badges are present for incorrect answers
       expect(screen.getByText('tecnologia')).toBeInTheDocument();
@@ -5908,21 +6713,21 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show select components in result variant', () => {
-      render(<QuizFill variant="result" />);
+      render(<QuizFill />);
 
       // Checks that Select components are not present
       expect(screen.queryByText('Selecione opção')).not.toBeInTheDocument();
     });
 
     it('should not show result section in default variant', () => {
-      render(<QuizFill variant="default" />);
+      render(<QuizFill />);
 
       // Checks that result section is not present
       expect(screen.queryByText('Resultado')).not.toBeInTheDocument();
     });
 
     it('should render with correct text content', () => {
-      render(<QuizFill variant="default" />);
+      render(<QuizFill />);
 
       // Checks if complete text is being rendered
       expect(screen.getByText(/A meteorologia é a/)).toBeInTheDocument();
@@ -5951,7 +6756,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle select changes correctly', () => {
-      render(<QuizFill variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizFill />);
 
       // Checks if selects are working
       const selectTriggers = screen.getAllByText('Selecione opção');
@@ -5964,7 +6773,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct padding bottom class', () => {
-      render(<QuizFill variant="default" paddingBottom="pb-[100px]" />);
+      render(<QuizFill paddingBottom="pb-[100px]" />);
 
       // Checks if custom padding class is being applied
       const container = screen.getByText(/A meteorologia é a/).closest('div');
@@ -6074,7 +6883,7 @@ describe('Quiz Result Components', () => {
 
   describe('QuizImageQuestion Temporary', () => {
     it('should render in default variant with image and subtitle', () => {
-      render(<QuizImageQuestion variant="default" />);
+      render(<QuizImageQuestion />);
 
       // Checks if subtitle is present
       expect(screen.getByText('Clique na área correta')).toBeInTheDocument();
@@ -6085,7 +6894,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render in result variant with legend and correct answer circle', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       // Checks if subtitle is present
       expect(screen.getByText('Clique na área correta')).toBeInTheDocument();
@@ -6098,7 +6911,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle image click in default variant', () => {
-      render(<QuizImageQuestion variant="default" />);
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toHaveClass('cursor-pointer');
@@ -6111,7 +6924,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not handle image click in result variant', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -6134,7 +6951,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct styling for user answer circle in default variant', () => {
-      render(<QuizImageQuestion variant="default" />);
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       fireEvent.click(imageButton);
@@ -6144,7 +6961,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct styling for user answer circle in result variant', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       // In result variant, the user circle should be visible
       const userCircle = screen.getByTestId('quiz-user-circle');
@@ -6153,7 +6974,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct styling for correct answer circle', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       const correctCircle = screen.getByTestId('quiz-correct-circle');
       expect(correctCircle).toBeInTheDocument();
@@ -6161,14 +6986,22 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show legend in default variant', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       // Checks that legend is not present
       expect(screen.queryByTestId('quiz-legend')).not.toBeInTheDocument();
     });
 
     it('should handle image onLoad event correctly', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
       const image = screen.getByTestId('quiz-image');
 
       // Verify image is present and has correct attributes
@@ -6177,7 +7010,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show correct answer circle in default variant', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       // Checks that correct answer circle is not present
       expect(
@@ -6186,7 +7023,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render image with correct attributes and classes', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const image = screen.getByTestId('quiz-image');
       expect(image).toHaveAttribute('src');
@@ -6194,7 +7035,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with responsive circle sizes', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       // Checks if circles are present
       expect(screen.getByTestId('quiz-correct-circle')).toBeInTheDocument();
@@ -6202,7 +7047,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should maintain relative positioning for circles', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       // Check that both circles are present and have absolute positioning
       const correctCircle = screen.getByTestId('quiz-correct-circle');
@@ -6213,7 +7062,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should calculate correctRadiusRelative automatically based on circle dimensions', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       // The correct answer circle should be visible in result variant
       const correctCircle = screen.getByTestId('quiz-correct-circle');
@@ -6225,7 +7078,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle keyboard activation with Enter key', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -6243,7 +7100,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle keyboard activation with Space key', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -6261,7 +7122,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not handle keyboard activation in result variant', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -6280,7 +7145,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle edge case coordinates in convertToRelativeCoordinates', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -6293,7 +7162,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle very small image dimensions gracefully', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -6324,7 +7197,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle isCorrect function with correct answer position', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       // The mock position (0.72, 0.348) should be incorrect
       // since correct position is (0.5, 0.4) and radius is small
@@ -6336,28 +7213,40 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle isCorrect function with no click position', () => {
-      render(<QuizImageQuestion variant="default" />);
+      render(<QuizImageQuestion />);
 
       // Initially no user circle should be present
       expect(screen.queryByTestId('quiz-user-circle')).not.toBeInTheDocument();
     });
 
     it('should handle paddingBottom prop correctly', () => {
-      render(<QuizImageQuestion variant="default" paddingBottom="pb-8" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion paddingBottom="pb-8" />);
 
       // Should apply custom padding bottom class
       expect(screen.getByTestId('quiz-image-container')).toBeInTheDocument();
     });
 
     it('should handle default paddingBottom when not provided', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       // Should not have custom padding bottom class
       expect(screen.getByTestId('quiz-image-container')).toBeInTheDocument();
     });
 
     it('should maintain accessibility attributes', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -6372,7 +7261,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle multiple rapid clicks correctly', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -6387,7 +7280,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle coordinate clamping correctly', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -6418,7 +7315,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle division by zero gracefully', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -6451,6 +7352,10 @@ describe('Quiz Result Components', () => {
 
   describe('QuizFill component', () => {
     it('should render text with selects correctly', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
       render(<QuizFill />);
 
       expect(screen.getByText('A meteorologia é a')).toBeInTheDocument();
@@ -6468,6 +7373,10 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle select changes correctly', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
       render(<QuizFill />);
 
       const selects = screen.getAllByTestId('select');
@@ -6490,6 +7399,10 @@ describe('Quiz Result Components', () => {
     });
 
     it('should filter available options correctly', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
       render(<QuizFill />);
 
       const selects = screen.getAllByTestId('select');
@@ -6504,7 +7417,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render default variant correctly', () => {
-      render(<QuizFill variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizFill />);
 
       // Should show selects in default variant
       const selects = screen.getAllByTestId('select');
@@ -6518,7 +7435,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render result variant correctly', () => {
-      render(<QuizFill variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizFill />);
 
       // Should show result badges instead of selects
       expect(screen.getByText('tecnologia')).toBeInTheDocument();
@@ -6531,6 +7452,10 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle text with Unicode placeholders', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
       render(<QuizFill />);
 
       // Should handle Unicode characters in placeholders
@@ -6542,6 +7467,10 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle empty text segments correctly', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
       render(<QuizFill />);
 
       const selects = screen.getAllByTestId('select');
@@ -6555,6 +7484,10 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle text with trailing content after last placeholder', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
       render(<QuizFill />);
 
       expect(
@@ -6566,6 +7499,10 @@ describe('Quiz Result Components', () => {
     });
 
     it('should update answers state when selects change', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
       render(<QuizFill />);
 
       const selects = screen.getAllByTestId('select');
@@ -6586,7 +7523,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should show correct and incorrect badges in result variant', () => {
-      render(<QuizFill variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizFill />);
 
       // Should show success badge for correct answers
       const successBadges = screen.getAllByText(/variações|equipamentos/);
