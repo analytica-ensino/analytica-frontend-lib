@@ -241,8 +241,9 @@ const VideoPlayer = ({
     const newShowCaptions = !showCaptions;
     setShowCaptions(newShowCaptions);
 
-    // Control track mode programmatically
-    trackRef.current.track.mode = newShowCaptions ? 'showing' : 'hidden';
+    // Control track mode programmatically - only show if subtitles are available
+    trackRef.current.track.mode =
+      newShowCaptions && subtitles ? 'showing' : 'hidden';
   }, [showCaptions, subtitles]);
 
   /**
@@ -289,12 +290,13 @@ const VideoPlayer = ({
   }, []);
 
   /**
-   * Initialize track mode when subtitles are available
+   * Initialize track mode when track is available
    */
   useEffect(() => {
-    if (trackRef.current?.track && subtitles) {
-      // Set initial mode based on showCaptions state
-      trackRef.current.track.mode = showCaptions ? 'showing' : 'hidden';
+    if (trackRef.current?.track) {
+      // Set initial mode based on showCaptions state and subtitle availability
+      trackRef.current.track.mode =
+        showCaptions && subtitles ? 'showing' : 'hidden';
     }
   }, [subtitles, showCaptions]);
 
@@ -418,26 +420,16 @@ const VideoPlayer = ({
           tabIndex={0}
           aria-label={title ? `Video: ${title}` : 'Video player'}
         >
-          {subtitles && (
-            <track
-              ref={trackRef}
-              kind="subtitles"
-              src={subtitles}
-              srcLang="pt-br"
-              label="Legendas em Português"
-              default={false}
-            />
-          )}
-          {!subtitles && (
-            <track
-              ref={trackRef}
-              kind="captions"
-              src="data:text/vtt;charset=utf-8,WEBVTT%0A%0ANOTE%20No%20captions%20available"
-              srcLang="pt-br"
-              label="Sem legendas disponíveis"
-              default={false}
-            />
-          )}
+          <track
+            ref={trackRef}
+            kind="captions"
+            src={subtitles || 'data:text/vtt;charset=utf-8,WEBVTT'}
+            srcLang="pt-br"
+            label={
+              subtitles ? 'Legendas em Português' : 'Sem legendas disponíveis'
+            }
+            default={false}
+          />
         </video>
 
         {/* Center Play Button */}
