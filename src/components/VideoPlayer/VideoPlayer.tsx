@@ -207,6 +207,11 @@ const VideoPlayer = ({
   const [showControls, setShowControls] = useState(true);
   const [hasCompleted, setHasCompleted] = useState(false);
   const [showCaptions, setShowCaptions] = useState(false);
+
+  // Reset completion flag when changing videos
+  useEffect(() => {
+    setHasCompleted(false);
+  }, [src]);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const lastSaveTimeRef = useRef(0);
@@ -375,15 +380,18 @@ const VideoPlayer = ({
   /**
    * Save progress to localStorage periodically
    */
-  const saveProgress = useCallback(() => {
-    if (!autoSave || !storageKey) return;
+  const saveProgress = useCallback(
+    (time: number) => {
+      if (!autoSave || !storageKey) return;
 
-    const now = Date.now();
-    if (now - lastSaveTimeRef.current > 5000) {
-      localStorage.setItem(`${storageKey}-${src}`, currentTime.toString());
-      lastSaveTimeRef.current = now;
-    }
-  }, [autoSave, storageKey, src, currentTime]);
+      const now = Date.now();
+      if (now - lastSaveTimeRef.current > 5000) {
+        localStorage.setItem(`${storageKey}-${src}`, time.toString());
+        lastSaveTimeRef.current = now;
+      }
+    },
+    [autoSave, storageKey, src]
+  );
 
   /**
    * Handle play/pause toggle
@@ -532,7 +540,7 @@ const VideoPlayer = ({
     setCurrentTime(current);
 
     // Save progress periodically
-    saveProgress();
+    saveProgress(current);
 
     // Fire callbacks
     onTimeUpdate?.(current);
