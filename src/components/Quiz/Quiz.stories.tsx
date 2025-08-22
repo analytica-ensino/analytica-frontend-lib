@@ -14,7 +14,6 @@ import {
 } from './Quiz';
 import {
   QUESTION_DIFFICULTY,
-  QUESTION_STATUS,
   QUESTION_TYPE,
   ANSWER_STATUS,
   useQuizStore,
@@ -52,7 +51,7 @@ export const General: Story = () => {
           solutionExplanation:
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'opt1', option: 'São Paulo' },
             { id: 'opt2', option: 'Rio de Janeiro' },
@@ -81,7 +80,7 @@ export const General: Story = () => {
           solutionExplanation:
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'opt1', option: 'São Paulo' },
             { id: 'opt2', option: 'Rio de Janeiro' },
@@ -111,7 +110,7 @@ export const General: Story = () => {
           solutionExplanation:
             'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'opt1', option: 'Saturno' },
             { id: 'opt2', option: 'Júpiter' },
@@ -143,7 +142,7 @@ export const General: Story = () => {
           solutionExplanation:
             'A preservação ambiental é fundamental para garantir um futuro sustentável para as próximas gerações. O equilíbrio ecológico, a biodiversidade e os recursos naturais são essenciais para a sobrevivência humana e devem ser protegidos através de políticas públicas eficazes, educação ambiental e mudanças nos padrões de consumo.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [],
           knowledgeMatrix: [
             {
@@ -167,7 +166,7 @@ export const General: Story = () => {
           solutionExplanation:
             'Verdadeiro. A Terra é o terceiro planeta do sistema solar, localizada entre Vênus (segundo) e Marte (quarto). A ordem dos planetas a partir do Sol é: Mercúrio, Vênus, Terra, Marte, Júpiter, Saturno, Urano e Netuno.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'opt1', option: 'Verdadeiro' },
             { id: 'opt2', option: 'Falso' },
@@ -194,7 +193,7 @@ export const General: Story = () => {
           solutionExplanation:
             'Velocidade é a distância percorrida por unidade de tempo (v = d/t). Aceleração é a variação da velocidade por unidade de tempo (a = Δv/t). Estas são grandezas fundamentais da cinemática que descrevem o movimento dos corpos.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'opt1', option: 'Velocidade' },
             {
@@ -229,7 +228,7 @@ export const General: Story = () => {
           examYear: '2024',
           solutionExplanation: 'd,t',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [],
           knowledgeMatrix: [
             {
@@ -322,7 +321,7 @@ export const GeneralForResults: Story = () => {
           solutionExplanation:
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'opt1', option: 'São Paulo' },
             { id: 'opt2', option: 'Rio de Janeiro' },
@@ -352,7 +351,7 @@ export const GeneralForResults: Story = () => {
           solutionExplanation:
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'opt1', option: 'São Paulo' },
             { id: 'opt2', option: 'Rio de Janeiro' },
@@ -382,7 +381,7 @@ export const GeneralForResults: Story = () => {
           solutionExplanation:
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'alt-opt1', option: 'São Paulo' },
             { id: 'alt-opt2', option: 'Rio de Janeiro' },
@@ -412,7 +411,7 @@ export const GeneralForResults: Story = () => {
           solutionExplanation:
             'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
           options: [
             { id: 'alt-opt1', option: 'Júpiter' },
             { id: 'alt-opt2', option: 'Saturno' },
@@ -443,7 +442,7 @@ export const GeneralForResults: Story = () => {
           solutionExplanation:
             'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'multi-opt1', option: 'Saturno' },
             { id: 'multi-opt2', option: 'Júpiter' },
@@ -481,7 +480,7 @@ export const GeneralForResults: Story = () => {
           solutionExplanation:
             'Velocidade, Aceleração e Força são grandezas vetoriais. Temperatura é uma grandeza escalar.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
           options: [
             { id: 'multi-opt1', option: 'Velocidade' },
             { id: 'multi-opt2', option: 'Aceleração' },
@@ -512,7 +511,7 @@ export const GeneralForResults: Story = () => {
           solutionExplanation:
             'A preservação ambiental é fundamental para garantir um futuro sustentável para as próximas gerações. O equilíbrio ecológico, a biodiversidade e os recursos naturais são essenciais para a sobrevivência humana e devem ser protegidos através de políticas públicas eficazes, educação ambiental e mudanças nos padrões de consumo.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [],
           knowledgeMatrix: [
             {
@@ -537,7 +536,7 @@ export const GeneralForResults: Story = () => {
           solutionExplanation:
             'As três leis de Newton são fundamentais para a mecânica clássica: 1) Primeira Lei (Inércia): um corpo permanece em repouso ou em movimento retilíneo uniforme a menos que uma força resultante atue sobre ele; 2) Segunda Lei: a força resultante é igual ao produto da massa pela aceleração (F = ma); 3) Terceira Lei: para toda ação há uma reação igual e oposta. Estas leis são aplicadas em sistemas mecânicos, análise de movimento, equilíbrio de forças e dinâmica de partículas.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [],
           knowledgeMatrix: [
             {
@@ -562,7 +561,7 @@ export const GeneralForResults: Story = () => {
           solutionExplanation:
             'Verdadeiro. A Terra é o terceiro planeta do sistema solar, localizada entre Vênus (segundo) e Marte (quarto). A ordem dos planetas a partir do Sol é: Mercúrio, Vênus, Terra, Marte, Júpiter, Saturno, Urano e Netuno.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'opt1', option: 'Verdadeiro' },
             { id: 'opt2', option: 'Falso' },
@@ -590,7 +589,7 @@ export const GeneralForResults: Story = () => {
           solutionExplanation:
             'Falso. O Sol é uma estrela anã amarela (sequência principal). As anãs brancas são estrelas que já esgotaram seu combustível nuclear e são muito menores e mais densas.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'opt1', option: 'Verdadeiro' },
             { id: 'opt2', option: 'Falso' },
@@ -624,7 +623,7 @@ export const GeneralForResults: Story = () => {
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           optionId: 'img_opt1',
           selectedOptionText: 'Resposta de imagem correta',
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Qual é a capital do Brasil?',
@@ -646,7 +645,7 @@ export const GeneralForResults: Story = () => {
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           optionId: 'img_opt2',
           selectedOptionText: 'Resposta de imagem incorreta',
-          answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Qual é a capital do Brasil? (Questão Incorreta)',
@@ -669,7 +668,7 @@ export const GeneralForResults: Story = () => {
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           optionId: 'alt-opt1',
           selectedOptionText: 'Brasília',
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Alternativa Correta',
@@ -691,7 +690,7 @@ export const GeneralForResults: Story = () => {
             'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
           optionId: 'alt-opt2',
           selectedOptionText: 'Resposta incorreta',
-          answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Alternativa Incorreta',
@@ -714,7 +713,7 @@ export const GeneralForResults: Story = () => {
           answer: null,
           optionId: 'multi-opt1,multi-opt2',
           selectedOptionText: 'Saturno, Júpiter',
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Múltipla Escolha Correta',
@@ -740,7 +739,7 @@ export const GeneralForResults: Story = () => {
           answer: null,
           optionId: 'multi-opt1,multi-opt3',
           selectedOptionText: 'Velocidade, Força',
-          answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Múltipla Escolha Incorreta',
@@ -767,7 +766,7 @@ export const GeneralForResults: Story = () => {
             'A preservação ambiental é fundamental para garantir um futuro sustentável para as próximas gerações. O equilíbrio ecológico, a biodiversidade e os recursos naturais são essenciais para a sobrevivência humana e devem ser protegidos através de políticas públicas eficazes, educação ambiental e mudanças nos padrões de consumo.',
           optionId: 'diss_opt1',
           selectedOptionText: 'Resposta dissertativa sobre meio ambiente',
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão Dissertativa Correta sobre Meio Ambiente',
@@ -790,7 +789,7 @@ export const GeneralForResults: Story = () => {
           answer: 'As leis de Newton são importantes para a física.',
           optionId: 'diss_opt2',
           selectedOptionText: 'Resposta dissertativa sobre física',
-          answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão Dissertativa Incorreta sobre Física',
@@ -916,7 +915,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           solutionExplanation:
             'A resposta correta é a primeira opção porque ela representa corretamente o conceito físico abordado na questão. Em física, é fundamental entender os princípios básicos que governam os fenômenos naturais.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'opt1', option: 'Resposta correta' },
             { id: 'opt2', option: 'Resposta incorreta' },
@@ -945,7 +944,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           solutionExplanation:
             'As duas primeiras opções são corretas porque ambas representam soluções válidas para o problema matemático apresentado. Em matemática, é comum que uma equação tenha múltiplas soluções válidas.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'opt1', option: 'Resposta correta' },
             { id: 'opt2', option: 'Resposta correta' },
@@ -974,7 +973,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           solutionExplanation:
             'A química é uma ciência fundamental que estuda a composição, estrutura e propriedades da matéria. Ela é essencial para entender diversos fenômenos naturais e tecnológicos, desde a fotossíntese até a produção de medicamentos. A química está presente em todos os aspectos da vida moderna, incluindo agricultura, medicina, indústria e meio ambiente.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [],
           knowledgeMatrix: [
             {
@@ -997,7 +996,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           solutionExplanation:
             'A terceira opção é a resposta correta porque representa o conceito biológico correto abordado na questão. Em biologia, é essencial compreender os processos celulares e suas funções no organismo.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'opt1', option: 'Resposta incorreta' },
             { id: 'opt2', option: 'Resposta incorreta' },
@@ -1026,7 +1025,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           solutionExplanation:
             'A segunda opção é a resposta correta porque representa o fato histórico correto sobre o período colonial brasileiro. Em história, é fundamental conhecer os eventos e contextos que moldaram a formação do país.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [
             { id: 'opt1', option: 'Resposta incorreta' },
             { id: 'opt2', option: 'Resposta correta' },
@@ -1113,7 +1112,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           answer: 'opt1',
           optionId: 'opt1',
           selectedOptionText: 'Resposta correta',
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Física 1 - Alternativa',
@@ -1140,7 +1139,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           answer: 'opt1,opt2',
           optionId: 'opt1,opt2',
           selectedOptionText: 'Resposta correta, Resposta correta',
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Matemática 1 - Múltipla Escolha',
@@ -1167,7 +1166,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           answer: 'A química é uma ciência fundamental...',
           optionId: 'dissertativa_opt1',
           selectedOptionText: 'Resposta dissertativa',
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Química 1 - Dissertativa',
@@ -1190,7 +1189,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           answer: 'opt3',
           optionId: 'opt3',
           selectedOptionText: 'Resposta correta',
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Biologia 1 - Alternativa',
@@ -1217,7 +1216,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           answer: 'opt2',
           optionId: 'opt2',
           selectedOptionText: 'Resposta correta',
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de História 1 - Alternativa',

@@ -33,7 +33,6 @@ import {
   QUESTION_DIFFICULTY,
   QUESTION_TYPE,
   ANSWER_STATUS,
-  QUESTION_STATUS,
 } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
@@ -117,7 +116,7 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
         return;
       }
       const qr = getQuestionResultByQuestionId(cq.id);
-      setIsCorrect(qr?.answerStatus === QUESTION_STATUS.RESPOSTA_CORRETA);
+      setIsCorrect(qr?.answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA);
     }, [
       getCurrentQuestion,
       getQuestionResultByQuestionId,
@@ -234,7 +233,7 @@ const QuizContent = forwardRef<
     paddingBottom?: string;
   }
 >(({ paddingBottom }) => {
-  const { getCurrentQuestion, variant } = useQuizStore();
+  const { getCurrentQuestion } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
 
   const questionComponents: Record<
@@ -255,7 +254,7 @@ const QuizContent = forwardRef<
     : null;
 
   return QuestionComponent ? (
-    <QuestionComponent variant={variant} paddingBottom={paddingBottom} />
+    <QuestionComponent paddingBottom={paddingBottom} />
   ) : null;
 });
 
@@ -266,19 +265,16 @@ enum Status {
 }
 
 interface QuizVariantInterface {
-  variant?: 'result' | 'default';
   paddingBottom?: string;
 }
 
-const QuizAlternative = ({
-  variant = 'default',
-  paddingBottom,
-}: QuizVariantInterface) => {
+const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
   const {
     getCurrentQuestion,
     selectAnswer,
     getQuestionResultByQuestionId,
     getCurrentAnswer,
+    variant,
   } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
   const currentQuestionResult = getQuestionResultByQuestionId(
@@ -292,9 +288,7 @@ const QuizAlternative = ({
       const isCorrectOption = currentQuestion.correctOptionIds?.includes(
         option.id
       );
-      const isSelected = currentQuestionResult?.options.find(
-        (op) => op.id === option.id
-      );
+      const isSelected = currentQuestionResult?.optionId === option.id;
 
       if (isCorrectOption) {
         status = Status.CORRECT;
@@ -332,13 +326,13 @@ const QuizAlternative = ({
             layout="compact"
             alternatives={alternatives}
             value={
-              variant == 'result'
-                ? currentQuestionResult?.options[0].id || ''
+              variant === 'result'
+                ? currentQuestionResult?.optionId || ''
                 : currentAnswer?.optionId || ''
             }
             selectedValue={
-              variant == 'result'
-                ? currentQuestionResult?.options[0].id || ''
+              variant === 'result'
+                ? currentQuestionResult?.optionId || ''
                 : currentAnswer?.optionId || ''
             }
             onValueChange={(value) => {
@@ -409,7 +403,12 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
     }
 
     return prevSelectedValuesRef.current;
-  }, [selectedValues, currentQuestion?.id]);
+  }, [
+    selectedValues,
+    currentQuestion?.id,
+    variant,
+    currentQuestionResult?.optionId,
+  ]);
 
   // Memoize the callback to prevent unnecessary re-renders
   const handleSelectedValues = useCallback(
@@ -560,7 +559,7 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
 
       {variant === 'result' &&
         currentQuestionResult?.answerStatus ==
-          QUESTION_STATUS.RESPOSTA_INCORRETA && (
+          ANSWER_STATUS.RESPOSTA_INCORRETA && (
           <>
             <QuizSubTitle subTitle="Observação do professor" />
 
@@ -612,10 +611,8 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
   );
 };
 
-const QuizTrueOrFalse = ({
-  variant = 'default',
-  paddingBottom,
-}: QuizVariantInterface) => {
+const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
+  const { variant } = useQuizStore();
   const options = [
     {
       label: '25 metros',
@@ -708,10 +705,8 @@ interface UserAnswer {
   isCorrect: boolean | null;
 }
 
-const QuizConnectDots = ({
-  variant = 'default',
-  paddingBottom,
-}: QuizVariantInterface) => {
+const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
+  const { variant } = useQuizStore();
   const dotsOptions = [
     { label: 'Ração' },
     { label: 'Rato' },
@@ -880,10 +875,8 @@ interface FillUserAnswer {
   isCorrect: boolean;
 }
 
-const QuizFill = ({
-  variant = 'default',
-  paddingBottom = 'pb-[80px]',
-}: QuizVariantInterface) => {
+const QuizFill = ({ paddingBottom = 'pb-[80px]' }: QuizVariantInterface) => {
+  const { variant } = useQuizStore();
   const options = [
     'ciência',
     'disciplina',
@@ -1112,10 +1105,8 @@ const QuizFill = ({
   );
 };
 
-const QuizImageQuestion = ({
-  variant = 'default',
-  paddingBottom,
-}: QuizVariantInterface) => {
+const QuizImageQuestion = ({ paddingBottom }: QuizVariantInterface) => {
+  const { variant } = useQuizStore();
   const correctPositionRelative = { x: 0.48, y: 0.45 };
 
   // Calculate correctRadiusRelative automatically based on the circle dimensions
@@ -1732,8 +1723,7 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
 
     if (questionResult) {
       questionResult.answers.forEach((answer) => {
-        const isCorrect =
-          answer.answerStatus == QUESTION_STATUS.RESPOSTA_CORRETA;
+        const isCorrect = answer.answerStatus == ANSWER_STATUS.RESPOSTA_CORRETA;
 
         if (isCorrect) {
           correctAnswers++;

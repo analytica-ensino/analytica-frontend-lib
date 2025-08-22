@@ -1073,7 +1073,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizAlternative variant="result" />);
+      render(<QuizAlternative />);
 
       expect(screen.getByTestId('alternatives-list')).toBeInTheDocument();
       // The component should render in readonly mode with correct status determination
@@ -2779,7 +2779,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       expect(screen.getByText('Opção A')).toBeInTheDocument();
       expect(screen.getByText('Opção B')).toBeInTheDocument();
@@ -2804,7 +2804,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizMultipleChoice variant="result" />);
+      render(<QuizMultipleChoice />);
 
       // Should show all options with their status
       expect(screen.getByText('Opção A')).toBeInTheDocument();
@@ -2829,7 +2829,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       expect(screen.getByText('Não há Escolhas Multiplas')).toBeInTheDocument();
     });
@@ -2845,7 +2845,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       expect(screen.getByText('Não há Escolhas Multiplas')).toBeInTheDocument();
     });
@@ -2862,7 +2862,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       // Find and click on checkboxes
       const checkboxes = screen.getAllByRole('checkbox');
@@ -2891,7 +2891,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       // Check that selected options are checked
       const checkboxes = screen.getAllByRole('checkbox');
@@ -2912,7 +2912,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       // Should render without errors
       expect(screen.getByText('Opção A')).toBeInTheDocument();
@@ -2938,7 +2938,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       // Should render without errors
       expect(screen.getByText('Opção A')).toBeInTheDocument();
@@ -2988,7 +2988,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       // Only opt1 and opt3 should be selected (null optionId filtered out)
       const checkboxes = screen.getAllByRole('checkbox');
@@ -3009,10 +3009,10 @@ describe('Quiz Component', () => {
         }),
       });
 
-      const { rerender } = render(<QuizMultipleChoice variant="default" />);
+      const { rerender } = render(<QuizMultipleChoice />);
 
       // Re-render with same question
-      rerender(<QuizMultipleChoice variant="default" />);
+      rerender(<QuizMultipleChoice />);
 
       // Component should still render correctly
       expect(screen.getByText('Opção A')).toBeInTheDocument();
@@ -3039,7 +3039,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      const { rerender } = render(<QuizMultipleChoice variant="default" />);
+      const { rerender } = render(<QuizMultipleChoice />);
 
       // Change to a different question
       const newQuestion = {
@@ -3065,7 +3065,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      rerender(<QuizMultipleChoice variant="default" />);
+      rerender(<QuizMultipleChoice />);
 
       // Should show new options
       expect(screen.getByText('Nova Opção A')).toBeInTheDocument();
@@ -3094,10 +3094,10 @@ describe('Quiz Component', () => {
         }),
       });
 
-      const { rerender } = render(<QuizMultipleChoice variant="default" />);
+      const { rerender } = render(<QuizMultipleChoice />);
 
       // Re-render with same data
-      rerender(<QuizMultipleChoice variant="default" />);
+      rerender(<QuizMultipleChoice />);
 
       // Component should still work correctly
       expect(screen.getByText('Opção A')).toBeInTheDocument();
@@ -3123,7 +3123,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizMultipleChoice variant="result" />);
+      render(<QuizMultipleChoice />);
 
       // In readonly mode, there should be no checkboxes
       const checkboxes = screen.queryAllByRole('checkbox');
@@ -3147,7 +3147,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       // In interactive mode, checkboxes should be enabled
       const checkboxes = screen.getAllByRole('checkbox');
@@ -3168,7 +3168,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       // Should not call selectMultipleAnswer when there's no current question
       expect(mockSelectMultipleAnswer).not.toHaveBeenCalled();
@@ -3186,7 +3186,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizMultipleChoice variant="default" />);
+      render(<QuizMultipleChoice />);
 
       const checkboxes = screen.getAllByRole('checkbox');
 
@@ -3220,13 +3220,13 @@ describe('Quiz Component', () => {
       });
 
       // First render - no selected values
-      const { rerender } = render(<QuizMultipleChoice variant="default" />);
+      const { rerender } = render(<QuizMultipleChoice />);
 
       // Second render - one selected value (should trigger hasValuesChanged)
-      rerender(<QuizMultipleChoice variant="default" />);
+      rerender(<QuizMultipleChoice />);
 
       // Third render - two selected values (should trigger hasValuesChanged again)
-      rerender(<QuizMultipleChoice variant="default" />);
+      rerender(<QuizMultipleChoice />);
 
       // Verify that getAllCurrentAnswer was called multiple times with different values
       expect(mockGetAllCurrentAnswer).toHaveBeenCalledTimes(3);
@@ -3270,11 +3270,11 @@ describe('Quiz Component', () => {
       });
 
       // First render - no selected values
-      const { rerender } = render(<QuizMultipleChoice variant="default" />);
+      const { rerender } = render(<QuizMultipleChoice />);
 
       // Second render - one selected value
       // This should trigger the hasValuesChanged condition in the stableSelectedValues useMemo
-      rerender(<QuizMultipleChoice variant="default" />);
+      rerender(<QuizMultipleChoice />);
 
       // Verify that the component handled the value change correctly
       // The stableSelectedValues should have updated from [] to ['opt1']
@@ -3321,7 +3321,7 @@ describe('Quiz Component', () => {
         }),
       });
 
-      render(<QuizMultipleChoice variant="result" />);
+      render(<QuizMultipleChoice />);
 
       // The component should render with the incorrect status for opt2
       // In result variant, the MultipleChoiceList component should receive choices with status
@@ -3388,7 +3388,7 @@ describe('QuizDissertative', () => {
       }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     expect(screen.getByTestId('textarea')).toBeInTheDocument();
     expect(
@@ -3409,7 +3409,7 @@ describe('QuizDissertative', () => {
       }),
     });
 
-    render(<QuizDissertative variant="result" />);
+    render(<QuizDissertative />);
 
     expect(
       screen.getByText(
@@ -3430,7 +3430,7 @@ describe('QuizDissertative', () => {
       }),
     });
 
-    render(<QuizDissertative variant="result" />);
+    render(<QuizDissertative />);
 
     expect(screen.getByText('Nenhuma resposta fornecida')).toBeInTheDocument();
   });
@@ -3446,7 +3446,7 @@ describe('QuizDissertative', () => {
       }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     expect(screen.getByText('Nenhuma questão disponível')).toBeInTheDocument();
     expect(screen.queryByTestId('textarea')).not.toBeInTheDocument();
@@ -3463,7 +3463,7 @@ describe('QuizDissertative', () => {
       }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     const textarea = screen.getByTestId('textarea');
     expect(textarea).toHaveValue(
@@ -3505,7 +3505,7 @@ describe('QuizDissertative', () => {
       }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     const textarea = screen.getByTestId('textarea');
     expect(textarea).toHaveValue('');
@@ -3525,7 +3525,7 @@ describe('QuizDissertative', () => {
       }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     const textarea = screen.getByTestId('textarea');
     expect(textarea).toHaveValue('');
@@ -3543,7 +3543,7 @@ describe('QuizDissertative', () => {
       }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     // Since there's no textarea when no question exists, we can't test the onChange
     // But we can verify that selectDissertativeAnswer is not called during render
@@ -3566,7 +3566,7 @@ describe('QuizDissertative', () => {
       }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     const textarea = screen.getByTestId('textarea');
     await userEvent.type(textarea, 'Test answer');
@@ -3588,7 +3588,7 @@ describe('QuizDissertative', () => {
       }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     // The main container should have the correct classes
     const mainContainer = screen
@@ -3611,7 +3611,7 @@ describe('QuizDissertative', () => {
       }),
     });
 
-    render(<QuizDissertative variant="result" />);
+    render(<QuizDissertative />);
 
     // The main container should have the correct classes
     const mainContainer = screen
@@ -6223,7 +6223,11 @@ describe('Quiz Result Components', () => {
 
   describe('QuizTrueOrFalse Temporary', () => {
     it('should render in default variant with options and select components', () => {
-      render(<QuizTrueOrFalse variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizTrueOrFalse />);
 
       // Checks if options are rendered
       expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
@@ -6237,7 +6241,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render in result variant with status badges', () => {
-      render(<QuizTrueOrFalse variant="result" />);
+      render(<QuizTrueOrFalse />);
 
       // Checks if options are rendered
       expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
@@ -6255,7 +6259,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct styling for correct answers in result variant', () => {
-      render(<QuizTrueOrFalse variant="result" />);
+      render(<QuizTrueOrFalse />);
 
       // Checks if the first option (correct) has the correct style
       const correctOption = screen.getByText('a) 25 metros').closest('div');
@@ -6266,7 +6270,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct styling for incorrect answers in result variant', () => {
-      render(<QuizTrueOrFalse variant="result" />);
+      render(<QuizTrueOrFalse />);
 
       // Checks if incorrect options have the correct style
       const incorrectOptions = [
@@ -6285,7 +6289,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show status badges in default variant', () => {
-      render(<QuizTrueOrFalse variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizTrueOrFalse />);
 
       // Checks that badges are not present
       expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
@@ -6293,7 +6301,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show answer information in default variant', () => {
-      render(<QuizTrueOrFalse variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizTrueOrFalse />);
 
       // Checks that answer information is not present
       expect(
@@ -6303,7 +6315,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should generate correct letter prefixes for options', () => {
-      render(<QuizTrueOrFalse variant="default" />);
+      render(<QuizTrueOrFalse />);
 
       // Checks if letters are generated correctly
       expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
@@ -6313,7 +6325,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with medium size select components', () => {
-      render(<QuizTrueOrFalse variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizTrueOrFalse />);
 
       // Checks if Select components have the correct size
       const selectTriggers = screen.getAllByText('Selecione opcão');
@@ -6326,7 +6342,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render correct number of options', () => {
-      render(<QuizTrueOrFalse variant="default" />);
+      render(<QuizTrueOrFalse />);
 
       // Checks if exactly 4 options are rendered
       const options = [
@@ -6342,7 +6358,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should have correct data structure for options', () => {
-      render(<QuizTrueOrFalse variant="default" />);
+      render(<QuizTrueOrFalse />);
 
       // Checks if options have the correct structure
       // First option should be correct
@@ -6357,7 +6373,11 @@ describe('Quiz Result Components', () => {
 
   describe('QuizConnectDots Temporary', () => {
     it('should render in default variant with options and select components', () => {
-      render(<QuizConnectDots variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks if options are rendered
       expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
@@ -6371,7 +6391,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render in result variant with status badges', () => {
-      render(<QuizConnectDots variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks if options are rendered
       expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
@@ -6397,7 +6421,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct styling for correct answers in result variant', () => {
-      render(<QuizConnectDots variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks if correct options have the correct style
       const correctOptions = [
@@ -6415,7 +6443,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct styling for incorrect answers in result variant', () => {
-      render(<QuizConnectDots variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks if incorrect options have the correct style
       const incorrectOptions = [
@@ -6433,7 +6465,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show status badges in default variant', () => {
-      render(<QuizConnectDots variant="default" />);
+      render(<QuizConnectDots />);
 
       // Checks that badges are not present
       expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
@@ -6441,7 +6473,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show answer information in default variant', () => {
-      render(<QuizConnectDots variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks that answer information is not present
       expect(
@@ -6451,7 +6487,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should generate correct letter prefixes for options', () => {
-      render(<QuizConnectDots variant="default" />);
+      render(<QuizConnectDots />);
 
       // Checks if letters are generated correctly
       expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
@@ -6461,7 +6497,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with medium size select components', () => {
-      render(<QuizConnectDots variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks if Select components have the correct size
       const selectTriggers = screen.getAllByText('Selecione opção');
@@ -6474,7 +6514,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render correct number of options', () => {
-      render(<QuizConnectDots variant="default" />);
+      render(<QuizConnectDots />);
 
       // Checks if exactly 4 options are rendered
       const options = ['a) Cachorro', 'b) Gato', 'c) Cabra', 'd) Baleia'];
@@ -6485,7 +6525,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should have correct data structure for options', () => {
-      render(<QuizConnectDots variant="default" />);
+      render(<QuizConnectDots />);
 
       // Checks if options have the correct structure
       expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
@@ -6495,7 +6535,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should show correct answer information for incorrect answers in result variant', () => {
-      render(<QuizConnectDots variant="result" />);
+      render(<QuizConnectDots />);
 
       // Checks if correct answer information is shown for incorrect answers
       expect(screen.getByText('Resposta correta: Grama')).toBeInTheDocument();
@@ -6503,7 +6543,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show correct answer information for correct answers in result variant', () => {
-      render(<QuizConnectDots variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks that correct answer information is not shown for correct answers
       expect(
@@ -6515,7 +6559,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should filter out already selected dots from available options', () => {
-      render(<QuizConnectDots variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizConnectDots />);
 
       // Checks if initially all options are available
       const selectTriggers = screen.getAllByText('Selecione opção');
@@ -6530,7 +6578,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle null status badge correctly', () => {
-      render(<QuizConnectDots variant="result" />);
+      render(<QuizConnectDots />);
 
       // Checks if component renders correctly even with null status
       expect(screen.getByText('a) Cachorro')).toBeInTheDocument();
@@ -6541,7 +6589,11 @@ describe('Quiz Result Components', () => {
 
     it('should set dot selection and compute isCorrect=true for correct match (handleSelectDot)', async () => {
       const user = userEvent.setup();
-      render(<QuizConnectDots variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizConnectDots />);
 
       // Row 0 (a) picks "Ração" (correct for Cachorro)
       const menus = screen.getAllByTestId('select-content');
@@ -6553,7 +6605,11 @@ describe('Quiz Result Components', () => {
 
     it('should toggle off selection when picking the same item again (handleSelectDot)', async () => {
       const user = userEvent.setup();
-      render(<QuizConnectDots variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizConnectDots />);
 
       const menus = screen.getAllByTestId('select-content');
 
@@ -6568,7 +6624,11 @@ describe('Quiz Result Components', () => {
 
     it('should set isCorrect=false when selecting a wrong match (handleSelectDot)', async () => {
       const user = userEvent.setup();
-      render(<QuizConnectDots variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizConnectDots />);
 
       const menus = screen.getAllByTestId('select-content');
 
@@ -6582,7 +6642,11 @@ describe('Quiz Result Components', () => {
 
   describe('QuizFill Temporary', () => {
     it('should render in default variant with text and select components', () => {
-      render(<QuizFill variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizFill />);
 
       // Checks if base text is present
       expect(screen.getByText(/A meteorologia é a/)).toBeInTheDocument();
@@ -6596,7 +6660,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render in result variant with badges showing user answers', () => {
-      render(<QuizFill variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizFill />);
 
       // Checks if base text is present
       expect(screen.getAllByText(/A meteorologia é a/)).toHaveLength(2);
@@ -6609,7 +6677,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should show correct answer badges in result variant', () => {
-      render(<QuizFill variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizFill />);
 
       // Checks if result section is present
       expect(screen.getByText('Resultado')).toBeInTheDocument();
@@ -6621,14 +6693,18 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render success badges for correct answers in result variant', () => {
-      render(<QuizFill variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizFill />);
 
       // Checks if success badges are present for correct answers
       expect(screen.getAllByText('equipamentos')).toHaveLength(2); // Resposta correta (aparece no badge e no resultado)
     });
 
     it('should render error badges for incorrect answers in result variant', () => {
-      render(<QuizFill variant="result" />);
+      render(<QuizFill />);
 
       // Checks if error badges are present for incorrect answers
       expect(screen.getByText('tecnologia')).toBeInTheDocument();
@@ -6637,21 +6713,21 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show select components in result variant', () => {
-      render(<QuizFill variant="result" />);
+      render(<QuizFill />);
 
       // Checks that Select components are not present
       expect(screen.queryByText('Selecione opção')).not.toBeInTheDocument();
     });
 
     it('should not show result section in default variant', () => {
-      render(<QuizFill variant="default" />);
+      render(<QuizFill />);
 
       // Checks that result section is not present
       expect(screen.queryByText('Resultado')).not.toBeInTheDocument();
     });
 
     it('should render with correct text content', () => {
-      render(<QuizFill variant="default" />);
+      render(<QuizFill />);
 
       // Checks if complete text is being rendered
       expect(screen.getByText(/A meteorologia é a/)).toBeInTheDocument();
@@ -6680,7 +6756,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle select changes correctly', () => {
-      render(<QuizFill variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizFill />);
 
       // Checks if selects are working
       const selectTriggers = screen.getAllByText('Selecione opção');
@@ -6693,7 +6773,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct padding bottom class', () => {
-      render(<QuizFill variant="default" paddingBottom="pb-[100px]" />);
+      render(<QuizFill paddingBottom="pb-[100px]" />);
 
       // Checks if custom padding class is being applied
       const container = screen.getByText(/A meteorologia é a/).closest('div');
@@ -6803,7 +6883,7 @@ describe('Quiz Result Components', () => {
 
   describe('QuizImageQuestion Temporary', () => {
     it('should render in default variant with image and subtitle', () => {
-      render(<QuizImageQuestion variant="default" />);
+      render(<QuizImageQuestion />);
 
       // Checks if subtitle is present
       expect(screen.getByText('Clique na área correta')).toBeInTheDocument();
@@ -6814,7 +6894,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render in result variant with legend and correct answer circle', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       // Checks if subtitle is present
       expect(screen.getByText('Clique na área correta')).toBeInTheDocument();
@@ -6827,7 +6911,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle image click in default variant', () => {
-      render(<QuizImageQuestion variant="default" />);
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toHaveClass('cursor-pointer');
@@ -6840,7 +6924,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not handle image click in result variant', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -6863,7 +6951,7 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct styling for user answer circle in default variant', () => {
-      render(<QuizImageQuestion variant="default" />);
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       fireEvent.click(imageButton);
@@ -6873,7 +6961,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct styling for user answer circle in result variant', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       // In result variant, the user circle should be visible
       const userCircle = screen.getByTestId('quiz-user-circle');
@@ -6882,7 +6974,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with correct styling for correct answer circle', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       const correctCircle = screen.getByTestId('quiz-correct-circle');
       expect(correctCircle).toBeInTheDocument();
@@ -6890,14 +6986,22 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show legend in default variant', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       // Checks that legend is not present
       expect(screen.queryByTestId('quiz-legend')).not.toBeInTheDocument();
     });
 
     it('should handle image onLoad event correctly', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
       const image = screen.getByTestId('quiz-image');
 
       // Verify image is present and has correct attributes
@@ -6906,7 +7010,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not show correct answer circle in default variant', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       // Checks that correct answer circle is not present
       expect(
@@ -6915,7 +7023,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render image with correct attributes and classes', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const image = screen.getByTestId('quiz-image');
       expect(image).toHaveAttribute('src');
@@ -6923,7 +7035,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render with responsive circle sizes', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       // Checks if circles are present
       expect(screen.getByTestId('quiz-correct-circle')).toBeInTheDocument();
@@ -6931,7 +7047,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should maintain relative positioning for circles', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       // Check that both circles are present and have absolute positioning
       const correctCircle = screen.getByTestId('quiz-correct-circle');
@@ -6942,7 +7062,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should calculate correctRadiusRelative automatically based on circle dimensions', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       // The correct answer circle should be visible in result variant
       const correctCircle = screen.getByTestId('quiz-correct-circle');
@@ -6954,7 +7078,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle keyboard activation with Enter key', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -6972,7 +7100,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle keyboard activation with Space key', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -6990,7 +7122,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should not handle keyboard activation in result variant', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -7009,7 +7145,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle edge case coordinates in convertToRelativeCoordinates', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -7022,7 +7162,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle very small image dimensions gracefully', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -7053,7 +7197,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle isCorrect function with correct answer position', () => {
-      render(<QuizImageQuestion variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizImageQuestion />);
 
       // The mock position (0.72, 0.348) should be incorrect
       // since correct position is (0.5, 0.4) and radius is small
@@ -7065,28 +7213,40 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle isCorrect function with no click position', () => {
-      render(<QuizImageQuestion variant="default" />);
+      render(<QuizImageQuestion />);
 
       // Initially no user circle should be present
       expect(screen.queryByTestId('quiz-user-circle')).not.toBeInTheDocument();
     });
 
     it('should handle paddingBottom prop correctly', () => {
-      render(<QuizImageQuestion variant="default" paddingBottom="pb-8" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion paddingBottom="pb-8" />);
 
       // Should apply custom padding bottom class
       expect(screen.getByTestId('quiz-image-container')).toBeInTheDocument();
     });
 
     it('should handle default paddingBottom when not provided', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       // Should not have custom padding bottom class
       expect(screen.getByTestId('quiz-image-container')).toBeInTheDocument();
     });
 
     it('should maintain accessibility attributes', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -7101,7 +7261,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle multiple rapid clicks correctly', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -7116,7 +7280,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle coordinate clamping correctly', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -7147,7 +7315,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle division by zero gracefully', () => {
-      render(<QuizImageQuestion variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizImageQuestion />);
 
       const imageButton = screen.getByTestId('quiz-image-button');
       expect(imageButton).toBeInTheDocument();
@@ -7180,6 +7352,10 @@ describe('Quiz Result Components', () => {
 
   describe('QuizFill component', () => {
     it('should render text with selects correctly', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
       render(<QuizFill />);
 
       expect(screen.getByText('A meteorologia é a')).toBeInTheDocument();
@@ -7197,6 +7373,10 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle select changes correctly', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
       render(<QuizFill />);
 
       const selects = screen.getAllByTestId('select');
@@ -7219,6 +7399,10 @@ describe('Quiz Result Components', () => {
     });
 
     it('should filter available options correctly', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
       render(<QuizFill />);
 
       const selects = screen.getAllByTestId('select');
@@ -7233,7 +7417,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render default variant correctly', () => {
-      render(<QuizFill variant="default" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
+      render(<QuizFill />);
 
       // Should show selects in default variant
       const selects = screen.getAllByTestId('select');
@@ -7247,7 +7435,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should render result variant correctly', () => {
-      render(<QuizFill variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizFill />);
 
       // Should show result badges instead of selects
       expect(screen.getByText('tecnologia')).toBeInTheDocument();
@@ -7260,6 +7452,10 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle text with Unicode placeholders', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
       render(<QuizFill />);
 
       // Should handle Unicode characters in placeholders
@@ -7271,6 +7467,10 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle empty text segments correctly', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
       render(<QuizFill />);
 
       const selects = screen.getAllByTestId('select');
@@ -7284,6 +7484,10 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle text with trailing content after last placeholder', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
       render(<QuizFill />);
 
       expect(
@@ -7295,6 +7499,10 @@ describe('Quiz Result Components', () => {
     });
 
     it('should update answers state when selects change', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+      });
+
       render(<QuizFill />);
 
       const selects = screen.getAllByTestId('select');
@@ -7315,7 +7523,11 @@ describe('Quiz Result Components', () => {
     });
 
     it('should show correct and incorrect badges in result variant', () => {
-      render(<QuizFill variant="result" />);
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+      });
+
+      render(<QuizFill />);
 
       // Should show success badge for correct answers
       const successBadges = screen.getAllByText(/variações|equipamentos/);

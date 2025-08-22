@@ -37,7 +37,7 @@ export interface QuestionResult {
     answer: string | null;
     optionId: string;
     selectedOptionText: string | null;
-    answerStatus: QUESTION_STATUS;
+    answerStatus: ANSWER_STATUS;
     createdAt: string;
     updatedAt: string;
     statement: string;
@@ -75,7 +75,7 @@ export interface Question {
   examYear: string | null;
   solutionExplanation: string | null;
   answer: null;
-  answerStatus: QUESTION_STATUS;
+  answerStatus: ANSWER_STATUS;
   options: {
     id: string;
     option: string;
