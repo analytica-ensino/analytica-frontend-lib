@@ -1,4 +1,11 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  MouseEvent,
+  KeyboardEvent,
+} from 'react';
 import {
   Play,
   Pause,
@@ -261,7 +268,7 @@ const VideoPlayer = ({
    * Handle mouse move with position detection for fullscreen
    */
   const handleMouseMove = useCallback(
-    (event: React.MouseEvent) => {
+    (event: MouseEvent) => {
       const currentX = event.clientX;
       const currentY = event.clientY;
       const lastPos = lastMousePositionRef.current;
@@ -632,7 +639,7 @@ const VideoPlayer = ({
    * Handle video element keyboard events
    */
   const handleVideoKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
+    (e: KeyboardEvent) => {
       if (e.key) {
         // Prevent bubbling to parent handlers to avoid double toggles
         e.stopPropagation();
