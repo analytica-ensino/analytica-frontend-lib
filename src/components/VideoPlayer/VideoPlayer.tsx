@@ -91,7 +91,7 @@ const ProgressBar = ({
       className="w-full h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer slider:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
       aria-label="Video progress"
       style={{
-        background: `linear-gradient(to right, #2271C4 ${progressPercentage}%, #D5D4D4 ${progressPercentage}%)`,
+        background: `linear-gradient(to right, var(--color-primary-700) ${progressPercentage}%, var(--color-secondary-300) ${progressPercentage}%)`,
       }}
     />
   </div>
