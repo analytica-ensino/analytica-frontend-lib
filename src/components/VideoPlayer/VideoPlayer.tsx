@@ -236,14 +236,15 @@ const VideoPlayer = ({
    * Toggle captions visibility
    */
   const toggleCaptions = useCallback(() => {
-    if (!trackRef.current?.track) return;
+    if (!trackRef.current?.track || !subtitles) return;
 
     const newShowCaptions = !showCaptions;
     setShowCaptions(newShowCaptions);
 
-    // Control track mode programmatically
-    trackRef.current.track.mode = newShowCaptions ? 'showing' : 'hidden';
-  }, [showCaptions]);
+    // Control track mode programmatically - only show if subtitles are available
+    trackRef.current.track.mode =
+      newShowCaptions && subtitles ? 'showing' : 'hidden';
+  }, [showCaptions, subtitles]);
 
   /**
    * Handle time update
@@ -287,6 +288,17 @@ const VideoPlayer = ({
       setDuration(videoRef.current.duration);
     }
   }, []);
+
+  /**
+   * Initialize track mode when track is available
+   */
+  useEffect(() => {
+    if (trackRef.current?.track) {
+      // Set initial mode based on showCaptions state and subtitle availability
+      trackRef.current.track.mode =
+        showCaptions && subtitles ? 'showing' : 'hidden';
+    }
+  }, [subtitles, showCaptions]);
 
   /**
    * Handle visibility change and blur to pause video when losing focus
@@ -411,12 +423,11 @@ const VideoPlayer = ({
           <track
             ref={trackRef}
             kind="captions"
-            src={
-              subtitles ||
-              'data:text/vtt;charset=utf-8,WEBVTT%0A%0ANOTE%20No%20captions%20available'
+            src={subtitles || 'data:text/vtt;charset=utf-8,WEBVTT'}
+            srcLang="pt-br"
+            label={
+              subtitles ? 'Legendas em Português' : 'Sem legendas disponíveis'
             }
-            srcLang="en"
-            label={subtitles ? 'Subtitles' : 'No captions available'}
             default={false}
           />
         </video>
