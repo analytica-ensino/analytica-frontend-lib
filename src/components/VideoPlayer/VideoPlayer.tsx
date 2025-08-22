@@ -236,14 +236,14 @@ const VideoPlayer = ({
    * Toggle captions visibility
    */
   const toggleCaptions = useCallback(() => {
-    if (!trackRef.current?.track) return;
+    if (!trackRef.current?.track || !subtitles) return;
 
     const newShowCaptions = !showCaptions;
     setShowCaptions(newShowCaptions);
 
     // Control track mode programmatically
     trackRef.current.track.mode = newShowCaptions ? 'showing' : 'hidden';
-  }, [showCaptions]);
+  }, [showCaptions, subtitles]);
 
   /**
    * Handle time update
@@ -287,6 +287,16 @@ const VideoPlayer = ({
       setDuration(videoRef.current.duration);
     }
   }, []);
+
+  /**
+   * Initialize track mode when subtitles are available
+   */
+  useEffect(() => {
+    if (trackRef.current?.track && subtitles) {
+      // Set initial mode based on showCaptions state
+      trackRef.current.track.mode = showCaptions ? 'showing' : 'hidden';
+    }
+  }, [subtitles, showCaptions]);
 
   /**
    * Handle visibility change and blur to pause video when losing focus
@@ -408,17 +418,26 @@ const VideoPlayer = ({
           tabIndex={0}
           aria-label={title ? `Video: ${title}` : 'Video player'}
         >
-          <track
-            ref={trackRef}
-            kind="captions"
-            src={
-              subtitles ||
-              'data:text/vtt;charset=utf-8,WEBVTT%0A%0ANOTE%20No%20captions%20available'
-            }
-            srcLang="en"
-            label={subtitles ? 'Subtitles' : 'No captions available'}
-            default={false}
-          />
+          {subtitles && (
+            <track
+              ref={trackRef}
+              kind="subtitles"
+              src={subtitles}
+              srcLang="pt-br"
+              label="Legendas em Português"
+              default={false}
+            />
+          )}
+          {!subtitles && (
+            <track
+              ref={trackRef}
+              kind="captions"
+              src="data:text/vtt;charset=utf-8,WEBVTT%0A%0ANOTE%20No%20captions%20available"
+              srcLang="pt-br"
+              label="Sem legendas disponíveis"
+              default={false}
+            />
+          )}
         </video>
 
         {/* Center Play Button */}
