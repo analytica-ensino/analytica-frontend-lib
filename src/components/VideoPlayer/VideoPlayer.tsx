@@ -286,6 +286,28 @@ const VideoPlayer = ({
   }, [volume, isMuted]);
 
   /**
+   * Synchronize isPlaying state with media events
+   */
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+    const onEnded = () => setIsPlaying(false);
+
+    video.addEventListener('play', onPlay);
+    video.addEventListener('pause', onPause);
+    video.addEventListener('ended', onEnded);
+
+    return () => {
+      video.removeEventListener('play', onPlay);
+      video.removeEventListener('pause', onPause);
+      video.removeEventListener('ended', onEnded);
+    };
+  }, []);
+
+  /**
    * Handle controls auto-hide when play state changes
    */
   useEffect(() => {
@@ -366,17 +388,21 @@ const VideoPlayer = ({
   /**
    * Handle play/pause toggle
    */
-  const togglePlayPause = useCallback(() => {
+  const togglePlayPause = useCallback(async () => {
     const video = videoRef.current;
     if (!video) return;
 
-    if (isPlaying) {
+    if (!video.paused) {
       video.pause();
-    } else {
-      video.play();
+      return;
     }
-    setIsPlaying(!isPlaying);
-  }, [isPlaying]);
+
+    try {
+      await video.play();
+    } catch {
+      // Playback prevented (e.g., autoplay policy); keep state unchanged.
+    }
+  }, []);
 
   /**
    * Handle volume change
@@ -448,7 +474,6 @@ const VideoPlayer = ({
     } else if (isFullscreen && document.exitFullscreen) {
       document.exitFullscreen();
     }
-    setIsFullscreen(!isFullscreen);
   }, [isFullscreen]);
 
   /**
@@ -596,33 +621,13 @@ const VideoPlayer = ({
   }, [isFullscreen, showControls, isPlaying]);
 
   /**
-   * Handle container keyboard events
-   */
-  const handleContainerKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      // Show controls when any key is pressed
-      showControlsWithTimer();
-
-      // Space or Enter to play/pause
-      if (e.key === ' ' || e.key === 'Enter') {
-        e.preventDefault();
-        togglePlayPause();
-      }
-      // F for fullscreen
-      if (e.key === 'f' || e.key === 'F') {
-        e.preventDefault();
-        toggleFullscreen();
-      }
-    },
-    [showControlsWithTimer, togglePlayPause, toggleFullscreen]
-  );
-
-  /**
    * Handle video element keyboard events
    */
   const handleVideoKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key) {
+        // Prevent bubbling to parent handlers to avoid double toggles
+        e.stopPropagation();
         showControlsWithTimer();
       }
 
@@ -709,22 +714,18 @@ const VideoPlayer = ({
       )}
 
       {/* Video Container */}
-      <button
+      <section
         className={cn(
           'relative w-full bg-background overflow-hidden group',
-          'border-none p-0 m-0 outline-none focus:outline-none',
           title || subtitleText ? 'rounded-b-xl' : 'rounded-xl',
           // Hide cursor when controls are hidden and video is playing in fullscreen
           isFullscreen && isPlaying && !showControls
             ? 'cursor-none'
             : 'cursor-default'
         )}
-        type="button"
         aria-label={title ? `Video player: ${title}` : 'Video player'}
         onMouseMove={isFullscreen ? handleMouseMove : showControlsWithTimer}
         onMouseEnter={showControlsWithTimer}
-        onClick={showControlsWithTimer}
-        onKeyDown={handleContainerKeyDown}
       >
         {/* Video Element */}
         <video
@@ -853,7 +854,7 @@ const VideoPlayer = ({
             </div>
           </div>
         </div>
-      </button>
+      </section>
     </div>
   );
 };
