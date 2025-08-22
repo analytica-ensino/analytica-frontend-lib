@@ -126,7 +126,7 @@ const VolumeControls = ({
       className="w-20 h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
       aria-label="Volume control"
       style={{
-        background: `linear-gradient(to right, #2271C4 ${volume * 100}%, #D5D4D4 ${volume * 100}%)`,
+        background: `linear-gradient(to right, var(--color-primary-700) ${volume * 100}%, var(--color-secondary-300) ${volume * 100}%)`,
       }}
     />
   </div>
