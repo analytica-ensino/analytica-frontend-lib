@@ -247,69 +247,6 @@ export const General: Story = () => {
     setUserId('demo-user-id');
     setBySimulated(mockSimulated);
     startQuiz();
-
-    // Simulate some user answers for demonstration
-    setUserAnswers([
-      {
-        questionId: 'q1-alternativa',
-        activityId: 'simulado-geral',
-        userId: 'demo-user-id',
-        answer:
-          'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-        optionId: null,
-        questionType: QUESTION_TYPE.ALTERNATIVA,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q2-multipla-escolha',
-        activityId: 'simulado-geral',
-        userId: 'demo-user-id',
-        answer:
-          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q3-dissertativa',
-        activityId: 'simulado-geral',
-        userId: 'demo-user-id',
-        answer:
-          'A preservação ambiental é fundamental para o futuro sustentável.',
-        optionId: null,
-        questionType: QUESTION_TYPE.DISSERTATIVA,
-        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
-      },
-      {
-        questionId: 'q4-verdadeiro-falso',
-        activityId: 'simulado-geral',
-        userId: 'demo-user-id',
-        answer:
-          'Verdadeiro. A Terra é o terceiro planeta do sistema solar, localizada entre Vênus (segundo) e Marte (quarto). A ordem dos planetas a partir do Sol é: Mercúrio, Vênus, Terra, Marte, Júpiter, Saturno, Urano e Netuno.',
-        optionId: null,
-        questionType: QUESTION_TYPE.VERDADEIRO_FALSO,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q5-ligar-pontos',
-        activityId: 'simulado-geral',
-        userId: 'demo-user-id',
-        answer:
-          'Velocidade é a distância percorrida por unidade de tempo (v = d/t). Aceleração é a variação da velocidade por unidade de tempo (a = Δv/t). Estas são grandezas fundamentais da cinemática que descrevem o movimento dos corpos.',
-        optionId: null,
-        questionType: QUESTION_TYPE.LIGAR_PONTOS,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q6-preencher',
-        activityId: 'simulado-geral',
-        userId: 'demo-user-id',
-        answer: 'd,t',
-        optionId: null,
-        questionType: QUESTION_TYPE.PREENCHER,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-    ]);
   }, [setBySimulated, startQuiz, setUserId, setUserAnswers]);
 
   return (
@@ -403,7 +340,7 @@ export const GeneralForResults: Story = () => {
             },
           ],
         },
-        // IMAGE - Incorrect
+        // // IMAGE - Incorrect
         {
           id: 'q1-image-incorreta',
           questionText: 'Qual é a capital do Brasil?',
@@ -447,12 +384,12 @@ export const GeneralForResults: Story = () => {
           answer: null,
           answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
           options: [
-            { id: 'opt1', option: 'São Paulo' },
-            { id: 'opt2', option: 'Rio de Janeiro' },
-            { id: 'opt3', option: 'Brasília' },
-            { id: 'opt4', option: 'Salvador' },
+            { id: 'alt-opt1', option: 'São Paulo' },
+            { id: 'alt-opt2', option: 'Rio de Janeiro' },
+            { id: 'alt-opt3', option: 'Brasília' },
+            { id: 'alt-opt4', option: 'Salvador' },
           ],
-          correctOptionIds: ['opt3'],
+          correctOptionIds: ['alt-opt3'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'geografia',
@@ -463,7 +400,7 @@ export const GeneralForResults: Story = () => {
             },
           ],
         },
-        // ALTERNATIVE - Incorrect
+        // // ALTERNATIVE - Incorrect
         {
           id: 'q2-alt-incorreta',
           questionText: 'Qual é o maior planeta do sistema solar?',
@@ -475,14 +412,14 @@ export const GeneralForResults: Story = () => {
           solutionExplanation:
             'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
           options: [
-            { id: 'opt1', option: 'Júpiter' },
-            { id: 'opt2', option: 'Saturno' },
-            { id: 'opt3', option: 'Urano' },
-            { id: 'opt4', option: 'Netuno' },
+            { id: 'alt-opt1', option: 'Júpiter' },
+            { id: 'alt-opt2', option: 'Saturno' },
+            { id: 'alt-opt3', option: 'Urano' },
+            { id: 'alt-opt4', option: 'Netuno' },
           ],
-          correctOptionIds: ['opt1'],
+          correctOptionIds: ['alt-opt1'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'ciencias',
@@ -495,7 +432,7 @@ export const GeneralForResults: Story = () => {
         },
         // MULTIPLE CHOICE - Correct
         {
-          id: 'q3-mult-correta',
+          id: 'q3-multi-correta',
           questionText:
             'Quais são os planetas do sistema solar que possuem anéis? (Selecione todas as opções corretas)',
           questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
@@ -508,14 +445,19 @@ export const GeneralForResults: Story = () => {
           answer: null,
           answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
           options: [
-            { id: 'opt1', option: 'Saturno' },
-            { id: 'opt2', option: 'Júpiter' },
-            { id: 'opt3', option: 'Urano' },
-            { id: 'opt4', option: 'Netuno' },
-            { id: 'opt5', option: 'Marte' },
-            { id: 'opt6', option: 'Vênus' },
+            { id: 'multi-opt1', option: 'Saturno' },
+            { id: 'multi-opt2', option: 'Júpiter' },
+            { id: 'multi-opt3', option: 'Urano' },
+            { id: 'multi-opt4', option: 'Netuno' },
+            { id: 'multi-opt5', option: 'Marte' },
+            { id: 'multi-opt6', option: 'Vênus' },
           ],
-          correctOptionIds: ['opt1', 'opt2', 'opt3', 'opt4'],
+          correctOptionIds: [
+            'multi-opt1',
+            'multi-opt2',
+            'multi-opt3',
+            'multi-opt4',
+          ],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'ciencias',
@@ -526,9 +468,9 @@ export const GeneralForResults: Story = () => {
             },
           ],
         },
-        // MULTIPLE CHOICE - Incorrect
+        // // MULTIPLE CHOICE - Incorrect
         {
-          id: 'q4-mult-incorreta',
+          id: 'q4-multi-incorreta',
           questionText:
             'Quais das seguintes grandezas são vetoriais? (Selecione todas as opções corretas)',
           questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
@@ -539,14 +481,14 @@ export const GeneralForResults: Story = () => {
           solutionExplanation:
             'Velocidade, Aceleração e Força são grandezas vetoriais. Temperatura é uma grandeza escalar.',
           answer: null,
-          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
+          answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
           options: [
-            { id: 'opt1', option: 'Velocidade' },
-            { id: 'opt2', option: 'Aceleração' },
-            { id: 'opt3', option: 'Força' },
-            { id: 'opt4', option: 'Temperatura' },
+            { id: 'multi-opt1', option: 'Velocidade' },
+            { id: 'multi-opt2', option: 'Aceleração' },
+            { id: 'multi-opt3', option: 'Força' },
+            { id: 'multi-opt4', option: 'Temperatura' },
           ],
-          correctOptionIds: ['opt1', 'opt2', 'opt3'],
+          correctOptionIds: ['multi-opt1', 'multi-opt2', 'multi-opt3'],
           knowledgeMatrix: [
             {
               areaKnowledgeId: 'fisica',
@@ -672,129 +614,6 @@ export const GeneralForResults: Story = () => {
     setCurrentQuestion(mockSimulated.questions[0]);
     startQuiz();
 
-    // Simulate user answers
-    setUserAnswers([
-      {
-        questionId: 'q1-image',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-        optionId: null,
-        questionType: QUESTION_TYPE.IMAGEM,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q1-image-incorreta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-        optionId: null,
-        questionType: QUESTION_TYPE.IMAGEM,
-        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-      },
-      {
-        questionId: 'q1-alt-correta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-        optionId: null,
-        questionType: QUESTION_TYPE.ALTERNATIVA,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q2-alt-incorreta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
-        optionId: null,
-        questionType: QUESTION_TYPE.ALTERNATIVA,
-        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-      },
-      {
-        questionId: 'q3-mult-correta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q3-mult-correta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q3-mult-correta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q3-mult-correta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q4-mult-incorreta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Velocidade, Aceleração e Força são grandezas vetoriais. Temperatura é uma grandeza escalar.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-      },
-      {
-        questionId: 'q4-mult-incorreta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'Velocidade, Aceleração e Força são grandezas vetoriais. Temperatura é uma grandeza escalar.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-      },
-      {
-        questionId: 'q5-diss-correta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer:
-          'A preservação ambiental é fundamental para garantir um futuro sustentável para as próximas gerações. O equilíbrio ecológico, a biodiversidade e os recursos naturais são essenciais para a sobrevivência humana e devem ser protegidos através de políticas públicas eficazes, educação ambiental e mudanças nos padrões de consumo.',
-        optionId: null,
-        questionType: QUESTION_TYPE.DISSERTATIVA,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q6-diss-incorreta',
-        activityId: 'simulado-resultados',
-        userId: 'demo-user-id',
-        answer: 'As leis de Newton são importantes para a física.',
-        optionId: null,
-        questionType: QUESTION_TYPE.DISSERTATIVA,
-        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-      },
-    ]);
-
     // Configure QuestionResult data for components that need it
     setQuestionsResult({
       answers: [
@@ -848,22 +667,17 @@ export const GeneralForResults: Story = () => {
           questionId: 'q1-alt-correta',
           answer:
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-          optionId: 'alt_opt1',
+          optionId: 'alt-opt1',
           selectedOptionText: 'Brasília',
           answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Alternativa Correta',
           questionType: QUESTION_TYPE.ALTERNATIVA,
-          correctOption: 'alt_opt1',
+          correctOption: 'alt-opt1',
           difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           solutionExplanation: 'Brasília é a capital do Brasil.',
-          options: [
-            { id: 'alt_opt1', option: 'Brasília', isCorrect: true },
-            { id: 'alt_opt2', option: 'São Paulo', isCorrect: false },
-            { id: 'alt_opt3', option: 'Rio de Janeiro', isCorrect: false },
-            { id: 'alt_opt4', option: 'Salvador', isCorrect: false },
-          ],
+          options: [{ id: 'alt-opt3', option: 'Brasília', isCorrect: false }],
           teacherFeedback: null,
           attachment: null,
           score: 100,
@@ -875,21 +689,18 @@ export const GeneralForResults: Story = () => {
           questionId: 'q2-alt-incorreta',
           answer:
             'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
-          optionId: 'alt_opt2',
+          optionId: 'alt-opt2',
           selectedOptionText: 'Resposta incorreta',
           answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Alternativa Incorreta',
           questionType: QUESTION_TYPE.ALTERNATIVA,
-          correctOption: 'alt_opt1',
+          correctOption: 'alt-opt2',
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           solutionExplanation: 'A resposta correta é a primeira opção.',
           options: [
-            { id: 'alt_opt1', option: 'Resposta correta', isCorrect: true },
-            { id: 'alt_opt2', option: 'Resposta incorreta', isCorrect: false },
-            { id: 'alt_opt3', option: 'Resposta incorreta', isCorrect: false },
-            { id: 'alt_opt4', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'alt-opt2', option: 'Resposta incorreta', isCorrect: false },
           ],
           teacherFeedback: 'Resposta incorreta. Revise o conceito.',
           attachment: null,
@@ -899,25 +710,23 @@ export const GeneralForResults: Story = () => {
         },
         {
           id: 'answer5',
-          questionId: 'q3-mult-correta',
-          answer:
-            'Saturno, Júpiter, Urano e Netuno possuem sistemas de anéis. Saturno tem os anéis mais visíveis e espetaculares, compostos principalmente por gelo e rocha. Júpiter possui anéis tênues formados por poeira. Urano e Netuno também têm anéis, embora menos visíveis, formados por partículas escuras de carbono.',
-          optionId: 'mult_opt1,mult_opt2',
+          questionId: 'q3-multi-correta',
+          answer: null,
+          optionId: 'multi-opt1,multi-opt2',
           selectedOptionText: 'Saturno, Júpiter',
           answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Múltipla Escolha Correta',
           questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-          correctOption: 'mult_opt1,mult_opt2,mult_opt3',
+          correctOption: 'multi-opt1,multi-opt2,multi-opt3',
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           solutionExplanation:
             'Saturno, Júpiter, Urano e Netuno possuem anéis.',
           options: [
-            { id: 'mult_opt1', option: 'Saturno', isCorrect: true },
-            { id: 'mult_opt2', option: 'Júpiter', isCorrect: true },
-            { id: 'mult_opt3', option: 'Urano', isCorrect: true },
-            { id: 'mult_opt4', option: 'Netuno', isCorrect: true },
+            { id: 'multi-opt1', option: 'Saturno', isCorrect: true },
+            { id: 'multi-opt2', option: 'Júpiter', isCorrect: true },
+            { id: 'multi-opt3', option: 'Urano', isCorrect: true },
           ],
           teacherFeedback: null,
           attachment: null,
@@ -927,24 +736,23 @@ export const GeneralForResults: Story = () => {
         },
         {
           id: 'answer6',
-          questionId: 'q4-mult-incorreta',
-          answer:
-            'Velocidade, Aceleração e Força são grandezas vetoriais. Temperatura é uma grandeza escalar.',
-          optionId: 'mult_opt1,mult_opt3',
+          questionId: 'q4-multi-incorreta',
+          answer: null,
+          optionId: 'multi-opt1,multi-opt3',
           selectedOptionText: 'Velocidade, Força',
           answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Múltipla Escolha Incorreta',
           questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-          correctOption: 'mult_opt1,mult_opt2,mult_opt3',
+          correctOption: 'multi-opt1,multi-opt2,multi-opt3',
           difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
           solutionExplanation: 'Velocidade, Aceleração e Força são vetoriais.',
           options: [
-            { id: 'mult_opt1', option: 'Velocidade', isCorrect: true },
-            { id: 'mult_opt2', option: 'Aceleração', isCorrect: true },
-            { id: 'mult_opt3', option: 'Força', isCorrect: true },
-            { id: 'mult_opt4', option: 'Temperatura', isCorrect: false },
+            { id: 'multi-opt1', option: 'Velocidade', isCorrect: true },
+            { id: 'multi-opt2', option: 'Aceleração', isCorrect: true },
+            { id: 'multi-opt3', option: 'Força', isCorrect: true },
+            { id: 'multi-opt4', option: 'Temperatura', isCorrect: false },
           ],
           teacherFeedback: 'Faltou incluir a Aceleração na resposta.',
           attachment: null,

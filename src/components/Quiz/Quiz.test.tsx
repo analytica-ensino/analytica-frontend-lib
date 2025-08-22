@@ -900,6 +900,12 @@ describe('Quiz Component', () => {
           getCurrentAnswer: () => mockAnswer,
           variant: 'result',
           selectDissertativeAnswer: jest.fn(),
+          getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+            questionId: 'q1',
+            answer:
+              'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.',
+            answerStatus: QUESTION_STATUS.RESPOSTA_INCORRETA,
+          }),
         };
 
         mockUseQuizStore.mockReturnValue(mockStore);
@@ -916,6 +922,13 @@ describe('Quiz Component', () => {
         mockStore.getCurrentAnswer = () => ({
           ...mockAnswer,
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+        });
+
+        mockStore.getQuestionResultByQuestionId = jest.fn().mockReturnValue({
+          questionId: 'q1',
+          answer:
+            'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.',
+          answerStatus: QUESTION_STATUS.RESPOSTA_CORRETA,
         });
 
         rerender(<QuizContent />);
@@ -2760,6 +2773,10 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue(mockUserAnswers),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       render(<QuizMultipleChoice variant="default" />);
@@ -2775,6 +2792,16 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue(mockUserAnswers),
+        variant: 'result',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+          options: [
+            { id: 'opt1', option: 'Opção A', isCorrect: true },
+            { id: 'opt2', option: 'Opção B', isCorrect: false },
+            { id: 'opt3', option: 'Opção C', isCorrect: true },
+            { id: 'opt4', option: 'Opção D', isCorrect: true },
+          ],
+        }),
       });
 
       render(<QuizMultipleChoice variant="result" />);
@@ -2796,6 +2823,10 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(questionWithoutOptions),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       render(<QuizMultipleChoice variant="default" />);
@@ -2808,6 +2839,10 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(null),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       render(<QuizMultipleChoice variant="default" />);
@@ -2821,6 +2856,10 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       render(<QuizMultipleChoice variant="default" />);
@@ -2846,6 +2885,10 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue(mockUserAnswers),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       render(<QuizMultipleChoice variant="default" />);
@@ -2863,6 +2906,10 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue(undefined),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       render(<QuizMultipleChoice variant="default" />);
@@ -2885,6 +2932,10 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       render(<QuizMultipleChoice variant="default" />);
@@ -2931,6 +2982,10 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue(userAnswersWithNull),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       render(<QuizMultipleChoice variant="default" />);
@@ -2948,6 +3003,10 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       const { rerender } = render(<QuizMultipleChoice variant="default" />);
@@ -2968,6 +3027,16 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'result',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+          options: [
+            { id: 'opt1', option: 'Opção A', isCorrect: true },
+            { id: 'opt2', option: 'Opção B', isCorrect: false },
+            { id: 'opt3', option: 'Opção C', isCorrect: true },
+            { id: 'opt4', option: 'Opção D', isCorrect: true },
+          ],
+        }),
       });
 
       const { rerender } = render(<QuizMultipleChoice variant="default" />);
@@ -2986,6 +3055,14 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(newQuestion),
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+          options: [
+            { id: 'opt5', option: 'Nova Opção A', isCorrect: true },
+            { id: 'opt6', option: 'Nova Opção B', isCorrect: false },
+          ],
+        }),
       });
 
       rerender(<QuizMultipleChoice variant="default" />);
@@ -3005,6 +3082,16 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: jest.fn().mockReturnValue(mockUserAnswers),
+        variant: 'result',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+          options: [
+            { id: 'opt1', option: 'Opção A', isCorrect: true },
+            { id: 'opt2', option: 'Opção B', isCorrect: false },
+            { id: 'opt3', option: 'Opção C', isCorrect: true },
+            { id: 'opt4', option: 'Opção D', isCorrect: true },
+          ],
+        }),
       });
 
       const { rerender } = render(<QuizMultipleChoice variant="default" />);
@@ -3024,6 +3111,16 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue(mockUserAnswers),
+        variant: 'result',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+          options: [
+            { id: 'opt1', option: 'Opção A', isCorrect: true },
+            { id: 'opt2', option: 'Opção B', isCorrect: false },
+            { id: 'opt3', option: 'Opção C', isCorrect: true },
+            { id: 'opt4', option: 'Opção D', isCorrect: true },
+          ],
+        }),
       });
 
       render(<QuizMultipleChoice variant="result" />);
@@ -3044,6 +3141,10 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       render(<QuizMultipleChoice variant="default" />);
@@ -3061,6 +3162,10 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(null),
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       render(<QuizMultipleChoice variant="default" />);
@@ -3075,6 +3180,10 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       render(<QuizMultipleChoice variant="default" />);
@@ -3104,6 +3213,10 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: mockGetAllCurrentAnswer,
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       // First render - no selected values
@@ -3150,6 +3263,10 @@ describe('Quiz Component', () => {
         getCurrentQuestion: mockGetCurrentQuestion,
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: mockGetAllCurrentAnswer,
+        variant: 'default',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+        }),
       });
 
       // First render - no selected values
@@ -3192,6 +3309,16 @@ describe('Quiz Component', () => {
         getCurrentQuestion: jest.fn().mockReturnValue(mockQuestion),
         selectMultipleAnswer: jest.fn(),
         getAllCurrentAnswer: jest.fn().mockReturnValue(incorrectUserAnswers),
+        variant: 'result',
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          questionId: 'q1',
+          options: [
+            { id: 'opt1', option: 'Opção A', isCorrect: true },
+            { id: 'opt2', option: 'Opção B', isCorrect: false },
+            { id: 'opt3', option: 'Opção C', isCorrect: true },
+            { id: 'opt4', option: 'Opção D', isCorrect: true },
+          ],
+        }),
       });
 
       render(<QuizMultipleChoice variant="result" />);
@@ -3255,6 +3382,10 @@ describe('QuizDissertative', () => {
       getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
       getCurrentAnswer: jest.fn().mockReturnValue(null),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
     render(<QuizDissertative variant="default" />);
@@ -3270,6 +3401,12 @@ describe('QuizDissertative', () => {
       getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
       getCurrentAnswer: jest.fn().mockReturnValue(mockDissertativeAnswer),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'result',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+        answer:
+          'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia química.',
+      }),
     });
 
     render(<QuizDissertative variant="result" />);
@@ -3287,6 +3424,10 @@ describe('QuizDissertative', () => {
       getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
       getCurrentAnswer: jest.fn().mockReturnValue(null),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'result',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
     render(<QuizDissertative variant="result" />);
@@ -3299,6 +3440,10 @@ describe('QuizDissertative', () => {
       getCurrentQuestion: jest.fn().mockReturnValue(null),
       getCurrentAnswer: jest.fn().mockReturnValue(null),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
     render(<QuizDissertative variant="default" />);
@@ -3312,6 +3457,10 @@ describe('QuizDissertative', () => {
       getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
       getCurrentAnswer: jest.fn().mockReturnValue(mockDissertativeAnswer),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
     render(<QuizDissertative variant="default" />);
@@ -3330,9 +3479,13 @@ describe('QuizDissertative', () => {
         answer: '',
       }),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
-    render(<QuizDissertative variant="default" />);
+    render(<QuizDissertative />);
 
     const textarea = screen.getByTestId('textarea');
     expect(textarea).toHaveValue('');
@@ -3346,6 +3499,10 @@ describe('QuizDissertative', () => {
         answer: null,
       }),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
     render(<QuizDissertative variant="default" />);
@@ -3362,6 +3519,10 @@ describe('QuizDissertative', () => {
         answer: undefined,
       }),
       selectDissertativeAnswer: jest.fn(),
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
     render(<QuizDissertative variant="default" />);
@@ -3376,6 +3537,10 @@ describe('QuizDissertative', () => {
       getCurrentQuestion: jest.fn().mockReturnValue(null),
       getCurrentAnswer: jest.fn().mockReturnValue(null),
       selectDissertativeAnswer: mockSelectDissertativeAnswer,
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
     render(<QuizDissertative variant="default" />);
@@ -3395,6 +3560,10 @@ describe('QuizDissertative', () => {
       selectDissertativeAnswer: mockSelectDissertativeAnswer,
       getActiveQuiz: jest.fn().mockReturnValue(null), // This simulates the negation case
       getUserAnswers: mockGetUserAnswers,
+      variant: 'default',
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
     render(<QuizDissertative variant="default" />);
@@ -3412,7 +3581,11 @@ describe('QuizDissertative', () => {
     mockUseQuizStore.mockReturnValue({
       getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
       getCurrentAnswer: jest.fn().mockReturnValue(null),
+      variant: 'default',
       selectDissertativeAnswer: jest.fn(),
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
     render(<QuizDissertative variant="default" />);
@@ -3433,6 +3606,9 @@ describe('QuizDissertative', () => {
       getCurrentQuestion: jest.fn().mockReturnValue(mockDissertativeQuestion),
       getCurrentAnswer: jest.fn().mockReturnValue(mockDissertativeAnswer),
       selectDissertativeAnswer: jest.fn(),
+      getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+        questionId: 'q1',
+      }),
     });
 
     render(<QuizDissertative variant="result" />);

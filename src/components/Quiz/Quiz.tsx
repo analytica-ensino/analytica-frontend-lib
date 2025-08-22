@@ -274,24 +274,34 @@ const QuizAlternative = ({
   variant = 'default',
   paddingBottom,
 }: QuizVariantInterface) => {
-  const { getCurrentQuestion, selectAnswer, getCurrentAnswer } = useQuizStore();
+  const {
+    getCurrentQuestion,
+    selectAnswer,
+    getQuestionResultByQuestionId,
+    getCurrentAnswer,
+  } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
+  const currentQuestionResult = getQuestionResultByQuestionId(
+    currentQuestion?.id || ''
+  );
   const currentAnswer = getCurrentAnswer();
+
   const alternatives = currentQuestion?.options?.map((option) => {
     let status: Status = Status.NEUTRAL;
-
     if (variant === 'result') {
-      const isCorrectOption = currentQuestion.options.find((op) =>
-        currentQuestion.correctOptionIds?.includes(op.id)
+      const isCorrectOption = currentQuestion.correctOptionIds?.includes(
+        option.id
+      );
+      const isSelected = currentQuestionResult?.options.find(
+        (op) => op.id === option.id
       );
 
-      if (isCorrectOption?.id === option.id) {
+      if (isCorrectOption) {
         status = Status.CORRECT;
-      } else if (
-        currentAnswer?.optionId === option.id &&
-        option.id !== isCorrectOption?.id
-      ) {
+      } else if (isSelected && !isCorrectOption) {
         status = Status.INCORRECT;
+      } else {
+        status = Status.NEUTRAL;
       }
     }
 
@@ -321,8 +331,16 @@ const QuizAlternative = ({
             name={`question-${currentQuestion?.id || '1'}`}
             layout="compact"
             alternatives={alternatives}
-            value={currentAnswer?.optionId || ''}
-            selectedValue={currentAnswer?.optionId || ''}
+            value={
+              variant == 'result'
+                ? currentQuestionResult?.options[0].id || ''
+                : currentAnswer?.optionId || ''
+            }
+            selectedValue={
+              variant == 'result'
+                ? currentQuestionResult?.options[0].id || ''
+                : currentAnswer?.optionId || ''
+            }
             onValueChange={(value) => {
               if (currentQuestion) {
                 selectAnswer(currentQuestion.id, value);
@@ -335,15 +353,19 @@ const QuizAlternative = ({
   );
 };
 
-const QuizMultipleChoice = ({
-  variant = 'default',
-  paddingBottom,
-}: QuizVariantInterface) => {
-  const { getCurrentQuestion, selectMultipleAnswer, getAllCurrentAnswer } =
-    useQuizStore();
+const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
+  const {
+    getCurrentQuestion,
+    selectMultipleAnswer,
+    getAllCurrentAnswer,
+    getQuestionResultByQuestionId,
+    variant,
+  } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
   const allCurrentAnswers = getAllCurrentAnswer();
-
+  const currentQuestionResult = getQuestionResultByQuestionId(
+    currentQuestion?.id || ''
+  );
   // Use ref to track previous values and prevent unnecessary updates
   const prevSelectedValuesRef = useRef<string[]>([]);
   const prevQuestionIdRef = useRef<string>('');
@@ -378,6 +400,14 @@ const QuizMultipleChoice = ({
       return selectedValues;
     }
 
+    if (
+      variant == 'result' &&
+      currentQuestionResult?.options.length &&
+      currentQuestionResult?.options.length > 0
+    ) {
+      return currentQuestionResult?.options.map((op) => op.id) || [];
+    }
+
     return prevSelectedValuesRef.current;
   }, [selectedValues, currentQuestion?.id]);
 
@@ -400,17 +430,19 @@ const QuizMultipleChoice = ({
     let status: Status = Status.NEUTRAL;
 
     if (variant === 'result') {
-      const isAllCorrectOptionId = currentQuestion.options
-        .filter((op) => currentQuestion.correctOptionIds?.includes(op.id))
-        .map((op) => op.id);
+      const isCorrectOption = currentQuestion.correctOptionIds?.includes(
+        option.id
+      );
+      const isSelected = currentQuestionResult?.options.find(
+        (op) => op.id === option.id
+      );
 
-      if (isAllCorrectOptionId.includes(option.id)) {
+      if (isCorrectOption) {
         status = Status.CORRECT;
-      } else if (
-        allCurrentAnswerIds?.includes(option.id) &&
-        !isAllCorrectOptionId.includes(option.id)
-      ) {
+      } else if (isSelected && !isCorrectOption) {
         status = Status.INCORRECT;
+      } else {
+        status = Status.NEUTRAL;
       }
     }
 
@@ -427,7 +459,6 @@ const QuizMultipleChoice = ({
         <p>Não há Escolhas Multiplas</p>
       </div>
     );
-
   return (
     <>
       <QuizSubTitle subTitle="Alternativas" />
@@ -448,14 +479,20 @@ const QuizMultipleChoice = ({
   );
 };
 
-const QuizDissertative = ({
-  variant = 'default',
-  paddingBottom,
-}: QuizVariantInterface) => {
-  const { getCurrentQuestion, getCurrentAnswer, selectDissertativeAnswer } =
-    useQuizStore();
+const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
+  const {
+    getCurrentQuestion,
+    getCurrentAnswer,
+    selectDissertativeAnswer,
+    getQuestionResultByQuestionId,
+    variant,
+  } = useQuizStore();
 
   const currentQuestion = getCurrentQuestion();
+  const currentQuestionResult = getQuestionResultByQuestionId(
+    currentQuestion?.id || ''
+  );
+
   const currentAnswer = getCurrentAnswer();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -490,6 +527,10 @@ const QuizDissertative = ({
     );
   }
 
+  const localAnswer =
+    (variant == 'result'
+      ? currentQuestionResult?.answer
+      : currentAnswer?.answer) || '';
   return (
     <>
       <QuizSubTitle subTitle="Resposta" />
@@ -501,7 +542,7 @@ const QuizDissertative = ({
               <TextArea
                 ref={textareaRef}
                 placeholder="Escreva sua resposta"
-                value={currentAnswer?.answer || ''}
+                value={localAnswer}
                 onChange={(e) => handleAnswerChange(e.target.value)}
                 rows={4}
                 className="min-h-[120px] max-h-[400px] resize-none overflow-y-auto"
@@ -510,7 +551,7 @@ const QuizDissertative = ({
           ) : (
             <div className="space-y-4">
               <p className="text-text-600 text-md whitespace-pre-wrap">
-                {currentAnswer?.answer || 'Nenhuma resposta fornecida'}
+                {localAnswer || 'Nenhuma resposta fornecida'}
               </p>
             </div>
           )}
@@ -518,7 +559,8 @@ const QuizDissertative = ({
       </QuizContainer>
 
       {variant === 'result' &&
-        currentAnswer?.answerStatus == ANSWER_STATUS.RESPOSTA_INCORRETA && (
+        currentQuestionResult?.answerStatus ==
+          QUESTION_STATUS.RESPOSTA_INCORRETA && (
           <>
             <QuizSubTitle subTitle="Observação do professor" />
 
