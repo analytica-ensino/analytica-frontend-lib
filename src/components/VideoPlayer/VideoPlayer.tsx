@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import {
   Play,
   Pause,
@@ -90,6 +90,68 @@ const VideoPlayer = ({
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const lastSaveTimeRef = useRef(0);
   const trackRef = useRef<HTMLTrackElement>(null);
+  const controlsTimeoutRef = useRef<number | null>(null);
+  const lastMousePositionRef = useRef({ x: 0, y: 0 });
+  const mouseMoveTimeoutRef = useRef<number | null>(null);
+
+  /**
+   * Clear controls timeout
+   */
+  const clearControlsTimeout = useCallback(() => {
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+      controlsTimeoutRef.current = null;
+    }
+  }, []);
+
+  /**
+   * Clear mouse move timeout
+   */
+  const clearMouseMoveTimeout = useCallback(() => {
+    if (mouseMoveTimeoutRef.current) {
+      clearTimeout(mouseMoveTimeoutRef.current);
+      mouseMoveTimeoutRef.current = null;
+    }
+  }, []);
+
+  /**
+   * Show controls and set auto-hide timer
+   */
+  const showControlsWithTimer = useCallback(() => {
+    setShowControls(true);
+    clearControlsTimeout();
+
+    // Only hide controls if video is playing
+    if (isPlaying) {
+      // Use shorter timeout in fullscreen for more immersive experience
+      const timeout = isFullscreen ? 2000 : 3000;
+      controlsTimeoutRef.current = window.setTimeout(() => {
+        setShowControls(false);
+      }, timeout);
+    }
+  }, [isPlaying, isFullscreen, clearControlsTimeout]);
+
+  /**
+   * Handle mouse move with position detection for fullscreen
+   */
+  const handleMouseMove = useCallback(
+    (event: React.MouseEvent) => {
+      const currentX = event.clientX;
+      const currentY = event.clientY;
+      const lastPos = lastMousePositionRef.current;
+
+      // Check if mouse actually moved (minimum 5px threshold)
+      const hasMoved =
+        Math.abs(currentX - lastPos.x) > 5 ||
+        Math.abs(currentY - lastPos.y) > 5;
+
+      if (hasMoved) {
+        lastMousePositionRef.current = { x: currentX, y: currentY };
+        showControlsWithTimer();
+      }
+    },
+    [showControlsWithTimer]
+  );
 
   /**
    * Initialize video element properties
@@ -101,6 +163,41 @@ const VideoPlayer = ({
       videoRef.current.muted = isMuted;
     }
   }, [volume, isMuted]);
+
+  /**
+   * Handle controls auto-hide when play state changes
+   */
+  useEffect(() => {
+    if (isPlaying) {
+      // Start timer when video starts playing
+      showControlsWithTimer();
+    } else {
+      // Keep controls visible when paused
+      clearControlsTimeout();
+      setShowControls(true);
+    }
+  }, [isPlaying, showControlsWithTimer, clearControlsTimeout]);
+
+  /**
+   * Handle fullscreen state changes from browser events
+   */
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isCurrentlyFullscreen = !!document.fullscreenElement;
+      setIsFullscreen(isCurrentlyFullscreen);
+
+      // Show controls when entering fullscreen, hide after timeout if playing
+      if (isCurrentlyFullscreen) {
+        showControlsWithTimer();
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, [showControlsWithTimer]);
 
   /**
    * Load saved progress from localStorage
@@ -324,8 +421,11 @@ const VideoPlayer = ({
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleBlur);
+      // Clean up timers on unmount
+      clearControlsTimeout();
+      clearMouseMoveTimeout();
     };
-  }, [isPlaying]);
+  }, [isPlaying, clearControlsTimeout, clearMouseMoveTimeout]);
 
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -365,8 +465,15 @@ const VideoPlayer = ({
       <div
         className={cn(
           'relative w-full bg-background overflow-hidden group',
-          title || subtitleText ? 'rounded-b-xl' : 'rounded-xl'
+          title || subtitleText ? 'rounded-b-xl' : 'rounded-xl',
+          // Hide cursor when controls are hidden and video is playing in fullscreen
+          isFullscreen && isPlaying && !showControls
+            ? 'cursor-none'
+            : 'cursor-default'
         )}
+        onMouseMove={isFullscreen ? handleMouseMove : showControlsWithTimer}
+        onMouseEnter={showControlsWithTimer}
+        onClick={showControlsWithTimer}
       >
         {/* Video Element */}
         <video
@@ -381,7 +488,7 @@ const VideoPlayer = ({
           onKeyDown={(e) => {
             // Show controls when any key is pressed
             if (e.key) {
-              setShowControls(true);
+              showControlsWithTimer();
             }
             // Space or Enter to play/pause
             if (e.key === ' ' || e.key === 'Enter') {
@@ -448,9 +555,13 @@ const VideoPlayer = ({
         <div
           className={cn(
             'absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/70 to-transparent transition-opacity',
-            !isPlaying || showControls
-              ? 'opacity-100'
-              : 'opacity-0 group-hover:opacity-100'
+            isFullscreen
+              ? showControls
+                ? 'opacity-100'
+                : 'opacity-0'
+              : !isPlaying || showControls
+                ? 'opacity-100'
+                : 'opacity-0 group-hover:opacity-100'
           )}
         >
           <div className="ml-auto block">
@@ -473,9 +584,13 @@ const VideoPlayer = ({
         <div
           className={cn(
             'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent transition-opacity',
-            !isPlaying || showControls
-              ? 'opacity-100'
-              : 'opacity-0 group-hover:opacity-100'
+            isFullscreen
+              ? showControls
+                ? 'opacity-100'
+                : 'opacity-0'
+              : !isPlaying || showControls
+                ? 'opacity-100'
+                : 'opacity-0 group-hover:opacity-100'
           )}
         >
           {/* Progress Bar */}
