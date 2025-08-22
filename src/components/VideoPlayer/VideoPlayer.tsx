@@ -56,6 +56,127 @@ const formatTime = (seconds: number): string => {
 };
 
 /**
+ * Progress bar component props
+ */
+interface ProgressBarProps {
+  currentTime: number;
+  duration: number;
+  progressPercentage: number;
+  onSeek: (time: number) => void;
+}
+
+/**
+ * Progress bar subcomponent
+ */
+const ProgressBar = ({
+  currentTime,
+  duration,
+  progressPercentage,
+  onSeek,
+}: ProgressBarProps) => (
+  <div className="px-4 pb-2">
+    <input
+      type="range"
+      min={0}
+      max={duration || 100}
+      value={currentTime}
+      onChange={(e) => onSeek(parseFloat(e.target.value))}
+      className="w-full h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer slider:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
+      aria-label="Video progress"
+      style={{
+        background: `linear-gradient(to right, #2271C4 ${progressPercentage}%, #D5D4D4 ${progressPercentage}%)`,
+      }}
+    />
+  </div>
+);
+
+/**
+ * Volume controls component props
+ */
+interface VolumeControlsProps {
+  volume: number;
+  isMuted: boolean;
+  onVolumeChange: (volume: number) => void;
+  onToggleMute: () => void;
+}
+
+/**
+ * Volume controls subcomponent
+ */
+const VolumeControls = ({
+  volume,
+  isMuted,
+  onVolumeChange,
+  onToggleMute,
+}: VolumeControlsProps) => (
+  <div className="flex items-center gap-2">
+    <IconButton
+      icon={isMuted ? <SpeakerSlash size={24} /> : <SpeakerHigh size={24} />}
+      onClick={onToggleMute}
+      aria-label={isMuted ? 'Unmute' : 'Mute'}
+      className="!bg-transparent !text-white hover:!bg-white/20"
+    />
+
+    <input
+      type="range"
+      min={0}
+      max={100}
+      value={Math.round(volume * 100)}
+      onChange={(e) => onVolumeChange(parseInt(e.target.value))}
+      className="w-20 h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
+      aria-label="Volume control"
+      style={{
+        background: `linear-gradient(to right, #2271C4 ${volume * 100}%, #D5D4D4 ${volume * 100}%)`,
+      }}
+    />
+  </div>
+);
+
+/**
+ * Speed menu component props
+ */
+interface SpeedMenuProps {
+  showSpeedMenu: boolean;
+  playbackRate: number;
+  onToggleMenu: () => void;
+  onSpeedChange: (speed: number) => void;
+}
+
+/**
+ * Speed menu subcomponent
+ */
+const SpeedMenu = ({
+  showSpeedMenu,
+  playbackRate,
+  onToggleMenu,
+  onSpeedChange,
+}: SpeedMenuProps) => (
+  <div className="relative">
+    <IconButton
+      icon={<DotsThreeVertical size={24} />}
+      onClick={onToggleMenu}
+      aria-label="Playback speed"
+      className="!bg-transparent !text-white hover:!bg-white/20"
+    />
+    {showSpeedMenu && (
+      <div className="absolute bottom-12 right-0 bg-black/90 rounded-lg p-2 min-w-20">
+        {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+          <button
+            key={speed}
+            onClick={() => onSpeedChange(speed)}
+            className={`block w-full text-left px-3 py-1 text-sm rounded hover:bg-white/20 transition-colors ${
+              playbackRate === speed ? 'text-primary-400' : 'text-white'
+            }`}
+          >
+            {speed}x
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+/**
  * Video player component with controls and progress tracking
  * Integrates with backend lesson progress system
  *
@@ -200,29 +321,34 @@ const VideoPlayer = ({
   }, [showControlsWithTimer]);
 
   /**
+   * Get initial time from props or localStorage
+   */
+  const getInitialTime = useCallback((): number | undefined => {
+    if (!autoSave || !storageKey) {
+      return Number.isFinite(initialTime) && initialTime >= 0
+        ? initialTime
+        : undefined;
+    }
+
+    const saved = Number(localStorage.getItem(`${storageKey}-${src}`) || NaN);
+    const hasValidInitial = Number.isFinite(initialTime) && initialTime >= 0;
+    const hasValidSaved = Number.isFinite(saved) && saved >= 0;
+
+    if (hasValidInitial) return initialTime;
+    if (hasValidSaved) return saved;
+    return undefined;
+  }, [autoSave, storageKey, src, initialTime]);
+
+  /**
    * Load saved progress from localStorage
    */
   useEffect(() => {
-    if (!autoSave || !storageKey) return;
-
-    const raw = localStorage.getItem(`${storageKey}-${src}`);
-    const saved = raw !== null ? Number(raw) : NaN;
-    const hasValidSaved = Number.isFinite(saved) && saved >= 0;
-    const hasValidInitial = Number.isFinite(initialTime) && initialTime >= 0;
-
-    let start: number | undefined;
-    if (hasValidInitial) {
-      start = initialTime;
-    } else if (hasValidSaved) {
-      start = saved;
-    } else {
-      start = undefined;
-    }
+    const start = getInitialTime();
     if (start !== undefined && videoRef.current) {
       videoRef.current.currentTime = start;
       setCurrentTime(start);
     }
-  }, [src, storageKey, autoSave, initialTime]);
+  }, [getInitialTime]);
 
   /**
    * Save progress to localStorage periodically
@@ -241,14 +367,15 @@ const VideoPlayer = ({
    * Handle play/pause toggle
    */
   const togglePlayPause = useCallback(() => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isPlaying) {
+      video.pause();
+    } else {
+      video.play();
     }
+    setIsPlaying(!isPlaying);
   }, [isPlaying]);
 
   /**
@@ -256,19 +383,23 @@ const VideoPlayer = ({
    */
   const handleVolumeChange = useCallback(
     (newVolume: number) => {
-      if (videoRef.current) {
-        const volumeValue = newVolume / 100; // Convert 0-100 to 0-1
-        videoRef.current.volume = volumeValue;
-        setVolume(volumeValue);
+      const video = videoRef.current;
+      if (!video) return;
 
-        // Auto mute/unmute based on volume
-        if (volumeValue === 0) {
-          videoRef.current.muted = true;
-          setIsMuted(true);
-        } else if (isMuted) {
-          videoRef.current.muted = false;
-          setIsMuted(false);
-        }
+      const volumeValue = newVolume / 100; // Convert 0-100 to 0-1
+      video.volume = volumeValue;
+      setVolume(volumeValue);
+
+      // Auto mute/unmute based on volume
+      const shouldMute = volumeValue === 0;
+      const shouldUnmute = volumeValue > 0 && isMuted;
+
+      if (shouldMute) {
+        video.muted = true;
+        setIsMuted(true);
+      } else if (shouldUnmute) {
+        video.muted = false;
+        setIsMuted(false);
       }
     },
     [isMuted]
@@ -278,21 +409,32 @@ const VideoPlayer = ({
    * Handle mute toggle
    */
   const toggleMute = useCallback(() => {
-    if (videoRef.current) {
-      if (isMuted) {
-        // Unmute: restore volume or set to 50% if it was 0
-        const restoreVolume = volume > 0 ? volume : 0.5;
-        videoRef.current.volume = restoreVolume;
-        videoRef.current.muted = false;
-        setVolume(restoreVolume);
-        setIsMuted(false);
-      } else {
-        // Mute: set volume to 0 and mute
-        videoRef.current.muted = true;
-        setIsMuted(true);
-      }
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isMuted) {
+      // Unmute: restore volume or set to 50% if it was 0
+      const restoreVolume = volume > 0 ? volume : 0.5;
+      video.volume = restoreVolume;
+      video.muted = false;
+      setVolume(restoreVolume);
+      setIsMuted(false);
+    } else {
+      // Mute: set volume to 0 and mute
+      video.muted = true;
+      setIsMuted(true);
     }
   }, [isMuted, volume]);
+
+  /**
+   * Handle video seek
+   */
+  const handleSeek = useCallback((newTime: number) => {
+    const video = videoRef.current;
+    if (video) {
+      video.currentTime = newTime;
+    }
+  }, []);
 
   /**
    * Handle fullscreen toggle
@@ -301,11 +443,9 @@ const VideoPlayer = ({
     const container = videoRef.current?.parentElement;
     if (!container) return;
 
-    if (!isFullscreen) {
-      if (container.requestFullscreen) {
-        container.requestFullscreen();
-      }
-    } else if (document.exitFullscreen) {
+    if (!isFullscreen && container.requestFullscreen) {
+      container.requestFullscreen();
+    } else if (isFullscreen && document.exitFullscreen) {
       document.exitFullscreen();
     }
     setIsFullscreen(!isFullscreen);
@@ -344,38 +484,40 @@ const VideoPlayer = ({
   }, [showCaptions, subtitles]);
 
   /**
+   * Check video completion and fire callback
+   */
+  const checkVideoCompletion = useCallback(
+    (progressPercent: number) => {
+      if (progressPercent >= 95 && !hasCompleted) {
+        setHasCompleted(true);
+        onVideoComplete?.();
+      }
+    },
+    [hasCompleted, onVideoComplete]
+  );
+
+  /**
    * Handle time update
    */
   const handleTimeUpdate = useCallback(() => {
-    if (videoRef.current) {
-      const current = videoRef.current.currentTime;
-      setCurrentTime(current);
+    const video = videoRef.current;
+    if (!video) return;
 
-      // Save progress periodically
-      saveProgress();
+    const current = video.currentTime;
+    setCurrentTime(current);
 
-      // Fire callbacks
-      onTimeUpdate?.(current);
+    // Save progress periodically
+    saveProgress();
 
-      if (duration > 0) {
-        const progressPercent = (current / duration) * 100;
-        onProgress?.(progressPercent);
+    // Fire callbacks
+    onTimeUpdate?.(current);
 
-        // Check for completion (>95% watched)
-        if (progressPercent >= 95 && !hasCompleted) {
-          setHasCompleted(true);
-          onVideoComplete?.();
-        }
-      }
+    if (duration > 0) {
+      const progressPercent = (current / duration) * 100;
+      onProgress?.(progressPercent);
+      checkVideoCompletion(progressPercent);
     }
-  }, [
-    duration,
-    saveProgress,
-    onTimeUpdate,
-    onProgress,
-    onVideoComplete,
-    hasCompleted,
-  ]);
+  }, [duration, saveProgress, onTimeUpdate, onProgress, checkVideoCompletion]);
 
   /**
    * Handle loaded metadata
@@ -429,6 +571,111 @@ const VideoPlayer = ({
 
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
+  /**
+   * Calculate top controls opacity based on state
+   */
+  const getTopControlsOpacity = useCallback(() => {
+    if (isFullscreen) {
+      return showControls ? 'opacity-100' : 'opacity-0';
+    }
+    return !isPlaying || showControls
+      ? 'opacity-100'
+      : 'opacity-0 group-hover:opacity-100';
+  }, [isFullscreen, showControls, isPlaying]);
+
+  /**
+   * Calculate bottom controls opacity based on state
+   */
+  const getBottomControlsOpacity = useCallback(() => {
+    if (isFullscreen) {
+      return showControls ? 'opacity-100' : 'opacity-0';
+    }
+    return !isPlaying || showControls
+      ? 'opacity-100'
+      : 'opacity-0 group-hover:opacity-100';
+  }, [isFullscreen, showControls, isPlaying]);
+
+  /**
+   * Handle container keyboard events
+   */
+  const handleContainerKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      // Show controls when any key is pressed
+      showControlsWithTimer();
+
+      // Space or Enter to play/pause
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        togglePlayPause();
+      }
+      // F for fullscreen
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    },
+    [showControlsWithTimer, togglePlayPause, toggleFullscreen]
+  );
+
+  /**
+   * Handle video element keyboard events
+   */
+  const handleVideoKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key) {
+        showControlsWithTimer();
+      }
+
+      switch (e.key) {
+        case ' ':
+        case 'Enter':
+          e.preventDefault();
+          togglePlayPause();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          if (videoRef.current) {
+            videoRef.current.currentTime -= 10;
+          }
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          if (videoRef.current) {
+            videoRef.current.currentTime += 10;
+          }
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          handleVolumeChange(Math.min(100, volume * 100 + 10));
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          handleVolumeChange(Math.max(0, volume * 100 - 10));
+          break;
+        case 'm':
+        case 'M':
+          e.preventDefault();
+          toggleMute();
+          break;
+        case 'f':
+        case 'F':
+          e.preventDefault();
+          toggleFullscreen();
+          break;
+        default:
+          break;
+      }
+    },
+    [
+      showControlsWithTimer,
+      togglePlayPause,
+      handleVolumeChange,
+      volume,
+      toggleMute,
+      toggleFullscreen,
+    ]
+  );
+
   return (
     <div className={cn('flex flex-col', className)}>
       {/* Integrated Header */}
@@ -462,18 +709,22 @@ const VideoPlayer = ({
       )}
 
       {/* Video Container */}
-      <div
+      <button
         className={cn(
           'relative w-full bg-background overflow-hidden group',
+          'border-none p-0 m-0 outline-none focus:outline-none',
           title || subtitleText ? 'rounded-b-xl' : 'rounded-xl',
           // Hide cursor when controls are hidden and video is playing in fullscreen
           isFullscreen && isPlaying && !showControls
             ? 'cursor-none'
             : 'cursor-default'
         )}
+        type="button"
+        aria-label={title ? `Video player: ${title}` : 'Video player'}
         onMouseMove={isFullscreen ? handleMouseMove : showControlsWithTimer}
         onMouseEnter={showControlsWithTimer}
         onClick={showControlsWithTimer}
+        onKeyDown={handleContainerKeyDown}
       >
         {/* Video Element */}
         <video
@@ -485,45 +736,7 @@ const VideoPlayer = ({
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onClick={togglePlayPause}
-          onKeyDown={(e) => {
-            // Show controls when any key is pressed
-            if (e.key) {
-              showControlsWithTimer();
-            }
-            // Space or Enter to play/pause
-            if (e.key === ' ' || e.key === 'Enter') {
-              e.preventDefault();
-              togglePlayPause();
-            }
-            // Arrow keys for seeking
-            if (e.key === 'ArrowLeft' && videoRef.current) {
-              e.preventDefault();
-              videoRef.current.currentTime -= 10;
-            }
-            if (e.key === 'ArrowRight' && videoRef.current) {
-              e.preventDefault();
-              videoRef.current.currentTime += 10;
-            }
-            // Arrow keys for volume
-            if (e.key === 'ArrowUp') {
-              e.preventDefault();
-              handleVolumeChange(Math.min(100, volume * 100 + 10));
-            }
-            if (e.key === 'ArrowDown') {
-              e.preventDefault();
-              handleVolumeChange(Math.max(0, volume * 100 - 10));
-            }
-            // M for mute
-            if (e.key === 'm' || e.key === 'M') {
-              e.preventDefault();
-              toggleMute();
-            }
-            // F for fullscreen
-            if (e.key === 'f' || e.key === 'F') {
-              e.preventDefault();
-              toggleFullscreen();
-            }
-          }}
+          onKeyDown={handleVideoKeyDown}
           tabIndex={0}
           aria-label={title ? `Video: ${title}` : 'Video player'}
         >
@@ -555,16 +768,10 @@ const VideoPlayer = ({
         <div
           className={cn(
             'absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/70 to-transparent transition-opacity',
-            isFullscreen
-              ? showControls
-                ? 'opacity-100'
-                : 'opacity-0'
-              : !isPlaying || showControls
-                ? 'opacity-100'
-                : 'opacity-0 group-hover:opacity-100'
+            getTopControlsOpacity()
           )}
         >
-          <div className="ml-auto block">
+          <div className="flex justify-start">
             <IconButton
               icon={
                 isFullscreen ? (
@@ -584,35 +791,16 @@ const VideoPlayer = ({
         <div
           className={cn(
             'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent transition-opacity',
-            isFullscreen
-              ? showControls
-                ? 'opacity-100'
-                : 'opacity-0'
-              : !isPlaying || showControls
-                ? 'opacity-100'
-                : 'opacity-0 group-hover:opacity-100'
+            getBottomControlsOpacity()
           )}
         >
           {/* Progress Bar */}
-          <div className="px-4 pb-2">
-            <input
-              type="range"
-              min={0}
-              max={duration || 100}
-              value={currentTime}
-              onChange={(e) => {
-                const newTime = parseFloat(e.target.value);
-                if (videoRef.current) {
-                  videoRef.current.currentTime = newTime;
-                }
-              }}
-              className="w-full h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer slider:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              aria-label="Video progress"
-              style={{
-                background: `linear-gradient(to right, #2271C4 ${progressPercentage}%, #D5D4D4 ${progressPercentage}%)`,
-              }}
-            />
-          </div>
+          <ProgressBar
+            currentTime={currentTime}
+            duration={duration}
+            progressPercentage={progressPercentage}
+            onSeek={handleSeek}
+          />
 
           {/* Control Buttons */}
           <div className="flex items-center justify-between px-4 pb-4">
@@ -627,34 +815,12 @@ const VideoPlayer = ({
               />
 
               {/* Volume */}
-              <div className="flex items-center gap-2">
-                <IconButton
-                  icon={
-                    isMuted ? (
-                      <SpeakerSlash size={24} />
-                    ) : (
-                      <SpeakerHigh size={24} />
-                    )
-                  }
-                  onClick={toggleMute}
-                  aria-label={isMuted ? 'Unmute' : 'Mute'}
-                  className="!bg-transparent !text-white hover:!bg-white/20"
-                />
-
-                {/* Volume Slider */}
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={Math.round(volume * 100)}
-                  onChange={(e) => handleVolumeChange(parseInt(e.target.value))}
-                  className="w-20 h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  aria-label="Volume control"
-                  style={{
-                    background: `linear-gradient(to right, #2271C4 ${volume * 100}%, #D5D4D4 ${volume * 100}%)`,
-                  }}
-                />
-              </div>
+              <VolumeControls
+                volume={volume}
+                isMuted={isMuted}
+                onVolumeChange={handleVolumeChange}
+                onToggleMute={toggleMute}
+              />
 
               {/* Captions */}
               {subtitles && (
@@ -678,35 +844,16 @@ const VideoPlayer = ({
             {/* Right Controls */}
             <div className="flex items-center gap-4">
               {/* Speed Control */}
-              <div className="relative">
-                <IconButton
-                  icon={<DotsThreeVertical size={24} />}
-                  onClick={toggleSpeedMenu}
-                  aria-label="Playback speed"
-                  className="!bg-transparent !text-white hover:!bg-white/20"
-                />
-                {showSpeedMenu && (
-                  <div className="absolute bottom-12 right-0 bg-black/90 rounded-lg p-2 min-w-20">
-                    {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
-                      <button
-                        key={speed}
-                        onClick={() => handleSpeedChange(speed)}
-                        className={`block w-full text-left px-3 py-1 text-sm rounded hover:bg-white/20 transition-colors ${
-                          playbackRate === speed
-                            ? 'text-primary-400'
-                            : 'text-white'
-                        }`}
-                      >
-                        {speed}x
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <SpeedMenu
+                showSpeedMenu={showSpeedMenu}
+                playbackRate={playbackRate}
+                onToggleMenu={toggleSpeedMenu}
+                onSpeedChange={handleSpeedChange}
+              />
             </div>
           </div>
         </div>
-      </div>
+      </button>
     </div>
   );
 };
