@@ -256,16 +256,15 @@ const VideoPlayer = ({
 
     // Only hide controls if video is playing
     if (isPlaying) {
-      // Use shorter timeout in fullscreen for more immersive experience
-      const timeout = isFullscreen ? 2000 : 3000;
+      // Use consistent timeout of 3 seconds
       controlsTimeoutRef.current = window.setTimeout(() => {
         setShowControls(false);
-      }, timeout);
+      }, 3000);
     }
-  }, [isPlaying, isFullscreen, clearControlsTimeout]);
+  }, [isPlaying, clearControlsTimeout]);
 
   /**
-   * Handle mouse move with position detection for fullscreen
+   * Handle mouse move with position detection
    */
   const handleMouseMove = useCallback(
     (event: MouseEvent) => {
@@ -285,6 +284,21 @@ const VideoPlayer = ({
     },
     [showControlsWithTimer]
   );
+
+  /**
+   * Handle mouse leave to hide controls faster
+   */
+  const handleMouseLeave = useCallback(() => {
+    clearControlsTimeout();
+
+    // Only hide controls if video is playing
+    if (isPlaying) {
+      // Use shorter timeout when mouse leaves
+      controlsTimeoutRef.current = window.setTimeout(() => {
+        setShowControls(false);
+      }, 1000);
+    }
+  }, [isPlaying, clearControlsTimeout]);
 
   /**
    * Initialize video element properties
@@ -733,14 +747,13 @@ const VideoPlayer = ({
         className={cn(
           'relative w-full bg-background overflow-hidden group',
           title || subtitleText ? 'rounded-b-xl' : 'rounded-xl',
-          // Hide cursor when controls are hidden and video is playing in fullscreen
-          isFullscreen && isPlaying && !showControls
-            ? 'cursor-none'
-            : 'cursor-default'
+          // Hide cursor when controls are hidden and video is playing
+          isPlaying && !showControls ? 'cursor-none' : 'cursor-default'
         )}
         aria-label={title ? `Video player: ${title}` : 'Video player'}
-        onMouseMove={isFullscreen ? handleMouseMove : showControlsWithTimer}
+        onMouseMove={handleMouseMove}
         onMouseEnter={showControlsWithTimer}
+        onMouseLeave={handleMouseLeave}
       >
         {/* Video Element */}
         <video
