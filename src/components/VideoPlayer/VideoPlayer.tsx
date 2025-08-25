@@ -774,7 +774,7 @@ const VideoPlayer = ({
     <div className={cn('flex flex-col', className)}>
       {/* Integrated Header */}
       {(title || subtitleText) && (
-        <div className="bg-subject-1 rounded-t-xl px-8 py-4 flex items-end justify-between min-h-20">
+        <div className="bg-subject-1 px-8 py-4 flex items-end justify-between min-h-20">
           <div className="flex flex-col gap-1">
             {title && (
               <Text
@@ -806,7 +806,7 @@ const VideoPlayer = ({
       <section
         className={cn(
           'relative w-full bg-background overflow-hidden group',
-          title || subtitleText ? 'rounded-b-xl' : 'rounded-xl',
+          'rounded-b-xl',
           // Hide cursor when controls are hidden and video is playing
           isPlaying && !showControls
             ? 'cursor-none group-hover:cursor-default'
