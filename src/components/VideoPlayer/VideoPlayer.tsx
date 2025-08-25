@@ -23,6 +23,7 @@ import Text from '../Text/Text';
 // Constants for timeout durations
 const CONTROLS_HIDE_TIMEOUT = 3000; // 3 seconds for normal control hiding
 const LEAVE_HIDE_TIMEOUT = 1000; // 1 second when mouse leaves the video area
+const INIT_DELAY = 100; // ms delay to initialize controls on mount
 
 /**
  * VideoPlayer component props interface
@@ -229,7 +230,6 @@ const VideoPlayer = ({
   const trackRef = useRef<HTMLTrackElement>(null);
   const controlsTimeoutRef = useRef<number | null>(null);
   const lastMousePositionRef = useRef({ x: 0, y: 0 });
-  const mouseMoveTimeoutRef = useRef<number | null>(null);
 
   /**
    * Check if user is currently interacting with controls
@@ -267,16 +267,6 @@ const VideoPlayer = ({
     if (controlsTimeoutRef.current) {
       clearTimeout(controlsTimeoutRef.current);
       controlsTimeoutRef.current = null;
-    }
-  }, []);
-
-  /**
-   * Clear mouse move timeout
-   */
-  const clearMouseMoveTimeout = useCallback(() => {
-    if (mouseMoveTimeoutRef.current) {
-      clearTimeout(mouseMoveTimeoutRef.current);
-      mouseMoveTimeoutRef.current = null;
     }
   }, []);
 
@@ -426,16 +416,29 @@ const VideoPlayer = ({
    * This ensures controls work correctly from the first load
    */
   useEffect(() => {
-    // Use a small delay to ensure proper initialization after all other effects
-    const initTimer = setTimeout(() => {
+    const init = () => {
       if (!isFullscreen) {
         showControlsWithTimer();
       }
-    }, 100);
-
-    return () => {
-      clearTimeout(initTimer);
     };
+    // Prefer rAF to avoid arbitrary timing if available; fall back to INIT_DELAY.
+    let raf1 = 0,
+      raf2 = 0,
+      tid: number | undefined;
+    if (typeof window.requestAnimationFrame === 'function') {
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(init);
+      });
+      return () => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      };
+    } else {
+      tid = window.setTimeout(init, INIT_DELAY);
+      return () => {
+        if (tid) clearTimeout(tid);
+      };
+    }
   }, []); // Run only once on mount
 
   /**
@@ -689,9 +692,8 @@ const VideoPlayer = ({
       window.removeEventListener('blur', handleBlur);
       // Clean up timers on unmount
       clearControlsTimeout();
-      clearMouseMoveTimeout();
     };
-  }, [isPlaying, clearControlsTimeout, clearMouseMoveTimeout]);
+  }, [isPlaying, clearControlsTimeout]);
 
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -815,6 +817,7 @@ const VideoPlayer = ({
         aria-label={title ? `Video player: ${title}` : 'Video player'}
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
+        onTouchStart={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         {/* Video Element */}

@@ -1280,40 +1280,6 @@ describe('VideoPlayer', () => {
       expect(container).toBeInTheDocument();
     });
 
-    it('should clear mouse move timeout when clearMouseMoveTimeout is called', () => {
-      const { unmount, container } = render(<VideoPlayer {...defaultProps} />);
-      const videoContainer = container.querySelector('.group')!;
-
-      // Set up fullscreen mode to enable mouse move detection
-      Object.defineProperty(document, 'fullscreenElement', {
-        configurable: true,
-        value: videoContainer,
-      });
-      fireEvent(document, new Event('fullscreenchange'));
-
-      // Trigger multiple mouse moves to set up timeouts
-      act(() => {
-        fireEvent.mouseMove(videoContainer, {
-          clientX: 100,
-          clientY: 100,
-        });
-      });
-
-      act(() => {
-        fireEvent.mouseMove(videoContainer, {
-          clientX: 200,
-          clientY: 200,
-        });
-      });
-
-      // Unmounting should trigger clearMouseMoveTimeout
-      expect(() => {
-        unmount();
-      }).not.toThrow();
-
-      // This covers lines 233-234: clearMouseMoveTimeout
-    });
-
     it('should use shorter timeout in fullscreen mode', async () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const video = container.querySelector('video') as HTMLVideoElement;
@@ -1583,58 +1549,6 @@ describe('VideoPlayer', () => {
 
       // This covers lines 615-616: getBottomControlsOpacity in fullscreen
       expect(bottomControls?.className).toContain('opacity');
-    });
-  });
-
-  describe('Specific mouse timeout clearing', () => {
-    it('should clear mouseMoveTimeoutRef when it exists (lines 244-246)', () => {
-      jest.useFakeTimers();
-      const { container } = render(<VideoPlayer {...defaultProps} />);
-      const section = container.querySelector('section')!;
-      const video = container.querySelector('video') as HTMLVideoElement;
-
-      // Mock video as playing
-      Object.defineProperty(video, 'paused', {
-        configurable: true,
-        get: () => false,
-      });
-
-      // Start playing
-      act(() => {
-        simulateMediaEvent(video, 'play');
-      });
-
-      // Enter fullscreen to enable mouse tracking with cursor hide
-      Object.defineProperty(document, 'fullscreenElement', {
-        configurable: true,
-        value: section,
-      });
-      fireEvent(document, new Event('fullscreenchange'));
-
-      // First mouse move to set up initial state and create first timeout
-      act(() => {
-        fireEvent.mouseMove(section, { clientX: 0, clientY: 0 });
-      });
-
-      // Get initial timer count
-      const initialTimers = jest.getTimerCount();
-      expect(initialTimers).toBeGreaterThan(0);
-
-      // Small advance to ensure timeout is properly set
-      act(() => {
-        jest.advanceTimersByTime(50);
-      });
-
-      // Now move mouse significantly - this should trigger clearMouseMoveTimeout (lines 244-246)
-      // The condition mouseMoveTimeoutRef.current should be true, and it should be cleared
-      act(() => {
-        fireEvent.mouseMove(section, { clientX: 100, clientY: 100 });
-      });
-
-      // Verify we still have timers (new ones were created after clearing old ones)
-      expect(jest.getTimerCount()).toBeGreaterThan(0);
-
-      jest.useRealTimers();
     });
   });
 
