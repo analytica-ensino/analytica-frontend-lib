@@ -3,6 +3,10 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import VideoPlayer from './VideoPlayer';
 
+// Constants matching VideoPlayer implementation
+const CONTROLS_HIDE_TIMEOUT = 3000; // 3 seconds for normal control hiding
+const LEAVE_HIDE_TIMEOUT = 1000; // 1 second when mouse leaves the video area
+
 // Helper to simulate media events
 const simulateMediaEvent = (element: HTMLElement, eventType: string) => {
   const event = new Event(eventType, { bubbles: true });
@@ -1788,16 +1792,15 @@ describe('VideoPlayer', () => {
         fireEvent.mouseLeave(section);
       });
 
-      // Verify timeout is set
-      expect(jest.getTimerCount()).toBeGreaterThan(0);
-
-      // Fast forward to trigger timeout (1000ms for mouse leave)
+      // Fast forward to trigger mouse-leave timeout
       act(() => {
-        jest.advanceTimersByTime(1000);
+        jest.advanceTimersByTime(LEAVE_HIDE_TIMEOUT);
       });
 
       // Controls should be hidden after timeout
-      expect(container).toBeInTheDocument();
+      const bottomControls = container.querySelector('.absolute.bottom-0')!;
+      expect(bottomControls.className).toContain('opacity-0');
+      expect(bottomControls.className).toContain('group-hover:opacity-100'); // hover escape remains
 
       jest.useRealTimers();
     });
@@ -1930,14 +1933,14 @@ describe('VideoPlayer', () => {
         fireEvent.mouseMove(section, { clientX: 50, clientY: 50 });
       });
 
-      // Fast forward 3000ms to trigger setShowControls(false) - covers line 261
+      // Fast forward to trigger setShowControls(false)
       act(() => {
-        jest.advanceTimersByTime(3000);
+        jest.advanceTimersByTime(CONTROLS_HIDE_TIMEOUT);
       });
 
       // Controls should be hidden
-      const bottomControls = container.querySelector('.absolute.bottom-0');
-      expect(bottomControls?.className).toContain('opacity');
+      const bottomControls = container.querySelector('.absolute.bottom-0')!;
+      expect(bottomControls.className).toContain('opacity-0');
 
       jest.useRealTimers();
     });
