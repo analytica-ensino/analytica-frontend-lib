@@ -732,6 +732,7 @@ describe('VideoPlayer', () => {
     });
 
     it('should not save when autoSave is false', () => {
+      jest.useFakeTimers();
       const { container } = render(
         <VideoPlayer {...defaultProps} autoSave={false} />
       );
@@ -744,6 +745,8 @@ describe('VideoPlayer', () => {
       });
 
       expect(localStorageMock.setItem).not.toHaveBeenCalled();
+
+      jest.useRealTimers();
     });
 
     it('should use custom storage key', () => {
@@ -1940,6 +1943,161 @@ describe('VideoPlayer', () => {
     });
   });
 
+  describe('User interaction detection', () => {
+    it('should not hide controls when speed menu is open during mouse leave', () => {
+      jest.useFakeTimers();
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+      const section = container.querySelector('section')!;
+
+      // Mock video as playing
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Start playing
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      // Open speed menu
+      const speedButton = screen.getByRole('button', {
+        name: /playback speed/i,
+      });
+      fireEvent.click(speedButton);
+
+      // Mouse leave should not hide controls when speed menu is open
+      act(() => {
+        fireEvent.mouseLeave(section);
+      });
+
+      // Advance time to see if timeout was set
+      act(() => {
+        jest.advanceTimersByTime(1000); // LEAVE_HIDE_TIMEOUT
+      });
+
+      // Controls should still be visible
+      const bottomControls = container.querySelector('.absolute.bottom-0');
+      expect(bottomControls).toBeInTheDocument();
+
+      jest.useRealTimers();
+    });
+
+    it('should not hide controls when a control element has focus', () => {
+      jest.useFakeTimers();
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+      const section = container.querySelector('section')!;
+
+      // Mock video as playing
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Start playing
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      // Focus on a control button
+      const playButton = screen.getByRole('button', { name: /pause/i });
+      act(() => {
+        playButton.focus();
+      });
+
+      // Mouse leave should not hide controls when control is focused
+      act(() => {
+        fireEvent.mouseLeave(section);
+      });
+
+      // Advance time
+      act(() => {
+        jest.advanceTimersByTime(1000); // LEAVE_HIDE_TIMEOUT
+      });
+
+      // Controls should still be visible
+      expect(container).toBeInTheDocument();
+
+      jest.useRealTimers();
+    });
+
+    it('should hide controls when no interaction is detected on mouse leave', () => {
+      jest.useFakeTimers();
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+      const section = container.querySelector('section')!;
+
+      // Mock video as playing
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Start playing
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      // Mouse leave without any interaction
+      act(() => {
+        fireEvent.mouseLeave(section);
+      });
+
+      // Advance time
+      act(() => {
+        jest.advanceTimersByTime(1000); // LEAVE_HIDE_TIMEOUT
+      });
+
+      // Controls should be hidden
+      const bottomControls = container.querySelector('.absolute.bottom-0');
+      expect(bottomControls?.className).toContain('opacity');
+
+      jest.useRealTimers();
+    });
+  });
+
+  describe('Cursor visibility', () => {
+    it('should show cursor on group hover even when controls are hidden', async () => {
+      jest.useFakeTimers();
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+      const section = container.querySelector('section')!;
+
+      // Mock video as playing
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Start playing to hide controls
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      // Wait for controls to be hidden (3 seconds timeout)
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
+
+      // Now check that cursor class includes group-hover override
+      expect(section.className).toContain('cursor-none');
+      expect(section.className).toContain('group-hover:cursor-default');
+
+      jest.useRealTimers();
+    });
+
+    it('should use default cursor when controls are visible', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const section = container.querySelector('section')!;
+
+      // When video is paused, controls are visible
+      expect(section.className).toContain('cursor-default');
+      expect(section.className).not.toContain('cursor-none');
+    });
+  });
+
   describe('Edge cases', () => {
     it('should handle missing callbacks gracefully', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
@@ -1987,6 +2145,12 @@ describe('VideoPlayer', () => {
       Object.defineProperty(video, 'currentTime', {
         configurable: true,
         value: NaN,
+      });
+
+      // Mock duration to avoid issues with progress calculation
+      Object.defineProperty(video, 'duration', {
+        configurable: true,
+        value: 100,
       });
 
       fireEvent.timeUpdate(video);

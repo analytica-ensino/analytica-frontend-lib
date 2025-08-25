@@ -20,6 +20,10 @@ import { cn } from '../../utils/utils';
 import IconButton from '../IconButton/IconButton';
 import Text from '../Text/Text';
 
+// Constants for timeout durations
+const CONTROLS_HIDE_TIMEOUT = 3000; // 3 seconds for normal control hiding
+const LEAVE_HIDE_TIMEOUT = 1000; // 1 second when mouse leaves the video area
+
 /**
  * VideoPlayer component props interface
  */
@@ -228,6 +232,26 @@ const VideoPlayer = ({
   const mouseMoveTimeoutRef = useRef<number | null>(null);
 
   /**
+   * Check if user is currently interacting with controls
+   */
+  const isUserInteracting = useCallback(() => {
+    // Check if speed menu is open
+    if (showSpeedMenu) return true;
+
+    // Check if any control element has focus
+    const activeElement = document.activeElement;
+    const videoContainer = videoRef.current?.parentElement;
+
+    if (activeElement && videoContainer?.contains(activeElement)) {
+      // Check if focused element is a control (button, input, etc.)
+      const isControl = activeElement.matches('button, input, [tabindex]');
+      if (isControl) return true;
+    }
+
+    return false;
+  }, [showSpeedMenu]);
+
+  /**
    * Clear controls timeout
    */
   const clearControlsTimeout = useCallback(() => {
@@ -259,7 +283,7 @@ const VideoPlayer = ({
       // Use consistent timeout of 3 seconds
       controlsTimeoutRef.current = window.setTimeout(() => {
         setShowControls(false);
-      }, 3000);
+      }, CONTROLS_HIDE_TIMEOUT);
     }
   }, [isPlaying, clearControlsTimeout]);
 
@@ -291,14 +315,14 @@ const VideoPlayer = ({
   const handleMouseLeave = useCallback(() => {
     clearControlsTimeout();
 
-    // Only hide controls if video is playing
-    if (isPlaying) {
+    // Only hide controls if video is playing and user is not interacting
+    if (isPlaying && !isUserInteracting()) {
       // Use shorter timeout when mouse leaves
       controlsTimeoutRef.current = window.setTimeout(() => {
         setShowControls(false);
-      }, 1000);
+      }, LEAVE_HIDE_TIMEOUT);
     }
-  }, [isPlaying, clearControlsTimeout]);
+  }, [isPlaying, clearControlsTimeout, isUserInteracting]);
 
   /**
    * Initialize video element properties
@@ -748,7 +772,9 @@ const VideoPlayer = ({
           'relative w-full bg-background overflow-hidden group',
           title || subtitleText ? 'rounded-b-xl' : 'rounded-xl',
           // Hide cursor when controls are hidden and video is playing
-          isPlaying && !showControls ? 'cursor-none' : 'cursor-default'
+          isPlaying && !showControls
+            ? 'cursor-none group-hover:cursor-default'
+            : 'cursor-default'
         )}
         aria-label={title ? `Video player: ${title}` : 'Video player'}
         onMouseMove={handleMouseMove}
