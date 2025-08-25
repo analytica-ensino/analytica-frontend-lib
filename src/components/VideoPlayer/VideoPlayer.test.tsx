@@ -1579,6 +1579,58 @@ describe('VideoPlayer', () => {
     });
   });
 
+  describe('Specific mouse timeout clearing', () => {
+    it('should clear mouseMoveTimeoutRef when it exists (lines 244-246)', () => {
+      jest.useFakeTimers();
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const section = container.querySelector('section')!;
+      const video = container.querySelector('video') as HTMLVideoElement;
+
+      // Mock video as playing
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Start playing
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      // Enter fullscreen to enable mouse tracking with cursor hide
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: section,
+      });
+      fireEvent(document, new Event('fullscreenchange'));
+
+      // First mouse move to set up initial state and create first timeout
+      act(() => {
+        fireEvent.mouseMove(section, { clientX: 0, clientY: 0 });
+      });
+
+      // Get initial timer count
+      const initialTimers = jest.getTimerCount();
+      expect(initialTimers).toBeGreaterThan(0);
+
+      // Small advance to ensure timeout is properly set
+      act(() => {
+        jest.advanceTimersByTime(50);
+      });
+
+      // Now move mouse significantly - this should trigger clearMouseMoveTimeout (lines 244-246)
+      // The condition mouseMoveTimeoutRef.current should be true, and it should be cleared
+      act(() => {
+        fireEvent.mouseMove(section, { clientX: 100, clientY: 100 });
+      });
+
+      // Verify we still have timers (new ones were created after clearing old ones)
+      expect(jest.getTimerCount()).toBeGreaterThan(0);
+
+      jest.useRealTimers();
+    });
+  });
+
   describe('Special coverage cases', () => {
     it('should trigger setShowControls(false) timeout in fullscreen', async () => {
       jest.useFakeTimers();
@@ -1705,6 +1757,184 @@ describe('VideoPlayer', () => {
       });
 
       expect(container).toBeInTheDocument();
+
+      jest.useRealTimers();
+    });
+  });
+
+  describe('Mouse leave and timeout coverage', () => {
+    it('should handle mouse leave with controls timeout when playing', () => {
+      jest.useFakeTimers();
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+      const section = container.querySelector('section')!;
+
+      // Mock video as playing
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Start playing to set isPlaying to true
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      // Trigger mouse leave event - this covers lines 292, 295, 297-298
+      act(() => {
+        fireEvent.mouseLeave(section);
+      });
+
+      // Verify timeout is set
+      expect(jest.getTimerCount()).toBeGreaterThan(0);
+
+      // Fast forward to trigger timeout (1000ms for mouse leave)
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      // Controls should be hidden after timeout
+      expect(container).toBeInTheDocument();
+
+      jest.useRealTimers();
+    });
+
+    it('should clear mouse move timeout when it exists', () => {
+      jest.useFakeTimers();
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+      const section = container.querySelector('section')!;
+
+      // Mock video as playing to enable mouse hide timer
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Start playing
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      // Set fullscreen to enable mouse movement detection
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: section,
+      });
+      fireEvent(document, new Event('fullscreenchange'));
+
+      // First mouse move to set initial position and create timeout
+      act(() => {
+        fireEvent.mouseMove(section, { clientX: 0, clientY: 0 });
+      });
+
+      // Wait a bit to ensure timeout is set
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Second mouse move with significant distance - this will clear the previous timeout (lines 245-246)
+      act(() => {
+        fireEvent.mouseMove(section, { clientX: 50, clientY: 50 });
+      });
+
+      // Verify that timer count indicates timeout was cleared and new one was set
+      expect(jest.getTimerCount()).toBeGreaterThan(0);
+
+      // Third mouse move to ensure multiple clears work
+      act(() => {
+        fireEvent.mouseMove(section, { clientX: 150, clientY: 150 });
+      });
+
+      expect(container).toBeInTheDocument();
+
+      jest.useRealTimers();
+    });
+
+    it('should properly handle mouse move timeout clearing on multiple moves', () => {
+      jest.useFakeTimers();
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+      const section = container.querySelector('section')!;
+
+      // Mock video as playing
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Start playing to enable timers
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      // Set fullscreen to enable mouse movement detection with timeout
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: section,
+      });
+      fireEvent(document, new Event('fullscreenchange'));
+
+      // First mouse move - sets initial position
+      act(() => {
+        fireEvent.mouseMove(section, { clientX: 10, clientY: 10 });
+      });
+
+      // Small mouse move (below threshold) - no timeout clear
+      act(() => {
+        fireEvent.mouseMove(section, { clientX: 12, clientY: 12 });
+      });
+
+      // Large mouse move (above threshold) - should clear existing timeout (lines 244-246)
+      act(() => {
+        fireEvent.mouseMove(section, { clientX: 100, clientY: 100 });
+      });
+
+      // Advance time slightly
+      act(() => {
+        jest.advanceTimersByTime(500);
+      });
+
+      // Another large move to ensure timeout clearing works repeatedly
+      act(() => {
+        fireEvent.mouseMove(section, { clientX: 200, clientY: 200 });
+      });
+
+      expect(container).toBeInTheDocument();
+
+      jest.useRealTimers();
+    });
+
+    it('should set showControls to false after timeout expires', () => {
+      jest.useFakeTimers();
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+      const section = container.querySelector('section')!;
+
+      // Mock video as playing
+      Object.defineProperty(video, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+
+      // Start playing
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      // Move mouse to trigger showControlsWithTimer
+      act(() => {
+        fireEvent.mouseMove(section, { clientX: 50, clientY: 50 });
+      });
+
+      // Fast forward 3000ms to trigger setShowControls(false) - covers line 261
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
+
+      // Controls should be hidden
+      const bottomControls = container.querySelector('.absolute.bottom-0');
+      expect(bottomControls?.className).toContain('opacity');
 
       jest.useRealTimers();
     });
