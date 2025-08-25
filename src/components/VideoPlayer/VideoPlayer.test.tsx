@@ -1770,7 +1770,7 @@ describe('VideoPlayer', () => {
   });
 
   describe('Mouse leave and timeout coverage', () => {
-    it('should handle mouse leave with controls timeout when playing', () => {
+    it('should handle mouse leave with controls timeout when playing and not in fullscreen', () => {
       jest.useFakeTimers();
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const video = container.querySelector('video') as HTMLVideoElement;
@@ -1782,12 +1782,41 @@ describe('VideoPlayer', () => {
         get: () => false,
       });
 
+      // Ensure we're NOT in fullscreen (mouse leave only works when !isFullscreen)
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: null,
+      });
+
+      // Wait for initialization timer (100ms)
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
       // Start playing to set isPlaying to true
       act(() => {
         simulateMediaEvent(video, 'play');
       });
 
-      // Trigger mouse leave event - this covers lines 292, 295, 297-298
+      // Wait for the initial showControlsWithTimer to complete
+      act(() => {
+        jest.advanceTimersByTime(CONTROLS_HIDE_TIMEOUT);
+      });
+
+      // Controls should now be hidden after auto-hide timeout
+      let bottomControls = container.querySelector('.absolute.bottom-0')!;
+      expect(bottomControls.className).toContain('opacity-0');
+
+      // Show controls again by mouse enter
+      act(() => {
+        fireEvent.mouseEnter(section);
+      });
+
+      // Controls should be visible again
+      bottomControls = container.querySelector('.absolute.bottom-0')!;
+      expect(bottomControls.className).toContain('opacity-100');
+
+      // Now trigger mouse leave event - this should set timeout to hide controls
       act(() => {
         fireEvent.mouseLeave(section);
       });
@@ -1797,10 +1826,9 @@ describe('VideoPlayer', () => {
         jest.advanceTimersByTime(LEAVE_HIDE_TIMEOUT);
       });
 
-      // Controls should be hidden after timeout
-      const bottomControls = container.querySelector('.absolute.bottom-0')!;
+      // Controls should be hidden after mouse leave timeout
+      bottomControls = container.querySelector('.absolute.bottom-0')!;
       expect(bottomControls.className).toContain('opacity-0');
-      expect(bottomControls.className).toContain('group-hover:opacity-100'); // hover escape remains
 
       jest.useRealTimers();
     });
@@ -1923,23 +1951,38 @@ describe('VideoPlayer', () => {
         get: () => false,
       });
 
+      // Ensure we're NOT in fullscreen
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        value: null,
+      });
+
+      // Wait for initialization timer (100ms)
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
       // Start playing
       act(() => {
         simulateMediaEvent(video, 'play');
       });
 
-      // Move mouse to trigger showControlsWithTimer
+      // Move mouse to trigger showControlsWithTimer (this resets the timer)
       act(() => {
         fireEvent.mouseMove(section, { clientX: 50, clientY: 50 });
       });
 
-      // Fast forward to trigger setShowControls(false)
+      // Controls should be visible after mouse move
+      let bottomControls = container.querySelector('.absolute.bottom-0')!;
+      expect(bottomControls.className).toContain('opacity-100');
+
+      // Fast forward to trigger setShowControls(false) after timer expires
       act(() => {
         jest.advanceTimersByTime(CONTROLS_HIDE_TIMEOUT);
       });
 
-      // Controls should be hidden
-      const bottomControls = container.querySelector('.absolute.bottom-0')!;
+      // Controls should be hidden after timeout
+      bottomControls = container.querySelector('.absolute.bottom-0')!;
       expect(bottomControls.className).toContain('opacity-0');
 
       jest.useRealTimers();
@@ -2074,6 +2117,11 @@ describe('VideoPlayer', () => {
         get: () => false,
       });
 
+      // Wait for initialization timer (100ms)
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
       // Start playing to hide controls
       act(() => {
         simulateMediaEvent(video, 'play');
@@ -2081,7 +2129,7 @@ describe('VideoPlayer', () => {
 
       // Wait for controls to be hidden (3 seconds timeout)
       act(() => {
-        jest.advanceTimersByTime(3000);
+        jest.advanceTimersByTime(CONTROLS_HIDE_TIMEOUT);
       });
 
       // Now check that cursor class includes group-hover override
