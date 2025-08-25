@@ -236,7 +236,10 @@ const VideoPlayer = ({
    */
   const isUserInteracting = useCallback(() => {
     // Check if speed menu is open
-    if (showSpeedMenu) return true;
+    if (showSpeedMenu) {
+      console.log('[VideoPlayer] isUserInteracting: true (speed menu open)');
+      return true;
+    }
 
     // Check if any control element has focus
     const activeElement = document.activeElement;
@@ -245,9 +248,16 @@ const VideoPlayer = ({
     if (activeElement && videoContainer?.contains(activeElement)) {
       // Check if focused element is a control (button, input, etc.)
       const isControl = activeElement.matches('button, input, [tabindex]');
-      if (isControl) return true;
+      if (isControl) {
+        console.log(
+          '[VideoPlayer] isUserInteracting: true (control has focus):',
+          activeElement
+        );
+        return true;
+      }
     }
 
+    console.log('[VideoPlayer] isUserInteracting: false');
     return false;
   }, [showSpeedMenu]);
 
@@ -275,17 +285,39 @@ const VideoPlayer = ({
    * Show controls and set auto-hide timer
    */
   const showControlsWithTimer = useCallback(() => {
+    console.log('[VideoPlayer] showControlsWithTimer called:', {
+      isFullscreen,
+      isPlaying,
+      currentTimer: controlsTimeoutRef.current,
+    });
+
     setShowControls(true);
     clearControlsTimeout();
 
-    // Only hide controls if video is playing
-    if (isPlaying) {
-      // Use consistent timeout of 3 seconds
+    // In fullscreen mode, only hide if video is playing
+    if (isFullscreen) {
+      if (isPlaying) {
+        console.log('[VideoPlayer] Setting fullscreen timer (3s)');
+        controlsTimeoutRef.current = window.setTimeout(() => {
+          console.log(
+            '[VideoPlayer] Fullscreen timer executed - hiding controls'
+          );
+          setShowControls(false);
+        }, CONTROLS_HIDE_TIMEOUT);
+      } else {
+        console.log('[VideoPlayer] Fullscreen + paused - no timer set');
+      }
+    } else {
+      // In normal mode, always set a timer to hide controls
+      console.log('[VideoPlayer] Setting normal mode timer (3s)');
       controlsTimeoutRef.current = window.setTimeout(() => {
+        console.log(
+          '[VideoPlayer] Normal mode timer executed - hiding controls'
+        );
         setShowControls(false);
       }, CONTROLS_HIDE_TIMEOUT);
     }
-  }, [isPlaying, clearControlsTimeout]);
+  }, [isFullscreen, isPlaying, clearControlsTimeout]);
 
   /**
    * Handle mouse move with position detection
@@ -310,19 +342,42 @@ const VideoPlayer = ({
   );
 
   /**
+   * Handle mouse enter to show controls with appropriate timer logic
+   */
+  const handleMouseEnter = useCallback(() => {
+    console.log('[VideoPlayer] handleMouseEnter called');
+    showControlsWithTimer();
+  }, [showControlsWithTimer]);
+
+  /**
    * Handle mouse leave to hide controls faster
    */
   const handleMouseLeave = useCallback(() => {
+    const userInteracting = isUserInteracting();
+    console.log('[VideoPlayer] handleMouseLeave called:', {
+      isFullscreen,
+      userInteracting,
+      shouldHide: !isFullscreen && !userInteracting,
+    });
+
     clearControlsTimeout();
 
-    // Only hide controls if video is playing and user is not interacting
-    if (isPlaying && !isUserInteracting()) {
+    // Hide controls when mouse leaves, except when in fullscreen or user is interacting
+    if (!isFullscreen && !userInteracting) {
+      console.log('[VideoPlayer] Setting mouse leave timer (1s)');
       // Use shorter timeout when mouse leaves
       controlsTimeoutRef.current = window.setTimeout(() => {
+        console.log(
+          '[VideoPlayer] Mouse leave timer executed - hiding controls'
+        );
         setShowControls(false);
       }, LEAVE_HIDE_TIMEOUT);
+    } else {
+      console.log(
+        '[VideoPlayer] Mouse leave timer NOT set - conditions not met'
+      );
     }
-  }, [isPlaying, clearControlsTimeout, isUserInteracting]);
+  }, [isFullscreen, clearControlsTimeout, isUserInteracting]);
 
   /**
    * Initialize video element properties
@@ -361,15 +416,34 @@ const VideoPlayer = ({
    * Handle controls auto-hide when play state changes
    */
   useEffect(() => {
+    console.log('[VideoPlayer] Controls useEffect triggered:', {
+      isPlaying,
+      isFullscreen,
+    });
+
     if (isPlaying) {
+      console.log(
+        '[VideoPlayer] Video playing - calling showControlsWithTimer'
+      );
       // Start timer when video starts playing
       showControlsWithTimer();
     } else {
-      // Keep controls visible when paused
+      console.log('[VideoPlayer] Video paused - clearing timeout');
+      // Keep controls visible when paused only in fullscreen
       clearControlsTimeout();
-      setShowControls(true);
+      if (isFullscreen) {
+        console.log('[VideoPlayer] Fullscreen + paused - showing controls');
+        setShowControls(true);
+      } else {
+        console.log(
+          '[VideoPlayer] Normal mode + paused - calling showControlsWithTimer'
+        );
+        // In normal mode (not fullscreen), initialize timer even when paused
+        // This ensures controls will hide properly from the start
+        showControlsWithTimer();
+      }
     }
-  }, [isPlaying, showControlsWithTimer, clearControlsTimeout]);
+  }, [isPlaying, isFullscreen, showControlsWithTimer, clearControlsTimeout]);
 
   /**
    * Handle fullscreen state changes from browser events
@@ -391,6 +465,31 @@ const VideoPlayer = ({
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, [showControlsWithTimer]);
+
+  /**
+   * Initialize controls behavior on component mount
+   * This ensures controls work correctly from the first load
+   */
+  useEffect(() => {
+    console.log('[VideoPlayer] Initialization useEffect triggered');
+    // Use a small delay to ensure proper initialization after all other effects
+    const initTimer = setTimeout(() => {
+      console.log('[VideoPlayer] Initialization timer executed:', {
+        isFullscreen,
+      });
+      if (!isFullscreen) {
+        console.log(
+          '[VideoPlayer] Calling showControlsWithTimer from initialization'
+        );
+        showControlsWithTimer();
+      }
+    }, 100);
+
+    return () => {
+      console.log('[VideoPlayer] Cleaning up initialization timer');
+      clearTimeout(initTimer);
+    };
+  }, []); // Run only once on mount
 
   /**
    * Get initial time from props or localStorage
@@ -653,25 +752,15 @@ const VideoPlayer = ({
    * Calculate top controls opacity based on state
    */
   const getTopControlsOpacity = useCallback(() => {
-    if (isFullscreen) {
-      return showControls ? 'opacity-100' : 'opacity-0';
-    }
-    return !isPlaying || showControls
-      ? 'opacity-100'
-      : 'opacity-0 group-hover:opacity-100';
-  }, [isFullscreen, showControls, isPlaying]);
+    return showControls ? 'opacity-100' : 'opacity-0';
+  }, [showControls]);
 
   /**
    * Calculate bottom controls opacity based on state
    */
   const getBottomControlsOpacity = useCallback(() => {
-    if (isFullscreen) {
-      return showControls ? 'opacity-100' : 'opacity-0';
-    }
-    return !isPlaying || showControls
-      ? 'opacity-100'
-      : 'opacity-0 group-hover:opacity-100';
-  }, [isFullscreen, showControls, isPlaying]);
+    return showControls ? 'opacity-100' : 'opacity-0';
+  }, [showControls]);
 
   /**
    * Handle video element keyboard events
@@ -778,7 +867,7 @@ const VideoPlayer = ({
         )}
         aria-label={title ? `Video player: ${title}` : 'Video player'}
         onMouseMove={handleMouseMove}
-        onMouseEnter={showControlsWithTimer}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         {/* Video Element */}
