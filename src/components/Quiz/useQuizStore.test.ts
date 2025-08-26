@@ -10,7 +10,7 @@ import {
 // Mock data for testing
 const mockQuestion1 = {
   id: 'q1',
-  questionText: 'What is 2 + 2?',
+  statement: 'What is 2 + 2?',
   questionType: QUESTION_TYPE.ALTERNATIVA,
   difficultyLevel: QUESTION_DIFFICULTY.FACIL,
   description: 'Basic math question',
@@ -28,18 +28,33 @@ const mockQuestion1 = {
   correctOptionIds: ['opt1'],
   knowledgeMatrix: [
     {
-      areaKnowledgeId: 'matematica',
-      subjectId: 'algebra',
-      topicId: 'operacoes',
-      subtopicId: 'soma',
-      contentId: 'matematica',
+      areaKnowledge: {
+        id: 'matematica',
+        name: 'Matemática',
+      },
+      subject: {
+        id: 'algebra',
+        name: 'Álgebra',
+      },
+      topic: {
+        id: 'operacoes',
+        name: 'Operações',
+      },
+      subtopic: {
+        id: 'soma',
+        name: 'Soma',
+      },
+      content: {
+        id: 'matematica',
+        name: 'Matemática',
+      },
     },
   ],
 };
 
 const mockQuestion2 = {
   id: 'q2',
-  questionText: 'What is the capital of France?',
+  statement: 'What is the capital of France?',
   questionType: QUESTION_TYPE.ALTERNATIVA,
   difficultyLevel: QUESTION_DIFFICULTY.FACIL,
   description: 'Geography question',
@@ -57,11 +72,26 @@ const mockQuestion2 = {
   correctOptionIds: ['opt2'],
   knowledgeMatrix: [
     {
-      areaKnowledgeId: 'geografia',
-      subjectId: 'geografia-geral',
-      topicId: 'capitais',
-      subtopicId: 'europa',
-      contentId: 'geografia',
+      areaKnowledge: {
+        id: 'geografia',
+        name: 'Geografia',
+      },
+      subject: {
+        id: 'geografia-geral',
+        name: 'Geografia Geral',
+      },
+      topic: {
+        id: 'capitais',
+        name: 'Capitais',
+      },
+      subtopic: {
+        id: 'europa',
+        name: 'Europa',
+      },
+      content: {
+        id: 'geografia',
+        name: 'Geografia',
+      },
     },
   ],
 };

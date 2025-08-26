@@ -197,14 +197,13 @@ const QuizSubTitle = forwardRef<HTMLDivElement, { subTitle: string }>(
 const QuizHeader = () => {
   const { getCurrentQuestion, currentQuestionIndex } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
-
   return (
     <HeaderAlternative
       title={
         currentQuestion ? `Questão ${currentQuestionIndex + 1}` : 'Questão'
       }
-      subTitle={currentQuestion?.knowledgeMatrix?.[0]?.topicId ?? ''}
-      content={currentQuestion?.questionText ?? ''}
+      subTitle={currentQuestion?.knowledgeMatrix?.[0]?.topic?.name ?? ''}
+      content={currentQuestion?.statement ?? ''}
     />
   );
 };
@@ -235,7 +234,6 @@ const QuizContent = forwardRef<
 >(({ paddingBottom }) => {
   const { getCurrentQuestion } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
-
   const questionComponents: Record<
     string,
     ComponentType<QuizVariantInterface>
@@ -280,15 +278,17 @@ const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
   const currentQuestionResult = getQuestionResultByQuestionId(
     currentQuestion?.id || ''
   );
-  const currentAnswer = getCurrentAnswer();
 
+  const currentAnswer = getCurrentAnswer();
   const alternatives = currentQuestion?.options?.map((option) => {
     let status: Status = Status.NEUTRAL;
     if (variant === 'result') {
-      const isCorrectOption = currentQuestion.correctOptionIds?.includes(
-        option.id
+      const isCorrectOption = currentQuestionResult?.options.find(
+        (op) => op.id === option.id
+      )?.isCorrect;
+      const isSelected = currentQuestionResult?.selectedOptions.some(
+        (selectedOption) => selectedOption.optionId === option.id
       );
-      const isSelected = currentQuestionResult?.optionId === option.id;
 
       if (isCorrectOption) {
         status = Status.CORRECT;
@@ -332,7 +332,7 @@ const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
             }
             selectedValue={
               variant === 'result'
-                ? currentQuestionResult?.optionId || ''
+                ? currentQuestionResult?.selectedOptions[0].optionId || ''
                 : currentAnswer?.optionId || ''
             }
             onValueChange={(value) => {
@@ -1836,31 +1836,26 @@ const QuizListResult = forwardRef<
     onSubjectClick?: (subject: string) => void;
   }
 >(({ className, onSubjectClick, ...props }, ref) => {
-  const {
-    getQuestionsGroupedBySubject,
-    isQuestionAnswered,
-    getUserAnswerByQuestionId,
-  } = useQuizStore();
+  const { getQuestionsGroupedBySubject } = useQuizStore();
   const groupedQuestions = getQuestionsGroupedBySubject();
-
   const subjectsStats = Object.entries(groupedQuestions).map(
     ([subjectId, questions]) => {
       let correct = 0;
       let incorrect = 0;
 
       questions.forEach((question) => {
-        if (isQuestionAnswered(question.id)) {
-          const userAnswerItem = getUserAnswerByQuestionId(question.id);
-          if (userAnswerItem?.answerStatus == ANSWER_STATUS.RESPOSTA_CORRETA) {
-            correct++;
-          } else {
-            incorrect++;
-          }
+        if (question.answerStatus == ANSWER_STATUS.RESPOSTA_CORRETA) {
+          correct++;
+        } else {
+          incorrect++;
         }
       });
 
       return {
-        subject: subjectId,
+        subject: {
+          name: questions[0].knowledgeMatrix[0].subject.name,
+          id: subjectId,
+        },
         correct,
         incorrect,
         total: questions.length,
@@ -1874,11 +1869,11 @@ const QuizListResult = forwardRef<
 
       <ul className="flex flex-col gap-2">
         {subjectsStats.map((subject) => (
-          <li key={subject.subject}>
+          <li key={subject.subject.id}>
             <CardResults
-              onClick={() => onSubjectClick?.(subject.subject)}
+              onClick={() => onSubjectClick?.(subject.subject.id)}
               className="max-w-full"
-              header={subject.subject}
+              header={subject.subject.name}
               correct_answers={subject.correct}
               incorrect_answers={subject.incorrect}
               icon={<Book size={20} />}
@@ -1898,11 +1893,7 @@ const QuizListResultByMateria = ({
   subject: string;
   onQuestionClick: (question: Question) => void;
 }) => {
-  const {
-    getQuestionsGroupedBySubject,
-    getUserAnswerByQuestionId,
-    getQuestionIndex,
-  } = useQuizStore();
+  const { getQuestionsGroupedBySubject, getQuestionIndex } = useQuizStore();
   const groupedQuestions = getQuestionsGroupedBySubject();
 
   const answeredQuestions = groupedQuestions[subject] || [];
@@ -1910,7 +1901,9 @@ const QuizListResultByMateria = ({
   return (
     <div className="w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6">
       <div className="flex flex-row pt-4 justify-between">
-        <p className="text-text-950 font-bold text-2xl">{subject}</p>
+        <p className="text-text-950 font-bold text-2xl">
+          {answeredQuestions[0]?.knowledgeMatrix[0]?.subject.name}
+        </p>
       </div>
 
       <section className="flex flex-col ">
@@ -1927,15 +1920,12 @@ const QuizListResultByMateria = ({
                   className="max-w-full"
                   header={`Questão ${questionIndex.toString().padStart(2, '0')}`}
                   status={(() => {
-                    const userAnswer = getUserAnswerByQuestionId(question.id);
                     if (
-                      userAnswer?.answerStatus ===
-                      ANSWER_STATUS.RESPOSTA_CORRETA
+                      question.answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA
                     )
                       return 'correct';
                     if (
-                      userAnswer?.answerStatus ===
-                      ANSWER_STATUS.RESPOSTA_INCORRETA
+                      question.answerStatus === ANSWER_STATUS.RESPOSTA_INCORRETA
                     )
                       return 'incorrect';
                     return undefined;

@@ -42,7 +42,7 @@ export const General: Story = () => {
       questions: [
         {
           id: 'q1-image',
-          questionText: 'Qual é a capital do Brasil?',
+          statement: 'Qual é a capital do Brasil?',
           questionType: QUESTION_TYPE.IMAGEM,
           difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           description: 'Questão de alternativa simples',
@@ -61,17 +61,32 @@ export const General: Story = () => {
           correctOptionIds: ['opt3'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'geografia',
-              subjectId: 'geografia-geral',
-              topicId: 'capitais',
-              subtopicId: 'brasil',
-              contentId: 'geografia',
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
             },
           ],
         },
         {
           id: 'q1-alternativa',
-          questionText: 'Qual é a capital do Brasil?',
+          statement: 'Qual é a capital do Brasil?',
           questionType: QUESTION_TYPE.ALTERNATIVA,
           difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           description: 'Questão de alternativa simples',
@@ -90,17 +105,32 @@ export const General: Story = () => {
           correctOptionIds: ['opt3'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'geografia',
-              subjectId: 'geografia-geral',
-              topicId: 'capitais',
-              subtopicId: 'brasil',
-              contentId: 'geografia',
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
             },
           ],
         },
         {
           id: 'q2-multipla-escolha',
-          questionText:
+          statement:
             'Quais são os planetas do sistema solar que possuem anéis? (Selecione todas as opções corretas)',
           questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
@@ -122,17 +152,32 @@ export const General: Story = () => {
           correctOptionIds: ['opt1', 'opt2', 'opt3', 'opt4'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'ciencias',
-              subjectId: 'astronomia',
-              topicId: 'sistema-solar',
-              subtopicId: 'planetas',
-              contentId: 'ciencias',
+              areaKnowledge: {
+                id: 'ciencias',
+                name: 'Ciências',
+              },
+              subject: {
+                id: 'astronomia',
+                name: 'Astronomia',
+              },
+              topic: {
+                id: 'sistema-solar',
+                name: 'Sistema Solar',
+              },
+              subtopic: {
+                id: 'planetas',
+                name: 'Planetas',
+              },
+              content: {
+                id: 'ciencias',
+                name: 'Ciências',
+              },
             },
           ],
         },
         {
           id: 'q3-dissertativa',
-          questionText:
+          statement:
             'Elabore uma redação dissertativa-argumentativa sobre o tema "A importância da preservação ambiental para o futuro das próximas gerações". Sua redação deve ter entre 20 e 25 linhas, apresentar argumentos bem fundamentados, respeitar a estrutura dissertativa e demonstrar domínio da norma culta da língua escrita.',
           questionType: QUESTION_TYPE.DISSERTATIVA,
           difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
@@ -146,17 +191,32 @@ export const General: Story = () => {
           options: [],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'linguagens',
-              subjectId: 'portugues',
-              topicId: 'redacao',
-              subtopicId: 'dissertativa',
-              contentId: 'linguagens',
+              areaKnowledge: {
+                id: 'linguagens',
+                name: 'Linguagens',
+              },
+              subject: {
+                id: 'portugues',
+                name: 'Português',
+              },
+              topic: {
+                id: 'redacao',
+                name: 'Redação',
+              },
+              subtopic: {
+                id: 'dissertativa',
+                name: 'Dissertativa',
+              },
+              content: {
+                id: 'linguagens',
+                name: 'Linguagens',
+              },
             },
           ],
         },
         {
           id: 'q4-verdadeiro-falso',
-          questionText:
+          statement:
             'A Terra é o terceiro planeta do sistema solar em ordem de distância do Sol.',
           questionType: QUESTION_TYPE.VERDADEIRO_FALSO,
           difficultyLevel: QUESTION_DIFFICULTY.FACIL,
@@ -174,17 +234,32 @@ export const General: Story = () => {
           correctOptionIds: ['opt1'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'ciencias',
-              subjectId: 'astronomia',
-              topicId: 'sistema-solar',
-              subtopicId: 'planetas',
-              contentId: 'ciencias',
+              areaKnowledge: {
+                id: 'ciencias',
+                name: 'Ciências',
+              },
+              subject: {
+                id: 'astronomia',
+                name: 'Astronomia',
+              },
+              topic: {
+                id: 'sistema-solar',
+                name: 'Sistema Solar',
+              },
+              subtopic: {
+                id: 'planetas',
+                name: 'Planetas',
+              },
+              content: {
+                id: 'ciencias',
+                name: 'Ciências',
+              },
             },
           ],
         },
         {
           id: 'q5-ligar-pontos',
-          questionText: 'Ligue os conceitos às suas definições corretas.',
+          statement: 'Ligue os conceitos às suas definições corretas.',
           questionType: QUESTION_TYPE.LIGAR_PONTOS,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão de ligar pontos',
@@ -209,17 +284,32 @@ export const General: Story = () => {
           correctOptionIds: ['opt1', 'opt2', 'opt3', 'opt4'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'fisica',
-              subjectId: 'mecanica',
-              topicId: 'movimento',
-              subtopicId: 'cinematica',
-              contentId: 'fisica',
+              areaKnowledge: {
+                id: 'fisica',
+                name: 'Física',
+              },
+              subject: {
+                id: 'mecanica',
+                name: 'Mecânica',
+              },
+              topic: {
+                id: 'movimento',
+                name: 'Movimento',
+              },
+              subtopic: {
+                id: 'cinematica',
+                name: 'Cinemática',
+              },
+              content: {
+                id: 'fisica',
+                name: 'Física',
+              },
             },
           ],
         },
         {
           id: 'q6-preencher',
-          questionText:
+          statement:
             'Complete a frase: "A fórmula da velocidade média é v = ___ / ___", onde v é velocidade, ___ é distância e ___ é tempo.',
           questionType: QUESTION_TYPE.PREENCHER,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
@@ -232,11 +322,26 @@ export const General: Story = () => {
           options: [],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'fisica',
-              subjectId: 'mecanica',
-              topicId: 'movimento',
-              subtopicId: 'cinematica',
-              contentId: 'fisica',
+              areaKnowledge: {
+                id: 'fisica',
+                name: 'Física',
+              },
+              subject: {
+                id: 'mecanica',
+                name: 'Mecânica',
+              },
+              topic: {
+                id: 'movimento',
+                name: 'Movimento',
+              },
+              subtopic: {
+                id: 'cinematica',
+                name: 'Cinemática',
+              },
+              content: {
+                id: 'fisica',
+                name: 'Física',
+              },
             },
           ],
         },
@@ -312,7 +417,7 @@ export const GeneralForResults: Story = () => {
         // IMAGE - Correct
         {
           id: 'q1-image',
-          questionText: 'Qual é a capital do Brasil?',
+          statement: 'Qual é a capital do Brasil?',
           questionType: QUESTION_TYPE.IMAGEM,
           difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           description: 'Questão de alternativa simples',
@@ -331,18 +436,33 @@ export const GeneralForResults: Story = () => {
           correctOptionIds: ['opt3'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'geografia',
-              subjectId: 'geografia-geral',
-              topicId: 'capitais',
-              subtopicId: 'brasil',
-              contentId: 'geografia',
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
             },
           ],
         },
         // // IMAGE - Incorrect
         {
           id: 'q1-image-incorreta',
-          questionText: 'Qual é a capital do Brasil?',
+          statement: 'Qual é a capital do Brasil?',
           questionType: QUESTION_TYPE.IMAGEM,
           difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           description: 'Questão de alternativa simples',
@@ -361,18 +481,33 @@ export const GeneralForResults: Story = () => {
           correctOptionIds: ['opt3'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'geografia',
-              subjectId: 'geografia-geral',
-              topicId: 'capitais',
-              subtopicId: 'brasil',
-              contentId: 'geografia',
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
             },
           ],
         },
         // ALTERNATIVE - Correct
         {
           id: 'q1-alt-correta',
-          questionText: 'Qual é a capital do Brasil?',
+          statement: 'Qual é a capital do Brasil?',
           questionType: QUESTION_TYPE.ALTERNATIVA,
           difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           description: 'Questão de alternativa - resposta correta',
@@ -391,18 +526,33 @@ export const GeneralForResults: Story = () => {
           correctOptionIds: ['alt-opt3'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'geografia',
-              subjectId: 'geografia-geral',
-              topicId: 'capitais',
-              subtopicId: 'brasil',
-              contentId: 'geografia',
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
             },
           ],
         },
         // // ALTERNATIVE - Incorrect
         {
           id: 'q2-alt-incorreta',
-          questionText: 'Qual é o maior planeta do sistema solar?',
+          statement: 'Qual é o maior planeta do sistema solar?',
           questionType: QUESTION_TYPE.ALTERNATIVA,
           difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           description: 'Questão de alternativa - resposta incorreta',
@@ -421,18 +571,33 @@ export const GeneralForResults: Story = () => {
           correctOptionIds: ['alt-opt1'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'ciencias',
-              subjectId: 'astronomia',
-              topicId: 'sistema-solar',
-              subtopicId: 'planetas',
-              contentId: 'ciencias',
+              areaKnowledge: {
+                id: 'ciencias',
+                name: 'Ciências',
+              },
+              subject: {
+                id: 'astronomia',
+                name: 'Astronomia',
+              },
+              topic: {
+                id: 'sistema-solar',
+                name: 'Sistema Solar',
+              },
+              subtopic: {
+                id: 'planetas',
+                name: 'Planetas',
+              },
+              content: {
+                id: 'ciencias',
+                name: 'Ciências',
+              },
             },
           ],
         },
         // MULTIPLE CHOICE - Correct
         {
           id: 'q3-multi-correta',
-          questionText:
+          statement:
             'Quais são os planetas do sistema solar que possuem anéis? (Selecione todas as opções corretas)',
           questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
@@ -459,18 +624,33 @@ export const GeneralForResults: Story = () => {
           ],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'ciencias',
-              subjectId: 'astronomia',
-              topicId: 'sistema-solar',
-              subtopicId: 'planetas',
-              contentId: 'ciencias',
+              areaKnowledge: {
+                id: 'ciencias',
+                name: 'Ciências',
+              },
+              subject: {
+                id: 'astronomia',
+                name: 'Astronomia',
+              },
+              topic: {
+                id: 'sistema-solar',
+                name: 'Sistema Solar',
+              },
+              subtopic: {
+                id: 'planetas',
+                name: 'Planetas',
+              },
+              content: {
+                id: 'ciencias',
+                name: 'Ciências',
+              },
             },
           ],
         },
         // // MULTIPLE CHOICE - Incorrect
         {
           id: 'q4-multi-incorreta',
-          questionText:
+          statement:
             'Quais das seguintes grandezas são vetoriais? (Selecione todas as opções corretas)',
           questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
@@ -490,18 +670,33 @@ export const GeneralForResults: Story = () => {
           correctOptionIds: ['multi-opt1', 'multi-opt2', 'multi-opt3'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'fisica',
-              subjectId: 'mecanica',
-              topicId: 'grandezas',
-              subtopicId: 'vetores',
-              contentId: 'cinematica',
+              areaKnowledge: {
+                id: 'fisica',
+                name: 'Física',
+              },
+              subject: {
+                id: 'mecanica',
+                name: 'Mecânica',
+              },
+              topic: {
+                id: 'grandezas',
+                name: 'Grandezas',
+              },
+              subtopic: {
+                id: 'vetores',
+                name: 'Vetores',
+              },
+              content: {
+                id: 'cinematica',
+                name: 'Cinemática',
+              },
             },
           ],
         },
         // DISSERTATIVE - Correct
         {
           id: 'q5-diss-correta',
-          questionText:
+          statement:
             'Elabore uma redação dissertativa-argumentativa sobre o tema "A importância da preservação ambiental para o futuro das próximas gerações". Sua redação deve ter entre 20 e 25 linhas, apresentar argumentos bem fundamentados, respeitar a estrutura dissertativa e demonstrar domínio da norma culta da língua escrita.',
           questionType: QUESTION_TYPE.DISSERTATIVA,
           difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
@@ -515,18 +710,33 @@ export const GeneralForResults: Story = () => {
           options: [],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'linguagens',
-              subjectId: 'portugues',
-              topicId: 'redacao',
-              subtopicId: 'dissertativa',
-              contentId: 'linguagens',
+              areaKnowledge: {
+                id: 'linguagens',
+                name: 'Linguagens',
+              },
+              subject: {
+                id: 'portugues',
+                name: 'Português',
+              },
+              topic: {
+                id: 'redacao',
+                name: 'Redação',
+              },
+              subtopic: {
+                id: 'dissertativa',
+                name: 'Dissertativa',
+              },
+              content: {
+                id: 'linguagens',
+                name: 'Linguagens',
+              },
             },
           ],
         },
         // DISSERTATIVE - Incorrect
         {
           id: 'q6-diss-incorreta',
-          questionText:
+          statement:
             'Descreva as leis de Newton e suas aplicações na mecânica clássica.',
           questionType: QUESTION_TYPE.DISSERTATIVA,
           difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
@@ -540,18 +750,33 @@ export const GeneralForResults: Story = () => {
           options: [],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'fisica',
-              subjectId: 'mecanica',
-              topicId: 'dinamica',
-              subtopicId: 'leis-newton',
-              contentId: 'dinamica',
+              areaKnowledge: {
+                id: 'fisica',
+                name: 'Física',
+              },
+              subject: {
+                id: 'mecanica',
+                name: 'Mecânica',
+              },
+              topic: {
+                id: 'dinamica',
+                name: 'Dinâmica',
+              },
+              subtopic: {
+                id: 'leis-newton',
+                name: 'Leis de Newton',
+              },
+              content: {
+                id: 'dinamica',
+                name: 'Dinâmica',
+              },
             },
           ],
         },
         // True or False - Correct
         {
           id: 'q7-vf-correta',
-          questionText:
+          statement:
             'A Terra é o terceiro planeta do sistema solar em ordem de distância do Sol.',
           questionType: QUESTION_TYPE.VERDADEIRO_FALSO,
           difficultyLevel: QUESTION_DIFFICULTY.FACIL,
@@ -569,18 +794,33 @@ export const GeneralForResults: Story = () => {
           correctOptionIds: ['opt1'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'ciencias',
-              subjectId: 'astronomia',
-              topicId: 'sistema-solar',
-              subtopicId: 'planetas',
-              contentId: 'ciencias',
+              areaKnowledge: {
+                id: 'ciencias',
+                name: 'Ciências',
+              },
+              subject: {
+                id: 'astronomia',
+                name: 'Astronomia',
+              },
+              topic: {
+                id: 'sistema-solar',
+                name: 'Sistema Solar',
+              },
+              subtopic: {
+                id: 'planetas',
+                name: 'Planetas',
+              },
+              content: {
+                id: 'ciencias',
+                name: 'Ciências',
+              },
             },
           ],
         },
         // True or False - Incorrect
         {
           id: 'q8-vf-incorreta',
-          questionText: 'O Sol é uma estrela anã branca.',
+          statement: 'O Sol é uma estrela anã branca.',
           questionType: QUESTION_TYPE.VERDADEIRO_FALSO,
           difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           description: 'Questão de verdadeiro ou falso - resposta incorreta',
@@ -597,11 +837,26 @@ export const GeneralForResults: Story = () => {
           correctOptionIds: ['opt2'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'ciencias',
-              subjectId: 'astronomia',
-              topicId: 'sistema-solar',
-              subtopicId: 'sol',
-              contentId: 'ciencias',
+              areaKnowledge: {
+                id: 'ciencias',
+                name: 'Ciências',
+              },
+              subject: {
+                id: 'astronomia',
+                name: 'Astronomia',
+              },
+              topic: {
+                id: 'sistema-solar',
+                name: 'Sistema Solar',
+              },
+              subtopic: {
+                id: 'sol',
+                name: 'Sol',
+              },
+              content: {
+                id: 'ciencias',
+                name: 'Ciências',
+              },
             },
           ],
         },
@@ -906,7 +1161,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
       questions: [
         {
           id: 'q1',
-          questionText: 'Questão de Física 1 - Alternativa',
+          statement: 'Questão de Física 1 - Alternativa',
           questionType: QUESTION_TYPE.ALTERNATIVA,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão sobre física - tipo alternativa',
@@ -925,17 +1180,32 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           correctOptionIds: ['opt1'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'fisica',
-              subjectId: 'fisica',
-              topicId: 'mecanica',
-              subtopicId: 'movimento',
-              contentId: 'cinematica',
+              areaKnowledge: {
+                id: 'fisica',
+                name: 'Física',
+              },
+              subject: {
+                id: 'fisica',
+                name: 'Física',
+              },
+              topic: {
+                id: 'mecanica',
+                name: 'Mecânica',
+              },
+              subtopic: {
+                id: 'movimento',
+                name: 'Movimento',
+              },
+              content: {
+                id: 'cinematica',
+                name: 'Cinemática',
+              },
             },
           ],
         },
         {
           id: 'q2',
-          questionText: 'Questão de Matemática 1 - Múltipla Escolha',
+          statement: 'Questão de Matemática 1 - Múltipla Escolha',
           questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão sobre matemática - tipo múltipla escolha',
@@ -954,17 +1224,32 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           correctOptionIds: ['opt1', 'opt2'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'matematica',
-              subjectId: 'matematica',
-              topicId: 'algebra',
-              subtopicId: 'equacoes',
-              contentId: 'algebra',
+              areaKnowledge: {
+                id: 'matematica',
+                name: 'Matemática',
+              },
+              subject: {
+                id: 'matematica',
+                name: 'Matemática',
+              },
+              topic: {
+                id: 'algebra',
+                name: 'Álgebra',
+              },
+              subtopic: {
+                id: 'equacoes',
+                name: 'Equações',
+              },
+              content: {
+                id: 'algebra',
+                name: 'Álgebra',
+              },
             },
           ],
         },
         {
           id: 'q3',
-          questionText: 'Questão de Química 1 - Dissertativa',
+          statement: 'Questão de Química 1 - Dissertativa',
           questionType: QUESTION_TYPE.DISSERTATIVA,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão sobre química - tipo dissertativa',
@@ -977,17 +1262,32 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           options: [],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'quimica',
-              subjectId: 'quimica',
-              topicId: 'quimica-geral',
-              subtopicId: 'formulas',
-              contentId: 'quimica',
+              areaKnowledge: {
+                id: 'quimica',
+                name: 'Química',
+              },
+              subject: {
+                id: 'quimica',
+                name: 'Química',
+              },
+              topic: {
+                id: 'quimica-geral',
+                name: 'Química Geral',
+              },
+              subtopic: {
+                id: 'formulas',
+                name: 'Fórmulas',
+              },
+              content: {
+                id: 'quimica',
+                name: 'Química',
+              },
             },
           ],
         },
         {
           id: 'q4',
-          questionText: 'Questão de Biologia 1 - Alternativa',
+          statement: 'Questão de Biologia 1 - Alternativa',
           questionType: QUESTION_TYPE.ALTERNATIVA,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão sobre biologia - tipo alternativa',
@@ -1006,17 +1306,32 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           correctOptionIds: ['opt3'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'biologia',
-              subjectId: 'biologia',
-              topicId: 'biologia-geral',
-              subtopicId: 'celulas',
-              contentId: 'biologia',
+              areaKnowledge: {
+                id: 'biologia',
+                name: 'Biologia',
+              },
+              subject: {
+                id: 'biologia',
+                name: 'Biologia',
+              },
+              topic: {
+                id: 'biologia-geral',
+                name: 'Biologia Geral',
+              },
+              subtopic: {
+                id: 'celulas',
+                name: 'Células',
+              },
+              content: {
+                id: 'biologia',
+                name: 'Biologia',
+              },
             },
           ],
         },
         {
           id: 'q5',
-          questionText: 'Questão de História 1 - Alternativa',
+          statement: 'Questão de História 1 - Alternativa',
           questionType: QUESTION_TYPE.ALTERNATIVA,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão sobre história - tipo alternativa',
@@ -1035,11 +1350,26 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           correctOptionIds: ['opt2'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'humanas',
-              subjectId: 'historia',
-              topicId: 'historia-geral',
-              subtopicId: 'brasil-colonia',
-              contentId: 'historia',
+              areaKnowledge: {
+                id: 'humanas',
+                name: 'Humanas',
+              },
+              subject: {
+                id: 'historia',
+                name: 'História',
+              },
+              topic: {
+                id: 'historia-geral',
+                name: 'História Geral',
+              },
+              subtopic: {
+                id: 'brasil-colonia',
+                name: 'Brasil Colônia',
+              },
+              content: {
+                id: 'historia',
+                name: 'História',
+              },
             },
           ],
         },

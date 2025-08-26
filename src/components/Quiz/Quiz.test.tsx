@@ -602,7 +602,7 @@ jest.mock('@/assets/img/mock-image-question.png', () => 'mocked-image-2.png');
 // Mock data
 const mockQuestion1 = {
   id: 'q1',
-  questionText: 'What is 2 + 2?',
+  statement: 'What is 2 + 2?',
   description: 'Basic math question',
   questionType: QUESTION_TYPE.ALTERNATIVA,
   answerStatus: QUESTION_STATUS.NAO_RESPONDIDO,
@@ -613,11 +613,26 @@ const mockQuestion1 = {
   solutionExplanation: null,
   knowledgeMatrix: [
     {
-      areaKnowledgeId: 'matematica',
-      subjectId: 'algebra',
-      topicId: 'operacoes',
-      subtopicId: 'soma',
-      contentId: 'matematica',
+      areaKnowledge: {
+        id: 'matematica',
+        name: 'Matemática',
+      },
+      subject: {
+        id: 'algebra',
+        name: 'Álgebra',
+      },
+      topic: {
+        id: 'operacoes',
+        name: 'Operações',
+      },
+      subtopic: {
+        id: 'soma',
+        name: 'Soma',
+      },
+      content: {
+        id: 'matematica',
+        name: 'Matemática',
+      },
     },
   ],
   options: [
@@ -631,7 +646,7 @@ const mockQuestion1 = {
 
 const mockQuestionMultipleChoice = {
   id: 'q3',
-  questionText: 'Select all correct answers about planets',
+  statement: 'Select all correct answers about planets',
   description: 'Multiple choice question',
   questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
   answerStatus: QUESTION_STATUS.NAO_RESPONDIDO,
@@ -642,11 +657,26 @@ const mockQuestionMultipleChoice = {
   solutionExplanation: null,
   knowledgeMatrix: [
     {
-      areaKnowledgeId: 'ciencias',
-      subjectId: 'astronomia',
-      topicId: 'sistema-solar',
-      subtopicId: 'planetas',
-      contentId: 'ciencias',
+      areaKnowledge: {
+        id: 'ciencias',
+        name: 'Ciências',
+      },
+      subject: {
+        id: 'astronomia',
+        name: 'Astronomia',
+      },
+      topic: {
+        id: 'sistema-solar',
+        name: 'Sistema Solar',
+      },
+      subtopic: {
+        id: 'planetas',
+        name: 'Planetas',
+      },
+      content: {
+        id: 'ciencias',
+        name: 'Ciências',
+      },
     },
   ],
   options: [
@@ -660,7 +690,7 @@ const mockQuestionMultipleChoice = {
 
 const mockQuestionDissertativa = {
   id: 'q4',
-  questionText: 'Explain the process of photosynthesis',
+  statement: 'Explain the process of photosynthesis',
   description: 'Essay question',
   questionType: QUESTION_TYPE.DISSERTATIVA,
   answerStatus: QUESTION_STATUS.NAO_RESPONDIDO,
@@ -671,11 +701,26 @@ const mockQuestionDissertativa = {
   solutionExplanation: null,
   knowledgeMatrix: [
     {
-      areaKnowledgeId: 'ciencias',
-      subjectId: 'biologia',
-      topicId: 'fotossintese',
-      subtopicId: 'processo',
-      contentId: 'ciencias',
+      areaKnowledge: {
+        id: 'ciencias',
+        name: 'Ciências',
+      },
+      subject: {
+        id: 'biologia',
+        name: 'Biologia',
+      },
+      topic: {
+        id: 'fotossintese',
+        name: 'Fotossíntese',
+      },
+      subtopic: {
+        id: 'processo',
+        name: 'Processo',
+      },
+      content: {
+        id: 'ciencias',
+        name: 'Ciências',
+      },
     },
   ],
   options: [],
@@ -683,7 +728,7 @@ const mockQuestionDissertativa = {
 
 const mockQuestion2 = {
   id: 'q2',
-  questionText: 'What is the capital of France?',
+  statement: 'What is the capital of France?',
   description: 'Geography question',
   questionType: QUESTION_TYPE.ALTERNATIVA,
   answerStatus: QUESTION_STATUS.NAO_RESPONDIDO,
@@ -694,11 +739,26 @@ const mockQuestion2 = {
   solutionExplanation: null,
   knowledgeMatrix: [
     {
-      areaKnowledgeId: 'geografia',
-      subjectId: 'geografia-geral',
-      topicId: 'capitais',
-      subtopicId: 'europa',
-      contentId: 'geografia',
+      areaKnowledge: {
+        id: 'geografia',
+        name: 'Geografia',
+      },
+      subject: {
+        id: 'geografia-geral',
+        name: 'Geografia Geral',
+      },
+      topic: {
+        id: 'capitais',
+        name: 'Capitais',
+      },
+      subtopic: {
+        id: 'europa',
+        name: 'Europa',
+      },
+      content: {
+        id: 'geografia',
+        name: 'Geografia',
+      },
     },
   ],
   options: [
@@ -843,7 +903,7 @@ describe('Quiz Component', () => {
 
       expect(screen.getByTestId('header-alternative')).toBeInTheDocument();
       expect(screen.getByText('Questão 1')).toBeInTheDocument();
-      expect(screen.getByText('operacoes')).toBeInTheDocument();
+      expect(screen.getByText('Operações')).toBeInTheDocument();
       expect(screen.getByText('What is 2 + 2?')).toBeInTheDocument();
     });
 
@@ -864,7 +924,7 @@ describe('Quiz Component', () => {
       it('should render teacher observation section only when answer is incorrect and variant is result', () => {
         const mockQuestion = {
           id: '1',
-          questionText: 'Test Question',
+          statement: 'Test Question',
           description: 'Test Statement',
           questionType: QUESTION_TYPE.DISSERTATIVA,
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
@@ -875,11 +935,26 @@ describe('Quiz Component', () => {
           solutionExplanation: null,
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'ciencias',
-              subjectId: 'biologia',
-              topicId: 'fotossintese',
-              subtopicId: 'processo',
-              contentId: 'ciencias',
+              areaKnowledge: {
+                id: 'ciencias',
+                name: 'Ciências',
+              },
+              subject: {
+                id: 'biologia',
+                name: 'Biologia',
+              },
+              topic: {
+                id: 'fotossíntese',
+                name: 'Fotossíntese',
+              },
+              subtopic: {
+                id: 'processo',
+                name: 'Processo',
+              },
+              content: {
+                id: 'ciencias',
+                name: 'Ciências',
+              },
             },
           ],
           options: [],
@@ -2721,7 +2796,7 @@ describe('Quiz Component', () => {
   describe('QuizMultipleChoice', () => {
     const mockQuestion = {
       id: 'q1',
-      questionText: 'Qual das seguintes opções são corretas?',
+      statement: 'Qual das seguintes opções são corretas?',
       description: 'Selecione todas as opções corretas',
       type: QUESTION_TYPE.MULTIPLA_CHOICE,
       status: QUESTION_STATUS.RESPOSTA_CORRETA,
@@ -2732,11 +2807,26 @@ describe('Quiz Component', () => {
       institutionIds: ['inst1'],
       knowledgeMatrix: [
         {
-          areaKnowledgeId: 'area1',
-          subjectId: 'subject1',
-          topicId: 'topic1',
-          subtopicId: 'subtopic1',
-          contentId: 'content1',
+          areaKnowledge: {
+            id: 'area1',
+            name: 'Area 1',
+          },
+          subject: {
+            id: 'subject1',
+            name: 'Subject 1',
+          },
+          topic: {
+            id: 'topic1',
+            name: 'Topic 1',
+          },
+          subtopic: {
+            id: 'subtopic1',
+            name: 'Subtopic 1',
+          },
+          content: {
+            id: 'content1',
+            name: 'Content 1',
+          },
         },
       ],
       options: [
@@ -3343,7 +3433,7 @@ describe('Quiz Component', () => {
 describe('QuizDissertative', () => {
   const mockDissertativeQuestion = {
     id: 'q1',
-    questionText: 'Explique o conceito de fotossíntese.',
+    statement: 'Explique o conceito de fotossíntese.',
     description: 'Descreva o processo de fotossíntese em detalhes',
     type: QUESTION_TYPE.DISSERTATIVA,
     status: QUESTION_STATUS.RESPOSTA_CORRETA,
@@ -3354,11 +3444,26 @@ describe('QuizDissertative', () => {
     institutionIds: ['inst1'],
     knowledgeMatrix: [
       {
-        areaKnowledgeId: 'area1',
-        subjectId: 'subject1',
-        topicId: 'topic1',
-        subtopicId: 'subtopic1',
-        contentId: 'content1',
+        areaKnowledge: {
+          id: 'area1',
+          name: 'Area 1',
+        },
+        subject: {
+          id: 'subject1',
+          name: 'Subject 1',
+        },
+        topic: {
+          id: 'topic1',
+          name: 'Topic 1',
+        },
+        subtopic: {
+          id: 'subtopic1',
+          name: 'Subtopic 1',
+        },
+        content: {
+          id: 'content1',
+          name: 'Content 1',
+        },
       },
     ],
     options: [],
@@ -3634,7 +3739,7 @@ describe('Quiz Result Components', () => {
     questions: [
       {
         id: 'q1',
-        questionText: 'Questão de Física 1',
+        statement: 'Questão de Física 1',
         correctOptionId: 'opt1',
         description: 'Questão sobre física',
         type: 'ALTERNATIVA' as const,
@@ -3647,11 +3752,26 @@ describe('Quiz Result Components', () => {
         updatedAt: '2024-01-01',
         knowledgeMatrix: [
           {
-            areaKnowledgeId: 'fisica',
-            subjectId: 'fisica',
-            topicId: 'mecanica',
-            subtopicId: 'movimento',
-            contentId: 'cinematica',
+            areaKnowledge: {
+              id: 'fisica',
+              name: 'Física',
+            },
+            subject: {
+              id: 'fisica',
+              name: 'Física',
+            },
+            topic: {
+              id: 'mecanica',
+              name: 'Mecânica',
+            },
+            subtopic: {
+              id: 'movimento',
+              name: 'Movimento',
+            },
+            content: {
+              id: 'cinematica',
+              name: 'Cinemática',
+            },
           },
         ],
         options: [
@@ -3664,7 +3784,7 @@ describe('Quiz Result Components', () => {
       },
       {
         id: 'q2',
-        questionText: 'Questão de Matemática 1',
+        statement: 'Questão de Matemática 1',
         correctOptionId: 'opt1',
         description: 'Questão sobre matemática',
         type: 'ALTERNATIVA' as const,
@@ -3677,11 +3797,26 @@ describe('Quiz Result Components', () => {
         updatedAt: '2024-01-01',
         knowledgeMatrix: [
           {
-            areaKnowledgeId: 'matematica',
-            subjectId: 'matematica',
-            topicId: 'algebra',
-            subtopicId: 'equacoes',
-            contentId: 'algebra',
+            areaKnowledge: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
+            subject: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
+            topic: {
+              id: 'algebra',
+              name: 'Álgebra',
+            },
+            subtopic: {
+              id: 'equacoes',
+              name: 'Equações',
+            },
+            content: {
+              id: 'algebra',
+              name: 'Álgebra',
+            },
           },
         ],
         options: [
@@ -3941,7 +4076,7 @@ describe('Quiz Result Components', () => {
       };
       const mockDifficultQuestion = {
         id: 'q3',
-        questionText: 'Difficult question',
+        statement: 'Difficult question',
         description: 'Difficult question',
         type: 'ALTERNATIVA' as const,
         status: 'APROVADO' as const,
@@ -3952,11 +4087,26 @@ describe('Quiz Result Components', () => {
         institutionIds: ['inst1', 'inst2'],
         knowledgeMatrix: [
           {
-            areaKnowledgeId: 'matematica',
-            subjectId: 'algebra',
-            topicId: 'operacoes',
-            subtopicId: 'soma',
-            contentId: 'matematica',
+            areaKnowledge: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
+            subject: {
+              id: 'algebra',
+              name: 'Álgebra',
+            },
+            topic: {
+              id: 'operacoes',
+              name: 'Operações',
+            },
+            subtopic: {
+              id: 'soma',
+              name: 'Soma',
+            },
+            content: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
           },
         ],
         options: [
@@ -4139,7 +4289,7 @@ describe('Quiz Result Components', () => {
       };
       const mockDifficultQuestion2 = {
         id: 'q3',
-        questionText: 'Another difficult question',
+        statement: 'Another difficult question',
         description: 'Another difficult question',
         type: 'ALTERNATIVA' as const,
         status: 'APROVADO' as const,
@@ -4151,11 +4301,26 @@ describe('Quiz Result Components', () => {
         updatedAt: '2024-01-01',
         knowledgeMatrix: [
           {
-            areaKnowledgeId: 'matematica',
-            subjectId: 'algebra',
-            topicId: 'operacoes',
-            subtopicId: 'soma',
-            contentId: 'matematica',
+            areaKnowledge: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
+            subject: {
+              id: 'algebra',
+              name: 'Álgebra',
+            },
+            topic: {
+              id: 'operacoes',
+              name: 'Operações',
+            },
+            subtopic: {
+              id: 'soma',
+              name: 'Soma',
+            },
+            content: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
           },
         ],
         options: [
@@ -4339,7 +4504,7 @@ describe('Quiz Result Components', () => {
       };
       const mockDifficultQuestion = {
         id: 'q3',
-        questionText: 'Difficult question',
+        statement: 'Difficult question',
         description: 'Difficult question',
         type: 'ALTERNATIVA' as const,
         status: 'APROVADO' as const,
@@ -4350,11 +4515,26 @@ describe('Quiz Result Components', () => {
         institutionIds: ['inst1', 'inst2'],
         knowledgeMatrix: [
           {
-            areaKnowledgeId: 'matematica',
-            subjectId: 'algebra',
-            topicId: 'operacoes',
-            subtopicId: 'soma',
-            contentId: 'matematica',
+            areaKnowledge: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
+            subject: {
+              id: 'algebra',
+              name: 'Álgebra',
+            },
+            topic: {
+              id: 'operacoes',
+              name: 'Operações',
+            },
+            subtopic: {
+              id: 'soma',
+              name: 'Soma',
+            },
+            content: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
           },
         ],
         options: [
@@ -4666,7 +4846,7 @@ describe('Quiz Result Components', () => {
       };
       const mockEasyQuestion2 = {
         id: 'q3',
-        questionText: 'Another easy question',
+        statement: 'Another easy question',
         description: 'Another easy question',
         type: 'ALTERNATIVA' as const,
         status: 'APROVADO' as const,
@@ -4678,11 +4858,26 @@ describe('Quiz Result Components', () => {
         updatedAt: '2024-01-01',
         knowledgeMatrix: [
           {
-            areaKnowledgeId: 'matematica',
-            subjectId: 'algebra',
-            topicId: 'operacoes',
-            subtopicId: 'soma',
-            contentId: 'matematica',
+            areaKnowledge: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
+            subject: {
+              id: 'algebra',
+              name: 'Álgebra',
+            },
+            topic: {
+              id: 'operacoes',
+              name: 'Operações',
+            },
+            subtopic: {
+              id: 'soma',
+              name: 'Soma',
+            },
+            content: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
           },
         ],
         options: [
@@ -4700,7 +4895,7 @@ describe('Quiz Result Components', () => {
       };
       const mockDifficultQuestion2 = {
         id: 'q4',
-        questionText: 'Another difficult question',
+        statement: 'Another difficult question',
         description: 'Another difficult question',
         type: 'ALTERNATIVA' as const,
         status: 'APROVADO' as const,
@@ -4712,11 +4907,26 @@ describe('Quiz Result Components', () => {
         updatedAt: '2024-01-01',
         knowledgeMatrix: [
           {
-            areaKnowledgeId: 'matematica',
-            subjectId: 'algebra',
-            topicId: 'operacoes',
-            subtopicId: 'soma',
-            contentId: 'matematica',
+            areaKnowledge: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
+            subject: {
+              id: 'algebra',
+              name: 'Álgebra',
+            },
+            topic: {
+              id: 'operacoes',
+              name: 'Operações',
+            },
+            subtopic: {
+              id: 'soma',
+              name: 'Soma',
+            },
+            content: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
           },
         ],
         options: [
@@ -4954,7 +5164,7 @@ describe('Quiz Result Components', () => {
       };
       const mockMediumQuestion2 = {
         id: 'q3',
-        questionText: 'Another medium question',
+        statement: 'Another medium question',
         description: 'Another medium question',
         type: 'ALTERNATIVA' as const,
         status: 'APROVADO' as const,
@@ -4965,11 +5175,26 @@ describe('Quiz Result Components', () => {
         institutionIds: ['inst1', 'inst2'],
         knowledgeMatrix: [
           {
-            areaKnowledgeId: 'matematica',
-            subjectId: 'algebra',
-            topicId: 'operacoes',
-            subtopicId: 'soma',
-            contentId: 'matematica',
+            areaKnowledge: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
+            subject: {
+              id: 'algebra',
+              name: 'Álgebra',
+            },
+            topic: {
+              id: 'operacoes',
+              name: 'Operações',
+            },
+            subtopic: {
+              id: 'soma',
+              name: 'Soma',
+            },
+            content: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
           },
         ],
         options: [
@@ -4981,7 +5206,7 @@ describe('Quiz Result Components', () => {
       };
       const mockDifficultQuestion = {
         id: 'q4',
-        questionText: 'Difficult question',
+        statement: 'Difficult question',
         description: 'Difficult question',
         type: 'ALTERNATIVA' as const,
         status: 'APROVADO' as const,
@@ -4993,11 +5218,26 @@ describe('Quiz Result Components', () => {
         updatedAt: '2024-01-01',
         knowledgeMatrix: [
           {
-            areaKnowledgeId: 'matematica',
-            subjectId: 'algebra',
-            topicId: 'operacoes',
-            subtopicId: 'soma',
-            contentId: 'matematica',
+            areaKnowledge: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
+            subject: {
+              id: 'algebra',
+              name: 'Álgebra',
+            },
+            topic: {
+              id: 'operacoes',
+              name: 'Operações',
+            },
+            subtopic: {
+              id: 'soma',
+              name: 'Soma',
+            },
+            content: {
+              id: 'matematica',
+              name: 'Matemática',
+            },
           },
         ],
         options: [
@@ -5186,7 +5426,7 @@ describe('Quiz Result Components', () => {
       fisica: [
         {
           id: 'q1',
-          questionText: 'Questão de Física 1',
+          statement: 'Questão de Física 1',
           description: 'Questão sobre física',
           type: 'ALTERNATIVA' as const,
           status: 'APROVADO' as const,
@@ -5197,11 +5437,26 @@ describe('Quiz Result Components', () => {
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'fisica',
-              subjectId: 'fisica',
-              topicId: 'mecanica',
-              subtopicId: 'movimento',
-              contentId: 'cinematica',
+              areaKnowledge: {
+                id: 'fisica',
+                name: 'Física',
+              },
+              subject: {
+                id: 'fisica',
+                name: 'Física',
+              },
+              topic: {
+                id: 'mecanica',
+                name: 'Mecânica',
+              },
+              subtopic: {
+                id: 'movimento',
+                name: 'Movimento',
+              },
+              content: {
+                id: 'cinematica',
+                name: 'Cinemática',
+              },
             },
           ],
           options: [
@@ -5213,7 +5468,7 @@ describe('Quiz Result Components', () => {
         },
         {
           id: 'q2',
-          questionText: 'Questão de Física 2',
+          statement: 'Questão de Física 2',
           description: 'Questão sobre física',
           type: 'ALTERNATIVA' as const,
           status: 'APROVADO' as const,
@@ -5224,11 +5479,26 @@ describe('Quiz Result Components', () => {
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'fisica',
-              subjectId: 'fisica',
-              topicId: 'mecanica',
-              subtopicId: 'movimento',
-              contentId: 'cinematica',
+              areaKnowledge: {
+                id: 'fisica',
+                name: 'Física',
+              },
+              subject: {
+                id: 'fisica',
+                name: 'Física',
+              },
+              topic: {
+                id: 'mecanica',
+                name: 'Mecânica',
+              },
+              subtopic: {
+                id: 'movimento',
+                name: 'Movimento',
+              },
+              content: {
+                id: 'cinematica',
+                name: 'Cinemática',
+              },
             },
           ],
           options: [
@@ -5242,7 +5512,7 @@ describe('Quiz Result Components', () => {
       matematica: [
         {
           id: 'q3',
-          questionText: 'Questão de Matemática 1',
+          statement: 'Questão de Matemática 1',
           description: 'Questão sobre matemática',
           type: 'ALTERNATIVA' as const,
           status: 'APROVADO' as const,
@@ -5253,11 +5523,26 @@ describe('Quiz Result Components', () => {
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'matematica',
-              subjectId: 'matematica',
-              topicId: 'algebra',
-              subtopicId: 'equacoes',
-              contentId: 'algebra',
+              areaKnowledge: {
+                id: 'matematica',
+                name: 'Matemática',
+              },
+              subject: {
+                id: 'matematica',
+                name: 'Matemática',
+              },
+              topic: {
+                id: 'algebra',
+                name: 'Álgebra',
+              },
+              subtopic: {
+                id: 'equacoes',
+                name: 'Equações',
+              },
+              content: {
+                id: 'algebra',
+                name: 'Álgebra',
+              },
             },
           ],
           options: [
@@ -5717,7 +6002,7 @@ describe('Quiz Result Components', () => {
         quimica: [
           {
             id: 'q4',
-            questionText: 'Questão de Química 1',
+            statement: 'Questão de Química 1',
             correctOptionId: 'opt1',
             description: 'Questão sobre química',
             type: 'ALTERNATIVA' as const,
@@ -5730,11 +6015,26 @@ describe('Quiz Result Components', () => {
             updatedAt: '2024-01-01',
             knowledgeMatrix: [
               {
-                areaKnowledgeId: 'quimica',
-                subjectId: 'quimica',
-                topicId: 'organica',
-                subtopicId: 'hidrocarbonetos',
-                contentId: 'quimica',
+                areaKnowledge: {
+                  id: 'quimica',
+                  name: 'Química',
+                },
+                subject: {
+                  id: 'quimica',
+                  name: 'Química',
+                },
+                topic: {
+                  id: 'organica',
+                  name: 'Orgânica',
+                },
+                subtopic: {
+                  id: 'hidrocarbonetos',
+                  name: 'Hidrocarbonetos',
+                },
+                content: {
+                  id: 'quimica',
+                  name: 'Química',
+                },
               },
             ],
             options: [
@@ -5828,7 +6128,7 @@ describe('Quiz Result Components', () => {
       mecanica: [
         {
           id: 'q1',
-          questionText: 'Questão de Mecânica 1',
+          statement: 'Questão de Mecânica 1',
           description: 'Questão sobre mecânica',
           type: 'ALTERNATIVA' as const,
           status: 'APROVADO' as const,
@@ -5839,11 +6139,26 @@ describe('Quiz Result Components', () => {
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'fisica',
-              subjectId: 'mecanica',
-              topicId: 'movimento',
-              subtopicId: 'muv',
-              contentId: 'cinematica',
+              areaKnowledge: {
+                id: 'fisica',
+                name: 'Física',
+              },
+              subject: {
+                id: 'mecanica',
+                name: 'Mecânica',
+              },
+              topic: {
+                id: 'movimento',
+                name: 'Movimento',
+              },
+              subtopic: {
+                id: 'muv',
+                name: 'MUV',
+              },
+              content: {
+                id: 'cinematica',
+                name: 'Cinemática',
+              },
             },
           ],
           options: [
@@ -5855,7 +6170,7 @@ describe('Quiz Result Components', () => {
         },
         {
           id: 'q2',
-          questionText: 'Questão de Mecânica 2',
+          statement: 'Questão de Mecânica 2',
           description: 'Questão sobre mecânica',
           type: 'ALTERNATIVA' as const,
           status: 'APROVADO' as const,
@@ -5866,11 +6181,26 @@ describe('Quiz Result Components', () => {
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'fisica',
-              subjectId: 'mecanica',
-              topicId: 'movimento',
-              subtopicId: 'mu',
-              contentId: 'cinematica',
+              areaKnowledge: {
+                id: 'fisica',
+                name: 'Física',
+              },
+              subject: {
+                id: 'mecanica',
+                name: 'Mecânica',
+              },
+              topic: {
+                id: 'movimento',
+                name: 'Movimento',
+              },
+              subtopic: {
+                id: 'mu',
+                name: 'MU',
+              },
+              content: {
+                id: 'cinematica',
+                name: 'Cinemática',
+              },
             },
           ],
           options: [
@@ -5882,7 +6212,7 @@ describe('Quiz Result Components', () => {
         },
         {
           id: 'q3',
-          questionText: 'Questão de Mecânica 3',
+          statement: 'Questão de Mecânica 3',
           description: 'Questão sobre mecânica',
           type: 'ALTERNATIVA' as const,
           status: 'APROVADO' as const,
@@ -5893,11 +6223,26 @@ describe('Quiz Result Components', () => {
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
-              areaKnowledgeId: 'fisica',
-              subjectId: 'mecanica',
-              topicId: 'movimento',
-              subtopicId: 'lancamento',
-              contentId: 'cinematica',
+              areaKnowledge: {
+                id: 'fisica',
+                name: 'Física',
+              },
+              subject: {
+                id: 'mecanica',
+                name: 'Mecânica',
+              },
+              topic: {
+                id: 'movimento',
+                name: 'Movimento',
+              },
+              subtopic: {
+                id: 'lancamento',
+                name: 'Lançamento',
+              },
+              content: {
+                id: 'cinematica',
+                name: 'Cinemática',
+              },
             },
           ],
           options: [
@@ -6043,7 +6388,7 @@ describe('Quiz Result Components', () => {
       expect(mockOnQuestionClick).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'q1',
-          questionText: 'Questão de Mecânica 1',
+          statement: 'Questão de Mecânica 1',
           answerKey: 'opt1',
         })
       );

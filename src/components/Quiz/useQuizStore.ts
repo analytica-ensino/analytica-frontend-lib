@@ -55,6 +55,31 @@ export interface QuestionResult {
     score: number | null;
     gradedAt: string | null;
     gradedBy: string;
+    knowledgeMatrix: {
+      areaKnowledge: {
+        id: string;
+        name: string;
+      };
+      subject: {
+        id: string;
+        name: string;
+      };
+      topic: {
+        id: string;
+        name: string;
+      };
+      subtopic: {
+        id: string;
+        name: string;
+      };
+      content: {
+        id: string;
+        name: string;
+      };
+    }[];
+    selectedOptions: {
+      optionId: string;
+    }[];
   }[];
   statistics: {
     totalAnswered: number;
@@ -67,7 +92,7 @@ export interface QuestionResult {
 
 export interface Question {
   id: string;
-  questionText: string;
+  statement: string;
   questionType: QUESTION_TYPE;
   difficultyLevel: QUESTION_DIFFICULTY;
   description: string;
@@ -80,14 +105,29 @@ export interface Question {
     id: string;
     option: string;
   }[];
-  correctOptionIds?: string[];
   knowledgeMatrix: {
-    areaKnowledgeId: string;
-    subjectId: string;
-    topicId: string;
-    subtopicId: string;
-    contentId: string;
+    areaKnowledge: {
+      id: string;
+      name: string;
+    };
+    subject: {
+      id: string;
+      name: string;
+    };
+    topic: {
+      id: string;
+      name: string;
+    };
+    subtopic: {
+      id: string;
+      name: string;
+    };
+    content: {
+      id: string;
+      name: string;
+    };
   }[];
+  correctOptionIds?: string[];
 }
 
 interface Simulado {
@@ -751,15 +791,15 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getQuestionsGroupedBySubject: () => {
-          const { getActiveQuiz } = get();
-          const activeQuiz = getActiveQuiz();
-          if (!activeQuiz) return {};
+          const { getQuestionResult } = get();
+          const questionResult = getQuestionResult();
+          if (!questionResult) return {};
 
-          const groupedQuestions: { [key: string]: Question[] } = {};
-
-          activeQuiz.quiz.questions.forEach((question) => {
+          const groupedQuestions: { [key: string]: QuestionResult['answers'] } =
+            {};
+          questionResult.answers.forEach((question) => {
             const subjectId =
-              question.knowledgeMatrix?.[0]?.subjectId || 'Sem matéria';
+              question.knowledgeMatrix?.[0]?.subject.id || 'Sem matéria';
 
             if (!groupedQuestions[subjectId]) {
               groupedQuestions[subjectId] = [];
@@ -802,13 +842,24 @@ export const useQuizStore = create<QuizState>()(
           return userAnswers;
         },
         setCurrentQuestion: (question) => {
-          const { getActiveQuiz } = get();
+          const { getActiveQuiz, variant, questionsResult } = get();
           const activeQuiz = getActiveQuiz();
           if (!activeQuiz) return;
-
-          const questionIndex = activeQuiz.quiz.questions.findIndex(
-            (q) => q.id === question.id
-          );
+          let questionIndex = 0;
+          if (variant == 'result') {
+            if (!questionsResult) return;
+            const questionResult = questionsResult.answers.find(
+              (q) => q.id === question.id
+            );
+            if (!questionResult) return;
+            questionIndex = activeQuiz.quiz.questions.findIndex(
+              (q) => q.id === questionResult.questionId
+            );
+          } else {
+            questionIndex = activeQuiz.quiz.questions.findIndex(
+              (q) => q.id === question.id
+            );
+          }
 
           // Validate that the question was found before updating currentQuestionIndex
           if (questionIndex === -1) {
@@ -845,11 +896,10 @@ export const useQuizStore = create<QuizState>()(
           return userAnswer ? userAnswer.answerStatus : null;
         },
         getQuestionIndex: (questionId) => {
-          const { getActiveQuiz } = get();
-          const activeQuiz = getActiveQuiz();
-          if (!activeQuiz) return 0;
+          const { questionsResult } = get();
+          if (!questionsResult) return 0;
 
-          const questionIndex = activeQuiz.quiz.questions.findIndex(
+          const questionIndex = questionsResult.answers.findIndex(
             (q) => q.id === questionId
           );
           return questionIndex + 1;
@@ -858,11 +908,11 @@ export const useQuizStore = create<QuizState>()(
         // Question Result
         getQuestionResultByQuestionId: (questionId) => {
           const { questionsResult } = get();
-          return (
-            questionsResult?.answers.find(
-              (answer) => answer.questionId === questionId
-            ) || null
+          const question = questionsResult?.answers.find(
+            (answer) => answer.questionId === questionId
           );
+
+          return question || null;
         },
         getQuestionResultStatistics: () => {
           const { questionsResult } = get();
