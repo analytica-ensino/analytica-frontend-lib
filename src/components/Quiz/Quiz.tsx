@@ -283,9 +283,10 @@ const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
   const alternatives = currentQuestion?.options?.map((option) => {
     let status: Status = Status.NEUTRAL;
     if (variant === 'result') {
-      const isCorrectOption = currentQuestionResult?.options.find(
+      const isCorrectOption = currentQuestionResult?.options?.find(
         (op) => op.id === option.id
-      )?.isCorrect;
+      )?.isCorrect || false;
+
       const isSelected = currentQuestionResult?.selectedOptions.some(
         (selectedOption) => selectedOption.optionId === option.id
       );
@@ -327,12 +328,12 @@ const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
             alternatives={alternatives}
             value={
               variant === 'result'
-                ? currentQuestionResult?.optionId || ''
+                ? currentQuestionResult?.selectedOptions[0]?.optionId || ''
                 : currentAnswer?.optionId || ''
             }
             selectedValue={
               variant === 'result'
-                ? currentQuestionResult?.selectedOptions[0].optionId || ''
+                ? currentQuestionResult?.selectedOptions[0]?.optionId || ''
                 : currentAnswer?.optionId || ''
             }
             onValueChange={(value) => {
@@ -395,11 +396,9 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
     }
 
     if (
-      variant == 'result' &&
-      currentQuestionResult?.options.length &&
-      currentQuestionResult?.options.length > 0
+      variant == 'result'
     ) {
-      return currentQuestionResult?.options.map((op) => op.id) || [];
+      return currentQuestionResult?.selectedOptions.map((op) => op.optionId) || [];
     }
 
     return prevSelectedValuesRef.current;
@@ -407,7 +406,7 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
     selectedValues,
     currentQuestion?.id,
     variant,
-    currentQuestionResult?.optionId,
+    currentQuestionResult?.selectedOptions,
   ]);
 
   // Memoize the callback to prevent unnecessary re-renders
@@ -429,11 +428,12 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
     let status: Status = Status.NEUTRAL;
 
     if (variant === 'result') {
-      const isCorrectOption = currentQuestion.correctOptionIds?.includes(
-        option.id
-      );
-      const isSelected = currentQuestionResult?.options.find(
+      const isCorrectOption = currentQuestionResult?.options?.find(
         (op) => op.id === option.id
+      )?.isCorrect || false;
+
+      const isSelected = currentQuestionResult?.selectedOptions?.some(
+        (op) => op.optionId === option.id
       );
 
       if (isCorrectOption) {
@@ -1301,7 +1301,6 @@ const QuizQuestionList = ({
   } = useQuizStore();
 
   const groupedQuestions = getQuestionsGroupedBySubject();
-
   const getQuestionStatus = (questionId: string) => {
     return getQuestionStatusFromUserAnswers(questionId);
   };
@@ -1350,7 +1349,7 @@ const QuizQuestionList = ({
               <div className="bg-primary-500 p-1 rounded-sm flex items-center justify-center">
                 <BookOpen size={17} className="text-white" />
               </div>
-              <p className="text-text-800 font-bold text-lg">{subjectId}</p>
+              <p className="text-text-800 font-bold text-lg">{questions[0].knowledgeMatrix[0].subject.name}</p>
             </span>
 
             <ul className="flex flex-col gap-2">

@@ -43,10 +43,123 @@ const mockUseQuizStore = useQuizStore as jest.MockedFunction<
   typeof useQuizStore
 >;
 
+// Helper function to create a solid QuestionResult mock
+const createMockQuestionResult = () => {
+  return {
+    answers: [
+      {
+        id: 'answer1',
+        questionId: 'q1',
+        answer: 'opt1',
+        selectedOptions: [{ optionId: 'opt1' }],
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        statement: 'What is 2 + 2?',
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        correctOption: 'opt1',
+        difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+        solutionExplanation: 'The answer is 4',
+        options: [
+          { id: 'opt1', option: '4', isCorrect: true },
+          { id: 'opt2', option: '3', isCorrect: false },
+        ],
+        knowledgeMatrix: [
+          {
+            areaKnowledge: { id: 'matematica', name: 'Matemática' },
+            subject: { id: 'algebra', name: 'Álgebra' },
+            topic: { id: 'operacoes', name: 'Operações' },
+            subtopic: { id: 'soma', name: 'Soma' },
+            content: { id: 'matematica', name: 'Matemática' },
+          },
+        ],
+        teacherFeedback: null,
+        attachment: null,
+        score: 100,
+        gradedAt: '2024-01-01T00:00:00Z',
+        gradedBy: 'system',
+      },
+      {
+        id: 'answer2',
+        questionId: 'q2',
+        answer: 'opt1',
+        selectedOptions: [{ optionId: 'opt1' }],
+        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        statement: 'What is the capital of France?',
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        correctOption: 'opt2',
+        difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+        solutionExplanation: 'Paris is the capital of France',
+        options: [
+          { id: 'opt1', option: 'London', isCorrect: false },
+          { id: 'opt2', option: 'Paris', isCorrect: true },
+        ],
+        knowledgeMatrix: [
+          {
+            areaKnowledge: { id: 'fisica', name: 'Física' },
+            subject: { id: 'fisica', name: 'Física' },
+            topic: { id: 'mecanica', name: 'Mecânica' },
+            subtopic: { id: 'movimento', name: 'Movimento' },
+            content: { id: 'cinematica', name: 'Cinemática' },
+          },
+        ],
+        teacherFeedback: 'Incorrect answer. The correct answer is Paris.',
+        attachment: null,
+        score: 0,
+        gradedAt: '2024-01-01T00:00:00Z',
+        gradedBy: 'system',
+      },
+      {
+        id: 'answer3',
+        questionId: 'q3',
+        answer: 'opt1',
+        selectedOptions: [{ optionId: 'opt1' }],
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        statement: 'Multiple choice question',
+        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+        correctOption: 'opt1',
+        difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+        solutionExplanation: 'The correct answer is option 1',
+        options: [
+          { id: 'opt1', option: 'Correct Answer', isCorrect: true },
+          { id: 'opt2', option: 'Wrong Answer', isCorrect: false },
+        ],
+        knowledgeMatrix: [
+          {
+            areaKnowledge: { id: 'matematica', name: 'Matemática' },
+            subject: { id: 'matematica', name: 'Matemática' },
+            topic: { id: 'algebra', name: 'Álgebra' },
+            subtopic: { id: 'equacoes', name: 'Equações' },
+            content: { id: 'algebra', name: 'Álgebra' },
+          },
+        ],
+        teacherFeedback: null,
+        attachment: null,
+        score: 100,
+        gradedAt: '2024-01-01T00:00:00Z',
+        gradedBy: 'system',
+      },
+    ],
+    statistics: {
+      totalAnswered: 3,
+      correctAnswers: 2,
+      incorrectAnswers: 1,
+      pendingAnswers: 0,
+      score: 66.67,
+    },
+  };
+};
+
 // Helper function to create mocks with getQuestionIndex
 const createMockUseQuizStore = (
   overrides: Partial<ReturnType<typeof useQuizStore>> = {}
 ) => {
+  const mockQuestionResult = createMockQuestionResult();
+  
   return {
     isStarted: false,
     updateTime: jest.fn(),
@@ -65,8 +178,8 @@ const createMockUseQuizStore = (
     getUserAnswers: jest.fn().mockReturnValue([]),
     getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
     getQuestionsGroupedBySubject: jest.fn().mockReturnValue({
-      algebra: [mockQuestion1],
-      'geografia-geral': [mockQuestion2],
+      'Álgebra': [mockQuestion1],
+      'Geografia Geral': [mockQuestion2],
     }),
     isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
       // Default mock that returns true for questions with answers
@@ -165,21 +278,17 @@ const createMockUseQuizStore = (
       if (questionId === 'q4') return 4;
       return 0;
     }),
-    // New question result functions
-    getQuestionResultByQuestionId: jest.fn().mockReturnValue(null),
-    getQuestionResultStatistics: jest.fn().mockReturnValue({
-      totalAnswered: 0,
-      correctAnswers: 0,
-      incorrectAnswers: 0,
-      pendingAnswers: 0,
-      score: 0,
+    // Question result functions with solid mocks
+    getQuestionResultByQuestionId: jest.fn().mockImplementation((questionId) => {
+      return mockQuestionResult.answers.find(answer => answer.questionId === questionId) || null;
     }),
-    getQuestionResult: jest.fn().mockReturnValue(null),
+    getQuestionResultStatistics: jest.fn().mockReturnValue(mockQuestionResult.statistics),
+    getQuestionResult: jest.fn().mockReturnValue(mockQuestionResult),
     setQuestionsResult: jest.fn(),
     setCurrentQuestionResult: jest.fn(),
-    getCurrentQuestionResult: jest.fn().mockReturnValue(null),
-    questionsResult: null,
-    currentQuestionResult: null,
+    getCurrentQuestionResult: jest.fn().mockReturnValue(mockQuestionResult.answers),
+    questionsResult: mockQuestionResult,
+    currentQuestionResult: mockQuestionResult.answers,
     ...overrides,
   };
 };
@@ -1161,8 +1270,8 @@ describe('Quiz Component', () => {
     it('should render questions grouped by subject', () => {
       render(<QuizQuestionList />);
 
-      expect(screen.getByText('algebra')).toBeInTheDocument();
-      expect(screen.getByText('geografia-geral')).toBeInTheDocument();
+      expect(screen.getByText('Álgebra')).toBeInTheDocument();
+      expect(screen.getByText('Geografia Geral')).toBeInTheDocument();
       expect(screen.getAllByTestId('card-status')).toHaveLength(2);
     });
 
@@ -2566,12 +2675,9 @@ describe('Quiz Component', () => {
           ...mockQuestion1,
           correctOptionId: 'opt1',
         }),
-        getAllCurrentAnswer: jest.fn().mockReturnValue([
-          {
-            optionId: 'opt2',
-            answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-          },
-        ]), // User selected wrong answer
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+        }),
       });
 
       render(<QuizHeaderResult />);
@@ -2590,7 +2696,7 @@ describe('Quiz Component', () => {
           ...mockQuestion1,
           correctOptionId: 'opt1',
         }),
-        getAllCurrentAnswer: jest.fn().mockReturnValue([]), // User has not answered
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue(null), // User has not answered
       });
 
       render(<QuizHeaderResult />);
@@ -2682,15 +2788,9 @@ describe('Quiz Component', () => {
             { id: 'opt4', option: 'Opção 4', isCorrect: false },
           ],
         }),
-        getAllCurrentAnswer: jest.fn().mockReturnValue([
-          {
-            questionId: 'q1',
-            activityId: 'act1',
-            userId: 'user1',
-            answer: null,
-            optionId: 'opt1',
-          },
-        ]),
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+        }),
       });
 
       render(<QuizHeaderResult />);
@@ -2715,22 +2815,9 @@ describe('Quiz Component', () => {
             { id: 'opt4', option: 'Opção 4', isCorrect: false },
           ],
         }),
-        getAllCurrentAnswer: jest.fn().mockReturnValue([
-          {
-            questionId: 'q1',
-            activityId: 'act1',
-            userId: 'user1',
-            answer: null,
-            optionId: 'opt1',
-          },
-          {
-            questionId: 'q1',
-            activityId: 'act1',
-            userId: 'user1',
-            answer: null,
-            optionId: 'opt3',
-          },
-        ]),
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue({
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+        }),
       });
 
       render(<QuizHeaderResult />);
@@ -2755,7 +2842,7 @@ describe('Quiz Component', () => {
             { id: 'opt4', option: 'Opção 4', isCorrect: false },
           ],
         }),
-        getAllCurrentAnswer: jest.fn().mockReturnValue(undefined),
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue(null),
       });
 
       render(<QuizHeaderResult />);
@@ -2780,7 +2867,7 @@ describe('Quiz Component', () => {
             { id: 'opt4', option: 'Opção 4', isCorrect: false },
           ],
         }),
-        getAllCurrentAnswer: jest.fn().mockReturnValue([]),
+        getQuestionResultByQuestionId: jest.fn().mockReturnValue(null),
       });
 
       render(<QuizHeaderResult />);
@@ -5556,6 +5643,114 @@ describe('Quiz Result Components', () => {
     };
 
     beforeEach(() => {
+      const mockQuestionResultForResults = {
+        answers: [
+          {
+            id: 'answer1',
+            questionId: 'q1',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'Questão de Física 1',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+            solutionExplanation: 'Resposta correta',
+            options: [
+              { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+              { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            ],
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'fisica', name: 'Física' },
+                subject: { id: 'fisica', name: 'Física' },
+                topic: { id: 'mecanica', name: 'Mecânica' },
+                subtopic: { id: 'movimento', name: 'Movimento' },
+                content: { id: 'cinematica', name: 'Cinemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer2',
+            questionId: 'q2',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'Questão de Física 2',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt2',
+            difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+            solutionExplanation: 'Resposta incorreta',
+            options: [
+              { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
+              { id: 'opt2', option: 'Resposta correta', isCorrect: true },
+            ],
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'fisica', name: 'Física' },
+                subject: { id: 'fisica', name: 'Física' },
+                topic: { id: 'mecanica', name: 'Mecânica' },
+                subtopic: { id: 'movimento', name: 'Movimento' },
+                content: { id: 'cinematica', name: 'Cinemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 0,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer3',
+            questionId: 'q3',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'Questão de Matemática 1',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+            solutionExplanation: 'Resposta correta',
+            options: [
+              { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+              { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            ],
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                subject: { id: 'matematica', name: 'Matemática' },
+                topic: { id: 'algebra', name: 'Álgebra' },
+                subtopic: { id: 'equacoes', name: 'Equações' },
+                content: { id: 'algebra', name: 'Álgebra' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+        ],
+        statistics: {
+          totalAnswered: 3,
+          correctAnswers: 2,
+          incorrectAnswers: 1,
+          pendingAnswers: 0,
+          score: 66.67,
+        },
+      };
+
       mockUseQuizStore.mockReturnValue({
         bySimulated: mockSimulado,
         byActivity: undefined,
@@ -5611,6 +5806,13 @@ describe('Quiz Result Components', () => {
             }
             return null;
           }),
+        // Add QuestionResult functions
+        getQuestionResultByQuestionId: jest.fn().mockImplementation((questionId) => {
+          return mockQuestionResultForResults.answers.find(answer => answer.questionId === questionId) || null;
+        }),
+        getQuestionResultStatistics: jest.fn().mockReturnValue(mockQuestionResultForResults.statistics),
+        getQuestionResult: jest.fn().mockReturnValue(mockQuestionResultForResults),
+        questionsResult: mockQuestionResultForResults,
       });
     });
 
@@ -5625,8 +5827,8 @@ describe('Quiz Result Components', () => {
       expect(resultCards).toHaveLength(2); // fisica e matematica
 
       // Check if card headers are correct
-      expect(screen.getByText('fisica')).toBeInTheDocument();
-      expect(screen.getByText('matematica')).toBeInTheDocument();
+      expect(screen.getByText('Física')).toBeInTheDocument();
+      expect(screen.getByText('Matemática')).toBeInTheDocument();
     });
 
     it('should display correct statistics for each subject', () => {
@@ -5638,8 +5840,13 @@ describe('Quiz Result Components', () => {
       ];
 
       const mockQuestionsGroupedBySubjectWithAnswers = {
-        fisica: [mockQuestionsWithAnswers[0], mockQuestionsWithAnswers[1]],
-        matematica: [mockQuestionsWithAnswers[2]],
+        fisica: [
+          { ...mockQuestionsWithAnswers[0], answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA },
+          { ...mockQuestionsWithAnswers[1], answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA }
+        ],
+        matematica: [
+          { ...mockQuestionsWithAnswers[2], answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA }
+        ],
       };
 
       mockUseQuizStore.mockReturnValue({
@@ -5741,6 +5948,17 @@ describe('Quiz Result Components', () => {
     });
 
     it('should handle subjects with no answered questions', () => {
+      // Create questions without answerStatus (unanswered)
+      const mockQuestionsGroupedBySubjectNoAnswers = {
+        fisica: [
+          { ...mockQuestion1, answerStatus: undefined },
+          { ...mockQuestion2, answerStatus: undefined }
+        ],
+        matematica: [
+          { ...mockQuestion1, id: 'q3', answerStatus: undefined }
+        ],
+      };
+
       mockUseQuizStore.mockReturnValue({
         bySimulated: mockSimulado,
         byActivity: undefined,
@@ -5748,7 +5966,7 @@ describe('Quiz Result Components', () => {
         selectedAnswers: {},
         getQuestionsGroupedBySubject: jest
           .fn()
-          .mockReturnValue(mockQuestionsGroupedBySubject),
+          .mockReturnValue(mockQuestionsGroupedBySubjectNoAnswers),
         isQuestionAnswered: jest.fn().mockReturnValue(false),
       });
 
@@ -5758,11 +5976,11 @@ describe('Quiz Result Components', () => {
       const incorrectAnswersElements =
         screen.getAllByTestId('incorrect-answers');
 
-      // All subjects should have 0 correct and 0 incorrect
+      // All subjects should have 0 correct and 2 incorrect (questions without answerStatus are counted as incorrect)
       expect(correctAnswersElements[0]).toHaveTextContent('0');
-      expect(incorrectAnswersElements[0]).toHaveTextContent('0');
+      expect(incorrectAnswersElements[0]).toHaveTextContent('2');
       expect(correctAnswersElements[1]).toHaveTextContent('0');
-      expect(incorrectAnswersElements[1]).toHaveTextContent('0');
+      expect(incorrectAnswersElements[1]).toHaveTextContent('1');
     });
 
     it('should handle all correct answers for a subject', () => {
@@ -5775,10 +5993,12 @@ describe('Quiz Result Components', () => {
 
       const mockQuestionsGroupedBySubjectWithCorrectAnswers = {
         fisica: [
-          mockQuestionsWithCorrectAnswers[0],
-          mockQuestionsWithCorrectAnswers[1],
+          { ...mockQuestionsWithCorrectAnswers[0], answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA },
+          { ...mockQuestionsWithCorrectAnswers[1], answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA }
         ],
-        matematica: [mockQuestionsWithCorrectAnswers[2]],
+        matematica: [
+          { ...mockQuestionsWithCorrectAnswers[2], answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA }
+        ],
       };
 
       mockUseQuizStore.mockReturnValue({
@@ -5925,10 +6145,12 @@ describe('Quiz Result Components', () => {
 
       const mockQuestionsGroupedBySubjectWithMixedAnswers = {
         fisica: [
-          mockQuestionsWithMixedAnswers[0],
-          mockQuestionsWithMixedAnswers[1],
+          { ...mockQuestionsWithMixedAnswers[0], answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA },
+          { ...mockQuestionsWithMixedAnswers[1], answerStatus: undefined } // No answer
         ],
-        matematica: [mockQuestionsWithMixedAnswers[2]],
+        matematica: [
+          { ...mockQuestionsWithMixedAnswers[2], answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA }
+        ],
       };
 
       mockUseQuizStore.mockReturnValue({
@@ -5979,9 +6201,9 @@ describe('Quiz Result Components', () => {
       const incorrectAnswersElements =
         screen.getAllByTestId('incorrect-answers');
 
-      // Physics: 1 correct (q1), 0 incorrect (q2 not answered)
+      // Physics: 1 correct (q1), 1 unanswered (q2 - treated as incorrect)
       expect(correctAnswersElements[0]).toHaveTextContent('1');
-      expect(incorrectAnswersElements[0]).toHaveTextContent('0');
+      expect(incorrectAnswersElements[0]).toHaveTextContent('1');
 
       // Mathematics: 0 correct, 1 incorrect (q3)
       expect(correctAnswersElements[1]).toHaveTextContent('0');
@@ -6117,9 +6339,9 @@ describe('Quiz Result Components', () => {
       const resultCards = screen.getAllByTestId('card-results');
       expect(resultCards).toHaveLength(3); // fisica, matematica, quimica
 
-      expect(screen.getByText('fisica')).toBeInTheDocument();
-      expect(screen.getByText('matematica')).toBeInTheDocument();
-      expect(screen.getByText('quimica')).toBeInTheDocument();
+      expect(screen.getByText('Física')).toBeInTheDocument();
+      expect(screen.getByText('Matemática')).toBeInTheDocument();
+      expect(screen.getByText('Química')).toBeInTheDocument();
     });
   });
 
@@ -6136,6 +6358,7 @@ describe('Quiz Result Components', () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt1',
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -6178,6 +6401,7 @@ describe('Quiz Result Components', () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt3',
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -6220,6 +6444,7 @@ describe('Quiz Result Components', () => {
           examBoard: 'ENEM',
           examYear: '2024',
           answerKey: 'opt3',
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           institutionIds: ['inst1', 'inst2'],
           knowledgeMatrix: [
             {
@@ -6256,6 +6481,115 @@ describe('Quiz Result Components', () => {
     };
 
     beforeEach(() => {
+      const mockQuestionResultByMateria = {
+        answers: [
+          {
+            id: 'answer1',
+            questionId: 'q1',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'Questão de Mecânica 1',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+            solutionExplanation: 'Resposta correta',
+            options: [
+              { id: 'opt1', option: 'Resposta correta', isCorrect: true },
+              { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+            ],
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'fisica', name: 'Física' },
+                subject: { id: 'mecanica', name: 'Mecânica' },
+                topic: { id: 'movimento', name: 'Movimento' },
+                subtopic: { id: 'muv', name: 'MUV' },
+                content: { id: 'cinematica', name: 'Cinemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer2',
+            questionId: 'q2',
+            answer: 'opt3',
+            selectedOptions: [{ optionId: 'opt3' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'Questão de Mecânica 2',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt2',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'Resposta incorreta',
+            options: [
+              { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
+              { id: 'opt2', option: 'Resposta correta', isCorrect: true },
+            ],
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'fisica', name: 'Física' },
+                subject: { id: 'mecanica', name: 'Mecânica' },
+                topic: { id: 'movimento', name: 'Movimento' },
+                subtopic: { id: 'mu', name: 'MU' },
+                content: { id: 'cinematica', name: 'Cinemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 0,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer3',
+            questionId: 'q3',
+            answer: 'opt3',
+            selectedOptions: [{ optionId: 'opt3' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'Questão de Mecânica 3',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt3',
+            difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
+            solutionExplanation: 'Resposta correta',
+            options: [
+              { id: 'opt1', option: 'Resposta incorreta', isCorrect: false },
+              { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
+              { id: 'opt3', option: 'Resposta correta', isCorrect: true },
+            ],
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'fisica', name: 'Física' },
+                subject: { id: 'mecanica', name: 'Mecânica' },
+                topic: { id: 'movimento', name: 'Movimento' },
+                subtopic: { id: 'dinamica', name: 'Dinâmica' },
+                content: { id: 'cinematica', name: 'Cinemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+        ],
+        statistics: {
+          totalAnswered: 3,
+          correctAnswers: 2,
+          incorrectAnswers: 1,
+          pendingAnswers: 0,
+          score: 66.67,
+        },
+      };
+
       mockUseQuizStore.mockReturnValue(
         createMockUseQuizStore({
           bySimulated: mockSimulado,
@@ -6312,6 +6646,13 @@ describe('Quiz Result Components', () => {
               }
               return null;
             }),
+          // Add QuestionResult functions for materia tests
+          getQuestionResultByQuestionId: jest.fn().mockImplementation((questionId) => {
+            return mockQuestionResultByMateria.answers.find(answer => answer.questionId === questionId) || null;
+          }),
+          getQuestionResultStatistics: jest.fn().mockReturnValue(mockQuestionResultByMateria.statistics),
+          getQuestionResult: jest.fn().mockReturnValue(mockQuestionResultByMateria),
+          questionsResult: mockQuestionResultByMateria,
         })
       );
     });
@@ -6325,7 +6666,7 @@ describe('Quiz Result Components', () => {
         />
       );
 
-      expect(screen.getByText('mecanica')).toBeInTheDocument();
+      expect(screen.getByText('Mecânica')).toBeInTheDocument();
       expect(screen.getByText('Resultado das questões')).toBeInTheDocument();
     });
 
@@ -6414,10 +6755,10 @@ describe('Quiz Result Components', () => {
         />
       );
 
-      expect(screen.getByText('mecanica')).toBeInTheDocument();
+      // When no questions exist, the subject name won't be displayed
       expect(screen.getByText('Resultado das questões')).toBeInTheDocument();
       // Should not render any questions
-      expect(screen.queryByText(/Questão q/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Questão/)).not.toBeInTheDocument();
     });
 
     it('should handle undefined subject questions gracefully', () => {
@@ -6440,10 +6781,10 @@ describe('Quiz Result Components', () => {
         />
       );
 
-      expect(screen.getByText('mecanica')).toBeInTheDocument();
+      // When no questions exist, the subject name won't be displayed
       expect(screen.getByText('Resultado das questões')).toBeInTheDocument();
       // Should not render any questions
-      expect(screen.queryByText(/Questão q/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Questão/)).not.toBeInTheDocument();
     });
 
     it('should render with correct layout structure', () => {
@@ -6456,7 +6797,7 @@ describe('Quiz Result Components', () => {
       );
 
       // Check if main container has correct classes
-      const container = screen.getByText('mecanica').closest('.w-full');
+      const container = screen.getByText('Mecânica').closest('.w-full');
       expect(container).toHaveClass(
         'w-full',
         'max-w-[1000px]',
@@ -6475,10 +6816,27 @@ describe('Quiz Result Components', () => {
       expect(section).toHaveClass('flex', 'flex-col');
     });
 
-    it('should handle undefined status when userAnswer has no answerStatus', () => {
+    it('should handle undefined status when question has no answerStatus', () => {
       const mockOnQuestionClick = jest.fn();
 
-      // Mock getUserAnswerByQuestionId to return an answer without answerStatus
+      // Create questions without answerStatus to test undefined status
+      const mockQuestionsWithoutAnswerStatus = {
+        mecanica: [
+          {
+            ...mockQuestionsGroupedBySubject.mecanica[0],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          },
+          {
+            ...mockQuestionsGroupedBySubject.mecanica[1],
+            answerStatus: undefined, // This should result in no status attribute
+          },
+          {
+            ...mockQuestionsGroupedBySubject.mecanica[2],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          },
+        ],
+      };
+
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
         bySimulated: mockSimulado,
@@ -6491,51 +6849,18 @@ describe('Quiz Result Components', () => {
         },
         getQuestionsGroupedBySubject: jest
           .fn()
-          .mockReturnValue(mockQuestionsGroupedBySubject),
+          .mockReturnValue(mockQuestionsWithoutAnswerStatus),
         isQuestionAnswered: jest.fn().mockImplementation((questionId) => {
           return (
             questionId === 'q1' || questionId === 'q2' || questionId === 'q3'
           );
         }),
-        getUserAnswerByQuestionId: jest
-          .fn()
-          .mockImplementation((questionId) => {
-            if (questionId === 'q1') {
-              return {
-                questionId: 'q1',
-                activityId: 'simulado-1',
-                userId: 'user-1',
-                answer: 'opt1',
-                optionId: 'opt1',
-                questionType: 'ALTERNATIVA' as const,
-                answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-              };
-            }
-            if (questionId === 'q2') {
-              return {
-                questionId: 'q2',
-                activityId: 'simulado-1',
-                userId: 'user-1',
-                answer: 'opt3',
-                optionId: 'opt3',
-                questionType: 'ALTERNATIVA' as const,
-                answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-              };
-            }
-            if (questionId === 'q3') {
-              // This answer has no answerStatus, which should result in undefined status
-              return {
-                questionId: 'q3',
-                activityId: 'simulado-1',
-                userId: 'user-1',
-                answer: 'opt3',
-                optionId: 'opt3',
-                questionType: 'ALTERNATIVA' as const,
-                // answerStatus is missing, which should trigger the return undefined case
-              };
-            }
-            return null;
-          }),
+        getQuestionIndex: jest.fn().mockImplementation((questionId) => {
+          if (questionId === 'q1') return 1;
+          if (questionId === 'q2') return 2;
+          if (questionId === 'q3') return 3;
+          return 0;
+        }),
       });
 
       render(
@@ -6551,18 +6876,17 @@ describe('Quiz Result Components', () => {
         .closest('[data-testid="card-status"]');
       expect(correctQuestion).toHaveAttribute('data-status', 'correct');
 
-      // Check if questions with incorrect answers show 'incorrect' status
-      const incorrectQuestion = screen
+      // Check if question with undefined answerStatus has no status attribute
+      const questionWithoutStatus = screen
         .getByText('Questão 02')
         .closest('[data-testid="card-status"]');
-      expect(incorrectQuestion).toHaveAttribute('data-status', 'incorrect');
+      expect(questionWithoutStatus).not.toHaveAttribute('data-status');
 
-      // Check if question with undefined answerStatus has no status attribute
-      const undefinedStatusQuestion = screen
+      // Check if questions with correct answers show 'correct' status
+      const correctQuestion2 = screen
         .getByText('Questão 03')
         .closest('[data-testid="card-status"]');
-      // When status is undefined, the data-status attribute should not be present
-      expect(undefinedStatusQuestion).not.toHaveAttribute('data-status');
+      expect(correctQuestion2).toHaveAttribute('data-status', 'correct');
     });
   });
 

@@ -876,8 +876,7 @@ export const GeneralForResults: Story = () => {
           questionId: 'q1-image',
           answer:
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-          optionId: 'img_opt1',
-          selectedOptionText: 'Resposta de imagem correta',
+          selectedOptions: [{ optionId: 'img_opt1' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -892,14 +891,37 @@ export const GeneralForResults: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          knowledgeMatrix: [
+            {
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+            },
+          ],
         },
         {
           id: 'answer2',
           questionId: 'q1-image-incorreta',
           answer:
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-          optionId: 'img_opt2',
-          selectedOptionText: 'Resposta de imagem incorreta',
+          selectedOptions: [{ optionId: 'img_opt2' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -915,14 +937,37 @@ export const GeneralForResults: Story = () => {
           score: 0,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          knowledgeMatrix: [
+            {
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+            },
+          ],
         },
         {
           id: 'answer3',
           questionId: 'q1-alt-correta',
           answer:
             'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
-          optionId: 'alt-opt1',
-          selectedOptionText: 'Brasília',
+          selectedOptions: [{ optionId: 'alt-opt1' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -937,14 +982,37 @@ export const GeneralForResults: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          knowledgeMatrix: [
+            {
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+            },
+          ],
         },
         {
           id: 'answer4',
           questionId: 'q2-alt-incorreta',
           answer:
             'Júpiter é o maior planeta do sistema solar. Sua massa é aproximadamente 318 vezes a massa da Terra, e seu diâmetro equatorial é cerca de 11 vezes maior que o da Terra. Saturno é o segundo maior, com um diâmetro equatorial de aproximadamente 9 vezes o da Terra. Urano e Netuno são menores, com diâmetros equatoriais de cerca de 4 vezes o da Terra.',
-          optionId: 'alt-opt2',
-          selectedOptionText: 'Resposta incorreta',
+          selectedOptions: [{ optionId: 'alt-opt2' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -961,13 +1029,36 @@ export const GeneralForResults: Story = () => {
           score: 0,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          knowledgeMatrix: [
+            {
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+            },
+          ],
         },
         {
           id: 'answer5',
           questionId: 'q3-multi-correta',
           answer: null,
-          optionId: 'multi-opt1,multi-opt2',
-          selectedOptionText: 'Saturno, Júpiter',
+          selectedOptions: [{ optionId: 'multi-opt1' }, { optionId: 'multi-opt2' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -987,13 +1078,36 @@ export const GeneralForResults: Story = () => {
           score: 75, // Partial score for partial answer
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          knowledgeMatrix: [
+            {
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+            },
+          ],
         },
         {
           id: 'answer6',
           questionId: 'q4-multi-incorreta',
           answer: null,
-          optionId: 'multi-opt1,multi-opt3',
-          selectedOptionText: 'Velocidade, Força',
+          selectedOptions: [{ optionId: 'multi-opt1' }, { optionId: 'multi-opt3' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -1013,14 +1127,37 @@ export const GeneralForResults: Story = () => {
           score: 25, // Partial score
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'teacher',
+          knowledgeMatrix: [
+            {
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+            },
+          ],
         },
         {
           id: 'answer7',
           questionId: 'q5-diss-correta',
           answer:
             'A preservação ambiental é fundamental para garantir um futuro sustentável para as próximas gerações. O equilíbrio ecológico, a biodiversidade e os recursos naturais são essenciais para a sobrevivência humana e devem ser protegidos através de políticas públicas eficazes, educação ambiental e mudanças nos padrões de consumo.',
-          optionId: 'diss_opt1',
-          selectedOptionText: 'Resposta dissertativa sobre meio ambiente',
+          selectedOptions: [{ optionId: 'diss_opt1' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -1037,13 +1174,36 @@ export const GeneralForResults: Story = () => {
           score: 95,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'teacher',
+          knowledgeMatrix: [
+            {
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+            },
+          ],
         },
         {
           id: 'answer8',
           questionId: 'q6-diss-incorreta',
           answer: 'As leis de Newton são importantes para a física.',
-          optionId: 'diss_opt2',
-          selectedOptionText: 'Resposta dissertativa sobre física',
+          selectedOptions: [{ optionId: 'diss_opt2' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -1060,6 +1220,30 @@ export const GeneralForResults: Story = () => {
           score: 20,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'teacher',
+          knowledgeMatrix: [
+            {
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+            },
+          ],
         },
       ],
       statistics: {
@@ -1133,9 +1317,7 @@ export const GeneralForResults: Story = () => {
 export const ResultsPageAndSeparatedComponents: Story = () => {
   const {
     setBySimulated,
-    startQuiz,
     setUserAnswers,
-    finishQuiz,
     setUserId,
     goToNextQuestion,
     goToPreviousQuestion,
@@ -1378,70 +1560,14 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
 
     setUserId('demo-user-id');
     setBySimulated(mockSimulated);
-    startQuiz();
 
-    setUserAnswers([
-      {
-        questionId: 'q1',
-        activityId: 'simulado-resultados-completos',
-        userId: 'demo-user-id',
-        answer:
-          'A resposta correta é a primeira opção porque ela representa corretamente o conceito físico abordado na questão. Em física, é fundamental entender os princípios básicos que governam os fenômenos naturais.',
-        optionId: null,
-        questionType: QUESTION_TYPE.ALTERNATIVA,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q2',
-        activityId: 'simulado-resultados-completos',
-        userId: 'demo-user-id',
-        answer:
-          'As duas primeiras opções são corretas porque ambas representam soluções válidas para o problema matemático apresentado. Em matemática, é comum que uma equação tenha múltiplas soluções válidas.',
-        optionId: null,
-        questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q3',
-        activityId: 'simulado-resultados-completos',
-        userId: 'demo-user-id',
-        answer:
-          'A química é uma ciência fundamental que estuda a composição, estrutura e propriedades da matéria. Ela é essencial para entender diversos fenômenos naturais e tecnológicos, desde a fotossíntese até a produção de medicamentos. A química está presente em todos os aspectos da vida moderna, incluindo agricultura, medicina, indústria e meio ambiente.',
-        optionId: null,
-        questionType: QUESTION_TYPE.DISSERTATIVA,
-        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
-      },
-      {
-        questionId: 'q4',
-        activityId: 'simulado-resultados-completos',
-        userId: 'demo-user-id',
-        answer:
-          'A terceira opção é a resposta correta porque representa o conceito biológico correto abordado na questão. Em biologia, é essencial compreender os processos celulares e suas funções no organismo.',
-        optionId: null,
-        questionType: QUESTION_TYPE.ALTERNATIVA,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-      {
-        questionId: 'q5',
-        activityId: 'simulado-resultados-completos',
-        userId: 'demo-user-id',
-        answer:
-          'A segunda opção é a resposta correta porque representa o fato histórico correto sobre o período colonial brasileiro. Em história, é fundamental conhecer os eventos e contextos que moldaram a formação do país.',
-        optionId: null,
-        questionType: QUESTION_TYPE.ALTERNATIVA,
-        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-      },
-    ]);
-
-    // Configure QuestionResult data for components that need it
     setQuestionsResult({
       answers: [
         {
           id: 'answer1',
           questionId: 'q1',
           answer: 'opt1',
-          optionId: 'opt1',
-          selectedOptionText: 'Resposta correta',
+          selectedOptions: [{ optionId: 'opt1' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -1462,13 +1588,36 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          knowledgeMatrix: [
+            {
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+            },
+          ],
         },
         {
           id: 'answer2',
           questionId: 'q2',
           answer: 'opt1,opt2',
-          optionId: 'opt1,opt2',
-          selectedOptionText: 'Resposta correta, Resposta correta',
+          selectedOptions: [{ optionId: 'opt1' }, { optionId: 'opt2' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -1489,13 +1638,36 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          knowledgeMatrix: [
+            {
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+            },
+          ],
         },
         {
           id: 'answer3',
           questionId: 'q3',
           answer: 'A química é uma ciência fundamental...',
-          optionId: 'dissertativa_opt1',
-          selectedOptionText: 'Resposta dissertativa',
+          selectedOptions: [{ optionId: 'dissertativa_opt1' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -1512,13 +1684,36 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 95,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'teacher',
+          knowledgeMatrix: [
+            {
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+            },
+          ],
         },
         {
           id: 'answer4',
           questionId: 'q4',
           answer: 'opt3',
-          optionId: 'opt3',
-          selectedOptionText: 'Resposta correta',
+          selectedOptions: [{ optionId: 'opt3' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -1539,13 +1734,36 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          knowledgeMatrix: [
+            {
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+            },
+          ],
         },
         {
           id: 'answer5',
           questionId: 'q5',
           answer: 'opt2',
-          optionId: 'opt2',
-          selectedOptionText: 'Resposta correta',
+          selectedOptions: [{ optionId: 'opt2' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -1566,6 +1784,30 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          knowledgeMatrix: [
+            {
+              areaKnowledge: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+              },
+              topic: {
+                id: 'capitais',
+                name: 'Capitais',
+              },
+              subtopic: {
+                id: 'brasil',
+                name: 'Brasil',
+              },
+              content: {
+                id: 'geografia',
+                name: 'Geografia',
+              },
+            },
+          ],
         },
       ],
       statistics: {
@@ -1577,12 +1819,9 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
       },
     });
 
-    finishQuiz();
   }, [
     setBySimulated,
-    startQuiz,
     setUserAnswers,
-    finishQuiz,
     setUserId,
     setQuestionsResult,
   ]);

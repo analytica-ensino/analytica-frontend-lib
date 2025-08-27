@@ -2632,6 +2632,83 @@ describe('useQuizStore', () => {
     beforeEach(() => {
       act(() => {
         useQuizStore.getState().setBySimulated(mockSimulado);
+        // Add mock QuestionResult for getQuestionIndex to work
+        const mockQuestionResultForIndex: QuestionResult = {
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              selectedOptions: [{ optionId: 'opt1' }],
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is 2 + 2?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: 'The answer is 4',
+              options: [
+                { id: 'opt1', option: '4', isCorrect: true },
+                { id: 'opt2', option: '3', isCorrect: false },
+              ],
+              knowledgeMatrix: [
+                {
+                  areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                  subject: { id: 'algebra', name: 'Álgebra' },
+                  topic: { id: 'operacoes', name: 'Operações' },
+                  subtopic: { id: 'soma', name: 'Soma' },
+                  content: { id: 'matematica', name: 'Matemática' },
+                },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 100,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+            {
+              id: 'answer2',
+              questionId: 'q2',
+              answer: 'opt2',
+              selectedOptions: [{ optionId: 'opt2' }],
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'What is the capital of France?',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt2',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: 'Paris is the capital of France',
+              options: [
+                { id: 'opt1', option: 'London', isCorrect: false },
+                { id: 'opt2', option: 'Paris', isCorrect: true },
+              ],
+              knowledgeMatrix: [
+                {
+                  areaKnowledge: { id: 'geografia', name: 'Geografia' },
+                  subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                  topic: { id: 'capitais', name: 'Capitais' },
+                  subtopic: { id: 'europa', name: 'Europa' },
+                  content: { id: 'geografia', name: 'Geografia' },
+                },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 100,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+          ],
+          statistics: {
+            totalAnswered: 2,
+            correctAnswers: 2,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 100,
+          },
+        };
+        useQuizStore.getState().setQuestionsResult(mockQuestionResultForIndex);
       });
     });
 
@@ -2678,8 +2755,20 @@ describe('useQuizStore', () => {
         questions: [],
       };
 
+      const emptyQuestionResult: QuestionResult = {
+        answers: [],
+        statistics: {
+          totalAnswered: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 0,
+        },
+      };
+
       act(() => {
         useQuizStore.getState().setBySimulated(emptySimulado);
+        useQuizStore.getState().setQuestionsResult(emptyQuestionResult);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -2705,8 +2794,77 @@ describe('useQuizStore', () => {
         questions: [mockQuestion1, mockQuestion2],
       };
 
+      const mockQuestionResultActivity: QuestionResult = {
+        answers: [
+          {
+            id: 'answer1',
+            questionId: 'q1',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is 2 + 2?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'The answer is 4',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                subject: { id: 'algebra', name: 'Álgebra' },
+                topic: { id: 'operacoes', name: 'Operações' },
+                subtopic: { id: 'soma', name: 'Soma' },
+                content: { id: 'matematica', name: 'Matemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer2',
+            questionId: 'q2',
+            answer: 'opt2',
+            selectedOptions: [{ optionId: 'opt2' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is the capital of France?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt2',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'Paris is the capital of France',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'geografia', name: 'Geografia' },
+                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                topic: { id: 'capitais', name: 'Capitais' },
+                subtopic: { id: 'europa', name: 'Europa' },
+                content: { id: 'geografia', name: 'Geografia' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+        ],
+        statistics: {
+          totalAnswered: 2,
+          correctAnswers: 2,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 100,
+        },
+      };
+
       act(() => {
         useQuizStore.getState().setByActivity(mockAtividade);
+        useQuizStore.getState().setQuestionsResult(mockQuestionResultActivity);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -2725,8 +2883,77 @@ describe('useQuizStore', () => {
         questions: [mockQuestion1, mockQuestion2],
       };
 
+      const mockQuestionResultQuestionary: QuestionResult = {
+        answers: [
+          {
+            id: 'answer1',
+            questionId: 'q1',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is 2 + 2?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'The answer is 4',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                subject: { id: 'algebra', name: 'Álgebra' },
+                topic: { id: 'operacoes', name: 'Operações' },
+                subtopic: { id: 'soma', name: 'Soma' },
+                content: { id: 'matematica', name: 'Matemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer2',
+            questionId: 'q2',
+            answer: 'opt2',
+            selectedOptions: [{ optionId: 'opt2' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is the capital of France?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt2',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'Paris is the capital of France',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'geografia', name: 'Geografia' },
+                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                topic: { id: 'capitais', name: 'Capitais' },
+                subtopic: { id: 'europa', name: 'Europa' },
+                content: { id: 'geografia', name: 'Geografia' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+        ],
+        statistics: {
+          totalAnswered: 2,
+          correctAnswers: 2,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 100,
+        },
+      };
+
       act(() => {
         useQuizStore.getState().setByQuestionary(mockQuestionary);
+        useQuizStore.getState().setQuestionsResult(mockQuestionResultQuestionary);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -2759,8 +2986,77 @@ describe('useQuizStore', () => {
         questions: [questionWithSpecialChars, mockQuestion2],
       };
 
+      const mockQuestionResultSpecial: QuestionResult = {
+        answers: [
+          {
+            id: 'answer1',
+            questionId: 'q1-special@#$%',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is 2 + 2?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'The answer is 4',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                subject: { id: 'algebra', name: 'Álgebra' },
+                topic: { id: 'operacoes', name: 'Operações' },
+                subtopic: { id: 'soma', name: 'Soma' },
+                content: { id: 'matematica', name: 'Matemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer2',
+            questionId: 'q2',
+            answer: 'opt2',
+            selectedOptions: [{ optionId: 'opt2' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is the capital of France?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt2',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'Paris is the capital of France',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'geografia', name: 'Geografia' },
+                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                topic: { id: 'capitais', name: 'Capitais' },
+                subtopic: { id: 'europa', name: 'Europa' },
+                content: { id: 'geografia', name: 'Geografia' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+        ],
+        statistics: {
+          totalAnswered: 2,
+          correctAnswers: 2,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 100,
+        },
+      };
+
       act(() => {
         useQuizStore.getState().setBySimulated(simuladoWithSpecialChars);
+        useQuizStore.getState().setQuestionsResult(mockQuestionResultSpecial);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -2782,8 +3078,77 @@ describe('useQuizStore', () => {
         questions: [questionWithLongId, mockQuestion2],
       };
 
+      const mockQuestionResultLong: QuestionResult = {
+        answers: [
+          {
+            id: 'answer1',
+            questionId: longId,
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is 2 + 2?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'The answer is 4',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                subject: { id: 'algebra', name: 'Álgebra' },
+                topic: { id: 'operacoes', name: 'Operações' },
+                subtopic: { id: 'soma', name: 'Soma' },
+                content: { id: 'matematica', name: 'Matemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer2',
+            questionId: 'q2',
+            answer: 'opt2',
+            selectedOptions: [{ optionId: 'opt2' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is the capital of France?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt2',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'Paris is the capital of France',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'geografia', name: 'Geografia' },
+                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                topic: { id: 'capitais', name: 'Capitais' },
+                subtopic: { id: 'europa', name: 'Europa' },
+                content: { id: 'geografia', name: 'Geografia' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+        ],
+        statistics: {
+          totalAnswered: 2,
+          correctAnswers: 2,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 100,
+        },
+      };
+
       act(() => {
         useQuizStore.getState().setBySimulated(simuladoWithLongId);
+        useQuizStore.getState().setQuestionsResult(mockQuestionResultLong);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -2804,8 +3169,77 @@ describe('useQuizStore', () => {
         questions: [questionWithNumericId, mockQuestion2],
       };
 
+      const mockQuestionResultNumeric: QuestionResult = {
+        answers: [
+          {
+            id: 'answer1',
+            questionId: '12345',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is 2 + 2?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'The answer is 4',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                subject: { id: 'algebra', name: 'Álgebra' },
+                topic: { id: 'operacoes', name: 'Operações' },
+                subtopic: { id: 'soma', name: 'Soma' },
+                content: { id: 'matematica', name: 'Matemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer2',
+            questionId: 'q2',
+            answer: 'opt2',
+            selectedOptions: [{ optionId: 'opt2' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is the capital of France?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt2',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'Paris is the capital of France',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'geografia', name: 'Geografia' },
+                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                topic: { id: 'capitais', name: 'Capitais' },
+                subtopic: { id: 'europa', name: 'Europa' },
+                content: { id: 'geografia', name: 'Geografia' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+        ],
+        statistics: {
+          totalAnswered: 2,
+          correctAnswers: 2,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 100,
+        },
+      };
+
       act(() => {
         useQuizStore.getState().setBySimulated(simuladoWithNumericId);
+        useQuizStore.getState().setQuestionsResult(mockQuestionResultNumeric);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -2826,8 +3260,47 @@ describe('useQuizStore', () => {
         questions: manyQuestions,
       };
 
+      const mockQuestionResultMany: QuestionResult = {
+        answers: Array.from({ length: 100 }, (_, index) => ({
+          id: `answer${index + 1}`,
+          questionId: `q${index + 1}`,
+          answer: 'opt1',
+          selectedOptions: [{ optionId: 'opt1' }],
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          statement: `Question ${index + 1}`,
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          correctOption: 'opt1',
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+          solutionExplanation: 'The answer is correct',
+          knowledgeMatrix: [
+            {
+              areaKnowledge: { id: 'matematica', name: 'Matemática' },
+              subject: { id: 'algebra', name: 'Álgebra' },
+              topic: { id: 'operacoes', name: 'Operações' },
+              subtopic: { id: 'soma', name: 'Soma' },
+              content: { id: 'matematica', name: 'Matemática' },
+            },
+          ],
+          teacherFeedback: null,
+          attachment: null,
+          score: 100,
+          gradedAt: '2024-01-01T00:00:00Z',
+          gradedBy: 'system',
+        })),
+        statistics: {
+          totalAnswered: 100,
+          correctAnswers: 100,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 100,
+        },
+      };
+
       act(() => {
         useQuizStore.getState().setBySimulated(simuladoWithManyQuestions);
+        useQuizStore.getState().setQuestionsResult(mockQuestionResultMany);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -2844,6 +3317,74 @@ describe('useQuizStore', () => {
     it('should handle quiz type switching correctly', () => {
       const { result } = renderHook(() => useQuizStore());
 
+      const baseQuestionResult: QuestionResult = {
+        answers: [
+          {
+            id: 'answer1',
+            questionId: 'q1',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is 2 + 2?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'The answer is 4',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                subject: { id: 'algebra', name: 'Álgebra' },
+                topic: { id: 'operacoes', name: 'Operações' },
+                subtopic: { id: 'soma', name: 'Soma' },
+                content: { id: 'matematica', name: 'Matemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer2',
+            questionId: 'q2',
+            answer: 'opt2',
+            selectedOptions: [{ optionId: 'opt2' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is the capital of France?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt2',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'Paris is the capital of France',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'geografia', name: 'Geografia' },
+                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                topic: { id: 'capitais', name: 'Capitais' },
+                subtopic: { id: 'europa', name: 'Europa' },
+                content: { id: 'geografia', name: 'Geografia' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+        ],
+        statistics: {
+          totalAnswered: 2,
+          correctAnswers: 2,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 100,
+        },
+      };
+
       // Start with bySimulated
       let questionIndex = result.current.getQuestionIndex('q1');
       expect(questionIndex).toBe(1);
@@ -2857,6 +3398,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         useQuizStore.getState().setByActivity(mockAtividade);
+        useQuizStore.getState().setQuestionsResult(baseQuestionResult);
       });
 
       questionIndex = result.current.getQuestionIndex('q1');
@@ -2871,6 +3413,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         useQuizStore.getState().setByQuestionary(mockQuestionary);
+        useQuizStore.getState().setQuestionsResult(baseQuestionResult);
       });
 
       questionIndex = result.current.getQuestionIndex('q1');
@@ -2921,14 +3464,13 @@ describe('useQuizStore', () => {
       });
     });
 
-    const mockQuestionResult = {
+    const mockQuestionResult: QuestionResult = {
       answers: [
         {
           id: 'answer1',
           questionId: 'q1',
           answer: 'opt1',
-          optionId: 'opt1',
-          selectedOptionText: '4',
+          selectedOptions: [{ optionId: 'opt1' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -2941,6 +3483,15 @@ describe('useQuizStore', () => {
             { id: 'opt1', option: '4', isCorrect: true },
             { id: 'opt2', option: '3', isCorrect: false },
           ],
+          knowledgeMatrix: [
+            {
+              areaKnowledge: { id: 'matematica', name: 'Matemática' },
+              subject: { id: 'algebra', name: 'Álgebra' },
+              topic: { id: 'operacoes', name: 'Operações' },
+              subtopic: { id: 'soma', name: 'Soma' },
+              content: { id: 'matematica', name: 'Matemática' },
+            },
+          ],
           teacherFeedback: null,
           attachment: null,
           score: 100,
@@ -2951,8 +3502,7 @@ describe('useQuizStore', () => {
           id: 'answer2',
           questionId: 'q2',
           answer: 'opt2',
-          optionId: 'opt2',
-          selectedOptionText: 'Paris',
+          selectedOptions: [{ optionId: 'opt2' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -2964,6 +3514,15 @@ describe('useQuizStore', () => {
           options: [
             { id: 'opt1', option: 'London', isCorrect: false },
             { id: 'opt2', option: 'Paris', isCorrect: true },
+          ],
+          knowledgeMatrix: [
+            {
+              areaKnowledge: { id: 'geografia', name: 'Geografia' },
+              subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+              topic: { id: 'capitais', name: 'Capitais' },
+              subtopic: { id: 'europa', name: 'Europa' },
+              content: { id: 'geografia', name: 'Geografia' },
+            },
           ],
           teacherFeedback: null,
           attachment: null,
@@ -3051,7 +3610,7 @@ describe('useQuizStore', () => {
       it('should return null when question result has no statistics', () => {
         const { result } = renderHook(() => useQuizStore());
 
-        const questionResultWithoutStats = {
+        const questionResultWithoutStats: QuestionResult = {
           answers: mockQuestionResult.answers,
           statistics: null as unknown as QuestionResult['statistics'],
         };
@@ -3114,7 +3673,7 @@ describe('useQuizStore', () => {
       it('should handle multiple answers for same question ID', () => {
         const { result } = renderHook(() => useQuizStore());
 
-        const questionResultWithDuplicates = {
+        const questionResultWithDuplicates: QuestionResult = {
           ...mockQuestionResult,
           answers: [
             ...mockQuestionResult.answers,
@@ -3223,7 +3782,7 @@ describe('useQuizStore', () => {
         ).toBe(2);
 
         // Update with different result
-        const updatedResult = {
+        const updatedResult: QuestionResult = {
           ...mockQuestionResult,
           statistics: {
             ...mockQuestionResult.statistics,

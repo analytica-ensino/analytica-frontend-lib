@@ -35,51 +35,49 @@ export interface QuestionResult {
     id: string;
     questionId: string;
     answer: string | null;
-    optionId: string;
-    selectedOptionText: string | null;
-    answerStatus: ANSWER_STATUS;
+    selectedOptions: {
+      optionId: string;
+    }[];
+    answerStatus: string;
+    statement: string;
+    questionType: string;
+    difficultyLevel: string;
+    solutionExplanation: string | null;
+    correctOption: string;
     createdAt: string;
     updatedAt: string;
-    statement: string;
-    questionType: QUESTION_TYPE;
-    correctOption: string;
-    difficultyLevel: QUESTION_DIFFICULTY;
-    solutionExplanation: string | null;
-    options: {
+    options?: {
       id: string;
       option: string;
       isCorrect: boolean;
+    }[];
+    knowledgeMatrix: {
+      areaKnowledge: {
+        id: string;
+        name: string;
+      } | null;
+      subject: {
+        id: string;
+        name: string;
+      } | null;
+      topic: {
+        id: string;
+        name: string;
+      } | null;
+      subtopic: {
+        id: string;
+        name: string;
+      } | null;
+      content: {
+        id: string;
+        name: string;
+      } | null;
     }[];
     teacherFeedback: string | null;
     attachment: string | null;
     score: number | null;
     gradedAt: string | null;
-    gradedBy: string;
-    knowledgeMatrix: {
-      areaKnowledge: {
-        id: string;
-        name: string;
-      };
-      subject: {
-        id: string;
-        name: string;
-      };
-      topic: {
-        id: string;
-        name: string;
-      };
-      subtopic: {
-        id: string;
-        name: string;
-      };
-      content: {
-        id: string;
-        name: string;
-      };
-    }[];
-    selectedOptions: {
-      optionId: string;
-    }[];
+    gradedBy: string | null;
   }[];
   statistics: {
     totalAnswered: number;
@@ -791,24 +789,44 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getQuestionsGroupedBySubject: () => {
-          const { getQuestionResult } = get();
-          const questionResult = getQuestionResult();
-          if (!questionResult) return {};
-
-          const groupedQuestions: { [key: string]: QuestionResult['answers'] } =
-            {};
-          questionResult.answers.forEach((question) => {
-            const subjectId =
-              question.knowledgeMatrix?.[0]?.subject.id || 'Sem matéria';
-
-            if (!groupedQuestions[subjectId]) {
-              groupedQuestions[subjectId] = [];
-            }
-
-            groupedQuestions[subjectId].push(question);
-          });
-
-          return groupedQuestions;
+          const { getQuestionResult, getActiveQuiz, variant } = get();
+          if(variant == 'result'){
+            const questionResult = getQuestionResult();
+            if (!questionResult) return {};
+  
+            const groupedQuestions: { [key: string]: QuestionResult['answers'] } =
+              {};
+            questionResult.answers.forEach((question) => {
+              const subjectId =
+                question.knowledgeMatrix?.[0]?.subject?.id || 'Sem matéria';
+  
+              if (!groupedQuestions[subjectId]) {
+                groupedQuestions[subjectId] = [];
+              }
+  
+              groupedQuestions[subjectId].push(question);
+            });
+  
+            return groupedQuestions;
+          } else {
+            const activeQuiz = getActiveQuiz();
+            if (!activeQuiz) return {};
+  
+            const groupedQuestions: { [key: string]: Question[] } =
+              {};
+            activeQuiz.quiz.questions.forEach((question) => {
+              const subjectId =
+                question.knowledgeMatrix?.[0]?.subject?.id || 'Sem matéria';
+  
+              if (!groupedQuestions[subjectId]) {
+                groupedQuestions[subjectId] = [];
+              }
+  
+              groupedQuestions[subjectId].push(question);
+            });
+  
+            return groupedQuestions;
+          }
         },
 
         // New methods for userAnswers
@@ -900,9 +918,9 @@ export const useQuizStore = create<QuizState>()(
           if (!questionsResult) return 0;
 
           const questionIndex = questionsResult.answers.findIndex(
-            (q) => q.id === questionId
+            (q) => q.questionId === questionId
           );
-          return questionIndex + 1;
+          return questionIndex !== -1 ? questionIndex + 1 : 0;
         },
 
         // Question Result
