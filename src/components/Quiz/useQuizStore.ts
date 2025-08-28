@@ -35,26 +35,49 @@ export interface QuestionResult {
     id: string;
     questionId: string;
     answer: string | null;
-    optionId: string;
-    selectedOptionText: string | null;
+    selectedOptions: {
+      optionId: string;
+    }[];
     answerStatus: ANSWER_STATUS;
-    createdAt: string;
-    updatedAt: string;
     statement: string;
     questionType: QUESTION_TYPE;
-    correctOption: string;
     difficultyLevel: QUESTION_DIFFICULTY;
     solutionExplanation: string | null;
-    options: {
+    correctOption: string;
+    createdAt: string;
+    updatedAt: string;
+    options?: {
       id: string;
       option: string;
       isCorrect: boolean;
+    }[];
+    knowledgeMatrix: {
+      areaKnowledge: {
+        id: string;
+        name: string;
+      } | null;
+      subject: {
+        id: string;
+        name: string;
+      } | null;
+      topic: {
+        id: string;
+        name: string;
+      } | null;
+      subtopic: {
+        id: string;
+        name: string;
+      } | null;
+      content: {
+        id: string;
+        name: string;
+      } | null;
     }[];
     teacherFeedback: string | null;
     attachment: string | null;
     score: number | null;
     gradedAt: string | null;
-    gradedBy: string;
+    gradedBy: string | null;
   }[];
   statistics: {
     totalAnswered: number;
@@ -67,7 +90,7 @@ export interface QuestionResult {
 
 export interface Question {
   id: string;
-  questionText: string;
+  statement: string;
   questionType: QUESTION_TYPE;
   difficultyLevel: QUESTION_DIFFICULTY;
   description: string;
@@ -80,14 +103,29 @@ export interface Question {
     id: string;
     option: string;
   }[];
-  correctOptionIds?: string[];
   knowledgeMatrix: {
-    areaKnowledgeId: string;
-    subjectId: string;
-    topicId: string;
-    subtopicId: string;
-    contentId: string;
+    areaKnowledge: {
+      id: string;
+      name: string;
+    };
+    subject: {
+      id: string;
+      name: string;
+    };
+    topic: {
+      id: string;
+      name: string;
+    };
+    subtopic: {
+      id: string;
+      name: string;
+    };
+    content: {
+      id: string;
+      name: string;
+    };
   }[];
+  correctOptionIds?: string[];
 }
 
 interface Simulado {
@@ -751,15 +789,18 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getQuestionsGroupedBySubject: () => {
-          const { getActiveQuiz } = get();
-          const activeQuiz = getActiveQuiz();
-          if (!activeQuiz) return {};
-
-          const groupedQuestions: { [key: string]: Question[] } = {};
-
-          activeQuiz.quiz.questions.forEach((question) => {
+          const { getQuestionResult, getActiveQuiz, variant } = get();
+          const questions =
+            variant == 'result'
+              ? getQuestionResult()?.answers
+              : getActiveQuiz()?.quiz.questions;
+          if (!questions) return {};
+          const groupedQuestions: {
+            [key: string]: (Question | QuestionResult['answers'][number])[];
+          } = {};
+          questions.forEach((question) => {
             const subjectId =
-              question.knowledgeMatrix?.[0]?.subjectId || 'Sem matéria';
+              question.knowledgeMatrix?.[0]?.subject?.id || 'Sem matéria';
 
             if (!groupedQuestions[subjectId]) {
               groupedQuestions[subjectId] = [];
@@ -802,13 +843,24 @@ export const useQuizStore = create<QuizState>()(
           return userAnswers;
         },
         setCurrentQuestion: (question) => {
-          const { getActiveQuiz } = get();
+          const { getActiveQuiz, variant, questionsResult } = get();
           const activeQuiz = getActiveQuiz();
           if (!activeQuiz) return;
-
-          const questionIndex = activeQuiz.quiz.questions.findIndex(
-            (q) => q.id === question.id
-          );
+          let questionIndex = 0;
+          if (variant == 'result') {
+            if (!questionsResult) return;
+            const questionResult =
+              questionsResult.answers.find((q) => q.id === question.id) ??
+              questionsResult.answers.find((q) => q.questionId === question.id);
+            if (!questionResult) return;
+            questionIndex = activeQuiz.quiz.questions.findIndex(
+              (q) => q.id === questionResult.questionId
+            );
+          } else {
+            questionIndex = activeQuiz.quiz.questions.findIndex(
+              (q) => q.id === question.id
+            );
+          }
 
           // Validate that the question was found before updating currentQuestionIndex
           if (questionIndex === -1) {
@@ -845,24 +897,26 @@ export const useQuizStore = create<QuizState>()(
           return userAnswer ? userAnswer.answerStatus : null;
         },
         getQuestionIndex: (questionId) => {
-          const { getActiveQuiz } = get();
-          const activeQuiz = getActiveQuiz();
-          if (!activeQuiz) return 0;
+          const { questionsResult } = get();
+          if (!questionsResult) return 0;
 
-          const questionIndex = activeQuiz.quiz.questions.findIndex(
-            (q) => q.id === questionId
+          let idx = questionsResult.answers.findIndex(
+            (q) => q.questionId === questionId
           );
-          return questionIndex + 1;
+          if (idx === -1) {
+            idx = questionsResult.answers.findIndex((q) => q.id === questionId);
+          }
+          return idx !== -1 ? idx + 1 : 0;
         },
 
         // Question Result
         getQuestionResultByQuestionId: (questionId) => {
           const { questionsResult } = get();
-          return (
-            questionsResult?.answers.find(
-              (answer) => answer.questionId === questionId
-            ) || null
+          const question = questionsResult?.answers.find(
+            (answer) => answer.questionId === questionId
           );
+
+          return question || null;
         },
         getQuestionResultStatistics: () => {
           const { questionsResult } = get();
