@@ -38,10 +38,10 @@ export interface QuestionResult {
     selectedOptions: {
       optionId: string;
     }[];
-    answerStatus: string;
+    answerStatus: ANSWER_STATUS;
     statement: string;
-    questionType: string;
-    difficultyLevel: string;
+    questionType: QUESTION_TYPE;
+    difficultyLevel: QUESTION_DIFFICULTY;
     solutionExplanation: string | null;
     correctOption: string;
     createdAt: string;
@@ -917,10 +917,13 @@ export const useQuizStore = create<QuizState>()(
           const { questionsResult } = get();
           if (!questionsResult) return 0;
 
-          const questionIndex = questionsResult.answers.findIndex(
+          let idx = questionsResult.answers.findIndex(
             (q) => q.questionId === questionId
           );
-          return questionIndex !== -1 ? questionIndex + 1 : 0;
+          if (idx === -1) {
+            idx = questionsResult.answers.findIndex((q) => q.id === questionId);
+          }
+          return idx !== -1 ? idx + 1 : 0;
         },
 
         // Question Result

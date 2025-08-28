@@ -1350,7 +1350,8 @@ const QuizQuestionList = ({
                 <BookOpen size={17} className="text-white" />
               </div>
               <p className="text-text-800 font-bold text-lg">
-                {questions[0].knowledgeMatrix[0].subject.name}
+                {questions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ??
+                  'Sem matéria'}
               </p>
             </span>
 
@@ -1854,7 +1855,9 @@ const QuizListResult = forwardRef<
 
       return {
         subject: {
-          name: questions[0].knowledgeMatrix[0].subject.name,
+          name:
+            questions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ??
+            'Sem matéria',
           id: subjectId,
         },
         correct,
@@ -1903,7 +1906,8 @@ const QuizListResultByMateria = ({
     <div className="w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6">
       <div className="flex flex-row pt-4 justify-between">
         <p className="text-text-950 font-bold text-2xl">
-          {answeredQuestions[0]?.knowledgeMatrix[0]?.subject.name}
+          {answeredQuestions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ??
+            'Sem matéria'}
         </p>
       </div>
 
@@ -1914,7 +1918,10 @@ const QuizListResultByMateria = ({
 
         <ul className="flex flex-col gap-2 pt-4">
           {answeredQuestions.map((question) => {
-            const questionIndex = getQuestionIndex(question.id);
+            const questionIndex = getQuestionIndex(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (question as any).questionId ?? question.id
+            );
             return (
               <li key={question.id}>
                 <CardStatus
