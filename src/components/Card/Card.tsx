@@ -866,6 +866,8 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(1);
     const [showVolumeControl, setShowVolumeControl] = useState(false);
+    const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+    const [playbackRate, setPlaybackRate] = useState(1);
     const audioRef = useRef<HTMLAudioElement>(null);
 
     const formatTime = (time: number) => {
@@ -928,6 +930,18 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
 
     const toggleVolumeControl = () => {
       setShowVolumeControl(!showVolumeControl);
+    };
+
+    const toggleSpeedMenu = () => {
+      setShowSpeedMenu(!showSpeedMenu);
+    };
+
+    const handleSpeedChange = (speed: number) => {
+      setPlaybackRate(speed);
+      if (audioRef.current) {
+        audioRef.current.playbackRate = speed;
+      }
+      setShowSpeedMenu(false);
     };
 
     const getVolumeIcon = () => {
@@ -1101,10 +1115,42 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
         </div>
 
         {/* Menu Button */}
-        <DotsThreeVertical
-          size={24}
-          className="text-text-950 cursor-pointer hover:text-primary-600"
-        />
+        <div className="relative">
+          <button
+            type="button"
+            onClick={toggleSpeedMenu}
+            className="cursor-pointer text-text-950 hover:text-primary-600"
+            aria-label="Opções de velocidade"
+          >
+            <DotsThreeVertical size={24} />
+          </button>
+
+          {showSpeedMenu && (
+            <div className="absolute bottom-full right-0 mb-2 p-2 bg-background border border-border-100 rounded-lg shadow-lg min-w-24 z-10">
+              <div className="flex flex-col gap-1">
+                {[
+                  { speed: 1, label: '1x' },
+                  { speed: 1.5, label: '1.5x' },
+                  { speed: 2, label: '2x' },
+                ].map(({ speed, label }) => (
+                  <button
+                    key={speed}
+                    type="button"
+                    onClick={() => handleSpeedChange(speed)}
+                    className={cn(
+                      'px-3 py-1 text-sm text-left rounded hover:bg-border-50 transition-colors',
+                      playbackRate === speed
+                        ? 'bg-primary-950 text-secondary-100 font-medium'
+                        : 'text-text-950'
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </CardBase>
     );
   }

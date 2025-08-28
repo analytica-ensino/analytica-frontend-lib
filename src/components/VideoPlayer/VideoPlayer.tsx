@@ -23,6 +23,7 @@ import Text from '../Text/Text';
 // Constants for timeout durations
 const CONTROLS_HIDE_TIMEOUT = 3000; // 3 seconds for normal control hiding
 const LEAVE_HIDE_TIMEOUT = 1000; // 1 second when mouse leaves the video area
+const INIT_DELAY = 100; // ms delay to initialize controls on mount
 
 /**
  * VideoPlayer component props interface
@@ -229,23 +230,31 @@ const VideoPlayer = ({
   const trackRef = useRef<HTMLTrackElement>(null);
   const controlsTimeoutRef = useRef<number | null>(null);
   const lastMousePositionRef = useRef({ x: 0, y: 0 });
-  const mouseMoveTimeoutRef = useRef<number | null>(null);
 
   /**
    * Check if user is currently interacting with controls
    */
   const isUserInteracting = useCallback(() => {
     // Check if speed menu is open
-    if (showSpeedMenu) return true;
+    if (showSpeedMenu) {
+      return true;
+    }
 
     // Check if any control element has focus
     const activeElement = document.activeElement;
     const videoContainer = videoRef.current?.parentElement;
 
     if (activeElement && videoContainer?.contains(activeElement)) {
+      // Ignore the video element itself - it should not prevent control hiding
+      if (activeElement === videoRef.current) {
+        return false;
+      }
+
       // Check if focused element is a control (button, input, etc.)
       const isControl = activeElement.matches('button, input, [tabindex]');
-      if (isControl) return true;
+      if (isControl) {
+        return true;
+      }
     }
 
     return false;
@@ -262,30 +271,26 @@ const VideoPlayer = ({
   }, []);
 
   /**
-   * Clear mouse move timeout
-   */
-  const clearMouseMoveTimeout = useCallback(() => {
-    if (mouseMoveTimeoutRef.current) {
-      clearTimeout(mouseMoveTimeoutRef.current);
-      mouseMoveTimeoutRef.current = null;
-    }
-  }, []);
-
-  /**
    * Show controls and set auto-hide timer
    */
   const showControlsWithTimer = useCallback(() => {
     setShowControls(true);
     clearControlsTimeout();
 
-    // Only hide controls if video is playing
-    if (isPlaying) {
-      // Use consistent timeout of 3 seconds
+    // In fullscreen mode, only hide if video is playing
+    if (isFullscreen) {
+      if (isPlaying) {
+        controlsTimeoutRef.current = window.setTimeout(() => {
+          setShowControls(false);
+        }, CONTROLS_HIDE_TIMEOUT);
+      }
+    } else {
+      // In normal mode, always set a timer to hide controls
       controlsTimeoutRef.current = window.setTimeout(() => {
         setShowControls(false);
       }, CONTROLS_HIDE_TIMEOUT);
     }
-  }, [isPlaying, clearControlsTimeout]);
+  }, [isFullscreen, isPlaying, clearControlsTimeout]);
 
   /**
    * Handle mouse move with position detection
@@ -310,19 +315,27 @@ const VideoPlayer = ({
   );
 
   /**
+   * Handle mouse enter to show controls with appropriate timer logic
+   */
+  const handleMouseEnter = useCallback(() => {
+    showControlsWithTimer();
+  }, [showControlsWithTimer]);
+
+  /**
    * Handle mouse leave to hide controls faster
    */
   const handleMouseLeave = useCallback(() => {
+    const userInteracting = isUserInteracting();
     clearControlsTimeout();
 
-    // Only hide controls if video is playing and user is not interacting
-    if (isPlaying && !isUserInteracting()) {
+    // Hide controls when mouse leaves, except when in fullscreen or user is interacting
+    if (!isFullscreen && !userInteracting) {
       // Use shorter timeout when mouse leaves
       controlsTimeoutRef.current = window.setTimeout(() => {
         setShowControls(false);
       }, LEAVE_HIDE_TIMEOUT);
     }
-  }, [isPlaying, clearControlsTimeout, isUserInteracting]);
+  }, [isFullscreen, clearControlsTimeout, isUserInteracting]);
 
   /**
    * Initialize video element properties
@@ -365,11 +378,17 @@ const VideoPlayer = ({
       // Start timer when video starts playing
       showControlsWithTimer();
     } else {
-      // Keep controls visible when paused
+      // Keep controls visible when paused only in fullscreen
       clearControlsTimeout();
-      setShowControls(true);
+      if (isFullscreen) {
+        setShowControls(true);
+      } else {
+        // In normal mode (not fullscreen), initialize timer even when paused
+        // This ensures controls will hide properly from the start
+        showControlsWithTimer();
+      }
     }
-  }, [isPlaying, showControlsWithTimer, clearControlsTimeout]);
+  }, [isPlaying, isFullscreen, showControlsWithTimer, clearControlsTimeout]);
 
   /**
    * Handle fullscreen state changes from browser events
@@ -391,6 +410,36 @@ const VideoPlayer = ({
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, [showControlsWithTimer]);
+
+  /**
+   * Initialize controls behavior on component mount
+   * This ensures controls work correctly from the first load
+   */
+  useEffect(() => {
+    const init = () => {
+      if (!isFullscreen) {
+        showControlsWithTimer();
+      }
+    };
+    // Prefer rAF to avoid arbitrary timing if available; fall back to INIT_DELAY.
+    let raf1 = 0,
+      raf2 = 0,
+      tid: number | undefined;
+    if (typeof window.requestAnimationFrame === 'function') {
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(init);
+      });
+      return () => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      };
+    } else {
+      tid = window.setTimeout(init, INIT_DELAY);
+      return () => {
+        if (tid) clearTimeout(tid);
+      };
+    }
+  }, []); // Run only once on mount
 
   /**
    * Get initial time from props or localStorage
@@ -643,9 +692,8 @@ const VideoPlayer = ({
       window.removeEventListener('blur', handleBlur);
       // Clean up timers on unmount
       clearControlsTimeout();
-      clearMouseMoveTimeout();
     };
-  }, [isPlaying, clearControlsTimeout, clearMouseMoveTimeout]);
+  }, [isPlaying, clearControlsTimeout]);
 
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -653,25 +701,15 @@ const VideoPlayer = ({
    * Calculate top controls opacity based on state
    */
   const getTopControlsOpacity = useCallback(() => {
-    if (isFullscreen) {
-      return showControls ? 'opacity-100' : 'opacity-0';
-    }
-    return !isPlaying || showControls
-      ? 'opacity-100'
-      : 'opacity-0 group-hover:opacity-100';
-  }, [isFullscreen, showControls, isPlaying]);
+    return showControls ? 'opacity-100' : 'opacity-0';
+  }, [showControls]);
 
   /**
    * Calculate bottom controls opacity based on state
    */
   const getBottomControlsOpacity = useCallback(() => {
-    if (isFullscreen) {
-      return showControls ? 'opacity-100' : 'opacity-0';
-    }
-    return !isPlaying || showControls
-      ? 'opacity-100'
-      : 'opacity-0 group-hover:opacity-100';
-  }, [isFullscreen, showControls, isPlaying]);
+    return showControls ? 'opacity-100' : 'opacity-0';
+  }, [showControls]);
 
   /**
    * Handle video element keyboard events
@@ -738,7 +776,7 @@ const VideoPlayer = ({
     <div className={cn('flex flex-col', className)}>
       {/* Integrated Header */}
       {(title || subtitleText) && (
-        <div className="bg-subject-1 rounded-t-xl px-8 py-4 flex items-end justify-between min-h-20">
+        <div className="bg-subject-1 px-8 py-4 flex items-end justify-between min-h-20">
           <div className="flex flex-col gap-1">
             {title && (
               <Text
@@ -770,7 +808,7 @@ const VideoPlayer = ({
       <section
         className={cn(
           'relative w-full bg-background overflow-hidden group',
-          title || subtitleText ? 'rounded-b-xl' : 'rounded-xl',
+          'rounded-b-xl',
           // Hide cursor when controls are hidden and video is playing
           isPlaying && !showControls
             ? 'cursor-none group-hover:cursor-default'
@@ -778,7 +816,8 @@ const VideoPlayer = ({
         )}
         aria-label={title ? `Video player: ${title}` : 'Video player'}
         onMouseMove={handleMouseMove}
-        onMouseEnter={showControlsWithTimer}
+        onMouseEnter={handleMouseEnter}
+        onTouchStart={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         {/* Video Element */}
