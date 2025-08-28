@@ -70,7 +70,7 @@ export const getStatusBadge = (status?: 'correct' | 'incorrect') => {
   }
 };
 
-const getStatusStyles = (variantCorrect?: string) => {
+export const getStatusStyles = (variantCorrect?: string) => {
   switch (variantCorrect) {
     case 'correct':
       return 'bg-success-background border-success-300';
@@ -283,9 +283,9 @@ const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
   const alternatives = currentQuestion?.options?.map((option) => {
     let status: Status = Status.NEUTRAL;
     if (variant === 'result') {
-      const isCorrectOption = currentQuestionResult?.options?.find(
-        (op) => op.id === option.id
-      )?.isCorrect || false;
+      const isCorrectOption =
+        currentQuestionResult?.options?.find((op) => op.id === option.id)
+          ?.isCorrect || false;
 
       const isSelected = currentQuestionResult?.selectedOptions.some(
         (selectedOption) => selectedOption.optionId === option.id
@@ -395,13 +395,13 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
       return selectedValues;
     }
 
-    if (
-      variant == 'result'
-    ) {
-      return currentQuestionResult?.selectedOptions.map((op) => op.optionId) || [];
+    if (variant == 'result') {
+      return (
+        currentQuestionResult?.selectedOptions.map((op) => op.optionId) || []
+      );
+    } else {
+      return prevSelectedValuesRef.current;
     }
-
-    return prevSelectedValuesRef.current;
   }, [
     selectedValues,
     currentQuestion?.id,
@@ -428,9 +428,9 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
     let status: Status = Status.NEUTRAL;
 
     if (variant === 'result') {
-      const isCorrectOption = currentQuestionResult?.options?.find(
-        (op) => op.id === option.id
-      )?.isCorrect || false;
+      const isCorrectOption =
+        currentQuestionResult?.options?.find((op) => op.id === option.id)
+          ?.isCorrect || false;
 
       const isSelected = currentQuestionResult?.selectedOptions?.some(
         (op) => op.optionId === option.id
@@ -875,7 +875,7 @@ interface FillUserAnswer {
   isCorrect: boolean;
 }
 
-const QuizFill = ({ paddingBottom = 'pb-[80px]' }: QuizVariantInterface) => {
+const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
   const { variant } = useQuizStore();
   const options = [
     'ciência',
@@ -1349,7 +1349,9 @@ const QuizQuestionList = ({
               <div className="bg-primary-500 p-1 rounded-sm flex items-center justify-center">
                 <BookOpen size={17} className="text-white" />
               </div>
-              <p className="text-text-800 font-bold text-lg">{questions[0].knowledgeMatrix[0].subject.name}</p>
+              <p className="text-text-800 font-bold text-lg">
+                {questions[0].knowledgeMatrix[0].subject.name}
+              </p>
             </span>
 
             <ul className="flex flex-col gap-2">
@@ -1943,8 +1945,10 @@ const QuizListResultByMateria = ({
 export {
   QuizHeaderResult,
   QuizTitle,
+  QuizSubTitle,
   Quiz,
   QuizHeader,
+  QuizContainer,
   QuizContent,
   QuizAlternative,
   QuizQuestionList,

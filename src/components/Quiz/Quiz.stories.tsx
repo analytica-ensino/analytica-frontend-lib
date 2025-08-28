@@ -1058,7 +1058,10 @@ export const GeneralForResults: Story = () => {
           id: 'answer5',
           questionId: 'q3-multi-correta',
           answer: null,
-          selectedOptions: [{ optionId: 'multi-opt1' }, { optionId: 'multi-opt2' }],
+          selectedOptions: [
+            { optionId: 'multi-opt1' },
+            { optionId: 'multi-opt2' },
+          ],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -1107,7 +1110,10 @@ export const GeneralForResults: Story = () => {
           id: 'answer6',
           questionId: 'q4-multi-incorreta',
           answer: null,
-          selectedOptions: [{ optionId: 'multi-opt1' }, { optionId: 'multi-opt3' }],
+          selectedOptions: [
+            { optionId: 'multi-opt1' },
+            { optionId: 'multi-opt3' },
+          ],
           answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
@@ -1818,13 +1824,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
         score: 99, // Average of all scores
       },
     });
-
-  }, [
-    setBySimulated,
-    setUserAnswers,
-    setUserId,
-    setQuestionsResult,
-  ]);
+  }, [setBySimulated, setUserAnswers, setUserId, setQuestionsResult]);
 
   const handleSubjectClick = (subject: string) => {
     console.log('Subject clicked:', subject);

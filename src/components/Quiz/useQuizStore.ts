@@ -790,41 +790,41 @@ export const useQuizStore = create<QuizState>()(
 
         getQuestionsGroupedBySubject: () => {
           const { getQuestionResult, getActiveQuiz, variant } = get();
-          if(variant == 'result'){
+          if (variant == 'result') {
             const questionResult = getQuestionResult();
             if (!questionResult) return {};
-  
-            const groupedQuestions: { [key: string]: QuestionResult['answers'] } =
-              {};
+
+            const groupedQuestions: {
+              [key: string]: QuestionResult['answers'];
+            } = {};
             questionResult.answers.forEach((question) => {
               const subjectId =
                 question.knowledgeMatrix?.[0]?.subject?.id || 'Sem matéria';
-  
+
               if (!groupedQuestions[subjectId]) {
                 groupedQuestions[subjectId] = [];
               }
-  
+
               groupedQuestions[subjectId].push(question);
             });
-  
+
             return groupedQuestions;
           } else {
             const activeQuiz = getActiveQuiz();
             if (!activeQuiz) return {};
-  
-            const groupedQuestions: { [key: string]: Question[] } =
-              {};
+
+            const groupedQuestions: { [key: string]: Question[] } = {};
             activeQuiz.quiz.questions.forEach((question) => {
               const subjectId =
                 question.knowledgeMatrix?.[0]?.subject?.id || 'Sem matéria';
-  
+
               if (!groupedQuestions[subjectId]) {
                 groupedQuestions[subjectId] = [];
               }
-  
+
               groupedQuestions[subjectId].push(question);
             });
-  
+
             return groupedQuestions;
           }
         },

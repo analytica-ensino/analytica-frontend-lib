@@ -7,6 +7,9 @@ import {
   QuestionResult,
 } from './useQuizStore';
 
+// Type alias for question answers in result context
+type QuestionAnswer = QuestionResult['answers'][0];
+
 // Mock data for testing
 const mockQuestion1 = {
   id: 'q1',
@@ -448,6 +451,31 @@ describe('useQuizStore', () => {
       expect(userAnswers).toHaveLength(0);
     });
 
+    it('should return early when selectMultipleAnswer is called without active quiz', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        // Explicitly reset quiz state and clear all quiz types
+        result.current.resetQuiz();
+        useQuizStore.setState({
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
+        });
+        // Don't set any quiz (bySimulated, byActivity, or byQuestionary)
+        result.current.setUserId('test-user-id');
+        result.current.selectMultipleAnswer('q1', ['opt1', 'opt2']);
+      });
+
+      // Verify that no user answers were created when no active quiz
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toHaveLength(0);
+
+      // Verify that the method returns early and doesn't create any user answer
+      const userAnswerItem = result.current.getUserAnswerByQuestionId('q1');
+      expect(userAnswerItem).toBeNull();
+    });
+
     it('should skip question', () => {
       const { result } = renderHook(() => useQuizStore());
 
@@ -803,6 +831,147 @@ describe('useQuizStore', () => {
 
       const { result } = renderHook(() => useQuizStore());
       expect(result.current.getUnansweredQuestions()).toEqual([]);
+    });
+
+    it('should correctly identify answered questions in getUnansweredQuestions', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1'); // Answer q1
+      });
+
+      const unanswered = result.current.getUnansweredQuestions();
+
+      // q1 should be answered (isAnswered = true), so only q2 should be unanswered
+      expect(unanswered).toEqual([2]);
+    });
+
+    it('should correctly identify skipped questions in getUnansweredQuestions', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.skipQuestion(); // Skip q1 (current question)
+      });
+
+      const unanswered = result.current.getUnansweredQuestions();
+
+      // q1 is skipped (isSkipped = true), so only q2 should be unanswered
+      expect(unanswered).toEqual([2]);
+    });
+
+    it('should return all questions when none are answered or skipped in getUnansweredQuestions', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        // Don't answer or skip any questions
+      });
+
+      const unanswered = result.current.getUnansweredQuestions();
+
+      // Both questions should be unanswered (!isAnswered && !isSkipped)
+      expect(unanswered).toEqual([1, 2]);
+    });
+
+    it('should handle questions with optionId set to non-null in getUnansweredQuestions', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1'); // This sets optionId !== null
+        result.current.goToNextQuestion();
+        result.current.selectAnswer('q2', 'opt2'); // This also sets optionId !== null
+      });
+
+      const unanswered = result.current.getUnansweredQuestions();
+
+      // Both questions have optionId !== null, so isAnswered = true for both
+      expect(unanswered).toEqual([]);
+    });
+
+    it('should handle dissertative questions with answer set to non-null in getUnansweredQuestions', () => {
+      const mockDissertativeQuestion = {
+        ...mockQuestion1,
+        id: 'dissertative-q1',
+        questionType: QUESTION_TYPE.DISSERTATIVA,
+        options: [],
+      };
+
+      const mockSimuladoWithDissertative = {
+        ...mockSimulado,
+        questions: [mockDissertativeQuestion, mockQuestion2],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.selectDissertativeAnswer(
+          'dissertative-q1',
+          'Resposta dissertativa'
+        ); // This sets answer !== null
+      });
+
+      const unanswered = result.current.getUnansweredQuestions();
+
+      // dissertative-q1 has answer !== null, so isAnswered = true, only q2 should be unanswered
+      expect(unanswered).toEqual([2]);
+    });
+
+    it('should handle questions with both optionId and answer null (skipped) in getUnansweredQuestions', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.skipQuestion(); // This sets both optionId and answer to null
+        result.current.goToNextQuestion();
+        result.current.selectAnswer('q2', 'opt2'); // Answer the second question
+      });
+
+      const unanswered = result.current.getUnansweredQuestions();
+
+      // q1 is skipped (isSkipped = true), q2 is answered (isAnswered = true)
+      // No questions should be unanswered
+      expect(unanswered).toEqual([]);
+    });
+
+    it('should handle mixed answered, skipped, and unanswered questions in getUnansweredQuestions', () => {
+      const mockQuestion3 = {
+        ...mockQuestion1,
+        id: 'q3',
+        statement: 'Third question',
+      };
+
+      const mockSimuladoWithThreeQuestions = {
+        ...mockSimulado,
+        questions: [mockQuestion1, mockQuestion2, mockQuestion3],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithThreeQuestions);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1'); // Answer q1
+        result.current.goToNextQuestion();
+        result.current.skipQuestion(); // Skip q2
+        // Leave q3 unanswered
+      });
+
+      const unanswered = result.current.getUnansweredQuestions();
+
+      // q1 is answered (isAnswered = true)
+      // q2 is skipped (isSkipped = true)
+      // q3 is neither answered nor skipped, so it should be unanswered
+      expect(unanswered).toEqual([3]);
     });
 
     it('should get skipped questions count', () => {
@@ -1164,6 +1333,148 @@ describe('useQuizStore', () => {
       expect(unanswered).toEqual([2]); // Only question 2 is unanswered
     });
 
+    it('should correctly identify answered questions with optionId in getUnansweredQuestionsFromUserAnswers', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1'); // hasAnswer = true (optionId !== null)
+      });
+
+      const unanswered = result.current.getUnansweredQuestionsFromUserAnswers();
+
+      // q1 has hasAnswer = true, so only q2 should be unanswered
+      expect(unanswered).toEqual([2]);
+    });
+
+    it('should correctly identify answered dissertative questions in getUnansweredQuestionsFromUserAnswers', () => {
+      const mockDissertativeQuestion = {
+        ...mockQuestion1,
+        id: 'dissertative-q1',
+        questionType: QUESTION_TYPE.DISSERTATIVA,
+        options: [],
+      };
+
+      const mockSimuladoWithDissertative = {
+        ...mockSimulado,
+        questions: [mockDissertativeQuestion, mockQuestion2],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.selectDissertativeAnswer(
+          'dissertative-q1',
+          'Resposta dissertativa'
+        ); // hasAnswer = true (answer !== null)
+      });
+
+      const unanswered = result.current.getUnansweredQuestionsFromUserAnswers();
+
+      // dissertative-q1 has hasAnswer = true, so only q2 should be unanswered
+      expect(unanswered).toEqual([2]);
+    });
+
+    it('should include skipped questions as unanswered in getUnansweredQuestionsFromUserAnswers', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.skipQuestion(); // Skip q1 (isSkipped = true)
+      });
+
+      const unanswered = result.current.getUnansweredQuestionsFromUserAnswers();
+
+      // q1 is skipped (isSkipped = true), q2 has no userAnswer
+      // Both should be unanswered because condition is (!hasAnswer || isSkipped)
+      expect(unanswered).toEqual([1, 2]);
+    });
+
+    it('should handle questions with no userAnswer in getUnansweredQuestionsFromUserAnswers', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        // Don't answer or skip any questions - no userAnswer exists
+      });
+
+      const unanswered = result.current.getUnansweredQuestionsFromUserAnswers();
+
+      // Both questions have no userAnswer, so !hasAnswer = true for both
+      expect(unanswered).toEqual([1, 2]);
+    });
+
+    it('should handle questions with userAnswer but both optionId and answer null in getUnansweredQuestionsFromUserAnswers', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.skipQuestion(); // This creates userAnswer with optionId=null and answer=null
+        result.current.goToNextQuestion();
+        result.current.selectAnswer('q2', 'opt2'); // Answer q2
+      });
+
+      const unanswered = result.current.getUnansweredQuestionsFromUserAnswers();
+
+      // q1: hasAnswer = false, isSkipped = true -> (!hasAnswer || isSkipped) = true
+      // q2: hasAnswer = true, isSkipped = false -> (!hasAnswer || isSkipped) = false
+      expect(unanswered).toEqual([1]);
+    });
+
+    it('should handle mixed scenarios in getUnansweredQuestionsFromUserAnswers', () => {
+      const mockQuestion3 = {
+        ...mockQuestion1,
+        id: 'q3',
+        statement: 'Third question',
+      };
+
+      const mockSimuladoWithThreeQuestions = {
+        ...mockSimulado,
+        questions: [mockQuestion1, mockQuestion2, mockQuestion3],
+      };
+
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithThreeQuestions);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1'); // Answer q1: hasAnswer = true
+        result.current.goToNextQuestion();
+        result.current.skipQuestion(); // Skip q2: isSkipped = true
+        // Leave q3 without userAnswer: !hasAnswer = true
+      });
+
+      const unanswered = result.current.getUnansweredQuestionsFromUserAnswers();
+
+      // q1: hasAnswer = true -> (!hasAnswer || isSkipped) = false
+      // q2: isSkipped = true -> (!hasAnswer || isSkipped) = true
+      // q3: !hasAnswer = true -> (!hasAnswer || isSkipped) = true
+      expect(unanswered).toEqual([2, 3]);
+    });
+
+    it('should return empty array when all questions are answered in getUnansweredQuestionsFromUserAnswers', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.selectAnswer('q1', 'opt1'); // Answer q1
+        result.current.goToNextQuestion();
+        result.current.selectAnswer('q2', 'opt2'); // Answer q2
+      });
+
+      const unanswered = result.current.getUnansweredQuestionsFromUserAnswers();
+
+      // Both questions have hasAnswer = true, so no questions should be unanswered
+      expect(unanswered).toEqual([]);
+    });
+
     it('should get questions grouped by subject', () => {
       const { result } = renderHook(() => useQuizStore());
 
@@ -1198,6 +1509,365 @@ describe('useQuizStore', () => {
 
       expect(grouped).toHaveProperty('Sem matéria');
       expect(grouped['Sem matéria']).toHaveLength(1);
+    });
+
+    it('should get questions grouped by subject with result variant', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      const mockQuestionResultForGrouping: QuestionResult = {
+        answers: [
+          {
+            id: 'answer1',
+            questionId: 'q1',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is 2 + 2?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'The answer is 4',
+            options: [
+              { id: 'opt1', option: '4', isCorrect: true },
+              { id: 'opt2', option: '3', isCorrect: false },
+            ],
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                subject: { id: 'algebra', name: 'Álgebra' },
+                topic: { id: 'operacoes', name: 'Operações' },
+                subtopic: { id: 'soma', name: 'Soma' },
+                content: { id: 'matematica', name: 'Matemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer2',
+            questionId: 'q2',
+            answer: 'opt2',
+            selectedOptions: [{ optionId: 'opt2' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is the capital of France?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt2',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'Paris is the capital of France',
+            options: [
+              { id: 'opt1', option: 'London', isCorrect: false },
+              { id: 'opt2', option: 'Paris', isCorrect: true },
+            ],
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'geografia', name: 'Geografia' },
+                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                topic: { id: 'capitais', name: 'Capitais' },
+                subtopic: { id: 'europa', name: 'Europa' },
+                content: { id: 'geografia', name: 'Geografia' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer3',
+            questionId: 'q3',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'Another math question',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+            solutionExplanation: 'Another math explanation',
+            options: [
+              { id: 'opt1', option: 'correct', isCorrect: true },
+              { id: 'opt2', option: 'wrong', isCorrect: false },
+            ],
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                subject: { id: 'algebra', name: 'Álgebra' },
+                topic: { id: 'equacoes', name: 'Equações' },
+                subtopic: { id: 'linear', name: 'Linear' },
+                content: { id: 'matematica', name: 'Matemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 90,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+        ],
+        statistics: {
+          totalAnswered: 3,
+          correctAnswers: 3,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 96.67,
+        },
+      };
+
+      act(() => {
+        result.current.setVariant('result');
+        result.current.setQuestionsResult(mockQuestionResultForGrouping);
+      });
+
+      const grouped = result.current.getQuestionsGroupedBySubject();
+
+      expect(grouped).toHaveProperty('algebra');
+      expect(grouped).toHaveProperty('geografia-geral');
+      expect(grouped.algebra).toHaveLength(2); // Two algebra questions
+      expect(grouped['geografia-geral']).toHaveLength(1); // One geography question
+
+      // Verify the grouped questions are from QuestionResult.answers
+      expect(grouped.algebra[0]).toHaveProperty('questionId', 'q1');
+      expect(grouped.algebra[1]).toHaveProperty('questionId', 'q3');
+      expect(grouped['geografia-geral'][0]).toHaveProperty('questionId', 'q2');
+    });
+
+    it('should handle questions without knowledge matrix in result variant', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      const mockQuestionResultWithoutMatrix: QuestionResult = {
+        answers: [
+          {
+            id: 'answer1',
+            questionId: 'q1',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'Question without knowledge matrix',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'Explanation',
+            options: [
+              { id: 'opt1', option: 'correct', isCorrect: true },
+              { id: 'opt2', option: 'wrong', isCorrect: false },
+            ],
+            knowledgeMatrix: [], // Empty knowledge matrix
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+        ],
+        statistics: {
+          totalAnswered: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 100,
+        },
+      };
+
+      act(() => {
+        result.current.setVariant('result');
+        result.current.setQuestionsResult(mockQuestionResultWithoutMatrix);
+      });
+
+      const grouped = result.current.getQuestionsGroupedBySubject();
+
+      expect(grouped).toHaveProperty('Sem matéria');
+      expect(grouped['Sem matéria']).toHaveLength(1);
+      expect(grouped['Sem matéria'][0]).toHaveProperty('questionId', 'q1');
+    });
+
+    it('should return empty object when no question result is set in result variant', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setVariant('result');
+        // Don't set questionsResult
+      });
+
+      const grouped = result.current.getQuestionsGroupedBySubject();
+
+      expect(grouped).toEqual({});
+    });
+
+    it('should return empty object when question result is null in result variant', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setVariant('result');
+        result.current.setQuestionsResult(null as unknown as QuestionResult);
+      });
+
+      const grouped = result.current.getQuestionsGroupedBySubject();
+
+      expect(grouped).toEqual({});
+    });
+
+    it('should handle mixed subjects correctly in result variant', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      const mockQuestionResultMixed: QuestionResult = {
+        answers: [
+          {
+            id: 'answer1',
+            questionId: 'q1',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'Math question',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'Math explanation',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                subject: { id: 'algebra', name: 'Álgebra' },
+                topic: { id: 'operacoes', name: 'Operações' },
+                subtopic: { id: 'soma', name: 'Soma' },
+                content: { id: 'matematica', name: 'Matemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer2',
+            questionId: 'q2',
+            answer: 'opt2',
+            selectedOptions: [{ optionId: 'opt2' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'Geography question',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt2',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'Geography explanation',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'geografia', name: 'Geografia' },
+                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                topic: { id: 'capitais', name: 'Capitais' },
+                subtopic: { id: 'europa', name: 'Europa' },
+                content: { id: 'geografia', name: 'Geografia' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer3',
+            questionId: 'q3',
+            answer: null,
+            selectedOptions: [],
+            answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'Question without subject',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'No subject explanation',
+            knowledgeMatrix: [], // No knowledge matrix
+            teacherFeedback: null,
+            attachment: null,
+            score: 0,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'answer4',
+            questionId: 'q4',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'Another math question',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+            solutionExplanation: 'Another math explanation',
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                subject: { id: 'algebra', name: 'Álgebra' },
+                topic: { id: 'equacoes', name: 'Equações' },
+                subtopic: { id: 'quadratica', name: 'Quadrática' },
+                content: { id: 'matematica', name: 'Matemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+        ],
+        statistics: {
+          totalAnswered: 4,
+          correctAnswers: 3,
+          incorrectAnswers: 0,
+          pendingAnswers: 1,
+          score: 75,
+        },
+      };
+
+      act(() => {
+        result.current.setVariant('result');
+        result.current.setQuestionsResult(mockQuestionResultMixed);
+      });
+
+      const grouped = result.current.getQuestionsGroupedBySubject();
+
+      expect(grouped).toHaveProperty('algebra');
+      expect(grouped).toHaveProperty('geografia-geral');
+      expect(grouped).toHaveProperty('Sem matéria');
+
+      expect(grouped.algebra).toHaveLength(2); // Two algebra questions
+      expect(grouped['geografia-geral']).toHaveLength(1); // One geography question
+      expect(grouped['Sem matéria']).toHaveLength(1); // One question without subject
+
+      // Verify question IDs (cast to QuestionAnswer[] since we're using result variant)
+      expect(
+        (grouped.algebra as unknown as QuestionAnswer[]).map(
+          (q) => q.questionId
+        )
+      ).toContain('q1');
+      expect(
+        (grouped.algebra as unknown as QuestionAnswer[]).map(
+          (q) => q.questionId
+        )
+      ).toContain('q4');
+      expect(
+        (grouped['geografia-geral'][0] as unknown as QuestionAnswer).questionId
+      ).toBe('q2');
+      expect(
+        (grouped['Sem matéria'][0] as unknown as QuestionAnswer).questionId
+      ).toBe('q3');
     });
   });
 
@@ -2290,6 +2960,33 @@ describe('useQuizStore', () => {
       expect(result.current.currentQuestionIndex).toBe(initialIndex);
     });
 
+    it('should return early when setCurrentQuestion is called without active quiz', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        // Explicitly reset all quiz types to ensure no active quiz
+        result.current.resetQuiz();
+        useQuizStore.setState({
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
+        });
+      });
+
+      const initialIndex = result.current.currentQuestionIndex;
+
+      act(() => {
+        result.current.setCurrentQuestion(mockQuestion1);
+      });
+
+      // Verify that no state was changed when no active quiz
+      expect(result.current.currentQuestionIndex).toBe(initialIndex);
+      expect(useQuizStore.getState().currentQuestionIndex).toBe(initialIndex);
+
+      // Verify getActiveQuiz returns null
+      expect(result.current.getActiveQuiz()).toBeNull();
+    });
+
     it('should not change current question index when question does not exist in quiz', () => {
       const { result } = renderHook(() => useQuizStore());
       const consoleSpy = jest
@@ -2332,6 +3029,148 @@ describe('useQuizStore', () => {
       });
 
       expect(result.current.currentQuestionIndex).toBe(0);
+    });
+
+    it('should work with result variant', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      // Create a mock question result that matches the expected structure
+      const mockQuestionResultForVariant: QuestionResult = {
+        answers: [
+          {
+            id: 'result-answer-1',
+            questionId: 'q1',
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is 2 + 2?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'The answer is 4',
+            options: [
+              { id: 'opt1', option: '4', isCorrect: true },
+              { id: 'opt2', option: '3', isCorrect: false },
+            ],
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                subject: { id: 'algebra', name: 'Álgebra' },
+                topic: { id: 'operacoes', name: 'Operações' },
+                subtopic: { id: 'soma', name: 'Soma' },
+                content: { id: 'matematica', name: 'Matemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+          {
+            id: 'result-answer-2',
+            questionId: 'q2',
+            answer: 'opt2',
+            selectedOptions: [{ optionId: 'opt2' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is the capital of France?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt2',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'Paris is the capital of France',
+            options: [
+              { id: 'opt1', option: 'London', isCorrect: false },
+              { id: 'opt2', option: 'Paris', isCorrect: true },
+            ],
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'geografia', name: 'Geografia' },
+                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                topic: { id: 'capitais', name: 'Capitais' },
+                subtopic: { id: 'europa', name: 'Europa' },
+                content: { id: 'geografia', name: 'Geografia' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+        ],
+        statistics: {
+          totalAnswered: 2,
+          correctAnswers: 2,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 100,
+        },
+      };
+
+      // Create a question that matches the result structure
+      const questionForResult = {
+        ...mockQuestion1,
+        id: 'result-answer-2', // This should match the id in questionsResult.answers
+      };
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setVariant('result');
+        result.current.setQuestionsResult(mockQuestionResultForVariant);
+        result.current.setCurrentQuestion(questionForResult);
+      });
+
+      // Should set to index 1 (second question) because the questionResult
+      // with id 'result-answer-2' has questionId 'q2' which is at index 1
+      expect(result.current.currentQuestionIndex).toBe(1);
+    });
+
+    it('should not change index when questionsResult is not set in result variant', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const initialIndex = result.current.currentQuestionIndex;
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setVariant('result');
+        // Don't set questionsResult
+        result.current.setCurrentQuestion(mockQuestion1);
+      });
+
+      expect(result.current.currentQuestionIndex).toBe(initialIndex);
+    });
+
+    it('should not change index when question result is not found in result variant', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const initialIndex = result.current.currentQuestionIndex;
+
+      const mockQuestionResultEmpty: QuestionResult = {
+        answers: [],
+        statistics: {
+          totalAnswered: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 0,
+        },
+      };
+
+      const questionNotInResult = {
+        ...mockQuestion1,
+        id: 'non-existent-result-id',
+      };
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setVariant('result');
+        result.current.setQuestionsResult(mockQuestionResultEmpty);
+        result.current.setCurrentQuestion(questionNotInResult);
+      });
+
+      expect(result.current.currentQuestionIndex).toBe(initialIndex);
     });
   });
 
@@ -2387,6 +3226,42 @@ describe('useQuizStore', () => {
       expect(userAnswer?.answer).toBe('Outra resposta dissertativa');
       expect(userAnswer?.optionId).toBeNull();
       expect(userAnswer?.questionType).toBe(QUESTION_TYPE.DISSERTATIVA);
+    });
+
+    it('should handle undefined answerId for dissertative questions in addUserAnswer', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.addUserAnswer('dissertative-q1', undefined);
+      });
+
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.answer).toBeNull(); // answerId || null when answerId is undefined
+      expect(userAnswer?.optionId).toBeNull();
+      expect(userAnswer?.questionType).toBe(QUESTION_TYPE.DISSERTATIVA);
+      expect(userAnswer?.answerStatus).toBe(ANSWER_STATUS.PENDENTE_AVALIACAO);
+    });
+
+    it('should handle empty string answerId for dissertative questions in addUserAnswer', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.setBySimulated(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.addUserAnswer('dissertative-q1', '');
+      });
+
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.answer).toBeNull(); // '' || null results in null
+      expect(userAnswer?.optionId).toBeNull();
+      expect(userAnswer?.questionType).toBe(QUESTION_TYPE.DISSERTATIVA);
+      expect(userAnswer?.answerStatus).toBe(ANSWER_STATUS.PENDENTE_AVALIACAO);
     });
 
     it('should use selectDissertativeAnswer for dissertative questions', () => {
@@ -2573,6 +3448,35 @@ describe('useQuizStore', () => {
       expect(userAnswer?.optionId).toBeNull();
       expect(userAnswer?.questionType).toBe(QUESTION_TYPE.DISSERTATIVA);
       expect(userAnswer?.answerStatus).toBe(ANSWER_STATUS.PENDENTE_AVALIACAO);
+    });
+
+    it('should return early when selectDissertativeAnswer is called without active quiz', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        // Explicitly reset quiz state and clear all quiz types
+        result.current.resetQuiz();
+        useQuizStore.setState({
+          bySimulated: undefined,
+          byActivity: undefined,
+          byQuestionary: undefined,
+        });
+        // Don't set any quiz (bySimulated, byActivity, or byQuestionary)
+        result.current.setUserId('test-user-id');
+        result.current.selectDissertativeAnswer(
+          'dissertative-q1',
+          'Resposta dissertativa sem quiz'
+        );
+      });
+
+      // Verify that no user answers were created when no active quiz
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toHaveLength(0);
+
+      // Verify that the method returns early and doesn't create any user answer
+      const userAnswerItem =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswerItem).toBeNull();
     });
   });
 
@@ -2953,7 +3857,9 @@ describe('useQuizStore', () => {
 
       act(() => {
         useQuizStore.getState().setByQuestionary(mockQuestionary);
-        useQuizStore.getState().setQuestionsResult(mockQuestionResultQuestionary);
+        useQuizStore
+          .getState()
+          .setQuestionsResult(mockQuestionResultQuestionary);
       });
 
       const { result } = renderHook(() => useQuizStore());
@@ -3561,6 +4467,191 @@ describe('useQuizStore', () => {
         });
 
         expect(useQuizStore.getState().questionsResult).toBeNull();
+      });
+    });
+
+    describe('setQuestionResult', () => {
+      it('should set question result data', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setQuestionResult(mockQuestionResult);
+        });
+
+        expect(useQuizStore.getState().questionsResult).toEqual(
+          mockQuestionResult
+        );
+      });
+
+      it('should handle null question result', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setQuestionResult(null as unknown as QuestionResult);
+        });
+
+        expect(useQuizStore.getState().questionsResult).toBeNull();
+      });
+
+      it('should replace existing question result when called multiple times', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const firstQuestionResult: QuestionResult = {
+          answers: [
+            {
+              id: 'answer1',
+              questionId: 'q1',
+              answer: 'opt1',
+              selectedOptions: [{ optionId: 'opt1' }],
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              statement: 'First question',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+              solutionExplanation: 'First explanation',
+              knowledgeMatrix: [
+                {
+                  areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                  subject: { id: 'algebra', name: 'Álgebra' },
+                  topic: { id: 'operacoes', name: 'Operações' },
+                  subtopic: { id: 'soma', name: 'Soma' },
+                  content: { id: 'matematica', name: 'Matemática' },
+                },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 100,
+              gradedAt: '2024-01-01T00:00:00Z',
+              gradedBy: 'system',
+            },
+          ],
+          statistics: {
+            totalAnswered: 1,
+            correctAnswers: 1,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 100,
+          },
+        };
+
+        const secondQuestionResult: QuestionResult = {
+          answers: [
+            {
+              id: 'answer2',
+              questionId: 'q2',
+              answer: 'opt2',
+              selectedOptions: [{ optionId: 'opt2' }],
+              answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+              createdAt: '2024-01-02T00:00:00Z',
+              updatedAt: '2024-01-02T00:00:00Z',
+              statement: 'Second question',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+              correctOption: 'opt1',
+              difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+              solutionExplanation: 'Second explanation',
+              knowledgeMatrix: [
+                {
+                  areaKnowledge: { id: 'geografia', name: 'Geografia' },
+                  subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                  topic: { id: 'capitais', name: 'Capitais' },
+                  subtopic: { id: 'europa', name: 'Europa' },
+                  content: { id: 'geografia', name: 'Geografia' },
+                },
+              ],
+              teacherFeedback: null,
+              attachment: null,
+              score: 0,
+              gradedAt: '2024-01-02T00:00:00Z',
+              gradedBy: 'system',
+            },
+          ],
+          statistics: {
+            totalAnswered: 1,
+            correctAnswers: 0,
+            incorrectAnswers: 1,
+            pendingAnswers: 0,
+            score: 0,
+          },
+        };
+
+        // Set first result
+        act(() => {
+          result.current.setQuestionResult(firstQuestionResult);
+        });
+
+        expect(useQuizStore.getState().questionsResult).toEqual(
+          firstQuestionResult
+        );
+
+        // Set second result (should replace the first)
+        act(() => {
+          result.current.setQuestionResult(secondQuestionResult);
+        });
+
+        expect(useQuizStore.getState().questionsResult).toEqual(
+          secondQuestionResult
+        );
+        expect(useQuizStore.getState().questionsResult).not.toEqual(
+          firstQuestionResult
+        );
+      });
+
+      it('should handle undefined question result', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setQuestionResult(
+            undefined as unknown as QuestionResult
+          );
+        });
+
+        expect(useQuizStore.getState().questionsResult).toBeUndefined();
+      });
+
+      it('should handle empty question result', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const emptyQuestionResult: QuestionResult = {
+          answers: [],
+          statistics: {
+            totalAnswered: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 0,
+          },
+        };
+
+        act(() => {
+          result.current.setQuestionResult(emptyQuestionResult);
+        });
+
+        expect(useQuizStore.getState().questionsResult).toEqual(
+          emptyQuestionResult
+        );
+        expect(useQuizStore.getState().questionsResult?.answers).toHaveLength(
+          0
+        );
+        expect(
+          useQuizStore.getState().questionsResult?.statistics.totalAnswered
+        ).toBe(0);
+      });
+
+      it('should persist question result data across store access', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setQuestionResult(mockQuestionResult);
+        });
+
+        // Access through store state
+        const storeState = useQuizStore.getState();
+        expect(storeState.questionsResult).toEqual(mockQuestionResult);
+
+        // Access through hook
+        expect(result.current.getQuestionResult()).toEqual(mockQuestionResult);
       });
     });
 
