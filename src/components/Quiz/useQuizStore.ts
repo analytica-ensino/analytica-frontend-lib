@@ -790,43 +790,26 @@ export const useQuizStore = create<QuizState>()(
 
         getQuestionsGroupedBySubject: () => {
           const { getQuestionResult, getActiveQuiz, variant } = get();
-          if (variant == 'result') {
-            const questionResult = getQuestionResult();
-            if (!questionResult) return {};
+          const questions =
+            variant == 'result'
+              ? getQuestionResult()?.answers
+              : getActiveQuiz()?.quiz.questions;
+          if (!questions) return {};
+          const groupedQuestions: {
+            [key: string]: (Question | QuestionResult['answers'][number])[];
+          } = {};
+          questions.forEach((question) => {
+            const subjectId =
+              question.knowledgeMatrix?.[0]?.subject?.id || 'Sem matéria';
 
-            const groupedQuestions: {
-              [key: string]: QuestionResult['answers'];
-            } = {};
-            questionResult.answers.forEach((question) => {
-              const subjectId =
-                question.knowledgeMatrix?.[0]?.subject?.id || 'Sem matéria';
+            if (!groupedQuestions[subjectId]) {
+              groupedQuestions[subjectId] = [];
+            }
 
-              if (!groupedQuestions[subjectId]) {
-                groupedQuestions[subjectId] = [];
-              }
+            groupedQuestions[subjectId].push(question);
+          });
 
-              groupedQuestions[subjectId].push(question);
-            });
-
-            return groupedQuestions;
-          } else {
-            const activeQuiz = getActiveQuiz();
-            if (!activeQuiz) return {};
-
-            const groupedQuestions: { [key: string]: Question[] } = {};
-            activeQuiz.quiz.questions.forEach((question) => {
-              const subjectId =
-                question.knowledgeMatrix?.[0]?.subject?.id || 'Sem matéria';
-
-              if (!groupedQuestions[subjectId]) {
-                groupedQuestions[subjectId] = [];
-              }
-
-              groupedQuestions[subjectId].push(question);
-            });
-
-            return groupedQuestions;
-          }
+          return groupedQuestions;
         },
 
         // New methods for userAnswers
@@ -866,9 +849,9 @@ export const useQuizStore = create<QuizState>()(
           let questionIndex = 0;
           if (variant == 'result') {
             if (!questionsResult) return;
-            const questionResult = questionsResult.answers.find(
-              (q) => q.id === question.id
-            );
+            const questionResult =
+              questionsResult.answers.find((q) => q.id === question.id) ??
+              questionsResult.answers.find((q) => q.questionId === question.id);
             if (!questionResult) return;
             questionIndex = activeQuiz.quiz.questions.findIndex(
               (q) => q.id === questionResult.questionId

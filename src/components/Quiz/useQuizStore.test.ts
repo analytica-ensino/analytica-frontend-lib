@@ -3172,6 +3172,72 @@ describe('useQuizStore', () => {
 
       expect(result.current.currentQuestionIndex).toBe(initialIndex);
     });
+
+    it('should work with result variant when answer.id does not match but questionId does', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      // Create a mock question result where answer.id is different from question.id
+      // but answer.questionId matches question.id (testing the fallback logic)
+      const mockQuestionResultForFallback: QuestionResult = {
+        answers: [
+          {
+            id: 'different-answer-id', // This doesn't match question.id
+            questionId: 'q1', // But this matches question.id
+            answer: 'opt1',
+            selectedOptions: [{ optionId: 'opt1' }],
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            statement: 'What is 2 + 2?',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            correctOption: 'opt1',
+            difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            solutionExplanation: 'The answer is 4',
+            options: [
+              { id: 'opt1', option: '4', isCorrect: true },
+              { id: 'opt2', option: '3', isCorrect: false },
+            ],
+            knowledgeMatrix: [
+              {
+                areaKnowledge: { id: 'matematica', name: 'Matemática' },
+                subject: { id: 'algebra', name: 'Álgebra' },
+                topic: { id: 'operacoes', name: 'Operações' },
+                subtopic: { id: 'soma', name: 'Soma' },
+                content: { id: 'matematica', name: 'Matemática' },
+              },
+            ],
+            teacherFeedback: null,
+            attachment: null,
+            score: 100,
+            gradedAt: '2024-01-01T00:00:00Z',
+            gradedBy: 'system',
+          },
+        ],
+        statistics: {
+          totalAnswered: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 0,
+          pendingAnswers: 0,
+          score: 100,
+        },
+      };
+
+      // Create a question with id 'q1' that will match answer.questionId but not answer.id
+      const questionForFallback = {
+        ...mockQuestion1,
+        id: 'q1', // This matches answer.questionId but not answer.id
+      };
+
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setVariant('result');
+        result.current.setQuestionsResult(mockQuestionResultForFallback);
+        result.current.setCurrentQuestion(questionForFallback);
+      });
+
+      // Should set to index 0 because q1 is the first question in mockSimulado
+      expect(result.current.currentQuestionIndex).toBe(0);
+    });
   });
 
   describe('Dissertative Answer Tests', () => {
