@@ -1425,7 +1425,7 @@ const QuizFooter = forwardRef<
     const [modalResultOpen, setModalResultOpen] = useState(false);
     const [modalNavigateOpen, setModalNavigateOpen] = useState(false);
     const [modalResolutionOpen, setModalResolutionOpen] = useState(false);
-    const [filterType, setFilterType] = useState('all');
+    const [filterType, setFilterType] = useState<string | undefined>(undefined);
     const unansweredQuestions = getUnansweredQuestionsFromUserAnswers();
     const allQuestions = getTotalQuestions();
 
@@ -1442,7 +1442,7 @@ const QuizFooter = forwardRef<
         setModalResultOpen(true);
       } catch (err) {
         console.error('handleFinishSimulated failed:', err);
-        setModalResultOpen(true);
+        return;
       }
     };
 
@@ -1455,8 +1455,8 @@ const QuizFooter = forwardRef<
         setAlertDialogOpen(false);
       } catch (err) {
         console.error('handleFinishSimulated failed:', err);
-        setModalResultOpen(true);
         setAlertDialogOpen(false);
+        return;
       }
     };
 
