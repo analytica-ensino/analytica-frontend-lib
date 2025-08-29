@@ -132,6 +132,21 @@ import {
 } from './components/Quiz/Quiz';
 import { useQuizStore } from './components/Quiz/useQuizStore';
 
+// Import Quiz types
+import type {
+  QuestionResult,
+  Question,
+  UserAnswerItem,
+  QuizState,
+  Simulated,
+  Activity,
+  Lesson,
+  QUESTION_DIFFICULTY,
+  QUESTION_TYPE,
+  QUESTION_STATUS,
+  ANSWER_STATUS,
+} from './components/Quiz/useQuizStore';
+
 // Export all components for bundled usage
 export { Text };
 export { Button };
@@ -247,6 +262,19 @@ export { QuizResultTitle };
 export { QuizResultPerformance };
 export { QuizListResultByMateria };
 export { getStatusBadge };
+
+// Export Quiz types
+export type { QUESTION_DIFFICULTY };
+export type { QUESTION_TYPE };
+export type { QUESTION_STATUS };
+export type { ANSWER_STATUS };
+export type { QuestionResult };
+export type { Question };
+export type { UserAnswerItem };
+export type { QuizState };
+export type { Simulated };
+export type { Activity };
+export type { Lesson };
 
 export { MultipleChoiceList };
 export { IconRender };

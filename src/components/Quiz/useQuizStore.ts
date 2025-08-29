@@ -90,7 +90,7 @@ export interface Question {
   }[];
 }
 
-interface Simulado {
+export interface Simulated {
   id: string;
   title: string;
   type: string;
@@ -106,19 +106,19 @@ interface Simulado {
   questions: Question[];
 }
 
-interface Atividade {
+export interface Activity {
   id: string;
   title: string;
   questions: Question[];
 }
 
-interface Aula {
+export interface Lesson {
   id: string;
   title: string;
   questions: Question[];
 }
 
-interface UserAnswerItem {
+export interface UserAnswerItem {
   questionId: string;
   activityId: string;
   userId: string;
@@ -128,11 +128,11 @@ interface UserAnswerItem {
   answerStatus: ANSWER_STATUS;
 }
 
-interface QuizState {
+export interface QuizState {
   // Data
-  bySimulated?: Simulado;
-  byActivity?: Atividade;
-  byQuestionary?: Aula;
+  bySimulated?: Simulated;
+  byActivity?: Activity;
+  byQuestionary?: Lesson;
 
   // UI State
   currentQuestionIndex: number;
@@ -144,9 +144,9 @@ interface QuizState {
   userId: string;
   variant: 'result' | 'default';
   // Actions
-  setBySimulated: (simulado: Simulado) => void;
-  setByActivity: (atividade: Atividade) => void;
-  setByQuestionary: (aula: Aula) => void;
+  setBySimulated: (simulated: Simulated) => void;
+  setByActivity: (activity: Activity) => void;
+  setByQuestionary: (lesson: Lesson) => void;
   setQuestionResult: (questionResult: QuestionResult) => void;
   setUserId: (userId: string) => void;
   setUserAnswers: (userAnswers: UserAnswerItem[]) => void;
@@ -156,7 +156,7 @@ interface QuizState {
   goToPreviousQuestion: () => void;
   goToQuestion: (index: number) => void;
   getActiveQuiz: () => {
-    quiz: Simulado | Atividade | Aula;
+    quiz: Simulated | Activity | Lesson;
     type: 'bySimulated' | 'byActivity' | 'byQuestionary';
   } | null;
 
@@ -261,9 +261,9 @@ export const useQuizStore = create<QuizState>()(
         questionsResult: null,
         currentQuestionResult: null,
         // Setters
-        setBySimulated: (simulado) => set({ bySimulated: simulado }),
-        setByActivity: (atividade) => set({ byActivity: atividade }),
-        setByQuestionary: (aula) => set({ byQuestionary: aula }),
+        setBySimulated: (simulated) => set({ bySimulated: simulated }),
+        setByActivity: (activity) => set({ byActivity: activity }),
+        setByQuestionary: (lesson) => set({ byQuestionary: lesson }),
         setUserId: (userId) => set({ userId }),
         setUserAnswers: (userAnswers) => set({ userAnswers }),
         getUserId: () => get().userId,
