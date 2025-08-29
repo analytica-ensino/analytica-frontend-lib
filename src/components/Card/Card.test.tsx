@@ -1201,11 +1201,54 @@ describe('CardAudio', () => {
   it('should render menu button (DotsThreeVertical icon)', () => {
     render(<CardAudio {...baseProps} />);
 
-    // The menu button is the DotsThreeVertical icon
-    const menuIcon = screen.getByRole('button', { name: /controle de volume/i })
-      .parentElement?.nextElementSibling;
-    expect(menuIcon).toBeInTheDocument();
-    expect(menuIcon?.tagName).toBe('svg');
+    // The menu button is now a button with DotsThreeVertical icon
+    const menuButton = screen.getByRole('button', {
+      name: /opções de velocidade/i,
+    });
+    expect(menuButton).toBeInTheDocument();
+    expect(menuButton).toHaveAttribute('aria-label', 'Opções de velocidade');
+  });
+
+  it('should toggle speed menu when menu button is clicked', () => {
+    render(<CardAudio {...baseProps} />);
+
+    const menuButton = screen.getByRole('button', {
+      name: /opções de velocidade/i,
+    });
+
+    // Initially menu should not be visible
+    expect(screen.queryByText('1x')).not.toBeInTheDocument();
+    expect(screen.queryByText('1.5x')).not.toBeInTheDocument();
+    expect(screen.queryByText('2x')).not.toBeInTheDocument();
+
+    // Click to show menu
+    fireEvent.click(menuButton);
+
+    expect(screen.getByText('1x')).toBeInTheDocument();
+    expect(screen.getByText('1.5x')).toBeInTheDocument();
+    expect(screen.getByText('2x')).toBeInTheDocument();
+  });
+
+  it('should change playback rate when speed option is selected', () => {
+    render(<CardAudio {...baseProps} />);
+
+    const menuButton = screen.getByRole('button', {
+      name: /opções de velocidade/i,
+    });
+    const audio = screen.getByTestId('audio-element') as HTMLAudioElement;
+
+    // Open speed menu
+    fireEvent.click(menuButton);
+
+    // Select 1.5x speed
+    const speedButton = screen.getByText('1.5x');
+    fireEvent.click(speedButton);
+
+    // Check if playback rate was set
+    expect(audio.playbackRate).toBe(1.5);
+
+    // Menu should be closed after selection
+    expect(screen.queryByText('1x')).not.toBeInTheDocument();
   });
 
   it('should handle loop prop', () => {
