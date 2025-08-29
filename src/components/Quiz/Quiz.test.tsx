@@ -4102,7 +4102,7 @@ describe('Quiz', () => {
         expect(mockHandleFinishSimulated).toHaveBeenCalled();
       });
 
-      it('should show result modal even when handleFinishSimulated throws error', async () => {
+      it('should not show result modal when handleFinishSimulated throws error', async () => {
         const mockHandleFinishSimulated = jest
           .fn()
           .mockRejectedValue(new Error('Test error'));
@@ -4124,7 +4124,7 @@ describe('Quiz', () => {
           'handleFinishSimulated failed:',
           expect.any(Error)
         );
-        expect(screen.getByTestId('quiz-modal')).toBeInTheDocument();
+        expect(screen.queryByTestId('quiz-modal')).not.toBeInTheDocument();
 
         consoleSpy.mockRestore();
       });
@@ -4158,7 +4158,7 @@ describe('Quiz', () => {
         expect(screen.getByTestId('quiz-modal')).toBeInTheDocument();
       });
 
-      it('should handle handleFinishSimulated error in alert submit and still show result modal', async () => {
+      it('should handle handleFinishSimulated error in alert submit and not show result modal', async () => {
         const mockHandleFinishSimulated = jest
           .fn()
           .mockRejectedValue(new Error('Simulated failure'));
@@ -4194,11 +4194,8 @@ describe('Quiz', () => {
           expect.any(Error)
         );
 
-        // 2. setModalResultOpen(true) is called
-        expect(screen.getByTestId('quiz-modal')).toBeInTheDocument();
-        expect(
-          screen.getByText('Você concluiu o simulado!')
-        ).toBeInTheDocument();
+        // 2. setModalResultOpen(true) is NOT called due to early return
+        expect(screen.queryByTestId('quiz-modal')).not.toBeInTheDocument();
 
         // 3. setAlertDialogOpen(false) is called
         expect(screen.queryByTestId('alert-dialog')).not.toBeInTheDocument();
