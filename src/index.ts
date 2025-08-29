@@ -248,5 +248,22 @@ export { QuizResultPerformance };
 export { QuizListResultByMateria };
 export { getStatusBadge };
 
+// Export Quiz enums (values) and types
+export {
+  QUESTION_DIFFICULTY,
+  QUESTION_TYPE,
+  QUESTION_STATUS,
+  ANSWER_STATUS,
+} from './components/Quiz/useQuizStore';
+export type {
+  QuestionResult,
+  Question,
+  UserAnswerItem,
+  QuizState,
+  Simulated,
+  Activity,
+  Lesson,
+} from './components/Quiz/useQuizStore';
+
 export { MultipleChoiceList };
 export { IconRender };
