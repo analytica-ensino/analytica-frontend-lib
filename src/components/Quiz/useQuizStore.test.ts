@@ -3383,6 +3383,55 @@ describe('useQuizStore', () => {
       expect(currentAnswer?.answer).toBe('Resposta dissertativa');
     });
 
+    it('should return undefined for empty answers in getCurrentAnswer', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      // Setup quiz with userAnswers containing empty answer
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.setUserAnswers([
+          {
+            questionId: 'q1',
+            activityId: 'test-activity',
+            userId: 'test-user-id',
+            answer: null,
+            optionId: '',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+          },
+        ]);
+      });
+
+      const currentAnswer = result.current.getCurrentAnswer();
+      expect(currentAnswer).toBeUndefined();
+    });
+
+    it('should return answer when optionId or answer has valid content', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      // Setup quiz with userAnswers containing valid answer
+      act(() => {
+        result.current.setBySimulated(mockSimulado);
+        result.current.setUserId('test-user-id');
+        result.current.setUserAnswers([
+          {
+            questionId: 'q1',
+            activityId: 'test-activity',
+            userId: 'test-user-id',
+            answer: null,
+            optionId: 'opt1',
+            questionType: QUESTION_TYPE.ALTERNATIVA,
+            answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+          },
+        ]);
+      });
+
+      const currentAnswer = result.current.getCurrentAnswer();
+      expect(currentAnswer).toBeDefined();
+      expect(currentAnswer?.optionId).toBe('opt1');
+    });
+
     it('should count dissertative answers as answered questions', () => {
       const { result } = renderHook(() => useQuizStore());
 

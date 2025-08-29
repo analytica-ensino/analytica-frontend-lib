@@ -726,6 +726,13 @@ export const useQuizStore = create<QuizState>()(
             (answer) => answer.questionId === currentQuestion.id
           );
 
+          // Retorna undefined se a resposta está vazia (não respondida)
+          if (userAnswer && 
+              (!userAnswer.optionId || userAnswer.optionId === '') && 
+              (!userAnswer.answer || userAnswer.answer === null)) {
+            return undefined;
+          }
+
           return userAnswer;
         },
 
