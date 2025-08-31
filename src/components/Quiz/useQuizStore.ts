@@ -136,11 +136,11 @@ export interface Simulated {
   difficulty: string | null;
   notification: string | null;
   status: string;
-  startDate: Date | null;
-  finalDate: Date | null;
+  startDate: string | null;
+  finalDate: string | null;
   canRetry: boolean;
-  createdAt: Date | null;
-  updatedAt: Date | null;
+  createdAt: string | null;
+  updatedAt: string | null;
   questions: Question[];
 }
 
