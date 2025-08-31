@@ -107,11 +107,11 @@ const mockSimulado = {
   difficulty: 'MEDIO',
   notification: null,
   status: 'ATIVO',
-  startDate: new Date('2024-01-01'),
-  finalDate: new Date('2024-12-31'),
+  startDate: '2024-01-01',
+  finalDate: '2024-12-31',
   canRetry: true,
-  createdAt: new Date('2024-01-01'),
-  updatedAt: new Date('2024-01-01'),
+  createdAt: '2024-01-01',
+  updatedAt: '2024-01-01',
   questions: [mockQuestion1, mockQuestion2],
 };
 
@@ -2232,11 +2232,11 @@ describe('useQuizStore', () => {
         difficulty: 'MEDIO',
         notification: null,
         status: 'ATIVO',
-        startDate: new Date('2024-01-01'),
-        finalDate: new Date('2024-12-31'),
+        startDate: '2024-01-01',
+        finalDate: '2024-12-31',
         canRetry: true,
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-01'),
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
         questions: [],
       };
 
@@ -3766,11 +3766,11 @@ describe('useQuizStore', () => {
         difficulty: 'MEDIO',
         notification: null,
         status: 'ATIVO',
-        startDate: new Date('2024-01-01'),
-        finalDate: new Date('2024-12-31'),
+        startDate: '2024-01-01',
+        finalDate: '2024-12-31',
         canRetry: true,
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-01'),
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
         questions: [],
       };
 

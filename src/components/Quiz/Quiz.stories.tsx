@@ -34,11 +34,11 @@ export const General: Story = () => {
       difficulty: 'MEDIO',
       notification: null,
       status: 'ATIVO',
-      startDate: new Date('2024-01-01'),
-      finalDate: new Date('2024-12-31'),
+      startDate: '2024-01-01',
+      finalDate: '2024-12-31',
       canRetry: true,
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-01'),
+      createdAt: '2024-01-01',
+      updatedAt: '2024-01-01',
       questions: [
         {
           id: 'q1-image',
@@ -408,11 +408,11 @@ export const GeneralForResults: Story = () => {
       difficulty: 'MEDIO',
       notification: null,
       status: 'ATIVO',
-      startDate: new Date('2024-01-01'),
-      finalDate: new Date('2024-12-31'),
+      startDate: '2024-01-01',
+      finalDate: '2024-12-31',
       canRetry: true,
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-01'),
+      createdAt: '2024-01-01',
+      updatedAt: '2024-01-01',
       questions: [
         // IMAGE - Correct
         {
@@ -1341,11 +1341,11 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
       difficulty: 'MEDIO',
       notification: null,
       status: 'ATIVO',
-      startDate: new Date('2024-01-01'),
-      finalDate: new Date('2024-12-31'),
+      startDate: '2024-01-01',
+      finalDate: '2024-12-31',
       canRetry: true,
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-01'),
+      createdAt: '2024-01-01',
+      updatedAt: '2024-01-01',
       questions: [
         {
           id: 'q1',

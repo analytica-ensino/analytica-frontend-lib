@@ -136,11 +136,11 @@ export interface Simulated {
   difficulty: string | null;
   notification: string | null;
   status: string;
-  startDate: Date | null;
-  finalDate: Date | null;
+  startDate: string | null;
+  finalDate: string | null;
   canRetry: boolean;
-  createdAt: Date | null;
-  updatedAt: Date | null;
+  createdAt: string | null;
+  updatedAt: string | null;
   questions: Question[];
 }
 
@@ -728,11 +728,10 @@ export const useQuizStore = create<QuizState>()(
 
           // Retorna undefined se a resposta está vazia (não respondida)
           const hasAnswerContent = (ua?: UserAnswerItem | null) =>
-            !!ua && (
-              (ua.optionId !== null && ua.optionId !== '') ||
-              (ua.answer !== null && ua.answer !== '')
-            );
-            
+            !!ua &&
+            ((ua.optionId !== null && ua.optionId !== '') ||
+              (ua.answer !== null && ua.answer !== ''));
+
           if (!hasAnswerContent(userAnswer)) {
             return undefined;
           }
