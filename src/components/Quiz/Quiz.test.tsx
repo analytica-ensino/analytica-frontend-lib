@@ -33,7 +33,6 @@ import {
 } from './useQuizStore';
 
 // Mock the image
-jest.mock('@/assets/img/simulated-result.png', () => 'mocked-image.png');
 jest.mock('@/assets/img/mock-image-question.png', () => 'mocked-image-2.png');
 
 // Mock HeaderAlternative component

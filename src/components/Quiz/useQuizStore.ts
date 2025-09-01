@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { ComponentType } from 'react';
 
 export enum QUESTION_DIFFICULTY {
   FACIL = 'FACIL',
@@ -127,7 +126,6 @@ export interface Question {
     };
   }[];
   correctOptionIds?: string[];
-  svgComponent?: ComponentType; // Add SVG component for image questions
 }
 
 export interface Simulated {
