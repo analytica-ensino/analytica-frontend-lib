@@ -38,6 +38,10 @@ import { AlertDialog } from './components/AlertDialog/AlertDialog';
 import { MultipleChoiceList } from './components/MultipleChoice/MultipleChoice';
 import IconRender from './components/IconRender/IconRender';
 
+// Import hooks
+import { useMobile, getDeviceType } from './hooks/useMobile';
+import type { DeviceType } from './hooks/useMobile';
+
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
   DropdownMenuTrigger,
@@ -267,3 +271,8 @@ export type {
 
 export { MultipleChoiceList };
 export { IconRender };
+
+// Export hooks
+export { useMobile };
+export { getDeviceType };
+export type { DeviceType };
