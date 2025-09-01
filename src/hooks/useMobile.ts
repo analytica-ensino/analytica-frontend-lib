@@ -5,7 +5,7 @@ const MOBILE_WIDTH = 500;
 // Tablet width in pixels
 const TABLET_WIDTH = 931;
 // Default desktop width for SSR
-const DEFAULT_WIDHT = 1200;
+const DEFAULT_WIDTH = 1200;
 
 /**
  * Device type based on screen width
@@ -18,7 +18,7 @@ export type DeviceType = 'responsive' | 'desktop';
  */
 const getWindowWidth = (): number => {
   if (typeof window === 'undefined') {
-    return DEFAULT_WIDHT;
+    return DEFAULT_WIDTH;
   }
   return window.innerWidth;
 };
