@@ -19,6 +19,7 @@ import {
   useQuizStore,
 } from './useQuizStore';
 import { useEffect } from 'react';
+import { MockImageResult } from '@/assets/svg/mock-simulated-result';
 
 // 1° General - To show quiz usage with 1 question for each variant
 export const General: Story = () => {
@@ -377,6 +378,7 @@ export const General: Story = () => {
             onDetailResult={() => {
               console.log('Detailing result...');
             }}
+            resultImageComponent={<MockImageResult />}
           />
         </Quiz>
       </div>
