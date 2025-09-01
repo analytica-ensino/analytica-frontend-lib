@@ -44,6 +44,9 @@ export default defineConfig({
     'Quiz/useQuizStore/index': 'src/components/Quiz/useQuizStore.ts',
 
     'MultipleChoice/index': 'src/components/MultipleChoice/MultipleChoice.tsx',
+
+    // Hooks
+    'hooks/useMobile/index': 'src/hooks/useMobile.ts',
     // Individual Auth components
     'Auth/AuthProvider/index': 'src/components/Auth/Auth.tsx',
     'Auth/ProtectedRoute/index': 'src/components/Auth/Auth.tsx',
