@@ -1307,13 +1307,15 @@ export const GeneralForResults: Story = () => {
           </button>
         </div>
 
-        <Quiz variant="result">
-          <QuizHeaderResult />
-          <QuizTitle />
-          <QuizHeader />
-          <QuizContent paddingBottom="pb-[150px]" />
-          <QuizFooter className="bottom-15" />
-        </Quiz>
+        <div className="w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6">
+          <Quiz variant="result">
+            <QuizHeaderResult />
+            <QuizTitle />
+            <QuizHeader />
+            <QuizContent paddingBottom="pb-[150px]" />
+            <QuizFooter className="bottom-15" />
+          </Quiz>
+        </div>
       </div>
     </div>
   );
@@ -1933,13 +1935,15 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
         {/* Quiz component */}
         <div className="border rounded-lg p-6">
           <h2 className="text-2xl font-semibold mb-6">Quiz Component</h2>
-          <Quiz variant="result">
-            <QuizHeaderResult />
-            <QuizTitle />
-            <QuizHeader />
-            <QuizContent paddingBottom="pb-[150px]" />
-            <QuizFooter className="bottom-15" />
-          </Quiz>
+          <div className="w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6">
+            <Quiz variant="result">
+              <QuizHeaderResult />
+              <QuizTitle />
+              <QuizHeader />
+              <QuizContent paddingBottom="pb-[150px]" />
+              <QuizFooter className="bottom-15" />
+            </Quiz>
+          </div>
         </div>
       </div>
     </div>

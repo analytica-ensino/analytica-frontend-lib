@@ -90,14 +90,7 @@ const Quiz = forwardRef<
   }, [variant, setVariant]);
 
   return (
-    <div
-      ref={ref}
-      className={cn(
-        'w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6',
-        className
-      )}
-      {...props}
-    >
+    <div ref={ref} className={cn('flex flex-col', className)} {...props}>
       {children}
     </div>
   );
@@ -1903,7 +1896,7 @@ const QuizListResultByMateria = ({
   const answeredQuestions = groupedQuestions[subject] || [];
 
   return (
-    <div className="w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6">
+    <div className="flex flex-col">
       <div className="flex flex-row pt-4 justify-between">
         <p className="text-text-950 font-bold text-2xl">
           {answeredQuestions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ??
