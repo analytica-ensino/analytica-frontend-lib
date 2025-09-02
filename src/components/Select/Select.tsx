@@ -276,7 +276,7 @@ const Select = ({
   const sizeClasses = SIZE_CLASSES[size];
 
   return (
-    <div className={cn('w-fit', className)}>
+    <div className={cn('w-full', className)}>
       {/* Label */}
       {label && (
         <label
@@ -288,7 +288,7 @@ const Select = ({
       )}
 
       {/* Select Container */}
-      <div className={cn('relative w-fit')} ref={selectRef}>
+      <div className={cn('relative w-full')} ref={selectRef}>
         {injectStore(children, store, size, selectId)}
       </div>
 
