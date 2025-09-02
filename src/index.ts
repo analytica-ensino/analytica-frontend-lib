@@ -136,6 +136,8 @@ import {
 } from './components/Quiz/Quiz';
 import { useQuizStore } from './components/Quiz/useQuizStore';
 
+import LoadingModal from './components/LoadingModal/loadingModal';
+
 // Export all components for bundled usage
 export { Text };
 export { Button };
@@ -166,6 +168,7 @@ export { Stepper };
 export { Calendar };
 export { Modal };
 export { AlertDialog };
+export { LoadingModal };
 
 // Export DropdownMenu and its sub-components
 export { DropdownMenu };

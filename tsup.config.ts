@@ -21,6 +21,7 @@ export default defineConfig({
     'NavButton/index': 'src/components/NavButton/NavButton.tsx',
     'Search/index': 'src/components/Search/Search.tsx',
     'ProgressBar/index': 'src/components/ProgressBar/ProgressBar.tsx',
+    'LoadingModal/index': 'src/components/LoadingModal/loadingModal.tsx',
     'ProgressCircle/index': 'src/components/ProgressCircle/ProgressCircle.tsx',
     'Radio/index': 'src/components/Radio/Radio.tsx',
     'SelectionButton/index':
