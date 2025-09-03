@@ -7,6 +7,15 @@ import NotificationCard from './NotificationCard';
  */
 export const Unread: Story = () => {
   const [isRead, setIsRead] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
+
+  if (isDeleted) {
+    return (
+      <div className="max-w-md border border-border-100 rounded-xl p-4 text-center text-text-600">
+        Notificação deletada
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md border border-border-100 rounded-xl">
@@ -19,7 +28,10 @@ export const Unread: Story = () => {
           setIsRead(true);
           console.log('Marked as read');
         }}
-        onDelete={() => console.log('Deleted')}
+        onDelete={() => {
+          setIsDeleted(true);
+          console.log('Deleted');
+        }}
       />
     </div>
   );
@@ -28,24 +40,48 @@ export const Unread: Story = () => {
 /**
  * Notificação já lida (sem indicador)
  */
-export const Read: Story = () => (
-  <div className="max-w-md border border-border-100 rounded-xl">
-    <NotificationCard
-      title="Nova atividade disponível"
-      message="Uma nova tarefa foi adicionada à sua lista."
-      time="12 Fev"
-      isRead={true}
-      onMarkAsRead={() => console.log('Marked as read')}
-      onDelete={() => console.log('Deleted')}
-    />
-  </div>
-);
+export const Read: Story = () => {
+  const [isDeleted, setIsDeleted] = useState(false);
+
+  if (isDeleted) {
+    return (
+      <div className="max-w-md border border-border-100 rounded-xl p-4 text-center text-text-600">
+        Notificação deletada
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-md border border-border-100 rounded-xl">
+      <NotificationCard
+        title="Nova atividade disponível"
+        message="Uma nova tarefa foi adicionada à sua lista."
+        time="12 Fev"
+        isRead={true}
+        onMarkAsRead={() => console.log('Marked as read')}
+        onDelete={() => {
+          setIsDeleted(true);
+          console.log('Deleted');
+        }}
+      />
+    </div>
+  );
+};
 
 /**
  * Notificação com conteúdo longo
  */
 export const LongContent: Story = () => {
   const [isRead, setIsRead] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
+
+  if (isDeleted) {
+    return (
+      <div className="max-w-md border border-border-100 rounded-xl p-4 text-center text-text-600">
+        Notificação deletada
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md border border-border-100 rounded-xl">
@@ -60,7 +96,10 @@ export const LongContent: Story = () => {
           setIsRead(true);
           console.log('Marked as read');
         }}
-        onDelete={() => console.log('Deleted')}
+        onDelete={() => {
+          setIsDeleted(true);
+          console.log('Deleted');
+        }}
       />
     </div>
   );
@@ -71,6 +110,15 @@ export const LongContent: Story = () => {
  */
 export const Announcement: Story = () => {
   const [isRead, setIsRead] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
+
+  if (isDeleted) {
+    return (
+      <div className="max-w-md border border-border-100 rounded-xl p-4 text-center text-text-600">
+        Notificação deletada
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md border border-border-100 rounded-xl">
@@ -83,7 +131,10 @@ export const Announcement: Story = () => {
           setIsRead(true);
           console.log('Marked as read');
         }}
-        onDelete={() => console.log('Deleted')}
+        onDelete={() => {
+          setIsDeleted(true);
+          console.log('Deleted');
+        }}
       />
     </div>
   );
@@ -97,43 +148,73 @@ export const Multiple: Story = () => {
   const [notification2IsRead, setNotification2IsRead] = useState(true);
   const [notification3IsRead, setNotification3IsRead] = useState(false);
 
+  const [notification1IsDeleted, setNotification1IsDeleted] = useState(false);
+  const [notification2IsDeleted, setNotification2IsDeleted] = useState(false);
+  const [notification3IsDeleted, setNotification3IsDeleted] = useState(false);
+
+  const allDeleted =
+    notification1IsDeleted && notification2IsDeleted && notification3IsDeleted;
+
+  if (allDeleted) {
+    return (
+      <div className="max-w-md border border-border-100 rounded-xl p-4 text-center text-text-600">
+        Todas as notificações foram deletadas
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-md border border-border-100 rounded-xl">
-      <NotificationCard
-        title="Nova atividade disponível"
-        message="Uma nova tarefa foi adicionada à sua lista."
-        time="Há 3h"
-        isRead={notification1IsRead}
-        onMarkAsRead={() => {
-          setNotification1IsRead(true);
-          console.log('Marked as read');
-        }}
-        onDelete={() => console.log('Deleted')}
-      />
-      <NotificationCard
-        title="Nova atividade disponível"
-        message="Uma nova tarefa foi adicionada à sua lista."
-        time="Há 4h"
-        isRead={notification2IsRead}
-        onMarkAsRead={() => {
-          setNotification2IsRead(true);
-          console.log('Marked as read');
-        }}
-        onDelete={() => console.log('Deleted')}
-      />
-      <NotificationCard
-        title="Nova trilha disponível"
-        message="Explore a nova trilha de matemática."
-        time="12 Fev"
-        isRead={notification3IsRead}
-        actionLabel="Ver trilha"
-        onNavigate={() => console.log('Navigate')}
-        onMarkAsRead={() => {
-          setNotification3IsRead(true);
-          console.log('Marked as read');
-        }}
-        onDelete={() => console.log('Deleted')}
-      />
+      {!notification1IsDeleted && (
+        <NotificationCard
+          title="Nova atividade disponível"
+          message="Uma nova tarefa foi adicionada à sua lista."
+          time="Há 3h"
+          isRead={notification1IsRead}
+          onMarkAsRead={() => {
+            setNotification1IsRead(true);
+            console.log('Marked as read');
+          }}
+          onDelete={() => {
+            setNotification1IsDeleted(true);
+            console.log('Deleted');
+          }}
+        />
+      )}
+      {!notification2IsDeleted && (
+        <NotificationCard
+          title="Nova atividade disponível"
+          message="Uma nova tarefa foi adicionada à sua lista."
+          time="Há 4h"
+          isRead={notification2IsRead}
+          onMarkAsRead={() => {
+            setNotification2IsRead(true);
+            console.log('Marked as read');
+          }}
+          onDelete={() => {
+            setNotification2IsDeleted(true);
+            console.log('Deleted');
+          }}
+        />
+      )}
+      {!notification3IsDeleted && (
+        <NotificationCard
+          title="Nova trilha disponível"
+          message="Explore a nova trilha de matemática."
+          time="12 Fev"
+          isRead={notification3IsRead}
+          actionLabel="Ver trilha"
+          onNavigate={() => console.log('Navigate')}
+          onMarkAsRead={() => {
+            setNotification3IsRead(true);
+            console.log('Marked as read');
+          }}
+          onDelete={() => {
+            setNotification3IsDeleted(true);
+            console.log('Deleted');
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -216,12 +297,19 @@ export const Grouped: Story = () => {
     console.log('Mark as read:', id);
   };
 
+  const handleDelete = (id: string) => {
+    setNotifications((prev) =>
+      prev.filter((notification) => notification.id !== id)
+    );
+    console.log('Delete:', id);
+  };
+
   return (
     <div className="max-w-md border border-border-100 rounded-xl">
       <NotificationCard
         groupedNotifications={groupedNotifications}
         onMarkAsReadById={handleMarkAsRead}
-        onDeleteById={(id) => console.log('Delete:', id)}
+        onDeleteById={handleDelete}
         onNavigateById={(entityType, entityId) =>
           console.log('Navigate:', entityType, entityId)
         }
