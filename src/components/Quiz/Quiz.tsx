@@ -36,7 +36,7 @@ import {
 } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
-import SimulatedResult from '@/assets/img/simulated-result.png';
+
 import Select, {
   SelectContent,
   SelectItem,
@@ -1380,6 +1380,7 @@ const QuizFooter = forwardRef<
     onGoToSimulated?: () => void;
     onDetailResult?: () => void;
     handleFinishSimulated?: () => void;
+    resultImageComponent?: ReactNode;
   }
 >(
   (
@@ -1388,6 +1389,7 @@ const QuizFooter = forwardRef<
       onGoToSimulated,
       onDetailResult,
       handleFinishSimulated,
+      resultImageComponent,
       ...props
     },
     ref
@@ -1575,11 +1577,15 @@ const QuizFooter = forwardRef<
           size={'md'}
         >
           <div className="flex flex-col w-full h-full items-center justify-center gap-4">
-            <img
-              src={SimulatedResult}
-              alt="Simulated Result"
-              className="w-[282px] h-auto object-cover"
-            />
+            {resultImageComponent ? (
+              <div className="w-[282px] h-auto">{resultImageComponent}</div>
+            ) : (
+              <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
+                <span className="text-gray-500 text-sm">
+                  Imagem de resultado
+                </span>
+              </div>
+            )}
             <div className="flex flex-col gap-2 text-center">
               <h2 className="text-text-950 font-bold text-lg">
                 Você concluiu o simulado!

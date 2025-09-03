@@ -33,7 +33,6 @@ import {
 } from './useQuizStore';
 
 // Mock the image
-jest.mock('@/assets/img/simulated-result.png', () => 'mocked-image.png');
 jest.mock('@/assets/img/mock-image-question.png', () => 'mocked-image-2.png');
 
 // Mock HeaderAlternative component
@@ -4345,6 +4344,56 @@ describe('Quiz', () => {
 
         const footer = container.querySelector('footer');
         expect(footer).toHaveClass('custom-footer-class');
+      });
+
+      it('should render custom result image component when provided', async () => {
+        const mockResultImageComponent = (
+          <div data-testid="custom-result-image">Custom SVG Image</div>
+        );
+
+        // Configure store to show last question (where Finish button appears)
+        mockUseQuizStore.mockReturnValue({
+          ...defaultStoreState,
+          currentQuestionIndex: 4, // Last question (total is 5)
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizFooter resultImageComponent={mockResultImageComponent} />);
+
+        // Finish quiz to open result modal
+        const finishButton = screen.getByText('Finalizar');
+
+        await act(async () => {
+          finishButton.click();
+        });
+
+        // Verify custom image component is rendered instead of default image
+        expect(screen.getByTestId('custom-result-image')).toBeInTheDocument();
+        expect(screen.getByText('Custom SVG Image')).toBeInTheDocument();
+
+        // Verify default image is not rendered
+        expect(
+          screen.queryByAltText('Simulated Result')
+        ).not.toBeInTheDocument();
+      });
+
+      it('should render default image when resultImageComponent is not provided', async () => {
+        // Configure store to show last question (where Finish button appears)
+        mockUseQuizStore.mockReturnValue({
+          ...defaultStoreState,
+          currentQuestionIndex: 4, // Last question (total is 5)
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizFooter />);
+
+        // Finish quiz to open result modal
+        const finishButton = screen.getByText('Finalizar');
+
+        await act(async () => {
+          finishButton.click();
+        });
+
+        // Verify default placeholder is rendered
+        expect(screen.getByText('Imagem de resultado')).toBeInTheDocument();
       });
 
       it('should forward ref correctly', () => {
