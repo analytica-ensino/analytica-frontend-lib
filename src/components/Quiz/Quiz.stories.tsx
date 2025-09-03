@@ -663,6 +663,9 @@ const MockImageResult = () => {
   );
 };
 
+const resultsWrapper =
+  'w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6';
+
 // 1° General - To show quiz usage with 1 question for each variant
 export const General: Story = () => {
   const { setBySimulated, startQuiz, setUserId, setUserAnswers } =
@@ -1951,7 +1954,7 @@ export const GeneralForResults: Story = () => {
           </button>
         </div>
 
-        <div className="w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6">
+        <div className={resultsWrapper}>
           <Quiz variant="result">
             <QuizHeaderResult />
             <QuizTitle />
@@ -2579,7 +2582,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
         {/* Quiz component */}
         <div className="border rounded-lg p-6">
           <h2 className="text-2xl font-semibold mb-6">Quiz Component</h2>
-          <div className="w-full max-w-[1000px] flex flex-col mx-auto h-full relative not-lg:px-6">
+          <div className={resultsWrapper}>
             <Quiz variant="result">
               <QuizHeaderResult />
               <QuizTitle />

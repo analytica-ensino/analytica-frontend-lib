@@ -180,6 +180,64 @@ describe('LoadingModal', () => {
       expect(title).toBeInTheDocument();
       expect(subtitle).toBeInTheDocument();
     });
+
+    it('has proper ARIA attributes for modal dialog', () => {
+      render(<LoadingModal {...defaultProps} />);
+
+      const modalContainer = document.querySelector('.fixed.inset-0.z-50');
+      expect(modalContainer).toHaveAttribute('role', 'dialog');
+      expect(modalContainer).toHaveAttribute('aria-modal', 'true');
+      expect(modalContainer).toHaveAttribute('aria-labelledby');
+      expect(modalContainer).toHaveAttribute('aria-describedby');
+    });
+
+    it('has proper ID attributes linking title and description', () => {
+      render(<LoadingModal {...defaultProps} />);
+
+      const modalContainer = document.querySelector('.fixed.inset-0.z-50');
+      const titleId = modalContainer?.getAttribute('aria-labelledby');
+      const descriptionId = modalContainer?.getAttribute('aria-describedby');
+
+      expect(titleId).toBeTruthy();
+      expect(descriptionId).toBeTruthy();
+
+      const titleElement = document.getElementById(titleId!);
+      const descriptionElement = document.getElementById(descriptionId!);
+
+      expect(titleElement).toBeInTheDocument();
+      expect(descriptionElement).toBeInTheDocument();
+      expect(titleElement).toHaveTextContent('Test Title');
+      expect(descriptionElement).toHaveTextContent('Test Subtitle');
+    });
+
+    it('hides decorative spinner from screen readers', () => {
+      render(<LoadingModal {...defaultProps} />);
+
+      const spinnerSpan = document.querySelector('.animate-spin');
+      const spinnerSvg = document.querySelector('svg');
+
+      expect(spinnerSpan).toHaveAttribute('aria-hidden', 'true');
+      expect(spinnerSvg).toHaveAttribute('aria-hidden', 'true');
+      expect(spinnerSvg).toHaveAttribute('focusable', 'false');
+    });
+
+    it('accepts and spreads HTML div props', () => {
+      const customProps = {
+        'data-testid': 'custom-loading-modal',
+        'data-custom': 'test-value',
+        style: { backgroundColor: 'red' },
+      };
+
+      render(<LoadingModal {...defaultProps} {...customProps} />);
+
+      const modalContainer = document.querySelector('.fixed.inset-0.z-50');
+      expect(modalContainer).toHaveAttribute(
+        'data-testid',
+        'custom-loading-modal'
+      );
+      expect(modalContainer).toHaveAttribute('data-custom', 'test-value');
+      expect(modalContainer).toHaveStyle('background-color: red');
+    });
   });
 
   describe('Edge cases', () => {

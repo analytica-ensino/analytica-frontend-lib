@@ -1,28 +1,35 @@
-import { forwardRef } from 'react';
+import { forwardRef, HTMLAttributes } from 'react';
 
-interface LoadingModalProps {
+interface LoadingModalProps extends HTMLAttributes<HTMLDivElement> {
   open: boolean;
   title?: string;
   subtitle?: string;
 }
 
 const LoadingModal = forwardRef<HTMLDivElement, LoadingModalProps>(
-  ({ open, title = 'Titulo...', subtitle = 'Subtitulo...' }, ref) => {
+  ({ open, title = 'Titulo...', subtitle = 'Subtitulo...', ...props }, ref) => {
     if (!open) return null;
 
     return (
       <div
         ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="loading-modal-title"
+        aria-describedby="loading-modal-subtitle"
         className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur-xs"
+        {...props}
       >
         <div className="w-full max-w-[364px] flex flex-col items-center justify-center gap-14">
-          <span className="animate-spin">
+          <span className="animate-spin" aria-hidden="true">
             <svg
               width="102"
               height="102"
               viewBox="0 0 102 102"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              focusable={false}
             >
               <path
                 d="M101.5 51C101.5 78.8904 78.8904 101.5 51 101.5C23.1096 101.5 0.5 78.8904 0.5 51C0.5 23.1096 23.1096 0.5 51 0.5C78.8904 0.5 101.5 23.1096 101.5 51ZM8.62286 51C8.62286 74.4043 27.5957 93.3771 51 93.3771C74.4043 93.3771 93.3771 74.4043 93.3771 51C93.3771 27.5957 74.4043 8.62286 51 8.62286C27.5957 8.62286 8.62286 27.5957 8.62286 51Z"
@@ -36,9 +43,13 @@ const LoadingModal = forwardRef<HTMLDivElement, LoadingModalProps>(
           </span>
 
           <span className="flex flex-col gap-4 text-center">
-            <p className="text-text-950 text-lg">{title}</p>
+            <p id="loading-modal-title" className="text-text-950 text-lg">
+              {title}
+            </p>
 
-            <p className="text-text-600 text-lg">{subtitle}</p>
+            <p id="loading-modal-subtitle" className="text-text-600 text-lg">
+              {subtitle}
+            </p>
           </span>
         </div>
       </div>
