@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import LoadingModal from './loadingModal';
+import { createRef } from 'react';
 
 describe('LoadingModal', () => {
   const defaultProps = {
@@ -104,14 +105,14 @@ describe('LoadingModal', () => {
     expect(paths).toHaveLength(2);
 
     // First path (outer circle)
-    expect(paths[0]).toHaveAttribute('fill', '#BBDCF7');
+    expect(paths[0]).toHaveClass('fill-primary-100');
 
     // Second path (loading arc)
-    expect(paths[1]).toHaveAttribute('fill', '#2883D7');
+    expect(paths[1]).toHaveClass('fill-primary-600');
   });
 
   it('forwards ref correctly', () => {
-    const ref = { current: null };
+    const ref = createRef<HTMLDivElement>();
     render(<LoadingModal {...defaultProps} ref={ref} />);
 
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
