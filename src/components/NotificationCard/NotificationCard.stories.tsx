@@ -322,3 +322,12 @@ export const Grouped: Story = () => {
     </div>
   );
 };
+
+/**
+ * Estado vazio das notificações
+ */
+export const Empty: Story = () => (
+  <div className="max-w-md border border-border-100 rounded-xl">
+    <NotificationCard groupedNotifications={[]} />
+  </div>
+);
