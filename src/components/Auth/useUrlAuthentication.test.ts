@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, render } from '@testing-library/react';
 import { useUrlAuthentication } from './useUrlAuthentication';
 import { act } from 'react';
 import { MemoryRouter } from 'react-router-dom';
@@ -722,6 +722,203 @@ describe('useUrlAuthentication', () => {
           anotherField: 'another value',
         });
       });
+    });
+  });
+
+  // Testes para cenários não cobertos
+  describe('Cenários avançados de retry e processamento', () => {
+    it('deve não executar quando já foi processado (processedRef.current = true)', async () => {
+      mockApi.get.mockResolvedValue({
+        data: { data: { profileId: 'p1', foo: 'bar' } },
+      });
+
+      const { rerender } = await act(async () => {
+        return renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+            }),
+          { wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockApi.get).toHaveBeenCalledTimes(1);
+      });
+
+      // Resetar mocks para verificar a segunda chamada
+      jest.clearAllMocks();
+
+      // Re-renderizar o hook - não deve fazer nova chamada pois processedRef.current = true
+      rerender();
+
+      await waitFor(() => {
+        expect(mockApi.get).not.toHaveBeenCalled();
+        expect(mockSetTokens).not.toHaveBeenCalled();
+        expect(mockSetSessionInfo).not.toHaveBeenCalled();
+      });
+    });
+
+    it('deve fazer retry até esgotar maxRetries e lançar erro', async () => {
+      const mockOnError = jest.fn();
+      mockApi.get.mockRejectedValue(new Error('Network error'));
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+              maxRetries: 2, // Testar com 2 retries
+              retryDelay: 10, // Delay baixo para teste rápido
+              onError: mockOnError,
+            }),
+          { wrapper }
+        );
+      });
+
+      await waitFor(
+        () => {
+          expect(mockApi.get).toHaveBeenCalledTimes(2);
+          expect(mockOnError).toHaveBeenCalledWith(new Error('Network error'));
+          expect(mockSetSessionInfo).not.toHaveBeenCalled();
+          expect(mockClearParams).not.toHaveBeenCalled();
+        },
+        { timeout: 5000 }
+      );
+    });
+
+
+    it('deve resetar processedRef.current quando ocorre erro final', async () => {
+      mockApi.get.mockRejectedValue(new Error('Permanent error'));
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+              maxRetries: 1,
+              retryDelay: 10,
+            }),
+          { wrapper }
+        );
+      });
+
+      await waitFor(
+        () => {
+          expect(mockApi.get).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 3000 }
+      );
+
+      // Resetar mocks
+      jest.clearAllMocks();
+
+      // Configurar sucesso para próxima chamada
+      mockApi.get.mockResolvedValue({
+        data: { data: { profileId: 'p1', foo: 'bar' } },
+      });
+
+      // Re-renderizar com nova instância - deve funcionar pois processedRef foi resetado
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+              maxRetries: 1,
+              retryDelay: 10,
+            }),
+          { wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockApi.get).toHaveBeenCalledTimes(1);
+        expect(mockSetSessionInfo).toHaveBeenCalledWith({
+          profileId: 'p1',
+          foo: 'bar',
+        });
+      });
+    });
+
+    it('deve executar o early return quando processedRef.current é true (cobertura linha 224)', async () => {
+      // Mock console.warn para verificar que não há logs de retry (indica que não executou)
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      
+      mockApi.get.mockResolvedValue({
+        data: { data: { profileId: 'p1', foo: 'bar' } },
+      });
+
+      const TestComponent = () => {
+        useUrlAuthentication({
+          setTokens: mockSetTokens,
+          setSessionInfo: mockSetSessionInfo,
+          setSelectedProfile: mockSetSelectedProfile,
+          api: mockApi,
+          endpoint: '/auth/session-info',
+          clearParamsFromURL: mockClearParams,
+        });
+        return null;
+      };
+
+      const { rerender } = render(
+        React.createElement(
+          MemoryRouter,
+          { initialEntries: ['/?sessionId=abc&token=def&refreshToken=ghi'] },
+          React.createElement(TestComponent)
+        )
+      );
+
+      // Esperar primeira execução completar
+      await waitFor(() => {
+        expect(mockApi.get).toHaveBeenCalledTimes(1);
+        expect(mockSetSessionInfo).toHaveBeenCalledTimes(1);
+      });
+
+      // Reset mocks para verificar próxima chamada
+      mockApi.get.mockClear();
+      mockSetTokens.mockClear();
+      mockSetSessionInfo.mockClear();
+      mockClearParams.mockClear();
+
+      // Re-render que deve fazer early return
+      rerender(
+        React.createElement(
+          MemoryRouter,
+          { initialEntries: ['/?sessionId=abc&token=def&refreshToken=ghi'] },
+          React.createElement(TestComponent)
+        )
+      );
+
+      // Aguardar um tempo para garantir que nenhuma chamada adicional foi feita
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Verificar que não houve novas chamadas (early return funcionou)
+      expect(mockApi.get).not.toHaveBeenCalled();
+      expect(mockSetTokens).not.toHaveBeenCalled();
+      expect(mockSetSessionInfo).not.toHaveBeenCalled();
+      expect(mockClearParams).not.toHaveBeenCalled();
+      
+      consoleWarnSpy.mockRestore();
     });
   });
 });

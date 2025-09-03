@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 
 /**
@@ -19,6 +19,9 @@ import { useLocation } from 'react-router-dom';
  * @property {string} endpoint - API endpoint to fetch session data
  * @property {(searchParams: URLSearchParams) => object} [extractParams] - Custom parameter extraction function
  * @property {() => void} [clearParamsFromURL] - Function to clear URL parameters after processing
+ * @property {number} [maxRetries] - Maximum number of retry attempts (default: 3)
+ * @property {number} [retryDelay] - Base delay between retries in milliseconds (default: 1000)
+ * @property {(error: unknown) => void} [onError] - Error handler callback
  */
 export interface UseUrlAuthOptions<
   Tokens = unknown,
@@ -38,6 +41,9 @@ export interface UseUrlAuthOptions<
     refreshToken: string;
   };
   clearParamsFromURL?: () => void;
+  maxRetries?: number;
+  retryDelay?: number;
+  onError?: (error: unknown) => void;
 }
 
 /**
@@ -204,39 +210,82 @@ export function useUrlAuthentication<
   User = unknown,
 >(options: UseUrlAuthOptions<Tokens, Session, Profile, User>) {
   const location = useLocation();
+  const processedRef = useRef(false);
 
   useEffect(() => {
     /**
      * Main authentication handler that processes URL parameters
      *
-     * @returns {Promise<void>}
      * @private
      */
-    const handleAuthentication = async () => {
+    const handleAuthentication = async (): Promise<void> => {
+      // Check if we already processed this request
+      if (processedRef.current) {
+        return;
+      }
+
       const authParams = getAuthParams(location, options.extractParams);
 
+      // Only proceed if we have all required auth parameters
       if (!hasValidAuthParams(authParams)) {
         return;
       }
 
+      // Mark as processed to prevent multiple calls
+      processedRef.current = true;
+
       try {
+        // Set tokens first
         options.setTokens({
           token: authParams.token,
           refreshToken: authParams.refreshToken,
         } as Tokens);
 
-        const response = (await options.api.get(options.endpoint, {
-          headers: {
-            Authorization: `Bearer ${authParams.token}`,
-          },
-        })) as { data: { data: unknown; [key: string]: unknown } };
+        // Call session-info with proper error handling and retry
+        const maxRetries = options.maxRetries || 3;
+        const retryDelay = options.retryDelay || 1000;
+        let retries = 0;
+        let sessionData = null;
 
-        options.setSessionInfo(response.data.data as Session);
-        handleProfileSelection(response.data.data, options.setSelectedProfile);
-        handleUserData(response.data.data, options.setUser);
+        while (retries < maxRetries && !sessionData) {
+          try {
+            const response = (await options.api.get(options.endpoint, {
+              headers: {
+                Authorization: `Bearer ${authParams.token}`,
+              },
+            })) as { data: { data: unknown; [key: string]: unknown } };
+
+            sessionData = response.data.data;
+            break;
+          } catch (error) {
+            retries++;
+            console.warn(
+              `Tentativa ${retries}/${maxRetries} falhou para ${options.endpoint}:`,
+              error
+            );
+
+            if (retries < maxRetries) {
+              // Wait before retry (exponential backoff)
+              await new Promise((resolve) =>
+                setTimeout(resolve, retryDelay * retries)
+              );
+            } else {
+              throw error;
+            }
+          }
+        }
+
+        // Always call setSessionInfo with the received data (even if null)
+        options.setSessionInfo(sessionData as Session);
+        handleProfileSelection(sessionData, options.setSelectedProfile);
+        handleUserData(sessionData, options.setUser);
         options.clearParamsFromURL?.();
       } catch (error) {
         console.error('Erro ao obter informações da sessão:', error);
+        // Reset processed flag on error to allow retry
+        processedRef.current = false;
+        // Call error handler if provided
+        options.onError?.(error);
       }
     };
 
@@ -251,5 +300,8 @@ export function useUrlAuthentication<
     options.endpoint,
     options.extractParams,
     options.clearParamsFromURL,
+    options.maxRetries,
+    options.retryDelay,
+    options.onError,
   ]);
 }
