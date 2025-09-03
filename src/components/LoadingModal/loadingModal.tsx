@@ -13,7 +13,6 @@ const LoadingModal = forwardRef<HTMLDivElement, LoadingModalProps>(
     return (
       <div
         ref={ref}
-        role="dialog"
         aria-modal="true"
         aria-labelledby="loading-modal-title"
         aria-describedby="loading-modal-subtitle"

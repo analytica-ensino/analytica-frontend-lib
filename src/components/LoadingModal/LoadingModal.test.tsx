@@ -185,7 +185,6 @@ describe('LoadingModal', () => {
       render(<LoadingModal {...defaultProps} />);
 
       const modalContainer = document.querySelector('.fixed.inset-0.z-50');
-      expect(modalContainer).toHaveAttribute('role', 'dialog');
       expect(modalContainer).toHaveAttribute('aria-modal', 'true');
       expect(modalContainer).toHaveAttribute('aria-labelledby');
       expect(modalContainer).toHaveAttribute('aria-describedby');
