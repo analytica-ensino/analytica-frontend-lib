@@ -2,28 +2,6 @@ import type { Story } from '@ladle/react';
 import NotificationCard from './NotificationCard';
 
 /**
- * Showcase principal: todas as variações do NotificationCard
- */
-export const AllNotifications: Story = () => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-    <h2 className="font-bold text-3xl text-text-900">NotificationCard</h2>
-    <p className="text-text-700">
-      Variações possíveis do componente <code>NotificationCard</code>
-    </p>
-    <div className="max-w-md border border-border-100 rounded-xl overflow-hidden">
-      <NotificationCard
-        title="Nova atividade disponível"
-        message="Uma nova tarefa foi adicionada à sua lista. Não perca a chance de se aprofundar no conteúdo!"
-        time="Há 3h"
-        isRead={false}
-        onMarkAsRead={() => console.log('Marked as read')}
-        onDelete={() => console.log('Deleted')}
-      />
-    </div>
-  </div>
-);
-
-/**
  * Notificação não lida (com indicador azul)
  */
 export const Unread: Story = () => (
@@ -49,24 +27,6 @@ export const Read: Story = () => (
       message="Uma nova tarefa foi adicionada à sua lista."
       time="12 Fev"
       isRead={true}
-      onMarkAsRead={() => console.log('Marked as read')}
-      onDelete={() => console.log('Deleted')}
-    />
-  </div>
-);
-
-/**
- * Notificação com botão de ação
- */
-export const WithAction: Story = () => (
-  <div className="max-w-md border border-border-100 rounded-xl overflow-hidden">
-    <NotificationCard
-      title="Nova trilha disponível"
-      message="Explore a nova trilha de matemática avançada e melhore suas habilidades."
-      time="Há 4h"
-      isRead={false}
-      actionLabel="Ver trilha"
-      onNavigate={() => console.log('Navigate to trail')}
       onMarkAsRead={() => console.log('Marked as read')}
       onDelete={() => console.log('Deleted')}
     />
@@ -104,26 +64,6 @@ export const Announcement: Story = () => (
       onMarkAsRead={() => console.log('Marked as read')}
       onDelete={() => console.log('Deleted')}
     />
-  </div>
-);
-
-/**
- * Versão mobile com largura limitada
- */
-export const Mobile: Story = () => (
-  <div style={{ maxWidth: '320px' }}>
-    <div className="border border-border-100 rounded-xl overflow-hidden">
-      <NotificationCard
-        title="Nova atividade disponível"
-        message="Uma nova tarefa foi adicionada à sua lista."
-        time="Há 3h"
-        isRead={false}
-        actionLabel="Ver atividade"
-        onNavigate={() => console.log('Navigate')}
-        onMarkAsRead={() => console.log('Marked as read')}
-        onDelete={() => console.log('Deleted')}
-      />
-    </div>
   </div>
 );
 
@@ -179,15 +119,6 @@ export const Error: Story = () => (
       error="Erro ao carregar notificações"
       onRetry={() => console.log('Retry loading')}
     />
-  </div>
-);
-
-/**
- * Lista vazia
- */
-export const Empty: Story = () => (
-  <div className="max-w-md border border-border-100 rounded-xl overflow-hidden">
-    <NotificationCard groupedNotifications={[]} />
   </div>
 );
 
