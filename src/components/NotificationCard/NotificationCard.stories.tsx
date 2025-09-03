@@ -5,7 +5,7 @@ import NotificationCard from './NotificationCard';
  * Notificação não lida (com indicador azul)
  */
 export const Unread: Story = () => (
-  <div className="max-w-md border border-border-100 rounded-xl overflow-hidden">
+  <div className="max-w-md border border-border-100 rounded-xl">
     <NotificationCard
       title="Nova atividade disponível"
       message="Uma nova tarefa foi adicionada à sua lista. Não perca a chance de se aprofundar no conteúdo!"
@@ -21,7 +21,7 @@ export const Unread: Story = () => (
  * Notificação já lida (sem indicador)
  */
 export const Read: Story = () => (
-  <div className="max-w-md border border-border-100 rounded-xl overflow-hidden">
+  <div className="max-w-md border border-border-100 rounded-xl">
     <NotificationCard
       title="Nova atividade disponível"
       message="Uma nova tarefa foi adicionada à sua lista."
@@ -37,7 +37,7 @@ export const Read: Story = () => (
  * Notificação com conteúdo longo
  */
 export const LongContent: Story = () => (
-  <div className="max-w-md border border-border-100 rounded-xl overflow-hidden">
+  <div className="max-w-md border border-border-100 rounded-xl">
     <NotificationCard
       title="Nova atividade de física quântica disponível para estudantes avançados"
       message="Uma nova tarefa complexa de física quântica foi adicionada à sua lista de estudos. Esta atividade aborda conceitos avançados como superposição, entrelaçamento quântico e o princípio da incerteza de Heisenberg."
@@ -55,7 +55,7 @@ export const LongContent: Story = () => (
  * Notificação tipo anúncio do sistema
  */
 export const Announcement: Story = () => (
-  <div className="max-w-md border border-border-100 rounded-xl overflow-hidden">
+  <div className="max-w-md border border-border-100 rounded-xl">
     <NotificationCard
       title="Sistema será atualizado"
       message="O sistema ficará indisponível das 02:00 às 06:00 para manutenção programada."
@@ -71,7 +71,7 @@ export const Announcement: Story = () => (
  * Lista de notificações empilhadas
  */
 export const Multiple: Story = () => (
-  <div className="max-w-md border border-border-100 rounded-xl overflow-hidden">
+  <div className="max-w-md border border-border-100 rounded-xl">
     <NotificationCard
       title="Nova atividade disponível"
       message="Uma nova tarefa foi adicionada à sua lista."
@@ -105,7 +105,7 @@ export const Multiple: Story = () => (
  * Estado de carregamento
  */
 export const Loading: Story = () => (
-  <div className="max-w-md border border-border-100 rounded-xl overflow-hidden">
+  <div className="max-w-md border border-border-100 rounded-xl">
     <NotificationCard loading={true} />
   </div>
 );
@@ -114,7 +114,7 @@ export const Loading: Story = () => (
  * Estado de erro
  */
 export const Error: Story = () => (
-  <div className="max-w-md border border-border-100 rounded-xl overflow-hidden">
+  <div className="max-w-md border border-border-100 rounded-xl">
     <NotificationCard
       error="Erro ao carregar notificações"
       onRetry={() => console.log('Retry loading')}
@@ -126,7 +126,7 @@ export const Error: Story = () => (
  * Lista agrupada por tempo
  */
 export const Grouped: Story = () => (
-  <div className="max-w-md border border-border-100 rounded-xl overflow-hidden">
+  <div className="max-w-md border border-border-100 rounded-xl">
     <NotificationCard
       groupedNotifications={[
         {
