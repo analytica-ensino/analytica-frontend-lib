@@ -1,4 +1,4 @@
-import { Check, DotsThreeVertical, Trash } from 'phosphor-react';
+import { DotsThreeVertical } from 'phosphor-react';
 import { MouseEvent, ReactNode } from 'react';
 import { cn } from '../../utils/utils';
 import DropdownMenu, {
@@ -180,17 +180,12 @@ const SingleNotificationCard = ({
             {!isRead && (
               <DropdownMenuItem
                 onClick={handleMarkAsRead}
-                className="flex items-center gap-2 text-text-950"
+                className="text-text-950"
               >
-                <Check size={16} />
                 Marcar como lida
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem
-              onClick={handleDelete}
-              className="flex items-center gap-2 text-error-600"
-            >
-              <Trash size={16} />
+            <DropdownMenuItem onClick={handleDelete} className="text-error-600">
               Deletar
             </DropdownMenuItem>
           </DropdownMenuContent>
