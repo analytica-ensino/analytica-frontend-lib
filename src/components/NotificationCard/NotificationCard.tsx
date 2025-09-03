@@ -17,7 +17,7 @@ interface NotificationItem {
   isRead: boolean;
   entityType?: string;
   entityId?: string;
-  createdAt: Date;
+  createdAt: string | Date;
 }
 
 interface NotificationGroup {
@@ -142,7 +142,6 @@ const SingleNotificationCard = ({
   };
 
   const handleNavigate = (e: MouseEvent) => {
-    e.preventDefault();
     e.stopPropagation();
     if (onNavigate) {
       onNavigate();
@@ -202,6 +201,7 @@ const SingleNotificationCard = ({
 
         {onNavigate && actionLabel && (
           <button
+            type="button"
             onClick={handleNavigate}
             className="text-sm font-medium text-info-600 hover:text-info-700 cursor-pointer"
           >
@@ -278,6 +278,7 @@ const NotificationList = ({
         <p className="text-sm text-error-600">{error}</p>
         {onRetry && (
           <button
+            type="button"
             onClick={onRetry}
             className="text-sm text-info-600 hover:text-info-700"
           >
@@ -313,8 +314,8 @@ const NotificationList = ({
 
   return (
     <div className={cn('flex flex-col gap-0 w-full', className)}>
-      {groupedNotifications.map((group) => (
-        <div key={group.label} className="flex flex-col">
+      {groupedNotifications.map((group, idx) => (
+        <div key={`${group.label}-${idx}`} className="flex flex-col">
           {/* Group header */}
           <div className="flex items-end px-4 py-6 pb-4">
             <h4 className="text-lg font-bold text-text-500 flex-grow">
@@ -359,19 +360,30 @@ const NotificationList = ({
  * @returns JSX element representing the notification card or list
  */
 const NotificationCard = (props: NotificationCardProps) => {
-  // If we have grouped notifications or list-specific props, render list mode
+  // If we have list-related props, render list mode
   if (
     props.groupedNotifications !== undefined ||
+    props.notifications !== undefined ||
     props.loading ||
     props.error
   ) {
-    return <NotificationList {...props} />;
+    return (
+      <NotificationList
+        {...props}
+        groupedNotifications={
+          props.groupedNotifications ??
+          (props.notifications
+            ? [{ label: 'Notificações', notifications: props.notifications }]
+            : [])
+        }
+      />
+    );
   }
 
   // If we have single notification props, render single card mode
   if (
-    props.title &&
-    props.message &&
+    props.title !== undefined &&
+    props.message !== undefined &&
     props.time !== undefined &&
     props.isRead !== undefined &&
     props.onMarkAsRead &&

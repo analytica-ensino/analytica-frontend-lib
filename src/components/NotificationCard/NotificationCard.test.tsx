@@ -577,12 +577,14 @@ describe('NotificationCard', () => {
       );
     });
 
-    it('renders fallback state when notifications array is empty', () => {
+    it('renders group header when notifications array is empty', () => {
       render(<NotificationCard notifications={[]} />);
 
+      expect(screen.getByText('Notificações')).toBeInTheDocument(); // Group header
+      // No notifications are rendered within the group since array is empty
       expect(
-        screen.getByText('Nenhuma notificação configurada')
-      ).toBeInTheDocument();
+        screen.queryByRole('heading', { level: 3 })
+      ).not.toBeInTheDocument(); // No notification titles
     });
 
     it('renders empty state when groupedNotifications is null', () => {

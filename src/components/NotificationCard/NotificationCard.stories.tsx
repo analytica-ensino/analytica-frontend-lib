@@ -231,7 +231,7 @@ export const Loading: Story = () => (
 /**
  * Estado de erro
  */
-export const Error: Story = () => (
+export const ErrorState: Story = () => (
   <div className="max-w-md border border-border-100 rounded-xl">
     <NotificationCard
       error="Erro ao carregar notificações"
