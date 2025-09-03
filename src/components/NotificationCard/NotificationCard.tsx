@@ -294,7 +294,7 @@ const NotificationList = ({
       <div className="flex flex-col gap-0 w-full">
         {Array.from({ length: 3 }).map((_, index) => (
           <SkeletonCard
-            key={index}
+            key={`skeleton-${index}`}
             className="p-4 border-b border-border-200"
           />
         ))}
