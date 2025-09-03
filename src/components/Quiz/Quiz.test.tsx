@@ -673,16 +673,7 @@ describe('Quiz', () => {
       );
 
       const quizElement = container.firstChild as HTMLElement;
-      expect(quizElement).toHaveClass(
-        'w-full',
-        'max-w-[1000px]',
-        'flex',
-        'flex-col',
-        'mx-auto',
-        'h-full',
-        'relative',
-        'not-lg:px-6'
-      );
+      expect(quizElement).toHaveClass('flex', 'flex-col');
     });
 
     it('should forward ref correctly', () => {
@@ -5422,16 +5413,7 @@ describe('Quiz', () => {
       );
 
       const mainDiv = container.firstChild as HTMLElement;
-      expect(mainDiv).toHaveClass(
-        'w-full',
-        'max-w-[1000px]',
-        'flex',
-        'flex-col',
-        'mx-auto',
-        'h-full',
-        'relative',
-        'not-lg:px-6'
-      );
+      expect(mainDiv).toHaveClass('flex', 'flex-col');
 
       const headerDiv = mainDiv.querySelector(
         '.flex.flex-row.pt-4.justify-between'

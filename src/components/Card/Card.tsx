@@ -1447,7 +1447,7 @@ const CardSimulationHistory = forwardRef<
                       onClick={() => onSimulationClick?.(simulation)}
                     >
                       <div className="flex justify-between items-center w-full gap-2">
-                        <div className="flex flex-col gap-2 flex-1 min-w-0">
+                        <div className="flex flex-wrap flex-col justify-between sm:flex-row gap-2 flex-1 min-w-0">
                           <Text
                             size="lg"
                             weight="bold"
