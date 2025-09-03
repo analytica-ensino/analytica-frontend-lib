@@ -37,6 +37,8 @@ export default defineConfig({
     'Calendar/index': 'src/components/Calendar/Calendar.tsx',
     'Stepper/index': 'src/components/Stepper/Stepper.tsx',
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
+    'NotificationCard/index':
+      'src/components/NotificationCard/NotificationCard.tsx',
     'NotFound/index': 'src/components/NotFound/NotFound.tsx',
     'VideoPlayer/index': 'src/components/VideoPlayer/VideoPlayer.tsx',
     'Whiteboard/index': 'src/components/Whiteboard/Whiteboard.tsx',

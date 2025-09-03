@@ -137,6 +137,7 @@ import {
 import { useQuizStore } from './components/Quiz/useQuizStore';
 
 import LoadingModal from './components/LoadingModal/loadingModal';
+import NotificationCard from './components/NotificationCard/NotificationCard';
 
 // Export all components for bundled usage
 export { Text };
@@ -169,6 +170,11 @@ export { Calendar };
 export { Modal };
 export { AlertDialog };
 export { LoadingModal };
+export { NotificationCard };
+export type {
+  NotificationItem,
+  NotificationGroup,
+} from './components/NotificationCard/NotificationCard';
 
 // Export DropdownMenu and its sub-components
 export { DropdownMenu };
