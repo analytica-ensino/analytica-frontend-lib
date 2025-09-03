@@ -293,12 +293,14 @@ const NotificationList = ({
   if (loading) {
     return (
       <div className="flex flex-col gap-0 w-full">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <SkeletonCard
-            key={`skeleton-${index}`}
-            className="p-4 border-b border-border-200"
-          />
-        ))}
+        {['skeleton-first', 'skeleton-second', 'skeleton-third'].map(
+          (skeletonId) => (
+            <SkeletonCard
+              key={skeletonId}
+              className="p-4 border-b border-border-200"
+            />
+          )
+        )}
       </div>
     );
   }
