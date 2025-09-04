@@ -1624,7 +1624,11 @@ const QuizFooter = forwardRef<
             <div className="flex flex-row justify-between items-center py-6 pt-6 pb-4 border-b border-border-200">
               <p className="text-text-950 font-bold text-lg">Filtrar por</p>
               <span className="max-w-[266px]">
-                <Select value={filterType} onValueChange={setFilterType}>
+                <Select
+                  value={filterType}
+                  onValueChange={setFilterType}
+                  defaultValue="all"
+                >
                   <SelectTrigger variant="rounded" className="max-w-[266px]">
                     <SelectValue placeholder="Selecione uma opção" />
                   </SelectTrigger>
