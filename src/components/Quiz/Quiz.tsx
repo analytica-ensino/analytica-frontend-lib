@@ -1420,7 +1420,7 @@ const QuizFooter = forwardRef<
     const [modalResultOpen, setModalResultOpen] = useState(false);
     const [modalNavigateOpen, setModalNavigateOpen] = useState(false);
     const [modalResolutionOpen, setModalResolutionOpen] = useState(false);
-    const [filterType, setFilterType] = useState<string | undefined>(undefined);
+    const [filterType, setFilterType] = useState<string>('all');
     const unansweredQuestions = getUnansweredQuestionsFromUserAnswers();
     const allQuestions = getTotalQuestions();
 

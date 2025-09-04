@@ -797,7 +797,6 @@ describe('useUrlAuthentication', () => {
       );
     });
 
-
     it('deve resetar processedRef.current quando ocorre erro final', async () => {
       mockApi.get.mockRejectedValue(new Error('Permanent error'));
 
@@ -863,7 +862,7 @@ describe('useUrlAuthentication', () => {
     it('deve executar o early return quando processedRef.current é true (cobertura linha 224)', async () => {
       // Mock console.warn para verificar que não há logs de retry (indica que não executou)
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-      
+
       mockApi.get.mockResolvedValue({
         data: { data: { profileId: 'p1', foo: 'bar' } },
       });
@@ -910,14 +909,14 @@ describe('useUrlAuthentication', () => {
       );
 
       // Aguardar um tempo para garantir que nenhuma chamada adicional foi feita
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Verificar que não houve novas chamadas (early return funcionou)
       expect(mockApi.get).not.toHaveBeenCalled();
       expect(mockSetTokens).not.toHaveBeenCalled();
       expect(mockSetSessionInfo).not.toHaveBeenCalled();
       expect(mockClearParams).not.toHaveBeenCalled();
-      
+
       consoleWarnSpy.mockRestore();
     });
   });
