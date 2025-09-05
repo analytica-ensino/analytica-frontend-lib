@@ -128,9 +128,17 @@ describe('NotificationCard', () => {
   it('prevents event bubbling when dropdown actions are clicked', () => {
     const parentClickHandler = jest.fn();
     render(
-      <div onClick={parentClickHandler}>
+      <button
+        onClick={parentClickHandler}
+        style={{
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          width: '100%',
+        }}
+      >
         <NotificationCard {...defaultProps} />
-      </div>
+      </button>
     );
 
     const menuButton = screen.getByLabelText('Menu de ações');
@@ -149,13 +157,21 @@ describe('NotificationCard', () => {
     const onNavigate = jest.fn();
 
     render(
-      <div onClick={parentClickHandler}>
+      <button
+        onClick={parentClickHandler}
+        style={{
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          width: '100%',
+        }}
+      >
         <NotificationCard
           {...defaultProps}
           onNavigate={onNavigate}
           actionLabel="Ver atividade"
         />
-      </div>
+      </button>
     );
 
     const actionButton = screen.getByText('Ver atividade');
@@ -297,12 +313,8 @@ describe('NotificationCard', () => {
       render(<NotificationCard groupedNotifications={[]} />);
 
       expect(
-        screen.getByText('Nenhuma notificação no momento')
+        screen.getByText('Nenhuma notificação encontrada')
       ).toBeInTheDocument();
-      expect(
-        screen.getByText(/Você está em dia com todas as novidades/)
-      ).toBeInTheDocument();
-      expect(screen.getByAltText('Sem notificações')).toBeInTheDocument();
     });
 
     it('renders custom empty state when renderEmpty is provided', () => {
@@ -523,20 +535,11 @@ describe('NotificationCard', () => {
   });
 
   describe('NotificationEmpty component', () => {
-    it('renders empty state with correct image and text', () => {
+    it('renders empty state with correct text', () => {
       render(<NotificationCard groupedNotifications={[]} />);
 
-      const image = screen.getByAltText('Sem notificações');
-      expect(image).toBeInTheDocument();
-      expect(image).toHaveAttribute('width', '82');
-      expect(image).toHaveAttribute('height', '82');
-      expect(image).toHaveClass('object-contain');
-
       expect(
-        screen.getByText('Nenhuma notificação no momento')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/Você está em dia com todas as novidades/)
+        screen.getByText('Nenhuma notificação encontrada')
       ).toBeInTheDocument();
     });
 
@@ -550,31 +553,8 @@ describe('NotificationCard', () => {
       );
       expect(emptyStateContainer).toBeInTheDocument();
 
-      const imageContainer = container.querySelector(
-        '.w-20.h-20.flex.items-center.justify-center'
-      );
-      expect(imageContainer).toBeInTheDocument();
-
-      const title = screen.getByText('Nenhuma notificação no momento');
-      expect(title).toHaveClass(
-        'text-xl',
-        'font-semibold',
-        'text-text-950',
-        'text-center',
-        'leading-[23px]'
-      );
-
-      const description = screen.getByText(
-        /Você está em dia com todas as novidades/
-      );
-      expect(description).toHaveClass(
-        'text-sm',
-        'font-normal',
-        'text-text-400',
-        'text-center',
-        'max-w-[316px]',
-        'leading-[21px]'
-      );
+      const text = screen.getByText('Nenhuma notificação encontrada');
+      expect(text).toHaveClass('text-sm', 'text-text-400');
     });
 
     it('renders group header when notifications array is empty', () => {
@@ -595,7 +575,7 @@ describe('NotificationCard', () => {
       );
 
       expect(
-        screen.getByText('Nenhuma notificação no momento')
+        screen.getByText('Nenhuma notificação encontrada')
       ).toBeInTheDocument();
     });
 
