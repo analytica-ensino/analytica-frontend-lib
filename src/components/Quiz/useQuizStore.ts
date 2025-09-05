@@ -28,6 +28,7 @@ export enum ANSWER_STATUS {
   RESPOSTA_CORRETA = 'RESPOSTA_CORRETA',
   RESPOSTA_INCORRETA = 'RESPOSTA_INCORRETA',
   PENDENTE_AVALIACAO = 'PENDENTE_AVALIACAO',
+  NAO_RESPONDIDO = 'NAO_RESPONDIDO',
 }
 
 export interface QuestionResult {
@@ -907,16 +908,28 @@ export const useQuizStore = create<QuizState>()(
           return userAnswer ? userAnswer.answerStatus : null;
         },
         getQuestionIndex: (questionId) => {
-          const { questionsResult } = get();
-          if (!questionsResult) return 0;
+          const { questionsResult, variant } = get();
+          if (variant == 'result') {
+            if (!questionsResult) return 0;
 
-          let idx = questionsResult.answers.findIndex(
-            (q) => q.questionId === questionId
-          );
-          if (idx === -1) {
-            idx = questionsResult.answers.findIndex((q) => q.id === questionId);
+            let idx = questionsResult.answers.findIndex(
+              (q) => q.questionId === questionId
+            );
+            if (idx === -1) {
+              idx = questionsResult.answers.findIndex(
+                (q) => q.id === questionId
+              );
+            }
+            return idx !== -1 ? idx + 1 : 0;
+          } else {
+            const { getActiveQuiz } = get();
+            const activeQuiz = getActiveQuiz();
+            if (!activeQuiz) return 0;
+            const idx = activeQuiz.quiz.questions.findIndex(
+              (q) => q.id === questionId
+            );
+            return idx !== -1 ? idx + 1 : 0;
           }
-          return idx !== -1 ? idx + 1 : 0;
         },
 
         // Question Result

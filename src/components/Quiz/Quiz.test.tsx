@@ -757,7 +757,7 @@ describe('Quiz', () => {
 
       render(<QuizHeaderResult />);
 
-      expect(screen.getByText('Não foi dessa vez...')).toBeInTheDocument();
+      expect(screen.getByText('Nao foi dessa vez...você deixou a resposta em branco')).toBeInTheDocument();
     });
 
     it('should show failure message when no question result', () => {
@@ -768,7 +768,7 @@ describe('Quiz', () => {
 
       render(<QuizHeaderResult />);
 
-      expect(screen.getByText('Não foi dessa vez...')).toBeInTheDocument();
+      expect(screen.getByText('Nao foi dessa vez...você deixou a resposta em branco')).toBeInTheDocument();
     });
 
     it('should apply success background when answer is correct', () => {
@@ -3526,8 +3526,7 @@ describe('Quiz', () => {
       render(<QuizQuestionList />);
 
       expect(screen.getByText('Respondida')).toBeInTheDocument(); // answered
-      expect(screen.getByText('Não respondida')).toBeInTheDocument(); // skipped
-      expect(screen.getByText('Em branco')).toBeInTheDocument(); // unanswered
+      expect(screen.getAllByText('Em branco')).toHaveLength(2); // skipped and unanswered
     });
 
     it('should not render subjects with no questions after filtering', () => {

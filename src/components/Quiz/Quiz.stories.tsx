@@ -1010,7 +1010,7 @@ export const General: Story = () => {
         </p>
       </div>
 
-      <div className="flex flex-col gap-2 h-full pb-15">
+      <div className="flex flex-col gap-2 h-full pb-15 max-w-[1000px] mx-auto">
         <Quiz>
           <QuizTitle />
           <QuizHeader />

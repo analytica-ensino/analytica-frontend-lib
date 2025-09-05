@@ -100,16 +100,15 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
   ({ className, ...props }, ref) => {
     const { getQuestionResultByQuestionId, getCurrentQuestion } =
       useQuizStore();
-    const [isCorrect, setIsCorrect] = useState(false);
-
+    const [status, setStatus] = useState<ANSWER_STATUS | undefined>(undefined);
     useEffect(() => {
       const cq = getCurrentQuestion();
       if (!cq) {
-        setIsCorrect(false);
+        setStatus(undefined);
         return;
       }
       const qr = getQuestionResultByQuestionId(cq.id);
-      setIsCorrect(qr?.answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA);
+      setStatus(qr?.answerStatus);
     }, [
       getCurrentQuestion,
       getQuestionResultByQuestionId,
@@ -121,14 +120,19 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
         ref={ref}
         className={cn(
           'flex flex-row items-center gap-10 p-3.5 rounded-xl mb-4',
-          isCorrect ? 'bg-success-background' : 'bg-error-background',
+          status == ANSWER_STATUS.RESPOSTA_CORRETA
+            ? 'bg-success-background'
+            : 'bg-error-background',
           className
         )}
         {...props}
       >
         <p className="text-text-950 font-bold text-lg">Resultado</p>
         <p className="text-text-700 text-md">
-          {isCorrect ? '🎉 Parabéns!!' : 'Não foi dessa vez...'}
+          {status == ANSWER_STATUS.RESPOSTA_CORRETA && '🎉 Parabéns!!'}
+          {status == ANSWER_STATUS.RESPOSTA_INCORRETA && 'Não foi dessa vez...'}
+          {status == ANSWER_STATUS.NAO_RESPONDIDO &&
+            'Nao foi dessa vez...você deixou a resposta em branco'}
         </p>
       </div>
     );
@@ -1328,13 +1332,18 @@ const QuizQuestionList = ({
       case 'answered':
         return 'Respondida';
       case 'skipped':
-        return 'Não respondida';
+        return 'Em branco';
       default:
         return 'Em branco';
     }
   };
   return (
-    <div className="space-y-6 px-4">
+    <div className="space-y-6 px-4 h-full">
+      {Object.entries(filteredGroupedQuestions).length == 0 && (
+        <div className="flex items-center justify-center text-gray-500 py-8 h-full">
+          <p className="text-lg">Nenhum resultado</p>
+        </div>
+      )}
       {Object.entries(filteredGroupedQuestions).map(
         ([subjectId, questions]) => (
           <section key={subjectId} className="flex flex-col gap-2">
@@ -1352,7 +1361,6 @@ const QuizQuestionList = ({
               {questions.map((question) => {
                 const status = getQuestionStatus(question.id);
                 const questionNumber = getQuestionIndex(question.id);
-
                 return (
                   <CardStatus
                     key={question.id}
@@ -1500,7 +1508,7 @@ const QuizFooter = forwardRef<
                 )}
               </div>
 
-              {!isFirstQuestion && (
+              {!isFirstQuestion && !isLastQuestion && (
                 <Button
                   size="small"
                   variant="outline"
@@ -1625,7 +1633,10 @@ const QuizFooter = forwardRef<
               <p className="text-text-950 font-bold text-lg">Filtrar por</p>
               <span className="max-w-[266px]">
                 <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger variant="rounded" className="max-w-[266px]">
+                  <SelectTrigger
+                    variant="rounded"
+                    className="max-w-[266px] min-w-[160px]"
+                  >
                     <SelectValue placeholder="Selecione uma opção" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1637,7 +1648,7 @@ const QuizFooter = forwardRef<
               </span>
             </div>
 
-            <div className="flex flex-col gap-2 not-lg:h-[calc(100vh-200px)] lg:max-h-[687px] overflow-y-auto">
+            <div className="flex flex-col gap-2 not-lg:h-[calc(100vh-200px)] lg:max-h-[687px] lg:h-[687px] overflow-y-auto">
               <QuizQuestionList
                 filterType={filterType}
                 onQuestionClick={() => setModalNavigateOpen(false)}
@@ -1935,6 +1946,8 @@ const QuizListResultByMateria = ({
                       question.answerStatus === ANSWER_STATUS.RESPOSTA_INCORRETA
                     )
                       return 'incorrect';
+                    if (question.answerStatus === ANSWER_STATUS.NAO_RESPONDIDO)
+                      return 'unanswered';
                     return undefined;
                   })()}
                   onClick={() => onQuestionClick?.(question)}
