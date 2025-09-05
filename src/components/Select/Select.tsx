@@ -319,7 +319,7 @@ const SelectValue = ({
   const selectedLabel = useStore(store, (s) => s.selectedLabel);
   const value = useStore(store, (s) => s.value);
   return (
-    <span className="text-inherit">
+    <span className="text-inherit flex gap-2 items-center">
       {selectedLabel || placeholder || value}
     </span>
   );
