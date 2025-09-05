@@ -1,7 +1,6 @@
 import { DotsThreeVertical } from 'phosphor-react';
 import { MouseEvent, ReactNode } from 'react';
 import { cn } from '../../utils/utils';
-import noNotificationImg from '../../assets/img/no-notification-result.png';
 import DropdownMenu, {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -214,37 +213,6 @@ const SingleNotificationCard = ({
 };
 
 /**
- * Empty state component for notifications
- */
-const NotificationEmpty = () => {
-  return (
-    <div className="flex flex-col items-center justify-center gap-4 p-6 w-full">
-      {/* Notification Icon */}
-      <div className="w-20 h-20 flex items-center justify-center">
-        <img
-          src={noNotificationImg}
-          alt="Sem notificações"
-          width={82}
-          height={82}
-          className="object-contain"
-        />
-      </div>
-
-      {/* Title */}
-      <h3 className="text-xl font-semibold text-text-950 text-center leading-[23px]">
-        Nenhuma notificação no momento
-      </h3>
-
-      {/* Description */}
-      <p className="text-sm font-normal text-text-400 text-center max-w-[316px] leading-[21px]">
-        Você está em dia com todas as novidades. Volte depois para conferir
-        atualizações!
-      </p>
-    </div>
-  );
-};
-
-/**
  * Notification list component for displaying grouped notifications
  */
 const NotificationList = ({
@@ -310,7 +278,9 @@ const NotificationList = ({
     return renderEmpty ? (
       <div className="w-full">{renderEmpty()}</div>
     ) : (
-      <NotificationEmpty />
+      <div className="flex flex-col items-center justify-center gap-4 p-6 w-full">
+        <p className="text-sm text-text-400">Nenhuma notificação encontrada</p>
+      </div>
     );
   }
 
