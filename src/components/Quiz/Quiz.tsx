@@ -115,25 +115,41 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
       getCurrentQuestion()?.id,
     ]);
 
+    const getClassesByAnswersStatus = () => {
+      switch (status) {
+        case ANSWER_STATUS.RESPOSTA_CORRETA:
+          return 'bg-success-background';
+        case ANSWER_STATUS.RESPOSTA_INCORRETA:
+          return 'bg-error-background';
+        default:
+          return 'bg-error-background';
+      }
+    };
+
+    const getLabelByAnswersStatus = () => {
+      switch (status) {
+        case ANSWER_STATUS.RESPOSTA_CORRETA:
+          return '🎉 Parabéns!!';
+        case ANSWER_STATUS.RESPOSTA_INCORRETA:
+          return 'Não foi dessa vez...';
+        case ANSWER_STATUS.NAO_RESPONDIDO:
+          return 'Não foi dessa vez...você deixou a resposta em branco';
+        default:
+          return 'Não foi dessa vez...você deixou a resposta em branco';
+      }
+    };
     return (
       <div
         ref={ref}
         className={cn(
           'flex flex-row items-center gap-10 p-3.5 rounded-xl mb-4',
-          status == ANSWER_STATUS.RESPOSTA_CORRETA
-            ? 'bg-success-background'
-            : 'bg-error-background',
+          getClassesByAnswersStatus(),
           className
         )}
         {...props}
       >
         <p className="text-text-950 font-bold text-lg">Resultado</p>
-        <p className="text-text-700 text-md">
-          {status == ANSWER_STATUS.RESPOSTA_CORRETA && '🎉 Parabéns!!'}
-          {status == ANSWER_STATUS.RESPOSTA_INCORRETA && 'Não foi dessa vez...'}
-          {status == ANSWER_STATUS.NAO_RESPONDIDO &&
-            'Nao foi dessa vez...você deixou a resposta em branco'}
-        </p>
+        <p className="text-text-700 text-md">{getLabelByAnswersStatus()}</p>
       </div>
     );
   }

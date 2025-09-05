@@ -757,7 +757,9 @@ describe('Quiz', () => {
 
       render(<QuizHeaderResult />);
 
-      expect(screen.getByText('Nao foi dessa vez...você deixou a resposta em branco')).toBeInTheDocument();
+      expect(
+        screen.getByText('Não foi dessa vez...você deixou a resposta em branco')
+      ).toBeInTheDocument();
     });
 
     it('should show failure message when no question result', () => {
@@ -768,7 +770,9 @@ describe('Quiz', () => {
 
       render(<QuizHeaderResult />);
 
-      expect(screen.getByText('Nao foi dessa vez...você deixou a resposta em branco')).toBeInTheDocument();
+      expect(
+        screen.getByText('Não foi dessa vez...você deixou a resposta em branco')
+      ).toBeInTheDocument();
     });
 
     it('should apply success background when answer is correct', () => {
