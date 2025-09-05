@@ -119,7 +119,7 @@ interface CardActivitiesResultsProps extends HTMLAttributes<HTMLDivElement> {
 
 const ACTION_CARD_CLASSES = {
   warning: 'bg-warning-background',
-  success: 'bg-success-300',
+  success: 'bg-success-200',
   error: 'bg-error-100',
   info: 'bg-info-background',
 };
