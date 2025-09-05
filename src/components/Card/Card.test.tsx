@@ -746,6 +746,19 @@ describe('CardStatus', () => {
     expect(screen.getByText('Errada')).toBeInTheDocument();
   });
 
+  it('should render with "Em branco" status', () => {
+    render(<CardStatus {...baseProps} status="unanswered" />);
+    expect(screen.getByText('Em branco')).toBeInTheDocument();
+  });
+
+  it('should render with "Em branco" status and label', () => {
+    render(
+      <CardStatus {...baseProps} status="unanswered" label="Não respondida" />
+    );
+    expect(screen.getByText('Em branco')).toBeInTheDocument();
+    expect(screen.getByText('Não respondida')).toBeInTheDocument();
+  });
+
   it('should not render label when not provided', () => {
     render(<CardStatus {...baseProps} status="correct" />);
     expect(screen.getByText('Questão 1')).toBeInTheDocument();

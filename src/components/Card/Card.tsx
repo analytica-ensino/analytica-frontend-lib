@@ -645,12 +645,24 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
 
 interface CardStatusProps extends HTMLAttributes<HTMLDivElement> {
   header: string;
-  status?: 'correct' | 'incorrect';
+  status?: 'correct' | 'incorrect' | 'unanswered';
   label?: string;
 }
 
 const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
   ({ header, className, status, label, ...props }, ref) => {
+    const getLabelBadge = (status: CardStatusProps['status']) => {
+      switch (status) {
+        case 'correct':
+          return 'Correta';
+        case 'incorrect':
+          return 'Incorreta';
+        case 'unanswered':
+          return 'Em branco';
+        default:
+          return 'Em branco';
+      }
+    };
     return (
       <CardBase
         ref={ref}
@@ -670,9 +682,9 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
                 action={status == 'correct' ? 'success' : 'error'}
                 variant="solid"
                 size="medium"
-                iconLeft={<CheckCircle />}
+                iconLeft={status == 'correct' ? <CheckCircle /> : <XCircle />}
               >
-                {status == 'correct' ? 'Correta' : 'Incorreta'}
+                {getLabelBadge(status)}
               </Badge>
             )}
             {label && <p className="text-sm text-text-800">{label}</p>}
