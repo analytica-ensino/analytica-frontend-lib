@@ -54,7 +54,7 @@ interface MenuProps extends HTMLAttributes<HTMLDivElement> {
 const VARIANT_CLASSES = {
   menu: 'bg-background shadow-soft-shadow-1 px-6',
   menu2: '',
-  breadcrumb: 'bg-transparent shadow-none !px-0 !-ml-2',
+  breadcrumb: 'bg-transparent shadow-none !px-0',
 };
 
 const Menu = forwardRef<HTMLDivElement, MenuProps>(
