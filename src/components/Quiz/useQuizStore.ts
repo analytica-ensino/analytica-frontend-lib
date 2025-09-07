@@ -60,6 +60,8 @@ export interface QuestionResult {
       subject: {
         id: string;
         name: string;
+        color: string;
+        icon: string;
       } | null;
       topic: {
         id: string;
