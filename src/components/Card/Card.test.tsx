@@ -16,7 +16,7 @@ import {
   CardTest,
   CardSimulationHistory,
 } from './Card';
-import { ChartBar, CheckCircle, Gear, Star } from 'phosphor-react';
+import { ChartBar, Gear, Star } from 'phosphor-react';
 
 describe('CardBase', () => {
   const baseProps = {
@@ -664,7 +664,7 @@ describe('CardPerformance', () => {
 describe('CardResults', () => {
   const baseProps = {
     header: 'Resultado do Teste',
-    icon: <CheckCircle data-testid="test-icon" />,
+    icon: 'CheckCircle',
     correct_answers: 3,
     incorrect_answers: 1,
   };
@@ -678,7 +678,11 @@ describe('CardResults', () => {
 
   it('should render icon', () => {
     render(<CardResults {...baseProps} />);
-    expect(screen.getByTestId('test-icon')).toBeInTheDocument();
+    // Check if the icon container exists (the div that contains the IconRender)
+    const iconContainer = screen
+      .getByText('Resultado do Teste')
+      .closest('div')?.previousElementSibling;
+    expect(iconContainer).toBeInTheDocument();
   });
 
   it('should apply column layout by default', () => {
@@ -695,8 +699,11 @@ describe('CardResults', () => {
 
   it('should apply custom color as background', () => {
     render(<CardResults {...baseProps} color="#FF0000" />);
-    const iconWrapper = screen.getByTestId('test-icon').parentElement;
-    expect(iconWrapper).toHaveStyle({ backgroundColor: '#FF0000' });
+    // Find the icon container div that has the background color style
+    const iconContainer = screen
+      .getByText('Resultado do Teste')
+      .closest('div')?.previousElementSibling;
+    expect(iconContainer).toHaveStyle({ backgroundColor: '#FF0000' });
   });
 
   it('should apply custom className', () => {

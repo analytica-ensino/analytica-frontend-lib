@@ -27,6 +27,7 @@ import {
 } from 'phosphor-react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
+import IconRender from '../IconRender/IconRender';
 
 // Componente base reutilizável para todos os cards
 interface CardBaseProps extends HTMLAttributes<HTMLDivElement> {
@@ -564,7 +565,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
 
 interface CardResultsProps extends HTMLAttributes<HTMLDivElement> {
   header: string;
-  icon: ReactNode;
+  icon: string;
   correct_answers: number;
   incorrect_answers: number;
   direction?: 'row' | 'col';
@@ -604,7 +605,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
             backgroundColor: color,
           }}
         >
-          {icon}
+          <IconRender iconName={icon} color="currentColor" size={20} />
         </div>
 
         <div

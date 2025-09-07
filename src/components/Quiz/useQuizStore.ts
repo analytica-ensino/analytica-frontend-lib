@@ -112,6 +112,8 @@ export interface Question {
     subject: {
       id: string;
       name: string;
+      color: string;
+      icon: string;
     };
     topic: {
       id: string;
@@ -148,12 +150,14 @@ export interface Simulated {
 export interface Activity {
   id: string;
   title: string;
+  subtype: string;
   questions: Question[];
 }
 
 export interface Lesson {
   id: string;
   title: string;
+  subtype: string;
   questions: Question[];
 }
 

@@ -4490,6 +4490,7 @@ describe('Quiz', () => {
     beforeEach(() => {
       mockUseQuizStore.mockReturnValue({
         bySimulated: null,
+        getActiveQuiz: jest.fn().mockReturnValue(null),
       } as unknown as ReturnType<typeof useQuizStore>);
 
       jest.clearAllMocks();
@@ -4527,6 +4528,7 @@ describe('Quiz', () => {
     it('should not render badge when bySimulated is null', () => {
       mockUseQuizStore.mockReturnValue({
         bySimulated: null,
+        getActiveQuiz: jest.fn().mockReturnValue(null),
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizResultHeaderTitle />);
@@ -4538,26 +4540,36 @@ describe('Quiz', () => {
       const mockBySimulated = {
         type: 'Simulado ENEM',
         id: 'sim-123',
+        subtype: 'ENEM',
       };
 
       mockUseQuizStore.mockReturnValue({
         bySimulated: mockBySimulated,
+        getActiveQuiz: jest.fn().mockReturnValue({
+          quiz: mockBySimulated,
+          type: 'bySimulated',
+        }),
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizResultHeaderTitle />);
 
       expect(screen.getByTestId('quiz-badge')).toBeInTheDocument();
-      expect(screen.getByText('Simulado ENEM')).toBeInTheDocument();
+      expect(screen.getByText('ENEM')).toBeInTheDocument();
     });
 
     it('should render badge with correct properties', () => {
       const mockBySimulated = {
         type: 'Simulado VESTIBULAR',
         id: 'sim-456',
+        subtype: 'VESTIBULAR',
       };
 
       mockUseQuizStore.mockReturnValue({
         bySimulated: mockBySimulated,
+        getActiveQuiz: jest.fn().mockReturnValue({
+          quiz: mockBySimulated,
+          type: 'bySimulated',
+        }),
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizResultHeaderTitle />);
@@ -4565,7 +4577,7 @@ describe('Quiz', () => {
       const badge = screen.getByTestId('quiz-badge');
       expect(badge).toHaveAttribute('data-variant', 'solid');
       expect(badge).toHaveAttribute('data-action', 'info');
-      expect(badge).toHaveTextContent('Simulado VESTIBULAR');
+      expect(badge).toHaveTextContent('Vestibular');
     });
 
     it('should apply custom className', () => {
@@ -4619,15 +4631,20 @@ describe('Quiz', () => {
         type: 'Simulado Personalizado',
         id: 'custom-1',
         difficulty: 'hard',
+        subtype: 'SIMULADO',
       };
 
       mockUseQuizStore.mockReturnValue({
         bySimulated: mockBySimulated,
+        getActiveQuiz: jest.fn().mockReturnValue({
+          quiz: mockBySimulated,
+          type: 'bySimulated',
+        }),
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizResultHeaderTitle />);
 
-      expect(screen.getByText('Simulado Personalizado')).toBeInTheDocument();
+      expect(screen.getByText('Simulado')).toBeInTheDocument();
       expect(screen.getByTestId('quiz-badge')).toBeInTheDocument();
     });
 
@@ -4645,10 +4662,15 @@ describe('Quiz', () => {
       const mockBySimulated = {
         type: '',
         id: 'empty-type',
+        subtype: '',
       };
 
       mockUseQuizStore.mockReturnValue({
         bySimulated: mockBySimulated,
+        getActiveQuiz: jest.fn().mockReturnValue({
+          quiz: mockBySimulated,
+          type: 'bySimulated',
+        }),
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizResultHeaderTitle />);

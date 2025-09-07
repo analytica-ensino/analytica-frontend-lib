@@ -545,7 +545,7 @@ export const AllCardComponentsShowcase: Story = () => {
                 header="Resultado do Teste"
                 correct_answers={10}
                 incorrect_answers={5}
-                icon={<Book />}
+                icon={'Book'}
               />
             </div>
             <div>
@@ -557,7 +557,7 @@ export const AllCardComponentsShowcase: Story = () => {
                 header="Resultado do Teste"
                 correct_answers={10}
                 incorrect_answers={5}
-                icon={<Book />}
+                icon={'Book'}
                 direction="row"
               />
             </div>

@@ -822,8 +822,8 @@ describe('SelectTrigger invalid + variant classes', () => {
   });
 });
 
-describe('SelectItem deselect functionality', () => {
-  it('should deselect when clicking on the same selected item', async () => {
+describe('SelectItem selection behavior', () => {
+  it('should keep selected when clicking on the same selected item', async () => {
     const onValueChange = jest.fn();
     render(
       <Select value="option1" onValueChange={onValueChange}>
@@ -847,8 +847,8 @@ describe('SelectItem deselect functionality', () => {
     const option1Elements = screen.getAllByText('Option 1');
     await userEvent.click(option1Elements[1]); // Index 1 is the menu item, index 0 is the trigger
 
-    // Should call onValueChange with empty string to deselect
-    expect(onValueChange).toHaveBeenCalledWith('');
+    // Should call onValueChange with the same value (no deselection)
+    expect(onValueChange).toHaveBeenCalledWith('option1');
   });
 
   it('should select new option when clicking on different item', async () => {
@@ -873,7 +873,7 @@ describe('SelectItem deselect functionality', () => {
     expect(onValueChange).toHaveBeenCalledWith('option2');
   });
 
-  it('should handle deselect and then select different option', async () => {
+  it('should keep selected when clicking same option and then select different option', async () => {
     const onValueChange = jest.fn();
     render(
       <Select value="option1" onValueChange={onValueChange}>
@@ -887,11 +887,11 @@ describe('SelectItem deselect functionality', () => {
       </Select>
     );
 
-    // First, deselect the current option
+    // First, click on the same option (should keep selected)
     await userEvent.click(screen.getByRole('button'));
     const option1Elements = screen.getAllByText('Option 1');
     await userEvent.click(option1Elements[1]); // Index 1 is the menu item
-    expect(onValueChange).toHaveBeenCalledWith('');
+    expect(onValueChange).toHaveBeenCalledWith('option1');
 
     // Reset mock to test next interaction
     onValueChange.mockClear();
