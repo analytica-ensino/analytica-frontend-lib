@@ -1686,17 +1686,15 @@ const QuizFooter = forwardRef<
 );
 
 // QUIZ RESULT COMPONENTS
-
 const QuizResultHeaderTitle = forwardRef<
   HTMLDivElement,
   { className?: string }
 >(({ className, ...props }, ref) => {
   const { getActiveQuiz } = useQuizStore();
   const activeQuiz = getActiveQuiz();
-  const BadgeLocal = () => {
-    if (!activeQuiz) return null;
 
-    switch (activeQuiz.quiz.subtype) {
+  const QuizBadge = ({ subtype }: { subtype: string | null }) => {
+    switch (subtype) {
       case 'PROVA':
         return (
           <Badge variant="solid" action="info" data-testid="quiz-badge">
@@ -1721,7 +1719,6 @@ const QuizResultHeaderTitle = forwardRef<
             Simulado
           </Badge>
         );
-      case undefined:
       case null:
         return (
           <Badge variant="solid" action="info" data-testid="quiz-badge">
@@ -1731,12 +1728,11 @@ const QuizResultHeaderTitle = forwardRef<
       default:
         return (
           <Badge variant="solid" action="info" data-testid="quiz-badge">
-            {activeQuiz.quiz.subtype}
+            {subtype}
           </Badge>
         );
     }
   };
-
   return (
     <div
       ref={ref}
@@ -1744,7 +1740,7 @@ const QuizResultHeaderTitle = forwardRef<
       {...props}
     >
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
-      <BadgeLocal />
+      <QuizBadge subtype={activeQuiz?.quiz.subtype || null} />
     </div>
   );
 });

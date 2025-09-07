@@ -4533,7 +4533,8 @@ describe('Quiz', () => {
 
       render(<QuizResultHeaderTitle />);
 
-      expect(screen.queryByTestId('quiz-badge')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('quiz-badge')).toBeInTheDocument();
+      expect(screen.getByText('Simulado')).toBeInTheDocument();
     });
 
     it('should render badge when bySimulated exists', () => {
@@ -4676,7 +4677,7 @@ describe('Quiz', () => {
       render(<QuizResultHeaderTitle />);
 
       const badge = screen.getByTestId('quiz-badge');
-      expect(badge).toHaveTextContent('');
+      expect(badge).toHaveTextContent('Simulado');
     });
   });
 
