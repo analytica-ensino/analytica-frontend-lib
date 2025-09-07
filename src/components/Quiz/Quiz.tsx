@@ -1700,13 +1700,13 @@ const QuizResultHeaderTitle = forwardRef<
       case 'PROVA':
         return (
           <Badge variant="solid" action="info" data-testid="quiz-badge">
-            Simulado
+            Prova
           </Badge>
         );
       case 'ENEM':
         return (
           <Badge variant="solid" action="info" data-testid="quiz-badge">
-            ENEM
+            Enem
           </Badge>
         );
       case 'VESTIBULAR':
@@ -1716,6 +1716,13 @@ const QuizResultHeaderTitle = forwardRef<
           </Badge>
         );
       case 'SIMULADO':
+        return (
+          <Badge variant="solid" action="info" data-testid="quiz-badge">
+            Simulado
+          </Badge>
+        );
+      case undefined:
+      case null:
         return (
           <Badge variant="solid" action="info" data-testid="quiz-badge">
             Simulado
@@ -1940,8 +1947,8 @@ const QuizListResult = forwardRef<
               header={subject.subject.name}
               correct_answers={subject.correct}
               incorrect_answers={subject.incorrect}
-              icon={subject.subject.icon}
-              color={subject.subject.color}
+              icon={subject.subject.icon || 'Book'}
+              color={subject.subject.color || undefined}
               direction="row"
             />
           </li>

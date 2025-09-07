@@ -4554,7 +4554,7 @@ describe('Quiz', () => {
       render(<QuizResultHeaderTitle />);
 
       expect(screen.getByTestId('quiz-badge')).toBeInTheDocument();
-      expect(screen.getByText('ENEM')).toBeInTheDocument();
+      expect(screen.getByText('Enem')).toBeInTheDocument();
     });
 
     it('should render badge with correct properties', () => {
