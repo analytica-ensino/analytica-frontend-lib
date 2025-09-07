@@ -948,7 +948,7 @@ export const General: Story = () => {
                 id: 'mecanica',
                 name: 'Mecânica',
                 color: '#A8E6CF',
-                icon: 'Settings',
+                icon: 'Book',
               },
               topic: {
                 id: 'movimento',
