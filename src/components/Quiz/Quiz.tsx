@@ -1686,53 +1686,49 @@ const QuizFooter = forwardRef<
 );
 
 // QUIZ RESULT COMPONENTS
+
+const QuizBadge = ({ subtype }: { subtype: string | null }) => {
+  switch (subtype) {
+    case 'PROVA':
+      return (
+        <Badge variant="solid" action="info" data-testid="quiz-badge">
+          Prova
+        </Badge>
+      );
+    case 'ENEM':
+      return (
+        <Badge variant="solid" action="info" data-testid="quiz-badge">
+          Enem
+        </Badge>
+      );
+    case 'VESTIBULAR':
+      return (
+        <Badge variant="solid" action="info" data-testid="quiz-badge">
+          Vestibular
+        </Badge>
+      );
+    case 'SIMULADO':
+    case null:
+      return (
+        <Badge variant="solid" action="info" data-testid="quiz-badge">
+          Simulado
+        </Badge>
+      );
+    default:
+      return (
+        <Badge variant="solid" action="info" data-testid="quiz-badge">
+          {subtype}
+        </Badge>
+      );
+  }
+};
+
 const QuizResultHeaderTitle = forwardRef<
   HTMLDivElement,
   { className?: string }
 >(({ className, ...props }, ref) => {
   const { getActiveQuiz } = useQuizStore();
   const activeQuiz = getActiveQuiz();
-
-  const QuizBadge = ({ subtype }: { subtype: string | null }) => {
-    switch (subtype) {
-      case 'PROVA':
-        return (
-          <Badge variant="solid" action="info" data-testid="quiz-badge">
-            Prova
-          </Badge>
-        );
-      case 'ENEM':
-        return (
-          <Badge variant="solid" action="info" data-testid="quiz-badge">
-            Enem
-          </Badge>
-        );
-      case 'VESTIBULAR':
-        return (
-          <Badge variant="solid" action="info" data-testid="quiz-badge">
-            Vestibular
-          </Badge>
-        );
-      case 'SIMULADO':
-        return (
-          <Badge variant="solid" action="info" data-testid="quiz-badge">
-            Simulado
-          </Badge>
-        );
-      case null:
-        return (
-          <Badge variant="solid" action="info" data-testid="quiz-badge">
-            Simulado
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="solid" action="info" data-testid="quiz-badge">
-            {subtype}
-          </Badge>
-        );
-    }
-  };
   return (
     <div
       ref={ref}
