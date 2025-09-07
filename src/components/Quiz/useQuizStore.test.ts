@@ -38,6 +38,8 @@ const mockQuestion1 = {
       subject: {
         id: 'algebra',
         name: 'Álgebra',
+        color: '#FF6B6B',
+        icon: 'Calculator',
       },
       topic: {
         id: 'operacoes',
@@ -82,6 +84,8 @@ const mockQuestion2 = {
       subject: {
         id: 'geografia-geral',
         name: 'Geografia Geral',
+        color: '#4ECDC4',
+        icon: 'Globe',
       },
       topic: {
         id: 'capitais',
@@ -118,12 +122,14 @@ const mockSimulado = {
 const mockAtividade = {
   id: 'atividade-1',
   title: 'Test Atividade',
+  subtype: 'ATIVIDADE',
   questions: [mockQuestion1, mockQuestion2],
 };
 
 const mockQuestionary = {
   id: 'aula-1',
   title: 'Test Aula',
+  subtype: 'AULA',
   questions: [mockQuestion1, mockQuestion2],
 };
 
@@ -1097,6 +1103,7 @@ describe('useQuizStore', () => {
       const mockAtividade = {
         id: 'atividade1',
         title: 'Test Atividade',
+        subtype: 'ATIVIDADE',
         questions: [
           { ...mockQuestion1, answerKey: null },
           { ...mockQuestion2, answerKey: null },
@@ -1119,6 +1126,7 @@ describe('useQuizStore', () => {
       const mockQuestionary = {
         id: 'aula1',
         title: 'Test Aula',
+        subtype: 'AULA',
         questions: [
           { ...mockQuestion1, answerKey: null },
           { ...mockQuestion2, answerKey: null },
@@ -1536,7 +1544,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'matematica', name: 'Matemática' },
-                subject: { id: 'algebra', name: 'Álgebra' },
+                subject: {
+                  id: 'algebra',
+                  name: 'Álgebra',
+                  color: '#FF6B6B',
+                  icon: 'Calculator',
+                },
                 topic: { id: 'operacoes', name: 'Operações' },
                 subtopic: { id: 'soma', name: 'Soma' },
                 content: { id: 'matematica', name: 'Matemática' },
@@ -1568,7 +1581,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'geografia', name: 'Geografia' },
-                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                subject: {
+                  id: 'geografia-geral',
+                  name: 'Geografia Geral',
+                  color: '#4ECDC4',
+                  icon: 'Globe',
+                },
                 topic: { id: 'capitais', name: 'Capitais' },
                 subtopic: { id: 'europa', name: 'Europa' },
                 content: { id: 'geografia', name: 'Geografia' },
@@ -1600,7 +1618,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'matematica', name: 'Matemática' },
-                subject: { id: 'algebra', name: 'Álgebra' },
+                subject: {
+                  id: 'algebra',
+                  name: 'Álgebra',
+                  color: '#FF6B6B',
+                  icon: 'Calculator',
+                },
                 topic: { id: 'equacoes', name: 'Equações' },
                 subtopic: { id: 'linear', name: 'Linear' },
                 content: { id: 'matematica', name: 'Matemática' },
@@ -1738,7 +1761,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'matematica', name: 'Matemática' },
-                subject: { id: 'algebra', name: 'Álgebra' },
+                subject: {
+                  id: 'algebra',
+                  name: 'Álgebra',
+                  color: '#FF6B6B',
+                  icon: 'Calculator',
+                },
                 topic: { id: 'operacoes', name: 'Operações' },
                 subtopic: { id: 'soma', name: 'Soma' },
                 content: { id: 'matematica', name: 'Matemática' },
@@ -1766,7 +1794,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'geografia', name: 'Geografia' },
-                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                subject: {
+                  id: 'geografia-geral',
+                  name: 'Geografia Geral',
+                  color: '#4ECDC4',
+                  icon: 'Globe',
+                },
                 topic: { id: 'capitais', name: 'Capitais' },
                 subtopic: { id: 'europa', name: 'Europa' },
                 content: { id: 'geografia', name: 'Geografia' },
@@ -1814,7 +1847,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'matematica', name: 'Matemática' },
-                subject: { id: 'algebra', name: 'Álgebra' },
+                subject: {
+                  id: 'algebra',
+                  name: 'Álgebra',
+                  color: '#FF6B6B',
+                  icon: 'Calculator',
+                },
                 topic: { id: 'equacoes', name: 'Equações' },
                 subtopic: { id: 'quadratica', name: 'Quadrática' },
                 content: { id: 'matematica', name: 'Matemática' },
@@ -1998,6 +2036,7 @@ describe('useQuizStore', () => {
       const mockAtividade = {
         id: 'atividade-1',
         title: 'Test Atividade',
+        subtype: 'ATIVIDADE',
         questions: [mockQuestion1, mockQuestion2],
       };
 
@@ -2023,6 +2062,7 @@ describe('useQuizStore', () => {
       const mockQuestionary = {
         id: 'aula-1',
         title: 'Test Aula',
+        subtype: 'AULA',
         questions: [mockQuestion1, mockQuestion2],
       };
 
@@ -2406,6 +2446,7 @@ describe('useQuizStore', () => {
       const mockAtividade = {
         id: 'atividade1',
         title: 'Test Atividade',
+        subtype: 'ATIVIDADE',
         questions: [
           { ...mockQuestion1, answerKey: null },
           { ...mockQuestion2, answerKey: null },
@@ -2415,6 +2456,7 @@ describe('useQuizStore', () => {
       const mockQuestionary = {
         id: 'aula1',
         title: 'Test Aula',
+        subtype: 'AULA',
         questions: [
           { ...mockQuestion1, answerKey: null },
           { ...mockQuestion2, answerKey: null },
@@ -3057,7 +3099,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'matematica', name: 'Matemática' },
-                subject: { id: 'algebra', name: 'Álgebra' },
+                subject: {
+                  id: 'algebra',
+                  name: 'Álgebra',
+                  color: '#FF6B6B',
+                  icon: 'Calculator',
+                },
                 topic: { id: 'operacoes', name: 'Operações' },
                 subtopic: { id: 'soma', name: 'Soma' },
                 content: { id: 'matematica', name: 'Matemática' },
@@ -3089,7 +3136,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'geografia', name: 'Geografia' },
-                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                subject: {
+                  id: 'geografia-geral',
+                  name: 'Geografia Geral',
+                  color: '#4ECDC4',
+                  icon: 'Globe',
+                },
                 topic: { id: 'capitais', name: 'Capitais' },
                 subtopic: { id: 'europa', name: 'Europa' },
                 content: { id: 'geografia', name: 'Geografia' },
@@ -3200,7 +3252,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'matematica', name: 'Matemática' },
-                subject: { id: 'algebra', name: 'Álgebra' },
+                subject: {
+                  id: 'algebra',
+                  name: 'Álgebra',
+                  color: '#FF6B6B',
+                  icon: 'Calculator',
+                },
                 topic: { id: 'operacoes', name: 'Operações' },
                 subtopic: { id: 'soma', name: 'Soma' },
                 content: { id: 'matematica', name: 'Matemática' },
@@ -3674,7 +3731,12 @@ describe('useQuizStore', () => {
               knowledgeMatrix: [
                 {
                   areaKnowledge: { id: 'matematica', name: 'Matemática' },
-                  subject: { id: 'algebra', name: 'Álgebra' },
+                  subject: {
+                    id: 'algebra',
+                    name: 'Álgebra',
+                    color: '#FF6B6B',
+                    icon: 'Calculator',
+                  },
                   topic: { id: 'operacoes', name: 'Operações' },
                   subtopic: { id: 'soma', name: 'Soma' },
                   content: { id: 'matematica', name: 'Matemática' },
@@ -3706,7 +3768,12 @@ describe('useQuizStore', () => {
               knowledgeMatrix: [
                 {
                   areaKnowledge: { id: 'geografia', name: 'Geografia' },
-                  subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                  subject: {
+                    id: 'geografia-geral',
+                    name: 'Geografia Geral',
+                    color: '#4ECDC4',
+                    icon: 'Globe',
+                  },
                   topic: { id: 'capitais', name: 'Capitais' },
                   subtopic: { id: 'europa', name: 'Europa' },
                   content: { id: 'geografia', name: 'Geografia' },
@@ -3810,6 +3877,7 @@ describe('useQuizStore', () => {
       const mockAtividade = {
         id: 'atividade-1',
         title: 'Test Atividade',
+        subtype: 'ATIVIDADE',
         questions: [mockQuestion1, mockQuestion2],
       };
 
@@ -3831,7 +3899,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'matematica', name: 'Matemática' },
-                subject: { id: 'algebra', name: 'Álgebra' },
+                subject: {
+                  id: 'algebra',
+                  name: 'Álgebra',
+                  color: '#FF6B6B',
+                  icon: 'Calculator',
+                },
                 topic: { id: 'operacoes', name: 'Operações' },
                 subtopic: { id: 'soma', name: 'Soma' },
                 content: { id: 'matematica', name: 'Matemática' },
@@ -3859,7 +3932,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'geografia', name: 'Geografia' },
-                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                subject: {
+                  id: 'geografia-geral',
+                  name: 'Geografia Geral',
+                  color: '#4ECDC4',
+                  icon: 'Globe',
+                },
                 topic: { id: 'capitais', name: 'Capitais' },
                 subtopic: { id: 'europa', name: 'Europa' },
                 content: { id: 'geografia', name: 'Geografia' },
@@ -3899,6 +3977,7 @@ describe('useQuizStore', () => {
       const mockQuestionary = {
         id: 'aula-1',
         title: 'Test Aula',
+        subtype: 'AULA',
         questions: [mockQuestion1, mockQuestion2],
       };
 
@@ -3920,7 +3999,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'matematica', name: 'Matemática' },
-                subject: { id: 'algebra', name: 'Álgebra' },
+                subject: {
+                  id: 'algebra',
+                  name: 'Álgebra',
+                  color: '#FF6B6B',
+                  icon: 'Calculator',
+                },
                 topic: { id: 'operacoes', name: 'Operações' },
                 subtopic: { id: 'soma', name: 'Soma' },
                 content: { id: 'matematica', name: 'Matemática' },
@@ -3948,7 +4032,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'geografia', name: 'Geografia' },
-                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                subject: {
+                  id: 'geografia-geral',
+                  name: 'Geografia Geral',
+                  color: '#4ECDC4',
+                  icon: 'Globe',
+                },
                 topic: { id: 'capitais', name: 'Capitais' },
                 subtopic: { id: 'europa', name: 'Europa' },
                 content: { id: 'geografia', name: 'Geografia' },
@@ -4025,7 +4114,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'matematica', name: 'Matemática' },
-                subject: { id: 'algebra', name: 'Álgebra' },
+                subject: {
+                  id: 'algebra',
+                  name: 'Álgebra',
+                  color: '#FF6B6B',
+                  icon: 'Calculator',
+                },
                 topic: { id: 'operacoes', name: 'Operações' },
                 subtopic: { id: 'soma', name: 'Soma' },
                 content: { id: 'matematica', name: 'Matemática' },
@@ -4053,7 +4147,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'geografia', name: 'Geografia' },
-                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                subject: {
+                  id: 'geografia-geral',
+                  name: 'Geografia Geral',
+                  color: '#4ECDC4',
+                  icon: 'Globe',
+                },
                 topic: { id: 'capitais', name: 'Capitais' },
                 subtopic: { id: 'europa', name: 'Europa' },
                 content: { id: 'geografia', name: 'Geografia' },
@@ -4117,7 +4216,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'matematica', name: 'Matemática' },
-                subject: { id: 'algebra', name: 'Álgebra' },
+                subject: {
+                  id: 'algebra',
+                  name: 'Álgebra',
+                  color: '#FF6B6B',
+                  icon: 'Calculator',
+                },
                 topic: { id: 'operacoes', name: 'Operações' },
                 subtopic: { id: 'soma', name: 'Soma' },
                 content: { id: 'matematica', name: 'Matemática' },
@@ -4145,7 +4249,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'geografia', name: 'Geografia' },
-                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                subject: {
+                  id: 'geografia-geral',
+                  name: 'Geografia Geral',
+                  color: '#4ECDC4',
+                  icon: 'Globe',
+                },
                 topic: { id: 'capitais', name: 'Capitais' },
                 subtopic: { id: 'europa', name: 'Europa' },
                 content: { id: 'geografia', name: 'Geografia' },
@@ -4208,7 +4317,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'matematica', name: 'Matemática' },
-                subject: { id: 'algebra', name: 'Álgebra' },
+                subject: {
+                  id: 'algebra',
+                  name: 'Álgebra',
+                  color: '#FF6B6B',
+                  icon: 'Calculator',
+                },
                 topic: { id: 'operacoes', name: 'Operações' },
                 subtopic: { id: 'soma', name: 'Soma' },
                 content: { id: 'matematica', name: 'Matemática' },
@@ -4236,7 +4350,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'geografia', name: 'Geografia' },
-                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                subject: {
+                  id: 'geografia-geral',
+                  name: 'Geografia Geral',
+                  color: '#4ECDC4',
+                  icon: 'Globe',
+                },
                 topic: { id: 'capitais', name: 'Capitais' },
                 subtopic: { id: 'europa', name: 'Europa' },
                 content: { id: 'geografia', name: 'Geografia' },
@@ -4298,7 +4417,12 @@ describe('useQuizStore', () => {
           knowledgeMatrix: [
             {
               areaKnowledge: { id: 'matematica', name: 'Matemática' },
-              subject: { id: 'algebra', name: 'Álgebra' },
+              subject: {
+                id: 'algebra',
+                name: 'Álgebra',
+                color: '#FF6B6B',
+                icon: 'Calculator',
+              },
               topic: { id: 'operacoes', name: 'Operações' },
               subtopic: { id: 'soma', name: 'Soma' },
               content: { id: 'matematica', name: 'Matemática' },
@@ -4356,7 +4480,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'matematica', name: 'Matemática' },
-                subject: { id: 'algebra', name: 'Álgebra' },
+                subject: {
+                  id: 'algebra',
+                  name: 'Álgebra',
+                  color: '#FF6B6B',
+                  icon: 'Calculator',
+                },
                 topic: { id: 'operacoes', name: 'Operações' },
                 subtopic: { id: 'soma', name: 'Soma' },
                 content: { id: 'matematica', name: 'Matemática' },
@@ -4384,7 +4513,12 @@ describe('useQuizStore', () => {
             knowledgeMatrix: [
               {
                 areaKnowledge: { id: 'geografia', name: 'Geografia' },
-                subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                subject: {
+                  id: 'geografia-geral',
+                  name: 'Geografia Geral',
+                  color: '#4ECDC4',
+                  icon: 'Globe',
+                },
                 topic: { id: 'capitais', name: 'Capitais' },
                 subtopic: { id: 'europa', name: 'Europa' },
                 content: { id: 'geografia', name: 'Geografia' },
@@ -4414,6 +4548,7 @@ describe('useQuizStore', () => {
       const mockAtividade = {
         id: 'atividade-1',
         title: 'Test Atividade',
+        subtype: 'ATIVIDADE',
         questions: [mockQuestion1, mockQuestion2],
       };
 
@@ -4429,6 +4564,7 @@ describe('useQuizStore', () => {
       const mockQuestionary = {
         id: 'aula-1',
         title: 'Test Aula',
+        subtype: 'AULA',
         questions: [mockQuestion1, mockQuestion2],
       };
 
@@ -4507,7 +4643,12 @@ describe('useQuizStore', () => {
           knowledgeMatrix: [
             {
               areaKnowledge: { id: 'matematica', name: 'Matemática' },
-              subject: { id: 'algebra', name: 'Álgebra' },
+              subject: {
+                id: 'algebra',
+                name: 'Álgebra',
+                color: '#FF6B6B',
+                icon: 'Calculator',
+              },
               topic: { id: 'operacoes', name: 'Operações' },
               subtopic: { id: 'soma', name: 'Soma' },
               content: { id: 'matematica', name: 'Matemática' },
@@ -4539,7 +4680,12 @@ describe('useQuizStore', () => {
           knowledgeMatrix: [
             {
               areaKnowledge: { id: 'geografia', name: 'Geografia' },
-              subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+              subject: {
+                id: 'geografia-geral',
+                name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
+              },
               topic: { id: 'capitais', name: 'Capitais' },
               subtopic: { id: 'europa', name: 'Europa' },
               content: { id: 'geografia', name: 'Geografia' },
@@ -4629,7 +4775,12 @@ describe('useQuizStore', () => {
               knowledgeMatrix: [
                 {
                   areaKnowledge: { id: 'matematica', name: 'Matemática' },
-                  subject: { id: 'algebra', name: 'Álgebra' },
+                  subject: {
+                    id: 'algebra',
+                    name: 'Álgebra',
+                    color: '#FF6B6B',
+                    icon: 'Calculator',
+                  },
                   topic: { id: 'operacoes', name: 'Operações' },
                   subtopic: { id: 'soma', name: 'Soma' },
                   content: { id: 'matematica', name: 'Matemática' },
@@ -4669,7 +4820,12 @@ describe('useQuizStore', () => {
               knowledgeMatrix: [
                 {
                   areaKnowledge: { id: 'geografia', name: 'Geografia' },
-                  subject: { id: 'geografia-geral', name: 'Geografia Geral' },
+                  subject: {
+                    id: 'geografia-geral',
+                    name: 'Geografia Geral',
+                    color: '#4ECDC4',
+                    icon: 'Globe',
+                  },
                   topic: { id: 'capitais', name: 'Capitais' },
                   subtopic: { id: 'europa', name: 'Europa' },
                   content: { id: 'geografia', name: 'Geografia' },

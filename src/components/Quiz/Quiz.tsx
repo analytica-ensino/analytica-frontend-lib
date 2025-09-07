@@ -4,7 +4,6 @@ import {
   Clock,
   SquaresFour,
   BookOpen,
-  Book,
   CheckCircle,
   XCircle,
 } from 'phosphor-react';
@@ -1688,12 +1687,48 @@ const QuizFooter = forwardRef<
 
 // QUIZ RESULT COMPONENTS
 
+const QuizBadge = ({ subtype }: { subtype: string | null }) => {
+  switch (subtype) {
+    case 'PROVA':
+      return (
+        <Badge variant="solid" action="info" data-testid="quiz-badge">
+          Prova
+        </Badge>
+      );
+    case 'ENEM':
+      return (
+        <Badge variant="solid" action="info" data-testid="quiz-badge">
+          Enem
+        </Badge>
+      );
+    case 'VESTIBULAR':
+      return (
+        <Badge variant="solid" action="info" data-testid="quiz-badge">
+          Vestibular
+        </Badge>
+      );
+    case 'SIMULADO':
+    case null:
+      return (
+        <Badge variant="solid" action="info" data-testid="quiz-badge">
+          Simulado
+        </Badge>
+      );
+    default:
+      return (
+        <Badge variant="solid" action="info" data-testid="quiz-badge">
+          {subtype}
+        </Badge>
+      );
+  }
+};
+
 const QuizResultHeaderTitle = forwardRef<
   HTMLDivElement,
   { className?: string }
 >(({ className, ...props }, ref) => {
-  const { bySimulated } = useQuizStore();
-
+  const { getActiveQuiz } = useQuizStore();
+  const activeQuiz = getActiveQuiz();
   return (
     <div
       ref={ref}
@@ -1701,11 +1736,7 @@ const QuizResultHeaderTitle = forwardRef<
       {...props}
     >
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
-      {bySimulated && (
-        <Badge variant="solid" action="info">
-          {bySimulated.type}
-        </Badge>
-      )}
+      <QuizBadge subtype={activeQuiz?.quiz.subtype || null} />
     </div>
   );
 });
@@ -1885,6 +1916,8 @@ const QuizListResult = forwardRef<
             questions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ??
             'Sem matéria',
           id: subjectId,
+          color: questions?.[0]?.knowledgeMatrix?.[0]?.subject?.color ?? '',
+          icon: questions?.[0]?.knowledgeMatrix?.[0]?.subject?.icon ?? '',
         },
         correct,
         incorrect,
@@ -1906,7 +1939,8 @@ const QuizListResult = forwardRef<
               header={subject.subject.name}
               correct_answers={subject.correct}
               incorrect_answers={subject.incorrect}
-              icon={<Book size={20} />}
+              icon={subject.subject.icon || 'Book'}
+              color={subject.subject.color || undefined}
               direction="row"
             />
           </li>

@@ -714,6 +714,8 @@ export const General: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -758,6 +760,8 @@ export const General: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -805,6 +809,8 @@ export const General: Story = () => {
               subject: {
                 id: 'astronomia',
                 name: 'Astronomia',
+                color: '#FFD93D',
+                icon: 'Star',
               },
               topic: {
                 id: 'sistema-solar',
@@ -844,6 +850,8 @@ export const General: Story = () => {
               subject: {
                 id: 'portugues',
                 name: 'Português',
+                color: '#6BCF7F',
+                icon: 'BookOpen',
               },
               topic: {
                 id: 'redacao',
@@ -887,6 +895,8 @@ export const General: Story = () => {
               subject: {
                 id: 'astronomia',
                 name: 'Astronomia',
+                color: '#FFD93D',
+                icon: 'Star',
               },
               topic: {
                 id: 'sistema-solar',
@@ -937,6 +947,8 @@ export const General: Story = () => {
               subject: {
                 id: 'mecanica',
                 name: 'Mecânica',
+                color: '#A8E6CF',
+                icon: 'Book',
               },
               topic: {
                 id: 'movimento',
@@ -975,6 +987,8 @@ export const General: Story = () => {
               subject: {
                 id: 'mecanica',
                 name: 'Mecânica',
+                color: '#A8E6CF',
+                icon: 'Settings',
               },
               topic: {
                 id: 'movimento',
@@ -1090,6 +1104,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -1135,6 +1151,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -1180,6 +1198,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -1225,6 +1245,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'astronomia',
                 name: 'Astronomia',
+                color: '#FFD93D',
+                icon: 'Star',
               },
               topic: {
                 id: 'sistema-solar',
@@ -1278,6 +1300,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'astronomia',
                 name: 'Astronomia',
+                color: '#FFD93D',
+                icon: 'Star',
               },
               topic: {
                 id: 'sistema-solar',
@@ -1324,6 +1348,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'mecanica',
                 name: 'Mecânica',
+                color: '#A8E6CF',
+                icon: 'Settings',
               },
               topic: {
                 id: 'grandezas',
@@ -1364,6 +1390,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'portugues',
                 name: 'Português',
+                color: '#6BCF7F',
+                icon: 'BookOpen',
               },
               topic: {
                 id: 'redacao',
@@ -1404,6 +1432,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'mecanica',
                 name: 'Mecânica',
+                color: '#A8E6CF',
+                icon: 'Settings',
               },
               topic: {
                 id: 'dinamica',
@@ -1448,6 +1478,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'astronomia',
                 name: 'Astronomia',
+                color: '#FFD93D',
+                icon: 'Star',
               },
               topic: {
                 id: 'sistema-solar',
@@ -1491,6 +1523,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'astronomia',
                 name: 'Astronomia',
+                color: '#FFD93D',
+                icon: 'Star',
               },
               topic: {
                 id: 'sistema-solar',
@@ -1547,6 +1581,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -1593,6 +1629,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -1638,6 +1676,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -1685,6 +1725,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -1737,6 +1779,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -1789,6 +1833,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -1836,6 +1882,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -1882,6 +1930,8 @@ export const GeneralForResults: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -2024,6 +2074,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               subject: {
                 id: 'fisica',
                 name: 'Física',
+                color: '#0000FF',
+                icon: 'Book',
               },
               topic: {
                 id: 'mecanica',
@@ -2068,6 +2120,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               subject: {
                 id: 'matematica',
                 name: 'Matemática',
+                color: '#FF6B6B',
+                icon: 'Calculator',
               },
               topic: {
                 id: 'algebra',
@@ -2106,6 +2160,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               subject: {
                 id: 'quimica',
                 name: 'Química',
+                color: '#B39DDB',
+                icon: 'Flask',
               },
               topic: {
                 id: 'quimica-geral',
@@ -2150,6 +2206,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               subject: {
                 id: 'biologia',
                 name: 'Biologia',
+                color: '#81C784',
+                icon: 'Leaf',
               },
               topic: {
                 id: 'biologia-geral',
@@ -2194,6 +2252,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               subject: {
                 id: 'historia',
                 name: 'História',
+                color: '#FFB74D',
+                icon: 'Clock',
               },
               topic: {
                 id: 'historia-geral',
@@ -2252,6 +2312,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -2302,6 +2364,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -2348,6 +2412,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -2398,6 +2464,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',
@@ -2448,6 +2516,8 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
               subject: {
                 id: 'geografia-geral',
                 name: 'Geografia Geral',
+                color: '#4ECDC4',
+                icon: 'Globe',
               },
               topic: {
                 id: 'capitais',

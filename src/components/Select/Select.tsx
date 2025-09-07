@@ -469,12 +469,11 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
     ) => {
       const labelNode = getLabelAsNode(children);
       if (!disabled) {
-        const newValue = selectedValue === value ? '' : value;
-        const newLabel = selectedValue === value ? '' : labelNode;
-        setValue(newValue);
-        setSelectedLabel(newLabel);
+        // Always set the clicked value, even if it's already selected
+        setValue(value);
+        setSelectedLabel(labelNode);
         setOpen(false);
-        onValueChange?.(newValue);
+        onValueChange?.(value);
       }
       props.onClick?.(e as MouseEvent<HTMLDivElement>);
     };
