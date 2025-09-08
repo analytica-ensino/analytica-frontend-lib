@@ -28,6 +28,7 @@ describe('notificationStore', () => {
   afterEach(() => {
     jest.clearAllTimers();
     jest.useRealTimers();
+    mockConsoleError.mockClear();
   });
 
   const setupTestNotifications = () => {
@@ -403,6 +404,39 @@ describe('notificationStore', () => {
       );
     });
 
+    it('should not make API call when notification is already read', async () => {
+      const { result } = renderHook(() => useNotificationStore());
+
+      // Setup with notification already read
+      act(() => {
+        useNotificationStore.setState({
+          notifications: [
+            {
+              id: '1',
+              title: 'Test',
+              message: 'Message',
+              type: 'ACTIVITY',
+              isRead: true, // Already read
+              createdAt: new Date(),
+              entityType: NotificationEntityType.ACTIVITY,
+              entityId: 'activity-1',
+              sender: null,
+              activity: null,
+              goal: null,
+            },
+          ],
+          unreadCount: 0,
+        });
+      });
+
+      await act(async () => {
+        await result.current.markAsRead('1');
+      });
+
+      // Should not make API call for already read notification
+      expect(mockApiClient.patch).not.toHaveBeenCalled();
+    });
+
     it('should work when no unread notifications exist', async () => {
       const { result } = renderHook(() => useNotificationStore());
 
@@ -551,6 +585,68 @@ describe('notificationStore', () => {
       });
 
       expect(result.current.error).toBe(null);
+    });
+  });
+
+  describe('formatTimeAgo', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2024-01-15T12:00:00Z'));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should format time for hours ago (less than 24h)', () => {
+      const date = new Date('2024-01-15T08:00:00Z'); // 4 hours ago
+      const result = formatTimeAgo(date);
+      expect(result).toBe('Há 4h');
+    });
+
+    it('should format time for days ago (less than 30 days)', () => {
+      const date = new Date('2024-01-10T08:00:00Z'); // 5 days ago
+      const result = formatTimeAgo(date);
+      expect(result).toBe('10 Jan');
+    });
+
+    it('should format time for months ago (30+ days)', () => {
+      const date = new Date('2023-11-15T08:00:00Z'); // More than 30 days ago
+      const result = formatTimeAgo(date);
+      expect(result).toBe('15/11/2023');
+    });
+
+    it('should handle different months correctly', () => {
+      // Set current time to 2024-01-15T12:00:00Z for consistent testing
+      jest.setSystemTime(new Date('2024-01-15T12:00:00Z'));
+
+      // Test dates within 30 days to ensure proper month formatting
+      const testCases = [
+        { date: new Date('2024-01-05T08:00:00Z'), expected: '5 Jan' },
+        { date: new Date('2024-01-10T08:00:00Z'), expected: '10 Jan' },
+      ];
+
+      testCases.forEach(({ date, expected }) => {
+        const result = formatTimeAgo(date);
+        expect(result).toBe(expected);
+      });
+
+      // Test different months by setting specific system times
+      jest.setSystemTime(new Date('2024-03-05T12:00:00Z'));
+      let result = formatTimeAgo(new Date('2024-02-20T08:00:00Z'));
+      expect(result).toBe('20 Fev');
+
+      jest.setSystemTime(new Date('2024-05-05T12:00:00Z'));
+      result = formatTimeAgo(new Date('2024-04-20T08:00:00Z'));
+      expect(result).toBe('20 Abr');
+
+      jest.setSystemTime(new Date('2024-06-05T12:00:00Z'));
+      result = formatTimeAgo(new Date('2024-05-20T08:00:00Z'));
+      expect(result).toBe('20 Mai');
+
+      jest.setSystemTime(new Date('2024-12-05T12:00:00Z'));
+      result = formatTimeAgo(new Date('2024-11-20T08:00:00Z'));
+      expect(result).toBe('20 Nov');
     });
   });
 
