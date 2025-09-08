@@ -1,5 +1,5 @@
 import { HTMLAttributes, useCallback, useState } from 'react';
-import { DownloadSimple } from 'phosphor-react';
+import { ArrowsOut } from 'phosphor-react';
 import { cn } from '../../utils/utils';
 
 // Design constants for critical layout dimensions
@@ -147,10 +147,10 @@ const Whiteboard = ({
               <button
                 type="button"
                 onClick={() => handleDownload(image)}
-                className="absolute bottom-3 right-3 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded hover:bg-black/30 transition-colors duration-200 group/button w-6 h-6"
+                className="cursor-pointer absolute bottom-3 right-3 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded hover:bg-black/30 transition-colors duration-200 group/button w-6 h-6"
                 aria-label={`Download ${image.title || 'imagem'}`}
               >
-                <DownloadSimple
+                <ArrowsOut
                   size={24}
                   weight="regular"
                   className="text-white group-hover/button:scale-110 transition-transform duration-200"
