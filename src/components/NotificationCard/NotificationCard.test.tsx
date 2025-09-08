@@ -696,34 +696,36 @@ describe('NotificationCard', () => {
 
     it('renders fallback when isRead is undefined', () => {
       render(
-        <NotificationCard
-          mode="single"
+        <LegacyNotificationCard
           title="Test Title"
           message="Test message"
           time="Há 3h"
-          isRead={false}
+          /* omit isRead to simulate undefined */
           onMarkAsRead={jest.fn()}
           onDelete={jest.fn()}
         />
       );
 
-      expect(screen.getByText('Test Title')).toBeInTheDocument();
+      expect(
+        screen.getByText('Nenhuma notificação configurada')
+      ).toBeInTheDocument();
     });
 
     it('renders fallback when time is undefined', () => {
       render(
-        <NotificationCard
-          mode="single"
+        <LegacyNotificationCard
           title="Test Title"
           message="Test message"
-          time="Há 3h"
+          /* omit time to simulate undefined */
           isRead={false}
           onMarkAsRead={jest.fn()}
           onDelete={jest.fn()}
         />
       );
 
-      expect(screen.getByText('Test Title')).toBeInTheDocument();
+      expect(
+        screen.getByText('Nenhuma notificação configurada')
+      ).toBeInTheDocument();
     });
   });
 
