@@ -11,7 +11,12 @@ import IconButton from '../IconButton/IconButton';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import { useMobile } from '../../hooks/useMobile';
-import { Notification, NotificationGroup } from '../../types/notifications';
+import type {
+  Notification,
+  NotificationGroup,
+  NotificationEntityType,
+} from '../../types/notifications';
+import { formatTimeAgo } from '../../store/notificationStore';
 
 // Extended notification item for component usage with time string
 export interface NotificationItem extends Omit<Notification, 'createdAt'> {
@@ -116,11 +121,14 @@ interface NotificationListMode extends BaseNotificationProps {
   /**
    * Callback when user navigates from a notification in list mode
    */
-  onNavigateById?: (entityType?: string, entityId?: string) => void;
+  onNavigateById?: (
+    entityType?: NotificationEntityType,
+    entityId?: string
+  ) => void;
   /**
    * Function to get action label for a notification
    */
-  getActionLabel?: (entityType?: string) => string | undefined;
+  getActionLabel?: (entityType?: NotificationEntityType) => string | undefined;
   /**
    * Custom empty state component
    */
@@ -180,11 +188,14 @@ interface NotificationCenterMode extends BaseNotificationProps {
   /**
    * Callback when user navigates from a notification in center mode
    */
-  onNavigateById?: (entityType?: string, entityId?: string) => void;
+  onNavigateById?: (
+    entityType?: NotificationEntityType,
+    entityId?: string
+  ) => void;
   /**
    * Function to get action label for a notification
    */
-  getActionLabel?: (entityType?: string) => string | undefined;
+  getActionLabel?: (entityType?: NotificationEntityType) => string | undefined;
 }
 
 // Union type for all modes
@@ -213,8 +224,11 @@ export interface LegacyNotificationCardProps extends BaseNotificationProps {
   onRetry?: () => void;
   onMarkAsReadById?: (id: string) => void;
   onDeleteById?: (id: string) => void;
-  onNavigateById?: (entityType?: string, entityId?: string) => void;
-  getActionLabel?: (entityType?: string) => string | undefined;
+  onNavigateById?: (
+    entityType?: NotificationEntityType,
+    entityId?: string
+  ) => void;
+  getActionLabel?: (entityType?: NotificationEntityType) => string | undefined;
   renderEmpty?: () => ReactNode;
 
   // NotificationCenter mode props
@@ -425,8 +439,11 @@ const NotificationList = ({
   onRetry?: () => void;
   onMarkAsReadById?: (id: string) => void;
   onDeleteById?: (id: string) => void;
-  onNavigateById?: (entityType?: string, entityId?: string) => void;
-  getActionLabel?: (entityType?: string) => string | undefined;
+  onNavigateById?: (
+    entityType?: NotificationEntityType,
+    entityId?: string
+  ) => void;
+  getActionLabel?: (entityType?: NotificationEntityType) => string | undefined;
   renderEmpty?: () => ReactNode;
   className?: string;
 }) => {
@@ -490,7 +507,10 @@ const NotificationList = ({
               key={notification.id}
               title={notification.title}
               message={notification.message}
-              time={(notification as NotificationItem).time}
+              time={
+                (notification as Partial<NotificationItem>).time ??
+                formatTimeAgo(new Date(notification.createdAt))
+              }
               isRead={notification.isRead}
               onMarkAsRead={() => onMarkAsReadById?.(notification.id)}
               onDelete={() => onDeleteById?.(notification.id)}
@@ -564,7 +584,7 @@ const NotificationCenter = ({
 
   // Handle navigation with cleanup
   const handleNavigate = (
-    entityType?: string,
+    entityType?: NotificationEntityType,
     entityId?: string,
     onCleanup?: () => void
   ) => {

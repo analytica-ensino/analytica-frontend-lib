@@ -1257,7 +1257,7 @@ describe('Internal Helper Functions', () => {
       expect(grouped[0].notifications).toHaveLength(2);
     });
 
-    it('should not group very old notifications', () => {
+    it('should group very old notifications in "Mais antigas" category', () => {
       const mockApiClient: NotificationApiClient = {
         get: jest.fn(),
         patch: jest.fn(),
@@ -1290,7 +1290,12 @@ describe('Internal Helper Functions', () => {
       });
 
       const grouped = result.current.getGroupedNotifications();
-      expect(grouped).toEqual([]);
+      expect(grouped).toEqual([
+        {
+          label: 'Mais antigas',
+          notifications: veryOldNotifications,
+        },
+      ]);
     });
 
     it('should correctly handle edge cases for time boundaries', () => {

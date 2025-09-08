@@ -335,8 +335,9 @@ export const Grouped: Story = () => {
         onDeleteById={handleDelete}
         onNavigateById={() => {}}
         getActionLabel={(entityType) => {
-          if (entityType === 'activity') return 'Ver atividade';
-          if (entityType === 'trail') return 'Ver trilha';
+          if (entityType === NotificationEntityType.ACTIVITY)
+            return 'Ver atividade';
+          if (entityType === NotificationEntityType.TRAIL) return 'Ver trilha';
           return undefined;
         }}
       />

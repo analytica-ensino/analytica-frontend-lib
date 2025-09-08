@@ -132,16 +132,24 @@ const groupNotificationsByTime = (
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const sortDesc = (a: Notification, b: Notification) =>
+    +new Date(b.createdAt) - +new Date(a.createdAt);
 
-  const todayNotifications = notifications.filter(
-    (notification) => new Date(notification.createdAt) >= today
-  );
+  const todayNotifications = notifications
+    .filter((notification) => new Date(notification.createdAt) >= today)
+    .sort(sortDesc);
 
-  const lastWeekNotifications = notifications.filter(
-    (notification) =>
-      new Date(notification.createdAt) >= lastWeek &&
-      new Date(notification.createdAt) < today
-  );
+  const lastWeekNotifications = notifications
+    .filter(
+      (notification) =>
+        new Date(notification.createdAt) >= lastWeek &&
+        new Date(notification.createdAt) < today
+    )
+    .sort(sortDesc);
+
+  const olderNotifications = notifications
+    .filter((notification) => new Date(notification.createdAt) < lastWeek)
+    .sort(sortDesc);
 
   const groups: NotificationGroup[] = [];
 
@@ -156,6 +164,13 @@ const groupNotificationsByTime = (
     groups.push({
       label: 'Última semana',
       notifications: lastWeekNotifications,
+    });
+  }
+
+  if (olderNotifications.length > 0) {
+    groups.push({
+      label: 'Mais antigas',
+      notifications: olderNotifications,
     });
   }
 
@@ -225,17 +240,22 @@ export const createNotificationStore = (apiClient: NotificationApiClient) => {
               mapBackendNotification
             );
 
-            const unreadCount = mappedNotifications.filter(
-              (n) => !n.isRead
-            ).length;
+            const page = response.data.pagination.page;
+            const totalPages = response.data.pagination.totalPages;
+            const merged =
+              params.page && params.page > 1
+                ? [...get().notifications, ...mappedNotifications]
+                : mappedNotifications;
+            // de-dup by id
+            const deduped = Array.from(
+              new Map(merged.map((n) => [n.id, n])).values()
+            );
 
             set({
-              notifications: mappedNotifications,
-              unreadCount,
-              hasMore:
-                response.data.pagination.page <
-                response.data.pagination.totalPages,
-              currentPage: response.data.pagination.page,
+              notifications: deduped,
+              unreadCount: deduped.filter((n) => !n.isRead).length,
+              hasMore: page < totalPages,
+              currentPage: page,
               loading: false,
             });
           } catch (error) {

@@ -1,5 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import NotificationCard, { NotificationGroup } from './NotificationCard';
+import NotificationCard, {
+  NotificationGroup,
+  LegacyNotificationCard,
+} from './NotificationCard';
 import {
   NotificationEntityType,
   Notification,
@@ -886,22 +889,20 @@ describe('NotificationCard', () => {
   });
 
   describe('NotificationCenter mode', () => {
-    // Mock useMobile hook
-    const mockUseMobile = jest.fn();
-
-    beforeAll(() => {
-      // Mock the useMobile hook
-      jest.doMock('../../hooks/useMobile', () => ({
-        useMobile: mockUseMobile,
-      }));
-    });
-
     afterEach(() => {
       mockUseMobile.mockReset();
     });
 
     it('renders notification center in desktop mode when variant is center', () => {
-      mockUseMobile.mockReturnValue({ isMobile: false });
+      mockUseMobile.mockReturnValue({
+        isMobile: false,
+        isTablet: false,
+        getFormContainerClasses: jest.fn(() => ''),
+        getHeaderClasses: jest.fn(() => ''),
+        getMobileHeaderClasses: jest.fn(() => ''),
+        getDesktopHeaderClasses: jest.fn(() => ''),
+        getDeviceType: jest.fn(() => 'desktop' as DeviceType),
+      });
 
       const mockProps = {
         mode: 'center' as const,
@@ -931,17 +932,25 @@ describe('NotificationCard', () => {
         getActionLabel: jest.fn(),
       };
 
-      render(<NotificationCard {...mockProps} />);
+      render(<LegacyNotificationCard {...mockProps} />);
 
       // Should render bell icon (part of IconButton)
       expect(document.querySelector('svg')).toBeInTheDocument();
     });
 
     it('renders notification center in mobile mode when variant is center', () => {
-      mockUseMobile.mockReturnValue({ isMobile: true });
+      mockUseMobile.mockReturnValue({
+        isMobile: true,
+        isTablet: false,
+        getFormContainerClasses: jest.fn(() => ''),
+        getHeaderClasses: jest.fn(() => ''),
+        getMobileHeaderClasses: jest.fn(() => ''),
+        getDesktopHeaderClasses: jest.fn(() => ''),
+        getDeviceType: jest.fn(() => 'mobile' as DeviceType),
+      });
 
       const mockProps = {
-        mode: 'center' as const,
+        variant: 'center' as const,
         isActive: false,
         onToggleActive: jest.fn(),
         unreadCount: 1,
@@ -949,7 +958,7 @@ describe('NotificationCard', () => {
         onFetchNotifications: jest.fn(),
       };
 
-      render(<NotificationCard {...mockProps} />);
+      render(<LegacyNotificationCard {...mockProps} />);
 
       // Should render bell icon (part of IconButton)
       expect(document.querySelector('svg')).toBeInTheDocument();
@@ -960,7 +969,7 @@ describe('NotificationCard', () => {
       const onToggleActive = jest.fn();
 
       const mockProps = {
-        mode: 'center' as const,
+        variant: 'center' as const,
         isActive: false,
         onToggleActive,
         unreadCount: 0,
@@ -968,7 +977,7 @@ describe('NotificationCard', () => {
         onFetchNotifications: jest.fn(),
       };
 
-      render(<NotificationCard {...mockProps} />);
+      render(<LegacyNotificationCard {...mockProps} />);
 
       const iconButton = screen.getByLabelText('Botão de ação');
       fireEvent.click(iconButton);
@@ -977,11 +986,19 @@ describe('NotificationCard', () => {
     });
 
     it('renders notification center button in mobile mode', () => {
-      mockUseMobile.mockReturnValue({ isMobile: true });
+      mockUseMobile.mockReturnValue({
+        isMobile: true,
+        isTablet: false,
+        getFormContainerClasses: jest.fn(() => ''),
+        getHeaderClasses: jest.fn(() => ''),
+        getMobileHeaderClasses: jest.fn(() => ''),
+        getDesktopHeaderClasses: jest.fn(() => ''),
+        getDeviceType: jest.fn(() => 'mobile' as DeviceType),
+      });
       const onFetchNotifications = jest.fn();
 
       const mockProps = {
-        mode: 'center' as const,
+        variant: 'center' as const,
         isActive: false,
         onToggleActive: jest.fn(),
         unreadCount: 0,
@@ -989,7 +1006,7 @@ describe('NotificationCard', () => {
         onFetchNotifications,
       };
 
-      render(<NotificationCard {...mockProps} />);
+      render(<LegacyNotificationCard {...mockProps} />);
 
       const iconButton = screen.getByLabelText('Botão de ação');
       expect(iconButton).toBeInTheDocument();
@@ -1000,10 +1017,18 @@ describe('NotificationCard', () => {
     });
 
     it('renders empty state with custom properties in notification center', () => {
-      mockUseMobile.mockReturnValue({ isMobile: false });
+      mockUseMobile.mockReturnValue({
+        isMobile: false,
+        isTablet: false,
+        getFormContainerClasses: jest.fn(() => ''),
+        getHeaderClasses: jest.fn(() => ''),
+        getMobileHeaderClasses: jest.fn(() => ''),
+        getDesktopHeaderClasses: jest.fn(() => ''),
+        getDeviceType: jest.fn(() => 'desktop' as DeviceType),
+      });
 
       const mockProps = {
-        mode: 'center' as const,
+        variant: 'center' as const,
         isActive: true,
         onToggleActive: jest.fn(),
         unreadCount: 0,
@@ -1014,7 +1039,7 @@ describe('NotificationCard', () => {
         emptyStateImage: 'test-image.png',
       };
 
-      render(<NotificationCard {...mockProps} />);
+      render(<LegacyNotificationCard {...mockProps} />);
 
       // The dropdown should be open when isActive is true
       // But testing the actual dropdown content is complex due to portal rendering
@@ -1344,6 +1369,259 @@ describe('NotificationCard', () => {
       );
 
       expect(onFetchNotifications).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls handleNavigate with onToggleActive cleanup when navigation occurs in desktop dropdown', () => {
+      const onNavigateById = jest.fn();
+      const onToggleActive = jest.fn();
+
+      mockUseMobile.mockReturnValue({
+        isMobile: false,
+        isTablet: false,
+        getFormContainerClasses: jest.fn(() => ''),
+        getHeaderClasses: jest.fn(() => ''),
+        getMobileHeaderClasses: jest.fn(() => ''),
+        getDesktopHeaderClasses: jest.fn(() => ''),
+        getDeviceType: jest.fn(() => 'desktop' as DeviceType),
+      });
+
+      const mockGroupedNotifications = [
+        {
+          label: 'Hoje',
+          notifications: [
+            {
+              id: '1',
+              title: 'Test Navigation Desktop',
+              message: 'Navigation Message Desktop',
+              type: 'ACTIVITY' as const,
+              isRead: false,
+              createdAt: new Date(),
+              entityType: NotificationEntityType.ACTIVITY,
+              entityId: 'activity-desktop-1',
+              sender: null,
+              activity: null,
+              goal: null,
+            } as Notification,
+          ],
+        },
+      ];
+
+      render(
+        <NotificationCard
+          mode="center"
+          isActive={true}
+          onToggleActive={onToggleActive}
+          groupedNotifications={mockGroupedNotifications}
+          onNavigateById={onNavigateById}
+          getActionLabel={(entityType) =>
+            entityType === NotificationEntityType.ACTIVITY
+              ? 'Ver atividade desktop'
+              : undefined
+          }
+        />
+      );
+
+      // First, click the dropdown trigger to open it if not already open
+      const dropdownTrigger = screen.getByLabelText('Botão de ação');
+      fireEvent.click(dropdownTrigger);
+
+      // Clear the mock to only count the navigation click
+      onToggleActive.mockClear();
+
+      // Now find the action button in the opened dropdown
+      const actionButton = screen.getByText('Ver atividade desktop');
+      fireEvent.click(actionButton);
+
+      // Verify that the callback on line 706 was executed
+      expect(onNavigateById).toHaveBeenCalledWith(
+        NotificationEntityType.ACTIVITY,
+        'activity-desktop-1'
+      );
+
+      // Should also call onToggleActive to close dropdown (this proves line 706 executed)
+      expect(onToggleActive).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onToggleActive when desktop notification button is clicked', () => {
+      const onToggleActive = jest.fn();
+
+      mockUseMobile.mockReturnValue({
+        isMobile: false,
+        isTablet: false,
+        getFormContainerClasses: jest.fn(() => ''),
+        getHeaderClasses: jest.fn(() => ''),
+        getMobileHeaderClasses: jest.fn(() => ''),
+        getDesktopHeaderClasses: jest.fn(() => ''),
+        getDeviceType: jest.fn(() => 'desktop' as DeviceType),
+      });
+
+      render(
+        <NotificationCard
+          mode="center"
+          isActive={false}
+          onToggleActive={onToggleActive}
+          groupedNotifications={[]}
+        />
+      );
+
+      // Find the desktop notification button
+      const desktopButton = screen.getByLabelText('Botão de ação');
+      fireEvent.click(desktopButton);
+
+      // Should call onToggleActive
+      expect(onToggleActive).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('LegacyNotificationCard', () => {
+    it('renders center mode when variant is center', () => {
+      const mockProps = {
+        variant: 'center' as const,
+        groupedNotifications: [
+          {
+            label: 'Hoje',
+            notifications: [
+              {
+                id: '1',
+                title: 'Test',
+                message: 'Message',
+                type: 'GENERAL' as const,
+                isRead: false,
+                createdAt: new Date(),
+                entityType: null,
+                entityId: null,
+                sender: null,
+                activity: null,
+                goal: null,
+              },
+            ],
+          },
+        ],
+        isActive: false,
+        onToggleActive: jest.fn(),
+        unreadCount: 1,
+      };
+
+      render(<LegacyNotificationCard {...mockProps} />);
+
+      // Should render the notification center dropdown trigger
+      expect(screen.getByLabelText('Botão de ação')).toBeInTheDocument();
+    });
+
+    it('renders list mode when list props are provided', () => {
+      const mockProps = {
+        groupedNotifications: [
+          {
+            label: 'Hoje',
+            notifications: [
+              {
+                id: '1',
+                title: 'Test List',
+                message: 'List Message',
+                type: 'GENERAL' as const,
+                isRead: false,
+                createdAt: new Date(),
+                entityType: null,
+                entityId: null,
+                sender: null,
+                activity: null,
+                goal: null,
+              },
+            ],
+          },
+        ],
+        onMarkAsReadById: jest.fn(),
+        onDeleteById: jest.fn(),
+      };
+
+      render(<LegacyNotificationCard {...mockProps} />);
+
+      expect(screen.getByText('Test List')).toBeInTheDocument();
+      expect(screen.getByText('List Message')).toBeInTheDocument();
+    });
+
+    it('renders list mode when notifications array is provided', () => {
+      const mockNotifications = [
+        {
+          id: '1',
+          title: 'Array Notification',
+          message: 'Array Message',
+          time: 'Há 2h',
+          type: 'GENERAL' as const,
+          isRead: false,
+          createdAt: new Date(),
+          entityType: null,
+          entityId: null,
+          sender: null,
+          activity: null,
+          goal: null,
+        },
+      ];
+
+      const mockProps = {
+        notifications: mockNotifications,
+        onMarkAsReadById: jest.fn(),
+        onDeleteById: jest.fn(),
+      };
+
+      render(<LegacyNotificationCard {...mockProps} />);
+
+      expect(screen.getByText('Array Notification')).toBeInTheDocument();
+      expect(screen.getByText('Array Message')).toBeInTheDocument();
+    });
+
+    it('renders list mode when loading is true', () => {
+      const mockProps = {
+        loading: true,
+        onRetry: jest.fn(),
+      };
+
+      render(<LegacyNotificationCard {...mockProps} />);
+
+      // Should show skeleton loading
+      expect(document.querySelector('.animate-pulse')).toBeInTheDocument();
+    });
+
+    it('renders list mode when error is provided', () => {
+      const mockProps = {
+        error: 'Test error message',
+        onRetry: jest.fn(),
+      };
+
+      render(<LegacyNotificationCard {...mockProps} />);
+
+      expect(screen.getByText('Test error message')).toBeInTheDocument();
+      expect(screen.getByText('Tentar novamente')).toBeInTheDocument();
+    });
+
+    it('renders single mode when single notification props are provided', () => {
+      const mockProps = {
+        title: 'Single Title',
+        message: 'Single Message',
+        time: 'Há 1h',
+        isRead: false,
+        onMarkAsRead: jest.fn(),
+        onDelete: jest.fn(),
+        onNavigate: jest.fn(),
+        actionLabel: 'Ver detalhes',
+      };
+
+      render(<LegacyNotificationCard {...mockProps} />);
+
+      expect(screen.getByText('Single Title')).toBeInTheDocument();
+      expect(screen.getByText('Single Message')).toBeInTheDocument();
+      expect(screen.getByText('Ver detalhes')).toBeInTheDocument();
+    });
+
+    it('renders fallback empty state when no valid props are provided', () => {
+      const mockProps = {};
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      render(<LegacyNotificationCard {...(mockProps as any)} />);
+
+      expect(
+        screen.getByText('Nenhuma notificação configurada')
+      ).toBeInTheDocument();
     });
   });
 });
