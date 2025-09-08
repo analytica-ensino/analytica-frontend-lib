@@ -267,6 +267,7 @@ export {
   QUESTION_TYPE,
   QUESTION_STATUS,
   ANSWER_STATUS,
+  SUBTYPE_ENUM,
 } from './components/Quiz/useQuizStore';
 export type {
   QuestionResult,

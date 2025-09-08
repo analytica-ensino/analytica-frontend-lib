@@ -32,6 +32,7 @@ import {
   QUESTION_DIFFICULTY,
   QUESTION_TYPE,
   ANSWER_STATUS,
+  SUBTYPE_ENUM,
 } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
@@ -165,33 +166,71 @@ const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
       isStarted,
     } = useQuizStore();
 
+    const [showExitConfirmation, setShowExitConfirmation] = useState(false);
+
     const totalQuestions = getTotalQuestions();
     const quizTitle = getQuizTitle();
 
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          'flex flex-row justify-center items-center relative p-2',
-          className
-        )}
-        {...props}
-      >
-        <span className="flex flex-col gap-2 text-center">
-          <p className="text-text-950 font-bold text-md">{quizTitle}</p>
-          <p className="text-text-600 text-xs">
-            {totalQuestions > 0
-              ? `${currentQuestionIndex + 1} de ${totalQuestions}`
-              : '0 de 0'}
-          </p>
-        </span>
+    const handleBackClick = () => {
+      if (isStarted) {
+        setShowExitConfirmation(true);
+      } else {
+        window.history.back();
+      }
+    };
 
-        <span className="absolute right-2">
-          <Badge variant="outlined" action="info" iconLeft={<Clock />}>
-            {isStarted ? formatTime(timeElapsed) : '00:00'}
-          </Badge>
-        </span>
-      </div>
+    const handleConfirmExit = () => {
+      setShowExitConfirmation(false);
+      window.history.back();
+    };
+
+    const handleCancelExit = () => {
+      setShowExitConfirmation(false);
+    };
+
+    return (
+      <>
+        <div
+          ref={ref}
+          className={cn(
+            'flex flex-row justify-between items-center relative p-2',
+            className
+          )}
+          {...props}
+        >
+          <IconButton
+            icon={<CaretLeft size={24} />}
+            size="md"
+            aria-label="Voltar"
+            onClick={handleBackClick}
+          />
+          <span className="flex flex-col gap-2 text-center">
+            <p className="text-text-950 font-bold text-md">{quizTitle}</p>
+            <p className="text-text-600 text-xs">
+              {totalQuestions > 0
+                ? `${currentQuestionIndex + 1} de ${totalQuestions}`
+                : '0 de 0'}
+            </p>
+          </span>
+
+          <span className="flex flex-row items-center justify-center">
+            <Badge variant="outlined" action="info" iconLeft={<Clock />}>
+              {isStarted ? formatTime(timeElapsed) : '00:00'}
+            </Badge>
+          </span>
+        </div>
+
+        <AlertDialog
+          isOpen={showExitConfirmation}
+          onChangeOpen={setShowExitConfirmation}
+          title="Deseja sair?"
+          description="Se você sair do simulado agora, todas as respostas serão perdidas."
+          cancelButtonLabel="Voltar e revisar"
+          submitButtonLabel="Sair Mesmo Assim"
+          onSubmit={handleConfirmExit}
+          onCancel={handleCancelExit}
+        />
+      </>
     );
   }
 );
@@ -1687,31 +1726,37 @@ const QuizFooter = forwardRef<
 
 // QUIZ RESULT COMPONENTS
 
-const QuizBadge = ({ subtype }: { subtype: string | null }) => {
+const QuizBadge = ({
+  subtype,
+}: {
+  subtype: SUBTYPE_ENUM | undefined | string;
+}) => {
   switch (subtype) {
-    case 'PROVA':
+    case SUBTYPE_ENUM.PROVA:
       return (
-        <Badge variant="solid" action="info" data-testid="quiz-badge">
+        <Badge variant="examsOutlined" action="exam2" data-testid="quiz-badge">
           Prova
         </Badge>
       );
-    case 'ENEM':
+    case SUBTYPE_ENUM.ENEM_PROVA_1:
+    case SUBTYPE_ENUM.ENEM_PROVA_2:
       return (
-        <Badge variant="solid" action="info" data-testid="quiz-badge">
+        <Badge variant="examsOutlined" action="exam1" data-testid="quiz-badge">
           Enem
         </Badge>
       );
-    case 'VESTIBULAR':
+    case SUBTYPE_ENUM.VESTIBULAR:
       return (
-        <Badge variant="solid" action="info" data-testid="quiz-badge">
+        <Badge variant="examsOutlined" action="exam4" data-testid="quiz-badge">
           Vestibular
         </Badge>
       );
-    case 'SIMULADO':
-    case null:
+    case SUBTYPE_ENUM.SIMULADO:
+    case SUBTYPE_ENUM.SIMULADAO:
+    case undefined:
       return (
-        <Badge variant="solid" action="info" data-testid="quiz-badge">
-          Simulado
+        <Badge variant="examsOutlined" action="exam3" data-testid="quiz-badge">
+          Simuladão
         </Badge>
       );
     default:
@@ -1736,7 +1781,7 @@ const QuizResultHeaderTitle = forwardRef<
       {...props}
     >
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
-      <QuizBadge subtype={activeQuiz?.quiz.subtype || null} />
+      <QuizBadge subtype={activeQuiz?.quiz.subtype || undefined} />
     </div>
   );
 });

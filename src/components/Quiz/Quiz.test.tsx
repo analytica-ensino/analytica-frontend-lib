@@ -476,6 +476,7 @@ jest.mock('../AlertDialog/AlertDialog', () => ({
     title,
     description,
     onSubmit,
+    onCancel,
     cancelButtonLabel,
     submitButtonLabel,
   }: {
@@ -483,6 +484,7 @@ jest.mock('../AlertDialog/AlertDialog', () => ({
     title: string;
     description: string;
     onSubmit: () => void;
+    onCancel: () => void;
     cancelButtonLabel: string;
     submitButtonLabel: string;
   }) =>
@@ -490,7 +492,9 @@ jest.mock('../AlertDialog/AlertDialog', () => ({
       <div data-testid="alert-dialog">
         <h3 data-testid="alert-title">{title}</h3>
         <p data-testid="alert-description">{description}</p>
-        <button data-testid="alert-cancel">{cancelButtonLabel}</button>
+        <button data-testid="alert-cancel" onClick={onCancel}>
+          {cancelButtonLabel}
+        </button>
         <button data-testid="alert-submit" onClick={onSubmit}>
           {submitButtonLabel}
         </button>
@@ -508,14 +512,17 @@ jest.mock('../Modal/Modal', () => {
       children: React.ReactNode;
       onClose: () => void;
       size: string;
+      hideCloseButton?: boolean;
     }
-  >(({ isOpen, title, children, onClose, size, ...props }, ref) =>
+  >(({ isOpen, title, children, onClose, size, hideCloseButton }, ref) =>
     isOpen ? (
-      <div ref={ref} data-testid="quiz-modal" data-size={size} {...props}>
+      <div ref={ref} data-testid="quiz-modal" data-size={size}>
         {title && <h2 data-testid="modal-title">{title}</h2>}
-        <button data-testid="modal-close" onClick={onClose}>
-          Close
-        </button>
+        {!hideCloseButton && (
+          <button data-testid="modal-close" onClick={onClose}>
+            Close
+          </button>
+        )}
         <div data-testid="modal-content">{children}</div>
       </div>
     ) : null
@@ -543,6 +550,14 @@ jest.mock('./useQuizStore', () => ({
     FACIL: 'FACIL',
     MEDIO: 'MEDIO',
     DIFICIL: 'DIFICIL',
+  },
+  SUBTYPE_ENUM: {
+    PROVA: 'PROVA',
+    ENEM_PROVA_1: 'ENEM_PROVA_1',
+    ENEM_PROVA_2: 'ENEM_PROVA_2',
+    VESTIBULAR: 'VESTIBULAR',
+    SIMULADO: 'SIMULADO',
+    SIMULADAO: 'SIMULADAO',
   },
 }));
 
@@ -954,7 +969,7 @@ describe('Quiz', () => {
       expect(titleElement).toHaveClass(
         'flex',
         'flex-row',
-        'justify-center',
+        'justify-between',
         'items-center',
         'relative',
         'p-2'
@@ -997,6 +1012,222 @@ describe('Quiz', () => {
 
       expect(screen.getByText('Quiz de Física')).toBeInTheDocument();
       expect(screen.getByText('3 de 5')).toBeInTheDocument();
+    });
+
+    it('should render IconButton with correct props', () => {
+      render(<QuizTitle />);
+
+      const iconButton = screen.getByTestId('quiz-icon-button');
+      expect(iconButton).toBeInTheDocument();
+      expect(iconButton).toHaveAttribute('data-size', 'md');
+      expect(iconButton).toHaveAttribute('aria-label', 'Voltar');
+    });
+
+    it('should handle IconButton click when quiz is not started', () => {
+      const mockHistoryBack = jest.fn();
+      Object.defineProperty(window, 'history', {
+        value: { back: mockHistoryBack },
+        writable: true,
+      });
+
+      mockUseQuizStore.mockReturnValue({
+        currentQuestionIndex: 0,
+        getTotalQuestions: mockGetTotalQuestions,
+        getQuizTitle: mockGetQuizTitle,
+        timeElapsed: 0,
+        formatTime: mockFormatTime,
+        isStarted: false, // Not started, should call history.back directly
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      render(<QuizTitle />);
+
+      const iconButton = screen.getByTestId('quiz-icon-button');
+      fireEvent.click(iconButton);
+
+      expect(mockHistoryBack).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText('Deseja sair?')).not.toBeInTheDocument();
+    });
+
+    describe('Exit Confirmation Modal', () => {
+      const mockHistoryBack = jest.fn();
+
+      beforeEach(() => {
+        // Mock window.history.back
+        Object.defineProperty(window, 'history', {
+          value: {
+            back: mockHistoryBack,
+          },
+          writable: true,
+        });
+        mockHistoryBack.mockClear();
+      });
+
+      it('should show confirmation modal when back button is clicked and quiz is started', () => {
+        render(<QuizTitle />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'Se você sair do simulado agora, todas as respostas serão perdidas.'
+          )
+        ).toBeInTheDocument();
+      });
+
+      it('should not show confirmation modal when back button is clicked and quiz is not started', () => {
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
+          timeElapsed: 0,
+          formatTime: mockFormatTime,
+          isStarted: false,
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizTitle />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        expect(screen.queryByText('Deseja sair?')).not.toBeInTheDocument();
+        expect(mockHistoryBack).toHaveBeenCalledTimes(1);
+      });
+
+      it('should render confirm button in modal', () => {
+        render(<QuizTitle />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        // Verify the confirm button is rendered
+        expect(screen.getByText('Voltar e revisar')).toBeInTheDocument();
+      });
+
+      it('should close modal when user cancels exit', () => {
+        render(<QuizTitle />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+
+        const cancelButton = screen.getByTestId('alert-cancel');
+        fireEvent.click(cancelButton);
+
+        // Verify that history.back was not called (user cancelled)
+        expect(mockHistoryBack).not.toHaveBeenCalled();
+      });
+
+      it('should have correct button labels in confirmation modal', () => {
+        render(<QuizTitle />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        expect(screen.getByText('Voltar e revisar')).toBeInTheDocument();
+        expect(screen.getByText('Sair Mesmo Assim')).toBeInTheDocument();
+      });
+
+      it('should call handleConfirmExit when submit button is clicked', () => {
+        const mockHistoryBack = jest.fn();
+        Object.defineProperty(window, 'history', {
+          value: { back: mockHistoryBack },
+          writable: true,
+        });
+
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: () => 5,
+          getQuizTitle: () => 'Test Quiz',
+          timeElapsed: 120,
+          formatTime: () => '02:00',
+          isStarted: true,
+        });
+
+        render(<QuizTitle />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+
+        const submitButton = screen.getByText('Sair Mesmo Assim');
+        fireEvent.click(submitButton);
+
+        expect(mockHistoryBack).toHaveBeenCalledTimes(1);
+        expect(screen.queryByText('Deseja sair?')).not.toBeInTheDocument();
+      });
+
+      it('should call handleCancelExit when cancel button is clicked', () => {
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: () => 5,
+          getQuizTitle: () => 'Test Quiz',
+          timeElapsed: 120,
+          formatTime: () => '02:00',
+          isStarted: true,
+        });
+
+        render(<QuizTitle />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+
+        const cancelButton = screen.getByTestId('alert-cancel');
+        fireEvent.click(cancelButton);
+
+        expect(screen.queryByText('Deseja sair?')).not.toBeInTheDocument();
+      });
+
+      it('should close modal when onChangeOpen is called with false', () => {
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: () => 5,
+          getQuizTitle: () => 'Test Quiz',
+          timeElapsed: 120,
+          formatTime: () => '02:00',
+          isStarted: true,
+        });
+
+        render(<QuizTitle />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+
+        // Simulate closing the modal by clicking outside or pressing escape
+        const alertDialog = screen.getByTestId('alert-dialog');
+        fireEvent.click(alertDialog);
+
+        // The modal should still be open since we're just clicking the dialog
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+      });
+
+      it('should render modal with correct structure', () => {
+        render(<QuizTitle />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'Se você sair do simulado agora, todas as respostas serão perdidas.'
+          )
+        ).toBeInTheDocument();
+
+        // Verify the modal structure is correct
+        expect(screen.getByTestId('alert-dialog')).toBeInTheDocument();
+        expect(screen.getByTestId('alert-title')).toBeInTheDocument();
+        expect(screen.getByTestId('alert-description')).toBeInTheDocument();
+        expect(screen.getByTestId('alert-cancel')).toBeInTheDocument();
+        expect(screen.getByTestId('alert-submit')).toBeInTheDocument();
+      });
     });
   });
 
@@ -4245,7 +4476,7 @@ describe('Quiz', () => {
         expect(mockOnDetailResult).toHaveBeenCalled();
       });
 
-      it('should close result modal when onClose is called', async () => {
+      it('should render result modal correctly without close button', async () => {
         render(<QuizFooter />);
 
         // Finish quiz to open result modal
@@ -4261,18 +4492,15 @@ describe('Quiz', () => {
           screen.getByText('Você concluiu o simulado!')
         ).toBeInTheDocument();
 
-        // Find and click the close button (which should trigger onClose)
-        const closeButton = screen.getByTestId('modal-close');
+        // Verify that close button is not rendered (hideCloseButton is true)
+        expect(screen.queryByTestId('modal-close')).not.toBeInTheDocument();
 
-        act(() => {
-          closeButton.click();
-        });
-
-        // Verify modal is closed after clicking close
-        expect(screen.queryByTestId('quiz-modal')).not.toBeInTheDocument();
+        // Verify modal content is correct
         expect(
-          screen.queryByText('Você concluiu o simulado!')
-        ).not.toBeInTheDocument();
+          screen.getByText('Você acertou 3 de 5 questões.')
+        ).toBeInTheDocument();
+        expect(screen.getByText('Ir para simulados')).toBeInTheDocument();
+        expect(screen.getByText('Detalhar resultado')).toBeInTheDocument();
       });
     });
 
@@ -4534,14 +4762,17 @@ describe('Quiz', () => {
       render(<QuizResultHeaderTitle />);
 
       expect(screen.queryByTestId('quiz-badge')).toBeInTheDocument();
-      expect(screen.getByText('Simulado')).toBeInTheDocument();
+      expect(screen.getByText('Simuladão')).toBeInTheDocument();
+      const badge = screen.getByTestId('quiz-badge');
+      expect(badge).toHaveAttribute('data-variant', 'examsOutlined');
+      expect(badge).toHaveAttribute('data-action', 'exam3');
     });
 
     it('should render badge when bySimulated exists', () => {
       const mockBySimulated = {
         type: 'Simulado ENEM',
         id: 'sim-123',
-        subtype: 'ENEM',
+        subtype: 'ENEM_PROVA_1',
       };
 
       mockUseQuizStore.mockReturnValue({
@@ -4556,6 +4787,9 @@ describe('Quiz', () => {
 
       expect(screen.getByTestId('quiz-badge')).toBeInTheDocument();
       expect(screen.getByText('Enem')).toBeInTheDocument();
+      const badge = screen.getByTestId('quiz-badge');
+      expect(badge).toHaveAttribute('data-variant', 'examsOutlined');
+      expect(badge).toHaveAttribute('data-action', 'exam1');
     });
 
     it('should render badge with correct properties', () => {
@@ -4576,8 +4810,8 @@ describe('Quiz', () => {
       render(<QuizResultHeaderTitle />);
 
       const badge = screen.getByTestId('quiz-badge');
-      expect(badge).toHaveAttribute('data-variant', 'solid');
-      expect(badge).toHaveAttribute('data-action', 'info');
+      expect(badge).toHaveAttribute('data-variant', 'examsOutlined');
+      expect(badge).toHaveAttribute('data-action', 'exam4');
       expect(badge).toHaveTextContent('Vestibular');
     });
 
@@ -4645,7 +4879,7 @@ describe('Quiz', () => {
 
       render(<QuizResultHeaderTitle />);
 
-      expect(screen.getByText('Simulado')).toBeInTheDocument();
+      expect(screen.getByText('Simuladão')).toBeInTheDocument();
       expect(screen.getByTestId('quiz-badge')).toBeInTheDocument();
     });
 
@@ -4677,7 +4911,7 @@ describe('Quiz', () => {
       render(<QuizResultHeaderTitle />);
 
       const badge = screen.getByTestId('quiz-badge');
-      expect(badge).toHaveTextContent('Simulado');
+      expect(badge).toHaveTextContent('Simuladão');
     });
   });
 
