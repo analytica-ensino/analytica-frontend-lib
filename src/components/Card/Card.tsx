@@ -959,12 +959,12 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
 
     const getVolumeIcon = () => {
       if (volume === 0) {
-        return <SpeakerSimpleX />;
+        return <SpeakerSimpleX size={24} />;
       }
       if (volume < 0.5) {
-        return <SpeakerLow />;
+        return <SpeakerLow size={24} />;
       }
-      return <SpeakerHigh />;
+      return <SpeakerHigh size={24} />;
     };
 
     return (
@@ -973,7 +973,10 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
         layout="horizontal"
         padding="medium"
         minHeight="none"
-        className={cn('w-auto h-14 items-center gap-2', className)}
+        className={cn(
+          'flex flex-row w-auto h-14 items-center gap-2',
+          className
+        )}
         {...props}
       >
         {/* Audio element */}
@@ -1030,7 +1033,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
         </button>
 
         {/* Current Time */}
-        <p className="text-text-800 text-sm font-medium min-w-[2.5rem]">
+        <p className="text-text-800 text-md font-medium min-w-[2.5rem]">
           {formatTime(currentTime)}
         </p>
 
@@ -1061,12 +1064,12 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
         </div>
 
         {/* Duration */}
-        <p className="text-text-800 text-sm font-medium min-w-[2.5rem]">
+        <p className="text-text-800 text-md font-medium min-w-[2.5rem]">
           {formatTime(duration)}
         </p>
 
         {/* Volume Control */}
-        <div className="relative">
+        <div className="relative h-6">
           <button
             type="button"
             onClick={toggleVolumeControl}
@@ -1128,7 +1131,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
         </div>
 
         {/* Menu Button */}
-        <div className="relative">
+        <div className="relative h-6">
           <button
             type="button"
             onClick={toggleSpeedMenu}
