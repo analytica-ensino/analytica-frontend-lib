@@ -201,7 +201,15 @@ const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
           <span
             className="flex flex-row items-center justify-center"
             onClick={handleBackClick}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                handleBackClick();
+              }
+            }}
             style={{ cursor: 'pointer' }}
+            tabIndex={0}
+            role="button"
+            aria-label="Voltar"
           >
             <CaretLeft size={24} />
           </span>
