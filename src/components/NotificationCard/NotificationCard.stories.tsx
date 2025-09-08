@@ -1,6 +1,10 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import NotificationCard from './NotificationCard';
+import {
+  NotificationEntityType,
+  NotificationType,
+} from '../../types/notifications';
 
 /**
  * Notificação não lida (com indicador azul)
@@ -26,11 +30,9 @@ export const Unread: Story = () => {
         isRead={isRead}
         onMarkAsRead={() => {
           setIsRead(true);
-          console.log('Marked as read');
         }}
         onDelete={() => {
           setIsDeleted(true);
-          console.log('Deleted');
         }}
       />
     </div>
@@ -58,10 +60,9 @@ export const Read: Story = () => {
         message="Uma nova tarefa foi adicionada à sua lista."
         time="12 Fev"
         isRead={true}
-        onMarkAsRead={() => console.log('Marked as read')}
+        onMarkAsRead={() => {}}
         onDelete={() => {
           setIsDeleted(true);
-          console.log('Deleted');
         }}
       />
     </div>
@@ -91,14 +92,12 @@ export const LongContent: Story = () => {
         time="Há 1 dia"
         isRead={isRead}
         actionLabel="Iniciar atividade"
-        onNavigate={() => console.log('Navigate to activity')}
+        onNavigate={() => {}}
         onMarkAsRead={() => {
           setIsRead(true);
-          console.log('Marked as read');
         }}
         onDelete={() => {
           setIsDeleted(true);
-          console.log('Deleted');
         }}
       />
     </div>
@@ -129,11 +128,9 @@ export const Announcement: Story = () => {
         isRead={isRead}
         onMarkAsRead={() => {
           setIsRead(true);
-          console.log('Marked as read');
         }}
         onDelete={() => {
           setIsDeleted(true);
-          console.log('Deleted');
         }}
       />
     </div>
@@ -173,11 +170,9 @@ export const Multiple: Story = () => {
           isRead={notification1IsRead}
           onMarkAsRead={() => {
             setNotification1IsRead(true);
-            console.log('Marked as read');
           }}
           onDelete={() => {
             setNotification1IsDeleted(true);
-            console.log('Deleted');
           }}
         />
       )}
@@ -189,11 +184,9 @@ export const Multiple: Story = () => {
           isRead={notification2IsRead}
           onMarkAsRead={() => {
             setNotification2IsRead(true);
-            console.log('Marked as read');
           }}
           onDelete={() => {
             setNotification2IsDeleted(true);
-            console.log('Deleted');
           }}
         />
       )}
@@ -204,14 +197,12 @@ export const Multiple: Story = () => {
           time="12 Fev"
           isRead={notification3IsRead}
           actionLabel="Ver trilha"
-          onNavigate={() => console.log('Navigate')}
+          onNavigate={() => {}}
           onMarkAsRead={() => {
             setNotification3IsRead(true);
-            console.log('Marked as read');
           }}
           onDelete={() => {
             setNotification3IsDeleted(true);
-            console.log('Deleted');
           }}
         />
       )}
@@ -235,7 +226,7 @@ export const ErrorState: Story = () => (
   <div className="max-w-md border border-border-100 rounded-xl">
     <NotificationCard
       error="Erro ao carregar notificações"
-      onRetry={() => console.log('Retry loading')}
+      onRetry={() => {}}
     />
   </div>
 );
@@ -250,9 +241,10 @@ export const Grouped: Story = () => {
       title: 'Nova atividade disponível',
       message: 'Uma nova tarefa foi adicionada à sua lista.',
       time: 'Há 3h',
+      type: 'ACTIVITY' as NotificationType,
       isRead: false,
       createdAt: new Date(),
-      entityType: 'activity',
+      entityType: NotificationEntityType.ACTIVITY,
       entityId: 'act-123',
     },
     {
@@ -260,9 +252,10 @@ export const Grouped: Story = () => {
       title: 'Nova trilha disponível',
       message: 'Explore a nova trilha de matemática.',
       time: 'Há 4h',
+      type: 'TRAIL' as NotificationType,
       isRead: true,
       createdAt: new Date(),
-      entityType: 'trail',
+      entityType: NotificationEntityType.TRAIL,
       entityId: 'trail-456',
     },
     {
@@ -270,6 +263,7 @@ export const Grouped: Story = () => {
       title: 'Sistema será atualizado',
       message: 'Manutenção programada.',
       time: '2 dias atrás',
+      type: 'ANNOUNCEMENT' as NotificationType,
       isRead: false,
       createdAt: new Date(),
     },
@@ -294,14 +288,12 @@ export const Grouped: Story = () => {
           : notification
       )
     );
-    console.log('Mark as read:', id);
   };
 
   const handleDelete = (id: string) => {
     setNotifications((prev) =>
       prev.filter((notification) => notification.id !== id)
     );
-    console.log('Delete:', id);
   };
 
   return (
@@ -310,9 +302,7 @@ export const Grouped: Story = () => {
         groupedNotifications={groupedNotifications}
         onMarkAsReadById={handleMarkAsRead}
         onDeleteById={handleDelete}
-        onNavigateById={(entityType, entityId) =>
-          console.log('Navigate:', entityType, entityId)
-        }
+        onNavigateById={() => {}}
         getActionLabel={(entityType) => {
           if (entityType === 'activity') return 'Ver atividade';
           if (entityType === 'trail') return 'Ver trilha';
@@ -329,5 +319,32 @@ export const Grouped: Story = () => {
 export const Empty: Story = () => (
   <div className="max-w-md border border-border-100 rounded-xl">
     <NotificationCard groupedNotifications={[]} />
+  </div>
+);
+
+/**
+ * NotificationEmpty com imagem customizada
+ */
+export const EmptyWithImage: Story = () => (
+  <div className="max-w-md border border-border-100 rounded-xl">
+    <NotificationCard
+      groupedNotifications={[]}
+      renderEmpty={() => (
+        <div className="flex flex-col items-center justify-center gap-4 p-6 w-full">
+          <div className="w-20 h-20 flex items-center justify-center">
+            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-2xl">
+              📭
+            </div>
+          </div>
+          <h3 className="text-xl font-semibold text-text-950 text-center leading-[23px]">
+            Nenhuma notificação no momento
+          </h3>
+          <p className="text-sm font-normal text-text-400 text-center max-w-[316px] leading-[21px]">
+            Você está em dia com todas as novidades. Volte depois para conferir
+            atualizações!
+          </p>
+        </div>
+      )}
+    />
   </div>
 );

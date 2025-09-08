@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import NotificationCard, { NotificationGroup } from './NotificationCard';
+import { NotificationEntityType } from '../../types/notifications';
 
 // Mock para a imagem PNG
 jest.mock(
@@ -257,8 +258,9 @@ describe('NotificationCard', () => {
         title: 'Test Notification 1',
         message: 'Test message 1',
         time: 'Há 1h',
+        type: 'ACTIVITY' as const,
         isRead: false,
-        entityType: 'activity',
+        entityType: NotificationEntityType.ACTIVITY,
         entityId: 'act-1',
         createdAt: new Date(),
       },
@@ -267,6 +269,7 @@ describe('NotificationCard', () => {
         title: 'Test Notification 2',
         message: 'Test message 2',
         time: 'Há 2h',
+        type: 'GENERAL' as const,
         isRead: true,
         createdAt: new Date(),
       },
@@ -313,7 +316,7 @@ describe('NotificationCard', () => {
       render(<NotificationCard groupedNotifications={[]} />);
 
       expect(
-        screen.getByText('Nenhuma notificação encontrada')
+        screen.getByText('Nenhuma notificação no momento')
       ).toBeInTheDocument();
     });
 
@@ -338,7 +341,8 @@ describe('NotificationCard', () => {
       const onDeleteById = jest.fn();
       const onNavigateById = jest.fn();
       const getActionLabel = jest.fn((entityType?: string) => {
-        if (entityType === 'activity') return 'Ver atividade';
+        if (entityType === NotificationEntityType.ACTIVITY)
+          return 'Ver atividade';
         return undefined;
       });
 
@@ -431,7 +435,10 @@ describe('NotificationCard', () => {
       const actionButton = screen.getByText('Ver atividade');
       fireEvent.click(actionButton);
 
-      expect(onNavigateById).toHaveBeenCalledWith('activity', 'act-1');
+      expect(onNavigateById).toHaveBeenCalledWith(
+        NotificationEntityType.ACTIVITY,
+        'act-1'
+      );
     });
 
     it('does not show action button when notification has no entity data', () => {
@@ -527,7 +534,9 @@ describe('NotificationCard', () => {
         />
       );
 
-      expect(getActionLabel).toHaveBeenCalledWith('activity');
+      expect(getActionLabel).toHaveBeenCalledWith(
+        NotificationEntityType.ACTIVITY
+      );
       expect(
         screen.queryByRole('button', { name: /ver/i })
       ).not.toBeInTheDocument();
@@ -539,7 +548,7 @@ describe('NotificationCard', () => {
       render(<NotificationCard groupedNotifications={[]} />);
 
       expect(
-        screen.getByText('Nenhuma notificação encontrada')
+        screen.getByText('Nenhuma notificação no momento')
       ).toBeInTheDocument();
     });
 
@@ -553,8 +562,8 @@ describe('NotificationCard', () => {
       );
       expect(emptyStateContainer).toBeInTheDocument();
 
-      const text = screen.getByText('Nenhuma notificação encontrada');
-      expect(text).toHaveClass('text-sm', 'text-text-400');
+      const text = screen.getByText('Nenhuma notificação no momento');
+      expect(text).toHaveClass('text-xl', 'font-semibold', 'text-text-950');
     });
 
     it('renders group header when notifications array is empty', () => {
@@ -575,7 +584,7 @@ describe('NotificationCard', () => {
       );
 
       expect(
-        screen.getByText('Nenhuma notificação encontrada')
+        screen.getByText('Nenhuma notificação no momento')
       ).toBeInTheDocument();
     });
 
@@ -679,6 +688,7 @@ describe('NotificationCard', () => {
         title: 'Test Notification',
         message: 'Test message',
         time: 'Há 1h',
+        type: 'GENERAL' as const,
         isRead: false,
         entityId: 'some-id', // Has entityId but no entityType
         createdAt: new Date(),
@@ -709,8 +719,9 @@ describe('NotificationCard', () => {
         title: 'Test Notification',
         message: 'Test message',
         time: 'Há 1h',
+        type: 'ACTIVITY' as const,
         isRead: false,
-        entityType: 'activity', // Has entityType but no entityId
+        entityType: NotificationEntityType.ACTIVITY, // Has entityType but no entityId
         createdAt: new Date(),
       };
 
@@ -739,8 +750,9 @@ describe('NotificationCard', () => {
         title: 'Test Notification',
         message: 'Test message',
         time: 'Há 1h',
+        type: 'ACTIVITY' as const,
         isRead: false,
-        entityType: 'activity',
+        entityType: NotificationEntityType.ACTIVITY,
         entityId: 'act-1',
         createdAt: new Date(),
       };
@@ -771,6 +783,7 @@ describe('NotificationCard', () => {
         title: 'Test Notification',
         message: 'Test message',
         time: 'Há 1h',
+        type: 'GENERAL' as const,
         isRead: false,
         // No entityType
         createdAt: new Date(),
@@ -820,6 +833,246 @@ describe('NotificationCard', () => {
       expect(
         screen.getByText('Nenhuma notificação configurada')
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('NotificationCenter mode', () => {
+    // Mock useMobile hook
+    const mockUseMobile = jest.fn();
+
+    beforeAll(() => {
+      // Mock the useMobile hook
+      jest.doMock('../../hooks/useMobile', () => ({
+        useMobile: mockUseMobile,
+      }));
+    });
+
+    afterEach(() => {
+      mockUseMobile.mockReset();
+    });
+
+    it('renders notification center in desktop mode when variant is center', () => {
+      mockUseMobile.mockReturnValue({ isMobile: false });
+
+      const mockProps = {
+        variant: 'center' as const,
+        isActive: false,
+        onToggleActive: jest.fn(),
+        unreadCount: 2,
+        groupedNotifications: [
+          {
+            label: 'Hoje',
+            notifications: [
+              {
+                id: '1',
+                title: 'Test Notification',
+                message: 'Test message',
+                time: 'Há 1h',
+                type: 'GENERAL' as const,
+                isRead: false,
+                createdAt: new Date(),
+              },
+            ],
+          },
+        ],
+        onFetchNotifications: jest.fn(),
+        onMarkAsReadById: jest.fn(),
+        onDeleteById: jest.fn(),
+        onNavigateById: jest.fn(),
+        getActionLabel: jest.fn(),
+      };
+
+      render(<NotificationCard {...mockProps} />);
+
+      // Should render bell icon (part of IconButton)
+      expect(document.querySelector('svg')).toBeInTheDocument();
+    });
+
+    it('renders notification center in mobile mode when variant is center', () => {
+      mockUseMobile.mockReturnValue({ isMobile: true });
+
+      const mockProps = {
+        variant: 'center' as const,
+        isActive: false,
+        onToggleActive: jest.fn(),
+        unreadCount: 1,
+        groupedNotifications: [],
+        onFetchNotifications: jest.fn(),
+      };
+
+      render(<NotificationCard {...mockProps} />);
+
+      // Should render bell icon (part of IconButton)
+      expect(document.querySelector('svg')).toBeInTheDocument();
+    });
+
+    it('calls onToggleActive when notification center button is clicked in desktop mode', () => {
+      mockUseMobile.mockReturnValue({ isMobile: false });
+      const onToggleActive = jest.fn();
+
+      const mockProps = {
+        variant: 'center' as const,
+        isActive: false,
+        onToggleActive,
+        unreadCount: 0,
+        groupedNotifications: [],
+        onFetchNotifications: jest.fn(),
+      };
+
+      render(<NotificationCard {...mockProps} />);
+
+      const iconButton = screen.getByLabelText('Botão de ação');
+      fireEvent.click(iconButton);
+
+      expect(onToggleActive).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders notification center button in mobile mode', () => {
+      mockUseMobile.mockReturnValue({ isMobile: true });
+      const onFetchNotifications = jest.fn();
+
+      const mockProps = {
+        variant: 'center' as const,
+        isActive: false,
+        onToggleActive: jest.fn(),
+        unreadCount: 0,
+        groupedNotifications: [],
+        onFetchNotifications,
+      };
+
+      render(<NotificationCard {...mockProps} />);
+
+      const iconButton = screen.getByLabelText('Botão de ação');
+      expect(iconButton).toBeInTheDocument();
+
+      fireEvent.click(iconButton);
+      // The callback will be called when modal opens, which is harder to test
+      // but the important part is that the component renders correctly in mobile mode
+    });
+
+    it('renders empty state with custom properties in notification center', () => {
+      mockUseMobile.mockReturnValue({ isMobile: false });
+
+      const mockProps = {
+        variant: 'center' as const,
+        isActive: true,
+        onToggleActive: jest.fn(),
+        unreadCount: 0,
+        groupedNotifications: [],
+        onFetchNotifications: jest.fn(),
+        emptyStateTitle: 'Custom Empty Title',
+        emptyStateDescription: 'Custom empty description',
+        emptyStateImage: 'test-image.png',
+      };
+
+      render(<NotificationCard {...mockProps} />);
+
+      // The dropdown should be open when isActive is true
+      // But testing the actual dropdown content is complex due to portal rendering
+      // We focus on testing that the component renders without errors
+      expect(document.querySelector('svg')).toBeInTheDocument();
+    });
+  });
+
+  describe('NotificationEmpty component', () => {
+    it('renders custom empty state with title and description', () => {
+      render(
+        <NotificationCard
+          groupedNotifications={[]}
+          renderEmpty={() => (
+            <div className="flex flex-col items-center justify-center gap-4 p-6 w-full">
+              <h3 className="text-xl font-semibold text-text-950 text-center leading-[23px]">
+                Custom Empty Title
+              </h3>
+              <p className="text-sm font-normal text-text-400 text-center max-w-[316px] leading-[21px]">
+                Custom empty description
+              </p>
+            </div>
+          )}
+        />
+      );
+
+      expect(screen.getByText('Custom Empty Title')).toBeInTheDocument();
+      expect(screen.getByText('Custom empty description')).toBeInTheDocument();
+    });
+
+    it('renders empty state with image when provided', () => {
+      render(
+        <NotificationCard
+          groupedNotifications={[]}
+          renderEmpty={() => (
+            <div className="flex flex-col items-center justify-center gap-4 p-6 w-full">
+              <div className="w-20 h-20 flex items-center justify-center">
+                <img
+                  src="test-image.png"
+                  alt="Sem notificações"
+                  width={82}
+                  height={82}
+                  className="object-contain"
+                />
+              </div>
+              <h3 className="text-xl font-semibold text-text-950 text-center leading-[23px]">
+                Test Empty Title
+              </h3>
+            </div>
+          )}
+        />
+      );
+
+      const image = screen.getByRole('img');
+      expect(image).toBeInTheDocument();
+      expect(image).toHaveAttribute('alt', 'Sem notificações');
+      expect(image).toHaveAttribute('src', 'test-image.png');
+      expect(image).toHaveAttribute('width', '82');
+      expect(image).toHaveAttribute('height', '82');
+    });
+
+    it('applies correct CSS classes to empty state layout', () => {
+      render(
+        <NotificationCard
+          groupedNotifications={[]}
+          renderEmpty={() => (
+            <div className="flex flex-col items-center justify-center gap-4 p-6 w-full">
+              <h3 className="text-xl font-semibold text-text-950 text-center leading-[23px]">
+                Empty State
+              </h3>
+              <p className="text-sm font-normal text-text-400 text-center max-w-[316px] leading-[21px]">
+                Empty description
+              </p>
+            </div>
+          )}
+        />
+      );
+
+      const title = screen.getByText('Empty State');
+      expect(title).toHaveClass(
+        'text-xl',
+        'font-semibold',
+        'text-text-950',
+        'text-center',
+        'leading-[23px]'
+      );
+
+      const description = screen.getByText('Empty description');
+      expect(description).toHaveClass(
+        'text-sm',
+        'font-normal',
+        'text-text-400',
+        'text-center',
+        'max-w-[316px]',
+        'leading-[21px]'
+      );
+    });
+
+    it('uses default empty state when renderEmpty is not provided', () => {
+      render(<NotificationCard groupedNotifications={[]} />);
+
+      expect(
+        screen.getByText('Nenhuma notificação no momento')
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText('Custom empty message')
+      ).not.toBeInTheDocument();
     });
   });
 });

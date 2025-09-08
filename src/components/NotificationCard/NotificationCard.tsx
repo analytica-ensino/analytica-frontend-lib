@@ -1,5 +1,5 @@
-import { DotsThreeVertical } from 'phosphor-react';
-import { MouseEvent, ReactNode } from 'react';
+import { DotsThreeVertical, Bell } from 'phosphor-react';
+import { MouseEvent, ReactNode, useState, useEffect } from 'react';
 import { cn } from '../../utils/utils';
 import DropdownMenu, {
   DropdownMenuContent,
@@ -7,21 +7,16 @@ import DropdownMenu, {
   DropdownMenuTrigger,
 } from '../DropdownMenu/DropdownMenu';
 import { SkeletonCard } from '../Skeleton/Skeleton';
+import IconButton from '../IconButton/IconButton';
+import Modal from '../Modal/Modal';
+import Text from '../Text/Text';
+import { useMobile } from '../../hooks/useMobile';
+import { Notification, NotificationGroup } from '../../types/notifications';
 
-interface NotificationItem {
-  id: string;
-  title: string;
-  message: string;
+// Extended notification item for component usage with time string
+export interface NotificationItem extends Omit<Notification, 'createdAt'> {
   time: string;
-  isRead: boolean;
-  entityType?: string;
-  entityId?: string;
   createdAt: string | Date;
-}
-
-interface NotificationGroup {
-  label: string;
-  notifications: NotificationItem[];
 }
 
 export interface NotificationCardProps {
@@ -104,7 +99,113 @@ export interface NotificationCardProps {
    * Additional CSS classes
    */
   className?: string;
+
+  // NotificationCenter mode props
+  /**
+   * Display variant - 'center' enables modal/dropdown mode
+   */
+  variant?: 'card' | 'center';
+  /**
+   * Whether center mode is currently active (controls dropdown/modal visibility)
+   */
+  isActive?: boolean;
+  /**
+   * Callback when center mode is toggled
+   */
+  onToggleActive?: () => void;
+  /**
+   * Number of unread notifications for badge display
+   */
+  unreadCount?: number;
+  /**
+   * Callback when all notifications should be marked as read
+   */
+  onMarkAllAsRead?: () => void;
+  /**
+   * Callback to fetch notifications (called when center opens)
+   */
+  onFetchNotifications?: () => void;
+  /**
+   * Empty state image path
+   */
+  emptyStateImage?: string;
+  /**
+   * Empty state title
+   */
+  emptyStateTitle?: string;
+  /**
+   * Empty state description
+   */
+  emptyStateDescription?: string;
 }
+
+/**
+ * Empty state component for notifications
+ */
+const NotificationEmpty = ({
+  emptyStateImage,
+  emptyStateTitle = 'Nenhuma notificação no momento',
+  emptyStateDescription = 'Você está em dia com todas as novidades. Volte depois para conferir atualizações!',
+}: {
+  emptyStateImage?: string;
+  emptyStateTitle?: string;
+  emptyStateDescription?: string;
+}) => {
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 p-6 w-full">
+      {/* Notification Icon */}
+      {emptyStateImage && (
+        <div className="w-20 h-20 flex items-center justify-center">
+          <img
+            src={emptyStateImage}
+            alt="Sem notificações"
+            width={82}
+            height={82}
+            className="object-contain"
+          />
+        </div>
+      )}
+
+      {/* Title */}
+      <h3 className="text-xl font-semibold text-text-950 text-center leading-[23px]">
+        {emptyStateTitle}
+      </h3>
+
+      {/* Description */}
+      <p className="text-sm font-normal text-text-400 text-center max-w-[316px] leading-[21px]">
+        {emptyStateDescription}
+      </p>
+    </div>
+  );
+};
+
+/**
+ * Notification header component
+ */
+const NotificationHeader = ({
+  unreadCount,
+  variant = 'modal',
+}: {
+  unreadCount: number;
+  variant?: 'modal' | 'dropdown';
+}) => {
+  return (
+    <div className="flex items-center justify-between">
+      {variant === 'modal' ? (
+        <Text size="sm" weight="bold" className="text-text-950">
+          Notificações
+        </Text>
+      ) : (
+        <h3 className="text-sm font-semibold text-text-950">Notificações</h3>
+      )}
+      {unreadCount > 0 && (
+        <span className="px-2 py-1 bg-info-100 text-info-700 text-xs rounded-full">
+          {unreadCount} não lidas
+        </span>
+      )}
+    </div>
+  );
+};
 
 /**
  * Single notification card component
@@ -278,9 +379,7 @@ const NotificationList = ({
     return renderEmpty ? (
       <div className="w-full">{renderEmpty()}</div>
     ) : (
-      <div className="flex flex-col items-center justify-center gap-4 p-6 w-full">
-        <p className="text-sm text-text-400">Nenhuma notificação encontrada</p>
-      </div>
+      <NotificationEmpty />
     );
   }
 
@@ -301,7 +400,7 @@ const NotificationList = ({
               key={notification.id}
               title={notification.title}
               message={notification.message}
-              time={notification.time}
+              time={(notification as NotificationItem).time}
               isRead={notification.isRead}
               onMarkAsRead={() => onMarkAsReadById?.(notification.id)}
               onDelete={() => onDeleteById?.(notification.id)}
@@ -311,12 +410,14 @@ const NotificationList = ({
                 onNavigateById
                   ? () =>
                       onNavigateById(
-                        notification.entityType,
-                        notification.entityId
+                        notification.entityType ?? undefined,
+                        notification.entityId ?? undefined
                       )
                   : undefined
               }
-              actionLabel={getActionLabel?.(notification.entityType)}
+              actionLabel={getActionLabel?.(
+                notification.entityType ?? undefined
+              )}
             />
           ))}
         </div>
@@ -326,12 +427,164 @@ const NotificationList = ({
 };
 
 /**
- * NotificationCard component - can display single notification or list of notifications
+ * NotificationCenter component for modal/dropdown mode
+ */
+const NotificationCenter = ({
+  isActive,
+  onToggleActive,
+  unreadCount = 0,
+  groupedNotifications = [],
+  loading = false,
+  error = null,
+  onRetry,
+  onMarkAsReadById,
+  onDeleteById,
+  onNavigateById,
+  getActionLabel,
+  onFetchNotifications,
+  emptyStateImage,
+  emptyStateTitle,
+  emptyStateDescription,
+}: NotificationCardProps) => {
+  const { isMobile } = useMobile();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Handle mobile click
+  const handleMobileClick = () => {
+    setIsModalOpen(true);
+    onFetchNotifications?.();
+  };
+
+  // Handle desktop click
+  const handleDesktopClick = () => {
+    onToggleActive?.();
+  };
+
+  // Fetch notifications when dropdown opens
+  useEffect(() => {
+    if (isActive) {
+      onFetchNotifications?.();
+    }
+  }, [isActive, onFetchNotifications]);
+
+  // Handle navigation with cleanup
+  const handleNavigate = (
+    entityType?: string,
+    entityId?: string,
+    onCleanup?: () => void
+  ) => {
+    onCleanup?.();
+    onNavigateById?.(entityType, entityId);
+  };
+
+  const renderEmptyState = () => (
+    <NotificationEmpty
+      emptyStateImage={emptyStateImage}
+      emptyStateTitle={emptyStateTitle}
+      emptyStateDescription={emptyStateDescription}
+    />
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        <IconButton
+          active={isModalOpen}
+          onClick={handleMobileClick}
+          icon={<Bell size={24} className="text-primary" />}
+        />
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title="Notificações"
+          size="md"
+          hideCloseButton={false}
+          closeOnBackdropClick={true}
+          closeOnEscape={true}
+        >
+          <div className="flex flex-col h-full max-h-[80vh]">
+            <div className="px-0 pb-3 border-b border-border-200">
+              <NotificationHeader unreadCount={unreadCount} variant="modal" />
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <NotificationList
+                groupedNotifications={groupedNotifications}
+                loading={loading}
+                error={error}
+                onRetry={onRetry}
+                onMarkAsReadById={onMarkAsReadById}
+                onDeleteById={onDeleteById}
+                onNavigateById={(entityType, entityId) =>
+                  handleNavigate(entityType, entityId, () =>
+                    setIsModalOpen(false)
+                  )
+                }
+                getActionLabel={getActionLabel}
+                renderEmpty={renderEmptyState}
+              />
+            </div>
+          </div>
+        </Modal>
+      </>
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="text-primary cursor-pointer">
+        <IconButton
+          active={isActive}
+          onClick={handleDesktopClick}
+          icon={
+            <Bell
+              size={24}
+              className={isActive ? 'text-primary-950' : 'text-primary'}
+            />
+          }
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        className="min-w-[320px] max-w-[400px] max-h-[500px] overflow-hidden"
+        side="bottom"
+        align="end"
+      >
+        <div className="flex flex-col">
+          <div className="px-4 py-3 border-b border-border-200">
+            <NotificationHeader unreadCount={unreadCount} variant="dropdown" />
+          </div>
+          <div className="max-h-[350px] overflow-y-auto">
+            <NotificationList
+              groupedNotifications={groupedNotifications}
+              loading={loading}
+              error={error}
+              onRetry={onRetry}
+              onMarkAsReadById={onMarkAsReadById}
+              onDeleteById={onDeleteById}
+              onNavigateById={(entityType, entityId) =>
+                handleNavigate(entityType, entityId, onToggleActive)
+              }
+              getActionLabel={getActionLabel}
+              renderEmpty={renderEmptyState}
+            />
+          </div>
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+/**
+ * NotificationCard component - can display single notification, list of notifications, or center mode
  *
  * @param props - The notification card properties
- * @returns JSX element representing the notification card or list
+ * @returns JSX element representing the notification card, list, or center
  */
 const NotificationCard = (props: NotificationCardProps) => {
+  // If variant is center, render NotificationCenter
+  if (props.variant === 'center') {
+    return <NotificationCenter {...props} />;
+  }
+
   // If we have list-related props, render list mode
   if (
     props.groupedNotifications !== undefined ||
@@ -345,7 +598,12 @@ const NotificationCard = (props: NotificationCardProps) => {
         groupedNotifications={
           props.groupedNotifications ??
           (props.notifications
-            ? [{ label: 'Notificações', notifications: props.notifications }]
+            ? [
+                {
+                  label: 'Notificações',
+                  notifications: props.notifications as Notification[],
+                },
+              ]
             : [])
         }
       />
@@ -385,4 +643,4 @@ const NotificationCard = (props: NotificationCardProps) => {
 };
 
 export default NotificationCard;
-export type { NotificationItem, NotificationGroup };
+export type { NotificationGroup };
