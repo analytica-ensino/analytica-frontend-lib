@@ -1027,10 +1027,8 @@ describe('Quiz', () => {
       it('should show confirmation modal when back button is clicked and quiz is started', () => {
         render(<QuizTitle />);
 
-        const backButton = document.querySelector(
-          'span[style*="cursor: pointer"]'
-        );
-        fireEvent.click(backButton!);
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
 
         expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
         expect(
@@ -1052,10 +1050,8 @@ describe('Quiz', () => {
 
         render(<QuizTitle />);
 
-        const backButton = document.querySelector(
-          'span[style*="cursor: pointer"]'
-        );
-        fireEvent.click(backButton!);
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
 
         expect(screen.queryByText('Deseja sair?')).not.toBeInTheDocument();
         expect(mockHistoryBack).toHaveBeenCalledTimes(1);
@@ -1064,26 +1060,22 @@ describe('Quiz', () => {
       it('should render confirm button in modal', () => {
         render(<QuizTitle />);
 
-        const backButton = document.querySelector(
-          'span[style*="cursor: pointer"]'
-        );
-        fireEvent.click(backButton!);
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
 
         // Verify the confirm button is rendered
-        expect(screen.getByText('Voltar e Revisar')).toBeInTheDocument();
+        expect(screen.getByText('Voltar e revisar')).toBeInTheDocument();
       });
 
       it('should close modal when user cancels exit', () => {
         render(<QuizTitle />);
 
-        const backButton = document.querySelector(
-          'span[style*="cursor: pointer"]'
-        );
-        fireEvent.click(backButton!);
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
 
         expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
 
-        const cancelButton = screen.getByText('Cancelar');
+        const cancelButton = screen.getByText('Voltar e revisar');
         fireEvent.click(cancelButton);
 
         // Since the mock AlertDialog doesn't actually close the modal, we just verify the button was clicked
@@ -1094,22 +1086,18 @@ describe('Quiz', () => {
       it('should have correct button labels in confirmation modal', () => {
         render(<QuizTitle />);
 
-        const backButton = document.querySelector(
-          'span[style*="cursor: pointer"]'
-        );
-        fireEvent.click(backButton!);
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
 
-        expect(screen.getByText('Cancelar')).toBeInTheDocument();
-        expect(screen.getByText('Voltar e Revisar')).toBeInTheDocument();
+        expect(screen.getByText('Voltar e revisar')).toBeInTheDocument();
+        expect(screen.getByText('Sair Mesmo Assim')).toBeInTheDocument();
       });
 
       it('should render modal with correct structure', () => {
         render(<QuizTitle />);
 
-        const backButton = document.querySelector(
-          'span[style*="cursor: pointer"]'
-        );
-        fireEvent.click(backButton!);
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
 
         expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
         expect(

@@ -198,21 +198,12 @@ const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
           )}
           {...props}
         >
-          <span
-            className="flex flex-row items-center justify-center"
-            onClick={handleBackClick}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                handleBackClick();
-              }
-            }}
-            style={{ cursor: 'pointer' }}
-            tabIndex={0}
-            role="button"
+          <IconButton
+            icon={<CaretLeft size={24} />}
+            size="md"
             aria-label="Voltar"
-          >
-            <CaretLeft size={24} />
-          </span>
+            onClick={handleBackClick}
+          />
           <span className="flex flex-col gap-2 text-center">
             <p className="text-text-950 font-bold text-md">{quizTitle}</p>
             <p className="text-text-600 text-xs">
@@ -234,8 +225,8 @@ const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
           onChangeOpen={setShowExitConfirmation}
           title="Deseja sair?"
           description="Se você sair do simulado agora, todas as respostas serão perdidas."
-          cancelButtonLabel="Cancelar"
-          submitButtonLabel="Voltar e Revisar"
+          cancelButtonLabel="Voltar e revisar"
+          submitButtonLabel="Sair Mesmo Assim"
           onSubmit={handleConfirmExit}
           onCancel={handleCancelExit}
         />
