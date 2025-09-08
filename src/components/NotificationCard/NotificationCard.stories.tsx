@@ -1,6 +1,42 @@
 import type { Story } from '@ladle/react';
-import { useState } from 'react';
+import { type Dispatch, type SetStateAction, useState } from 'react';
 import NotificationCard from './NotificationCard';
+import {
+  NotificationEntityType,
+  NotificationType,
+} from '../../types/notifications';
+
+/**
+ * Creates a handler function for marking notifications as read
+ * @param setNotifications State setter function for notifications array
+ * @returns Handler function that marks a notification as read by ID
+ */
+const createHandleMarkAsRead =
+  <T extends { id: string; isRead: boolean }>(
+    setNotifications: Dispatch<SetStateAction<T[]>>
+  ) =>
+  (id: string) => {
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === id
+          ? { ...notification, isRead: true }
+          : notification
+      )
+    );
+  };
+
+/**
+ * Creates a handler function for deleting notifications
+ * @param setNotifications State setter function for notifications array
+ * @returns Handler function that removes a notification by ID
+ */
+const createHandleDelete =
+  <T extends { id: string }>(setNotifications: Dispatch<SetStateAction<T[]>>) =>
+  (id: string) => {
+    setNotifications((prev) =>
+      prev.filter((notification) => notification.id !== id)
+    );
+  };
 
 /**
  * Notificação não lida (com indicador azul)
@@ -20,17 +56,16 @@ export const Unread: Story = () => {
   return (
     <div className="max-w-md border border-border-100 rounded-xl">
       <NotificationCard
+        mode="single"
         title="Nova atividade disponível"
         message="Uma nova tarefa foi adicionada à sua lista. Não perca a chance de se aprofundar no conteúdo!"
         time="Há 3h"
         isRead={isRead}
         onMarkAsRead={() => {
           setIsRead(true);
-          console.log('Marked as read');
         }}
         onDelete={() => {
           setIsDeleted(true);
-          console.log('Deleted');
         }}
       />
     </div>
@@ -54,14 +89,14 @@ export const Read: Story = () => {
   return (
     <div className="max-w-md border border-border-100 rounded-xl">
       <NotificationCard
+        mode="single"
         title="Nova atividade disponível"
         message="Uma nova tarefa foi adicionada à sua lista."
         time="12 Fev"
         isRead={true}
-        onMarkAsRead={() => console.log('Marked as read')}
+        onMarkAsRead={() => {}}
         onDelete={() => {
           setIsDeleted(true);
-          console.log('Deleted');
         }}
       />
     </div>
@@ -86,19 +121,18 @@ export const LongContent: Story = () => {
   return (
     <div className="max-w-md border border-border-100 rounded-xl">
       <NotificationCard
+        mode="single"
         title="Nova atividade de física quântica disponível para estudantes avançados"
         message="Uma nova tarefa complexa de física quântica foi adicionada à sua lista de estudos. Esta atividade aborda conceitos avançados como superposição, entrelaçamento quântico e o princípio da incerteza de Heisenberg."
         time="Há 1 dia"
         isRead={isRead}
         actionLabel="Iniciar atividade"
-        onNavigate={() => console.log('Navigate to activity')}
+        onNavigate={() => {}}
         onMarkAsRead={() => {
           setIsRead(true);
-          console.log('Marked as read');
         }}
         onDelete={() => {
           setIsDeleted(true);
-          console.log('Deleted');
         }}
       />
     </div>
@@ -123,17 +157,16 @@ export const Announcement: Story = () => {
   return (
     <div className="max-w-md border border-border-100 rounded-xl">
       <NotificationCard
+        mode="single"
         title="Sistema será atualizado"
         message="O sistema ficará indisponível das 02:00 às 06:00 para manutenção programada."
         time="Há 12h"
         isRead={isRead}
         onMarkAsRead={() => {
           setIsRead(true);
-          console.log('Marked as read');
         }}
         onDelete={() => {
           setIsDeleted(true);
-          console.log('Deleted');
         }}
       />
     </div>
@@ -144,18 +177,53 @@ export const Announcement: Story = () => {
  * Lista de notificações empilhadas
  */
 export const Multiple: Story = () => {
-  const [notification1IsRead, setNotification1IsRead] = useState(false);
-  const [notification2IsRead, setNotification2IsRead] = useState(true);
-  const [notification3IsRead, setNotification3IsRead] = useState(false);
+  const [notifications, setNotifications] = useState([
+    {
+      id: '1',
+      title: 'Nova atividade disponível',
+      message: 'Uma nova tarefa foi adicionada à sua lista.',
+      time: 'Há 3h',
+      type: 'ACTIVITY' as NotificationType,
+      isRead: false,
+      createdAt: new Date(),
+      entityType: NotificationEntityType.ACTIVITY,
+      entityId: 'act-123',
+    },
+    {
+      id: '2',
+      title: 'Nova atividade disponível',
+      message: 'Uma nova tarefa foi adicionada à sua lista.',
+      time: 'Há 4h',
+      type: 'ACTIVITY' as NotificationType,
+      isRead: true,
+      createdAt: new Date(),
+      entityType: NotificationEntityType.ACTIVITY,
+      entityId: 'act-124',
+    },
+    {
+      id: '3',
+      title: 'Nova trilha disponível',
+      message: 'Explore a nova trilha de matemática.',
+      time: '12 Fev',
+      type: 'TRAIL' as NotificationType,
+      isRead: false,
+      createdAt: new Date(),
+      entityType: NotificationEntityType.TRAIL,
+      entityId: 'trail-456',
+    },
+  ]);
 
-  const [notification1IsDeleted, setNotification1IsDeleted] = useState(false);
-  const [notification2IsDeleted, setNotification2IsDeleted] = useState(false);
-  const [notification3IsDeleted, setNotification3IsDeleted] = useState(false);
+  const groupedNotifications = [
+    {
+      label: 'Notificações',
+      notifications: notifications,
+    },
+  ];
 
-  const allDeleted =
-    notification1IsDeleted && notification2IsDeleted && notification3IsDeleted;
+  const handleMarkAsRead = createHandleMarkAsRead(setNotifications);
+  const handleDelete = createHandleDelete(setNotifications);
 
-  if (allDeleted) {
+  if (notifications.length === 0) {
     return (
       <div className="max-w-md border border-border-100 rounded-xl p-4 text-center text-text-600">
         Todas as notificações foram deletadas
@@ -165,56 +233,21 @@ export const Multiple: Story = () => {
 
   return (
     <div className="max-w-md border border-border-100 rounded-xl">
-      {!notification1IsDeleted && (
-        <NotificationCard
-          title="Nova atividade disponível"
-          message="Uma nova tarefa foi adicionada à sua lista."
-          time="Há 3h"
-          isRead={notification1IsRead}
-          onMarkAsRead={() => {
-            setNotification1IsRead(true);
-            console.log('Marked as read');
-          }}
-          onDelete={() => {
-            setNotification1IsDeleted(true);
-            console.log('Deleted');
-          }}
-        />
-      )}
-      {!notification2IsDeleted && (
-        <NotificationCard
-          title="Nova atividade disponível"
-          message="Uma nova tarefa foi adicionada à sua lista."
-          time="Há 4h"
-          isRead={notification2IsRead}
-          onMarkAsRead={() => {
-            setNotification2IsRead(true);
-            console.log('Marked as read');
-          }}
-          onDelete={() => {
-            setNotification2IsDeleted(true);
-            console.log('Deleted');
-          }}
-        />
-      )}
-      {!notification3IsDeleted && (
-        <NotificationCard
-          title="Nova trilha disponível"
-          message="Explore a nova trilha de matemática."
-          time="12 Fev"
-          isRead={notification3IsRead}
-          actionLabel="Ver trilha"
-          onNavigate={() => console.log('Navigate')}
-          onMarkAsRead={() => {
-            setNotification3IsRead(true);
-            console.log('Marked as read');
-          }}
-          onDelete={() => {
-            setNotification3IsDeleted(true);
-            console.log('Deleted');
-          }}
-        />
-      )}
+      <NotificationCard
+        mode="list"
+        groupedNotifications={groupedNotifications}
+        onMarkAsReadById={handleMarkAsRead}
+        onDeleteById={handleDelete}
+        onNavigateById={(entityType, entityId) => {
+          console.log('Navigate to:', entityType, entityId);
+        }}
+        getActionLabel={(entityType) => {
+          if (entityType === NotificationEntityType.ACTIVITY)
+            return 'Ver atividade';
+          if (entityType === NotificationEntityType.TRAIL) return 'Ver trilha';
+          return undefined;
+        }}
+      />
     </div>
   );
 };
@@ -224,7 +257,7 @@ export const Multiple: Story = () => {
  */
 export const Loading: Story = () => (
   <div className="max-w-md border border-border-100 rounded-xl">
-    <NotificationCard loading={true} />
+    <NotificationCard mode="list" loading={true} />
   </div>
 );
 
@@ -234,8 +267,9 @@ export const Loading: Story = () => (
 export const ErrorState: Story = () => (
   <div className="max-w-md border border-border-100 rounded-xl">
     <NotificationCard
+      mode="list"
       error="Erro ao carregar notificações"
-      onRetry={() => console.log('Retry loading')}
+      onRetry={() => {}}
     />
   </div>
 );
@@ -250,9 +284,10 @@ export const Grouped: Story = () => {
       title: 'Nova atividade disponível',
       message: 'Uma nova tarefa foi adicionada à sua lista.',
       time: 'Há 3h',
+      type: 'ACTIVITY' as NotificationType,
       isRead: false,
       createdAt: new Date(),
-      entityType: 'activity',
+      entityType: NotificationEntityType.ACTIVITY,
       entityId: 'act-123',
     },
     {
@@ -260,9 +295,10 @@ export const Grouped: Story = () => {
       title: 'Nova trilha disponível',
       message: 'Explore a nova trilha de matemática.',
       time: 'Há 4h',
+      type: 'TRAIL' as NotificationType,
       isRead: true,
       createdAt: new Date(),
-      entityType: 'trail',
+      entityType: NotificationEntityType.TRAIL,
       entityId: 'trail-456',
     },
     {
@@ -270,6 +306,7 @@ export const Grouped: Story = () => {
       title: 'Sistema será atualizado',
       message: 'Manutenção programada.',
       time: '2 dias atrás',
+      type: 'ANNOUNCEMENT' as NotificationType,
       isRead: false,
       createdAt: new Date(),
     },
@@ -286,36 +323,21 @@ export const Grouped: Story = () => {
     },
   ];
 
-  const handleMarkAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notification) =>
-        notification.id === id
-          ? { ...notification, isRead: true }
-          : notification
-      )
-    );
-    console.log('Mark as read:', id);
-  };
-
-  const handleDelete = (id: string) => {
-    setNotifications((prev) =>
-      prev.filter((notification) => notification.id !== id)
-    );
-    console.log('Delete:', id);
-  };
+  const handleMarkAsRead = createHandleMarkAsRead(setNotifications);
+  const handleDelete = createHandleDelete(setNotifications);
 
   return (
     <div className="max-w-md border border-border-100 rounded-xl">
       <NotificationCard
+        mode="center"
         groupedNotifications={groupedNotifications}
         onMarkAsReadById={handleMarkAsRead}
         onDeleteById={handleDelete}
-        onNavigateById={(entityType, entityId) =>
-          console.log('Navigate:', entityType, entityId)
-        }
+        onNavigateById={() => {}}
         getActionLabel={(entityType) => {
-          if (entityType === 'activity') return 'Ver atividade';
-          if (entityType === 'trail') return 'Ver trilha';
+          if (entityType === NotificationEntityType.ACTIVITY)
+            return 'Ver atividade';
+          if (entityType === NotificationEntityType.TRAIL) return 'Ver trilha';
           return undefined;
         }}
       />
@@ -328,6 +350,34 @@ export const Grouped: Story = () => {
  */
 export const Empty: Story = () => (
   <div className="max-w-md border border-border-100 rounded-xl">
-    <NotificationCard groupedNotifications={[]} />
+    <NotificationCard mode="center" groupedNotifications={[]} />
+  </div>
+);
+
+/**
+ * NotificationEmpty com imagem customizada
+ */
+export const EmptyWithImage: Story = () => (
+  <div className="max-w-md border border-border-100 rounded-xl">
+    <NotificationCard
+      mode="list"
+      groupedNotifications={[]}
+      renderEmpty={() => (
+        <div className="flex flex-col items-center justify-center gap-4 p-6 w-full">
+          <div className="w-20 h-20 flex items-center justify-center">
+            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-2xl">
+              📭
+            </div>
+          </div>
+          <h3 className="text-xl font-semibold text-text-950 text-center leading-[23px]">
+            Nenhuma notificação no momento
+          </h3>
+          <p className="text-sm font-normal text-text-400 text-center max-w-[316px] leading-[21px]">
+            Você está em dia com todas as novidades. Volte depois para conferir
+            atualizações!
+          </p>
+        </div>
+      )}
+    />
   </div>
 );

@@ -139,6 +139,13 @@ import { useQuizStore } from './components/Quiz/useQuizStore';
 import LoadingModal from './components/LoadingModal/loadingModal';
 import NotificationCard from './components/NotificationCard/NotificationCard';
 
+// Import notification store and types
+import {
+  createNotificationStore,
+  formatTimeAgo,
+} from './store/notificationStore';
+import { createUseNotificationStore } from './hooks/useNotificationStore';
+
 // Export all components for bundled usage
 export { Text };
 export { Button };
@@ -175,6 +182,26 @@ export type {
   NotificationItem,
   NotificationGroup,
 } from './components/NotificationCard/NotificationCard';
+
+// Export notification store and related functionality
+export { createNotificationStore };
+export { formatTimeAgo };
+export { createUseNotificationStore };
+export { NotificationEntityType } from './types/notifications';
+export type {
+  Notification,
+  NotificationType,
+  BackendNotification,
+  BackendNotificationsResponse,
+  NotificationsResponse,
+  FetchNotificationsParams,
+  NotificationApiClient,
+} from './types/notifications';
+export type {
+  NotificationState,
+  NotificationActions,
+  NotificationStore,
+} from './store/notificationStore';
 
 // Export DropdownMenu and its sub-components
 export { DropdownMenu };
