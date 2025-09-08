@@ -905,7 +905,7 @@ describe('NotificationCard', () => {
       });
 
       const mockProps = {
-        mode: 'center' as const,
+        variant: 'center' as const,
         isActive: false,
         onToggleActive: jest.fn(),
         unreadCount: 2,
@@ -934,8 +934,8 @@ describe('NotificationCard', () => {
 
       render(<LegacyNotificationCard {...mockProps} />);
 
-      // Should render bell icon (part of IconButton)
-      expect(document.querySelector('svg')).toBeInTheDocument();
+      // Should render notification center button with accessible label
+      expect(screen.getByLabelText('Botão de ação')).toBeInTheDocument();
     });
 
     it('renders notification center in mobile mode when variant is center', () => {
@@ -960,8 +960,8 @@ describe('NotificationCard', () => {
 
       render(<LegacyNotificationCard {...mockProps} />);
 
-      // Should render bell icon (part of IconButton)
-      expect(document.querySelector('svg')).toBeInTheDocument();
+      // Should render notification center button with accessible label
+      expect(screen.getByLabelText('Botão de ação')).toBeInTheDocument();
     });
 
     it('calls onToggleActive when notification center button is clicked in desktop mode', () => {
