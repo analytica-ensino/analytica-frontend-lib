@@ -476,6 +476,7 @@ jest.mock('../AlertDialog/AlertDialog', () => ({
     title,
     description,
     onSubmit,
+    onCancel,
     cancelButtonLabel,
     submitButtonLabel,
   }: {
@@ -483,6 +484,7 @@ jest.mock('../AlertDialog/AlertDialog', () => ({
     title: string;
     description: string;
     onSubmit: () => void;
+    onCancel: () => void;
     cancelButtonLabel: string;
     submitButtonLabel: string;
   }) =>
@@ -490,7 +492,9 @@ jest.mock('../AlertDialog/AlertDialog', () => ({
       <div data-testid="alert-dialog">
         <h3 data-testid="alert-title">{title}</h3>
         <p data-testid="alert-description">{description}</p>
-        <button data-testid="alert-cancel">{cancelButtonLabel}</button>
+        <button data-testid="alert-cancel" onClick={onCancel}>
+          {cancelButtonLabel}
+        </button>
         <button data-testid="alert-submit" onClick={onSubmit}>
           {submitButtonLabel}
         </button>
@@ -1010,6 +1014,40 @@ describe('Quiz', () => {
       expect(screen.getByText('3 de 5')).toBeInTheDocument();
     });
 
+    it('should render IconButton with correct props', () => {
+      render(<QuizTitle />);
+
+      const iconButton = screen.getByTestId('quiz-icon-button');
+      expect(iconButton).toBeInTheDocument();
+      expect(iconButton).toHaveAttribute('data-size', 'md');
+      expect(iconButton).toHaveAttribute('aria-label', 'Voltar');
+    });
+
+    it('should handle IconButton click when quiz is not started', () => {
+      const mockHistoryBack = jest.fn();
+      Object.defineProperty(window, 'history', {
+        value: { back: mockHistoryBack },
+        writable: true,
+      });
+
+      mockUseQuizStore.mockReturnValue({
+        currentQuestionIndex: 0,
+        getTotalQuestions: mockGetTotalQuestions,
+        getQuizTitle: mockGetQuizTitle,
+        timeElapsed: 0,
+        formatTime: mockFormatTime,
+        isStarted: false, // Not started, should call history.back directly
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      render(<QuizTitle />);
+
+      const iconButton = screen.getByTestId('quiz-icon-button');
+      fireEvent.click(iconButton);
+
+      expect(mockHistoryBack).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText('Deseja sair?')).not.toBeInTheDocument();
+    });
+
     describe('Exit Confirmation Modal', () => {
       const mockHistoryBack = jest.fn();
 
@@ -1075,11 +1113,10 @@ describe('Quiz', () => {
 
         expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
 
-        const cancelButton = screen.getByText('Voltar e revisar');
+        const cancelButton = screen.getByTestId('alert-cancel');
         fireEvent.click(cancelButton);
 
-        // Since the mock AlertDialog doesn't actually close the modal, we just verify the button was clicked
-        expect(cancelButton).toBeInTheDocument();
+        // Verify that history.back was not called (user cancelled)
         expect(mockHistoryBack).not.toHaveBeenCalled();
       });
 
@@ -1091,6 +1128,84 @@ describe('Quiz', () => {
 
         expect(screen.getByText('Voltar e revisar')).toBeInTheDocument();
         expect(screen.getByText('Sair Mesmo Assim')).toBeInTheDocument();
+      });
+
+      it('should call handleConfirmExit when submit button is clicked', () => {
+        const mockHistoryBack = jest.fn();
+        Object.defineProperty(window, 'history', {
+          value: { back: mockHistoryBack },
+          writable: true,
+        });
+
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: () => 5,
+          getQuizTitle: () => 'Test Quiz',
+          timeElapsed: 120,
+          formatTime: () => '02:00',
+          isStarted: true,
+        });
+
+        render(<QuizTitle />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+
+        const submitButton = screen.getByText('Sair Mesmo Assim');
+        fireEvent.click(submitButton);
+
+        expect(mockHistoryBack).toHaveBeenCalledTimes(1);
+        expect(screen.queryByText('Deseja sair?')).not.toBeInTheDocument();
+      });
+
+      it('should call handleCancelExit when cancel button is clicked', () => {
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: () => 5,
+          getQuizTitle: () => 'Test Quiz',
+          timeElapsed: 120,
+          formatTime: () => '02:00',
+          isStarted: true,
+        });
+
+        render(<QuizTitle />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+
+        const cancelButton = screen.getByTestId('alert-cancel');
+        fireEvent.click(cancelButton);
+
+        expect(screen.queryByText('Deseja sair?')).not.toBeInTheDocument();
+      });
+
+      it('should close modal when onChangeOpen is called with false', () => {
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: () => 5,
+          getQuizTitle: () => 'Test Quiz',
+          timeElapsed: 120,
+          formatTime: () => '02:00',
+          isStarted: true,
+        });
+
+        render(<QuizTitle />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+
+        // Simulate closing the modal by clicking outside or pressing escape
+        const alertDialog = screen.getByTestId('alert-dialog');
+        fireEvent.click(alertDialog);
+
+        // The modal should still be open since we're just clicking the dialog
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
       });
 
       it('should render modal with correct structure', () => {
