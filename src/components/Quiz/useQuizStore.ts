@@ -272,6 +272,9 @@ export interface QuizState {
   getCurrentQuestionResult: () => QuestionResult['answers'] | null;
 }
 
+// Constants
+export const MINUTE_INTERVAL_MS = 60000; // 60 seconds = 1 minute
+
 export const useQuizStore = create<QuizState>()(
   devtools(
     (set, get) => {
@@ -327,7 +330,7 @@ export const useQuizStore = create<QuizState>()(
           }
 
           currentCallback();
-        }, 60000); // 60 segundos = 1 minuto
+        }, MINUTE_INTERVAL_MS);
       };
 
       const stopMinuteCallback = () => {

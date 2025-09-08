@@ -5,6 +5,7 @@ import {
   ANSWER_STATUS,
   useQuizStore,
   QuestionResult,
+  MINUTE_INTERVAL_MS,
 } from './useQuizStore';
 
 // Type alias for question answers in result context
@@ -2595,7 +2596,7 @@ describe('useQuizStore', () => {
 
       // Advance timer by 1 minute
       act(() => {
-        jest.advanceTimersByTime(60000);
+        jest.advanceTimersByTime(MINUTE_INTERVAL_MS);
       });
 
       expect(mockCallback).toHaveBeenCalledTimes(1);
@@ -2615,7 +2616,7 @@ describe('useQuizStore', () => {
 
       // Advance timer by 1 minute - callback should not be called
       act(() => {
-        jest.advanceTimersByTime(60000);
+        jest.advanceTimersByTime(MINUTE_INTERVAL_MS);
       });
 
       expect(mockCallback).not.toHaveBeenCalled();
@@ -2637,7 +2638,7 @@ describe('useQuizStore', () => {
 
       // Advance timer by 1 minute - callback should not be called
       act(() => {
-        jest.advanceTimersByTime(60000);
+        jest.advanceTimersByTime(MINUTE_INTERVAL_MS);
       });
 
       expect(mockCallback).not.toHaveBeenCalled();
@@ -2655,7 +2656,7 @@ describe('useQuizStore', () => {
 
       // Advance timer by 1 minute - no callback should be called
       act(() => {
-        jest.advanceTimersByTime(60000);
+        jest.advanceTimersByTime(MINUTE_INTERVAL_MS);
       });
 
       // No callback to verify, but timer should still be running
@@ -2676,7 +2677,7 @@ describe('useQuizStore', () => {
 
       // Advance timer by 1 minute - callback should not be called
       act(() => {
-        jest.advanceTimersByTime(60000);
+        jest.advanceTimersByTime(MINUTE_INTERVAL_MS);
       });
 
       expect(mockCallback).not.toHaveBeenCalled();
@@ -2711,7 +2712,7 @@ describe('useQuizStore', () => {
 
       // Advance timer by 1 minute
       act(() => {
-        jest.advanceTimersByTime(60000);
+        jest.advanceTimersByTime(MINUTE_INTERVAL_MS);
       });
 
       expect(mockCallback1).toHaveBeenCalledTimes(1);
@@ -2723,7 +2724,7 @@ describe('useQuizStore', () => {
 
       // Advance timer by another minute
       act(() => {
-        jest.advanceTimersByTime(60000);
+        jest.advanceTimersByTime(MINUTE_INTERVAL_MS);
       });
 
       expect(mockCallback1).toHaveBeenCalledTimes(1);
@@ -2741,7 +2742,7 @@ describe('useQuizStore', () => {
 
       // Advance timer by 1 minute
       act(() => {
-        jest.advanceTimersByTime(60000);
+        jest.advanceTimersByTime(MINUTE_INTERVAL_MS);
       });
 
       expect(mockCallback).toHaveBeenCalledTimes(1);
@@ -2753,7 +2754,7 @@ describe('useQuizStore', () => {
 
       // Advance timer by another minute
       act(() => {
-        jest.advanceTimersByTime(60000);
+        jest.advanceTimersByTime(MINUTE_INTERVAL_MS);
       });
 
       expect(mockCallback).toHaveBeenCalledTimes(1); // Should not increase
@@ -2771,7 +2772,7 @@ describe('useQuizStore', () => {
 
       // Advance timer by 1 minute
       act(() => {
-        jest.advanceTimersByTime(60000);
+        jest.advanceTimersByTime(MINUTE_INTERVAL_MS);
       });
 
       // Should only be called once despite multiple start calls
