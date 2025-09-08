@@ -1691,27 +1691,29 @@ const QuizBadge = ({ subtype }: { subtype: string | null }) => {
   switch (subtype) {
     case 'PROVA':
       return (
-        <Badge variant="solid" action="info" data-testid="quiz-badge">
+        <Badge variant="examsOutlined" action="exam2" data-testid="quiz-badge">
           Prova
         </Badge>
       );
-    case 'ENEM':
+    case 'ENEM_PROVA_1':
+    case 'ENEM_PROVA_2':
       return (
-        <Badge variant="solid" action="info" data-testid="quiz-badge">
+        <Badge variant="examsOutlined" action="exam1" data-testid="quiz-badge">
           Enem
         </Badge>
       );
     case 'VESTIBULAR':
       return (
-        <Badge variant="solid" action="info" data-testid="quiz-badge">
+        <Badge variant="examsOutlined" action="exam4" data-testid="quiz-badge">
           Vestibular
         </Badge>
       );
     case 'SIMULADO':
+    case 'SIMULADAO':
     case null:
       return (
-        <Badge variant="solid" action="info" data-testid="quiz-badge">
-          Simulado
+        <Badge variant="examsOutlined" action="exam3" data-testid="quiz-badge">
+          Simuladão
         </Badge>
       );
     default:

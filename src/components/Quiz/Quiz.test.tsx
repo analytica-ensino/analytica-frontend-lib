@@ -4534,14 +4534,17 @@ describe('Quiz', () => {
       render(<QuizResultHeaderTitle />);
 
       expect(screen.queryByTestId('quiz-badge')).toBeInTheDocument();
-      expect(screen.getByText('Simulado')).toBeInTheDocument();
+      expect(screen.getByText('Simuladão')).toBeInTheDocument();
+      const badge = screen.getByTestId('quiz-badge');
+      expect(badge).toHaveAttribute('data-variant', 'examsOutlined');
+      expect(badge).toHaveAttribute('data-action', 'exam3');
     });
 
     it('should render badge when bySimulated exists', () => {
       const mockBySimulated = {
         type: 'Simulado ENEM',
         id: 'sim-123',
-        subtype: 'ENEM',
+        subtype: 'ENEM_PROVA_1',
       };
 
       mockUseQuizStore.mockReturnValue({
@@ -4556,6 +4559,9 @@ describe('Quiz', () => {
 
       expect(screen.getByTestId('quiz-badge')).toBeInTheDocument();
       expect(screen.getByText('Enem')).toBeInTheDocument();
+      const badge = screen.getByTestId('quiz-badge');
+      expect(badge).toHaveAttribute('data-variant', 'examsOutlined');
+      expect(badge).toHaveAttribute('data-action', 'exam1');
     });
 
     it('should render badge with correct properties', () => {
@@ -4576,8 +4582,8 @@ describe('Quiz', () => {
       render(<QuizResultHeaderTitle />);
 
       const badge = screen.getByTestId('quiz-badge');
-      expect(badge).toHaveAttribute('data-variant', 'solid');
-      expect(badge).toHaveAttribute('data-action', 'info');
+      expect(badge).toHaveAttribute('data-variant', 'examsOutlined');
+      expect(badge).toHaveAttribute('data-action', 'exam4');
       expect(badge).toHaveTextContent('Vestibular');
     });
 
@@ -4645,7 +4651,7 @@ describe('Quiz', () => {
 
       render(<QuizResultHeaderTitle />);
 
-      expect(screen.getByText('Simulado')).toBeInTheDocument();
+      expect(screen.getByText('Simuladão')).toBeInTheDocument();
       expect(screen.getByTestId('quiz-badge')).toBeInTheDocument();
     });
 
@@ -4677,7 +4683,7 @@ describe('Quiz', () => {
       render(<QuizResultHeaderTitle />);
 
       const badge = screen.getByTestId('quiz-badge');
-      expect(badge).toHaveTextContent('Simulado');
+      expect(badge).toHaveTextContent('Simuladão');
     });
   });
 
