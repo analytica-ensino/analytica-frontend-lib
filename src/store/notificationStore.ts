@@ -250,6 +250,14 @@ export const createNotificationStore = (apiClient: NotificationApiClient) => {
         markAsRead: async (id: string) => {
           const { notifications } = get();
 
+          // Find the notification to check if it's already read
+          const notification = notifications.find((n) => n.id === id);
+
+          // If notification is already read, just return without making API call
+          if (notification?.isRead) {
+            return;
+          }
+
           try {
             await apiClient.patch(`/notifications/${id}`, { read: true });
 
