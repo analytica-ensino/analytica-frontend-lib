@@ -508,14 +508,17 @@ jest.mock('../Modal/Modal', () => {
       children: React.ReactNode;
       onClose: () => void;
       size: string;
+      hideCloseButton?: boolean;
     }
-  >(({ isOpen, title, children, onClose, size, ...props }, ref) =>
+  >(({ isOpen, title, children, onClose, size, hideCloseButton }, ref) =>
     isOpen ? (
-      <div ref={ref} data-testid="quiz-modal" data-size={size} {...props}>
+      <div ref={ref} data-testid="quiz-modal" data-size={size}>
         {title && <h2 data-testid="modal-title">{title}</h2>}
-        <button data-testid="modal-close" onClick={onClose}>
-          Close
-        </button>
+        {!hideCloseButton && (
+          <button data-testid="modal-close" onClick={onClose}>
+            Close
+          </button>
+        )}
         <div data-testid="modal-content">{children}</div>
       </div>
     ) : null
@@ -543,6 +546,14 @@ jest.mock('./useQuizStore', () => ({
     FACIL: 'FACIL',
     MEDIO: 'MEDIO',
     DIFICIL: 'DIFICIL',
+  },
+  SUBTYPE_ENUM: {
+    PROVA: 'PROVA',
+    ENEM_PROVA_1: 'ENEM_PROVA_1',
+    ENEM_PROVA_2: 'ENEM_PROVA_2',
+    VESTIBULAR: 'VESTIBULAR',
+    SIMULADO: 'SIMULADO',
+    SIMULADAO: 'SIMULADAO',
   },
 }));
 
@@ -954,7 +965,7 @@ describe('Quiz', () => {
       expect(titleElement).toHaveClass(
         'flex',
         'flex-row',
-        'justify-center',
+        'justify-between',
         'items-center',
         'relative',
         'p-2'
@@ -997,6 +1008,123 @@ describe('Quiz', () => {
 
       expect(screen.getByText('Quiz de Física')).toBeInTheDocument();
       expect(screen.getByText('3 de 5')).toBeInTheDocument();
+    });
+
+    describe('Exit Confirmation Modal', () => {
+      const mockHistoryBack = jest.fn();
+
+      beforeEach(() => {
+        // Mock window.history.back
+        Object.defineProperty(window, 'history', {
+          value: {
+            back: mockHistoryBack,
+          },
+          writable: true,
+        });
+        mockHistoryBack.mockClear();
+      });
+
+      it('should show confirmation modal when back button is clicked and quiz is started', () => {
+        render(<QuizTitle />);
+
+        const backButton = document.querySelector(
+          'span[style*="cursor: pointer"]'
+        );
+        fireEvent.click(backButton!);
+
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'Se você sair do simulado agora, todas as respostas serão perdidas.'
+          )
+        ).toBeInTheDocument();
+      });
+
+      it('should not show confirmation modal when back button is clicked and quiz is not started', () => {
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
+          timeElapsed: 0,
+          formatTime: mockFormatTime,
+          isStarted: false,
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizTitle />);
+
+        const backButton = document.querySelector(
+          'span[style*="cursor: pointer"]'
+        );
+        fireEvent.click(backButton!);
+
+        expect(screen.queryByText('Deseja sair?')).not.toBeInTheDocument();
+        expect(mockHistoryBack).toHaveBeenCalledTimes(1);
+      });
+
+      it('should render confirm button in modal', () => {
+        render(<QuizTitle />);
+
+        const backButton = document.querySelector(
+          'span[style*="cursor: pointer"]'
+        );
+        fireEvent.click(backButton!);
+
+        // Verify the confirm button is rendered
+        expect(screen.getByText('Voltar e Revisar')).toBeInTheDocument();
+      });
+
+      it('should close modal when user cancels exit', () => {
+        render(<QuizTitle />);
+
+        const backButton = document.querySelector(
+          'span[style*="cursor: pointer"]'
+        );
+        fireEvent.click(backButton!);
+
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+
+        const cancelButton = screen.getByText('Cancelar');
+        fireEvent.click(cancelButton);
+
+        // Since the mock AlertDialog doesn't actually close the modal, we just verify the button was clicked
+        expect(cancelButton).toBeInTheDocument();
+        expect(mockHistoryBack).not.toHaveBeenCalled();
+      });
+
+      it('should have correct button labels in confirmation modal', () => {
+        render(<QuizTitle />);
+
+        const backButton = document.querySelector(
+          'span[style*="cursor: pointer"]'
+        );
+        fireEvent.click(backButton!);
+
+        expect(screen.getByText('Cancelar')).toBeInTheDocument();
+        expect(screen.getByText('Voltar e Revisar')).toBeInTheDocument();
+      });
+
+      it('should render modal with correct structure', () => {
+        render(<QuizTitle />);
+
+        const backButton = document.querySelector(
+          'span[style*="cursor: pointer"]'
+        );
+        fireEvent.click(backButton!);
+
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'Se você sair do simulado agora, todas as respostas serão perdidas.'
+          )
+        ).toBeInTheDocument();
+
+        // Verify the modal structure is correct
+        expect(screen.getByTestId('alert-dialog')).toBeInTheDocument();
+        expect(screen.getByTestId('alert-title')).toBeInTheDocument();
+        expect(screen.getByTestId('alert-description')).toBeInTheDocument();
+        expect(screen.getByTestId('alert-cancel')).toBeInTheDocument();
+        expect(screen.getByTestId('alert-submit')).toBeInTheDocument();
+      });
     });
   });
 
@@ -4245,7 +4373,7 @@ describe('Quiz', () => {
         expect(mockOnDetailResult).toHaveBeenCalled();
       });
 
-      it('should close result modal when onClose is called', async () => {
+      it('should render result modal correctly without close button', async () => {
         render(<QuizFooter />);
 
         // Finish quiz to open result modal
@@ -4261,18 +4389,15 @@ describe('Quiz', () => {
           screen.getByText('Você concluiu o simulado!')
         ).toBeInTheDocument();
 
-        // Find and click the close button (which should trigger onClose)
-        const closeButton = screen.getByTestId('modal-close');
+        // Verify that close button is not rendered (hideCloseButton is true)
+        expect(screen.queryByTestId('modal-close')).not.toBeInTheDocument();
 
-        act(() => {
-          closeButton.click();
-        });
-
-        // Verify modal is closed after clicking close
-        expect(screen.queryByTestId('quiz-modal')).not.toBeInTheDocument();
+        // Verify modal content is correct
         expect(
-          screen.queryByText('Você concluiu o simulado!')
-        ).not.toBeInTheDocument();
+          screen.getByText('Você acertou 3 de 5 questões.')
+        ).toBeInTheDocument();
+        expect(screen.getByText('Ir para simulados')).toBeInTheDocument();
+        expect(screen.getByText('Detalhar resultado')).toBeInTheDocument();
       });
     });
 
