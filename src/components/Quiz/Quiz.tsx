@@ -32,6 +32,7 @@ import {
   QUESTION_DIFFICULTY,
   QUESTION_TYPE,
   ANSWER_STATUS,
+  SUBTYPE_ENUM,
 } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
@@ -1687,29 +1688,29 @@ const QuizFooter = forwardRef<
 
 // QUIZ RESULT COMPONENTS
 
-const QuizBadge = ({ subtype }: { subtype: string | null }) => {
+const QuizBadge = ({ subtype }: { subtype: SUBTYPE_ENUM | string | null }) => {
   switch (subtype) {
-    case 'PROVA':
+    case SUBTYPE_ENUM.PROVA:
       return (
         <Badge variant="examsOutlined" action="exam2" data-testid="quiz-badge">
           Prova
         </Badge>
       );
-    case 'ENEM_PROVA_1':
-    case 'ENEM_PROVA_2':
+    case SUBTYPE_ENUM.ENEM_PROVA_1:
+    case SUBTYPE_ENUM.ENEM_PROVA_2:
       return (
         <Badge variant="examsOutlined" action="exam1" data-testid="quiz-badge">
           Enem
         </Badge>
       );
-    case 'VESTIBULAR':
+    case SUBTYPE_ENUM.VESTIBULAR:
       return (
         <Badge variant="examsOutlined" action="exam4" data-testid="quiz-badge">
           Vestibular
         </Badge>
       );
-    case 'SIMULADO':
-    case 'SIMULADAO':
+    case SUBTYPE_ENUM.SIMULADO:
+    case SUBTYPE_ENUM.SIMULADAO:
     case null:
       return (
         <Badge variant="examsOutlined" action="exam3" data-testid="quiz-badge">

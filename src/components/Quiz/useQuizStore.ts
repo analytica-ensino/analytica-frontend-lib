@@ -31,6 +31,15 @@ export enum ANSWER_STATUS {
   NAO_RESPONDIDO = 'NAO_RESPONDIDO',
 }
 
+export enum SUBTYPE_ENUM {
+  PROVA = 'PROVA',
+  ENEM_PROVA_1 = 'ENEM_PROVA_1',
+  ENEM_PROVA_2 = 'ENEM_PROVA_2',
+  VESTIBULAR = 'VESTIBULAR',
+  SIMULADO = 'SIMULADO',
+  SIMULADAO = 'SIMULADAO',
+}
+
 export interface QuestionResult {
   answers: {
     id: string;
@@ -137,7 +146,7 @@ export interface Simulated {
   id: string;
   title: string;
   type: string;
-  subtype: string;
+  subtype: SUBTYPE_ENUM | string;
   difficulty: string | null;
   notification: string | null;
   status: string;
