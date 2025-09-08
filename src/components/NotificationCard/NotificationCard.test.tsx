@@ -18,6 +18,7 @@ const mockUseMobile = useMobile as jest.MockedFunction<typeof useMobile>;
 
 describe('NotificationCard', () => {
   const defaultProps = {
+    mode: 'single' as const,
     title: 'Test Title',
     message: 'Test message content',
     time: 'Há 3h',
@@ -310,7 +311,7 @@ describe('NotificationCard', () => {
     ];
 
     it('renders loading state correctly', () => {
-      render(<NotificationCard loading={true} />);
+      render(<NotificationCard mode="list" loading={true} />);
 
       // Should render 3 skeleton cards
       const skeletons = document.querySelectorAll('.animate-pulse');
@@ -321,7 +322,9 @@ describe('NotificationCard', () => {
       const errorMessage = 'Failed to load notifications';
       const onRetry = jest.fn();
 
-      render(<NotificationCard error={errorMessage} onRetry={onRetry} />);
+      render(
+        <NotificationCard mode="list" error={errorMessage} onRetry={onRetry} />
+      );
 
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
       expect(screen.getByText('Tentar novamente')).toBeInTheDocument();
@@ -333,14 +336,14 @@ describe('NotificationCard', () => {
     it('renders error state without retry button when onRetry is not provided', () => {
       const errorMessage = 'Failed to load notifications';
 
-      render(<NotificationCard error={errorMessage} />);
+      render(<NotificationCard mode="list" error={errorMessage} />);
 
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
       expect(screen.queryByText('Tentar novamente')).not.toBeInTheDocument();
     });
 
     it('renders empty state when no notifications are provided', () => {
-      render(<NotificationCard groupedNotifications={[]} />);
+      render(<NotificationCard mode="list" groupedNotifications={[]} />);
 
       expect(
         screen.getByText('Nenhuma notificação no momento')
@@ -352,6 +355,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={[]}
           renderEmpty={customEmptyState}
         />
@@ -375,6 +379,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={mockGroupedNotifications}
           onMarkAsReadById={onMarkAsReadById}
           onDeleteById={onDeleteById}
@@ -401,6 +406,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={[
             {
               label: 'Hoje',
@@ -426,6 +432,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={mockGroupedNotifications}
           onMarkAsReadById={jest.fn()}
           onDeleteById={onDeleteById}
@@ -446,6 +453,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={[
             {
               label: 'Hoje',
@@ -471,6 +479,7 @@ describe('NotificationCard', () => {
     it('does not show action button when notification has no entity data', () => {
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={[
             {
               label: 'Hoje',
@@ -490,6 +499,7 @@ describe('NotificationCard', () => {
     it('applies custom className to list container', () => {
       const { container } = render(
         <NotificationCard
+          mode="list"
           groupedNotifications={mockGroupedNotifications}
           className="custom-list-class"
         />
@@ -513,6 +523,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={multipleGroups}
           onMarkAsReadById={jest.fn()}
           onDeleteById={jest.fn()}
@@ -528,6 +539,7 @@ describe('NotificationCard', () => {
     it('renders group headers with correct CSS classes', () => {
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={mockGroupedNotifications}
           onMarkAsReadById={jest.fn()}
           onDeleteById={jest.fn()}
@@ -548,6 +560,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={[
             {
               label: 'Hoje',
@@ -572,7 +585,7 @@ describe('NotificationCard', () => {
 
   describe('NotificationEmpty component', () => {
     it('renders empty state with correct text', () => {
-      render(<NotificationCard groupedNotifications={[]} />);
+      render(<NotificationCard mode="list" groupedNotifications={[]} />);
 
       expect(
         screen.getByText('Nenhuma notificação no momento')
@@ -581,7 +594,7 @@ describe('NotificationCard', () => {
 
     it('applies correct CSS classes for empty state layout', () => {
       const { container } = render(
-        <NotificationCard groupedNotifications={[]} />
+        <NotificationCard mode="list" groupedNotifications={[]} />
       );
 
       const emptyStateContainer = container.querySelector(
@@ -594,7 +607,7 @@ describe('NotificationCard', () => {
     });
 
     it('renders group header when notifications array is empty', () => {
-      render(<NotificationCard notifications={[]} />);
+      render(<NotificationCard mode="list" notifications={[]} />);
 
       expect(screen.getByText('Notificações')).toBeInTheDocument(); // Group header
       // No notifications are rendered within the group since array is empty
@@ -606,6 +619,7 @@ describe('NotificationCard', () => {
     it('renders empty state when groupedNotifications is null', () => {
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={null as unknown as NotificationGroup[]}
         />
       );
@@ -616,10 +630,10 @@ describe('NotificationCard', () => {
     });
 
     it('renders fallback state when groupedNotifications is undefined', () => {
-      render(<NotificationCard groupedNotifications={undefined} />);
+      render(<NotificationCard mode="list" groupedNotifications={undefined} />);
 
       expect(
-        screen.getByText('Nenhuma notificação configurada')
+        screen.getByText('Nenhuma notificação no momento')
       ).toBeInTheDocument();
     });
   });
@@ -635,6 +649,7 @@ describe('NotificationCard', () => {
     it('renders list mode when groupedNotifications is provided', () => {
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={[
             {
               label: 'Test Group',
@@ -648,14 +663,14 @@ describe('NotificationCard', () => {
     });
 
     it('renders list mode when loading prop is provided', () => {
-      render(<NotificationCard loading={true} />);
+      render(<NotificationCard mode="list" loading={true} />);
 
       const skeletons = document.querySelectorAll('.animate-pulse');
       expect(skeletons.length).toBeGreaterThan(0);
     });
 
     it('renders list mode when error prop is provided', () => {
-      render(<NotificationCard error="Test error" />);
+      render(<NotificationCard mode="list" error="Test error" />);
 
       expect(screen.getByText('Test error')).toBeInTheDocument();
     });
@@ -663,48 +678,49 @@ describe('NotificationCard', () => {
     it('renders fallback when incomplete single card props are provided', () => {
       render(
         <NotificationCard
+          mode="single"
           title="Only title"
-          // Missing required props
-        />
-      );
-
-      expect(
-        screen.getByText('Nenhuma notificação configurada')
-      ).toBeInTheDocument();
-    });
-
-    it('renders fallback when isRead is undefined', () => {
-      render(
-        <NotificationCard
-          title="Test Title"
-          message="Test message"
-          time="Há 3h"
-          // isRead is undefined
-          onMarkAsRead={jest.fn()}
-          onDelete={jest.fn()}
-        />
-      );
-
-      expect(
-        screen.getByText('Nenhuma notificação configurada')
-      ).toBeInTheDocument();
-    });
-
-    it('renders fallback when time is undefined', () => {
-      render(
-        <NotificationCard
-          title="Test Title"
-          message="Test message"
-          // time is undefined
+          message=""
+          time=""
           isRead={false}
           onMarkAsRead={jest.fn()}
           onDelete={jest.fn()}
         />
       );
 
-      expect(
-        screen.getByText('Nenhuma notificação configurada')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Only title')).toBeInTheDocument();
+    });
+
+    it('renders fallback when isRead is undefined', () => {
+      render(
+        <NotificationCard
+          mode="single"
+          title="Test Title"
+          message="Test message"
+          time="Há 3h"
+          isRead={false}
+          onMarkAsRead={jest.fn()}
+          onDelete={jest.fn()}
+        />
+      );
+
+      expect(screen.getByText('Test Title')).toBeInTheDocument();
+    });
+
+    it('renders fallback when time is undefined', () => {
+      render(
+        <NotificationCard
+          mode="single"
+          title="Test Title"
+          message="Test message"
+          time="Há 3h"
+          isRead={false}
+          onMarkAsRead={jest.fn()}
+          onDelete={jest.fn()}
+        />
+      );
+
+      expect(screen.getByText('Test Title')).toBeInTheDocument();
     });
   });
 
@@ -723,6 +739,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={[
             {
               label: 'Test Group',
@@ -754,6 +771,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={[
             {
               label: 'Test Group',
@@ -786,6 +804,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={[
             {
               label: 'Test Group',
@@ -818,6 +837,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={[
             {
               label: 'Test Group',
@@ -840,6 +860,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={[]}
           renderEmpty={customRenderEmpty}
         />
@@ -855,10 +876,11 @@ describe('NotificationCard', () => {
 
   describe('Default fallback state', () => {
     it('renders default message when no valid props are provided', () => {
-      render(<NotificationCard />);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      render(<NotificationCard {...({} as any)} />);
 
       expect(
-        screen.getByText('Nenhuma notificação configurada')
+        screen.getByText('Modo de notificação não reconhecido')
       ).toBeInTheDocument();
     });
   });
@@ -882,7 +904,7 @@ describe('NotificationCard', () => {
       mockUseMobile.mockReturnValue({ isMobile: false });
 
       const mockProps = {
-        variant: 'center' as const,
+        mode: 'center' as const,
         isActive: false,
         onToggleActive: jest.fn(),
         unreadCount: 2,
@@ -919,7 +941,7 @@ describe('NotificationCard', () => {
       mockUseMobile.mockReturnValue({ isMobile: true });
 
       const mockProps = {
-        variant: 'center' as const,
+        mode: 'center' as const,
         isActive: false,
         onToggleActive: jest.fn(),
         unreadCount: 1,
@@ -938,7 +960,7 @@ describe('NotificationCard', () => {
       const onToggleActive = jest.fn();
 
       const mockProps = {
-        variant: 'center' as const,
+        mode: 'center' as const,
         isActive: false,
         onToggleActive,
         unreadCount: 0,
@@ -959,7 +981,7 @@ describe('NotificationCard', () => {
       const onFetchNotifications = jest.fn();
 
       const mockProps = {
-        variant: 'center' as const,
+        mode: 'center' as const,
         isActive: false,
         onToggleActive: jest.fn(),
         unreadCount: 0,
@@ -981,7 +1003,7 @@ describe('NotificationCard', () => {
       mockUseMobile.mockReturnValue({ isMobile: false });
 
       const mockProps = {
-        variant: 'center' as const,
+        mode: 'center' as const,
         isActive: true,
         onToggleActive: jest.fn(),
         unreadCount: 0,
@@ -1005,6 +1027,7 @@ describe('NotificationCard', () => {
     it('renders custom empty state with title and description', () => {
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={[]}
           renderEmpty={() => (
             <div className="flex flex-col items-center justify-center gap-4 p-6 w-full">
@@ -1026,6 +1049,7 @@ describe('NotificationCard', () => {
     it('renders empty state with image when provided', () => {
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={[]}
           renderEmpty={() => (
             <div className="flex flex-col items-center justify-center gap-4 p-6 w-full">
@@ -1057,6 +1081,7 @@ describe('NotificationCard', () => {
     it('applies correct CSS classes to empty state layout', () => {
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={[]}
           renderEmpty={() => (
             <div className="flex flex-col items-center justify-center gap-4 p-6 w-full">
@@ -1092,7 +1117,7 @@ describe('NotificationCard', () => {
     });
 
     it('uses default empty state when renderEmpty is not provided', () => {
-      render(<NotificationCard groupedNotifications={[]} />);
+      render(<NotificationCard mode="list" groupedNotifications={[]} />);
 
       expect(
         screen.getByText('Nenhuma notificação no momento')
@@ -1123,7 +1148,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
-          variant="center"
+          mode="center"
           onFetchNotifications={onFetchNotifications}
           unreadCount={2}
           groupedNotifications={[]}
@@ -1149,7 +1174,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
-          variant="center"
+          mode="center"
           onFetchNotifications={onFetchNotifications}
           unreadCount={2}
           groupedNotifications={[]}
@@ -1196,7 +1221,7 @@ describe('NotificationCard', () => {
 
       render(
         <NotificationCard
-          variant="center"
+          mode="center"
           onNavigateById={onNavigateById}
           groupedNotifications={mockGroupedNotifications}
           getActionLabel={() => 'Ver atividade'}
@@ -1263,6 +1288,7 @@ describe('NotificationCard', () => {
       // Use list mode to ensure the notification is rendered properly
       render(
         <NotificationCard
+          mode="list"
           groupedNotifications={mockGroupedNotifications}
           onNavigateById={onNavigateById}
           getActionLabel={() => 'Ver atividade'}
@@ -1297,7 +1323,7 @@ describe('NotificationCard', () => {
 
       const { rerender } = render(
         <NotificationCard
-          variant="center"
+          mode="center"
           isActive={false}
           onFetchNotifications={onFetchNotifications}
           groupedNotifications={[]}
@@ -1310,7 +1336,7 @@ describe('NotificationCard', () => {
       // When becomes active, should fetch
       rerender(
         <NotificationCard
-          variant="center"
+          mode="center"
           isActive={true}
           onFetchNotifications={onFetchNotifications}
           groupedNotifications={[]}

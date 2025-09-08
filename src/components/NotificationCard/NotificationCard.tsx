@@ -19,32 +19,56 @@ export interface NotificationItem extends Omit<Notification, 'createdAt'> {
   createdAt: string | Date;
 }
 
-export interface NotificationCardProps {
-  // Single notification mode props
+// Base props shared across all modes
+interface BaseNotificationProps {
+  /**
+   * Additional CSS classes
+   */
+  className?: string;
+  /**
+   * Empty state image path
+   */
+  emptyStateImage?: string;
+  /**
+   * Empty state title
+   */
+  emptyStateTitle?: string;
+  /**
+   * Empty state description
+   */
+  emptyStateDescription?: string;
+}
+
+// Single notification card mode
+interface SingleNotificationCardMode extends BaseNotificationProps {
+  /**
+   * Component mode - single card
+   */
+  mode: 'single';
   /**
    * The notification title
    */
-  title?: string;
+  title: string;
   /**
    * The notification message content
    */
-  message?: string;
+  message: string;
   /**
    * Time displayed (e.g., "Há 3h", "12 Fev")
    */
-  time?: string;
+  time: string;
   /**
    * Whether the notification has been read
    */
-  isRead?: boolean;
+  isRead: boolean;
   /**
    * Callback when user marks notification as read
    */
-  onMarkAsRead?: () => void;
+  onMarkAsRead: () => void;
   /**
    * Callback when user deletes notification
    */
-  onDelete?: () => void;
+  onDelete: () => void;
   /**
    * Optional callback for navigation action
    */
@@ -53,8 +77,14 @@ export interface NotificationCardProps {
    * Label for the action button (only shown if onNavigate is provided)
    */
   actionLabel?: string;
+}
 
-  // List mode props
+// List mode
+interface NotificationListMode extends BaseNotificationProps {
+  /**
+   * Component mode - list
+   */
+  mode: 'list';
   /**
    * Array of notifications for list mode
    */
@@ -95,16 +125,30 @@ export interface NotificationCardProps {
    * Custom empty state component
    */
   renderEmpty?: () => ReactNode;
-  /**
-   * Additional CSS classes
-   */
-  className?: string;
+}
 
-  // NotificationCenter mode props
+// NotificationCenter mode
+interface NotificationCenterMode extends BaseNotificationProps {
   /**
-   * Display variant - 'center' enables modal/dropdown mode
+   * Component mode - center
    */
-  variant?: 'card' | 'center';
+  mode: 'center';
+  /**
+   * Array of grouped notifications
+   */
+  groupedNotifications?: NotificationGroup[];
+  /**
+   * Loading state for center mode
+   */
+  loading?: boolean;
+  /**
+   * Error state for center mode
+   */
+  error?: string | null;
+  /**
+   * Callback for retry when error occurs
+   */
+  onRetry?: () => void;
   /**
    * Whether center mode is currently active (controls dropdown/modal visibility)
    */
@@ -126,17 +170,60 @@ export interface NotificationCardProps {
    */
   onFetchNotifications?: () => void;
   /**
-   * Empty state image path
+   * Callback when user marks a notification as read in center mode
    */
-  emptyStateImage?: string;
+  onMarkAsReadById?: (id: string) => void;
   /**
-   * Empty state title
+   * Callback when user deletes a notification in center mode
    */
-  emptyStateTitle?: string;
+  onDeleteById?: (id: string) => void;
   /**
-   * Empty state description
+   * Callback when user navigates from a notification in center mode
    */
-  emptyStateDescription?: string;
+  onNavigateById?: (entityType?: string, entityId?: string) => void;
+  /**
+   * Function to get action label for a notification
+   */
+  getActionLabel?: (entityType?: string) => string | undefined;
+}
+
+// Union type for all modes
+export type NotificationCardProps =
+  | SingleNotificationCardMode
+  | NotificationListMode
+  | NotificationCenterMode;
+
+// Legacy interface for backward compatibility
+export interface LegacyNotificationCardProps extends BaseNotificationProps {
+  // Single notification mode props
+  title?: string;
+  message?: string;
+  time?: string;
+  isRead?: boolean;
+  onMarkAsRead?: () => void;
+  onDelete?: () => void;
+  onNavigate?: () => void;
+  actionLabel?: string;
+
+  // List mode props
+  notifications?: NotificationItem[];
+  groupedNotifications?: NotificationGroup[];
+  loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
+  onMarkAsReadById?: (id: string) => void;
+  onDeleteById?: (id: string) => void;
+  onNavigateById?: (entityType?: string, entityId?: string) => void;
+  getActionLabel?: (entityType?: string) => string | undefined;
+  renderEmpty?: () => ReactNode;
+
+  // NotificationCenter mode props
+  variant?: 'card' | 'center';
+  isActive?: boolean;
+  onToggleActive?: () => void;
+  unreadCount?: number;
+  onMarkAllAsRead?: () => void;
+  onFetchNotifications?: () => void;
 }
 
 /**
@@ -220,13 +307,17 @@ const SingleNotificationCard = ({
   onNavigate,
   actionLabel,
   className,
-}: Required<
-  Pick<
-    NotificationCardProps,
-    'title' | 'message' | 'time' | 'isRead' | 'onMarkAsRead' | 'onDelete'
-  >
-> &
-  Pick<NotificationCardProps, 'onNavigate' | 'actionLabel' | 'className'>) => {
+}: {
+  title: string;
+  message: string;
+  time: string;
+  isRead: boolean;
+  onMarkAsRead: () => void;
+  onDelete: () => void;
+  onNavigate?: () => void;
+  actionLabel?: string;
+  className?: string;
+}) => {
   const handleMarkAsRead = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -327,19 +418,18 @@ const NotificationList = ({
   getActionLabel,
   renderEmpty,
   className,
-}: Pick<
-  NotificationCardProps,
-  | 'groupedNotifications'
-  | 'loading'
-  | 'error'
-  | 'onRetry'
-  | 'onMarkAsReadById'
-  | 'onDeleteById'
-  | 'onNavigateById'
-  | 'getActionLabel'
-  | 'renderEmpty'
-  | 'className'
->) => {
+}: {
+  groupedNotifications?: NotificationGroup[];
+  loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
+  onMarkAsReadById?: (id: string) => void;
+  onDeleteById?: (id: string) => void;
+  onNavigateById?: (entityType?: string, entityId?: string) => void;
+  getActionLabel?: (entityType?: string) => string | undefined;
+  renderEmpty?: () => ReactNode;
+  className?: string;
+}) => {
   // Error state
   if (error) {
     return (
@@ -426,6 +516,9 @@ const NotificationList = ({
   );
 };
 
+// Internal props type for NotificationCenter (without mode)
+type NotificationCenterProps = Omit<NotificationCenterMode, 'mode'>;
+
 /**
  * NotificationCenter component for modal/dropdown mode
  */
@@ -442,10 +535,12 @@ const NotificationCenter = ({
   onNavigateById,
   getActionLabel,
   onFetchNotifications,
+  onMarkAllAsRead,
   emptyStateImage,
   emptyStateTitle,
   emptyStateDescription,
-}: NotificationCardProps) => {
+  className,
+}: NotificationCenterProps) => {
   const { isMobile } = useMobile();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -492,6 +587,7 @@ const NotificationCenter = ({
           active={isModalOpen}
           onClick={handleMobileClick}
           icon={<Bell size={24} className="text-primary" />}
+          className={className}
         />
         <Modal
           isOpen={isModalOpen}
@@ -504,7 +600,18 @@ const NotificationCenter = ({
         >
           <div className="flex flex-col h-full max-h-[80vh]">
             <div className="px-0 pb-3 border-b border-border-200">
-              <NotificationHeader unreadCount={unreadCount} variant="modal" />
+              <div className="flex items-center justify-between">
+                <NotificationHeader unreadCount={unreadCount} variant="modal" />
+                {unreadCount > 0 && onMarkAllAsRead && (
+                  <button
+                    type="button"
+                    onClick={onMarkAllAsRead}
+                    className="text-sm font-medium text-info-600 hover:text-info-700 cursor-pointer"
+                  >
+                    Marcar todas como lidas
+                  </button>
+                )}
+              </div>
             </div>
             <div className="flex-1 overflow-y-auto">
               <NotificationList
@@ -541,6 +648,7 @@ const NotificationCenter = ({
               className={isActive ? 'text-primary-950' : 'text-primary'}
             />
           }
+          className={className}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -550,7 +658,21 @@ const NotificationCenter = ({
       >
         <div className="flex flex-col">
           <div className="px-4 py-3 border-b border-border-200">
-            <NotificationHeader unreadCount={unreadCount} variant="dropdown" />
+            <div className="flex items-center justify-between">
+              <NotificationHeader
+                unreadCount={unreadCount}
+                variant="dropdown"
+              />
+              {unreadCount > 0 && onMarkAllAsRead && (
+                <button
+                  type="button"
+                  onClick={onMarkAllAsRead}
+                  className="text-sm font-medium text-info-600 hover:text-info-700 cursor-pointer"
+                >
+                  Marcar todas como lidas
+                </button>
+              )}
+            </div>
           </div>
           <div className="max-h-[350px] overflow-y-auto">
             <NotificationList
@@ -580,9 +702,76 @@ const NotificationCenter = ({
  * @returns JSX element representing the notification card, list, or center
  */
 const NotificationCard = (props: NotificationCardProps) => {
+  // Use mode discriminator to determine which component to render
+  switch (props.mode) {
+    case 'single':
+      return (
+        <SingleNotificationCard
+          title={props.title}
+          message={props.message}
+          time={props.time}
+          isRead={props.isRead}
+          onMarkAsRead={props.onMarkAsRead}
+          onDelete={props.onDelete}
+          onNavigate={props.onNavigate}
+          actionLabel={props.actionLabel}
+          className={props.className}
+        />
+      );
+
+    case 'list':
+      return (
+        <NotificationList
+          groupedNotifications={
+            props.groupedNotifications ??
+            (props.notifications
+              ? [
+                  {
+                    label: 'Notificações',
+                    notifications: props.notifications as Notification[],
+                  },
+                ]
+              : [])
+          }
+          loading={props.loading}
+          error={props.error}
+          onRetry={props.onRetry}
+          onMarkAsReadById={props.onMarkAsReadById}
+          onDeleteById={props.onDeleteById}
+          onNavigateById={props.onNavigateById}
+          getActionLabel={props.getActionLabel}
+          renderEmpty={props.renderEmpty}
+          className={props.className}
+        />
+      );
+
+    case 'center':
+      return <NotificationCenter {...props} />;
+
+    default:
+      // This should never happen with proper typing, but provides a fallback
+      return (
+        <div className="flex flex-col items-center gap-4 p-6 w-full">
+          <p className="text-sm text-text-600">
+            Modo de notificação não reconhecido
+          </p>
+        </div>
+      );
+  }
+};
+
+/**
+ * Legacy NotificationCard component for backward compatibility
+ * Automatically detects mode based on provided props
+ */
+export const LegacyNotificationCard = (props: LegacyNotificationCardProps) => {
   // If variant is center, render NotificationCenter
   if (props.variant === 'center') {
-    return <NotificationCenter {...props} />;
+    const centerProps: NotificationCenterMode = {
+      mode: 'center',
+      ...props,
+    };
+    return <NotificationCenter {...centerProps} />;
   }
 
   // If we have list-related props, render list mode
@@ -594,7 +783,6 @@ const NotificationCard = (props: NotificationCardProps) => {
   ) {
     return (
       <NotificationList
-        {...props}
         groupedNotifications={
           props.groupedNotifications ??
           (props.notifications
@@ -606,6 +794,15 @@ const NotificationCard = (props: NotificationCardProps) => {
               ]
             : [])
         }
+        loading={props.loading}
+        error={props.error}
+        onRetry={props.onRetry}
+        onMarkAsReadById={props.onMarkAsReadById}
+        onDeleteById={props.onDeleteById}
+        onNavigateById={props.onNavigateById}
+        getActionLabel={props.getActionLabel}
+        renderEmpty={props.renderEmpty}
+        className={props.className}
       />
     );
   }
@@ -619,17 +816,32 @@ const NotificationCard = (props: NotificationCardProps) => {
     props.onMarkAsRead &&
     props.onDelete
   ) {
+    const singleProps: SingleNotificationCardMode = {
+      mode: 'single',
+      title: props.title,
+      message: props.message,
+      time: props.time,
+      isRead: props.isRead,
+      onMarkAsRead: props.onMarkAsRead,
+      onDelete: props.onDelete,
+      onNavigate: props.onNavigate,
+      actionLabel: props.actionLabel,
+      className: props.className,
+      emptyStateImage: props.emptyStateImage,
+      emptyStateTitle: props.emptyStateTitle,
+      emptyStateDescription: props.emptyStateDescription,
+    };
     return (
       <SingleNotificationCard
-        title={props.title}
-        message={props.message}
-        time={props.time}
-        isRead={props.isRead}
-        onMarkAsRead={props.onMarkAsRead}
-        onDelete={props.onDelete}
-        onNavigate={props.onNavigate}
-        actionLabel={props.actionLabel}
-        className={props.className}
+        title={singleProps.title}
+        message={singleProps.message}
+        time={singleProps.time}
+        isRead={singleProps.isRead}
+        onMarkAsRead={singleProps.onMarkAsRead}
+        onDelete={singleProps.onDelete}
+        onNavigate={singleProps.onNavigate}
+        actionLabel={singleProps.actionLabel}
+        className={singleProps.className}
       />
     );
   }
