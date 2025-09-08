@@ -1355,17 +1355,15 @@ const QuizQuestionList = ({
   const getQuestionStatus = (questionId: string) => {
     return getQuestionStatusFromUserAnswers(questionId);
   };
-
   const filteredGroupedQuestions = Object.entries(groupedQuestions).reduce(
     (acc, [subjectId, questions]) => {
       const filteredQuestions = questions.filter((question) => {
         const status = getQuestionStatus(question.id);
-
         switch (filterType) {
           case 'answered':
             return status === 'answered';
           case 'unanswered':
-            return status === 'unanswered';
+            return status === 'unanswered' || status === 'skipped';
           default:
             return true;
         }
@@ -1682,8 +1680,8 @@ const QuizFooter = forwardRef<
           title="Questões"
           size={'lg'}
         >
-          <div className="flex flex-col w-full h-full">
-            <div className="flex flex-row justify-between items-center py-6 pt-6 pb-4 border-b border-border-200">
+          <div className="flex flex-col w-full not-lg:h-[calc(100vh-200px)] lg:max-h-[687px] lg:h-[687px]">
+            <div className="flex flex-row justify-between items-center py-6 pt-6 pb-4 border-b border-border-200 flex-shrink-0">
               <p className="text-text-950 font-bold text-lg">Filtrar por</p>
               <span className="max-w-[266px]">
                 <Select value={filterType} onValueChange={setFilterType}>
@@ -1702,7 +1700,7 @@ const QuizFooter = forwardRef<
               </span>
             </div>
 
-            <div className="flex flex-col gap-2 not-lg:h-[calc(100vh-200px)] lg:max-h-[687px] lg:h-[687px] overflow-y-auto">
+            <div className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto">
               <QuizQuestionList
                 filterType={filterType}
                 onQuestionClick={() => setModalNavigateOpen(false)}
