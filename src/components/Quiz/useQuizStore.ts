@@ -188,6 +188,7 @@ export interface QuizState {
   isFinished: boolean;
   userId: string;
   variant: 'result' | 'default';
+  minuteCallback: (() => void) | null;
   // Actions
   setBySimulated: (simulated: Simulated) => void;
   setByActivity: (activity: Activity) => void;
@@ -219,6 +220,11 @@ export interface QuizState {
   updateTime: (time: number) => void;
   startTimer: () => void;
   stopTimer: () => void;
+
+  // Minute Callback
+  setMinuteCallback: (callback: (() => void) | null) => void;
+  startMinuteCallback: () => void;
+  stopMinuteCallback: () => void;
 
   // Getters
   getCurrentQuestion: () => Question | null;
@@ -270,6 +276,7 @@ export const useQuizStore = create<QuizState>()(
   devtools(
     (set, get) => {
       let timerInterval: ReturnType<typeof setInterval> | null = null;
+      let minuteCallbackInterval: ReturnType<typeof setInterval> | null = null;
 
       const startTimer = () => {
         if (get().isFinished) {
@@ -293,6 +300,43 @@ export const useQuizStore = create<QuizState>()(
         }
       };
 
+      const setMinuteCallback = (callback: (() => void) | null) => {
+        set({ minuteCallback: callback });
+      };
+
+      const startMinuteCallback = () => {
+        const { minuteCallback, isFinished } = get();
+
+        if (isFinished || !minuteCallback) {
+          return;
+        }
+
+        if (minuteCallbackInterval) {
+          clearInterval(minuteCallbackInterval);
+        }
+
+        minuteCallbackInterval = setInterval(() => {
+          const {
+            minuteCallback: currentCallback,
+            isFinished: currentIsFinished,
+          } = get();
+
+          if (currentIsFinished || !currentCallback) {
+            stopMinuteCallback();
+            return;
+          }
+
+          currentCallback();
+        }, 65 * 1000); // 65 segundos
+      };
+
+      const stopMinuteCallback = () => {
+        if (minuteCallbackInterval) {
+          clearInterval(minuteCallbackInterval);
+          minuteCallbackInterval = null;
+        }
+      };
+
       return {
         // Initial State
         currentQuestionIndex: 0,
@@ -303,6 +347,7 @@ export const useQuizStore = create<QuizState>()(
         isFinished: false,
         userId: '',
         variant: 'default',
+        minuteCallback: null,
         questionsResult: null,
         currentQuestionResult: null,
         // Setters
@@ -608,15 +653,18 @@ export const useQuizStore = create<QuizState>()(
         startQuiz: () => {
           set({ isStarted: true, timeElapsed: 0 });
           startTimer();
+          startMinuteCallback();
         },
 
         finishQuiz: () => {
           set({ isFinished: true });
           stopTimer();
+          stopMinuteCallback();
         },
 
         resetQuiz: () => {
           stopTimer();
+          stopMinuteCallback();
           set({
             currentQuestionIndex: 0,
             selectedAnswers: {},
@@ -626,6 +674,7 @@ export const useQuizStore = create<QuizState>()(
             isFinished: false,
             userId: '',
             variant: 'default',
+            minuteCallback: null,
             questionsResult: null,
             currentQuestionResult: null,
           });
@@ -635,6 +684,11 @@ export const useQuizStore = create<QuizState>()(
         updateTime: (time) => set({ timeElapsed: time }),
         startTimer,
         stopTimer,
+
+        // Minute Callback
+        setMinuteCallback,
+        startMinuteCallback,
+        stopMinuteCallback,
 
         // Getters
         getCurrentQuestion: () => {

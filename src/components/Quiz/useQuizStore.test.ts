@@ -2548,6 +2548,248 @@ describe('useQuizStore', () => {
     });
   });
 
+  describe('Minute Callback', () => {
+    beforeEach(() => {
+      // Clear any existing timers
+      jest.clearAllTimers();
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should set minute callback', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const mockCallback = jest.fn();
+
+      act(() => {
+        result.current.setMinuteCallback(mockCallback);
+      });
+
+      expect(result.current.minuteCallback).toBe(mockCallback);
+    });
+
+    it('should clear minute callback when set to null', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const mockCallback = jest.fn();
+
+      act(() => {
+        result.current.setMinuteCallback(mockCallback);
+        result.current.setMinuteCallback(null);
+      });
+
+      expect(result.current.minuteCallback).toBeNull();
+    });
+
+    it('should start minute callback when starting quiz', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const mockCallback = jest.fn();
+
+      act(() => {
+        result.current.setMinuteCallback(mockCallback);
+        result.current.startQuiz();
+      });
+
+      expect(result.current.isStarted).toBe(true);
+
+      // Advance timer by 1 minute
+      act(() => {
+        jest.advanceTimersByTime(60000);
+      });
+
+      expect(mockCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should stop minute callback when finishing quiz', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const mockCallback = jest.fn();
+
+      act(() => {
+        result.current.setMinuteCallback(mockCallback);
+        result.current.startQuiz();
+        result.current.finishQuiz();
+      });
+
+      expect(result.current.isFinished).toBe(true);
+
+      // Advance timer by 1 minute - callback should not be called
+      act(() => {
+        jest.advanceTimersByTime(60000);
+      });
+
+      expect(mockCallback).not.toHaveBeenCalled();
+    });
+
+    it('should stop minute callback when resetting quiz', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const mockCallback = jest.fn();
+
+      act(() => {
+        result.current.setMinuteCallback(mockCallback);
+        result.current.startQuiz();
+        result.current.resetQuiz();
+      });
+
+      expect(result.current.minuteCallback).toBeNull();
+      expect(result.current.isStarted).toBe(false);
+      expect(result.current.isFinished).toBe(false);
+
+      // Advance timer by 1 minute - callback should not be called
+      act(() => {
+        jest.advanceTimersByTime(60000);
+      });
+
+      expect(mockCallback).not.toHaveBeenCalled();
+    });
+
+    it('should not start minute callback if no callback is set', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      act(() => {
+        result.current.startQuiz();
+      });
+
+      expect(result.current.isStarted).toBe(true);
+      expect(result.current.minuteCallback).toBeNull();
+
+      // Advance timer by 1 minute - no callback should be called
+      act(() => {
+        jest.advanceTimersByTime(60000);
+      });
+
+      // No callback to verify, but timer should still be running
+      expect(result.current.timeElapsed).toBe(60);
+    });
+
+    it('should not start minute callback if quiz is finished', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const mockCallback = jest.fn();
+
+      act(() => {
+        result.current.setMinuteCallback(mockCallback);
+        result.current.finishQuiz();
+        result.current.startMinuteCallback();
+      });
+
+      expect(result.current.isFinished).toBe(true);
+
+      // Advance timer by 1 minute - callback should not be called
+      act(() => {
+        jest.advanceTimersByTime(60000);
+      });
+
+      expect(mockCallback).not.toHaveBeenCalled();
+    });
+
+    it('should call callback multiple times for multiple minutes', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const mockCallback = jest.fn();
+
+      act(() => {
+        result.current.setMinuteCallback(mockCallback);
+        result.current.startQuiz();
+      });
+
+      // Advance timer by 3 minutes
+      act(() => {
+        jest.advanceTimersByTime(180000);
+      });
+
+      expect(mockCallback).toHaveBeenCalledTimes(3);
+    });
+
+    it('should handle callback changes during quiz', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const mockCallback1 = jest.fn();
+      const mockCallback2 = jest.fn();
+
+      act(() => {
+        result.current.setMinuteCallback(mockCallback1);
+        result.current.startQuiz();
+      });
+
+      // Advance timer by 1 minute
+      act(() => {
+        jest.advanceTimersByTime(60000);
+      });
+
+      expect(mockCallback1).toHaveBeenCalledTimes(1);
+
+      // Change callback
+      act(() => {
+        result.current.setMinuteCallback(mockCallback2);
+      });
+
+      // Advance timer by another minute
+      act(() => {
+        jest.advanceTimersByTime(60000);
+      });
+
+      expect(mockCallback1).toHaveBeenCalledTimes(1);
+      expect(mockCallback2).toHaveBeenCalledTimes(1);
+    });
+
+    it('should stop minute callback when callback is removed during quiz', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const mockCallback = jest.fn();
+
+      act(() => {
+        result.current.setMinuteCallback(mockCallback);
+        result.current.startQuiz();
+      });
+
+      // Advance timer by 1 minute
+      act(() => {
+        jest.advanceTimersByTime(60000);
+      });
+
+      expect(mockCallback).toHaveBeenCalledTimes(1);
+
+      // Remove callback
+      act(() => {
+        result.current.setMinuteCallback(null);
+      });
+
+      // Advance timer by another minute
+      act(() => {
+        jest.advanceTimersByTime(60000);
+      });
+
+      expect(mockCallback).toHaveBeenCalledTimes(1); // Should not increase
+    });
+
+    it('should handle multiple startMinuteCallback calls', () => {
+      const { result } = renderHook(() => useQuizStore());
+      const mockCallback = jest.fn();
+
+      act(() => {
+        result.current.setMinuteCallback(mockCallback);
+        result.current.startMinuteCallback();
+        result.current.startMinuteCallback(); // Call multiple times
+      });
+
+      // Advance timer by 1 minute
+      act(() => {
+        jest.advanceTimersByTime(60000);
+      });
+
+      // Should only be called once despite multiple start calls
+      expect(mockCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle stopMinuteCallback when no callback is running', () => {
+      const { result } = renderHook(() => useQuizStore());
+
+      // Should not throw error when stopping non-existent callback
+      act(() => {
+        result.current.stopMinuteCallback();
+      });
+
+      expect(result.current.minuteCallback).toBeNull();
+    });
+  });
+
   describe('User Answers Methods (Lines 544-557)', () => {
     beforeEach(() => {
       act(() => {
