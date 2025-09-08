@@ -327,7 +327,7 @@ export const useQuizStore = create<QuizState>()(
           }
 
           currentCallback();
-        }, 65 * 1000); // 65 segundos
+        }, 60000); // 60 segundos = 1 minuto
       };
 
       const stopMinuteCallback = () => {
