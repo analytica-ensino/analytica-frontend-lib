@@ -1979,7 +1979,7 @@ const QuizListResult = forwardRef<
           <li key={subject.subject.id}>
             <CardResults
               onClick={() => onSubjectClick?.(subject.subject.id)}
-              className="max-w-full flex !flex-col"
+              className="max-w-full"
               header={subject.subject.name}
               correct_answers={subject.correct}
               incorrect_answers={subject.incorrect}
