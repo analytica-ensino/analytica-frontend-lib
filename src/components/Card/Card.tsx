@@ -610,13 +610,11 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
 
         <div
           className={cn(
-            'p-4 flex justify-between w-full h-full',
+            'p-4 flex flex-wrap justify-between w-full h-full',
             isRow ? 'flex-row items-center gap-2' : 'flex-col'
           )}
         >
-          <p className="text-sm font-bold text-text-950 truncate flex-1 min-w-0">
-            {header}
-          </p>
+          <p className="text-sm font-bold text-text-950 flex-1">{header}</p>
           <span className="flex flex-row gap-1 items-center">
             <Badge
               action="success"
