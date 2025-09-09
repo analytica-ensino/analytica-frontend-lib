@@ -679,9 +679,8 @@ describe('CardResults', () => {
   it('should render icon', () => {
     render(<CardResults {...baseProps} />);
     // Check if the icon container exists (the div that contains the IconRender)
-    const iconContainer = screen
-      .getByText('Resultado do Teste')
-      .closest('div')?.previousElementSibling;
+    const iconContainer = screen.getByText('Resultado do Teste').closest('div')
+      ?.parentElement?.previousElementSibling;
     expect(iconContainer).toBeInTheDocument();
   });
 
@@ -700,9 +699,8 @@ describe('CardResults', () => {
   it('should apply custom color as background', () => {
     render(<CardResults {...baseProps} color="#FF0000" />);
     // Find the icon container div that has the background color style
-    const iconContainer = screen
-      .getByText('Resultado do Teste')
-      .closest('div')?.previousElementSibling;
+    const iconContainer = screen.getByText('Resultado do Teste').closest('div')
+      ?.parentElement?.previousElementSibling;
     expect(iconContainer).toHaveStyle({ backgroundColor: '#FF0000' });
   });
 
@@ -2088,7 +2086,7 @@ describe('CardSimulado', () => {
 
     // Check for CardBase classes
     expect(card.className).toContain('w-full');
-    expect(card.className).toContain('bg-background');
+    expect(card.className).toContain('bg-exam-1'); // CardSimulado uses specific background classes
     expect(card.className).toContain('border');
     expect(card.className).toContain('rounded-xl');
     expect(card.className).toContain('flex');
@@ -2856,7 +2854,7 @@ describe('CardSimulationHistory', () => {
 
     expect(screen.getByText('Enem')).toBeInTheDocument();
     expect(screen.getByText('Prova')).toBeInTheDocument();
-    expect(screen.getByText('Simulado')).toBeInTheDocument();
+    expect(screen.getByText('Simuladão')).toBeInTheDocument();
     expect(screen.getByText('Vestibular')).toBeInTheDocument();
   });
 
