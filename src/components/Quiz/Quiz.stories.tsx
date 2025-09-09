@@ -1955,6 +1955,7 @@ export const GeneralForResults: Story = () => {
         incorrectAnswers: 4,
         pendingAnswers: 0,
         score: 52, // Average of all scores (415 / 8 ≈ 51.875, rounded)
+        timeSpent: 180,
       },
     });
   }, [
@@ -2541,6 +2542,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
         incorrectAnswers: 0,
         pendingAnswers: 0,
         score: 99, // Average of all scores
+        timeSpent: 180,
       },
     });
   }, [setBySimulated, setUserAnswers, setUserId, setQuestionsResult]);
