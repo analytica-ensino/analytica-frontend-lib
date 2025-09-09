@@ -1643,6 +1643,7 @@ describe('useQuizStore', () => {
           incorrectAnswers: 0,
           pendingAnswers: 0,
           score: 96.67,
+          timeSpent: 180,
         },
       };
 
@@ -1700,6 +1701,7 @@ describe('useQuizStore', () => {
           incorrectAnswers: 0,
           pendingAnswers: 0,
           score: 100,
+          timeSpent: 120,
         },
       };
 
@@ -1872,6 +1874,7 @@ describe('useQuizStore', () => {
           incorrectAnswers: 0,
           pendingAnswers: 1,
           score: 75,
+          timeSpent: 240,
         },
       };
 
@@ -3403,6 +3406,7 @@ describe('useQuizStore', () => {
           incorrectAnswers: 0,
           pendingAnswers: 0,
           score: 100,
+          timeSpent: 120,
         },
       };
 
@@ -3450,6 +3454,7 @@ describe('useQuizStore', () => {
           incorrectAnswers: 0,
           pendingAnswers: 0,
           score: 0,
+          timeSpent: 0,
         },
       };
 
@@ -3519,6 +3524,7 @@ describe('useQuizStore', () => {
           incorrectAnswers: 0,
           pendingAnswers: 0,
           score: 100,
+          timeSpent: 120,
         },
       };
 
@@ -4035,6 +4041,7 @@ describe('useQuizStore', () => {
             incorrectAnswers: 0,
             pendingAnswers: 0,
             score: 100,
+            timeSpent: 120,
           },
         };
         useQuizStore.getState().setQuestionsResult(mockQuestionResultForIndex);
@@ -4092,6 +4099,7 @@ describe('useQuizStore', () => {
           incorrectAnswers: 0,
           pendingAnswers: 0,
           score: 0,
+          timeSpent: 0,
         },
       };
 
@@ -4199,6 +4207,7 @@ describe('useQuizStore', () => {
           incorrectAnswers: 0,
           pendingAnswers: 0,
           score: 100,
+          timeSpent: 120,
         },
       };
 
@@ -4299,6 +4308,7 @@ describe('useQuizStore', () => {
           incorrectAnswers: 0,
           pendingAnswers: 0,
           score: 100,
+          timeSpent: 120,
         },
       };
 
@@ -4414,6 +4424,7 @@ describe('useQuizStore', () => {
           incorrectAnswers: 0,
           pendingAnswers: 0,
           score: 100,
+          timeSpent: 120,
         },
       };
 
@@ -4516,6 +4527,7 @@ describe('useQuizStore', () => {
           incorrectAnswers: 0,
           pendingAnswers: 0,
           score: 100,
+          timeSpent: 120,
         },
       };
 
@@ -4617,6 +4629,7 @@ describe('useQuizStore', () => {
           incorrectAnswers: 0,
           pendingAnswers: 0,
           score: 100,
+          timeSpent: 120,
         },
       };
 
@@ -4683,6 +4696,7 @@ describe('useQuizStore', () => {
           incorrectAnswers: 0,
           pendingAnswers: 0,
           score: 100,
+          timeSpent: 120,
         },
       };
 
@@ -4780,6 +4794,7 @@ describe('useQuizStore', () => {
           incorrectAnswers: 0,
           pendingAnswers: 0,
           score: 100,
+          timeSpent: 120,
         },
       };
 
@@ -4947,6 +4962,7 @@ describe('useQuizStore', () => {
         incorrectAnswers: 0,
         pendingAnswers: 0,
         score: 100,
+        timeSpent: 120,
       },
     };
 
@@ -5042,6 +5058,7 @@ describe('useQuizStore', () => {
             incorrectAnswers: 0,
             pendingAnswers: 0,
             score: 100,
+            timeSpent: 120,
           },
         };
 
@@ -5087,6 +5104,7 @@ describe('useQuizStore', () => {
             incorrectAnswers: 1,
             pendingAnswers: 0,
             score: 0,
+            timeSpent: 0,
           },
         };
 
@@ -5135,6 +5153,7 @@ describe('useQuizStore', () => {
             incorrectAnswers: 0,
             pendingAnswers: 0,
             score: 0,
+            timeSpent: 0,
           },
         };
 
@@ -5227,6 +5246,59 @@ describe('useQuizStore', () => {
         const statistics = result.current.getQuestionResultStatistics();
 
         expect(statistics).toBeNull();
+      });
+
+      it('should include timeSpent in statistics', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        act(() => {
+          result.current.setQuestionsResult(mockQuestionResult);
+        });
+
+        const statistics = result.current.getQuestionResultStatistics();
+
+        expect(statistics?.timeSpent).toBe(120);
+        expect(typeof statistics?.timeSpent).toBe('number');
+      });
+
+      it('should handle different timeSpent values correctly', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const questionResultWithDifferentTime: QuestionResult = {
+          ...mockQuestionResult,
+          statistics: {
+            ...mockQuestionResult.statistics,
+            timeSpent: 300,
+          },
+        };
+
+        act(() => {
+          result.current.setQuestionsResult(questionResultWithDifferentTime);
+        });
+
+        const statistics = result.current.getQuestionResultStatistics();
+
+        expect(statistics?.timeSpent).toBe(300);
+      });
+
+      it('should handle zero timeSpent correctly', () => {
+        const { result } = renderHook(() => useQuizStore());
+
+        const questionResultWithZeroTime: QuestionResult = {
+          ...mockQuestionResult,
+          statistics: {
+            ...mockQuestionResult.statistics,
+            timeSpent: 0,
+          },
+        };
+
+        act(() => {
+          result.current.setQuestionsResult(questionResultWithZeroTime);
+        });
+
+        const statistics = result.current.getQuestionResultStatistics();
+
+        expect(statistics?.timeSpent).toBe(0);
       });
     });
 
@@ -5394,6 +5466,7 @@ describe('useQuizStore', () => {
             correctAnswers: 1,
             incorrectAnswers: 1,
             score: 50,
+            timeSpent: 300,
           },
         };
 

@@ -1806,7 +1806,6 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
   ({ ...props }, ref) => {
     const {
       getTotalQuestions,
-      timeElapsed,
       formatTime,
       getQuestionResultStatistics,
       getQuestionResult,
@@ -1874,7 +1873,9 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
             <div className="flex items-center gap-1 mb-1">
               <Clock size={12} weight="regular" className="text-text-800" />
               <span className="text-2xs font-medium text-text-800">
-                {formatTime(timeElapsed)}
+                {formatTime(
+                  (getQuestionResultStatistics()?.timeSpent ?? 0) * 60
+                )}
               </span>
             </div>
 
@@ -1978,7 +1979,7 @@ const QuizListResult = forwardRef<
           <li key={subject.subject.id}>
             <CardResults
               onClick={() => onSubjectClick?.(subject.subject.id)}
-              className="max-w-full"
+              className="max-w-full flex !flex-col"
               header={subject.subject.name}
               correct_answers={subject.correct}
               incorrect_answers={subject.incorrect}

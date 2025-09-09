@@ -97,6 +97,7 @@ export interface QuestionResult {
     incorrectAnswers: number;
     pendingAnswers: number;
     score: number;
+    timeSpent: number;
   };
 }
 

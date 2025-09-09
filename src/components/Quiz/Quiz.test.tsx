@@ -6081,5 +6081,120 @@ describe('Quiz', () => {
       // 1/3 * 100 = 33.333... should round to 33
       expect(progressCircle).toHaveAttribute('data-value', '33');
     });
+
+    describe('timeSpent display', () => {
+      it('should display timeSpent correctly when statistics are available', () => {
+        mockGetTotalQuestions.mockReturnValue(5);
+        mockGetQuestionResult.mockReturnValue(null);
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 3,
+          timeSpent: 180, // 3 minutes in seconds
+        });
+        mockFormatTime.mockReturnValue('03:00');
+
+        render(<QuizResultPerformance />);
+
+        expect(screen.getByText('03:00')).toBeInTheDocument();
+        expect(mockFormatTime).toHaveBeenCalledWith(180 * 60); // timeSpent * 60
+      });
+
+      it('should display zero time when timeSpent is 0', () => {
+        mockGetTotalQuestions.mockReturnValue(5);
+        mockGetQuestionResult.mockReturnValue(null);
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 3,
+          timeSpent: 0,
+        });
+        mockFormatTime.mockReturnValue('00:00');
+
+        render(<QuizResultPerformance />);
+
+        expect(screen.getByText('00:00')).toBeInTheDocument();
+        expect(mockFormatTime).toHaveBeenCalledWith(0);
+      });
+
+      it('should display zero time when statistics are null', () => {
+        mockGetTotalQuestions.mockReturnValue(5);
+        mockGetQuestionResult.mockReturnValue(null);
+        mockGetQuestionResultStatistics.mockReturnValue(null);
+        mockFormatTime.mockReturnValue('00:00');
+
+        render(<QuizResultPerformance />);
+
+        expect(screen.getByText('00:00')).toBeInTheDocument();
+        expect(mockFormatTime).toHaveBeenCalledWith(0);
+      });
+
+      it('should display zero time when timeSpent is undefined', () => {
+        mockGetTotalQuestions.mockReturnValue(5);
+        mockGetQuestionResult.mockReturnValue(null);
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 3,
+          timeSpent: undefined,
+        });
+        mockFormatTime.mockReturnValue('00:00');
+
+        render(<QuizResultPerformance />);
+
+        expect(screen.getByText('00:00')).toBeInTheDocument();
+        expect(mockFormatTime).toHaveBeenCalledWith(0);
+      });
+
+      it('should handle different timeSpent values correctly', () => {
+        mockGetTotalQuestions.mockReturnValue(5);
+        mockGetQuestionResult.mockReturnValue(null);
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 3,
+          timeSpent: 3661, // 1 hour, 1 minute, 1 second
+        });
+        mockFormatTime.mockReturnValue('01:01:01');
+
+        render(<QuizResultPerformance />);
+
+        expect(screen.getByText('01:01:01')).toBeInTheDocument();
+        expect(mockFormatTime).toHaveBeenCalledWith(3661 * 60);
+      });
+
+      it('should display clock icon with timeSpent', () => {
+        mockGetTotalQuestions.mockReturnValue(5);
+        mockGetQuestionResult.mockReturnValue(null);
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 3,
+          timeSpent: 120,
+        });
+        mockFormatTime.mockReturnValue('02:00');
+
+        const { container } = render(<QuizResultPerformance />);
+
+        // Check if clock icon is present by looking for the SVG element
+        const clockIcon = container.querySelector('svg');
+        expect(clockIcon).toBeInTheDocument();
+        expect(clockIcon).toHaveClass('text-text-800');
+        expect(screen.getByText('02:00')).toBeInTheDocument();
+      });
+
+      it('should have correct styling for timeSpent display', () => {
+        mockGetTotalQuestions.mockReturnValue(5);
+        mockGetQuestionResult.mockReturnValue(null);
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 3,
+          timeSpent: 120,
+        });
+        mockFormatTime.mockReturnValue('02:00');
+
+        const { container } = render(<QuizResultPerformance />);
+
+        const timeContainer = container.querySelector(
+          '.flex.items-center.gap-1.mb-1'
+        );
+        expect(timeContainer).toBeInTheDocument();
+
+        const timeText = container.querySelector(
+          '.text-2xs.font-medium.text-text-800'
+        );
+        expect(timeText).toBeInTheDocument();
+        expect(timeText).toHaveTextContent('02:00');
+      });
+    });
   });
 });

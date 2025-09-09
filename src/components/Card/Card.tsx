@@ -89,19 +89,19 @@ const CardBase = forwardRef<HTMLDivElement, CardBaseProps>(
     const layoutClasses = CARD_LAYOUT_CLASSES[layout];
     const cursorClasses = CARD_CURSOR_CLASSES[cursor];
 
-    const combinedClasses = [
-      baseClasses,
-      paddingClasses,
-      minHeightClasses,
-      layoutClasses,
-      cursorClasses,
-      className,
-    ]
-      .filter(Boolean)
-      .join(' ');
-
     return (
-      <div ref={ref} className={combinedClasses} {...props}>
+      <div
+        ref={ref}
+        className={cn(
+          baseClasses,
+          paddingClasses,
+          minHeightClasses,
+          layoutClasses,
+          cursorClasses,
+          className
+        )}
+        {...props}
+      >
         {children}
       </div>
     );
@@ -594,12 +594,12 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
         layout="horizontal"
         padding="none"
         minHeight="medium"
-        className={cn('items-center cursor-pointer pr-4', className)}
+        className={cn('items-stretch cursor-pointer pr-4', className)}
         {...props}
       >
         <div
           className={cn(
-            'flex justify-center items-center [&>svg]:size-8 text-text-950 min-w-20 max-w-20 min-h-20 h-full rounded-l-xl'
+            'flex justify-center items-center [&>svg]:size-8 text-text-950 min-w-20 max-w-20 min-h-full rounded-l-xl'
           )}
           style={{
             backgroundColor: color,
@@ -608,35 +608,37 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
           <IconRender iconName={icon} color="currentColor" size={20} />
         </div>
 
-        <div
-          className={cn(
-            'p-4 flex flex-wrap justify-between w-full h-full',
-            isRow ? 'flex-row items-center gap-2' : 'flex-col'
-          )}
-        >
-          <p className="text-sm font-bold text-text-950 flex-1">{header}</p>
-          <span className="flex flex-row gap-1 items-center">
-            <Badge
-              action="success"
-              variant="solid"
-              size="large"
-              iconLeft={<CheckCircle />}
-            >
-              {correct_answers} Corretas
-            </Badge>
+        <div className="w-full flex flex-row justify-between items-center">
+          <div
+            className={cn(
+              'p-4 flex flex-wrap justify-between w-full h-full',
+              isRow ? 'flex-row items-center gap-2' : 'flex-col'
+            )}
+          >
+            <p className="text-sm font-bold text-text-950 flex-1">{header}</p>
+            <span className="flex flex-wrap flex-row gap-1 items-center">
+              <Badge
+                action="success"
+                variant="solid"
+                size="large"
+                iconLeft={<CheckCircle />}
+              >
+                {correct_answers} Corretas
+              </Badge>
 
-            <Badge
-              action="error"
-              variant="solid"
-              size="large"
-              iconLeft={<XCircle />}
-            >
-              {incorrect_answers} Incorretas
-            </Badge>
-          </span>
+              <Badge
+                action="error"
+                variant="solid"
+                size="large"
+                iconLeft={<XCircle />}
+              >
+                {incorrect_answers} Incorretas
+              </Badge>
+            </span>
+          </div>
+
+          <CaretRight className="min-w-6 min-h-6 text-text-800" />
         </div>
-
-        <CaretRight className="min-w-6 min-h-6 text-text-800" />
       </CardBase>
     );
   }
@@ -1405,7 +1407,7 @@ const SIMULATION_TYPE_STYLES = {
   simulado: {
     background: 'bg-exam-3',
     badge: 'exam3' as const,
-    text: 'Simulado',
+    text: 'Simuladão',
   },
   vestibular: {
     background: 'bg-exam-4',
