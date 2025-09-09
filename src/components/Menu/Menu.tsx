@@ -111,24 +111,6 @@ const MenuContent = forwardRef<HTMLUListElement, MenuContentProps>(
     const variantClasses =
       variant === 'menu2' ? 'overflow-x-auto scroll-smooth' : '';
 
-    // Count MenuItem children for width calculation in menu2 variant
-    const childrenArray = Children.toArray(children);
-    const menuItemCount = childrenArray.filter(
-      (child) => isValidElement(child) && child.type === MenuItem
-    ).length;
-
-    const enhancedChildren =
-      variant === 'menu2'
-        ? Children.map(children, (child) => {
-            if (isValidElement(child) && child.type === MenuItem) {
-              return cloneElement(child as ReactElement<MenuItemProps>, {
-                itemCount: menuItemCount,
-              });
-            }
-            return child;
-          })
-        : children;
-
     return (
       <ul
         ref={ref}
@@ -145,7 +127,7 @@ const MenuContent = forwardRef<HTMLUListElement, MenuContentProps>(
         }
         {...props}
       >
-        {enhancedChildren}
+        {children}
       </ul>
     );
   }
@@ -158,7 +140,6 @@ interface MenuItemProps extends HTMLAttributes<HTMLLIElement> {
   store?: MenuStoreApi;
   variant?: MenuVariant;
   separator?: boolean;
-  itemCount?: number;
 }
 
 const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
@@ -171,7 +152,6 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
       store: externalStore,
       variant = 'menu',
       separator = false,
-      itemCount = 1,
       ...props
     },
     ref
@@ -223,7 +203,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
         <li
           data-variant="menu2"
           className={`
-            ${itemCount === 1 ? 'w-fit' : 'w-full'} flex flex-col items-center px-2 pt-4 gap-3 cursor-pointer focus:rounded-sm justify-center hover:bg-background-100 rounded-lg
+            w-full flex flex-col items-center px-2 pt-4 gap-3 cursor-pointer focus:rounded-sm justify-center hover:bg-background-100 rounded-lg
             focus:outline-none focus:border-indicator-info focus:border-2
             ${selectedValue === value ? '' : 'pb-4'}
           `}
