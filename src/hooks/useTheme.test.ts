@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useTheme } from '@/hooks/useTheme';
 
 // Mock do window.matchMedia
@@ -13,6 +13,14 @@ const mockDocumentElement = {
 // Mock do MediaQueryList
 const mockMediaQueryList = {
   matches: false,
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+};
+
+// Mock do localStorage
+const mockLocalStorage = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
 };
 
 describe('useTheme', () => {
@@ -29,10 +37,17 @@ describe('useTheme', () => {
       value: mockDocumentElement,
     });
 
+    // Setup localStorage mock
+    Object.defineProperty(window, 'localStorage', {
+      writable: true,
+      value: mockLocalStorage,
+    });
+
     // Reset all mocks
     jest.clearAllMocks();
     mockMatchMedia.mockReturnValue(mockMediaQueryList);
     mockDocumentElement.getAttribute.mockReturnValue('enem-parana-light');
+    mockLocalStorage.getItem.mockReturnValue(null);
   });
 
   afterEach(() => {
@@ -133,6 +148,149 @@ describe('useTheme', () => {
         'data-theme',
         'enem-parana-light'
       );
+    });
+  });
+
+  describe('theme toggle functionality', () => {
+    it('should toggle between light and dark themes', () => {
+      mockDocumentElement.getAttribute
+        .mockReturnValueOnce('enem-parana-light') // currentTheme
+        .mockReturnValueOnce(null) // data-original-theme não existe
+        .mockReturnValue('enem-parana-light'); // originalTheme para applyTheme
+
+      mockMediaQueryList.matches = false; // Sistema prefere light mode
+
+      const { result } = renderHook(() => useTheme());
+
+      // Initial state should be system mode with light theme
+      expect(result.current.themeMode).toBe('system');
+      expect(result.current.isDark).toBe(false);
+
+      // Toggle to dark theme (from system to dark)
+      act(() => {
+        result.current.toggleTheme();
+      });
+
+      expect(result.current.themeMode).toBe('dark');
+      expect(result.current.isDark).toBe(true);
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'dark'
+      );
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
+        'theme-mode',
+        'dark'
+      );
+
+      // Toggle back to light theme
+      act(() => {
+        result.current.toggleTheme();
+      });
+
+      expect(result.current.themeMode).toBe('light');
+      expect(result.current.isDark).toBe(false);
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'enem-parana-light'
+      );
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
+        'theme-mode',
+        'light'
+      );
+    });
+
+    it('should set specific theme mode', () => {
+      mockDocumentElement.getAttribute
+        .mockReturnValueOnce('enem-parana-light') // currentTheme
+        .mockReturnValueOnce(null) // data-original-theme não existe
+        .mockReturnValue('enem-parana-light'); // originalTheme para applyTheme
+
+      const { result } = renderHook(() => useTheme());
+
+      // Set to dark theme
+      act(() => {
+        result.current.setTheme('dark');
+      });
+
+      expect(result.current.themeMode).toBe('dark');
+      expect(result.current.isDark).toBe(true);
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
+        'theme-mode',
+        'dark'
+      );
+
+      // Set to system theme
+      act(() => {
+        result.current.setTheme('system');
+      });
+
+      expect(result.current.themeMode).toBe('system');
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
+        'theme-mode',
+        'system'
+      );
+    });
+
+    it('should load saved theme from localStorage', () => {
+      mockLocalStorage.getItem.mockReturnValue('dark');
+      mockDocumentElement.getAttribute
+        .mockReturnValueOnce('enem-parana-light') // currentTheme
+        .mockReturnValueOnce(null) // data-original-theme não existe
+        .mockReturnValue('enem-parana-light'); // originalTheme para applyTheme
+
+      const { result } = renderHook(() => useTheme());
+
+      expect(result.current.themeMode).toBe('dark');
+      expect(result.current.isDark).toBe(true);
+      expect(mockLocalStorage.getItem).toHaveBeenCalledWith('theme-mode');
+    });
+
+    it('should handle system theme changes when in system mode', () => {
+      mockDocumentElement.getAttribute
+        .mockReturnValueOnce('enem-parana-light') // currentTheme
+        .mockReturnValueOnce(null) // data-original-theme não existe
+        .mockReturnValue('enem-parana-light'); // originalTheme para applyTheme
+
+      const { result } = renderHook(() => useTheme());
+
+      expect(result.current.themeMode).toBe('system');
+
+      // Simulate system theme change
+      const changeHandler =
+        mockMediaQueryList.addEventListener.mock.calls[0][1];
+      act(() => {
+        changeHandler();
+      });
+
+      // Should call setAttribute when system theme changes
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalled();
+    });
+
+    it('should not respond to system theme changes when not in system mode', () => {
+      mockDocumentElement.getAttribute
+        .mockReturnValueOnce('enem-parana-light') // currentTheme
+        .mockReturnValueOnce(null) // data-original-theme não existe
+        .mockReturnValue('enem-parana-light'); // originalTheme para applyTheme
+
+      const { result } = renderHook(() => useTheme());
+
+      // Set to light mode (not system)
+      act(() => {
+        result.current.setTheme('light');
+      });
+
+      expect(result.current.themeMode).toBe('light');
+
+      // Simulate system theme change
+      mockMediaQueryList.matches = true;
+      const changeHandler =
+        mockMediaQueryList.addEventListener.mock.calls[0][1];
+      act(() => {
+        changeHandler();
+      });
+
+      // Should not change theme since we're not in system mode
+      expect(result.current.themeMode).toBe('light');
     });
   });
 

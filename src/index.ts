@@ -43,6 +43,8 @@ import { useMobile, getDeviceType } from './hooks/useMobile';
 import type { DeviceType } from './hooks/useMobile';
 import { useTheme } from './hooks/useTheme';
 
+import { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
+
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
   DropdownMenuTrigger,
@@ -183,6 +185,7 @@ export { Modal };
 export { AlertDialog };
 export { LoadingModal };
 export { NotificationCard };
+export { ThemeToggle };
 export type {
   NotificationItem,
   NotificationGroup,
