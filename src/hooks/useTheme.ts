@@ -28,6 +28,9 @@ export const useTheme = () => {
       } else if (originalTheme) {
         // Restaura o theme light do white label
         htmlElement.setAttribute('data-theme', originalTheme);
+      } else {
+        // Remove o atributo data-theme para reverter ao tema padrão/light
+        htmlElement.removeAttribute('data-theme');
       }
     };
 
@@ -40,12 +43,25 @@ export const useTheme = () => {
       applyTheme();
     };
 
-    // Monitora mudanças nas preferências do sistema
-    mediaQuery.addEventListener('change', handleChange);
+    // Feature detection para addEventListener/removeEventListener
+    const hasAddEventListener =
+      typeof mediaQuery.addEventListener === 'function';
+
+    if (hasAddEventListener) {
+      mediaQuery.addEventListener('change', handleChange);
+    } else {
+      // Fallback para navegadores mais antigos
+      mediaQuery.addListener(handleChange);
+    }
 
     // Cleanup
     return () => {
-      mediaQuery.removeEventListener('change', handleChange);
+      if (hasAddEventListener) {
+        mediaQuery.removeEventListener('change', handleChange);
+      } else {
+        // Fallback para navegadores mais antigos
+        mediaQuery.removeListener(handleChange);
+      }
     };
   }, []);
 };
