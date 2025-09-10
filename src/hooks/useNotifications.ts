@@ -40,9 +40,14 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
      *
      * @param entityType - Type of entity (ACTIVITY, GOAL)
      * @param entityId - ID of the entity
+     * @param onAfterNavigate - Optional callback to execute after navigation
      */
     const handleNavigate = useCallback(
-      (entityType?: string, entityId?: string) => {
+      (
+        entityType?: string,
+        entityId?: string,
+        onAfterNavigate?: () => void
+      ) => {
         if (entityType && entityId) {
           switch (entityType.toUpperCase()) {
             case NotificationEntityType.ACTIVITY:
@@ -54,6 +59,8 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
             default:
               break;
           }
+          // Execute callback after navigation, if provided
+          onAfterNavigate?.();
         }
       },
       []
@@ -87,12 +94,18 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
      * @param id - Notification ID
      * @param entityType - Optional entity type for navigation
      * @param entityId - Optional entity ID for navigation
+     * @param onAfterNavigate - Optional callback to execute after navigation
      */
     const markAsReadAndNavigate = useCallback(
-      async (id: string, entityType?: string, entityId?: string) => {
+      async (
+        id: string,
+        entityType?: string,
+        entityId?: string,
+        onAfterNavigate?: () => void
+      ) => {
         await markAsRead(id);
         if (entityType && entityId) {
-          handleNavigate(entityType, entityId);
+          handleNavigate(entityType, entityId, onAfterNavigate);
         }
       },
       [markAsRead, handleNavigate]
