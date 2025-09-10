@@ -120,6 +120,65 @@ describe('Menu Component', () => {
     });
   });
 
+  describe('Menu-overflow Variant', () => {
+    it('renders menu with w-fit className', () => {
+      render(
+        <Menu
+          defaultValue="home"
+          variant="menu-overflow"
+          data-testid="menu-container"
+        >
+          <MenuItem value="home" variant="menu-overflow">
+            Home
+          </MenuItem>
+          <MenuItem value="dashboard" variant="menu-overflow">
+            Dashboard
+          </MenuItem>
+        </Menu>
+      );
+
+      const menuContainer = screen.getByTestId('menu-container');
+      expect(menuContainer).toHaveClass(
+        'w-fit py-2 flex flex-row items-center justify-center'
+      );
+    });
+
+    it('renders items with data-variant menu-overflow', () => {
+      render(
+        <Menu defaultValue="home" variant="menu-overflow">
+          <MenuItem value="home" variant="menu-overflow">
+            Home
+          </MenuItem>
+          <MenuItem value="dashboard" variant="menu-overflow">
+            Dashboard
+          </MenuItem>
+        </Menu>
+      );
+
+      const items = screen.getAllByRole('menuitem');
+      expect(
+        items.some(
+          (item) => item.getAttribute('data-variant') === 'menu-overflow'
+        )
+      ).toBe(true);
+    });
+
+    it('renders items with w-fit className', () => {
+      render(
+        <Menu defaultValue="home" variant="menu-overflow">
+          <MenuItem value="home" variant="menu-overflow">
+            Home
+          </MenuItem>
+        </Menu>
+      );
+
+      const menuItem = screen.getByRole('menuitem');
+      expect(menuItem).toHaveClass(
+        'w-fit flex flex-col items-center px-2 pt-4 gap-3'
+      );
+    });
+  });
+
   describe('User Interaction', () => {
     it('updates value on item click', () => {
       const handleChange = jest.fn();
@@ -317,6 +376,38 @@ describe('MenuContent', () => {
     const menuContent = screen.getByTestId('menu-content');
     expect(menuContent).toHaveClass('w-full flex flex-row items-center gap-2');
     expect(menuContent).not.toHaveClass('overflow-x-auto scroll-smooth');
+  });
+
+  it('renders with menu2 variant', () => {
+    render(
+      <Menu defaultValue="home" variant="menu2">
+        <MenuContent variant="menu2" data-testid="menu-content">
+          <MenuItem value="home" variant="menu2">
+            Home
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    const menuContent = screen.getByTestId('menu-content');
+    expect(menuContent).toHaveClass('w-full flex flex-row items-center gap-2');
+    expect(menuContent).toHaveClass('overflow-x-auto scroll-smooth');
+  });
+
+  it('renders with menu-overflow variant', () => {
+    render(
+      <Menu defaultValue="home" variant="menu-overflow">
+        <MenuContent variant="menu-overflow" data-testid="menu-content">
+          <MenuItem value="home" variant="menu-overflow">
+            Home
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    const menuContent = screen.getByTestId('menu-content');
+    expect(menuContent).toHaveClass('w-full flex flex-row items-center gap-2');
+    expect(menuContent).toHaveClass('overflow-x-auto scroll-smooth');
   });
 
   it('applies custom className', () => {
