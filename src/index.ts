@@ -41,6 +41,7 @@ import IconRender from './components/IconRender/IconRender';
 // Import hooks
 import { useMobile, getDeviceType } from './hooks/useMobile';
 import type { DeviceType } from './hooks/useMobile';
+import { useTheme } from './hooks/useTheme';
 
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
@@ -317,5 +318,6 @@ export { IconRender };
 
 // Export hooks
 export { useMobile };
+export { useTheme };
 export { getDeviceType };
 export type { DeviceType };
