@@ -84,17 +84,17 @@ export const AllMenus: Story = () => {
         </Menu>
 
         <MenuOverflow className="max-w-[500px]" defaultValue="home">
-          <MenuItem variant="menu2" value="home">
+          <MenuItem variant="menu-overflow" value="home">
             <MenuItemIcon className="bg-amber-500" icon={<House />} />
             Painel
           </MenuItem>
 
-          <MenuItem variant="menu2" value="simulated">
+          <MenuItem variant="menu-overflow" value="simulated">
             <MenuItemIcon className="bg-exam-2" icon={<File />} />
             Simulados
           </MenuItem>
 
-          <MenuItem variant="menu2" value="lecture">
+          <MenuItem variant="menu-overflow" value="lecture">
             <MenuItemIcon
               className="bg-success-500"
               icon={<ChalkboardTeacher />}
@@ -102,12 +102,12 @@ export const AllMenus: Story = () => {
             Aulas
           </MenuItem>
 
-          <MenuItem variant="menu2" value="performance">
+          <MenuItem variant="menu-overflow" value="performance">
             <MenuItemIcon className="bg-yellow-500" icon={<ChartLine />} />
             Desempenho
           </MenuItem>
 
-          <MenuItem variant="menu2" value="suport">
+          <MenuItem variant="menu-overflow" value="suport">
             <MenuItemIcon className="bg-blue-500" icon={<Headphones />} />
             Suporte
           </MenuItem>

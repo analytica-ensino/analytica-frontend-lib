@@ -16,7 +16,7 @@ import {
 import { CaretLeft, CaretRight } from 'phosphor-react';
 import { cn } from '../../utils/utils';
 
-type MenuVariant = 'menu' | 'menu2' | 'breadcrumb';
+type MenuVariant = 'menu' | 'menu2' | 'menu-overflow' | 'breadcrumb';
 
 interface MenuStore {
   value: string;
@@ -54,6 +54,7 @@ interface MenuProps extends HTMLAttributes<HTMLDivElement> {
 const VARIANT_CLASSES = {
   menu: 'bg-background shadow-soft-shadow-1 px-6',
   menu2: '',
+  'menu-overflow': '',
   breadcrumb: 'bg-transparent shadow-none !px-0',
 };
 
@@ -79,7 +80,10 @@ const Menu = forwardRef<HTMLDivElement, MenuProps>(
       setValue(propValue ?? defaultValue);
     }, [defaultValue, propValue, setValue]);
 
-    const baseClasses = 'w-full py-2 flex flex-row items-center justify-center';
+    const baseClasses =
+      variant === 'menu-overflow'
+        ? 'w-fit py-2 flex flex-row items-center justify-center'
+        : 'w-full py-2 flex flex-row items-center justify-center';
     const variantClasses = VARIANT_CLASSES[variant];
 
     return (
@@ -109,7 +113,9 @@ const MenuContent = forwardRef<HTMLUListElement, MenuContentProps>(
     const baseClasses = 'w-full flex flex-row items-center gap-2';
 
     const variantClasses =
-      variant === 'menu2' ? 'overflow-x-auto scroll-smooth' : '';
+      variant === 'menu2' || variant === 'menu-overflow'
+        ? 'overflow-x-auto scroll-smooth'
+        : '';
 
     return (
       <ul
@@ -121,7 +127,7 @@ const MenuContent = forwardRef<HTMLUListElement, MenuContentProps>(
           ${className ?? ''}
         `}
         style={
-          variant === 'menu2'
+          variant === 'menu2' || variant === 'menu-overflow'
             ? { scrollbarWidth: 'none', msOverflowStyle: 'none' }
             : undefined
         }
@@ -204,6 +210,29 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
           data-variant="menu2"
           className={`
             w-full flex flex-col items-center px-2 pt-4 gap-3 cursor-pointer focus:rounded-sm justify-center hover:bg-background-100 rounded-lg
+            focus:outline-none focus:border-indicator-info focus:border-2
+            ${selectedValue === value ? '' : 'pb-4'}
+          `}
+          {...commonProps}
+        >
+          <span
+            className={cn(
+              'flex flex-row items-center gap-2 px-4 text-text-950 text-xs font-bold',
+              className
+            )}
+          >
+            {children}
+          </span>
+          {selectedValue === value && (
+            <div className="h-1 w-full bg-primary-950 rounded-lg" />
+          )}
+        </li>
+      ),
+      'menu-overflow': (
+        <li
+          data-variant="menu-overflow"
+          className={`
+            w-fit flex flex-col items-center px-2 pt-4 gap-3 cursor-pointer focus:rounded-sm justify-center hover:bg-background-100 rounded-lg
             focus:outline-none focus:border-indicator-info focus:border-2
             ${selectedValue === value ? '' : 'pb-4'}
           `}
