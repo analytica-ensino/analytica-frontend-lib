@@ -140,6 +140,40 @@ describe('useNotifications', () => {
 
       expect(window.location.href).toBe(originalHref);
     });
+
+    it('should execute callback after successful navigation', () => {
+      const { result } = renderHook(() => useNotifications());
+      const mockCallback = jest.fn();
+
+      act(() => {
+        result.current.handleNavigate('ACTIVITY', '123', mockCallback);
+      });
+
+      expect(window.location.href).toBe('/atividades/123');
+      expect(mockCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not execute callback when navigation fails', () => {
+      const { result } = renderHook(() => useNotifications());
+      const mockCallback = jest.fn();
+
+      act(() => {
+        result.current.handleNavigate('ACTIVITY', undefined, mockCallback);
+      });
+
+      expect(mockCallback).not.toHaveBeenCalled();
+    });
+
+    it('should execute callback for unknown entity types if entityType and entityId are provided', () => {
+      const { result } = renderHook(() => useNotifications());
+      const mockCallback = jest.fn();
+
+      act(() => {
+        result.current.handleNavigate('UNKNOWN', '123', mockCallback);
+      });
+
+      expect(mockCallback).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('getActionLabel', () => {
@@ -203,6 +237,43 @@ describe('useNotifications', () => {
 
       expect(markAsReadSpy).toHaveBeenCalledWith('notif1');
       expect(window.location.href).toBe(originalHref);
+    });
+
+    it('should execute callback after marking as read and navigating', async () => {
+      const { result } = renderHook(() => useNotifications());
+      const markAsReadSpy = jest.spyOn(mockStoreReturn, 'markAsRead');
+      const mockCallback = jest.fn();
+
+      await act(async () => {
+        await result.current.markAsReadAndNavigate(
+          'notif1',
+          'ACTIVITY',
+          '123',
+          mockCallback
+        );
+      });
+
+      expect(markAsReadSpy).toHaveBeenCalledWith('notif1');
+      expect(window.location.href).toBe('/atividades/123');
+      expect(mockCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not execute callback when navigation is skipped', async () => {
+      const { result } = renderHook(() => useNotifications());
+      const markAsReadSpy = jest.spyOn(mockStoreReturn, 'markAsRead');
+      const mockCallback = jest.fn();
+
+      await act(async () => {
+        await result.current.markAsReadAndNavigate(
+          'notif1',
+          undefined,
+          undefined,
+          mockCallback
+        );
+      });
+
+      expect(markAsReadSpy).toHaveBeenCalledWith('notif1');
+      expect(mockCallback).not.toHaveBeenCalled();
     });
   });
 
