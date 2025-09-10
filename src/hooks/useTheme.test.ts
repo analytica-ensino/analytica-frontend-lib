@@ -8,7 +8,6 @@ const mockMatchMedia = jest.fn();
 const mockDocumentElement = {
   getAttribute: jest.fn(),
   setAttribute: jest.fn(),
-  removeAttribute: jest.fn(),
 };
 
 // Mock do MediaQueryList
@@ -235,41 +234,6 @@ describe('useTheme', () => {
   });
 
   describe('edge cases', () => {
-    it('should remove data-theme when transitioning from dark to light with no original theme', () => {
-      // Reset mocks to ensure clean state
-      mockDocumentElement.getAttribute.mockClear();
-      mockDocumentElement.setAttribute.mockClear();
-      mockDocumentElement.removeAttribute.mockClear();
-      mockMediaQueryList.addEventListener.mockClear();
-
-      mockDocumentElement.getAttribute
-        .mockReturnValueOnce(null) // currentTheme
-        .mockReturnValueOnce(null) // data-original-theme
-        .mockReturnValueOnce(null); // originalTheme in first applyTheme
-
-      mockMediaQueryList.matches = true; // start dark -> sets "dark"
-
-      renderHook(() => useTheme());
-
-      // Verifica se aplicou dark mode inicialmente
-      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
-        'data-theme',
-        'dark'
-      );
-
-      // Simula mudança para light mode
-      act(() => {
-        mockMediaQueryList.matches = false;
-        const cb = mockMediaQueryList.addEventListener.mock.calls[0][1];
-        cb({ matches: false } as MediaQueryListEvent);
-      });
-
-      // Verifica se removeu o atributo data-theme
-      expect(mockDocumentElement.removeAttribute).toHaveBeenCalledWith(
-        'data-theme'
-      );
-    });
-
     it('should handle multiple rapid theme changes', () => {
       // Reset mocks to ensure clean state
       mockDocumentElement.getAttribute.mockClear();
