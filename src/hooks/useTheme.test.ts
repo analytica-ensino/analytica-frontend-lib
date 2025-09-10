@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { useTheme } from '@/hooks/useTheme';
 
 // Mock do window.matchMedia
@@ -13,8 +13,6 @@ const mockDocumentElement = {
 // Mock do MediaQueryList
 const mockMediaQueryList = {
   matches: false,
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
 };
 
 describe('useTheme', () => {
@@ -138,107 +136,11 @@ describe('useTheme', () => {
     });
   });
 
-  describe('media query listener', () => {
-    it('should add event listener for media query changes', () => {
-      mockDocumentElement.getAttribute
-        .mockReturnValueOnce('enem-parana-light')
-        .mockReturnValueOnce(null);
-
-      mockMediaQueryList.matches = false;
-
-      renderHook(() => useTheme());
-
-      expect(mockMatchMedia).toHaveBeenCalledWith(
-        '(prefers-color-scheme: dark)'
-      );
-      expect(mockMediaQueryList.addEventListener).toHaveBeenCalledWith(
-        'change',
-        expect.any(Function)
-      );
-    });
-
-    it('should remove event listener on cleanup', () => {
-      mockDocumentElement.getAttribute
-        .mockReturnValueOnce('enem-parana-light')
-        .mockReturnValueOnce(null);
-
-      mockMediaQueryList.matches = false;
-
-      const { unmount } = renderHook(() => useTheme());
-
-      unmount();
-
-      expect(mockMediaQueryList.removeEventListener).toHaveBeenCalledWith(
-        'change',
-        expect.any(Function)
-      );
-    });
-
-    it('should respond to system preference changes', () => {
-      mockDocumentElement.getAttribute
-        .mockReturnValueOnce('enem-parana-light') // currentTheme
-        .mockReturnValueOnce(null) // data-original-theme não existe
-        .mockReturnValueOnce('enem-parana-light') // originalTheme para applyTheme inicial
-        .mockReturnValueOnce('enem-parana-light'); // originalTheme para applyTheme após mudança
-
-      mockMediaQueryList.matches = false; // Inicialmente light mode
-
-      renderHook(() => useTheme());
-
-      // Simula mudança para dark mode
-      act(() => {
-        mockMediaQueryList.matches = true;
-        // Pega o callback que foi passado para addEventListener
-        const changeCallback =
-          mockMediaQueryList.addEventListener.mock.calls[0][1];
-        changeCallback({ matches: true });
-      });
-
-      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
-        'data-theme',
-        'dark'
-      );
-    });
-
-    it('should respond to system preference changes from dark to light', () => {
-      // Reset mocks to ensure clean state
-      mockDocumentElement.getAttribute.mockClear();
-      mockDocumentElement.setAttribute.mockClear();
-      mockMediaQueryList.addEventListener.mockClear();
-
-      mockDocumentElement.getAttribute
-        .mockReturnValueOnce('enem-parana-light') // currentTheme
-        .mockReturnValueOnce(null) // data-original-theme não existe
-        .mockReturnValueOnce('enem-parana-light') // originalTheme para applyTheme inicial
-        .mockReturnValueOnce('enem-parana-light'); // originalTheme para applyTheme após mudança
-
-      mockMediaQueryList.matches = true; // Inicialmente dark mode
-
-      renderHook(() => useTheme());
-
-      // Simula mudança para light mode
-      act(() => {
-        mockMediaQueryList.matches = false;
-        // Pega o callback que foi passado para addEventListener
-        const changeCallback =
-          mockMediaQueryList.addEventListener.mock.calls[0][1];
-        changeCallback({ matches: false });
-      });
-
-      // Verifica se aplicou algum tema após a mudança
-      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
-        'data-theme',
-        expect.any(String)
-      );
-    });
-  });
-
   describe('edge cases', () => {
     it('should handle multiple rapid theme changes', () => {
       // Reset mocks to ensure clean state
       mockDocumentElement.getAttribute.mockClear();
       mockDocumentElement.setAttribute.mockClear();
-      mockMediaQueryList.addEventListener.mockClear();
 
       mockDocumentElement.getAttribute
         .mockReturnValueOnce('enem-parana-light') // currentTheme
@@ -251,24 +153,6 @@ describe('useTheme', () => {
       mockMediaQueryList.matches = false;
 
       renderHook(() => useTheme());
-
-      // Simula múltiplas mudanças rápidas
-      act(() => {
-        const changeCallback =
-          mockMediaQueryList.addEventListener.mock.calls[0][1];
-
-        // Dark mode
-        mockMediaQueryList.matches = true;
-        changeCallback({ matches: true });
-
-        // Light mode
-        mockMediaQueryList.matches = false;
-        changeCallback({ matches: false });
-
-        // Dark mode novamente
-        mockMediaQueryList.matches = true;
-        changeCallback({ matches: true });
-      });
 
       // Verifica se aplicou temas nas mudanças
       expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(

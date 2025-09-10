@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 
 /**
  * Hook para detectar preferências do sistema e aplicar dark mode automaticamente
- * Este hook monitora as preferências do sistema (prefers-color-scheme) e aplica
- * o theme correspondente automaticamente.
+ * Este hook aplica o theme baseado nas preferências do sistema (prefers-color-scheme)
+ * na inicialização do componente.
  */
 export const useTheme = () => {
   useEffect(() => {
@@ -33,19 +33,5 @@ export const useTheme = () => {
 
     // Aplica o theme inicial
     applyTheme();
-
-    // Monitora mudanças nas preferências do sistema
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (_event: MediaQueryListEvent) => {
-      applyTheme();
-    };
-
-    // Monitora mudanças nas preferências do sistema
-    mediaQuery.addEventListener('change', handleChange);
-
-    // Cleanup
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
-    };
   }, []);
 };
