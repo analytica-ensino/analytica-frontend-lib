@@ -145,6 +145,10 @@ import {
   formatTimeAgo,
 } from './store/notificationStore';
 import { createUseNotificationStore } from './hooks/useNotificationStore';
+import {
+  createUseNotifications,
+  createNotificationsHook,
+} from './hooks/useNotifications';
 
 // Export all components for bundled usage
 export { Text };
@@ -187,6 +191,8 @@ export type {
 export { createNotificationStore };
 export { formatTimeAgo };
 export { createUseNotificationStore };
+export { createUseNotifications };
+export { createNotificationsHook };
 export { NotificationEntityType } from './types/notifications';
 export type {
   Notification,
