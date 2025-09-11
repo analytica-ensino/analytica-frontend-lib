@@ -703,7 +703,7 @@ const NotificationCenter = ({
               onMarkAsReadById={onMarkAsReadById}
               onDeleteById={onDeleteById}
               onNavigateById={(entityType, entityId) =>
-                handleNavigate(entityType, entityId, onToggleActive)
+                handleNavigate(entityType, entityId)
               }
               getActionLabel={getActionLabel}
               renderEmpty={renderEmptyState}
