@@ -1373,7 +1373,7 @@ describe('NotificationCard', () => {
       expect(onFetchNotifications).toHaveBeenCalledTimes(1);
     });
 
-    it('calls handleNavigate with onToggleActive cleanup when navigation occurs in desktop dropdown', () => {
+    it('calls handleNavigate when navigation occurs in desktop dropdown', () => {
       const onNavigateById = jest.fn();
       const onToggleActive = jest.fn();
 
@@ -1434,14 +1434,14 @@ describe('NotificationCard', () => {
       const actionButton = screen.getByText('Ver atividade desktop');
       fireEvent.click(actionButton);
 
-      // Verify that the callback on line 706 was executed
+      // Verify that the navigation callback was executed
       expect(onNavigateById).toHaveBeenCalledWith(
         NotificationEntityType.ACTIVITY,
         'activity-desktop-1'
       );
 
-      // Should also call onToggleActive to close dropdown (this proves line 706 executed)
-      expect(onToggleActive).toHaveBeenCalledTimes(1);
+      // onToggleActive should NOT be called during navigation (dropdown closes naturally)
+      expect(onToggleActive).not.toHaveBeenCalled();
     });
 
     it('calls onToggleActive when desktop notification button is clicked', () => {
