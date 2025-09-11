@@ -172,8 +172,9 @@ const SpeedMenu = ({
     if (!buttonRef.current) return { top: 0, left: 0 };
     const rect = buttonRef.current.getBoundingClientRect();
     return {
-      top: rect.top + window.scrollY - 180, // Position above the button
-      left: rect.right + window.scrollX - 80, // Align to the right of button
+      // Fixed coords are viewport-based — no scroll offsets.
+      top: Math.max(8, rect.top - 180),
+      left: Math.max(8, rect.right - 80),
     };
   };
 
@@ -181,6 +182,8 @@ const SpeedMenu = ({
 
   const menuContent = (
     <div
+      role="menu"
+      aria-label="Playback speed"
       className={
         isFullscreen
           ? 'absolute bottom-12 right-0 bg-black/90 rounded-lg p-2 min-w-20 z-[9999]'
@@ -198,6 +201,8 @@ const SpeedMenu = ({
       {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
         <button
           key={speed}
+          role="menuitemradio"
+          aria-checked={playbackRate === speed}
           onClick={() => onSpeedChange(speed)}
           className={`block w-full text-left px-3 py-1 text-sm rounded hover:bg-white/20 transition-colors ${
             playbackRate === speed ? 'text-primary-400' : 'text-white'
@@ -209,6 +214,12 @@ const SpeedMenu = ({
     </div>
   );
 
+  // SSR-safe portal content
+  const portalContent =
+    typeof window !== 'undefined' && typeof document !== 'undefined'
+      ? createPortal(menuContent, document.body)
+      : null;
+
   return (
     <div className="relative">
       <IconButton
@@ -216,10 +227,11 @@ const SpeedMenu = ({
         icon={<DotsThreeVertical size={24} />}
         onClick={onToggleMenu}
         aria-label="Playback speed"
+        aria-haspopup="menu"
+        aria-expanded={showSpeedMenu}
         className="!bg-transparent !text-white hover:!bg-white/20"
       />
-      {showSpeedMenu &&
-        (isFullscreen ? menuContent : createPortal(menuContent, document.body))}
+      {showSpeedMenu && (isFullscreen ? menuContent : portalContent)}
     </div>
   );
 };
