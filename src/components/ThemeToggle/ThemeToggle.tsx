@@ -62,6 +62,37 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
     const inactiveClasses =
       'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600';
 
+    // Classes base para botões
+    const baseButtonClasses =
+      'inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500';
+    const smallButtonClasses =
+      'px-3 py-1.5 rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500';
+
+    // Função para renderizar botão de tema
+    const renderThemeButton = (
+      theme: 'light' | 'dark' | 'system',
+      icon: string,
+      label: string,
+      isActive: boolean,
+      buttonSize?: 'sm' | 'md' | 'lg'
+    ) => {
+      const buttonClasses = buttonSize
+        ? cn(baseButtonClasses, sizeClasses[buttonSize])
+        : smallButtonClasses;
+      const stateClasses = isActive ? activeClasses : inactiveClasses;
+
+      return (
+        <button
+          onClick={() => setTheme(theme)}
+          className={cn(buttonClasses, stateClasses)}
+          {...(buttonSize ? props : {})}
+        >
+          {showIcons && icon}
+          {showLabels && label}
+        </button>
+      );
+    };
+
     // Renderizar botão simples
     if (variant === 'simple') {
       return (
@@ -94,36 +125,14 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
             {themeMode === 'system' ? 'Sistema' : isDark ? 'Escuro' : 'Claro'}
           </div>
           <div className="flex gap-1">
-            <button
-              onClick={() => setTheme('light')}
-              className={cn(
-                'px-3 py-1.5 rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
-                themeMode === 'light' ? activeClasses : inactiveClasses
-              )}
-            >
-              {showIcons && '☀️ '}
-              {showLabels && 'Claro'}
-            </button>
-            <button
-              onClick={() => setTheme('dark')}
-              className={cn(
-                'px-3 py-1.5 rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
-                themeMode === 'dark' ? activeClasses : inactiveClasses
-              )}
-            >
-              {showIcons && '🌙 '}
-              {showLabels && 'Escuro'}
-            </button>
-            <button
-              onClick={() => setTheme('system')}
-              className={cn(
-                'px-3 py-1.5 rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
-                themeMode === 'system' ? activeClasses : inactiveClasses
-              )}
-            >
-              {showIcons && '⚙️ '}
-              {showLabels && 'Sistema'}
-            </button>
+            {renderThemeButton('light', '☀️ ', 'Claro', themeMode === 'light')}
+            {renderThemeButton('dark', '🌙 ', 'Escuro', themeMode === 'dark')}
+            {renderThemeButton(
+              'system',
+              '⚙️ ',
+              'Sistema',
+              themeMode === 'system'
+            )}
           </div>
         </div>
       );
@@ -133,42 +142,27 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
     if (variant === 'buttons') {
       return (
         <div className={cn('flex gap-2', className)}>
-          <button
-            onClick={() => setTheme('light')}
-            className={cn(
-              'inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
-              sizeClasses[size],
-              themeMode === 'light' ? activeClasses : inactiveClasses
-            )}
-            {...props}
-          >
-            {showIcons && '☀️'}
-            {showLabels && 'Claro'}
-          </button>
-          <button
-            onClick={() => setTheme('dark')}
-            className={cn(
-              'inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
-              sizeClasses[size],
-              themeMode === 'dark' ? activeClasses : inactiveClasses
-            )}
-            {...props}
-          >
-            {showIcons && '🌙'}
-            {showLabels && 'Escuro'}
-          </button>
-          <button
-            onClick={() => setTheme('system')}
-            className={cn(
-              'inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
-              sizeClasses[size],
-              themeMode === 'system' ? activeClasses : inactiveClasses
-            )}
-            {...props}
-          >
-            {showIcons && '⚙️'}
-            {showLabels && 'Sistema'}
-          </button>
+          {renderThemeButton(
+            'light',
+            '☀️',
+            'Claro',
+            themeMode === 'light',
+            size
+          )}
+          {renderThemeButton(
+            'dark',
+            '🌙',
+            'Escuro',
+            themeMode === 'dark',
+            size
+          )}
+          {renderThemeButton(
+            'system',
+            '⚙️',
+            'Sistema',
+            themeMode === 'system',
+            size
+          )}
         </div>
       );
     }
