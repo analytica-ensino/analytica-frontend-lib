@@ -52,6 +52,7 @@ export default defineConfig({
     'hooks/useMobile/index': 'src/hooks/useMobile.ts',
     'hooks/useTheme/index': 'src/hooks/useTheme.ts',
     // Individual Auth components
+    'ThemeToggle/index': 'src/components/ThemeToggle/ThemeToggle.tsx',
     'Auth/AuthProvider/index': 'src/components/Auth/Auth.tsx',
     'Auth/ProtectedRoute/index': 'src/components/Auth/Auth.tsx',
     'Auth/PublicRoute/index': 'src/components/Auth/Auth.tsx',
