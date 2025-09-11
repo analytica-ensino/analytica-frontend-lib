@@ -16,6 +16,8 @@ jest.mock('../../hooks/useTheme', () => ({
 describe('ThemeToggle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseTheme.themeMode = 'system';
+    mockUseTheme.isDark = false;
   });
 
   describe('variant simple', () => {
@@ -53,6 +55,7 @@ describe('ThemeToggle', () => {
     });
 
     it('should hide labels when showLabels is false', () => {
+      mockUseTheme.isDark = true;
       render(<ThemeToggle variant="simple" showLabels={false} />);
 
       const button = screen.getByRole('button');

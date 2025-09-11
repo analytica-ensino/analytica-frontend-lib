@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -9,6 +9,9 @@ type ThemeMode = 'light' | 'dark' | 'system';
 export const useTheme = () => {
   const [themeMode, setThemeMode] = useState<ThemeMode>('system');
   const [isDark, setIsDark] = useState(false);
+
+  // Ref para manter o estado atual do tema de forma síncrona
+  const themeModeRef = useRef<ThemeMode>('system');
 
   // Função para aplicar o tema baseado no modo selecionado
   const applyTheme = useCallback((mode: ThemeMode) => {
@@ -49,6 +52,7 @@ export const useTheme = () => {
       newMode = 'dark';
     }
     setThemeMode(newMode);
+    themeModeRef.current = newMode;
     applyTheme(newMode);
     localStorage.setItem('theme-mode', newMode);
   }, [themeMode, applyTheme]);
@@ -57,6 +61,7 @@ export const useTheme = () => {
   const setTheme = useCallback(
     (mode: ThemeMode) => {
       setThemeMode(mode);
+      themeModeRef.current = mode;
       applyTheme(mode);
       localStorage.setItem('theme-mode', mode);
     },
@@ -76,14 +81,20 @@ export const useTheme = () => {
     const savedThemeMode = localStorage.getItem('theme-mode') as ThemeMode;
     const initialMode = savedThemeMode || 'system';
 
+    // Se não há tema salvo, persiste 'system' como padrão
+    if (!savedThemeMode) {
+      localStorage.setItem('theme-mode', 'system');
+    }
+
     setThemeMode(initialMode);
+    themeModeRef.current = initialMode;
     applyTheme(initialMode);
 
     // Listener para mudanças nas preferências do sistema (apenas quando mode é 'system')
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleSystemThemeChange = () => {
-      const currentThemeMode = localStorage.getItem('theme-mode') as ThemeMode;
-      if (currentThemeMode === 'system') {
+      // Usa o ref para ter acesso ao estado atual de forma síncrona
+      if (themeModeRef.current === 'system') {
         applyTheme('system');
       }
     };

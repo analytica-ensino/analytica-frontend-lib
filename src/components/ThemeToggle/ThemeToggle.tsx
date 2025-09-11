@@ -83,6 +83,7 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
 
       return (
         <button
+          type="button"
           onClick={() => setTheme(theme)}
           className={cn(buttonClasses, stateClasses)}
           {...(buttonSize ? props : {})}
@@ -97,6 +98,7 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
     if (variant === 'simple') {
       return (
         <button
+          type="button"
           ref={ref}
           onClick={toggleTheme}
           className={cn(
@@ -118,11 +120,15 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
 
     // Renderizar botões detalhados
     if (variant === 'detailed') {
+      const getLabel = () => {
+        if (themeMode === 'system') return 'Sistema';
+        if (isDark) return 'Escuro';
+        return 'Claro';
+      };
       return (
         <div className={cn('flex flex-col gap-2', className)}>
           <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Tema:{' '}
-            {themeMode === 'system' ? 'Sistema' : isDark ? 'Escuro' : 'Claro'}
+            Tema: {getLabel()}
           </div>
           <div className="flex gap-1">
             {renderThemeButton('light', '☀️ ', 'Claro', themeMode === 'light')}

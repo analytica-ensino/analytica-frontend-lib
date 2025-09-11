@@ -255,6 +255,9 @@ describe('useTheme', () => {
 
       expect(result.current.themeMode).toBe('system');
 
+      // Clear mocks before testing the change handler
+      mockDocumentElement.setAttribute.mockClear();
+
       // Simulate system theme change
       const changeHandler =
         mockMediaQueryList.addEventListener.mock.calls[0][1];
@@ -281,6 +284,9 @@ describe('useTheme', () => {
 
       expect(result.current.themeMode).toBe('light');
 
+      // Clear mocks before testing the change handler
+      mockDocumentElement.setAttribute.mockClear();
+
       // Simulate system theme change
       mockMediaQueryList.matches = true;
       const changeHandler =
@@ -289,6 +295,8 @@ describe('useTheme', () => {
         changeHandler();
       });
 
+      // Should not call setAttribute when not in system mode
+      expect(mockDocumentElement.setAttribute).not.toHaveBeenCalled();
       // Should not change theme since we're not in system mode
       expect(result.current.themeMode).toBe('light');
     });
