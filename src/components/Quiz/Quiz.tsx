@@ -79,6 +79,13 @@ export const getStatusStyles = (variantCorrect?: string) => {
   }
 };
 
+export const getTypeLabel = (type: string) => {
+  if (type.toLowerCase() == 'simulado') return 'Simulado';
+  if (type.toLowerCase() == 'questionario') return 'Questionário';
+  if (type.toLowerCase() == 'atividade') return 'Atividade';
+  return 'Simulado';
+};
+
 const Quiz = forwardRef<
   HTMLDivElement,
   { children: ReactNode; className?: string; variant?: 'result' | 'default' }
@@ -158,6 +165,7 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
 const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
   ({ className, ...props }, ref) => {
     const {
+      quiz,
       currentQuestionIndex,
       getTotalQuestions,
       getQuizTitle,
@@ -224,7 +232,7 @@ const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
           isOpen={showExitConfirmation}
           onChangeOpen={setShowExitConfirmation}
           title="Deseja sair?"
-          description="Se você sair do simulado agora, todas as respostas serão perdidas."
+          description={`Se você sair do ${getTypeLabel(quiz?.type || 'simulado').toLowerCase()} agora, todas as respostas serão perdidas.`}
           cancelButtonLabel="Voltar e revisar"
           submitButtonLabel="Sair Mesmo Assim"
           onSubmit={handleConfirmExit}
@@ -1440,7 +1448,11 @@ const QuizFooter = forwardRef<
     onGoToSimulated?: () => void;
     onDetailResult?: () => void;
     handleFinishSimulated?: () => void;
+    onGoToNextModule?: () => void;
+    onRepeat?: () => void;
+    onTryLater?: () => void;
     resultImageComponent?: ReactNode;
+    resultIncorrectImageComponent?: ReactNode;
   }
 >(
   (
@@ -1449,12 +1461,17 @@ const QuizFooter = forwardRef<
       onGoToSimulated,
       onDetailResult,
       handleFinishSimulated,
+      onGoToNextModule,
+      onRepeat,
+      onTryLater,
       resultImageComponent,
+      resultIncorrectImageComponent,
       ...props
     },
     ref
   ) => {
     const {
+      quiz,
       currentQuestionIndex,
       getTotalQuestions,
       goToNextQuestion,
@@ -1476,17 +1493,25 @@ const QuizFooter = forwardRef<
     const isCurrentQuestionSkipped = currentQuestion
       ? getQuestionStatusFromUserAnswers(currentQuestion.id) === 'skipped'
       : false;
-    const [alertDialogOpen, setAlertDialogOpen] = useState(false);
-    const [modalResultOpen, setModalResultOpen] = useState(false);
-    const [modalNavigateOpen, setModalNavigateOpen] = useState(false);
-    const [modalResolutionOpen, setModalResolutionOpen] = useState(false);
+    // Sistema unificado de controle de modais
+    const [activeModal, setActiveModal] = useState<string | null>(null);
     const [filterType, setFilterType] = useState<string>('all');
+
+    // Funções para controlar modais
+    const openModal = (modalName: string) => setActiveModal(modalName);
+    const closeModal = () => setActiveModal(null);
+    const isModalOpen = (modalName: string) => activeModal === modalName;
     const unansweredQuestions = getUnansweredQuestionsFromUserAnswers();
     const allQuestions = getTotalQuestions();
+    const correctAnswers =
+      getQuestionResultStatistics()?.correctAnswers ?? '--';
+    const totalAnswers = getQuestionResultStatistics()?.totalAnswered ?? '--';
+    const quizType = quiz?.type.toLowerCase() || 'simulado';
+    const quizTypeLabel = getTypeLabel(quizType);
 
     const handleFinishQuiz = async () => {
       if (unansweredQuestions.length > 0) {
-        setAlertDialogOpen(true);
+        openModal('alertDialog');
         return;
       }
 
@@ -1494,7 +1519,19 @@ const QuizFooter = forwardRef<
         if (handleFinishSimulated) {
           await Promise.resolve(handleFinishSimulated());
         }
-        setModalResultOpen(true);
+
+        console.log(quizType, correctAnswers, totalAnswers);
+
+        if (quizType == 'questionario' && correctAnswers == totalAnswers) {
+          openModal('modalQuestionnaireAllCorrect');
+          return;
+        }
+
+        if (quizType == 'questionario' && correctAnswers == 0) {
+          openModal('modalQuestionnaireAllIncorrect');
+          return;
+        }
+        openModal('modalResult');
       } catch (err) {
         console.error('handleFinishSimulated failed:', err);
         return;
@@ -1506,11 +1543,21 @@ const QuizFooter = forwardRef<
         if (handleFinishSimulated) {
           await Promise.resolve(handleFinishSimulated());
         }
-        setModalResultOpen(true);
-        setAlertDialogOpen(false);
+
+        if (quizType == 'questionario' && correctAnswers == totalAnswers) {
+          openModal('modalQuestionnaireAllCorrect');
+          return;
+        }
+
+        if (quizType == 'questionario' && correctAnswers == 0) {
+          openModal('modalQuestionnaireAllIncorrect');
+          return;
+        }
+
+        openModal('modalResult');
       } catch (err) {
         console.error('handleFinishSimulated failed:', err);
-        setAlertDialogOpen(false);
+        closeModal();
         return;
       }
     };
@@ -1531,7 +1578,7 @@ const QuizFooter = forwardRef<
                 <IconButton
                   icon={<SquaresFour size={24} className="text-text-950" />}
                   size="md"
-                  onClick={() => setModalNavigateOpen(true)}
+                  onClick={() => openModal('modalNavigate')}
                 />
 
                 {isFirstQuestion ? (
@@ -1605,7 +1652,7 @@ const QuizFooter = forwardRef<
                 variant="solid"
                 action="primary"
                 size="medium"
-                onClick={() => setModalResolutionOpen(true)}
+                onClick={() => openModal('modalResolution')}
               >
                 Ver Resolução
               </Button>
@@ -1614,13 +1661,15 @@ const QuizFooter = forwardRef<
         </footer>
 
         <AlertDialog
-          isOpen={alertDialogOpen}
-          onChangeOpen={setAlertDialogOpen}
-          title="Finalizar simulado?"
+          isOpen={isModalOpen('alertDialog')}
+          onChangeOpen={(open) =>
+            open ? openModal('alertDialog') : closeModal()
+          }
+          title={`Finalizar ${quizTypeLabel.toLowerCase()}?`}
           description={
             unansweredQuestions.length > 0
               ? `Você deixou as questões ${unansweredQuestions.join(', ')} sem resposta. Finalizar agora pode impactar seu desempenho.`
-              : 'Tem certeza que deseja finalizar o simulado?'
+              : `Tem certeza que deseja finalizar o ${quizTypeLabel.toLowerCase()}?`
           }
           cancelButtonLabel="Voltar e revisar"
           submitButtonLabel="Finalizar Mesmo Assim"
@@ -1628,8 +1677,8 @@ const QuizFooter = forwardRef<
         />
 
         <Modal
-          isOpen={modalResultOpen}
-          onClose={() => setModalResultOpen(false)}
+          isOpen={isModalOpen('modalResult')}
+          onClose={closeModal}
           title=""
           closeOnBackdropClick={false}
           closeOnEscape={false}
@@ -1648,12 +1697,11 @@ const QuizFooter = forwardRef<
             )}
             <div className="flex flex-col gap-2 text-center">
               <h2 className="text-text-950 font-bold text-lg">
-                Você concluiu o simulado!
+                Você concluiu o {quizTypeLabel.toLocaleLowerCase()}!
               </h2>
               <p className="text-text-500 font-sm">
-                Você acertou{' '}
-                {getQuestionResultStatistics()?.correctAnswers ?? '--'} de{' '}
-                {allQuestions} questões.
+                Você acertou {correctAnswers ?? '--'} de {allQuestions}{' '}
+                questões.
               </p>
             </div>
 
@@ -1664,7 +1712,7 @@ const QuizFooter = forwardRef<
                 size="small"
                 onClick={onGoToSimulated}
               >
-                Ir para simulados
+                Ir para {quizTypeLabel.toLocaleLowerCase()}s
               </Button>
 
               <Button className="w-full" onClick={onDetailResult}>
@@ -1675,8 +1723,8 @@ const QuizFooter = forwardRef<
         </Modal>
 
         <Modal
-          isOpen={modalNavigateOpen}
-          onClose={() => setModalNavigateOpen(false)}
+          isOpen={isModalOpen('modalNavigate')}
+          onClose={closeModal}
           title="Questões"
           size={'lg'}
         >
@@ -1703,20 +1751,149 @@ const QuizFooter = forwardRef<
             <div className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto">
               <QuizQuestionList
                 filterType={filterType}
-                onQuestionClick={() => setModalNavigateOpen(false)}
+                onQuestionClick={closeModal}
               />
             </div>
           </div>
         </Modal>
 
         <Modal
-          isOpen={modalResolutionOpen}
-          onClose={() => setModalResolutionOpen(false)}
+          isOpen={isModalOpen('modalResolution')}
+          onClose={closeModal}
           title="Resolução"
           size={'lg'}
         >
           {currentQuestion?.solutionExplanation}
         </Modal>
+
+        <Modal
+          isOpen={isModalOpen('modalQuestionnaireAllCorrect')}
+          onClose={closeModal}
+          title=""
+          closeOnBackdropClick={false}
+          closeOnEscape={false}
+          hideCloseButton
+          size={'md'}
+        >
+          <div className="flex flex-col w-full h-full items-center justify-center gap-4">
+            {resultImageComponent ? (
+              <div className="w-[282px] h-auto">{resultImageComponent}</div>
+            ) : (
+              <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
+                <span className="text-gray-500 text-sm">
+                  Imagem de resultado
+                </span>
+              </div>
+            )}
+            <div className="flex flex-col gap-2 text-center">
+              <h2 className="text-text-950 font-bold text-lg">🎉 Parabéns!</h2>
+              <p className="text-text-500 font-sm">
+                Você concluiu o módulo Movimento Uniforme.
+              </p>
+            </div>
+
+            <div className="px-6 flex flex-row items-center gap-2 w-full">
+              <Button className="w-full" onClick={onGoToNextModule}>
+                Próximo modulo
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={isModalOpen('modalQuestionnaireAllIncorrect')}
+          onClose={closeModal}
+          title=""
+          closeOnBackdropClick={false}
+          closeOnEscape={false}
+          hideCloseButton
+          size={'md'}
+        >
+          <div className="flex flex-col w-full h-full items-center justify-center gap-4">
+            {resultIncorrectImageComponent ? (
+              <div className="w-[282px] h-auto">
+                {resultIncorrectImageComponent}
+              </div>
+            ) : (
+              <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
+                <span className="text-gray-500 text-sm">
+                  Imagem de resultado
+                </span>
+              </div>
+            )}
+            <div className="flex flex-col gap-2 text-center">
+              <h2 className="text-text-950 font-bold text-lg">
+                😕 Não foi dessa vez...
+              </h2>
+              <p className="text-text-500 font-sm">
+                Você tirou 0 no questionário, mas não se preocupe! Isso é apenas
+                uma oportunidade de aprendizado.
+              </p>
+
+              <p className="text-text-500 font-sm">
+                Que tal tentar novamente para melhorar sua nota? Estamos aqui
+                para te ajudar a entender o conteúdo e evoluir.
+              </p>
+
+              <p className="text-text-500 font-sm">
+                Clique em Repetir Questionário e mostre do que você é capaz! 💪
+              </p>
+            </div>
+
+            <div className="flex flex-row justify-center items-center gap-2 w-full">
+              <Button
+                type="button"
+                variant="link"
+                size="small"
+                className="w-auto"
+                onClick={() => {
+                  closeModal();
+                  openModal('alertDialogTryLater');
+                }}
+              >
+                Tentar depois
+              </Button>
+
+              <Button
+                variant="outline"
+                size="small"
+                className="w-auto"
+                onClick={onDetailResult}
+              >
+                Detalhar resultado
+              </Button>
+
+              <Button
+                className="w-auto"
+                size="small"
+                onClick={onGoToNextModule}
+              >
+                Próximo modulo
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        <AlertDialog
+          isOpen={isModalOpen('alertDialogTryLater')}
+          onChangeOpen={(open) =>
+            open ? openModal('alertDialogTryLater') : closeModal()
+          }
+          title="Tentar depois?"
+          description={
+            'Você optou por refazer o questionário mais tarde.\n\nLembre-se: enquanto não refazer o questionário, sua nota permanecerá 0 no sistema.'
+          }
+          cancelButtonLabel="Repetir questionário"
+          submitButtonLabel="Tentar depois"
+          onSubmit={() => {
+            onTryLater?.();
+            closeModal();
+          }}
+          onCancel={() => {
+            onRepeat?.();
+            closeModal();
+          }}
+        />
       </>
     );
   }
@@ -1770,8 +1947,7 @@ const QuizResultHeaderTitle = forwardRef<
   HTMLDivElement,
   { className?: string }
 >(({ className, ...props }, ref) => {
-  const { getActiveQuiz } = useQuizStore();
-  const activeQuiz = getActiveQuiz();
+  const { quiz } = useQuizStore();
   return (
     <div
       ref={ref}
@@ -1779,7 +1955,7 @@ const QuizResultHeaderTitle = forwardRef<
       {...props}
     >
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
-      <QuizBadge subtype={activeQuiz?.quiz.subtype || undefined} />
+      <QuizBadge subtype={quiz?.subtype || undefined} />
     </div>
   );
 });

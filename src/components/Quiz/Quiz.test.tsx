@@ -4,6 +4,7 @@ import {
   Quiz,
   getStatusBadge,
   getStatusStyles,
+  getTypeLabel,
   QuizHeaderResult,
   QuizTitle,
   QuizSubTitle,
@@ -569,7 +570,43 @@ describe('Quiz', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseQuizStore.mockReturnValue({
+      quiz: null,
+      currentQuestionIndex: 0,
+      userAnswers: [],
+      questionsResult: [],
+      isQuizStarted: false,
+      timeElapsed: 0,
+      variant: 'default' as const,
+      setQuiz: jest.fn(),
+      startQuiz: jest.fn(),
+      setUserId: jest.fn(),
+      setUserAnswers: jest.fn(),
+      setQuestionsResult: jest.fn(),
+      goToNextQuestion: jest.fn(),
+      goToPreviousQuestion: jest.fn(),
+      skipQuestion: jest.fn(),
+      goToQuestion: jest.fn(),
+      selectAnswer: jest.fn(),
+      selectMultipleAnswer: jest.fn(),
+      selectDissertativeAnswer: jest.fn(),
+      selectTrueOrFalseAnswer: jest.fn(),
+      selectConnectDotsAnswer: jest.fn(),
+      selectFillAnswer: jest.fn(),
+      selectImageQuestionAnswer: jest.fn(),
+      resetQuiz: jest.fn(),
       setVariant: jest.fn(),
+      getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+      getQuestionResultStatistics: jest.fn().mockReturnValue({
+        totalQuestions: 1,
+        correctAnswers: 0,
+        incorrectAnswers: 0,
+        timeSpent: 0,
+      }),
+      getTotalQuestions: jest.fn().mockReturnValue(1),
+      getCurrentAnswer: jest.fn().mockReturnValue(null),
+      getCorrectAnswers: jest.fn().mockReturnValue(0),
+      getCurrentQuestion: jest.fn().mockReturnValue(null),
+      getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('unanswered'),
     } as unknown as ReturnType<typeof useQuizStore>);
   });
 
@@ -4187,13 +4224,8 @@ describe('Quiz', () => {
           resolutionButton.click();
         });
 
-        expect(screen.getByTestId('quiz-modal')).toBeInTheDocument();
-        expect(screen.getByTestId('modal-title')).toHaveTextContent(
-          'Resolução'
-        );
-        expect(screen.getByTestId('modal-content')).toHaveTextContent(
-          'Test explanation'
-        );
+        expect(screen.getByText('Resolução')).toBeInTheDocument();
+        expect(screen.getByText('Test explanation')).toBeInTheDocument();
       });
     });
 
@@ -4207,8 +4239,7 @@ describe('Quiz', () => {
           navigationButton.click();
         });
 
-        expect(screen.getByTestId('quiz-modal')).toBeInTheDocument();
-        expect(screen.getByTestId('modal-title')).toHaveTextContent('Questões');
+        expect(screen.getByText('Questões')).toBeInTheDocument();
       });
 
       it('should close navigation modal when close button is clicked', () => {
@@ -4221,7 +4252,7 @@ describe('Quiz', () => {
           navigationButton.click();
         });
 
-        expect(screen.getByTestId('quiz-modal')).toBeInTheDocument();
+        expect(screen.getByText('Questões')).toBeInTheDocument();
 
         // Close modal
         const closeButton = screen.getByTestId('modal-close');
@@ -4230,7 +4261,9 @@ describe('Quiz', () => {
           closeButton.click();
         });
 
-        expect(screen.queryByTestId('quiz-modal')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('Você concluiu o simulado!')
+        ).not.toBeInTheDocument();
       });
 
       it('should close resolution modal when close button is clicked', () => {
@@ -4248,7 +4281,7 @@ describe('Quiz', () => {
           resolutionButton.click();
         });
 
-        expect(screen.getByTestId('quiz-modal')).toBeInTheDocument();
+        expect(screen.getByText('Resolução')).toBeInTheDocument();
 
         // Close modal
         const closeButton = screen.getByTestId('modal-close');
@@ -4257,7 +4290,9 @@ describe('Quiz', () => {
           closeButton.click();
         });
 
-        expect(screen.queryByTestId('quiz-modal')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('Você concluiu o simulado!')
+        ).not.toBeInTheDocument();
       });
     });
 
@@ -4300,10 +4335,7 @@ describe('Quiz', () => {
           finishButton.click();
         });
 
-        expect(screen.getByTestId('quiz-modal')).toBeInTheDocument();
-        expect(
-          screen.getByText('Você concluiu o simulado!')
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Você concluiu o/)).toBeInTheDocument();
         expect(
           screen.getByText('Você acertou 3 de 5 questões.')
         ).toBeInTheDocument();
@@ -4348,13 +4380,17 @@ describe('Quiz', () => {
           'handleFinishSimulated failed:',
           expect.any(Error)
         );
-        expect(screen.queryByTestId('quiz-modal')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('Você concluiu o simulado!')
+        ).not.toBeInTheDocument();
 
         consoleSpy.mockRestore();
       });
 
       it('should finish quiz when alert submit is clicked', async () => {
-        const mockHandleFinishSimulated = jest.fn();
+        const mockHandleFinishSimulated = jest
+          .fn()
+          .mockResolvedValue(undefined);
         mockGetUnansweredQuestionsFromUserAnswers.mockReturnValue([1, 2]);
 
         render(
@@ -4379,7 +4415,9 @@ describe('Quiz', () => {
 
         expect(mockHandleFinishSimulated).toHaveBeenCalled();
         expect(screen.queryByTestId('alert-dialog')).not.toBeInTheDocument();
-        expect(screen.getByTestId('quiz-modal')).toBeInTheDocument();
+
+        // Verificar se o modal de resultado está aberto
+        expect(screen.getByText(/Você concluiu o/)).toBeInTheDocument();
       });
 
       it('should handle handleFinishSimulated error in alert submit and not show result modal', async () => {
@@ -4419,7 +4457,9 @@ describe('Quiz', () => {
         );
 
         // 2. setModalResultOpen(true) is NOT called due to early return
-        expect(screen.queryByTestId('quiz-modal')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('Você concluiu o simulado!')
+        ).not.toBeInTheDocument();
 
         // 3. setAlertDialogOpen(false) is called
         expect(screen.queryByTestId('alert-dialog')).not.toBeInTheDocument();
@@ -4487,10 +4527,7 @@ describe('Quiz', () => {
         });
 
         // Verify modal is open
-        expect(screen.getByTestId('quiz-modal')).toBeInTheDocument();
-        expect(
-          screen.getByText('Você concluiu o simulado!')
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Você concluiu o/)).toBeInTheDocument();
 
         // Verify that close button is not rendered (hideCloseButton is true)
         expect(screen.queryByTestId('modal-close')).not.toBeInTheDocument();
@@ -4526,7 +4563,7 @@ describe('Quiz', () => {
           navigationButton.click();
         });
 
-        expect(screen.getByTestId('quiz-modal')).toBeInTheDocument();
+        expect(screen.getByText('Questões')).toBeInTheDocument();
         expect(screen.getByText('Filtrar por')).toBeInTheDocument();
         expect(screen.getByTestId('quiz-select')).toBeInTheDocument();
       });
@@ -4553,7 +4590,7 @@ describe('Quiz', () => {
         });
 
         // Verify modal is open
-        expect(screen.getByTestId('quiz-modal')).toBeInTheDocument();
+        expect(screen.getByText('Questões')).toBeInTheDocument();
 
         // Find and click a question card (which should trigger onQuestionClick)
         const questionCard = screen.getByTestId('card-status');
@@ -4563,7 +4600,7 @@ describe('Quiz', () => {
         });
 
         // Verify modal is closed after clicking question
-        expect(screen.queryByTestId('quiz-modal')).not.toBeInTheDocument();
+        expect(screen.queryByText('Questões')).not.toBeInTheDocument();
       });
     });
 
@@ -4717,8 +4754,7 @@ describe('Quiz', () => {
   describe('QuizResultHeaderTitle Component', () => {
     beforeEach(() => {
       mockUseQuizStore.mockReturnValue({
-        bySimulated: null,
-        getActiveQuiz: jest.fn().mockReturnValue(null),
+        quiz: null,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       jest.clearAllMocks();
@@ -4753,10 +4789,9 @@ describe('Quiz', () => {
       );
     });
 
-    it('should not render badge when bySimulated is null', () => {
+    it('should not render badge when quiz is null', () => {
       mockUseQuizStore.mockReturnValue({
-        bySimulated: null,
-        getActiveQuiz: jest.fn().mockReturnValue(null),
+        quiz: null,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizResultHeaderTitle />);
@@ -4768,7 +4803,7 @@ describe('Quiz', () => {
       expect(badge).toHaveAttribute('data-action', 'exam3');
     });
 
-    it('should render badge when bySimulated exists', () => {
+    it('should render badge when quiz exists', () => {
       const mockBySimulated = {
         type: 'Simulado ENEM',
         id: 'sim-123',
@@ -4776,11 +4811,7 @@ describe('Quiz', () => {
       };
 
       mockUseQuizStore.mockReturnValue({
-        bySimulated: mockBySimulated,
-        getActiveQuiz: jest.fn().mockReturnValue({
-          quiz: mockBySimulated,
-          type: 'bySimulated',
-        }),
+        quiz: mockBySimulated,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizResultHeaderTitle />);
@@ -4800,11 +4831,7 @@ describe('Quiz', () => {
       };
 
       mockUseQuizStore.mockReturnValue({
-        bySimulated: mockBySimulated,
-        getActiveQuiz: jest.fn().mockReturnValue({
-          quiz: mockBySimulated,
-          type: 'bySimulated',
-        }),
+        quiz: mockBySimulated,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizResultHeaderTitle />);
@@ -4861,7 +4888,7 @@ describe('Quiz', () => {
       expect(headerElement).toHaveAttribute('aria-label', 'Quiz result header');
     });
 
-    it('should handle different bySimulated types', () => {
+    it('should handle different quiz types', () => {
       const mockBySimulated = {
         type: 'Simulado Personalizado',
         id: 'custom-1',
@@ -4870,11 +4897,7 @@ describe('Quiz', () => {
       };
 
       mockUseQuizStore.mockReturnValue({
-        bySimulated: mockBySimulated,
-        getActiveQuiz: jest.fn().mockReturnValue({
-          quiz: mockBySimulated,
-          type: 'bySimulated',
-        }),
+        quiz: mockBySimulated,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizResultHeaderTitle />);
@@ -4893,7 +4916,7 @@ describe('Quiz', () => {
       expect(titleElement.tagName).toBe('P');
     });
 
-    it('should handle empty bySimulated type', () => {
+    it('should handle empty quiz type', () => {
       const mockBySimulated = {
         type: '',
         id: 'empty-type',
@@ -4901,11 +4924,7 @@ describe('Quiz', () => {
       };
 
       mockUseQuizStore.mockReturnValue({
-        bySimulated: mockBySimulated,
-        getActiveQuiz: jest.fn().mockReturnValue({
-          quiz: mockBySimulated,
-          type: 'bySimulated',
-        }),
+        quiz: mockBySimulated,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizResultHeaderTitle />);
@@ -6195,6 +6214,258 @@ describe('Quiz', () => {
         expect(timeText).toBeInTheDocument();
         expect(timeText).toHaveTextContent('02:00');
       });
+    });
+  });
+
+  // Testes para getTypeLabel
+  describe('getTypeLabel', () => {
+    it('should return correct label for simulado', () => {
+      expect(getTypeLabel('simulado')).toBe('Simulado');
+      expect(getTypeLabel('SIMULADO')).toBe('Simulado');
+    });
+
+    it('should return correct label for questionario', () => {
+      expect(getTypeLabel('questionario')).toBe('Questionário');
+      expect(getTypeLabel('QUESTIONARIO')).toBe('Questionário');
+    });
+
+    it('should return correct label for atividade', () => {
+      expect(getTypeLabel('atividade')).toBe('Atividade');
+      expect(getTypeLabel('ATIVIDADE')).toBe('Atividade');
+    });
+
+    it('should return default label for unknown type', () => {
+      expect(getTypeLabel('unknown')).toBe('Simulado');
+      expect(getTypeLabel('')).toBe('Simulado');
+    });
+  });
+
+  // Testes para modais específicos de questionários
+  describe('Questionnaire Modals', () => {
+    const mockQuiz = {
+      id: '1',
+      title: 'Questionário Teste',
+      type: 'QUESTIONARIO',
+      questions: [
+        {
+          id: 'q1',
+          statement: 'Pergunta 1',
+          questionType: 'ALTERNATIVA',
+          options: [
+            { id: 'a', option: 'Opção A' },
+            { id: 'b', option: 'Opção B' },
+          ],
+          correctOptionIds: ['a'],
+        },
+      ],
+    };
+
+    it('should show questionnaire all incorrect modal when all answers are incorrect', async () => {
+      const mockOnTryLater = jest.fn();
+      const mockOnRepeat = jest.fn();
+      const mockOnGoToNextModule = jest.fn();
+
+      // Configurar o mock antes de renderizar
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: mockQuiz,
+        getCurrentAnswer: jest.fn().mockReturnValue('b'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalQuestions: 1,
+          correctAnswers: 0,
+          incorrectAnswers: 1,
+          timeSpent: 120,
+        }),
+      });
+
+      render(
+        <QuizFooter
+          onTryLater={mockOnTryLater}
+          onRepeat={mockOnRepeat}
+          onGoToNextModule={mockOnGoToNextModule}
+        />
+      );
+
+      // Finalizar quiz
+      const finishButton = screen.getByText('Finalizar');
+      act(() => {
+        finishButton.click();
+      });
+
+      // Verificar se o modal de questionário todos incorretos está aberto
+      expect(screen.getByText('😕 Não foi dessa vez...')).toBeInTheDocument();
+      expect(screen.getByText('Tentar depois')).toBeInTheDocument();
+      expect(screen.getByText('Próximo modulo')).toBeInTheDocument();
+    });
+
+    it('should show alert dialog when trying later is clicked', async () => {
+      const mockOnTryLater = jest.fn();
+      const mockOnRepeat = jest.fn();
+
+      // Configurar o mock antes de renderizar
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: { ...mockQuiz, type: 'QUESTIONARIO' },
+        getCurrentAnswer: jest.fn().mockReturnValue('b'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalQuestions: 1,
+          correctAnswers: 0,
+          incorrectAnswers: 1,
+          timeSpent: 120,
+        }),
+      });
+
+      render(
+        <QuizFooter onTryLater={mockOnTryLater} onRepeat={mockOnRepeat} />
+      );
+
+      // Finalizar quiz
+      const finishButton = screen.getByText('Finalizar');
+      act(() => {
+        finishButton.click();
+      });
+
+      // Clicar em tentar depois
+      const tryLaterButton = screen.getByText('Tentar depois');
+      act(() => {
+        tryLaterButton.click();
+      });
+
+      // Verificar se o alert dialog aparece
+      expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
+      expect(screen.getByText('Repetir questionário')).toBeInTheDocument();
+      expect(screen.getByText('Tentar depois')).toBeInTheDocument();
+
+      // Testar cancelar (repetir questionário)
+      const cancelButton = screen.getByText('Repetir questionário');
+      act(() => {
+        cancelButton.click();
+      });
+
+      expect(mockOnRepeat).toHaveBeenCalled();
+    });
+  });
+
+  // Testes para textos dinâmicos baseados no tipo
+  describe('Dynamic Text Based on Quiz Type', () => {
+    it('should show correct text for simulado type', () => {
+      const mockSimuladoQuiz = {
+        id: '1',
+        title: 'Simulado ENEM',
+        type: 'SIMULADO',
+        questions: [],
+      };
+
+      // Configurar o mock para habilitar o botão finalizar
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: mockSimuladoQuiz,
+        getCurrentAnswer: jest.fn().mockReturnValue('a'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+      });
+
+      render(<QuizFooter />);
+
+      // Finalizar quiz
+      const finishButton = screen.getByText('Finalizar');
+      act(() => {
+        finishButton.click();
+      });
+
+      expect(screen.getByText(/Você concluiu o simulado!/)).toBeInTheDocument();
+    });
+
+    it('should show correct text for questionario type', () => {
+      const mockQuestionarioQuiz = {
+        id: '1',
+        title: 'Questionário de Matemática',
+        type: 'QUESTIONARIO',
+        questions: [],
+      };
+
+      // Configurar o mock para habilitar o botão finalizar
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: mockQuestionarioQuiz,
+        getCurrentAnswer: jest.fn().mockReturnValue('a'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalQuestions: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 0,
+          timeSpent: 120,
+        }),
+      });
+
+      render(<QuizFooter />);
+
+      // Finalizar quiz
+      const finishButton = screen.getByText('Finalizar');
+      act(() => {
+        finishButton.click();
+      });
+
+      expect(
+        screen.getByText(/Você concluiu o questionário!/)
+      ).toBeInTheDocument();
+    });
+
+    it('should show correct text for atividade type', () => {
+      const mockAtividadeQuiz = {
+        id: '1',
+        title: 'Atividade de Física',
+        type: 'ATIVIDADE',
+        questions: [],
+      };
+
+      // Configurar o mock para habilitar o botão finalizar
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: mockAtividadeQuiz,
+        getCurrentAnswer: jest.fn().mockReturnValue('a'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+      });
+
+      render(<QuizFooter />);
+
+      // Finalizar quiz
+      const finishButton = screen.getByText('Finalizar');
+      act(() => {
+        finishButton.click();
+      });
+
+      expect(
+        screen.getByText(/Você concluiu o atividade!/)
+      ).toBeInTheDocument();
+    });
+
+    it('should show default text when quiz type is unknown', () => {
+      const mockUnknownQuiz = {
+        id: '1',
+        title: 'Quiz Desconhecido',
+        type: 'UNKNOWN',
+        questions: [],
+      };
+
+      // Configurar o mock para habilitar o botão finalizar
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: mockUnknownQuiz,
+        getCurrentAnswer: jest.fn().mockReturnValue('a'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+      });
+
+      render(<QuizFooter />);
+
+      // Finalizar quiz
+      const finishButton = screen.getByText('Finalizar');
+      act(() => {
+        finishButton.click();
+      });
+
+      expect(screen.getByText(/Você concluiu o simulado!/)).toBeInTheDocument();
     });
   });
 });
