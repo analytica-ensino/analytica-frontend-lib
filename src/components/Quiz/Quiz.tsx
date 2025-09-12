@@ -1557,9 +1557,9 @@ const QuizFooter = forwardRef<
     const isModalOpen = (modalName: string) => activeModal === modalName;
     const unansweredQuestions = getUnansweredQuestionsFromUserAnswers();
     const allQuestions = getTotalQuestions();
-    const correctAnswers =
-      getQuestionResultStatistics()?.correctAnswers ?? '--';
-    const totalAnswers = getQuestionResultStatistics()?.totalAnswered ?? '--';
+    const stats = getQuestionResultStatistics();
+    const correctAnswers = stats?.correctAnswers;
+    const totalAnswers = stats?.totalAnswered;
     const quizType = quiz?.type || QUIZ_TYPE.SIMULADO;
     const quizTypeLabel = getTypeLabel(quizType);
 
@@ -1575,14 +1575,20 @@ const QuizFooter = forwardRef<
         }
 
         if (
-          quizType == QUIZ_TYPE.QUESTIONARIO &&
-          correctAnswers == totalAnswers
+          quizType === QUIZ_TYPE.QUESTIONARIO &&
+          typeof correctAnswers === 'number' &&
+          typeof totalAnswers === 'number' &&
+          correctAnswers === totalAnswers
         ) {
           openModal('modalQuestionnaireAllCorrect');
           return;
         }
 
-        if (quizType == QUIZ_TYPE.QUESTIONARIO && correctAnswers == 0) {
+        if (
+          quizType === QUIZ_TYPE.QUESTIONARIO &&
+          typeof correctAnswers === 'number' &&
+          correctAnswers === 0
+        ) {
           openModal('modalQuestionnaireAllIncorrect');
           return;
         }
@@ -1600,14 +1606,20 @@ const QuizFooter = forwardRef<
         }
 
         if (
-          quizType == QUIZ_TYPE.QUESTIONARIO &&
-          correctAnswers == totalAnswers
+          quizType === QUIZ_TYPE.QUESTIONARIO &&
+          typeof correctAnswers === 'number' &&
+          typeof totalAnswers === 'number' &&
+          correctAnswers === totalAnswers
         ) {
           openModal('modalQuestionnaireAllCorrect');
           return;
         }
 
-        if (quizType == QUIZ_TYPE.QUESTIONARIO && correctAnswers == 0) {
+        if (
+          quizType === QUIZ_TYPE.QUESTIONARIO &&
+          typeof correctAnswers === 'number' &&
+          correctAnswers === 0
+        ) {
           openModal('modalQuestionnaireAllIncorrect');
           return;
         }
@@ -1852,7 +1864,7 @@ const QuizFooter = forwardRef<
 
             <div className="px-6 flex flex-row items-center gap-2 w-full">
               <Button className="w-full" onClick={onGoToNextModule}>
-                Próximo modulo
+                Próximo módulo
               </Button>
             </div>
           </div>
@@ -1926,7 +1938,7 @@ const QuizFooter = forwardRef<
                 size="small"
                 onClick={onGoToNextModule}
               >
-                Próximo modulo
+                Próximo módulo
               </Button>
             </div>
           </div>

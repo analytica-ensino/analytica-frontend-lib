@@ -3240,22 +3240,22 @@ export const Questionario: Story = () => {
         {
           id: 'answer1',
           questionId: 'q1-alt-correta',
-          answer: 'opt1',
-          selectedOptions: [{ optionId: 'opt1' }],
+          answer: 'alt-opt3',
+          selectedOptions: [{ optionId: 'alt-opt3' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
-          statement: 'Questão de Física 1 - Alternativa',
+          statement: 'Qual é a capital do Brasil?',
           questionType: QUESTION_TYPE.ALTERNATIVA,
-          correctOption: 'opt1',
-          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+          correctOption: 'alt-opt3',
+          difficultyLevel: QUESTION_DIFFICULTY.FACIL,
           solutionExplanation:
-            'A resposta correta é a primeira opção porque ela representa corretamente o conceito físico abordado na questão.',
+            'Brasília é a capital do Brasil desde 1960, quando foi inaugurada para substituir o Rio de Janeiro como sede do governo federal. A cidade foi planejada pelo arquiteto Oscar Niemeyer e pelo urbanista Lúcio Costa, seguindo princípios modernistas de arquitetura e urbanismo.',
           options: [
-            { id: 'opt1', option: 'Resposta correta', isCorrect: true },
-            { id: 'opt2', option: 'Resposta incorreta', isCorrect: false },
-            { id: 'opt3', option: 'Resposta incorreta', isCorrect: false },
-            { id: 'opt4', option: 'Resposta incorreta', isCorrect: false },
+            { id: 'alt-opt1', option: 'São Paulo', isCorrect: false },
+            { id: 'alt-opt2', option: 'Rio de Janeiro', isCorrect: false },
+            { id: 'alt-opt3', option: 'Brasília', isCorrect: true },
+            { id: 'alt-opt4', option: 'Salvador', isCorrect: false },
           ],
           teacherFeedback: null,
           attachment: null,
@@ -3295,7 +3295,7 @@ export const Questionario: Story = () => {
         correctAnswers: 1,
         incorrectAnswers: 0,
         pendingAnswers: 0,
-        score: 99, // Average of all scores
+        score: 100, // Average of all scores
         timeSpent: 180,
       },
     });

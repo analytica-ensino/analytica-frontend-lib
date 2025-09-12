@@ -6379,7 +6379,7 @@ describe('Quiz', () => {
       // Verificar se o modal de questionário todos incorretos está aberto
       expect(screen.getByText('😕 Não foi dessa vez...')).toBeInTheDocument();
       expect(screen.getByText('Tentar depois')).toBeInTheDocument();
-      expect(screen.getByText('Próximo modulo')).toBeInTheDocument();
+      expect(screen.getByText('Próximo módulo')).toBeInTheDocument();
     });
 
     it('should show alert dialog when trying later is clicked', async () => {
