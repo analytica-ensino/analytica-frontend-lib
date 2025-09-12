@@ -627,18 +627,16 @@ const NotificationCenter = ({
         >
           <div className="flex flex-col h-full max-h-[80vh]">
             <div className="px-0 pb-3 border-b border-border-200">
-              <div className="flex items-center justify-between">
-                <NotificationHeader unreadCount={unreadCount} variant="modal" />
-                {unreadCount > 0 && onMarkAllAsRead && (
-                  <button
-                    type="button"
-                    onClick={onMarkAllAsRead}
-                    className="text-sm font-medium text-info-600 hover:text-info-700 cursor-pointer"
-                  >
-                    Marcar todas como lidas
-                  </button>
-                )}
-              </div>
+              <NotificationHeader unreadCount={unreadCount} variant="modal" />
+              {unreadCount > 0 && onMarkAllAsRead && (
+                <button
+                  type="button"
+                  onClick={onMarkAllAsRead}
+                  className="text-sm font-medium text-info-600 hover:text-info-700 cursor-pointer mt-2"
+                >
+                  Marcar todas como lidas
+                </button>
+              )}
             </div>
             <div className="flex-1 overflow-y-auto">
               <NotificationList
@@ -685,21 +683,16 @@ const NotificationCenter = ({
       >
         <div className="flex flex-col">
           <div className="px-4 py-3 border-b border-border-200">
-            <div className="flex items-center justify-between">
-              <NotificationHeader
-                unreadCount={unreadCount}
-                variant="dropdown"
-              />
-              {unreadCount > 0 && onMarkAllAsRead && (
-                <button
-                  type="button"
-                  onClick={onMarkAllAsRead}
-                  className="text-sm font-medium text-info-600 hover:text-info-700 cursor-pointer"
-                >
-                  Marcar todas como lidas
-                </button>
-              )}
-            </div>
+            <NotificationHeader unreadCount={unreadCount} variant="dropdown" />
+            {unreadCount > 0 && onMarkAllAsRead && (
+              <button
+                type="button"
+                onClick={onMarkAllAsRead}
+                className="text-sm font-medium text-info-600 hover:text-info-700 cursor-pointer mt-2"
+              >
+                Marcar todas como lidas
+              </button>
+            )}
           </div>
           <div className="max-h-[350px] overflow-y-auto">
             <NotificationList
