@@ -12,7 +12,7 @@
  */
 export const isYouTubeUrl = (url: string): boolean => {
   const youtubeRegex =
-    /^(https?:\/\/)?((www|m|music)\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+/i;
+    /^(https?:\/\/)?((www|m|music)\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)([/?]|$)/i;
   return youtubeRegex.test(url);
 };
 

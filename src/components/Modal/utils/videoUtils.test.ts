@@ -37,6 +37,20 @@ describe('videoUtils', () => {
         expect(isYouTubeUrl(url)).toBe(false);
       });
     });
+
+    it('deve rejeitar URLs com youtube.com como substring maliciosa', () => {
+      const maliciousUrls = [
+        'https://evil.com/redirect?url=youtube.com/watch?v=malicious',
+        'https://phishing-youtube.com/fake-video',
+        'https://not-youtube.com/but-has-youtube.com-in-path',
+        'malicious-site.com/redirect?youtube.com',
+        'https://example.com/youtube.com/fake',
+      ];
+
+      maliciousUrls.forEach((url) => {
+        expect(isYouTubeUrl(url)).toBe(false);
+      });
+    });
   });
 
   describe('getYouTubeVideoId', () => {
