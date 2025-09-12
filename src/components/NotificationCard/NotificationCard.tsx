@@ -1,4 +1,4 @@
-import { DotsThreeVertical, Bell, Bug } from 'phosphor-react';
+import { DotsThreeVertical, Bell } from 'phosphor-react';
 import { MouseEvent, ReactNode, useState, useEffect } from 'react';
 import { cn } from '../../utils/utils';
 import DropdownMenu, {
@@ -305,10 +305,10 @@ const NotificationHeader = ({
           variant="solid"
           action="info"
           size="small"
-          iconLeft={<Bug size={12} />}
+          iconLeft={<Bell size={12} aria-hidden="true" focusable="false" />}
           className="border-0"
         >
-          {unreadCount} não lidas
+          {unreadCount === 1 ? '1 não lida' : `${unreadCount} não lidas`}
         </Badge>
       )}
     </div>
