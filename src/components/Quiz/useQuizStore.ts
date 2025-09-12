@@ -7,6 +7,13 @@ export enum QUESTION_DIFFICULTY {
   DIFICIL = 'DIFICIL',
 }
 
+// Enum para tipos de quiz
+export enum QUIZ_TYPE {
+  SIMULADO = 'SIMULADO',
+  QUESTIONARIO = 'QUESTIONARIO',
+  ATIVIDADE = 'ATIVIDADE',
+}
+
 export enum QUESTION_TYPE {
   ALTERNATIVA = 'ALTERNATIVA',
   DISSERTATIVA = 'DISSERTATIVA',
@@ -143,10 +150,10 @@ export interface Question {
   correctOptionIds?: string[];
 }
 
-export interface Simulated {
+export interface QuizInterface {
   id: string;
   title: string;
-  type: string;
+  type: QUIZ_TYPE;
   subtype: SUBTYPE_ENUM | string;
   difficulty: string | null;
   notification: string | null;
@@ -156,20 +163,6 @@ export interface Simulated {
   canRetry: boolean;
   createdAt: string | null;
   updatedAt: string | null;
-  questions: Question[];
-}
-
-export interface Activity {
-  id: string;
-  title: string;
-  subtype: string;
-  questions: Question[];
-}
-
-export interface Lesson {
-  id: string;
-  title: string;
-  subtype: string;
   questions: Question[];
 }
 
@@ -185,9 +178,7 @@ export interface UserAnswerItem {
 
 export interface QuizState {
   // Data
-  bySimulated?: Simulated;
-  byActivity?: Activity;
-  byQuestionary?: Lesson;
+  quiz: QuizInterface | null;
 
   // UI State
   currentQuestionIndex: number;
@@ -200,9 +191,7 @@ export interface QuizState {
   variant: 'result' | 'default';
   minuteCallback: (() => void) | null;
   // Actions
-  setBySimulated: (simulated: Simulated) => void;
-  setByActivity: (activity: Activity) => void;
-  setByQuestionary: (lesson: Lesson) => void;
+  setQuiz: (quiz: QuizInterface) => void;
   setQuestionResult: (questionResult: QuestionResult) => void;
   setUserId: (userId: string) => void;
   setUserAnswers: (userAnswers: UserAnswerItem[]) => void;
@@ -211,10 +200,6 @@ export interface QuizState {
   goToNextQuestion: () => void;
   goToPreviousQuestion: () => void;
   goToQuestion: (index: number) => void;
-  getActiveQuiz: () => {
-    quiz: Simulated | Activity | Lesson;
-    type: 'bySimulated' | 'byActivity' | 'byQuestionary';
-  } | null;
 
   // Quiz Actions
   selectAnswer: (questionId: string, answerId: string) => void;
@@ -352,6 +337,7 @@ export const useQuizStore = create<QuizState>()(
 
       return {
         // Initial State
+        quiz: null,
         currentQuestionIndex: 0,
         selectedAnswers: {},
         userAnswers: [],
@@ -364,9 +350,7 @@ export const useQuizStore = create<QuizState>()(
         questionsResult: null,
         currentQuestionResult: null,
         // Setters
-        setBySimulated: (simulated) => set({ bySimulated: simulated }),
-        setByActivity: (activity) => set({ byActivity: activity }),
-        setByQuestionary: (lesson) => set({ byQuestionary: lesson }),
+        setQuiz: (quiz) => set({ quiz }),
         setUserId: (userId) => set({ userId }),
         setUserAnswers: (userAnswers) => set({ userAnswers }),
         getUserId: () => get().userId,
@@ -399,24 +383,12 @@ export const useQuizStore = create<QuizState>()(
           }
         },
 
-        getActiveQuiz: () => {
-          const { bySimulated, byActivity, byQuestionary } = get();
-          if (bySimulated)
-            return { quiz: bySimulated, type: 'bySimulated' as const };
-          if (byActivity)
-            return { quiz: byActivity, type: 'byActivity' as const };
-          if (byQuestionary)
-            return { quiz: byQuestionary, type: 'byQuestionary' as const };
-          return null;
-        },
-
         selectAnswer: (questionId, answerId) => {
-          const { getActiveQuiz, userAnswers } = get();
-          const activeQuiz = getActiveQuiz();
+          const { quiz, userAnswers } = get();
 
-          if (!activeQuiz) return;
+          if (!quiz) return;
 
-          const activityId = activeQuiz.quiz.id;
+          const activityId = quiz.id;
           const userId = get().getUserId();
 
           if (!userId || userId === '') {
@@ -424,9 +396,7 @@ export const useQuizStore = create<QuizState>()(
             return;
           }
 
-          const question = activeQuiz.quiz.questions.find(
-            (q) => q.id === questionId
-          );
+          const question = quiz.questions.find((q) => q.id === questionId);
           if (!question) return;
 
           const existingAnswerIndex = userAnswers.findIndex(
@@ -463,12 +433,11 @@ export const useQuizStore = create<QuizState>()(
         },
 
         selectMultipleAnswer: (questionId, answerIds) => {
-          const { getActiveQuiz, userAnswers } = get();
-          const activeQuiz = getActiveQuiz();
+          const { quiz, userAnswers } = get();
 
-          if (!activeQuiz) return;
+          if (!quiz) return;
 
-          const activityId = activeQuiz.quiz.id;
+          const activityId = quiz.id;
           const userId = get().getUserId();
 
           if (!userId || userId === '') {
@@ -476,9 +445,7 @@ export const useQuizStore = create<QuizState>()(
             return;
           }
 
-          const question = activeQuiz.quiz.questions.find(
-            (q) => q.id === questionId
-          );
+          const question = quiz.questions.find((q) => q.id === questionId);
           if (!question) return;
 
           // Remove all existing answers for this questionId
@@ -511,12 +478,11 @@ export const useQuizStore = create<QuizState>()(
         },
 
         selectDissertativeAnswer: (questionId, answer) => {
-          const { getActiveQuiz, userAnswers } = get();
-          const activeQuiz = getActiveQuiz();
+          const { quiz, userAnswers } = get();
 
-          if (!activeQuiz) return;
+          if (!quiz) return;
 
-          const activityId = activeQuiz.quiz.id;
+          const activityId = quiz.id;
           const userId = get().getUserId();
 
           if (!userId || userId === '') {
@@ -526,9 +492,7 @@ export const useQuizStore = create<QuizState>()(
             return;
           }
 
-          const question = activeQuiz.quiz.questions.find(
-            (q) => q.id === questionId
-          );
+          const question = quiz.questions.find((q) => q.id === questionId);
           if (
             !question ||
             question.questionType !== QUESTION_TYPE.DISSERTATIVA
@@ -567,14 +531,13 @@ export const useQuizStore = create<QuizState>()(
         },
 
         skipQuestion: () => {
-          const { getCurrentQuestion, userAnswers, getActiveQuiz } = get();
+          const { getCurrentQuestion, userAnswers, quiz } = get();
           const currentQuestion = getCurrentQuestion();
-          const activeQuiz = getActiveQuiz();
 
-          if (!activeQuiz) return;
+          if (!quiz) return;
 
           if (currentQuestion) {
-            const activityId = activeQuiz.quiz.id;
+            const activityId = quiz.id;
             const userId = get().getUserId();
 
             if (!userId || userId === '') {
@@ -613,13 +576,12 @@ export const useQuizStore = create<QuizState>()(
         },
 
         addUserAnswer: (questionId, answerId) => {
-          const { getActiveQuiz, userAnswers } = get();
-          const activeQuiz = getActiveQuiz();
+          const { quiz, userAnswers } = get();
 
-          if (!activeQuiz) return;
+          if (!quiz) return;
 
           // Add to userAnswers array with new structure
-          const activityId = activeQuiz.quiz.id;
+          const activityId = quiz.id;
           const userId = get().getUserId();
 
           if (!userId || userId === '') {
@@ -627,9 +589,7 @@ export const useQuizStore = create<QuizState>()(
             return;
           }
 
-          const question = activeQuiz.quiz.questions.find(
-            (q) => q.id === questionId
-          );
+          const question = quiz.questions.find((q) => q.id === questionId);
           if (!question) return;
 
           const existingAnswerIndex = userAnswers.findIndex(
@@ -679,6 +639,7 @@ export const useQuizStore = create<QuizState>()(
           stopTimer();
           stopMinuteCallback();
           set({
+            quiz: null,
             currentQuestionIndex: 0,
             selectedAnswers: {},
             userAnswers: [],
@@ -705,21 +666,19 @@ export const useQuizStore = create<QuizState>()(
 
         // Getters
         getCurrentQuestion: () => {
-          const { currentQuestionIndex, getActiveQuiz } = get();
-          const activeQuiz = getActiveQuiz();
+          const { currentQuestionIndex, quiz } = get();
 
-          if (!activeQuiz) {
+          if (!quiz) {
             return null;
           }
 
-          return activeQuiz.quiz.questions[currentQuestionIndex];
+          return quiz.questions[currentQuestionIndex];
         },
 
         getTotalQuestions: () => {
-          const { getActiveQuiz } = get();
-          const activeQuiz = getActiveQuiz();
+          const { quiz } = get();
 
-          return activeQuiz?.quiz?.questions?.length || 0;
+          return quiz?.questions?.length || 0;
         },
 
         getAnsweredQuestions: () => {
@@ -730,13 +689,12 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getUnansweredQuestions: () => {
-          const { getActiveQuiz, userAnswers } = get();
-          const activeQuiz = getActiveQuiz();
-          if (!activeQuiz) return [];
+          const { quiz, userAnswers } = get();
+          if (!quiz) return [];
 
           const unansweredQuestions: number[] = [];
 
-          activeQuiz.quiz.questions.forEach((question, index) => {
+          quiz.questions.forEach((question, index) => {
             const userAnswer = userAnswers.find(
               (answer) => answer.questionId === question.id
             );
@@ -827,10 +785,9 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getQuizTitle: () => {
-          const { getActiveQuiz } = get();
-          const activeQuiz = getActiveQuiz();
+          const { quiz } = get();
 
-          return activeQuiz?.quiz?.title || 'Quiz';
+          return quiz?.title || 'Quiz';
         },
 
         formatTime: (seconds: number) => {
@@ -845,13 +802,12 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getUnansweredQuestionsFromUserAnswers: () => {
-          const { getActiveQuiz, userAnswers } = get();
-          const activeQuiz = getActiveQuiz();
-          if (!activeQuiz) return [];
+          const { quiz, userAnswers } = get();
+          if (!quiz) return [];
 
           const unansweredQuestions: number[] = [];
 
-          activeQuiz.quiz.questions.forEach((question, index) => {
+          quiz.questions.forEach((question, index) => {
             const userAnswer = userAnswers.find(
               (answer) => answer.questionId === question.id
             );
@@ -873,11 +829,11 @@ export const useQuizStore = create<QuizState>()(
         },
 
         getQuestionsGroupedBySubject: () => {
-          const { getQuestionResult, getActiveQuiz, variant } = get();
+          const { getQuestionResult, quiz, variant } = get();
           const questions =
             variant == 'result'
               ? getQuestionResult()?.answers
-              : getActiveQuiz()?.quiz.questions;
+              : quiz?.questions;
           if (!questions) return {};
           const groupedQuestions: {
             [key: string]: (Question | QuestionResult['answers'][number])[];
@@ -927,9 +883,8 @@ export const useQuizStore = create<QuizState>()(
           return userAnswers;
         },
         setCurrentQuestion: (question) => {
-          const { getActiveQuiz, variant, questionsResult } = get();
-          const activeQuiz = getActiveQuiz();
-          if (!activeQuiz) return;
+          const { quiz, variant, questionsResult } = get();
+          if (!quiz) return;
           let questionIndex = 0;
           if (variant == 'result') {
             if (!questionsResult) return;
@@ -937,11 +892,11 @@ export const useQuizStore = create<QuizState>()(
               questionsResult.answers.find((q) => q.id === question.id) ??
               questionsResult.answers.find((q) => q.questionId === question.id);
             if (!questionResult) return;
-            questionIndex = activeQuiz.quiz.questions.findIndex(
+            questionIndex = quiz.questions.findIndex(
               (q) => q.id === questionResult.questionId
             );
           } else {
-            questionIndex = activeQuiz.quiz.questions.findIndex(
+            questionIndex = quiz.questions.findIndex(
               (q) => q.id === question.id
             );
           }
@@ -981,7 +936,7 @@ export const useQuizStore = create<QuizState>()(
           return userAnswer ? userAnswer.answerStatus : null;
         },
         getQuestionIndex: (questionId) => {
-          const { questionsResult, variant } = get();
+          const { questionsResult, variant, quiz } = get();
           if (variant == 'result') {
             if (!questionsResult) return 0;
 
@@ -995,12 +950,8 @@ export const useQuizStore = create<QuizState>()(
             }
             return idx !== -1 ? idx + 1 : 0;
           } else {
-            const { getActiveQuiz } = get();
-            const activeQuiz = getActiveQuiz();
-            if (!activeQuiz) return 0;
-            const idx = activeQuiz.quiz.questions.findIndex(
-              (q) => q.id === questionId
-            );
+            if (!quiz) return 0;
+            const idx = quiz.questions.findIndex((q) => q.id === questionId);
             return idx !== -1 ? idx + 1 : 0;
           }
         },

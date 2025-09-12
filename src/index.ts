@@ -305,15 +305,14 @@ export {
   QUESTION_STATUS,
   ANSWER_STATUS,
   SUBTYPE_ENUM,
+  QUIZ_TYPE,
 } from './components/Quiz/useQuizStore';
 export type {
   QuestionResult,
   Question,
   UserAnswerItem,
   QuizState,
-  Simulated,
-  Activity,
-  Lesson,
+  QuizInterface,
 } from './components/Quiz/useQuizStore';
 
 export { MultipleChoiceList };
