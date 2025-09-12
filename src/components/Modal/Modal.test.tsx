@@ -118,9 +118,9 @@ describe('Modal', () => {
   it('deve usar elemento dialog para acessibilidade', () => {
     render(<Modal {...defaultProps} />);
 
-    const dialog = document.querySelector('dialog');
+    const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
-    expect(dialog).toHaveAttribute('aria-labelledby', 'modal-title');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
     expect(dialog).toHaveAttribute('open');
   });
 
@@ -295,6 +295,47 @@ describe('Modal', () => {
       // Não deve ter título no header para variante activity
       const headerTitle = header?.querySelector('h2');
       expect(headerTitle).not.toBeInTheDocument();
+    });
+
+    it('deve exibir botão quando URL é do YouTube mas ID não é extraído', () => {
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(true);
+      jest.spyOn(videoUtils, 'getYouTubeVideoId').mockReturnValue(null);
+      render(
+        <Modal
+          {...activityProps}
+          actionLabel="Iniciar"
+          actionLink="https://www.youtube.com/watch"
+        />
+      );
+      expect(screen.getByText('Iniciar')).toBeInTheDocument();
+      expect(document.querySelector('iframe')).not.toBeInTheDocument();
+    });
+
+    it('deve usar label padrão quando YouTube ID é null e actionLabel não fornecido', () => {
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(true);
+      jest.spyOn(videoUtils, 'getYouTubeVideoId').mockReturnValue(null);
+      render(
+        <Modal
+          {...activityProps}
+          actionLink="https://www.youtube.com/watch"
+          actionLabel={undefined}
+        />
+      );
+      expect(screen.getByText('Iniciar Atividade')).toBeInTheDocument();
+      expect(document.querySelector('iframe')).not.toBeInTheDocument();
+    });
+
+    it('deve normalizar URL sem protocolo ao abrir em nova aba', () => {
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(false);
+      const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation();
+      render(<Modal {...activityProps} actionLink="example.com/path" />);
+      fireEvent.click(screen.getByText('Iniciar'));
+      expect(windowOpenSpy).toHaveBeenCalledWith(
+        'https://example.com/path',
+        '_blank',
+        'noopener,noreferrer'
+      );
+      windowOpenSpy.mockRestore();
     });
   });
 });

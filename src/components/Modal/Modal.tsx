@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useId } from 'react';
 import { X } from 'phosphor-react';
 import { cn } from '../../utils/utils';
 import Button from '../Button/Button';
@@ -47,6 +47,8 @@ type ModalProps = {
   description?: string;
   /** Image URL for activity variant */
   image?: string;
+  /** Alt text for activity image (leave empty for decorative images) */
+  imageAlt?: string;
   /** Action link for activity variant */
   actionLink?: string;
   /** Action button label for activity variant */
@@ -64,7 +66,6 @@ type ModalProps = {
  * @param children - The main content of the modal
  * @param size - The size variant (xs, sm, md, lg, xl)
  * @param className - Additional CSS classes for the modal content
- * @param closeOnBackdropClick - Whether clicking the backdrop closes the modal (default: true)
  * @param closeOnEscape - Whether pressing Escape closes the modal (default: true)
  * @param footer - Footer content, typically action buttons
  * @param hideCloseButton - Whether to hide the X close button (default: false)
@@ -101,9 +102,12 @@ const Modal = ({
   variant = 'default',
   description,
   image,
+  imageAlt,
   actionLink,
   actionLabel,
 }: ModalProps) => {
+  const titleId = useId();
+
   // Handle escape key
   useEffect(() => {
     if (!isOpen || !closeOnEscape) return;
@@ -147,10 +151,14 @@ const Modal = ({
     className
   );
 
+  // Normalize URLs missing protocol
+  const normalizeUrl = (href: string) =>
+    /^https?:\/\//i.test(href) ? href : `https://${href}`;
+
   // Handle action link click
   const handleActionClick = () => {
     if (actionLink) {
-      window.open(actionLink, '_blank', 'noopener,noreferrer');
+      window.open(normalizeUrl(actionLink), '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -160,7 +168,7 @@ const Modal = ({
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs border-none p-0 m-0 w-full cursor-default">
         <dialog
           className={modalClasses}
-          aria-labelledby="modal-title"
+          aria-labelledby={titleId}
           aria-modal="true"
           open
         >
@@ -184,7 +192,7 @@ const Modal = ({
               <div className="flex justify-center">
                 <img
                   src={image}
-                  alt=""
+                  alt={imageAlt ?? ''}
                   className="w-[122px] h-[122px] object-contain"
                 />
               </div>
@@ -192,7 +200,7 @@ const Modal = ({
 
             {/* Título */}
             <h2
-              id="modal-title"
+              id={titleId}
               className="text-lg font-semibold text-text-950 text-center"
             >
               {title}
@@ -209,8 +217,10 @@ const Modal = ({
             {actionLink && (
               <div className="w-full">
                 {(() => {
-                  if (!isYouTubeUrl(actionLink)) return null;
-                  const id = getYouTubeVideoId(actionLink);
+                  const normalized = normalizeUrl(actionLink);
+                  const isYT = isYouTubeUrl(normalized);
+                  if (!isYT) return null;
+                  const id = getYouTubeVideoId(normalized);
                   if (!id) {
                     return (
                       <Button
@@ -234,7 +244,7 @@ const Modal = ({
                     />
                   );
                 })()}
-                {!isYouTubeUrl(actionLink) && (
+                {!isYouTubeUrl(normalizeUrl(actionLink)) && (
                   <Button
                     variant="solid"
                     action="primary"
@@ -258,13 +268,13 @@ const Modal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs border-none p-0 m-0 w-full cursor-default">
       <dialog
         className={modalClasses}
-        aria-labelledby="modal-title"
+        aria-labelledby={titleId}
         aria-modal="true"
         open
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-6">
-          <h2 id="modal-title" className="text-lg font-semibold text-text-950">
+          <h2 id={titleId} className="text-lg font-semibold text-text-950">
             {title}
           </h2>
           {!hideCloseButton && (

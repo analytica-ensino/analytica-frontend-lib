@@ -12,8 +12,71 @@
  */
 export const isYouTubeUrl = (url: string): boolean => {
   const youtubeRegex =
-    /^(https?:\/\/)?((www|m|music)\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)([/?]|$)/i;
+    /^(https?:\/\/)?((www|m|music)\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+/i;
   return youtubeRegex.test(url);
+};
+
+/**
+ * Validate if hostname is a legitimate YouTube host
+ *
+ * @param host - The hostname to validate
+ * @returns The type of YouTube host or null if invalid
+ */
+const isValidYouTubeHost = (
+  host: string
+): 'youtu.be' | 'youtube' | 'nocookie' | null => {
+  if (host === 'youtu.be') return 'youtu.be';
+
+  const isValidYouTubeCom =
+    host === 'youtube.com' ||
+    (host.endsWith('.youtube.com') &&
+      /^(www|m|music)\.youtube\.com$/.test(host));
+
+  if (isValidYouTubeCom) return 'youtube';
+
+  const isValidNoCookie =
+    host === 'youtube-nocookie.com' ||
+    (host.endsWith('.youtube-nocookie.com') &&
+      /^(www|m|music)\.youtube-nocookie\.com$/.test(host));
+
+  if (isValidNoCookie) return 'nocookie';
+
+  return null;
+};
+
+/**
+ * Extract video ID from youtu.be path
+ *
+ * @param pathname - The URL pathname
+ * @returns The video ID or null
+ */
+const extractYoutuBeId = (pathname: string): string | null => {
+  const firstSeg = pathname.split('/').filter(Boolean)[0];
+  return firstSeg || null;
+};
+
+/**
+ * Extract video ID from YouTube or nocookie domains
+ *
+ * @param pathname - The URL pathname
+ * @param searchParams - The URL search parameters
+ * @returns The video ID or null
+ */
+const extractYouTubeId = (
+  pathname: string,
+  searchParams: URLSearchParams
+): string | null => {
+  const parts = pathname.split('/').filter(Boolean);
+  const [first, second] = parts;
+
+  if (first === 'embed' && second) return second;
+  if (first === 'shorts' && second) return second;
+  if (first === 'live' && second) return second;
+
+  const v = searchParams.get('v');
+  if (v) return v;
+
+  return null;
 };
 
 /**
@@ -25,22 +88,18 @@ export const isYouTubeUrl = (url: string): boolean => {
 export const getYouTubeVideoId = (url: string): string | null => {
   try {
     const u = new URL(url);
-    const host = u.hostname;
-    if (host.includes('youtu.be')) {
-      return u.pathname.split('/')[1] || null;
+    const hostType = isValidYouTubeHost(u.hostname.toLowerCase());
+
+    if (!hostType) return null;
+
+    if (hostType === 'youtu.be') {
+      return extractYoutuBeId(u.pathname);
     }
-    if (host.includes('youtube.com') || host.includes('youtube-nocookie.com')) {
-      const parts = u.pathname.split('/');
-      if (parts[1] === 'embed' && parts[2]) return parts[2];
-      if (parts[1] === 'shorts' && parts[2]) return parts[2];
-      if (parts[1] === 'live' && parts[2]) return parts[2];
-      const v = u.searchParams.get('v');
-      if (v) return v;
-    }
+
+    return extractYouTubeId(u.pathname, u.searchParams);
   } catch {
-    // ignore
+    return null;
   }
-  return null;
 };
 
 /**

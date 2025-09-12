@@ -137,6 +137,11 @@ describe('videoUtils', () => {
         '',
         'https://vimeo.com/123456',
         'https://youtube.com/watch?v=',
+        // Lookalike/impersonating hosts
+        'https://evil-youtu.be/dQw4w9WgXcQ',
+        'https://youtube.com.evil.com/watch?v=dQw4w9WgXcQ',
+        'https://notyoutube.com/watch?v=dQw4w9WgXcQ',
+        'https://evil.youtube-nocookie.com/embed/dQw4w9WgXcQ',
       ];
 
       invalidUrls.forEach((url) => {
