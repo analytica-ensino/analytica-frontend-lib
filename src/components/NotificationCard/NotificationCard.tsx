@@ -10,6 +10,7 @@ import { SkeletonCard } from '../Skeleton/Skeleton';
 import IconButton from '../IconButton/IconButton';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
+import Badge from '../Badge/Badge';
 import { useMobile } from '../../hooks/useMobile';
 import type {
   Notification,
@@ -291,7 +292,7 @@ const NotificationHeader = ({
   variant?: 'modal' | 'dropdown';
 }) => {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-2">
       {variant === 'modal' ? (
         <Text size="sm" weight="bold" className="text-text-950">
           Notificações
@@ -300,9 +301,15 @@ const NotificationHeader = ({
         <h3 className="text-sm font-semibold text-text-950">Notificações</h3>
       )}
       {unreadCount > 0 && (
-        <span className="px-2 py-1 bg-info-100 text-info-700 text-xs rounded-full">
-          {unreadCount} não lidas
-        </span>
+        <Badge
+          variant="solid"
+          action="info"
+          size="small"
+          iconLeft={<Bell size={12} aria-hidden="true" focusable="false" />}
+          className="border-0"
+        >
+          {unreadCount === 1 ? '1 não lida' : `${unreadCount} não lidas`}
+        </Badge>
       )}
     </div>
   );
@@ -620,18 +627,16 @@ const NotificationCenter = ({
         >
           <div className="flex flex-col h-full max-h-[80vh]">
             <div className="px-0 pb-3 border-b border-border-200">
-              <div className="flex items-center justify-between">
-                <NotificationHeader unreadCount={unreadCount} variant="modal" />
-                {unreadCount > 0 && onMarkAllAsRead && (
-                  <button
-                    type="button"
-                    onClick={onMarkAllAsRead}
-                    className="text-sm font-medium text-info-600 hover:text-info-700 cursor-pointer"
-                  >
-                    Marcar todas como lidas
-                  </button>
-                )}
-              </div>
+              <NotificationHeader unreadCount={unreadCount} variant="modal" />
+              {unreadCount > 0 && onMarkAllAsRead && (
+                <button
+                  type="button"
+                  onClick={onMarkAllAsRead}
+                  className="text-sm font-medium text-info-600 hover:text-info-700 cursor-pointer mt-2"
+                >
+                  Marcar todas como lidas
+                </button>
+              )}
             </div>
             <div className="flex-1 overflow-y-auto">
               <NotificationList
@@ -678,21 +683,16 @@ const NotificationCenter = ({
       >
         <div className="flex flex-col">
           <div className="px-4 py-3 border-b border-border-200">
-            <div className="flex items-center justify-between">
-              <NotificationHeader
-                unreadCount={unreadCount}
-                variant="dropdown"
-              />
-              {unreadCount > 0 && onMarkAllAsRead && (
-                <button
-                  type="button"
-                  onClick={onMarkAllAsRead}
-                  className="text-sm font-medium text-info-600 hover:text-info-700 cursor-pointer"
-                >
-                  Marcar todas como lidas
-                </button>
-              )}
-            </div>
+            <NotificationHeader unreadCount={unreadCount} variant="dropdown" />
+            {unreadCount > 0 && onMarkAllAsRead && (
+              <button
+                type="button"
+                onClick={onMarkAllAsRead}
+                className="text-sm font-medium text-info-600 hover:text-info-700 cursor-pointer mt-2"
+              >
+                Marcar todas como lidas
+              </button>
+            )}
           </div>
           <div className="max-h-[350px] overflow-y-auto">
             <NotificationList
