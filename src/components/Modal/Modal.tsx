@@ -136,14 +136,14 @@ const Modal = ({
   }, [isOpen]);
 
   // Handle backdrop click
-  const handleBackdropClick = (event: MouseEvent<HTMLDivElement>) => {
+  const handleBackdropClick = (event: MouseEvent<HTMLButtonElement>) => {
     if (closeOnBackdropClick && event.target === event.currentTarget) {
       onClose();
     }
   };
 
   // Handle backdrop keyboard interaction
-  const handleBackdropKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  const handleBackdropKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     if (closeOnBackdropClick && (event.key === 'Enter' || event.key === ' ')) {
       onClose();
     }
@@ -174,11 +174,11 @@ const Modal = ({
   // Activity variant rendering
   if (variant === 'activity') {
     return (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs"
+      <button
+        type="button"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs border-none p-0 m-0 w-full cursor-default"
         onClick={handleBackdropClick}
         onKeyDown={handleBackdropKeyDown}
-        role="button"
         tabIndex={closeOnBackdropClick ? 0 : -1}
         aria-label="Fechar modal clicando no fundo"
       >
@@ -252,17 +252,17 @@ const Modal = ({
             )}
           </div>
         </dialog>
-      </div>
+      </button>
     );
   }
 
   // Default variant rendering
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs"
+    <button
+      type="button"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs border-none p-0 m-0 w-full cursor-default"
       onClick={handleBackdropClick}
       onKeyDown={handleBackdropKeyDown}
-      role="button"
       tabIndex={closeOnBackdropClick ? 0 : -1}
       aria-label="Fechar modal clicando no fundo"
     >
@@ -297,7 +297,7 @@ const Modal = ({
           <div className="flex justify-end gap-3 px-6 pb-6">{footer}</div>
         )}
       </dialog>
-    </div>
+    </button>
   );
 };
 

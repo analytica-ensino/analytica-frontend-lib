@@ -22,9 +22,9 @@ export const isYouTubeUrl = (url: string): boolean => {
  * @returns The video ID if found, null otherwise
  */
 export const getYouTubeVideoId = (url: string): string | null => {
-  const match = url.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/
-  );
+  const regex =
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/;
+  const match = regex.exec(url);
   return match ? match[1] : null;
 };
 
