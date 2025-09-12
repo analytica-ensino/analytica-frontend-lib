@@ -1631,7 +1631,6 @@ const QuizFooter = forwardRef<
           isOpen={modalResultOpen}
           onClose={() => setModalResultOpen(false)}
           title=""
-          closeOnBackdropClick={false}
           closeOnEscape={false}
           hideCloseButton
           size={'md'}

@@ -622,7 +622,6 @@ const NotificationCenter = ({
           title="Notificações"
           size="md"
           hideCloseButton={false}
-          closeOnBackdropClick={true}
           closeOnEscape={true}
         >
           <div className="flex flex-col h-full max-h-[80vh]">
