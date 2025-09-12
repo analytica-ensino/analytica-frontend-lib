@@ -311,9 +311,7 @@ export type {
   Question,
   UserAnswerItem,
   QuizState,
-  Simulated,
-  Activity,
-  Lesson,
+  QuizInterface,
 } from './components/Quiz/useQuizStore';
 
 export { MultipleChoiceList };

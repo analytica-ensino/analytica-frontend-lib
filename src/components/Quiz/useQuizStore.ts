@@ -143,7 +143,7 @@ export interface Question {
   correctOptionIds?: string[];
 }
 
-export interface Simulated {
+export interface QuizInterface {
   id: string;
   title: string;
   type: string;
@@ -171,7 +171,7 @@ export interface UserAnswerItem {
 
 export interface QuizState {
   // Data
-  quiz: Simulated | null;
+  quiz: QuizInterface | null;
 
   // UI State
   currentQuestionIndex: number;
@@ -184,7 +184,7 @@ export interface QuizState {
   variant: 'result' | 'default';
   minuteCallback: (() => void) | null;
   // Actions
-  setQuiz: (quiz: Simulated) => void;
+  setQuiz: (quiz: QuizInterface) => void;
   setQuestionResult: (questionResult: QuestionResult) => void;
   setUserId: (userId: string) => void;
   setUserAnswers: (userAnswers: UserAnswerItem[]) => void;
