@@ -1,4 +1,4 @@
-import { DotsThreeVertical, Bell } from 'phosphor-react';
+import { DotsThreeVertical, Bell, Bug } from 'phosphor-react';
 import { MouseEvent, ReactNode, useState, useEffect } from 'react';
 import { cn } from '../../utils/utils';
 import DropdownMenu, {
@@ -10,6 +10,7 @@ import { SkeletonCard } from '../Skeleton/Skeleton';
 import IconButton from '../IconButton/IconButton';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
+import Badge from '../Badge/Badge';
 import { useMobile } from '../../hooks/useMobile';
 import type {
   Notification,
@@ -291,7 +292,7 @@ const NotificationHeader = ({
   variant?: 'modal' | 'dropdown';
 }) => {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-2">
       {variant === 'modal' ? (
         <Text size="sm" weight="bold" className="text-text-950">
           Notificações
@@ -300,9 +301,15 @@ const NotificationHeader = ({
         <h3 className="text-sm font-semibold text-text-950">Notificações</h3>
       )}
       {unreadCount > 0 && (
-        <span className="px-2 py-1 bg-info-100 text-info-700 text-xs rounded-full">
+        <Badge
+          variant="solid"
+          action="info"
+          size="small"
+          iconLeft={<Bug size={12} />}
+          className="border-0"
+        >
           {unreadCount} não lidas
-        </span>
+        </Badge>
       )}
     </div>
   );
