@@ -6,6 +6,7 @@ import {
   MouseEvent,
   KeyboardEvent,
 } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Play,
   Pause,
@@ -152,6 +153,7 @@ interface SpeedMenuProps {
   playbackRate: number;
   onToggleMenu: () => void;
   onSpeedChange: (speed: number) => void;
+  isFullscreen: boolean;
 }
 
 /**
@@ -162,31 +164,77 @@ const SpeedMenu = ({
   playbackRate,
   onToggleMenu,
   onSpeedChange,
-}: SpeedMenuProps) => (
-  <div className="relative">
-    <IconButton
-      icon={<DotsThreeVertical size={24} />}
-      onClick={onToggleMenu}
+  isFullscreen,
+}: SpeedMenuProps) => {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const getMenuPosition = () => {
+    if (!buttonRef.current) return { top: 0, left: 0 };
+    const rect = buttonRef.current.getBoundingClientRect();
+    return {
+      // Fixed coords are viewport-based — no scroll offsets.
+      top: Math.max(8, rect.top - 180),
+      left: Math.max(8, rect.right - 80),
+    };
+  };
+
+  const position = getMenuPosition();
+
+  const menuContent = (
+    <div
+      role="menu"
       aria-label="Playback speed"
-      className="!bg-transparent !text-white hover:!bg-white/20"
-    />
-    {showSpeedMenu && (
-      <div className="absolute bottom-12 right-0 bg-black/90 rounded-lg p-2 min-w-20">
-        {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
-          <button
-            key={speed}
-            onClick={() => onSpeedChange(speed)}
-            className={`block w-full text-left px-3 py-1 text-sm rounded hover:bg-white/20 transition-colors ${
-              playbackRate === speed ? 'text-primary-400' : 'text-white'
-            }`}
-          >
-            {speed}x
-          </button>
-        ))}
-      </div>
-    )}
-  </div>
-);
+      className={
+        isFullscreen
+          ? 'absolute bottom-12 right-0 bg-black/90 rounded-lg p-2 min-w-20 z-[9999]'
+          : 'fixed bg-black/90 rounded-lg p-2 min-w-20 z-[9999]'
+      }
+      style={
+        !isFullscreen
+          ? {
+              top: `${position.top}px`,
+              left: `${position.left}px`,
+            }
+          : undefined
+      }
+    >
+      {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+        <button
+          key={speed}
+          role="menuitemradio"
+          aria-checked={playbackRate === speed}
+          onClick={() => onSpeedChange(speed)}
+          className={`block w-full text-left px-3 py-1 text-sm rounded hover:bg-white/20 transition-colors ${
+            playbackRate === speed ? 'text-primary-400' : 'text-white'
+          }`}
+        >
+          {speed}x
+        </button>
+      ))}
+    </div>
+  );
+
+  // SSR-safe portal content
+  const portalContent =
+    typeof window !== 'undefined' && typeof document !== 'undefined'
+      ? createPortal(menuContent, document.body)
+      : null;
+
+  return (
+    <div className="relative">
+      <IconButton
+        ref={buttonRef}
+        icon={<DotsThreeVertical size={24} />}
+        onClick={onToggleMenu}
+        aria-label="Playback speed"
+        aria-haspopup="menu"
+        aria-expanded={showSpeedMenu}
+        className="!bg-transparent !text-white hover:!bg-white/20"
+      />
+      {showSpeedMenu && (isFullscreen ? menuContent : portalContent)}
+    </div>
+  );
+};
 
 /**
  * Video player component with controls and progress tracking
@@ -943,6 +991,7 @@ const VideoPlayer = ({
                 playbackRate={playbackRate}
                 onToggleMenu={toggleSpeedMenu}
                 onSpeedChange={handleSpeedChange}
+                isFullscreen={isFullscreen}
               />
             </div>
           </div>
