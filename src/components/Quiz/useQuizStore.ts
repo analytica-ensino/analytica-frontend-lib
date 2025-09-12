@@ -7,6 +7,13 @@ export enum QUESTION_DIFFICULTY {
   DIFICIL = 'DIFICIL',
 }
 
+// Enum para tipos de quiz
+export enum QUIZ_TYPE {
+  SIMULADO = 'SIMULADO',
+  QUESTIONARIO = 'QUESTIONARIO',
+  ATIVIDADE = 'ATIVIDADE',
+}
+
 export enum QUESTION_TYPE {
   ALTERNATIVA = 'ALTERNATIVA',
   DISSERTATIVA = 'DISSERTATIVA',
@@ -146,7 +153,7 @@ export interface Question {
 export interface QuizInterface {
   id: string;
   title: string;
-  type: string;
+  type: QUIZ_TYPE;
   subtype: SUBTYPE_ENUM | string;
   difficulty: string | null;
   notification: string | null;

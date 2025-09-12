@@ -33,6 +33,7 @@ import {
   QUESTION_TYPE,
   ANSWER_STATUS,
   SUBTYPE_ENUM,
+  QUIZ_TYPE,
 } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
@@ -79,11 +80,62 @@ export const getStatusStyles = (variantCorrect?: string) => {
   }
 };
 
-export const getTypeLabel = (type: string) => {
-  if (type.toLowerCase() == 'simulado') return 'Simulado';
-  if (type.toLowerCase() == 'questionario') return 'Questionário';
-  if (type.toLowerCase() == 'atividade') return 'Atividade';
-  return 'Simulado';
+// Função para obter configuração do tipo de quiz
+export const getQuizTypeConfig = (type: QUIZ_TYPE) => {
+  // Configuração centralizada para cada tipo de quiz
+  const QUIZ_TYPE_CONFIG = {
+    [QUIZ_TYPE.SIMULADO]: {
+      label: 'Simulado',
+      article: 'o',
+      preposition: 'do',
+    },
+    [QUIZ_TYPE.QUESTIONARIO]: {
+      label: 'Questionário',
+      article: 'o',
+      preposition: 'do',
+    },
+    [QUIZ_TYPE.ATIVIDADE]: {
+      label: 'Atividade',
+      article: 'a',
+      preposition: 'da',
+    },
+  } as const;
+
+  const config = QUIZ_TYPE_CONFIG[type];
+  return config || QUIZ_TYPE_CONFIG[QUIZ_TYPE.SIMULADO]; // fallback para simulado
+};
+
+// Função para obter o label do tipo
+export const getTypeLabel = (type: QUIZ_TYPE) => {
+  return getQuizTypeConfig(type).label;
+};
+
+// Função para obter o artigo (o/a)
+export const getQuizArticle = (type: QUIZ_TYPE) => {
+  return getQuizTypeConfig(type).article;
+};
+
+// Função para obter a preposição (do/da)
+export const getQuizPreposition = (type: QUIZ_TYPE) => {
+  return getQuizTypeConfig(type).preposition;
+};
+
+// Função para gerar título de conclusão
+export const getCompletionTitle = (type: QUIZ_TYPE) => {
+  const config = getQuizTypeConfig(type);
+  return `Você concluiu ${config.article} ${config.label.toLowerCase()}!`;
+};
+
+// Função para gerar texto de confirmação de saída
+export const getExitConfirmationText = (type: QUIZ_TYPE) => {
+  const config = getQuizTypeConfig(type);
+  return `Se você sair ${config.preposition} ${config.label.toLowerCase()} agora, todas as respostas serão perdidas.`;
+};
+
+// Função para gerar texto de confirmação de finalização
+export const getFinishConfirmationText = (type: QUIZ_TYPE) => {
+  const config = getQuizTypeConfig(type);
+  return `Tem certeza que deseja finalizar ${config.article} ${config.label.toLowerCase()}?`;
 };
 
 const Quiz = forwardRef<
@@ -232,7 +284,9 @@ const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
           isOpen={showExitConfirmation}
           onChangeOpen={setShowExitConfirmation}
           title="Deseja sair?"
-          description={`Se você sair do ${getTypeLabel(quiz?.type || 'simulado').toLowerCase()} agora, todas as respostas serão perdidas.`}
+          description={getExitConfirmationText(
+            quiz?.type || QUIZ_TYPE.SIMULADO
+          )}
           cancelButtonLabel="Voltar e revisar"
           submitButtonLabel="Sair Mesmo Assim"
           onSubmit={handleConfirmExit}
@@ -1506,7 +1560,7 @@ const QuizFooter = forwardRef<
     const correctAnswers =
       getQuestionResultStatistics()?.correctAnswers ?? '--';
     const totalAnswers = getQuestionResultStatistics()?.totalAnswered ?? '--';
-    const quizType = quiz?.type.toLowerCase() || 'simulado';
+    const quizType = quiz?.type || QUIZ_TYPE.SIMULADO;
     const quizTypeLabel = getTypeLabel(quizType);
 
     const handleFinishQuiz = async () => {
@@ -1520,14 +1574,15 @@ const QuizFooter = forwardRef<
           await Promise.resolve(handleFinishSimulated());
         }
 
-        console.log(quizType, correctAnswers, totalAnswers);
-
-        if (quizType == 'questionario' && correctAnswers == totalAnswers) {
+        if (
+          quizType == QUIZ_TYPE.QUESTIONARIO &&
+          correctAnswers == totalAnswers
+        ) {
           openModal('modalQuestionnaireAllCorrect');
           return;
         }
 
-        if (quizType == 'questionario' && correctAnswers == 0) {
+        if (quizType == QUIZ_TYPE.QUESTIONARIO && correctAnswers == 0) {
           openModal('modalQuestionnaireAllIncorrect');
           return;
         }
@@ -1544,12 +1599,15 @@ const QuizFooter = forwardRef<
           await Promise.resolve(handleFinishSimulated());
         }
 
-        if (quizType == 'questionario' && correctAnswers == totalAnswers) {
+        if (
+          quizType == QUIZ_TYPE.QUESTIONARIO &&
+          correctAnswers == totalAnswers
+        ) {
           openModal('modalQuestionnaireAllCorrect');
           return;
         }
 
-        if (quizType == 'questionario' && correctAnswers == 0) {
+        if (quizType == QUIZ_TYPE.QUESTIONARIO && correctAnswers == 0) {
           openModal('modalQuestionnaireAllIncorrect');
           return;
         }
@@ -1669,7 +1727,7 @@ const QuizFooter = forwardRef<
           description={
             unansweredQuestions.length > 0
               ? `Você deixou as questões ${unansweredQuestions.join(', ')} sem resposta. Finalizar agora pode impactar seu desempenho.`
-              : `Tem certeza que deseja finalizar o ${quizTypeLabel.toLowerCase()}?`
+              : getFinishConfirmationText(quizType)
           }
           cancelButtonLabel="Voltar e revisar"
           submitButtonLabel="Finalizar Mesmo Assim"
@@ -1697,7 +1755,7 @@ const QuizFooter = forwardRef<
             )}
             <div className="flex flex-col gap-2 text-center">
               <h2 className="text-text-950 font-bold text-lg">
-                Você concluiu o {quizTypeLabel.toLocaleLowerCase()}!
+                {getCompletionTitle(quizType)}
               </h2>
               <p className="text-text-500 font-sm">
                 Você acertou {correctAnswers ?? '--'} de {allQuestions}{' '}

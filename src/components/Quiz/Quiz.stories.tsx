@@ -17,6 +17,7 @@ import {
   QUESTION_TYPE,
   ANSWER_STATUS,
   useQuizStore,
+  QUIZ_TYPE,
 } from './useQuizStore';
 import { useEffect } from 'react';
 
@@ -1152,7 +1153,7 @@ export const General: Story = () => {
     const mockSimulated = {
       id: 'simulado-geral',
       title: 'Simulado ENEM 2024 - Todas as Variantes',
-      type: 'ENEM',
+      type: QUIZ_TYPE.SIMULADO,
       subtype: 'Simulado',
       difficulty: 'MEDIO',
       notification: null,
@@ -1541,7 +1542,7 @@ export const GeneralForResults: Story = () => {
     const mockSimulated = {
       id: 'simulado-resultados',
       title: 'Simulado ENEM 2024 - Resultados',
-      type: 'ENEM',
+      type: QUIZ_TYPE.SIMULADO,
       subtype: 'Simulado',
       difficulty: 'MEDIO',
       notification: null,
@@ -2513,7 +2514,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
     const mockSimulated = {
       id: 'simulado-resultados-completos',
       title: 'Simulado Enem #42 - Resultados Completos',
-      type: 'ENEM',
+      type: QUIZ_TYPE.ATIVIDADE,
       subtype: 'Simulado',
       difficulty: 'MEDIO',
       notification: null,
@@ -3174,7 +3175,7 @@ export const Questionario: Story = () => {
     const mockQuestionario = {
       id: 'questionario-matematica',
       title: 'Questionário de Matemática',
-      type: 'QUESTIONARIO',
+      type: QUIZ_TYPE.QUESTIONARIO,
       subtype: 'Questionário',
       difficulty: 'MEDIO',
       notification: null,
@@ -3238,7 +3239,7 @@ export const Questionario: Story = () => {
       answers: [
         {
           id: 'answer1',
-          questionId: 'q1',
+          questionId: 'q1-alt-correta',
           answer: 'opt1',
           selectedOptions: [{ optionId: 'opt1' }],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
@@ -3290,8 +3291,8 @@ export const Questionario: Story = () => {
         },
       ],
       statistics: {
-        totalAnswered: 3,
-        correctAnswers: 2,
+        totalAnswered: 1,
+        correctAnswers: 1,
         incorrectAnswers: 0,
         pendingAnswers: 0,
         score: 99, // Average of all scores
@@ -3355,7 +3356,7 @@ export const QuestionarioTodasIncorretas: Story = () => {
     const mockQuestionario = {
       id: 'questionario-todas-incorretas',
       title: 'Questionário de Matemática',
-      type: 'QUESTIONARIO',
+      type: QUIZ_TYPE.QUESTIONARIO,
       subtype: 'Questionário',
       difficulty: 'MEDIO',
       notification: null,

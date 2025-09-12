@@ -6,6 +6,7 @@ import {
   useQuizStore,
   QuestionResult,
   MINUTE_INTERVAL_MS,
+  QUIZ_TYPE,
 } from './useQuizStore';
 
 // Type alias for question answers in result context
@@ -107,7 +108,7 @@ const mockQuestion2 = {
 const mockSimulado = {
   id: 'simulado-1',
   title: 'Test Simulado',
-  type: 'ENEM',
+  type: QUIZ_TYPE.SIMULADO,
   subtype: 'Simulado',
   difficulty: 'MEDIO',
   notification: null,
@@ -123,7 +124,7 @@ const mockSimulado = {
 const mockAtividade = {
   id: 'atividade-1',
   title: 'Test Atividade',
-  type: 'atividade',
+  type: QUIZ_TYPE.ATIVIDADE,
   subtype: 'ATIVIDADE',
   difficulty: null,
   notification: null,
@@ -139,7 +140,7 @@ const mockAtividade = {
 const mockQuestionary = {
   id: 'aula-1',
   title: 'Test Aula',
-  type: 'aula',
+  type: QUIZ_TYPE.QUESTIONARIO,
   subtype: 'AULA',
   difficulty: null,
   notification: null,
@@ -1094,8 +1095,8 @@ describe('useQuizStore', () => {
       const mockAtividade = {
         id: 'atividade1',
         title: 'Test Atividade',
-        type: 'atividade',
-        subtype: 'ATIVIDADE',
+        type: QUIZ_TYPE.ATIVIDADE,
+        subtype: QUIZ_TYPE.ATIVIDADE,
         difficulty: null,
         notification: null,
         status: 'active',
@@ -1126,7 +1127,7 @@ describe('useQuizStore', () => {
       const mockQuestionary = {
         id: 'aula1',
         title: 'Test Aula',
-        type: 'aula',
+        type: QUIZ_TYPE.QUESTIONARIO,
         subtype: 'AULA',
         difficulty: null,
         notification: null,
@@ -2044,8 +2045,8 @@ describe('useQuizStore', () => {
       const mockAtividade = {
         id: 'atividade-1',
         title: 'Test Atividade',
-        type: 'atividade',
-        subtype: 'ATIVIDADE',
+        type: QUIZ_TYPE.ATIVIDADE,
+        subtype: QUIZ_TYPE.ATIVIDADE,
         difficulty: null,
         notification: null,
         status: 'active',
@@ -2079,7 +2080,7 @@ describe('useQuizStore', () => {
       const mockQuestionary = {
         id: 'aula-1',
         title: 'Test Aula',
-        type: 'aula',
+        type: QUIZ_TYPE.QUESTIONARIO,
         subtype: 'AULA',
         difficulty: null,
         notification: null,
@@ -2293,7 +2294,7 @@ describe('useQuizStore', () => {
       const emptySimulado = {
         id: 'empty-simulado',
         title: 'Empty Quiz',
-        type: 'ENEM',
+        type: QUIZ_TYPE.SIMULADO,
         subtype: 'Simulado',
         difficulty: 'MEDIO',
         notification: null,
@@ -2460,8 +2461,8 @@ describe('useQuizStore', () => {
       const mockAtividade = {
         id: 'atividade1',
         title: 'Test Atividade',
-        type: 'atividade',
-        subtype: 'ATIVIDADE',
+        type: QUIZ_TYPE.ATIVIDADE,
+        subtype: QUIZ_TYPE.ATIVIDADE,
         difficulty: null,
         notification: null,
         status: 'active',
@@ -2479,7 +2480,7 @@ describe('useQuizStore', () => {
       const mockQuestionary = {
         id: 'aula1',
         title: 'Test Aula',
-        type: 'aula',
+        type: QUIZ_TYPE.QUESTIONARIO,
         subtype: 'AULA',
         difficulty: null,
         notification: null,
@@ -4084,7 +4085,7 @@ describe('useQuizStore', () => {
       const emptySimulado = {
         id: 'empty-simulado',
         title: 'Empty Quiz',
-        type: 'ENEM',
+        type: QUIZ_TYPE.SIMULADO,
         subtype: 'Simulado',
         difficulty: 'MEDIO',
         notification: null,
@@ -4134,8 +4135,8 @@ describe('useQuizStore', () => {
       const mockAtividade = {
         id: 'atividade-1',
         title: 'Test Atividade',
-        type: 'atividade',
-        subtype: 'ATIVIDADE',
+        type: QUIZ_TYPE.ATIVIDADE,
+        subtype: QUIZ_TYPE.ATIVIDADE,
         difficulty: null,
         notification: null,
         status: 'active',
@@ -4244,7 +4245,7 @@ describe('useQuizStore', () => {
       const mockQuestionary = {
         id: 'aula-1',
         title: 'Test Aula',
-        type: 'aula',
+        type: QUIZ_TYPE.QUESTIONARIO,
         subtype: 'AULA',
         difficulty: null,
         notification: null,
@@ -4830,8 +4831,8 @@ describe('useQuizStore', () => {
       const mockAtividade = {
         id: 'atividade-1',
         title: 'Test Atividade',
-        type: 'atividade',
-        subtype: 'ATIVIDADE',
+        type: QUIZ_TYPE.ATIVIDADE,
+        subtype: QUIZ_TYPE.ATIVIDADE,
         difficulty: null,
         notification: null,
         status: 'active',
@@ -4855,7 +4856,7 @@ describe('useQuizStore', () => {
       const mockQuestionary = {
         id: 'aula-1',
         title: 'Test Aula',
-        type: 'aula',
+        type: QUIZ_TYPE.QUESTIONARIO,
         subtype: 'AULA',
         difficulty: null,
         notification: null,

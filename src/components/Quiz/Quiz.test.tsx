@@ -5,6 +5,9 @@ import {
   getStatusBadge,
   getStatusStyles,
   getTypeLabel,
+  getCompletionTitle,
+  getExitConfirmationText,
+  getFinishConfirmationText,
   QuizHeaderResult,
   QuizTitle,
   QuizSubTitle,
@@ -31,6 +34,7 @@ import {
   ANSWER_STATUS,
   QUESTION_TYPE,
   QUESTION_DIFFICULTY,
+  QUIZ_TYPE,
 } from './useQuizStore';
 
 // Mock the image
@@ -551,6 +555,11 @@ jest.mock('./useQuizStore', () => ({
     FACIL: 'FACIL',
     MEDIO: 'MEDIO',
     DIFICIL: 'DIFICIL',
+  },
+  QUIZ_TYPE: {
+    SIMULADO: 'SIMULADO',
+    QUESTIONARIO: 'QUESTIONARIO',
+    ATIVIDADE: 'ATIVIDADE',
   },
   SUBTYPE_ENUM: {
     PROVA: 'PROVA',
@@ -1107,9 +1116,7 @@ describe('Quiz', () => {
 
         expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
         expect(
-          screen.getByText(
-            'Se você sair do simulado agora, todas as respostas serão perdidas.'
-          )
+          screen.getByText(getExitConfirmationText(QUIZ_TYPE.SIMULADO))
         ).toBeInTheDocument();
       });
 
@@ -1253,9 +1260,7 @@ describe('Quiz', () => {
 
         expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
         expect(
-          screen.getByText(
-            'Se você sair do simulado agora, todas as respostas serão perdidas.'
-          )
+          screen.getByText(getExitConfirmationText(QUIZ_TYPE.SIMULADO))
         ).toBeInTheDocument();
 
         // Verify the modal structure is correct
@@ -4893,7 +4898,7 @@ describe('Quiz', () => {
         type: 'Simulado Personalizado',
         id: 'custom-1',
         difficulty: 'hard',
-        subtype: 'SIMULADO',
+        subtype: QUIZ_TYPE.SIMULADO,
       };
 
       mockUseQuizStore.mockReturnValue({
@@ -6220,23 +6225,101 @@ describe('Quiz', () => {
   // Testes para getTypeLabel
   describe('getTypeLabel', () => {
     it('should return correct label for simulado', () => {
-      expect(getTypeLabel('simulado')).toBe('Simulado');
-      expect(getTypeLabel('SIMULADO')).toBe('Simulado');
+      expect(getTypeLabel(QUIZ_TYPE.SIMULADO)).toBe('Simulado');
+      expect(getTypeLabel(QUIZ_TYPE.SIMULADO)).toBe('Simulado');
     });
 
     it('should return correct label for questionario', () => {
-      expect(getTypeLabel('questionario')).toBe('Questionário');
-      expect(getTypeLabel('QUESTIONARIO')).toBe('Questionário');
+      expect(getTypeLabel(QUIZ_TYPE.QUESTIONARIO)).toBe('Questionário');
+      expect(getTypeLabel(QUIZ_TYPE.QUESTIONARIO)).toBe('Questionário');
     });
 
     it('should return correct label for atividade', () => {
-      expect(getTypeLabel('atividade')).toBe('Atividade');
-      expect(getTypeLabel('ATIVIDADE')).toBe('Atividade');
+      expect(getTypeLabel(QUIZ_TYPE.ATIVIDADE)).toBe('Atividade');
+      expect(getTypeLabel(QUIZ_TYPE.ATIVIDADE)).toBe('Atividade');
     });
 
     it('should return default label for unknown type', () => {
-      expect(getTypeLabel('unknown')).toBe('Simulado');
-      expect(getTypeLabel('')).toBe('Simulado');
+      expect(getTypeLabel('unknown' as QUIZ_TYPE)).toBe('Simulado');
+      expect(getTypeLabel('' as QUIZ_TYPE)).toBe('Simulado');
+    });
+  });
+
+  // Testes para getExitConfirmationText
+  describe('getExitConfirmationText', () => {
+    it('should return correct text for simulado', () => {
+      expect(getExitConfirmationText(QUIZ_TYPE.SIMULADO)).toBe(
+        'Se você sair do simulado agora, todas as respostas serão perdidas.'
+      );
+      expect(getExitConfirmationText(QUIZ_TYPE.SIMULADO)).toBe(
+        'Se você sair do simulado agora, todas as respostas serão perdidas.'
+      );
+    });
+
+    it('should return correct text for questionario', () => {
+      expect(getExitConfirmationText(QUIZ_TYPE.QUESTIONARIO)).toBe(
+        'Se você sair do questionário agora, todas as respostas serão perdidas.'
+      );
+      expect(getExitConfirmationText(QUIZ_TYPE.QUESTIONARIO)).toBe(
+        'Se você sair do questionário agora, todas as respostas serão perdidas.'
+      );
+    });
+
+    it('should return correct text for atividade', () => {
+      expect(getExitConfirmationText(QUIZ_TYPE.ATIVIDADE)).toBe(
+        'Se você sair da atividade agora, todas as respostas serão perdidas.'
+      );
+      expect(getExitConfirmationText(QUIZ_TYPE.ATIVIDADE)).toBe(
+        'Se você sair da atividade agora, todas as respostas serão perdidas.'
+      );
+    });
+
+    it('should return default text for unknown type', () => {
+      expect(getExitConfirmationText('unknown' as QUIZ_TYPE)).toBe(
+        'Se você sair do simulado agora, todas as respostas serão perdidas.'
+      );
+      expect(getExitConfirmationText('' as QUIZ_TYPE)).toBe(
+        'Se você sair do simulado agora, todas as respostas serão perdidas.'
+      );
+    });
+  });
+
+  // Testes para getFinishConfirmationText
+  describe('getFinishConfirmationText', () => {
+    it('should return correct text for simulado', () => {
+      expect(getFinishConfirmationText(QUIZ_TYPE.SIMULADO)).toBe(
+        'Tem certeza que deseja finalizar o simulado?'
+      );
+      expect(getFinishConfirmationText(QUIZ_TYPE.SIMULADO)).toBe(
+        'Tem certeza que deseja finalizar o simulado?'
+      );
+    });
+
+    it('should return correct text for questionario', () => {
+      expect(getFinishConfirmationText(QUIZ_TYPE.QUESTIONARIO)).toBe(
+        'Tem certeza que deseja finalizar o questionário?'
+      );
+      expect(getFinishConfirmationText(QUIZ_TYPE.QUESTIONARIO)).toBe(
+        'Tem certeza que deseja finalizar o questionário?'
+      );
+    });
+
+    it('should return correct text for atividade', () => {
+      expect(getFinishConfirmationText(QUIZ_TYPE.ATIVIDADE)).toBe(
+        'Tem certeza que deseja finalizar a atividade?'
+      );
+      expect(getFinishConfirmationText(QUIZ_TYPE.ATIVIDADE)).toBe(
+        'Tem certeza que deseja finalizar a atividade?'
+      );
+    });
+
+    it('should return default text for unknown type', () => {
+      expect(getFinishConfirmationText('unknown' as QUIZ_TYPE)).toBe(
+        'Tem certeza que deseja finalizar o simulado?'
+      );
+      expect(getFinishConfirmationText('' as QUIZ_TYPE)).toBe(
+        'Tem certeza que deseja finalizar o simulado?'
+      );
     });
   });
 
@@ -6245,7 +6328,7 @@ describe('Quiz', () => {
     const mockQuiz = {
       id: '1',
       title: 'Questionário Teste',
-      type: 'QUESTIONARIO',
+      type: QUIZ_TYPE.QUESTIONARIO,
       questions: [
         {
           id: 'q1',
@@ -6306,7 +6389,7 @@ describe('Quiz', () => {
       // Configurar o mock antes de renderizar
       mockUseQuizStore.mockReturnValue({
         ...mockUseQuizStore(),
-        quiz: { ...mockQuiz, type: 'QUESTIONARIO' },
+        quiz: { ...mockQuiz, type: QUIZ_TYPE.QUESTIONARIO },
         getCurrentAnswer: jest.fn().mockReturnValue('b'),
         getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
         getQuestionResultStatistics: jest.fn().mockReturnValue({
@@ -6354,7 +6437,7 @@ describe('Quiz', () => {
       const mockSimuladoQuiz = {
         id: '1',
         title: 'Simulado ENEM',
-        type: 'SIMULADO',
+        type: QUIZ_TYPE.SIMULADO,
         questions: [],
       };
 
@@ -6374,14 +6457,16 @@ describe('Quiz', () => {
         finishButton.click();
       });
 
-      expect(screen.getByText(/Você concluiu o simulado!/)).toBeInTheDocument();
+      expect(
+        screen.getByText(getCompletionTitle(QUIZ_TYPE.SIMULADO))
+      ).toBeInTheDocument();
     });
 
     it('should show correct text for questionario type', () => {
       const mockQuestionarioQuiz = {
         id: '1',
         title: 'Questionário de Matemática',
-        type: 'QUESTIONARIO',
+        type: QUIZ_TYPE.QUESTIONARIO,
         questions: [],
       };
 
@@ -6408,7 +6493,7 @@ describe('Quiz', () => {
       });
 
       expect(
-        screen.getByText(/Você concluiu o questionário!/)
+        screen.getByText(getCompletionTitle(QUIZ_TYPE.QUESTIONARIO))
       ).toBeInTheDocument();
     });
 
@@ -6416,7 +6501,7 @@ describe('Quiz', () => {
       const mockAtividadeQuiz = {
         id: '1',
         title: 'Atividade de Física',
-        type: 'ATIVIDADE',
+        type: QUIZ_TYPE.ATIVIDADE,
         questions: [],
       };
 
@@ -6437,7 +6522,7 @@ describe('Quiz', () => {
       });
 
       expect(
-        screen.getByText(/Você concluiu o atividade!/)
+        screen.getByText(getCompletionTitle(QUIZ_TYPE.ATIVIDADE))
       ).toBeInTheDocument();
     });
 
@@ -6465,7 +6550,9 @@ describe('Quiz', () => {
         finishButton.click();
       });
 
-      expect(screen.getByText(/Você concluiu o simulado!/)).toBeInTheDocument();
+      expect(
+        screen.getByText(getCompletionTitle('unknown' as QUIZ_TYPE))
+      ).toBeInTheDocument();
     });
   });
 });
