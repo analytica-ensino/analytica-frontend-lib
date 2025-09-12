@@ -240,7 +240,7 @@ describe('Modal', () => {
       expect(screen.getByText('Descrição da atividade')).toBeInTheDocument();
       expect(screen.getByText('Iniciar')).toBeInTheDocument();
 
-      const image = screen.getByRole('img');
+      const image = screen.getByAltText('');
       expect(image).toHaveAttribute('src', 'https://example.com/image.png');
     });
 
