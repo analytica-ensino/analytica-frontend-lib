@@ -1,4 +1,4 @@
-import { ReactNode, MouseEvent, useEffect, KeyboardEvent } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { X } from 'phosphor-react';
 import { cn } from '../../utils/utils';
 import Button from '../Button/Button';
@@ -35,8 +35,6 @@ type ModalProps = {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   /** Additional CSS classes for the modal content */
   className?: string;
-  /** Whether clicking the backdrop should close the modal */
-  closeOnBackdropClick?: boolean;
   /** Whether pressing Escape should close the modal */
   closeOnEscape?: boolean;
   /** Footer content (typically buttons) */
@@ -97,7 +95,6 @@ const Modal = ({
   children,
   size = 'md',
   className = '',
-  closeOnBackdropClick = true,
   closeOnEscape = true,
   footer,
   hideCloseButton = false,
@@ -135,20 +132,6 @@ const Modal = ({
     };
   }, [isOpen]);
 
-  // Handle backdrop click
-  const handleBackdropClick = (event: MouseEvent<HTMLButtonElement>) => {
-    if (closeOnBackdropClick && event.target === event.currentTarget) {
-      onClose();
-    }
-  };
-
-  // Handle backdrop keyboard interaction
-  const handleBackdropKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    if (closeOnBackdropClick && (event.key === 'Enter' || event.key === ' ')) {
-      onClose();
-    }
-  };
-
   if (!isOpen) return null;
 
   const sizeClasses = SIZE_CLASSES[size];
@@ -174,15 +157,13 @@ const Modal = ({
   // Activity variant rendering
   if (variant === 'activity') {
     return (
-      <button
-        type="button"
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs border-none p-0 m-0 w-full cursor-default"
-        onClick={handleBackdropClick}
-        onKeyDown={handleBackdropKeyDown}
-        tabIndex={closeOnBackdropClick ? 0 : -1}
-        aria-label="Fechar modal clicando no fundo"
-      >
-        <dialog className={modalClasses} aria-labelledby="modal-title" open>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs border-none p-0 m-0 w-full cursor-default">
+        <dialog
+          className={modalClasses}
+          aria-labelledby="modal-title"
+          aria-modal="true"
+          open
+        >
           {/* Header simples com X */}
           <div className="flex justify-end p-6 pb-0">
             {!hideCloseButton && (
@@ -227,17 +208,33 @@ const Modal = ({
             {/* Ação: Botão ou Vídeo Embedado */}
             {actionLink && (
               <div className="w-full">
-                {isYouTubeUrl(actionLink) ? (
-                  <iframe
-                    src={getYouTubeEmbedUrl(
-                      getYouTubeVideoId(actionLink) || ''
-                    )}
-                    className="w-full aspect-video rounded-lg"
-                    allowFullScreen
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    title="Vídeo YouTube"
-                  />
-                ) : (
+                {(() => {
+                  if (!isYouTubeUrl(actionLink)) return null;
+                  const id = getYouTubeVideoId(actionLink);
+                  if (!id) {
+                    return (
+                      <Button
+                        variant="solid"
+                        action="primary"
+                        size="large"
+                        className="w-full"
+                        onClick={handleActionClick}
+                      >
+                        {actionLabel || 'Iniciar Atividade'}
+                      </Button>
+                    );
+                  }
+                  return (
+                    <iframe
+                      src={getYouTubeEmbedUrl(id)}
+                      className="w-full aspect-video rounded-lg"
+                      allowFullScreen
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      title="Vídeo YouTube"
+                    />
+                  );
+                })()}
+                {!isYouTubeUrl(actionLink) && (
                   <Button
                     variant="solid"
                     action="primary"
@@ -252,21 +249,19 @@ const Modal = ({
             )}
           </div>
         </dialog>
-      </button>
+      </div>
     );
   }
 
   // Default variant rendering
   return (
-    <button
-      type="button"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs border-none p-0 m-0 w-full cursor-default"
-      onClick={handleBackdropClick}
-      onKeyDown={handleBackdropKeyDown}
-      tabIndex={closeOnBackdropClick ? 0 : -1}
-      aria-label="Fechar modal clicando no fundo"
-    >
-      <dialog className={modalClasses} aria-labelledby="modal-title" open>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs border-none p-0 m-0 w-full cursor-default">
+      <dialog
+        className={modalClasses}
+        aria-labelledby="modal-title"
+        aria-modal="true"
+        open
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-6">
           <h2 id="modal-title" className="text-lg font-semibold text-text-950">
@@ -297,7 +292,7 @@ const Modal = ({
           <div className="flex justify-end gap-3 px-6 pb-6">{footer}</div>
         )}
       </dialog>
-    </button>
+    </div>
   );
 };
 

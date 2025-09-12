@@ -11,7 +11,8 @@
  * @returns true if the URL is from YouTube, false otherwise
  */
 export const isYouTubeUrl = (url: string): boolean => {
-  const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
+  const youtubeRegex =
+    /^(https?:\/\/)?((www|m|music)\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+/i;
   return youtubeRegex.test(url);
 };
 
@@ -22,10 +23,24 @@ export const isYouTubeUrl = (url: string): boolean => {
  * @returns The video ID if found, null otherwise
  */
 export const getYouTubeVideoId = (url: string): string | null => {
-  const regex =
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/;
-  const match = regex.exec(url);
-  return match ? match[1] : null;
+  try {
+    const u = new URL(url);
+    const host = u.hostname;
+    if (host.includes('youtu.be')) {
+      return u.pathname.split('/')[1] || null;
+    }
+    if (host.includes('youtube.com') || host.includes('youtube-nocookie.com')) {
+      const parts = u.pathname.split('/');
+      if (parts[1] === 'embed' && parts[2]) return parts[2];
+      if (parts[1] === 'shorts' && parts[2]) return parts[2];
+      if (parts[1] === 'live' && parts[2]) return parts[2];
+      const v = u.searchParams.get('v');
+      if (v) return v;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
 };
 
 /**
