@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Modal from './Modal';
+import * as videoUtils from './utils/videoUtils';
 
 describe('Modal', () => {
   const defaultProps = {
@@ -217,6 +218,127 @@ describe('Modal', () => {
 
       const modalContent = document.querySelector('dialog');
       expect(modalContent).toHaveClass('max-w-[970px]');
+    });
+  });
+
+  describe('Activity variant', () => {
+    const activityProps = {
+      isOpen: true,
+      onClose: jest.fn(),
+      title: 'Nova atividade',
+      variant: 'activity' as const,
+      description: 'Descrição da atividade',
+      image: 'https://example.com/image.png',
+      actionLink: 'https://example.com',
+      actionLabel: 'Iniciar',
+    };
+
+    it('deve renderizar modal de atividade com todas as props', () => {
+      render(<Modal {...activityProps} />);
+
+      expect(screen.getByText('Nova atividade')).toBeInTheDocument();
+      expect(screen.getByText('Descrição da atividade')).toBeInTheDocument();
+      expect(screen.getByText('Iniciar')).toBeInTheDocument();
+
+      const image = screen.getByRole('img');
+      expect(image).toHaveAttribute('src', 'https://example.com/image.png');
+    });
+
+    it('deve renderizar iframe do YouTube quando actionLink é URL do YouTube', () => {
+      // Mock das funções de videoUtils
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(true);
+      jest
+        .spyOn(videoUtils, 'getYouTubeVideoId')
+        .mockReturnValue('dQw4w9WgXcQ');
+      jest
+        .spyOn(videoUtils, 'getYouTubeEmbedUrl')
+        .mockReturnValue(
+          'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=0&rel=0&modestbranding=1'
+        );
+
+      render(
+        <Modal
+          {...activityProps}
+          actionLink="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        />
+      );
+
+      const iframe = document.querySelector('iframe');
+      expect(iframe).toBeInTheDocument();
+      expect(iframe).toHaveAttribute(
+        'src',
+        'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=0&rel=0&modestbranding=1'
+      );
+      expect(iframe).toHaveAttribute('title', 'Vídeo YouTube');
+    });
+
+    it('deve renderizar botão quando actionLink não é YouTube', () => {
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(false);
+
+      const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation();
+
+      render(<Modal {...activityProps} />);
+
+      const button = screen.getByText('Iniciar');
+      expect(button).toBeInTheDocument();
+
+      fireEvent.click(button);
+      expect(windowOpenSpy).toHaveBeenCalledWith(
+        'https://example.com',
+        '_blank',
+        'noopener,noreferrer'
+      );
+
+      windowOpenSpy.mockRestore();
+    });
+
+    it('não deve renderizar ação quando actionLink é null', () => {
+      render(<Modal {...activityProps} actionLink={undefined} />);
+
+      expect(screen.queryByText('Iniciar')).not.toBeInTheDocument();
+      expect(document.querySelector('iframe')).not.toBeInTheDocument();
+    });
+
+    it('não deve renderizar imagem quando image é undefined', () => {
+      render(<Modal {...activityProps} image={undefined} />);
+
+      expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    });
+
+    it('não deve renderizar descrição quando description é undefined', () => {
+      render(<Modal {...activityProps} description={undefined} />);
+
+      expect(
+        screen.queryByText('Descrição da atividade')
+      ).not.toBeInTheDocument();
+    });
+
+    it('deve usar label padrão quando actionLabel não é fornecido', () => {
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(false);
+
+      render(<Modal {...activityProps} actionLabel={undefined} />);
+
+      expect(screen.getByText('Iniciar Atividade')).toBeInTheDocument();
+    });
+
+    it('deve ter layout centralizado para variante activity', () => {
+      render(<Modal {...activityProps} />);
+
+      const contentDiv = document.querySelector(
+        '.flex.flex-col.items-center.px-6.pb-6.gap-5'
+      );
+      expect(contentDiv).toBeInTheDocument();
+    });
+
+    it('deve ter header apenas com botão X na variante activity', () => {
+      render(<Modal {...activityProps} />);
+
+      const header = document.querySelector('.flex.justify-end.p-6.pb-0');
+      expect(header).toBeInTheDocument();
+
+      // Não deve ter título no header para variante activity
+      const headerTitle = header?.querySelector('h2');
+      expect(headerTitle).not.toBeInTheDocument();
     });
   });
 });

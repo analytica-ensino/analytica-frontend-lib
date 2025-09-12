@@ -33,6 +33,7 @@ export default defineConfig({
     'Toast/index': 'src/components/Toast/Toast.tsx',
     'Menu/index': 'src/components/Menu/Menu.tsx',
     'Modal/index': 'src/components/Modal/Modal.tsx',
+    'Modal/utils/videoUtils/index': 'src/components/Modal/utils/videoUtils.ts',
     'Card/index': 'src/components/Card/Card.tsx',
     'Calendar/index': 'src/components/Calendar/Calendar.tsx',
     'Stepper/index': 'src/components/Stepper/Stepper.tsx',
