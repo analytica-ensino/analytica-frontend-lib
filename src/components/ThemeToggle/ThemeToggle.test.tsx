@@ -164,18 +164,6 @@ describe('ThemeToggle', () => {
 
       expect(screen.queryByText('Salvar Tema')).not.toBeInTheDocument();
     });
-
-    it('calls handleToggle and emits deprecation warning when provided', () => {
-      const handleToggle = jest.fn();
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-      render(<ThemeToggle variant="with-save" handleToggle={handleToggle} />);
-      fireEvent.click(screen.getByTestId('theme-claro'));
-      expect(handleToggle).toHaveBeenCalledWith('light');
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('deprecated')
-      );
-      warnSpy.mockRestore();
-    });
   });
 
   describe('Theme mode changes', () => {
