@@ -1,3 +1,4 @@
+import { action } from '@ladle/react';
 import { ThemeToggle } from './ThemeToggle';
 
 export const Default = () => {
@@ -29,10 +30,7 @@ export const WithSave = () => {
 };
 
 export const AllVariants = () => {
-  const handleSave = (theme: 'light' | 'dark' | 'system') => {
-    console.log('Tema salvo:', theme);
-    alert(`Tema "${theme}" foi salvo!`);
-  };
+  const handleSave = action('onToggle');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
