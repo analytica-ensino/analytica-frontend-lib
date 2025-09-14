@@ -79,16 +79,14 @@ describe('ThemeToggle', () => {
   });
 
   describe('With-save variant', () => {
-    const mockHandleToggle = jest.fn();
+    const mockOnToggle = jest.fn();
 
     beforeEach(() => {
-      mockHandleToggle.mockClear();
+      mockOnToggle.mockClear();
     });
 
     it('renders theme options without save button', () => {
-      render(
-        <ThemeToggle variant="with-save" handleToggle={mockHandleToggle} />
-      );
+      render(<ThemeToggle variant="with-save" onToggle={mockOnToggle} />);
 
       expect(screen.getByTestId('theme-claro')).toBeInTheDocument();
       expect(screen.getByTestId('theme-escuro')).toBeInTheDocument();
@@ -96,18 +94,16 @@ describe('ThemeToggle', () => {
       expect(screen.queryByText('Salvar Tema')).not.toBeInTheDocument();
     });
 
-    it('updates temp theme and calls handleToggle when option is clicked', () => {
-      render(
-        <ThemeToggle variant="with-save" handleToggle={mockHandleToggle} />
-      );
+    it('updates temp theme and calls onToggle when option is clicked', () => {
+      render(<ThemeToggle variant="with-save" onToggle={mockOnToggle} />);
 
       const lightButton = screen.getByTestId('theme-claro');
       fireEvent.click(lightButton);
 
       // Should not call setTheme immediately
       expect(mockUseTheme.setTheme).not.toHaveBeenCalled();
-      // Should call handleToggle
-      expect(mockHandleToggle).toHaveBeenCalledWith('light');
+      // Should call onToggle
+      expect(mockOnToggle).toHaveBeenCalledWith('light');
 
       // Light button should be selected
       expect(lightButton).toHaveAttribute('data-selected', 'true');
@@ -115,41 +111,37 @@ describe('ThemeToggle', () => {
 
     it('updates temp theme when external theme changes', () => {
       const { rerender } = render(
-        <ThemeToggle variant="with-save" handleToggle={mockHandleToggle} />
+        <ThemeToggle variant="with-save" onToggle={mockOnToggle} />
       );
 
       // Change external theme
       mockUseTheme.themeMode = 'dark';
-      rerender(
-        <ThemeToggle variant="with-save" handleToggle={mockHandleToggle} />
-      );
+      rerender(<ThemeToggle variant="with-save" onToggle={mockOnToggle} />);
 
       const darkButton = screen.getByTestId('theme-escuro');
       expect(darkButton).toHaveAttribute('data-selected', 'true');
     });
 
     it('handles multiple theme selections', () => {
-      render(
-        <ThemeToggle variant="with-save" handleToggle={mockHandleToggle} />
-      );
+      render(<ThemeToggle variant="with-save" onToggle={mockOnToggle} />);
 
       // Select light theme
       const lightButton = screen.getByTestId('theme-claro');
       fireEvent.click(lightButton);
       expect(lightButton).toHaveAttribute('data-selected', 'true');
-      expect(mockHandleToggle).toHaveBeenCalledWith('light');
+      expect(mockOnToggle).toHaveBeenCalledWith('light');
 
       // Select dark theme
       const darkButton = screen.getByTestId('theme-escuro');
       fireEvent.click(darkButton);
       expect(darkButton).toHaveAttribute('data-selected', 'true');
       expect(lightButton).toHaveAttribute('data-selected', 'false');
-      expect(mockHandleToggle).toHaveBeenCalledWith('dark');
+      expect(mockOnToggle).toHaveBeenCalledWith('dark');
     });
   });
 
   describe('Props handling', () => {
-    it('works without handleToggle prop in with-save variant', () => {
+    it('works without onToggle prop in with-save variant', () => {
       render(<ThemeToggle variant="with-save" />);
 
       const lightButton = screen.getByTestId('theme-claro');
@@ -193,12 +185,12 @@ describe('ThemeToggle', () => {
 
     it('updates temp theme in with-save variant when themeMode changes', () => {
       const { rerender } = render(
-        <ThemeToggle variant="with-save" handleToggle={jest.fn()} />
+        <ThemeToggle variant="with-save" onToggle={jest.fn()} />
       );
 
       // Change to dark theme externally
       mockUseTheme.themeMode = 'dark';
-      rerender(<ThemeToggle variant="with-save" handleToggle={jest.fn()} />);
+      rerender(<ThemeToggle variant="with-save" onToggle={jest.fn()} />);
 
       expect(screen.getByTestId('theme-escuro')).toHaveAttribute(
         'data-selected',
