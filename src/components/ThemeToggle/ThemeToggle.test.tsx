@@ -71,6 +71,13 @@ describe('ThemeToggle', () => {
       expect(mockUseTheme.setTheme).toHaveBeenCalledWith('light');
     });
 
+    it('calls onToggle when provided (default variant)', () => {
+      const onToggle = jest.fn();
+      render(<ThemeToggle onToggle={onToggle} />);
+      fireEvent.click(screen.getByTestId('theme-claro'));
+      expect(onToggle).toHaveBeenCalledWith('light');
+    });
+
     it('does not show save button in default variant', () => {
       render(<ThemeToggle />);
 
@@ -156,6 +163,18 @@ describe('ThemeToggle', () => {
       render(<ThemeToggle />);
 
       expect(screen.queryByText('Salvar Tema')).not.toBeInTheDocument();
+    });
+
+    it('calls handleToggle and emits deprecation warning when provided', () => {
+      const handleToggle = jest.fn();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(<ThemeToggle variant="with-save" handleToggle={handleToggle} />);
+      fireEvent.click(screen.getByTestId('theme-claro'));
+      expect(handleToggle).toHaveBeenCalledWith('light');
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('deprecated')
+      );
+      warnSpy.mockRestore();
     });
   });
 
