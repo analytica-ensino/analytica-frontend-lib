@@ -1,5 +1,6 @@
 import { action } from '@ladle/react';
 import { ThemeToggle } from './ThemeToggle';
+import { ThemeMode } from '@/hooks/useTheme';
 
 export const Default = () => {
   return (
@@ -15,7 +16,7 @@ export const Default = () => {
 };
 
 export const WithSave = () => {
-  const handleSave = (theme: 'light' | 'dark' | 'system') => {
+  const handleSave = (theme: ThemeMode) => {
     console.log('Tema salvo:', theme);
   };
 

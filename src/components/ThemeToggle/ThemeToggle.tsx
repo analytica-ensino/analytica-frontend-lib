@@ -1,9 +1,7 @@
 import { Moon, Sun } from 'phosphor-react';
 import { useState, useEffect } from 'react';
 import SelectionButton from '../SelectionButton/SelectionButton';
-import { useTheme } from '@/hooks/useTheme';
-
-type ThemeMode = 'light' | 'dark' | 'system';
+import { ThemeMode, useTheme } from '@/hooks/useTheme';
 
 interface ThemeToggleProps {
   variant?: 'default' | 'with-save';

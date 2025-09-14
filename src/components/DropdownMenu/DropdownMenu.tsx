@@ -19,7 +19,7 @@ import Button from '../Button/Button';
 import { cn } from '../../utils/utils';
 import Modal from '../Modal/Modal';
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
-import { useTheme } from '@/hooks/useTheme';
+import { ThemeMode, useTheme } from '@/hooks/useTheme';
 
 interface DropdownStore {
   open: boolean;
@@ -481,9 +481,7 @@ const ProfileToggleTheme = ({
 }) => {
   const { themeMode, setTheme } = useTheme();
   const [modalThemeToggle, setModalThemeToggle] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState<
-    'light' | 'dark' | 'system'
-  >(themeMode);
+  const [selectedTheme, setSelectedTheme] = useState<ThemeMode>(themeMode);
 
   const handleClick = (e: MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
