@@ -7,12 +7,14 @@ type ThemeMode = 'light' | 'dark' | 'system';
 
 interface ThemeToggleProps {
   variant?: 'default' | 'with-save';
-  handleToogle?: (theme: ThemeMode) => void;
+  onToggle?: (theme: ThemeMode) => void;
+  handleToggle?: (theme: ThemeMode) => void;
 }
 
 export const ThemeToggle = ({
   variant = 'default',
-  handleToogle,
+  onToggle,
+  handleToggle,
 }: ThemeToggleProps) => {
   const { themeMode, setTheme } = useTheme();
   const [tempTheme, setTempTheme] = useState<ThemeMode>(themeMode);
@@ -59,7 +61,17 @@ export const ThemeToggle = ({
     } else {
       setTheme(selectedTheme);
     }
-    handleToogle?.(selectedTheme);
+
+    // Prefer onToggle over handleToggle for backward compatibility
+    if (onToggle) {
+      onToggle(selectedTheme);
+    } else if (handleToggle) {
+      // Emit deprecation warning in development environment
+      console.warn(
+        'ThemeToggle: handleToggle prop is deprecated. Please use onToggle instead.'
+      );
+      handleToggle(selectedTheme);
+    }
   };
 
   const currentTheme = variant === 'with-save' ? tempTheme : themeMode;

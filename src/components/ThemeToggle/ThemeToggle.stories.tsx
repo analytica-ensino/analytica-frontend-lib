@@ -22,7 +22,7 @@ export const WithSave = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
       <div>
         <h3 style={{ marginBottom: 16 }}>Variante com Botão Salvar</h3>
-        <ThemeToggle variant="with-save" handleToogle={handleSave} />
+        <ThemeToggle variant="with-save" handleToggle={handleSave} />
       </div>
     </div>
   );
@@ -44,7 +44,7 @@ export const AllVariants = () => {
       </div>
       <div>
         <h3 style={{ marginBottom: 16 }}>Variante com Botão Salvar</h3>
-        <ThemeToggle variant="with-save" handleToogle={handleSave} />
+        <ThemeToggle variant="with-save" handleToggle={handleSave} />
       </div>
     </div>
   );

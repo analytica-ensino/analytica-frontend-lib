@@ -54,7 +54,7 @@ import DropdownMenu, {
   ProfileMenuSection,
   MenuLabel,
   DropdownMenuSeparator,
-  ProfileToogleTheme,
+  ProfileToggleTheme,
 } from './components/DropdownMenu/DropdownMenu';
 
 import Select, {
@@ -224,7 +224,7 @@ export { ProfileMenuTrigger };
 export { ProfileMenuHeader };
 export { ProfileMenuSection };
 export { ProfileMenuFooter };
-export { ProfileToogleTheme };
+export { ProfileToggleTheme };
 
 export { Select };
 export { SelectValue };

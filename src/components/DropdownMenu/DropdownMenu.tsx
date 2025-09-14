@@ -473,7 +473,7 @@ const ProfileMenuHeader = forwardRef<
 });
 ProfileMenuHeader.displayName = 'ProfileMenuHeader';
 
-const ProfileToogleTheme = ({
+const ProfileToggleTheme = ({
   store: _externalStore,
   ...props
 }: HTMLAttributes<HTMLDivElement> & {
@@ -550,13 +550,13 @@ const ProfileToogleTheme = ({
       >
         <div className="flex flex-col">
           <p className="text-sm text-text-500">Escolha o tema:</p>
-          <ThemeToggle variant="with-save" handleToogle={setSelectedTheme} />
+          <ThemeToggle variant="with-save" onToggle={setSelectedTheme} />
         </div>
       </Modal>
     </>
   );
 };
-ProfileToogleTheme.displayName = 'ProfileToogleTheme';
+ProfileToggleTheme.displayName = 'ProfileToggleTheme';
 
 const ProfileMenuSection = forwardRef<
   HTMLDivElement,
@@ -618,5 +618,5 @@ export {
   ProfileMenuHeader,
   ProfileMenuSection,
   ProfileMenuFooter,
-  ProfileToogleTheme,
+  ProfileToggleTheme,
 };

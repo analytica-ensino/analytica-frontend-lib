@@ -11,7 +11,7 @@ import DropdownMenu, {
   ProfileMenuHeader,
   ProfileMenuSection,
   ProfileMenuTrigger,
-  ProfileToogleTheme,
+  ProfileToggleTheme,
 } from './DropdownMenu';
 import {
   DropdownMenuTrigger,
@@ -21,6 +21,18 @@ import {
   DropdownMenuSeparator,
 } from './DropdownMenu';
 import React from 'react';
+
+// Mock do useTheme hook
+const mockUseTheme = {
+  themeMode: 'system' as 'light' | 'dark' | 'system',
+  isDark: false,
+  setTheme: jest.fn(),
+  toggleTheme: jest.fn(),
+};
+
+jest.mock('@/hooks/useTheme', () => ({
+  useTheme: () => mockUseTheme,
+}));
 
 describe('DropdownMenu component', () => {
   describe('Open/close control', () => {
@@ -710,7 +722,7 @@ describe('ProfileMenu component', () => {
   });
 });
 
-describe('ProfileToogleTheme component', () => {
+describe('ProfileToggleTheme component', () => {
   // Mock do window.matchMedia
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -726,31 +738,18 @@ describe('ProfileToogleTheme component', () => {
     })),
   });
 
-  // Mock do useTheme hook
-  const mockUseTheme = {
-    themeMode: 'system' as 'light' | 'dark' | 'system',
-    isDark: false,
-    setTheme: jest.fn(),
-    toggleTheme: jest.fn(),
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseTheme.themeMode = 'system';
     mockUseTheme.isDark = false;
   });
 
-  // Mock do useTheme hook
-  jest.mock('@/hooks/useTheme', () => ({
-    useTheme: () => mockUseTheme,
-  }));
-
-  it('renders ProfileToogleTheme with correct content', () => {
+  it('renders ProfileToggleTheme with correct content', () => {
     render(
       <DropdownMenu>
         <ProfileMenuTrigger />
         <DropdownMenuContent variant="profile">
-          <ProfileToogleTheme />
+          <ProfileToggleTheme />
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -762,12 +761,12 @@ describe('ProfileToogleTheme component', () => {
     expect(screen.getByText('Aparência')).toBeInTheDocument();
   });
 
-  it('opens modal when ProfileToogleTheme is clicked', async () => {
+  it('opens modal when ProfileToggleTheme is clicked', async () => {
     render(
       <DropdownMenu>
         <ProfileMenuTrigger />
         <DropdownMenuContent variant="profile">
-          <ProfileToogleTheme />
+          <ProfileToggleTheme />
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -790,7 +789,7 @@ describe('ProfileToogleTheme component', () => {
       <DropdownMenu>
         <ProfileMenuTrigger />
         <DropdownMenuContent variant="profile">
-          <ProfileToogleTheme />
+          <ProfileToggleTheme />
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -822,7 +821,7 @@ describe('ProfileToogleTheme component', () => {
       <DropdownMenu>
         <ProfileMenuTrigger />
         <DropdownMenuContent variant="profile">
-          <ProfileToogleTheme />
+          <ProfileToggleTheme />
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -854,7 +853,7 @@ describe('ProfileToogleTheme component', () => {
       <DropdownMenu>
         <ProfileMenuTrigger />
         <DropdownMenuContent variant="profile">
-          <ProfileToogleTheme />
+          <ProfileToggleTheme />
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -875,7 +874,7 @@ describe('ProfileToogleTheme component', () => {
       <DropdownMenu>
         <ProfileMenuTrigger />
         <DropdownMenuContent variant="profile">
-          <ProfileToogleTheme />
+          <ProfileToggleTheme />
         </DropdownMenuContent>
       </DropdownMenu>
     );
