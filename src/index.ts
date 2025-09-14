@@ -43,8 +43,6 @@ import { useMobile, getDeviceType } from './hooks/useMobile';
 import type { DeviceType } from './hooks/useMobile';
 import { useTheme } from './hooks/useTheme';
 
-import { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
-
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
   DropdownMenuTrigger,
@@ -56,6 +54,7 @@ import DropdownMenu, {
   ProfileMenuSection,
   MenuLabel,
   DropdownMenuSeparator,
+  ProfileToogleTheme,
 } from './components/DropdownMenu/DropdownMenu';
 
 import Select, {
@@ -152,6 +151,7 @@ import {
   createUseNotifications,
   createNotificationsHook,
 } from './hooks/useNotifications';
+import { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
 
 // Export all components for bundled usage
 export { Text };
@@ -224,6 +224,7 @@ export { ProfileMenuTrigger };
 export { ProfileMenuHeader };
 export { ProfileMenuSection };
 export { ProfileMenuFooter };
+export { ProfileToogleTheme };
 
 export { Select };
 export { SelectValue };
