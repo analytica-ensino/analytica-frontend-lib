@@ -128,6 +128,10 @@ interface NotificationListMode extends BaseNotificationProps {
     entityId?: string
   ) => void;
   /**
+   * Callback when user clicks on a global notification
+   */
+  onGlobalNotificationClick?: (notification: Notification) => void;
+  /**
    * Function to get action label for a notification
    */
   getActionLabel?: (entityType?: NotificationEntityType) => string | undefined;
@@ -657,19 +661,6 @@ const NotificationCenter = ({
     }
   }, [isActive, onFetchNotifications]);
 
-  // Handle global notification modal open
-  const handleGlobalNotificationClick = (notification: Notification) => {
-    setGlobalNotificationModal({
-      isOpen: true,
-      notification: notification,
-    });
-  };
-
-  // Handle global notification modal close
-  const handleCloseGlobalModal = () => {
-    setGlobalNotificationModal({ isOpen: false, notification: null });
-  };
-
   const renderEmptyState = () => (
     <NotificationEmpty
       emptyStateImage={emptyStateImage}
@@ -722,7 +713,10 @@ const NotificationCenter = ({
                 }}
                 onGlobalNotificationClick={(notification) => {
                   setIsModalOpen(false);
-                  handleGlobalNotificationClick(notification);
+                  setGlobalNotificationModal({
+                    isOpen: true,
+                    notification,
+                  });
                 }}
                 getActionLabel={getActionLabel}
                 renderEmpty={renderEmptyState}
@@ -780,7 +774,12 @@ const NotificationCenter = ({
                 onMarkAsReadById={onMarkAsReadById}
                 onDeleteById={onDeleteById}
                 onNavigateById={onNavigateById}
-                onGlobalNotificationClick={handleGlobalNotificationClick}
+                onGlobalNotificationClick={(notification) => {
+                  setGlobalNotificationModal({
+                    isOpen: true,
+                    notification,
+                  });
+                }}
                 getActionLabel={getActionLabel}
                 renderEmpty={renderEmptyState}
               />
@@ -792,7 +791,9 @@ const NotificationCenter = ({
       {/* Global Notification Modal */}
       <Modal
         isOpen={globalNotificationModal.isOpen}
-        onClose={handleCloseGlobalModal}
+        onClose={() =>
+          setGlobalNotificationModal({ isOpen: false, notification: null })
+        }
         title={globalNotificationModal.notification?.title || ''}
         variant="activity"
         description={globalNotificationModal.notification?.message}
