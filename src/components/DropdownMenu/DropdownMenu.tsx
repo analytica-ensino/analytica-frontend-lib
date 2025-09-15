@@ -1,4 +1,4 @@
-import { SignOut, User } from 'phosphor-react';
+import { CaretRight, SignOut, User } from 'phosphor-react';
 import {
   forwardRef,
   ReactNode,
@@ -16,7 +16,12 @@ import {
 } from 'react';
 import { create, StoreApi, useStore } from 'zustand';
 import Button from '../Button/Button';
+import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
+import Modal from '../Modal/Modal';
+import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
+import type { ThemeMode } from '@/hooks/useTheme';
+import { useTheme } from '@/hooks/useTheme';
 
 interface DropdownStore {
   open: boolean;
@@ -391,7 +396,7 @@ const DropdownMenuItem = forwardRef<
         {...props}
       >
         {iconLeft}
-        <span className="w-full text-md">{children}</span>
+        <div className="w-full">{children}</div>
         {iconRight}
       </div>
     );
@@ -462,13 +467,97 @@ const ProfileMenuHeader = forwardRef<
         <User size={34} className="text-primary-950" />
       </span>
       <div className="flex flex-col ">
-        <p className="text-xl font-bold text-text-950">{name}</p>
-        <p className="text-md text-text-600">{email}</p>
+        <Text size="xl" weight="bold" color="text-text-950">
+          {name}
+        </Text>
+        <Text size="md" color="text-text-600">
+          {email}
+        </Text>
       </div>
     </div>
   );
 });
 ProfileMenuHeader.displayName = 'ProfileMenuHeader';
+
+const ProfileToggleTheme = ({ ...props }: HTMLAttributes<HTMLDivElement>) => {
+  const { themeMode, setTheme } = useTheme();
+  const [modalThemeToggle, setModalThemeToggle] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState<ThemeMode>(themeMode);
+
+  const handleClick = (e: MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setModalThemeToggle(true);
+  };
+
+  const handleSave = () => {
+    setTheme(selectedTheme);
+    setModalThemeToggle(false);
+  };
+
+  return (
+    <>
+      <div
+        role="menuitem"
+        data-variant="profile"
+        className="relative flex flex-row justify-between select-none items-center gap-2 rounded-sm p-4 text-sm outline-none transition-colors [&>svg]:size-6 [&>svg]:shrink-0 cursor-pointer hover:bg-background-50 text-text-700 focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground"
+        onClick={handleClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            setModalThemeToggle(true);
+          }
+        }}
+        tabIndex={0}
+        {...props}
+      >
+        <svg
+          width="25"
+          height="25"
+          viewBox="0 0 25 25"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12.5 2.75C15.085 2.75276 17.5637 3.78054 19.3916 5.6084C21.2195 7.43628 22.2473 9.915 22.25 12.5C22.25 14.4284 21.6778 16.3136 20.6064 17.917C19.5352 19.5201 18.0128 20.7699 16.2314 21.5078C14.4499 22.2458 12.489 22.4387 10.5977 22.0625C8.70642 21.6863 6.96899 20.758 5.60547 19.3945C4.24197 18.031 3.31374 16.2936 2.9375 14.4023C2.56129 12.511 2.75423 10.5501 3.49219 8.76855C4.23012 6.98718 5.47982 5.46483 7.08301 4.39355C8.68639 3.32221 10.5716 2.75 12.5 2.75ZM11.75 4.28516C9.70145 4.47452 7.7973 5.42115 6.41016 6.94043C5.02299 8.4599 4.25247 10.4426 4.25 12.5C4.25247 14.5574 5.02299 16.5401 6.41016 18.0596C7.7973 19.5789 9.70145 20.5255 11.75 20.7148V4.28516Z"
+            fill="#525252"
+          />
+        </svg>
+        <Text className="w-full" size="md">
+          Aparência
+        </Text>
+        <CaretRight />
+      </div>
+
+      <Modal
+        isOpen={modalThemeToggle}
+        onClose={() => setModalThemeToggle(false)}
+        title="Aparência"
+        size="md"
+        footer={
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setModalThemeToggle(false)}
+            >
+              Cancelar
+            </Button>
+            <Button variant="solid" onClick={() => handleSave()}>
+              Salvar
+            </Button>
+          </div>
+        }
+      >
+        <div className="flex flex-col">
+          <p className="text-sm text-text-500">Escolha o tema:</p>
+          <ThemeToggle variant="with-save" onToggle={setSelectedTheme} />
+        </div>
+      </Modal>
+    </>
+  );
+};
+ProfileToggleTheme.displayName = 'ProfileToggleTheme';
 
 const ProfileMenuSection = forwardRef<
   HTMLDivElement,
@@ -509,7 +598,7 @@ const ProfileMenuFooter = ({
       <span className="mr-2 flex items-center">
         <SignOut />
       </span>
-      <span>Sair</span>
+      <Text>Sair</Text>
     </Button>
   );
 };
@@ -530,4 +619,5 @@ export {
   ProfileMenuHeader,
   ProfileMenuSection,
   ProfileMenuFooter,
+  ProfileToggleTheme,
 };

@@ -9,6 +9,7 @@ import DropdownMenu, {
   ProfileMenuFooter,
   ProfileMenuHeader,
   ProfileMenuSection,
+  ProfileToggleTheme,
 } from './DropdownMenu';
 import { Plus, Check, CaretRight, User } from 'phosphor-react';
 
@@ -173,6 +174,8 @@ export const AllDropdownComponents: Story = () => {
                   >
                     Meus dados
                   </DropdownMenuItem>
+
+                  <ProfileToggleTheme />
                 </ProfileMenuSection>
 
                 <ProfileMenuFooter onClick={() => console.log('Sair')} />

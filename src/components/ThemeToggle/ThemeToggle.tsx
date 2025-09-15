@@ -1,180 +1,83 @@
-import { ButtonHTMLAttributes, ReactNode, forwardRef } from 'react';
-import { cn } from '../../utils/utils';
-import { useTheme } from '../../hooks/useTheme';
+import { Moon, Sun } from 'phosphor-react';
+import { useState, useEffect } from 'react';
+import SelectionButton from '../SelectionButton/SelectionButton';
+import type { ThemeMode } from '@/hooks/useTheme';
+import { useTheme } from '@/hooks/useTheme';
 
-/**
- * ThemeToggle component props interface
- */
-export type ThemeToggleProps = {
-  /** Modo de exibição do toggle */
-  variant?: 'simple' | 'detailed' | 'buttons';
-  /** Tamanho do componente */
-  size?: 'sm' | 'md' | 'lg';
-  /** Mostrar ícones nos botões */
-  showIcons?: boolean;
-  /** Mostrar labels nos botões */
-  showLabels?: boolean;
-  /** Classes CSS adicionais */
-  className?: string;
-  /** Conteúdo customizado para o botão simples */
-  children?: ReactNode;
-} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onClick'>;
+interface ThemeToggleProps {
+  variant?: 'default' | 'with-save';
+  onToggle?: (theme: ThemeMode) => void;
+}
 
-/**
- * ThemeToggle component for Analytica Ensino platforms
- *
- * Componente para alternar entre temas light, dark e system.
- * Oferece diferentes variantes de exibição e tamanhos.
- * Integra com o hook useTheme para gerenciamento de estado.
- * Suporta forwardRef para acesso programático ao elemento DOM.
- *
- * @param variant - Modo de exibição (simple, detailed, buttons)
- * @param size - Tamanho do componente (sm, md, lg)
- * @param showIcons - Mostrar ícones nos botões
- * @param showLabels - Mostrar labels nos botões
- * @param className - Classes CSS adicionais
- * @param children - Conteúdo customizado para o botão simples
- */
-export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
-  (
+export const ThemeToggle = ({
+  variant = 'default',
+  onToggle,
+}: ThemeToggleProps) => {
+  const { themeMode, setTheme } = useTheme();
+  const [tempTheme, setTempTheme] = useState<ThemeMode>(themeMode);
+
+  // Update temp theme when themeMode changes externally
+  useEffect(() => {
+    setTempTheme(themeMode);
+  }, [themeMode]);
+
+  const problemTypes = [
     {
-      variant = 'simple',
-      size = 'md',
-      showIcons = true,
-      showLabels = true,
-      className,
-      children,
-      ...props
+      id: 'light' as ThemeMode,
+      title: 'Claro',
+      icon: <Sun size={24} />,
     },
-    ref
-  ) => {
-    const { themeMode, isDark, toggleTheme, setTheme } = useTheme();
-
-    // Classes base para tamanhos
-    const sizeClasses = {
-      sm: 'text-sm px-3 py-1.5',
-      md: 'text-md px-4 py-2',
-      lg: 'text-lg px-5 py-2.5',
-    };
-
-    // Classes para botões ativos
-    const activeClasses = 'bg-primary-500 text-white';
-    const inactiveClasses =
-      'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600';
-
-    // Classes base para botões
-    const baseButtonClasses =
-      'inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500';
-    const smallButtonClasses =
-      'px-3 py-1.5 rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500';
-
-    // Função para renderizar botão de tema
-    const renderThemeButton = (
-      theme: 'light' | 'dark' | 'system',
-      icon: string,
-      label: string,
-      isActive: boolean,
-      buttonSize?: 'sm' | 'md' | 'lg'
-    ) => {
-      const buttonClasses = buttonSize
-        ? cn(baseButtonClasses, sizeClasses[buttonSize])
-        : smallButtonClasses;
-      const stateClasses = isActive ? activeClasses : inactiveClasses;
-
-      return (
-        <button
-          type="button"
-          onClick={() => setTheme(theme)}
-          className={cn(buttonClasses, stateClasses)}
-          {...(buttonSize ? props : {})}
+    {
+      id: 'dark' as ThemeMode,
+      title: 'Escuro',
+      icon: <Moon size={24} />,
+    },
+    {
+      id: 'system' as ThemeMode,
+      title: 'Sistema',
+      icon: (
+        <svg
+          width="25"
+          height="25"
+          viewBox="0 0 25 25"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          {showIcons && icon}
-          {showLabels && label}
-        </button>
-      );
-    };
+          <path
+            d="M12.5 2.75C15.085 2.75276 17.5637 3.78054 19.3916 5.6084C21.2195 7.43628 22.2473 9.915 22.25 12.5C22.25 14.4284 21.6778 16.3136 20.6064 17.917C19.5352 19.5201 18.0128 20.7699 16.2314 21.5078C14.4499 22.2458 12.489 22.4387 10.5977 22.0625C8.70642 21.6863 6.96899 20.758 5.60547 19.3945C4.24197 18.031 3.31374 16.2936 2.9375 14.4023C2.56129 12.511 2.75423 10.5501 3.49219 8.76855C4.23012 6.98718 5.47982 5.46483 7.08301 4.39355C8.68639 3.32221 10.5716 2.75 12.5 2.75ZM11.75 4.28516C9.70145 4.47452 7.7973 5.42115 6.41016 6.94043C5.02299 8.4599 4.25247 10.4426 4.25 12.5C4.25247 14.5574 5.02299 16.5401 6.41016 18.0596C7.7973 19.5789 9.70145 20.5255 11.75 20.7148V4.28516Z"
+            fill="#525252"
+          />
+        </svg>
+      ),
+    },
+  ];
 
-    // Renderizar botão simples
-    if (variant === 'simple') {
-      return (
-        <button
-          type="button"
-          ref={ref}
-          onClick={toggleTheme}
-          className={cn(
-            'inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
-            sizeClasses[size],
-            className
-          )}
-          {...props}
-        >
-          {children || (
-            <>
-              {showIcons && (isDark ? '☀️' : '🌙')}
-              {showLabels && (isDark ? 'Claro' : 'Escuro')}
-            </>
-          )}
-        </button>
-      );
+  const handleThemeSelect = (selectedTheme: ThemeMode) => {
+    if (variant === 'with-save') {
+      setTempTheme(selectedTheme);
+    } else {
+      setTheme(selectedTheme);
     }
 
-    // Renderizar botões detalhados
-    if (variant === 'detailed') {
-      const getLabel = () => {
-        if (themeMode === 'system') return 'Sistema';
-        if (isDark) return 'Escuro';
-        return 'Claro';
-      };
-      return (
-        <div className={cn('flex flex-col gap-2', className)}>
-          <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Tema: {getLabel()}
-          </div>
-          <div className="flex gap-1">
-            {renderThemeButton('light', '☀️ ', 'Claro', themeMode === 'light')}
-            {renderThemeButton('dark', '🌙 ', 'Escuro', themeMode === 'dark')}
-            {renderThemeButton(
-              'system',
-              '⚙️ ',
-              'Sistema',
-              themeMode === 'system'
-            )}
-          </div>
-        </div>
-      );
+    if (onToggle) {
+      onToggle(selectedTheme);
     }
+  };
 
-    // Renderizar botões separados
-    if (variant === 'buttons') {
-      return (
-        <div className={cn('flex gap-2', className)}>
-          {renderThemeButton(
-            'light',
-            '☀️',
-            'Claro',
-            themeMode === 'light',
-            size
-          )}
-          {renderThemeButton(
-            'dark',
-            '🌙',
-            'Escuro',
-            themeMode === 'dark',
-            size
-          )}
-          {renderThemeButton(
-            'system',
-            '⚙️',
-            'Sistema',
-            themeMode === 'system',
-            size
-          )}
-        </div>
-      );
-    }
+  const currentTheme = variant === 'with-save' ? tempTheme : themeMode;
 
-    return null;
-  }
-);
-
-ThemeToggle.displayName = 'ThemeToggle';
+  return (
+    <div className="flex flex-row gap-2 sm:gap-4 py-2">
+      {problemTypes.map((type) => (
+        <SelectionButton
+          key={type.id}
+          icon={type.icon}
+          label={type.title}
+          selected={currentTheme === type.id}
+          onClick={() => handleThemeSelect(type.id)}
+          className="w-full p-2 sm:p-4"
+        />
+      ))}
+    </div>
+  );
+};
