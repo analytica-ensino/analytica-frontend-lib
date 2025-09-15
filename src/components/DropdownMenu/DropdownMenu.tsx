@@ -16,6 +16,7 @@ import {
 } from 'react';
 import { create, StoreApi, useStore } from 'zustand';
 import Button from '../Button/Button';
+import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import Modal from '../Modal/Modal';
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
@@ -394,7 +395,7 @@ const DropdownMenuItem = forwardRef<
         {...props}
       >
         {iconLeft}
-        <span className="w-full text-md">{children}</span>
+        <div className="w-full text-md">{children}</div>
         {iconRight}
       </div>
     );
@@ -465,20 +466,19 @@ const ProfileMenuHeader = forwardRef<
         <User size={34} className="text-primary-950" />
       </span>
       <div className="flex flex-col ">
-        <p className="text-xl font-bold text-text-950">{name}</p>
-        <p className="text-md text-text-600">{email}</p>
+        <Text size="xl" weight="bold" color="text-text-950">
+          {name}
+        </Text>
+        <Text size="md" color="text-text-600">
+          {email}
+        </Text>
       </div>
     </div>
   );
 });
 ProfileMenuHeader.displayName = 'ProfileMenuHeader';
 
-const ProfileToggleTheme = ({
-  store: _externalStore,
-  ...props
-}: HTMLAttributes<HTMLDivElement> & {
-  store?: DropdownStoreApi;
-}) => {
+const ProfileToggleTheme = ({ ...props }: HTMLAttributes<HTMLDivElement>) => {
   const { themeMode, setTheme } = useTheme();
   const [modalThemeToggle, setModalThemeToggle] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<ThemeMode>(themeMode);
@@ -523,7 +523,9 @@ const ProfileToggleTheme = ({
             fill="#525252"
           />
         </svg>
-        <span className="w-full text-md">Aparência</span>
+        <Text className="w-full" size="md">
+          Aparência
+        </Text>
         <CaretRight />
       </div>
 
@@ -595,7 +597,7 @@ const ProfileMenuFooter = ({
       <span className="mr-2 flex items-center">
         <SignOut />
       </span>
-      <span>Sair</span>
+      <Text>Sair</Text>
     </Button>
   );
 };
