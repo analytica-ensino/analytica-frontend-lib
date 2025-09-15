@@ -18,6 +18,7 @@ import type {
   NotificationEntityType,
 } from '../../types/notifications';
 import { formatTimeAgo } from '../../store/notificationStore';
+import mockContentImage from '../../assets/img/mock-content.png';
 
 // Extended notification item for component usage with time string
 export interface NotificationItem extends Omit<Notification, 'createdAt'> {
@@ -456,6 +457,24 @@ const NotificationList = ({
   renderEmpty?: () => ReactNode;
   className?: string;
 }) => {
+  // State for global notification modal when onGlobalNotificationClick is not provided
+  const [globalNotificationModal, setGlobalNotificationModal] = useState<{
+    isOpen: boolean;
+    notification: Notification | null;
+  }>({ isOpen: false, notification: null });
+
+  // Default handler for global notifications when onGlobalNotificationClick is not provided
+  const handleGlobalNotificationClick = (notification: Notification) => {
+    if (onGlobalNotificationClick) {
+      onGlobalNotificationClick(notification);
+    } else {
+      // Open modal as fallback
+      setGlobalNotificationModal({
+        isOpen: true,
+        notification,
+      });
+    }
+  };
   // Error state
   if (error) {
     return (
@@ -519,10 +538,21 @@ const NotificationList = ({
               !notification.activity &&
               !notification.goal;
 
+            console.log('DEBUG - Notification:', {
+              id: notification.id,
+              title: notification.title,
+              isGlobal: isGlobalNotification,
+              entityType: notification.entityType,
+              entityId: notification.entityId,
+              activity: notification.activity,
+              goal: notification.goal,
+            });
+
             // Determine navigation handler
             let navigationHandler: (() => void) | undefined;
-            if (isGlobalNotification && onGlobalNotificationClick) {
-              navigationHandler = () => onGlobalNotificationClick(notification);
+            if (isGlobalNotification) {
+              navigationHandler = () =>
+                handleGlobalNotificationClick(notification);
             } else if (
               notification.entityType &&
               notification.entityId &&
@@ -534,6 +564,34 @@ const NotificationList = ({
                   notification.entityId ?? undefined
                 );
             }
+
+            // Determine action label
+            let actionLabel: string | undefined;
+            if (isGlobalNotification) {
+              // For global notifications, call getActionLabel without parameters or with null
+              console.log(
+                'DEBUG - Calling getActionLabel for global notification with undefined'
+              );
+              actionLabel = getActionLabel?.(undefined);
+            } else {
+              // For entity-specific notifications, pass the entityType
+              console.log(
+                'DEBUG - Calling getActionLabel for specific notification with entityType:',
+                notification.entityType
+              );
+              actionLabel = getActionLabel?.(
+                notification.entityType ?? undefined
+              );
+            }
+
+            console.log('DEBUG - ActionLabel result:', actionLabel);
+
+            console.log('DEBUG - SingleNotificationCard props:', {
+              title: notification.title,
+              navigationHandler: !!navigationHandler,
+              actionLabel: actionLabel,
+              bothPresent: !!(navigationHandler && actionLabel),
+            });
 
             return (
               <SingleNotificationCard
@@ -548,14 +606,29 @@ const NotificationList = ({
                 onMarkAsRead={() => onMarkAsReadById?.(notification.id)}
                 onDelete={() => onDeleteById?.(notification.id)}
                 onNavigate={navigationHandler}
-                actionLabel={getActionLabel?.(
-                  notification.entityType ?? undefined
-                )}
+                actionLabel={actionLabel}
               />
             );
           })}
         </div>
       ))}
+
+      {/* Global notification modal for list mode */}
+      <Modal
+        isOpen={globalNotificationModal.isOpen}
+        onClose={() =>
+          setGlobalNotificationModal({ isOpen: false, notification: null })
+        }
+        title={globalNotificationModal.notification?.title || ''}
+        description={globalNotificationModal.notification?.message || ''}
+        variant="activity"
+        image={mockContentImage}
+        actionLink={
+          globalNotificationModal.notification?.actionLink || undefined
+        }
+        actionLabel="Ver mais"
+        size="lg"
+      />
     </div>
   );
 };

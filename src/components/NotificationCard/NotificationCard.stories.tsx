@@ -174,7 +174,7 @@ export const Announcement: Story = () => {
 };
 
 /**
- * Lista de notificações empilhadas
+ * Lista de notificações empilhadas com globais e específicas
  */
 export const Multiple: Story = () => {
   const [notifications, setNotifications] = useState([
@@ -191,25 +191,46 @@ export const Multiple: Story = () => {
     },
     {
       id: '2',
-      title: 'Nova atividade disponível',
-      message: 'Uma nova tarefa foi adicionada à sua lista.',
+      title: 'Sistema será atualizado',
+      message:
+        'O sistema ficará indisponível das 02:00 às 06:00 para manutenção.',
       time: 'Há 4h',
-      type: 'ACTIVITY' as NotificationType,
-      isRead: true,
+      type: 'ANNOUNCEMENT' as NotificationType,
+      isRead: false,
       createdAt: new Date(),
-      entityType: NotificationEntityType.ACTIVITY,
-      entityId: 'act-124',
+      entityType: null,
+      entityId: null,
+      actionLink: null, // Global sem botão
+      activity: null,
+      goal: null,
     },
     {
       id: '3',
-      title: 'Nova trilha disponível',
-      message: 'Explore a nova trilha de matemática.',
+      title: 'Novos recursos disponíveis!',
+      message: 'Implementamos melhorias na área de relatórios.',
       time: '12 Fev',
-      type: 'TRAIL' as NotificationType,
+      type: 'ANNOUNCEMENT' as NotificationType,
+      isRead: true,
+      createdAt: new Date(),
+      entityType: null,
+      entityId: null,
+      actionLink: '/sistema/novidades', // Global com botão
+      activity: null,
+      goal: null,
+    },
+    {
+      id: '4',
+      title: 'Tutorial: Como estudar melhor',
+      message: 'Confira nosso vídeo com dicas de estudo eficaz.',
+      time: '13 Fev',
+      type: 'ANNOUNCEMENT' as NotificationType,
       isRead: false,
       createdAt: new Date(),
-      entityType: NotificationEntityType.TRAIL,
-      entityId: 'trail-456',
+      entityType: null,
+      entityId: null,
+      actionLink: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', // Global com vídeo
+      activity: null,
+      goal: null,
     },
   ]);
 
@@ -242,10 +263,20 @@ export const Multiple: Story = () => {
           console.log('Navigate to:', entityType, entityId);
         }}
         getActionLabel={(entityType) => {
-          if (entityType === NotificationEntityType.ACTIVITY)
+          console.log(
+            'DEBUG - getActionLabel called with entityType:',
+            entityType
+          );
+          if (entityType === NotificationEntityType.ACTIVITY) {
+            console.log('DEBUG - Returning "Ver atividade"');
             return 'Ver atividade';
-          if (entityType === NotificationEntityType.TRAIL) return 'Ver trilha';
-          return undefined;
+          }
+          if (entityType === NotificationEntityType.TRAIL) {
+            console.log('DEBUG - Returning "Ver trilha"');
+            return 'Ver trilha';
+          }
+          console.log('DEBUG - Returning "Ver mais" (default)');
+          return 'Ver mais'; // Para notificações globais
         }}
       />
     </div>
