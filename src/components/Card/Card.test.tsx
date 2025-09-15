@@ -790,6 +790,21 @@ describe('CardStatus', () => {
     );
     expect(screen.getByTestId('custom-status')).toBeInTheDocument();
   });
+
+  it('should not render badge when status is undefined', () => {
+    render(<CardStatus {...baseProps} />);
+    expect(screen.getByText('Questão 1')).toBeInTheDocument();
+    expect(screen.queryByText('Em branco')).not.toBeInTheDocument();
+    expect(screen.queryByText('Correta')).not.toBeInTheDocument();
+    expect(screen.queryByText('Incorreta')).not.toBeInTheDocument();
+  });
+
+  it('should render with default "Em branco" status for invalid status', () => {
+    // @ts-expect-error - Testing invalid status for default case coverage
+    render(<CardStatus {...baseProps} status="invalid" />);
+    expect(screen.getByText('Questão 1')).toBeInTheDocument();
+    expect(screen.getByText('Em branco')).toBeInTheDocument();
+  });
 });
 
 describe('CardSettings', () => {
@@ -1849,6 +1864,80 @@ describe('CardAudio', () => {
       expect(trackElements[0]).toHaveAttribute('kind', 'descriptions');
       expect(trackElements[1]).toHaveAttribute('kind', 'chapters');
       expect(trackElements[2]).toHaveAttribute('kind', 'metadata');
+    });
+
+    it('should close volume control when clicking outside', () => {
+      render(<CardAudio src="audio.mp3" />);
+
+      // Abrir controle de volume
+      const volumeButton = screen.getByLabelText('Controle de volume');
+      fireEvent.click(volumeButton);
+
+      // Verificar que o slider está visível
+      expect(screen.getByLabelText('Volume')).toBeInTheDocument();
+
+      // Simular clique fora
+      fireEvent.mouseDown(document.body);
+
+      // Verificar que o slider não está mais visível
+      expect(screen.queryByLabelText('Volume')).not.toBeInTheDocument();
+    });
+
+    it('should close speed menu when clicking outside', () => {
+      render(<CardAudio src="audio.mp3" />);
+
+      // Abrir menu de velocidade
+      const speedButton = screen.getByLabelText('Opções de velocidade');
+      fireEvent.click(speedButton);
+
+      // Verificar que o menu está visível
+      expect(screen.getByText('1x')).toBeInTheDocument();
+
+      // Simular clique fora
+      fireEvent.mouseDown(document.body);
+
+      // Verificar que o menu não está mais visível
+      expect(screen.queryByText('1x')).not.toBeInTheDocument();
+    });
+
+    it('should close volume control when opening speed menu', () => {
+      render(<CardAudio src="audio.mp3" />);
+
+      // Abrir controle de volume
+      const volumeButton = screen.getByLabelText('Controle de volume');
+      fireEvent.click(volumeButton);
+
+      // Verificar que o slider está visível
+      expect(screen.getByLabelText('Volume')).toBeInTheDocument();
+
+      // Abrir menu de velocidade
+      const speedButton = screen.getByLabelText('Opções de velocidade');
+      fireEvent.click(speedButton);
+
+      // Verificar que o volume control foi fechado
+      expect(screen.queryByLabelText('Volume')).not.toBeInTheDocument();
+      // Verificar que o speed menu está aberto
+      expect(screen.getByText('1x')).toBeInTheDocument();
+    });
+
+    it('should close speed menu when opening volume control', () => {
+      render(<CardAudio src="audio.mp3" />);
+
+      // Abrir menu de velocidade
+      const speedButton = screen.getByLabelText('Opções de velocidade');
+      fireEvent.click(speedButton);
+
+      // Verificar que o menu está visível
+      expect(screen.getByText('1x')).toBeInTheDocument();
+
+      // Abrir controle de volume
+      const volumeButton = screen.getByLabelText('Controle de volume');
+      fireEvent.click(volumeButton);
+
+      // Verificar que o speed menu foi fechado
+      expect(screen.queryByText('1x')).not.toBeInTheDocument();
+      // Verificar que o volume control está aberto
+      expect(screen.getByLabelText('Volume')).toBeInTheDocument();
     });
   });
 });

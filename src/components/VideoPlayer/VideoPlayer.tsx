@@ -167,6 +167,7 @@ const SpeedMenu = ({
   isFullscreen,
 }: SpeedMenuProps) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const speedMenuRef = useRef<HTMLDivElement>(null);
 
   const getMenuPosition = () => {
     if (!buttonRef.current) return { top: 0, left: 0 };
@@ -180,8 +181,28 @@ const SpeedMenu = ({
 
   const position = getMenuPosition();
 
+  useEffect(() => {
+    const handleClickOutside = (event: Event) => {
+      if (
+        speedMenuRef.current &&
+        !speedMenuRef.current.contains(event.target as Node)
+      ) {
+        onToggleMenu();
+      }
+    };
+
+    if (showSpeedMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSpeedMenu, onToggleMenu]);
+
   const menuContent = (
     <div
+      ref={speedMenuRef}
       role="menu"
       aria-label="Playback speed"
       className={
@@ -221,7 +242,7 @@ const SpeedMenu = ({
       : null;
 
   return (
-    <div className="relative">
+    <div className="relative" ref={speedMenuRef}>
       <IconButton
         ref={buttonRef}
         icon={<DotsThreeVertical size={24} />}
