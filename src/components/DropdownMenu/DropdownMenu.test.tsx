@@ -11,6 +11,7 @@ import DropdownMenu, {
   ProfileMenuHeader,
   ProfileMenuSection,
   ProfileMenuTrigger,
+  ProfileToggleTheme,
 } from './DropdownMenu';
 import {
   DropdownMenuTrigger,
@@ -20,6 +21,19 @@ import {
   DropdownMenuSeparator,
 } from './DropdownMenu';
 import React from 'react';
+import type { ThemeMode } from '@/hooks/useTheme';
+
+// Mock do useTheme hook
+const mockUseTheme = {
+  themeMode: 'system' as ThemeMode,
+  isDark: false,
+  setTheme: jest.fn(),
+  toggleTheme: jest.fn(),
+};
+
+jest.mock('@/hooks/useTheme', () => ({
+  useTheme: () => mockUseTheme,
+}));
 
 describe('DropdownMenu component', () => {
   describe('Open/close control', () => {
@@ -705,6 +719,181 @@ describe('ProfileMenu component', () => {
       fireEvent.click(trigger);
 
       expect(handleClick).toHaveBeenCalledTimes(1);
+    });
+  });
+});
+
+describe('ProfileToggleTheme component', () => {
+  // Mock do window.matchMedia
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(), // deprecated
+      removeListener: jest.fn(), // deprecated
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseTheme.themeMode = 'system';
+    mockUseTheme.isDark = false;
+  });
+
+  it('renders ProfileToggleTheme with correct content', () => {
+    render(
+      <DropdownMenu>
+        <ProfileMenuTrigger />
+        <DropdownMenuContent variant="profile">
+          <ProfileToggleTheme />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+
+    // Click to open dropdown
+    fireEvent.click(screen.getByRole('button'));
+
+    // Check if the theme toggle item is rendered
+    expect(screen.getByText('Aparência')).toBeInTheDocument();
+  });
+
+  it('opens modal when ProfileToggleTheme is clicked', async () => {
+    render(
+      <DropdownMenu>
+        <ProfileMenuTrigger />
+        <DropdownMenuContent variant="profile">
+          <ProfileToggleTheme />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+
+    // Click to open dropdown
+    fireEvent.click(screen.getByRole('button'));
+
+    // Click on the theme toggle item
+    const themeItem = screen.getByText('Aparência');
+    fireEvent.click(themeItem);
+
+    // Check if modal is opened
+    await waitFor(() => {
+      expect(screen.getByText('Escolha o tema:')).toBeInTheDocument();
+    });
+  });
+
+  it('closes modal when Cancel button is clicked', async () => {
+    render(
+      <DropdownMenu>
+        <ProfileMenuTrigger />
+        <DropdownMenuContent variant="profile">
+          <ProfileToggleTheme />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+
+    // Click to open dropdown
+    fireEvent.click(screen.getByRole('button'));
+
+    // Click on the theme toggle item
+    const themeItem = screen.getByText('Aparência');
+    fireEvent.click(themeItem);
+
+    // Wait for modal to open
+    await waitFor(() => {
+      expect(screen.getByText('Escolha o tema:')).toBeInTheDocument();
+    });
+
+    // Click Cancel button
+    const cancelButton = screen.getByText('Cancelar');
+    fireEvent.click(cancelButton);
+
+    // Check if modal is closed
+    await waitFor(() => {
+      expect(screen.queryByText('Escolha o tema:')).not.toBeInTheDocument();
+    });
+  });
+
+  it('saves theme when Save button is clicked', async () => {
+    render(
+      <DropdownMenu>
+        <ProfileMenuTrigger />
+        <DropdownMenuContent variant="profile">
+          <ProfileToggleTheme />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+
+    // Click to open dropdown
+    fireEvent.click(screen.getByRole('button'));
+
+    // Click on the theme toggle item
+    const themeItem = screen.getByText('Aparência');
+    fireEvent.click(themeItem);
+
+    // Wait for modal to open
+    await waitFor(() => {
+      expect(screen.getByText('Escolha o tema:')).toBeInTheDocument();
+    });
+
+    // Click Save button
+    const saveButton = screen.getByText('Salvar');
+    fireEvent.click(saveButton);
+
+    // Check if modal is closed (which indicates save was successful)
+    await waitFor(() => {
+      expect(screen.queryByText('Escolha o tema:')).not.toBeInTheDocument();
+    });
+  });
+
+  it('prevents dropdown from closing when theme item is clicked', async () => {
+    render(
+      <DropdownMenu>
+        <ProfileMenuTrigger />
+        <DropdownMenuContent variant="profile">
+          <ProfileToggleTheme />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+
+    // Click to open dropdown
+    fireEvent.click(screen.getByRole('button'));
+
+    // Click on the theme toggle item
+    const themeItem = screen.getByText('Aparência');
+    fireEvent.click(themeItem);
+
+    // Check if dropdown is still open (modal opened but dropdown didn't close)
+    expect(screen.getByText('Escolha o tema:')).toBeInTheDocument();
+  });
+
+  it('renders ThemeToggle component inside modal', async () => {
+    render(
+      <DropdownMenu>
+        <ProfileMenuTrigger />
+        <DropdownMenuContent variant="profile">
+          <ProfileToggleTheme />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+
+    // Click to open dropdown
+    fireEvent.click(screen.getByRole('button'));
+
+    // Click on the theme toggle item
+    const themeItem = screen.getByText('Aparência');
+    fireEvent.click(themeItem);
+
+    // Wait for modal to open and check if ThemeToggle is rendered
+    await waitFor(() => {
+      expect(screen.getByText('Escolha o tema:')).toBeInTheDocument();
+      // Check if theme options are rendered (Claro, Escuro, Sistema)
+      expect(screen.getByText('Claro')).toBeInTheDocument();
+      expect(screen.getByText('Escuro')).toBeInTheDocument();
+      expect(screen.getByText('Sistema')).toBeInTheDocument();
     });
   });
 });
