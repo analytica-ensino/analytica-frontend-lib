@@ -174,7 +174,7 @@ export const Announcement: Story = () => {
 };
 
 /**
- * Lista de notificações empilhadas
+ * Lista de notificações empilhadas com globais e específicas
  */
 export const Multiple: Story = () => {
   const [notifications, setNotifications] = useState([
@@ -191,25 +191,46 @@ export const Multiple: Story = () => {
     },
     {
       id: '2',
-      title: 'Nova atividade disponível',
-      message: 'Uma nova tarefa foi adicionada à sua lista.',
+      title: 'Sistema será atualizado',
+      message:
+        'O sistema ficará indisponível das 02:00 às 06:00 para manutenção.',
       time: 'Há 4h',
-      type: 'ACTIVITY' as NotificationType,
-      isRead: true,
+      type: 'ANNOUNCEMENT' as NotificationType,
+      isRead: false,
       createdAt: new Date(),
-      entityType: NotificationEntityType.ACTIVITY,
-      entityId: 'act-124',
+      entityType: null,
+      entityId: null,
+      actionLink: null, // Global sem botão
+      activity: null,
+      goal: null,
     },
     {
       id: '3',
-      title: 'Nova trilha disponível',
-      message: 'Explore a nova trilha de matemática.',
+      title: 'Novos recursos disponíveis!',
+      message: 'Implementamos melhorias na área de relatórios.',
       time: '12 Fev',
-      type: 'TRAIL' as NotificationType,
+      type: 'ANNOUNCEMENT' as NotificationType,
+      isRead: true,
+      createdAt: new Date(),
+      entityType: null,
+      entityId: null,
+      actionLink: '/sistema/novidades', // Global com botão
+      activity: null,
+      goal: null,
+    },
+    {
+      id: '4',
+      title: 'Tutorial: Como estudar melhor',
+      message: 'Confira nosso vídeo com dicas de estudo eficaz.',
+      time: '13 Fev',
+      type: 'ANNOUNCEMENT' as NotificationType,
       isRead: false,
       createdAt: new Date(),
-      entityType: NotificationEntityType.TRAIL,
-      entityId: 'trail-456',
+      entityType: null,
+      entityId: null,
+      actionLink: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', // Global com vídeo
+      activity: null,
+      goal: null,
     },
   ]);
 
@@ -238,14 +259,12 @@ export const Multiple: Story = () => {
         groupedNotifications={groupedNotifications}
         onMarkAsReadById={handleMarkAsRead}
         onDeleteById={handleDelete}
-        onNavigateById={(entityType, entityId) => {
-          console.log('Navigate to:', entityType, entityId);
-        }}
+        onNavigateById={(_entityType, _entityId) => {}}
         getActionLabel={(entityType) => {
           if (entityType === NotificationEntityType.ACTIVITY)
             return 'Ver atividade';
           if (entityType === NotificationEntityType.TRAIL) return 'Ver trilha';
-          return undefined;
+          return 'Ver mais'; // Para notificações globais
         }}
       />
     </div>
@@ -271,86 +290,6 @@ export const ErrorState: Story = () => (
       error="Erro ao carregar notificações"
       onRetry={() => {}}
     />
-  </div>
-);
-
-/**
- * Lista agrupada por tempo
- */
-export const Grouped: Story = () => {
-  const [notifications, setNotifications] = useState([
-    {
-      id: '1',
-      title: 'Nova atividade disponível',
-      message: 'Uma nova tarefa foi adicionada à sua lista.',
-      time: 'Há 3h',
-      type: 'ACTIVITY' as NotificationType,
-      isRead: false,
-      createdAt: new Date(),
-      entityType: NotificationEntityType.ACTIVITY,
-      entityId: 'act-123',
-    },
-    {
-      id: '2',
-      title: 'Nova trilha disponível',
-      message: 'Explore a nova trilha de matemática.',
-      time: 'Há 4h',
-      type: 'TRAIL' as NotificationType,
-      isRead: true,
-      createdAt: new Date(),
-      entityType: NotificationEntityType.TRAIL,
-      entityId: 'trail-456',
-    },
-    {
-      id: '3',
-      title: 'Sistema será atualizado',
-      message: 'Manutenção programada.',
-      time: '2 dias atrás',
-      type: 'ANNOUNCEMENT' as NotificationType,
-      isRead: false,
-      createdAt: new Date(),
-    },
-  ]);
-
-  const groupedNotifications = [
-    {
-      label: 'Hoje',
-      notifications: notifications.filter((n) => n.id === '1' || n.id === '2'),
-    },
-    {
-      label: 'Última semana',
-      notifications: notifications.filter((n) => n.id === '3'),
-    },
-  ];
-
-  const handleMarkAsRead = createHandleMarkAsRead(setNotifications);
-  const handleDelete = createHandleDelete(setNotifications);
-
-  return (
-    <div className="max-w-md border border-border-100 rounded-xl">
-      <NotificationCard
-        mode="center"
-        groupedNotifications={groupedNotifications}
-        onMarkAsReadById={handleMarkAsRead}
-        onDeleteById={handleDelete}
-        onNavigateById={() => {}}
-        getActionLabel={(entityType) => {
-          if (entityType === NotificationEntityType.ACTIVITY)
-            return 'Ver atividade';
-          if (entityType === NotificationEntityType.TRAIL) return 'Ver trilha';
-          return undefined;
-        }}
-      />
-    </div>
-  );
-};
-
-/**
- * Estado vazio das notificações
- */
-export const Empty: Story = () => (
-  <div className="max-w-md border border-border-100 rounded-xl">
-    <NotificationCard mode="center" groupedNotifications={[]} />
   </div>
 );
 
