@@ -395,7 +395,7 @@ const DropdownMenuItem = forwardRef<
         {...props}
       >
         {iconLeft}
-        <div className="w-full text-md">{children}</div>
+        <div className="w-full">{children}</div>
         {iconRight}
       </div>
     );
