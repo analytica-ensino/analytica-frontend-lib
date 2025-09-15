@@ -20,7 +20,8 @@ import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import Modal from '../Modal/Modal';
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
-import { ThemeMode, useTheme } from '@/hooks/useTheme';
+import type { ThemeMode } from '@/hooks/useTheme';
+import { useTheme } from '@/hooks/useTheme';
 
 interface DropdownStore {
   open: boolean;

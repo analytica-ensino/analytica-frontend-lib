@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeToggle } from './ThemeToggle';
-import { ThemeMode } from '@/hooks/useTheme';
+import type { ThemeMode } from '@/hooks/useTheme';
 
 // Mock do useTheme hook
 const mockUseTheme = {

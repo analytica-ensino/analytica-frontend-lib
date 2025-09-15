@@ -21,7 +21,7 @@ import {
   DropdownMenuSeparator,
 } from './DropdownMenu';
 import React from 'react';
-import { ThemeMode } from '@/hooks/useTheme';
+import type { ThemeMode } from '@/hooks/useTheme';
 
 // Mock do useTheme hook
 const mockUseTheme = {
