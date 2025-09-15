@@ -234,6 +234,7 @@ export interface LegacyNotificationCardProps extends BaseNotificationProps {
     entityType?: NotificationEntityType,
     entityId?: string
   ) => void;
+  onGlobalNotificationClick?: (notification: Notification) => void;
   getActionLabel?: (entityType?: NotificationEntityType) => string | undefined;
   renderEmpty?: () => ReactNode;
 
@@ -445,6 +446,7 @@ const NotificationList = ({
   getActionLabel,
   renderEmpty,
   className,
+  emptyStateImage,
 }: {
   groupedNotifications?: NotificationGroup[];
   loading?: boolean;
@@ -460,6 +462,7 @@ const NotificationList = ({
   getActionLabel?: (entityType?: NotificationEntityType) => string | undefined;
   renderEmpty?: () => ReactNode;
   className?: string;
+  emptyStateImage?: string;
 }) => {
   // State for global notification modal when onGlobalNotificationClick is not provided
   const [globalNotificationModal, setGlobalNotificationModal] = useState<{
@@ -600,7 +603,7 @@ const NotificationList = ({
         title={globalNotificationModal.notification?.title || ''}
         description={globalNotificationModal.notification?.message || ''}
         variant="activity"
-        image={mockContentImage}
+        image={emptyStateImage || mockContentImage}
         actionLink={
           globalNotificationModal.notification?.actionLink || undefined
         }
@@ -720,6 +723,7 @@ const NotificationCenter = ({
                 }}
                 getActionLabel={getActionLabel}
                 renderEmpty={renderEmptyState}
+                emptyStateImage={emptyStateImage}
               />
             </div>
           </div>
@@ -782,6 +786,7 @@ const NotificationCenter = ({
                 }}
                 getActionLabel={getActionLabel}
                 renderEmpty={renderEmptyState}
+                emptyStateImage={emptyStateImage}
               />
             </div>
           </div>
@@ -797,6 +802,7 @@ const NotificationCenter = ({
         title={globalNotificationModal.notification?.title || ''}
         variant="activity"
         description={globalNotificationModal.notification?.message}
+        image={emptyStateImage || mockContentImage}
         actionLink={
           globalNotificationModal.notification?.actionLink || undefined
         }
@@ -851,9 +857,11 @@ const NotificationCard = (props: NotificationCardProps) => {
           onMarkAsReadById={props.onMarkAsReadById}
           onDeleteById={props.onDeleteById}
           onNavigateById={props.onNavigateById}
+          onGlobalNotificationClick={props.onGlobalNotificationClick}
           getActionLabel={props.getActionLabel}
           renderEmpty={props.renderEmpty}
           className={props.className}
+          emptyStateImage={props.emptyStateImage}
         />
       );
 
@@ -912,9 +920,11 @@ export const LegacyNotificationCard = (props: LegacyNotificationCardProps) => {
         onMarkAsReadById={props.onMarkAsReadById}
         onDeleteById={props.onDeleteById}
         onNavigateById={props.onNavigateById}
+        onGlobalNotificationClick={props.onGlobalNotificationClick}
         getActionLabel={props.getActionLabel}
         renderEmpty={props.renderEmpty}
         className={props.className}
+        emptyStateImage={props.emptyStateImage}
       />
     );
   }
