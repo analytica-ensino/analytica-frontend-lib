@@ -2459,7 +2459,7 @@ describe('VideoPlayer', () => {
   });
 
   describe('Speed menu click outside', () => {
-    it('should close speed menu when clicking outside', () => {
+    it('should close speed menu when clicking outside both container and menu', () => {
       render(<VideoPlayer {...defaultProps} />);
 
       // Abrir menu de velocidade
@@ -2471,11 +2471,30 @@ describe('VideoPlayer', () => {
       // Verificar que o menu está visível
       expect(screen.getByText('1x')).toBeInTheDocument();
 
-      // Simular clique fora
+      // Simular clique fora de ambas as refs
       fireEvent.mouseDown(document.body);
 
       // Verificar que o menu foi fechado
       expect(screen.queryByText('1x')).not.toBeInTheDocument();
+    });
+
+    it('should NOT close speed menu when clicking on the speed button container', () => {
+      render(<VideoPlayer {...defaultProps} />);
+
+      // Abrir menu de velocidade
+      const speedButton = screen.getByRole('button', {
+        name: /playback speed/i,
+      });
+      fireEvent.click(speedButton);
+
+      // Verificar que o menu está visível
+      expect(screen.getByText('1x')).toBeInTheDocument();
+
+      // Simular clique no próprio botão (dentro do container)
+      fireEvent.mouseDown(speedButton);
+
+      // Menu deve continuar aberto (não deve fechar)
+      expect(screen.getByText('1x')).toBeInTheDocument();
     });
   });
 

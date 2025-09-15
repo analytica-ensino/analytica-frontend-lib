@@ -167,6 +167,7 @@ const SpeedMenu = ({
   isFullscreen,
 }: SpeedMenuProps) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const speedMenuContainerRef = useRef<HTMLDivElement>(null);
   const speedMenuRef = useRef<HTMLDivElement>(null);
 
   const getMenuPosition = () => {
@@ -183,10 +184,17 @@ const SpeedMenu = ({
 
   useEffect(() => {
     const handleClickOutside = (event: Event) => {
-      if (
-        speedMenuRef.current &&
-        !speedMenuRef.current.contains(event.target as Node)
-      ) {
+      const target = event.target as Node;
+
+      // Check if click is outside both the container and the menu
+      const isOutsideContainer =
+        speedMenuContainerRef.current &&
+        !speedMenuContainerRef.current.contains(target);
+      const isOutsideMenu =
+        speedMenuRef.current && !speedMenuRef.current.contains(target);
+
+      // Only close if click is outside both refs (null-safe checks)
+      if (isOutsideContainer && isOutsideMenu) {
         onToggleMenu();
       }
     };
@@ -242,7 +250,7 @@ const SpeedMenu = ({
       : null;
 
   return (
-    <div className="relative" ref={speedMenuRef}>
+    <div className="relative" ref={speedMenuContainerRef}>
       <IconButton
         ref={buttonRef}
         icon={<DotsThreeVertical size={24} />}
