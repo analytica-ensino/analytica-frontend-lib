@@ -629,3 +629,32 @@
     --shadow-soft-shadow-4: 0px 0px 40px rgba(38, 38, 38, 0.2);
   }
 }
+
+/* Fix para TextArea perder foco visual corretamente quando clicado fora */
+/* Usa as variáveis CSS dinâmicas da lib para funcionar com todos os temas */
+textarea {
+  outline: none !important;
+}
+
+/* Estado normal - sobrescreve classes internas quando não focado */
+textarea:not(:focus) {
+  border-width: 1px !important;
+  border-color: var(--color-border-300) !important;
+}
+
+/* Estado focado - mantém o comportamento padrão da lib */
+textarea:focus {
+  border-width: 2px !important;
+  border-color: var(--color-primary-950) !important;
+}
+
+/* Especificidade adicional para garantir que funcione em todos os contextos */
+div textarea:not(:focus) {
+  border-width: 1px !important;
+  border-color: var(--color-border-300) !important;
+}
+
+div textarea:focus {
+  border-width: 2px !important;
+  border-color: var(--color-primary-950) !important;
+}
