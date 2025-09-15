@@ -167,6 +167,8 @@ const SpeedMenu = ({
   isFullscreen,
 }: SpeedMenuProps) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const speedMenuContainerRef = useRef<HTMLDivElement>(null);
+  const speedMenuRef = useRef<HTMLDivElement>(null);
 
   const getMenuPosition = () => {
     if (!buttonRef.current) return { top: 0, left: 0 };
@@ -180,8 +182,35 @@ const SpeedMenu = ({
 
   const position = getMenuPosition();
 
+  useEffect(() => {
+    const handleClickOutside = (event: Event) => {
+      const target = event.target as Node;
+
+      // Check if click is outside both the container and the menu
+      const isOutsideContainer =
+        speedMenuContainerRef.current &&
+        !speedMenuContainerRef.current.contains(target);
+      const isOutsideMenu =
+        speedMenuRef.current && !speedMenuRef.current.contains(target);
+
+      // Only close if click is outside both refs (null-safe checks)
+      if (isOutsideContainer && isOutsideMenu) {
+        onToggleMenu();
+      }
+    };
+
+    if (showSpeedMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSpeedMenu, onToggleMenu]);
+
   const menuContent = (
     <div
+      ref={speedMenuRef}
       role="menu"
       aria-label="Playback speed"
       className={
@@ -221,7 +250,7 @@ const SpeedMenu = ({
       : null;
 
   return (
-    <div className="relative">
+    <div className="relative" ref={speedMenuContainerRef}>
       <IconButton
         ref={buttonRef}
         icon={<DotsThreeVertical size={24} />}
