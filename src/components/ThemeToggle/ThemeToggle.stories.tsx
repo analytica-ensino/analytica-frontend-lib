@@ -1,6 +1,6 @@
 import { action } from '@ladle/react';
 import { ThemeToggle } from './ThemeToggle';
-import { ThemeMode } from '@/hooks/useTheme';
+import type { ThemeMode } from '@/hooks/useTheme';
 
 export const Default = () => {
   return (
