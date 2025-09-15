@@ -259,23 +259,11 @@ export const Multiple: Story = () => {
         groupedNotifications={groupedNotifications}
         onMarkAsReadById={handleMarkAsRead}
         onDeleteById={handleDelete}
-        onNavigateById={(entityType, entityId) => {
-          console.log('Navigate to:', entityType, entityId);
-        }}
+        onNavigateById={(_entityType, _entityId) => {}}
         getActionLabel={(entityType) => {
-          console.log(
-            'DEBUG - getActionLabel called with entityType:',
-            entityType
-          );
-          if (entityType === NotificationEntityType.ACTIVITY) {
-            console.log('DEBUG - Returning "Ver atividade"');
+          if (entityType === NotificationEntityType.ACTIVITY)
             return 'Ver atividade';
-          }
-          if (entityType === NotificationEntityType.TRAIL) {
-            console.log('DEBUG - Returning "Ver trilha"');
-            return 'Ver trilha';
-          }
-          console.log('DEBUG - Returning "Ver mais" (default)');
+          if (entityType === NotificationEntityType.TRAIL) return 'Ver trilha';
           return 'Ver mais'; // Para notificações globais
         }}
       />

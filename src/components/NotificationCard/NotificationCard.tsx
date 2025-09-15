@@ -538,16 +538,6 @@ const NotificationList = ({
               !notification.activity &&
               !notification.goal;
 
-            console.log('DEBUG - Notification:', {
-              id: notification.id,
-              title: notification.title,
-              isGlobal: isGlobalNotification,
-              entityType: notification.entityType,
-              entityId: notification.entityId,
-              activity: notification.activity,
-              goal: notification.goal,
-            });
-
             // Determine navigation handler
             let navigationHandler: (() => void) | undefined;
             if (isGlobalNotification) {
@@ -569,29 +559,13 @@ const NotificationList = ({
             let actionLabel: string | undefined;
             if (isGlobalNotification) {
               // For global notifications, call getActionLabel without parameters or with null
-              console.log(
-                'DEBUG - Calling getActionLabel for global notification with undefined'
-              );
               actionLabel = getActionLabel?.(undefined);
             } else {
               // For entity-specific notifications, pass the entityType
-              console.log(
-                'DEBUG - Calling getActionLabel for specific notification with entityType:',
-                notification.entityType
-              );
               actionLabel = getActionLabel?.(
                 notification.entityType ?? undefined
               );
             }
-
-            console.log('DEBUG - ActionLabel result:', actionLabel);
-
-            console.log('DEBUG - SingleNotificationCard props:', {
-              title: notification.title,
-              navigationHandler: !!navigationHandler,
-              actionLabel: actionLabel,
-              bothPresent: !!(navigationHandler && actionLabel),
-            });
 
             return (
               <SingleNotificationCard
