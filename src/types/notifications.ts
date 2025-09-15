@@ -58,6 +58,10 @@ export interface Notification {
    */
   entityId?: string | null;
   /**
+   * Action link for global notifications (optional)
+   */
+  actionLink?: string | null;
+  /**
    * Sender information (optional)
    */
   sender?: {
@@ -96,6 +100,7 @@ export interface BackendNotification {
   description: string;
   entityType: string | null;
   entityId: string | null;
+  actionLink?: string | null;
   read: boolean;
   createdAt: string;
   updatedAt: string;

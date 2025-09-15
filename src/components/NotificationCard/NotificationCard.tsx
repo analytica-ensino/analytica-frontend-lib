@@ -436,6 +436,7 @@ const NotificationList = ({
   onMarkAsReadById,
   onDeleteById,
   onNavigateById,
+  onGlobalNotificationClick,
   getActionLabel,
   renderEmpty,
   className,
@@ -450,6 +451,7 @@ const NotificationList = ({
     entityType?: NotificationEntityType,
     entityId?: string
   ) => void;
+  onGlobalNotificationClick?: (notification: Notification) => void;
   getActionLabel?: (entityType?: NotificationEntityType) => string | undefined;
   renderEmpty?: () => ReactNode;
   className?: string;
@@ -509,34 +511,49 @@ const NotificationList = ({
           </div>
 
           {/* Notifications in group */}
-          {group.notifications.map((notification) => (
-            <SingleNotificationCard
-              key={notification.id}
-              title={notification.title}
-              message={notification.message}
-              time={
-                (notification as Partial<NotificationItem>).time ??
-                formatTimeAgo(new Date(notification.createdAt))
-              }
-              isRead={notification.isRead}
-              onMarkAsRead={() => onMarkAsReadById?.(notification.id)}
-              onDelete={() => onDeleteById?.(notification.id)}
-              onNavigate={
-                notification.entityType &&
-                notification.entityId &&
-                onNavigateById
-                  ? () =>
-                      onNavigateById(
-                        notification.entityType ?? undefined,
-                        notification.entityId ?? undefined
-                      )
-                  : undefined
-              }
-              actionLabel={getActionLabel?.(
-                notification.entityType ?? undefined
-              )}
-            />
-          ))}
+          {group.notifications.map((notification) => {
+            // Check if this is a global notification
+            const isGlobalNotification =
+              !notification.entityType &&
+              !notification.entityId &&
+              !notification.activity &&
+              !notification.goal;
+
+            // Determine navigation handler
+            let navigationHandler: (() => void) | undefined;
+            if (isGlobalNotification && onGlobalNotificationClick) {
+              navigationHandler = () => onGlobalNotificationClick(notification);
+            } else if (
+              notification.entityType &&
+              notification.entityId &&
+              onNavigateById
+            ) {
+              navigationHandler = () =>
+                onNavigateById(
+                  notification.entityType ?? undefined,
+                  notification.entityId ?? undefined
+                );
+            }
+
+            return (
+              <SingleNotificationCard
+                key={notification.id}
+                title={notification.title}
+                message={notification.message}
+                time={
+                  (notification as Partial<NotificationItem>).time ??
+                  formatTimeAgo(new Date(notification.createdAt))
+                }
+                isRead={notification.isRead}
+                onMarkAsRead={() => onMarkAsReadById?.(notification.id)}
+                onDelete={() => onDeleteById?.(notification.id)}
+                onNavigate={navigationHandler}
+                actionLabel={getActionLabel?.(
+                  notification.entityType ?? undefined
+                )}
+              />
+            );
+          })}
         </div>
       ))}
     </div>
@@ -570,6 +587,10 @@ const NotificationCenter = ({
 }: NotificationCenterProps) => {
   const { isMobile } = useMobile();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [globalNotificationModal, setGlobalNotificationModal] = useState<{
+    isOpen: boolean;
+    notification: Notification | null;
+  }>({ isOpen: false, notification: null });
 
   // Handle mobile click
   const handleMobileClick = () => {
@@ -589,14 +610,17 @@ const NotificationCenter = ({
     }
   }, [isActive, onFetchNotifications]);
 
-  // Handle navigation with cleanup
-  const handleNavigate = (
-    entityType?: NotificationEntityType,
-    entityId?: string,
-    onCleanup?: () => void
-  ) => {
-    onCleanup?.();
-    onNavigateById?.(entityType, entityId);
+  // Handle global notification modal open
+  const handleGlobalNotificationClick = (notification: Notification) => {
+    setGlobalNotificationModal({
+      isOpen: true,
+      notification: notification,
+    });
+  };
+
+  // Handle global notification modal close
+  const handleCloseGlobalModal = () => {
+    setGlobalNotificationModal({ isOpen: false, notification: null });
   };
 
   const renderEmptyState = () => (
@@ -645,11 +669,14 @@ const NotificationCenter = ({
                 onRetry={onRetry}
                 onMarkAsReadById={onMarkAsReadById}
                 onDeleteById={onDeleteById}
-                onNavigateById={(entityType, entityId) =>
-                  handleNavigate(entityType, entityId, () =>
-                    setIsModalOpen(false)
-                  )
-                }
+                onNavigateById={(entityType, entityId) => {
+                  setIsModalOpen(false);
+                  onNavigateById?.(entityType, entityId);
+                }}
+                onGlobalNotificationClick={(notification) => {
+                  setIsModalOpen(false);
+                  handleGlobalNotificationClick(notification);
+                }}
                 getActionLabel={getActionLabel}
                 renderEmpty={renderEmptyState}
               />
@@ -661,56 +688,74 @@ const NotificationCenter = ({
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="text-primary cursor-pointer">
-        <IconButton
-          active={isActive}
-          onClick={handleDesktopClick}
-          icon={
-            <Bell
-              size={24}
-              className={isActive ? 'text-primary-950' : 'text-primary'}
-            />
-          }
-          className={className}
-        />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        className="min-w-[320px] max-w-[400px] max-h-[500px] overflow-hidden"
-        side="bottom"
-        align="end"
-      >
-        <div className="flex flex-col">
-          <div className="px-4 py-3 border-b border-border-200">
-            <NotificationHeader unreadCount={unreadCount} variant="dropdown" />
-            {unreadCount > 0 && onMarkAllAsRead && (
-              <button
-                type="button"
-                onClick={onMarkAllAsRead}
-                className="text-sm font-medium text-info-600 hover:text-info-700 cursor-pointer mt-2"
-              >
-                Marcar todas como lidas
-              </button>
-            )}
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger className="text-primary cursor-pointer">
+          <IconButton
+            active={isActive}
+            onClick={handleDesktopClick}
+            icon={
+              <Bell
+                size={24}
+                className={isActive ? 'text-primary-950' : 'text-primary'}
+              />
+            }
+            className={className}
+          />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          className="min-w-[320px] max-w-[400px] max-h-[500px] overflow-hidden"
+          side="bottom"
+          align="end"
+        >
+          <div className="flex flex-col">
+            <div className="px-4 py-3 border-b border-border-200">
+              <NotificationHeader
+                unreadCount={unreadCount}
+                variant="dropdown"
+              />
+              {unreadCount > 0 && onMarkAllAsRead && (
+                <button
+                  type="button"
+                  onClick={onMarkAllAsRead}
+                  className="text-sm font-medium text-info-600 hover:text-info-700 cursor-pointer mt-2"
+                >
+                  Marcar todas como lidas
+                </button>
+              )}
+            </div>
+            <div className="max-h-[350px] overflow-y-auto">
+              <NotificationList
+                groupedNotifications={groupedNotifications}
+                loading={loading}
+                error={error}
+                onRetry={onRetry}
+                onMarkAsReadById={onMarkAsReadById}
+                onDeleteById={onDeleteById}
+                onNavigateById={onNavigateById}
+                onGlobalNotificationClick={handleGlobalNotificationClick}
+                getActionLabel={getActionLabel}
+                renderEmpty={renderEmptyState}
+              />
+            </div>
           </div>
-          <div className="max-h-[350px] overflow-y-auto">
-            <NotificationList
-              groupedNotifications={groupedNotifications}
-              loading={loading}
-              error={error}
-              onRetry={onRetry}
-              onMarkAsReadById={onMarkAsReadById}
-              onDeleteById={onDeleteById}
-              onNavigateById={(entityType, entityId) =>
-                handleNavigate(entityType, entityId)
-              }
-              getActionLabel={getActionLabel}
-              renderEmpty={renderEmptyState}
-            />
-          </div>
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Global Notification Modal */}
+      <Modal
+        isOpen={globalNotificationModal.isOpen}
+        onClose={handleCloseGlobalModal}
+        title={globalNotificationModal.notification?.title || ''}
+        variant="activity"
+        description={globalNotificationModal.notification?.message}
+        actionLink={
+          globalNotificationModal.notification?.actionLink || undefined
+        }
+        actionLabel="Ver mais"
+        size="lg"
+      />
+    </>
   );
 };
 
