@@ -1131,6 +1131,66 @@ describe('Internal Helper Functions', () => {
         title: 'Test Goal',
       });
     });
+
+    it('should map actionLink field correctly', async () => {
+      const mockResponse: BackendNotificationsResponse = {
+        notifications: [
+          {
+            id: '1',
+            senderUserInstitutionId: null,
+            receiverUserInstitutionId: 'user-1',
+            title: 'Global Notification',
+            description: 'Global notification with action link',
+            entityType: null,
+            entityId: null,
+            actionLink: 'https://example.com/action',
+            read: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            sender: null,
+            activity: null,
+            goal: null,
+          },
+          {
+            id: '2',
+            senderUserInstitutionId: null,
+            receiverUserInstitutionId: 'user-1',
+            title: 'Notification without action link',
+            description: 'Regular notification',
+            entityType: null,
+            entityId: null,
+            read: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            sender: null,
+            activity: null,
+            goal: null,
+          },
+        ],
+        pagination: { page: 1, limit: 10, total: 2, totalPages: 1 },
+      };
+
+      const mockApiClient: NotificationApiClient = {
+        get: jest.fn().mockResolvedValue({ data: mockResponse }),
+        patch: jest.fn(),
+        delete: jest.fn(),
+      };
+
+      const useStore = createNotificationStore(mockApiClient);
+      const { result } = renderHook(() => useStore());
+
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+
+      const notifications = result.current.notifications;
+
+      // Test notification with actionLink
+      expect(notifications[0].actionLink).toBe('https://example.com/action');
+
+      // Test notification without actionLink (should be null)
+      expect(notifications[1].actionLink).toBe(null);
+    });
   });
 
   describe('groupNotificationsByTime', () => {
