@@ -1,0 +1,18 @@
+export enum SubjectEnum {
+  FISICA = 'Física',
+  HISTORIA = 'História',
+  LITERATURA = 'Literatura',
+  GEOGRAFIA = 'Geografia',
+  BIOLOGIA = 'Biologia',
+  PORTUGUES = 'Português',
+  QUIMICA = 'Química',
+  ARTES = 'Artes',
+  MATEMATICA = 'Matemática',
+  FILOSOFIA = 'Filosofia',
+  ESPANHOL = 'Espanhol',
+  REDACAO = 'Redação',
+  SOCIOLOGIA = 'Sociologia',
+  INGLES = 'Inglês',
+  EDUCACAO_FISICA = 'Educação Física',
+  TRILHAS = 'Trilhas',
+}

@@ -37,7 +37,13 @@ import { AlternativesList } from './components/Alternative/Alternative';
 import { AlertDialog } from './components/AlertDialog/AlertDialog';
 import { MultipleChoiceList } from './components/MultipleChoice/MultipleChoice';
 import IconRender from './components/IconRender/IconRender';
-
+import {
+  SubjectInfo,
+  getSubjectData,
+  getSubjectIcon,
+  getSubjectColorClass,
+  getSubjectName,
+} from './components/Subject/SubjectInfo';
 // Import hooks
 import { useMobile, getDeviceType } from './hooks/useMobile';
 import type { DeviceType } from './hooks/useMobile';
@@ -191,6 +197,13 @@ export type {
   NotificationGroup,
 } from './components/NotificationCard/NotificationCard';
 
+//Subject
+export { SubjectInfo };
+export { getSubjectData };
+export { getSubjectIcon };
+export { getSubjectColorClass };
+export { getSubjectName };
+
 // Export notification store and related functionality
 export { createNotificationStore };
 export { formatTimeAgo };
@@ -299,7 +312,7 @@ export { QuizResultPerformance };
 export { QuizListResultByMateria };
 export { getStatusBadge };
 
-// Export Quiz enums (values) and types
+// Types and Enums
 export {
   QUESTION_DIFFICULTY,
   QUESTION_TYPE,
@@ -307,6 +320,7 @@ export {
   ANSWER_STATUS,
   SUBTYPE_ENUM,
 } from './components/Quiz/useQuizStore';
+export { SubjectEnum } from './enums/SubjectEnum';
 export type {
   QuestionResult,
   Question,
