@@ -202,6 +202,10 @@ interface NotificationCenterMode extends BaseNotificationProps {
    * Function to get action label for a notification
    */
   getActionLabel?: (entityType?: NotificationEntityType) => string | undefined;
+  /**
+   * Callback when dropdown open state changes (for synchronization with parent)
+   */
+  onOpenChange?: (open: boolean) => void;
 }
 
 // Union type for all modes
@@ -245,6 +249,7 @@ export interface LegacyNotificationCardProps extends BaseNotificationProps {
   unreadCount?: number;
   onMarkAllAsRead?: () => void;
   onFetchNotifications?: () => void;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -634,6 +639,7 @@ const NotificationCenter = ({
   getActionLabel,
   onFetchNotifications,
   onMarkAllAsRead,
+  onOpenChange,
   emptyStateImage,
   emptyStateTitle,
   emptyStateDescription,
@@ -655,6 +661,20 @@ const NotificationCenter = ({
   // Handle desktop click
   const handleDesktopClick = () => {
     onToggleActive?.();
+  };
+
+  // Handle dropdown open change
+  const handleOpenChange = (open: boolean) => {
+    const controlledByParent =
+      typeof isActive === 'boolean' && typeof onToggleActive === 'function';
+
+    // Always notify parent if they want the signal.
+    onOpenChange?.(open);
+
+    // If parent controls via toggle only (no onOpenChange), keep them in sync on close.
+    if (controlledByParent && !onOpenChange && !open && isActive) {
+      onToggleActive?.();
+    }
   };
 
   // Fetch notifications when dropdown opens
@@ -734,7 +754,11 @@ const NotificationCenter = ({
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu
+        {...(typeof isActive === 'boolean'
+          ? { open: isActive, onOpenChange: handleOpenChange }
+          : { onOpenChange: handleOpenChange })}
+      >
         <DropdownMenuTrigger className="text-primary cursor-pointer">
           <IconButton
             active={isActive}
