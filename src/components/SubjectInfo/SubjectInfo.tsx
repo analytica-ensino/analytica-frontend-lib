@@ -1,13 +1,14 @@
-import { BookOpenText } from '@/assets/icons/subjects/BookOpenText';
-import { ChatEN } from '@/assets/icons/subjects/ChatEN';
-import { ChatES } from '@/assets/icons/subjects/ChatES';
-import { ChatPT } from '@/assets/icons/subjects/ChatPT';
-import { HeadCircuit } from '@/assets/icons/subjects/HeadCircuit';
-import { Microscope } from '@/assets/icons/subjects/Microscope';
-import { SubjectEnum } from '@/enums/SubjectEnum';
+import { BookOpenText } from '../../assets/icons/subjects/BookOpenText';
+import { ChatEN } from '../../assets/icons/subjects/ChatEN';
+import { ChatES } from '../../assets/icons/subjects/ChatES';
+import { ChatPT } from '../../assets/icons/subjects/ChatPT';
+import { HeadCircuit } from '../../assets/icons/subjects/HeadCircuit';
+import { Microscope } from '../../assets/icons/subjects/Microscope';
+import { SubjectEnum } from '../../enums/SubjectEnum';
 import {
   ArticleNyTimes,
   Atom,
+  Book,
   BookBookmark,
   DribbbleLogo,
   Flask,
@@ -112,8 +113,14 @@ export const SubjectInfo: Record<SubjectEnum, SubjectData> = {
   },
 };
 
-export const getSubjectData = (subject: SubjectEnum): SubjectData => {
-  return SubjectInfo[subject];
+export const getSubjectInfo = (subject: SubjectEnum): SubjectData => {
+  return (
+    SubjectInfo[subject] || {
+      icon: <Book size={17} color="currentColor" />,
+      colorClass: 'bg-subject-16',
+      name: subject,
+    }
+  );
 };
 
 export const getSubjectIcon = (subject: SubjectEnum): ReactElement => {

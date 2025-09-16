@@ -462,7 +462,7 @@ describe('CardProgress', () => {
     render(
       <CardProgress
         {...baseProps}
-        color="blue-500"
+        color="bg-blue-500"
         data-testid="card-progress"
       />
     );
@@ -503,11 +503,11 @@ describe('CardProgress', () => {
 
   it('should handle different Tailwind color classes', () => {
     const tailwindColors = [
-      'red-500',
-      'green-300',
-      'blue-700',
-      'yellow-400',
-      'purple-600',
+      'bg-red-500',
+      'bg-green-300',
+      'bg-blue-700',
+      'bg-yellow-400',
+      'bg-purple-600',
     ];
 
     tailwindColors.forEach((color) => {
@@ -520,7 +520,7 @@ describe('CardProgress', () => {
       );
 
       const iconContainer = screen.getByTestId('icon-container');
-      expect(iconContainer).toHaveClass(`bg-${color}`);
+      expect(iconContainer).toHaveClass(`${color}`);
       // Verifica que não tem backgroundColor definido no style (ou está vazio)
       const style = iconContainer?.getAttribute('style');
       expect(style).toBeNull();
