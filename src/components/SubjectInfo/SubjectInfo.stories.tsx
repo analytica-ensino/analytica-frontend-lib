@@ -18,7 +18,7 @@ const SubjectCard = ({
   isDark?: boolean;
   size?: 'small' | 'large';
 }) => {
-  const cardSize = size === 'small' ? 'w-(21px) h-(21px)' : 'w-(80px) h-(80px)';
+  const cardSize = size === 'small' ? 'w-[21px] h-[21px]' : 'w-[80px] h-[80px]';
   const iconSize = size === 'small' ? 17 : 24;
   const textSize = size === 'small' ? 'xs' : 'sm';
 
