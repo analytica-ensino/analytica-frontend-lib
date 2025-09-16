@@ -1,10 +1,10 @@
-import { BookOpenText } from '@/assets/icons/subjects/BookOpenText';
-import { ChatEN } from '@/assets/icons/subjects/ChatEN';
-import { ChatES } from '@/assets/icons/subjects/ChatES';
-import { ChatPT } from '@/assets/icons/subjects/ChatPT';
-import { HeadCircuit } from '@/assets/icons/subjects/HeadCircuit';
-import { Microscope } from '@/assets/icons/subjects/Microscope';
-import { SubjectEnum } from '@/enums/SubjectEnum';
+import { BookOpenText } from '../../assets/icons/subjects/BookOpenText';
+import { ChatEN } from '../../assets/icons/subjects/ChatEN';
+import { ChatES } from '../../assets/icons/subjects/ChatES';
+import { ChatPT } from '../../assets/icons/subjects/ChatPT';
+import { HeadCircuit } from '../../assets/icons/subjects/HeadCircuit';
+import { Microscope } from '../../assets/icons/subjects/Microscope';
+import { SubjectEnum } from '../../enums/SubjectEnum';
 import {
   ArticleNyTimes,
   Atom,
