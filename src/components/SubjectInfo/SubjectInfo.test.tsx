@@ -14,12 +14,13 @@ describe('SubjectInfo', () => {
   describe('SubjectInfo object structure', () => {
     it('should contain all subject enum values', () => {
       const subjectKeys = Object.keys(SubjectInfo);
-      const enumValues = Object.values(SubjectEnum);
+      const enumKeys = Object.keys(SubjectEnum);
 
-      expect(subjectKeys).toHaveLength(enumValues.length);
+      expect(subjectKeys).toHaveLength(enumKeys.length);
 
-      enumValues.forEach((subject) => {
-        expect(SubjectInfo).toHaveProperty(subject);
+      enumKeys.forEach((enumKey) => {
+        const enumValue = SubjectEnum[enumKey as keyof typeof SubjectEnum];
+        expect(SubjectInfo[enumValue].name).toBe(enumValue);
       });
     });
 

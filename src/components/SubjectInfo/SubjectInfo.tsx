@@ -33,82 +33,82 @@ export const SubjectInfo: Record<SubjectEnum, SubjectData> = {
   [SubjectEnum.FISICA]: {
     icon: <Atom size={17} />,
     colorClass: 'bg-subject-1',
-    name: 'Física',
+    name: SubjectEnum.FISICA,
   },
   [SubjectEnum.HISTORIA]: {
     icon: <Scroll size={17} />,
     colorClass: 'bg-subject-2',
-    name: 'História',
+    name: SubjectEnum.HISTORIA,
   },
   [SubjectEnum.LITERATURA]: {
     icon: <BookOpenText size={17} color="#000000" />,
     colorClass: 'bg-subject-3',
-    name: 'Literatura',
+    name: SubjectEnum.LITERATURA,
   },
   [SubjectEnum.GEOGRAFIA]: {
     icon: <GlobeHemisphereWest size={17} />,
     colorClass: 'bg-subject-4',
-    name: 'Geografia',
+    name: SubjectEnum.GEOGRAFIA,
   },
   [SubjectEnum.BIOLOGIA]: {
     icon: <Microscope size={17} color="#000000" />,
     colorClass: 'bg-subject-5',
-    name: 'Biologia',
+    name: SubjectEnum.BIOLOGIA,
   },
   [SubjectEnum.PORTUGUES]: {
     icon: <ChatPT size={17} color="#000000" />,
     colorClass: 'bg-subject-6',
-    name: 'Português',
+    name: SubjectEnum.PORTUGUES,
   },
   [SubjectEnum.QUIMICA]: {
     icon: <Flask size={17} />,
     colorClass: 'bg-subject-7',
-    name: 'Química',
+    name: SubjectEnum.QUIMICA,
   },
   [SubjectEnum.ARTES]: {
     icon: <Palette size={17} />,
     colorClass: 'bg-subject-8',
-    name: 'Artes',
+    name: SubjectEnum.ARTES,
   },
   [SubjectEnum.MATEMATICA]: {
     icon: <MathOperations size={17} />,
     colorClass: 'bg-subject-9',
-    name: 'Matemática',
+    name: SubjectEnum.MATEMATICA,
   },
   [SubjectEnum.FILOSOFIA]: {
     icon: <HeadCircuit size={17} color="#000000" />,
     colorClass: 'bg-subject-10',
-    name: 'Filosofia',
+    name: SubjectEnum.FILOSOFIA,
   },
   [SubjectEnum.ESPANHOL]: {
     icon: <ChatES size={17} color="#000000" />,
     colorClass: 'bg-subject-11',
-    name: 'Espanhol',
+    name: SubjectEnum.ESPANHOL,
   },
   [SubjectEnum.REDACAO]: {
     icon: <ArticleNyTimes size={17} />,
     colorClass: 'bg-subject-12',
-    name: 'Redação',
+    name: SubjectEnum.REDACAO,
   },
   [SubjectEnum.SOCIOLOGIA]: {
     icon: <Person size={17} />,
     colorClass: 'bg-subject-13',
-    name: 'Sociologia',
+    name: SubjectEnum.SOCIOLOGIA,
   },
   [SubjectEnum.INGLES]: {
     icon: <ChatEN size={17} color="#000000" />,
     colorClass: 'bg-subject-14',
-    name: 'Inglês',
+    name: SubjectEnum.INGLES,
   },
   [SubjectEnum.EDUCACAO_FISICA]: {
     icon: <DribbbleLogo size={17} />,
     colorClass: 'bg-subject-15',
-    name: 'Ed. Física',
+    name: SubjectEnum.EDUCACAO_FISICA,
   },
   [SubjectEnum.TRILHAS]: {
     icon: <BookBookmark size={17} />,
     colorClass: 'bg-subject-16',
-    name: 'Trilhas',
+    name: SubjectEnum.TRILHAS,
   },
 };
 

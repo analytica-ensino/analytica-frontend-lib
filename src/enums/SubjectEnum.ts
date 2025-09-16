@@ -13,6 +13,6 @@ export enum SubjectEnum {
   REDACAO = 'Redação',
   SOCIOLOGIA = 'Sociologia',
   INGLES = 'Inglês',
-  EDUCACAO_FISICA = 'Educação Física',
+  EDUCACAO_FISICA = 'Ed. Física',
   TRILHAS = 'Trilhas',
 }
