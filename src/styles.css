@@ -2,6 +2,8 @@
 
 /* Safelist compacto para todas as cores do tema */
 @source inline("{bg,text,border}-{primary,secondary,tertiary,text,background,border,success,error,warning,info}-{50,{100..900..100},950}");
+
+@source inline("{bg,text,border}-{background-dark,background-light}");
 @source inline("{hover:,focus:,}{bg,text,border}-{primary,secondary,tertiary,text,background,border,success,error,warning,info}-{50,{100..900..100},950}");
 
 /* Safelist para cores customizadas */
@@ -18,6 +20,8 @@
     'Roboto', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
+  --color-background-dark: #181719;
+  --color-background-light: #FBFBFB;
   /* Primary Colors */
   --color-primary: #b3b3b3;
   --color-primary-50: #999999;
