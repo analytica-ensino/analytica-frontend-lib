@@ -205,11 +205,11 @@ describe('useNotifications', () => {
       expect(label).toBeUndefined();
     });
 
-    it('should return undefined when entityType is falsy', () => {
+    it('should return "Ver mais" when entityType is falsy (global notifications)', () => {
       const { result } = renderHook(() => useNotifications());
 
-      expect(result.current.getActionLabel()).toBeUndefined();
-      expect(result.current.getActionLabel('')).toBeUndefined();
+      expect(result.current.getActionLabel()).toBe('Ver mais');
+      expect(result.current.getActionLabel('')).toBe('Ver mais');
     });
   });
 
