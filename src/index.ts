@@ -43,11 +43,11 @@ import {
   getSubjectIcon,
   getSubjectColorClass,
   getSubjectName,
-} from './components/Subject/SubjectInfo';
+} from './components/SubjectInfo/SubjectInfo';
 import type {
   SubjectData,
   IconProps as SubjectIconProps,
-} from './components/Subject/SubjectInfo';
+} from './components/SubjectInfo/SubjectInfo';
 // Import hooks
 import { useMobile, getDeviceType } from './hooks/useMobile';
 import type { DeviceType } from './hooks/useMobile';

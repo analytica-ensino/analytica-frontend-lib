@@ -18,7 +18,7 @@ export default defineConfig({
       'src/components/IconRoundedButton/IconRoundedButton.tsx',
     'IconRender/index': 'src/components/IconRender/IconRender.tsx',
     'Input/index': 'src/components/Input/Input.tsx',
-    'Subject/index': 'src/components/Subject/SubjectInfo.tsx',
+    'SubjectInfo/index': 'src/components/SubjectInfo/SubjectInfo.tsx',
     'NavButton/index': 'src/components/NavButton/NavButton.tsx',
     'Search/index': 'src/components/Search/Search.tsx',
     'ProgressBar/index': 'src/components/ProgressBar/ProgressBar.tsx',
