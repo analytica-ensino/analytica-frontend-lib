@@ -44,6 +44,10 @@ import {
   getSubjectColorClass,
   getSubjectName,
 } from './components/Subject/SubjectInfo';
+import type {
+  SubjectData,
+  IconProps as SubjectIconProps,
+} from './components/Subject/SubjectInfo';
 // Import hooks
 import { useMobile, getDeviceType } from './hooks/useMobile';
 import type { DeviceType } from './hooks/useMobile';
@@ -203,6 +207,8 @@ export { getSubjectData };
 export { getSubjectIcon };
 export { getSubjectColorClass };
 export { getSubjectName };
+export type { SubjectData };
+export type { SubjectIconProps };
 
 // Export notification store and related functionality
 export { createNotificationStore };
