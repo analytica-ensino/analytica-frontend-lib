@@ -167,6 +167,8 @@
   --color-indicator-primary: #373737;
   --color-indicator-info: #5399ec;
   --color-indicator-error: #b91c1c;
+  --color-indicator-positive: #f8cc2e;
+  --color-indicator-negative: #be4f4f;
 
   /* Subject and Exam Colors */
   --color-exam-1: #e3f1fb;
@@ -253,18 +255,18 @@
 @layer base {
   [data-theme='dark'] {
     /* Primary Colors */
-    --color-primary: #a6a6a6;
-    --color-primary-50: #afafaf;
-    --color-primary-100: #bababa;
-    --color-primary-200: #c5c5c5;
-    --color-primary-300: #d4d4d4;
-    --color-primary-400: #dddddd;
-    --color-primary-500: #e6e6e6;
-    --color-primary-600: #f0f0f0;
-    --color-primary-700: #fafafa;
-    --color-primary-800: #fdfdfd;
-    --color-primary-900: #fef9f9;
-    --color-primary-950: #fdfcfc;
+    --color-primary: #F4FAFF;
+    --color-primary-50: #27344A;
+    --color-primary-100: #BBDCF7;
+    --color-primary-200: #91C7F1;
+    --color-primary-300: #67B0EB;
+    --color-primary-400: #48A0E8;
+    --color-primary-500: #2D91E4;
+    --color-primary-600: #2883D7;
+    --color-primary-700: #2271C4;
+    --color-primary-800: #1C61B2;
+    --color-primary-900: #144BA4;
+    --color-primary-950: #80B8E4;
 
     /* Secondary Colors */
     --color-secondary: #141414;
@@ -401,6 +403,8 @@
     --color-indicator-primary: #f7f7f7;
     --color-indicator-info: #a1c7f5;
     --color-indicator-error: #e84645;
+    --color-indicator-positive: #bc9406;
+    --color-indicator-negative: #d08181;
 
     /* Subject and Exam Colors */
     --color-exam-1: #125381;
@@ -590,6 +594,8 @@
     --color-indicator-primary: #373737;
     --color-indicator-info: #5399ec;
     --color-indicator-error: #b91c1c;
+    --color-indicator-positive: #f8cc2e;
+    --color-indicator-negative: #be4f4f;
 
     /* Subject and Exam Colors */
     --color-exam-1: #e3f1fb;

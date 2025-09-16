@@ -464,7 +464,7 @@ const ProfileMenuHeader = forwardRef<
       {...props}
     >
       <span className="size-16 bg-primary-100 rounded-full flex items-center justify-center">
-        <User size={34} className="text-primary-950" />
+        <User size={34} className="text-primary-800" />
       </span>
       <div className="flex flex-col ">
         <Text size="xl" weight="bold" color="text-text-950">
