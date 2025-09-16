@@ -665,8 +665,14 @@ const NotificationCenter = ({
 
   // Handle dropdown open change
   const handleOpenChange = (open: boolean) => {
+    const controlledByParent =
+      typeof isActive === 'boolean' && typeof onToggleActive === 'function';
+
+    // Always notify parent if they want the signal.
     onOpenChange?.(open);
-    if (!open && isActive) {
+
+    // If parent controls via toggle only (no onOpenChange), keep them in sync on close.
+    if (controlledByParent && !onOpenChange && !open && isActive) {
       onToggleActive?.();
     }
   };
@@ -748,7 +754,11 @@ const NotificationCenter = ({
 
   return (
     <>
-      <DropdownMenu open={isActive} onOpenChange={handleOpenChange}>
+      <DropdownMenu
+        {...(typeof isActive === 'boolean'
+          ? { open: isActive, onOpenChange: handleOpenChange }
+          : { onOpenChange: handleOpenChange })}
+      >
         <DropdownMenuTrigger className="text-primary cursor-pointer">
           <IconButton
             active={isActive}
