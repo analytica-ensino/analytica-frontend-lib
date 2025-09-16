@@ -39,7 +39,7 @@ import { MultipleChoiceList } from './components/MultipleChoice/MultipleChoice';
 import IconRender from './components/IconRender/IconRender';
 import {
   SubjectInfo,
-  getSubjectData,
+  getSubjectInfo,
   getSubjectIcon,
   getSubjectColorClass,
   getSubjectName,
@@ -203,7 +203,7 @@ export type {
 
 //Subject
 export { SubjectInfo };
-export { getSubjectData };
+export { getSubjectInfo };
 export { getSubjectIcon };
 export { getSubjectColorClass };
 export { getSubjectName };

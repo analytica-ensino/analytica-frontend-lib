@@ -2,7 +2,7 @@ import { render } from '@testing-library/react';
 import { SubjectEnum } from '@/enums/SubjectEnum';
 import {
   SubjectInfo,
-  getSubjectData,
+  getSubjectInfo,
   getSubjectIcon,
   getSubjectColorClass,
   getSubjectName,
@@ -116,19 +116,50 @@ describe('SubjectInfo', () => {
   });
 
   describe('Helper functions', () => {
-    describe('getSubjectData', () => {
+    describe('getSubjectInfo', () => {
       it('should return correct data for each subject', () => {
         Object.values(SubjectEnum).forEach((subject) => {
-          const data = getSubjectData(subject);
+          const data = getSubjectInfo(subject);
           expect(data).toEqual(SubjectInfo[subject]);
         });
       });
 
       it('should return data with correct structure', () => {
-        const data = getSubjectData(SubjectEnum.FISICA);
+        const data = getSubjectInfo(SubjectEnum.FISICA);
         expect(data).toHaveProperty('icon');
         expect(data).toHaveProperty('colorClass');
         expect(data).toHaveProperty('name');
+      });
+
+      it('should return default data for unknown subjects using type assertion', () => {
+        // Testando com um valor que não existe no enum usando type assertion
+        const unknownSubject = 'Materia' as SubjectEnum;
+        const data = getSubjectInfo(unknownSubject);
+
+        expect(data).toHaveProperty('icon');
+        expect(data).toHaveProperty('colorClass');
+        expect(data).toHaveProperty('name');
+        expect(data.colorClass).toBe('bg-subject-16');
+        expect(data.name).toBe('Materia');
+      });
+
+      it('should return Book icon for unknown subjects', () => {
+        const unknownSubject = 'Programming' as SubjectEnum;
+        const data = getSubjectInfo(unknownSubject);
+        const { container } = render(data.icon);
+
+        expect(container.firstChild).toBeInTheDocument();
+        expect(data.icon.props.size).toBe(17);
+        expect(data.icon.props.color).toBe('currentColor');
+      });
+
+      it('should handle empty string as unknown subject', () => {
+        const emptySubject = '' as SubjectEnum;
+        const data = getSubjectInfo(emptySubject);
+
+        expect(data.name).toBe('');
+        expect(data.colorClass).toBe('bg-subject-16');
+        expect(data.icon).toBeDefined();
       });
     });
 
@@ -212,7 +243,7 @@ describe('SubjectInfo', () => {
       const allSubjects = Object.values(SubjectEnum);
 
       allSubjects.forEach((subject) => {
-        expect(() => getSubjectData(subject)).not.toThrow();
+        expect(() => getSubjectInfo(subject)).not.toThrow();
         expect(() => getSubjectIcon(subject)).not.toThrow();
         expect(() => getSubjectColorClass(subject)).not.toThrow();
         expect(() => getSubjectName(subject)).not.toThrow();
@@ -222,7 +253,7 @@ describe('SubjectInfo', () => {
     it('should maintain consistency between direct access and helper functions', () => {
       Object.values(SubjectEnum).forEach((subject) => {
         const directData = SubjectInfo[subject];
-        const helperData = getSubjectData(subject);
+        const helperData = getSubjectInfo(subject);
 
         expect(directData).toEqual(helperData);
         expect(directData.icon).toBe(getSubjectIcon(subject));

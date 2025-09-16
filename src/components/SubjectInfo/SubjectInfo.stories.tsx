@@ -1,7 +1,7 @@
 import { Story } from '@ladle/react';
 import Text from '../Text/Text';
 import { cloneElement, ReactElement } from 'react';
-import { SubjectInfo, IconProps } from './SubjectInfo';
+import { getSubjectInfo, IconProps } from './SubjectInfo';
 import { SubjectEnum } from '@/enums/SubjectEnum';
 
 // Componente reutilizável para cada matéria
@@ -18,7 +18,7 @@ const SubjectCard = ({
   isDark?: boolean;
   size?: 'small' | 'large';
 }) => {
-  const cardSize = size === 'small' ? 'w-[21px] h-[21px]' : 'w-[80px] h-[80px]';
+  const cardSize = size === 'small' ? 'w-(21px) h-(21px)' : 'w-(80px) h-(80px)';
   const iconSize = size === 'small' ? 17 : 24;
   const textSize = size === 'small' ? 'xs' : 'sm';
 
@@ -40,84 +40,84 @@ const SubjectCard = ({
 export const AllSubjects: Story = () => {
   const subjects = [
     {
-      class: SubjectInfo[SubjectEnum.FISICA].colorClass,
-      icon: SubjectInfo[SubjectEnum.FISICA].icon,
-      label: SubjectInfo[SubjectEnum.FISICA].name,
+      class: getSubjectInfo(SubjectEnum.FISICA).colorClass,
+      icon: getSubjectInfo(SubjectEnum.FISICA).icon,
+      label: getSubjectInfo(SubjectEnum.FISICA).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.HISTORIA].colorClass,
-      icon: SubjectInfo[SubjectEnum.HISTORIA].icon,
-      label: SubjectInfo[SubjectEnum.HISTORIA].name,
+      class: getSubjectInfo(SubjectEnum.HISTORIA).colorClass,
+      icon: getSubjectInfo(SubjectEnum.HISTORIA).icon,
+      label: getSubjectInfo(SubjectEnum.HISTORIA).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.LITERATURA].colorClass,
-      icon: SubjectInfo[SubjectEnum.LITERATURA].icon,
-      label: SubjectInfo[SubjectEnum.LITERATURA].name,
+      class: getSubjectInfo(SubjectEnum.LITERATURA).colorClass,
+      icon: getSubjectInfo(SubjectEnum.LITERATURA).icon,
+      label: getSubjectInfo(SubjectEnum.LITERATURA).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.GEOGRAFIA].colorClass,
-      icon: SubjectInfo[SubjectEnum.GEOGRAFIA].icon,
-      label: SubjectInfo[SubjectEnum.GEOGRAFIA].name,
+      class: getSubjectInfo(SubjectEnum.GEOGRAFIA).colorClass,
+      icon: getSubjectInfo(SubjectEnum.GEOGRAFIA).icon,
+      label: getSubjectInfo(SubjectEnum.GEOGRAFIA).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.BIOLOGIA].colorClass,
-      icon: SubjectInfo[SubjectEnum.BIOLOGIA].icon,
-      label: SubjectInfo[SubjectEnum.BIOLOGIA].name,
+      class: getSubjectInfo(SubjectEnum.BIOLOGIA).colorClass,
+      icon: getSubjectInfo(SubjectEnum.BIOLOGIA).icon,
+      label: getSubjectInfo(SubjectEnum.BIOLOGIA).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.PORTUGUES].colorClass,
-      icon: SubjectInfo[SubjectEnum.PORTUGUES].icon,
-      label: SubjectInfo[SubjectEnum.PORTUGUES].name,
+      class: getSubjectInfo(SubjectEnum.PORTUGUES).colorClass,
+      icon: getSubjectInfo(SubjectEnum.PORTUGUES).icon,
+      label: getSubjectInfo(SubjectEnum.PORTUGUES).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.QUIMICA].colorClass,
-      icon: SubjectInfo[SubjectEnum.QUIMICA].icon,
-      label: SubjectInfo[SubjectEnum.QUIMICA].name,
+      class: getSubjectInfo(SubjectEnum.QUIMICA).colorClass,
+      icon: getSubjectInfo(SubjectEnum.QUIMICA).icon,
+      label: getSubjectInfo(SubjectEnum.QUIMICA).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.ARTES].colorClass,
-      icon: SubjectInfo[SubjectEnum.ARTES].icon,
-      label: SubjectInfo[SubjectEnum.ARTES].name,
+      class: getSubjectInfo(SubjectEnum.ARTES).colorClass,
+      icon: getSubjectInfo(SubjectEnum.ARTES).icon,
+      label: getSubjectInfo(SubjectEnum.ARTES).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.MATEMATICA].colorClass,
-      icon: SubjectInfo[SubjectEnum.MATEMATICA].icon,
-      label: SubjectInfo[SubjectEnum.MATEMATICA].name,
+      class: getSubjectInfo(SubjectEnum.MATEMATICA).colorClass,
+      icon: getSubjectInfo(SubjectEnum.MATEMATICA).icon,
+      label: getSubjectInfo(SubjectEnum.MATEMATICA).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.FILOSOFIA].colorClass,
-      icon: SubjectInfo[SubjectEnum.FILOSOFIA].icon,
-      label: SubjectInfo[SubjectEnum.FILOSOFIA].name,
+      class: getSubjectInfo(SubjectEnum.FILOSOFIA).colorClass,
+      icon: getSubjectInfo(SubjectEnum.FILOSOFIA).icon,
+      label: getSubjectInfo(SubjectEnum.FILOSOFIA).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.ESPANHOL].colorClass,
-      icon: SubjectInfo[SubjectEnum.ESPANHOL].icon,
-      label: SubjectInfo[SubjectEnum.ESPANHOL].name,
+      class: getSubjectInfo(SubjectEnum.ESPANHOL).colorClass,
+      icon: getSubjectInfo(SubjectEnum.ESPANHOL).icon,
+      label: getSubjectInfo(SubjectEnum.ESPANHOL).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.REDACAO].colorClass,
-      icon: SubjectInfo[SubjectEnum.REDACAO].icon,
-      label: SubjectInfo[SubjectEnum.REDACAO].name,
+      class: getSubjectInfo(SubjectEnum.REDACAO).colorClass,
+      icon: getSubjectInfo(SubjectEnum.REDACAO).icon,
+      label: getSubjectInfo(SubjectEnum.REDACAO).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.SOCIOLOGIA].colorClass,
-      icon: SubjectInfo[SubjectEnum.SOCIOLOGIA].icon,
-      label: SubjectInfo[SubjectEnum.SOCIOLOGIA].name,
+      class: getSubjectInfo(SubjectEnum.SOCIOLOGIA).colorClass,
+      icon: getSubjectInfo(SubjectEnum.SOCIOLOGIA).icon,
+      label: getSubjectInfo(SubjectEnum.SOCIOLOGIA).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.INGLES].colorClass,
-      icon: SubjectInfo[SubjectEnum.INGLES].icon,
-      label: SubjectInfo[SubjectEnum.INGLES].name,
+      class: getSubjectInfo(SubjectEnum.INGLES).colorClass,
+      icon: getSubjectInfo(SubjectEnum.INGLES).icon,
+      label: getSubjectInfo(SubjectEnum.INGLES).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.EDUCACAO_FISICA].colorClass,
-      icon: SubjectInfo[SubjectEnum.EDUCACAO_FISICA].icon,
-      label: SubjectInfo[SubjectEnum.EDUCACAO_FISICA].name,
+      class: getSubjectInfo(SubjectEnum.EDUCACAO_FISICA).colorClass,
+      icon: getSubjectInfo(SubjectEnum.EDUCACAO_FISICA).icon,
+      label: getSubjectInfo(SubjectEnum.EDUCACAO_FISICA).name,
     },
     {
-      class: SubjectInfo[SubjectEnum.TRILHAS].colorClass,
-      icon: SubjectInfo[SubjectEnum.TRILHAS].icon,
-      label: SubjectInfo[SubjectEnum.TRILHAS].name,
+      class: getSubjectInfo(SubjectEnum.TRILHAS).colorClass,
+      icon: getSubjectInfo(SubjectEnum.TRILHAS).icon,
+      label: getSubjectInfo(SubjectEnum.TRILHAS).name,
     },
   ];
 
