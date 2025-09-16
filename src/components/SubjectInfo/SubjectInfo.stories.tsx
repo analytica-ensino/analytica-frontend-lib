@@ -25,7 +25,7 @@ const SubjectCard = ({
   return (
     <div className="flex flex-col gap-1 text-center">
       <div
-        className={`${cardSize} ${subjectClass} flex items-center justify-center rounded-md`}
+        className={`${cardSize} ${subjectClass} flex items-center justify-center rounded-md text-text-950`}
         data-theme={isDark ? 'dark' : 'light'}
       >
         {cloneElement(icon, { size: iconSize })}

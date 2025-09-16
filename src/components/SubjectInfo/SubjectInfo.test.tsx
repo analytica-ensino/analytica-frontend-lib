@@ -110,27 +110,7 @@ describe('SubjectInfo', () => {
 
       subjectsWithColor.forEach((subject) => {
         const icon = SubjectInfo[subject].icon;
-        expect(icon.props.color).toBe('#000000');
-      });
-    });
-
-    it('should have icons without color property when not specified', () => {
-      const subjectsWithoutColor = [
-        SubjectEnum.FISICA,
-        SubjectEnum.HISTORIA,
-        SubjectEnum.GEOGRAFIA,
-        SubjectEnum.QUIMICA,
-        SubjectEnum.ARTES,
-        SubjectEnum.MATEMATICA,
-        SubjectEnum.REDACAO,
-        SubjectEnum.SOCIOLOGIA,
-        SubjectEnum.EDUCACAO_FISICA,
-        SubjectEnum.TRILHAS,
-      ];
-
-      subjectsWithoutColor.forEach((subject) => {
-        const icon = SubjectInfo[subject].icon;
-        expect(icon.props.color).toBeUndefined();
+        expect(icon.props.color).toBe('currentColor');
       });
     });
   });
@@ -219,11 +199,11 @@ describe('SubjectInfo', () => {
       // Test that IconProps interface is properly implemented
       const testProps: IconProps = {
         size: 17,
-        color: '#000000',
+        color: 'currentColor',
       };
 
       expect(testProps.size).toBe(17);
-      expect(testProps.color).toBe('#000000');
+      expect(testProps.color).toBe('currentColor');
     });
   });
 

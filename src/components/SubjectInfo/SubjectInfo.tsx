@@ -31,82 +31,82 @@ export interface SubjectData {
 
 export const SubjectInfo: Record<SubjectEnum, SubjectData> = {
   [SubjectEnum.FISICA]: {
-    icon: <Atom size={17} />,
+    icon: <Atom size={17} color="currentColor" />,
     colorClass: 'bg-subject-1',
     name: SubjectEnum.FISICA,
   },
   [SubjectEnum.HISTORIA]: {
-    icon: <Scroll size={17} />,
+    icon: <Scroll size={17} color="currentColor" />,
     colorClass: 'bg-subject-2',
     name: SubjectEnum.HISTORIA,
   },
   [SubjectEnum.LITERATURA]: {
-    icon: <BookOpenText size={17} color="#000000" />,
+    icon: <BookOpenText size={17} color="currentColor" />,
     colorClass: 'bg-subject-3',
     name: SubjectEnum.LITERATURA,
   },
   [SubjectEnum.GEOGRAFIA]: {
-    icon: <GlobeHemisphereWest size={17} />,
+    icon: <GlobeHemisphereWest size={17} color="currentColor" />,
     colorClass: 'bg-subject-4',
     name: SubjectEnum.GEOGRAFIA,
   },
   [SubjectEnum.BIOLOGIA]: {
-    icon: <Microscope size={17} color="#000000" />,
+    icon: <Microscope size={17} color="currentColor" />,
     colorClass: 'bg-subject-5',
     name: SubjectEnum.BIOLOGIA,
   },
   [SubjectEnum.PORTUGUES]: {
-    icon: <ChatPT size={17} color="#000000" />,
+    icon: <ChatPT size={17} color="currentColor" />,
     colorClass: 'bg-subject-6',
     name: SubjectEnum.PORTUGUES,
   },
   [SubjectEnum.QUIMICA]: {
-    icon: <Flask size={17} />,
+    icon: <Flask size={17} color="currentColor" />,
     colorClass: 'bg-subject-7',
     name: SubjectEnum.QUIMICA,
   },
   [SubjectEnum.ARTES]: {
-    icon: <Palette size={17} />,
+    icon: <Palette size={17} color="currentColor" />,
     colorClass: 'bg-subject-8',
     name: SubjectEnum.ARTES,
   },
   [SubjectEnum.MATEMATICA]: {
-    icon: <MathOperations size={17} />,
+    icon: <MathOperations size={17} color="currentColor" />,
     colorClass: 'bg-subject-9',
     name: SubjectEnum.MATEMATICA,
   },
   [SubjectEnum.FILOSOFIA]: {
-    icon: <HeadCircuit size={17} color="#000000" />,
+    icon: <HeadCircuit size={17} color="currentColor" />,
     colorClass: 'bg-subject-10',
     name: SubjectEnum.FILOSOFIA,
   },
   [SubjectEnum.ESPANHOL]: {
-    icon: <ChatES size={17} color="#000000" />,
+    icon: <ChatES size={17} color="currentColor" />,
     colorClass: 'bg-subject-11',
     name: SubjectEnum.ESPANHOL,
   },
   [SubjectEnum.REDACAO]: {
-    icon: <ArticleNyTimes size={17} />,
+    icon: <ArticleNyTimes size={17} color="currentColor" />,
     colorClass: 'bg-subject-12',
     name: SubjectEnum.REDACAO,
   },
   [SubjectEnum.SOCIOLOGIA]: {
-    icon: <Person size={17} />,
+    icon: <Person size={17} color="currentColor" />,
     colorClass: 'bg-subject-13',
     name: SubjectEnum.SOCIOLOGIA,
   },
   [SubjectEnum.INGLES]: {
-    icon: <ChatEN size={17} color="#000000" />,
+    icon: <ChatEN size={17} color="currentColor" />,
     colorClass: 'bg-subject-14',
     name: SubjectEnum.INGLES,
   },
   [SubjectEnum.EDUCACAO_FISICA]: {
-    icon: <DribbbleLogo size={17} />,
+    icon: <DribbbleLogo size={17} color="currentColor" />,
     colorClass: 'bg-subject-15',
     name: SubjectEnum.EDUCACAO_FISICA,
   },
   [SubjectEnum.TRILHAS]: {
-    icon: <BookBookmark size={17} />,
+    icon: <BookBookmark size={17} color="currentColor" />,
     colorClass: 'bg-subject-16',
     name: SubjectEnum.TRILHAS,
   },
