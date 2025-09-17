@@ -18,6 +18,7 @@ export default defineConfig({
       'src/components/IconRoundedButton/IconRoundedButton.tsx',
     'IconRender/index': 'src/components/IconRender/IconRender.tsx',
     'Input/index': 'src/components/Input/Input.tsx',
+    'SubjectInfo/index': 'src/components/SubjectInfo/SubjectInfo.tsx',
     'NavButton/index': 'src/components/NavButton/NavButton.tsx',
     'Search/index': 'src/components/Search/Search.tsx',
     'ProgressBar/index': 'src/components/ProgressBar/ProgressBar.tsx',
@@ -33,6 +34,7 @@ export default defineConfig({
     'Toast/index': 'src/components/Toast/Toast.tsx',
     'Menu/index': 'src/components/Menu/Menu.tsx',
     'Modal/index': 'src/components/Modal/Modal.tsx',
+    'Modal/utils/videoUtils/index': 'src/components/Modal/utils/videoUtils.ts',
     'Card/index': 'src/components/Card/Card.tsx',
     'Calendar/index': 'src/components/Calendar/Calendar.tsx',
     'Stepper/index': 'src/components/Stepper/Stepper.tsx',
@@ -45,6 +47,7 @@ export default defineConfig({
     'Auth/index': 'src/components/Auth/Auth.tsx',
     'Quiz/index': 'src/components/Quiz/Quiz.tsx',
     'Quiz/useQuizStore/index': 'src/components/Quiz/useQuizStore.ts',
+    'utils/index': 'src/utils/utils.ts',
 
     'MultipleChoice/index': 'src/components/MultipleChoice/MultipleChoice.tsx',
 

@@ -2,6 +2,7 @@ import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import Modal from './Modal';
 import Button from '../Button/Button';
+import mockContentImage from '../../assets/img/mock-content.png';
 
 const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
 
@@ -198,6 +199,67 @@ export const ExtraLarge: Story = () => {
       >
         Elevate user interactions with our versatile modals.
       </Modal>
+    </>
+  );
+};
+
+// Activity variant stories
+export const ActivityModal: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <Button onClick={() => setIsOpen(true)}>Abrir Modal de Atividade</Button>
+      <Modal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        variant="activity"
+        title="Nova atividade disponível"
+        description="Uma nova tarefa foi adicionada à sua lista. Não perca a chance de se aprofundar no conteúdo! Clique para iniciar."
+        image={mockContentImage}
+        actionLink="https://example.com"
+        actionLabel="Iniciar Atividade"
+        size="sm"
+      />
+    </>
+  );
+};
+
+export const ActivityModalYouTube: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <Button onClick={() => setIsOpen(true)}>Modal com Vídeo YouTube</Button>
+      <Modal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        variant="activity"
+        title="Assista ao vídeo"
+        description="Confira este conteúdo especial preparado para você."
+        image={mockContentImage}
+        actionLink="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        size="md"
+      />
+    </>
+  );
+};
+
+export const ActivityModalNoAction: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <Button onClick={() => setIsOpen(true)}>Modal Informativo</Button>
+      <Modal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        variant="activity"
+        title="Informação importante"
+        description="Esta é uma mensagem informativa sem ação necessária."
+        image={mockContentImage}
+        size="sm"
+      />
     </>
   );
 };

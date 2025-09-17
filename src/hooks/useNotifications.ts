@@ -74,7 +74,7 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
      */
     const getActionLabel = useCallback(
       (entityType?: string): string | undefined => {
-        if (!entityType) return undefined;
+        if (!entityType) return 'Ver mais';
 
         switch (entityType.toUpperCase()) {
           case NotificationEntityType.ACTIVITY:

@@ -2,6 +2,8 @@
 
 /* Safelist compacto para todas as cores do tema */
 @source inline("{bg,text,border}-{primary,secondary,tertiary,text,background,border,success,error,warning,info}-{50,{100..900..100},950}");
+
+@source inline("{bg,text,border}-{background-dark,background-light}");
 @source inline("{hover:,focus:,}{bg,text,border}-{primary,secondary,tertiary,text,background,border,success,error,warning,info}-{50,{100..900..100},950}");
 
 /* Safelist para cores customizadas */
@@ -18,6 +20,8 @@
     'Roboto', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
+  --color-background-dark: #181719;
+  --color-background-light: #FBFBFB;
   /* Primary Colors */
   --color-primary: #b3b3b3;
   --color-primary-50: #999999;
@@ -167,6 +171,8 @@
   --color-indicator-primary: #373737;
   --color-indicator-info: #5399ec;
   --color-indicator-error: #b91c1c;
+  --color-indicator-positive: #f8cc2e;
+  --color-indicator-negative: #be4f4f;
 
   /* Subject and Exam Colors */
   --color-exam-1: #e3f1fb;
@@ -253,18 +259,18 @@
 @layer base {
   [data-theme='dark'] {
     /* Primary Colors */
-    --color-primary: #a6a6a6;
-    --color-primary-50: #afafaf;
-    --color-primary-100: #bababa;
-    --color-primary-200: #c5c5c5;
-    --color-primary-300: #d4d4d4;
-    --color-primary-400: #dddddd;
-    --color-primary-500: #e6e6e6;
-    --color-primary-600: #f0f0f0;
-    --color-primary-700: #fafafa;
-    --color-primary-800: #fdfdfd;
-    --color-primary-900: #fef9f9;
-    --color-primary-950: #fdfcfc;
+    --color-primary: #F4FAFF;
+    --color-primary-50: #27344A;
+    --color-primary-100: #BBDCF7;
+    --color-primary-200: #91C7F1;
+    --color-primary-300: #67B0EB;
+    --color-primary-400: #48A0E8;
+    --color-primary-500: #2D91E4;
+    --color-primary-600: #2883D7;
+    --color-primary-700: #2271C4;
+    --color-primary-800: #1C61B2;
+    --color-primary-900: #144BA4;
+    --color-primary-950: #80B8E4;
 
     /* Secondary Colors */
     --color-secondary: #141414;
@@ -401,6 +407,8 @@
     --color-indicator-primary: #f7f7f7;
     --color-indicator-info: #a1c7f5;
     --color-indicator-error: #e84645;
+    --color-indicator-positive: #bc9406;
+    --color-indicator-negative: #d08181;
 
     /* Subject and Exam Colors */
     --color-exam-1: #125381;
@@ -590,6 +598,8 @@
     --color-indicator-primary: #373737;
     --color-indicator-info: #5399ec;
     --color-indicator-error: #b91c1c;
+    --color-indicator-positive: #f8cc2e;
+    --color-indicator-negative: #be4f4f;
 
     /* Subject and Exam Colors */
     --color-exam-1: #e3f1fb;
@@ -628,4 +638,33 @@
     --shadow-soft-shadow-3: 0px 0px 30px rgba(38, 38, 38, 0.1);
     --shadow-soft-shadow-4: 0px 0px 40px rgba(38, 38, 38, 0.2);
   }
+}
+
+/* Fix para TextArea perder foco visual corretamente quando clicado fora */
+/* Usa as variáveis CSS dinâmicas da lib para funcionar com todos os temas */
+textarea {
+  outline: none !important;
+}
+
+/* Estado normal - sobrescreve classes internas quando não focado */
+textarea:not(:focus) {
+  border-width: 1px !important;
+  border-color: var(--color-border-300) !important;
+}
+
+/* Estado focado - mantém o comportamento padrão da lib */
+textarea:focus {
+  border-width: 2px !important;
+  border-color: var(--color-primary-950) !important;
+}
+
+/* Especificidade adicional para garantir que funcione em todos os contextos */
+div textarea:not(:focus) {
+  border-width: 1px !important;
+  border-color: var(--color-border-300) !important;
+}
+
+div textarea:focus {
+  border-width: 2px !important;
+  border-color: var(--color-primary-950) !important;
 }

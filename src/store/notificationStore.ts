@@ -120,6 +120,7 @@ const mapBackendNotification = (
     sender: backendNotification.sender,
     activity: backendNotification.activity,
     goal: backendNotification.goal,
+    actionLink: backendNotification.actionLink ?? null,
   };
 };
 

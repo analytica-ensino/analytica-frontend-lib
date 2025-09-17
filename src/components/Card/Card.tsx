@@ -9,6 +9,7 @@ import {
   ChangeEvent,
   KeyboardEvent,
   Ref,
+  useEffect,
 } from 'react';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
@@ -388,7 +389,7 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
             isHorizontal
               ? 'min-w-[80px] min-h-[80px] rounded-l-xl'
               : 'min-h-[50px] w-full rounded-t-xl',
-            !color.startsWith('#') ? `bg-${color}` : ''
+            !color.startsWith('#') ? `${color}` : ''
           )}
           style={color.startsWith('#') ? { backgroundColor: color } : undefined}
           data-testid="icon-container"
@@ -882,6 +883,8 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
     const [showSpeedMenu, setShowSpeedMenu] = useState(false);
     const [playbackRate, setPlaybackRate] = useState(1);
     const audioRef = useRef<HTMLAudioElement>(null);
+    const volumeControlRef = useRef<HTMLDivElement>(null);
+    const speedMenuRef = useRef<HTMLDivElement>(null);
 
     const formatTime = (time: number) => {
       const minutes = Math.floor(time / 60);
@@ -943,10 +946,12 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
 
     const toggleVolumeControl = () => {
       setShowVolumeControl(!showVolumeControl);
+      setShowSpeedMenu(false);
     };
 
     const toggleSpeedMenu = () => {
       setShowSpeedMenu(!showSpeedMenu);
+      setShowVolumeControl(false);
     };
 
     const handleSpeedChange = (speed: number) => {
@@ -966,6 +971,28 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
       }
       return <SpeakerHigh size={24} />;
     };
+
+    useEffect(() => {
+      const handleClickOutside = (event: Event) => {
+        if (
+          volumeControlRef.current &&
+          !volumeControlRef.current.contains(event.target as Node)
+        ) {
+          setShowVolumeControl(false);
+        }
+        if (
+          speedMenuRef.current &&
+          !speedMenuRef.current.contains(event.target as Node)
+        ) {
+          setShowSpeedMenu(false);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, []);
 
     return (
       <CardBase
@@ -1069,7 +1096,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
         </p>
 
         {/* Volume Control */}
-        <div className="relative h-6">
+        <div className="relative h-6" ref={volumeControlRef}>
           <button
             type="button"
             onClick={toggleVolumeControl}
@@ -1131,7 +1158,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
         </div>
 
         {/* Menu Button */}
-        <div className="relative h-6">
+        <div className="relative h-6" ref={speedMenuRef}>
           <button
             type="button"
             onClick={toggleSpeedMenu}

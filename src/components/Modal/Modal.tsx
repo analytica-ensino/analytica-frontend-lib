@@ -1,6 +1,12 @@
-import { ReactNode, MouseEvent, useEffect, KeyboardEvent } from 'react';
+import { ReactNode, useEffect, useId } from 'react';
 import { X } from 'phosphor-react';
 import { cn } from '../../utils/utils';
+import Button from '../Button/Button';
+import {
+  isYouTubeUrl,
+  getYouTubeVideoId,
+  getYouTubeEmbedUrl,
+} from './utils/videoUtils';
 
 /**
  * Lookup table for size classes
@@ -24,19 +30,29 @@ type ModalProps = {
   /** Modal title */
   title: string;
   /** Modal description/content */
-  children: ReactNode;
+  children?: ReactNode;
   /** Size of the modal */
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   /** Additional CSS classes for the modal content */
   className?: string;
-  /** Whether clicking the backdrop should close the modal */
-  closeOnBackdropClick?: boolean;
   /** Whether pressing Escape should close the modal */
   closeOnEscape?: boolean;
   /** Footer content (typically buttons) */
   footer?: ReactNode;
   /** Hide the close button */
   hideCloseButton?: boolean;
+  /** Modal variant */
+  variant?: 'default' | 'activity';
+  /** Description for activity variant */
+  description?: string;
+  /** Image URL for activity variant */
+  image?: string;
+  /** Alt text for activity image (leave empty for decorative images) */
+  imageAlt?: string;
+  /** Action link for activity variant */
+  actionLink?: string;
+  /** Action button label for activity variant */
+  actionLabel?: string;
 };
 
 /**
@@ -50,7 +66,6 @@ type ModalProps = {
  * @param children - The main content of the modal
  * @param size - The size variant (xs, sm, md, lg, xl)
  * @param className - Additional CSS classes for the modal content
- * @param closeOnBackdropClick - Whether clicking the backdrop closes the modal (default: true)
  * @param closeOnEscape - Whether pressing Escape closes the modal (default: true)
  * @param footer - Footer content, typically action buttons
  * @param hideCloseButton - Whether to hide the X close button (default: false)
@@ -81,11 +96,18 @@ const Modal = ({
   children,
   size = 'md',
   className = '',
-  closeOnBackdropClick = true,
   closeOnEscape = true,
   footer,
   hideCloseButton = false,
+  variant = 'default',
+  description,
+  image,
+  imageAlt,
+  actionLink,
+  actionLabel,
 }: ModalProps) => {
+  const titleId = useId();
+
   // Handle escape key
   useEffect(() => {
     if (!isOpen || !closeOnEscape) return;
@@ -114,20 +136,6 @@ const Modal = ({
     };
   }, [isOpen]);
 
-  // Handle backdrop click
-  const handleBackdropClick = (event: MouseEvent<HTMLDivElement>) => {
-    if (closeOnBackdropClick && event.target === event.currentTarget) {
-      onClose();
-    }
-  };
-
-  // Handle backdrop keyboard interaction
-  const handleBackdropKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (closeOnBackdropClick && (event.key === 'Enter' || event.key === ' ')) {
-      onClose();
-    }
-  };
-
   if (!isOpen) return null;
 
   const sizeClasses = SIZE_CLASSES[size];
@@ -143,19 +151,130 @@ const Modal = ({
     className
   );
 
+  // Normalize URLs missing protocol
+  const normalizeUrl = (href: string) =>
+    /^https?:\/\//i.test(href) ? href : `https://${href}`;
+
+  // Handle action link click
+  const handleActionClick = () => {
+    if (actionLink) {
+      window.open(normalizeUrl(actionLink), '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  // Activity variant rendering
+  if (variant === 'activity') {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs border-none p-0 m-0 w-full cursor-default">
+        <dialog
+          className={modalClasses}
+          aria-labelledby={titleId}
+          aria-modal="true"
+          open
+        >
+          {/* Header simples com X */}
+          <div className="flex justify-end p-6 pb-0">
+            {!hideCloseButton && (
+              <button
+                onClick={onClose}
+                className="p-1 text-text-500 hover:text-text-700 hover:bg-background-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-indicator-info focus:ring-offset-2"
+                aria-label="Fechar modal"
+              >
+                <X size={18} />
+              </button>
+            )}
+          </div>
+
+          {/* Conteúdo centralizado */}
+          <div className="flex flex-col items-center px-6 pb-6 gap-5">
+            {/* Imagem ilustrativa */}
+            {image && (
+              <div className="flex justify-center">
+                <img
+                  src={image}
+                  alt={imageAlt ?? ''}
+                  className="w-[122px] h-[122px] object-contain"
+                />
+              </div>
+            )}
+
+            {/* Título */}
+            <h2
+              id={titleId}
+              className="text-lg font-semibold text-text-950 text-center"
+            >
+              {title}
+            </h2>
+
+            {/* Descrição */}
+            {description && (
+              <p className="text-sm font-normal text-text-400 text-center max-w-md leading-[21px]">
+                {description}
+              </p>
+            )}
+
+            {/* Ação: Botão ou Vídeo Embedado */}
+            {actionLink && (
+              <div className="w-full">
+                {(() => {
+                  const normalized = normalizeUrl(actionLink);
+                  const isYT = isYouTubeUrl(normalized);
+                  if (!isYT) return null;
+                  const id = getYouTubeVideoId(normalized);
+                  if (!id) {
+                    return (
+                      <Button
+                        variant="solid"
+                        action="primary"
+                        size="large"
+                        className="w-full"
+                        onClick={handleActionClick}
+                      >
+                        {actionLabel || 'Iniciar Atividade'}
+                      </Button>
+                    );
+                  }
+                  return (
+                    <iframe
+                      src={getYouTubeEmbedUrl(id)}
+                      className="w-full aspect-video rounded-lg"
+                      allowFullScreen
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      title="Vídeo YouTube"
+                    />
+                  );
+                })()}
+                {!isYouTubeUrl(normalizeUrl(actionLink)) && (
+                  <Button
+                    variant="solid"
+                    action="primary"
+                    size="large"
+                    className="w-full"
+                    onClick={handleActionClick}
+                  >
+                    {actionLabel || 'Iniciar Atividade'}
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        </dialog>
+      </div>
+    );
+  }
+
+  // Default variant rendering
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs"
-      onClick={handleBackdropClick}
-      onKeyDown={handleBackdropKeyDown}
-      role="button"
-      tabIndex={closeOnBackdropClick ? 0 : -1}
-      aria-label="Fechar modal clicando no fundo"
-    >
-      <dialog className={modalClasses} aria-labelledby="modal-title" open>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs border-none p-0 m-0 w-full cursor-default">
+      <dialog
+        className={modalClasses}
+        aria-labelledby={titleId}
+        aria-modal="true"
+        open
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-6">
-          <h2 id="modal-title" className="text-lg font-semibold text-text-950">
+          <h2 id={titleId} className="text-lg font-semibold text-text-950">
             {title}
           </h2>
           {!hideCloseButton && (
@@ -170,11 +289,13 @@ const Modal = ({
         </div>
 
         {/* Content */}
-        <div className="px-6 pb-6">
-          <div className="text-text-500 font-normal text-sm leading-6">
-            {children}
+        {children && (
+          <div className="px-6 pb-6">
+            <div className="text-text-500 font-normal text-sm leading-6">
+              {children}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Footer */}
         {footer && (

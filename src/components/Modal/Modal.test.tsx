@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Modal from './Modal';
+import * as videoUtils from './utils/videoUtils';
 
 describe('Modal', () => {
   const defaultProps = {
@@ -68,39 +69,6 @@ describe('Modal', () => {
     });
   });
 
-  it('deve chamar onClose quando o backdrop é clicado', () => {
-    const onClose = jest.fn();
-    render(<Modal {...defaultProps} onClose={onClose} />);
-
-    // O backdrop agora é o primeiro div (overlay)
-    const backdrop = document.querySelector('.fixed.inset-0.z-50');
-    fireEvent.click(backdrop!);
-
-    expect(onClose).toHaveBeenCalledTimes(1);
-  });
-
-  it('não deve chamar onClose quando o backdrop é clicado e closeOnBackdropClick é false', () => {
-    const onClose = jest.fn();
-    render(
-      <Modal {...defaultProps} onClose={onClose} closeOnBackdropClick={false} />
-    );
-
-    const backdrop = document.querySelector('.fixed.inset-0.z-50');
-    fireEvent.click(backdrop!);
-
-    expect(onClose).not.toHaveBeenCalled();
-  });
-
-  it('não deve chamar onClose quando clica dentro do modal', () => {
-    const onClose = jest.fn();
-    render(<Modal {...defaultProps} onClose={onClose} />);
-
-    const modalContent = screen.getByText('Test content');
-    fireEvent.click(modalContent);
-
-    expect(onClose).not.toHaveBeenCalled();
-  });
-
   it('deve renderizar o footer quando fornecido', () => {
     const footer = <button>Footer Button</button>;
     render(<Modal {...defaultProps} footer={footer} />);
@@ -150,37 +118,10 @@ describe('Modal', () => {
   it('deve usar elemento dialog para acessibilidade', () => {
     render(<Modal {...defaultProps} />);
 
-    const dialog = document.querySelector('dialog');
+    const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
-    expect(dialog).toHaveAttribute('aria-labelledby', 'modal-title');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
     expect(dialog).toHaveAttribute('open');
-  });
-
-  it('deve chamar onClose quando Enter ou Space é pressionado no backdrop', () => {
-    const onClose = jest.fn();
-    render(<Modal {...defaultProps} onClose={onClose} />);
-
-    const backdrop = document.querySelector('.fixed.inset-0.z-50');
-
-    // Testar Enter
-    fireEvent.keyDown(backdrop!, { key: 'Enter' });
-    expect(onClose).toHaveBeenCalledTimes(1);
-
-    // Testar Space
-    fireEvent.keyDown(backdrop!, { key: ' ' });
-    expect(onClose).toHaveBeenCalledTimes(2);
-  });
-
-  it('não deve chamar onClose quando Enter é pressionado no backdrop e closeOnBackdropClick é false', () => {
-    const onClose = jest.fn();
-    render(
-      <Modal {...defaultProps} onClose={onClose} closeOnBackdropClick={false} />
-    );
-
-    const backdrop = document.querySelector('.fixed.inset-0.z-50');
-    fireEvent.keyDown(backdrop!, { key: 'Enter' });
-
-    expect(onClose).not.toHaveBeenCalled();
   });
 
   describe('Tamanhos', () => {
@@ -217,6 +158,184 @@ describe('Modal', () => {
 
       const modalContent = document.querySelector('dialog');
       expect(modalContent).toHaveClass('max-w-[970px]');
+    });
+  });
+
+  describe('Activity variant', () => {
+    const activityProps = {
+      isOpen: true,
+      onClose: jest.fn(),
+      title: 'Nova atividade',
+      variant: 'activity' as const,
+      description: 'Descrição da atividade',
+      image: 'https://example.com/image.png',
+      actionLink: 'https://example.com',
+      actionLabel: 'Iniciar',
+    };
+
+    it('deve renderizar modal de atividade com todas as props', () => {
+      render(<Modal {...activityProps} />);
+
+      expect(screen.getByText('Nova atividade')).toBeInTheDocument();
+      expect(screen.getByText('Descrição da atividade')).toBeInTheDocument();
+      expect(screen.getByText('Iniciar')).toBeInTheDocument();
+
+      const image = screen.getByAltText('');
+      expect(image).toHaveAttribute('src', 'https://example.com/image.png');
+    });
+
+    it('deve renderizar iframe do YouTube quando actionLink é URL do YouTube', () => {
+      // Mock das funções de videoUtils
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(true);
+      jest
+        .spyOn(videoUtils, 'getYouTubeVideoId')
+        .mockReturnValue('dQw4w9WgXcQ');
+      jest
+        .spyOn(videoUtils, 'getYouTubeEmbedUrl')
+        .mockReturnValue(
+          'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=0&rel=0&modestbranding=1'
+        );
+
+      render(
+        <Modal
+          {...activityProps}
+          actionLink="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        />
+      );
+
+      const iframe = document.querySelector('iframe');
+      expect(iframe).toBeInTheDocument();
+      expect(iframe).toHaveAttribute(
+        'src',
+        'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=0&rel=0&modestbranding=1'
+      );
+      expect(iframe).toHaveAttribute('title', 'Vídeo YouTube');
+    });
+
+    it('deve exibir botão quando URL é do YouTube mas ID não é extraído', () => {
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(true);
+      jest.spyOn(videoUtils, 'getYouTubeVideoId').mockReturnValue(null);
+
+      render(
+        <Modal
+          {...activityProps}
+          actionLabel="Iniciar"
+          actionLink="https://www.youtube.com/watch"
+        />
+      );
+
+      expect(screen.getByText('Iniciar')).toBeInTheDocument();
+      expect(document.querySelector('iframe')).not.toBeInTheDocument();
+    });
+
+    it('deve renderizar botão quando actionLink não é YouTube', () => {
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(false);
+
+      const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation();
+
+      render(<Modal {...activityProps} />);
+
+      const button = screen.getByText('Iniciar');
+      expect(button).toBeInTheDocument();
+
+      fireEvent.click(button);
+      expect(windowOpenSpy).toHaveBeenCalledWith(
+        'https://example.com',
+        '_blank',
+        'noopener,noreferrer'
+      );
+
+      windowOpenSpy.mockRestore();
+    });
+
+    it('não deve renderizar ação quando actionLink é null', () => {
+      render(<Modal {...activityProps} actionLink={undefined} />);
+
+      expect(screen.queryByText('Iniciar')).not.toBeInTheDocument();
+      expect(document.querySelector('iframe')).not.toBeInTheDocument();
+    });
+
+    it('não deve renderizar imagem quando image é undefined', () => {
+      render(<Modal {...activityProps} image={undefined} />);
+
+      expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    });
+
+    it('não deve renderizar descrição quando description é undefined', () => {
+      render(<Modal {...activityProps} description={undefined} />);
+
+      expect(
+        screen.queryByText('Descrição da atividade')
+      ).not.toBeInTheDocument();
+    });
+
+    it('deve usar label padrão quando actionLabel não é fornecido', () => {
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(false);
+
+      render(<Modal {...activityProps} actionLabel={undefined} />);
+
+      expect(screen.getByText('Iniciar Atividade')).toBeInTheDocument();
+    });
+
+    it('deve ter layout centralizado para variante activity', () => {
+      render(<Modal {...activityProps} />);
+
+      const contentDiv = document.querySelector(
+        '.flex.flex-col.items-center.px-6.pb-6.gap-5'
+      );
+      expect(contentDiv).toBeInTheDocument();
+    });
+
+    it('deve ter header apenas com botão X na variante activity', () => {
+      render(<Modal {...activityProps} />);
+
+      const header = document.querySelector('.flex.justify-end.p-6.pb-0');
+      expect(header).toBeInTheDocument();
+
+      // Não deve ter título no header para variante activity
+      const headerTitle = header?.querySelector('h2');
+      expect(headerTitle).not.toBeInTheDocument();
+    });
+
+    it('deve exibir botão quando URL é do YouTube mas ID não é extraído', () => {
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(true);
+      jest.spyOn(videoUtils, 'getYouTubeVideoId').mockReturnValue(null);
+      render(
+        <Modal
+          {...activityProps}
+          actionLabel="Iniciar"
+          actionLink="https://www.youtube.com/watch"
+        />
+      );
+      expect(screen.getByText('Iniciar')).toBeInTheDocument();
+      expect(document.querySelector('iframe')).not.toBeInTheDocument();
+    });
+
+    it('deve usar label padrão quando YouTube ID é null e actionLabel não fornecido', () => {
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(true);
+      jest.spyOn(videoUtils, 'getYouTubeVideoId').mockReturnValue(null);
+      render(
+        <Modal
+          {...activityProps}
+          actionLink="https://www.youtube.com/watch"
+          actionLabel={undefined}
+        />
+      );
+      expect(screen.getByText('Iniciar Atividade')).toBeInTheDocument();
+      expect(document.querySelector('iframe')).not.toBeInTheDocument();
+    });
+
+    it('deve normalizar URL sem protocolo ao abrir em nova aba', () => {
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(false);
+      const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation();
+      render(<Modal {...activityProps} actionLink="example.com/path" />);
+      fireEvent.click(screen.getByText('Iniciar'));
+      expect(windowOpenSpy).toHaveBeenCalledWith(
+        'https://example.com/path',
+        '_blank',
+        'noopener,noreferrer'
+      );
+      windowOpenSpy.mockRestore();
     });
   });
 });
