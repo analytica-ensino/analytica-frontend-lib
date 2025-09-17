@@ -1627,6 +1627,7 @@ describe('NotificationCard', () => {
       render(
         <NotificationCard
           mode="center"
+          getActionLabel={() => 'Ver mais'}
           groupedNotifications={[
             {
               label: 'Global',
@@ -1644,12 +1645,10 @@ describe('NotificationCard', () => {
       let closeButton = await screen.findByLabelText('Fechar modal');
       expect(closeButton).toBeInTheDocument();
 
-      // 3. Click on the global notification to trigger onGlobalNotificationClick
+      // 3. Click the action button to invoke onGlobalNotificationClick (lines 762-763)
       // This should execute lines 762-763: setIsModalOpen(false) and setGlobalNotificationModal
-      const globalNotificationElement = screen.getByText(
-        'Global Notification Test'
-      );
-      fireEvent.click(globalNotificationElement);
+      const actionBtn = screen.getByText('Ver mais');
+      fireEvent.click(actionBtn);
 
       // 4. The click should trigger lines 762-763:
       // Line 762: setIsModalOpen(false) - This closes the mobile modal
@@ -1657,6 +1656,8 @@ describe('NotificationCard', () => {
 
       // We verify that both actions happened by checking the notification is still accessible
       // and the modal content has changed (global modal has different structure)
+      // Mobile list modal closed, global modal opened with the notification content
+      expect(screen.queryByText('Notificações')).not.toBeInTheDocument();
       expect(screen.getByText('Global Notification Test')).toBeInTheDocument();
       expect(
         screen.getByText('This notification will trigger lines 762-763')

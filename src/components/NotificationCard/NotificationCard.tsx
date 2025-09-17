@@ -1,12 +1,6 @@
 import { DotsThreeVertical, Bell } from 'phosphor-react';
-import {
-  MouseEvent,
-  ReactNode,
-  useState,
-  useEffect,
-  Dispatch,
-  SetStateAction,
-} from 'react';
+import { MouseEvent, ReactNode, useState, useEffect } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import { cn } from '../../utils/utils';
 import DropdownMenu, {
   DropdownMenuContent,
@@ -34,13 +28,11 @@ import mockContentImage from '../../assets/img/mock-content.png';
 export const syncNotificationState = (
   open: boolean,
   isNotificationActive: boolean,
-  setActiveStates: Dispatch<SetStateAction<Record<string, boolean>>>
+  setActiveStates: Dispatch<SetStateAction<Record<string, boolean>>>,
+  key: string = 'notifications'
 ) => {
   if (!open && isNotificationActive) {
-    setActiveStates((prev) => ({
-      ...prev,
-      notifications: false,
-    }));
+    setActiveStates((prev) => ({ ...prev, [key]: false }));
   }
 };
 
@@ -772,6 +764,22 @@ const NotificationCenter = ({
             </div>
           </div>
         </Modal>
+        {/* Global Notification Modal (mobile) */}
+        <Modal
+          isOpen={globalNotificationModal.isOpen}
+          onClose={() =>
+            setGlobalNotificationModal({ isOpen: false, notification: null })
+          }
+          title={globalNotificationModal.notification?.title || ''}
+          variant="activity"
+          description={globalNotificationModal.notification?.message}
+          image={emptyStateImage || mockContentImage}
+          actionLink={
+            globalNotificationModal.notification?.actionLink || undefined
+          }
+          actionLabel="Ver mais"
+          size="lg"
+        />
       </>
     );
   }
