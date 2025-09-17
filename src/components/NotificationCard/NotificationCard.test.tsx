@@ -1,8 +1,8 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import NotificationCard, {
   NotificationGroup,
   LegacyNotificationCard,
+  syncNotificationState,
 } from './NotificationCard';
 import {
   NotificationEntityType,
@@ -1608,6 +1608,66 @@ describe('NotificationCard', () => {
         screen.getAllByText('Test Global Notification').length
       ).toBeGreaterThan(0);
     });
+
+    it('should handle global notification click in mobile modal and execute lines 762-763', async () => {
+      const globalNotification: Notification = {
+        id: 'global-1',
+        title: 'Global Notification Test',
+        message: 'This notification will trigger lines 762-763',
+        type: 'GENERAL',
+        isRead: false,
+        createdAt: new Date(),
+        entityType: undefined, // No entityType makes it global
+        entityId: undefined, // No entityId makes it global
+        sender: null,
+        activity: null,
+        goal: null,
+      };
+
+      render(
+        <NotificationCard
+          mode="center"
+          getActionLabel={() => 'Ver mais'}
+          groupedNotifications={[
+            {
+              label: 'Global',
+              notifications: [globalNotification],
+            },
+          ]}
+        />
+      );
+
+      // 1. Open mobile modal first
+      const mobileButton = screen.getByRole('button');
+      fireEvent.click(mobileButton);
+
+      // 2. Verify mobile modal is open
+      let closeButton = await screen.findByLabelText('Fechar modal');
+      expect(closeButton).toBeInTheDocument();
+
+      // 3. Click the action button to invoke onGlobalNotificationClick (lines 762-763)
+      // This should execute lines 762-763: setIsModalOpen(false) and setGlobalNotificationModal
+      const actionBtn = screen.getByText('Ver mais');
+      fireEvent.click(actionBtn);
+
+      // 4. The click should trigger lines 762-763:
+      // Line 762: setIsModalOpen(false) - This closes the mobile modal
+      // Line 763: setGlobalNotificationModal({isOpen: true, notification}) - This opens the global modal
+
+      // We verify that both actions happened by checking the notification is still accessible
+      // and the modal content has changed (global modal has different structure)
+      // Mobile list modal closed, global modal opened with the notification content
+      expect(screen.queryByText('Notificações')).not.toBeInTheDocument();
+      expect(screen.getByText('Global Notification Test')).toBeInTheDocument();
+      expect(
+        screen.getByText('This notification will trigger lines 762-763')
+      ).toBeInTheDocument();
+
+      // The test successfully covers the execution of lines 762-763 by:
+      // 1. Opening the mobile modal
+      // 2. Clicking a global notification which triggers the onGlobalNotificationClick callback
+      // 3. Verifying the notification content remains accessible (in the new global modal)
+    });
   });
 
   describe('NotificationCenter desktop', () => {
@@ -2065,6 +2125,50 @@ describe('NotificationCard', () => {
       expect(
         screen.getByText('Nenhuma notificação configurada')
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('syncNotificationState', () => {
+    it('should update state when open is false and notification is active', () => {
+      const mockSetActiveStates = jest.fn();
+
+      syncNotificationState(false, true, mockSetActiveStates);
+
+      expect(mockSetActiveStates).toHaveBeenCalledWith(expect.any(Function));
+
+      // Test the callback function
+      const callback = mockSetActiveStates.mock.calls[0][0];
+      const prevState = { notifications: true, profile: false };
+      const result = callback(prevState);
+
+      expect(result).toEqual({
+        notifications: false,
+        profile: false,
+      });
+    });
+
+    it('should not update state when open is true', () => {
+      const mockSetActiveStates = jest.fn();
+
+      syncNotificationState(true, true, mockSetActiveStates);
+
+      expect(mockSetActiveStates).not.toHaveBeenCalled();
+    });
+
+    it('should not update state when notification is not active', () => {
+      const mockSetActiveStates = jest.fn();
+
+      syncNotificationState(false, false, mockSetActiveStates);
+
+      expect(mockSetActiveStates).not.toHaveBeenCalled();
+    });
+
+    it('should not update state when open is true and notification is not active', () => {
+      const mockSetActiveStates = jest.fn();
+
+      syncNotificationState(true, false, mockSetActiveStates);
+
+      expect(mockSetActiveStates).not.toHaveBeenCalled();
     });
   });
 });

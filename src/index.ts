@@ -200,6 +200,7 @@ export { Modal };
 export { AlertDialog };
 export { LoadingModal };
 export { NotificationCard };
+export { syncNotificationState } from './components/NotificationCard/NotificationCard';
 export { ThemeToggle };
 export type {
   NotificationItem,
