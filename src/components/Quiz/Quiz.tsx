@@ -1801,7 +1801,6 @@ const QuizFooter = forwardRef<
           isOpen={isModalOpen('modalQuestionnaireAllCorrect')}
           onClose={closeModal}
           title=""
-          closeOnBackdropClick={false}
           closeOnEscape={false}
           hideCloseButton
           size={'md'}
@@ -1835,7 +1834,6 @@ const QuizFooter = forwardRef<
           isOpen={isModalOpen('modalQuestionnaireAllIncorrect')}
           onClose={closeModal}
           title=""
-          closeOnBackdropClick={false}
           closeOnEscape={false}
           hideCloseButton
           size={'md'}
