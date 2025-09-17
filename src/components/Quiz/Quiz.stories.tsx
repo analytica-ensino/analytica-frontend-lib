@@ -1,17 +1,13 @@
 import type { Story } from '@ladle/react';
+import { Quiz, QuizContent, QuizFooter, QuizHeader, QuizTitle } from './Quiz';
 import {
-  Quiz,
-  QuizContent,
-  QuizFooter,
-  QuizHeader,
   QuizHeaderResult,
-  QuizTitle,
   QuizListResult,
   QuizResultHeaderTitle,
   QuizResultTitle,
   QuizResultPerformance,
   QuizListResultByMateria,
-} from './Quiz';
+} from './QuizResult';
 import {
   QUESTION_DIFFICULTY,
   QUESTION_TYPE,
