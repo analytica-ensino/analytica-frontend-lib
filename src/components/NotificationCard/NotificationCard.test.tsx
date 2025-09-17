@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import NotificationCard, {
   NotificationGroup,
   LegacyNotificationCard,
+  syncNotificationState,
 } from './NotificationCard';
 import {
   NotificationEntityType,
@@ -2065,6 +2066,50 @@ describe('NotificationCard', () => {
       expect(
         screen.getByText('Nenhuma notificação configurada')
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('syncNotificationState', () => {
+    it('should update state when open is false and notification is active', () => {
+      const mockSetActiveStates = jest.fn();
+
+      syncNotificationState(false, true, mockSetActiveStates);
+
+      expect(mockSetActiveStates).toHaveBeenCalledWith(expect.any(Function));
+
+      // Test the callback function
+      const callback = mockSetActiveStates.mock.calls[0][0];
+      const prevState = { notifications: true, profile: false };
+      const result = callback(prevState);
+
+      expect(result).toEqual({
+        notifications: false,
+        profile: false,
+      });
+    });
+
+    it('should not update state when open is true', () => {
+      const mockSetActiveStates = jest.fn();
+
+      syncNotificationState(true, true, mockSetActiveStates);
+
+      expect(mockSetActiveStates).not.toHaveBeenCalled();
+    });
+
+    it('should not update state when notification is not active', () => {
+      const mockSetActiveStates = jest.fn();
+
+      syncNotificationState(false, false, mockSetActiveStates);
+
+      expect(mockSetActiveStates).not.toHaveBeenCalled();
+    });
+
+    it('should not update state when open is true and notification is not active', () => {
+      const mockSetActiveStates = jest.fn();
+
+      syncNotificationState(true, false, mockSetActiveStates);
+
+      expect(mockSetActiveStates).not.toHaveBeenCalled();
     });
   });
 });
