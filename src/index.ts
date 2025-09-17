@@ -52,6 +52,7 @@ import type {
 import { useMobile, getDeviceType } from './hooks/useMobile';
 import type { DeviceType } from './hooks/useMobile';
 import { ThemeMode, useTheme } from './hooks/useTheme';
+import { cn } from './utils/utils';
 
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
@@ -346,3 +347,4 @@ export { useTheme };
 export { getDeviceType };
 export type { DeviceType };
 export type { ThemeMode };
+export { cn };
