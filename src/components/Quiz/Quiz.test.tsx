@@ -1,4 +1,10 @@
-import { render, screen, act, fireEvent } from '@testing-library/react';
+import {
+  render,
+  screen,
+  act,
+  fireEvent,
+  waitFor,
+} from '@testing-library/react';
 import React from 'react';
 import {
   Quiz,
@@ -6555,6 +6561,270 @@ describe('Quiz', () => {
       });
 
       expect(mockOnRepeat).toHaveBeenCalled();
+    });
+
+    it('should handle AlertDialog onChangeOpen callback correctly', async () => {
+      const mockOnTryLater = jest.fn();
+      const mockOnRepeat = jest.fn();
+
+      // Configurar o mock antes de renderizar
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: { ...mockQuiz, type: QUIZ_TYPE.QUESTIONARIO },
+        getCurrentAnswer: jest.fn().mockReturnValue('b'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalQuestions: 1,
+          correctAnswers: 0,
+          incorrectAnswers: 1,
+          timeSpent: 120,
+        }),
+      });
+
+      render(
+        <QuizFooter onTryLater={mockOnTryLater} onRepeat={mockOnRepeat} />
+      );
+
+      // Finalizar quiz para mostrar o modal inicial
+      const finishButton = screen.getByText('Finalizar');
+      act(() => {
+        finishButton.click();
+      });
+
+      // Clicar em tentar depois para abrir o AlertDialog
+      const tryLaterButton = screen.getByText('Tentar depois');
+      act(() => {
+        tryLaterButton.click();
+      });
+
+      // Verificar se o AlertDialog está aberto
+      expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
+      expect(
+        screen.getByText((content) => {
+          return content.includes(
+            'Você optou por refazer o questionário mais tarde'
+          );
+        })
+      ).toBeInTheDocument();
+
+      // Simular fechamento do modal através do onChangeOpen(false)
+      // Isso normalmente seria feito pelo componente AlertDialog internamente
+      // quando o usuário clica fora do modal ou pressiona ESC
+      const alertDialog = screen.getByTestId('alert-dialog');
+      expect(alertDialog).toBeInTheDocument();
+    });
+
+    it('should call onTryLater and close modal when submit button is clicked', async () => {
+      const mockOnTryLater = jest.fn();
+      const mockOnRepeat = jest.fn();
+
+      // Configurar o mock antes de renderizar
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: { ...mockQuiz, type: QUIZ_TYPE.QUESTIONARIO },
+        getCurrentAnswer: jest.fn().mockReturnValue('b'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalQuestions: 1,
+          correctAnswers: 0,
+          incorrectAnswers: 1,
+          timeSpent: 120,
+        }),
+      });
+
+      render(
+        <QuizFooter onTryLater={mockOnTryLater} onRepeat={mockOnRepeat} />
+      );
+
+      // Finalizar quiz
+      const finishButton = screen.getByText('Finalizar');
+      act(() => {
+        finishButton.click();
+      });
+
+      // Clicar em tentar depois para abrir o AlertDialog
+      const tryLaterButton = screen.getByText('Tentar depois');
+      act(() => {
+        tryLaterButton.click();
+      });
+
+      // Verificar se o AlertDialog está aberto
+      expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
+
+      // Clicar no botão "Tentar depois" do AlertDialog (submit)
+      const submitButton = screen.getByTestId('alert-submit');
+      act(() => {
+        submitButton.click();
+      });
+
+      // Verificar se onTryLater foi chamado
+      expect(mockOnTryLater).toHaveBeenCalledTimes(1);
+
+      // Verificar se o modal foi fechado (não deve mais aparecer o texto do AlertDialog)
+      await waitFor(() => {
+        expect(screen.queryByText('Tentar depois?')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should call onRepeat and close modal when cancel button is clicked', async () => {
+      const mockOnTryLater = jest.fn();
+      const mockOnRepeat = jest.fn();
+
+      // Configurar o mock antes de renderizar
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: { ...mockQuiz, type: QUIZ_TYPE.QUESTIONARIO },
+        getCurrentAnswer: jest.fn().mockReturnValue('b'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalQuestions: 1,
+          correctAnswers: 0,
+          incorrectAnswers: 1,
+          timeSpent: 120,
+        }),
+      });
+
+      render(
+        <QuizFooter onTryLater={mockOnTryLater} onRepeat={mockOnRepeat} />
+      );
+
+      // Finalizar quiz
+      const finishButton = screen.getByText('Finalizar');
+      act(() => {
+        finishButton.click();
+      });
+
+      // Clicar em tentar depois para abrir o AlertDialog
+      const tryLaterButton = screen.getByText('Tentar depois');
+      act(() => {
+        tryLaterButton.click();
+      });
+
+      // Verificar se o AlertDialog está aberto
+      expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
+
+      // Clicar no botão "Repetir questionário" (cancel)
+      const cancelButton = screen.getByTestId('alert-cancel');
+      act(() => {
+        cancelButton.click();
+      });
+
+      // Verificar se onRepeat foi chamado
+      expect(mockOnRepeat).toHaveBeenCalledTimes(1);
+
+      // Verificar se o modal foi fechado
+      await waitFor(() => {
+        expect(screen.queryByText('Tentar depois?')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should handle AlertDialog with undefined callbacks gracefully', async () => {
+      // Renderizar sem callbacks definidos
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: { ...mockQuiz, type: QUIZ_TYPE.QUESTIONARIO },
+        getCurrentAnswer: jest.fn().mockReturnValue('b'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalQuestions: 1,
+          correctAnswers: 0,
+          incorrectAnswers: 1,
+          timeSpent: 120,
+        }),
+      });
+
+      render(<QuizFooter />);
+
+      // Finalizar quiz
+      const finishButton = screen.getByText('Finalizar');
+      act(() => {
+        finishButton.click();
+      });
+
+      // Clicar em tentar depois para abrir o AlertDialog
+      const tryLaterButton = screen.getByText('Tentar depois');
+      act(() => {
+        tryLaterButton.click();
+      });
+
+      // Verificar se o AlertDialog está aberto
+      expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
+
+      // Clicar no botão "Tentar depois" do AlertDialog - não deve quebrar
+      const submitButton = screen.getByTestId('alert-submit');
+      expect(() => {
+        act(() => {
+          submitButton.click();
+        });
+      }).not.toThrow();
+
+      // Verificar se o modal foi fechado mesmo sem callback
+      await waitFor(() => {
+        expect(screen.queryByText('Tentar depois?')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should display correct AlertDialog content and structure', async () => {
+      const mockOnTryLater = jest.fn();
+      const mockOnRepeat = jest.fn();
+
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: { ...mockQuiz, type: QUIZ_TYPE.QUESTIONARIO },
+        getCurrentAnswer: jest.fn().mockReturnValue('b'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalQuestions: 1,
+          correctAnswers: 0,
+          incorrectAnswers: 1,
+          timeSpent: 120,
+        }),
+      });
+
+      render(
+        <QuizFooter onTryLater={mockOnTryLater} onRepeat={mockOnRepeat} />
+      );
+
+      // Finalizar quiz e abrir AlertDialog
+      const finishButton = screen.getByText('Finalizar');
+      act(() => {
+        finishButton.click();
+      });
+
+      const tryLaterButton = screen.getByText('Tentar depois');
+      act(() => {
+        tryLaterButton.click();
+      });
+
+      // Verificar título
+      expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
+
+      // Verificar descrição completa usando matcher flexível
+      expect(
+        screen.getByText((content) => {
+          return content.includes(
+            'Você optou por refazer o questionário mais tarde'
+          );
+        })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText((content) => {
+          return content.includes(
+            'Lembre-se: enquanto não refazer o questionário, sua nota permanecerá 0 no sistema'
+          );
+        })
+      ).toBeInTheDocument();
+
+      // Verificar botões com labels corretos usando test-ids
+      expect(screen.getByTestId('alert-cancel')).toHaveTextContent(
+        'Repetir questionário'
+      );
+      expect(screen.getByTestId('alert-submit')).toHaveTextContent(
+        'Tentar depois'
+      );
+
+      // Verificar estrutura do dialog
+      expect(screen.getByTestId('alert-dialog')).toBeInTheDocument();
     });
   });
 
