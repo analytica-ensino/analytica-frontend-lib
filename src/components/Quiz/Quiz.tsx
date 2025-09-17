@@ -192,7 +192,6 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
         case ANSWER_STATUS.RESPOSTA_INCORRETA:
           return 'Não foi dessa vez...';
         case ANSWER_STATUS.NAO_RESPONDIDO:
-          return 'Não foi dessa vez...você deixou a resposta em branco';
         default:
           return 'Não foi dessa vez...você deixou a resposta em branco';
       }
@@ -678,44 +677,7 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
 
             <QuizContainer className={cn('', paddingBottom)}>
               <p className="text-text-600 text-md whitespace-pre-wrap">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-                euismod, urna eu tincidunt consectetur, nisi nisl aliquam nunc,
-                eget aliquam massa nisl quis neque. Pellentesque habitant morbi
-                tristique senectus et netus et malesuada fames ac turpis
-                egestas. Vestibulum ante ipsum primis in faucibus orci luctus et
-                ultrices posuere cubilia curae; Integer euismod, urna eu
-                tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam
-                massa nisl quis neque. Pellentesque habitant morbi tristique
-                senectus et netus et malesuada fames ac turpis egestas.
-                Suspendisse potenti. Nullam ac urna eu felis dapibus condimentum
-                sit amet a augue. Sed non neque elit. Sed ut imperdiet nisi.
-                Proin condimentum fermentum nunc. Etiam pharetra, erat sed
-                fermentum feugiat, velit mauris egestas quam, ut aliquam massa
-                nisl quis neque. Suspendisse in orci enim. Mauris euismod, urna
-                eu tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam
-                massa nisl quis neque. Pellentesque habitant morbi tristique
-                senectus et netus et malesuada fames ac turpis egestas.
-                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
-                posuere cubilia curae; Integer euismod, urna eu tincidunt
-                consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl
-                quis neque. Pellentesque habitant morbi tristique senectus et
-                netus et malesuada fames ac turpis egestas. Suspendisse potenti.
-                Nullam ac urna eu felis dapibus condimentum sit amet a augue.
-                Sed non neque elit. Sed ut imperdiet nisi. Proin condimentum
-                fermentum nunc. Etiam pharetra, erat sed fermentum feugiat,
-                velit mauris egestas quam, ut aliquam massa nisl quis neque.
-                Suspendisse in orci enim. Pellentesque habitant morbi tristique
-                senectus et netus et malesuada fames ac turpis egestas.
-                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
-                posuere cubilia curae; Integer euismod, urna eu tincidunt
-                consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl
-                quis neque. Pellentesque habitant morbi tristique senectus et
-                netus et malesuada fames ac turpis egestas. Suspendisse potenti.
-                Nullam ac urna eu felis dapibus condimentum sit amet a augue.
-                Sed non neque elit. Sed ut imperdiet nisi. Proin condimentum
-                fermentum nunc. Etiam pharetra, erat sed fermentum feugiat,
-                velit mauris egestas quam, ut aliquam massa nisl quis neque.
-                Suspendisse in orci enim.
+                {currentQuestionResult?.teacherFeedback}
               </p>
             </QuizContainer>
           </>

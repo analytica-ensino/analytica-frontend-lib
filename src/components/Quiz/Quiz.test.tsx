@@ -8,6 +8,8 @@ import {
   getCompletionTitle,
   getExitConfirmationText,
   getFinishConfirmationText,
+  getQuizArticle,
+  getQuizPreposition,
   QuizHeaderResult,
   QuizTitle,
   QuizSubTitle,
@@ -2440,6 +2442,7 @@ describe('Quiz', () => {
       const mockQuestionResult = {
         answer: 'Wrong answer',
         answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+        teacherFeedback: 'Lorem ipsum dolor sit amet',
       };
 
       mockUseQuizStore.mockReturnValue({
@@ -4847,6 +4850,44 @@ describe('Quiz', () => {
       expect(badge).toHaveTextContent('Vestibular');
     });
 
+    it('should render default badge for unknown subtype', () => {
+      const mockBySimulated = {
+        type: 'Quiz Customizado',
+        id: 'custom-123',
+        subtype: 'UNKNOWN_CUSTOM_TYPE',
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        quiz: mockBySimulated,
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      render(<QuizResultHeaderTitle />);
+
+      const badge = screen.getByTestId('quiz-badge');
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+      expect(badge).toHaveAttribute('data-action', 'info');
+      expect(badge).toHaveTextContent('UNKNOWN_CUSTOM_TYPE');
+    });
+
+    it('should render correct badge for PROVA subtype', () => {
+      const mockBySimulated = {
+        type: 'Prova de Matemática',
+        id: 'prova-123',
+        subtype: 'PROVA',
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        quiz: mockBySimulated,
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      render(<QuizResultHeaderTitle />);
+
+      const badge = screen.getByTestId('quiz-badge');
+      expect(badge).toHaveAttribute('data-variant', 'examsOutlined');
+      expect(badge).toHaveAttribute('data-action', 'exam2');
+      expect(badge).toHaveTextContent('Prova');
+    });
+
     it('should apply custom className', () => {
       const { container } = render(
         <QuizResultHeaderTitle className="custom-header-class" />
@@ -5572,6 +5613,53 @@ describe('Quiz', () => {
       expect(cardStatuses[2]).not.toHaveAttribute('data-status'); // PENDENTE_AVALIACAO returns undefined, so no attribute
     });
 
+    it('should apply correct status for unanswered questions', () => {
+      const mockGroupedQuestions = {
+        'subject-1': [
+          {
+            id: 'question-1',
+            answerStatus: ANSWER_STATUS.NAO_RESPONDIDO,
+            knowledgeMatrix: [
+              {
+                subject: { name: 'Matemática' },
+              },
+            ],
+          },
+          {
+            id: 'question-2',
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            knowledgeMatrix: [
+              {
+                subject: { name: 'Matemática' },
+              },
+            ],
+          },
+        ],
+      };
+
+      mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
+      mockGetQuestionIndex.mockImplementation((id) => {
+        const questionMap: { [key: string]: number } = {
+          'question-1': 1,
+          'question-2': 2,
+        };
+        return questionMap[id] || 1;
+      });
+
+      render(
+        <QuizListResultByMateria
+          subject="subject-1"
+          onQuestionClick={jest.fn()}
+        />
+      );
+
+      const cardStatuses = screen.getAllByTestId('card-status');
+      expect(cardStatuses).toHaveLength(2);
+
+      expect(cardStatuses[0]).toHaveAttribute('data-status', 'unanswered');
+      expect(cardStatuses[1]).toHaveAttribute('data-status', 'correct');
+    });
+
     it('should call onQuestionClick when question card is clicked', () => {
       const mockOnQuestionClick = jest.fn();
       const mockQuestion = {
@@ -6219,6 +6307,45 @@ describe('Quiz', () => {
         expect(timeText).toBeInTheDocument();
         expect(timeText).toHaveTextContent('02:00');
       });
+    });
+  });
+
+  describe('getQuizArticle', () => {
+    it('should return correct article for simulado', () => {
+      expect(getQuizArticle(QUIZ_TYPE.SIMULADO)).toBe('o');
+    });
+
+    it('should return correct article for questionario', () => {
+      expect(getQuizArticle(QUIZ_TYPE.QUESTIONARIO)).toBe('o');
+    });
+
+    it('should return correct article for atividade', () => {
+      expect(getQuizArticle(QUIZ_TYPE.ATIVIDADE)).toBe('a');
+    });
+
+    it('should return default article for unknown type', () => {
+      expect(getQuizArticle('unknown' as QUIZ_TYPE)).toBe('o');
+      expect(getQuizArticle('' as QUIZ_TYPE)).toBe('o');
+    });
+  });
+
+  // Testes para getQuizPreposition
+  describe('getQuizPreposition', () => {
+    it('should return correct preposition for simulado', () => {
+      expect(getQuizPreposition(QUIZ_TYPE.SIMULADO)).toBe('do');
+    });
+
+    it('should return correct preposition for questionario', () => {
+      expect(getQuizPreposition(QUIZ_TYPE.QUESTIONARIO)).toBe('do');
+    });
+
+    it('should return correct preposition for atividade', () => {
+      expect(getQuizPreposition(QUIZ_TYPE.ATIVIDADE)).toBe('da');
+    });
+
+    it('should return default preposition for unknown type', () => {
+      expect(getQuizPreposition('unknown' as QUIZ_TYPE)).toBe('do');
+      expect(getQuizPreposition('' as QUIZ_TYPE)).toBe('do');
     });
   });
 
