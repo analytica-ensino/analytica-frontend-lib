@@ -127,26 +127,30 @@ import { useApiConfig } from './components/Auth/useApiConfig';
 
 // Import Quiz components
 import {
-  QuizHeaderResult,
   QuizTitle,
   Quiz,
   QuizHeader,
   QuizContent,
+  QuizQuestionList,
+  QuizFooter,
+} from './components/Quiz/Quiz';
+import {
+  getStatusBadge,
+  QuizImageQuestion,
   QuizAlternative,
   QuizMultipleChoice,
   QuizDissertative,
   QuizTrueOrFalse,
   QuizConnectDots,
-  QuizQuestionList,
-  QuizImageQuestion,
-  QuizFooter,
+} from './components/Quiz/QuizContent';
+import {
+  QuizHeaderResult,
   QuizListResult,
   QuizResultHeaderTitle,
   QuizResultTitle,
   QuizResultPerformance,
   QuizListResultByMateria,
-  getStatusBadge,
-} from './components/Quiz/Quiz';
+} from './components/Quiz/QuizResult';
 import { useQuizStore } from './components/Quiz/useQuizStore';
 
 import LoadingModal from './components/LoadingModal/loadingModal';
@@ -326,6 +330,7 @@ export {
   QUESTION_STATUS,
   ANSWER_STATUS,
   SUBTYPE_ENUM,
+  QUIZ_TYPE,
 } from './components/Quiz/useQuizStore';
 export { SubjectEnum } from './enums/SubjectEnum';
 export type {
@@ -333,9 +338,7 @@ export type {
   Question,
   UserAnswerItem,
   QuizState,
-  Simulated,
-  Activity,
-  Lesson,
+  QuizInterface,
 } from './components/Quiz/useQuizStore';
 
 export { MultipleChoiceList };

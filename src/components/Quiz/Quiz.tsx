@@ -1,39 +1,22 @@
 import {
+  BookOpen,
   CaretLeft,
   CaretRight,
   Clock,
   SquaresFour,
-  BookOpen,
-  CheckCircle,
-  XCircle,
 } from 'phosphor-react';
 import Badge from '../Badge/Badge';
-import {
-  AlternativesList,
-  HeaderAlternative,
-} from '../Alternative/Alternative';
+import { HeaderAlternative } from '../Alternative/Alternative';
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
 import {
   forwardRef,
   ReactNode,
   useEffect,
-  useMemo,
-  useId,
   useState,
-  useCallback,
-  useRef,
   ComponentType,
-  MouseEvent,
 } from 'react';
-import {
-  Question,
-  useQuizStore,
-  QUESTION_DIFFICULTY,
-  QUESTION_TYPE,
-  ANSWER_STATUS,
-  SUBTYPE_ENUM,
-} from './useQuizStore';
+import { useQuizStore, QUESTION_TYPE, QUIZ_TYPE } from './useQuizStore';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
 
@@ -43,40 +26,74 @@ import Select, {
   SelectTrigger,
   SelectValue,
 } from '../Select/Select';
-import { CardResults, CardStatus } from '../Card/Card';
-import ProgressCircle from '../ProgressCircle/ProgressCircle';
-import ProgressBar from '../ProgressBar/ProgressBar';
 import { cn } from '../../utils/utils';
-import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
-import TextArea from '../TextArea/TextArea';
-import ImageQuestion from '../../assets/img/mock-image-question.png';
+import {
+  QuizAlternative,
+  QuizConnectDots,
+  QuizDissertative,
+  QuizFill,
+  QuizImageQuestion,
+  QuizMultipleChoice,
+  QuizTrueOrFalse,
+} from './QuizContent';
+import { CardStatus } from '../Card/Card';
 
-export const getStatusBadge = (status?: 'correct' | 'incorrect') => {
-  switch (status) {
-    case 'correct':
-      return (
-        <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
-          Resposta correta
-        </Badge>
-      );
-    case 'incorrect':
-      return (
-        <Badge variant="solid" action="error" iconLeft={<XCircle />}>
-          Resposta incorreta
-        </Badge>
-      );
-    default:
-      return null;
-  }
+// Função para obter configuração do tipo de quiz
+export const getQuizTypeConfig = (type: QUIZ_TYPE) => {
+  // Configuração centralizada para cada tipo de quiz
+  const QUIZ_TYPE_CONFIG = {
+    [QUIZ_TYPE.SIMULADO]: {
+      label: 'Simulado',
+      article: 'o',
+      preposition: 'do',
+    },
+    [QUIZ_TYPE.QUESTIONARIO]: {
+      label: 'Questionário',
+      article: 'o',
+      preposition: 'do',
+    },
+    [QUIZ_TYPE.ATIVIDADE]: {
+      label: 'Atividade',
+      article: 'a',
+      preposition: 'da',
+    },
+  } as const;
+
+  const config = QUIZ_TYPE_CONFIG[type];
+  return config || QUIZ_TYPE_CONFIG[QUIZ_TYPE.SIMULADO]; // fallback para simulado
 };
 
-export const getStatusStyles = (variantCorrect?: string) => {
-  switch (variantCorrect) {
-    case 'correct':
-      return 'bg-success-background border-success-300';
-    case 'incorrect':
-      return 'bg-error-background border-error-300';
-  }
+// Função para obter o label do tipo
+export const getTypeLabel = (type: QUIZ_TYPE) => {
+  return getQuizTypeConfig(type).label;
+};
+
+// Função para obter o artigo (o/a)
+export const getQuizArticle = (type: QUIZ_TYPE) => {
+  return getQuizTypeConfig(type).article;
+};
+
+// Função para obter a preposição (do/da)
+export const getQuizPreposition = (type: QUIZ_TYPE) => {
+  return getQuizTypeConfig(type).preposition;
+};
+
+// Função para gerar título de conclusão
+export const getCompletionTitle = (type: QUIZ_TYPE) => {
+  const config = getQuizTypeConfig(type);
+  return `Você concluiu ${config.article} ${config.label.toLowerCase()}!`;
+};
+
+// Função para gerar texto de confirmação de saída
+export const getExitConfirmationText = (type: QUIZ_TYPE) => {
+  const config = getQuizTypeConfig(type);
+  return `Se você sair ${config.preposition} ${config.label.toLowerCase()} agora, todas as respostas serão perdidas.`;
+};
+
+// Função para gerar texto de confirmação de finalização
+export const getFinishConfirmationText = (type: QUIZ_TYPE) => {
+  const config = getQuizTypeConfig(type);
+  return `Tem certeza que deseja finalizar ${config.article} ${config.label.toLowerCase()}?`;
 };
 
 const Quiz = forwardRef<
@@ -96,68 +113,10 @@ const Quiz = forwardRef<
   );
 });
 
-const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
-  ({ className, ...props }, ref) => {
-    const { getQuestionResultByQuestionId, getCurrentQuestion } =
-      useQuizStore();
-    const [status, setStatus] = useState<ANSWER_STATUS | undefined>(undefined);
-    useEffect(() => {
-      const cq = getCurrentQuestion();
-      if (!cq) {
-        setStatus(undefined);
-        return;
-      }
-      const qr = getQuestionResultByQuestionId(cq.id);
-      setStatus(qr?.answerStatus);
-    }, [
-      getCurrentQuestion,
-      getQuestionResultByQuestionId,
-      getCurrentQuestion()?.id,
-    ]);
-
-    const getClassesByAnswersStatus = () => {
-      switch (status) {
-        case ANSWER_STATUS.RESPOSTA_CORRETA:
-          return 'bg-success-background';
-        case ANSWER_STATUS.RESPOSTA_INCORRETA:
-          return 'bg-error-background';
-        default:
-          return 'bg-error-background';
-      }
-    };
-
-    const getLabelByAnswersStatus = () => {
-      switch (status) {
-        case ANSWER_STATUS.RESPOSTA_CORRETA:
-          return '🎉 Parabéns!!';
-        case ANSWER_STATUS.RESPOSTA_INCORRETA:
-          return 'Não foi dessa vez...';
-        case ANSWER_STATUS.NAO_RESPONDIDO:
-          return 'Não foi dessa vez...você deixou a resposta em branco';
-        default:
-          return 'Não foi dessa vez...você deixou a resposta em branco';
-      }
-    };
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          'flex flex-row items-center gap-10 p-3.5 rounded-xl mb-4',
-          getClassesByAnswersStatus(),
-          className
-        )}
-        {...props}
-      >
-        <p className="text-text-950 font-bold text-lg">Resultado</p>
-        <p className="text-text-700 text-md">{getLabelByAnswersStatus()}</p>
-      </div>
-    );
-  }
-);
-
 const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
   ({ className, ...props }, ref) => {
     const {
+      quiz,
       currentQuestionIndex,
       getTotalQuestions,
       getQuizTitle,
@@ -224,23 +183,15 @@ const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
           isOpen={showExitConfirmation}
           onChangeOpen={setShowExitConfirmation}
           title="Deseja sair?"
-          description="Se você sair do simulado agora, todas as respostas serão perdidas."
+          description={getExitConfirmationText(
+            quiz?.type || QUIZ_TYPE.SIMULADO
+          )}
           cancelButtonLabel="Voltar e revisar"
           submitButtonLabel="Sair Mesmo Assim"
           onSubmit={handleConfirmExit}
           onCancel={handleCancelExit}
         />
       </>
-    );
-  }
-);
-
-const QuizSubTitle = forwardRef<HTMLDivElement, { subTitle: string }>(
-  ({ subTitle, ...props }, ref) => {
-    return (
-      <div className="px-4 pb-2 pt-6" {...props} ref={ref}>
-        <p className="font-bold text-lg text-text-950">{subTitle}</p>
-      </div>
     );
   }
 );
@@ -258,24 +209,6 @@ const QuizHeader = () => {
     />
   );
 };
-
-const QuizContainer = forwardRef<
-  HTMLDivElement,
-  { children: ReactNode; className?: string }
->(({ children, className, ...props }, ref) => {
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        'bg-background rounded-t-xl px-4 pt-4 pb-[80px] h-auto flex flex-col gap-4 mb-auto',
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-});
 
 const QuizContent = forwardRef<
   HTMLDivElement,
@@ -307,1035 +240,9 @@ const QuizContent = forwardRef<
   ) : null;
 });
 
-enum Status {
-  CORRECT = 'correct',
-  INCORRECT = 'incorrect',
-  NEUTRAL = 'neutral',
-}
-
 interface QuizVariantInterface {
   paddingBottom?: string;
 }
-
-const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
-  const {
-    getCurrentQuestion,
-    selectAnswer,
-    getQuestionResultByQuestionId,
-    getCurrentAnswer,
-    variant,
-  } = useQuizStore();
-  const currentQuestion = getCurrentQuestion();
-  const currentQuestionResult = getQuestionResultByQuestionId(
-    currentQuestion?.id || ''
-  );
-
-  const currentAnswer = getCurrentAnswer();
-  const alternatives = currentQuestion?.options?.map((option) => {
-    let status: Status = Status.NEUTRAL;
-    if (variant === 'result') {
-      const isCorrectOption =
-        currentQuestionResult?.options?.find((op) => op.id === option.id)
-          ?.isCorrect || false;
-
-      const isSelected = currentQuestionResult?.selectedOptions.some(
-        (selectedOption) => selectedOption.optionId === option.id
-      );
-
-      if (isCorrectOption) {
-        status = Status.CORRECT;
-      } else if (isSelected && !isCorrectOption) {
-        status = Status.INCORRECT;
-      } else {
-        status = Status.NEUTRAL;
-      }
-    }
-
-    return {
-      label: option.option,
-      value: option.id,
-      status: status,
-    };
-  });
-
-  if (!alternatives)
-    return (
-      <div>
-        <p>Não há Alternativas</p>
-      </div>
-    );
-
-  return (
-    <>
-      <QuizSubTitle subTitle="Alternativas" />
-
-      <QuizContainer className={cn('', paddingBottom)}>
-        <div className="space-y-4">
-          <AlternativesList
-            mode={variant === 'default' ? 'interactive' : 'readonly'}
-            key={`question-${currentQuestion?.id || '1'}`}
-            name={`question-${currentQuestion?.id || '1'}`}
-            layout="compact"
-            alternatives={alternatives}
-            value={
-              variant === 'result'
-                ? currentQuestionResult?.selectedOptions[0]?.optionId || ''
-                : currentAnswer?.optionId || ''
-            }
-            selectedValue={
-              variant === 'result'
-                ? currentQuestionResult?.selectedOptions[0]?.optionId || ''
-                : currentAnswer?.optionId || ''
-            }
-            onValueChange={(value) => {
-              if (currentQuestion) {
-                selectAnswer(currentQuestion.id, value);
-              }
-            }}
-          />
-        </div>
-      </QuizContainer>
-    </>
-  );
-};
-
-const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
-  const {
-    getCurrentQuestion,
-    selectMultipleAnswer,
-    getAllCurrentAnswer,
-    getQuestionResultByQuestionId,
-    variant,
-  } = useQuizStore();
-  const currentQuestion = getCurrentQuestion();
-  const allCurrentAnswers = getAllCurrentAnswer();
-  const currentQuestionResult = getQuestionResultByQuestionId(
-    currentQuestion?.id || ''
-  );
-  // Use ref to track previous values and prevent unnecessary updates
-  const prevSelectedValuesRef = useRef<string[]>([]);
-  const prevQuestionIdRef = useRef<string>('');
-
-  // Memoize the answer IDs to prevent unnecessary re-renders
-  const allCurrentAnswerIds = useMemo(() => {
-    return allCurrentAnswers?.map((answer) => answer.optionId) || [];
-  }, [allCurrentAnswers]);
-
-  // Memoize the selected values to prevent infinite loops
-  const selectedValues = useMemo(() => {
-    return allCurrentAnswerIds?.filter((id): id is string => id !== null) || [];
-  }, [allCurrentAnswerIds]);
-
-  // Only update selectedValues if they actually changed or question changed
-  const stableSelectedValues = useMemo(() => {
-    const currentQuestionId = currentQuestion?.id || '';
-    const hasQuestionChanged = prevQuestionIdRef.current !== currentQuestionId;
-
-    if (hasQuestionChanged) {
-      prevQuestionIdRef.current = currentQuestionId;
-      prevSelectedValuesRef.current = selectedValues;
-      return selectedValues;
-    }
-
-    // Only update if values actually changed
-    const hasValuesChanged =
-      JSON.stringify(prevSelectedValuesRef.current) !==
-      JSON.stringify(selectedValues);
-    if (hasValuesChanged) {
-      prevSelectedValuesRef.current = selectedValues;
-      return selectedValues;
-    }
-
-    if (variant == 'result') {
-      return (
-        currentQuestionResult?.selectedOptions.map((op) => op.optionId) || []
-      );
-    } else {
-      return prevSelectedValuesRef.current;
-    }
-  }, [
-    selectedValues,
-    currentQuestion?.id,
-    variant,
-    currentQuestionResult?.selectedOptions,
-  ]);
-
-  // Memoize the callback to prevent unnecessary re-renders
-  const handleSelectedValues = useCallback(
-    (values: string[]) => {
-      if (currentQuestion) {
-        selectMultipleAnswer(currentQuestion.id, values);
-      }
-    },
-    [currentQuestion, selectMultipleAnswer]
-  );
-
-  // Create a stable key to force re-mount when question changes
-  const questionKey = useMemo(
-    () => `question-${currentQuestion?.id || '1'}`,
-    [currentQuestion?.id]
-  );
-  const choices = currentQuestion?.options?.map((option) => {
-    let status: Status = Status.NEUTRAL;
-
-    if (variant === 'result') {
-      const isCorrectOption =
-        currentQuestionResult?.options?.find((op) => op.id === option.id)
-          ?.isCorrect || false;
-
-      const isSelected = currentQuestionResult?.selectedOptions?.some(
-        (op) => op.optionId === option.id
-      );
-
-      if (isCorrectOption) {
-        status = Status.CORRECT;
-      } else if (isSelected && !isCorrectOption) {
-        status = Status.INCORRECT;
-      } else {
-        status = Status.NEUTRAL;
-      }
-    }
-
-    return {
-      label: option.option,
-      value: option.id,
-      status: status,
-    };
-  });
-
-  if (!choices)
-    return (
-      <div>
-        <p>Não há Escolhas Multiplas</p>
-      </div>
-    );
-  return (
-    <>
-      <QuizSubTitle subTitle="Alternativas" />
-
-      <QuizContainer className={cn('', paddingBottom)}>
-        <div className="space-y-4">
-          <MultipleChoiceList
-            choices={choices}
-            key={questionKey}
-            name={questionKey}
-            selectedValues={stableSelectedValues}
-            onHandleSelectedValues={handleSelectedValues}
-            mode={variant === 'default' ? 'interactive' : 'readonly'}
-          />
-        </div>
-      </QuizContainer>
-    </>
-  );
-};
-
-const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
-  const {
-    getCurrentQuestion,
-    getCurrentAnswer,
-    selectDissertativeAnswer,
-    getQuestionResultByQuestionId,
-    variant,
-  } = useQuizStore();
-
-  const currentQuestion = getCurrentQuestion();
-  const currentQuestionResult = getQuestionResultByQuestionId(
-    currentQuestion?.id || ''
-  );
-
-  const currentAnswer = getCurrentAnswer();
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const handleAnswerChange = (value: string) => {
-    if (currentQuestion) {
-      selectDissertativeAnswer(currentQuestion.id, value);
-    }
-  };
-
-  // Auto-resize function
-  const adjustTextareaHeight = useCallback(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      const scrollHeight = textareaRef.current.scrollHeight;
-      const minHeight = 120; // 120px minimum height
-      const maxHeight = 400; // 400px maximum height
-      const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
-      textareaRef.current.style.height = `${newHeight}px`;
-    }
-  }, []);
-
-  // Adjust height when currentAnswer changes
-  useEffect(() => {
-    adjustTextareaHeight();
-  }, [currentAnswer, adjustTextareaHeight]);
-
-  if (!currentQuestion) {
-    return (
-      <div className="space-y-4">
-        <p className="text-text-600 text-md">Nenhuma questão disponível</p>
-      </div>
-    );
-  }
-
-  const localAnswer =
-    (variant == 'result'
-      ? currentQuestionResult?.answer
-      : currentAnswer?.answer) || '';
-  return (
-    <>
-      <QuizSubTitle subTitle="Resposta" />
-
-      <QuizContainer className={cn(variant != 'result' && paddingBottom)}>
-        <div className="space-y-4 max-h-[600px] overflow-y-auto">
-          {variant === 'default' ? (
-            <div className="space-y-4">
-              <TextArea
-                ref={textareaRef}
-                placeholder="Escreva sua resposta"
-                value={localAnswer}
-                onChange={(e) => handleAnswerChange(e.target.value)}
-                rows={4}
-                className="min-h-[120px] max-h-[400px] resize-none overflow-y-auto"
-              />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-text-600 text-md whitespace-pre-wrap">
-                {localAnswer || 'Nenhuma resposta fornecida'}
-              </p>
-            </div>
-          )}
-        </div>
-      </QuizContainer>
-
-      {variant === 'result' &&
-        currentQuestionResult?.answerStatus ==
-          ANSWER_STATUS.RESPOSTA_INCORRETA && (
-          <>
-            <QuizSubTitle subTitle="Observação do professor" />
-
-            <QuizContainer className={cn('', paddingBottom)}>
-              <p className="text-text-600 text-md whitespace-pre-wrap">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-                euismod, urna eu tincidunt consectetur, nisi nisl aliquam nunc,
-                eget aliquam massa nisl quis neque. Pellentesque habitant morbi
-                tristique senectus et netus et malesuada fames ac turpis
-                egestas. Vestibulum ante ipsum primis in faucibus orci luctus et
-                ultrices posuere cubilia curae; Integer euismod, urna eu
-                tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam
-                massa nisl quis neque. Pellentesque habitant morbi tristique
-                senectus et netus et malesuada fames ac turpis egestas.
-                Suspendisse potenti. Nullam ac urna eu felis dapibus condimentum
-                sit amet a augue. Sed non neque elit. Sed ut imperdiet nisi.
-                Proin condimentum fermentum nunc. Etiam pharetra, erat sed
-                fermentum feugiat, velit mauris egestas quam, ut aliquam massa
-                nisl quis neque. Suspendisse in orci enim. Mauris euismod, urna
-                eu tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam
-                massa nisl quis neque. Pellentesque habitant morbi tristique
-                senectus et netus et malesuada fames ac turpis egestas.
-                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
-                posuere cubilia curae; Integer euismod, urna eu tincidunt
-                consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl
-                quis neque. Pellentesque habitant morbi tristique senectus et
-                netus et malesuada fames ac turpis egestas. Suspendisse potenti.
-                Nullam ac urna eu felis dapibus condimentum sit amet a augue.
-                Sed non neque elit. Sed ut imperdiet nisi. Proin condimentum
-                fermentum nunc. Etiam pharetra, erat sed fermentum feugiat,
-                velit mauris egestas quam, ut aliquam massa nisl quis neque.
-                Suspendisse in orci enim. Pellentesque habitant morbi tristique
-                senectus et netus et malesuada fames ac turpis egestas.
-                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
-                posuere cubilia curae; Integer euismod, urna eu tincidunt
-                consectetur, nisi nisl aliquam nunc, eget aliquam massa nisl
-                quis neque. Pellentesque habitant morbi tristique senectus et
-                netus et malesuada fames ac turpis egestas. Suspendisse potenti.
-                Nullam ac urna eu felis dapibus condimentum sit amet a augue.
-                Sed non neque elit. Sed ut imperdiet nisi. Proin condimentum
-                fermentum nunc. Etiam pharetra, erat sed fermentum feugiat,
-                velit mauris egestas quam, ut aliquam massa nisl quis neque.
-                Suspendisse in orci enim.
-              </p>
-            </QuizContainer>
-          </>
-        )}
-    </>
-  );
-};
-
-const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
-  const { variant } = useQuizStore();
-  const options = [
-    {
-      label: '25 metros',
-      isCorrect: true,
-    },
-    {
-      label: '30 metros',
-      isCorrect: false,
-    },
-    {
-      label: '40 metros',
-      isCorrect: false,
-    },
-    {
-      label: '50 metros',
-      isCorrect: false,
-    },
-  ];
-
-  const getLetterByIndex = (index: number) => String.fromCharCode(97 + index); // 97 = 'a' in ASCII
-
-  const isDefaultVariant = variant == 'default';
-
-  return (
-    <>
-      <QuizSubTitle subTitle="Alternativas" />
-
-      <QuizContainer className={cn('', paddingBottom)}>
-        <div className="flex flex-col gap-3.5">
-          {options.map((option, index) => {
-            const variantCorrect = option.isCorrect ? 'correct' : 'incorrect';
-            return (
-              <section
-                key={option.label.concat(`-${index}`)}
-                className="flex flex-col gap-2"
-              >
-                <div
-                  className={cn(
-                    'flex flex-row justify-between items-center gap-2 p-2 rounded-md',
-                    !isDefaultVariant ? getStatusStyles(variantCorrect) : ''
-                  )}
-                >
-                  <p className="text-text-900 text-sm">
-                    {getLetterByIndex(index).concat(') ').concat(option.label)}
-                  </p>
-
-                  {isDefaultVariant ? (
-                    <Select size="medium">
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Selecione opcão" />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        <SelectItem value="V">Verdadeiro</SelectItem>
-                        <SelectItem value="F">Falso</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="flex-shrink-0">
-                      {getStatusBadge(variantCorrect)}
-                    </div>
-                  )}
-                </div>
-
-                {!isDefaultVariant && (
-                  <span className="flex flex-row gap-2 items-center">
-                    <p className="text-text-800 text-2xs">
-                      Resposta selecionada: V
-                    </p>
-                    {!option.isCorrect && (
-                      <p className="text-text-800 text-2xs">
-                        Resposta correta: F
-                      </p>
-                    )}
-                  </span>
-                )}
-              </section>
-            );
-          })}
-        </div>
-      </QuizContainer>
-    </>
-  );
-};
-
-interface UserAnswer {
-  option: string;
-  dotOption: string | null;
-  correctOption: string;
-  isCorrect: boolean | null;
-}
-
-const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
-  const { variant } = useQuizStore();
-  const dotsOptions = [
-    { label: 'Ração' },
-    { label: 'Rato' },
-    { label: 'Grama' },
-    { label: 'Peixe' },
-  ];
-
-  const options = [
-    {
-      label: 'Cachorro',
-      correctOption: 'Ração',
-    },
-    {
-      label: 'Gato',
-      correctOption: 'Rato',
-    },
-    {
-      label: 'Cabra',
-      correctOption: 'Grama',
-    },
-    {
-      label: 'Baleia',
-      correctOption: 'Peixe',
-    },
-  ];
-
-  const mockUserAnswers = [
-    {
-      option: 'Cachorro',
-      dotOption: 'Ração',
-      correctOption: 'Ração',
-      isCorrect: true,
-    },
-    {
-      option: 'Gato',
-      dotOption: 'Rato',
-      correctOption: 'Rato',
-      isCorrect: true,
-    },
-    {
-      option: 'Cabra',
-      dotOption: 'Peixe',
-      correctOption: 'Grama',
-      isCorrect: false,
-    },
-    {
-      option: 'Baleia',
-      dotOption: 'Grama',
-      correctOption: 'Peixe',
-      isCorrect: false,
-    },
-  ];
-
-  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>(() => {
-    if (variant === 'result') {
-      return mockUserAnswers;
-    }
-    return options.map((option) => ({
-      option: option.label,
-      dotOption: null,
-      correctOption: option.correctOption,
-      isCorrect: null,
-    }));
-  });
-
-  const handleSelectDot = (optionIndex: number, dotValue: string) => {
-    setUserAnswers((prev) => {
-      const next = [...prev];
-      const { label: optionLabel, correctOption } = options[optionIndex];
-      next[optionIndex] = {
-        option: optionLabel,
-        dotOption: dotValue,
-        correctOption,
-        isCorrect: dotValue ? dotValue === correctOption : null,
-      };
-      return next;
-    });
-  };
-
-  const getLetterByIndex = (index: number) => String.fromCharCode(97 + index); // 'a', 'b', 'c'...
-
-  const isDefaultVariant = variant === 'default';
-  const assignedDots = new Set(
-    userAnswers.map((a) => a.dotOption).filter(Boolean)
-  );
-
-  return (
-    <>
-      <QuizSubTitle subTitle="Alternativas" />
-
-      <QuizContainer className={cn('', paddingBottom)}>
-        <div className="flex flex-col gap-3.5">
-          {options.map((option, index) => {
-            const answer = userAnswers[index];
-            const variantCorrect = answer.isCorrect ? 'correct' : 'incorrect';
-            return (
-              <section key={option.label} className="flex flex-col gap-2">
-                <div
-                  className={cn(
-                    'flex flex-row justify-between items-center gap-2 p-2 rounded-md',
-                    !isDefaultVariant ? getStatusStyles(variantCorrect) : ''
-                  )}
-                >
-                  <p className="text-text-900 text-sm">
-                    {getLetterByIndex(index) + ') ' + option.label}
-                  </p>
-
-                  {isDefaultVariant ? (
-                    <Select
-                      size="medium"
-                      value={answer.dotOption || undefined}
-                      onValueChange={(value) => handleSelectDot(index, value)}
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Selecione opção" />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        {dotsOptions
-                          .filter(
-                            (dot) =>
-                              !assignedDots.has(dot.label) ||
-                              answer.dotOption === dot.label
-                          )
-                          .map((dot) => (
-                            <SelectItem key={dot.label} value={dot.label}>
-                              {dot.label}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="flex-shrink-0">
-                      {answer.isCorrect === null
-                        ? null
-                        : getStatusBadge(variantCorrect)}
-                    </div>
-                  )}
-                </div>
-
-                {!isDefaultVariant && (
-                  <span className="flex flex-row gap-2 items-center">
-                    <p className="text-text-800 text-2xs">
-                      Resposta selecionada: {answer.dotOption || 'Nenhuma'}
-                    </p>
-                    {!answer.isCorrect && (
-                      <p className="text-text-800 text-2xs">
-                        Resposta correta: {answer.correctOption}
-                      </p>
-                    )}
-                  </span>
-                )}
-              </section>
-            );
-          })}
-        </div>
-      </QuizContainer>
-    </>
-  );
-};
-
-interface FillUserAnswer {
-  selectId: string;
-  userAnswer: string;
-  correctAnswer: string;
-  isCorrect: boolean;
-}
-
-const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
-  const { variant } = useQuizStore();
-  const options = [
-    'ciência',
-    'disciplina',
-    'área',
-    'especialidade',
-    'variações',
-  ];
-
-  const exampleText = `A meteorologia é a {{ciencia}} que estuda os fenômenos atmosféricos e suas {{variações}}. Esta disciplina científica tem como objetivo principal {{objetivo}} o comportamento da atmosfera terrestre.
-
-  Os meteorologistas utilizam diversos {{instrumentos}} para coletar dados atmosféricos, incluindo termômetros, barômetros e {{equipamentos}} modernos como radares meteorológicos.`;
-
-  // Mock data for result variant - simulating user answers
-  const mockUserAnswers: FillUserAnswer[] = [
-    {
-      selectId: 'ciencia',
-      userAnswer: 'tecnologia',
-      correctAnswer: 'ciência',
-      isCorrect: false,
-    },
-    {
-      selectId: 'variações',
-      userAnswer: 'variações',
-      correctAnswer: 'variações',
-      isCorrect: true,
-    },
-    {
-      selectId: 'objetivo',
-      userAnswer: 'estudar',
-      correctAnswer: 'compreender',
-      isCorrect: false,
-    },
-    {
-      selectId: 'instrumentos',
-      userAnswer: 'ferramentas',
-      correctAnswer: 'instrumentos',
-      isCorrect: false,
-    },
-    {
-      selectId: 'equipamentos',
-      userAnswer: 'equipamentos',
-      correctAnswer: 'equipamentos',
-      isCorrect: true,
-    },
-  ];
-
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const baseId = useId(); // Generate base ID for this component instance
-
-  // Get available options for a specific select
-  const getAvailableOptionsForSelect = (selectId: string) => {
-    const usedOptions = Object.entries(answers)
-      .filter(([key]) => key !== selectId) // Exclude the current selection itself
-      .map(([, value]) => value);
-
-    return options.filter((option) => !usedOptions.includes(option));
-  };
-
-  const handleSelectChange = (selectId: string, value: string) => {
-    const newAnswers = { ...answers, [selectId]: value };
-    setAnswers(newAnswers);
-  };
-
-  const renderResolutionElement = (selectId: string) => {
-    const mockAnswer = mockUserAnswers.find(
-      (answer) => answer.selectId === selectId
-    );
-
-    return (
-      <p className="inline-flex mb-2.5 text-success-600 font-semibold text-md border-b-2 border-success-600">
-        {mockAnswer?.correctAnswer}
-      </p>
-    );
-  };
-
-  const renderDefaultElement = (
-    selectId: string,
-    startIndex: number,
-    selectedValue: string,
-    availableOptionsForThisSelect: string[]
-  ) => {
-    return (
-      <Select
-        key={`${selectId}-${startIndex}`}
-        value={selectedValue}
-        onValueChange={(value) => handleSelectChange(selectId, value)}
-        className="inline-flex mb-2.5"
-      >
-        <SelectTrigger className="inline-flex w-auto min-w-[140px] h-8 mx-1 bg-white border-gray-300">
-          <SelectValue placeholder="Selecione opção" />
-        </SelectTrigger>
-        <SelectContent>
-          {availableOptionsForThisSelect.map((option, index) => (
-            <SelectItem key={`${option}-${index}`} value={option}>
-              {option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    );
-  };
-
-  const renderResultElement = (selectId: string) => {
-    const mockAnswer = mockUserAnswers.find(
-      (answer) => answer.selectId === selectId
-    );
-
-    if (!mockAnswer) return null;
-
-    const action = mockAnswer.isCorrect ? 'success' : 'error';
-    const icon = mockAnswer.isCorrect ? <CheckCircle /> : <XCircle />;
-
-    return (
-      <Badge
-        key={selectId}
-        variant="solid"
-        action={action}
-        iconRight={icon}
-        size="large"
-        className="py-3 w-[180px] justify-between mb-2.5"
-      >
-        <span className="text-text-900">{mockAnswer.userAnswer}</span>
-      </Badge>
-    );
-  };
-
-  const renderTextWithSelects = (text: string, isResolution?: boolean) => {
-    const elements: Array<{ element: string | ReactNode; id: string }> = [];
-    let lastIndex = 0;
-    let elementCounter = 0;
-
-    // Support Unicode letters/marks and digits: allows placeholders like {{variações}}
-    const regex = /\{\{([\p{L}\p{M}\d_]+)\}\}/gu;
-    let match;
-
-    while ((match = regex.exec(text)) !== null) {
-      const [fullMatch, selectId] = match;
-      const startIndex = match.index;
-
-      if (startIndex > lastIndex) {
-        elements.push({
-          element: text.slice(lastIndex, startIndex),
-          id: `${baseId}-text-${++elementCounter}`,
-        });
-      }
-
-      const selectedValue = answers[selectId];
-      const availableOptionsForThisSelect =
-        getAvailableOptionsForSelect(selectId);
-
-      if (isResolution) {
-        elements.push({
-          element: renderResolutionElement(selectId),
-          id: `${baseId}-resolution-${++elementCounter}`,
-        });
-      } else if (variant === 'default') {
-        elements.push({
-          element: renderDefaultElement(
-            selectId,
-            startIndex,
-            selectedValue,
-            availableOptionsForThisSelect
-          ),
-          id: `${baseId}-select-${++elementCounter}`,
-        });
-      } else {
-        const resultElement = renderResultElement(selectId);
-        if (resultElement) {
-          elements.push({
-            element: resultElement,
-            id: `${baseId}-result-${++elementCounter}`,
-          });
-        }
-      }
-
-      lastIndex = match.index + fullMatch.length;
-    }
-
-    if (lastIndex < text.length) {
-      elements.push({
-        element: text.slice(lastIndex),
-        id: `${baseId}-text-${++elementCounter}`,
-      });
-    }
-
-    return elements;
-  };
-
-  return (
-    <>
-      <QuizSubTitle subTitle="Alternativas" />
-
-      <QuizContainer className="h-auto pb-0">
-        <div className="space-y-6 px-4 h-auto">
-          <div
-            className={cn(
-              'text-lg text-text-900 leading-8 h-auto',
-              variant != 'result' && paddingBottom
-            )}
-          >
-            {renderTextWithSelects(exampleText).map((element) => (
-              <span key={element.id}>{element.element}</span>
-            ))}
-          </div>
-        </div>
-      </QuizContainer>
-
-      {variant === 'result' && (
-        <>
-          <QuizSubTitle subTitle="Resultado" />
-
-          <QuizContainer className="h-auto pb-0">
-            <div className="space-y-6 px-4">
-              <div
-                className={cn('text-lg text-text-900 leading-8', paddingBottom)}
-              >
-                {renderTextWithSelects(exampleText, true).map((element) => (
-                  <span key={element.id}>{element.element}</span>
-                ))}
-              </div>
-            </div>
-          </QuizContainer>
-        </>
-      )}
-    </>
-  );
-};
-
-const QuizImageQuestion = ({ paddingBottom }: QuizVariantInterface) => {
-  const { variant } = useQuizStore();
-  const correctPositionRelative = { x: 0.48, y: 0.45 };
-
-  // Calculate correctRadiusRelative automatically based on the circle dimensions
-  const calculateCorrectRadiusRelative = (): number => {
-    // The correct answer circle has width: 15% and height: 30%
-    // We'll use the average of these as the radius
-    const circleWidthRelative = 0.15; // 15%
-    const circleHeightRelative = 0.3; // 30%
-
-    // Calculate the average radius (half of the average of width and height)
-    const averageRadius = (circleWidthRelative + circleHeightRelative) / 4;
-
-    // Add a small tolerance for better user experience
-    const tolerance = 0.02; // 2% tolerance
-
-    return averageRadius + tolerance;
-  };
-
-  const correctRadiusRelative = calculateCorrectRadiusRelative();
-  const mockUserAnswerRelative = { x: 0.72, y: 0.348 };
-
-  const [clickPositionRelative, setClickPositionRelative] = useState<{
-    x: number;
-    y: number;
-  } | null>(variant == 'result' ? mockUserAnswerRelative : null);
-
-  // Helper function to safely convert click coordinates to relative coordinates
-  const convertToRelativeCoordinates = (
-    x: number,
-    y: number,
-    rect: DOMRect
-  ): { x: number; y: number } => {
-    // Guard against division by zero or extremely small dimensions
-    const safeWidth = Math.max(rect.width, 0.001);
-    const safeHeight = Math.max(rect.height, 0.001);
-
-    // Convert to relative coordinates and clamp to [0, 1] range
-    const xRelative = Math.max(0, Math.min(1, x / safeWidth));
-    const yRelative = Math.max(0, Math.min(1, y / safeHeight));
-
-    return { x: xRelative, y: yRelative };
-  };
-
-  const handleImageClick = (event: MouseEvent<HTMLButtonElement>) => {
-    if (variant === 'result') return;
-
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    // Use helper function for safe conversion
-    const positionRelative = convertToRelativeCoordinates(x, y, rect);
-    setClickPositionRelative(positionRelative);
-  };
-
-  const handleKeyboardActivate = () => {
-    if (variant === 'result') return;
-    // Choose a deterministic position for keyboard activation; center is a reasonable default
-    setClickPositionRelative({ x: 0.5, y: 0.5 });
-  };
-
-  const isCorrect = () => {
-    if (!clickPositionRelative) return false;
-
-    const distance = Math.sqrt(
-      Math.pow(clickPositionRelative.x - correctPositionRelative.x, 2) +
-        Math.pow(clickPositionRelative.y - correctPositionRelative.y, 2)
-    );
-
-    return distance <= correctRadiusRelative;
-  };
-
-  const getUserCircleColorClasses = () => {
-    if (variant === 'default') {
-      return 'bg-indicator-primary/70 border-[#F8CC2E]';
-    }
-
-    if (variant === 'result') {
-      return isCorrect()
-        ? 'bg-success-600/70 border-white' // Green for correct answer
-        : 'bg-indicator-error/70 border-white'; // Red for incorrect answer
-    }
-
-    return 'bg-success-600/70 border-white';
-  };
-
-  return (
-    <>
-      <QuizSubTitle subTitle="Clique na área correta" />
-
-      <QuizContainer className={cn('', paddingBottom)}>
-        <div
-          data-testid="quiz-image-container"
-          className="space-y-6 p-3 relative inline-block"
-        >
-          {variant == 'result' && (
-            <div
-              data-testid="quiz-legend"
-              className="flex items-center gap-4 text-xs"
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-indicator-primary/70 border border-[#F8CC2E]"></div>
-                <span className="text-text-600 font-medium text-sm">
-                  Área correta
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-success-600/70 border border-white"></div>
-                <span className="text-text-600 font-medium text-sm">
-                  Resposta correta
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-indicator-error/70 border border-white"></div>
-                <span className="text-text-600 font-medium text-sm">
-                  Resposta incorreta
-                </span>
-              </div>
-            </div>
-          )}
-
-          <button
-            data-testid="quiz-image-button"
-            type="button"
-            className="relative cursor-pointer w-full h-full border-0 bg-transparent p-0"
-            onClick={handleImageClick}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleKeyboardActivate();
-              }
-            }}
-            aria-label="Área da imagem interativa"
-          >
-            <img
-              data-testid="quiz-image"
-              src={ImageQuestion}
-              alt="Question"
-              className="w-full h-auto rounded-md"
-            />
-
-            {/* Correct answer circle - only show in result variant */}
-            {variant === 'result' && (
-              <div
-                data-testid="quiz-correct-circle"
-                className="absolute rounded-full bg-indicator-primary/70 border-4 border-[#F8CC2E] pointer-events-none"
-                style={{
-                  minWidth: '50px',
-                  maxWidth: '160px',
-                  width: '15%',
-                  aspectRatio: '1 / 1',
-                  left: `calc(${correctPositionRelative.x * 100}% - 7.5%)`,
-                  top: `calc(${correctPositionRelative.y * 100}% - 15%)`,
-                }}
-              />
-            )}
-
-            {/* User's answer circle */}
-            {clickPositionRelative && (
-              <div
-                data-testid="quiz-user-circle"
-                className={`absolute rounded-full border-4 pointer-events-none ${getUserCircleColorClasses()}`}
-                style={{
-                  minWidth: '30px',
-                  maxWidth: '52px',
-                  width: '5%',
-                  aspectRatio: '1 / 1',
-                  left: `calc(${clickPositionRelative.x * 100}% - 2.5%)`,
-                  top: `calc(${clickPositionRelative.y * 100}% - 2.5%)`,
-                }}
-              />
-            )}
-          </button>
-        </div>
-      </QuizContainer>
-    </>
-  );
-};
 
 const QuizQuestionList = ({
   filterType = 'all',
@@ -1440,7 +347,11 @@ const QuizFooter = forwardRef<
     onGoToSimulated?: () => void;
     onDetailResult?: () => void;
     handleFinishSimulated?: () => void;
+    onGoToNextModule?: () => void;
+    onRepeat?: () => void;
+    onTryLater?: () => void;
     resultImageComponent?: ReactNode;
+    resultIncorrectImageComponent?: ReactNode;
   }
 >(
   (
@@ -1449,12 +360,17 @@ const QuizFooter = forwardRef<
       onGoToSimulated,
       onDetailResult,
       handleFinishSimulated,
+      onGoToNextModule,
+      onRepeat,
+      onTryLater,
       resultImageComponent,
+      resultIncorrectImageComponent,
       ...props
     },
     ref
   ) => {
     const {
+      quiz,
       currentQuestionIndex,
       getTotalQuestions,
       goToNextQuestion,
@@ -1476,17 +392,25 @@ const QuizFooter = forwardRef<
     const isCurrentQuestionSkipped = currentQuestion
       ? getQuestionStatusFromUserAnswers(currentQuestion.id) === 'skipped'
       : false;
-    const [alertDialogOpen, setAlertDialogOpen] = useState(false);
-    const [modalResultOpen, setModalResultOpen] = useState(false);
-    const [modalNavigateOpen, setModalNavigateOpen] = useState(false);
-    const [modalResolutionOpen, setModalResolutionOpen] = useState(false);
+    // Sistema unificado de controle de modais
+    const [activeModal, setActiveModal] = useState<string | null>(null);
     const [filterType, setFilterType] = useState<string>('all');
+
+    // Funções para controlar modais
+    const openModal = (modalName: string) => setActiveModal(modalName);
+    const closeModal = () => setActiveModal(null);
+    const isModalOpen = (modalName: string) => activeModal === modalName;
     const unansweredQuestions = getUnansweredQuestionsFromUserAnswers();
     const allQuestions = getTotalQuestions();
+    const stats = getQuestionResultStatistics();
+    const correctAnswers = stats?.correctAnswers;
+    const totalAnswers = stats?.totalAnswered;
+    const quizType = quiz?.type || QUIZ_TYPE.SIMULADO;
+    const quizTypeLabel = getTypeLabel(quizType);
 
     const handleFinishQuiz = async () => {
       if (unansweredQuestions.length > 0) {
-        setAlertDialogOpen(true);
+        openModal('alertDialog');
         return;
       }
 
@@ -1494,7 +418,26 @@ const QuizFooter = forwardRef<
         if (handleFinishSimulated) {
           await Promise.resolve(handleFinishSimulated());
         }
-        setModalResultOpen(true);
+
+        if (
+          quizType === QUIZ_TYPE.QUESTIONARIO &&
+          typeof correctAnswers === 'number' &&
+          typeof totalAnswers === 'number' &&
+          correctAnswers === totalAnswers
+        ) {
+          openModal('modalQuestionnaireAllCorrect');
+          return;
+        }
+
+        if (
+          quizType === QUIZ_TYPE.QUESTIONARIO &&
+          typeof correctAnswers === 'number' &&
+          correctAnswers === 0
+        ) {
+          openModal('modalQuestionnaireAllIncorrect');
+          return;
+        }
+        openModal('modalResult');
       } catch (err) {
         console.error('handleFinishSimulated failed:', err);
         return;
@@ -1506,11 +449,30 @@ const QuizFooter = forwardRef<
         if (handleFinishSimulated) {
           await Promise.resolve(handleFinishSimulated());
         }
-        setModalResultOpen(true);
-        setAlertDialogOpen(false);
+
+        if (
+          quizType === QUIZ_TYPE.QUESTIONARIO &&
+          typeof correctAnswers === 'number' &&
+          typeof totalAnswers === 'number' &&
+          correctAnswers === totalAnswers
+        ) {
+          openModal('modalQuestionnaireAllCorrect');
+          return;
+        }
+
+        if (
+          quizType === QUIZ_TYPE.QUESTIONARIO &&
+          typeof correctAnswers === 'number' &&
+          correctAnswers === 0
+        ) {
+          openModal('modalQuestionnaireAllIncorrect');
+          return;
+        }
+
+        openModal('modalResult');
       } catch (err) {
         console.error('handleFinishSimulated failed:', err);
-        setAlertDialogOpen(false);
+        closeModal();
         return;
       }
     };
@@ -1531,7 +493,7 @@ const QuizFooter = forwardRef<
                 <IconButton
                   icon={<SquaresFour size={24} className="text-text-950" />}
                   size="md"
-                  onClick={() => setModalNavigateOpen(true)}
+                  onClick={() => openModal('modalNavigate')}
                 />
 
                 {isFirstQuestion ? (
@@ -1605,7 +567,7 @@ const QuizFooter = forwardRef<
                 variant="solid"
                 action="primary"
                 size="medium"
-                onClick={() => setModalResolutionOpen(true)}
+                onClick={() => openModal('modalResolution')}
               >
                 Ver Resolução
               </Button>
@@ -1614,13 +576,15 @@ const QuizFooter = forwardRef<
         </footer>
 
         <AlertDialog
-          isOpen={alertDialogOpen}
-          onChangeOpen={setAlertDialogOpen}
-          title="Finalizar simulado?"
+          isOpen={isModalOpen('alertDialog')}
+          onChangeOpen={(open) =>
+            open ? openModal('alertDialog') : closeModal()
+          }
+          title={`Finalizar ${quizTypeLabel.toLowerCase()}?`}
           description={
             unansweredQuestions.length > 0
               ? `Você deixou as questões ${unansweredQuestions.join(', ')} sem resposta. Finalizar agora pode impactar seu desempenho.`
-              : 'Tem certeza que deseja finalizar o simulado?'
+              : getFinishConfirmationText(quizType)
           }
           cancelButtonLabel="Voltar e revisar"
           submitButtonLabel="Finalizar Mesmo Assim"
@@ -1628,8 +592,8 @@ const QuizFooter = forwardRef<
         />
 
         <Modal
-          isOpen={modalResultOpen}
-          onClose={() => setModalResultOpen(false)}
+          isOpen={isModalOpen('modalResult')}
+          onClose={closeModal}
           title=""
           closeOnEscape={false}
           hideCloseButton
@@ -1647,12 +611,11 @@ const QuizFooter = forwardRef<
             )}
             <div className="flex flex-col gap-2 text-center">
               <h2 className="text-text-950 font-bold text-lg">
-                Você concluiu o simulado!
+                {getCompletionTitle(quizType)}
               </h2>
               <p className="text-text-500 font-sm">
-                Você acertou{' '}
-                {getQuestionResultStatistics()?.correctAnswers ?? '--'} de{' '}
-                {allQuestions} questões.
+                Você acertou {correctAnswers ?? '--'} de {allQuestions}{' '}
+                questões.
               </p>
             </div>
 
@@ -1663,7 +626,7 @@ const QuizFooter = forwardRef<
                 size="small"
                 onClick={onGoToSimulated}
               >
-                Ir para simulados
+                Ir para {quizTypeLabel.toLocaleLowerCase()}s
               </Button>
 
               <Button className="w-full" onClick={onDetailResult}>
@@ -1674,8 +637,8 @@ const QuizFooter = forwardRef<
         </Modal>
 
         <Modal
-          isOpen={modalNavigateOpen}
-          onClose={() => setModalNavigateOpen(false)}
+          isOpen={isModalOpen('modalNavigate')}
+          onClose={closeModal}
           title="Questões"
           size={'lg'}
         >
@@ -1702,378 +665,157 @@ const QuizFooter = forwardRef<
             <div className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto">
               <QuizQuestionList
                 filterType={filterType}
-                onQuestionClick={() => setModalNavigateOpen(false)}
+                onQuestionClick={closeModal}
               />
             </div>
           </div>
         </Modal>
 
         <Modal
-          isOpen={modalResolutionOpen}
-          onClose={() => setModalResolutionOpen(false)}
+          isOpen={isModalOpen('modalResolution')}
+          onClose={closeModal}
           title="Resolução"
           size={'lg'}
         >
           {currentQuestion?.solutionExplanation}
         </Modal>
+
+        <Modal
+          isOpen={isModalOpen('modalQuestionnaireAllCorrect')}
+          onClose={closeModal}
+          title=""
+          closeOnEscape={false}
+          hideCloseButton
+          size={'md'}
+        >
+          <div className="flex flex-col w-full h-full items-center justify-center gap-4">
+            {resultImageComponent ? (
+              <div className="w-[282px] h-auto">{resultImageComponent}</div>
+            ) : (
+              <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
+                <span className="text-gray-500 text-sm">
+                  Imagem de resultado
+                </span>
+              </div>
+            )}
+            <div className="flex flex-col gap-2 text-center">
+              <h2 className="text-text-950 font-bold text-lg">🎉 Parabéns!</h2>
+              <p className="text-text-500 font-sm">
+                Você concluiu o módulo Movimento Uniforme.
+              </p>
+            </div>
+
+            <div className="px-6 flex flex-row items-center gap-2 w-full">
+              <Button className="w-full" onClick={onGoToNextModule}>
+                Próximo módulo
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={isModalOpen('modalQuestionnaireAllIncorrect')}
+          onClose={closeModal}
+          title=""
+          closeOnEscape={false}
+          hideCloseButton
+          size={'md'}
+        >
+          <div className="flex flex-col w-full h-full items-center justify-center gap-4">
+            {resultIncorrectImageComponent ? (
+              <div className="w-[282px] h-auto">
+                {resultIncorrectImageComponent}
+              </div>
+            ) : (
+              <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
+                <span className="text-gray-500 text-sm">
+                  Imagem de resultado
+                </span>
+              </div>
+            )}
+            <div className="flex flex-col gap-2 text-center">
+              <h2 className="text-text-950 font-bold text-lg">
+                😕 Não foi dessa vez...
+              </h2>
+              <p className="text-text-500 font-sm">
+                Você tirou 0 no questionário, mas não se preocupe! Isso é apenas
+                uma oportunidade de aprendizado.
+              </p>
+
+              <p className="text-text-500 font-sm">
+                Que tal tentar novamente para melhorar sua nota? Estamos aqui
+                para te ajudar a entender o conteúdo e evoluir.
+              </p>
+
+              <p className="text-text-500 font-sm">
+                Clique em Repetir Questionário e mostre do que você é capaz! 💪
+              </p>
+            </div>
+
+            <div className="flex flex-row justify-center items-center gap-2 w-full">
+              <Button
+                type="button"
+                variant="link"
+                size="small"
+                className="w-auto"
+                onClick={() => {
+                  closeModal();
+                  openModal('alertDialogTryLater');
+                }}
+              >
+                Tentar depois
+              </Button>
+
+              <Button
+                variant="outline"
+                size="small"
+                className="w-auto"
+                onClick={onDetailResult}
+              >
+                Detalhar resultado
+              </Button>
+
+              <Button
+                className="w-auto"
+                size="small"
+                onClick={onGoToNextModule}
+              >
+                Próximo módulo
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        <AlertDialog
+          isOpen={isModalOpen('alertDialogTryLater')}
+          onChangeOpen={(open) =>
+            open ? openModal('alertDialogTryLater') : closeModal()
+          }
+          title="Tentar depois?"
+          description={
+            'Você optou por refazer o questionário mais tarde.\n\nLembre-se: enquanto não refazer o questionário, sua nota permanecerá 0 no sistema.'
+          }
+          cancelButtonLabel="Repetir questionário"
+          submitButtonLabel="Tentar depois"
+          onSubmit={() => {
+            onTryLater?.();
+            closeModal();
+          }}
+          onCancel={() => {
+            onRepeat?.();
+            closeModal();
+          }}
+        />
       </>
     );
   }
 );
 
-// QUIZ RESULT COMPONENTS
-
-const QuizBadge = ({
-  subtype,
-}: {
-  subtype: SUBTYPE_ENUM | undefined | string;
-}) => {
-  switch (subtype) {
-    case SUBTYPE_ENUM.PROVA:
-      return (
-        <Badge variant="examsOutlined" action="exam2" data-testid="quiz-badge">
-          Prova
-        </Badge>
-      );
-    case SUBTYPE_ENUM.ENEM_PROVA_1:
-    case SUBTYPE_ENUM.ENEM_PROVA_2:
-      return (
-        <Badge variant="examsOutlined" action="exam1" data-testid="quiz-badge">
-          Enem
-        </Badge>
-      );
-    case SUBTYPE_ENUM.VESTIBULAR:
-      return (
-        <Badge variant="examsOutlined" action="exam4" data-testid="quiz-badge">
-          Vestibular
-        </Badge>
-      );
-    case SUBTYPE_ENUM.SIMULADO:
-    case SUBTYPE_ENUM.SIMULADAO:
-    case undefined:
-      return (
-        <Badge variant="examsOutlined" action="exam3" data-testid="quiz-badge">
-          Simuladão
-        </Badge>
-      );
-    default:
-      return (
-        <Badge variant="solid" action="info" data-testid="quiz-badge">
-          {subtype}
-        </Badge>
-      );
-  }
-};
-
-const QuizResultHeaderTitle = forwardRef<
-  HTMLDivElement,
-  { className?: string }
->(({ className, ...props }, ref) => {
-  const { getActiveQuiz } = useQuizStore();
-  const activeQuiz = getActiveQuiz();
-  return (
-    <div
-      ref={ref}
-      className={cn('flex flex-row pt-4 justify-between', className)}
-      {...props}
-    >
-      <p className="text-text-950 font-bold text-2xl">Resultado</p>
-      <QuizBadge subtype={activeQuiz?.quiz.subtype || undefined} />
-    </div>
-  );
-});
-
-const QuizResultTitle = forwardRef<
-  HTMLParagraphElement,
-  { className?: string }
->(({ className, ...props }, ref) => {
-  const { getQuizTitle } = useQuizStore();
-  const quizTitle = getQuizTitle();
-
-  return (
-    <p
-      className={cn('pt-6 pb-4 text-text-950 font-bold text-lg', className)}
-      ref={ref}
-      {...props}
-    >
-      {quizTitle}
-    </p>
-  );
-});
-
-const QuizResultPerformance = forwardRef<HTMLDivElement>(
-  ({ ...props }, ref) => {
-    const {
-      getTotalQuestions,
-      formatTime,
-      getQuestionResultStatistics,
-      getQuestionResult,
-    } = useQuizStore();
-
-    const totalQuestions = getTotalQuestions();
-    const questionResult = getQuestionResult();
-
-    let correctAnswers = 0;
-    let correctEasyAnswers = 0;
-    let correctMediumAnswers = 0;
-    let correctDifficultAnswers = 0;
-    let totalEasyQuestions = 0;
-    let totalMediumQuestions = 0;
-    let totalDifficultQuestions = 0;
-
-    if (questionResult) {
-      questionResult.answers.forEach((answer) => {
-        const isCorrect = answer.answerStatus == ANSWER_STATUS.RESPOSTA_CORRETA;
-
-        if (isCorrect) {
-          correctAnswers++;
-        }
-
-        if (answer.difficultyLevel === QUESTION_DIFFICULTY.FACIL) {
-          totalEasyQuestions++;
-          if (isCorrect) {
-            correctEasyAnswers++;
-          }
-        } else if (answer.difficultyLevel === QUESTION_DIFFICULTY.MEDIO) {
-          totalMediumQuestions++;
-          if (isCorrect) {
-            correctMediumAnswers++;
-          }
-        } else if (answer.difficultyLevel === QUESTION_DIFFICULTY.DIFICIL) {
-          totalDifficultQuestions++;
-          if (isCorrect) {
-            correctDifficultAnswers++;
-          }
-        }
-      });
-    }
-
-    const percentage =
-      totalQuestions > 0
-        ? Math.round((correctAnswers / totalQuestions) * 100)
-        : 0;
-
-    return (
-      <div
-        className="flex flex-row gap-6 p-6 rounded-xl bg-background justify-between"
-        ref={ref}
-        {...props}
-      >
-        <div className="relative">
-          <ProgressCircle
-            size="medium"
-            variant="green"
-            value={percentage}
-            showPercentage={false}
-            label=""
-          />
-
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="flex items-center gap-1 mb-1">
-              <Clock size={12} weight="regular" className="text-text-800" />
-              <span className="text-2xs font-medium text-text-800">
-                {formatTime(
-                  (getQuestionResultStatistics()?.timeSpent ?? 0) * 60
-                )}
-              </span>
-            </div>
-
-            <div className="text-2xl font-medium text-text-800 leading-7">
-              {getQuestionResultStatistics()?.correctAnswers ?? '--'} de{' '}
-              {totalQuestions}
-            </div>
-
-            <div className="text-2xs font-medium text-text-600 mt-1">
-              Corretas
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-4 w-full">
-          <ProgressBar
-            className="w-full"
-            layout="stacked"
-            variant="green"
-            value={correctEasyAnswers}
-            max={totalEasyQuestions}
-            label="Fáceis"
-            showHitCount
-            labelClassName="text-base font-medium text-text-800 leading-none"
-            percentageClassName="text-xs font-medium leading-[14px] text-right"
-          />
-
-          <ProgressBar
-            className="w-full"
-            layout="stacked"
-            variant="green"
-            value={correctMediumAnswers}
-            max={totalMediumQuestions}
-            label="Médias"
-            showHitCount
-            labelClassName="text-base font-medium text-text-800 leading-none"
-            percentageClassName="text-xs font-medium leading-[14px] text-right"
-          />
-
-          <ProgressBar
-            className="w-full"
-            layout="stacked"
-            variant="green"
-            value={correctDifficultAnswers}
-            max={totalDifficultQuestions}
-            label="Difíceis"
-            showHitCount
-            labelClassName="text-base font-medium text-text-800 leading-none"
-            percentageClassName="text-xs font-medium leading-[14px] text-right"
-          />
-        </div>
-      </div>
-    );
-  }
-);
-
-const QuizListResult = forwardRef<
-  HTMLDivElement,
-  {
-    className?: string;
-    onSubjectClick?: (subject: string) => void;
-  }
->(({ className, onSubjectClick, ...props }, ref) => {
-  const { getQuestionsGroupedBySubject } = useQuizStore();
-  const groupedQuestions = getQuestionsGroupedBySubject();
-  const subjectsStats = Object.entries(groupedQuestions).map(
-    ([subjectId, questions]) => {
-      let correct = 0;
-      let incorrect = 0;
-
-      questions.forEach((question) => {
-        if (question.answerStatus == ANSWER_STATUS.RESPOSTA_CORRETA) {
-          correct++;
-        } else {
-          incorrect++;
-        }
-      });
-
-      return {
-        subject: {
-          name:
-            questions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ??
-            'Sem matéria',
-          id: subjectId,
-          color: questions?.[0]?.knowledgeMatrix?.[0]?.subject?.color ?? '',
-          icon: questions?.[0]?.knowledgeMatrix?.[0]?.subject?.icon ?? '',
-        },
-        correct,
-        incorrect,
-        total: questions.length,
-      };
-    }
-  );
-
-  return (
-    <section ref={ref} className={className} {...props}>
-      <p className="pt-6 pb-4 text-text-950 font-bold text-lg">Matérias</p>
-
-      <ul className="flex flex-col gap-2">
-        {subjectsStats.map((subject) => (
-          <li key={subject.subject.id}>
-            <CardResults
-              onClick={() => onSubjectClick?.(subject.subject.id)}
-              className="max-w-full"
-              header={subject.subject.name}
-              correct_answers={subject.correct}
-              incorrect_answers={subject.incorrect}
-              icon={subject.subject.icon || 'Book'}
-              color={subject.subject.color || undefined}
-              direction="row"
-            />
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-});
-
-const QuizListResultByMateria = ({
-  subject,
-  onQuestionClick,
-}: {
-  subject: string;
-  onQuestionClick: (question: Question) => void;
-}) => {
-  const { getQuestionsGroupedBySubject, getQuestionIndex } = useQuizStore();
-  const groupedQuestions = getQuestionsGroupedBySubject();
-
-  const answeredQuestions = groupedQuestions[subject] || [];
-
-  return (
-    <div className="flex flex-col">
-      <div className="flex flex-row pt-4 justify-between">
-        <p className="text-text-950 font-bold text-2xl">
-          {answeredQuestions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ??
-            'Sem matéria'}
-        </p>
-      </div>
-
-      <section className="flex flex-col ">
-        <p className="pt-6 pb-4 text-text-950 font-bold text-lg">
-          Resultado das questões
-        </p>
-
-        <ul className="flex flex-col gap-2 pt-4">
-          {answeredQuestions.map((question) => {
-            const questionIndex = getQuestionIndex(
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (question as any).questionId ?? question.id
-            );
-            return (
-              <li key={question.id}>
-                <CardStatus
-                  className="max-w-full"
-                  header={`Questão ${questionIndex.toString().padStart(2, '0')}`}
-                  status={(() => {
-                    if (
-                      question.answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA
-                    )
-                      return 'correct';
-                    if (
-                      question.answerStatus === ANSWER_STATUS.RESPOSTA_INCORRETA
-                    )
-                      return 'incorrect';
-                    if (question.answerStatus === ANSWER_STATUS.NAO_RESPONDIDO)
-                      return 'unanswered';
-                    return undefined;
-                  })()}
-                  onClick={() => onQuestionClick?.(question)}
-                />
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-    </div>
-  );
-};
-
 export {
-  QuizHeaderResult,
   QuizTitle,
-  QuizSubTitle,
   Quiz,
   QuizHeader,
-  QuizContainer,
   QuizContent,
-  QuizAlternative,
-  QuizQuestionList,
   QuizFooter,
-  QuizListResult,
-  QuizResultHeaderTitle,
-  QuizResultTitle,
-  QuizResultPerformance,
-  QuizListResultByMateria,
-  QuizMultipleChoice,
-  QuizDissertative,
-  QuizTrueOrFalse,
-  QuizConnectDots,
-  QuizFill,
-  QuizImageQuestion,
+  QuizQuestionList,
 };
