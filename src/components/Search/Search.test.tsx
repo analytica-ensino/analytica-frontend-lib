@@ -82,7 +82,7 @@ describe('Search Component', () => {
       const input = screen.getByRole('combobox');
       expect(input).toBeInTheDocument();
       expect(input).toHaveAttribute('placeholder', 'Buscar...');
-      expect(input).toHaveClass('border-border-300', 'bg-primary');
+      expect(input).toHaveClass('border-border-300', 'bg-background');
     });
 
     it('should render with custom placeholder', () => {
