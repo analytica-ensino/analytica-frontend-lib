@@ -10,7 +10,7 @@ import {
 import ProgressCircle from '../ProgressCircle/ProgressCircle';
 import { Clock } from 'phosphor-react';
 import ProgressBar from '../ProgressBar/ProgressBar';
-import { cn } from '@/utils/utils';
+import { cn } from '../../utils/utils';
 import Badge from '../Badge/Badge';
 
 const QuizBadge = ({
@@ -115,8 +115,8 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
 
 const QuizResultHeaderTitle = forwardRef<
   HTMLDivElement,
-  { className?: string }
->(({ className, ...props }, ref) => {
+  { className?: string; showBadge?: boolean }
+>(({ className, showBadge = true, ...props }, ref) => {
   const { quiz } = useQuizStore();
   return (
     <div
@@ -125,7 +125,7 @@ const QuizResultHeaderTitle = forwardRef<
       {...props}
     >
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
-      <QuizBadge subtype={quiz?.subtype || undefined} />
+      {showBadge && <QuizBadge subtype={quiz?.subtype || undefined} />}
     </div>
   );
 });
@@ -148,74 +148,83 @@ const QuizResultTitle = forwardRef<
   );
 });
 
-const QuizResultPerformance = forwardRef<HTMLDivElement>(
-  ({ ...props }, ref) => {
-    const {
-      getTotalQuestions,
-      formatTime,
-      getQuestionResultStatistics,
-      getQuestionResult,
-    } = useQuizStore();
+const QuizResultPerformance = forwardRef<
+  HTMLDivElement,
+  { showDetails?: boolean }
+>(({ showDetails = true, ...props }, ref) => {
+  const {
+    getTotalQuestions,
+    formatTime,
+    getQuestionResultStatistics,
+    getQuestionResult,
+  } = useQuizStore();
 
-    const totalQuestions = getTotalQuestions();
-    const questionResult = getQuestionResult();
+  const totalQuestions = getTotalQuestions();
+  const questionResult = getQuestionResult();
 
-    let correctAnswers = 0;
-    let correctEasyAnswers = 0;
-    let correctMediumAnswers = 0;
-    let correctDifficultAnswers = 0;
-    let totalEasyQuestions = 0;
-    let totalMediumQuestions = 0;
-    let totalDifficultQuestions = 0;
+  let correctAnswers = 0;
+  let correctEasyAnswers = 0;
+  let correctMediumAnswers = 0;
+  let correctDifficultAnswers = 0;
+  let totalEasyQuestions = 0;
+  let totalMediumQuestions = 0;
+  let totalDifficultQuestions = 0;
 
-    if (questionResult) {
-      questionResult.answers.forEach((answer) => {
-        const isCorrect = answer.answerStatus == ANSWER_STATUS.RESPOSTA_CORRETA;
+  if (questionResult) {
+    questionResult.answers.forEach((answer) => {
+      const isCorrect = answer.answerStatus == ANSWER_STATUS.RESPOSTA_CORRETA;
 
+      if (isCorrect) {
+        correctAnswers++;
+      }
+
+      if (answer.difficultyLevel === QUESTION_DIFFICULTY.FACIL) {
+        totalEasyQuestions++;
         if (isCorrect) {
-          correctAnswers++;
+          correctEasyAnswers++;
         }
-
-        if (answer.difficultyLevel === QUESTION_DIFFICULTY.FACIL) {
-          totalEasyQuestions++;
-          if (isCorrect) {
-            correctEasyAnswers++;
-          }
-        } else if (answer.difficultyLevel === QUESTION_DIFFICULTY.MEDIO) {
-          totalMediumQuestions++;
-          if (isCorrect) {
-            correctMediumAnswers++;
-          }
-        } else if (answer.difficultyLevel === QUESTION_DIFFICULTY.DIFICIL) {
-          totalDifficultQuestions++;
-          if (isCorrect) {
-            correctDifficultAnswers++;
-          }
+      } else if (answer.difficultyLevel === QUESTION_DIFFICULTY.MEDIO) {
+        totalMediumQuestions++;
+        if (isCorrect) {
+          correctMediumAnswers++;
         }
-      });
-    }
+      } else if (answer.difficultyLevel === QUESTION_DIFFICULTY.DIFICIL) {
+        totalDifficultQuestions++;
+        if (isCorrect) {
+          correctDifficultAnswers++;
+        }
+      }
+    });
+  }
 
-    const percentage =
-      totalQuestions > 0
-        ? Math.round((correctAnswers / totalQuestions) * 100)
-        : 0;
+  const percentage =
+    totalQuestions > 0
+      ? Math.round((correctAnswers / totalQuestions) * 100)
+      : 0;
 
-    return (
-      <div
-        className="flex flex-row gap-6 p-6 rounded-xl bg-background justify-between"
-        ref={ref}
-        {...props}
-      >
-        <div className="relative">
-          <ProgressCircle
-            size="medium"
-            variant="green"
-            value={percentage}
-            showPercentage={false}
-            label=""
-          />
+  const classesJustifyBetween = showDetails
+    ? 'justify-between'
+    : 'justify-center';
+  return (
+    <div
+      className={cn(
+        'flex flex-row gap-6 p-6 rounded-xl bg-background',
+        classesJustifyBetween
+      )}
+      ref={ref}
+      {...props}
+    >
+      <div className="relative">
+        <ProgressCircle
+          size="medium"
+          variant="green"
+          value={percentage}
+          showPercentage={false}
+          label=""
+        />
 
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          {showDetails && (
             <div className="flex items-center gap-1 mb-1">
               <Clock size={12} weight="regular" className="text-text-800" />
               <span className="text-2xs font-medium text-text-800">
@@ -224,18 +233,20 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
                 )}
               </span>
             </div>
+          )}
 
-            <div className="text-2xl font-medium text-text-800 leading-7">
-              {getQuestionResultStatistics()?.correctAnswers ?? '--'} de{' '}
-              {totalQuestions}
-            </div>
+          <div className="text-2xl font-medium text-text-800 leading-7">
+            {getQuestionResultStatistics()?.correctAnswers ?? '--'} de{' '}
+            {totalQuestions}
+          </div>
 
-            <div className="text-2xs font-medium text-text-600 mt-1">
-              Corretas
-            </div>
+          <div className="text-2xs font-medium text-text-600 mt-1">
+            Corretas
           </div>
         </div>
+      </div>
 
+      {showDetails && (
         <div className="flex flex-col gap-4 w-full">
           <ProgressBar
             className="w-full"
@@ -273,10 +284,10 @@ const QuizResultPerformance = forwardRef<HTMLDivElement>(
             percentageClassName="text-xs font-medium leading-[14px] text-right"
           />
         </div>
-      </div>
-    );
-  }
-);
+      )}
+    </div>
+  );
+});
 
 const QuizListResult = forwardRef<
   HTMLDivElement,
@@ -352,6 +363,10 @@ const QuizListResultByMateria = ({
 
   const answeredQuestions = groupedQuestions[subject] || [];
 
+  const formattedQuestions =
+    subject == 'all'
+      ? Object.values(groupedQuestions).flat()
+      : answeredQuestions;
   return (
     <div className="flex flex-col">
       <div className="flex flex-row pt-4 justify-between">
@@ -367,7 +382,7 @@ const QuizListResultByMateria = ({
         </p>
 
         <ul className="flex flex-col gap-2 pt-4">
-          {answeredQuestions.map((question) => {
+          {formattedQuestions.map((question) => {
             const questionIndex = getQuestionIndex(
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               (question as any).questionId ?? question.id
@@ -388,6 +403,10 @@ const QuizListResultByMateria = ({
                       return 'incorrect';
                     if (question.answerStatus === ANSWER_STATUS.NAO_RESPONDIDO)
                       return 'unanswered';
+                    if (
+                      question.answerStatus === ANSWER_STATUS.PENDENTE_AVALIACAO
+                    )
+                      return 'pending';
                     return undefined;
                   })()}
                   onClick={() => onQuestionClick?.(question)}
