@@ -647,7 +647,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
 
 interface CardStatusProps extends HTMLAttributes<HTMLDivElement> {
   header: string;
-  status?: 'correct' | 'incorrect' | 'unanswered';
+  status?: 'correct' | 'incorrect' | 'unanswered' | 'pending';
   label?: string;
 }
 
@@ -661,10 +661,39 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
           return 'Incorreta';
         case 'unanswered':
           return 'Em branco';
+        case 'pending':
+          return 'Avaliação pendente';
         default:
           return 'Em branco';
       }
     };
+
+    const getIconBadge = (status: CardStatusProps['status']) => {
+      switch (status) {
+        case 'correct':
+          return <CheckCircle />;
+        case 'incorrect':
+          return <XCircle />;
+        case 'pending':
+          return <Clock />;
+        default:
+          return <XCircle />;
+      }
+    };
+
+    const getActionBadge = (status: CardStatusProps['status']) => {
+      switch (status) {
+        case 'correct':
+          return 'success';
+        case 'incorrect':
+          return 'error';
+        case 'pending':
+          return 'info';
+        default:
+          return 'info';
+      }
+    };
+
     return (
       <CardBase
         ref={ref}
@@ -681,10 +710,10 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
           <span className="flex flex-row gap-1 items-center flex-shrink-0">
             {status && (
               <Badge
-                action={status == 'correct' ? 'success' : 'error'}
+                action={getActionBadge(status)}
                 variant="solid"
                 size="medium"
-                iconLeft={status == 'correct' ? <CheckCircle /> : <XCircle />}
+                iconLeft={getIconBadge(status)}
               >
                 {getLabelBadge(status)}
               </Badge>

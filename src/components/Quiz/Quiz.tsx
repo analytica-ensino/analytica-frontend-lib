@@ -223,7 +223,7 @@ const QuizContent = forwardRef<
     ComponentType<QuizVariantInterface>
   > = {
     [QUESTION_TYPE.ALTERNATIVA]: QuizAlternative,
-    [QUESTION_TYPE.MULTIPLA_CHOICE]: QuizMultipleChoice,
+    [QUESTION_TYPE.MULTIPLA_ESCOLHA]: QuizMultipleChoice,
     [QUESTION_TYPE.DISSERTATIVA]: QuizDissertative,
     [QUESTION_TYPE.VERDADEIRO_FALSO]: QuizTrueOrFalse,
     [QUESTION_TYPE.LIGAR_PONTOS]: QuizConnectDots,

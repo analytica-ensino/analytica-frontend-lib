@@ -90,7 +90,7 @@ jest.mock('./useQuizStore', () => ({
   },
   QUESTION_TYPE: {
     ALTERNATIVA: 'ALTERNATIVA',
-    MULTIPLA_CHOICE: 'MULTIPLA_CHOICE',
+    MULTIPLA_ESCOLHA: 'MULTIPLA_ESCOLHA',
     DISSERTATIVA: 'DISSERTATIVA',
     VERDADEIRO_FALSO: 'VERDADEIRO_FALSO',
     LIGAR_PONTOS: 'LIGAR_PONTOS',
@@ -621,6 +621,162 @@ describe('Quiz', () => {
 
       const badge = screen.getByTestId('quiz-badge');
       expect(badge).toHaveTextContent('Simuladão');
+    });
+
+    describe('showBadge prop tests', () => {
+      it('should show badge by default when showBadge is not specified', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: {
+            subtype: 'PROVA',
+          },
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizResultHeaderTitle />);
+
+        expect(screen.getByTestId('quiz-badge')).toBeInTheDocument();
+        expect(screen.getByText('Prova')).toBeInTheDocument();
+      });
+
+      it('should show badge when showBadge is explicitly set to true', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: {
+            subtype: 'ENEM_PROVA_1',
+          },
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizResultHeaderTitle showBadge={true} />);
+
+        expect(screen.getByTestId('quiz-badge')).toBeInTheDocument();
+        expect(screen.getByText('Enem')).toBeInTheDocument();
+      });
+
+      it('should not show badge when showBadge is set to false', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: {
+            subtype: 'PROVA',
+          },
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizResultHeaderTitle showBadge={false} />);
+
+        expect(screen.queryByTestId('quiz-badge')).not.toBeInTheDocument();
+        expect(screen.queryByText('Prova')).not.toBeInTheDocument();
+
+        // But the title should still be there
+        expect(screen.getByText('Resultado')).toBeInTheDocument();
+      });
+
+      it('should not show badge when showBadge is false even with quiz subtype', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: {
+            subtype: 'VESTIBULAR',
+          },
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizResultHeaderTitle showBadge={false} />);
+
+        expect(screen.queryByTestId('quiz-badge')).not.toBeInTheDocument();
+        expect(screen.queryByText('Vestibular')).not.toBeInTheDocument();
+        expect(screen.getByText('Resultado')).toBeInTheDocument();
+      });
+
+      it('should not show badge when showBadge is false and no quiz subtype exists', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: null,
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizResultHeaderTitle showBadge={false} />);
+
+        expect(screen.queryByTestId('quiz-badge')).not.toBeInTheDocument();
+        expect(screen.getByText('Resultado')).toBeInTheDocument();
+      });
+
+      it('should maintain correct layout when badge is hidden', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: {
+            subtype: 'SIMULADO',
+          },
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        const { container } = render(
+          <QuizResultHeaderTitle showBadge={false} />
+        );
+        const headerElement = container.firstChild as HTMLElement;
+
+        // Should still have the flex layout classes
+        expect(headerElement).toHaveClass(
+          'flex',
+          'flex-row',
+          'pt-4',
+          'justify-between'
+        );
+
+        // Should only contain the title, not the badge
+        const children = headerElement.children;
+        expect(children).toHaveLength(1); // Only the title paragraph
+        expect(children[0].textContent).toBe('Resultado');
+      });
+
+      it('should work with custom className when showBadge is false', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: {
+            subtype: 'PROVA',
+          },
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        const { container } = render(
+          <QuizResultHeaderTitle
+            showBadge={false}
+            className="custom-no-badge-class"
+          />
+        );
+        const headerElement = container.firstChild as HTMLElement;
+
+        expect(headerElement).toHaveClass('custom-no-badge-class');
+        expect(headerElement).toHaveClass('flex', 'flex-row');
+        expect(screen.queryByTestId('quiz-badge')).not.toBeInTheDocument();
+        expect(screen.getByText('Resultado')).toBeInTheDocument();
+      });
+
+      it('should forward ref correctly when showBadge is false', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: {
+            subtype: 'ENEM_PROVA_2',
+          },
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        const ref = React.createRef<HTMLDivElement>();
+
+        render(<QuizResultHeaderTitle ref={ref} showBadge={false} />);
+
+        expect(ref.current).toBeInstanceOf(HTMLDivElement);
+        expect(ref.current).toHaveClass('flex', 'flex-row');
+        expect(screen.queryByTestId('quiz-badge')).not.toBeInTheDocument();
+      });
+
+      it('should pass through additional props when showBadge is false', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: {
+            subtype: 'SIMULADAO',
+          },
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        const { container } = render(
+          <QuizResultHeaderTitle
+            showBadge={false}
+            data-testid="header-no-badge"
+            aria-label="Header without badge"
+          />
+        );
+
+        const headerElement = container.firstChild as HTMLElement;
+        expect(headerElement).toHaveAttribute('data-testid', 'header-no-badge');
+        expect(headerElement).toHaveAttribute(
+          'aria-label',
+          'Header without badge'
+        );
+        expect(screen.queryByTestId('quiz-badge')).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -1218,6 +1374,280 @@ describe('Quiz', () => {
         expect(timeText).toHaveTextContent('02:00');
       });
     });
+
+    describe('showDetails prop tests', () => {
+      it('should show details by default when showDetails is not specified', () => {
+        mockGetTotalQuestions.mockReturnValue(5);
+        mockGetQuestionResult.mockReturnValue({
+          answers: [
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            },
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+            },
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
+            },
+          ],
+        });
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 2,
+          timeSpent: 120,
+        });
+        mockFormatTime.mockReturnValue('02:00');
+
+        render(<QuizResultPerformance />);
+
+        // Should show time display
+        expect(screen.getByText('02:00')).toBeInTheDocument();
+
+        // Should show progress bars for difficulty levels
+        expect(screen.getByText('Fáceis')).toBeInTheDocument();
+        expect(screen.getByText('Médias')).toBeInTheDocument();
+        expect(screen.getByText('Difíceis')).toBeInTheDocument();
+
+        // Should use justify-between layout
+        const container = document.querySelector(
+          '.flex.flex-row.gap-6.p-6.rounded-xl.bg-background'
+        );
+        expect(container).toHaveClass('justify-between');
+      });
+
+      it('should show details when showDetails is explicitly set to true', () => {
+        mockGetTotalQuestions.mockReturnValue(3);
+        mockGetQuestionResult.mockReturnValue({
+          answers: [
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            },
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+            },
+          ],
+        });
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 2,
+          timeSpent: 90,
+        });
+        mockFormatTime.mockReturnValue('01:30');
+
+        render(<QuizResultPerformance showDetails={true} />);
+
+        // Should show time display
+        expect(screen.getByText('01:30')).toBeInTheDocument();
+
+        // Should show progress bars
+        expect(screen.getByText('Fáceis')).toBeInTheDocument();
+        expect(screen.getByText('Médias')).toBeInTheDocument();
+        expect(screen.getByText('Difíceis')).toBeInTheDocument();
+
+        // Should use justify-between layout
+        const container = document.querySelector(
+          '.flex.flex-row.gap-6.p-6.rounded-xl.bg-background'
+        );
+        expect(container).toHaveClass('justify-between');
+      });
+
+      it('should hide details when showDetails is set to false', () => {
+        mockGetTotalQuestions.mockReturnValue(4);
+        mockGetQuestionResult.mockReturnValue({
+          answers: [
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            },
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+            },
+          ],
+        });
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 1,
+          timeSpent: 150,
+        });
+        mockFormatTime.mockReturnValue('02:30');
+
+        render(<QuizResultPerformance showDetails={false} />);
+
+        // Should NOT show time display
+        expect(screen.queryByText('02:30')).not.toBeInTheDocument();
+        expect(mockFormatTime).not.toHaveBeenCalled();
+
+        // Should NOT show progress bars for difficulty levels
+        expect(screen.queryByText('Fáceis')).not.toBeInTheDocument();
+        expect(screen.queryByText('Médias')).not.toBeInTheDocument();
+        expect(screen.queryByText('Difíceis')).not.toBeInTheDocument();
+
+        // Should still show main score
+        expect(screen.getByText('1 de 4')).toBeInTheDocument();
+        expect(screen.getByText('Corretas')).toBeInTheDocument();
+
+        // Should use justify-center layout instead of justify-between
+        const container = document.querySelector(
+          '.flex.flex-row.gap-6.p-6.rounded-xl.bg-background'
+        );
+        expect(container).toHaveClass('justify-center');
+        expect(container).not.toHaveClass('justify-between');
+      });
+
+      it('should maintain correct layout structure when showDetails is false', () => {
+        mockGetTotalQuestions.mockReturnValue(10);
+        mockGetQuestionResult.mockReturnValue({
+          answers: [
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            },
+          ],
+        });
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 1,
+          timeSpent: 60,
+        });
+
+        const { container } = render(
+          <QuizResultPerformance showDetails={false} />
+        );
+
+        // Should have main container with correct classes
+        const mainContainer = container.querySelector(
+          '.flex.flex-row.gap-6.p-6.rounded-xl.bg-background'
+        );
+        expect(mainContainer).toBeInTheDocument();
+        expect(mainContainer).toHaveClass('justify-center');
+
+        // Should only have the progress circle container, not the details section
+        const children = mainContainer?.children;
+        expect(children).toHaveLength(1); // Only the relative div with ProgressCircle
+
+        // Should have progress circle
+        expect(screen.getByTestId('progress-circle')).toBeInTheDocument();
+
+        // Should have score display
+        expect(screen.getByText('1 de 10')).toBeInTheDocument();
+        expect(screen.getByText('Corretas')).toBeInTheDocument();
+      });
+
+      it('should handle zero correct answers correctly when showDetails is false', () => {
+        mockGetTotalQuestions.mockReturnValue(5);
+        mockGetQuestionResult.mockReturnValue({
+          answers: [
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            },
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+            },
+          ],
+        });
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 0,
+          timeSpent: 200,
+        });
+
+        render(<QuizResultPerformance showDetails={false} />);
+
+        // Should show zero correct answers
+        expect(screen.getByText('0 de 5')).toBeInTheDocument();
+        expect(screen.getByText('Corretas')).toBeInTheDocument();
+
+        // Should not show time or difficulty breakdown
+        expect(screen.queryByText('Fáceis')).not.toBeInTheDocument();
+        expect(screen.queryByText('Médias')).not.toBeInTheDocument();
+        expect(screen.queryByText('Difíceis')).not.toBeInTheDocument();
+
+        // Progress circle should show 0%
+        const progressCircle = screen.getByTestId('progress-circle');
+        expect(progressCircle).toHaveAttribute('data-value', '0');
+      });
+
+      it('should work with custom props when showDetails is false', () => {
+        mockGetTotalQuestions.mockReturnValue(3);
+        mockGetQuestionResult.mockReturnValue(null);
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 2,
+          timeSpent: 90,
+        });
+
+        const { container } = render(
+          <QuizResultPerformance
+            showDetails={false}
+            data-testid="performance-no-details"
+          />
+        );
+
+        const mainContainer = container.firstChild as HTMLElement;
+        expect(mainContainer).toHaveAttribute(
+          'data-testid',
+          'performance-no-details'
+        );
+
+        // Should still have basic functionality
+        expect(screen.getByText('2 de 3')).toBeInTheDocument();
+        expect(screen.getByText('Corretas')).toBeInTheDocument();
+
+        // Should use justify-center layout
+        expect(mainContainer).toHaveClass('justify-center');
+        expect(mainContainer).toHaveClass(
+          'flex',
+          'flex-row',
+          'gap-6',
+          'p-6',
+          'rounded-xl',
+          'bg-background'
+        );
+      });
+
+      it('should forward ref correctly when showDetails is false', () => {
+        mockGetTotalQuestions.mockReturnValue(2);
+        mockGetQuestionResult.mockReturnValue(null);
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 1,
+          timeSpent: 30,
+        });
+
+        const ref = React.createRef<HTMLDivElement>();
+
+        render(<QuizResultPerformance ref={ref} showDetails={false} />);
+
+        expect(ref.current).toBeInstanceOf(HTMLDivElement);
+        expect(ref.current).toHaveClass('flex', 'flex-row', 'justify-center');
+
+        // Should not show details but still show main content
+        expect(screen.getByText('1 de 2')).toBeInTheDocument();
+        expect(screen.queryByText('Fáceis')).not.toBeInTheDocument();
+      });
+
+      it('should handle fallback values correctly when showDetails is false', () => {
+        mockGetTotalQuestions.mockReturnValue(5);
+        mockGetQuestionResult.mockReturnValue(null);
+        mockGetQuestionResultStatistics.mockReturnValue(null);
+
+        render(<QuizResultPerformance showDetails={false} />);
+
+        // Should show fallback values
+        expect(screen.getByText('-- de 5')).toBeInTheDocument();
+        expect(screen.getByText('Corretas')).toBeInTheDocument();
+
+        // Should not show any details
+        expect(screen.queryByText('Fáceis')).not.toBeInTheDocument();
+        expect(screen.queryByText('Médias')).not.toBeInTheDocument();
+        expect(screen.queryByText('Difíceis')).not.toBeInTheDocument();
+
+        // Progress circle should show 0%
+        const progressCircle = screen.getByTestId('progress-circle');
+        expect(progressCircle).toHaveAttribute('data-value', '0');
+      });
+    });
   });
 
   describe('QuizListResult Component', () => {
@@ -1695,7 +2125,7 @@ describe('Quiz', () => {
 
       expect(cardStatuses[0]).toHaveAttribute('data-status', 'correct');
       expect(cardStatuses[1]).toHaveAttribute('data-status', 'incorrect');
-      expect(cardStatuses[2]).not.toHaveAttribute('data-status'); // PENDENTE_AVALIACAO returns undefined, so no attribute
+      expect(cardStatuses[2]).toHaveAttribute('data-status', 'pending'); // PENDENTE_AVALIACAO returns undefined, so no attribute
     });
 
     it('should apply correct status for unanswered questions', () => {
@@ -1981,6 +2411,317 @@ describe('Quiz', () => {
 
       const listItem = list?.querySelector('li');
       expect(listItem).toBeInTheDocument();
+    });
+
+    describe('subject = "all" tests', () => {
+      it('should render all questions from all subjects when subject is "all"', () => {
+        const mockGroupedQuestions = {
+          'subject-1': [
+            {
+              id: 'question-1',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
+            },
+            {
+              id: 'question-2',
+              answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
+            },
+          ],
+          'subject-2': [
+            {
+              id: 'question-3',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Português' } }],
+            },
+          ],
+          'subject-3': [
+            {
+              id: 'question-4',
+              answerStatus: ANSWER_STATUS.NAO_RESPONDIDO,
+              knowledgeMatrix: [{ subject: { name: 'História' } }],
+            },
+            {
+              id: 'question-5',
+              answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+              knowledgeMatrix: [{ subject: { name: 'História' } }],
+            },
+          ],
+        };
+
+        mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
+        mockGetQuestionIndex.mockImplementation((id) => {
+          const questionMap: { [key: string]: number } = {
+            'question-1': 1,
+            'question-2': 2,
+            'question-3': 3,
+            'question-4': 4,
+            'question-5': 5,
+          };
+          return questionMap[id] || 1;
+        });
+
+        render(
+          <QuizListResultByMateria subject="all" onQuestionClick={jest.fn()} />
+        );
+
+        // Should render all 5 questions from all subjects
+        const cardStatuses = screen.getAllByTestId('card-status');
+        expect(cardStatuses).toHaveLength(5);
+
+        // Check that all questions are rendered with correct numbering
+        expect(screen.getByText('Questão 01')).toBeInTheDocument();
+        expect(screen.getByText('Questão 02')).toBeInTheDocument();
+        expect(screen.getByText('Questão 03')).toBeInTheDocument();
+        expect(screen.getByText('Questão 04')).toBeInTheDocument();
+        expect(screen.getByText('Questão 05')).toBeInTheDocument();
+      });
+
+      it('should apply correct status to questions from all subjects when subject is "all"', () => {
+        const mockGroupedQuestions = {
+          'subject-1': [
+            {
+              id: 'question-1',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
+            },
+          ],
+          'subject-2': [
+            {
+              id: 'question-2',
+              answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Português' } }],
+            },
+          ],
+          'subject-3': [
+            {
+              id: 'question-3',
+              answerStatus: ANSWER_STATUS.NAO_RESPONDIDO,
+              knowledgeMatrix: [{ subject: { name: 'História' } }],
+            },
+          ],
+          'subject-4': [
+            {
+              id: 'question-4',
+              answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+              knowledgeMatrix: [{ subject: { name: 'Ciências' } }],
+            },
+          ],
+        };
+
+        mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
+        mockGetQuestionIndex.mockImplementation((id) => {
+          const questionMap: { [key: string]: number } = {
+            'question-1': 1,
+            'question-2': 2,
+            'question-3': 3,
+            'question-4': 4,
+          };
+          return questionMap[id] || 1;
+        });
+
+        render(
+          <QuizListResultByMateria subject="all" onQuestionClick={jest.fn()} />
+        );
+
+        const cardStatuses = screen.getAllByTestId('card-status');
+        expect(cardStatuses).toHaveLength(4);
+
+        // Check status attributes for each question
+        expect(cardStatuses[0]).toHaveAttribute('data-status', 'correct');
+        expect(cardStatuses[1]).toHaveAttribute('data-status', 'incorrect');
+        expect(cardStatuses[2]).toHaveAttribute('data-status', 'unanswered');
+        expect(cardStatuses[3]).toHaveAttribute('data-status', 'pending');
+      });
+
+      it('should show "Sem matéria" as title when subject is "all" and no questions exist', () => {
+        const mockGroupedQuestions = {};
+
+        mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
+
+        render(
+          <QuizListResultByMateria subject="all" onQuestionClick={jest.fn()} />
+        );
+
+        // Should show "Sem matéria" as fallback title
+        expect(screen.getByText('Sem matéria')).toBeInTheDocument();
+
+        // Should still render the section title
+        expect(screen.getByText('Resultado das questões')).toBeInTheDocument();
+
+        // Should not render any question cards
+        const cardStatuses = screen.queryAllByTestId('card-status');
+        expect(cardStatuses).toHaveLength(0);
+      });
+
+      it('should show "Sem matéria" as title when subject is "all" but answeredQuestions is empty', () => {
+        const mockGroupedQuestions = {
+          'subject-1': [
+            {
+              id: 'question-1',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
+            },
+          ],
+        };
+
+        mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
+        mockGetQuestionIndex.mockReturnValue(1);
+
+        render(
+          <QuizListResultByMateria subject="all" onQuestionClick={jest.fn()} />
+        );
+
+        // When subject is "all", answeredQuestions array is empty (groupedQuestions['all'] || [])
+        // So it should show "Sem matéria" as fallback
+        expect(screen.getByText('Sem matéria')).toBeInTheDocument();
+
+        // But formattedQuestions should still contain all questions from Object.values(groupedQuestions).flat()
+        const cardStatuses = screen.getAllByTestId('card-status');
+        expect(cardStatuses).toHaveLength(1);
+        expect(screen.getByText('Questão 01')).toBeInTheDocument();
+      });
+
+      it('should handle mixed question types from different subjects when subject is "all"', () => {
+        const mockGroupedQuestions = {
+          math: [
+            {
+              id: 'math-q1',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Matemática Avançada' } }],
+            },
+            {
+              id: 'math-q2',
+              answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Matemática Avançada' } }],
+            },
+          ],
+          portuguese: [
+            {
+              id: 'port-q1',
+              answerStatus: ANSWER_STATUS.NAO_RESPONDIDO,
+              knowledgeMatrix: [{ subject: { name: 'Literatura Brasileira' } }],
+            },
+          ],
+          science: [
+            {
+              id: 'sci-q1',
+              answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+              knowledgeMatrix: [{ subject: { name: 'Física Quântica' } }],
+            },
+          ],
+        };
+
+        mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
+        mockGetQuestionIndex.mockImplementation((id) => {
+          const questionMap: { [key: string]: number } = {
+            'math-q1': 10,
+            'math-q2': 15,
+            'port-q1': 7,
+            'sci-q1': 23,
+          };
+          return questionMap[id] || 1;
+        });
+
+        render(
+          <QuizListResultByMateria subject="all" onQuestionClick={jest.fn()} />
+        );
+
+        // Should render all questions regardless of their original subject grouping
+        const cardStatuses = screen.getAllByTestId('card-status');
+        expect(cardStatuses).toHaveLength(4);
+
+        // Check that questions maintain their original numbering
+        expect(screen.getByText('Questão 10')).toBeInTheDocument(); // math-q1
+        expect(screen.getByText('Questão 15')).toBeInTheDocument(); // math-q2
+        expect(screen.getByText('Questão 07')).toBeInTheDocument(); // port-q1
+        expect(screen.getByText('Questão 23')).toBeInTheDocument(); // sci-q1
+
+        // Check that all status types are represented
+        expect(cardStatuses[0]).toHaveAttribute('data-status', 'correct');
+        expect(cardStatuses[1]).toHaveAttribute('data-status', 'incorrect');
+        expect(cardStatuses[2]).toHaveAttribute('data-status', 'unanswered');
+        expect(cardStatuses[3]).toHaveAttribute('data-status', 'pending');
+      });
+
+      it('should call onQuestionClick correctly for questions from all subjects when subject is "all"', () => {
+        const mockOnQuestionClick = jest.fn();
+        const mathQuestion = {
+          id: 'math-question',
+          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
+        };
+        const portQuestion = {
+          id: 'port-question',
+          answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+          knowledgeMatrix: [{ subject: { name: 'Português' } }],
+        };
+
+        const mockGroupedQuestions = {
+          'subject-1': [mathQuestion],
+          'subject-2': [portQuestion],
+        };
+
+        mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
+        mockGetQuestionIndex.mockImplementation((id) => {
+          const questionMap: { [key: string]: number } = {
+            'math-question': 1,
+            'port-question': 2,
+          };
+          return questionMap[id] || 1;
+        });
+
+        render(
+          <QuizListResultByMateria
+            subject="all"
+            onQuestionClick={mockOnQuestionClick}
+          />
+        );
+
+        const cardStatuses = screen.getAllByTestId('card-status');
+        expect(cardStatuses).toHaveLength(2);
+
+        // Click on the first question (math)
+        cardStatuses[0].click();
+        expect(mockOnQuestionClick).toHaveBeenCalledWith(mathQuestion);
+
+        // Click on the second question (portuguese)
+        cardStatuses[1].click();
+        expect(mockOnQuestionClick).toHaveBeenCalledWith(portQuestion);
+
+        expect(mockOnQuestionClick).toHaveBeenCalledTimes(2);
+      });
+
+      it('should handle edge case with empty subject arrays when subject is "all"', () => {
+        const mockGroupedQuestions = {
+          'subject-1': [],
+          'subject-2': [
+            {
+              id: 'question-1',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
+            },
+          ],
+          'subject-3': [],
+        };
+
+        mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
+        mockGetQuestionIndex.mockReturnValue(1);
+
+        render(
+          <QuizListResultByMateria subject="all" onQuestionClick={jest.fn()} />
+        );
+
+        // Should only render questions from non-empty arrays
+        const cardStatuses = screen.getAllByTestId('card-status');
+        expect(cardStatuses).toHaveLength(1);
+
+        expect(screen.getByText('Questão 01')).toBeInTheDocument();
+        expect(cardStatuses[0]).toHaveAttribute('data-status', 'correct');
+
+        // Title should still be "Sem matéria" since answeredQuestions (groupedQuestions['all']) is empty
+        expect(screen.getByText('Sem matéria')).toBeInTheDocument();
+      });
     });
   });
 });

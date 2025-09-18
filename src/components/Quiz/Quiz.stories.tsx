@@ -1256,7 +1256,7 @@ export const General: Story = () => {
           id: 'q2-multipla-escolha',
           statement:
             'Quais são os planetas do sistema solar que possuem anéis? (Selecione todas as opções corretas)',
-          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão de múltipla escolha',
           examBoard: 'ENEM',
@@ -1742,7 +1742,7 @@ export const GeneralForResults: Story = () => {
           id: 'q3-multi-correta',
           statement:
             'Quais são os planetas do sistema solar que possuem anéis? (Selecione todas as opções corretas)',
-          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão de múltipla escolha - resposta correta',
           examBoard: 'ENEM',
@@ -1797,7 +1797,7 @@ export const GeneralForResults: Story = () => {
           id: 'q4-multi-incorreta',
           statement:
             'Quais das seguintes grandezas são vetoriais? (Selecione todas as opções corretas)',
-          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão de múltipla escolha - resposta incorreta',
           examBoard: 'ENEM',
@@ -2229,7 +2229,7 @@ export const GeneralForResults: Story = () => {
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Múltipla Escolha Correta',
-          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
           correctOption: 'multi-opt1,multi-opt2,multi-opt3',
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           solutionExplanation:
@@ -2283,7 +2283,7 @@ export const GeneralForResults: Story = () => {
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Múltipla Escolha Incorreta',
-          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
           correctOption: 'multi-opt1,multi-opt2,multi-opt3',
           difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
           solutionExplanation: 'Velocidade, Aceleração e Força são vetoriais.',
@@ -2570,7 +2570,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
         {
           id: 'q2',
           statement: 'Questão de Matemática 1 - Múltipla Escolha',
-          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão sobre matemática - tipo múltipla escolha',
           examBoard: 'ENEM',
@@ -2814,7 +2814,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
           statement: 'Questão de Matemática 1 - Múltipla Escolha',
-          questionType: QUESTION_TYPE.MULTIPLA_CHOICE,
+          questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
           correctOption: 'opt1,opt2',
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           solutionExplanation:
