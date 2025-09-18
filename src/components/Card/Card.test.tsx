@@ -852,9 +852,7 @@ describe('CardStatus', () => {
     });
 
     it('should render with "Avaliação pendente" status and label', () => {
-      render(
-        <CardStatus {...baseProps} status="pending" label="Aguardando" />
-      );
+      render(<CardStatus {...baseProps} status="pending" label="Aguardando" />);
       expect(screen.getByText('Avaliação pendente')).toBeInTheDocument();
       expect(screen.getByText('Aguardando')).toBeInTheDocument();
     });
@@ -871,7 +869,7 @@ describe('CardStatus', () => {
       const badge = screen.getByTestId('badge');
       expect(badge).toBeInTheDocument();
       expect(badge).toHaveAttribute('data-action', 'info');
-      
+
       // Clock icon should be present as iconLeft
       const iconLeft = screen.getByTestId('badge-icon-left');
       expect(iconLeft).toBeInTheDocument();
@@ -914,7 +912,7 @@ describe('CardStatus', () => {
       const badge = screen.getByTestId('badge');
       expect(badge).toBeInTheDocument();
       expect(badge).toHaveAttribute('data-action', 'success');
-      
+
       // The CheckCircle icon should be inside the badge as iconLeft
       const iconLeft = screen.getByTestId('badge-icon-left');
       expect(iconLeft).toBeInTheDocument();
@@ -925,7 +923,7 @@ describe('CardStatus', () => {
       const badge = screen.getByTestId('badge');
       expect(badge).toBeInTheDocument();
       expect(badge).toHaveAttribute('data-action', 'error');
-      
+
       // The XCircle icon should be inside the badge as iconLeft
       const iconLeft = screen.getByTestId('badge-icon-left');
       expect(iconLeft).toBeInTheDocument();
@@ -936,7 +934,7 @@ describe('CardStatus', () => {
       const badge = screen.getByTestId('badge');
       expect(badge).toBeInTheDocument();
       expect(badge).toHaveAttribute('data-action', 'info');
-      
+
       // The Clock icon should be inside the badge as iconLeft
       const iconLeft = screen.getByTestId('badge-icon-left');
       expect(iconLeft).toBeInTheDocument();
@@ -947,7 +945,7 @@ describe('CardStatus', () => {
       const badge = screen.getByTestId('badge');
       expect(badge).toBeInTheDocument();
       expect(badge).toHaveAttribute('data-action', 'info');
-      
+
       // Default case should render XCircle icon with info action
       const iconLeft = screen.getByTestId('badge-icon-left');
       expect(iconLeft).toBeInTheDocument();
@@ -959,7 +957,7 @@ describe('CardStatus', () => {
       const badge = screen.getByTestId('badge');
       expect(badge).toBeInTheDocument();
       expect(badge).toHaveAttribute('data-action', 'info');
-      
+
       // Default case should render XCircle icon with info action
       const iconLeft = screen.getByTestId('badge-icon-left');
       expect(iconLeft).toBeInTheDocument();
@@ -1002,9 +1000,9 @@ describe('CardStatus', () => {
   describe('CardStatus integration tests', () => {
     it('should render all elements together for pending status', () => {
       render(
-        <CardStatus 
-          {...baseProps} 
-          status="pending" 
+        <CardStatus
+          {...baseProps}
+          status="pending"
           label="Aguardando correção"
           data-testid="card-status-pending"
         />
@@ -1012,19 +1010,19 @@ describe('CardStatus', () => {
 
       // Header should be present
       expect(screen.getByText('Questão 1')).toBeInTheDocument();
-      
+
       // Status badge should be present with correct text
       expect(screen.getByText('Avaliação pendente')).toBeInTheDocument();
-      
+
       // Label should be present
       expect(screen.getByText('Aguardando correção')).toBeInTheDocument();
-      
+
       // Badge should have correct attributes
       const badge = screen.getByTestId('badge');
       expect(badge).toBeInTheDocument();
       expect(badge).toHaveAttribute('data-action', 'info');
       expect(badge).toHaveAttribute('data-variant', 'solid');
-      
+
       // Caret icon should be present
       const caret = document.querySelector('.cursor-pointer');
       expect(caret).toBeInTheDocument();
@@ -1068,9 +1066,9 @@ describe('CardStatus', () => {
 
     it('should maintain proper layout structure with all elements', () => {
       const { container } = render(
-        <CardStatus 
-          {...baseProps} 
-          status="pending" 
+        <CardStatus
+          {...baseProps}
+          status="pending"
           label="Test label"
           className="test-class"
         />
@@ -1079,22 +1077,30 @@ describe('CardStatus', () => {
       // Should have main container with correct classes
       const cardBase = container.firstChild as HTMLElement;
       expect(cardBase).toHaveClass('test-class');
-      
+
       // Should have inner flex container
-      const flexContainer = cardBase.querySelector('.flex.justify-between.w-full.h-full');
+      const flexContainer = cardBase.querySelector(
+        '.flex.justify-between.w-full.h-full'
+      );
       expect(flexContainer).toBeInTheDocument();
-      
+
       // Should have header paragraph
-      const header = flexContainer?.querySelector('.text-sm.font-bold.text-text-950.truncate.flex-1.min-w-0');
+      const header = flexContainer?.querySelector(
+        '.text-sm.font-bold.text-text-950.truncate.flex-1.min-w-0'
+      );
       expect(header).toBeInTheDocument();
       expect(header).toHaveTextContent('Questão 1');
-      
+
       // Should have badge and label container
-      const badgeContainer = flexContainer?.querySelector('.flex.flex-row.gap-1.items-center.flex-shrink-0');
+      const badgeContainer = flexContainer?.querySelector(
+        '.flex.flex-row.gap-1.items-center.flex-shrink-0'
+      );
       expect(badgeContainer).toBeInTheDocument();
-      
+
       // Should have caret icon
-      const caret = flexContainer?.querySelector('.min-w-6.min-h-6.text-text-800.cursor-pointer.flex-shrink-0.ml-2');
+      const caret = flexContainer?.querySelector(
+        '.min-w-6.min-h-6.text-text-800.cursor-pointer.flex-shrink-0.ml-2'
+      );
       expect(caret).toBeInTheDocument();
     });
   });
