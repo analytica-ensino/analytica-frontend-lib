@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import React from 'react';
 import {
   CardBase,
   CardActivitiesResults,
@@ -17,6 +18,43 @@ import {
   CardSimulationHistory,
 } from './Card';
 import { ChartBar, Gear, Star } from 'phosphor-react';
+
+// Mock Badge component
+jest.mock('../Badge/Badge', () => {
+  return function MockBadge({
+    children,
+    variant,
+    action,
+    iconLeft,
+    iconRight,
+    size,
+    className,
+    ...props
+  }: {
+    children: React.ReactNode;
+    variant: string;
+    action: string;
+    iconLeft: React.ReactNode;
+    iconRight: React.ReactNode;
+    size: string;
+    className: string;
+  }) {
+    return (
+      <span
+        data-testid="badge"
+        data-variant={variant}
+        data-action={action}
+        data-size={size}
+        className={className}
+        {...props}
+      >
+        {iconLeft && <span data-testid="badge-icon-left">{iconLeft}</span>}
+        {children}
+        {iconRight && <span data-testid="badge-icon-right">{iconRight}</span>}
+      </span>
+    );
+  };
+});
 
 describe('CardBase', () => {
   const baseProps = {
@@ -804,6 +842,261 @@ describe('CardStatus', () => {
     render(<CardStatus {...baseProps} status="invalid" />);
     expect(screen.getByText('Questão 1')).toBeInTheDocument();
     expect(screen.getByText('Em branco')).toBeInTheDocument();
+  });
+
+  describe('pending status tests', () => {
+    it('should render with "Avaliação pendente" status', () => {
+      render(<CardStatus {...baseProps} status="pending" />);
+      expect(screen.getByText('Questão 1')).toBeInTheDocument();
+      expect(screen.getByText('Avaliação pendente')).toBeInTheDocument();
+    });
+
+    it('should render with "Avaliação pendente" status and label', () => {
+      render(
+        <CardStatus {...baseProps} status="pending" label="Aguardando" />
+      );
+      expect(screen.getByText('Avaliação pendente')).toBeInTheDocument();
+      expect(screen.getByText('Aguardando')).toBeInTheDocument();
+    });
+
+    it('should render pending status with info badge variant', () => {
+      render(<CardStatus {...baseProps} status="pending" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toHaveAttribute('data-action', 'info');
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+    });
+
+    it('should render pending status with Clock icon', () => {
+      render(<CardStatus {...baseProps} status="pending" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge).toHaveAttribute('data-action', 'info');
+      
+      // Clock icon should be present as iconLeft
+      const iconLeft = screen.getByTestId('badge-icon-left');
+      expect(iconLeft).toBeInTheDocument();
+    });
+  });
+
+  describe('getLabelBadge function tests', () => {
+    it('should return correct labels for each status', () => {
+      const statusLabels = [
+        { status: 'correct', expectedLabel: 'Correta' },
+        { status: 'incorrect', expectedLabel: 'Incorreta' },
+        { status: 'unanswered', expectedLabel: 'Em branco' },
+        { status: 'pending', expectedLabel: 'Avaliação pendente' },
+      ] as const;
+
+      statusLabels.forEach(({ status, expectedLabel }) => {
+        render(<CardStatus {...baseProps} status={status} />);
+        expect(screen.getByText(expectedLabel)).toBeInTheDocument();
+        // Clean up for next iteration
+        screen.getByText(expectedLabel).closest('[data-testid]')?.remove();
+      });
+    });
+
+    it('should return "Em branco" as default label for undefined status', () => {
+      render(<CardStatus {...baseProps} />);
+      // When status is undefined, no badge should be rendered
+      expect(screen.queryByText('Em branco')).not.toBeInTheDocument();
+    });
+
+    it('should return "Em branco" as default label for invalid status', () => {
+      // @ts-expect-error - Testing invalid status for default case coverage
+      render(<CardStatus {...baseProps} status="invalid" />);
+      expect(screen.getByText('Em branco')).toBeInTheDocument();
+    });
+  });
+
+  describe('getIconBadge function tests', () => {
+    it('should render CheckCircle icon for correct status', () => {
+      render(<CardStatus {...baseProps} status="correct" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge).toHaveAttribute('data-action', 'success');
+      
+      // The CheckCircle icon should be inside the badge as iconLeft
+      const iconLeft = screen.getByTestId('badge-icon-left');
+      expect(iconLeft).toBeInTheDocument();
+    });
+
+    it('should render XCircle icon for incorrect status', () => {
+      render(<CardStatus {...baseProps} status="incorrect" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge).toHaveAttribute('data-action', 'error');
+      
+      // The XCircle icon should be inside the badge as iconLeft
+      const iconLeft = screen.getByTestId('badge-icon-left');
+      expect(iconLeft).toBeInTheDocument();
+    });
+
+    it('should render Clock icon for pending status', () => {
+      render(<CardStatus {...baseProps} status="pending" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge).toHaveAttribute('data-action', 'info');
+      
+      // The Clock icon should be inside the badge as iconLeft
+      const iconLeft = screen.getByTestId('badge-icon-left');
+      expect(iconLeft).toBeInTheDocument();
+    });
+
+    it('should render XCircle icon as default for unanswered status', () => {
+      render(<CardStatus {...baseProps} status="unanswered" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge).toHaveAttribute('data-action', 'info');
+      
+      // Default case should render XCircle icon with info action
+      const iconLeft = screen.getByTestId('badge-icon-left');
+      expect(iconLeft).toBeInTheDocument();
+    });
+
+    it('should render XCircle icon as default for invalid status', () => {
+      // @ts-expect-error - Testing invalid status for default case coverage
+      render(<CardStatus {...baseProps} status="invalid" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge).toHaveAttribute('data-action', 'info');
+      
+      // Default case should render XCircle icon with info action
+      const iconLeft = screen.getByTestId('badge-icon-left');
+      expect(iconLeft).toBeInTheDocument();
+    });
+  });
+
+  describe('getActionBadge function tests', () => {
+    it('should return "success" action for correct status', () => {
+      render(<CardStatus {...baseProps} status="correct" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toHaveAttribute('data-action', 'success');
+    });
+
+    it('should return "error" action for incorrect status', () => {
+      render(<CardStatus {...baseProps} status="incorrect" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toHaveAttribute('data-action', 'error');
+    });
+
+    it('should return "info" action for pending status', () => {
+      render(<CardStatus {...baseProps} status="pending" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toHaveAttribute('data-action', 'info');
+    });
+
+    it('should return "info" action for unanswered status', () => {
+      render(<CardStatus {...baseProps} status="unanswered" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toHaveAttribute('data-action', 'info');
+    });
+
+    it('should return "info" as default action for invalid status', () => {
+      // @ts-expect-error - Testing invalid status for default case coverage
+      render(<CardStatus {...baseProps} status="invalid" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toHaveAttribute('data-action', 'info');
+    });
+  });
+
+  describe('CardStatus integration tests', () => {
+    it('should render all elements together for pending status', () => {
+      render(
+        <CardStatus 
+          {...baseProps} 
+          status="pending" 
+          label="Aguardando correção"
+          data-testid="card-status-pending"
+        />
+      );
+
+      // Header should be present
+      expect(screen.getByText('Questão 1')).toBeInTheDocument();
+      
+      // Status badge should be present with correct text
+      expect(screen.getByText('Avaliação pendente')).toBeInTheDocument();
+      
+      // Label should be present
+      expect(screen.getByText('Aguardando correção')).toBeInTheDocument();
+      
+      // Badge should have correct attributes
+      const badge = screen.getByTestId('badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge).toHaveAttribute('data-action', 'info');
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+      
+      // Caret icon should be present
+      const caret = document.querySelector('.cursor-pointer');
+      expect(caret).toBeInTheDocument();
+    });
+
+    it('should handle correct status with proper badge configuration', () => {
+      render(<CardStatus {...baseProps} status="correct" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+      expect(badge).toHaveAttribute('data-size', 'medium');
+      expect(badge).toHaveAttribute('data-action', 'success');
+    });
+
+    it('should handle incorrect status with proper badge configuration', () => {
+      render(<CardStatus {...baseProps} status="incorrect" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+      expect(badge).toHaveAttribute('data-size', 'medium');
+      expect(badge).toHaveAttribute('data-action', 'error');
+    });
+
+    it('should handle unanswered status with proper badge configuration', () => {
+      render(<CardStatus {...baseProps} status="unanswered" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+      expect(badge).toHaveAttribute('data-size', 'medium');
+      expect(badge).toHaveAttribute('data-action', 'info');
+    });
+
+    it('should handle pending status with proper badge configuration', () => {
+      render(<CardStatus {...baseProps} status="pending" />);
+      const badge = screen.getByTestId('badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge).toHaveAttribute('data-variant', 'solid');
+      expect(badge).toHaveAttribute('data-size', 'medium');
+      expect(badge).toHaveAttribute('data-action', 'info');
+    });
+
+    it('should maintain proper layout structure with all elements', () => {
+      const { container } = render(
+        <CardStatus 
+          {...baseProps} 
+          status="pending" 
+          label="Test label"
+          className="test-class"
+        />
+      );
+
+      // Should have main container with correct classes
+      const cardBase = container.firstChild as HTMLElement;
+      expect(cardBase).toHaveClass('test-class');
+      
+      // Should have inner flex container
+      const flexContainer = cardBase.querySelector('.flex.justify-between.w-full.h-full');
+      expect(flexContainer).toBeInTheDocument();
+      
+      // Should have header paragraph
+      const header = flexContainer?.querySelector('.text-sm.font-bold.text-text-950.truncate.flex-1.min-w-0');
+      expect(header).toBeInTheDocument();
+      expect(header).toHaveTextContent('Questão 1');
+      
+      // Should have badge and label container
+      const badgeContainer = flexContainer?.querySelector('.flex.flex-row.gap-1.items-center.flex-shrink-0');
+      expect(badgeContainer).toBeInTheDocument();
+      
+      // Should have caret icon
+      const caret = flexContainer?.querySelector('.min-w-6.min-h-6.text-text-800.cursor-pointer.flex-shrink-0.ml-2');
+      expect(caret).toBeInTheDocument();
+    });
   });
 });
 
