@@ -29,15 +29,17 @@ export function getSubjectColorWithOpacity(
     return `#${color}`;
   } else {
     // Se não está em dark mode (light mode)
+    let resultColor: string;
     if (color.length === 6) {
       // Adiciona opacidade 0.7 (b3) para cores de 6 dígitos
-      return `#${color}b3`;
+      resultColor = `#${color}b3`;
     } else if (color.length === 8) {
       // Já tem opacidade, retorna como está
-      return `#${color}`;
+      resultColor = `#${color}`;
     } else {
       // Para outros tamanhos (3, 4, 5 dígitos), retorna como está
-      return `#${color}`;
+      resultColor = `#${color}`;
     }
+    return resultColor;
   }
 }
