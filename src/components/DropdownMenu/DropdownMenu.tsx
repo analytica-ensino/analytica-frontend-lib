@@ -595,9 +595,9 @@ const ProfileMenuFooter = ({
       {...props}
     >
       <span className="mr-2 flex items-center">
-        <SignOut />
+        <SignOut className="text-inherit" />
       </span>
-      <Text color="text-primary-950">Sair</Text>
+      <Text color="inherit">Sair</Text>
     </Button>
   );
 };
