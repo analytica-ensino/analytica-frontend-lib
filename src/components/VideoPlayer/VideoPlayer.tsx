@@ -215,8 +215,8 @@ const SpeedMenu = ({
       aria-label="Playback speed"
       className={
         isFullscreen
-          ? 'absolute bottom-12 right-0 bg-black/90 rounded-lg p-2 min-w-20 z-[9999]'
-          : 'fixed bg-black/90 rounded-lg p-2 min-w-20 z-[9999]'
+          ? 'absolute bottom-12 right-0 bg-background border border-border-100 rounded-lg shadow-lg p-2 min-w-24 z-[9999]'
+          : 'fixed bg-background border border-border-100 rounded-lg shadow-lg p-2 min-w-24 z-[9999]'
       }
       style={
         !isFullscreen
@@ -233,8 +233,10 @@ const SpeedMenu = ({
           role="menuitemradio"
           aria-checked={playbackRate === speed}
           onClick={() => onSpeedChange(speed)}
-          className={`block w-full text-left px-3 py-1 text-sm rounded hover:bg-white/20 transition-colors ${
-            playbackRate === speed ? 'text-primary-400' : 'text-white'
+          className={`block w-full text-left px-3 py-1 text-sm rounded hover:bg-border-50 transition-colors ${
+            playbackRate === speed
+              ? 'bg-primary-950 text-secondary-100 font-medium'
+              : 'text-text-950'
           }`}
         >
           {speed}x
