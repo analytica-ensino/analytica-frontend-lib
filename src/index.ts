@@ -168,6 +168,10 @@ import {
 } from './hooks/useNotifications';
 import { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
 
+// Import theme store
+import { useThemeStore } from './store/themeStore';
+import type { ThemeStore, ThemeState, ThemeActions } from './store/themeStore';
+
 // Export all components for bundled usage
 export { Text };
 export { Button };
@@ -237,6 +241,10 @@ export type {
   NotificationActions,
   NotificationStore,
 } from './store/notificationStore';
+
+// Export theme store and related functionality
+export { useThemeStore };
+export type { ThemeStore, ThemeState, ThemeActions };
 
 // Export DropdownMenu and its sub-components
 export { DropdownMenu };
