@@ -2,13 +2,13 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import NotificationCard, {
   NotificationGroup,
   LegacyNotificationCard,
-  syncNotificationState,
 } from './NotificationCard';
 import {
   NotificationEntityType,
   Notification,
 } from '../../types/notifications';
 import { DeviceType, useMobile } from '../../hooks/useMobile';
+import { syncDropdownState } from '../../utils/utils';
 
 // Mock para imagens PNG
 jest.mock(
@@ -2128,11 +2128,11 @@ describe('NotificationCard', () => {
     });
   });
 
-  describe('syncNotificationState', () => {
-    it('should update state when open is false and notification is active', () => {
+  describe('syncDropdownState', () => {
+    it('should update state when open is false and dropdown is active', () => {
       const mockSetActiveStates = jest.fn();
 
-      syncNotificationState(false, true, mockSetActiveStates);
+      syncDropdownState(false, true, mockSetActiveStates, 'notifications');
 
       expect(mockSetActiveStates).toHaveBeenCalledWith(expect.any(Function));
 
@@ -2150,25 +2150,43 @@ describe('NotificationCard', () => {
     it('should not update state when open is true', () => {
       const mockSetActiveStates = jest.fn();
 
-      syncNotificationState(true, true, mockSetActiveStates);
+      syncDropdownState(true, true, mockSetActiveStates, 'notifications');
 
       expect(mockSetActiveStates).not.toHaveBeenCalled();
     });
 
-    it('should not update state when notification is not active', () => {
+    it('should not update state when dropdown is not active', () => {
       const mockSetActiveStates = jest.fn();
 
-      syncNotificationState(false, false, mockSetActiveStates);
+      syncDropdownState(false, false, mockSetActiveStates, 'notifications');
 
       expect(mockSetActiveStates).not.toHaveBeenCalled();
     });
 
-    it('should not update state when open is true and notification is not active', () => {
+    it('should not update state when open is true and dropdown is not active', () => {
       const mockSetActiveStates = jest.fn();
 
-      syncNotificationState(true, false, mockSetActiveStates);
+      syncDropdownState(true, false, mockSetActiveStates, 'notifications');
 
       expect(mockSetActiveStates).not.toHaveBeenCalled();
+    });
+
+    it('should update state with custom key', () => {
+      const mockSetActiveStates = jest.fn();
+
+      syncDropdownState(false, true, mockSetActiveStates, 'profile');
+
+      expect(mockSetActiveStates).toHaveBeenCalledWith(expect.any(Function));
+
+      // Test the callback function
+      const callback = mockSetActiveStates.mock.calls[0][0];
+      const prevState = { notifications: false, profile: true };
+      const result = callback(prevState);
+
+      expect(result).toEqual({
+        notifications: false,
+        profile: false,
+      });
     });
   });
 });

@@ -5,6 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export { syncDropdownState } from './dropdown';
+
 /**
  * Retorna a cor hexadecimal com opacidade 0.7 (b3) se não estiver em dark mode.
  * Se estiver em dark mode, retorna a cor original.
