@@ -90,7 +90,7 @@ const Whiteboard = ({
     return (
       <div
         className={cn(
-          'flex items-center justify-center p-8 bg-white border border-gray-100 rounded-xl',
+          'flex items-center justify-center p-8 bg-background border border-gray-100 rounded-xl',
           className
         )}
         {...rest}
