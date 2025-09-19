@@ -109,7 +109,7 @@ const MonthYearPicker = ({
 }: MonthYearPickerProps) => (
   <div
     ref={monthPickerRef}
-    className="absolute top-full left-0 z-50 mt-1 bg-white rounded-lg shadow-lg border border-border-200 p-4 min-w-[280px]"
+    className="absolute top-full left-0 z-50 mt-1 bg-background rounded-lg shadow-lg border border-border-200 p-4 min-w-[280px]"
   >
     <div className="mb-4">
       <h3 className="text-sm font-medium text-text-700 mb-2">Selecionar Ano</h3>

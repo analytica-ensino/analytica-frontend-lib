@@ -752,7 +752,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
         onValueChange={(value) => handleSelectChange(selectId, value)}
         className="inline-flex mb-2.5"
       >
-        <SelectTrigger className="inline-flex w-auto min-w-[140px] h-8 mx-1 bg-white border-gray-300">
+        <SelectTrigger className="inline-flex w-auto min-w-[140px] h-8 mx-1 bg-background border-gray-300">
           <SelectValue placeholder="Selecione opção" />
         </SelectTrigger>
         <SelectContent>

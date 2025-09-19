@@ -128,8 +128,8 @@ const ACTION_CARD_CLASSES = {
 
 const ACTION_ICON_CLASSES = {
   warning: 'bg-warning-300 text-text',
-  success: 'bg-yellow-300 text-text-950',
-  error: 'bg-error-500 text-text',
+  success: 'bg-indicator-positive text-text-950',
+  error: 'bg-indicator-negative text-text',
   info: 'bg-info-500 text-text',
 };
 
@@ -1489,7 +1489,7 @@ const CardSimulationHistory = forwardRef<
             {/* Seção com data */}
             <div
               className={cn(
-                'flex flex-row justify-center items-start px-4 py-6 gap-2 w-full bg-white',
+                'flex flex-row justify-center items-start px-4 py-6 gap-2 w-full bg-background',
                 sectionIndex === 0 ? 'rounded-t-3xl' : ''
               )}
             >
