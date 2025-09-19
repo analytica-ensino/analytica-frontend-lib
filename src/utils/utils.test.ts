@@ -1,4 +1,4 @@
-import { cn, getSubjectColorWithOpacity } from './utils';
+import { cn, getSubjectColorWithOpacity, syncDropdownState } from './utils';
 
 describe('utils', () => {
   describe('cn', () => {
@@ -139,6 +139,68 @@ describe('utils', () => {
         );
         // Cor que já vem com opacidade da API em dark mode (deve remover)
         expect(getSubjectColorWithOpacity('#0066b8b3', true)).toBe('#0066b8');
+      });
+    });
+  });
+
+  describe('syncDropdownState', () => {
+    it('should update state when open is false and dropdown is active', () => {
+      const mockSetActiveStates = jest.fn();
+
+      syncDropdownState(false, true, mockSetActiveStates, 'notifications');
+
+      expect(mockSetActiveStates).toHaveBeenCalledWith(expect.any(Function));
+
+      // Test the callback function
+      const callback = mockSetActiveStates.mock.calls[0][0];
+      const prevState = { notifications: true, profile: false };
+      const result = callback(prevState);
+
+      expect(result).toEqual({
+        notifications: false,
+        profile: false,
+      });
+    });
+
+    it('should not update state when open is true', () => {
+      const mockSetActiveStates = jest.fn();
+
+      syncDropdownState(true, true, mockSetActiveStates, 'notifications');
+
+      expect(mockSetActiveStates).not.toHaveBeenCalled();
+    });
+
+    it('should not update state when dropdown is not active', () => {
+      const mockSetActiveStates = jest.fn();
+
+      syncDropdownState(false, false, mockSetActiveStates, 'notifications');
+
+      expect(mockSetActiveStates).not.toHaveBeenCalled();
+    });
+
+    it('should not update state when open is true and dropdown is not active', () => {
+      const mockSetActiveStates = jest.fn();
+
+      syncDropdownState(true, false, mockSetActiveStates, 'notifications');
+
+      expect(mockSetActiveStates).not.toHaveBeenCalled();
+    });
+
+    it('should update state with custom key', () => {
+      const mockSetActiveStates = jest.fn();
+
+      syncDropdownState(false, true, mockSetActiveStates, 'profile');
+
+      expect(mockSetActiveStates).toHaveBeenCalledWith(expect.any(Function));
+
+      // Test the callback function
+      const callback = mockSetActiveStates.mock.calls[0][0];
+      const prevState = { notifications: false, profile: true };
+      const result = callback(prevState);
+
+      expect(result).toEqual({
+        notifications: false,
+        profile: false,
       });
     });
   });

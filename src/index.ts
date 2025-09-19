@@ -52,7 +52,11 @@ import type {
 import { useMobile, getDeviceType } from './hooks/useMobile';
 import type { DeviceType } from './hooks/useMobile';
 import { ThemeMode, useTheme } from './hooks/useTheme';
-import { cn, getSubjectColorWithOpacity } from './utils/utils';
+import {
+  cn,
+  getSubjectColorWithOpacity,
+  syncDropdownState,
+} from './utils/utils';
 
 // Import DropdownMenu and its sub-components
 import DropdownMenu, {
@@ -204,7 +208,6 @@ export { Modal };
 export { AlertDialog };
 export { LoadingModal };
 export { NotificationCard };
-export { syncNotificationState } from './components/NotificationCard/NotificationCard';
 export { ThemeToggle };
 export type {
   NotificationItem,
@@ -361,3 +364,4 @@ export type { DeviceType };
 export type { ThemeMode };
 export { cn };
 export { getSubjectColorWithOpacity };
+export { syncDropdownState };

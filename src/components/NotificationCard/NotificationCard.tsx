@@ -1,6 +1,5 @@
 import { DotsThreeVertical, Bell } from 'phosphor-react';
 import { MouseEvent, ReactNode, useState, useEffect } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
 import { cn } from '../../utils/utils';
 import DropdownMenu, {
   DropdownMenuContent,
@@ -20,21 +19,6 @@ import type {
 } from '../../types/notifications';
 import { formatTimeAgo } from '../../store/notificationStore';
 import mockContentImage from '../../assets/img/mock-content.png';
-
-/**
- * Synchronizes notification state when dropdown closes externally
- * This ensures the notification icon state matches the dropdown state
- */
-export const syncNotificationState = (
-  open: boolean,
-  isNotificationActive: boolean,
-  setActiveStates: Dispatch<SetStateAction<Record<string, boolean>>>,
-  key: string = 'notifications'
-) => {
-  if (!open && isNotificationActive) {
-    setActiveStates((prev) => ({ ...prev, [key]: false }));
-  }
-};
 
 // Extended notification item for component usage with time string
 export interface NotificationItem extends Omit<Notification, 'createdAt'> {
