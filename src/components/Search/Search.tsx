@@ -145,6 +145,8 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
   ) => {
     // Dropdown state and logic
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [forceClose, setForceClose] = useState(false);
+    const justSelectedRef = useRef(false);
     const dropdownStore = useRef(createDropdownStore()).current;
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -159,11 +161,18 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
 
     // Control dropdown visibility
     const showDropdown =
-      controlledShowDropdown ??
-      (dropdownOpen && value && String(value).length > 0);
+      !forceClose &&
+      (controlledShowDropdown ??
+        (dropdownOpen && value && String(value).length > 0));
 
     // Handle dropdown visibility changes
     useEffect(() => {
+      // Don't reopen dropdown if we just selected an option
+      if (justSelectedRef.current) {
+        justSelectedRef.current = false;
+        return;
+      }
+
       const shouldShow = Boolean(value && String(value).length > 0);
       setDropdownOpen(shouldShow);
       dropdownStore.setState({ open: shouldShow });
@@ -172,6 +181,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
 
     // Handle option selection
     const handleSelectOption = (option: string) => {
+      setForceClose(true); // Force dropdown to close immediately
       onSelect?.(option);
       setDropdownOpen(false);
       dropdownStore.setState({ open: false });
@@ -234,6 +244,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
 
     // Handle input change
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+      setForceClose(false); // Allow dropdown to open when user types
       onChange?.(e);
       onSearch?.(e.target.value);
     };
