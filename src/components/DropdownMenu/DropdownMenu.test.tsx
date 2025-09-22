@@ -100,7 +100,7 @@ describe('DropdownMenu component', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Toggle' }));
       expect(screen.getByRole('menu')).toBeInTheDocument();
 
-      fireEvent.mouseDown(screen.getByTestId('outside'));
+      fireEvent.pointerDown(screen.getByTestId('outside'));
       await waitFor(() =>
         expect(screen.queryByRole('menu')).not.toBeInTheDocument()
       );
@@ -118,7 +118,7 @@ describe('DropdownMenu component', () => {
 
       fireEvent.click(screen.getByRole('button'));
       const insideItem = screen.getByRole('menuitem');
-      fireEvent.mouseDown(insideItem);
+      fireEvent.pointerDown(insideItem);
       expect(screen.getByRole('menu')).toBeInTheDocument();
     });
 
@@ -536,7 +536,7 @@ describe('ProfileMenu component', () => {
       fireEvent.click(screen.getByTestId('trigger'));
       expect(screen.getByRole('menu')).toBeInTheDocument();
 
-      fireEvent.mouseDown(screen.getByTestId('outside'));
+      fireEvent.pointerDown(screen.getByTestId('outside'));
       await waitFor(() =>
         expect(screen.queryByRole('menu')).not.toBeInTheDocument()
       );
@@ -554,7 +554,7 @@ describe('ProfileMenu component', () => {
 
       fireEvent.click(screen.getByRole('button'));
       const insideItem = screen.getByRole('menuitem');
-      fireEvent.mouseDown(insideItem);
+      fireEvent.pointerDown(insideItem);
       expect(screen.getByRole('menu')).toBeInTheDocument();
     });
 

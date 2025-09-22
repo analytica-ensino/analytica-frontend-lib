@@ -136,7 +136,7 @@ const DropdownMenu = ({
     }
   };
 
-  const handleClickOutside = (event: globalThis.MouseEvent) => {
+  const handleClickOutside = (event: Event) => {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
       setOpen(false);
     }
@@ -144,23 +144,22 @@ const DropdownMenu = ({
 
   useEffect(() => {
     if (open) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('pointerdown', handleClickOutside);
       document.addEventListener('keydown', handleDownkey);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('pointerdown', handleClickOutside);
       document.removeEventListener('keydown', handleDownkey);
     };
   }, [open]);
 
   useEffect(() => {
-    setOpen(open);
     onOpenChange?.(open);
   }, [open, onOpenChange]);
 
   useEffect(() => {
-    if (propOpen) {
+    if (propOpen !== undefined) {
       setOpen(propOpen);
     }
   }, [propOpen]);
@@ -327,6 +326,7 @@ const DropdownMenuItem = forwardRef<
     disabled?: boolean;
     variant?: 'profile' | 'menu';
     store?: DropdownStoreApi;
+    preventClose?: boolean;
   }
 >(
   (
@@ -340,6 +340,7 @@ const DropdownMenuItem = forwardRef<
       onClick,
       variant = 'menu',
       store: externalStore,
+      preventClose = false,
       ...props
     },
     ref
@@ -356,8 +357,22 @@ const DropdownMenuItem = forwardRef<
         e.stopPropagation();
         return;
       }
-      onClick?.(e as MouseEvent<HTMLDivElement>);
-      setOpen(false);
+      if (e.type === 'click') {
+        onClick?.(e as MouseEvent<HTMLDivElement>);
+      } else if (e.type === 'keydown') {
+        // For keyboard events, call onClick if Enter or Space was pressed
+        if (
+          (e as KeyboardEvent<HTMLDivElement>).key === 'Enter' ||
+          (e as KeyboardEvent<HTMLDivElement>).key === ' '
+        ) {
+          onClick?.(e as unknown as MouseEvent<HTMLDivElement>);
+        }
+        // honor any user-provided key handler
+        props.onKeyDown?.(e as KeyboardEvent<HTMLDivElement>);
+      }
+      if (!preventClose) {
+        setOpen(false);
+      }
     };
 
     const getVariantClasses = () => {
@@ -390,7 +405,11 @@ const DropdownMenuItem = forwardRef<
         `}
         onClick={handleClick}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') handleClick(e);
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            handleClick(e);
+          }
         }}
         tabIndex={disabled ? -1 : 0}
         {...props}
@@ -479,10 +498,18 @@ const ProfileMenuHeader = forwardRef<
 });
 ProfileMenuHeader.displayName = 'ProfileMenuHeader';
 
-const ProfileToggleTheme = ({ ...props }: HTMLAttributes<HTMLDivElement>) => {
+const ProfileToggleTheme = ({
+  store: externalStore,
+  ...props
+}: HTMLAttributes<HTMLDivElement> & { store?: DropdownStoreApi }) => {
   const { themeMode, setTheme } = useTheme();
   const [modalThemeToggle, setModalThemeToggle] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<ThemeMode>(themeMode);
+
+  const internalStoreRef = useRef<DropdownStoreApi | null>(null);
+  internalStoreRef.current ??= createDropdownStore();
+  const store = externalStore ?? internalStoreRef.current;
+  const setOpen = useStore(store, (s) => s.setOpen);
 
   const handleClick = (e: MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -493,12 +520,21 @@ const ProfileToggleTheme = ({ ...props }: HTMLAttributes<HTMLDivElement>) => {
   const handleSave = () => {
     setTheme(selectedTheme);
     setModalThemeToggle(false);
+    setOpen(false); // Close dropdown after saving
+  };
+
+  const handleCancel = () => {
+    setSelectedTheme(themeMode); // Reset to current theme
+    setModalThemeToggle(false);
+    setOpen(false); // Close dropdown after canceling
   };
 
   return (
     <>
       <DropdownMenuItem
         variant="profile"
+        preventClose={true}
+        store={store}
         iconLeft={
           <svg
             width="24"
@@ -531,18 +567,15 @@ const ProfileToggleTheme = ({ ...props }: HTMLAttributes<HTMLDivElement>) => {
 
       <Modal
         isOpen={modalThemeToggle}
-        onClose={() => setModalThemeToggle(false)}
+        onClose={handleCancel}
         title="Aparência"
         size="md"
         footer={
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setModalThemeToggle(false)}
-            >
+            <Button variant="outline" onClick={handleCancel}>
               Cancelar
             </Button>
-            <Button variant="solid" onClick={() => handleSave()}>
+            <Button variant="solid" onClick={handleSave}>
               Salvar
             </Button>
           </div>
