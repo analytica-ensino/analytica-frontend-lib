@@ -240,6 +240,7 @@ describe('Search Component', () => {
       const user = userEvent.setup();
       const handleSelect = jest.fn();
       const handleChange = jest.fn();
+      const handleDropdownChange = jest.fn();
 
       render(
         <Search
@@ -247,6 +248,7 @@ describe('Search Component', () => {
           value="Fi"
           onSelect={handleSelect}
           onChange={handleChange}
+          onDropdownChange={handleDropdownChange}
         />
       );
 
@@ -261,6 +263,8 @@ describe('Search Component', () => {
           target: expect.objectContaining({ value: 'Filosofia' }),
         })
       );
+      // also closes dropdown
+      expect(handleDropdownChange).toHaveBeenCalledWith(false);
     });
 
     it('should show custom noResultsText when no results', async () => {
@@ -462,6 +466,8 @@ describe('Search Component', () => {
       await waitFor(() => {
         expect(screen.queryByTestId('dropdown-menu')).not.toBeInTheDocument();
       });
+
+      expect(handleDropdownChange).toHaveBeenCalledWith(false);
     });
   });
 
@@ -612,12 +618,14 @@ describe('Search Component', () => {
     it('should execute search when Enter is pressed without dropdown', async () => {
       const user = userEvent.setup();
       const handleSearch = jest.fn();
+      const handleDropdownChange = jest.fn();
 
       render(
         <Search
           options={defaultOptions}
           value="Test"
           onSearch={handleSearch}
+          onDropdownChange={handleDropdownChange}
           showDropdown={false}
         />
       );
@@ -628,6 +636,7 @@ describe('Search Component', () => {
       await user.type(input, '{enter}');
 
       expect(handleSearch).toHaveBeenCalledWith('Test');
+      expect(handleDropdownChange).toHaveBeenCalledWith(false);
     });
 
     it('should execute search when Enter is pressed with value but no filtered options', async () => {
@@ -657,6 +666,152 @@ describe('Search Component', () => {
       await user.type(input, '{enter}');
 
       expect(handleSearch).toHaveBeenCalledWith('xyz');
+    });
+  });
+
+  describe('OnKeyDown Composition', () => {
+    it('should call user onKeyDown before internal logic', async () => {
+      const user = userEvent.setup();
+      const userOnKeyDown = jest.fn();
+      const handleSelect = jest.fn();
+
+      render(
+        <Search
+          options={defaultOptions}
+          value="Fi"
+          onKeyDown={userOnKeyDown}
+          onSelect={handleSelect}
+        />
+      );
+
+      const input = screen.getByRole('combobox');
+
+      await user.type(input, '{Enter}');
+
+      // User handler should be called first
+      expect(userOnKeyDown).toHaveBeenCalled();
+      // Internal logic should also execute (select first option)
+      expect(handleSelect).toHaveBeenCalledWith('Filosofia');
+    });
+
+    it('should skip internal logic when user prevents default', async () => {
+      const user = userEvent.setup();
+      const userOnKeyDown = jest.fn((e) => e.preventDefault());
+      const handleSelect = jest.fn();
+
+      render(
+        <Search
+          options={defaultOptions}
+          value="Fi"
+          onKeyDown={userOnKeyDown}
+          onSelect={handleSelect}
+        />
+      );
+
+      const input = screen.getByRole('combobox');
+
+      await user.type(input, '{Enter}');
+
+      // User handler should be called
+      expect(userOnKeyDown).toHaveBeenCalled();
+      // Internal logic should be skipped due to preventDefault
+      expect(handleSelect).not.toHaveBeenCalled();
+    });
+
+    it('should handle user onKeyDown without dropdown', async () => {
+      const user = userEvent.setup();
+      const userOnKeyDown = jest.fn();
+      const onSearch = jest.fn();
+
+      render(
+        <Search
+          options={[]}
+          value="Test"
+          onKeyDown={userOnKeyDown}
+          onSearch={onSearch}
+        />
+      );
+
+      const input = screen.getByRole('textbox');
+
+      await user.type(input, '{Enter}');
+
+      // User handler should be called first
+      expect(userOnKeyDown).toHaveBeenCalled();
+      // Search should be executed since no dropdown
+      expect(onSearch).toHaveBeenCalledWith('Test');
+    });
+
+    it('should work without user onKeyDown handler', async () => {
+      const user = userEvent.setup();
+      const handleSelect = jest.fn();
+
+      render(
+        <Search options={defaultOptions} value="Fi" onSelect={handleSelect} />
+      );
+
+      const input = screen.getByRole('combobox');
+
+      await user.type(input, '{Enter}');
+
+      // Internal logic should work normally
+      expect(handleSelect).toHaveBeenCalledWith('Filosofia');
+    });
+  });
+
+  describe('Icon Toggle with Disabled/ReadOnly States', () => {
+    it('should not show clear or search icons when disabled', async () => {
+      render(<Search options={defaultOptions} value="Test" disabled />);
+
+      // Should not show clear button even with value
+      expect(screen.queryByLabelText('Limpar busca')).not.toBeInTheDocument();
+      // Should not show search icon
+      expect(screen.queryByLabelText('Buscar')).not.toBeInTheDocument();
+    });
+
+    it('should not show clear or search icons when readOnly', async () => {
+      render(<Search options={defaultOptions} value="Test" readOnly />);
+
+      // Should not show clear button even with value
+      expect(screen.queryByLabelText('Limpar busca')).not.toBeInTheDocument();
+      // Should not show search icon
+      expect(screen.queryByLabelText('Buscar')).not.toBeInTheDocument();
+    });
+
+    it('should show search icon when no value and not disabled/readOnly', async () => {
+      render(<Search options={defaultOptions} value="" />);
+
+      // Should show search icon when no value
+      expect(screen.getByLabelText('Buscar')).toBeInTheDocument();
+      // Should not show clear button without value
+      expect(screen.queryByLabelText('Limpar busca')).not.toBeInTheDocument();
+    });
+
+    it('should show clear button when value exists and not disabled/readOnly', async () => {
+      render(<Search options={defaultOptions} value="Test" />);
+
+      // Should show clear button with value
+      expect(screen.getByLabelText('Limpar busca')).toBeInTheDocument();
+      // Should not show search icon when value exists
+      expect(screen.queryByLabelText('Buscar')).not.toBeInTheDocument();
+    });
+
+    it('should handle value of 0 correctly for icon display', async () => {
+      render(<Search options={defaultOptions} value="0" />);
+
+      // Should show clear button even with value="0"
+      expect(screen.getByLabelText('Limpar busca')).toBeInTheDocument();
+      // Should not show search icon when value exists (even "0")
+      expect(screen.queryByLabelText('Buscar')).not.toBeInTheDocument();
+    });
+
+    it('should handle empty string value correctly for icon display', async () => {
+      render(<Search options={defaultOptions} value="" />);
+
+      // Should show search icon with empty string
+      expect(screen.getByLabelText('Buscar')).toBeInTheDocument();
+      // Should not show clear button with empty value
+      expect(screen.queryByLabelText('Limpar busca')).not.toBeInTheDocument();
     });
   });
 

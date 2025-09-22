@@ -139,6 +139,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       value,
       onChange,
       placeholder = 'Buscar...',
+      onKeyDown: userOnKeyDown,
       ...props
     },
     ref
@@ -149,6 +150,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
     const justSelectedRef = useRef(false);
     const dropdownStore = useRef(createDropdownStore()).current;
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const inputElRef = useRef<HTMLInputElement>(null);
 
     // Filter options based on input value
     const filteredOptions = useMemo(() => {
@@ -165,6 +167,13 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       (controlledShowDropdown ??
         (dropdownOpen && value && String(value).length > 0));
 
+    // Helper to keep all consumers in sync
+    const setOpenAndNotify = (open: boolean) => {
+      setDropdownOpen(open);
+      dropdownStore.setState({ open });
+      onDropdownChange?.(open);
+    };
+
     // Handle dropdown visibility changes
     useEffect(() => {
       // Don't reopen dropdown if we just selected an option
@@ -172,20 +181,22 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
         justSelectedRef.current = false;
         return;
       }
+      // Respect forceClose even if value is non-empty
+      if (forceClose) {
+        setOpenAndNotify(false);
+        return;
+      }
 
       const shouldShow = Boolean(value && String(value).length > 0);
-      setDropdownOpen(shouldShow);
-      dropdownStore.setState({ open: shouldShow });
-      onDropdownChange?.(shouldShow);
-    }, [value, onDropdownChange, dropdownStore]);
+      setOpenAndNotify(shouldShow);
+    }, [value, forceClose, onDropdownChange, dropdownStore]);
 
     // Handle option selection
     const handleSelectOption = (option: string) => {
       justSelectedRef.current = true; // Prevent immediate dropdown reopen
       setForceClose(true); // Force dropdown to close immediately
       onSelect?.(option);
-      setDropdownOpen(false);
-      dropdownStore.setState({ open: false });
+      setOpenAndNotify(false);
 
       // Update input value if onChange is provided
       updateInputValue(option, ref, onChange);
@@ -198,8 +209,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
           dropdownRef.current &&
           !dropdownRef.current.contains(event.target as Node)
         ) {
-          setDropdownOpen(false);
-          dropdownStore.setState({ open: false });
+          setOpenAndNotify(false);
         }
       };
 
@@ -210,11 +220,12 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
       };
-    }, [showDropdown, dropdownStore]);
+    }, [showDropdown, dropdownStore, onDropdownChange]);
 
     // Generate unique ID if not provided
     const generatedId = useId();
     const inputId = id ?? `search-${generatedId}`;
+    const dropdownId = `${inputId}-dropdown`;
 
     // Handle clear button
     const handleClear = () => {
@@ -237,9 +248,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       e.preventDefault();
       e.stopPropagation();
       setTimeout(() => {
-        if (ref && 'current' in ref && ref.current) {
-          ref.current.focus();
-        }
+        inputElRef.current?.focus();
       }, 0);
     };
 
@@ -252,6 +261,10 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
 
     // Handle keyboard events
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+      // Let consumer run first; if they prevent default, skip our logic
+      userOnKeyDown?.(e);
+      if (e.defaultPrevented) return;
+
       if (e.key === 'Enter') {
         e.preventDefault();
 
@@ -261,8 +274,8 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
         } else if (value) {
           // If no dropdown or no options, execute search
           onSearch?.(String(value));
-          setDropdownOpen(false);
-          dropdownStore.setState({ open: false });
+          setForceClose(true);
+          setOpenAndNotify(false);
         }
       }
     };
@@ -275,8 +288,9 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
     };
 
     // Determine which icon to show
-    const showClearButton = value && !disabled && !readOnly;
-    const showSearchIcon = !value && !disabled && !readOnly;
+    const hasValue = String(value ?? '').length > 0;
+    const showClearButton = hasValue && !disabled && !readOnly;
+    const showSearchIcon = !hasValue && !disabled && !readOnly;
 
     return (
       <div
@@ -287,7 +301,16 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
         <div className="relative flex items-center">
           {/* Search Input Field */}
           <input
-            ref={ref}
+            ref={(node) => {
+              // Forward to parent
+              if (ref) {
+                if (typeof ref === 'function') ref(node);
+                else
+                  (ref as { current: HTMLInputElement | null }).current = node;
+              }
+              // Keep our own handle
+              inputElRef.current = node;
+            }}
             id={inputId}
             type="text"
             className={`w-full py-0 px-4 pr-10 font-normal text-text-900 focus:outline-primary-950 border rounded-full bg-background focus:bg-primary-50 border-border-300 focus:border-2 focus:border-primary-950 h-10 placeholder:text-text-600 ${getInputStateClasses(disabled, readOnly)} ${className}`}
@@ -299,6 +322,8 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
             placeholder={placeholder}
             aria-expanded={showDropdown ? 'true' : undefined}
             aria-haspopup={options.length > 0 ? 'listbox' : undefined}
+            aria-controls={showDropdown ? dropdownId : undefined}
+            aria-autocomplete="list"
             role={options.length > 0 ? 'combobox' : undefined}
             {...props}
           />
@@ -340,6 +365,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
         {showDropdown && (
           <DropdownMenu open={showDropdown} onOpenChange={setDropdownOpen}>
             <DropdownMenuContent
+              id={dropdownId}
               className="w-full mt-1"
               style={{ maxHeight: dropdownMaxHeight }}
               align="start"
