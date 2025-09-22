@@ -359,7 +359,14 @@ const DropdownMenuItem = forwardRef<
       }
       if (e.type === 'click') {
         onClick?.(e as MouseEvent<HTMLDivElement>);
-      } else {
+      } else if (e.type === 'keydown') {
+        // For keyboard events, call onClick if Enter or Space was pressed
+        if (
+          (e as KeyboardEvent<HTMLDivElement>).key === 'Enter' ||
+          (e as KeyboardEvent<HTMLDivElement>).key === ' '
+        ) {
+          onClick?.(e as unknown as MouseEvent<HTMLDivElement>);
+        }
         // honor any user-provided key handler
         props.onKeyDown?.(e as KeyboardEvent<HTMLDivElement>);
       }

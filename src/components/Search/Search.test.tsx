@@ -816,6 +816,37 @@ describe('Search Component', () => {
   });
 
   describe('Dropdown State Management', () => {
+    // Test component moved outside of it() blocks to reduce nesting
+    const TestComponentWithDropdown = ({
+      onDropdownChange,
+    }: {
+      onDropdownChange: (open: boolean) => void;
+    }) => {
+      const [value, setValue] = React.useState('');
+
+      function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+        setValue(e.target.value);
+      }
+
+      function handleClick() {
+        setValue('Fi');
+      }
+
+      return (
+        <>
+          <Search
+            options={defaultOptions}
+            value={value}
+            onDropdownChange={onDropdownChange}
+            onChange={handleChange}
+          />
+          <button onClick={handleClick} data-testid="set-value-button">
+            Set Value
+          </button>
+        </>
+      );
+    };
+
     it('should not reopen dropdown immediately after option selection', async () => {
       const user = userEvent.setup();
       const handleDropdownChange = jest.fn();
@@ -851,22 +882,13 @@ describe('Search Component', () => {
       const user = userEvent.setup();
       const handleChange = jest.fn();
 
-      const TestComponent = () => {
-        const [value, setValue] = React.useState('Fi');
-
-        return (
-          <Search
-            options={defaultOptions}
-            value={value}
-            onChange={(e) => {
-              setValue(e.target.value);
-              handleChange(e);
-            }}
-          />
-        );
-      };
-
-      render(<TestComponent />);
+      render(
+        <Search
+          options={defaultOptions}
+          value="Fi"
+          onChange={(e) => handleChange(e)}
+        />
+      );
 
       // Wait for dropdown to open
       await waitFor(() => {
@@ -893,30 +915,7 @@ describe('Search Component', () => {
       const user = userEvent.setup();
       const onDropdownChange = jest.fn();
 
-      const TestComponent = () => {
-        const [value, setValue] = React.useState('');
-
-        return (
-          <>
-            <Search
-              options={defaultOptions}
-              value={value}
-              onDropdownChange={onDropdownChange}
-              onChange={(e) => {
-                setValue(e.target.value);
-              }}
-            />
-            <button
-              onClick={() => setValue('Fi')}
-              data-testid="set-value-button"
-            >
-              Set Value
-            </button>
-          </>
-        );
-      };
-
-      render(<TestComponent />);
+      render(<TestComponentWithDropdown onDropdownChange={onDropdownChange} />);
 
       // First, simulate a selection to set justSelectedRef to true
       const setValueButton = screen.getByTestId('set-value-button');
@@ -939,6 +938,17 @@ describe('Search Component', () => {
       await waitFor(() => {
         expect(onDropdownChange).toHaveBeenCalledWith(true);
       });
+    });
+
+    it('should handle ref as a function', () => {
+      const refCallback = jest.fn();
+
+      render(
+        <Search ref={refCallback} options={defaultOptions} placeholder="Test" />
+      );
+
+      // Check that the ref callback was called with the input element
+      expect(refCallback).toHaveBeenCalledWith(expect.any(HTMLInputElement));
     });
   });
 });
