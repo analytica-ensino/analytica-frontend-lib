@@ -1,4 +1,4 @@
-import { CaretLeft, X } from 'phosphor-react';
+import { X } from 'phosphor-react';
 import {
   InputHTMLAttributes,
   forwardRef,
@@ -220,13 +220,6 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       handleClear();
     };
 
-    // Handle left icon click - remove focus from input
-    const handleLeftIconClick = () => {
-      if (ref && 'current' in ref && ref.current) {
-        ref.current.blur();
-      }
-    };
-
     // Handle input change
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
       onChange?.(e);
@@ -250,24 +243,12 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       >
         {/* Search Input Container */}
         <div className="relative flex items-center">
-          {/* Left Icon - Back */}
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-            <button
-              type="button"
-              className="w-6 h-6 text-text-800 flex items-center justify-center bg-transparent border-0 p-0 cursor-pointer hover:text-text-600 transition-colors"
-              onClick={handleLeftIconClick}
-              aria-label="Voltar"
-            >
-              <CaretLeft />
-            </button>
-          </div>
-
           {/* Search Input Field */}
           <input
             ref={ref}
             id={inputId}
             type="text"
-            className={`w-full py-0 px-4 pl-10 ${showClearButton ? 'pr-10' : 'pr-4'} font-normal text-text-900 focus:outline-primary-950 border rounded-full bg-background focus:bg-primary-50 border-border-300 focus:border-2 focus:border-primary-950 h-10 placeholder:text-text-600 ${getInputStateClasses(disabled, readOnly)} ${className}`}
+            className={`w-full py-0 px-4 ${showClearButton ? 'pr-10' : 'pr-4'} font-normal text-text-900 focus:outline-primary-950 border rounded-full bg-background focus:bg-primary-50 border-border-300 focus:border-2 focus:border-primary-950 h-10 placeholder:text-text-600 ${getInputStateClasses(disabled, readOnly)} ${className}`}
             value={value}
             onChange={handleInputChange}
             disabled={disabled}
