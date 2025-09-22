@@ -327,6 +327,7 @@ const DropdownMenuItem = forwardRef<
     disabled?: boolean;
     variant?: 'profile' | 'menu';
     store?: DropdownStoreApi;
+    preventClose?: boolean;
   }
 >(
   (
@@ -340,6 +341,7 @@ const DropdownMenuItem = forwardRef<
       onClick,
       variant = 'menu',
       store: externalStore,
+      preventClose = false,
       ...props
     },
     ref
@@ -357,7 +359,9 @@ const DropdownMenuItem = forwardRef<
         return;
       }
       onClick?.(e as MouseEvent<HTMLDivElement>);
-      setOpen(false);
+      if (!preventClose) {
+        setOpen(false);
+      }
     };
 
     const getVariantClasses = () => {
@@ -479,10 +483,17 @@ const ProfileMenuHeader = forwardRef<
 });
 ProfileMenuHeader.displayName = 'ProfileMenuHeader';
 
-const ProfileToggleTheme = ({ ...props }: HTMLAttributes<HTMLDivElement>) => {
+const ProfileToggleTheme = ({
+  store: externalStore,
+  ...props
+}: HTMLAttributes<HTMLDivElement> & { store?: DropdownStoreApi }) => {
   const { themeMode, setTheme } = useTheme();
   const [modalThemeToggle, setModalThemeToggle] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<ThemeMode>(themeMode);
+
+  const store = externalStore || createDropdownStore();
+  const setOpenFromStore = useStore(store, (s) => s.setOpen);
+  const setOpen = externalStore ? setOpenFromStore : () => {};
 
   const handleClick = (e: MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -493,12 +504,21 @@ const ProfileToggleTheme = ({ ...props }: HTMLAttributes<HTMLDivElement>) => {
   const handleSave = () => {
     setTheme(selectedTheme);
     setModalThemeToggle(false);
+    setOpen(false); // Close dropdown after saving
+  };
+
+  const handleCancel = () => {
+    setSelectedTheme(themeMode); // Reset to current theme
+    setModalThemeToggle(false);
+    setOpen(false); // Close dropdown after canceling
   };
 
   return (
     <>
       <DropdownMenuItem
         variant="profile"
+        preventClose={true}
+        store={externalStore}
         iconLeft={
           <svg
             width="24"
@@ -531,18 +551,15 @@ const ProfileToggleTheme = ({ ...props }: HTMLAttributes<HTMLDivElement>) => {
 
       <Modal
         isOpen={modalThemeToggle}
-        onClose={() => setModalThemeToggle(false)}
+        onClose={handleCancel}
         title="Aparência"
         size="md"
         footer={
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setModalThemeToggle(false)}
-            >
+            <Button variant="outline" onClick={handleCancel}>
               Cancelar
             </Button>
-            <Button variant="solid" onClick={() => handleSave()}>
+            <Button variant="solid" onClick={handleSave}>
               Salvar
             </Button>
           </div>
