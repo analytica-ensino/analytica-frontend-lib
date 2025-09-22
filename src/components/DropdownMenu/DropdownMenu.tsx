@@ -144,23 +144,22 @@ const DropdownMenu = ({
 
   useEffect(() => {
     if (open) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('pointerdown', handleClickOutside);
       document.addEventListener('keydown', handleDownkey);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('pointerdown', handleClickOutside);
       document.removeEventListener('keydown', handleDownkey);
     };
   }, [open]);
 
   useEffect(() => {
-    setOpen(open);
     onOpenChange?.(open);
   }, [open, onOpenChange]);
 
   useEffect(() => {
-    if (propOpen) {
+    if (propOpen !== undefined) {
       setOpen(propOpen);
     }
   }, [propOpen]);
@@ -358,7 +357,12 @@ const DropdownMenuItem = forwardRef<
         e.stopPropagation();
         return;
       }
-      onClick?.(e as MouseEvent<HTMLDivElement>);
+      if (e.type === 'click') {
+        onClick?.(e as MouseEvent<HTMLDivElement>);
+      } else {
+        // honor any user-provided key handler
+        props.onKeyDown?.(e as KeyboardEvent<HTMLDivElement>);
+      }
       if (!preventClose) {
         setOpen(false);
       }
@@ -394,7 +398,11 @@ const DropdownMenuItem = forwardRef<
         `}
         onClick={handleClick}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') handleClick(e);
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            handleClick(e);
+          }
         }}
         tabIndex={disabled ? -1 : 0}
         {...props}
@@ -491,9 +499,10 @@ const ProfileToggleTheme = ({
   const [modalThemeToggle, setModalThemeToggle] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<ThemeMode>(themeMode);
 
-  const store = externalStore || createDropdownStore();
-  const setOpenFromStore = useStore(store, (s) => s.setOpen);
-  const setOpen = externalStore ? setOpenFromStore : () => {};
+  const internalStoreRef = useRef<DropdownStoreApi | null>(null);
+  internalStoreRef.current ??= createDropdownStore();
+  const store = externalStore ?? internalStoreRef.current;
+  const setOpen = useStore(store, (s) => s.setOpen);
 
   const handleClick = (e: MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -518,7 +527,7 @@ const ProfileToggleTheme = ({
       <DropdownMenuItem
         variant="profile"
         preventClose={true}
-        store={externalStore}
+        store={store}
         iconLeft={
           <svg
             width="24"
