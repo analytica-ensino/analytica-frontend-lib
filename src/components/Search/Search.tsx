@@ -9,6 +9,7 @@ import {
   useRef,
   ChangeEvent,
   MouseEvent,
+  KeyboardEvent,
 } from 'react';
 import DropdownMenu, {
   DropdownMenuContent,
@@ -237,6 +238,23 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       onSearch?.(e.target.value);
     };
 
+    // Handle keyboard events
+    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+
+        // If dropdown is open and there are filtered options, select the first one
+        if (showDropdown && filteredOptions.length > 0) {
+          handleSelectOption(filteredOptions[0]);
+        } else if (value) {
+          // If no dropdown or no options, execute search
+          onSearch?.(String(value));
+          setDropdownOpen(false);
+          dropdownStore.setState({ open: false });
+        }
+      }
+    };
+
     // Helper function for input state classes
     const getInputStateClasses = (disabled?: boolean, readOnly?: boolean) => {
       if (disabled) return 'cursor-not-allowed opacity-40';
@@ -263,6 +281,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
             className={`w-full py-0 px-4 pr-10 font-normal text-text-900 focus:outline-primary-950 border rounded-full bg-background focus:bg-primary-50 border-border-300 focus:border-2 focus:border-primary-950 h-10 placeholder:text-text-600 ${getInputStateClasses(disabled, readOnly)} ${className}`}
             value={value}
             onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             disabled={disabled}
             readOnly={readOnly}
             placeholder={placeholder}

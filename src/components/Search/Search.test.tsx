@@ -94,12 +94,11 @@ describe('Search Component', () => {
       expect(input).toBeInTheDocument();
     });
 
-    it('should render left icon (CaretLeft)', () => {
+    it('should render search icon when input is empty', () => {
       render(<Search options={defaultOptions} />);
 
-      const leftIcon = screen.getByLabelText('Voltar');
-      expect(leftIcon).toBeInTheDocument();
-      expect(leftIcon).toHaveClass('w-6', 'h-6', 'cursor-pointer');
+      const searchIcon = screen.getByLabelText('Buscar');
+      expect(searchIcon).toBeInTheDocument();
     });
 
     it('should render with custom className', () => {
