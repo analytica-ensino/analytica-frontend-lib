@@ -136,7 +136,7 @@ const DropdownMenu = ({
     }
   };
 
-  const handleClickOutside = (event: globalThis.MouseEvent) => {
+  const handleClickOutside = (event: Event) => {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
       setOpen(false);
     }
