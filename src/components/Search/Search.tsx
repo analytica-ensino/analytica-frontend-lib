@@ -181,6 +181,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
 
     // Handle option selection
     const handleSelectOption = (option: string) => {
+      justSelectedRef.current = true; // Prevent immediate dropdown reopen
       setForceClose(true); // Force dropdown to close immediately
       onSelect?.(option);
       setDropdownOpen(false);

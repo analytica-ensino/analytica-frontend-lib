@@ -465,42 +465,33 @@ describe('Search Component', () => {
     });
   });
 
-  describe('Left Icon Behavior', () => {
-    it('should remove focus from input when left icon is clicked', async () => {
+  describe('Search Icon Behavior', () => {
+    it('should focus input when search icon is clicked', async () => {
       const user = userEvent.setup();
       const ref = React.createRef<HTMLInputElement>();
 
-      render(<Search options={defaultOptions} ref={ref} />);
+      render(<Search options={defaultOptions} ref={ref} value="" />);
 
-      const input = screen.getByRole('combobox');
-      const leftIcon = screen.getByLabelText('Voltar');
+      const searchIcon = screen.getByLabelText('Buscar');
 
-      // Focus the input first
-      input.focus();
-      expect(document.activeElement).toBe(input);
+      // Click the search icon
+      await user.click(searchIcon);
 
-      // Click the left icon to blur
-      await user.click(leftIcon);
-
-      expect(document.activeElement).not.toBe(input);
+      // Should focus the input
+      await waitFor(() => {
+        expect(document.activeElement).toBe(ref.current);
+      });
     });
 
-    it('should handle left icon click with invalid ref gracefully', async () => {
+    it('should handle search icon click without ref gracefully', async () => {
       const user = userEvent.setup();
 
-      // Mock console.error to avoid noise in test output
-      const consoleSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      render(<Search options={defaultOptions} value="" />);
 
-      render(<Search options={defaultOptions} />);
+      const searchIcon = screen.getByLabelText('Buscar');
 
-      const leftIcon = screen.getByLabelText('Voltar');
-
-      // This should not throw an error even if ref is invalid
-      await user.click(leftIcon);
-
-      consoleSpy.mockRestore();
+      // This should not throw an error even if ref is not available
+      await user.click(searchIcon);
     });
   });
 
@@ -587,6 +578,212 @@ describe('Search Component', () => {
       await user.click(clearButton);
 
       // Should not throw error even without onChange
+    });
+  });
+
+  describe('Keyboard Navigation', () => {
+    it('should select first option when Enter is pressed with dropdown open', async () => {
+      const user = userEvent.setup();
+      const handleSelect = jest.fn();
+      const handleChange = jest.fn();
+
+      render(
+        <Search
+          options={defaultOptions}
+          value="Fi"
+          onSelect={handleSelect}
+          onChange={handleChange}
+        />
+      );
+
+      const input = screen.getByRole('combobox');
+
+      // Wait for dropdown to open
+      await waitFor(() => {
+        expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+      });
+
+      // Press Enter to select first option
+      await user.type(input, '{enter}');
+
+      expect(handleSelect).toHaveBeenCalledWith('Filosofia');
+    });
+
+    it('should execute search when Enter is pressed without dropdown', async () => {
+      const user = userEvent.setup();
+      const handleSearch = jest.fn();
+
+      render(
+        <Search
+          options={defaultOptions}
+          value="Test"
+          onSearch={handleSearch}
+          showDropdown={false}
+        />
+      );
+
+      const input = screen.getByRole('combobox');
+
+      // Press Enter to execute search
+      await user.type(input, '{enter}');
+
+      expect(handleSearch).toHaveBeenCalledWith('Test');
+    });
+
+    it('should execute search when Enter is pressed with value but no filtered options', async () => {
+      const user = userEvent.setup();
+      const handleSearch = jest.fn();
+
+      render(
+        <Search
+          options={defaultOptions}
+          value="xyz"
+          onSearch={handleSearch}
+          onChange={() => {}}
+        />
+      );
+
+      const input = screen.getByRole('combobox');
+
+      // Wait for dropdown to show "no results"
+      await waitFor(() => {
+        expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+        expect(
+          screen.getByText('Nenhum resultado encontrado')
+        ).toBeInTheDocument();
+      });
+
+      // Press Enter - should execute search since no options available
+      await user.type(input, '{enter}');
+
+      expect(handleSearch).toHaveBeenCalledWith('xyz');
+    });
+  });
+
+  describe('Dropdown State Management', () => {
+    it('should not reopen dropdown immediately after option selection', async () => {
+      const user = userEvent.setup();
+      const handleDropdownChange = jest.fn();
+
+      render(
+        <Search
+          options={defaultOptions}
+          value="Fi"
+          onDropdownChange={handleDropdownChange}
+          onChange={() => {}}
+        />
+      );
+
+      // Wait for dropdown to open
+      await waitFor(() => {
+        expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+      });
+
+      // Select first option
+      const firstItem = screen.getAllByTestId('dropdown-item')[0];
+      await user.click(firstItem);
+
+      // Dropdown should be closed and not reopen immediately
+      await waitFor(() => {
+        expect(screen.queryByTestId('dropdown-menu')).not.toBeInTheDocument();
+      });
+
+      // Verify dropdown state changes - should have been called multiple times
+      expect(handleDropdownChange).toHaveBeenCalled();
+    });
+
+    it('should properly handle justSelectedRef flag and prevent immediate dropdown reopen', async () => {
+      const user = userEvent.setup();
+      const handleChange = jest.fn();
+
+      const TestComponent = () => {
+        const [value, setValue] = React.useState('Fi');
+
+        return (
+          <Search
+            options={defaultOptions}
+            value={value}
+            onChange={(e) => {
+              setValue(e.target.value);
+              handleChange(e);
+            }}
+          />
+        );
+      };
+
+      render(<TestComponent />);
+
+      // Wait for dropdown to open
+      await waitFor(() => {
+        expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+      });
+
+      // Select an option - this will trigger justSelectedRef logic
+      const firstItem = screen.getAllByTestId('dropdown-item')[0];
+      await user.click(firstItem);
+
+      // Dropdown should close
+      await waitFor(() => {
+        expect(screen.queryByTestId('dropdown-menu')).not.toBeInTheDocument();
+      });
+
+      // This triggers the useEffect that processes justSelectedRef.current = false
+      // which is the code on lines 172-173
+      await waitFor(() => {
+        expect(handleChange).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle justSelectedRef reset properly when value changes after selection', async () => {
+      const user = userEvent.setup();
+      const onDropdownChange = jest.fn();
+
+      const TestComponent = () => {
+        const [value, setValue] = React.useState('');
+
+        return (
+          <>
+            <Search
+              options={defaultOptions}
+              value={value}
+              onDropdownChange={onDropdownChange}
+              onChange={(e) => {
+                setValue(e.target.value);
+              }}
+            />
+            <button
+              onClick={() => setValue('Fi')}
+              data-testid="set-value-button"
+            >
+              Set Value
+            </button>
+          </>
+        );
+      };
+
+      render(<TestComponent />);
+
+      // First, simulate a selection to set justSelectedRef to true
+      const setValueButton = screen.getByTestId('set-value-button');
+      await user.click(setValueButton);
+
+      // Wait for dropdown to open
+      await waitFor(() => {
+        expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+      });
+
+      // Select an option
+      const firstItem = screen.getAllByTestId('dropdown-item')[0];
+      await user.click(firstItem);
+
+      // Now trigger another value change - this should trigger the useEffect
+      // where justSelectedRef.current is checked and reset to false (lines 172-173)
+      await user.click(setValueButton);
+
+      // The useEffect should run and handle the justSelectedRef properly
+      await waitFor(() => {
+        expect(onDropdownChange).toHaveBeenCalledWith(true);
+      });
     });
   });
 });
