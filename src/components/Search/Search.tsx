@@ -1,4 +1,4 @@
-import { X } from 'phosphor-react';
+import { X, MagnifyingGlass } from 'phosphor-react';
 import {
   InputHTMLAttributes,
   forwardRef,
@@ -220,6 +220,17 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       handleClear();
     };
 
+    // Handle search icon click - focus on input
+    const handleSearchIconClick = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setTimeout(() => {
+        if (ref && 'current' in ref && ref.current) {
+          ref.current.focus();
+        }
+      }, 0);
+    };
+
     // Handle input change
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
       onChange?.(e);
@@ -233,8 +244,9 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       return 'hover:border-border-400';
     };
 
-    // Determine if we should show clear button
+    // Determine which icon to show
     const showClearButton = value && !disabled && !readOnly;
+    const showSearchIcon = !value && !disabled && !readOnly;
 
     return (
       <div
@@ -248,7 +260,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
             ref={ref}
             id={inputId}
             type="text"
-            className={`w-full py-0 px-4 ${showClearButton ? 'pr-10' : 'pr-4'} font-normal text-text-900 focus:outline-primary-950 border rounded-full bg-background focus:bg-primary-50 border-border-300 focus:border-2 focus:border-primary-950 h-10 placeholder:text-text-600 ${getInputStateClasses(disabled, readOnly)} ${className}`}
+            className={`w-full py-0 px-4 pr-10 font-normal text-text-900 focus:outline-primary-950 border rounded-full bg-background focus:bg-primary-50 border-border-300 focus:border-2 focus:border-primary-950 h-10 placeholder:text-text-600 ${getInputStateClasses(disabled, readOnly)} ${className}`}
             value={value}
             onChange={handleInputChange}
             disabled={disabled}
@@ -271,6 +283,22 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
               >
                 <span className="w-6 h-6 text-text-800 flex items-center justify-center hover:text-text-600 transition-colors">
                   <X />
+                </span>
+              </button>
+            </div>
+          )}
+
+          {/* Right Icon - Search Icon */}
+          {showSearchIcon && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <button
+                type="button"
+                className="p-0 border-0 bg-transparent cursor-pointer"
+                onMouseDown={handleSearchIconClick}
+                aria-label="Buscar"
+              >
+                <span className="w-6 h-6 text-text-800 flex items-center justify-center hover:text-text-600 transition-colors">
+                  <MagnifyingGlass />
                 </span>
               </button>
             </div>
