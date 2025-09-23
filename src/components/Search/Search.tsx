@@ -1,4 +1,4 @@
-import { CaretLeft, X } from 'phosphor-react';
+import { X, MagnifyingGlass } from 'phosphor-react';
 import {
   InputHTMLAttributes,
   forwardRef,
@@ -9,6 +9,7 @@ import {
   useRef,
   ChangeEvent,
   MouseEvent,
+  KeyboardEvent,
 } from 'react';
 import DropdownMenu, {
   DropdownMenuContent,
@@ -138,14 +139,18 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       value,
       onChange,
       placeholder = 'Buscar...',
+      onKeyDown: userOnKeyDown,
       ...props
     },
     ref
   ) => {
     // Dropdown state and logic
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [forceClose, setForceClose] = useState(false);
+    const justSelectedRef = useRef(false);
     const dropdownStore = useRef(createDropdownStore()).current;
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const inputElRef = useRef<HTMLInputElement>(null);
 
     // Filter options based on input value
     const filteredOptions = useMemo(() => {
@@ -158,22 +163,40 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
 
     // Control dropdown visibility
     const showDropdown =
-      controlledShowDropdown ??
-      (dropdownOpen && value && String(value).length > 0);
+      !forceClose &&
+      (controlledShowDropdown ??
+        (dropdownOpen && value && String(value).length > 0));
+
+    // Helper to keep all consumers in sync
+    const setOpenAndNotify = (open: boolean) => {
+      setDropdownOpen(open);
+      dropdownStore.setState({ open });
+      onDropdownChange?.(open);
+    };
 
     // Handle dropdown visibility changes
     useEffect(() => {
+      // Don't reopen dropdown if we just selected an option
+      if (justSelectedRef.current) {
+        justSelectedRef.current = false;
+        return;
+      }
+      // Respect forceClose even if value is non-empty
+      if (forceClose) {
+        setOpenAndNotify(false);
+        return;
+      }
+
       const shouldShow = Boolean(value && String(value).length > 0);
-      setDropdownOpen(shouldShow);
-      dropdownStore.setState({ open: shouldShow });
-      onDropdownChange?.(shouldShow);
-    }, [value, onDropdownChange, dropdownStore]);
+      setOpenAndNotify(shouldShow);
+    }, [value, forceClose, onDropdownChange, dropdownStore]);
 
     // Handle option selection
     const handleSelectOption = (option: string) => {
+      justSelectedRef.current = true; // Prevent immediate dropdown reopen
+      setForceClose(true); // Force dropdown to close immediately
       onSelect?.(option);
-      setDropdownOpen(false);
-      dropdownStore.setState({ open: false });
+      setOpenAndNotify(false);
 
       // Update input value if onChange is provided
       updateInputValue(option, ref, onChange);
@@ -186,8 +209,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
           dropdownRef.current &&
           !dropdownRef.current.contains(event.target as Node)
         ) {
-          setDropdownOpen(false);
-          dropdownStore.setState({ open: false });
+          setOpenAndNotify(false);
         }
       };
 
@@ -198,11 +220,12 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
       };
-    }, [showDropdown, dropdownStore]);
+    }, [showDropdown, dropdownStore, onDropdownChange]);
 
     // Generate unique ID if not provided
     const generatedId = useId();
     const inputId = id ?? `search-${generatedId}`;
+    const dropdownId = `${inputId}-dropdown`;
 
     // Handle clear button
     const handleClear = () => {
@@ -220,17 +243,41 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       handleClear();
     };
 
-    // Handle left icon click - remove focus from input
-    const handleLeftIconClick = () => {
-      if (ref && 'current' in ref && ref.current) {
-        ref.current.blur();
-      }
+    // Handle search icon click - focus on input
+    const handleSearchIconClick = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setTimeout(() => {
+        inputElRef.current?.focus();
+      }, 0);
     };
 
     // Handle input change
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+      setForceClose(false); // Allow dropdown to open when user types
       onChange?.(e);
       onSearch?.(e.target.value);
+    };
+
+    // Handle keyboard events
+    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+      // Let consumer run first; if they prevent default, skip our logic
+      userOnKeyDown?.(e);
+      if (e.defaultPrevented) return;
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+
+        // If dropdown is open and there are filtered options, select the first one
+        if (showDropdown && filteredOptions.length > 0) {
+          handleSelectOption(filteredOptions[0]);
+        } else if (value) {
+          // If no dropdown or no options, execute search
+          onSearch?.(String(value));
+          setForceClose(true);
+          setOpenAndNotify(false);
+        }
+      }
     };
 
     // Helper function for input state classes
@@ -240,8 +287,10 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       return 'hover:border-border-400';
     };
 
-    // Determine if we should show clear button
-    const showClearButton = value && !disabled && !readOnly;
+    // Determine which icon to show
+    const hasValue = String(value ?? '').length > 0;
+    const showClearButton = hasValue && !disabled && !readOnly;
+    const showSearchIcon = !hasValue && !disabled && !readOnly;
 
     return (
       <div
@@ -250,31 +299,31 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       >
         {/* Search Input Container */}
         <div className="relative flex items-center">
-          {/* Left Icon - Back */}
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-            <button
-              type="button"
-              className="w-6 h-6 text-text-800 flex items-center justify-center bg-transparent border-0 p-0 cursor-pointer hover:text-text-600 transition-colors"
-              onClick={handleLeftIconClick}
-              aria-label="Voltar"
-            >
-              <CaretLeft />
-            </button>
-          </div>
-
           {/* Search Input Field */}
           <input
-            ref={ref}
+            ref={(node) => {
+              // Forward to parent
+              if (ref) {
+                if (typeof ref === 'function') ref(node);
+                else
+                  (ref as { current: HTMLInputElement | null }).current = node;
+              }
+              // Keep our own handle
+              inputElRef.current = node;
+            }}
             id={inputId}
             type="text"
-            className={`w-full py-0 px-4 pl-10 ${showClearButton ? 'pr-10' : 'pr-4'} font-normal text-text-900 focus:outline-primary-950 border rounded-full bg-background focus:bg-primary-50 border-border-300 focus:border-2 focus:border-primary-950 h-10 placeholder:text-text-600 ${getInputStateClasses(disabled, readOnly)} ${className}`}
+            className={`w-full py-0 px-4 pr-10 font-normal text-text-900 focus:outline-primary-950 border rounded-full bg-background focus:bg-primary-50 border-border-300 focus:border-2 focus:border-primary-950 h-10 placeholder:text-text-600 ${getInputStateClasses(disabled, readOnly)} ${className}`}
             value={value}
             onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             disabled={disabled}
             readOnly={readOnly}
             placeholder={placeholder}
             aria-expanded={showDropdown ? 'true' : undefined}
             aria-haspopup={options.length > 0 ? 'listbox' : undefined}
+            aria-controls={showDropdown ? dropdownId : undefined}
+            aria-autocomplete="list"
             role={options.length > 0 ? 'combobox' : undefined}
             {...props}
           />
@@ -294,12 +343,29 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
               </button>
             </div>
           )}
+
+          {/* Right Icon - Search Icon */}
+          {showSearchIcon && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <button
+                type="button"
+                className="p-0 border-0 bg-transparent cursor-pointer"
+                onMouseDown={handleSearchIconClick}
+                aria-label="Buscar"
+              >
+                <span className="w-6 h-6 text-text-800 flex items-center justify-center hover:text-text-600 transition-colors">
+                  <MagnifyingGlass />
+                </span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Search Dropdown */}
         {showDropdown && (
           <DropdownMenu open={showDropdown} onOpenChange={setDropdownOpen}>
             <DropdownMenuContent
+              id={dropdownId}
               className="w-full mt-1"
               style={{ maxHeight: dropdownMaxHeight }}
               align="start"

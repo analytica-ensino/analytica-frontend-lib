@@ -12,8 +12,6 @@ import DropdownMenu, {
   ProfileMenuSection,
   ProfileMenuTrigger,
   ProfileToggleTheme,
-} from './DropdownMenu';
-import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -102,7 +100,7 @@ describe('DropdownMenu component', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Toggle' }));
       expect(screen.getByRole('menu')).toBeInTheDocument();
 
-      fireEvent.mouseDown(screen.getByTestId('outside'));
+      fireEvent.pointerDown(screen.getByTestId('outside'));
       await waitFor(() =>
         expect(screen.queryByRole('menu')).not.toBeInTheDocument()
       );
@@ -120,7 +118,7 @@ describe('DropdownMenu component', () => {
 
       fireEvent.click(screen.getByRole('button'));
       const insideItem = screen.getByRole('menuitem');
-      fireEvent.mouseDown(insideItem);
+      fireEvent.pointerDown(insideItem);
       expect(screen.getByRole('menu')).toBeInTheDocument();
     });
 
@@ -538,7 +536,7 @@ describe('ProfileMenu component', () => {
       fireEvent.click(screen.getByTestId('trigger'));
       expect(screen.getByRole('menu')).toBeInTheDocument();
 
-      fireEvent.mouseDown(screen.getByTestId('outside'));
+      fireEvent.pointerDown(screen.getByTestId('outside'));
       await waitFor(() =>
         expect(screen.queryByRole('menu')).not.toBeInTheDocument()
       );
@@ -556,7 +554,7 @@ describe('ProfileMenu component', () => {
 
       fireEvent.click(screen.getByRole('button'));
       const insideItem = screen.getByRole('menuitem');
-      fireEvent.mouseDown(insideItem);
+      fireEvent.pointerDown(insideItem);
       expect(screen.getByRole('menu')).toBeInTheDocument();
     });
 
@@ -894,6 +892,52 @@ describe('ProfileToggleTheme component', () => {
       expect(screen.getByText('Claro')).toBeInTheDocument();
       expect(screen.getByText('Escuro')).toBeInTheDocument();
       expect(screen.getByText('Sistema')).toBeInTheDocument();
+    });
+  });
+
+  it('opens theme modal when Enter key is pressed on theme item', async () => {
+    render(
+      <DropdownMenu>
+        <ProfileMenuTrigger />
+        <DropdownMenuContent variant="profile">
+          <ProfileToggleTheme />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+
+    // Click to open dropdown
+    fireEvent.click(screen.getByRole('button'));
+
+    // Press Enter on the theme toggle item
+    const themeItem = screen.getByText('Aparência');
+    fireEvent.keyDown(themeItem, { key: 'Enter' });
+
+    // Wait for modal to open
+    await waitFor(() => {
+      expect(screen.getByText('Escolha o tema:')).toBeInTheDocument();
+    });
+  });
+
+  it('opens theme modal when Space key is pressed on theme item', async () => {
+    render(
+      <DropdownMenu>
+        <ProfileMenuTrigger />
+        <DropdownMenuContent variant="profile">
+          <ProfileToggleTheme />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+
+    // Click to open dropdown
+    fireEvent.click(screen.getByRole('button'));
+
+    // Press Space on the theme toggle item
+    const themeItem = screen.getByText('Aparência');
+    fireEvent.keyDown(themeItem, { key: ' ' });
+
+    // Wait for modal to open
+    await waitFor(() => {
+      expect(screen.getByText('Escolha o tema:')).toBeInTheDocument();
     });
   });
 });

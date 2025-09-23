@@ -210,12 +210,7 @@ const QuizHeader = () => {
   );
 };
 
-const QuizContent = forwardRef<
-  HTMLDivElement,
-  {
-    paddingBottom?: string;
-  }
->(({ paddingBottom }) => {
+const QuizContent = ({ paddingBottom }: { paddingBottom?: string }) => {
   const { getCurrentQuestion } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
   const questionComponents: Record<
@@ -238,7 +233,7 @@ const QuizContent = forwardRef<
   return QuestionComponent ? (
     <QuestionComponent paddingBottom={paddingBottom} />
   ) : null;
-});
+};
 
 interface QuizVariantInterface {
   paddingBottom?: string;
