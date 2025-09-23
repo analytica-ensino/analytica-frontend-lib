@@ -291,6 +291,20 @@ describe('Quiz', () => {
       expect(screen.getByText('Não foi dessa vez...')).toBeInTheDocument();
     });
 
+    it('should show pending evaluation message when answer is pending evaluation', () => {
+      const mockQuestion = { id: 'question-1' };
+      const mockQuestionResult = {
+        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+      };
+
+      mockGetCurrentQuestion.mockReturnValue(mockQuestion);
+      mockGetQuestionResultByQuestionId.mockReturnValue(mockQuestionResult);
+
+      render(<QuizHeaderResult />);
+
+      expect(screen.getByText('Avaliação pendente')).toBeInTheDocument();
+    });
+
     it('should show failure message when no current question', () => {
       mockGetCurrentQuestion.mockReturnValue(null);
 
@@ -342,6 +356,21 @@ describe('Quiz', () => {
       const headerElement = container.firstChild as HTMLElement;
 
       expect(headerElement).toHaveClass('bg-error-background');
+    });
+
+    it('should apply info background when answer is pending evaluation', () => {
+      const mockQuestion = { id: 'question-1' };
+      const mockQuestionResult = {
+        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+      };
+
+      mockGetCurrentQuestion.mockReturnValue(mockQuestion);
+      mockGetQuestionResultByQuestionId.mockReturnValue(mockQuestionResult);
+
+      const { container } = render(<QuizHeaderResult />);
+      const headerElement = container.firstChild as HTMLElement;
+
+      expect(headerElement).toHaveClass('bg-info-background');
     });
 
     it('should apply custom className', () => {
@@ -400,6 +429,36 @@ describe('Quiz', () => {
       rerender(<QuizHeaderResult />);
 
       expect(screen.getByText('Não foi dessa vez...')).toBeInTheDocument();
+    });
+
+    it('should update from correct to pending evaluation when question changes', () => {
+      const mockQuestion1 = { id: 'question-1' };
+      const mockQuestion2 = { id: 'question-2' };
+      const mockQuestionResult1 = {
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+      };
+      const mockQuestionResult2 = {
+        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+      };
+
+      mockGetCurrentQuestion.mockReturnValue(mockQuestion1);
+      mockGetQuestionResultByQuestionId.mockReturnValue(mockQuestionResult1);
+
+      const { rerender, container } = render(<QuizHeaderResult />);
+
+      expect(screen.getByText('🎉 Parabéns!!')).toBeInTheDocument();
+      let headerElement = container.firstChild as HTMLElement;
+      expect(headerElement).toHaveClass('bg-success-background');
+
+      // Change to pending evaluation question
+      mockGetCurrentQuestion.mockReturnValue(mockQuestion2);
+      mockGetQuestionResultByQuestionId.mockReturnValue(mockQuestionResult2);
+
+      rerender(<QuizHeaderResult />);
+
+      expect(screen.getByText('Avaliação pendente')).toBeInTheDocument();
+      headerElement = container.firstChild as HTMLElement;
+      expect(headerElement).toHaveClass('bg-info-background');
     });
   });
 

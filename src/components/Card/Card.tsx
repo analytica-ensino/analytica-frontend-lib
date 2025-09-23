@@ -235,6 +235,7 @@ interface CardQuestionProps extends HTMLAttributes<HTMLDivElement> {
   state?: 'done' | 'undone';
   onClickButton?: (valueButton?: unknown) => void;
   valueButton?: unknown;
+  label?: string;
 }
 
 const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
@@ -245,6 +246,7 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
       className,
       onClickButton,
       valueButton,
+      label = '00',
       ...props
     },
     ref
@@ -278,7 +280,7 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
               {isDone ? 'Nota' : 'Sem nota'}
               {isDone && (
                 <Badge size="medium" action="success">
-                  00
+                  {label}
                 </Badge>
               )}
             </span>

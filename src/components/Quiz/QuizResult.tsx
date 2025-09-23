@@ -80,6 +80,8 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
           return 'bg-success-background';
         case ANSWER_STATUS.RESPOSTA_INCORRETA:
           return 'bg-error-background';
+        case ANSWER_STATUS.PENDENTE_AVALIACAO:
+          return 'bg-info-background';
         default:
           return 'bg-error-background';
       }
@@ -91,6 +93,8 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
           return '🎉 Parabéns!!';
         case ANSWER_STATUS.RESPOSTA_INCORRETA:
           return 'Não foi dessa vez...';
+        case ANSWER_STATUS.PENDENTE_AVALIACAO:
+          return 'Avaliação pendente';
         case ANSWER_STATUS.NAO_RESPONDIDO:
         default:
           return 'Não foi dessa vez...você deixou a resposta em branco';
@@ -362,7 +366,6 @@ const QuizListResultByMateria = ({
   const groupedQuestions = getQuestionsGroupedBySubject();
 
   const answeredQuestions = groupedQuestions[subject] || [];
-
   const formattedQuestions =
     subject == 'all'
       ? Object.values(groupedQuestions).flat()
