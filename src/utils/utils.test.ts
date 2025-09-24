@@ -30,15 +30,15 @@ describe('utils', () => {
 
     describe('when isDark is false (light mode)', () => {
       it('should add opacity to 6-digit hex color without #', () => {
-        expect(getSubjectColorWithOpacity('0066b8', false)).toBe('#0066b8b3');
-        expect(getSubjectColorWithOpacity('ff0000', false)).toBe('#ff0000b3');
-        expect(getSubjectColorWithOpacity('abcdef', false)).toBe('#abcdefb3');
+        expect(getSubjectColorWithOpacity('0066b8', false)).toBe('#0066b84d');
+        expect(getSubjectColorWithOpacity('ff0000', false)).toBe('#ff00004d');
+        expect(getSubjectColorWithOpacity('abcdef', false)).toBe('#abcdef4d');
       });
 
       it('should add opacity to 6-digit hex color with #', () => {
-        expect(getSubjectColorWithOpacity('#0066b8', false)).toBe('#0066b8b3');
-        expect(getSubjectColorWithOpacity('#FF0000', false)).toBe('#ff0000b3');
-        expect(getSubjectColorWithOpacity('#AbCdEf', false)).toBe('#abcdefb3');
+        expect(getSubjectColorWithOpacity('#0066b8', false)).toBe('#0066b84d');
+        expect(getSubjectColorWithOpacity('#FF0000', false)).toBe('#ff00004d');
+        expect(getSubjectColorWithOpacity('#AbCdEf', false)).toBe('#abcdef4d');
       });
 
       it('should return 8-digit hex color as is', () => {
@@ -46,8 +46,8 @@ describe('utils', () => {
           '#0066b8ff'
         );
         expect(getSubjectColorWithOpacity('0066b8aa', false)).toBe('#0066b8aa');
-        expect(getSubjectColorWithOpacity('#FF0000B3', false)).toBe(
-          '#ff0000b3'
+        expect(getSubjectColorWithOpacity('#FF00004d', false)).toBe(
+          '#ff00004d'
         );
       });
 
@@ -67,7 +67,7 @@ describe('utils', () => {
       });
 
       it('should remove opacity from 8-digit hex color', () => {
-        expect(getSubjectColorWithOpacity('#0066b8b3', true)).toBe('#0066b8');
+        expect(getSubjectColorWithOpacity('#0066b84d', true)).toBe('#0066b8');
         expect(getSubjectColorWithOpacity('ff0000cc', true)).toBe('#ff0000');
         expect(getSubjectColorWithOpacity('#AbCdEfAa', true)).toBe('#abcdef');
       });
@@ -80,12 +80,12 @@ describe('utils', () => {
 
     describe('edge cases', () => {
       it('should handle uppercase hex colors', () => {
-        expect(getSubjectColorWithOpacity('#FF0000', false)).toBe('#ff0000b3');
+        expect(getSubjectColorWithOpacity('#FF0000', false)).toBe('#ff00004d');
         expect(getSubjectColorWithOpacity('ABCDEF', true)).toBe('#abcdef');
       });
 
       it('should handle mixed case hex colors', () => {
-        expect(getSubjectColorWithOpacity('#AbCdEf', false)).toBe('#abcdefb3');
+        expect(getSubjectColorWithOpacity('#AbCdEf', false)).toBe('#abcdef4d');
         expect(getSubjectColorWithOpacity('FfAaBb', true)).toBe('#ffaabb');
       });
 
@@ -116,11 +116,11 @@ describe('utils', () => {
     describe('real-world scenarios', () => {
       it('should work with common subject colors in light mode', () => {
         // Matemática - azul
-        expect(getSubjectColorWithOpacity('#0066b8', false)).toBe('#0066b8b3');
+        expect(getSubjectColorWithOpacity('#0066b8', false)).toBe('#0066b84d');
         // Português - verde
-        expect(getSubjectColorWithOpacity('#00a651', false)).toBe('#00a651b3');
+        expect(getSubjectColorWithOpacity('#00a651', false)).toBe('#00a6514d');
         // História - marrom
-        expect(getSubjectColorWithOpacity('#8b4513', false)).toBe('#8b4513b3');
+        expect(getSubjectColorWithOpacity('#8b4513', false)).toBe('#8b45134d');
       });
 
       it('should work with common subject colors in dark mode', () => {
@@ -134,11 +134,11 @@ describe('utils', () => {
 
       it('should handle colors that come with opacity from API', () => {
         // Cor que já vem com opacidade da API em light mode
-        expect(getSubjectColorWithOpacity('#0066b8b3', false)).toBe(
-          '#0066b8b3'
+        expect(getSubjectColorWithOpacity('#0066b84d', false)).toBe(
+          '#0066b84d'
         );
         // Cor que já vem com opacidade da API em dark mode (deve remover)
-        expect(getSubjectColorWithOpacity('#0066b8b3', true)).toBe('#0066b8');
+        expect(getSubjectColorWithOpacity('#0066b84d', true)).toBe('#0066b8');
       });
     });
   });

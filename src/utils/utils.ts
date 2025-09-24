@@ -33,8 +33,8 @@ export function getSubjectColorWithOpacity(
     // Se não está em dark mode (light mode)
     let resultColor: string;
     if (color.length === 6) {
-      // Adiciona opacidade 0.7 (b3) para cores de 6 dígitos
-      resultColor = `#${color}b3`;
+      // Adiciona opacidade 0.3 (4D) para cores de 6 dígitos
+      resultColor = `#${color}4d`;
     } else if (color.length === 8) {
       // Já tem opacidade, retorna como está
       resultColor = `#${color}`;
