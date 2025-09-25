@@ -45,7 +45,7 @@ describe('DropdownMenu component', () => {
         </DropdownMenu>
       );
 
-      const trigger = screen.getByText('Toggle');
+      const trigger = screen.getByRole('button');
 
       fireEvent.click(trigger);
       expect(handleOpenChange).toHaveBeenCalledWith(true);
@@ -64,7 +64,7 @@ describe('DropdownMenu component', () => {
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByText('Toggle'));
+      fireEvent.click(screen.getByRole('button'));
       expect(screen.getByRole('menu')).toBeInTheDocument();
 
       fireEvent.keyDown(document, { key: 'Escape' });
@@ -81,7 +81,7 @@ describe('DropdownMenu component', () => {
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByText('Toggle'));
+      fireEvent.click(screen.getByRole('button'));
       fireEvent.keyDown(document, { key: 'Enter' });
       expect(screen.getByRole('menu')).toBeInTheDocument();
     });
@@ -97,7 +97,7 @@ describe('DropdownMenu component', () => {
         </div>
       );
 
-      fireEvent.click(screen.getByText('Toggle'));
+      fireEvent.click(screen.getByRole('button', { name: 'Toggle' }));
       expect(screen.getByRole('menu')).toBeInTheDocument();
 
       fireEvent.pointerDown(screen.getByTestId('outside'));
@@ -116,7 +116,7 @@ describe('DropdownMenu component', () => {
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByText('Toggle'));
+      fireEvent.click(screen.getByRole('button'));
       const insideItem = screen.getByRole('menuitem');
       fireEvent.pointerDown(insideItem);
       expect(screen.getByRole('menu')).toBeInTheDocument();
@@ -130,11 +130,73 @@ describe('DropdownMenu component', () => {
         </DropdownMenu>
       );
 
-      expect(screen.getByText('Toggle')).toHaveAttribute(
+      expect(screen.getByRole('button')).toHaveAttribute(
         'aria-expanded',
         'true'
       );
       expect(screen.getByRole('menu')).toBeInTheDocument();
+    });
+
+    it('opens dropdown when Enter key is pressed on trigger', () => {
+      render(
+        <DropdownMenu>
+          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuContent>Menu Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const trigger = screen.getByRole('button');
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+
+      fireEvent.keyDown(trigger, { key: 'Enter' });
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+    });
+
+    it('opens dropdown when Space key is pressed on trigger', () => {
+      render(
+        <DropdownMenu>
+          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuContent>Menu Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const trigger = screen.getByRole('button');
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+
+      fireEvent.keyDown(trigger, { key: ' ' });
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+    });
+
+    it('calls onClick handler when Enter key is pressed on trigger', () => {
+      const handleClick = jest.fn();
+      render(
+        <DropdownMenu>
+          <DropdownMenuTrigger onClick={handleClick}>
+            Toggle
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>Menu Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const trigger = screen.getByRole('button');
+      fireEvent.keyDown(trigger, { key: 'Enter' });
+      expect(handleClick).toHaveBeenCalled();
+    });
+
+    it('calls onClick handler when Space key is pressed on trigger', () => {
+      const handleClick = jest.fn();
+      render(
+        <DropdownMenu>
+          <DropdownMenuTrigger onClick={handleClick}>
+            Toggle
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>Menu Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const trigger = screen.getByRole('button');
+      fireEvent.keyDown(trigger, { key: ' ' });
+      expect(handleClick).toHaveBeenCalled();
     });
   });
 
@@ -150,7 +212,7 @@ describe('DropdownMenu component', () => {
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByText('Toggle'));
+      fireEvent.click(screen.getByRole('button'));
       const item = screen.getByRole('menuitem');
       expect(item).toHaveTextContent('Item 1');
       fireEvent.click(item);
@@ -192,7 +254,7 @@ describe('DropdownMenu component', () => {
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByText('Toggle'));
+      fireEvent.click(screen.getByRole('button'));
       const item = screen.getByRole('menuitem');
       fireEvent.keyDown(item, { key: 'Enter' });
       expect(handleClick).toHaveBeenCalled();
@@ -212,7 +274,7 @@ describe('DropdownMenu component', () => {
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByText('Toggle'));
+      fireEvent.click(screen.getByRole('button'));
       const group = screen.getByTestId('label-with-inset');
       expect(group).toHaveClass('pl-8');
       expect(group).toHaveTextContent('Label with inset');
@@ -230,7 +292,7 @@ describe('DropdownMenu component', () => {
         </DropdownMenu>
       );
 
-      fireEvent.click(screen.getByText('Toggle'));
+      fireEvent.click(screen.getByRole('button'));
       expect(screen.getByTestId('label-with-label')).toHaveTextContent('Label');
       expect(screen.getByText('Item')).toBeInTheDocument();
     });
@@ -309,7 +371,7 @@ describe('DropdownMenuContent direction and positioning', () => {
       </DropdownMenu>
     );
 
-    const button = screen.getByText('Trigger');
+    const button = screen.getByRole('button');
     fireEvent.click(button);
 
     expect(consumerOnClick).toHaveBeenCalled();
