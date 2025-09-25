@@ -20,6 +20,7 @@ import {
 import { cn } from '../../utils/utils';
 import IconButton from '../IconButton/IconButton';
 import Text from '../Text/Text';
+import { useMobile } from '../../hooks/useMobile';
 
 // Constants for timeout durations
 const CONTROLS_HIDE_TIMEOUT = 3000; // 3 seconds for normal control hiding
@@ -86,8 +87,9 @@ const ProgressBar = ({
   duration,
   progressPercentage,
   onSeek,
-}: ProgressBarProps) => (
-  <div className="px-4 pb-2">
+  className = 'px-4 pb-2',
+}: ProgressBarProps & { className?: string }) => (
+  <div className={className}>
     <input
       type="range"
       min={0}
@@ -111,6 +113,8 @@ interface VolumeControlsProps {
   isMuted: boolean;
   onVolumeChange: (volume: number) => void;
   onToggleMute: () => void;
+  iconSize?: number;
+  showSlider?: boolean;
 }
 
 /**
@@ -121,27 +125,37 @@ const VolumeControls = ({
   isMuted,
   onVolumeChange,
   onToggleMute,
+  iconSize = 24,
+  showSlider = true,
 }: VolumeControlsProps) => (
   <div className="flex items-center gap-2">
     <IconButton
-      icon={isMuted ? <SpeakerSlash size={24} /> : <SpeakerHigh size={24} />}
+      icon={
+        isMuted ? (
+          <SpeakerSlash size={iconSize} />
+        ) : (
+          <SpeakerHigh size={iconSize} />
+        )
+      }
       onClick={onToggleMute}
       aria-label={isMuted ? 'Unmute' : 'Mute'}
       className="!bg-transparent !text-white hover:!bg-white/20"
     />
 
-    <input
-      type="range"
-      min={0}
-      max={100}
-      value={Math.round(volume * 100)}
-      onChange={(e) => onVolumeChange(parseInt(e.target.value))}
-      className="w-20 h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
-      aria-label="Volume control"
-      style={{
-        background: `linear-gradient(to right, var(--color-primary-700) ${volume * 100}%, var(--color-secondary-300) ${volume * 100}%)`,
-      }}
-    />
+    {showSlider && (
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={Math.round(volume * 100)}
+        onChange={(e) => onVolumeChange(parseInt(e.target.value))}
+        className="w-20 h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
+        aria-label="Volume control"
+        style={{
+          background: `linear-gradient(to right, var(--color-primary-700) ${volume * 100}%, var(--color-secondary-300) ${volume * 100}%)`,
+        }}
+      />
+    )}
   </div>
 );
 
@@ -154,6 +168,8 @@ interface SpeedMenuProps {
   onToggleMenu: () => void;
   onSpeedChange: (speed: number) => void;
   isFullscreen: boolean;
+  iconSize?: number;
+  isTinyMobile?: boolean;
 }
 
 /**
@@ -165,6 +181,8 @@ const SpeedMenu = ({
   onToggleMenu,
   onSpeedChange,
   isFullscreen,
+  iconSize = 24,
+  isTinyMobile = false,
 }: SpeedMenuProps) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const speedMenuContainerRef = useRef<HTMLDivElement>(null);
@@ -173,10 +191,16 @@ const SpeedMenu = ({
   const getMenuPosition = () => {
     if (!buttonRef.current) return { top: 0, left: 0 };
     const rect = buttonRef.current.getBoundingClientRect();
+
+    // Adjust positioning for tiny mobile screens
+    const menuHeight = isTinyMobile ? 150 : 180;
+    const menuWidth = isTinyMobile ? 60 : 80;
+    const padding = isTinyMobile ? 4 : 8;
+
     return {
       // Fixed coords are viewport-based — no scroll offsets.
-      top: Math.max(8, rect.top - 180),
-      left: Math.max(8, rect.right - 80),
+      top: Math.max(padding, rect.top - menuHeight),
+      left: Math.max(padding, rect.right - menuWidth),
     };
   };
 
@@ -255,7 +279,7 @@ const SpeedMenu = ({
     <div className="relative" ref={speedMenuContainerRef}>
       <IconButton
         ref={buttonRef}
-        icon={<DotsThreeVertical size={24} />}
+        icon={<DotsThreeVertical size={iconSize} />}
         onClick={onToggleMenu}
         aria-label="Playback speed"
         aria-haspopup="menu"
@@ -289,6 +313,7 @@ const VideoPlayer = ({
   storageKey = 'video-progress',
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { isUltraSmallMobile, isTinyMobile } = useMobile();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -777,6 +802,42 @@ const VideoPlayer = ({
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   /**
+   * Get responsive icon size based on screen size
+   */
+  const getIconSize = useCallback(() => {
+    if (isTinyMobile) return 18;
+    if (isUltraSmallMobile) return 20;
+    return 24;
+  }, [isTinyMobile, isUltraSmallMobile]);
+
+  /**
+   * Get responsive padding classes for controls
+   */
+  const getControlsPadding = useCallback(() => {
+    if (isTinyMobile) return 'px-2 pb-2 pt-1';
+    if (isUltraSmallMobile) return 'px-3 pb-3 pt-1';
+    return 'px-4 pb-4';
+  }, [isTinyMobile, isUltraSmallMobile]);
+
+  /**
+   * Get responsive gap classes for controls
+   */
+  const getControlsGap = useCallback(() => {
+    if (isTinyMobile) return 'gap-1';
+    if (isUltraSmallMobile) return 'gap-2';
+    return 'gap-4';
+  }, [isTinyMobile, isUltraSmallMobile]);
+
+  /**
+   * Get responsive padding for progress bar
+   */
+  const getProgressBarPadding = useCallback(() => {
+    if (isTinyMobile) return 'px-2 pb-1';
+    if (isUltraSmallMobile) return 'px-3 pb-1';
+    return 'px-4 pb-2';
+  }, [isTinyMobile, isUltraSmallMobile]);
+
+  /**
    * Calculate top controls opacity based on state
    */
   const getTopControlsOpacity = useCallback(() => {
@@ -973,15 +1034,27 @@ const VideoPlayer = ({
             duration={duration}
             progressPercentage={progressPercentage}
             onSeek={handleSeek}
+            className={getProgressBarPadding()}
           />
 
           {/* Control Buttons */}
-          <div className="flex items-center justify-between px-4 pb-4">
+          <div
+            className={cn(
+              'flex items-center justify-between',
+              getControlsPadding()
+            )}
+          >
             {/* Left Controls */}
-            <div className="flex items-center gap-4">
+            <div className={cn('flex items-center', getControlsGap())}>
               {/* Play/Pause */}
               <IconButton
-                icon={isPlaying ? <Pause size={24} /> : <Play size={24} />}
+                icon={
+                  isPlaying ? (
+                    <Pause size={getIconSize()} />
+                  ) : (
+                    <Play size={getIconSize()} />
+                  )
+                }
                 onClick={togglePlayPause}
                 aria-label={isPlaying ? 'Pause' : 'Play'}
                 className="!bg-transparent !text-white hover:!bg-white/20"
@@ -993,12 +1066,14 @@ const VideoPlayer = ({
                 isMuted={isMuted}
                 onVolumeChange={handleVolumeChange}
                 onToggleMute={toggleMute}
+                iconSize={getIconSize()}
+                showSlider={!isUltraSmallMobile}
               />
 
               {/* Captions */}
               {subtitles && (
                 <IconButton
-                  icon={<ClosedCaptioning size={24} />}
+                  icon={<ClosedCaptioning size={getIconSize()} />}
                   onClick={toggleCaptions}
                   aria-label={showCaptions ? 'Hide captions' : 'Show captions'}
                   className={cn(
@@ -1022,6 +1097,8 @@ const VideoPlayer = ({
                 playbackRate={playbackRate}
                 onToggleMenu={toggleSpeedMenu}
                 onSpeedChange={handleSpeedChange}
+                iconSize={getIconSize()}
+                isTinyMobile={isTinyMobile}
                 isFullscreen={isFullscreen}
               />
             </div>

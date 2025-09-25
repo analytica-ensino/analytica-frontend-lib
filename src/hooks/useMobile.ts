@@ -7,6 +7,7 @@ const TABLET_WIDTH = 931;
 // Video responsive breakpoints
 const SMALL_MOBILE_WIDTH = 425;
 const EXTRA_SMALL_MOBILE_WIDTH = 375;
+const ULTRA_SMALL_MOBILE_WIDTH = 375; // For video controls
 const TINY_MOBILE_WIDTH = 320;
 // Default desktop width for SSR
 const DEFAULT_WIDTH = 1200;
@@ -45,6 +46,7 @@ export const useMobile = () => {
   const [isTablet, setIsTablet] = useState(false);
   const [isSmallMobile, setIsSmallMobile] = useState(false);
   const [isExtraSmallMobile, setIsExtraSmallMobile] = useState(false);
+  const [isUltraSmallMobile, setIsUltraSmallMobile] = useState(false);
   const [isTinyMobile, setIsTinyMobile] = useState(false);
 
   useEffect(() => {
@@ -54,6 +56,7 @@ export const useMobile = () => {
       setIsTablet(width < TABLET_WIDTH);
       setIsSmallMobile(width < SMALL_MOBILE_WIDTH);
       setIsExtraSmallMobile(width < EXTRA_SMALL_MOBILE_WIDTH);
+      setIsUltraSmallMobile(width < ULTRA_SMALL_MOBILE_WIDTH);
       setIsTinyMobile(width < TINY_MOBILE_WIDTH);
     };
 
@@ -118,6 +121,7 @@ export const useMobile = () => {
     isTablet,
     isSmallMobile,
     isExtraSmallMobile,
+    isUltraSmallMobile,
     isTinyMobile,
     getFormContainerClasses,
     getHeaderClasses,
