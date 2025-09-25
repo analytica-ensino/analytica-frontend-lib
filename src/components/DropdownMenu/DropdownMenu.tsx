@@ -58,12 +58,32 @@ const injectStore = (
         children?: ReactNode;
       }>;
 
-      const newProps: Partial<{
+      // Aqui tu checa o displayName do componente
+      const displayName = (
+        typedChild.type as unknown as { displayName: string }
+      ).displayName;
+
+      // Lista de componentes que devem receber o store
+      const allowed = [
+        'DropdownMenuTrigger',
+        'DropdownContent',
+        'DropdownMenuContent',
+        'DropdownMenuSeparator',
+        'DropdownMenuItem',
+        'MenuLabel',
+        'ProfileMenuTrigger',
+        'ProfileMenuHeader',
+        'ProfileMenuFooter',
+      ];
+
+      let newProps: Partial<{
         store: DropdownStoreApi;
         children: ReactNode;
-      }> = {
-        store,
-      };
+      }> = {};
+
+      if (allowed.includes(displayName)) {
+        newProps.store = store;
+      }
 
       if (typedChild.props.children) {
         newProps.children = injectStore(typedChild.props.children, store);
@@ -71,6 +91,7 @@ const injectStore = (
 
       return cloneElement(typedChild, newProps);
     }
+
     return child;
   });
 };
@@ -178,7 +199,7 @@ const DropdownMenuTrigger = ({
   onClick,
   store: externalStore,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & {
+}: HTMLAttributes<HTMLDivElement> & {
   disabled?: boolean;
   store?: DropdownStoreApi;
 }) => {
@@ -188,7 +209,7 @@ const DropdownMenuTrigger = ({
   const toggleOpen = () => store.setState({ open: !open });
 
   return (
-    <button
+    <div
       onClick={(e) => {
         e.stopPropagation();
         toggleOpen();
@@ -199,7 +220,7 @@ const DropdownMenuTrigger = ({
       {...props}
     >
       {children}
-    </button>
+    </div>
   );
 };
 DropdownMenuTrigger.displayName = 'DropdownMenuTrigger';
