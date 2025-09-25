@@ -668,3 +668,24 @@ div textarea:focus {
   border-width: 2px !important;
   border-color: var(--color-primary-950) !important;
 }
+
+/* Safari iOS video controls fix - Scoped to VideoPlayer only */
+.analytica-video::-webkit-media-controls {
+  display: none !important;
+}
+
+.analytica-video::-webkit-media-controls-panel {
+  display: none !important;
+}
+
+.analytica-video::-webkit-media-controls-play-button {
+  display: none !important;
+}
+
+.analytica-video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+}
+
+.analytica-video::-webkit-media-controls-enclosure {
+  display: none !important;
+}

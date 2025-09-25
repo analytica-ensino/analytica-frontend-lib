@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 const MOBILE_WIDTH = 500;
 // Tablet width in pixels
 const TABLET_WIDTH = 931;
+// Video responsive breakpoints
+const SMALL_MOBILE_WIDTH = 425;
+const EXTRA_SMALL_MOBILE_WIDTH = 375;
+const ULTRA_SMALL_MOBILE_WIDTH = 375; // For video controls
+const TINY_MOBILE_WIDTH = 320;
 // Default desktop width for SSR
 const DEFAULT_WIDTH = 1200;
 
@@ -39,12 +44,20 @@ export const getDeviceType = (): DeviceType => {
 export const useMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
+  const [isSmallMobile, setIsSmallMobile] = useState(false);
+  const [isExtraSmallMobile, setIsExtraSmallMobile] = useState(false);
+  const [isUltraSmallMobile, setIsUltraSmallMobile] = useState(false);
+  const [isTinyMobile, setIsTinyMobile] = useState(false);
 
   useEffect(() => {
     const checkScreenSize = () => {
       const width = getWindowWidth();
       setIsMobile(width < MOBILE_WIDTH);
       setIsTablet(width < TABLET_WIDTH);
+      setIsSmallMobile(width < SMALL_MOBILE_WIDTH);
+      setIsExtraSmallMobile(width < EXTRA_SMALL_MOBILE_WIDTH);
+      setIsUltraSmallMobile(width < ULTRA_SMALL_MOBILE_WIDTH);
+      setIsTinyMobile(width < TINY_MOBILE_WIDTH);
     };
 
     checkScreenSize();
@@ -92,13 +105,29 @@ export const useMobile = () => {
     return isMobile ? getMobileHeaderClasses() : getDesktopHeaderClasses();
   };
 
+  /**
+   * Get responsive classes for video container
+   * @returns className string for video container aspect ratio based on screen size
+   */
+  const getVideoContainerClasses = (): string => {
+    if (isTinyMobile) return 'aspect-square'; // 1:1 ratio for screens < 320px
+    if (isExtraSmallMobile) return 'aspect-[4/3]'; // 4:3 ratio for screens < 375px
+    if (isSmallMobile) return 'aspect-[16/12]'; // 16:12 ratio for screens < 425px
+    return 'aspect-video'; // 16:9 ratio for larger screens
+  };
+
   return {
     isMobile,
     isTablet,
+    isSmallMobile,
+    isExtraSmallMobile,
+    isUltraSmallMobile,
+    isTinyMobile,
     getFormContainerClasses,
     getHeaderClasses,
     getMobileHeaderClasses,
     getDesktopHeaderClasses,
+    getVideoContainerClasses,
     getDeviceType,
   };
 };

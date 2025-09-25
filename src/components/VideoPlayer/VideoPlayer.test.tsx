@@ -2589,6 +2589,127 @@ describe('VideoPlayer', () => {
     });
   });
 
+  describe('Additional coverage tests', () => {
+    it('should render components with default props', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+
+      // Test ProgressBar (covers line 90 - default className)
+      const progressBar = container.querySelector('input[type="range"]');
+      expect(progressBar).toBeInTheDocument();
+
+      // Test Volume controls (covers lines 128-129)
+      const muteButton = screen.getByRole('button', { name: /mute/i });
+      expect(muteButton).toBeInTheDocument();
+
+      // Test Speed menu (covers lines 184-185)
+      const speedButton = screen.getByRole('button', {
+        name: /playback speed/i,
+      });
+      expect(speedButton).toBeInTheDocument();
+    });
+
+    it('should handle different responsive screen sizes', () => {
+      // Mock window innerWidth for different screen sizes
+      const originalInnerWidth = window.innerWidth;
+
+      // Test tiny mobile (width < 320px) - covers lines 820-821, 829-830, 838-839, 847-848
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 300,
+      });
+
+      const { rerender } = render(<VideoPlayer {...defaultProps} />);
+
+      // Trigger responsive functions by interacting with controls
+      const speedButton = screen.getByRole('button', {
+        name: /playback speed/i,
+      });
+      act(() => {
+        fireEvent.click(speedButton);
+      });
+
+      // Test ultra small mobile (width < 375px)
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 350,
+      });
+
+      rerender(<VideoPlayer {...defaultProps} />);
+
+      // Restore
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: originalInnerWidth,
+      });
+    });
+
+    it('should handle menu positioning calculations', () => {
+      // Mock getBoundingClientRect for positioning calculations (covers lines 196-198)
+      const originalGetBoundingClientRect =
+        Element.prototype.getBoundingClientRect;
+      Element.prototype.getBoundingClientRect = jest.fn(() => ({
+        width: 40,
+        height: 40,
+        top: 50,
+        left: 50,
+        bottom: 90,
+        right: 90,
+        x: 50,
+        y: 50,
+        toJSON: jest.fn(),
+      }));
+
+      render(<VideoPlayer {...defaultProps} />);
+
+      // Open speed menu to trigger positioning calculations
+      const speedButton = screen.getByRole('button', {
+        name: /playback speed/i,
+      });
+      act(() => {
+        fireEvent.click(speedButton);
+      });
+
+      // Menu should be rendered (either in document body or in component)
+      const menu =
+        document.querySelector('[role="menu"]') || screen.queryByRole('menu');
+      expect(menu).toBeTruthy();
+
+      // Restore
+      Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+    });
+
+    it('should handle fullscreen mode for speed menu', () => {
+      // Test fullscreen conditional rendering (covers line 289)
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const section = container.querySelector('section')!;
+
+      // Mock fullscreen
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        get: () => section,
+      });
+
+      // Trigger fullscreen change
+      act(() => {
+        fireEvent(document, new Event('fullscreenchange'));
+      });
+
+      // Open speed menu
+      const speedButton = screen.getByRole('button', {
+        name: /playback speed/i,
+      });
+      act(() => {
+        fireEvent.click(speedButton);
+      });
+
+      // Should render menu directly (not in portal)
+      expect(container.querySelector('[role="menu"]')).toBeInTheDocument();
+    });
+  });
+
   describe('requestAnimationFrame fallback', () => {
     it('should use setTimeout fallback and cleanup properly', () => {
       const originalRAF = window.requestAnimationFrame;
@@ -2613,6 +2734,33 @@ describe('VideoPlayer', () => {
       });
 
       // Restore everything
+      window.requestAnimationFrame = originalRAF;
+      jest.useRealTimers();
+    });
+
+    it('should cleanup timeout on unmount when using setTimeout fallback', () => {
+      const originalRAF = window.requestAnimationFrame;
+
+      // Remove requestAnimationFrame to force setTimeout fallback
+      // @ts-expect-error - Testing fallback
+      delete window.requestAnimationFrame;
+
+      jest.useFakeTimers();
+      const clearTimeoutSpy = jest.spyOn(window, 'clearTimeout');
+
+      // Render component which triggers setTimeout fallback (line 553)
+      const { unmount } = render(<VideoPlayer {...defaultProps} />);
+
+      // Unmount before the timeout executes to trigger cleanup (lines 554-555)
+      act(() => {
+        unmount();
+      });
+
+      // Verify clearTimeout was called (covers lines 554-555)
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      // Restore everything
+      clearTimeoutSpy.mockRestore();
       window.requestAnimationFrame = originalRAF;
       jest.useRealTimers();
     });

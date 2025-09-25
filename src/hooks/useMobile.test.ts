@@ -228,3 +228,37 @@ describe('getDeviceType', () => {
     globalThis.window = originalWindow;
   });
 });
+
+describe('getVideoContainerClasses', () => {
+  it('should return aspect-square for tiny mobile screens (< 320px)', () => {
+    mockInnerWidth(300);
+
+    const { result } = renderHook(() => useMobile());
+
+    expect(result.current.getVideoContainerClasses()).toBe('aspect-square');
+  });
+
+  it('should return aspect-[4/3] for extra small mobile screens (< 375px)', () => {
+    mockInnerWidth(350);
+
+    const { result } = renderHook(() => useMobile());
+
+    expect(result.current.getVideoContainerClasses()).toBe('aspect-[4/3]');
+  });
+
+  it('should return aspect-[16/12] for small mobile screens (< 425px)', () => {
+    mockInnerWidth(400);
+
+    const { result } = renderHook(() => useMobile());
+
+    expect(result.current.getVideoContainerClasses()).toBe('aspect-[16/12]');
+  });
+
+  it('should return aspect-video for larger screens (>= 425px)', () => {
+    mockInnerWidth(500);
+
+    const { result } = renderHook(() => useMobile());
+
+    expect(result.current.getVideoContainerClasses()).toBe('aspect-video');
+  });
+});

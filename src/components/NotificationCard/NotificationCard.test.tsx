@@ -21,6 +21,31 @@ jest.mock('../../assets/img/mock-content.png', () => 'test-file-stub');
 jest.mock('../../hooks/useMobile');
 const mockUseMobile = useMobile as jest.MockedFunction<typeof useMobile>;
 
+/**
+ * Factory helper to create useMobile mock with consistent shape
+ */
+const makeUseMobileMock = (
+  overrides?: Partial<ReturnType<typeof useMobile>>
+) => ({
+  isMobile: false,
+  isTablet: false,
+  isSmallMobile: false,
+  isExtraSmallMobile: false,
+  isUltraSmallMobile: false,
+  isTinyMobile: false,
+  getFormContainerClasses: jest.fn(() => 'w-full max-w-[992px] mx-auto px-0'),
+  getHeaderClasses: jest.fn(
+    () => 'flex flex-row justify-between items-center gap-6 mb-8'
+  ),
+  getMobileHeaderClasses: jest.fn(() => 'flex flex-col items-start gap-4 mb-6'),
+  getDesktopHeaderClasses: jest.fn(
+    () => 'flex flex-row justify-between items-center gap-6 mb-8'
+  ),
+  getVideoContainerClasses: jest.fn(() => 'aspect-video'),
+  getDeviceType: jest.fn(() => 'desktop' as DeviceType),
+  ...overrides,
+});
+
 describe('NotificationCard', () => {
   const defaultProps = {
     mode: 'single' as const,
@@ -36,23 +61,7 @@ describe('NotificationCard', () => {
     jest.clearAllMocks();
 
     // Setup default mock for useMobile
-    mockUseMobile.mockReturnValue({
-      isMobile: false,
-      isTablet: false,
-      getFormContainerClasses: jest.fn(
-        () => 'w-full max-w-[992px] mx-auto px-0'
-      ),
-      getHeaderClasses: jest.fn(
-        () => 'flex flex-row justify-between items-center gap-6 mb-8'
-      ),
-      getMobileHeaderClasses: jest.fn(
-        () => 'flex flex-col items-start gap-4 mb-6'
-      ),
-      getDesktopHeaderClasses: jest.fn(
-        () => 'flex flex-row justify-between items-center gap-6 mb-8'
-      ),
-      getDeviceType: jest.fn(() => 'desktop' as DeviceType),
-    });
+    mockUseMobile.mockReturnValue(makeUseMobileMock());
   });
 
   it('renders notification card with all required props', () => {
@@ -1181,15 +1190,14 @@ describe('NotificationCard', () => {
     });
 
     it('renders notification center in desktop mode when variant is center', () => {
-      mockUseMobile.mockReturnValue({
-        isMobile: false,
-        isTablet: false,
-        getFormContainerClasses: jest.fn(() => ''),
-        getHeaderClasses: jest.fn(() => ''),
-        getMobileHeaderClasses: jest.fn(() => ''),
-        getDesktopHeaderClasses: jest.fn(() => ''),
-        getDeviceType: jest.fn(() => 'desktop' as DeviceType),
-      });
+      mockUseMobile.mockReturnValue(
+        makeUseMobileMock({
+          getFormContainerClasses: jest.fn(() => ''),
+          getHeaderClasses: jest.fn(() => ''),
+          getMobileHeaderClasses: jest.fn(() => ''),
+          getDesktopHeaderClasses: jest.fn(() => ''),
+        })
+      );
 
       const mockProps = {
         variant: 'center' as const,
@@ -1226,15 +1234,22 @@ describe('NotificationCard', () => {
     });
 
     it('renders notification center in mobile mode when variant is center', () => {
-      mockUseMobile.mockReturnValue({
-        isMobile: true,
-        isTablet: false,
-        getFormContainerClasses: jest.fn(() => ''),
-        getHeaderClasses: jest.fn(() => ''),
-        getMobileHeaderClasses: jest.fn(() => ''),
-        getDesktopHeaderClasses: jest.fn(() => ''),
-        getDeviceType: jest.fn(() => 'mobile' as DeviceType),
-      });
+      mockUseMobile.mockReturnValue(
+        makeUseMobileMock({
+          isMobile: true,
+          isTablet: true,
+          isSmallMobile: true,
+          isExtraSmallMobile: true,
+          isUltraSmallMobile: true,
+          isTinyMobile: true,
+          getFormContainerClasses: jest.fn(() => ''),
+          getHeaderClasses: jest.fn(() => ''),
+          getMobileHeaderClasses: jest.fn(() => ''),
+          getDesktopHeaderClasses: jest.fn(() => ''),
+          getVideoContainerClasses: jest.fn(() => 'aspect-square'),
+          getDeviceType: jest.fn(() => 'responsive' as DeviceType),
+        })
+      );
 
       const mockProps = {
         variant: 'center' as const,
@@ -1273,15 +1288,22 @@ describe('NotificationCard', () => {
     });
 
     it('renders notification center button in mobile mode', () => {
-      mockUseMobile.mockReturnValue({
-        isMobile: true,
-        isTablet: false,
-        getFormContainerClasses: jest.fn(() => ''),
-        getHeaderClasses: jest.fn(() => ''),
-        getMobileHeaderClasses: jest.fn(() => ''),
-        getDesktopHeaderClasses: jest.fn(() => ''),
-        getDeviceType: jest.fn(() => 'mobile' as DeviceType),
-      });
+      mockUseMobile.mockReturnValue(
+        makeUseMobileMock({
+          isMobile: true,
+          isTablet: true,
+          isSmallMobile: true,
+          isExtraSmallMobile: true,
+          isUltraSmallMobile: true,
+          isTinyMobile: true,
+          getFormContainerClasses: jest.fn(() => ''),
+          getHeaderClasses: jest.fn(() => ''),
+          getMobileHeaderClasses: jest.fn(() => ''),
+          getDesktopHeaderClasses: jest.fn(() => ''),
+          getVideoContainerClasses: jest.fn(() => 'aspect-square'),
+          getDeviceType: jest.fn(() => 'responsive' as DeviceType),
+        })
+      );
       const onFetchNotifications = jest.fn();
 
       const mockProps = {
@@ -1304,15 +1326,14 @@ describe('NotificationCard', () => {
     });
 
     it('renders empty state with custom properties in notification center', () => {
-      mockUseMobile.mockReturnValue({
-        isMobile: false,
-        isTablet: false,
-        getFormContainerClasses: jest.fn(() => ''),
-        getHeaderClasses: jest.fn(() => ''),
-        getMobileHeaderClasses: jest.fn(() => ''),
-        getDesktopHeaderClasses: jest.fn(() => ''),
-        getDeviceType: jest.fn(() => 'desktop' as DeviceType),
-      });
+      mockUseMobile.mockReturnValue(
+        makeUseMobileMock({
+          getFormContainerClasses: jest.fn(() => ''),
+          getHeaderClasses: jest.fn(() => ''),
+          getMobileHeaderClasses: jest.fn(() => ''),
+          getDesktopHeaderClasses: jest.fn(() => ''),
+        })
+      );
 
       const mockProps = {
         variant: 'center' as const,
@@ -1444,15 +1465,22 @@ describe('NotificationCard', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       // Mock as mobile
-      mockUseMobile.mockReturnValue({
-        isMobile: true,
-        isTablet: false,
-        getFormContainerClasses: () => '',
-        getHeaderClasses: () => '',
-        getMobileHeaderClasses: () => '',
-        getDesktopHeaderClasses: () => '',
-        getDeviceType: (): DeviceType => 'responsive',
-      });
+      mockUseMobile.mockReturnValue(
+        makeUseMobileMock({
+          isMobile: true,
+          isTablet: true,
+          isSmallMobile: true,
+          isExtraSmallMobile: true,
+          isUltraSmallMobile: true,
+          isTinyMobile: true,
+          getFormContainerClasses: () => '',
+          getHeaderClasses: () => '',
+          getMobileHeaderClasses: () => '',
+          getDesktopHeaderClasses: () => '',
+          getVideoContainerClasses: () => 'aspect-square',
+          getDeviceType: (): DeviceType => 'responsive',
+        })
+      );
     });
 
     it('renders mobile notification button and opens modal on click', () => {
@@ -1674,15 +1702,14 @@ describe('NotificationCard', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       // Mock as desktop
-      mockUseMobile.mockReturnValue({
-        isMobile: false,
-        isTablet: false,
-        getFormContainerClasses: () => '',
-        getHeaderClasses: () => '',
-        getMobileHeaderClasses: () => '',
-        getDesktopHeaderClasses: () => '',
-        getDeviceType: (): DeviceType => 'desktop',
-      });
+      mockUseMobile.mockReturnValue(
+        makeUseMobileMock({
+          getFormContainerClasses: () => '',
+          getHeaderClasses: () => '',
+          getMobileHeaderClasses: () => '',
+          getDesktopHeaderClasses: () => '',
+        })
+      );
     });
 
     it('handles navigation with cleanup callback on desktop', () => {
@@ -1773,15 +1800,14 @@ describe('NotificationCard', () => {
       const onNavigateById = jest.fn();
       const onToggleActive = jest.fn();
 
-      mockUseMobile.mockReturnValue({
-        isMobile: false,
-        isTablet: false,
-        getFormContainerClasses: jest.fn(() => ''),
-        getHeaderClasses: jest.fn(() => ''),
-        getMobileHeaderClasses: jest.fn(() => ''),
-        getDesktopHeaderClasses: jest.fn(() => ''),
-        getDeviceType: jest.fn(() => 'desktop' as DeviceType),
-      });
+      mockUseMobile.mockReturnValue(
+        makeUseMobileMock({
+          getFormContainerClasses: jest.fn(() => ''),
+          getHeaderClasses: jest.fn(() => ''),
+          getMobileHeaderClasses: jest.fn(() => ''),
+          getDesktopHeaderClasses: jest.fn(() => ''),
+        })
+      );
 
       const mockGroupedNotifications = [
         {
@@ -1843,15 +1869,14 @@ describe('NotificationCard', () => {
     it('calls onToggleActive when desktop notification button is clicked', () => {
       const onToggleActive = jest.fn();
 
-      mockUseMobile.mockReturnValue({
-        isMobile: false,
-        isTablet: false,
-        getFormContainerClasses: jest.fn(() => ''),
-        getHeaderClasses: jest.fn(() => ''),
-        getMobileHeaderClasses: jest.fn(() => ''),
-        getDesktopHeaderClasses: jest.fn(() => ''),
-        getDeviceType: jest.fn(() => 'desktop' as DeviceType),
-      });
+      mockUseMobile.mockReturnValue(
+        makeUseMobileMock({
+          getFormContainerClasses: jest.fn(() => ''),
+          getHeaderClasses: jest.fn(() => ''),
+          getMobileHeaderClasses: jest.fn(() => ''),
+          getDesktopHeaderClasses: jest.fn(() => ''),
+        })
+      );
 
       render(
         <NotificationCard
@@ -1875,15 +1900,14 @@ describe('NotificationCard', () => {
       const onToggleActive = jest.fn();
       const onFetchNotifications = jest.fn();
 
-      mockUseMobile.mockReturnValue({
-        isMobile: false,
-        isTablet: false,
-        getFormContainerClasses: jest.fn(() => ''),
-        getHeaderClasses: jest.fn(() => ''),
-        getMobileHeaderClasses: jest.fn(() => ''),
-        getDesktopHeaderClasses: jest.fn(() => ''),
-        getDeviceType: jest.fn(() => 'desktop' as DeviceType),
-      });
+      mockUseMobile.mockReturnValue(
+        makeUseMobileMock({
+          getFormContainerClasses: jest.fn(() => ''),
+          getHeaderClasses: jest.fn(() => ''),
+          getMobileHeaderClasses: jest.fn(() => ''),
+          getDesktopHeaderClasses: jest.fn(() => ''),
+        })
+      );
 
       render(
         <NotificationCard
@@ -1909,15 +1933,14 @@ describe('NotificationCard', () => {
     it('fetches notifications when isActive becomes true', () => {
       const onFetchNotifications = jest.fn();
 
-      mockUseMobile.mockReturnValue({
-        isMobile: false,
-        isTablet: false,
-        getFormContainerClasses: jest.fn(() => ''),
-        getHeaderClasses: jest.fn(() => ''),
-        getMobileHeaderClasses: jest.fn(() => ''),
-        getDesktopHeaderClasses: jest.fn(() => ''),
-        getDeviceType: jest.fn(() => 'desktop' as DeviceType),
-      });
+      mockUseMobile.mockReturnValue(
+        makeUseMobileMock({
+          getFormContainerClasses: jest.fn(() => ''),
+          getHeaderClasses: jest.fn(() => ''),
+          getMobileHeaderClasses: jest.fn(() => ''),
+          getDesktopHeaderClasses: jest.fn(() => ''),
+        })
+      );
 
       const { rerender } = render(
         <NotificationCard
@@ -1948,15 +1971,14 @@ describe('NotificationCard', () => {
     it('only calls onToggleActive when onOpenChange is not provided', () => {
       const onToggleActive = jest.fn();
 
-      mockUseMobile.mockReturnValue({
-        isMobile: false,
-        isTablet: false,
-        getFormContainerClasses: jest.fn(() => ''),
-        getHeaderClasses: jest.fn(() => ''),
-        getMobileHeaderClasses: jest.fn(() => ''),
-        getDesktopHeaderClasses: jest.fn(() => ''),
-        getDeviceType: jest.fn(() => 'desktop' as DeviceType),
-      });
+      mockUseMobile.mockReturnValue(
+        makeUseMobileMock({
+          getFormContainerClasses: jest.fn(() => ''),
+          getHeaderClasses: jest.fn(() => ''),
+          getMobileHeaderClasses: jest.fn(() => ''),
+          getDesktopHeaderClasses: jest.fn(() => ''),
+        })
+      );
 
       render(
         <NotificationCard
