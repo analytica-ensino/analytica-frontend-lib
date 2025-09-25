@@ -39,6 +39,10 @@ describe('NotificationCard', () => {
     mockUseMobile.mockReturnValue({
       isMobile: false,
       isTablet: false,
+      isSmallMobile: false,
+      isExtraSmallMobile: false,
+      isUltraSmallMobile: false,
+      isTinyMobile: false,
       getFormContainerClasses: jest.fn(
         () => 'w-full max-w-[992px] mx-auto px-0'
       ),
@@ -51,6 +55,7 @@ describe('NotificationCard', () => {
       getDesktopHeaderClasses: jest.fn(
         () => 'flex flex-row justify-between items-center gap-6 mb-8'
       ),
+      getVideoContainerClasses: jest.fn(() => 'aspect-video'),
       getDeviceType: jest.fn(() => 'desktop' as DeviceType),
     });
   });
@@ -1184,10 +1189,15 @@ describe('NotificationCard', () => {
       mockUseMobile.mockReturnValue({
         isMobile: false,
         isTablet: false,
+        isSmallMobile: false,
+        isExtraSmallMobile: false,
+        isUltraSmallMobile: false,
+        isTinyMobile: false,
         getFormContainerClasses: jest.fn(() => ''),
         getHeaderClasses: jest.fn(() => ''),
         getMobileHeaderClasses: jest.fn(() => ''),
         getDesktopHeaderClasses: jest.fn(() => ''),
+        getVideoContainerClasses: jest.fn(() => 'aspect-video'),
         getDeviceType: jest.fn(() => 'desktop' as DeviceType),
       });
 
@@ -1228,12 +1238,17 @@ describe('NotificationCard', () => {
     it('renders notification center in mobile mode when variant is center', () => {
       mockUseMobile.mockReturnValue({
         isMobile: true,
-        isTablet: false,
+        isTablet: true,
+        isSmallMobile: true,
+        isExtraSmallMobile: true,
+        isUltraSmallMobile: true,
+        isTinyMobile: true,
         getFormContainerClasses: jest.fn(() => ''),
         getHeaderClasses: jest.fn(() => ''),
         getMobileHeaderClasses: jest.fn(() => ''),
         getDesktopHeaderClasses: jest.fn(() => ''),
-        getDeviceType: jest.fn(() => 'mobile' as DeviceType),
+        getVideoContainerClasses: jest.fn(() => 'aspect-square'),
+        getDeviceType: jest.fn(() => 'responsive' as DeviceType),
       });
 
       const mockProps = {
@@ -1275,12 +1290,17 @@ describe('NotificationCard', () => {
     it('renders notification center button in mobile mode', () => {
       mockUseMobile.mockReturnValue({
         isMobile: true,
-        isTablet: false,
+        isTablet: true,
+        isSmallMobile: true,
+        isExtraSmallMobile: true,
+        isUltraSmallMobile: true,
+        isTinyMobile: true,
         getFormContainerClasses: jest.fn(() => ''),
         getHeaderClasses: jest.fn(() => ''),
         getMobileHeaderClasses: jest.fn(() => ''),
         getDesktopHeaderClasses: jest.fn(() => ''),
-        getDeviceType: jest.fn(() => 'mobile' as DeviceType),
+        getVideoContainerClasses: jest.fn(() => 'aspect-square'),
+        getDeviceType: jest.fn(() => 'responsive' as DeviceType),
       });
       const onFetchNotifications = jest.fn();
 
@@ -1307,10 +1327,15 @@ describe('NotificationCard', () => {
       mockUseMobile.mockReturnValue({
         isMobile: false,
         isTablet: false,
+        isSmallMobile: false,
+        isExtraSmallMobile: false,
+        isUltraSmallMobile: false,
+        isTinyMobile: false,
         getFormContainerClasses: jest.fn(() => ''),
         getHeaderClasses: jest.fn(() => ''),
         getMobileHeaderClasses: jest.fn(() => ''),
         getDesktopHeaderClasses: jest.fn(() => ''),
+        getVideoContainerClasses: jest.fn(() => 'aspect-video'),
         getDeviceType: jest.fn(() => 'desktop' as DeviceType),
       });
 
@@ -1446,11 +1471,16 @@ describe('NotificationCard', () => {
       // Mock as mobile
       mockUseMobile.mockReturnValue({
         isMobile: true,
-        isTablet: false,
+        isTablet: true,
+        isSmallMobile: true,
+        isExtraSmallMobile: true,
+        isUltraSmallMobile: true,
+        isTinyMobile: true,
         getFormContainerClasses: () => '',
         getHeaderClasses: () => '',
         getMobileHeaderClasses: () => '',
         getDesktopHeaderClasses: () => '',
+        getVideoContainerClasses: () => 'aspect-square',
         getDeviceType: (): DeviceType => 'responsive',
       });
     });
@@ -1677,10 +1707,15 @@ describe('NotificationCard', () => {
       mockUseMobile.mockReturnValue({
         isMobile: false,
         isTablet: false,
+        isSmallMobile: false,
+        isExtraSmallMobile: false,
+        isUltraSmallMobile: false,
+        isTinyMobile: false,
         getFormContainerClasses: () => '',
         getHeaderClasses: () => '',
         getMobileHeaderClasses: () => '',
         getDesktopHeaderClasses: () => '',
+        getVideoContainerClasses: () => 'aspect-video',
         getDeviceType: (): DeviceType => 'desktop',
       });
     });
@@ -1776,10 +1811,15 @@ describe('NotificationCard', () => {
       mockUseMobile.mockReturnValue({
         isMobile: false,
         isTablet: false,
+        isSmallMobile: false,
+        isExtraSmallMobile: false,
+        isUltraSmallMobile: false,
+        isTinyMobile: false,
         getFormContainerClasses: jest.fn(() => ''),
         getHeaderClasses: jest.fn(() => ''),
         getMobileHeaderClasses: jest.fn(() => ''),
         getDesktopHeaderClasses: jest.fn(() => ''),
+        getVideoContainerClasses: jest.fn(() => 'aspect-video'),
         getDeviceType: jest.fn(() => 'desktop' as DeviceType),
       });
 
@@ -1846,10 +1886,15 @@ describe('NotificationCard', () => {
       mockUseMobile.mockReturnValue({
         isMobile: false,
         isTablet: false,
+        isSmallMobile: false,
+        isExtraSmallMobile: false,
+        isUltraSmallMobile: false,
+        isTinyMobile: false,
         getFormContainerClasses: jest.fn(() => ''),
         getHeaderClasses: jest.fn(() => ''),
         getMobileHeaderClasses: jest.fn(() => ''),
         getDesktopHeaderClasses: jest.fn(() => ''),
+        getVideoContainerClasses: jest.fn(() => 'aspect-video'),
         getDeviceType: jest.fn(() => 'desktop' as DeviceType),
       });
 
@@ -1878,10 +1923,15 @@ describe('NotificationCard', () => {
       mockUseMobile.mockReturnValue({
         isMobile: false,
         isTablet: false,
+        isSmallMobile: false,
+        isExtraSmallMobile: false,
+        isUltraSmallMobile: false,
+        isTinyMobile: false,
         getFormContainerClasses: jest.fn(() => ''),
         getHeaderClasses: jest.fn(() => ''),
         getMobileHeaderClasses: jest.fn(() => ''),
         getDesktopHeaderClasses: jest.fn(() => ''),
+        getVideoContainerClasses: jest.fn(() => 'aspect-video'),
         getDeviceType: jest.fn(() => 'desktop' as DeviceType),
       });
 
@@ -1912,10 +1962,15 @@ describe('NotificationCard', () => {
       mockUseMobile.mockReturnValue({
         isMobile: false,
         isTablet: false,
+        isSmallMobile: false,
+        isExtraSmallMobile: false,
+        isUltraSmallMobile: false,
+        isTinyMobile: false,
         getFormContainerClasses: jest.fn(() => ''),
         getHeaderClasses: jest.fn(() => ''),
         getMobileHeaderClasses: jest.fn(() => ''),
         getDesktopHeaderClasses: jest.fn(() => ''),
+        getVideoContainerClasses: jest.fn(() => 'aspect-video'),
         getDeviceType: jest.fn(() => 'desktop' as DeviceType),
       });
 
@@ -1951,10 +2006,15 @@ describe('NotificationCard', () => {
       mockUseMobile.mockReturnValue({
         isMobile: false,
         isTablet: false,
+        isSmallMobile: false,
+        isExtraSmallMobile: false,
+        isUltraSmallMobile: false,
+        isTinyMobile: false,
         getFormContainerClasses: jest.fn(() => ''),
         getHeaderClasses: jest.fn(() => ''),
         getMobileHeaderClasses: jest.fn(() => ''),
         getDesktopHeaderClasses: jest.fn(() => ''),
+        getVideoContainerClasses: jest.fn(() => 'aspect-video'),
         getDeviceType: jest.fn(() => 'desktop' as DeviceType),
       });
 
