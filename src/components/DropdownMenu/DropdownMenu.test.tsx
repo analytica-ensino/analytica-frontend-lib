@@ -136,6 +136,68 @@ describe('DropdownMenu component', () => {
       );
       expect(screen.getByRole('menu')).toBeInTheDocument();
     });
+
+    it('opens dropdown when Enter key is pressed on trigger', () => {
+      render(
+        <DropdownMenu>
+          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuContent>Menu Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const trigger = screen.getByRole('button');
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+
+      fireEvent.keyDown(trigger, { key: 'Enter' });
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+    });
+
+    it('opens dropdown when Space key is pressed on trigger', () => {
+      render(
+        <DropdownMenu>
+          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuContent>Menu Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const trigger = screen.getByRole('button');
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+
+      fireEvent.keyDown(trigger, { key: ' ' });
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+    });
+
+    it('calls onClick handler when Enter key is pressed on trigger', () => {
+      const handleClick = jest.fn();
+      render(
+        <DropdownMenu>
+          <DropdownMenuTrigger onClick={handleClick}>
+            Toggle
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>Menu Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const trigger = screen.getByRole('button');
+      fireEvent.keyDown(trigger, { key: 'Enter' });
+      expect(handleClick).toHaveBeenCalled();
+    });
+
+    it('calls onClick handler when Space key is pressed on trigger', () => {
+      const handleClick = jest.fn();
+      render(
+        <DropdownMenu>
+          <DropdownMenuTrigger onClick={handleClick}>
+            Toggle
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>Menu Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const trigger = screen.getByRole('button');
+      fireEvent.keyDown(trigger, { key: ' ' });
+      expect(handleClick).toHaveBeenCalled();
+    });
   });
 
   describe('DropdownMenuItem behavior', () => {
