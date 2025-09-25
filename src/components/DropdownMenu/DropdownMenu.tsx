@@ -74,6 +74,7 @@ const injectStore = (
         'ProfileMenuTrigger',
         'ProfileMenuHeader',
         'ProfileMenuFooter',
+        'ProfileToggleTheme',
       ];
 
       let newProps: Partial<{
