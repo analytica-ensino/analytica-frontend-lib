@@ -2616,5 +2616,32 @@ describe('VideoPlayer', () => {
       window.requestAnimationFrame = originalRAF;
       jest.useRealTimers();
     });
+
+    it('should cleanup timeout on unmount when using setTimeout fallback', () => {
+      const originalRAF = window.requestAnimationFrame;
+
+      // Remove requestAnimationFrame to force setTimeout fallback
+      // @ts-expect-error - Testing fallback
+      delete window.requestAnimationFrame;
+
+      jest.useFakeTimers();
+      const clearTimeoutSpy = jest.spyOn(window, 'clearTimeout');
+
+      // Render component which triggers setTimeout fallback (line 553)
+      const { unmount } = render(<VideoPlayer {...defaultProps} />);
+
+      // Unmount before the timeout executes to trigger cleanup (lines 554-555)
+      act(() => {
+        unmount();
+      });
+
+      // Verify clearTimeout was called (covers lines 554-555)
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      // Restore everything
+      clearTimeoutSpy.mockRestore();
+      window.requestAnimationFrame = originalRAF;
+      jest.useRealTimers();
+    });
   });
 });
