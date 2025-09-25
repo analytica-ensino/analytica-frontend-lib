@@ -215,6 +215,15 @@ const DropdownMenuTrigger = ({
         toggleOpen();
         if (onClick) onClick(e);
       }}
+      role="button"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleOpen();
+          if (onClick) onClick(e as unknown as MouseEvent<HTMLDivElement>);
+        }
+      }}
+      tabIndex={0}
       aria-expanded={open}
       className={cn(className)}
       {...props}
