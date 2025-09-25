@@ -976,6 +976,8 @@ const VideoPlayer = ({
           poster={poster}
           className="w-full h-full object-contain"
           controlsList="nodownload"
+          playsInline
+          webkit-playsinline="true"
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onClick={togglePlayPause}

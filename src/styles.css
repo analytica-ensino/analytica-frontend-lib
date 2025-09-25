@@ -668,3 +668,29 @@ div textarea:focus {
   border-width: 2px !important;
   border-color: var(--color-primary-950) !important;
 }
+
+/* Safari iOS video controls fix */
+video::-webkit-media-controls {
+  display: none !important;
+}
+
+video::-webkit-media-controls-panel {
+  display: none !important;
+}
+
+video::-webkit-media-controls-play-button {
+  display: none !important;
+}
+
+video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+}
+
+video::-webkit-media-controls-enclosure {
+  display: none !important;
+}
+
+/* Garantir que o vídeo não force fullscreen no iOS */
+video {
+  -webkit-playsinline: true;
+}
