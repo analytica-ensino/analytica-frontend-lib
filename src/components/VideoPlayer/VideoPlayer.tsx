@@ -475,6 +475,18 @@ const VideoPlayer = ({
   }, []);
 
   /**
+   * Set iOS/Safari inline playback attributes imperatively
+   */
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Ensure inline playback on iOS/Safari
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+  }, []);
+
+  /**
    * Handle controls auto-hide when play state changes
    */
   useEffect(() => {
@@ -974,10 +986,9 @@ const VideoPlayer = ({
           ref={videoRef}
           src={src}
           poster={poster}
-          className="w-full h-full object-contain"
+          className="w-full h-full object-contain analytica-video"
           controlsList="nodownload"
           playsInline
-          webkit-playsinline="true"
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onClick={togglePlayPause}

@@ -669,28 +669,23 @@ div textarea:focus {
   border-color: var(--color-primary-950) !important;
 }
 
-/* Safari iOS video controls fix */
-video::-webkit-media-controls {
+/* Safari iOS video controls fix - Scoped to VideoPlayer only */
+.analytica-video::-webkit-media-controls {
   display: none !important;
 }
 
-video::-webkit-media-controls-panel {
+.analytica-video::-webkit-media-controls-panel {
   display: none !important;
 }
 
-video::-webkit-media-controls-play-button {
+.analytica-video::-webkit-media-controls-play-button {
   display: none !important;
 }
 
-video::-webkit-media-controls-start-playback-button {
+.analytica-video::-webkit-media-controls-start-playback-button {
   display: none !important;
 }
 
-video::-webkit-media-controls-enclosure {
+.analytica-video::-webkit-media-controls-enclosure {
   display: none !important;
-}
-
-/* Garantir que o vídeo não force fullscreen no iOS */
-video {
-  -webkit-playsinline: true;
 }
