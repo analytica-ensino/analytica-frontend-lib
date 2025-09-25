@@ -838,6 +838,15 @@ const VideoPlayer = ({
   }, [isTinyMobile, isUltraSmallMobile]);
 
   /**
+   * Get responsive positioning classes for center play button
+   */
+  const getCenterPlayButtonPosition = useCallback(() => {
+    if (isTinyMobile) return 'items-center justify-center -translate-y-12';
+    if (isUltraSmallMobile) return 'items-center justify-center -translate-y-8';
+    return 'items-center justify-center';
+  }, [isTinyMobile, isUltraSmallMobile]);
+
+  /**
    * Calculate top controls opacity based on state
    */
   const getTopControlsOpacity = useCallback(() => {
@@ -988,7 +997,12 @@ const VideoPlayer = ({
 
         {/* Center Play Button */}
         {!isPlaying && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity">
+          <div
+            className={cn(
+              'absolute inset-0 flex bg-black/30 transition-opacity',
+              getCenterPlayButtonPosition()
+            )}
+          >
             <IconButton
               icon={<Play size={32} weight="regular" className="ml-1" />}
               onClick={togglePlayPause}
