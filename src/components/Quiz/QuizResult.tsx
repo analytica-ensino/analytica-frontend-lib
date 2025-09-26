@@ -10,8 +10,9 @@ import {
 import ProgressCircle from '../ProgressCircle/ProgressCircle';
 import { Clock } from 'phosphor-react';
 import ProgressBar from '../ProgressBar/ProgressBar';
-import { cn } from '../../utils/utils';
+import { cn, getSubjectColorWithOpacity } from '../../utils/utils';
 import Badge from '../Badge/Badge';
+import { useTheme } from '../../hooks/useTheme';
 
 const QuizBadge = ({
   subtype,
@@ -301,6 +302,7 @@ const QuizListResult = forwardRef<
   }
 >(({ className, onSubjectClick, ...props }, ref) => {
   const { getQuestionsGroupedBySubject } = useQuizStore();
+  const { isDark } = useTheme();
   const groupedQuestions = getQuestionsGroupedBySubject();
   const subjectsStats = Object.entries(groupedQuestions).map(
     ([subjectId, questions]) => {
@@ -345,7 +347,10 @@ const QuizListResult = forwardRef<
               correct_answers={subject.correct}
               incorrect_answers={subject.incorrect}
               icon={subject.subject.icon || 'Book'}
-              color={subject.subject.color || undefined}
+              color={
+                getSubjectColorWithOpacity(subject.subject.color, isDark) ||
+                undefined
+              }
               direction="row"
             />
           </li>
