@@ -11,14 +11,28 @@ const mockAppendChild = jest.fn();
 const mockRemoveChild = jest.fn();
 const mockClick = jest.fn();
 
-// Mock URL constructor
+// Mock fetch for blob downloads
+const mockFetch = jest.fn();
+Object.defineProperty(globalThis, 'fetch', {
+  value: mockFetch,
+  writable: true,
+});
+
+// Mock URL constructor and object URL methods
+const mockRevokeObjectURL = jest.fn();
 Object.defineProperty(globalThis, 'URL', {
-  value: jest.fn().mockImplementation((url: string) => ({
-    pathname: url.includes('.pdf')
-      ? '/test.pdf'
-      : url.includes('.mp4')
-        ? '/test.mp4'
-        : '/test.jpg',
+  value: {
+    createObjectURL: jest.fn().mockReturnValue('blob:mock-url'),
+    revokeObjectURL: mockRevokeObjectURL,
+  },
+  writable: true,
+});
+
+// Mock Blob constructor
+Object.defineProperty(globalThis, 'Blob', {
+  value: jest.fn().mockImplementation((content, options) => ({
+    content,
+    type: options?.type || 'application/octet-stream',
   })),
   writable: true,
 });
@@ -27,11 +41,17 @@ beforeEach(() => {
   // Reset mocks
   jest.clearAllMocks();
 
+  // Mock successful fetch response
+  mockFetch.mockResolvedValue({
+    ok: true,
+    status: 200,
+    blob: jest.fn().mockResolvedValue(new Blob(['mock file content'])),
+  });
+
   // Mock document methods
   const mockElement = {
     href: '',
     download: '',
-    target: '',
     rel: '',
     click: mockClick,
   };
@@ -172,6 +192,15 @@ describe('DownloadButton', () => {
   });
 
   it('should create download links with correct attributes', async () => {
+    const mockElement = {
+      href: '',
+      download: '',
+      rel: '',
+      click: mockClick,
+    };
+
+    mockCreateElement.mockReturnValue(mockElement);
+
     render(<DownloadButton {...defaultProps} />);
 
     const button = screen.getByRole('button');
@@ -179,6 +208,8 @@ describe('DownloadButton', () => {
 
     await waitFor(() => {
       expect(mockCreateElement).toHaveBeenCalledWith('a');
+      expect(mockElement.rel).toBe('noopener noreferrer');
+      expect(mockElement).not.toHaveProperty('target'); // Should not have target='_blank'
       expect(mockAppendChild).toHaveBeenCalled();
       expect(mockClick).toHaveBeenCalled();
       expect(mockRemoveChild).toHaveBeenCalled();

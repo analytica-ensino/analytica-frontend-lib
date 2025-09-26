@@ -40,7 +40,26 @@ export interface DownloadButtonProps {
 }
 
 /**
- * Create a download link and trigger download
+ * Get MIME type based on file extension
+ * @param url - URL to extract extension from
+ * @returns MIME type string
+ */
+const getMimeType = (url: string): string => {
+  const extension = getFileExtension(url);
+  const mimeTypes: Record<string, string> = {
+    pdf: 'application/pdf',
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    mp3: 'audio/mpeg',
+    mp4: 'video/mp4',
+    vtt: 'text/vtt',
+  };
+  return mimeTypes[extension] || 'application/octet-stream';
+};
+
+/**
+ * Download file via fetch and blob to ensure proper download behavior
  * @param url - URL to download
  * @param filename - Filename for the download
  * @returns Promise<void>
@@ -49,25 +68,57 @@ const triggerDownload = async (
   url: string,
   filename: string
 ): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    try {
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
+  try {
+    // Fetch the file as blob
+    const response = await fetch(url, {
+      mode: 'cors',
+      credentials: 'omit',
+    });
 
-      // Add to DOM, click, and remove
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // Resolve after a short delay to allow download to start
-      setTimeout(resolve, 100);
-    } catch (error) {
-      reject(error instanceof Error ? error : new Error('Download failed'));
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch file: ${response.status} ${response.statusText}`
+      );
     }
-  });
+
+    const blob = await response.blob();
+    const mimeType = getMimeType(url);
+
+    // Create a blob with the correct MIME type
+    const typedBlob = new Blob([blob], { type: mimeType });
+
+    // Create object URL
+    const blobUrl = URL.createObjectURL(typedBlob);
+
+    // Create download link
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    link.rel = 'noopener noreferrer';
+
+    // Add to DOM, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Clean up object URL after a short delay
+    setTimeout(() => {
+      URL.revokeObjectURL(blobUrl);
+    }, 1000);
+  } catch (error) {
+    // Fallback to direct link if fetch fails
+    console.warn('Fetch download failed, falling back to direct link:', error);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.rel = 'noopener noreferrer';
+    link.target = '_blank'; // Open in new tab as fallback
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 };
 
 /**
