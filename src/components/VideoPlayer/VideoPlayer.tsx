@@ -21,6 +21,9 @@ import { cn } from '../../utils/utils';
 import IconButton from '../IconButton/IconButton';
 import Text from '../Text/Text';
 import { useMobile } from '../../hooks/useMobile';
+import DownloadButton, {
+  DownloadContent,
+} from '../DownloadButton/DownloadButton';
 
 // Constants for timeout durations
 const CONTROLS_HIDE_TIMEOUT = 3000; // 3 seconds for normal control hiding
@@ -55,6 +58,16 @@ interface VideoPlayerProps {
   autoSave?: boolean;
   /** localStorage key for saving progress */
   storageKey?: string;
+  /** Download content URLs for lesson materials */
+  downloadContent?: DownloadContent;
+  /** Show download button in header */
+  showDownloadButton?: boolean;
+  /** Callback fired when download starts */
+  onDownloadStart?: (contentType: string) => void;
+  /** Callback fired when download completes */
+  onDownloadComplete?: (contentType: string) => void;
+  /** Callback fired when download fails */
+  onDownloadError?: (contentType: string, error: Error) => void;
 }
 
 /**
@@ -311,6 +324,11 @@ const VideoPlayer = ({
   className,
   autoSave = true,
   storageKey = 'video-progress',
+  downloadContent,
+  showDownloadButton = false,
+  onDownloadStart,
+  onDownloadComplete,
+  onDownloadError,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { isUltraSmallMobile, isTinyMobile } = useMobile();
@@ -962,6 +980,18 @@ const VideoPlayer = ({
               </Text>
             )}
           </div>
+
+          {/* Download Button */}
+          {showDownloadButton && downloadContent && (
+            <DownloadButton
+              content={downloadContent}
+              lessonTitle={title}
+              onDownloadStart={onDownloadStart}
+              onDownloadComplete={onDownloadComplete}
+              onDownloadError={onDownloadError}
+              className="flex-shrink-0"
+            />
+          )}
         </div>
       )}
 

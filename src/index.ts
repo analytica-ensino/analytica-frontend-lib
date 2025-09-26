@@ -113,6 +113,7 @@ import {
 import NotFound from './components/NotFound/NotFound';
 import VideoPlayer from './components/VideoPlayer/VideoPlayer';
 import Whiteboard from './components/Whiteboard/Whiteboard';
+import DownloadButton from './components/DownloadButton/DownloadButton';
 
 import {
   AuthProvider,
@@ -297,6 +298,11 @@ export { SkeletonTable };
 export { NotFound };
 export { VideoPlayer };
 export { Whiteboard };
+export { DownloadButton };
+export type {
+  DownloadContent,
+  DownloadButtonProps,
+} from './components/DownloadButton/DownloadButton';
 
 // Export Auth components
 export { AuthProvider };
