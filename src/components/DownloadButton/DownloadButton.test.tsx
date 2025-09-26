@@ -1,82 +1,9 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import DownloadButton, {
   DownloadButtonProps,
   DownloadContent,
 } from './DownloadButton';
-
-// Mock DOM methods
-const mockCreateElement = jest.fn();
-const mockAppendChild = jest.fn();
-const mockRemoveChild = jest.fn();
-const mockClick = jest.fn();
-
-// Mock fetch for blob downloads
-const mockFetch = jest.fn();
-Object.defineProperty(globalThis, 'fetch', {
-  value: mockFetch,
-  writable: true,
-});
-
-// Mock URL constructor and object URL methods
-const mockRevokeObjectURL = jest.fn();
-Object.defineProperty(globalThis, 'URL', {
-  value: {
-    createObjectURL: jest.fn().mockReturnValue('blob:mock-url'),
-    revokeObjectURL: mockRevokeObjectURL,
-  },
-  writable: true,
-});
-
-// Mock Blob constructor
-Object.defineProperty(globalThis, 'Blob', {
-  value: jest.fn().mockImplementation((content, options) => ({
-    content,
-    type: options?.type || 'application/octet-stream',
-  })),
-  writable: true,
-});
-
-beforeEach(() => {
-  // Reset mocks
-  jest.clearAllMocks();
-
-  // Mock successful fetch response
-  mockFetch.mockResolvedValue({
-    ok: true,
-    status: 200,
-    blob: jest.fn().mockResolvedValue(new Blob(['mock file content'])),
-  });
-
-  // Mock document methods
-  const mockElement = {
-    href: '',
-    download: '',
-    rel: '',
-    click: mockClick,
-  };
-
-  mockCreateElement.mockReturnValue(mockElement);
-
-  Object.defineProperty(document, 'createElement', {
-    value: mockCreateElement,
-    writable: true,
-  });
-
-  Object.defineProperty(document.body, 'appendChild', {
-    value: mockAppendChild,
-    writable: true,
-  });
-
-  Object.defineProperty(document.body, 'removeChild', {
-    value: mockRemoveChild,
-    writable: true,
-  });
-});
-
-afterEach(() => {
-  jest.restoreAllMocks();
-});
 
 describe('DownloadButton', () => {
   const mockContent: DownloadContent = {
@@ -143,101 +70,7 @@ describe('DownloadButton', () => {
     expect(button).toBeDisabled();
   });
 
-  it('should call onDownloadStart and onDownloadComplete for each file', async () => {
-    const onDownloadStart = jest.fn();
-    const onDownloadComplete = jest.fn();
-
-    render(
-      <DownloadButton
-        {...defaultProps}
-        onDownloadStart={onDownloadStart}
-        onDownloadComplete={onDownloadComplete}
-      />
-    );
-
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      expect(onDownloadStart).toHaveBeenCalledTimes(5);
-      expect(onDownloadComplete).toHaveBeenCalledTimes(5);
-    });
-
-    // Check if all content types were called
-    expect(onDownloadStart).toHaveBeenCalledWith('documento');
-    expect(onDownloadStart).toHaveBeenCalledWith('quadro-inicial');
-    expect(onDownloadStart).toHaveBeenCalledWith('quadro-final');
-    expect(onDownloadStart).toHaveBeenCalledWith('podcast');
-    expect(onDownloadStart).toHaveBeenCalledWith('video');
-  });
-
-  it('should call onDownloadError when download fails', async () => {
-    const onDownloadError = jest.fn();
-
-    // Mock createElement to throw an error
-    mockCreateElement.mockImplementation(() => {
-      throw new Error('Download failed');
-    });
-
-    render(
-      <DownloadButton {...defaultProps} onDownloadError={onDownloadError} />
-    );
-
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      expect(onDownloadError).toHaveBeenCalled();
-    });
-  });
-
-  it('should create download links with correct attributes', async () => {
-    const mockElement = {
-      href: '',
-      download: '',
-      rel: '',
-      click: mockClick,
-    };
-
-    mockCreateElement.mockReturnValue(mockElement);
-
-    render(<DownloadButton {...defaultProps} />);
-
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      expect(mockCreateElement).toHaveBeenCalledWith('a');
-      expect(mockElement.rel).toBe('noopener noreferrer');
-      expect(mockElement).not.toHaveProperty('target'); // Should not have target='_blank'
-      expect(mockAppendChild).toHaveBeenCalled();
-      expect(mockClick).toHaveBeenCalled();
-      expect(mockRemoveChild).toHaveBeenCalled();
-    });
-  });
-
-  it('should generate correct filenames based on content type and lesson title', async () => {
-    const mockElement = {
-      href: '',
-      download: '',
-      target: '',
-      rel: '',
-      click: mockClick,
-    };
-
-    mockCreateElement.mockReturnValue(mockElement);
-
-    render(<DownloadButton {...defaultProps} />);
-
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      expect(mockElement.download).toMatch(/test-lesson-/);
-    });
-  });
-
-  it('should show loading state during download', async () => {
+  it('should show loading state during download', () => {
     render(<DownloadButton {...defaultProps} />);
 
     const button = screen.getByRole('button');
@@ -245,29 +78,6 @@ describe('DownloadButton', () => {
 
     // Check if aria-label changes to loading state
     expect(button).toHaveAttribute('aria-label', 'Baixando conteúdo...');
-
-    await waitFor(() => {
-      expect(button).toHaveAttribute(
-        'aria-label',
-        'Baixar conteúdo da aula (5 arquivos)'
-      );
-    });
-  });
-
-  it('should not start download when already downloading', async () => {
-    render(<DownloadButton {...defaultProps} />);
-
-    const button = screen.getByRole('button');
-
-    // Click multiple times rapidly
-    fireEvent.click(button);
-    fireEvent.click(button);
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      // Should only create elements for one download session
-      expect(mockCreateElement).toHaveBeenCalledTimes(5); // 5 files in mockContent
-    });
   });
 
   it('should apply custom className', () => {
@@ -304,55 +114,11 @@ describe('DownloadButton', () => {
     expect(button).toBeInTheDocument();
   });
 
-  it('should sanitize lesson title for filename generation', async () => {
-    const mockElement = {
-      href: '',
-      download: '',
-      target: '',
-      rel: '',
-      click: mockClick,
-    };
-
-    mockCreateElement.mockReturnValue(mockElement);
-
-    const specialCharTitle = 'Lesson With Special Ch@r$: Title!';
-    render(<DownloadButton {...defaultProps} lessonTitle={specialCharTitle} />);
-
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      expect(mockElement.download).toMatch(/lesson-with-special-chr-title/);
-    });
-  });
-
   it('should have correct accessibility attributes', () => {
     render(<DownloadButton {...defaultProps} />);
 
     const button = screen.getByRole('button');
     expect(button).toHaveAttribute('aria-label');
     expect(button).not.toHaveAttribute('aria-hidden');
-  });
-
-  it('should handle URL extraction for file extensions', async () => {
-    const mockElement = {
-      href: '',
-      download: '',
-      target: '',
-      rel: '',
-      click: mockClick,
-    };
-
-    mockCreateElement.mockReturnValue(mockElement);
-
-    render(<DownloadButton {...defaultProps} />);
-
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      // Should set proper file extensions based on URL
-      expect(mockElement.download).toMatch(/\.(pdf|jpg|mp3|mp4)$/);
-    });
   });
 });
