@@ -285,10 +285,10 @@ const SpeedMenu = ({
   // SSR-safe portal content
   const portalContent =
     showSpeedMenu &&
-    globalThis.window !== undefined &&
-    globalThis.document !== undefined &&
-    !!document.body
-      ? createPortal(menuContent, document.body)
+    typeof window !== 'undefined' &&
+    typeof document !== 'undefined' &&
+    !!globalThis.document?.body
+      ? createPortal(menuContent, globalThis.document.body)
       : null;
 
   return (
