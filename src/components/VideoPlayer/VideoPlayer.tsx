@@ -285,8 +285,8 @@ const SpeedMenu = ({
   // SSR-safe portal content
   const portalContent =
     showSpeedMenu &&
-    typeof globalThis.window !== 'undefined' &&
-    typeof globalThis.document !== 'undefined' &&
+    globalThis.window !== undefined &&
+    globalThis.document !== undefined &&
     !!document.body
       ? createPortal(menuContent, document.body)
       : null;
@@ -562,7 +562,7 @@ const VideoPlayer = ({
     let raf1 = 0,
       raf2 = 0,
       tid: number | undefined;
-    if (typeof globalThis.requestAnimationFrame === 'function') {
+    if (globalThis.requestAnimationFrame !== undefined) {
       raf1 = requestAnimationFrame(() => {
         raf2 = requestAnimationFrame(init);
       });
