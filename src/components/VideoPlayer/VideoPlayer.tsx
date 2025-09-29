@@ -76,7 +76,7 @@ interface VideoPlayerProps {
  * @returns Formatted time string
  */
 const formatTime = (seconds: number): string => {
-  if (!seconds || isNaN(seconds)) return '0:00';
+  if (!seconds || Number.isNaN(seconds)) return '0:00';
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -108,7 +108,7 @@ const ProgressBar = ({
       min={0}
       max={duration || 100}
       value={currentTime}
-      onChange={(e) => onSeek(parseFloat(e.target.value))}
+      onChange={(e) => onSeek(Number.parseFloat(e.target.value))}
       className="w-full h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer slider:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
       aria-label="Video progress"
       style={{
@@ -161,7 +161,7 @@ const VolumeControls = ({
         min={0}
         max={100}
         value={Math.round(volume * 100)}
-        onChange={(e) => onVolumeChange(parseInt(e.target.value))}
+        onChange={(e) => onVolumeChange(Number.parseInt(e.target.value))}
         className="w-20 h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
         aria-label="Volume control"
         style={{
@@ -256,12 +256,12 @@ const SpeedMenu = ({
           : 'fixed bg-background border border-border-100 rounded-lg shadow-lg p-2 min-w-24 z-[9999]'
       }
       style={
-        !isFullscreen
-          ? {
+        isFullscreen
+          ? undefined
+          : {
               top: `${position.top}px`,
               left: `${position.left}px`,
             }
-          : undefined
       }
     >
       {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
@@ -284,7 +284,7 @@ const SpeedMenu = ({
 
   // SSR-safe portal content
   const portalContent =
-    typeof window !== 'undefined' && typeof document !== 'undefined'
+    typeof globalThis.window !== 'undefined' && typeof document !== 'undefined'
       ? createPortal(menuContent, document.body)
       : null;
 
@@ -402,15 +402,15 @@ const VideoPlayer = ({
     // In fullscreen mode, only hide if video is playing
     if (isFullscreen) {
       if (isPlaying) {
-        controlsTimeoutRef.current = window.setTimeout(() => {
+        controlsTimeoutRef.current = globalThis.setTimeout(() => {
           setShowControls(false);
-        }, CONTROLS_HIDE_TIMEOUT);
+        }, CONTROLS_HIDE_TIMEOUT) as unknown as number;
       }
     } else {
       // In normal mode, always set a timer to hide controls
-      controlsTimeoutRef.current = window.setTimeout(() => {
+      controlsTimeoutRef.current = globalThis.setTimeout(() => {
         setShowControls(false);
-      }, CONTROLS_HIDE_TIMEOUT);
+      }, CONTROLS_HIDE_TIMEOUT) as unknown as number;
     }
   }, [isFullscreen, isPlaying, clearControlsTimeout]);
 
@@ -453,9 +453,9 @@ const VideoPlayer = ({
     // Hide controls when mouse leaves, except when in fullscreen or user is interacting
     if (!isFullscreen && !userInteracting) {
       // Use shorter timeout when mouse leaves
-      controlsTimeoutRef.current = window.setTimeout(() => {
+      controlsTimeoutRef.current = globalThis.setTimeout(() => {
         setShowControls(false);
-      }, LEAVE_HIDE_TIMEOUT);
+      }, LEAVE_HIDE_TIMEOUT) as unknown as number;
     }
   }, [isFullscreen, clearControlsTimeout, isUserInteracting]);
 
@@ -559,7 +559,7 @@ const VideoPlayer = ({
     let raf1 = 0,
       raf2 = 0,
       tid: number | undefined;
-    if (typeof window.requestAnimationFrame === 'function') {
+    if (typeof globalThis.requestAnimationFrame === 'function') {
       raf1 = requestAnimationFrame(() => {
         raf2 = requestAnimationFrame(init);
       });
@@ -568,7 +568,7 @@ const VideoPlayer = ({
         cancelAnimationFrame(raf2);
       };
     } else {
-      tid = window.setTimeout(init, INIT_DELAY);
+      tid = globalThis.setTimeout(init, INIT_DELAY) as unknown as number;
       return () => {
         if (tid) clearTimeout(tid);
       };
@@ -585,7 +585,9 @@ const VideoPlayer = ({
         : undefined;
     }
 
-    const saved = Number(localStorage.getItem(`${storageKey}-${src}`) || NaN);
+    const saved = Number(
+      localStorage.getItem(`${storageKey}-${src}`) || Number.NaN
+    );
     const hasValidInitial = Number.isFinite(initialTime) && initialTime >= 0;
     const hasValidSaved = Number.isFinite(saved) && saved >= 0;
 
@@ -819,11 +821,11 @@ const VideoPlayer = ({
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleBlur);
+    globalThis.addEventListener('blur', handleBlur);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', handleBlur);
+      globalThis.removeEventListener('blur', handleBlur);
       // Clean up timers on unmount
       clearControlsTimeout();
     };

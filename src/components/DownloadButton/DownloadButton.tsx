@@ -99,7 +99,7 @@ const triggerDownload = async (
     // Add to DOM, click, and remove
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
 
     // Clean up object URL after a short delay
     setTimeout(() => {
@@ -117,7 +117,7 @@ const triggerDownload = async (
 
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
   }
 };
 
@@ -150,8 +150,8 @@ const generateFilename = (
 ): string => {
   const sanitizedTitle = lessonTitle
     .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, '')
-    .replace(/\s+/g, '-')
+    .replaceAll(/[^a-z0-9\s]/g, '')
+    .replaceAll(/\s+/g, '-')
     .substring(0, 50);
 
   const extension = getFileExtension(url);
