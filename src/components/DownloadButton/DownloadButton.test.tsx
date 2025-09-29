@@ -209,9 +209,9 @@ describe('DownloadButton', () => {
       { urlVideo: 'https://example.com/test.mp4' },
     ];
 
-    testCases.forEach((content, index) => {
+    testCases.forEach((content) => {
       const { container } = render(
-        <div key={index}>
+        <div>
           <DownloadButton content={content} />
         </div>
       );
