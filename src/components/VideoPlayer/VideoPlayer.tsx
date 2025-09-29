@@ -562,18 +562,18 @@ const VideoPlayer = ({
     let raf1 = 0,
       raf2 = 0,
       tid: number | undefined;
-    if (globalThis.requestAnimationFrame !== undefined) {
+    if (globalThis.requestAnimationFrame === undefined) {
+      tid = globalThis.setTimeout(init, INIT_DELAY) as unknown as number;
+      return () => {
+        if (tid) clearTimeout(tid);
+      };
+    } else {
       raf1 = requestAnimationFrame(() => {
         raf2 = requestAnimationFrame(init);
       });
       return () => {
         cancelAnimationFrame(raf1);
         cancelAnimationFrame(raf2);
-      };
-    } else {
-      tid = globalThis.setTimeout(init, INIT_DELAY) as unknown as number;
-      return () => {
-        if (tid) clearTimeout(tid);
       };
     }
   }, []); // Run only once on mount
