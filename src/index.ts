@@ -4,231 +4,73 @@
 // CSS import
 import './styles.css';
 
-// Import all components as default exports and re-export as named exports
-import Text from './components/Text/Text';
-import Button from './components/Button/Button';
-import Badge from './components/Badge/Badge';
-import Alert from './components/Alert/Alert';
-import IconButton from './components/IconButton/IconButton';
-import IconRoundedButton from './components/IconRoundedButton/IconRoundedButton';
-import NavButton from './components/NavButton/NavButton';
-import SelectionButton from './components/SelectionButton/SelectionButton';
-import Table from './components/Table/Table';
-import CheckBox from './components/CheckBox/CheckBox';
-import CheckboxList, {
+// Basic Components
+export { default as Text } from './components/Text/Text';
+export { default as Button } from './components/Button/Button';
+export { default as Badge } from './components/Badge/Badge';
+export { default as Alert } from './components/Alert/Alert';
+export { default as IconButton } from './components/IconButton/IconButton';
+export { default as IconRoundedButton } from './components/IconRoundedButton/IconRoundedButton';
+export { default as NavButton } from './components/NavButton/NavButton';
+export { default as SelectionButton } from './components/SelectionButton/SelectionButton';
+export { default as Table } from './components/Table/Table';
+export { default as CheckBox } from './components/CheckBox/CheckBox';
+export {
+  default as CheckboxList,
   CheckboxListItem,
 } from './components/CheckBox/CheckboxList';
-import Radio, { RadioGroup, RadioGroupItem } from './components/Radio/Radio';
-import TextArea from './components/TextArea/TextArea';
-import Toast from './components/Toast/Toast';
-import Toaster from './components/Toast/utils/Toaster';
-import Divider from './components/Divider/Divider';
-import useToastStore from './components/Toast/utils/ToastStore';
-import Input from './components/Input/Input';
-import Search from './components/Search/Search';
-import Chips from './components/Chips/Chips';
-import ProgressBar from './components/ProgressBar/ProgressBar';
-import ProgressCircle from './components/ProgressCircle/ProgressCircle';
-import Stepper from './components/Stepper/Stepper';
-import Calendar from './components/Calendar/Calendar';
-import Modal from './components/Modal/Modal';
-import { CardAccordation } from './components/Accordation/Accordation';
-import { AlternativesList } from './components/Alternative/Alternative';
-import { AlertDialog } from './components/AlertDialog/AlertDialog';
-import { MultipleChoiceList } from './components/MultipleChoice/MultipleChoice';
-import IconRender from './components/IconRender/IconRender';
-import {
+export {
+  default as Radio,
+  RadioGroup,
+  RadioGroupItem,
+} from './components/Radio/Radio';
+export { default as TextArea } from './components/TextArea/TextArea';
+export { default as Toast } from './components/Toast/Toast';
+export { default as Toaster } from './components/Toast/utils/Toaster';
+export { default as Divider } from './components/Divider/Divider';
+export { default as useToastStore } from './components/Toast/utils/ToastStore';
+export { default as Input } from './components/Input/Input';
+export { default as Search } from './components/Search/Search';
+export { default as Chips } from './components/Chips/Chips';
+export { default as ProgressBar } from './components/ProgressBar/ProgressBar';
+export { default as ProgressCircle } from './components/ProgressCircle/ProgressCircle';
+export { default as Stepper } from './components/Stepper/Stepper';
+export { default as Calendar } from './components/Calendar/Calendar';
+export { default as Modal } from './components/Modal/Modal';
+export { AlertDialog } from './components/AlertDialog/AlertDialog';
+export { default as LoadingModal } from './components/LoadingModal/loadingModal';
+export { default as NotificationCard } from './components/NotificationCard/NotificationCard';
+export { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
+
+// Export notification card types
+export type {
+  NotificationItem,
+  NotificationGroup,
+} from './components/NotificationCard/NotificationCard';
+
+// Subject Components
+export {
   SubjectInfo,
   getSubjectInfo,
   getSubjectIcon,
   getSubjectColorClass,
   getSubjectName,
 } from './components/SubjectInfo/SubjectInfo';
-import type {
+export type {
   SubjectData,
   IconProps as SubjectIconProps,
 } from './components/SubjectInfo/SubjectInfo';
-// Import hooks
-import { useMobile, getDeviceType } from './hooks/useMobile';
-import type { DeviceType } from './hooks/useMobile';
-import { ThemeMode, useTheme } from './hooks/useTheme';
-import {
-  cn,
-  getSubjectColorWithOpacity,
-  syncDropdownState,
-} from './utils/utils';
 
-// Import DropdownMenu and its sub-components
-import DropdownMenu, {
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  ProfileMenuTrigger,
-  ProfileMenuFooter,
-  ProfileMenuHeader,
-  ProfileMenuSection,
-  MenuLabel,
-  DropdownMenuSeparator,
-  ProfileToggleTheme,
-} from './components/DropdownMenu/DropdownMenu';
-
-import Select, {
-  SelectValue,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-} from './components/Select/Select';
-
-import Menu, {
-  MenuItem,
-  MenuOverflow,
-  MenuContent,
-} from './components/Menu/Menu';
-
-import {
-  CardActivitiesResults,
-  CardPerformance,
-  CardProgress,
-  CardQuestions,
-  CardResults,
-  CardSimulado,
-  CardStatus,
-  CardTopic,
-  CardTest,
-  CardSimulationHistory,
-  CardAudio,
-} from './components/Card/Card';
-
-import {
-  Skeleton,
-  SkeletonText,
-  SkeletonCircle,
-  SkeletonRectangle,
-  SkeletonRounded,
-  SkeletonCard,
-  SkeletonList,
-  SkeletonTable,
-} from './components/Skeleton/Skeleton';
-
-import NotFound from './components/NotFound/NotFound';
-import VideoPlayer from './components/VideoPlayer/VideoPlayer';
-import Whiteboard from './components/Whiteboard/Whiteboard';
-
-import {
-  AuthProvider,
-  ProtectedRoute,
-  PublicRoute,
-  withAuth,
-  useAuth,
-  useAuthGuard,
-  useRouteAuth,
-  getRootDomain,
-} from './components/Auth/Auth';
-
-import { createZustandAuthAdapter } from './components/Auth/zustandAuthAdapter';
-import { useUrlAuthentication } from './components/Auth/useUrlAuthentication';
-import { useApiConfig } from './components/Auth/useApiConfig';
-
-// Import Quiz components
-import {
-  QuizTitle,
-  Quiz,
-  QuizHeader,
-  QuizContent,
-  QuizQuestionList,
-  QuizFooter,
-} from './components/Quiz/Quiz';
-import {
-  getStatusBadge,
-  QuizImageQuestion,
-  QuizAlternative,
-  QuizMultipleChoice,
-  QuizDissertative,
-  QuizTrueOrFalse,
-  QuizConnectDots,
-} from './components/Quiz/QuizContent';
-import {
-  QuizHeaderResult,
-  QuizListResult,
-  QuizResultHeaderTitle,
-  QuizResultTitle,
-  QuizResultPerformance,
-  QuizListResultByMateria,
-} from './components/Quiz/QuizResult';
-import { useQuizStore } from './components/Quiz/useQuizStore';
-
-import LoadingModal from './components/LoadingModal/loadingModal';
-import NotificationCard from './components/NotificationCard/NotificationCard';
-
-// Import notification store and types
-import {
+// Notification Store
+export {
   createNotificationStore,
   formatTimeAgo,
 } from './store/notificationStore';
-import { createUseNotificationStore } from './hooks/useNotificationStore';
-import {
+export { createUseNotificationStore } from './hooks/useNotificationStore';
+export {
   createUseNotifications,
   createNotificationsHook,
 } from './hooks/useNotifications';
-import { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
-
-// Import theme store
-import { useThemeStore } from './store/themeStore';
-import type { ThemeStore, ThemeState, ThemeActions } from './store/themeStore';
-
-// Export all components for bundled usage
-export { Text };
-export { Button };
-export { Badge };
-export { Alert };
-export { IconButton };
-export { IconRoundedButton };
-export { NavButton };
-export { SelectionButton };
-export { Table };
-export { CheckBox };
-export { CheckboxList };
-export { CheckboxListItem };
-export { Radio };
-export { RadioGroup };
-export { RadioGroupItem };
-export { TextArea };
-export { Toast };
-export { Toaster };
-export { Divider };
-export { useToastStore };
-export { Input };
-export { Search };
-export { Chips };
-export { ProgressBar };
-export { ProgressCircle };
-export { Stepper };
-export { Calendar };
-export { Modal };
-export { AlertDialog };
-export { LoadingModal };
-export { NotificationCard };
-export { ThemeToggle };
-export type {
-  NotificationItem,
-  NotificationGroup,
-} from './components/NotificationCard/NotificationCard';
-
-//Subject
-export { SubjectInfo };
-export { getSubjectInfo };
-export { getSubjectIcon };
-export { getSubjectColorClass };
-export { getSubjectName };
-export type { SubjectData };
-export type { SubjectIconProps };
-
-// Export notification store and related functionality
-export { createNotificationStore };
-export { formatTimeAgo };
-export { createUseNotificationStore };
-export { createUseNotifications };
-export { createNotificationsHook };
 export { NotificationEntityType } from './types/notifications';
 export type {
   Notification,
@@ -245,97 +87,125 @@ export type {
   NotificationStore,
 } from './store/notificationStore';
 
-// Export theme store and related functionality
-export { useThemeStore };
-export type { ThemeStore, ThemeState, ThemeActions };
+// Theme Store
+export { useThemeStore } from './store/themeStore';
+export type { ThemeStore, ThemeState, ThemeActions } from './store/themeStore';
 
-// Export DropdownMenu and its sub-components
-export { DropdownMenu };
-export { DropdownMenuTrigger };
-export { DropdownMenuContent };
-export { DropdownMenuItem };
-export { MenuLabel };
-export { DropdownMenuSeparator };
-export { ProfileMenuTrigger };
-export { ProfileMenuHeader };
-export { ProfileMenuSection };
-export { ProfileMenuFooter };
-export { ProfileToggleTheme };
+// DropdownMenu Components
+export {
+  default as DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  ProfileMenuTrigger,
+  ProfileMenuFooter,
+  ProfileMenuHeader,
+  ProfileMenuSection,
+  MenuLabel,
+  DropdownMenuSeparator,
+  ProfileToggleTheme,
+} from './components/DropdownMenu/DropdownMenu';
 
-export { Select };
-export { SelectValue };
-export { SelectTrigger };
-export { SelectContent };
-export { SelectItem };
+// Select Components
+export {
+  default as Select,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+} from './components/Select/Select';
 
-export { Menu };
-export { MenuItem };
-export { MenuOverflow };
-export { MenuContent };
+// Menu Components
+export {
+  default as Menu,
+  MenuItem,
+  MenuOverflow,
+  MenuContent,
+} from './components/Menu/Menu';
 
-export { CardActivitiesResults };
-export { CardPerformance };
-export { CardProgress };
-export { CardQuestions };
-export { CardResults };
-export { CardSimulado };
-export { CardStatus };
-export { CardTopic };
-export { CardTest };
-export { CardSimulationHistory };
-export { CardAudio };
+// Card Components
+export {
+  CardActivitiesResults,
+  CardPerformance,
+  CardProgress,
+  CardQuestions,
+  CardResults,
+  CardSimulado,
+  CardStatus,
+  CardTopic,
+  CardTest,
+  CardSimulationHistory,
+  CardAudio,
+} from './components/Card/Card';
 
-export { Skeleton };
-export { SkeletonText };
-export { SkeletonCircle };
-export { SkeletonRectangle };
-export { SkeletonRounded };
-export { SkeletonCard };
-export { SkeletonList };
-export { SkeletonTable };
+// Skeleton Components
+export {
+  Skeleton,
+  SkeletonText,
+  SkeletonCircle,
+  SkeletonRectangle,
+  SkeletonRounded,
+  SkeletonCard,
+  SkeletonList,
+  SkeletonTable,
+} from './components/Skeleton/Skeleton';
 
-export { NotFound };
-export { VideoPlayer };
-export { Whiteboard };
+// Media Components
+export { default as NotFound } from './components/NotFound/NotFound';
+export { default as VideoPlayer } from './components/VideoPlayer/VideoPlayer';
+export { default as Whiteboard } from './components/Whiteboard/Whiteboard';
+export { default as DownloadButton } from './components/DownloadButton/DownloadButton';
+export type {
+  DownloadContent,
+  DownloadButtonProps,
+} from './components/DownloadButton/DownloadButton';
 
-// Export Auth components
-export { AuthProvider };
-export { ProtectedRoute };
-export { PublicRoute };
-export { withAuth };
-export { useAuth };
-export { useAuthGuard };
-export { useRouteAuth };
-export { getRootDomain };
-export { CardAccordation };
-export { AlternativesList };
-export { createZustandAuthAdapter };
-export { useUrlAuthentication };
-export { useApiConfig };
+// Auth Components
+export {
+  AuthProvider,
+  ProtectedRoute,
+  PublicRoute,
+  withAuth,
+  useAuth,
+  useAuthGuard,
+  useRouteAuth,
+  getRootDomain,
+} from './components/Auth/Auth';
+export { CardAccordation } from './components/Accordation/Accordation';
+export { AlternativesList } from './components/Alternative/Alternative';
+export { createZustandAuthAdapter } from './components/Auth/zustandAuthAdapter';
+export { useUrlAuthentication } from './components/Auth/useUrlAuthentication';
+export { useApiConfig } from './components/Auth/useApiConfig';
 
-// Export Quiz components
-export { Quiz };
-export { QuizTitle };
-export { QuizHeader };
-export { QuizContent };
-export { useQuizStore };
-export { QuizHeaderResult };
-export { QuizAlternative };
-export { QuizMultipleChoice };
-export { QuizDissertative };
-export { QuizTrueOrFalse };
-export { QuizConnectDots };
-export { QuizQuestionList };
-export { QuizImageQuestion };
-export { QuizFooter };
-export { QuizListResult };
-export { QuizResultHeaderTitle };
-export { QuizResultTitle };
-export { QuizResultPerformance };
-export { QuizListResultByMateria };
-export { getStatusBadge };
+// Quiz Components
+export {
+  QuizTitle,
+  Quiz,
+  QuizHeader,
+  QuizContent,
+  QuizQuestionList,
+  QuizFooter,
+} from './components/Quiz/Quiz';
+export {
+  getStatusBadge,
+  QuizImageQuestion,
+  QuizAlternative,
+  QuizMultipleChoice,
+  QuizDissertative,
+  QuizTrueOrFalse,
+  QuizConnectDots,
+} from './components/Quiz/QuizContent';
+export {
+  QuizHeaderResult,
+  QuizListResult,
+  QuizResultHeaderTitle,
+  QuizResultTitle,
+  QuizResultPerformance,
+  QuizListResultByMateria,
+} from './components/Quiz/QuizResult';
+export { useQuizStore } from './components/Quiz/useQuizStore';
 
-// Types and Enums
+// Quiz Types and Enums
 export {
   QUESTION_DIFFICULTY,
   QUESTION_TYPE,
@@ -353,15 +223,19 @@ export type {
   QuizInterface,
 } from './components/Quiz/useQuizStore';
 
-export { MultipleChoiceList };
-export { IconRender };
+// Multiple Choice and Icon Components
+export { MultipleChoiceList } from './components/MultipleChoice/MultipleChoice';
+export { default as IconRender } from './components/IconRender/IconRender';
 
-// Export hooks
-export { useMobile };
-export { useTheme };
-export { getDeviceType };
-export type { DeviceType };
-export type { ThemeMode };
-export { cn };
-export { getSubjectColorWithOpacity };
-export { syncDropdownState };
+// Hooks
+export { useMobile, getDeviceType } from './hooks/useMobile';
+export type { DeviceType } from './hooks/useMobile';
+export { useTheme } from './hooks/useTheme';
+export type { ThemeMode } from './hooks/useTheme';
+
+// Utils
+export {
+  cn,
+  getSubjectColorWithOpacity,
+  syncDropdownState,
+} from './utils/utils';
