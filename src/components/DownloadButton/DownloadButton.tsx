@@ -72,7 +72,7 @@ const triggerDownload = async (
     // Fetch the file as blob
     const response = await fetch(url, {
       mode: 'cors',
-      credentials: 'omit',
+      credentials: 'same-origin',
     });
 
     if (!response.ok) {
@@ -128,12 +128,14 @@ const triggerDownload = async (
  */
 const getFileExtension = (url: string): string => {
   try {
-    const pathname = new URL(url).pathname;
-    const extension = pathname.split('.').pop()?.toLowerCase();
-    return extension || 'file';
+    const u = new URL(url, globalThis.location?.origin || 'http://localhost');
+    url = u.pathname;
   } catch {
-    return 'file';
+    // keep original url (likely relative)
   }
+  const path = url.split(/[?#]/)[0];
+  const dot = path.lastIndexOf('.');
+  return dot > -1 ? path.slice(dot + 1).toLowerCase() : 'file';
 };
 
 /**

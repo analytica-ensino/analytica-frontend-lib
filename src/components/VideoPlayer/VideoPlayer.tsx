@@ -284,7 +284,7 @@ const SpeedMenu = ({
 
   // SSR-safe portal content
   const portalContent =
-    typeof globalThis.window !== 'undefined' && typeof document !== 'undefined'
+    globalThis.window !== undefined && document !== undefined
       ? createPortal(menuContent, document.body)
       : null;
 
