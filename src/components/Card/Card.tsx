@@ -1561,7 +1561,7 @@ const CardSimulationHistory = forwardRef<
 
         {/* Footer rounded */}
         {data.length > 0 && (
-          <div className="w-full h-6 bg-white rounded-b-3xl" />
+          <div className="w-full h-6 bg-background rounded-b-3xl" />
         )}
       </div>
     </div>
