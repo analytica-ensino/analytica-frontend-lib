@@ -1902,6 +1902,36 @@ describe('Quiz', () => {
         expect(rightButton).toHaveAttribute('data-variant', 'solid');
       });
 
+      it('should call onRepeat when retry button is clicked and quiz can retry', () => {
+        const mockOnRepeat = jest.fn();
+        // Mock setVariant for the Quiz component
+        const mockSetVariant = jest.fn();
+        mockUseQuizStore.mockReturnValue({
+          ...defaultStoreState,
+          variant: 'result',
+          setVariant: mockSetVariant,
+          quiz: {
+            canRetry: true,
+          },
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        // Render the full Quiz component to include the button logic
+        render(
+          <Quiz variant="result">
+            <QuizFooter onRepeat={mockOnRepeat} />
+          </Quiz>
+        );
+
+        // Click the retry button (should call onRepeat, not open modal)
+        const retryButton = screen.getByText('Repetir Simulado');
+        fireEvent.click(retryButton);
+
+        // Should call onRepeat, not open modal
+        expect(mockOnRepeat).toHaveBeenCalledTimes(1);
+        // Modal should not be open
+        expect(screen.queryByText('Resolução')).not.toBeInTheDocument();
+      });
+
       it('should not show additional "Ver Resolução" button when quiz cannot retry', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
