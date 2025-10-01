@@ -472,6 +472,17 @@ const QuizFooter = forwardRef<
       }
     };
 
+    const getLabelRetry = () => {
+      switch (quizType) {
+        case QUIZ_TYPE.SIMULADO:
+          return 'Repetir Simulado';
+        case QUIZ_TYPE.QUESTIONARIO:
+          return 'Repetir Questionário';
+        case QUIZ_TYPE.ATIVIDADE:
+          return 'Repetir Atividade';
+      }
+    };
+
     return (
       <>
         <footer
@@ -557,14 +568,26 @@ const QuizFooter = forwardRef<
               )}
             </>
           ) : (
-            <div className="flex flex-row items-center justify-end w-full">
+            <div className="flex flex-row items-center justify-between w-full">
+              <span>
+                {quiz?.canRetry && (
+                  <Button
+                    variant="link"
+                    action="primary"
+                    size="medium"
+                    onClick={() => openModal('modalResolution')}
+                  >
+                    Ver Resolução
+                  </Button>
+                )}
+              </span>
               <Button
                 variant="solid"
                 action="primary"
                 size="medium"
-                onClick={() => openModal('modalResolution')}
+                onClick={() => onRepeat?.()}
               >
-                Ver Resolução
+                {quiz?.canRetry ? getLabelRetry() : 'Ver Resolução'}
               </Button>
             </div>
           )}
