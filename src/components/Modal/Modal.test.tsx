@@ -96,6 +96,73 @@ describe('Modal', () => {
     expect(document.body.style.overflow).toBe('hidden');
   });
 
+  it('deve adicionar padding-right ao body quando há scrollbar', () => {
+    // Mock window.innerWidth e clientWidth para simular scrollbar
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: 1024,
+    });
+    Object.defineProperty(document.documentElement, 'clientWidth', {
+      writable: true,
+      configurable: true,
+      value: 1009, // 15px de scrollbar
+    });
+
+    render(<Modal {...defaultProps} />);
+
+    expect(document.body.style.paddingRight).toBe('15px');
+  });
+
+  it('deve criar overlay para cobrir área da scrollbar', () => {
+    // Mock window.innerWidth e clientWidth para simular scrollbar
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: 1024,
+    });
+    Object.defineProperty(document.documentElement, 'clientWidth', {
+      writable: true,
+      configurable: true,
+      value: 1009,
+    });
+
+    render(<Modal {...defaultProps} />);
+
+    const overlay = document.getElementById('modal-scrollbar-overlay');
+    expect(overlay).toBeInTheDocument();
+    expect(overlay?.style.width).toBe('15px');
+    expect(overlay?.style.position).toBe('fixed');
+    expect(overlay?.style.top).toBe('0px');
+    expect(overlay?.style.right).toBe('0px');
+  });
+
+  it('deve remover overlay quando modal fecha', () => {
+    // Mock scrollbar
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: 1024,
+    });
+    Object.defineProperty(document.documentElement, 'clientWidth', {
+      writable: true,
+      configurable: true,
+      value: 1009,
+    });
+
+    const { rerender } = render(<Modal {...defaultProps} />);
+
+    expect(
+      document.getElementById('modal-scrollbar-overlay')
+    ).toBeInTheDocument();
+
+    rerender(<Modal {...defaultProps} isOpen={false} />);
+
+    expect(
+      document.getElementById('modal-scrollbar-overlay')
+    ).not.toBeInTheDocument();
+  });
+
   it('deve aplicar as classes de estilo corretas no conteúdo', () => {
     render(<Modal {...defaultProps} />);
 
