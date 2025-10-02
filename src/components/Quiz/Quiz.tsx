@@ -113,88 +113,95 @@ const Quiz = forwardRef<
   );
 });
 
-const QuizTitle = forwardRef<HTMLDivElement, { className?: string }>(
-  ({ className, ...props }, ref) => {
-    const {
-      quiz,
-      currentQuestionIndex,
-      getTotalQuestions,
-      getQuizTitle,
-      timeElapsed,
-      formatTime,
-      isStarted,
-    } = useQuizStore();
+const QuizTitle = forwardRef<
+  HTMLDivElement,
+  { className?: string; onBack?: () => void }
+>(({ className, onBack, ...props }, ref) => {
+  const {
+    quiz,
+    currentQuestionIndex,
+    getTotalQuestions,
+    getQuizTitle,
+    timeElapsed,
+    formatTime,
+    isStarted,
+  } = useQuizStore();
 
-    const [showExitConfirmation, setShowExitConfirmation] = useState(false);
+  const [showExitConfirmation, setShowExitConfirmation] = useState(false);
 
-    const totalQuestions = getTotalQuestions();
-    const quizTitle = getQuizTitle();
+  const totalQuestions = getTotalQuestions();
+  const quizTitle = getQuizTitle();
 
-    const handleBackClick = () => {
-      if (isStarted) {
-        setShowExitConfirmation(true);
-      } else {
-        window.history.back();
-      }
-    };
+  const handleBackClick = () => {
+    if (isStarted) {
+      setShowExitConfirmation(true);
+    } else {
+      actionOnBack();
+    }
+  };
 
-    const handleConfirmExit = () => {
-      setShowExitConfirmation(false);
+  const handleConfirmExit = () => {
+    setShowExitConfirmation(false);
+    actionOnBack();
+  };
+
+  const actionOnBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
       window.history.back();
-    };
+    }
+  };
 
-    const handleCancelExit = () => {
-      setShowExitConfirmation(false);
-    };
+  const handleCancelExit = () => {
+    setShowExitConfirmation(false);
+  };
 
-    return (
-      <>
-        <div
-          ref={ref}
-          className={cn(
-            'flex flex-row justify-between items-center relative p-2',
-            className
-          )}
-          {...props}
-        >
-          <IconButton
-            icon={<CaretLeft size={24} />}
-            size="md"
-            aria-label="Voltar"
-            onClick={handleBackClick}
-          />
-          <span className="flex flex-col gap-2 text-center">
-            <p className="text-text-950 font-bold text-md">{quizTitle}</p>
-            <p className="text-text-600 text-xs">
-              {totalQuestions > 0
-                ? `${currentQuestionIndex + 1} de ${totalQuestions}`
-                : '0 de 0'}
-            </p>
-          </span>
-
-          <span className="flex flex-row items-center justify-center">
-            <Badge variant="outlined" action="info" iconLeft={<Clock />}>
-              {isStarted ? formatTime(timeElapsed) : '00:00'}
-            </Badge>
-          </span>
-        </div>
-
-        <AlertDialog
-          isOpen={showExitConfirmation}
-          onChangeOpen={setShowExitConfirmation}
-          title="Deseja sair?"
-          description={getExitConfirmationText(
-            quiz?.type || QUIZ_TYPE.SIMULADO
-          )}
-          cancelButtonLabel="Voltar e revisar"
-          submitButtonLabel="Sair Mesmo Assim"
-          onSubmit={handleConfirmExit}
-          onCancel={handleCancelExit}
+  return (
+    <>
+      <div
+        ref={ref}
+        className={cn(
+          'flex flex-row justify-between items-center relative p-2',
+          className
+        )}
+        {...props}
+      >
+        <IconButton
+          icon={<CaretLeft size={24} />}
+          size="md"
+          aria-label="Voltar"
+          onClick={handleBackClick}
         />
-      </>
-    );
-  }
-);
+        <span className="flex flex-col gap-2 text-center">
+          <p className="text-text-950 font-bold text-md">{quizTitle}</p>
+          <p className="text-text-600 text-xs">
+            {totalQuestions > 0
+              ? `${currentQuestionIndex + 1} de ${totalQuestions}`
+              : '0 de 0'}
+          </p>
+        </span>
+
+        <span className="flex flex-row items-center justify-center">
+          <Badge variant="outlined" action="info" iconLeft={<Clock />}>
+            {isStarted ? formatTime(timeElapsed) : '00:00'}
+          </Badge>
+        </span>
+      </div>
+
+      <AlertDialog
+        isOpen={showExitConfirmation}
+        onChangeOpen={setShowExitConfirmation}
+        title="Deseja sair?"
+        description={getExitConfirmationText(quiz?.type || QUIZ_TYPE.SIMULADO)}
+        cancelButtonLabel="Voltar e revisar"
+        submitButtonLabel="Sair Mesmo Assim"
+        onSubmit={handleConfirmExit}
+        onCancel={handleCancelExit}
+      />
+    </>
+  );
+});
 
 const QuizHeader = () => {
   const { getCurrentQuestion, currentQuestionIndex } = useQuizStore();
