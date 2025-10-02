@@ -2767,14 +2767,25 @@ describe('VideoPlayer', () => {
   });
 
   describe('Safari iOS Detection', () => {
-    const originalNavigator = window.navigator;
+    const originalUserAgentDescriptor = Object.getOwnPropertyDescriptor(
+      window.navigator,
+      'userAgent'
+    );
+    const originalUserAgent = window.navigator.userAgent;
 
     afterEach(() => {
-      Object.defineProperty(window, 'navigator', {
-        value: originalNavigator,
-        configurable: true,
-        writable: true,
-      });
+      if (originalUserAgentDescriptor) {
+        Object.defineProperty(
+          window.navigator,
+          'userAgent',
+          originalUserAgentDescriptor
+        );
+      } else {
+        Object.defineProperty(window.navigator, 'userAgent', {
+          value: originalUserAgent,
+          configurable: true,
+        });
+      }
     });
 
     it('should detect Safari iOS correctly on iPhone', () => {
@@ -2899,7 +2910,11 @@ describe('VideoPlayer', () => {
   });
 
   describe('Safari iOS Fullscreen', () => {
-    const originalNavigator = window.navigator;
+    const originalUserAgentDescriptor = Object.getOwnPropertyDescriptor(
+      window.navigator,
+      'userAgent'
+    );
+    const originalUserAgent = window.navigator.userAgent;
 
     beforeEach(() => {
       // Mock Safari iOS user agent
@@ -2912,11 +2927,19 @@ describe('VideoPlayer', () => {
     });
 
     afterEach(() => {
-      Object.defineProperty(window, 'navigator', {
-        value: originalNavigator,
-        configurable: true,
-        writable: true,
-      });
+      if (originalUserAgentDescriptor) {
+        Object.defineProperty(
+          window.navigator,
+          'userAgent',
+          originalUserAgentDescriptor
+        );
+      } else {
+        Object.defineProperty(window.navigator, 'userAgent', {
+          value: originalUserAgent,
+          configurable: true,
+          writable: true,
+        });
+      }
     });
 
     it('should use webkitEnterFullscreen on Safari iOS', () => {
@@ -3066,7 +3089,11 @@ describe('VideoPlayer', () => {
   });
 
   describe('Safari iOS Fullscreen Events', () => {
-    const originalNavigator = window.navigator;
+    const originalUserAgentDescriptor = Object.getOwnPropertyDescriptor(
+      window.navigator,
+      'userAgent'
+    );
+    const originalUserAgent = window.navigator.userAgent;
 
     beforeEach(() => {
       // Mock Safari iOS user agent
@@ -3079,11 +3106,19 @@ describe('VideoPlayer', () => {
     });
 
     afterEach(() => {
-      Object.defineProperty(window, 'navigator', {
-        value: originalNavigator,
-        configurable: true,
-        writable: true,
-      });
+      if (originalUserAgentDescriptor) {
+        Object.defineProperty(
+          window.navigator,
+          'userAgent',
+          originalUserAgentDescriptor
+        );
+      } else {
+        Object.defineProperty(window.navigator, 'userAgent', {
+          value: originalUserAgent,
+          configurable: true,
+          writable: true,
+        });
+      }
     });
 
     it('should handle webkitbeginfullscreen event', () => {
