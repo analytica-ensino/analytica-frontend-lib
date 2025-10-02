@@ -2765,4 +2765,465 @@ describe('VideoPlayer', () => {
       jest.useRealTimers();
     });
   });
+
+  describe('Safari iOS Detection', () => {
+    const originalUserAgentDescriptor = Object.getOwnPropertyDescriptor(
+      window.navigator,
+      'userAgent'
+    );
+    const originalUserAgent = window.navigator.userAgent;
+
+    afterEach(() => {
+      if (originalUserAgentDescriptor) {
+        Object.defineProperty(
+          window.navigator,
+          'userAgent',
+          originalUserAgentDescriptor
+        );
+      } else {
+        Object.defineProperty(window.navigator, 'userAgent', {
+          value: originalUserAgent,
+          configurable: true,
+        });
+      }
+    });
+
+    it('should detect Safari iOS correctly on iPhone', () => {
+      // Mock iPhone user agent
+      Object.defineProperty(window.navigator, 'userAgent', {
+        value:
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+        configurable: true,
+      });
+
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const fullscreenButton = screen.getByRole('button', {
+        name: /enter fullscreen/i,
+      });
+
+      // Click fullscreen button - should use Safari iOS API
+      fireEvent.click(fullscreenButton);
+
+      // Component should be rendered without errors
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should detect Safari iOS correctly on iPad', () => {
+      // Mock iPad user agent
+      Object.defineProperty(window.navigator, 'userAgent', {
+        value:
+          'Mozilla/5.0 (iPad; CPU OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+        configurable: true,
+      });
+
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const fullscreenButton = screen.getByRole('button', {
+        name: /enter fullscreen/i,
+      });
+
+      // Click fullscreen button
+      fireEvent.click(fullscreenButton);
+
+      // Component should be rendered without errors
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should detect Safari iOS correctly on iPod', () => {
+      // Mock iPod user agent
+      Object.defineProperty(window.navigator, 'userAgent', {
+        value:
+          'Mozilla/5.0 (iPod touch; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+        configurable: true,
+      });
+
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const fullscreenButton = screen.getByRole('button', {
+        name: /enter fullscreen/i,
+      });
+
+      // Click fullscreen button
+      fireEvent.click(fullscreenButton);
+
+      // Component should be rendered without errors
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should NOT detect Chrome iOS as Safari iOS', () => {
+      // Mock Chrome iOS user agent (contains CriOS)
+      Object.defineProperty(window.navigator, 'userAgent', {
+        value:
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.77 Mobile/15E148 Safari/604.1',
+        configurable: true,
+      });
+
+      render(<VideoPlayer {...defaultProps} />);
+      const fullscreenButton = screen.getByRole('button', {
+        name: /enter fullscreen/i,
+      });
+
+      // Click fullscreen button - should use standard API
+      fireEvent.click(fullscreenButton);
+
+      // Should use standard requestFullscreen API
+      expect(mockRequestFullscreen).toHaveBeenCalled();
+    });
+
+    it('should NOT detect desktop Safari as Safari iOS', () => {
+      // Mock desktop Safari user agent
+      Object.defineProperty(window.navigator, 'userAgent', {
+        value:
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Safari/605.1.15',
+        configurable: true,
+      });
+
+      render(<VideoPlayer {...defaultProps} />);
+      const fullscreenButton = screen.getByRole('button', {
+        name: /enter fullscreen/i,
+      });
+
+      // Click fullscreen button
+      fireEvent.click(fullscreenButton);
+
+      // Should use standard requestFullscreen API
+      expect(mockRequestFullscreen).toHaveBeenCalled();
+    });
+
+    it('should NOT detect Android Chrome as Safari iOS', () => {
+      // Mock Android Chrome user agent
+      Object.defineProperty(window.navigator, 'userAgent', {
+        value:
+          'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Mobile Safari/537.36',
+        configurable: true,
+      });
+
+      render(<VideoPlayer {...defaultProps} />);
+      const fullscreenButton = screen.getByRole('button', {
+        name: /enter fullscreen/i,
+      });
+
+      // Click fullscreen button
+      fireEvent.click(fullscreenButton);
+
+      // Should use standard requestFullscreen API
+      expect(mockRequestFullscreen).toHaveBeenCalled();
+    });
+  });
+
+  describe('Safari iOS Fullscreen', () => {
+    const originalUserAgentDescriptor = Object.getOwnPropertyDescriptor(
+      window.navigator,
+      'userAgent'
+    );
+    const originalUserAgent = window.navigator.userAgent;
+
+    beforeEach(() => {
+      // Mock Safari iOS user agent
+      Object.defineProperty(window.navigator, 'userAgent', {
+        value:
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+        configurable: true,
+        writable: true,
+      });
+    });
+
+    afterEach(() => {
+      if (originalUserAgentDescriptor) {
+        Object.defineProperty(
+          window.navigator,
+          'userAgent',
+          originalUserAgentDescriptor
+        );
+      } else {
+        Object.defineProperty(window.navigator, 'userAgent', {
+          value: originalUserAgent,
+          configurable: true,
+          writable: true,
+        });
+      }
+    });
+
+    it('should use webkitEnterFullscreen on Safari iOS', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video')!;
+
+      // Mock webkitEnterFullscreen API
+      const mockWebkitEnterFullscreen = jest.fn();
+      Object.defineProperty(video, 'webkitEnterFullscreen', {
+        value: mockWebkitEnterFullscreen,
+        configurable: true,
+      });
+
+      const fullscreenButton = screen.getByRole('button', {
+        name: /enter fullscreen/i,
+      });
+
+      // Click fullscreen button
+      fireEvent.click(fullscreenButton);
+
+      // Should call webkit API, not standard API
+      expect(mockWebkitEnterFullscreen).toHaveBeenCalled();
+      expect(mockRequestFullscreen).not.toHaveBeenCalled();
+    });
+
+    it('should use webkitExitFullscreen when exiting fullscreen on Safari iOS', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video')!;
+
+      // Mock webkit fullscreen APIs
+      const mockWebkitEnterFullscreen = jest.fn();
+      const mockWebkitExitFullscreen = jest.fn();
+      Object.defineProperty(video, 'webkitEnterFullscreen', {
+        value: mockWebkitEnterFullscreen,
+        configurable: true,
+      });
+      Object.defineProperty(video, 'webkitExitFullscreen', {
+        value: mockWebkitExitFullscreen,
+        configurable: true,
+      });
+
+      const fullscreenButton = screen.getByRole('button', {
+        name: /enter fullscreen/i,
+      });
+
+      // Enter fullscreen first
+      fireEvent.click(fullscreenButton);
+
+      // Simulate entering fullscreen
+      fireEvent(video, new Event('webkitbeginfullscreen'));
+
+      // Now exit fullscreen
+      const exitButton = screen.getByRole('button', {
+        name: /exit fullscreen/i,
+      });
+      fireEvent.click(exitButton);
+
+      // Should call webkit exit API
+      expect(mockWebkitExitFullscreen).toHaveBeenCalled();
+    });
+
+    it('should handle missing webkitEnterFullscreen gracefully', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video')!;
+
+      // Do NOT mock webkitEnterFullscreen (undefined)
+      Object.defineProperty(video, 'webkitEnterFullscreen', {
+        value: undefined,
+        configurable: true,
+      });
+
+      const fullscreenButton = screen.getByRole('button', {
+        name: /enter fullscreen/i,
+      });
+
+      // Should not throw when webkit API is unavailable
+      expect(() => {
+        fireEvent.click(fullscreenButton);
+      }).not.toThrow();
+    });
+
+    it('should handle missing webkitExitFullscreen gracefully', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video')!;
+
+      // Mock enter but not exit
+      const mockWebkitEnterFullscreen = jest.fn();
+      Object.defineProperty(video, 'webkitEnterFullscreen', {
+        value: mockWebkitEnterFullscreen,
+        configurable: true,
+      });
+      Object.defineProperty(video, 'webkitExitFullscreen', {
+        value: undefined,
+        configurable: true,
+      });
+
+      const fullscreenButton = screen.getByRole('button', {
+        name: /enter fullscreen/i,
+      });
+
+      // Enter fullscreen
+      fireEvent.click(fullscreenButton);
+
+      // Simulate entering fullscreen
+      fireEvent(video, new Event('webkitbeginfullscreen'));
+
+      // Try to exit - should not throw
+      const exitButton = screen.getByRole('button', {
+        name: /exit fullscreen/i,
+      });
+
+      expect(() => {
+        fireEvent.click(exitButton);
+      }).not.toThrow();
+    });
+
+    it('should NOT use webkitEnterFullscreen on non-Safari iOS browsers', () => {
+      // Override to desktop Safari
+      Object.defineProperty(window.navigator, 'userAgent', {
+        value:
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Safari/605.1.15',
+        configurable: true,
+        writable: true,
+      });
+
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video')!;
+
+      // Mock webkit API (but shouldn't be called)
+      const mockWebkitEnterFullscreen = jest.fn();
+      Object.defineProperty(video, 'webkitEnterFullscreen', {
+        value: mockWebkitEnterFullscreen,
+        configurable: true,
+      });
+
+      const fullscreenButton = screen.getByRole('button', {
+        name: /enter fullscreen/i,
+      });
+
+      // Click fullscreen button
+      fireEvent.click(fullscreenButton);
+
+      // Should use standard API, not webkit API
+      expect(mockWebkitEnterFullscreen).not.toHaveBeenCalled();
+      expect(mockRequestFullscreen).toHaveBeenCalled();
+    });
+  });
+
+  describe('Safari iOS Fullscreen Events', () => {
+    const originalUserAgentDescriptor = Object.getOwnPropertyDescriptor(
+      window.navigator,
+      'userAgent'
+    );
+    const originalUserAgent = window.navigator.userAgent;
+
+    beforeEach(() => {
+      // Mock Safari iOS user agent
+      Object.defineProperty(window.navigator, 'userAgent', {
+        value:
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+        configurable: true,
+        writable: true,
+      });
+    });
+
+    afterEach(() => {
+      if (originalUserAgentDescriptor) {
+        Object.defineProperty(
+          window.navigator,
+          'userAgent',
+          originalUserAgentDescriptor
+        );
+      } else {
+        Object.defineProperty(window.navigator, 'userAgent', {
+          value: originalUserAgent,
+          configurable: true,
+          writable: true,
+        });
+      }
+    });
+
+    it('should handle webkitbeginfullscreen event', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video')!;
+
+      // Dispatch webkit fullscreen event
+      fireEvent(video, new Event('webkitbeginfullscreen'));
+
+      // Component should be rendered and in fullscreen state
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should handle webkitendfullscreen event', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video')!;
+
+      // Enter fullscreen first
+      fireEvent(video, new Event('webkitbeginfullscreen'));
+
+      // Then exit
+      fireEvent(video, new Event('webkitendfullscreen'));
+
+      // Component should be rendered and not in fullscreen state
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should set isFullscreen to true on webkitbeginfullscreen', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video')!;
+
+      // Dispatch enter fullscreen event
+      act(() => {
+        fireEvent(video, new Event('webkitbeginfullscreen'));
+      });
+
+      // Should show exit fullscreen button (proves isFullscreen = true)
+      const exitButton = screen.queryByRole('button', {
+        name: /exit fullscreen/i,
+      });
+      expect(exitButton).toBeInTheDocument();
+    });
+
+    it('should set isFullscreen to false on webkitendfullscreen', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video')!;
+
+      // Enter fullscreen first
+      act(() => {
+        fireEvent(video, new Event('webkitbeginfullscreen'));
+      });
+
+      // Verify we're in fullscreen
+      expect(
+        screen.queryByRole('button', { name: /exit fullscreen/i })
+      ).toBeInTheDocument();
+
+      // Exit fullscreen
+      act(() => {
+        fireEvent(video, new Event('webkitendfullscreen'));
+      });
+
+      // Should show enter fullscreen button (proves isFullscreen = false)
+      const enterButton = screen.queryByRole('button', {
+        name: /enter fullscreen/i,
+      });
+      expect(enterButton).toBeInTheDocument();
+    });
+
+    it('should show controls when entering Safari iOS fullscreen', () => {
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video')!;
+
+      // Dispatch enter fullscreen event
+      act(() => {
+        fireEvent(video, new Event('webkitbeginfullscreen'));
+      });
+
+      // Controls should be visible
+      const bottomControls = container.querySelector('.absolute.bottom-0');
+      expect(bottomControls).toBeInTheDocument();
+      expect(bottomControls?.className).toContain('opacity-100');
+    });
+
+    it('should cleanup Safari iOS event listeners on unmount', () => {
+      const { container, unmount } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video')!;
+
+      // Spy on removeEventListener
+      const removeEventListenerSpy = jest.spyOn(video, 'removeEventListener');
+
+      // Unmount component
+      unmount();
+
+      // Should remove webkit event listeners
+      expect(removeEventListenerSpy).toHaveBeenCalledWith(
+        'webkitbeginfullscreen',
+        expect.any(Function)
+      );
+      expect(removeEventListenerSpy).toHaveBeenCalledWith(
+        'webkitendfullscreen',
+        expect.any(Function)
+      );
+
+      removeEventListenerSpy.mockRestore();
+    });
+  });
 });
