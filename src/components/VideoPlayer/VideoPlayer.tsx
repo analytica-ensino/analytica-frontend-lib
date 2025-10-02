@@ -531,6 +531,9 @@ const VideoPlayer = ({
    * Handle fullscreen state changes from browser events
    */
   useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
     const handleFullscreenChange = () => {
       const isCurrentlyFullscreen = !!document.fullscreenElement;
       setIsFullscreen(isCurrentlyFullscreen);
@@ -541,10 +544,36 @@ const VideoPlayer = ({
       }
     };
 
+    // Safari iOS-specific fullscreen event handlers
+    const handleWebkitBeginFullscreen = () => {
+      setIsFullscreen(true);
+      showControlsWithTimer();
+    };
+
+    const handleWebkitEndFullscreen = () => {
+      setIsFullscreen(false);
+    };
+
+    // Standard fullscreen events
     document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+    // Safari iOS fullscreen events
+    video.addEventListener(
+      'webkitbeginfullscreen',
+      handleWebkitBeginFullscreen
+    );
+    video.addEventListener('webkitendfullscreen', handleWebkitEndFullscreen);
 
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      video.removeEventListener(
+        'webkitbeginfullscreen',
+        handleWebkitBeginFullscreen
+      );
+      video.removeEventListener(
+        'webkitendfullscreen',
+        handleWebkitEndFullscreen
+      );
     };
   }, [showControlsWithTimer]);
 
@@ -704,18 +733,45 @@ const VideoPlayer = ({
   }, []);
 
   /**
+   * Detect if running on Safari iOS
+   */
+  const isSafariIOS = useCallback((): boolean => {
+    const ua = navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(ua);
+    const isWebKit = /WebKit/.test(ua);
+    const isNotChrome = !/CriOS|Chrome/.test(ua);
+    return isIOS && isWebKit && isNotChrome;
+  }, []);
+
+  /**
    * Handle fullscreen toggle
    */
   const toggleFullscreen = useCallback(() => {
-    const container = videoRef.current?.parentElement;
-    if (!container) return;
+    const video = videoRef.current;
+    const container = video?.parentElement;
+    if (!video || !container) return;
 
-    if (!isFullscreen && container.requestFullscreen) {
+    // Safari iOS requires using webkitEnterFullscreen on video element
+    if (isSafariIOS()) {
+      // Type assertion for Safari-specific API
+      const videoElement = video as HTMLVideoElement & {
+        webkitEnterFullscreen?: () => void;
+        webkitExitFullscreen?: () => void;
+        webkitDisplayingFullscreen?: boolean;
+      };
+
+      if (!isFullscreen && videoElement.webkitEnterFullscreen) {
+        videoElement.webkitEnterFullscreen();
+      } else if (isFullscreen && videoElement.webkitExitFullscreen) {
+        videoElement.webkitExitFullscreen();
+      }
+    } else if (!isFullscreen && container.requestFullscreen) {
+      // Standard fullscreen API for other browsers
       container.requestFullscreen();
     } else if (isFullscreen && document.exitFullscreen) {
       document.exitFullscreen();
     }
-  }, [isFullscreen]);
+  }, [isFullscreen, isSafariIOS]);
 
   /**
    * Handle playback speed change
