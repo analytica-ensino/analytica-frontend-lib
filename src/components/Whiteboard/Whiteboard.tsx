@@ -90,7 +90,7 @@ const Whiteboard = ({
     return (
       <div
         className={cn(
-          'flex items-center justify-center p-8 bg-background border border-gray-100 rounded-xl',
+          'flex items-center justify-center p-8 bg-background border border-border-50 rounded-xl',
           className
         )}
         {...rest}
@@ -103,7 +103,7 @@ const Whiteboard = ({
   return (
     <div
       className={cn(
-        'flex flex-col bg-background border border-gray-100 p-4 gap-2 rounded-xl w-fit mx-auto',
+        'flex flex-col bg-background border border-border-50 p-4 gap-2 rounded-xl w-fit mx-auto',
         className
       )}
       {...rest}
