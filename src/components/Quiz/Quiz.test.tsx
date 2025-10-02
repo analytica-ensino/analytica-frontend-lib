@@ -889,6 +889,237 @@ describe('Quiz', () => {
         expect(screen.getByTestId('alert-submit')).toBeInTheDocument();
       });
     });
+
+    describe('onBack prop functionality', () => {
+      const mockHistoryBack = jest.fn();
+
+      beforeEach(() => {
+        // Mock window.history.back
+        Object.defineProperty(window, 'history', {
+          value: {
+            back: mockHistoryBack,
+          },
+          writable: true,
+        });
+        mockHistoryBack.mockClear();
+      });
+
+      it('should call onBack when provided and quiz is not started', () => {
+        const mockOnBack = jest.fn();
+
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
+          timeElapsed: 0,
+          formatTime: mockFormatTime,
+          isStarted: false, // Not started
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizTitle onBack={mockOnBack} />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        expect(mockOnBack).toHaveBeenCalledTimes(1);
+        expect(mockHistoryBack).not.toHaveBeenCalled();
+      });
+
+      it('should call window.history.back when onBack is not provided and quiz is not started', () => {
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
+          timeElapsed: 0,
+          formatTime: mockFormatTime,
+          isStarted: false, // Not started
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizTitle />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        expect(mockHistoryBack).toHaveBeenCalledTimes(1);
+      });
+
+      it('should call onBack when provided and quiz is started (exit confirmation)', () => {
+        const mockOnBack = jest.fn();
+
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
+          timeElapsed: 120,
+          formatTime: mockFormatTime,
+          isStarted: true, // Started
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizTitle onBack={mockOnBack} />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        // Should show confirmation modal
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+
+        // Click confirm exit
+        const submitButton = screen.getByTestId('alert-submit');
+        fireEvent.click(submitButton);
+
+        expect(mockOnBack).toHaveBeenCalledTimes(1);
+        expect(mockHistoryBack).not.toHaveBeenCalled();
+        expect(screen.queryByText('Deseja sair?')).not.toBeInTheDocument();
+      });
+
+      it('should call window.history.back when onBack is not provided and quiz is started (exit confirmation)', () => {
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
+          timeElapsed: 120,
+          formatTime: mockFormatTime,
+          isStarted: true, // Started
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizTitle />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        // Should show confirmation modal
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+
+        // Click confirm exit
+        const submitButton = screen.getByTestId('alert-submit');
+        fireEvent.click(submitButton);
+
+        expect(mockHistoryBack).toHaveBeenCalledTimes(1);
+        expect(screen.queryByText('Deseja sair?')).not.toBeInTheDocument();
+      });
+
+      it('should not call onBack when user cancels exit confirmation', () => {
+        const mockOnBack = jest.fn();
+
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
+          timeElapsed: 120,
+          formatTime: mockFormatTime,
+          isStarted: true, // Started
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizTitle onBack={mockOnBack} />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        // Should show confirmation modal
+        expect(screen.getByText('Deseja sair?')).toBeInTheDocument();
+
+        // Click cancel
+        const cancelButton = screen.getByTestId('alert-cancel');
+        fireEvent.click(cancelButton);
+
+        expect(mockOnBack).not.toHaveBeenCalled();
+        expect(mockHistoryBack).not.toHaveBeenCalled();
+        expect(screen.queryByText('Deseja sair?')).not.toBeInTheDocument();
+      });
+
+      it('should handle onBack prop being undefined gracefully', () => {
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
+          timeElapsed: 0,
+          formatTime: mockFormatTime,
+          isStarted: false, // Not started
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizTitle onBack={undefined} />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        // Should fallback to window.history.back
+        expect(mockHistoryBack).toHaveBeenCalledTimes(1);
+      });
+
+      it('should handle onBack prop being null gracefully', () => {
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
+          timeElapsed: 0,
+          formatTime: mockFormatTime,
+          isStarted: false, // Not started
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizTitle onBack={null as unknown as () => void} />);
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        // Should fallback to window.history.back
+        expect(mockHistoryBack).toHaveBeenCalledTimes(1);
+      });
+
+      it('should pass through onBack prop to component correctly', () => {
+        const mockOnBack = jest.fn();
+
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
+          timeElapsed: 0,
+          formatTime: mockFormatTime,
+          isStarted: false,
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        const { rerender } = render(<QuizTitle />);
+
+        // First render without onBack - should use history.back
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+        expect(mockHistoryBack).toHaveBeenCalledTimes(1);
+
+        // Rerender with onBack - should use onBack
+        mockHistoryBack.mockClear();
+        rerender(<QuizTitle onBack={mockOnBack} />);
+
+        const newBackButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(newBackButton);
+
+        expect(mockOnBack).toHaveBeenCalledTimes(1);
+        expect(mockHistoryBack).not.toHaveBeenCalled();
+      });
+
+      it('should work correctly with both onBack prop and custom className', () => {
+        const mockOnBack = jest.fn();
+
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
+          timeElapsed: 0,
+          formatTime: mockFormatTime,
+          isStarted: false,
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        const { container } = render(
+          <QuizTitle onBack={mockOnBack} className="custom-class" />
+        );
+
+        const titleElement = container.firstChild as HTMLElement;
+        expect(titleElement).toHaveClass('custom-class');
+
+        const backButton = screen.getByTestId('quiz-icon-button');
+        fireEvent.click(backButton);
+
+        expect(mockOnBack).toHaveBeenCalledTimes(1);
+      });
+    });
   });
 
   describe('QuizHeader Component', () => {
