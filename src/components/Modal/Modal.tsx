@@ -122,17 +122,51 @@ const Modal = ({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, closeOnEscape, onClose]);
 
-  // Handle body scroll lock
+  // Handle body scroll lock and scrollbar shift fix
   useEffect(() => {
+    if (!isOpen) return;
+
+    // Calculate scrollbar width before hiding overflow
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
+
+    // Save original styles
     const originalOverflow = document.body.style.overflow;
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = originalOverflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+
+    // Apply scroll lock
+    document.body.style.overflow = 'hidden';
+
+    // Fix scrollbar shift: add padding to compensate for lost scrollbar
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+
+      // Create overlay to cover the padding area with backdrop color
+      const overlay = document.createElement('div');
+      overlay.id = 'modal-scrollbar-overlay';
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: ${scrollbarWidth}px;
+        height: 100vh;
+        background-color: rgb(0 0 0 / 0.6);
+        z-index: 40;
+        pointer-events: none;
+      `;
+      document.body.appendChild(overlay);
     }
 
     return () => {
+      // Restore original styles
       document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+
+      // Remove overlay
+      const overlay = document.getElementById('modal-scrollbar-overlay');
+      if (overlay) {
+        overlay.remove();
+      }
     };
   }, [isOpen]);
 
