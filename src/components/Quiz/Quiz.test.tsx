@@ -3345,5 +3345,124 @@ describe('Quiz', () => {
         screen.getByText(getCompletionTitle('unknown' as QUIZ_TYPE))
       ).toBeInTheDocument();
     });
+
+    it('should show "Ir para aulas" button text when quiz type is QUESTIONARIO', async () => {
+      const mockQuestionarioQuiz = {
+        id: '1',
+        title: 'Questionário de Matemática',
+        type: QUIZ_TYPE.QUESTIONARIO,
+        questions: [],
+      };
+
+      // Configurar o mock para habilitar o botão finalizar
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: mockQuestionarioQuiz,
+        getCurrentAnswer: jest.fn().mockReturnValue('a'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalQuestions: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 0,
+          timeSpent: 120,
+        }),
+        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+      });
+
+      render(<QuizFooter />);
+
+      // Finalizar quiz para abrir o modal de resultado
+      const finishButton = screen.getByText('Finalizar');
+
+      await act(async () => {
+        finishButton.click();
+      });
+
+      // Verificar se o botão "Ir para aulas" está presente
+      expect(screen.getByText('Ir para aulas')).toBeInTheDocument();
+
+      // Verificar se o botão "Ir para questionários" NÃO está presente
+      expect(
+        screen.queryByText('Ir para questionários')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should show "Ir para simulados" button text when quiz type is SIMULADO', async () => {
+      const mockSimuladoQuiz = {
+        id: '1',
+        title: 'Simulado ENEM',
+        type: QUIZ_TYPE.SIMULADO,
+        questions: [],
+      };
+
+      // Configurar o mock para habilitar o botão finalizar
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: mockSimuladoQuiz,
+        getCurrentAnswer: jest.fn().mockReturnValue('a'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalQuestions: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 0,
+          timeSpent: 120,
+        }),
+        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+      });
+
+      render(<QuizFooter />);
+
+      // Finalizar quiz para abrir o modal de resultado
+      const finishButton = screen.getByText('Finalizar');
+
+      await act(async () => {
+        finishButton.click();
+      });
+
+      // Verificar se o botão "Ir para simulados" está presente
+      expect(screen.getByText('Ir para simulados')).toBeInTheDocument();
+
+      // Verificar se o botão "Ir para aulas" NÃO está presente
+      expect(screen.queryByText('Ir para aulas')).not.toBeInTheDocument();
+    });
+
+    it('should show "Ir para atividades" button text when quiz type is ATIVIDADE', async () => {
+      const mockAtividadeQuiz = {
+        id: '1',
+        title: 'Atividade de Física',
+        type: QUIZ_TYPE.ATIVIDADE,
+        questions: [],
+      };
+
+      // Configurar o mock para habilitar o botão finalizar
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: mockAtividadeQuiz,
+        getCurrentAnswer: jest.fn().mockReturnValue('a'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalQuestions: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 0,
+          timeSpent: 120,
+        }),
+        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+      });
+
+      render(<QuizFooter />);
+
+      // Finalizar quiz para abrir o modal de resultado
+      const finishButton = screen.getByText('Finalizar');
+
+      await act(async () => {
+        finishButton.click();
+      });
+
+      // Verificar se o botão "Ir para atividades" está presente
+      expect(screen.getByText('Ir para atividades')).toBeInTheDocument();
+
+      // Verificar se o botão "Ir para aulas" NÃO está presente
+      expect(screen.queryByText('Ir para aulas')).not.toBeInTheDocument();
+    });
   });
 });
