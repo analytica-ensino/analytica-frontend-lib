@@ -648,7 +648,9 @@ const QuizFooter = forwardRef<
                 size="small"
                 onClick={onGoToSimulated}
               >
-                Ir para {quizTypeLabel.toLocaleLowerCase()}s
+                {quizTypeLabel == 'Questionário'
+                  ? 'Ir para aulas'
+                  : `Ir para ${quizTypeLabel.toLocaleLowerCase()}s`}
               </Button>
 
               <Button className="w-full" onClick={onDetailResult}>
