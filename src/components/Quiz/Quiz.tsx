@@ -648,7 +648,7 @@ const QuizFooter = forwardRef<
                 size="small"
                 onClick={onGoToSimulated}
               >
-                {quizTypeLabel == 'Questionário'
+                {quizTypeLabel === 'Questionário'
                   ? 'Ir para aulas'
                   : `Ir para ${quizTypeLabel.toLocaleLowerCase()}s`}
               </Button>
