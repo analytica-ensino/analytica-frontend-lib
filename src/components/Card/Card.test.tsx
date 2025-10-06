@@ -379,7 +379,7 @@ describe('CardQuestions', () => {
     expect(screen.getByText('Nota')).toBeInTheDocument();
     expect(screen.getByText('00')).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /Ver Questão/i })
+      screen.getByRole('button', { name: /Ver Resultado/i })
     ).toBeInTheDocument();
   });
 
@@ -447,7 +447,7 @@ describe('CardQuestions', () => {
     expect(screen.getByText('92')).toBeInTheDocument();
     expect(screen.getByText('Realizado')).toBeInTheDocument();
 
-    const button = screen.getByRole('button', { name: /Ver Questão/i });
+    const button = screen.getByRole('button', { name: /Ver Resultado/i });
     button.click();
 
     expect(handleClick).toHaveBeenCalledWith('test-value');
@@ -482,7 +482,7 @@ describe('CardQuestions', () => {
       />
     );
 
-    const button = screen.getByRole('button', { name: /Ver Questão/i });
+    const button = screen.getByRole('button', { name: /Ver Resultado/i });
     fireEvent.click(button);
     expect(handleClick).toHaveBeenCalledWith('123');
   });
