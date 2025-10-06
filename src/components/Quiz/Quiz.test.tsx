@@ -408,6 +408,23 @@ const mockUseQuizStore = useQuizStore as jest.MockedFunction<
   typeof useQuizStore
 >;
 
+// Helper functions to avoid nested function violations (S2004) and duplicated functions (S4144)
+const clickElement = (element: HTMLElement) => {
+  act(() => {
+    element.click();
+  });
+};
+
+const clickElementAsync = async (element: HTMLElement) => {
+  await act(async () => {
+    element.click();
+  });
+};
+
+const noOpFunction = () => {
+  // Empty function for mocking
+};
+
 describe('Quiz', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -715,6 +732,11 @@ describe('Quiz', () => {
     describe('Exit Confirmation Modal', () => {
       const mockHistoryBack = jest.fn();
 
+      // Helper functions to avoid nested function violations (S2004)
+      const mockGetTotalQuestions = () => 5;
+      const mockGetQuizTitle = () => 'Test Quiz';
+      const mockFormatTime = () => '02:00';
+
       beforeEach(() => {
         // Mock window.history.back
         Object.defineProperty(window, 'history', {
@@ -801,10 +823,10 @@ describe('Quiz', () => {
 
         mockUseQuizStore.mockReturnValue({
           currentQuestionIndex: 0,
-          getTotalQuestions: () => 5,
-          getQuizTitle: () => 'Test Quiz',
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
           timeElapsed: 120,
-          formatTime: () => '02:00',
+          formatTime: mockFormatTime,
           isStarted: true,
         });
 
@@ -825,10 +847,10 @@ describe('Quiz', () => {
       it('should call handleCancelExit when cancel button is clicked', () => {
         mockUseQuizStore.mockReturnValue({
           currentQuestionIndex: 0,
-          getTotalQuestions: () => 5,
-          getQuizTitle: () => 'Test Quiz',
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
           timeElapsed: 120,
-          formatTime: () => '02:00',
+          formatTime: mockFormatTime,
           isStarted: true,
         });
 
@@ -848,10 +870,10 @@ describe('Quiz', () => {
       it('should close modal when onChangeOpen is called with false', () => {
         mockUseQuizStore.mockReturnValue({
           currentQuestionIndex: 0,
-          getTotalQuestions: () => 5,
-          getQuizTitle: () => 'Test Quiz',
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
           timeElapsed: 120,
-          formatTime: () => '02:00',
+          formatTime: mockFormatTime,
           isStarted: true,
         });
 
@@ -1833,6 +1855,11 @@ describe('Quiz', () => {
     const mockGoToQuestion = jest.fn();
     const mockGetQuestionIndex = jest.fn();
 
+    // Helper functions to avoid nested function violations (S2004)
+    const hasButtonWithText = (buttons: HTMLElement[], text: string) => {
+      return buttons.some((btn) => btn.textContent === text);
+    };
+
     const defaultStoreState = {
       currentQuestionIndex: 0,
       getTotalQuestions: mockGetTotalQuestions,
@@ -1852,9 +1879,7 @@ describe('Quiz', () => {
     };
 
     beforeEach(() => {
-      mockUseQuizStore.mockReturnValue(
-        defaultStoreState as unknown as ReturnType<typeof useQuizStore>
-      );
+      mockUseQuizStore.mockReturnValue(defaultStoreState);
 
       // Default mock returns
       mockGetTotalQuestions.mockReturnValue(5);
@@ -1885,8 +1910,8 @@ describe('Quiz', () => {
         render(<QuizFooter />);
 
         const buttons = screen.getAllByTestId('quiz-button');
-        expect(buttons.some((btn) => btn.textContent === 'Pular')).toBe(true);
-        expect(buttons.some((btn) => btn.textContent === 'Avançar')).toBe(true);
+        expect(hasButtonWithText(buttons, 'Pular')).toBe(true);
+        expect(hasButtonWithText(buttons, 'Avançar')).toBe(true);
         expect(screen.queryByText('Voltar')).not.toBeInTheDocument();
       });
 
@@ -2091,9 +2116,7 @@ describe('Quiz', () => {
 
         const resolutionButton = screen.getByText('Ver resolução');
 
-        act(() => {
-          resolutionButton.click();
-        });
+        clickElement(resolutionButton);
 
         expect(screen.getByText('Ver resolução')).toBeInTheDocument();
 
@@ -2182,9 +2205,7 @@ describe('Quiz', () => {
 
         const navigationButton = screen.getByTestId('quiz-icon-button');
 
-        act(() => {
-          navigationButton.click();
-        });
+        clickElement(navigationButton);
 
         expect(screen.getByText('Questões')).toBeInTheDocument();
       });
@@ -2195,18 +2216,14 @@ describe('Quiz', () => {
         // Open modal
         const navigationButton = screen.getByTestId('quiz-icon-button');
 
-        act(() => {
-          navigationButton.click();
-        });
+        clickElement(navigationButton);
 
         expect(screen.getByText('Questões')).toBeInTheDocument();
 
         // Close modal
         const closeButton = screen.getByTestId('modal-close');
 
-        act(() => {
-          closeButton.click();
-        });
+        clickElement(closeButton);
 
         expect(
           screen.queryByText('Você concluiu o simulado!')
@@ -2232,9 +2249,7 @@ describe('Quiz', () => {
         // Open resolution modal
         const resolutionButton = screen.getByText('Ver resolução');
 
-        act(() => {
-          resolutionButton.click();
-        });
+        clickElement(resolutionButton);
 
         expect(screen.getByText('Ver resolução')).toBeInTheDocument();
 
@@ -2262,9 +2277,7 @@ describe('Quiz', () => {
 
         const finishButton = screen.getByText('Finalizar');
 
-        act(() => {
-          finishButton.click();
-        });
+        clickElement(finishButton);
 
         expect(screen.getByTestId('alert-dialog')).toBeInTheDocument();
         expect(screen.getByTestId('alert-title')).toHaveTextContent(
@@ -2282,9 +2295,7 @@ describe('Quiz', () => {
 
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         expect(screen.getByText(/Você concluiu o/)).toBeInTheDocument();
         expect(
@@ -2302,9 +2313,7 @@ describe('Quiz', () => {
 
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         expect(mockHandleFinishSimulated).toHaveBeenCalled();
       });
@@ -2322,9 +2331,7 @@ describe('Quiz', () => {
 
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         expect(mockHandleFinishSimulated).toHaveBeenCalled();
         expect(consoleSpy).toHaveBeenCalledWith(
@@ -2351,18 +2358,14 @@ describe('Quiz', () => {
         // Open alert
         const finishButton = screen.getByText('Finalizar');
 
-        act(() => {
-          finishButton.click();
-        });
+        clickElement(finishButton);
 
         expect(screen.getByTestId('alert-dialog')).toBeInTheDocument();
 
         // Submit alert
         const submitButton = screen.getByTestId('alert-submit');
 
-        await act(async () => {
-          submitButton.click();
-        });
+        await clickElementAsync(submitButton);
 
         expect(mockHandleFinishSimulated).toHaveBeenCalled();
         expect(screen.queryByTestId('alert-dialog')).not.toBeInTheDocument();
@@ -2377,7 +2380,7 @@ describe('Quiz', () => {
           .mockRejectedValue(new Error('Simulated failure'));
         const consoleSpy = jest
           .spyOn(console, 'error')
-          .mockImplementation(() => {});
+          .mockImplementation(noOpFunction);
         mockGetUnansweredQuestionsFromUserAnswers.mockReturnValue([1, 2]);
 
         render(
@@ -2387,18 +2390,14 @@ describe('Quiz', () => {
         // Open alert by clicking finish
         const finishButton = screen.getByText('Finalizar');
 
-        act(() => {
-          finishButton.click();
-        });
+        clickElement(finishButton);
 
         expect(screen.getByTestId('alert-dialog')).toBeInTheDocument();
 
         // Submit alert - this should trigger the catch block
         const submitButton = screen.getByTestId('alert-submit');
 
-        await act(async () => {
-          submitButton.click();
-        });
+        await clickElementAsync(submitButton);
 
         // Verify the catch block behavior:
         // 1. console.error is called
@@ -2439,9 +2438,7 @@ describe('Quiz', () => {
         // Finish quiz to open result modal
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         const goToSimulatedButton = screen.getByText('Ir para simulados');
         goToSimulatedButton.click();
@@ -2457,9 +2454,7 @@ describe('Quiz', () => {
         // Finish quiz to open result modal
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         const detailResultButton = screen.getByText('Detalhar resultado');
         detailResultButton.click();
@@ -2473,9 +2468,7 @@ describe('Quiz', () => {
         // Finish quiz to open result modal
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         // Verify modal is open
         expect(screen.getByText(/Você concluiu o/)).toBeInTheDocument();
@@ -2510,9 +2503,7 @@ describe('Quiz', () => {
         // Open navigation modal
         const navigationButton = screen.getByTestId('quiz-icon-button');
 
-        act(() => {
-          navigationButton.click();
-        });
+        clickElement(navigationButton);
 
         expect(screen.getByText('Questões')).toBeInTheDocument();
         expect(screen.getByText('Filtrar por')).toBeInTheDocument();
@@ -2536,9 +2527,7 @@ describe('Quiz', () => {
         // Open navigation modal
         const navigationButton = screen.getByTestId('quiz-icon-button');
 
-        act(() => {
-          navigationButton.click();
-        });
+        clickElement(navigationButton);
 
         // Verify modal is open
         expect(screen.getByText('Questões')).toBeInTheDocument();
@@ -2546,9 +2535,7 @@ describe('Quiz', () => {
         // Find and click a question card (which should trigger onQuestionClick)
         const questionCard = screen.getByTestId('card-status');
 
-        act(() => {
-          questionCard.click();
-        });
+        clickElement(questionCard);
 
         // Verify modal is closed after clicking question
         expect(screen.queryByText('Questões')).not.toBeInTheDocument();
@@ -2581,9 +2568,7 @@ describe('Quiz', () => {
         // Finish quiz to open result modal
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         // Verify custom image component is rendered instead of default image
         expect(screen.getByTestId('custom-result-image')).toBeInTheDocument();
@@ -2607,9 +2592,7 @@ describe('Quiz', () => {
         // Finish quiz to open result modal
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         // Verify default placeholder is rendered
         expect(screen.getByText('Imagem de resultado')).toBeInTheDocument();
@@ -2690,9 +2673,7 @@ describe('Quiz', () => {
 
         const finishButton = screen.getByText('Finalizar');
 
-        act(() => {
-          finishButton.click();
-        });
+        clickElement(finishButton);
 
         // Should show -- when no statistics available
         expect(
@@ -2891,9 +2872,7 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       // Verificar se o modal de questionário todos incorretos está aberto
       expect(screen.getByText('😕 Não foi dessa vez...')).toBeInTheDocument();
@@ -2925,15 +2904,11 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       // Clicar em tentar depois
       const tryLaterButton = screen.getByText('Tentar depois');
-      act(() => {
-        tryLaterButton.click();
-      });
+      clickElement(tryLaterButton);
 
       // Verificar se o alert dialog aparece
       expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
@@ -2942,9 +2917,7 @@ describe('Quiz', () => {
 
       // Testar cancelar (repetir questionário)
       const cancelButton = screen.getByText('Repetir questionário');
-      act(() => {
-        cancelButton.click();
-      });
+      clickElement(cancelButton);
 
       expect(mockOnRepeat).toHaveBeenCalled();
     });
@@ -2973,15 +2946,11 @@ describe('Quiz', () => {
 
       // Finalizar quiz para mostrar o modal inicial
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       // Clicar em tentar depois para abrir o AlertDialog
       const tryLaterButton = screen.getByText('Tentar depois');
-      act(() => {
-        tryLaterButton.click();
-      });
+      clickElement(tryLaterButton);
 
       // Verificar se o AlertDialog está aberto
       expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
@@ -3024,24 +2993,18 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       // Clicar em tentar depois para abrir o AlertDialog
       const tryLaterButton = screen.getByText('Tentar depois');
-      act(() => {
-        tryLaterButton.click();
-      });
+      clickElement(tryLaterButton);
 
       // Verificar se o AlertDialog está aberto
       expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
 
       // Clicar no botão "Tentar depois" do AlertDialog (submit)
       const submitButton = screen.getByTestId('alert-submit');
-      act(() => {
-        submitButton.click();
-      });
+      clickElement(submitButton);
 
       // Verificar se onTryLater foi chamado
       expect(mockOnTryLater).toHaveBeenCalledTimes(1);
@@ -3076,24 +3039,18 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       // Clicar em tentar depois para abrir o AlertDialog
       const tryLaterButton = screen.getByText('Tentar depois');
-      act(() => {
-        tryLaterButton.click();
-      });
+      clickElement(tryLaterButton);
 
       // Verificar se o AlertDialog está aberto
       expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
 
       // Clicar no botão "Repetir questionário" (cancel)
       const cancelButton = screen.getByTestId('alert-cancel');
-      act(() => {
-        cancelButton.click();
-      });
+      clickElement(cancelButton);
 
       // Verificar se onRepeat foi chamado
       expect(mockOnRepeat).toHaveBeenCalledTimes(1);
@@ -3123,15 +3080,11 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       // Clicar em tentar depois para abrir o AlertDialog
       const tryLaterButton = screen.getByText('Tentar depois');
-      act(() => {
-        tryLaterButton.click();
-      });
+      clickElement(tryLaterButton);
 
       // Verificar se o AlertDialog está aberto
       expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
@@ -3139,9 +3092,7 @@ describe('Quiz', () => {
       // Clicar no botão "Tentar depois" do AlertDialog - não deve quebrar
       const submitButton = screen.getByTestId('alert-submit');
       expect(() => {
-        act(() => {
-          submitButton.click();
-        });
+        clickElement(submitButton);
       }).not.toThrow();
 
       // Verificar se o modal foi fechado mesmo sem callback
@@ -3173,14 +3124,10 @@ describe('Quiz', () => {
 
       // Finalizar quiz e abrir AlertDialog
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       const tryLaterButton = screen.getByText('Tentar depois');
-      act(() => {
-        tryLaterButton.click();
-      });
+      clickElement(tryLaterButton);
 
       // Verificar título
       expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
@@ -3236,9 +3183,7 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       expect(
         screen.getByText(getCompletionTitle(QUIZ_TYPE.SIMULADO))
@@ -3271,9 +3216,7 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       expect(
         screen.getByText(getCompletionTitle(QUIZ_TYPE.QUESTIONARIO))
@@ -3300,9 +3243,7 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       expect(
         screen.getByText(getCompletionTitle(QUIZ_TYPE.ATIVIDADE))
@@ -3329,9 +3270,7 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       expect(
         screen.getByText(getCompletionTitle('unknown' as QUIZ_TYPE))
