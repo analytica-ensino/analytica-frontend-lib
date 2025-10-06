@@ -13,7 +13,6 @@ import ProgressBar from '../ProgressBar/ProgressBar';
 import { cn, getSubjectColorWithOpacity } from '../../utils/utils';
 import Badge from '../Badge/Badge';
 import { useTheme } from '../../hooks/useTheme';
-import { getTypeLabel } from './Quiz';
 import Button from '../Button/Button';
 
 const QuizBadge = ({
@@ -122,8 +121,13 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
 
 const QuizResultHeaderTitle = forwardRef<
   HTMLDivElement,
-  { className?: string; showBadge?: boolean; onRepeat?: () => void }
->(({ className, showBadge = true, onRepeat, ...props }, ref) => {
+  {
+    className?: string;
+    showBadge?: boolean;
+    onRepeat?: () => void;
+    canRetry?: boolean;
+  }
+>(({ className, showBadge = true, onRepeat, canRetry, ...props }, ref) => {
   const { quiz } = useQuizStore();
   return (
     <div
@@ -136,16 +140,18 @@ const QuizResultHeaderTitle = forwardRef<
     >
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
       <div className="flex flex-row gap-3 items-center">
-        <Button
-          variant="solid"
-          action="primary"
-          size="medium"
-          onClick={() => {
-            onRepeat?.();
-          }}
-        >
-          Repetir questionário
-        </Button>
+        {canRetry && (
+          <Button
+            variant="solid"
+            action="primary"
+            size="medium"
+            onClick={() => {
+              onRepeat?.();
+            }}
+          >
+            Repetir questionário
+          </Button>
+        )}
 
         {showBadge && <QuizBadge subtype={quiz?.subtype || undefined} />}
       </div>

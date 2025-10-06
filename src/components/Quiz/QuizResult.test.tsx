@@ -850,25 +850,65 @@ describe('Quiz', () => {
       });
     });
 
-    describe('actionButton prop', () => {
-      it('should render actionButton when provided', () => {
-        const actionButton = (
-          <button data-testid="action-button">Action</button>
+    describe('canRetry and onRepeat props', () => {
+      it('should render repeat button when canRetry is true and onRepeat is provided', () => {
+        const handleRepeat = jest.fn();
+
+        render(
+          <QuizResultHeaderTitle canRetry={true} onRepeat={handleRepeat} />
         );
 
-        render(<QuizResultHeaderTitle actionButton={actionButton} />);
-
-        expect(screen.getByTestId('action-button')).toBeInTheDocument();
-        expect(screen.getByText('Action')).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', { name: 'Repetir questionário' })
+        ).toBeInTheDocument();
       });
 
-      it('should not render actionButton when not provided', () => {
-        render(<QuizResultHeaderTitle />);
+      it('should not render repeat button when canRetry is false', () => {
+        const handleRepeat = jest.fn();
 
-        expect(screen.queryByTestId('action-button')).not.toBeInTheDocument();
+        render(
+          <QuizResultHeaderTitle canRetry={false} onRepeat={handleRepeat} />
+        );
+
+        expect(
+          screen.queryByRole('button', { name: 'Repetir questionário' })
+        ).not.toBeInTheDocument();
       });
 
-      it('should render actionButton and badge together', () => {
+      it('should not render repeat button when canRetry is undefined', () => {
+        const handleRepeat = jest.fn();
+
+        render(<QuizResultHeaderTitle onRepeat={handleRepeat} />);
+
+        expect(
+          screen.queryByRole('button', { name: 'Repetir questionário' })
+        ).not.toBeInTheDocument();
+      });
+
+      it('should call onRepeat when repeat button is clicked', () => {
+        const handleRepeat = jest.fn();
+
+        render(
+          <QuizResultHeaderTitle canRetry={true} onRepeat={handleRepeat} />
+        );
+
+        const button = screen.getByRole('button', {
+          name: 'Repetir questionário',
+        });
+        button.click();
+
+        expect(handleRepeat).toHaveBeenCalledTimes(1);
+      });
+
+      it('should not render repeat button when canRetry is true but onRepeat is not provided', () => {
+        render(<QuizResultHeaderTitle canRetry={true} />);
+
+        expect(
+          screen.queryByRole('button', { name: 'Repetir questionário' })
+        ).not.toBeInTheDocument();
+      });
+
+      it('should render repeat button with badge when both are enabled', () => {
         const mockQuiz = {
           type: 'Simulado',
           subtype: 'ENEM_PROVA_1',
@@ -878,69 +918,52 @@ describe('Quiz', () => {
           quiz: mockQuiz,
         } as MockQuizStore);
 
-        const actionButton = (
-          <button data-testid="repeat-button">Repetir questionário</button>
-        );
-
-        render(
-          <QuizResultHeaderTitle actionButton={actionButton} showBadge={true} />
-        );
-
-        expect(screen.getByTestId('repeat-button')).toBeInTheDocument();
-        expect(screen.getByTestId('quiz-badge')).toBeInTheDocument();
-      });
-
-      it('should render actionButton without badge when showBadge is false', () => {
-        mockUseQuizStore.mockReturnValue({
-          quiz: { subtype: 'SIMULADO' },
-        } as MockQuizStore);
-
-        const actionButton = (
-          <button data-testid="custom-action">Custom Action</button>
-        );
+        const handleRepeat = jest.fn();
 
         render(
           <QuizResultHeaderTitle
-            actionButton={actionButton}
+            canRetry={true}
+            onRepeat={handleRepeat}
+            showBadge={true}
+          />
+        );
+
+        expect(
+          screen.getByRole('button', { name: 'Repetir questionário' })
+        ).toBeInTheDocument();
+        expect(screen.getByTestId('quiz-badge')).toBeInTheDocument();
+      });
+
+      it('should render repeat button without badge when showBadge is false', () => {
+        const handleRepeat = jest.fn();
+
+        render(
+          <QuizResultHeaderTitle
+            canRetry={true}
+            onRepeat={handleRepeat}
             showBadge={false}
           />
         );
 
-        expect(screen.getByTestId('custom-action')).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', { name: 'Repetir questionário' })
+        ).toBeInTheDocument();
         expect(screen.queryByTestId('quiz-badge')).not.toBeInTheDocument();
       });
 
-      it('should call onClick handler when actionButton is clicked', () => {
-        const handleClick = jest.fn();
-        const actionButton = (
-          <button data-testid="clickable-button" onClick={handleClick}>
-            Click Me
-          </button>
+      it('should have correct button styling for repeat button', () => {
+        const handleRepeat = jest.fn();
+
+        render(
+          <QuizResultHeaderTitle canRetry={true} onRepeat={handleRepeat} />
         );
 
-        render(<QuizResultHeaderTitle actionButton={actionButton} />);
-
-        const button = screen.getByTestId('clickable-button');
-        button.click();
-
-        expect(handleClick).toHaveBeenCalledTimes(1);
-      });
-
-      it('should render complex actionButton components', () => {
-        const complexButton = (
-          <div data-testid="complex-action">
-            <span>Icon</span>
-            <button>Action</button>
-          </div>
-        );
-
-        render(<QuizResultHeaderTitle actionButton={complexButton} />);
-
-        expect(screen.getByTestId('complex-action')).toBeInTheDocument();
-        expect(screen.getByText('Icon')).toBeInTheDocument();
-        expect(
-          screen.getByRole('button', { name: 'Action' })
-        ).toBeInTheDocument();
+        const button = screen.getByRole('button', {
+          name: 'Repetir questionário',
+        });
+        expect(button).toHaveAttribute('data-variant', 'solid');
+        expect(button).toHaveAttribute('data-action', 'primary');
+        expect(button).toHaveAttribute('data-size', 'medium');
       });
     });
   });
