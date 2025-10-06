@@ -808,11 +808,8 @@ const VideoPlayer = ({
     const newShowCaptions = !showCaptions;
     setShowCaptions(newShowCaptions);
 
-    // Control track mode programmatically - only show if subtitles are valid
-    trackRef.current.track.mode =
-      newShowCaptions && subtitles && subtitlesValidation === 'valid'
-        ? 'showing'
-        : 'hidden';
+    // Control track mode programmatically - we already validated subtitles above
+    trackRef.current.track.mode = newShowCaptions ? 'showing' : 'hidden';
   }, [showCaptions, subtitles, subtitlesValidation]);
 
   /**
