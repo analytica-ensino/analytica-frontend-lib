@@ -136,18 +136,17 @@ const QuizResultHeaderTitle = forwardRef<
     >
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
       <div className="flex flex-row gap-3 items-center">
-        {onRepeat && quiz?.canRetry && (
-          <Button
-            variant="solid"
-            action="primary"
-            size="medium"
-            onClick={() => {
-              onRepeat?.();
-            }}
-          >
-            {`Repetir ${getTypeLabel(quiz.type)}`}
-          </Button>
-        )}
+        <Button
+          variant="solid"
+          action="primary"
+          size="medium"
+          onClick={() => {
+            onRepeat?.();
+          }}
+        >
+          Repetir questionário
+        </Button>
+
         {showBadge && <QuizBadge subtype={quiz?.subtype || undefined} />}
       </div>
     </div>
