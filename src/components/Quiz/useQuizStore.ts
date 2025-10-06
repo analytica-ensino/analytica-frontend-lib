@@ -392,7 +392,7 @@ export const useQuizStore = create<QuizState>()(
           const userId = get().getUserId();
 
           if (!userId || userId === '') {
-            console.warn('selectAnswer called before userId is set');
+            // Silent validation - userId not set
             return;
           }
 
@@ -441,7 +441,7 @@ export const useQuizStore = create<QuizState>()(
           const userId = get().getUserId();
 
           if (!userId || userId === '') {
-            console.warn('selectMultipleAnswer called before userId is set');
+            // Silent validation - userId not set
             return;
           }
 
@@ -486,9 +486,7 @@ export const useQuizStore = create<QuizState>()(
           const userId = get().getUserId();
 
           if (!userId || userId === '') {
-            console.warn(
-              'selectDissertativeAnswer called before userId is set'
-            );
+            // Silent validation - userId not set
             return;
           }
 
@@ -497,9 +495,7 @@ export const useQuizStore = create<QuizState>()(
             !question ||
             question.questionType !== QUESTION_TYPE.DISSERTATIVA
           ) {
-            console.warn(
-              'selectDissertativeAnswer called for non-dissertative question'
-            );
+            // Silent validation - wrong question type
             return;
           }
 
@@ -541,7 +537,7 @@ export const useQuizStore = create<QuizState>()(
             const userId = get().getUserId();
 
             if (!userId || userId === '') {
-              console.warn('skipQuestion called before userId is set');
+              // Silent validation - userId not set
               return;
             }
 
@@ -585,7 +581,7 @@ export const useQuizStore = create<QuizState>()(
           const userId = get().getUserId();
 
           if (!userId || userId === '') {
-            console.warn('addUserAnswer called before userId is set');
+            // Silent validation - userId not set
             return;
           }
 
@@ -903,9 +899,7 @@ export const useQuizStore = create<QuizState>()(
 
           // Validate that the question was found before updating currentQuestionIndex
           if (questionIndex === -1) {
-            console.warn(
-              `Question with id "${question.id}" not found in active quiz`
-            );
+            // Silent validation - question not found
             return;
           }
 

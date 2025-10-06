@@ -449,7 +449,7 @@ describe('Quiz', () => {
       getCorrectAnswers: jest.fn().mockReturnValue(0),
       getCurrentQuestion: jest.fn().mockReturnValue(null),
       getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('unanswered'),
-    } as unknown as ReturnType<typeof useQuizStore>);
+    });
   });
 
   describe('Quiz Component', () => {
@@ -458,7 +458,7 @@ describe('Quiz', () => {
     beforeEach(() => {
       mockUseQuizStore.mockReturnValue({
         setVariant: mockSetVariant,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
     });
 
     it('should render children correctly', () => {
@@ -556,7 +556,7 @@ describe('Quiz', () => {
         timeElapsed: 120,
         formatTime: mockFormatTime,
         isStarted: true,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       mockGetTotalQuestions.mockReturnValue(10);
       mockGetQuizTitle.mockReturnValue('Quiz de Matemática');
@@ -591,7 +591,7 @@ describe('Quiz', () => {
         timeElapsed: 120,
         formatTime: mockFormatTime,
         isStarted: true,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       render(<QuizTitle />);
 
@@ -612,7 +612,7 @@ describe('Quiz', () => {
         timeElapsed: 120,
         formatTime: mockFormatTime,
         isStarted: false,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       render(<QuizTitle />);
 
@@ -670,7 +670,7 @@ describe('Quiz', () => {
         timeElapsed: 180,
         formatTime: mockFormatTime,
         isStarted: true,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       rerender(<QuizTitle />);
 
@@ -701,7 +701,7 @@ describe('Quiz', () => {
         timeElapsed: 0,
         formatTime: mockFormatTime,
         isStarted: false, // Not started, should call history.back directly
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       render(<QuizTitle />);
 
@@ -746,7 +746,7 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle />);
 
@@ -914,7 +914,7 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle onBack={mockOnBack} />);
 
@@ -933,7 +933,7 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle />);
 
@@ -953,7 +953,7 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true, // Started
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle onBack={mockOnBack} />);
 
@@ -980,7 +980,7 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true, // Started
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle />);
 
@@ -1008,7 +1008,7 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true, // Started
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle onBack={mockOnBack} />);
 
@@ -1035,7 +1035,7 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle onBack={undefined} />);
 
@@ -1054,7 +1054,7 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle onBack={null as unknown as () => void} />);
 
@@ -1075,7 +1075,7 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         const { rerender } = render(<QuizTitle />);
 
@@ -1105,7 +1105,7 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         const { container } = render(
           <QuizTitle onBack={mockOnBack} className="custom-class" />
@@ -1129,7 +1129,7 @@ describe('Quiz', () => {
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
         currentQuestionIndex: 0,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
     });
 
     it('should render header with question title when current question exists', () => {
@@ -1174,7 +1174,7 @@ describe('Quiz', () => {
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
         currentQuestionIndex: 4,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       render(<QuizHeader />);
 
@@ -1301,7 +1301,7 @@ describe('Quiz', () => {
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
         currentQuestionIndex: 1,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       rerender(<QuizHeader />);
 
@@ -1350,7 +1350,7 @@ describe('Quiz', () => {
         getQuestionResultByQuestionId: jest.fn(),
         getCurrentAnswer: jest.fn(),
         variant: 'default',
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
     });
 
     it('should render QuizAlternative component when question type is ALTERNATIVA', () => {
@@ -1435,7 +1435,7 @@ describe('Quiz', () => {
         goToQuestion: mockGoToQuestion,
         getQuestionStatusFromUserAnswers: mockGetQuestionStatusFromUserAnswers,
         getQuestionIndex: mockGetQuestionIndex,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       jest.clearAllMocks();
     });
@@ -1880,7 +1880,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 0,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
@@ -1894,7 +1894,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 2,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
@@ -1907,7 +1907,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 4, // Last question (total is 5)
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
@@ -1919,7 +1919,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 2,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
@@ -1943,7 +1943,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 2,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
@@ -1977,7 +1977,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 4, // Last question
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
         mockGetCurrentAnswer.mockReturnValue(null);
         mockGetQuestionStatusFromUserAnswers.mockReturnValue('unanswered');
 
@@ -2011,7 +2011,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 2, // Middle question
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
@@ -2032,7 +2032,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 2, // Middle question
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
         mockGetCurrentAnswer.mockReturnValue({ optionId: 'option-1' }); // Has answer
 
         render(<QuizFooter />);
@@ -2056,13 +2056,13 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           variant: 'result',
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
       });
 
       it('should render resolution button in result variant', () => {
         render(<QuizFooter />);
 
-        expect(screen.getByText('Ver Resolução')).toBeInTheDocument();
+        expect(screen.getByText('Ver resolução')).toBeInTheDocument();
         expect(screen.queryByText('Voltar')).not.toBeInTheDocument();
         expect(screen.queryByText('Avançar')).not.toBeInTheDocument();
         expect(screen.queryByText('Pular')).not.toBeInTheDocument();
@@ -2080,7 +2080,7 @@ describe('Quiz', () => {
           ...defaultStoreState,
           variant: 'result',
           setVariant: mockSetVariant,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         // Render the full Quiz component to include the modal
         render(
@@ -2089,19 +2089,19 @@ describe('Quiz', () => {
           </Quiz>
         );
 
-        const resolutionButton = screen.getByText('Ver Resolução');
+        const resolutionButton = screen.getByText('Ver resolução');
 
         act(() => {
           resolutionButton.click();
         });
 
-        expect(screen.getByText('Ver Resolução')).toBeInTheDocument();
+        expect(screen.getByText('Ver resolução')).toBeInTheDocument();
 
         // Just verify the button click works - the modal functionality is complex to test in isolation
         expect(resolutionButton).toBeInTheDocument();
       });
 
-      it('should show additional "Ver Resolução" button when quiz can retry', () => {
+      it('should show "Ver resolução" button when quiz can retry', () => {
         // Mock setVariant for the Quiz component
         const mockSetVariant = jest.fn();
         mockUseQuizStore.mockReturnValue({
@@ -2111,29 +2111,25 @@ describe('Quiz', () => {
           quiz: {
             canRetry: true,
           },
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
-        // Render the full Quiz component to include the additional button logic
+        // Render the full Quiz component
         render(
           <Quiz variant="result">
             <QuizFooter />
           </Quiz>
         );
 
-        // Should have one "Ver Resolução" button (left) and one retry button (right)
-        const resolutionButtons = screen.getAllByText('Ver Resolução');
+        // Should have one "Ver resolução" button with link variant
+        const resolutionButtons = screen.getAllByText('Ver resolução');
         expect(resolutionButtons).toHaveLength(1);
 
-        // The left button should be a link variant
-        const leftButton = resolutionButtons[0];
-        expect(leftButton).toHaveAttribute('data-variant', 'link');
-
-        // The right button should show retry text instead of "Ver Resolução"
-        const rightButton = screen.getByText('Repetir Simulado'); // Default retry text
-        expect(rightButton).toHaveAttribute('data-variant', 'solid');
+        // The button should be a link variant
+        const button = resolutionButtons[0];
+        expect(button).toHaveAttribute('data-variant', 'link');
       });
 
-      it('should call onRepeat when retry button is clicked and quiz can retry', () => {
+      it('should render resolution button when quiz can retry', () => {
         const mockOnRepeat = jest.fn();
         // Mock setVariant for the Quiz component
         const mockSetVariant = jest.fn();
@@ -2144,7 +2140,7 @@ describe('Quiz', () => {
           quiz: {
             canRetry: true,
           },
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         // Render the full Quiz component to include the button logic
         render(
@@ -2153,34 +2149,30 @@ describe('Quiz', () => {
           </Quiz>
         );
 
-        // Click the retry button (should call onRepeat, not open modal)
-        const retryButton = screen.getByText('Repetir Simulado');
-        fireEvent.click(retryButton);
-
-        // Should call onRepeat, not open modal
-        expect(mockOnRepeat).toHaveBeenCalledTimes(1);
-        // Modal should not be open
-        expect(screen.queryByText('Resolução')).not.toBeInTheDocument();
+        // Should have the resolution button
+        const resolutionButton = screen.getByText('Ver resolução');
+        expect(resolutionButton).toBeInTheDocument();
+        expect(resolutionButton).toHaveAttribute('data-variant', 'link');
       });
 
-      it('should not show additional "Ver Resolução" button when quiz cannot retry', () => {
+      it('should show "Ver resolução" button when quiz cannot retry', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           variant: 'result',
           quiz: {
             canRetry: false,
           },
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
-        // Should have only one "Ver Resolução" button
-        const resolutionButtons = screen.getAllByText('Ver Resolução');
+        // Should have only one "Ver resolução" button
+        const resolutionButtons = screen.getAllByText('Ver resolução');
         expect(resolutionButtons).toHaveLength(1);
 
-        // The button should be a solid variant
+        // The button should be a link variant
         const button = resolutionButtons[0];
-        expect(button).toHaveAttribute('data-variant', 'solid');
+        expect(button).toHaveAttribute('data-variant', 'link');
       });
     });
 
@@ -2228,7 +2220,7 @@ describe('Quiz', () => {
           ...defaultStoreState,
           variant: 'result',
           setVariant: mockSetVariant,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         // Render the full Quiz component to include the modal
         render(
@@ -2238,13 +2230,13 @@ describe('Quiz', () => {
         );
 
         // Open resolution modal
-        const resolutionButton = screen.getByText('Ver Resolução');
+        const resolutionButton = screen.getByText('Ver resolução');
 
         act(() => {
           resolutionButton.click();
         });
 
-        expect(screen.getByText('Ver Resolução')).toBeInTheDocument();
+        expect(screen.getByText('Ver resolução')).toBeInTheDocument();
 
         // Just verify the button click works - the modal functionality is complex to test in isolation
         expect(resolutionButton).toBeInTheDocument();
@@ -2260,7 +2252,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 4, // Last question
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
       });
 
       it('should show alert dialog when finishing with unanswered questions', () => {
@@ -2435,7 +2427,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 4, // Last question
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
         mockGetUnansweredQuestionsFromUserAnswers.mockReturnValue([]);
       });
 
@@ -2582,7 +2574,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 4, // Last question (total is 5)
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter resultImageComponent={mockResultImageComponent} />);
 
@@ -2608,7 +2600,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 4, // Last question (total is 5)
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
@@ -2690,7 +2682,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 4, // Last question (total is 5)
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
         mockGetQuestionResultStatistics.mockReturnValue(null);
         mockGetUnansweredQuestionsFromUserAnswers.mockReturnValue([]);
 

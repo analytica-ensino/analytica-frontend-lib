@@ -289,22 +289,14 @@ describe('useQuizStore', () => {
       expect(answeredQuestion?.optionId).toBe('opt1');
     });
 
-    it('should warn and return early when selectAnswer is called without userId set', () => {
+    it('should return early when selectAnswer is called without userId set', () => {
       const { result } = renderHook(() => useQuizStore());
-      const consoleSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {});
 
       act(() => {
         result.current.setQuiz(mockSimulado);
         // Don't set userId - it should be empty string by default
         result.current.selectAnswer('q1', 'opt1');
       });
-
-      // Verify that console.warn was called with the expected message
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'selectAnswer called before userId is set'
-      );
 
       // Verify that no user answer was created (since userId is falsy)
       const userAnswerItem = result.current.getUserAnswerByQuestionId('q1');
@@ -313,8 +305,6 @@ describe('useQuizStore', () => {
       // Verify that the question's answer was NOT updated (since the function returns early when userId is falsy)
       const currentQuestion = result.current.getCurrentQuestion();
       expect(currentQuestion?.answer).toBe(null);
-
-      consoleSpy.mockRestore();
     });
 
     it('should return early when selectAnswer is called with non-existent question', () => {
@@ -385,11 +375,8 @@ describe('useQuizStore', () => {
       expect(answerIds).not.toContain('opt1'); // Should not contain the previous single answer
     });
 
-    it('should warn and return early when selectMultipleAnswer is called without userId set', () => {
+    it('should return early when selectMultipleAnswer is called without userId set', () => {
       const { result } = renderHook(() => useQuizStore());
-      const consoleSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {});
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -397,16 +384,9 @@ describe('useQuizStore', () => {
         result.current.selectMultipleAnswer('q1', ['opt1', 'opt2']);
       });
 
-      // Verify that console.warn was called with the expected message
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'selectMultipleAnswer called before userId is set'
-      );
-
       // Verify that no user answers were created (since userId is falsy)
       const userAnswers = result.current.getUserAnswers();
       expect(userAnswers).toHaveLength(0);
-
-      consoleSpy.mockRestore();
     });
 
     it('should handle empty answerIds array in selectMultipleAnswer', () => {
@@ -3180,9 +3160,6 @@ describe('useQuizStore', () => {
   describe('skipQuestion userId validation Tests', () => {
     it('should return early when userId is not set in skipQuestion', () => {
       const { result } = renderHook(() => useQuizStore());
-      const consoleSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {});
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -3190,23 +3167,13 @@ describe('useQuizStore', () => {
         result.current.skipQuestion();
       });
 
-      // Verify that console.warn was called with the expected message
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'skipQuestion called before userId is set'
-      );
-
       // Verify that no user answer was created (since userId is falsy)
       const userAnswers = result.current.getUserAnswers();
       expect(userAnswers).toEqual([]);
-
-      consoleSpy.mockRestore();
     });
 
     it('should return early when userId is empty string in skipQuestion', () => {
       const { result } = renderHook(() => useQuizStore());
-      const consoleSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {});
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -3214,16 +3181,9 @@ describe('useQuizStore', () => {
         result.current.skipQuestion();
       });
 
-      // Verify that console.warn was called with the expected message
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'skipQuestion called before userId is set'
-      );
-
       // Verify that no user answer was created (since userId is empty)
       const userAnswers = result.current.getUserAnswers();
       expect(userAnswers).toEqual([]);
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -3288,9 +3248,6 @@ describe('useQuizStore', () => {
 
     it('should not change current question index when question does not exist in quiz', () => {
       const { result } = renderHook(() => useQuizStore());
-      const consoleSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {});
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -3301,11 +3258,6 @@ describe('useQuizStore', () => {
       });
 
       expect(result.current.currentQuestionIndex).toBe(0); // Should remain at initial index
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Question with id "non-existent-question" not found in active quiz'
-      );
-
-      consoleSpy.mockRestore();
     });
 
     it('should work with atividade quiz type', () => {
@@ -3667,11 +3619,8 @@ describe('useQuizStore', () => {
       expect(userAnswer?.questionType).toBe(QUESTION_TYPE.DISSERTATIVA);
     });
 
-    it('should warn when selectDissertativeAnswer is called for non-dissertative question', () => {
+    it('should return early when selectDissertativeAnswer is called for non-dissertative question', () => {
       const { result } = renderHook(() => useQuizStore());
-      const consoleSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {});
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -3679,11 +3628,9 @@ describe('useQuizStore', () => {
         result.current.selectDissertativeAnswer('q1', 'Resposta dissertativa');
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'selectDissertativeAnswer called for non-dissertative question'
-      );
-
-      consoleSpy.mockRestore();
+      // Verify that no answer was created (since question type doesn't match)
+      const currentAnswer = result.current.getCurrentAnswer();
+      expect(currentAnswer).toBeUndefined();
     });
 
     it('should return dissertative answer in getCurrentAnswer', () => {
@@ -3801,11 +3748,8 @@ describe('useQuizStore', () => {
       expect(userAnswer?.answerStatus).toBe(ANSWER_STATUS.PENDENTE_AVALIACAO);
     });
 
-    it('should warn when selectDissertativeAnswer is called without userId', () => {
+    it('should return early when selectDissertativeAnswer is called without userId', () => {
       const { result } = renderHook(() => useQuizStore());
-      const consoleSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {});
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -3816,18 +3760,14 @@ describe('useQuizStore', () => {
         );
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'selectDissertativeAnswer called before userId is set'
-      );
-
-      consoleSpy.mockRestore();
+      // Verify that no answer was created (since userId is not set)
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeNull();
     });
 
-    it('should handle selectDissertativeAnswer with empty userId', () => {
+    it('should return early when selectDissertativeAnswer with empty userId', () => {
       const { result } = renderHook(() => useQuizStore());
-      const consoleSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {});
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -3838,11 +3778,10 @@ describe('useQuizStore', () => {
         );
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'selectDissertativeAnswer called before userId is set'
-      );
-
-      consoleSpy.mockRestore();
+      // Verify that no answer was created (since userId is empty)
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeNull();
     });
 
     it('should handle selectDissertativeAnswer with non-existent question', () => {
