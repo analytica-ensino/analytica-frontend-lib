@@ -1105,6 +1105,8 @@ const VideoPlayer = ({
     ]
   );
 
+  const ariaLabelTitle = title ? `Video player: ${title}` : 'Video player';
+  const ariaLabelPlay = isPlaying ? 'Pause' : 'Play';
   return (
     <div className={cn('flex flex-col', className)}>
       {/* Integrated Header */}
@@ -1159,7 +1161,7 @@ const VideoPlayer = ({
             ? 'cursor-none group-hover:cursor-default'
             : 'cursor-default'
         )}
-        aria-label={title ? `Video player: ${title}` : 'Video player'}
+        aria-label={ariaLabelTitle}
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
         onTouchStart={handleMouseEnter}
@@ -1273,7 +1275,7 @@ const VideoPlayer = ({
                   )
                 }
                 onClick={togglePlayPause}
-                aria-label={isPlaying ? 'Pause' : 'Play'}
+                aria-label={ariaLabelPlay}
                 className="!bg-transparent !text-white hover:!bg-white/20"
               />
 
