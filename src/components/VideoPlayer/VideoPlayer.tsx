@@ -344,6 +344,9 @@ const VideoPlayer = ({
   const [showControls, setShowControls] = useState(true);
   const [hasCompleted, setHasCompleted] = useState(false);
   const [showCaptions, setShowCaptions] = useState(false);
+  const [subtitlesValidation, setSubtitlesValidation] = useState<
+    'idle' | 'validating' | 'valid' | 'invalid'
+  >('idle');
 
   // Reset completion flag when changing videos
   useEffect(() => {
@@ -795,15 +798,22 @@ const VideoPlayer = ({
    * Toggle captions visibility
    */
   const toggleCaptions = useCallback(() => {
-    if (!trackRef.current?.track || !subtitles) return;
+    if (
+      !trackRef.current?.track ||
+      !subtitles ||
+      subtitlesValidation !== 'valid'
+    )
+      return;
 
     const newShowCaptions = !showCaptions;
     setShowCaptions(newShowCaptions);
 
-    // Control track mode programmatically - only show if subtitles are available
+    // Control track mode programmatically - only show if subtitles are valid
     trackRef.current.track.mode =
-      newShowCaptions && subtitles ? 'showing' : 'hidden';
-  }, [showCaptions, subtitles]);
+      newShowCaptions && subtitles && subtitlesValidation === 'valid'
+        ? 'showing'
+        : 'hidden';
+  }, [showCaptions, subtitles, subtitlesValidation]);
 
   /**
    * Check video completion and fire callback
@@ -851,15 +861,74 @@ const VideoPlayer = ({
   }, []);
 
   /**
+   * Validate subtitles URL before showing the button
+   */
+  useEffect(() => {
+    const validateSubtitles = async () => {
+      // If no subtitles, mark as idle
+      if (!subtitles) {
+        setSubtitlesValidation('idle');
+        return;
+      }
+
+      // Start validation
+      setSubtitlesValidation('validating');
+
+      try {
+        // Check if it's a data URL (inline VTT)
+        if (subtitles.startsWith('data:')) {
+          setSubtitlesValidation('valid');
+          return;
+        }
+
+        // Fetch the subtitles file to validate it
+        const response = await fetch(subtitles, { method: 'HEAD' });
+
+        if (response.ok) {
+          // Optionally check content type
+          const contentType = response.headers.get('content-type');
+          const isValidType =
+            !contentType ||
+            contentType.includes('text/vtt') ||
+            contentType.includes('text/plain') ||
+            contentType.includes('application/octet-stream');
+
+          if (isValidType) {
+            setSubtitlesValidation('valid');
+          } else {
+            setSubtitlesValidation('invalid');
+            console.warn(
+              `Subtitles URL has invalid content type: ${contentType}`
+            );
+          }
+        } else {
+          setSubtitlesValidation('invalid');
+          console.warn(
+            `Subtitles URL returned status: ${response.status} ${response.statusText}`
+          );
+        }
+      } catch (error) {
+        // URL is not accessible or invalid
+        console.warn('Subtitles URL validation failed:', error);
+        setSubtitlesValidation('invalid');
+      }
+    };
+
+    validateSubtitles();
+  }, [subtitles]);
+
+  /**
    * Initialize track mode when track is available
    */
   useEffect(() => {
     if (trackRef.current?.track) {
       // Set initial mode based on showCaptions state and subtitle availability
       trackRef.current.track.mode =
-        showCaptions && subtitles ? 'showing' : 'hidden';
+        showCaptions && subtitles && subtitlesValidation === 'valid'
+          ? 'showing'
+          : 'hidden';
     }
-  }, [subtitles, showCaptions]);
+  }, [subtitles, showCaptions, subtitlesValidation]);
 
   /**
    * Handle visibility change and blur to pause video when losing focus
@@ -1090,10 +1159,16 @@ const VideoPlayer = ({
           <track
             ref={trackRef}
             kind="captions"
-            src={subtitles || 'data:text/vtt;charset=utf-8,WEBVTT'}
+            src={
+              subtitles && subtitlesValidation === 'valid'
+                ? subtitles
+                : 'data:text/vtt;charset=utf-8,WEBVTT'
+            }
             srcLang="pt-br"
             label={
-              subtitles ? 'Legendas em Português' : 'Sem legendas disponíveis'
+              subtitles && subtitlesValidation === 'valid'
+                ? 'Legendas em Português'
+                : 'Sem legendas disponíveis'
             }
             default={false}
           />
@@ -1188,8 +1263,8 @@ const VideoPlayer = ({
                 showSlider={!isUltraSmallMobile}
               />
 
-              {/* Captions */}
-              {subtitles && (
+              {/* Captions - Only show after validation is complete and valid */}
+              {subtitles && subtitlesValidation === 'valid' && (
                 <IconButton
                   icon={<ClosedCaptioning size={getIconSize()} />}
                   onClick={toggleCaptions}
