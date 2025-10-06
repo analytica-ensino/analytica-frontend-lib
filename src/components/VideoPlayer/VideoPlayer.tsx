@@ -1105,8 +1105,8 @@ const VideoPlayer = ({
     ]
   );
 
-  const ariaLabelTitle = title ? `Video player: ${title}` : 'Video player';
-  const ariaLabelPlay = isPlaying ? 'Pause' : 'Play';
+  const groupedSubTitleValid = subtitles && subtitlesValidation === 'valid';
+
   return (
     <div className={cn('flex flex-col', className)}>
       {/* Integrated Header */}
@@ -1161,7 +1161,7 @@ const VideoPlayer = ({
             ? 'cursor-none group-hover:cursor-default'
             : 'cursor-default'
         )}
-        aria-label={ariaLabelTitle}
+        aria-label={title ? `Video player: ${title}` : 'Video player'}
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
         onTouchStart={handleMouseEnter}
@@ -1186,13 +1186,13 @@ const VideoPlayer = ({
             ref={trackRef}
             kind="captions"
             src={
-              subtitles && subtitlesValidation === 'valid'
+              groupedSubTitleValid
                 ? subtitles
                 : 'data:text/vtt;charset=utf-8,WEBVTT'
             }
             srcLang="pt-br"
             label={
-              subtitles && subtitlesValidation === 'valid'
+              groupedSubTitleValid
                 ? 'Legendas em Português'
                 : 'Sem legendas disponíveis'
             }
@@ -1275,7 +1275,7 @@ const VideoPlayer = ({
                   )
                 }
                 onClick={togglePlayPause}
-                aria-label={ariaLabelPlay}
+                aria-label={isPlaying ? 'Pause' : 'Play'}
                 className="!bg-transparent !text-white hover:!bg-white/20"
               />
 
@@ -1290,7 +1290,7 @@ const VideoPlayer = ({
               />
 
               {/* Captions - Only show after validation is complete and valid */}
-              {subtitles && subtitlesValidation === 'valid' && (
+              {groupedSubTitleValid && (
                 <IconButton
                   icon={<ClosedCaptioning size={getIconSize()} />}
                   onClick={toggleCaptions}
