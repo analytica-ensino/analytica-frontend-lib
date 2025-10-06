@@ -1031,61 +1031,75 @@ const VideoPlayer = ({
   }, [showControls]);
 
   /**
+   * Seek video backward
+   */
+  const seekBackward = useCallback(() => {
+    if (videoRef.current) {
+      videoRef.current.currentTime -= 10;
+    }
+  }, []);
+
+  /**
+   * Seek video forward
+   */
+  const seekForward = useCallback(() => {
+    if (videoRef.current) {
+      videoRef.current.currentTime += 10;
+    }
+  }, []);
+
+  /**
+   * Increase volume
+   */
+  const increaseVolume = useCallback(() => {
+    handleVolumeChange(Math.min(100, volume * 100 + 10));
+  }, [handleVolumeChange, volume]);
+
+  /**
+   * Decrease volume
+   */
+  const decreaseVolume = useCallback(() => {
+    handleVolumeChange(Math.max(0, volume * 100 - 10));
+  }, [handleVolumeChange, volume]);
+
+  /**
    * Handle video element keyboard events
    */
   const handleVideoKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key) {
-        // Prevent bubbling to parent handlers to avoid double toggles
-        e.stopPropagation();
-        showControlsWithTimer();
-      }
+      if (!e.key) return;
 
-      switch (e.key) {
-        case ' ':
-        case 'Enter':
-          e.preventDefault();
-          togglePlayPause();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          if (videoRef.current) {
-            videoRef.current.currentTime -= 10;
-          }
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          if (videoRef.current) {
-            videoRef.current.currentTime += 10;
-          }
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          handleVolumeChange(Math.min(100, volume * 100 + 10));
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          handleVolumeChange(Math.max(0, volume * 100 - 10));
-          break;
-        case 'm':
-        case 'M':
-          e.preventDefault();
-          toggleMute();
-          break;
-        case 'f':
-        case 'F':
-          e.preventDefault();
-          toggleFullscreen();
-          break;
-        default:
-          break;
+      // Prevent bubbling to parent handlers to avoid double toggles
+      e.stopPropagation();
+      showControlsWithTimer();
+
+      // Map of key handlers for better maintainability and reduced complexity
+      const keyHandlers: Record<string, () => void> = {
+        ' ': togglePlayPause,
+        Enter: togglePlayPause,
+        ArrowLeft: seekBackward,
+        ArrowRight: seekForward,
+        ArrowUp: increaseVolume,
+        ArrowDown: decreaseVolume,
+        m: toggleMute,
+        M: toggleMute,
+        f: toggleFullscreen,
+        F: toggleFullscreen,
+      };
+
+      const handler = keyHandlers[e.key];
+      if (handler) {
+        e.preventDefault();
+        handler();
       }
     },
     [
       showControlsWithTimer,
       togglePlayPause,
-      handleVolumeChange,
-      volume,
+      seekBackward,
+      seekForward,
+      increaseVolume,
+      decreaseVolume,
       toggleMute,
       toggleFullscreen,
     ]
