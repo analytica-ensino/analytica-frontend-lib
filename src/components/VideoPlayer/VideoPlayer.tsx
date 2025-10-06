@@ -1074,7 +1074,7 @@ const VideoPlayer = ({
       showControlsWithTimer();
 
       // Map of key handlers for better maintainability and reduced complexity
-      const keyHandlers: Record<string, () => void> = {
+      const keyHandlers: Record<string, () => void | Promise<void>> = {
         ' ': togglePlayPause,
         Enter: togglePlayPause,
         ArrowLeft: seekBackward,
