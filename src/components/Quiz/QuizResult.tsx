@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, ReactNode, useEffect, useState } from 'react';
 import { CardResults, CardStatus } from '../Card/Card';
 import {
   ANSWER_STATUS,
@@ -120,17 +120,23 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
 
 const QuizResultHeaderTitle = forwardRef<
   HTMLDivElement,
-  { className?: string; showBadge?: boolean }
->(({ className, showBadge = true, ...props }, ref) => {
+  { className?: string; showBadge?: boolean; actionButton?: ReactNode }
+>(({ className, showBadge = true, actionButton, ...props }, ref) => {
   const { quiz } = useQuizStore();
   return (
     <div
       ref={ref}
-      className={cn('flex flex-row pt-4 justify-between', className)}
+      className={cn(
+        'flex flex-row pt-4 justify-between items-center',
+        className
+      )}
       {...props}
     >
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
-      {showBadge && <QuizBadge subtype={quiz?.subtype || undefined} />}
+      <div className="flex flex-row gap-3 items-center">
+        {actionButton}
+        {showBadge && <QuizBadge subtype={quiz?.subtype || undefined} />}
+      </div>
     </div>
   );
 });
