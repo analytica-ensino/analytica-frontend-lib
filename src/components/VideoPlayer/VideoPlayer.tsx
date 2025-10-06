@@ -861,6 +861,8 @@ const VideoPlayer = ({
    * Validate subtitles URL before showing the button
    */
   useEffect(() => {
+    const controller = new AbortController();
+
     const validateSubtitles = async () => {
       // If no subtitles, mark as idle
       if (!subtitles) {
@@ -879,7 +881,10 @@ const VideoPlayer = ({
         }
 
         // Fetch the subtitles file to validate it
-        const response = await fetch(subtitles, { method: 'HEAD' });
+        const response = await fetch(subtitles, {
+          method: 'HEAD',
+          signal: controller.signal,
+        });
 
         if (response.ok) {
           // Optionally check content type
@@ -905,13 +910,21 @@ const VideoPlayer = ({
           );
         }
       } catch (error) {
-        // URL is not accessible or invalid
+        // Ignore AbortError - it's expected when cleaning up
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
         console.warn('Subtitles URL validation failed:', error);
         setSubtitlesValidation('invalid');
       }
     };
 
     validateSubtitles();
+
+    // Cleanup: abort ongoing fetch to prevent stale updates
+    return () => {
+      controller.abort();
+    };
   }, [subtitles]);
 
   /**

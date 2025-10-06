@@ -198,6 +198,22 @@ describe('VideoPlayer', () => {
   });
 
   describe('Rendering', () => {
+    let originalFetch: typeof globalThis.fetch;
+
+    beforeEach(() => {
+      // Save original fetch before each test
+      originalFetch = globalThis.fetch;
+    });
+
+    afterEach(() => {
+      // Restore original fetch after each test
+      if (originalFetch === undefined) {
+        delete (globalThis as { fetch?: typeof fetch }).fetch;
+      } else {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
     it('should render video element with src', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const video = container.querySelector('video');
@@ -256,9 +272,6 @@ describe('VideoPlayer', () => {
       const track = container.querySelector('track');
       expect(track).toHaveAttribute('src', subtitlesUrl);
       expect(track).toHaveAttribute('kind', 'captions');
-
-      // Clean up
-      jest.restoreAllMocks();
     });
 
     it('should render default subtitles placeholder when not provided', () => {
@@ -884,6 +897,22 @@ describe('VideoPlayer', () => {
   });
 
   describe('Captions functionality', () => {
+    let originalFetch: typeof globalThis.fetch;
+
+    beforeEach(() => {
+      // Save original fetch before each test
+      originalFetch = globalThis.fetch;
+    });
+
+    afterEach(() => {
+      // Restore original fetch after each test
+      if (originalFetch === undefined) {
+        delete (globalThis as { fetch?: typeof fetch }).fetch;
+      } else {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
     it('should toggle captions when button is clicked', async () => {
       // Mock fetch to simulate valid subtitle file
       globalThis.fetch = jest.fn().mockResolvedValue({
@@ -915,9 +944,6 @@ describe('VideoPlayer', () => {
       fireEvent.click(captionsButton);
 
       expect(track.track.mode).toBeDefined();
-
-      // Clean up
-      jest.restoreAllMocks();
     });
 
     it('should hide captions when clicked again', async () => {
@@ -955,9 +981,6 @@ describe('VideoPlayer', () => {
       fireEvent.click(hideCaptionsButton);
 
       expect(track.track.mode).toBeDefined();
-
-      // Clean up
-      jest.restoreAllMocks();
     });
 
     it('should handle captions toggle when track is not available', async () => {
@@ -992,9 +1015,6 @@ describe('VideoPlayer', () => {
       expect(() => {
         fireEvent.click(captionsButton);
       }).not.toThrow();
-
-      // Clean up
-      jest.restoreAllMocks();
     });
 
     it('should handle captions toggle when trackRef.current is null', async () => {
@@ -1028,9 +1048,6 @@ describe('VideoPlayer', () => {
       expect(() => {
         fireEvent.click(captionsButton);
       }).not.toThrow();
-
-      // Clean up
-      jest.restoreAllMocks();
     });
   });
 
@@ -1493,6 +1510,22 @@ describe('VideoPlayer', () => {
   });
 
   describe('Enhanced captions functionality', () => {
+    let originalFetch: typeof globalThis.fetch;
+
+    beforeEach(() => {
+      // Save original fetch before each test
+      originalFetch = globalThis.fetch;
+    });
+
+    afterEach(() => {
+      // Restore original fetch after each test
+      if (originalFetch === undefined) {
+        delete (globalThis as { fetch?: typeof fetch }).fetch;
+      } else {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
     it('should handle captions toggle with proper track mode setting', async () => {
       // Mock fetch to simulate valid subtitle file
       globalThis.fetch = jest.fn().mockResolvedValue({
@@ -1536,13 +1569,26 @@ describe('VideoPlayer', () => {
 
       // This should also cover the captions toggle logic
       expect(track.track.mode).toBeDefined();
-
-      // Clean up
-      jest.restoreAllMocks();
     });
   });
 
   describe('Subtitle validation', () => {
+    let originalFetch: typeof globalThis.fetch;
+
+    beforeEach(() => {
+      // Save original fetch before each test
+      originalFetch = globalThis.fetch;
+    });
+
+    afterEach(() => {
+      // Restore original fetch after each test
+      if (originalFetch === undefined) {
+        delete (globalThis as { fetch?: typeof fetch }).fetch;
+      } else {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
     it('should validate data URL subtitles as valid', async () => {
       const dataUrl = 'data:text/vtt;charset=utf-8,WEBVTT';
       const { container } = render(
@@ -1599,9 +1645,7 @@ describe('VideoPlayer', () => {
         expect.stringContaining('invalid content type')
       );
 
-      // Clean up
       consoleWarnSpy.mockRestore();
-      jest.restoreAllMocks();
     });
 
     it('should mark subtitles as invalid when fetch returns error status', async () => {
@@ -1637,9 +1681,7 @@ describe('VideoPlayer', () => {
         expect.stringContaining('404 Not Found')
       );
 
-      // Clean up
       consoleWarnSpy.mockRestore();
-      jest.restoreAllMocks();
     });
 
     it('should mark subtitles as invalid when fetch throws error', async () => {
@@ -1674,9 +1716,7 @@ describe('VideoPlayer', () => {
         expect.any(Error)
       );
 
-      // Clean up
       consoleWarnSpy.mockRestore();
-      jest.restoreAllMocks();
     });
 
     it('should accept subtitles with no content-type header', async () => {
@@ -1705,9 +1745,6 @@ describe('VideoPlayer', () => {
         name: /show captions/i,
       });
       expect(captionsButton).toBeInTheDocument();
-
-      // Clean up
-      jest.restoreAllMocks();
     });
 
     it('should accept subtitles with text/plain content-type', async () => {
@@ -1736,9 +1773,6 @@ describe('VideoPlayer', () => {
         name: /show captions/i,
       });
       expect(captionsButton).toBeInTheDocument();
-
-      // Clean up
-      jest.restoreAllMocks();
     });
 
     it('should accept subtitles with application/octet-stream content-type', async () => {
@@ -1768,9 +1802,6 @@ describe('VideoPlayer', () => {
         name: /show captions/i,
       });
       expect(captionsButton).toBeInTheDocument();
-
-      // Clean up
-      jest.restoreAllMocks();
     });
   });
 
