@@ -387,9 +387,11 @@ const QuizListResult = forwardRef<
 const QuizListResultByMateria = ({
   subject,
   onQuestionClick,
+  subjectName,
 }: {
   subject: string;
   onQuestionClick: (question: Question) => void;
+  subjectName?: string;
 }) => {
   const { getQuestionsGroupedBySubject, getQuestionIndex } = useQuizStore();
   const groupedQuestions = getQuestionsGroupedBySubject();
@@ -403,7 +405,8 @@ const QuizListResultByMateria = ({
     <div className="flex flex-col">
       <div className="flex flex-row pt-4 justify-between">
         <p className="text-text-950 font-bold text-2xl">
-          {answeredQuestions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ??
+          {subjectName ||
+            formattedQuestions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ||
             'Sem matéria'}
         </p>
       </div>
