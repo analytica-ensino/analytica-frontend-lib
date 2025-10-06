@@ -1,4 +1,4 @@
-import { forwardRef, ReactNode, useEffect, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 import { CardResults, CardStatus } from '../Card/Card';
 import {
   ANSWER_STATUS,
@@ -13,6 +13,8 @@ import ProgressBar from '../ProgressBar/ProgressBar';
 import { cn, getSubjectColorWithOpacity } from '../../utils/utils';
 import Badge from '../Badge/Badge';
 import { useTheme } from '../../hooks/useTheme';
+import { getTypeLabel } from './Quiz';
+import Button from '../Button/Button';
 
 const QuizBadge = ({
   subtype,
@@ -120,8 +122,8 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
 
 const QuizResultHeaderTitle = forwardRef<
   HTMLDivElement,
-  { className?: string; showBadge?: boolean; actionButton?: ReactNode }
->(({ className, showBadge = true, actionButton, ...props }, ref) => {
+  { className?: string; showBadge?: boolean; onRepeat?: () => void }
+>(({ className, showBadge = true, onRepeat, ...props }, ref) => {
   const { quiz } = useQuizStore();
   return (
     <div
@@ -134,7 +136,18 @@ const QuizResultHeaderTitle = forwardRef<
     >
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
       <div className="flex flex-row gap-3 items-center">
-        {actionButton}
+        {onRepeat && quiz?.canRetry && (
+          <Button
+            variant="solid"
+            action="primary"
+            size="medium"
+            onClick={() => {
+              onRepeat?.();
+            }}
+          >
+            {`Repetir ${getTypeLabel(quiz.type)}`}
+          </Button>
+        )}
         {showBadge && <QuizBadge subtype={quiz?.subtype || undefined} />}
       </div>
     </div>
