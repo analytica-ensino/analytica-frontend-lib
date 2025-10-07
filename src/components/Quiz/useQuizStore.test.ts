@@ -153,6 +153,55 @@ const mockQuestionary = {
   questions: [mockQuestion1, mockQuestion2],
 };
 
+// Helper function to avoid nested function violations (S2004)
+const renderQuizStoreHook = () => renderHook(() => useQuizStore());
+
+/**
+ * Helper function to set current question result without excessive nesting
+ * @param result - The hook result
+ * @param currentQuestionResult - The question result to set
+ */
+const setCurrentQuestionResultAction = (
+  result: ReturnType<typeof renderQuizStoreHook>['result'],
+  currentQuestionResult: QuestionResult['answers'] | null
+) => {
+  result.current.setCurrentQuestionResult(
+    currentQuestionResult as QuestionResult['answers']
+  );
+};
+
+/**
+ * Helper function to set questions result without excessive nesting
+ * @param result - The hook result
+ * @param questionResult - The question result to set
+ */
+const setQuestionsResultAction = (
+  result: ReturnType<typeof renderQuizStoreHook>['result'],
+  questionResult: QuestionResult | null
+) => {
+  result.current.setQuestionsResult(questionResult as QuestionResult);
+};
+
+/**
+ * Helper function to find answer by question ID without excessive nesting
+ * @param answer - The answer object
+ * @param questionId - The question ID to match
+ */
+const answerMatchesQuestionId = (
+  answer: { questionId: string },
+  questionId: string
+) => answer.questionId === questionId;
+
+/**
+ * Helper function to find answer by question ID
+ * @param answers - Array of user answers
+ * @param questionId - The question ID to find
+ */
+const findAnswerByQuestionId = (
+  answers: ReturnType<typeof useQuizStore.getState>['userAnswers'],
+  questionId: string
+) => answers.find((answer) => answerMatchesQuestionId(answer, questionId));
+
 describe('useQuizStore', () => {
   beforeEach(() => {
     // Reset store before each test
@@ -163,7 +212,7 @@ describe('useQuizStore', () => {
 
   describe('Initial State', () => {
     it('should have correct initial state', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       expect(result.current.currentQuestionIndex).toBe(0);
       expect(result.current.selectedAnswers).toEqual({});
@@ -177,7 +226,7 @@ describe('useQuizStore', () => {
 
   describe('Setters', () => {
     it('should set quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -187,7 +236,7 @@ describe('useQuizStore', () => {
     });
 
     it('should set userId', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -205,7 +254,7 @@ describe('useQuizStore', () => {
     });
 
     it('should go to next question', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.goToNextQuestion();
@@ -215,7 +264,7 @@ describe('useQuizStore', () => {
     });
 
     it('should not go beyond last question', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.goToNextQuestion(); // Go to question 1
@@ -226,7 +275,7 @@ describe('useQuizStore', () => {
     });
 
     it('should go to previous question', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.goToNextQuestion(); // Go to question 1
@@ -237,7 +286,7 @@ describe('useQuizStore', () => {
     });
 
     it('should not go before first question', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.goToPreviousQuestion(); // Try to go before first
@@ -247,7 +296,7 @@ describe('useQuizStore', () => {
     });
 
     it('should go to specific question', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.goToQuestion(1);
@@ -257,7 +306,7 @@ describe('useQuizStore', () => {
     });
 
     it('should not go to invalid question index', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.goToQuestion(5); // Invalid index
@@ -275,7 +324,7 @@ describe('useQuizStore', () => {
     });
 
     it('should select answer', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -290,7 +339,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return early when selectAnswer is called without userId set', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -308,7 +357,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return early when selectAnswer is called with non-existent question', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -328,7 +377,7 @@ describe('useQuizStore', () => {
     });
 
     it('should select multiple answers', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -350,7 +399,7 @@ describe('useQuizStore', () => {
     });
 
     it('should replace existing answers when selecting multiple answers for the same question', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -376,7 +425,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return early when selectMultipleAnswer is called without userId set', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -390,7 +439,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle empty answerIds array in selectMultipleAnswer', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -415,7 +464,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return early when selectMultipleAnswer is called with non-existent question', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -438,7 +487,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return early when selectMultipleAnswer is called without active quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         // Explicitly reset quiz state and clear all quiz types
@@ -461,7 +510,7 @@ describe('useQuizStore', () => {
     });
 
     it('should skip question', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -479,7 +528,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle existingAnswerIndex logic when skipping a previously answered question', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -516,7 +565,7 @@ describe('useQuizStore', () => {
     });
 
     it('should remove from skipped when answering', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -530,7 +579,7 @@ describe('useQuizStore', () => {
     });
 
     it('should start quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.startQuiz();
@@ -541,7 +590,7 @@ describe('useQuizStore', () => {
     });
 
     it('should finish quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.finishQuiz();
@@ -551,7 +600,7 @@ describe('useQuizStore', () => {
     });
 
     it('should reset quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -583,7 +632,7 @@ describe('useQuizStore', () => {
     });
 
     it('should update time', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.updateTime(120);
@@ -593,7 +642,7 @@ describe('useQuizStore', () => {
     });
 
     it('should start timer when starting quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.startQuiz();
@@ -611,7 +660,7 @@ describe('useQuizStore', () => {
     });
 
     it('should stop timer when finishing quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.startQuiz();
@@ -631,7 +680,7 @@ describe('useQuizStore', () => {
     });
 
     it('should stop timer when resetting quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.startQuiz();
@@ -652,7 +701,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle timer lifecycle (start, stop, restart, finish, reset)', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       // Start timer
       act(() => {
@@ -691,7 +740,7 @@ describe('useQuizStore', () => {
     });
 
     it('should format time correctly with timer integration', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.startQuiz();
@@ -704,7 +753,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle timer with long duration', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.startQuiz();
@@ -718,7 +767,7 @@ describe('useQuizStore', () => {
     });
 
     it('should clear existing timer interval when starting new timer', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       // Start first timer
       act(() => {
@@ -739,7 +788,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle multiple timer starts without clearing previous intervals', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       // Start timer multiple times
       act(() => {
@@ -762,7 +811,7 @@ describe('useQuizStore', () => {
     });
 
     it('should get current question', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const currentQuestion = result.current.getCurrentQuestion();
 
@@ -770,7 +819,7 @@ describe('useQuizStore', () => {
     });
 
     it('should get total questions', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const total = result.current.getTotalQuestions();
 
@@ -778,7 +827,7 @@ describe('useQuizStore', () => {
     });
 
     it('should get answered questions count', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -791,7 +840,7 @@ describe('useQuizStore', () => {
     });
 
     it('should get unanswered questions', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -811,12 +860,12 @@ describe('useQuizStore', () => {
         });
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       expect(result.current.getUnansweredQuestions()).toEqual([]);
     });
 
     it('should correctly identify answered questions in getUnansweredQuestions', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -831,7 +880,7 @@ describe('useQuizStore', () => {
     });
 
     it('should correctly identify skipped questions in getUnansweredQuestions', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -846,7 +895,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return all questions when none are answered or skipped in getUnansweredQuestions', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -861,7 +910,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle questions with optionId set to non-null in getUnansweredQuestions', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -890,7 +939,7 @@ describe('useQuizStore', () => {
         questions: [mockDissertativeQuestion, mockQuestion2],
       };
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -908,7 +957,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle questions with both optionId and answer null (skipped) in getUnansweredQuestions', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -937,7 +986,7 @@ describe('useQuizStore', () => {
         questions: [mockQuestion1, mockQuestion2, mockQuestion3],
       };
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithThreeQuestions);
@@ -957,7 +1006,7 @@ describe('useQuizStore', () => {
     });
 
     it('should get skipped questions count', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -971,7 +1020,7 @@ describe('useQuizStore', () => {
     });
 
     it('should get progress percentage', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -984,7 +1033,7 @@ describe('useQuizStore', () => {
     });
 
     it('should check if question is answered', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -997,7 +1046,7 @@ describe('useQuizStore', () => {
 
     // Additional comprehensive tests for isQuestionAnswered
     it('should return false when no quiz is set', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         // Ensure no quiz is set
@@ -1011,7 +1060,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return false when quiz is null', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         // Set quiz to null explicitly
@@ -1024,7 +1073,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return false for non-existent question ID', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1035,7 +1084,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return false for question with null answerKey', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1047,7 +1096,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return true for question with valid answerKey', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1060,7 +1109,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return true for question with empty string answerKey', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1091,7 +1140,7 @@ describe('useQuizStore', () => {
         ],
       };
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockAtividade);
@@ -1123,7 +1172,7 @@ describe('useQuizStore', () => {
         ],
       };
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockQuestionary);
@@ -1136,7 +1185,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle multiple answered questions', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1150,7 +1199,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle question with answerKey set to null after being answered', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1163,7 +1212,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle question with answerKey set to empty string', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1176,7 +1225,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle case sensitivity in question ID', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1199,7 +1248,7 @@ describe('useQuizStore', () => {
         questions: [questionWithSpecialChars, mockQuestion2],
       };
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(simuladoWithSpecialChars);
@@ -1223,7 +1272,7 @@ describe('useQuizStore', () => {
         questions: [questionWithLongId, mockQuestion2],
       };
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(simuladoWithLongId);
@@ -1245,7 +1294,7 @@ describe('useQuizStore', () => {
         questions: [questionWithNumericId, mockQuestion2],
       };
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(simuladoWithNumericId);
@@ -1260,7 +1309,7 @@ describe('useQuizStore', () => {
     });
 
     it('should check if question is skipped', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1273,7 +1322,7 @@ describe('useQuizStore', () => {
     });
 
     it('should get current answer', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -1286,7 +1335,7 @@ describe('useQuizStore', () => {
     });
 
     it('should get quiz title', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const title = result.current.getQuizTitle();
 
@@ -1294,7 +1343,7 @@ describe('useQuizStore', () => {
     });
 
     it('should format time correctly', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       expect(result.current.formatTime(65)).toBe('01:05');
       expect(result.current.formatTime(125)).toBe('02:05');
@@ -1302,7 +1351,7 @@ describe('useQuizStore', () => {
     });
 
     it('should get user answers', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1318,7 +1367,7 @@ describe('useQuizStore', () => {
     });
 
     it('should get unanswered questions from user answers', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1332,7 +1381,7 @@ describe('useQuizStore', () => {
     });
 
     it('should correctly identify answered questions with optionId in getUnansweredQuestionsFromUserAnswers', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1359,7 +1408,7 @@ describe('useQuizStore', () => {
         questions: [mockDissertativeQuestion, mockQuestion2],
       };
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -1377,7 +1426,7 @@ describe('useQuizStore', () => {
     });
 
     it('should include skipped questions as unanswered in getUnansweredQuestionsFromUserAnswers', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1393,7 +1442,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle questions with no userAnswer in getUnansweredQuestionsFromUserAnswers', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1408,7 +1457,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle questions with userAnswer but both optionId and answer null in getUnansweredQuestionsFromUserAnswers', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1437,7 +1486,7 @@ describe('useQuizStore', () => {
         questions: [mockQuestion1, mockQuestion2, mockQuestion3],
       };
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithThreeQuestions);
@@ -1457,7 +1506,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return empty array when all questions are answered in getUnansweredQuestionsFromUserAnswers', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -1474,7 +1523,7 @@ describe('useQuizStore', () => {
     });
 
     it('should get questions grouped by subject', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const grouped = result.current.getQuestionsGroupedBySubject();
 
@@ -1500,7 +1549,7 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuiz(simuladoWithQuestionWithoutMatrix);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const grouped = result.current.getQuestionsGroupedBySubject();
 
       expect(grouped).toHaveProperty('Sem matéria');
@@ -1508,7 +1557,7 @@ describe('useQuizStore', () => {
     });
 
     it('should get questions grouped by subject with result variant', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const mockQuestionResultForGrouping: QuestionResult = {
         answers: [
@@ -1653,7 +1702,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle questions without knowledge matrix in result variant', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const mockQuestionResultWithoutMatrix: QuestionResult = {
         answers: [
@@ -1705,7 +1754,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return empty object when no question result is set in result variant', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setVariant('result');
@@ -1718,7 +1767,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return empty object when question result is null in result variant', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setVariant('result');
@@ -1731,7 +1780,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle mixed subjects correctly in result variant', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const mockQuestionResultMixed: QuestionResult = {
         answers: [
@@ -1916,14 +1965,14 @@ describe('useQuizStore', () => {
         });
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const allCurrentAnswer = result.current.getAllCurrentAnswer();
 
       expect(allCurrentAnswer).toBeUndefined();
     });
 
     it('should return empty array when current question has no user answers', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const allCurrentAnswer = result.current.getAllCurrentAnswer();
 
@@ -1931,7 +1980,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return user answers for current question when answers exist', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -1946,7 +1995,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return multiple user answers for current question when multiple answers exist', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -1967,7 +2016,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return skipped answer for current question when question is skipped', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -1983,7 +2032,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return answers for different current question when navigating', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -2000,7 +2049,7 @@ describe('useQuizStore', () => {
     });
 
     it('should not return answers for other questions when on current question', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -2042,7 +2091,7 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuiz(mockAtividade);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -2077,7 +2126,7 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuiz(mockQuestionary);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -2092,7 +2141,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle case sensitivity in question ID matching', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -2121,7 +2170,7 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuiz(simuladoWithSpecialChars);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -2136,7 +2185,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return empty array when current question exists but has no matching user answers', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -2151,7 +2200,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle multiple answers for the same question with different optionIds', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -2184,7 +2233,7 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuiz(simuladoWithLongId);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -2213,7 +2262,7 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuiz(simuladoWithNumericId);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -2236,7 +2285,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return 0% when no questions are answered', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const progress = result.current.getProgress();
 
@@ -2244,7 +2293,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return 50% when one out of two questions is answered', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -2257,7 +2306,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return 100% when all questions are answered', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -2291,7 +2340,7 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuiz(emptySimulado);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const progress = result.current.getProgress();
 
       expect(progress).toBe(0);
@@ -2305,7 +2354,7 @@ describe('useQuizStore', () => {
         });
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const progress = result.current.getProgress();
 
       expect(progress).toBe(0);
@@ -2322,7 +2371,7 @@ describe('useQuizStore', () => {
         });
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       expect(result.current.getCurrentQuestion()).toBeNull();
       expect(result.current.getTotalQuestions()).toBe(0);
@@ -2336,7 +2385,7 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuiz(mockSimulado);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setUserId('test-user-id');
@@ -2354,7 +2403,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle question not found in addUserAnswer', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -2375,7 +2424,7 @@ describe('useQuizStore', () => {
         });
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       expect(result.current.getCurrentAnswer()).toBeUndefined();
     });
 
@@ -2387,7 +2436,7 @@ describe('useQuizStore', () => {
         });
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       expect(result.current.getUnansweredQuestionsFromUserAnswers()).toEqual(
         []
       );
@@ -2398,7 +2447,7 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuiz(mockSimulado);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const grouped = result.current.getQuestionsGroupedBySubject();
 
       expect(grouped).toHaveProperty('algebra');
@@ -2415,7 +2464,7 @@ describe('useQuizStore', () => {
         });
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       expect(result.current.getQuestionsGroupedBySubject()).toEqual({});
     });
 
@@ -2427,7 +2476,7 @@ describe('useQuizStore', () => {
         });
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.addUserAnswer('invalid-id', 'option');
@@ -2476,7 +2525,7 @@ describe('useQuizStore', () => {
         ],
       };
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       // Test simulated quiz
       act(() => {
@@ -2511,7 +2560,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle scenarios when no quiz is defined', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         // Ensure no quiz is set
@@ -2529,7 +2578,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return null when no quiz is set in skipQuestion', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         // Ensure no quiz is set
@@ -2557,7 +2606,7 @@ describe('useQuizStore', () => {
     });
 
     it('should set minute callback', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const mockCallback = jest.fn();
 
       act(() => {
@@ -2568,7 +2617,7 @@ describe('useQuizStore', () => {
     });
 
     it('should clear minute callback when set to null', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const mockCallback = jest.fn();
 
       act(() => {
@@ -2580,7 +2629,7 @@ describe('useQuizStore', () => {
     });
 
     it('should start minute callback when starting quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const mockCallback = jest.fn();
 
       act(() => {
@@ -2599,7 +2648,7 @@ describe('useQuizStore', () => {
     });
 
     it('should stop minute callback when finishing quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const mockCallback = jest.fn();
 
       act(() => {
@@ -2619,7 +2668,7 @@ describe('useQuizStore', () => {
     });
 
     it('should stop minute callback when resetting quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const mockCallback = jest.fn();
 
       act(() => {
@@ -2641,7 +2690,7 @@ describe('useQuizStore', () => {
     });
 
     it('should not start minute callback if no callback is set', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.startQuiz();
@@ -2660,7 +2709,7 @@ describe('useQuizStore', () => {
     });
 
     it('should not start minute callback if quiz is finished', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const mockCallback = jest.fn();
 
       act(() => {
@@ -2680,7 +2729,7 @@ describe('useQuizStore', () => {
     });
 
     it('should call callback multiple times for multiple minutes', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const mockCallback = jest.fn();
 
       act(() => {
@@ -2697,7 +2746,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle callback changes during quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const mockCallback1 = jest.fn();
       const mockCallback2 = jest.fn();
 
@@ -2728,7 +2777,7 @@ describe('useQuizStore', () => {
     });
 
     it('should stop minute callback when callback is removed during quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const mockCallback = jest.fn();
 
       act(() => {
@@ -2757,7 +2806,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle multiple startMinuteCallback calls', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const mockCallback = jest.fn();
 
       act(() => {
@@ -2776,7 +2825,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle stopMinuteCallback when no callback is running', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       // Should not throw error when stopping non-existent callback
       act(() => {
@@ -2788,6 +2837,63 @@ describe('useQuizStore', () => {
   });
 
   describe('User Answers Methods (Lines 544-557)', () => {
+    // Shared helper functions to avoid nested function violations (S2004) and duplicated functions (S4144)
+    const setupUserAndSelectAnswer = (
+      result: ReturnType<typeof renderQuizStoreHook>['result']
+    ) => {
+      result.current.setUserId('test-user-id');
+      result.current.selectAnswer('q1', 'opt1');
+    };
+
+    const setupQuizAndSkipQuestion = (
+      result: ReturnType<typeof renderQuizStoreHook>['result']
+    ) => {
+      result.current.setQuiz(mockSimulado);
+      result.current.setUserId('test-user-id');
+      result.current.skipQuestion();
+    };
+
+    const setupMultipleQuestionsWithStatuses = (
+      result: ReturnType<typeof renderQuizStoreHook>['result']
+    ) => {
+      result.current.setUserId('test-user-id');
+      result.current.selectAnswer('q1', 'opt1'); // Answered
+      result.current.skipQuestion(); // Skip current question (q1 again, should update)
+      result.current.goToNextQuestion(); // Go to q2
+      result.current.skipQuestion(); // Skip q2
+    };
+
+    const setupUserAnswersForActivity = (
+      result: ReturnType<typeof renderQuizStoreHook>['result']
+    ) => {
+      result.current.setUserId('test-user-id');
+      result.current.selectAnswer('q1', 'opt1');
+      result.current.goToNextQuestion();
+      result.current.skipQuestion();
+    };
+
+    const setupQuizOnly = (
+      result: ReturnType<typeof renderQuizStoreHook>['result']
+    ) => {
+      result.current.setQuiz(mockSimulado);
+    };
+
+    const setupUserQuizAndSelectAnswer = (
+      result: ReturnType<typeof renderQuizStoreHook>['result']
+    ) => {
+      result.current.setUserId('test-user-id');
+      result.current.setQuiz(mockSimulado);
+      result.current.selectAnswer('q1', 'opt1');
+    };
+
+    const setupUserQuizAndSkip = (
+      result: ReturnType<typeof renderQuizStoreHook>['result']
+    ) => {
+      result.current.setUserId('test-user-id');
+      result.current.setQuiz(mockSimulado);
+      result.current.skipQuestion(); // This creates an answer with null value
+    };
+
     beforeEach(() => {
       act(() => {
         useQuizStore.getState().setQuiz(mockSimulado);
@@ -2796,12 +2902,9 @@ describe('useQuizStore', () => {
 
     describe('getUserAnswerByQuestionId', () => {
       it('should return user answer when question is answered', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setUserId('test-user-id');
-          result.current.selectAnswer('q1', 'opt1');
-        });
+        act(setupUserAndSelectAnswer.bind(null, result));
 
         const userAnswer = result.current.getUserAnswerByQuestionId('q1');
         expect(userAnswer).not.toBeNull();
@@ -2811,13 +2914,9 @@ describe('useQuizStore', () => {
       });
 
       it('should return user answer when question is skipped', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuiz(mockSimulado);
-          result.current.setUserId('test-user-id');
-          result.current.skipQuestion();
-        });
+        act(setupQuizAndSkipQuestion.bind(null, result));
 
         const userAnswer = result.current.getUserAnswerByQuestionId('q1');
         expect(userAnswer).not.toBeNull();
@@ -2827,14 +2926,14 @@ describe('useQuizStore', () => {
       });
 
       it('should return null when question is not answered', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const userAnswer = result.current.getUserAnswerByQuestionId('q1');
         expect(userAnswer).toBeNull();
       });
 
       it('should return null for non-existent question ID', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const userAnswer =
           result.current.getUserAnswerByQuestionId('nonexistent');
@@ -2844,12 +2943,9 @@ describe('useQuizStore', () => {
 
     describe('isQuestionAnsweredByUserAnswers', () => {
       it('should return true when question is answered', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setUserId('test-user-id');
-          result.current.selectAnswer('q1', 'opt1');
-        });
+        act(setupUserAndSelectAnswer.bind(null, result));
 
         expect(result.current.isQuestionAnsweredByUserAnswers('q1')).toBe(true);
       });
@@ -2857,12 +2953,9 @@ describe('useQuizStore', () => {
 
     describe('getQuestionStatusFromUserAnswers', () => {
       it('should return answered when question is answered', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setUserId('test-user-id');
-          result.current.selectAnswer('q1', 'opt1');
-        });
+        act(setupUserAndSelectAnswer.bind(null, result));
 
         expect(result.current.getQuestionStatusFromUserAnswers('q1')).toBe(
           'answered'
@@ -2870,7 +2963,7 @@ describe('useQuizStore', () => {
       });
 
       it('should return unanswered when question is not answered', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         expect(result.current.getQuestionStatusFromUserAnswers('q1')).toBe(
           'unanswered'
@@ -2878,13 +2971,9 @@ describe('useQuizStore', () => {
       });
 
       it('should return skipped when question is skipped', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuiz(mockSimulado);
-          result.current.setUserId('test-user-id');
-          result.current.skipQuestion();
-        });
+        act(setupQuizAndSkipQuestion.bind(null, result));
 
         expect(result.current.getQuestionStatusFromUserAnswers('q1')).toBe(
           'skipped'
@@ -2892,7 +2981,7 @@ describe('useQuizStore', () => {
       });
 
       it('should return unanswered for non-existent question ID', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         expect(
           result.current.getQuestionStatusFromUserAnswers('nonexistent')
@@ -2900,15 +2989,9 @@ describe('useQuizStore', () => {
       });
 
       it('should handle multiple questions with different statuses', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setUserId('test-user-id');
-          result.current.selectAnswer('q1', 'opt1'); // Answered
-          result.current.skipQuestion(); // Skip current question (q1 again, should update)
-          result.current.goToNextQuestion(); // Go to q2
-          result.current.skipQuestion(); // Skip q2
-        });
+        act(setupMultipleQuestionsWithStatuses.bind(null, result));
 
         expect(result.current.getQuestionStatusFromUserAnswers('q1')).toBe(
           'skipped'
@@ -2921,43 +3004,31 @@ describe('useQuizStore', () => {
 
     describe('getUserAnswersForActivity', () => {
       it('should return all user answers for the activity', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setUserId('test-user-id');
-          result.current.selectAnswer('q1', 'opt1');
-          result.current.goToNextQuestion();
-          result.current.skipQuestion();
-        });
+        act(setupUserAnswersForActivity.bind(null, result));
 
         const userAnswers = result.current.getUserAnswersForActivity();
         expect(userAnswers).toHaveLength(2);
 
-        const q1Answer = userAnswers.find(
-          (answer) => answer.questionId === 'q1'
-        );
-        const q2Answer = userAnswers.find(
-          (answer) => answer.questionId === 'q2'
-        );
+        const q1Answer = findAnswerByQuestionId(userAnswers, 'q1');
+        const q2Answer = findAnswerByQuestionId(userAnswers, 'q2');
 
         expect(q1Answer?.optionId).toBe('opt1');
         expect(q2Answer?.optionId).toBe(null);
       });
 
       it('should return empty array when no answers are given', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const userAnswers = result.current.getUserAnswersForActivity();
         expect(userAnswers).toHaveLength(0);
       });
 
       it('should return user answers with correct structure', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setUserId('test-user-id');
-          result.current.selectAnswer('q1', 'opt1');
-        });
+        act(setupUserAndSelectAnswer.bind(null, result));
 
         const userAnswers = result.current.getUserAnswersForActivity();
         expect(userAnswers).toHaveLength(1);
@@ -2975,11 +3046,9 @@ describe('useQuizStore', () => {
       });
 
       it('should return false when no answer is found for isQuestionAnsweredByUserAnswers', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuiz(mockSimulado);
-        });
+        act(setupQuizOnly.bind(null, result));
 
         // Test with a questionId that doesn't exist in userAnswers
         const isAnswered = result.current.isQuestionAnsweredByUserAnswers(
@@ -2989,26 +3058,18 @@ describe('useQuizStore', () => {
       });
 
       it('should return true when answer exists and is not null for isQuestionAnsweredByUserAnswers', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setUserId('test-user-id');
-          result.current.setQuiz(mockSimulado);
-          result.current.selectAnswer('q1', 'opt1');
-        });
+        act(setupUserQuizAndSelectAnswer.bind(null, result));
 
         const isAnswered = result.current.isQuestionAnsweredByUserAnswers('q1');
         expect(isAnswered).toBe(true);
       });
 
       it('should return false when answer exists but is null (skipped question) for isQuestionAnsweredByUserAnswers', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setUserId('test-user-id');
-          result.current.setQuiz(mockSimulado);
-          result.current.skipQuestion(); // This creates an answer with null value
-        });
+        act(setupUserQuizAndSkip.bind(null, result));
 
         const isAnswered = result.current.isQuestionAnsweredByUserAnswers('q1');
         expect(isAnswered).toBe(false);
@@ -3018,6 +3079,41 @@ describe('useQuizStore', () => {
 
   describe('Specific Line Coverage Tests', () => {
     describe('startTimer isFinished guard', () => {
+      // Helper functions to avoid nested function violations (S2004)
+      const setupQuizFinishAndStartTimer = (
+        result: ReturnType<typeof renderQuizStoreHook>['result']
+      ) => {
+        result.current.setQuiz(mockSimulado);
+        result.current.finishQuiz(); // Set isFinished to true
+        result.current.startTimer(); // Try to start timer
+      };
+
+      const setupQuizAndStartTimer = (
+        result: ReturnType<typeof renderQuizStoreHook>['result']
+      ) => {
+        result.current.setQuiz(mockSimulado);
+        result.current.startTimer(); // Start timer when not finished
+      };
+
+      const advanceTimers = () => {
+        jest.advanceTimersByTime(1000);
+      };
+
+      const setupQuizAndStart = (
+        result: ReturnType<typeof renderQuizStoreHook>['result']
+      ) => {
+        result.current.setQuiz(mockSimulado);
+        result.current.startQuiz(); // Start quiz normally
+      };
+
+      const setupFinishAndStartTimer = (
+        result: ReturnType<typeof renderQuizStoreHook>['result']
+      ) => {
+        result.current.finishQuiz(); // Finish the quiz
+        result.current.startTimer(); // Try to start timer again
+        jest.advanceTimersByTime(1000);
+      };
+
       beforeEach(() => {
         // Clear any existing timers
         jest.clearAllTimers();
@@ -3029,53 +3125,35 @@ describe('useQuizStore', () => {
       });
 
       it('should not start timer when quiz is finished', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuiz(mockSimulado);
-          result.current.finishQuiz(); // Set isFinished to true
-          result.current.startTimer(); // Try to start timer
-        });
+        act(setupQuizFinishAndStartTimer.bind(null, result));
 
         // Timer should not be running because quiz is finished
-        act(() => {
-          jest.advanceTimersByTime(1000);
-        });
+        act(advanceTimers);
 
         expect(result.current.timeElapsed).toBe(0);
       });
 
       it('should start timer normally when quiz is not finished', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuiz(mockSimulado);
-          result.current.startTimer(); // Start timer when not finished
-        });
+        act(setupQuizAndStartTimer.bind(null, result));
 
-        act(() => {
-          jest.advanceTimersByTime(1000);
-        });
+        act(advanceTimers);
 
         expect(result.current.timeElapsed).toBe(1);
       });
 
       it('should prevent timer from starting after quiz is finished', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuiz(mockSimulado);
-          result.current.startQuiz(); // Start quiz normally
-          jest.advanceTimersByTime(1000);
-        });
+        act(setupQuizAndStart.bind(null, result));
+        act(advanceTimers);
 
         expect(result.current.timeElapsed).toBe(1);
 
-        act(() => {
-          result.current.finishQuiz(); // Finish the quiz
-          result.current.startTimer(); // Try to start timer again
-          jest.advanceTimersByTime(1000);
-        });
+        act(setupFinishAndStartTimer.bind(null, result));
 
         // Time should not increase because timer is blocked by isFinished guard
         expect(result.current.timeElapsed).toBe(1);
@@ -3085,7 +3163,7 @@ describe('useQuizStore', () => {
 
   describe('setUserAnswers Tests', () => {
     it('should set userAnswers correctly', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const mockUserAnswers = [
         {
@@ -3116,7 +3194,7 @@ describe('useQuizStore', () => {
     });
 
     it('should replace existing userAnswers when setUserAnswers is called', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const initialUserAnswers = [
         {
@@ -3159,7 +3237,7 @@ describe('useQuizStore', () => {
 
   describe('skipQuestion userId validation Tests', () => {
     it('should return early when userId is not set in skipQuestion', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -3173,7 +3251,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return early when userId is empty string in skipQuestion', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -3189,7 +3267,7 @@ describe('useQuizStore', () => {
 
   describe('setCurrentQuestion Tests', () => {
     it('should set current question index when question exists in quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -3200,7 +3278,7 @@ describe('useQuizStore', () => {
     });
 
     it('should set current question index to 0 when question is first in quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -3211,7 +3289,7 @@ describe('useQuizStore', () => {
     });
 
     it('should not change current question index when no quiz is set', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const initialIndex = result.current.currentQuestionIndex;
 
       act(() => {
@@ -3222,7 +3300,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return early when setCurrentQuestion is called without active quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         // Explicitly reset all quiz types to ensure no active quiz
@@ -3247,7 +3325,7 @@ describe('useQuizStore', () => {
     });
 
     it('should not change current question index when question does not exist in quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -3261,7 +3339,7 @@ describe('useQuizStore', () => {
     });
 
     it('should work with atividade quiz type', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockAtividade);
@@ -3272,7 +3350,7 @@ describe('useQuizStore', () => {
     });
 
     it('should work with questionary quiz type', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockQuestionary);
@@ -3283,7 +3361,7 @@ describe('useQuizStore', () => {
     });
 
     it('should work with result variant', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       // Create a mock question result that matches the expected structure
       const mockQuestionResultForVariant: QuestionResult = {
@@ -3392,7 +3470,7 @@ describe('useQuizStore', () => {
     });
 
     it('should not change index when questionsResult is not set in result variant', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const initialIndex = result.current.currentQuestionIndex;
 
       act(() => {
@@ -3406,7 +3484,7 @@ describe('useQuizStore', () => {
     });
 
     it('should not change index when question result is not found in result variant', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const initialIndex = result.current.currentQuestionIndex;
 
       const mockQuestionResultEmpty: QuestionResult = {
@@ -3437,7 +3515,7 @@ describe('useQuizStore', () => {
     });
 
     it('should work with result variant when answer.id does not match but questionId does', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       // Create a mock question result where answer.id is different from question.id
       // but answer.questionId matches question.id (testing the fallback logic)
@@ -3523,7 +3601,7 @@ describe('useQuizStore', () => {
     };
 
     it('should handle dissertative answers correctly in selectAnswer', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -3544,7 +3622,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle dissertative answers correctly in addUserAnswer', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -3564,7 +3642,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle undefined answerId for dissertative questions in addUserAnswer', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -3582,7 +3660,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle empty string answerId for dissertative questions in addUserAnswer', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -3600,7 +3678,7 @@ describe('useQuizStore', () => {
     });
 
     it('should use selectDissertativeAnswer for dissertative questions', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -3620,7 +3698,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return early when selectDissertativeAnswer is called for non-dissertative question', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -3634,7 +3712,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return dissertative answer in getCurrentAnswer', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -3648,7 +3726,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return undefined for empty answers in getCurrentAnswer', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       // Setup quiz with userAnswers containing empty answer
       act(() => {
@@ -3672,7 +3750,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return answer when optionId or answer has valid content', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       // Setup quiz with userAnswers containing valid answer
       act(() => {
@@ -3697,7 +3775,7 @@ describe('useQuizStore', () => {
     });
 
     it('should count dissertative answers as answered questions', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -3712,7 +3790,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle selectDissertativeAnswer with existing answer update', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -3749,7 +3827,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return early when selectDissertativeAnswer is called without userId', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -3767,7 +3845,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return early when selectDissertativeAnswer with empty userId', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -3785,7 +3863,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle selectDissertativeAnswer with non-existent question', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -3804,7 +3882,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle selectDissertativeAnswer with empty answer', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimuladoWithDissertative);
@@ -3822,7 +3900,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return early when selectDissertativeAnswer is called without active quiz', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         // Explicitly reset quiz state and clear all quiz types
@@ -3851,7 +3929,7 @@ describe('useQuizStore', () => {
 
   describe('Answer Status Management Tests', () => {
     it('should set answer status correctly', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -3865,14 +3943,14 @@ describe('useQuizStore', () => {
     });
 
     it('should return null for non-existent question status', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const answerStatus = result.current.getAnswerStatus('non-existent');
       expect(answerStatus).toBeNull();
     });
 
     it('should update existing answer status', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setQuiz(mockSimulado);
@@ -3887,7 +3965,7 @@ describe('useQuizStore', () => {
     });
 
     it('should not update status for non-existent answer', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       act(() => {
         result.current.setAnswerStatus(
@@ -3997,7 +4075,7 @@ describe('useQuizStore', () => {
     });
 
     it('should return correct question index for existing questions', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const questionIndex1 = result.current.getQuestionIndex('q1');
       const questionIndex2 = result.current.getQuestionIndex('q2');
@@ -4014,7 +4092,7 @@ describe('useQuizStore', () => {
         });
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const questionIndex = result.current.getQuestionIndex('q1');
 
       expect(questionIndex).toBe(0);
@@ -4054,14 +4132,14 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuestionsResult(emptyQuestionResult);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
       const questionIndex = result.current.getQuestionIndex('q1');
 
       expect(questionIndex).toBe(0);
     });
 
     it('should return 0 for non-existent question ID', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const questionIndex = result.current.getQuestionIndex(
         'non-existent-question'
@@ -4171,7 +4249,7 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuestionsResult(mockQuestionResultActivity);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const questionIndex1 = result.current.getQuestionIndex('q1');
       const questionIndex2 = result.current.getQuestionIndex('q2');
@@ -4283,7 +4361,7 @@ describe('useQuizStore', () => {
           .setQuestionsResult(mockQuestionResultQuestionary);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const questionIndex1 = result.current.getQuestionIndex('q1');
       const questionIndex2 = result.current.getQuestionIndex('q2');
@@ -4293,7 +4371,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle case sensitivity in question ID', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const questionIndexLower = result.current.getQuestionIndex('q1');
       const questionIndexUpper = result.current.getQuestionIndex('Q1');
@@ -4397,7 +4475,7 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuestionsResult(mockQuestionResultSpecial);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const questionIndex = result.current.getQuestionIndex('q1-special@#$%');
 
@@ -4500,7 +4578,7 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuestionsResult(mockQuestionResultLong);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const questionIndex = result.current.getQuestionIndex(longId);
 
@@ -4602,7 +4680,7 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuestionsResult(mockQuestionResultNumeric);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const questionIndex = result.current.getQuestionIndex('12345');
 
@@ -4669,7 +4747,7 @@ describe('useQuizStore', () => {
         useQuizStore.getState().setQuestionsResult(mockQuestionResultMany);
       });
 
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const questionIndex1 = result.current.getQuestionIndex('q1');
       const questionIndex50 = result.current.getQuestionIndex('q50');
@@ -4681,7 +4759,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle quiz type switching correctly', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const baseQuestionResult: QuestionResult = {
         answers: [
@@ -4818,7 +4896,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle empty string question ID', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const questionIndex = result.current.getQuestionIndex('');
 
@@ -4826,7 +4904,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle null question ID', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const questionIndex = result.current.getQuestionIndex(
         null as unknown as string
@@ -4836,7 +4914,7 @@ describe('useQuizStore', () => {
     });
 
     it('should handle undefined question ID', () => {
-      const { result } = renderHook(() => useQuizStore());
+      const { result } = renderQuizStoreHook();
 
       const questionIndex = result.current.getQuestionIndex(
         undefined as unknown as string
@@ -4847,18 +4925,26 @@ describe('useQuizStore', () => {
   });
 
   describe('Question Result Functions', () => {
+    // Helper functions to avoid nested function violations (S2004)
+    const resetQuestionResults = () => {
+      useQuizStore
+        .getState()
+        .setQuestionsResult(null as unknown as QuestionResult);
+      useQuizStore
+        .getState()
+        .setCurrentQuestionResult(null as unknown as QuestionResult['answers']);
+    };
+
+    const setQuestionResultAction = (
+      result: ReturnType<typeof renderQuizStoreHook>['result'],
+      data: QuestionResult | null
+    ) => {
+      result.current.setQuestionResult(data as QuestionResult);
+    };
+
     // Reset store state before each test in this describe block
     beforeEach(() => {
-      act(() => {
-        useQuizStore
-          .getState()
-          .setQuestionsResult(null as unknown as QuestionResult);
-        useQuizStore
-          .getState()
-          .setCurrentQuestionResult(
-            null as unknown as QuestionResult['answers']
-          );
-      });
+      act(resetQuestionResults);
     });
 
     const mockQuestionResult: QuestionResult = {
@@ -4950,11 +5036,9 @@ describe('useQuizStore', () => {
 
     describe('setQuestionsResult', () => {
       it('should set questions result data', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuestionsResult(mockQuestionResult);
-        });
+        act(setQuestionsResultAction.bind(null, result, mockQuestionResult));
 
         expect(useQuizStore.getState().questionsResult).toEqual(
           mockQuestionResult
@@ -4962,11 +5046,9 @@ describe('useQuizStore', () => {
       });
 
       it('should handle null questions result', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuestionsResult(null as unknown as QuestionResult);
-        });
+        act(setQuestionsResultAction.bind(null, result, null));
 
         expect(useQuizStore.getState().questionsResult).toBeNull();
       });
@@ -4974,11 +5056,9 @@ describe('useQuizStore', () => {
 
     describe('setQuestionResult', () => {
       it('should set question result data', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuestionResult(mockQuestionResult);
-        });
+        act(setQuestionResultAction.bind(null, result, mockQuestionResult));
 
         expect(useQuizStore.getState().questionsResult).toEqual(
           mockQuestionResult
@@ -4986,17 +5066,15 @@ describe('useQuizStore', () => {
       });
 
       it('should handle null question result', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuestionResult(null as unknown as QuestionResult);
-        });
+        act(setQuestionResultAction.bind(null, result, null));
 
         expect(useQuizStore.getState().questionsResult).toBeNull();
       });
 
       it('should replace existing question result when called multiple times', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const firstQuestionResult: QuestionResult = {
           answers: [
@@ -5091,18 +5169,14 @@ describe('useQuizStore', () => {
         };
 
         // Set first result
-        act(() => {
-          result.current.setQuestionResult(firstQuestionResult);
-        });
+        act(setQuestionResultAction.bind(null, result, firstQuestionResult));
 
         expect(useQuizStore.getState().questionsResult).toEqual(
           firstQuestionResult
         );
 
         // Set second result (should replace the first)
-        act(() => {
-          result.current.setQuestionResult(secondQuestionResult);
-        });
+        act(setQuestionResultAction.bind(null, result, secondQuestionResult));
 
         expect(useQuizStore.getState().questionsResult).toEqual(
           secondQuestionResult
@@ -5113,19 +5187,21 @@ describe('useQuizStore', () => {
       });
 
       it('should handle undefined question result', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuestionResult(
+        act(
+          setQuestionResultAction.bind(
+            null,
+            result,
             undefined as unknown as QuestionResult
-          );
-        });
+          )
+        );
 
         expect(useQuizStore.getState().questionsResult).toBeUndefined();
       });
 
       it('should handle empty question result', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const emptyQuestionResult: QuestionResult = {
           answers: [],
@@ -5139,9 +5215,7 @@ describe('useQuizStore', () => {
           },
         };
 
-        act(() => {
-          result.current.setQuestionResult(emptyQuestionResult);
-        });
+        act(setQuestionResultAction.bind(null, result, emptyQuestionResult));
 
         expect(useQuizStore.getState().questionsResult).toEqual(
           emptyQuestionResult
@@ -5155,11 +5229,9 @@ describe('useQuizStore', () => {
       });
 
       it('should persist question result data across store access', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuestionResult(mockQuestionResult);
-        });
+        act(setQuestionResultAction.bind(null, result, mockQuestionResult));
 
         // Access through store state
         const storeState = useQuizStore.getState();
@@ -5172,11 +5244,9 @@ describe('useQuizStore', () => {
 
     describe('getQuestionResult', () => {
       it('should return complete question result data', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuestionsResult(mockQuestionResult);
-        });
+        act(setQuestionsResultAction.bind(null, result, mockQuestionResult));
 
         const questionResult = result.current.getQuestionResult();
 
@@ -5184,7 +5254,7 @@ describe('useQuizStore', () => {
       });
 
       it('should return null when no question result is set', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const questionResult = result.current.getQuestionResult();
 
@@ -5194,11 +5264,9 @@ describe('useQuizStore', () => {
 
     describe('getQuestionResultStatistics', () => {
       it('should return statistics from question result', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuestionsResult(mockQuestionResult);
-        });
+        act(setQuestionsResultAction.bind(null, result, mockQuestionResult));
 
         const statistics = result.current.getQuestionResultStatistics();
 
@@ -5206,7 +5274,7 @@ describe('useQuizStore', () => {
       });
 
       it('should return null when no question result is set', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const statistics = result.current.getQuestionResultStatistics();
 
@@ -5214,16 +5282,20 @@ describe('useQuizStore', () => {
       });
 
       it('should return null when question result has no statistics', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const questionResultWithoutStats: QuestionResult = {
           answers: mockQuestionResult.answers,
           statistics: null as unknown as QuestionResult['statistics'],
         };
 
-        act(() => {
-          result.current.setQuestionsResult(questionResultWithoutStats);
-        });
+        act(
+          setQuestionsResultAction.bind(
+            null,
+            result,
+            questionResultWithoutStats
+          )
+        );
 
         const statistics = result.current.getQuestionResultStatistics();
 
@@ -5231,11 +5303,9 @@ describe('useQuizStore', () => {
       });
 
       it('should include timeSpent in statistics', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuestionsResult(mockQuestionResult);
-        });
+        act(setQuestionsResultAction.bind(null, result, mockQuestionResult));
 
         const statistics = result.current.getQuestionResultStatistics();
 
@@ -5244,7 +5314,7 @@ describe('useQuizStore', () => {
       });
 
       it('should handle different timeSpent values correctly', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const questionResultWithDifferentTime: QuestionResult = {
           ...mockQuestionResult,
@@ -5254,9 +5324,13 @@ describe('useQuizStore', () => {
           },
         };
 
-        act(() => {
-          result.current.setQuestionsResult(questionResultWithDifferentTime);
-        });
+        act(
+          setQuestionsResultAction.bind(
+            null,
+            result,
+            questionResultWithDifferentTime
+          )
+        );
 
         const statistics = result.current.getQuestionResultStatistics();
 
@@ -5264,7 +5338,7 @@ describe('useQuizStore', () => {
       });
 
       it('should handle zero timeSpent correctly', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const questionResultWithZeroTime: QuestionResult = {
           ...mockQuestionResult,
@@ -5274,9 +5348,13 @@ describe('useQuizStore', () => {
           },
         };
 
-        act(() => {
-          result.current.setQuestionsResult(questionResultWithZeroTime);
-        });
+        act(
+          setQuestionsResultAction.bind(
+            null,
+            result,
+            questionResultWithZeroTime
+          )
+        );
 
         const statistics = result.current.getQuestionResultStatistics();
 
@@ -5286,11 +5364,9 @@ describe('useQuizStore', () => {
 
     describe('getQuestionResultByQuestionId', () => {
       it('should return answer for existing question ID', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuestionsResult(mockQuestionResult);
-        });
+        act(setQuestionsResultAction.bind(null, result, mockQuestionResult));
 
         const answer = result.current.getQuestionResultByQuestionId('q1');
 
@@ -5298,11 +5374,9 @@ describe('useQuizStore', () => {
       });
 
       it('should return null for non-existing question ID', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuestionsResult(mockQuestionResult);
-        });
+        act(setQuestionsResultAction.bind(null, result, mockQuestionResult));
 
         const answer = result.current.getQuestionResultByQuestionId('q999');
 
@@ -5310,7 +5384,7 @@ describe('useQuizStore', () => {
       });
 
       it('should return null when no question result is set', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const answer = result.current.getQuestionResultByQuestionId('q1');
 
@@ -5318,11 +5392,9 @@ describe('useQuizStore', () => {
       });
 
       it('should handle empty question ID', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuestionsResult(mockQuestionResult);
-        });
+        act(setQuestionsResultAction.bind(null, result, mockQuestionResult));
 
         const answer = result.current.getQuestionResultByQuestionId('');
 
@@ -5330,7 +5402,7 @@ describe('useQuizStore', () => {
       });
 
       it('should handle multiple answers for same question ID', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const questionResultWithDuplicates: QuestionResult = {
           ...mockQuestionResult,
@@ -5343,9 +5415,13 @@ describe('useQuizStore', () => {
           ],
         };
 
-        act(() => {
-          result.current.setQuestionsResult(questionResultWithDuplicates);
-        });
+        act(
+          setQuestionsResultAction.bind(
+            null,
+            result,
+            questionResultWithDuplicates
+          )
+        );
 
         const answer = result.current.getQuestionResultByQuestionId('q1');
 
@@ -5356,13 +5432,17 @@ describe('useQuizStore', () => {
 
     describe('setCurrentQuestionResult', () => {
       it('should set current question result data', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const currentQuestionResult = mockQuestionResult.answers;
 
-        act(() => {
-          result.current.setCurrentQuestionResult(currentQuestionResult);
-        });
+        act(
+          setCurrentQuestionResultAction.bind(
+            null,
+            result,
+            currentQuestionResult
+          )
+        );
 
         expect(useQuizStore.getState().currentQuestionResult).toEqual(
           currentQuestionResult
@@ -5370,13 +5450,9 @@ describe('useQuizStore', () => {
       });
 
       it('should handle null current question result', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setCurrentQuestionResult(
-            null as unknown as QuestionResult['answers']
-          );
-        });
+        act(setCurrentQuestionResultAction.bind(null, result, null));
 
         expect(useQuizStore.getState().currentQuestionResult).toBeNull();
       });
@@ -5384,13 +5460,17 @@ describe('useQuizStore', () => {
 
     describe('getCurrentQuestionResult', () => {
       it('should return current question result data', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const currentQuestionResult = mockQuestionResult.answers;
 
-        act(() => {
-          result.current.setCurrentQuestionResult(currentQuestionResult);
-        });
+        act(
+          setCurrentQuestionResultAction.bind(
+            null,
+            result,
+            currentQuestionResult
+          )
+        );
 
         const retrieved = result.current.getCurrentQuestionResult();
 
@@ -5398,7 +5478,7 @@ describe('useQuizStore', () => {
       });
 
       it('should return null when no current question result is set', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         const retrieved = result.current.getCurrentQuestionResult();
 
@@ -5408,11 +5488,9 @@ describe('useQuizStore', () => {
 
     describe('Integration tests', () => {
       it('should work correctly with question result and statistics together', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
-        act(() => {
-          result.current.setQuestionsResult(mockQuestionResult);
-        });
+        act(setQuestionsResultAction.bind(null, result, mockQuestionResult));
 
         // Test getting specific question result
         const q1Result = result.current.getQuestionResultByQuestionId('q1');
@@ -5429,12 +5507,10 @@ describe('useQuizStore', () => {
       });
 
       it('should handle question result updates correctly', () => {
-        const { result } = renderHook(() => useQuizStore());
+        const { result } = renderQuizStoreHook();
 
         // Set initial result
-        act(() => {
-          result.current.setQuestionsResult(mockQuestionResult);
-        });
+        act(setQuestionsResultAction.bind(null, result, mockQuestionResult));
 
         expect(
           result.current.getQuestionResultStatistics()?.correctAnswers
@@ -5452,9 +5528,7 @@ describe('useQuizStore', () => {
           },
         };
 
-        act(() => {
-          result.current.setQuestionsResult(updatedResult);
-        });
+        act(setQuestionsResultAction.bind(null, result, updatedResult));
 
         expect(
           result.current.getQuestionResultStatistics()?.correctAnswers
