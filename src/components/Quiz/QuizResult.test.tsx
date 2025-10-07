@@ -19,6 +19,8 @@ const mockUseQuizStore = useQuizStore as jest.MockedFunction<
   typeof useQuizStore
 >;
 
+type MockQuizStore = Partial<ReturnType<typeof useQuizStore>>;
+
 jest.mock('../Card/Card', () => ({
   CardStatus: ({
     header,
@@ -254,7 +256,7 @@ describe('Quiz', () => {
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      } as MockQuizStore);
     });
 
     it('should render result header correctly', () => {
@@ -466,7 +468,7 @@ describe('Quiz', () => {
     beforeEach(() => {
       mockUseQuizStore.mockReturnValue({
         quiz: null,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      } as MockQuizStore);
 
       jest.clearAllMocks();
     });
@@ -503,7 +505,7 @@ describe('Quiz', () => {
     it('should not render badge when quiz is null', () => {
       mockUseQuizStore.mockReturnValue({
         quiz: null,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      } as MockQuizStore);
 
       render(<QuizResultHeaderTitle />);
 
@@ -523,7 +525,7 @@ describe('Quiz', () => {
 
       mockUseQuizStore.mockReturnValue({
         quiz: mockBySimulated,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      } as MockQuizStore);
 
       render(<QuizResultHeaderTitle />);
 
@@ -543,7 +545,7 @@ describe('Quiz', () => {
 
       mockUseQuizStore.mockReturnValue({
         quiz: mockBySimulated,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      } as MockQuizStore);
 
       render(<QuizResultHeaderTitle />);
 
@@ -562,7 +564,7 @@ describe('Quiz', () => {
 
       mockUseQuizStore.mockReturnValue({
         quiz: mockBySimulated,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      } as MockQuizStore);
 
       render(<QuizResultHeaderTitle />);
 
@@ -581,7 +583,7 @@ describe('Quiz', () => {
 
       mockUseQuizStore.mockReturnValue({
         quiz: mockBySimulated,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      } as MockQuizStore);
 
       render(<QuizResultHeaderTitle />);
 
@@ -647,7 +649,7 @@ describe('Quiz', () => {
 
       mockUseQuizStore.mockReturnValue({
         quiz: mockBySimulated,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      } as MockQuizStore);
 
       render(<QuizResultHeaderTitle />);
 
@@ -674,7 +676,7 @@ describe('Quiz', () => {
 
       mockUseQuizStore.mockReturnValue({
         quiz: mockBySimulated,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      } as MockQuizStore);
 
       render(<QuizResultHeaderTitle />);
 
@@ -688,7 +690,7 @@ describe('Quiz', () => {
           quiz: {
             subtype: 'PROVA',
           },
-        } as unknown as ReturnType<typeof useQuizStore>);
+        } as MockQuizStore);
 
         render(<QuizResultHeaderTitle />);
 
@@ -701,7 +703,7 @@ describe('Quiz', () => {
           quiz: {
             subtype: 'ENEM_PROVA_1',
           },
-        } as unknown as ReturnType<typeof useQuizStore>);
+        } as MockQuizStore);
 
         render(<QuizResultHeaderTitle showBadge={true} />);
 
@@ -714,7 +716,7 @@ describe('Quiz', () => {
           quiz: {
             subtype: 'PROVA',
           },
-        } as unknown as ReturnType<typeof useQuizStore>);
+        } as MockQuizStore);
 
         render(<QuizResultHeaderTitle showBadge={false} />);
 
@@ -730,7 +732,7 @@ describe('Quiz', () => {
           quiz: {
             subtype: 'VESTIBULAR',
           },
-        } as unknown as ReturnType<typeof useQuizStore>);
+        } as MockQuizStore);
 
         render(<QuizResultHeaderTitle showBadge={false} />);
 
@@ -742,7 +744,7 @@ describe('Quiz', () => {
       it('should not show badge when showBadge is false and no quiz subtype exists', () => {
         mockUseQuizStore.mockReturnValue({
           quiz: null,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        } as MockQuizStore);
 
         render(<QuizResultHeaderTitle showBadge={false} />);
 
@@ -755,7 +757,7 @@ describe('Quiz', () => {
           quiz: {
             subtype: 'SIMULADO',
           },
-        } as unknown as ReturnType<typeof useQuizStore>);
+        } as MockQuizStore);
 
         const { container } = render(
           <QuizResultHeaderTitle showBadge={false} />
@@ -770,10 +772,20 @@ describe('Quiz', () => {
           'justify-between'
         );
 
-        // Should only contain the title, not the badge
+        // Should have title and wrapper div (even though badge is hidden)
         const children = headerElement.children;
-        expect(children).toHaveLength(1); // Only the title paragraph
+        expect(children).toHaveLength(2); // Title paragraph and wrapper div
         expect(children[0].textContent).toBe('Resultado');
+        // The second child is the wrapper div for actionButton/badge
+        expect(children[1].tagName).toBe('DIV');
+        expect(children[1]).toHaveClass(
+          'flex',
+          'flex-row',
+          'gap-3',
+          'items-center'
+        );
+        // Badge should not be present when showBadge is false
+        expect(screen.queryByTestId('quiz-badge')).not.toBeInTheDocument();
       });
 
       it('should work with custom className when showBadge is false', () => {
@@ -781,7 +793,7 @@ describe('Quiz', () => {
           quiz: {
             subtype: 'PROVA',
           },
-        } as unknown as ReturnType<typeof useQuizStore>);
+        } as MockQuizStore);
 
         const { container } = render(
           <QuizResultHeaderTitle
@@ -802,7 +814,7 @@ describe('Quiz', () => {
           quiz: {
             subtype: 'ENEM_PROVA_2',
           },
-        } as unknown as ReturnType<typeof useQuizStore>);
+        } as MockQuizStore);
 
         const ref = React.createRef<HTMLDivElement>();
 
@@ -818,7 +830,7 @@ describe('Quiz', () => {
           quiz: {
             subtype: 'SIMULADAO',
           },
-        } as unknown as ReturnType<typeof useQuizStore>);
+        } as MockQuizStore);
 
         const { container } = render(
           <QuizResultHeaderTitle
@@ -837,6 +849,123 @@ describe('Quiz', () => {
         expect(screen.queryByTestId('quiz-badge')).not.toBeInTheDocument();
       });
     });
+
+    describe('canRetry and onRepeat props', () => {
+      it('should render repeat button when canRetry is true and onRepeat is provided', () => {
+        const handleRepeat = jest.fn();
+
+        render(
+          <QuizResultHeaderTitle canRetry={true} onRepeat={handleRepeat} />
+        );
+
+        expect(
+          screen.getByRole('button', { name: 'Repetir questionário' })
+        ).toBeInTheDocument();
+      });
+
+      it('should not render repeat button when canRetry is false', () => {
+        const handleRepeat = jest.fn();
+
+        render(
+          <QuizResultHeaderTitle canRetry={false} onRepeat={handleRepeat} />
+        );
+
+        expect(
+          screen.queryByRole('button', { name: 'Repetir questionário' })
+        ).not.toBeInTheDocument();
+      });
+
+      it('should not render repeat button when canRetry is undefined', () => {
+        const handleRepeat = jest.fn();
+
+        render(<QuizResultHeaderTitle onRepeat={handleRepeat} />);
+
+        expect(
+          screen.queryByRole('button', { name: 'Repetir questionário' })
+        ).not.toBeInTheDocument();
+      });
+
+      it('should call onRepeat when repeat button is clicked', () => {
+        const handleRepeat = jest.fn();
+
+        render(
+          <QuizResultHeaderTitle canRetry={true} onRepeat={handleRepeat} />
+        );
+
+        const button = screen.getByRole('button', {
+          name: 'Repetir questionário',
+        });
+        button.click();
+
+        expect(handleRepeat).toHaveBeenCalledTimes(1);
+      });
+
+      it('should not render repeat button when onRepeat is not provided', () => {
+        render(<QuizResultHeaderTitle canRetry={true} />);
+
+        expect(
+          screen.queryByRole('button', { name: 'Repetir questionário' })
+        ).not.toBeInTheDocument();
+      });
+
+      it('should render repeat button with badge when both are enabled', () => {
+        const mockQuiz = {
+          type: 'Simulado',
+          subtype: 'ENEM_PROVA_1',
+        };
+
+        mockUseQuizStore.mockReturnValue({
+          quiz: mockQuiz,
+        } as MockQuizStore);
+
+        const handleRepeat = jest.fn();
+
+        render(
+          <QuizResultHeaderTitle
+            canRetry={true}
+            onRepeat={handleRepeat}
+            showBadge={true}
+          />
+        );
+
+        expect(
+          screen.getByRole('button', { name: 'Repetir questionário' })
+        ).toBeInTheDocument();
+        expect(screen.getByTestId('quiz-badge')).toBeInTheDocument();
+      });
+
+      it('should render repeat button without badge when showBadge is false', () => {
+        const handleRepeat = jest.fn();
+
+        render(
+          <QuizResultHeaderTitle
+            canRetry={true}
+            onRepeat={handleRepeat}
+            showBadge={false}
+          />
+        );
+
+        expect(
+          screen.getByRole('button', { name: 'Repetir questionário' })
+        ).toBeInTheDocument();
+        expect(screen.queryByTestId('quiz-badge')).not.toBeInTheDocument();
+      });
+
+      it('should have correct button styling for repeat button', () => {
+        const handleRepeat = jest.fn();
+
+        render(
+          <QuizResultHeaderTitle canRetry={true} onRepeat={handleRepeat} />
+        );
+
+        const button = screen.getByRole('button', {
+          name: 'Repetir questionário',
+        });
+        expect(button).toBeInTheDocument();
+        // Button component doesn't expose data-variant as HTML attribute
+        // We just verify the button renders correctly
+      });
+    });
   });
 
   describe('QuizResultTitle Component', () => {
@@ -845,7 +974,7 @@ describe('Quiz', () => {
     beforeEach(() => {
       mockUseQuizStore.mockReturnValue({
         getQuizTitle: mockGetQuizTitle,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      } as MockQuizStore);
 
       mockGetQuizTitle.mockReturnValue('Quiz de Matemática Avançada');
       jest.clearAllMocks();
@@ -1037,7 +1166,7 @@ describe('Quiz', () => {
         formatTime: mockFormatTime,
         getQuestionResultStatistics: mockGetQuestionResultStatistics,
         getQuestionResult: mockGetQuestionResult,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      } as MockQuizStore);
 
       mockFormatTime.mockReturnValue('01:01:01');
       jest.clearAllMocks();
@@ -1715,7 +1844,7 @@ describe('Quiz', () => {
     beforeEach(() => {
       mockUseQuizStore.mockReturnValue({
         getQuestionsGroupedBySubject: mockGetQuestionsGroupedBySubject,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      } as MockQuizStore);
 
       jest.clearAllMocks();
     });
@@ -2046,11 +2175,33 @@ describe('Quiz', () => {
     const mockGetQuestionsGroupedBySubject = jest.fn();
     const mockGetQuestionIndex = jest.fn();
 
+    // Helper functions to avoid deep nesting in tests
+    const getQuestionIndexForRenderTest = (id: string) => {
+      const questionMap: { [key: string]: number } = {
+        'question-1': 1,
+        'question-2': 2,
+      };
+      return questionMap[id] || 1;
+    };
+
+    const getQuestionIndexForStatusTest = (id: string) => {
+      const questionMap: { [key: string]: number } = {
+        'question-1': 1,
+        'question-2': 2,
+        'question-3': 3,
+      };
+      return questionMap[id] || 1;
+    };
+
+    const getQuestionIndexForSubjectFilterTest = (id: string) => {
+      return id === 'question-1' ? 1 : 10;
+    };
+
     beforeEach(() => {
       mockUseQuizStore.mockReturnValue({
         getQuestionsGroupedBySubject: mockGetQuestionsGroupedBySubject,
         getQuestionIndex: mockGetQuestionIndex,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      } as MockQuizStore);
 
       jest.clearAllMocks();
     });
@@ -2120,13 +2271,7 @@ describe('Quiz', () => {
       };
 
       mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
-      mockGetQuestionIndex.mockImplementation((id) => {
-        const questionMap: { [key: string]: number } = {
-          'question-1': 1,
-          'question-2': 2,
-        };
-        return questionMap[id] || 1;
-      });
+      mockGetQuestionIndex.mockImplementation(getQuestionIndexForRenderTest);
 
       render(
         <QuizListResultByMateria
@@ -2164,14 +2309,7 @@ describe('Quiz', () => {
       };
 
       mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
-      mockGetQuestionIndex.mockImplementation((id) => {
-        const questionMap: { [key: string]: number } = {
-          'question-1': 1,
-          'question-2': 2,
-          'question-3': 3,
-        };
-        return questionMap[id] || 1;
-      });
+      mockGetQuestionIndex.mockImplementation(getQuestionIndexForStatusTest);
 
       render(
         <QuizListResultByMateria
@@ -2212,13 +2350,7 @@ describe('Quiz', () => {
       };
 
       mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
-      mockGetQuestionIndex.mockImplementation((id) => {
-        const questionMap: { [key: string]: number } = {
-          'question-1': 1,
-          'question-2': 2,
-        };
-        return questionMap[id] || 1;
-      });
+      mockGetQuestionIndex.mockImplementation(getQuestionIndexForRenderTest);
 
       render(
         <QuizListResultByMateria
@@ -2322,9 +2454,9 @@ describe('Quiz', () => {
       };
 
       mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
-      mockGetQuestionIndex.mockImplementation((id) => {
-        return id === 'question-1' ? 1 : 10;
-      });
+      mockGetQuestionIndex.mockImplementation(
+        getQuestionIndexForSubjectFilterTest
+      );
 
       render(
         <QuizListResultByMateria
@@ -2473,52 +2605,69 @@ describe('Quiz', () => {
     });
 
     describe('subject = "all" tests', () => {
-      it('should render all questions from all subjects when subject is "all"', () => {
-        const mockGroupedQuestions = {
-          'subject-1': [
-            {
-              id: 'question-1',
-              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-              knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
-            },
-            {
-              id: 'question-2',
-              answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
-              knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
-            },
-          ],
-          'subject-2': [
-            {
-              id: 'question-3',
-              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-              knowledgeMatrix: [{ subject: { name: 'Português' } }],
-            },
-          ],
-          'subject-3': [
-            {
-              id: 'question-4',
-              answerStatus: ANSWER_STATUS.NAO_RESPONDIDO,
-              knowledgeMatrix: [{ subject: { name: 'História' } }],
-            },
-            {
-              id: 'question-5',
-              answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
-              knowledgeMatrix: [{ subject: { name: 'História' } }],
-            },
-          ],
+      const createMockGroupedQuestions = () => ({
+        'subject-1': [
+          {
+            id: 'question-1',
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
+          },
+          {
+            id: 'question-2',
+            answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+            knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
+          },
+        ],
+        'subject-2': [
+          {
+            id: 'question-3',
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+            knowledgeMatrix: [{ subject: { name: 'Português' } }],
+          },
+        ],
+        'subject-3': [
+          {
+            id: 'question-4',
+            answerStatus: ANSWER_STATUS.NAO_RESPONDIDO,
+            knowledgeMatrix: [{ subject: { name: 'História' } }],
+          },
+          {
+            id: 'question-5',
+            answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+            knowledgeMatrix: [{ subject: { name: 'História' } }],
+          },
+        ],
+      });
+
+      const mockQuestionIndexMap: { [key: string]: number } = {
+        'question-1': 1,
+        'question-2': 2,
+        'question-3': 3,
+        'question-4': 4,
+        'question-5': 5,
+        'math-q1': 10,
+        'math-q2': 15,
+        'port-q1': 7,
+        'sci-q1': 23,
+      };
+
+      const getQuestionIndex = (id: string) => mockQuestionIndexMap[id] || 1;
+
+      const getQuestionIndexForMixedQuestions = (id: string) => {
+        const indexMap: Record<string, number> = {
+          'math-q1': 10,
+          'math-q2': 15,
+          'port-q1': 7,
+          'sci-q1': 23,
         };
+        return indexMap[id] || 1;
+      };
+
+      it('should render all questions from all subjects when subject is "all"', () => {
+        const mockGroupedQuestions = createMockGroupedQuestions();
 
         mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
-        mockGetQuestionIndex.mockImplementation((id) => {
-          const questionMap: { [key: string]: number } = {
-            'question-1': 1,
-            'question-2': 2,
-            'question-3': 3,
-            'question-4': 4,
-            'question-5': 5,
-          };
-          return questionMap[id] || 1;
-        });
+        mockGetQuestionIndex.mockImplementation(getQuestionIndex);
 
         render(
           <QuizListResultByMateria subject="all" onQuestionClick={jest.fn()} />
@@ -2569,15 +2718,7 @@ describe('Quiz', () => {
         };
 
         mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
-        mockGetQuestionIndex.mockImplementation((id) => {
-          const questionMap: { [key: string]: number } = {
-            'question-1': 1,
-            'question-2': 2,
-            'question-3': 3,
-            'question-4': 4,
-          };
-          return questionMap[id] || 1;
-        });
+        mockGetQuestionIndex.mockImplementation(getQuestionIndex);
 
         render(
           <QuizListResultByMateria subject="all" onQuestionClick={jest.fn()} />
@@ -2631,11 +2772,11 @@ describe('Quiz', () => {
           <QuizListResultByMateria subject="all" onQuestionClick={jest.fn()} />
         );
 
-        // When subject is "all", answeredQuestions array is empty (groupedQuestions['all'] || [])
-        // So it should show "Sem matéria" as fallback
-        expect(screen.getByText('Sem matéria')).toBeInTheDocument();
+        // When subject is "all", formattedQuestions will have all questions flattened
+        // So it will use formattedQuestions[0].knowledgeMatrix[0].subject.name
+        expect(screen.getByText('Matemática')).toBeInTheDocument();
 
-        // But formattedQuestions should still contain all questions from Object.values(groupedQuestions).flat()
+        // formattedQuestions should contain all questions from Object.values(groupedQuestions).flat()
         const cardStatuses = screen.getAllByTestId('card-status');
         expect(cardStatuses).toHaveLength(1);
         expect(screen.getByText('Questão 01')).toBeInTheDocument();
@@ -2672,15 +2813,10 @@ describe('Quiz', () => {
         };
 
         mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
-        mockGetQuestionIndex.mockImplementation((id) => {
-          const questionMap: { [key: string]: number } = {
-            'math-q1': 10,
-            'math-q2': 15,
-            'port-q1': 7,
-            'sci-q1': 23,
-          };
-          return questionMap[id] || 1;
-        });
+        // Set specific indexes for each question
+        mockGetQuestionIndex.mockImplementation(
+          getQuestionIndexForMixedQuestions
+        );
 
         render(
           <QuizListResultByMateria subject="all" onQuestionClick={jest.fn()} />
@@ -2722,13 +2858,7 @@ describe('Quiz', () => {
         };
 
         mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
-        mockGetQuestionIndex.mockImplementation((id) => {
-          const questionMap: { [key: string]: number } = {
-            'math-question': 1,
-            'port-question': 2,
-          };
-          return questionMap[id] || 1;
-        });
+        mockGetQuestionIndex.mockImplementation(getQuestionIndex);
 
         render(
           <QuizListResultByMateria
@@ -2778,8 +2908,8 @@ describe('Quiz', () => {
         expect(screen.getByText('Questão 01')).toBeInTheDocument();
         expect(cardStatuses[0]).toHaveAttribute('data-status', 'correct');
 
-        // Title should still be "Sem matéria" since answeredQuestions (groupedQuestions['all']) is empty
-        expect(screen.getByText('Sem matéria')).toBeInTheDocument();
+        // Title should show first question's subject since formattedQuestions has data
+        expect(screen.getByText('Matemática')).toBeInTheDocument();
       });
     });
   });

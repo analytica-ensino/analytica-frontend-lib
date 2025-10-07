@@ -13,6 +13,7 @@ import ProgressBar from '../ProgressBar/ProgressBar';
 import { cn, getSubjectColorWithOpacity } from '../../utils/utils';
 import Badge from '../Badge/Badge';
 import { useTheme } from '../../hooks/useTheme';
+import Button from '../Button/Button';
 
 const QuizBadge = ({
   subtype,
@@ -120,17 +121,38 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
 
 const QuizResultHeaderTitle = forwardRef<
   HTMLDivElement,
-  { className?: string; showBadge?: boolean }
->(({ className, showBadge = true, ...props }, ref) => {
+  {
+    className?: string;
+    showBadge?: boolean;
+    onRepeat?: () => void;
+    canRetry?: boolean;
+  }
+>(({ className, showBadge = true, onRepeat, canRetry, ...props }, ref) => {
   const { quiz } = useQuizStore();
   return (
     <div
       ref={ref}
-      className={cn('flex flex-row pt-4 justify-between', className)}
+      className={cn(
+        'flex flex-row pt-4 justify-between items-center',
+        className
+      )}
       {...props}
     >
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
-      {showBadge && <QuizBadge subtype={quiz?.subtype || undefined} />}
+      <div className="flex flex-row gap-3 items-center">
+        {canRetry && onRepeat && (
+          <Button
+            variant="solid"
+            action="primary"
+            size="medium"
+            onClick={onRepeat}
+          >
+            Repetir questionário
+          </Button>
+        )}
+
+        {showBadge && <QuizBadge subtype={quiz?.subtype || undefined} />}
+      </div>
     </div>
   );
 });
@@ -363,9 +385,11 @@ const QuizListResult = forwardRef<
 const QuizListResultByMateria = ({
   subject,
   onQuestionClick,
+  subjectName,
 }: {
   subject: string;
   onQuestionClick: (question: Question) => void;
+  subjectName?: string;
 }) => {
   const { getQuestionsGroupedBySubject, getQuestionIndex } = useQuizStore();
   const groupedQuestions = getQuestionsGroupedBySubject();
@@ -379,7 +403,8 @@ const QuizListResultByMateria = ({
     <div className="flex flex-col">
       <div className="flex flex-row pt-4 justify-between">
         <p className="text-text-950 font-bold text-2xl">
-          {answeredQuestions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ??
+          {subjectName ||
+            formattedQuestions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ||
             'Sem matéria'}
         </p>
       </div>

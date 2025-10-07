@@ -564,34 +564,14 @@ const QuizFooter = forwardRef<
               )}
             </>
           ) : (
-            <div className="flex flex-row items-center justify-between w-full">
-              <span>
-                {quiz?.canRetry && (
-                  <Button
-                    variant="link"
-                    action="primary"
-                    size="medium"
-                    onClick={() => openModal('modalResolution')}
-                  >
-                    Ver Resolução
-                  </Button>
-                )}
-              </span>
+            <div className="flex flex-row items-center justify-center w-full">
               <Button
-                variant="solid"
+                variant="link"
                 action="primary"
                 size="medium"
-                onClick={() => {
-                  if (quiz?.canRetry) {
-                    onRepeat?.();
-                  } else {
-                    openModal('modalResolution');
-                  }
-                }}
+                onClick={() => openModal('modalResolution')}
               >
-                {quiz?.canRetry
-                  ? `Repetir ${getTypeLabel(quiz.type)}`
-                  : 'Ver Resolução'}
+                Ver resolução
               </Button>
             </div>
           )}
