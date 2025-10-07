@@ -234,6 +234,14 @@ export type { DeviceType } from './hooks/useMobile';
 export { useTheme } from './hooks/useTheme';
 export type { ThemeMode } from './hooks/useTheme';
 
+// Auth Hooks
+export { useAppInitialization } from './hooks/useAppInitialization';
+export { useAppContent } from './hooks/useAppContent';
+export { useInstitutionId } from './hooks/useInstitution';
+export { useAuthStore } from './store/authStore';
+export { useAppStore } from './store/appStore';
+export type { AuthState } from './store/authStore';
+
 // Utils
 export {
   cn,

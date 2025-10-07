@@ -50,7 +50,7 @@ export interface SessionInfo {
 /**
  * Interface defining the authentication state.
  */
-interface AuthState {
+export interface AuthState {
   user: User | null;
   tokens: AuthTokens | null;
   isAuthenticated: boolean;
