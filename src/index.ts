@@ -161,6 +161,7 @@ export type {
 } from './components/DownloadButton/DownloadButton';
 
 // Auth Components
+export type { AuthContextType } from './components/Auth/Auth';
 export {
   AuthProvider,
   ProtectedRoute,
