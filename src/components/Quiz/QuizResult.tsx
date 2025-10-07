@@ -140,14 +140,12 @@ const QuizResultHeaderTitle = forwardRef<
     >
       <p className="text-text-950 font-bold text-2xl">Resultado</p>
       <div className="flex flex-row gap-3 items-center">
-        {canRetry && (
+        {canRetry && onRepeat && (
           <Button
             variant="solid"
             action="primary"
             size="medium"
-            onClick={() => {
-              onRepeat?.();
-            }}
+            onClick={onRepeat}
           >
             Repetir questionário
           </Button>

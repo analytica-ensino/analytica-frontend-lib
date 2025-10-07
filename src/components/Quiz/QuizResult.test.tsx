@@ -900,12 +900,12 @@ describe('Quiz', () => {
         expect(handleRepeat).toHaveBeenCalledTimes(1);
       });
 
-      it('should render repeat button even when onRepeat is not provided', () => {
+      it('should not render repeat button when onRepeat is not provided', () => {
         render(<QuizResultHeaderTitle canRetry={true} />);
 
         expect(
-          screen.getByRole('button', { name: 'Repetir questionário' })
-        ).toBeInTheDocument();
+          screen.queryByRole('button', { name: 'Repetir questionário' })
+        ).not.toBeInTheDocument();
       });
 
       it('should render repeat button with badge when both are enabled', () => {
@@ -2645,6 +2645,10 @@ describe('Quiz', () => {
         'question-3': 3,
         'question-4': 4,
         'question-5': 5,
+        'math-q1': 10,
+        'math-q2': 15,
+        'port-q1': 7,
+        'sci-q1': 23,
       };
 
       const getQuestionIndex = (id: string) => mockQuestionIndexMap[id] || 1;
