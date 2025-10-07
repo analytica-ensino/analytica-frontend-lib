@@ -253,7 +253,7 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
   ) => {
     const isDone = state === 'done';
     const stateLabel = isDone ? 'Realizado' : 'Não Realizado';
-    const buttonLabel = isDone ? 'Ver Questão' : 'Responder';
+    const buttonLabel = isDone ? 'Ver Resultado' : 'Responder';
 
     return (
       <CardBase

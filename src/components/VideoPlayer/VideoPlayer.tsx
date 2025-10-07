@@ -344,6 +344,9 @@ const VideoPlayer = ({
   const [showControls, setShowControls] = useState(true);
   const [hasCompleted, setHasCompleted] = useState(false);
   const [showCaptions, setShowCaptions] = useState(false);
+  const [subtitlesValidation, setSubtitlesValidation] = useState<
+    'idle' | 'validating' | 'valid' | 'invalid'
+  >('idle');
 
   // Reset completion flag when changing videos
   useEffect(() => {
@@ -795,15 +798,19 @@ const VideoPlayer = ({
    * Toggle captions visibility
    */
   const toggleCaptions = useCallback(() => {
-    if (!trackRef.current?.track || !subtitles) return;
+    if (
+      !trackRef.current?.track ||
+      !subtitles ||
+      subtitlesValidation !== 'valid'
+    )
+      return;
 
     const newShowCaptions = !showCaptions;
     setShowCaptions(newShowCaptions);
 
-    // Control track mode programmatically - only show if subtitles are available
-    trackRef.current.track.mode =
-      newShowCaptions && subtitles ? 'showing' : 'hidden';
-  }, [showCaptions, subtitles]);
+    // Control track mode programmatically - we already validated subtitles above
+    trackRef.current.track.mode = newShowCaptions ? 'showing' : 'hidden';
+  }, [showCaptions, subtitles, subtitlesValidation]);
 
   /**
    * Check video completion and fire callback
@@ -851,15 +858,87 @@ const VideoPlayer = ({
   }, []);
 
   /**
+   * Validate subtitles URL before showing the button
+   */
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const validateSubtitles = async () => {
+      // If no subtitles, mark as idle
+      if (!subtitles) {
+        setSubtitlesValidation('idle');
+        return;
+      }
+
+      // Start validation
+      setSubtitlesValidation('validating');
+
+      try {
+        // Check if it's a data URL (inline VTT)
+        if (subtitles.startsWith('data:')) {
+          setSubtitlesValidation('valid');
+          return;
+        }
+
+        // Fetch the subtitles file to validate it
+        const response = await fetch(subtitles, {
+          method: 'HEAD',
+          signal: controller.signal,
+        });
+
+        if (response.ok) {
+          // Optionally check content type
+          const contentType = response.headers.get('content-type');
+          const isValidType =
+            !contentType ||
+            contentType.includes('text/vtt') ||
+            contentType.includes('text/plain') ||
+            contentType.includes('application/octet-stream');
+
+          if (isValidType) {
+            setSubtitlesValidation('valid');
+          } else {
+            setSubtitlesValidation('invalid');
+            console.warn(
+              `Subtitles URL has invalid content type: ${contentType}`
+            );
+          }
+        } else {
+          setSubtitlesValidation('invalid');
+          console.warn(
+            `Subtitles URL returned status: ${response.status} ${response.statusText}`
+          );
+        }
+      } catch (error) {
+        // Ignore AbortError - it's expected when cleaning up
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
+        console.warn('Subtitles URL validation failed:', error);
+        setSubtitlesValidation('invalid');
+      }
+    };
+
+    validateSubtitles();
+
+    // Cleanup: abort ongoing fetch to prevent stale updates
+    return () => {
+      controller.abort();
+    };
+  }, [subtitles]);
+
+  /**
    * Initialize track mode when track is available
    */
   useEffect(() => {
     if (trackRef.current?.track) {
       // Set initial mode based on showCaptions state and subtitle availability
       trackRef.current.track.mode =
-        showCaptions && subtitles ? 'showing' : 'hidden';
+        showCaptions && subtitles && subtitlesValidation === 'valid'
+          ? 'showing'
+          : 'hidden';
     }
-  }, [subtitles, showCaptions]);
+  }, [subtitles, showCaptions, subtitlesValidation]);
 
   /**
    * Handle visibility change and blur to pause video when losing focus
@@ -952,65 +1031,81 @@ const VideoPlayer = ({
   }, [showControls]);
 
   /**
+   * Seek video backward
+   */
+  const seekBackward = useCallback(() => {
+    if (videoRef.current) {
+      videoRef.current.currentTime -= 10;
+    }
+  }, []);
+
+  /**
+   * Seek video forward
+   */
+  const seekForward = useCallback(() => {
+    if (videoRef.current) {
+      videoRef.current.currentTime += 10;
+    }
+  }, []);
+
+  /**
+   * Increase volume
+   */
+  const increaseVolume = useCallback(() => {
+    handleVolumeChange(Math.min(100, volume * 100 + 10));
+  }, [handleVolumeChange, volume]);
+
+  /**
+   * Decrease volume
+   */
+  const decreaseVolume = useCallback(() => {
+    handleVolumeChange(Math.max(0, volume * 100 - 10));
+  }, [handleVolumeChange, volume]);
+
+  /**
    * Handle video element keyboard events
    */
   const handleVideoKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key) {
-        // Prevent bubbling to parent handlers to avoid double toggles
-        e.stopPropagation();
-        showControlsWithTimer();
-      }
+      if (!e.key) return;
 
-      switch (e.key) {
-        case ' ':
-        case 'Enter':
-          e.preventDefault();
-          togglePlayPause();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          if (videoRef.current) {
-            videoRef.current.currentTime -= 10;
-          }
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          if (videoRef.current) {
-            videoRef.current.currentTime += 10;
-          }
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          handleVolumeChange(Math.min(100, volume * 100 + 10));
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          handleVolumeChange(Math.max(0, volume * 100 - 10));
-          break;
-        case 'm':
-        case 'M':
-          e.preventDefault();
-          toggleMute();
-          break;
-        case 'f':
-        case 'F':
-          e.preventDefault();
-          toggleFullscreen();
-          break;
-        default:
-          break;
+      // Prevent bubbling to parent handlers to avoid double toggles
+      e.stopPropagation();
+      showControlsWithTimer();
+
+      // Map of key handlers for better maintainability and reduced complexity
+      const keyHandlers: Record<string, () => void | Promise<void>> = {
+        ' ': togglePlayPause,
+        Enter: togglePlayPause,
+        ArrowLeft: seekBackward,
+        ArrowRight: seekForward,
+        ArrowUp: increaseVolume,
+        ArrowDown: decreaseVolume,
+        m: toggleMute,
+        M: toggleMute,
+        f: toggleFullscreen,
+        F: toggleFullscreen,
+      };
+
+      const handler = keyHandlers[e.key];
+      if (handler) {
+        e.preventDefault();
+        handler();
       }
     },
     [
       showControlsWithTimer,
       togglePlayPause,
-      handleVolumeChange,
-      volume,
+      seekBackward,
+      seekForward,
+      increaseVolume,
+      decreaseVolume,
       toggleMute,
       toggleFullscreen,
     ]
   );
+
+  const groupedSubTitleValid = subtitles && subtitlesValidation === 'valid';
 
   return (
     <div className={cn('flex flex-col', className)}>
@@ -1090,10 +1185,16 @@ const VideoPlayer = ({
           <track
             ref={trackRef}
             kind="captions"
-            src={subtitles || 'data:text/vtt;charset=utf-8,WEBVTT'}
+            src={
+              groupedSubTitleValid
+                ? subtitles
+                : 'data:text/vtt;charset=utf-8,WEBVTT'
+            }
             srcLang="pt-br"
             label={
-              subtitles ? 'Legendas em Português' : 'Sem legendas disponíveis'
+              groupedSubTitleValid
+                ? 'Legendas em Português'
+                : 'Sem legendas disponíveis'
             }
             default={false}
           />
@@ -1188,8 +1289,8 @@ const VideoPlayer = ({
                 showSlider={!isUltraSmallMobile}
               />
 
-              {/* Captions */}
-              {subtitles && (
+              {/* Captions - Only show after validation is complete and valid */}
+              {groupedSubTitleValid && (
                 <IconButton
                   icon={<ClosedCaptioning size={getIconSize()} />}
                   onClick={toggleCaptions}
