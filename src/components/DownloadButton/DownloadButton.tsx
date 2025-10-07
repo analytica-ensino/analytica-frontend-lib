@@ -267,7 +267,7 @@ const DownloadButton = ({
             await new Promise((resolve) => setTimeout(resolve, 200));
           }
         } catch (error) {
-          console.error(`Erro ao baixar ${item.label}:`, error);
+          // Silent error handling - delegate to callback
           onDownloadError?.(
             item.type,
             error instanceof Error
