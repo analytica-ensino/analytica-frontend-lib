@@ -11,6 +11,13 @@ describe('StatisticsCard', () => {
     onEmptyStateButtonClick: jest.fn(),
   };
 
+  const mockData = [
+    { label: 'Acertos', value: '85%', variant: 'success' as const },
+    { label: 'Em andamento', value: 12, variant: 'warning' as const },
+    { label: 'Erros', value: '15%', variant: 'error' as const },
+    { label: 'Concluídas', value: 24, variant: 'info' as const },
+  ];
+
   describe('Rendering', () => {
     it('should render title correctly', () => {
       render(<StatisticsCard {...defaultProps} />);
@@ -250,6 +257,123 @@ describe('StatisticsCard', () => {
 
       const button = screen.getByRole('button', { name: /Criar atividade/i });
       expect(button).toHaveAttribute('type', 'button');
+    });
+  });
+
+  describe('Data Variant', () => {
+    it('should render data cards when data is provided', () => {
+      render(<StatisticsCard title="Estatística" data={mockData} />);
+
+      expect(screen.getByText('85%')).toBeInTheDocument();
+      expect(screen.getByText('Acertos')).toBeInTheDocument();
+      expect(screen.getByText('12')).toBeInTheDocument();
+      expect(screen.getByText('Em andamento')).toBeInTheDocument();
+      expect(screen.getByText('15%')).toBeInTheDocument();
+      expect(screen.getByText('Erros')).toBeInTheDocument();
+      expect(screen.getByText('24')).toBeInTheDocument();
+      expect(screen.getByText('Concluídas')).toBeInTheDocument();
+    });
+
+    it('should not render empty state when data is provided', () => {
+      render(
+        <StatisticsCard
+          title="Estatística"
+          data={mockData}
+          emptyStateMessage="No data"
+          emptyStateButtonText="Create"
+        />
+      );
+
+      expect(screen.queryByText('No data')).not.toBeInTheDocument();
+      expect(screen.queryByText('Create')).not.toBeInTheDocument();
+    });
+
+    it('should apply correct variant styles', () => {
+      const { container } = render(
+        <StatisticsCard title="Estatística" data={mockData} />
+      );
+
+      const successCard = container.querySelector('.bg-success-background');
+      expect(successCard).toBeInTheDocument();
+      expect(successCard).toHaveClass('border-success-border');
+
+      const warningCard = container.querySelector('.bg-warning-background');
+      expect(warningCard).toBeInTheDocument();
+      expect(warningCard).toHaveClass('border-warning-border');
+
+      const errorCard = container.querySelector('.bg-error-background');
+      expect(errorCard).toBeInTheDocument();
+      expect(errorCard).toHaveClass('border-error-border');
+
+      const infoCard = container.querySelector('.bg-info-background');
+      expect(infoCard).toBeInTheDocument();
+      expect(infoCard).toHaveClass('border-info-border');
+    });
+
+    it('should render data in grid layout', () => {
+      const { container } = render(
+        <StatisticsCard title="Estatística" data={mockData} />
+      );
+
+      const grid = container.querySelector('.grid.grid-cols-4');
+      expect(grid).toBeInTheDocument();
+    });
+
+    it('should render empty state when data array is empty', () => {
+      render(<StatisticsCard {...defaultProps} data={[]} />);
+
+      expect(screen.getByText(/Sem dados por enquanto/i)).toBeInTheDocument();
+      expect(screen.getByText('Criar atividade')).toBeInTheDocument();
+    });
+
+    it('should render empty state when data is undefined', () => {
+      render(<StatisticsCard {...defaultProps} />);
+
+      expect(screen.getByText(/Sem dados por enquanto/i)).toBeInTheDocument();
+      expect(screen.getByText('Criar atividade')).toBeInTheDocument();
+    });
+
+    it('should handle data with dropdown', () => {
+      const dropdownOptions = [
+        { label: '1 ano', value: '1year' },
+        { label: '6 meses', value: '6months' },
+      ];
+
+      render(
+        <StatisticsCard
+          title="Estatística"
+          data={mockData}
+          dropdownOptions={dropdownOptions}
+          selectedDropdownValue="1year"
+        />
+      );
+
+      expect(screen.getByText('85%')).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /1 ano/i })
+      ).toBeInTheDocument();
+    });
+
+    it('should render numeric values correctly', () => {
+      const numericData = [
+        { label: 'Total', value: 100, variant: 'info' as const },
+      ];
+
+      render(<StatisticsCard title="Estatística" data={numericData} />);
+
+      expect(screen.getByText('100')).toBeInTheDocument();
+      expect(screen.getByText('Total')).toBeInTheDocument();
+    });
+
+    it('should render string values correctly', () => {
+      const stringData = [
+        { label: 'Taxa', value: '95.5%', variant: 'success' as const },
+      ];
+
+      render(<StatisticsCard title="Estatística" data={stringData} />);
+
+      expect(screen.getByText('95.5%')).toBeInTheDocument();
+      expect(screen.getByText('Taxa')).toBeInTheDocument();
     });
   });
 

@@ -9,19 +9,33 @@ import Select, {
 } from '../Select/Select';
 
 /**
+ * Statistics data item
+ */
+interface StatItem {
+  /** Statistic label */
+  label: string;
+  /** Statistic value */
+  value: string | number;
+  /** Color variant */
+  variant: 'success' | 'warning' | 'error' | 'info';
+}
+
+/**
  * Props for StatisticsCard component
  */
 interface StatisticsCardProps {
   /** Title displayed at the top of the card */
   title: string;
+  /** Statistics data to display */
+  data?: StatItem[];
   /** Message shown in empty state */
-  emptyStateMessage: string;
+  emptyStateMessage?: string;
   /** Text for the empty state button */
-  emptyStateButtonText: string;
+  emptyStateButtonText?: string;
   /** Optional icon for the empty state button */
   emptyStateButtonIcon?: ReactNode;
   /** Callback when empty state button is clicked */
-  onEmptyStateButtonClick: () => void;
+  onEmptyStateButtonClick?: () => void;
   /** Optional dropdown options for filtering */
   dropdownOptions?: Array<{
     label: string;
@@ -36,16 +50,51 @@ interface StatisticsCardProps {
 }
 
 /**
+ * Variant styles mapping
+ */
+const VARIANT_STYLES = {
+  success: 'bg-success-background border-success-border',
+  warning: 'bg-warning-background border-warning-border',
+  error: 'bg-error-background border-error-border',
+  info: 'bg-info-background border-info-border',
+} as const;
+
+/**
+ * Internal StatCard component
+ */
+interface StatCardProps {
+  item: StatItem;
+}
+
+const StatCard = ({ item }: StatCardProps) => {
+  return (
+    <div
+      className={`rounded-lg border p-4 flex flex-col ${VARIANT_STYLES[item.variant]}`}
+    >
+      <Text size="lg" weight="bold" color="text-900">
+        {item.value}
+      </Text>
+      <Text size="sm" color="text-600">
+        {item.label}
+      </Text>
+    </div>
+  );
+};
+
+/**
  * StatisticsCard component - displays statistics with empty state support
  *
  * @example
  * ```tsx
+ * // With data
  * <StatisticsCard
  *   title="Estatística das atividades"
- *   emptyStateMessage="Sem dados por enquanto. Crie uma atividade para que os resultados apareçam aqui."
- *   emptyStateButtonText="Criar atividade"
- *   emptyStateButtonIcon={<Plus size={16} />}
- *   onEmptyStateButtonClick={() => console.log('Create activity')}
+ *   data={[
+ *     { label: 'Acertos', value: '85%', variant: 'success' },
+ *     { label: 'Em andamento', value: 12, variant: 'warning' },
+ *     { label: 'Erros', value: '15%', variant: 'error' },
+ *     { label: 'Concluídas', value: 24, variant: 'info' }
+ *   ]}
  *   dropdownOptions={[
  *     { label: '1 ano', value: '1year' },
  *     { label: '6 meses', value: '6months' }
@@ -53,10 +102,20 @@ interface StatisticsCardProps {
  *   selectedDropdownValue="1year"
  *   onDropdownChange={(value) => console.log(value)}
  * />
+ *
+ * // Empty state
+ * <StatisticsCard
+ *   title="Estatística das atividades"
+ *   emptyStateMessage="Sem dados por enquanto. Crie uma atividade para que os resultados apareçam aqui."
+ *   emptyStateButtonText="Criar atividade"
+ *   emptyStateButtonIcon={<Plus size={16} />}
+ *   onEmptyStateButtonClick={() => console.log('Create activity')}
+ * />
  * ```
  */
 export const StatisticsCard = ({
   title,
+  data,
   emptyStateMessage,
   emptyStateButtonText,
   emptyStateButtonIcon,
@@ -66,6 +125,8 @@ export const StatisticsCard = ({
   onDropdownChange,
   className = '',
 }: StatisticsCardProps) => {
+  const hasData = data && data.length > 0;
+
   return (
     <div className={`bg-background rounded-xl p-4 ${className}`}>
       {/* Header with title and optional dropdown */}
@@ -96,22 +157,30 @@ export const StatisticsCard = ({
         )}
       </div>
 
-      {/* Empty State Card */}
-      <div className="border border-dashed border-border-300 rounded-lg p-6 flex flex-col items-center justify-center gap-2">
-        <Text size="sm" color="text-600" className="text-center max-w-md">
-          {emptyStateMessage}
-        </Text>
+      {/* Content: Data Grid or Empty State */}
+      {hasData ? (
+        <div className="grid grid-cols-4 gap-4">
+          {data.map((item) => (
+            <StatCard key={`${item.variant}-${item.label}`} item={item} />
+          ))}
+        </div>
+      ) : (
+        <div className="border border-dashed border-border-300 rounded-lg p-6 flex flex-col items-center justify-center gap-2">
+          <Text size="sm" color="text-600" className="text-center max-w-md">
+            {emptyStateMessage}
+          </Text>
 
-        <Button
-          variant="outline"
-          action="primary"
-          size="small"
-          onClick={onEmptyStateButtonClick}
-          iconLeft={emptyStateButtonIcon}
-        >
-          {emptyStateButtonText}
-        </Button>
-      </div>
+          <Button
+            variant="outline"
+            action="primary"
+            size="small"
+            onClick={onEmptyStateButtonClick}
+            iconLeft={emptyStateButtonIcon}
+          >
+            {emptyStateButtonText}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
