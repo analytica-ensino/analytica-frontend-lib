@@ -181,8 +181,8 @@ describe('StatisticsCard', () => {
 
       const emptyCard = container.querySelector('.border-dashed');
       expect(emptyCard).toBeInTheDocument();
-      expect(emptyCard).toHaveClass('border-2');
-      expect(emptyCard).toHaveClass('border-gray-300');
+      expect(emptyCard).toHaveClass('border');
+      expect(emptyCard).toHaveClass('border-border-300');
     });
 
     it('should have correct base style classes applied', () => {
@@ -191,7 +191,7 @@ describe('StatisticsCard', () => {
       const card = container.firstChild as HTMLElement;
       expect(card).toHaveClass('bg-background');
       expect(card).toHaveClass('rounded-xl');
-      expect(card).toHaveClass('p-6');
+      expect(card).toHaveClass('p-4');
     });
 
     it('should have correct button style classes', () => {

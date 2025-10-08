@@ -67,36 +67,38 @@ export const StatisticsCard = ({
   className = '',
 }: StatisticsCardProps) => {
   return (
-    <div className={`bg-background rounded-xl p-6 ${className}`}>
+    <div className={`bg-background rounded-xl p-4 ${className}`}>
       {/* Header with title and optional dropdown */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-        <Text as="h3" size="sm" weight="medium" color="text-700">
+      <div className="flex flex-row justify-between items-center gap-4 mb-2">
+        <Text as="h3" size="sm" weight="medium" color="text-600">
           {title}
         </Text>
 
         {dropdownOptions && dropdownOptions.length > 0 && (
-          <Select
-            value={selectedDropdownValue}
-            onValueChange={onDropdownChange}
-            size="small"
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione um período" />
-            </SelectTrigger>
-            <SelectContent>
-              {dropdownOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="w-[99px]">
+            <Select
+              value={selectedDropdownValue}
+              onValueChange={onDropdownChange}
+              size="medium"
+            >
+              <SelectTrigger className="!border !rounded">
+                <SelectValue placeholder="Selecione um período" />
+              </SelectTrigger>
+              <SelectContent>
+                {dropdownOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         )}
       </div>
 
       {/* Empty State Card */}
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 sm:p-12 flex flex-col items-center justify-center gap-6 min-h-[200px]">
-        <Text size="sm" color="text-500" className="text-center max-w-md">
+      <div className="border border-dashed border-border-300 rounded-lg p-6 flex flex-col items-center justify-center gap-2">
+        <Text size="sm" color="text-600" className="text-center max-w-md">
           {emptyStateMessage}
         </Text>
 
