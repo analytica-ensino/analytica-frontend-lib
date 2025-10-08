@@ -137,6 +137,7 @@ export {
   CardSimulationHistory,
   CardAudio,
 } from './components/Card/Card';
+export { StatisticsCard } from './components/StatisticsCard/StatisticsCard';
 
 // Skeleton Components
 export {

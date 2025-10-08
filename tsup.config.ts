@@ -36,6 +36,7 @@ export default defineConfig({
     'Modal/index': 'src/components/Modal/Modal.tsx',
     'Modal/utils/videoUtils/index': 'src/components/Modal/utils/videoUtils.ts',
     'Card/index': 'src/components/Card/Card.tsx',
+    'StatisticsCard/index': 'src/components/StatisticsCard/StatisticsCard.tsx',
     'Calendar/index': 'src/components/Calendar/Calendar.tsx',
     'Stepper/index': 'src/components/Stepper/Stepper.tsx',
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
