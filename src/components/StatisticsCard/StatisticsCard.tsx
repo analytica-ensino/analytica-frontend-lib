@@ -79,19 +79,19 @@ interface StatCardProps {
 const StatCard = ({ item }: StatCardProps) => {
   return (
     <div
-      className={`rounded-xl py-[17px] px-6 h-[107px] flex flex-col justify-center gap-1 ${VARIANT_STYLES[item.variant]}`}
+      className={`rounded-xl py-[17px] px-6 h-[107px] flex flex-col justify-center items-start gap-1 ${VARIANT_STYLES[item.variant]}`}
     >
       <Text
         size="3xl"
         weight="bold"
-        className={VALUE_TEXT_COLORS[item.variant]}
+        className={`${VALUE_TEXT_COLORS[item.variant]} leading-[42px] tracking-[0.2px] self-stretch`}
       >
         {item.value}
       </Text>
       <Text
         size="xs"
         weight="bold"
-        className="uppercase text-[8px] leading-[9px] text-text-800"
+        className="uppercase text-[8px] leading-[9px] text-text-800 self-stretch"
       >
         {item.label}
       </Text>
