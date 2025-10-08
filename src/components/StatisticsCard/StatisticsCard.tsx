@@ -179,7 +179,7 @@ export const StatisticsCard = ({
 
       {/* Content: Data Grid or Empty State */}
       {hasData ? (
-        <div className="grid grid-cols-4 gap-[13px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13px]">
           {data.map((item) => (
             <StatCard key={`${item.variant}-${item.label}`} item={item} />
           ))}

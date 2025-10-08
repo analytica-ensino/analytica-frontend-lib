@@ -100,3 +100,26 @@ export const AllVariants: Story = () => (
     />
   </div>
 );
+
+/**
+ * Story for mobile view with data cards
+ */
+export const MobileView: Story = () => (
+  <div className="p-4 bg-gray-100 min-h-screen max-w-[375px]">
+    <StatisticsCard
+      title="Estatística das atividades"
+      data={[
+        { label: 'Acertos', value: '85%', variant: 'success' },
+        { label: 'Em andamento', value: 12, variant: 'warning' },
+        { label: 'Erros', value: '15%', variant: 'error' },
+        { label: 'Concluídas', value: 24, variant: 'info' },
+      ]}
+      dropdownOptions={[
+        { label: '1 ano', value: '1year' },
+        { label: '6 meses', value: '6months' },
+      ]}
+      selectedDropdownValue="1year"
+      onDropdownChange={(value) => console.log('Dropdown changed to:', value)}
+    />
+  </div>
+);

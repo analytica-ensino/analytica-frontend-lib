@@ -306,13 +306,18 @@ describe('StatisticsCard', () => {
       expect(infoCard).toBeInTheDocument();
     });
 
-    it('should render data in grid layout', () => {
+    it('should render data in grid layout with responsive classes', () => {
       const { container } = render(
         <StatisticsCard title="Estatística" data={mockData} />
       );
 
-      const grid = container.querySelector('.grid.grid-cols-4');
+      const grid = container.querySelector('.grid');
       expect(grid).toBeInTheDocument();
+      expect(grid).toHaveClass(
+        'grid-cols-1',
+        'sm:grid-cols-2',
+        'lg:grid-cols-4'
+      );
     });
 
     it('should render empty state when data array is empty', () => {
