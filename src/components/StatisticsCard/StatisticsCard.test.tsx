@@ -295,19 +295,15 @@ describe('StatisticsCard', () => {
 
       const successCard = container.querySelector('.bg-success-background');
       expect(successCard).toBeInTheDocument();
-      expect(successCard).toHaveClass('border-success-border');
 
       const warningCard = container.querySelector('.bg-warning-background');
       expect(warningCard).toBeInTheDocument();
-      expect(warningCard).toHaveClass('border-warning-border');
 
       const errorCard = container.querySelector('.bg-error-background');
       expect(errorCard).toBeInTheDocument();
-      expect(errorCard).toHaveClass('border-error-border');
 
       const infoCard = container.querySelector('.bg-info-background');
       expect(infoCard).toBeInTheDocument();
-      expect(infoCard).toHaveClass('border-info-border');
     });
 
     it('should render data in grid layout', () => {

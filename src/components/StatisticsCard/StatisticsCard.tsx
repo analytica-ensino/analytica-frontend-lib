@@ -162,7 +162,7 @@ export const StatisticsCard = ({
               onValueChange={onDropdownChange}
               size="medium"
             >
-              <SelectTrigger className="!border !rounded">
+              <SelectTrigger className="!border !rounded whitespace-nowrap">
                 <SelectValue placeholder="Selecione um período" />
               </SelectTrigger>
               <SelectContent>
