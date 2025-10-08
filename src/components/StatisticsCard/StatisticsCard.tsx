@@ -53,10 +53,20 @@ interface StatisticsCardProps {
  * Variant styles mapping
  */
 const VARIANT_STYLES = {
-  success: 'bg-success-background border-success-border',
-  warning: 'bg-warning-background border-warning-border',
-  error: 'bg-error-background border-error-border',
-  info: 'bg-info-background border-info-border',
+  success: 'bg-success-background',
+  warning: 'bg-warning-background',
+  error: 'bg-error-background',
+  info: 'bg-info-background',
+} as const;
+
+/**
+ * Value text colors mapping
+ */
+const VALUE_TEXT_COLORS = {
+  success: 'text-success-700',
+  warning: 'text-warning-600',
+  error: 'text-error-700',
+  info: 'text-info-700',
 } as const;
 
 /**
@@ -69,12 +79,20 @@ interface StatCardProps {
 const StatCard = ({ item }: StatCardProps) => {
   return (
     <div
-      className={`rounded-lg border p-4 flex flex-col ${VARIANT_STYLES[item.variant]}`}
+      className={`rounded-xl py-[17px] px-6 h-[107px] flex flex-col justify-center gap-1 ${VARIANT_STYLES[item.variant]}`}
     >
-      <Text size="lg" weight="bold" color="text-900">
+      <Text
+        size="3xl"
+        weight="bold"
+        className={VALUE_TEXT_COLORS[item.variant]}
+      >
         {item.value}
       </Text>
-      <Text size="sm" color="text-600">
+      <Text
+        size="xs"
+        weight="bold"
+        className="uppercase text-[8px] leading-[9px] text-text-800"
+      >
         {item.label}
       </Text>
     </div>
@@ -128,9 +146,11 @@ export const StatisticsCard = ({
   const hasData = data && data.length > 0;
 
   return (
-    <div className={`bg-background rounded-xl p-4 ${className}`}>
+    <div
+      className={`bg-background rounded-xl p-4 flex flex-col gap-2 ${className}`}
+    >
       {/* Header with title and optional dropdown */}
-      <div className="flex flex-row justify-between items-center gap-4 mb-2">
+      <div className="flex flex-row justify-between items-center gap-4">
         <Text as="h3" size="sm" weight="medium" color="text-600">
           {title}
         </Text>
@@ -159,7 +179,7 @@ export const StatisticsCard = ({
 
       {/* Content: Data Grid or Empty State */}
       {hasData ? (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-4 gap-[13px]">
           {data.map((item) => (
             <StatCard key={`${item.variant}-${item.label}`} item={item} />
           ))}
