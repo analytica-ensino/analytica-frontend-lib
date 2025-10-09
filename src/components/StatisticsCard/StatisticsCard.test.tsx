@@ -41,16 +41,12 @@ describe('StatisticsCard', () => {
       ).toBeInTheDocument();
     });
 
-    it('should render button icon when provided', () => {
-      render(
-        <StatisticsCard
-          {...defaultProps}
-          emptyStateButtonIcon={<span data-testid="icon">+</span>}
-        />
-      );
+    it('should render Plus icon in button', () => {
+      render(<StatisticsCard {...defaultProps} />);
 
-      expect(screen.getByTestId('icon')).toBeInTheDocument();
-      expect(screen.getByTestId('icon')).toHaveTextContent('+');
+      const button = screen.getByRole('button', { name: /Criar atividade/i });
+      const svg = button.querySelector('svg');
+      expect(svg).toBeInTheDocument();
     });
 
     it('should not render button when onEmptyStateButtonClick is undefined', () => {

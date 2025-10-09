@@ -1,6 +1,5 @@
 import type { Story } from '@ladle/react';
 import { StatisticsCard } from './StatisticsCard';
-import { Plus } from 'phosphor-react';
 
 /**
  * Story showing multiple cards together
@@ -11,7 +10,6 @@ export const MultipleCards: Story = () => (
       title="Estatística das atividades"
       emptyStateMessage="Sem dados por enquanto. Crie uma atividade para que os resultados apareçam aqui."
       emptyStateButtonText="Criar atividade"
-      emptyStateButtonIcon={<Plus size={16} />}
       onEmptyStateButtonClick={() => console.log('Create activity clicked')}
       dropdownOptions={[
         { label: '1 ano', value: '1year' },
@@ -90,7 +88,6 @@ export const AllVariants: Story = () => (
       title="Estatísticas sem dados (empty state)"
       emptyStateMessage="Sem dados por enquanto. Crie uma atividade para que os resultados apareçam aqui."
       emptyStateButtonText="Criar atividade"
-      emptyStateButtonIcon={<Plus size={16} />}
       onEmptyStateButtonClick={() => console.log('Create activity clicked')}
       dropdownOptions={[
         { label: '1 ano', value: '1year' },

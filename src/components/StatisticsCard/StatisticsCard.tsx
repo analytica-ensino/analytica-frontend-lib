@@ -1,4 +1,3 @@
-import { ReactNode } from 'react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import Select, {
@@ -7,6 +6,7 @@ import Select, {
   SelectContent,
   SelectItem,
 } from '../Select/Select';
+import { Plus } from 'phosphor-react';
 
 /**
  * Statistics data item
@@ -32,8 +32,6 @@ interface StatisticsCardProps {
   emptyStateMessage?: string;
   /** Text for the empty state button */
   emptyStateButtonText?: string;
-  /** Optional icon for the empty state button */
-  emptyStateButtonIcon?: ReactNode;
   /** Callback when empty state button is clicked */
   onEmptyStateButtonClick?: () => void;
   /** Optional dropdown options for filtering */
@@ -130,7 +128,6 @@ const StatCard = ({ item }: StatCardProps) => {
  *   title="Estatística das atividades"
  *   emptyStateMessage="Sem dados por enquanto. Crie uma atividade para que os resultados apareçam aqui."
  *   emptyStateButtonText="Criar atividade"
- *   emptyStateButtonIcon={<Plus size={16} />}
  *   onEmptyStateButtonClick={() => console.log('Create activity')}
  * />
  * ```
@@ -140,7 +137,6 @@ export const StatisticsCard = ({
   data,
   emptyStateMessage,
   emptyStateButtonText,
-  emptyStateButtonIcon,
   onEmptyStateButtonClick,
   dropdownOptions,
   selectedDropdownValue,
@@ -209,7 +205,7 @@ export const StatisticsCard = ({
               action="primary"
               size="small"
               onClick={onEmptyStateButtonClick}
-              iconLeft={emptyStateButtonIcon}
+              iconLeft={<Plus size={16} weight="bold" />}
             >
               {emptyStateButtonText}
             </Button>
