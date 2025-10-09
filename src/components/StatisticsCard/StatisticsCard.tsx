@@ -147,7 +147,7 @@ export const StatisticsCard = ({
 
   return (
     <div
-      className={`bg-background rounded-xl p-4 min-h-[185px] flex flex-col gap-2 ${className}`}
+      className={`bg-background rounded-xl p-4 h-[185px] flex flex-col gap-2 ${className}`}
     >
       {/* Header with title and optional dropdown */}
       <div className="flex flex-row justify-between items-center gap-4">
@@ -185,7 +185,7 @@ export const StatisticsCard = ({
           ))}
         </div>
       ) : (
-        <div className="border border-dashed border-border-300 rounded-lg p-6 flex flex-col items-center justify-center gap-2">
+        <div className="border border-dashed border-border-300 rounded-lg p-6 min-h-[105px] flex flex-col items-center justify-center gap-2">
           <Text size="sm" color="text-600" className="text-center max-w-md">
             {emptyStateMessage}
           </Text>
