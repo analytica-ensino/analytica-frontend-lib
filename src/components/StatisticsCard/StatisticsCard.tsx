@@ -45,6 +45,8 @@ interface StatisticsCardProps {
   selectedDropdownValue?: string;
   /** Callback when dropdown value changes */
   onDropdownChange?: (value: string) => void;
+  /** Placeholder text for the dropdown select */
+  selectPlaceholder?: string;
   /** Additional CSS classes */
   className?: string;
 }
@@ -108,10 +110,10 @@ const StatCard = ({ item }: StatCardProps) => {
  * <StatisticsCard
  *   title="Estatística das atividades"
  *   data={[
- *     { label: 'Acertos', value: '85%', variant: 'success' },
- *     { label: 'Em andamento', value: 12, variant: 'warning' },
- *     { label: 'Erros', value: '15%', variant: 'error' },
- *     { label: 'Concluídas', value: 24, variant: 'info' }
+ *     { label: 'Acertos', value: '85%', variant: 'high' },
+ *     { label: 'Em andamento', value: 12, variant: 'medium' },
+ *     { label: 'Erros', value: '15%', variant: 'low' },
+ *     { label: 'Concluídas', value: 24, variant: 'total' }
  *   ]}
  *   dropdownOptions={[
  *     { label: '1 ano', value: '1year' },
@@ -141,6 +143,7 @@ export const StatisticsCard = ({
   dropdownOptions,
   selectedDropdownValue,
   onDropdownChange,
+  selectPlaceholder = 'Selecione um período',
   className = '',
 }: StatisticsCardProps) => {
   const hasData = data && data.length > 0;
@@ -163,7 +166,7 @@ export const StatisticsCard = ({
               size="medium"
             >
               <SelectTrigger className="!border !rounded whitespace-nowrap">
-                <SelectValue placeholder="Selecione um período" />
+                <SelectValue placeholder={selectPlaceholder} />
               </SelectTrigger>
               <SelectContent>
                 {dropdownOptions.map((option) => (
