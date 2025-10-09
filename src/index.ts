@@ -248,6 +248,13 @@ export { useUrlParams } from './components/BreadcrumbMenu/useUrlParams';
 export type { UrlParamsConfig } from './components/BreadcrumbMenu/useUrlParams';
 export { useBreadcrumb } from './components/BreadcrumbMenu/breadcrumbStore';
 export type { BreadcrumbItem } from './components/BreadcrumbMenu/breadcrumbStore';
+// Auth Hooks
+export { useAppInitialization } from './hooks/useAppInitialization';
+export { useAppContent } from './hooks/useAppContent';
+export { useInstitutionId } from './hooks/useInstitution';
+export { useAuthStore } from './store/authStore';
+export { useAppStore } from './store/appStore';
+export type { AuthState } from './store/authStore';
 
 // Utils
 export {

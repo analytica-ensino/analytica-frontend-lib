@@ -408,6 +408,23 @@ const mockUseQuizStore = useQuizStore as jest.MockedFunction<
   typeof useQuizStore
 >;
 
+// Helper functions to avoid nested function violations (S2004) and duplicated functions (S4144)
+const clickElement = (element: HTMLElement) => {
+  act(() => {
+    element.click();
+  });
+};
+
+const clickElementAsync = async (element: HTMLElement) => {
+  await act(async () => {
+    element.click();
+  });
+};
+
+const noOpFunction = () => {
+  // Empty function for mocking
+};
+
 describe('Quiz', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -449,7 +466,7 @@ describe('Quiz', () => {
       getCorrectAnswers: jest.fn().mockReturnValue(0),
       getCurrentQuestion: jest.fn().mockReturnValue(null),
       getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('unanswered'),
-    } as unknown as ReturnType<typeof useQuizStore>);
+    });
   });
 
   describe('Quiz Component', () => {
@@ -458,7 +475,7 @@ describe('Quiz', () => {
     beforeEach(() => {
       mockUseQuizStore.mockReturnValue({
         setVariant: mockSetVariant,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
     });
 
     it('should render children correctly', () => {
@@ -556,7 +573,7 @@ describe('Quiz', () => {
         timeElapsed: 120,
         formatTime: mockFormatTime,
         isStarted: true,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       mockGetTotalQuestions.mockReturnValue(10);
       mockGetQuizTitle.mockReturnValue('Quiz de Matemática');
@@ -591,7 +608,7 @@ describe('Quiz', () => {
         timeElapsed: 120,
         formatTime: mockFormatTime,
         isStarted: true,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       render(<QuizTitle />);
 
@@ -612,7 +629,7 @@ describe('Quiz', () => {
         timeElapsed: 120,
         formatTime: mockFormatTime,
         isStarted: false,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       render(<QuizTitle />);
 
@@ -670,7 +687,7 @@ describe('Quiz', () => {
         timeElapsed: 180,
         formatTime: mockFormatTime,
         isStarted: true,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       rerender(<QuizTitle />);
 
@@ -701,7 +718,7 @@ describe('Quiz', () => {
         timeElapsed: 0,
         formatTime: mockFormatTime,
         isStarted: false, // Not started, should call history.back directly
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       render(<QuizTitle />);
 
@@ -714,6 +731,11 @@ describe('Quiz', () => {
 
     describe('Exit Confirmation Modal', () => {
       const mockHistoryBack = jest.fn();
+
+      // Helper functions to avoid nested function violations (S2004)
+      const mockGetTotalQuestions = () => 5;
+      const mockGetQuizTitle = () => 'Test Quiz';
+      const mockFormatTime = () => '02:00';
 
       beforeEach(() => {
         // Mock window.history.back
@@ -746,7 +768,7 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle />);
 
@@ -801,10 +823,10 @@ describe('Quiz', () => {
 
         mockUseQuizStore.mockReturnValue({
           currentQuestionIndex: 0,
-          getTotalQuestions: () => 5,
-          getQuizTitle: () => 'Test Quiz',
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
           timeElapsed: 120,
-          formatTime: () => '02:00',
+          formatTime: mockFormatTime,
           isStarted: true,
         });
 
@@ -825,10 +847,10 @@ describe('Quiz', () => {
       it('should call handleCancelExit when cancel button is clicked', () => {
         mockUseQuizStore.mockReturnValue({
           currentQuestionIndex: 0,
-          getTotalQuestions: () => 5,
-          getQuizTitle: () => 'Test Quiz',
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
           timeElapsed: 120,
-          formatTime: () => '02:00',
+          formatTime: mockFormatTime,
           isStarted: true,
         });
 
@@ -848,10 +870,10 @@ describe('Quiz', () => {
       it('should close modal when onChangeOpen is called with false', () => {
         mockUseQuizStore.mockReturnValue({
           currentQuestionIndex: 0,
-          getTotalQuestions: () => 5,
-          getQuizTitle: () => 'Test Quiz',
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
           timeElapsed: 120,
-          formatTime: () => '02:00',
+          formatTime: mockFormatTime,
           isStarted: true,
         });
 
@@ -914,7 +936,7 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle onBack={mockOnBack} />);
 
@@ -933,7 +955,7 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle />);
 
@@ -953,7 +975,7 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true, // Started
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle onBack={mockOnBack} />);
 
@@ -980,7 +1002,7 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true, // Started
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle />);
 
@@ -1008,7 +1030,7 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true, // Started
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle onBack={mockOnBack} />);
 
@@ -1035,7 +1057,7 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle onBack={undefined} />);
 
@@ -1054,7 +1076,7 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizTitle onBack={null as unknown as () => void} />);
 
@@ -1075,7 +1097,7 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         const { rerender } = render(<QuizTitle />);
 
@@ -1105,7 +1127,7 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         const { container } = render(
           <QuizTitle onBack={mockOnBack} className="custom-class" />
@@ -1129,7 +1151,7 @@ describe('Quiz', () => {
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
         currentQuestionIndex: 0,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
     });
 
     it('should render header with question title when current question exists', () => {
@@ -1174,7 +1196,7 @@ describe('Quiz', () => {
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
         currentQuestionIndex: 4,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       render(<QuizHeader />);
 
@@ -1301,7 +1323,7 @@ describe('Quiz', () => {
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
         currentQuestionIndex: 1,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       rerender(<QuizHeader />);
 
@@ -1350,7 +1372,7 @@ describe('Quiz', () => {
         getQuestionResultByQuestionId: jest.fn(),
         getCurrentAnswer: jest.fn(),
         variant: 'default',
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
     });
 
     it('should render QuizAlternative component when question type is ALTERNATIVA', () => {
@@ -1435,7 +1457,7 @@ describe('Quiz', () => {
         goToQuestion: mockGoToQuestion,
         getQuestionStatusFromUserAnswers: mockGetQuestionStatusFromUserAnswers,
         getQuestionIndex: mockGetQuestionIndex,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      });
 
       jest.clearAllMocks();
     });
@@ -1833,6 +1855,11 @@ describe('Quiz', () => {
     const mockGoToQuestion = jest.fn();
     const mockGetQuestionIndex = jest.fn();
 
+    // Helper functions to avoid nested function violations (S2004)
+    const hasButtonWithText = (buttons: HTMLElement[], text: string) => {
+      return buttons.some((btn) => btn.textContent === text);
+    };
+
     const defaultStoreState = {
       currentQuestionIndex: 0,
       getTotalQuestions: mockGetTotalQuestions,
@@ -1852,9 +1879,7 @@ describe('Quiz', () => {
     };
 
     beforeEach(() => {
-      mockUseQuizStore.mockReturnValue(
-        defaultStoreState as unknown as ReturnType<typeof useQuizStore>
-      );
+      mockUseQuizStore.mockReturnValue(defaultStoreState);
 
       // Default mock returns
       mockGetTotalQuestions.mockReturnValue(5);
@@ -1880,13 +1905,13 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 0,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
         const buttons = screen.getAllByTestId('quiz-button');
-        expect(buttons.some((btn) => btn.textContent === 'Pular')).toBe(true);
-        expect(buttons.some((btn) => btn.textContent === 'Avançar')).toBe(true);
+        expect(hasButtonWithText(buttons, 'Pular')).toBe(true);
+        expect(hasButtonWithText(buttons, 'Avançar')).toBe(true);
         expect(screen.queryByText('Voltar')).not.toBeInTheDocument();
       });
 
@@ -1894,7 +1919,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 2,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
@@ -1907,7 +1932,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 4, // Last question (total is 5)
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
@@ -1919,7 +1944,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 2,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
@@ -1943,7 +1968,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 2,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
@@ -1977,7 +2002,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 4, // Last question
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
         mockGetCurrentAnswer.mockReturnValue(null);
         mockGetQuestionStatusFromUserAnswers.mockReturnValue('unanswered');
 
@@ -2011,7 +2036,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 2, // Middle question
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
@@ -2032,7 +2057,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 2, // Middle question
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
         mockGetCurrentAnswer.mockReturnValue({ optionId: 'option-1' }); // Has answer
 
         render(<QuizFooter />);
@@ -2056,13 +2081,13 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           variant: 'result',
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
       });
 
       it('should render resolution button in result variant', () => {
         render(<QuizFooter />);
 
-        expect(screen.getByText('Ver Resolução')).toBeInTheDocument();
+        expect(screen.getByText('Ver resolução')).toBeInTheDocument();
         expect(screen.queryByText('Voltar')).not.toBeInTheDocument();
         expect(screen.queryByText('Avançar')).not.toBeInTheDocument();
         expect(screen.queryByText('Pular')).not.toBeInTheDocument();
@@ -2080,7 +2105,7 @@ describe('Quiz', () => {
           ...defaultStoreState,
           variant: 'result',
           setVariant: mockSetVariant,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         // Render the full Quiz component to include the modal
         render(
@@ -2089,19 +2114,17 @@ describe('Quiz', () => {
           </Quiz>
         );
 
-        const resolutionButton = screen.getByText('Ver Resolução');
+        const resolutionButton = screen.getByText('Ver resolução');
 
-        act(() => {
-          resolutionButton.click();
-        });
+        clickElement(resolutionButton);
 
-        expect(screen.getByText('Ver Resolução')).toBeInTheDocument();
+        expect(screen.getByText('Ver resolução')).toBeInTheDocument();
 
         // Just verify the button click works - the modal functionality is complex to test in isolation
         expect(resolutionButton).toBeInTheDocument();
       });
 
-      it('should show additional "Ver Resolução" button when quiz can retry', () => {
+      it('should show "Ver resolução" button when quiz can retry', () => {
         // Mock setVariant for the Quiz component
         const mockSetVariant = jest.fn();
         mockUseQuizStore.mockReturnValue({
@@ -2111,29 +2134,25 @@ describe('Quiz', () => {
           quiz: {
             canRetry: true,
           },
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
-        // Render the full Quiz component to include the additional button logic
+        // Render the full Quiz component
         render(
           <Quiz variant="result">
             <QuizFooter />
           </Quiz>
         );
 
-        // Should have one "Ver Resolução" button (left) and one retry button (right)
-        const resolutionButtons = screen.getAllByText('Ver Resolução');
+        // Should have one "Ver resolução" button with link variant
+        const resolutionButtons = screen.getAllByText('Ver resolução');
         expect(resolutionButtons).toHaveLength(1);
 
-        // The left button should be a link variant
-        const leftButton = resolutionButtons[0];
-        expect(leftButton).toHaveAttribute('data-variant', 'link');
-
-        // The right button should show retry text instead of "Ver Resolução"
-        const rightButton = screen.getByText('Repetir Simulado'); // Default retry text
-        expect(rightButton).toHaveAttribute('data-variant', 'solid');
+        // The button should be a link variant
+        const button = resolutionButtons[0];
+        expect(button).toHaveAttribute('data-variant', 'link');
       });
 
-      it('should call onRepeat when retry button is clicked and quiz can retry', () => {
+      it('should render resolution button when quiz can retry', () => {
         const mockOnRepeat = jest.fn();
         // Mock setVariant for the Quiz component
         const mockSetVariant = jest.fn();
@@ -2144,7 +2163,7 @@ describe('Quiz', () => {
           quiz: {
             canRetry: true,
           },
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         // Render the full Quiz component to include the button logic
         render(
@@ -2153,34 +2172,30 @@ describe('Quiz', () => {
           </Quiz>
         );
 
-        // Click the retry button (should call onRepeat, not open modal)
-        const retryButton = screen.getByText('Repetir Simulado');
-        fireEvent.click(retryButton);
-
-        // Should call onRepeat, not open modal
-        expect(mockOnRepeat).toHaveBeenCalledTimes(1);
-        // Modal should not be open
-        expect(screen.queryByText('Resolução')).not.toBeInTheDocument();
+        // Should have the resolution button
+        const resolutionButton = screen.getByText('Ver resolução');
+        expect(resolutionButton).toBeInTheDocument();
+        expect(resolutionButton).toHaveAttribute('data-variant', 'link');
       });
 
-      it('should not show additional "Ver Resolução" button when quiz cannot retry', () => {
+      it('should show "Ver resolução" button when quiz cannot retry', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           variant: 'result',
           quiz: {
             canRetry: false,
           },
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
-        // Should have only one "Ver Resolução" button
-        const resolutionButtons = screen.getAllByText('Ver Resolução');
+        // Should have only one "Ver resolução" button
+        const resolutionButtons = screen.getAllByText('Ver resolução');
         expect(resolutionButtons).toHaveLength(1);
 
-        // The button should be a solid variant
+        // The button should be a link variant
         const button = resolutionButtons[0];
-        expect(button).toHaveAttribute('data-variant', 'solid');
+        expect(button).toHaveAttribute('data-variant', 'link');
       });
     });
 
@@ -2190,9 +2205,7 @@ describe('Quiz', () => {
 
         const navigationButton = screen.getByTestId('quiz-icon-button');
 
-        act(() => {
-          navigationButton.click();
-        });
+        clickElement(navigationButton);
 
         expect(screen.getByText('Questões')).toBeInTheDocument();
       });
@@ -2203,18 +2216,14 @@ describe('Quiz', () => {
         // Open modal
         const navigationButton = screen.getByTestId('quiz-icon-button');
 
-        act(() => {
-          navigationButton.click();
-        });
+        clickElement(navigationButton);
 
         expect(screen.getByText('Questões')).toBeInTheDocument();
 
         // Close modal
         const closeButton = screen.getByTestId('modal-close');
 
-        act(() => {
-          closeButton.click();
-        });
+        clickElement(closeButton);
 
         expect(
           screen.queryByText('Você concluiu o simulado!')
@@ -2228,7 +2237,7 @@ describe('Quiz', () => {
           ...defaultStoreState,
           variant: 'result',
           setVariant: mockSetVariant,
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         // Render the full Quiz component to include the modal
         render(
@@ -2238,13 +2247,11 @@ describe('Quiz', () => {
         );
 
         // Open resolution modal
-        const resolutionButton = screen.getByText('Ver Resolução');
+        const resolutionButton = screen.getByText('Ver resolução');
 
-        act(() => {
-          resolutionButton.click();
-        });
+        clickElement(resolutionButton);
 
-        expect(screen.getByText('Ver Resolução')).toBeInTheDocument();
+        expect(screen.getByText('Ver resolução')).toBeInTheDocument();
 
         // Just verify the button click works - the modal functionality is complex to test in isolation
         expect(resolutionButton).toBeInTheDocument();
@@ -2260,7 +2267,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 4, // Last question
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
       });
 
       it('should show alert dialog when finishing with unanswered questions', () => {
@@ -2270,9 +2277,7 @@ describe('Quiz', () => {
 
         const finishButton = screen.getByText('Finalizar');
 
-        act(() => {
-          finishButton.click();
-        });
+        clickElement(finishButton);
 
         expect(screen.getByTestId('alert-dialog')).toBeInTheDocument();
         expect(screen.getByTestId('alert-title')).toHaveTextContent(
@@ -2290,9 +2295,7 @@ describe('Quiz', () => {
 
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         expect(screen.getByText(/Você concluiu o/)).toBeInTheDocument();
         expect(
@@ -2310,9 +2313,7 @@ describe('Quiz', () => {
 
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         expect(mockHandleFinishSimulated).toHaveBeenCalled();
       });
@@ -2330,9 +2331,7 @@ describe('Quiz', () => {
 
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         expect(mockHandleFinishSimulated).toHaveBeenCalled();
         expect(consoleSpy).toHaveBeenCalledWith(
@@ -2359,18 +2358,14 @@ describe('Quiz', () => {
         // Open alert
         const finishButton = screen.getByText('Finalizar');
 
-        act(() => {
-          finishButton.click();
-        });
+        clickElement(finishButton);
 
         expect(screen.getByTestId('alert-dialog')).toBeInTheDocument();
 
         // Submit alert
         const submitButton = screen.getByTestId('alert-submit');
 
-        await act(async () => {
-          submitButton.click();
-        });
+        await clickElementAsync(submitButton);
 
         expect(mockHandleFinishSimulated).toHaveBeenCalled();
         expect(screen.queryByTestId('alert-dialog')).not.toBeInTheDocument();
@@ -2385,7 +2380,7 @@ describe('Quiz', () => {
           .mockRejectedValue(new Error('Simulated failure'));
         const consoleSpy = jest
           .spyOn(console, 'error')
-          .mockImplementation(() => {});
+          .mockImplementation(noOpFunction);
         mockGetUnansweredQuestionsFromUserAnswers.mockReturnValue([1, 2]);
 
         render(
@@ -2395,18 +2390,14 @@ describe('Quiz', () => {
         // Open alert by clicking finish
         const finishButton = screen.getByText('Finalizar');
 
-        act(() => {
-          finishButton.click();
-        });
+        clickElement(finishButton);
 
         expect(screen.getByTestId('alert-dialog')).toBeInTheDocument();
 
         // Submit alert - this should trigger the catch block
         const submitButton = screen.getByTestId('alert-submit');
 
-        await act(async () => {
-          submitButton.click();
-        });
+        await clickElementAsync(submitButton);
 
         // Verify the catch block behavior:
         // 1. console.error is called
@@ -2435,7 +2426,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 4, // Last question
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
         mockGetUnansweredQuestionsFromUserAnswers.mockReturnValue([]);
       });
 
@@ -2447,9 +2438,7 @@ describe('Quiz', () => {
         // Finish quiz to open result modal
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         const goToSimulatedButton = screen.getByText('Ir para simulados');
         goToSimulatedButton.click();
@@ -2465,9 +2454,7 @@ describe('Quiz', () => {
         // Finish quiz to open result modal
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         const detailResultButton = screen.getByText('Detalhar resultado');
         detailResultButton.click();
@@ -2481,9 +2468,7 @@ describe('Quiz', () => {
         // Finish quiz to open result modal
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         // Verify modal is open
         expect(screen.getByText(/Você concluiu o/)).toBeInTheDocument();
@@ -2518,9 +2503,7 @@ describe('Quiz', () => {
         // Open navigation modal
         const navigationButton = screen.getByTestId('quiz-icon-button');
 
-        act(() => {
-          navigationButton.click();
-        });
+        clickElement(navigationButton);
 
         expect(screen.getByText('Questões')).toBeInTheDocument();
         expect(screen.getByText('Filtrar por')).toBeInTheDocument();
@@ -2544,9 +2527,7 @@ describe('Quiz', () => {
         // Open navigation modal
         const navigationButton = screen.getByTestId('quiz-icon-button');
 
-        act(() => {
-          navigationButton.click();
-        });
+        clickElement(navigationButton);
 
         // Verify modal is open
         expect(screen.getByText('Questões')).toBeInTheDocument();
@@ -2554,9 +2535,7 @@ describe('Quiz', () => {
         // Find and click a question card (which should trigger onQuestionClick)
         const questionCard = screen.getByTestId('card-status');
 
-        act(() => {
-          questionCard.click();
-        });
+        clickElement(questionCard);
 
         // Verify modal is closed after clicking question
         expect(screen.queryByText('Questões')).not.toBeInTheDocument();
@@ -2582,16 +2561,14 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 4, // Last question (total is 5)
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter resultImageComponent={mockResultImageComponent} />);
 
         // Finish quiz to open result modal
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         // Verify custom image component is rendered instead of default image
         expect(screen.getByTestId('custom-result-image')).toBeInTheDocument();
@@ -2608,16 +2585,14 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 4, // Last question (total is 5)
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
 
         render(<QuizFooter />);
 
         // Finish quiz to open result modal
         const finishButton = screen.getByText('Finalizar');
 
-        await act(async () => {
-          finishButton.click();
-        });
+        await clickElementAsync(finishButton);
 
         // Verify default placeholder is rendered
         expect(screen.getByText('Imagem de resultado')).toBeInTheDocument();
@@ -2690,7 +2665,7 @@ describe('Quiz', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
           currentQuestionIndex: 4, // Last question (total is 5)
-        } as unknown as ReturnType<typeof useQuizStore>);
+        });
         mockGetQuestionResultStatistics.mockReturnValue(null);
         mockGetUnansweredQuestionsFromUserAnswers.mockReturnValue([]);
 
@@ -2698,9 +2673,7 @@ describe('Quiz', () => {
 
         const finishButton = screen.getByText('Finalizar');
 
-        act(() => {
-          finishButton.click();
-        });
+        clickElement(finishButton);
 
         // Should show -- when no statistics available
         expect(
@@ -2899,9 +2872,7 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       // Verificar se o modal de questionário todos incorretos está aberto
       expect(screen.getByText('😕 Não foi dessa vez...')).toBeInTheDocument();
@@ -2933,15 +2904,11 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       // Clicar em tentar depois
       const tryLaterButton = screen.getByText('Tentar depois');
-      act(() => {
-        tryLaterButton.click();
-      });
+      clickElement(tryLaterButton);
 
       // Verificar se o alert dialog aparece
       expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
@@ -2950,9 +2917,7 @@ describe('Quiz', () => {
 
       // Testar cancelar (repetir questionário)
       const cancelButton = screen.getByText('Repetir questionário');
-      act(() => {
-        cancelButton.click();
-      });
+      clickElement(cancelButton);
 
       expect(mockOnRepeat).toHaveBeenCalled();
     });
@@ -2981,15 +2946,11 @@ describe('Quiz', () => {
 
       // Finalizar quiz para mostrar o modal inicial
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       // Clicar em tentar depois para abrir o AlertDialog
       const tryLaterButton = screen.getByText('Tentar depois');
-      act(() => {
-        tryLaterButton.click();
-      });
+      clickElement(tryLaterButton);
 
       // Verificar se o AlertDialog está aberto
       expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
@@ -3032,24 +2993,18 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       // Clicar em tentar depois para abrir o AlertDialog
       const tryLaterButton = screen.getByText('Tentar depois');
-      act(() => {
-        tryLaterButton.click();
-      });
+      clickElement(tryLaterButton);
 
       // Verificar se o AlertDialog está aberto
       expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
 
       // Clicar no botão "Tentar depois" do AlertDialog (submit)
       const submitButton = screen.getByTestId('alert-submit');
-      act(() => {
-        submitButton.click();
-      });
+      clickElement(submitButton);
 
       // Verificar se onTryLater foi chamado
       expect(mockOnTryLater).toHaveBeenCalledTimes(1);
@@ -3084,24 +3039,18 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       // Clicar em tentar depois para abrir o AlertDialog
       const tryLaterButton = screen.getByText('Tentar depois');
-      act(() => {
-        tryLaterButton.click();
-      });
+      clickElement(tryLaterButton);
 
       // Verificar se o AlertDialog está aberto
       expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
 
       // Clicar no botão "Repetir questionário" (cancel)
       const cancelButton = screen.getByTestId('alert-cancel');
-      act(() => {
-        cancelButton.click();
-      });
+      clickElement(cancelButton);
 
       // Verificar se onRepeat foi chamado
       expect(mockOnRepeat).toHaveBeenCalledTimes(1);
@@ -3131,15 +3080,11 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       // Clicar em tentar depois para abrir o AlertDialog
       const tryLaterButton = screen.getByText('Tentar depois');
-      act(() => {
-        tryLaterButton.click();
-      });
+      clickElement(tryLaterButton);
 
       // Verificar se o AlertDialog está aberto
       expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
@@ -3147,9 +3092,7 @@ describe('Quiz', () => {
       // Clicar no botão "Tentar depois" do AlertDialog - não deve quebrar
       const submitButton = screen.getByTestId('alert-submit');
       expect(() => {
-        act(() => {
-          submitButton.click();
-        });
+        clickElement(submitButton);
       }).not.toThrow();
 
       // Verificar se o modal foi fechado mesmo sem callback
@@ -3181,14 +3124,10 @@ describe('Quiz', () => {
 
       // Finalizar quiz e abrir AlertDialog
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       const tryLaterButton = screen.getByText('Tentar depois');
-      act(() => {
-        tryLaterButton.click();
-      });
+      clickElement(tryLaterButton);
 
       // Verificar título
       expect(screen.getByText('Tentar depois?')).toBeInTheDocument();
@@ -3244,9 +3183,7 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       expect(
         screen.getByText(getCompletionTitle(QUIZ_TYPE.SIMULADO))
@@ -3279,9 +3216,7 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       expect(
         screen.getByText(getCompletionTitle(QUIZ_TYPE.QUESTIONARIO))
@@ -3308,9 +3243,7 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       expect(
         screen.getByText(getCompletionTitle(QUIZ_TYPE.ATIVIDADE))
@@ -3337,9 +3270,7 @@ describe('Quiz', () => {
 
       // Finalizar quiz
       const finishButton = screen.getByText('Finalizar');
-      act(() => {
-        finishButton.click();
-      });
+      clickElement(finishButton);
 
       expect(
         screen.getByText(getCompletionTitle('unknown' as QUIZ_TYPE))

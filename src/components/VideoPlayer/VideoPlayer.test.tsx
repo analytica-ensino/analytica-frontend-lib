@@ -198,6 +198,22 @@ describe('VideoPlayer', () => {
   });
 
   describe('Rendering', () => {
+    let originalFetch: typeof globalThis.fetch;
+
+    beforeEach(() => {
+      // Save original fetch before each test
+      originalFetch = globalThis.fetch;
+    });
+
+    afterEach(() => {
+      // Restore original fetch after each test
+      if (originalFetch === undefined) {
+        delete (globalThis as { fetch?: typeof fetch }).fetch;
+      } else {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
     it('should render video element with src', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const video = container.querySelector('video');
@@ -234,11 +250,25 @@ describe('VideoPlayer', () => {
       expect(container.firstChild).toHaveClass('custom-class');
     });
 
-    it('should render subtitles track when provided', () => {
+    it('should render subtitles track when provided', async () => {
+      // Mock fetch to simulate valid subtitle file
+      globalThis.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: {
+          get: (key: string) => (key === 'content-type' ? 'text/vtt' : null),
+        },
+      } as Response);
+
       const subtitlesUrl = 'https://example.com/subtitles.vtt';
       const { container } = render(
         <VideoPlayer {...defaultProps} subtitles={subtitlesUrl} />
       );
+
+      // Wait for validation to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
       const track = container.querySelector('track');
       expect(track).toHaveAttribute('src', subtitlesUrl);
       expect(track).toHaveAttribute('kind', 'captions');
@@ -867,7 +897,31 @@ describe('VideoPlayer', () => {
   });
 
   describe('Captions functionality', () => {
-    it('should toggle captions when button is clicked', () => {
+    let originalFetch: typeof globalThis.fetch;
+
+    beforeEach(() => {
+      // Save original fetch before each test
+      originalFetch = globalThis.fetch;
+    });
+
+    afterEach(() => {
+      // Restore original fetch after each test
+      if (originalFetch === undefined) {
+        delete (globalThis as { fetch?: typeof fetch }).fetch;
+      } else {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
+    it('should toggle captions when button is clicked', async () => {
+      // Mock fetch to simulate valid subtitle file
+      globalThis.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: {
+          get: (key: string) => (key === 'content-type' ? 'text/vtt' : null),
+        },
+      } as Response);
+
       const { container } = render(
         <VideoPlayer
           {...defaultProps}
@@ -875,7 +929,8 @@ describe('VideoPlayer', () => {
         />
       );
 
-      const captionsButton = screen.getByRole('button', {
+      // Wait for subtitle validation to complete
+      const captionsButton = await screen.findByRole('button', {
         name: /show captions/i,
       });
       const track = container.querySelector('track')!;
@@ -891,7 +946,15 @@ describe('VideoPlayer', () => {
       expect(track.track.mode).toBeDefined();
     });
 
-    it('should hide captions when clicked again', () => {
+    it('should hide captions when clicked again', async () => {
+      // Mock fetch to simulate valid subtitle file
+      globalThis.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: {
+          get: (key: string) => (key === 'content-type' ? 'text/vtt' : null),
+        },
+      } as Response);
+
       const { container } = render(
         <VideoPlayer
           {...defaultProps}
@@ -899,7 +962,8 @@ describe('VideoPlayer', () => {
         />
       );
 
-      const captionsButton = screen.getByRole('button', {
+      // Wait for subtitle validation to complete
+      const captionsButton = await screen.findByRole('button', {
         name: /show captions/i,
       });
       const track = container.querySelector('track')!;
@@ -919,7 +983,15 @@ describe('VideoPlayer', () => {
       expect(track.track.mode).toBeDefined();
     });
 
-    it('should handle captions toggle when track is not available', () => {
+    it('should handle captions toggle when track is not available', async () => {
+      // Mock fetch to simulate valid subtitle file
+      globalThis.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: {
+          get: (key: string) => (key === 'content-type' ? 'text/vtt' : null),
+        },
+      } as Response);
+
       const { container } = render(
         <VideoPlayer
           {...defaultProps}
@@ -927,7 +999,8 @@ describe('VideoPlayer', () => {
         />
       );
 
-      const captionsButton = screen.getByRole('button', {
+      // Wait for subtitle validation to complete
+      const captionsButton = await screen.findByRole('button', {
         name: /show captions/i,
       });
       const track = container.querySelector('track')!;
@@ -944,7 +1017,15 @@ describe('VideoPlayer', () => {
       }).not.toThrow();
     });
 
-    it('should handle captions toggle when trackRef.current is null', () => {
+    it('should handle captions toggle when trackRef.current is null', async () => {
+      // Mock fetch to simulate valid subtitle file
+      globalThis.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: {
+          get: (key: string) => (key === 'content-type' ? 'text/vtt' : null),
+        },
+      } as Response);
+
       const { container } = render(
         <VideoPlayer
           {...defaultProps}
@@ -952,7 +1033,8 @@ describe('VideoPlayer', () => {
         />
       );
 
-      const captionsButton = screen.getByRole('button', {
+      // Wait for subtitle validation to complete
+      const captionsButton = await screen.findByRole('button', {
         name: /show captions/i,
       });
 
@@ -1428,7 +1510,31 @@ describe('VideoPlayer', () => {
   });
 
   describe('Enhanced captions functionality', () => {
-    it('should handle captions toggle with proper track mode setting', () => {
+    let originalFetch: typeof globalThis.fetch;
+
+    beforeEach(() => {
+      // Save original fetch before each test
+      originalFetch = globalThis.fetch;
+    });
+
+    afterEach(() => {
+      // Restore original fetch after each test
+      if (originalFetch === undefined) {
+        delete (globalThis as { fetch?: typeof fetch }).fetch;
+      } else {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
+    it('should handle captions toggle with proper track mode setting', async () => {
+      // Mock fetch to simulate valid subtitle file
+      globalThis.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: {
+          get: (key: string) => (key === 'content-type' ? 'text/vtt' : null),
+        },
+      } as Response);
+
       const { container } = render(
         <VideoPlayer
           {...defaultProps}
@@ -1436,7 +1542,8 @@ describe('VideoPlayer', () => {
         />
       );
 
-      const captionsButton = screen.getByRole('button', {
+      // Wait for subtitle validation to complete
+      const captionsButton = await screen.findByRole('button', {
         name: /show captions/i,
       });
       const track = container.querySelector('track')!;
@@ -1462,6 +1569,239 @@ describe('VideoPlayer', () => {
 
       // This should also cover the captions toggle logic
       expect(track.track.mode).toBeDefined();
+    });
+  });
+
+  describe('Subtitle validation', () => {
+    let originalFetch: typeof globalThis.fetch;
+
+    beforeEach(() => {
+      // Save original fetch before each test
+      originalFetch = globalThis.fetch;
+    });
+
+    afterEach(() => {
+      // Restore original fetch after each test
+      if (originalFetch === undefined) {
+        delete (globalThis as { fetch?: typeof fetch }).fetch;
+      } else {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
+    it('should validate data URL subtitles as valid', async () => {
+      const dataUrl = 'data:text/vtt;charset=utf-8,WEBVTT';
+      const { container } = render(
+        <VideoPlayer {...defaultProps} subtitles={dataUrl} />
+      );
+
+      // Wait for validation to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Check that captions button appears (subtitles are valid)
+      const captionsButton = await screen.findByRole('button', {
+        name: /show captions/i,
+      });
+      expect(captionsButton).toBeInTheDocument();
+
+      const track = container.querySelector('track');
+      expect(track).toHaveAttribute('src', dataUrl);
+    });
+
+    it('should mark subtitles as invalid when content type is incorrect', async () => {
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      // Mock fetch to return invalid content type
+      globalThis.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: {
+          get: (key: string) =>
+            key === 'content-type' ? 'application/json' : null,
+        },
+      } as Response);
+
+      render(
+        <VideoPlayer
+          {...defaultProps}
+          subtitles="https://example.com/subs.vtt"
+        />
+      );
+
+      // Wait for validation to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Captions button should not appear (invalid subtitles)
+      const captionsButton = screen.queryByRole('button', {
+        name: /show captions/i,
+      });
+      expect(captionsButton).not.toBeInTheDocument();
+
+      // Check that warning was logged
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('invalid content type')
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+
+    it('should mark subtitles as invalid when fetch returns error status', async () => {
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      // Mock fetch to return error status
+      globalThis.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+      } as Response);
+
+      render(
+        <VideoPlayer
+          {...defaultProps}
+          subtitles="https://example.com/subs.vtt"
+        />
+      );
+
+      // Wait for validation to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Captions button should not appear (invalid subtitles)
+      const captionsButton = screen.queryByRole('button', {
+        name: /show captions/i,
+      });
+      expect(captionsButton).not.toBeInTheDocument();
+
+      // Check that warning was logged
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('404 Not Found')
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+
+    it('should mark subtitles as invalid when fetch throws error', async () => {
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      // Mock fetch to throw error
+      globalThis.fetch = jest
+        .fn()
+        .mockRejectedValue(new Error('Network error'));
+
+      render(
+        <VideoPlayer
+          {...defaultProps}
+          subtitles="https://example.com/subs.vtt"
+        />
+      );
+
+      // Wait for validation to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Captions button should not appear (invalid subtitles)
+      const captionsButton = screen.queryByRole('button', {
+        name: /show captions/i,
+      });
+      expect(captionsButton).not.toBeInTheDocument();
+
+      // Check that warning was logged
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Subtitles URL validation failed:',
+        expect.any(Error)
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+
+    it('should accept subtitles with no content-type header', async () => {
+      // Mock fetch to return no content type
+      globalThis.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: {
+          get: () => null,
+        },
+      } as unknown as Response);
+
+      render(
+        <VideoPlayer
+          {...defaultProps}
+          subtitles="https://example.com/subs.vtt"
+        />
+      );
+
+      // Wait for validation to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Captions button should appear (valid subtitles)
+      const captionsButton = await screen.findByRole('button', {
+        name: /show captions/i,
+      });
+      expect(captionsButton).toBeInTheDocument();
+    });
+
+    it('should accept subtitles with text/plain content-type', async () => {
+      // Mock fetch to return text/plain
+      globalThis.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: {
+          get: (key: string) => (key === 'content-type' ? 'text/plain' : null),
+        },
+      } as Response);
+
+      render(
+        <VideoPlayer
+          {...defaultProps}
+          subtitles="https://example.com/subs.vtt"
+        />
+      );
+
+      // Wait for validation to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Captions button should appear (valid subtitles)
+      const captionsButton = await screen.findByRole('button', {
+        name: /show captions/i,
+      });
+      expect(captionsButton).toBeInTheDocument();
+    });
+
+    it('should accept subtitles with application/octet-stream content-type', async () => {
+      // Mock fetch to return application/octet-stream
+      globalThis.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: {
+          get: (key: string) =>
+            key === 'content-type' ? 'application/octet-stream' : null,
+        },
+      } as Response);
+
+      render(
+        <VideoPlayer
+          {...defaultProps}
+          subtitles="https://example.com/subs.vtt"
+        />
+      );
+
+      // Wait for validation to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Captions button should appear (valid subtitles)
+      const captionsButton = await screen.findByRole('button', {
+        name: /show captions/i,
+      });
+      expect(captionsButton).toBeInTheDocument();
     });
   });
 
