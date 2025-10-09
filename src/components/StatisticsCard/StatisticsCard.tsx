@@ -157,7 +157,7 @@ export const StatisticsCard = ({
     >
       {/* Header with title and optional dropdown */}
       <div className="flex flex-row justify-between items-center gap-4">
-        <Text as="h3" size="sm" weight="medium" color="text-600">
+        <Text as="h3" size="sm" weight="medium" color="text-text-600">
           {title}
         </Text>
 
@@ -169,7 +169,7 @@ export const StatisticsCard = ({
               size="medium"
             >
               <SelectTrigger
-                className="border rounded whitespace-nowrap"
+                className="border-border-300 rounded whitespace-nowrap"
                 aria-label={dropdownAriaLabel}
               >
                 <SelectValue placeholder={selectPlaceholder} />
@@ -195,7 +195,11 @@ export const StatisticsCard = ({
         </div>
       ) : (
         <div className="border border-dashed border-border-300 rounded-lg p-6 min-h-[105px] flex flex-col items-center justify-center gap-2">
-          <Text size="sm" color="text-600" className="text-center max-w-md">
+          <Text
+            size="sm"
+            color="text-text-600"
+            className="text-center max-w-md"
+          >
             {emptyStateMessage}
           </Text>
 
