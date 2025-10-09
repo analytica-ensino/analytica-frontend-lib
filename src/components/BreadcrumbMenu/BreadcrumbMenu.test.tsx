@@ -1,59 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
-import { Menu, MenuContent, MenuItem } from '../Menu/Menu';
-import { useNavigate } from 'react-router-dom';
+import { BreadcrumbMenu } from './BreadcrumbMenu';
 import type { BreadcrumbItem } from './breadcrumbStore';
-import { ReactElement } from 'react';
-
-// Import component inline to avoid CSS imports
-const BreadcrumbMenu = ({
-  breadcrumbs,
-  onBreadcrumbClick,
-  className = '!px-0 py-4 flex-wrap w-full',
-}: {
-  breadcrumbs: BreadcrumbItem[];
-  onBreadcrumbClick?: (breadcrumb: BreadcrumbItem, index: number) => void;
-  className?: string;
-}) => {
-  const navigate = useNavigate();
-
-  const handleClick = (breadcrumb: BreadcrumbItem, index: number) => {
-    if (onBreadcrumbClick) {
-      onBreadcrumbClick(breadcrumb, index);
-    }
-    navigate(breadcrumb.url);
-  };
-
-  return (
-    <Menu
-      value={`breadcrumb-${breadcrumbs.length - 1}`}
-      defaultValue="breadcrumb-0"
-      variant="breadcrumb"
-      className={className}
-    >
-      <MenuContent className="w-full flex flex-row flex-wrap gap-2 !px-0">
-        {breadcrumbs.map((breadcrumb, index) => {
-          const isLast = index === breadcrumbs.length - 1;
-          const hasSeparator = !isLast;
-
-          return (
-            <MenuItem
-              key={breadcrumb.id}
-              variant="breadcrumb"
-              value={`breadcrumb-${index}`}
-              className="!p-0 whitespace-nowrap"
-              onClick={() => handleClick(breadcrumb, index)}
-              separator={hasSeparator}
-            >
-              {breadcrumb.name}
-            </MenuItem>
-          );
-        })}
-      </MenuContent>
-    </Menu>
-  );
-};
+import type { ReactElement } from 'react';
 
 // Mock react-router-dom navigate
 const mockNavigate = jest.fn();

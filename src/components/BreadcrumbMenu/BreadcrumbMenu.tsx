@@ -1,4 +1,4 @@
-import { Menu, MenuContent, MenuItem } from '../../';
+import { Menu, MenuContent, MenuItem } from '../Menu/Menu';
 import { useNavigate } from 'react-router-dom';
 import { type BreadcrumbItem } from './breadcrumbStore';
 
