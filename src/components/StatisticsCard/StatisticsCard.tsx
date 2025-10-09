@@ -165,7 +165,7 @@ export const StatisticsCard = ({
               size="medium"
             >
               <SelectTrigger
-                className="border-border-300 rounded whitespace-nowrap"
+                className="border border-border-300 rounded whitespace-nowrap"
                 aria-label={dropdownAriaLabel}
               >
                 <SelectValue placeholder={selectPlaceholder} />
