@@ -36,10 +36,10 @@ export const WithNumericData: Story = () => (
     <StatisticsCard
       title="Desempenho dos alunos"
       data={[
-        { label: 'Total de alunos', value: 156, variant: 'info' },
-        { label: 'Aprovados', value: 142, variant: 'success' },
-        { label: 'Em recuperação', value: 8, variant: 'warning' },
-        { label: 'Reprovados', value: 6, variant: 'error' },
+        { label: 'Total de alunos', value: 156, variant: 'total' },
+        { label: 'Aprovados', value: 142, variant: 'high' },
+        { label: 'Em recuperação', value: 8, variant: 'medium' },
+        { label: 'Reprovados', value: 6, variant: 'low' },
       ]}
       dropdownOptions={[
         { label: '2024', value: '2024' },
@@ -58,10 +58,10 @@ export const WithMixedData: Story = () => (
     <StatisticsCard
       title="Relatório geral"
       data={[
-        { label: 'Taxa de conclusão', value: '92.5%', variant: 'success' },
-        { label: 'Média geral', value: 8.7, variant: 'info' },
-        { label: 'Pendências', value: 3, variant: 'warning' },
-        { label: 'Taxa de evasão', value: '2.1%', variant: 'error' },
+        { label: 'Taxa de conclusão', value: '92.5%', variant: 'high' },
+        { label: 'Média geral', value: 8.7, variant: 'total' },
+        { label: 'Pendências', value: 3, variant: 'medium' },
+        { label: 'Taxa de evasão', value: '2.1%', variant: 'low' },
       ]}
     />
   </div>
@@ -75,10 +75,10 @@ export const AllVariants: Story = () => (
     <StatisticsCard
       title="Estatísticas com dados"
       data={[
-        { label: 'Acertos', value: '85%', variant: 'success' },
-        { label: 'Em andamento', value: 12, variant: 'warning' },
-        { label: 'Erros', value: '15%', variant: 'error' },
-        { label: 'Concluídas', value: 24, variant: 'info' },
+        { label: 'Acertos', value: '85%', variant: 'high' },
+        { label: 'Em andamento', value: 12, variant: 'medium' },
+        { label: 'Erros', value: '15%', variant: 'low' },
+        { label: 'Concluídas', value: 24, variant: 'total' },
       ]}
       dropdownOptions={[
         { label: '1 ano', value: '1year' },
@@ -109,10 +109,10 @@ export const MobileView: Story = () => (
     <StatisticsCard
       title="Estatística das atividades"
       data={[
-        { label: 'Acertos', value: '85%', variant: 'success' },
-        { label: 'Em andamento', value: 12, variant: 'warning' },
-        { label: 'Erros', value: '15%', variant: 'error' },
-        { label: 'Concluídas', value: 24, variant: 'info' },
+        { label: 'Acertos', value: '85%', variant: 'high' },
+        { label: 'Em andamento', value: 12, variant: 'medium' },
+        { label: 'Erros', value: '15%', variant: 'low' },
+        { label: 'Concluídas', value: 24, variant: 'total' },
       ]}
       dropdownOptions={[
         { label: '1 ano', value: '1year' },

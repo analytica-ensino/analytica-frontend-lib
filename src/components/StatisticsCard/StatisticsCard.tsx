@@ -17,7 +17,7 @@ interface StatItem {
   /** Statistic value */
   value: string | number;
   /** Color variant */
-  variant: 'success' | 'warning' | 'error' | 'info';
+  variant: 'high' | 'medium' | 'low' | 'total';
 }
 
 /**
@@ -53,20 +53,20 @@ interface StatisticsCardProps {
  * Variant styles mapping
  */
 const VARIANT_STYLES = {
-  success: 'bg-success-background',
-  warning: 'bg-warning-background',
-  error: 'bg-error-background',
-  info: 'bg-info-background',
+  high: 'bg-success-background',
+  medium: 'bg-warning-background',
+  low: 'bg-error-background',
+  total: 'bg-info-background',
 } as const;
 
 /**
  * Value text colors mapping
  */
 const VALUE_TEXT_COLORS = {
-  success: 'text-success-700',
-  warning: 'text-warning-600',
-  error: 'text-error-700',
-  info: 'text-info-700',
+  high: 'text-success-700',
+  medium: 'text-warning-600',
+  low: 'text-error-700',
+  total: 'text-info-700',
 } as const;
 
 /**

@@ -12,10 +12,10 @@ describe('StatisticsCard', () => {
   };
 
   const mockData = [
-    { label: 'Acertos', value: '85%', variant: 'success' as const },
-    { label: 'Em andamento', value: 12, variant: 'warning' as const },
-    { label: 'Erros', value: '15%', variant: 'error' as const },
-    { label: 'Concluídas', value: 24, variant: 'info' as const },
+    { label: 'Acertos', value: '85%', variant: 'high' as const },
+    { label: 'Em andamento', value: 12, variant: 'medium' as const },
+    { label: 'Erros', value: '15%', variant: 'low' as const },
+    { label: 'Concluídas', value: 24, variant: 'total' as const },
   ];
 
   describe('Rendering', () => {
@@ -357,7 +357,7 @@ describe('StatisticsCard', () => {
 
     it('should render numeric values correctly', () => {
       const numericData = [
-        { label: 'Total', value: 100, variant: 'info' as const },
+        { label: 'Total', value: 100, variant: 'total' as const },
       ];
 
       render(<StatisticsCard title="Estatística" data={numericData} />);
@@ -368,7 +368,7 @@ describe('StatisticsCard', () => {
 
     it('should render string values correctly', () => {
       const stringData = [
-        { label: 'Taxa', value: '95.5%', variant: 'success' as const },
+        { label: 'Taxa', value: '95.5%', variant: 'high' as const },
       ];
 
       render(<StatisticsCard title="Estatística" data={stringData} />);
