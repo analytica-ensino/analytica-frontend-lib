@@ -47,6 +47,8 @@ interface StatisticsCardProps {
   onDropdownChange?: (value: string) => void;
   /** Placeholder text for the dropdown select */
   selectPlaceholder?: string;
+  /** Accessible label for the dropdown select */
+  dropdownAriaLabel?: string;
   /** Additional CSS classes */
   className?: string;
 }
@@ -144,6 +146,7 @@ export const StatisticsCard = ({
   selectedDropdownValue,
   onDropdownChange,
   selectPlaceholder = 'Selecione um período',
+  dropdownAriaLabel = 'Filtro de período',
   className = '',
 }: StatisticsCardProps) => {
   const hasData = data && data.length > 0;
@@ -165,7 +168,10 @@ export const StatisticsCard = ({
               onValueChange={onDropdownChange}
               size="medium"
             >
-              <SelectTrigger className="!border !rounded whitespace-nowrap">
+              <SelectTrigger
+                className="border rounded whitespace-nowrap"
+                aria-label={dropdownAriaLabel}
+              >
                 <SelectValue placeholder={selectPlaceholder} />
               </SelectTrigger>
               <SelectContent>
@@ -193,15 +199,17 @@ export const StatisticsCard = ({
             {emptyStateMessage}
           </Text>
 
-          <Button
-            variant="outline"
-            action="primary"
-            size="small"
-            onClick={onEmptyStateButtonClick}
-            iconLeft={emptyStateButtonIcon}
-          >
-            {emptyStateButtonText}
-          </Button>
+          {onEmptyStateButtonClick && (
+            <Button
+              variant="outline"
+              action="primary"
+              size="small"
+              onClick={onEmptyStateButtonClick}
+              iconLeft={emptyStateButtonIcon}
+            >
+              {emptyStateButtonText}
+            </Button>
+          )}
         </div>
       )}
     </div>

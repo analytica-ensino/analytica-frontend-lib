@@ -53,6 +53,21 @@ describe('StatisticsCard', () => {
       expect(screen.getByTestId('icon')).toHaveTextContent('+');
     });
 
+    it('should not render button when onEmptyStateButtonClick is undefined', () => {
+      render(
+        <StatisticsCard
+          title="Test"
+          emptyStateMessage="No data"
+          emptyStateButtonText="Add Data"
+        />
+      );
+
+      expect(screen.getByText('No data')).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /Add Data/i })
+      ).not.toBeInTheDocument();
+    });
+
     it('should render dropdown when options are provided', () => {
       const dropdownOptions = [
         { label: '1 ano', value: '1year' },
@@ -67,7 +82,9 @@ describe('StatisticsCard', () => {
         />
       );
 
-      const dropdown = screen.getByRole('button', { name: /1 ano/i });
+      const dropdown = screen.getByRole('button', {
+        name: 'Filtro de período',
+      });
       expect(dropdown).toBeInTheDocument();
     });
 
@@ -124,13 +141,16 @@ describe('StatisticsCard', () => {
       render(
         <StatisticsCard
           {...defaultProps}
+          data={mockData}
           dropdownOptions={dropdownOptions}
           selectedDropdownValue="1year"
           onDropdownChange={handleChange}
         />
       );
 
-      const dropdownTrigger = screen.getByRole('button', { name: /1 ano/i });
+      const dropdownTrigger = screen.getByRole('button', {
+        name: 'Filtro de período',
+      });
       fireEvent.click(dropdownTrigger);
 
       const option = screen.getByRole('menuitem', { name: /6 meses/i });
@@ -149,13 +169,17 @@ describe('StatisticsCard', () => {
       render(
         <StatisticsCard
           {...defaultProps}
+          data={mockData}
           dropdownOptions={dropdownOptions}
           selectedDropdownValue="6months"
         />
       );
 
-      const dropdown = screen.getByRole('button', { name: /6 meses/i });
+      const dropdown = screen.getByRole('button', {
+        name: 'Filtro de período',
+      });
       expect(dropdown).toBeInTheDocument();
+      expect(dropdown).toHaveTextContent('6 meses');
     });
 
     it('should not call onDropdownChange when callback is not provided', () => {
@@ -167,12 +191,15 @@ describe('StatisticsCard', () => {
       render(
         <StatisticsCard
           {...defaultProps}
+          data={mockData}
           dropdownOptions={dropdownOptions}
           selectedDropdownValue="1year"
         />
       );
 
-      const dropdownTrigger = screen.getByRole('button', { name: /1 ano/i });
+      const dropdownTrigger = screen.getByRole('button', {
+        name: 'Filtro de período',
+      });
       // Should not throw error when onChange is called without callback
       expect(() => {
         fireEvent.click(dropdownTrigger);
@@ -234,7 +261,7 @@ describe('StatisticsCard', () => {
       expect(button).toBeInTheDocument();
     });
 
-    it('dropdown should have proper accessible name', () => {
+    it('dropdown should have default aria-label', () => {
       const dropdownOptions = [
         { label: '1 ano', value: '1year' },
         { label: '6 meses', value: '6months' },
@@ -243,13 +270,38 @@ describe('StatisticsCard', () => {
       render(
         <StatisticsCard
           {...defaultProps}
+          data={mockData}
           dropdownOptions={dropdownOptions}
           selectedDropdownValue="1year"
         />
       );
 
-      const dropdown = screen.getByRole('button', { name: /1 ano/i });
-      expect(dropdown).toBeInTheDocument();
+      const dropdown = screen.getByRole('button', {
+        name: 'Filtro de período',
+      });
+      expect(dropdown).toHaveAttribute('aria-label', 'Filtro de período');
+    });
+
+    it('dropdown should accept custom aria-label', () => {
+      const dropdownOptions = [
+        { label: '1 ano', value: '1year' },
+        { label: '6 meses', value: '6months' },
+      ];
+
+      render(
+        <StatisticsCard
+          {...defaultProps}
+          data={mockData}
+          dropdownOptions={dropdownOptions}
+          selectedDropdownValue="1year"
+          dropdownAriaLabel="Custom period filter"
+        />
+      );
+
+      const dropdown = screen.getByRole('button', {
+        name: 'Custom period filter',
+      });
+      expect(dropdown).toHaveAttribute('aria-label', 'Custom period filter');
     });
 
     it('button should have type="button"', () => {
@@ -350,9 +402,11 @@ describe('StatisticsCard', () => {
       );
 
       expect(screen.getByText('85%')).toBeInTheDocument();
-      expect(
-        screen.getByRole('button', { name: /1 ano/i })
-      ).toBeInTheDocument();
+      const dropdown = screen.getByRole('button', {
+        name: 'Filtro de período',
+      });
+      expect(dropdown).toBeInTheDocument();
+      expect(dropdown).toHaveTextContent('1 ano');
     });
 
     it('should render numeric values correctly', () => {
@@ -398,13 +452,16 @@ describe('StatisticsCard', () => {
       render(
         <StatisticsCard
           {...defaultProps}
+          data={mockData}
           dropdownOptions={dropdownOptions}
           selectedDropdownValue="1year"
         />
       );
 
       // Open dropdown to see all options
-      const dropdownTrigger = screen.getByRole('button', { name: /1 ano/i });
+      const dropdownTrigger = screen.getByRole('button', {
+        name: 'Filtro de período',
+      });
       fireEvent.click(dropdownTrigger);
 
       expect(
