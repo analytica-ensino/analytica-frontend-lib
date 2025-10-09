@@ -1,13 +1,13 @@
 import type { Story } from '@ladle/react';
 import { BreadcrumbMenu } from './BreadcrumbMenu';
 import { BrowserRouter } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, ReactNode } from 'react';
 import { useBreadcrumbBuilder } from './useBreadcrumbBuilder';
 
 /**
  * Wrapper to provide Router context for BreadcrumbMenu
  */
-const BreadcrumbWrapper = ({ children }: { children: React.ReactNode }) => {
+const BreadcrumbWrapper = ({ children }: { children: ReactNode }) => {
   return <BrowserRouter>{children}</BrowserRouter>;
 };
 
