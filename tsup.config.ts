@@ -56,6 +56,13 @@ export default defineConfig({
     // Hooks
     'hooks/useMobile/index': 'src/hooks/useMobile.ts',
     'hooks/useTheme/index': 'src/hooks/useTheme.ts',
+    'BreadcrumbMenu/index': 'src/components/BreadcrumbMenu/BreadcrumbMenu.tsx',
+    'BreadcrumbMenu/useBreadcrumbBuilder/index':
+      'src/components/BreadcrumbMenu/useBreadcrumbBuilder.ts',
+    'BreadcrumbMenu/useUrlParams/index':
+      'src/components/BreadcrumbMenu/useUrlParams.ts',
+    'BreadcrumbMenu/breadcrumbStore/index':
+      'src/components/BreadcrumbMenu/breadcrumbStore.ts',
     // Individual Auth components
     'ThemeToggle/index': 'src/components/ThemeToggle/ThemeToggle.tsx',
     'Auth/AuthProvider/index': 'src/components/Auth/Auth.tsx',

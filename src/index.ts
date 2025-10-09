@@ -235,6 +235,20 @@ export type { DeviceType } from './hooks/useMobile';
 export { useTheme } from './hooks/useTheme';
 export type { ThemeMode } from './hooks/useTheme';
 
+// BreadcrumbMenu Components
+export { BreadcrumbMenu } from './components/BreadcrumbMenu/BreadcrumbMenu';
+export type { BreadcrumbMenuProps } from './components/BreadcrumbMenu/BreadcrumbMenu';
+export { useBreadcrumbBuilder } from './components/BreadcrumbMenu/useBreadcrumbBuilder';
+export type {
+  BreadcrumbBuilderConfig,
+  BreadcrumbLevel,
+  BreadcrumbLevelWithData,
+  BreadcrumbLevelStatic,
+} from './components/BreadcrumbMenu/useBreadcrumbBuilder';
+export { useUrlParams } from './components/BreadcrumbMenu/useUrlParams';
+export type { UrlParamsConfig } from './components/BreadcrumbMenu/useUrlParams';
+export { useBreadcrumb } from './components/BreadcrumbMenu/breadcrumbStore';
+export type { BreadcrumbItem } from './components/BreadcrumbMenu/breadcrumbStore';
 // Auth Hooks
 export { useAppInitialization } from './hooks/useAppInitialization';
 export { useAppContent } from './hooks/useAppContent';
