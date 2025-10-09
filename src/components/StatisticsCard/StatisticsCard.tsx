@@ -79,10 +79,10 @@ interface StatCardProps {
 const StatCard = ({ item }: StatCardProps) => {
   return (
     <div
-      className={`rounded-xl py-[17px] px-6 h-[107px] flex flex-col justify-center items-start gap-1 ${VARIANT_STYLES[item.variant]}`}
+      className={`rounded-xl py-[17px] px-6 min-h-[105px] flex flex-col justify-center items-start gap-1 ${VARIANT_STYLES[item.variant]}`}
     >
       <Text
-        size="3xl"
+        size="4xl"
         weight="bold"
         className={`${VALUE_TEXT_COLORS[item.variant]} leading-[42px] tracking-[0.2px] self-stretch`}
       >
@@ -147,7 +147,7 @@ export const StatisticsCard = ({
 
   return (
     <div
-      className={`bg-background rounded-xl p-4 flex flex-col gap-2 ${className}`}
+      className={`bg-background rounded-xl p-4 min-h-[185px] flex flex-col gap-2 ${className}`}
     >
       {/* Header with title and optional dropdown */}
       <div className="flex flex-row justify-between items-center gap-4">
@@ -179,7 +179,7 @@ export const StatisticsCard = ({
 
       {/* Content: Data Grid or Empty State */}
       {hasData ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13px] min-h-[185px]">
           {data.map((item) => (
             <StatCard key={`${item.variant}-${item.label}`} item={item} />
           ))}
