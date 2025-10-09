@@ -58,10 +58,10 @@ export const WithMixedData: Story = () => (
     <StatisticsCard
       title="Relatório geral"
       data={[
-        { label: 'Taxa de conclusão', value: '92.5%', variant: 'high' },
+        { label: 'Taxa de conclusão', value: '92', variant: 'high' },
         { label: 'Média geral', value: 8.7, variant: 'total' },
         { label: 'Pendências', value: 3, variant: 'medium' },
-        { label: 'Taxa de evasão', value: '2.1%', variant: 'low' },
+        { label: 'Taxa de evasão', value: '2.1', variant: 'low' },
       ]}
     />
   </div>
@@ -75,9 +75,9 @@ export const AllVariants: Story = () => (
     <StatisticsCard
       title="Estatísticas com dados"
       data={[
-        { label: 'Acertos', value: '85%', variant: 'high' },
+        { label: 'Acertos', value: '85', variant: 'high' },
         { label: 'Em andamento', value: 12, variant: 'medium' },
-        { label: 'Erros', value: '15%', variant: 'low' },
+        { label: 'Erros', value: '15', variant: 'low' },
         { label: 'Concluídas', value: 24, variant: 'total' },
       ]}
       dropdownOptions={[
@@ -109,9 +109,9 @@ export const MobileView: Story = () => (
     <StatisticsCard
       title="Estatística das atividades"
       data={[
-        { label: 'Acertos', value: '85%', variant: 'high' },
+        { label: 'Acertos', value: '85', variant: 'high' },
         { label: 'Em andamento', value: 12, variant: 'medium' },
-        { label: 'Erros', value: '15%', variant: 'low' },
+        { label: 'Erros', value: '15', variant: 'low' },
         { label: 'Concluídas', value: 24, variant: 'total' },
       ]}
       dropdownOptions={[
