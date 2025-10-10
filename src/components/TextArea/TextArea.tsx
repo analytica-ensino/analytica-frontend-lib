@@ -136,6 +136,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       id,
       onChange,
       placeholder,
+      required,
       ...props
     },
     ref
@@ -204,7 +205,8 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
             color="text-text-950"
             className={cn('mb-1.5', labelClassName)}
           >
-            {label}
+            {label}{' '}
+            {required && <span className="text-indicator-error">*</span>}
           </Text>
         )}
 
