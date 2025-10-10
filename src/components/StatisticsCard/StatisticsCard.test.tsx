@@ -354,7 +354,7 @@ describe('StatisticsCard', () => {
       expect(infoCard).toBeInTheDocument();
     });
 
-    it('should render data in grid layout with responsive classes', () => {
+    it('should render data in grid layout with responsive classes for 4 items', () => {
       const { container } = render(
         <StatisticsCard title="Estatística" data={mockData} />
       );
@@ -365,6 +365,63 @@ describe('StatisticsCard', () => {
         'grid-cols-1',
         'sm:grid-cols-2',
         'lg:grid-cols-4'
+      );
+    });
+
+    it('should render grid with 3 columns for 3 items', () => {
+      const threeItemData = [
+        { label: 'Item 1', value: 10, variant: 'high' as const },
+        { label: 'Item 2', value: 20, variant: 'medium' as const },
+        { label: 'Item 3', value: 30, variant: 'total' as const },
+      ];
+
+      const { container } = render(
+        <StatisticsCard title="Estatística" data={threeItemData} />
+      );
+
+      const grid = container.querySelector('.grid');
+      expect(grid).toBeInTheDocument();
+      expect(grid).toHaveClass(
+        'grid-cols-1',
+        'sm:grid-cols-2',
+        'lg:grid-cols-3'
+      );
+    });
+
+    it('should render grid with 2 columns for 2 items', () => {
+      const twoItemData = [
+        { label: 'Item 1', value: 10, variant: 'high' as const },
+        { label: 'Item 2', value: 20, variant: 'medium' as const },
+      ];
+
+      const { container } = render(
+        <StatisticsCard title="Estatística" data={twoItemData} />
+      );
+
+      const grid = container.querySelector('.grid');
+      expect(grid).toBeInTheDocument();
+      expect(grid).toHaveClass(
+        'grid-cols-1',
+        'sm:grid-cols-2',
+        'lg:grid-cols-2'
+      );
+    });
+
+    it('should render grid with 1 column for 1 item', () => {
+      const oneItemData = [
+        { label: 'Item 1', value: 10, variant: 'high' as const },
+      ];
+
+      const { container } = render(
+        <StatisticsCard title="Estatística" data={oneItemData} />
+      );
+
+      const grid = container.querySelector('.grid');
+      expect(grid).toBeInTheDocument();
+      expect(grid).toHaveClass(
+        'grid-cols-1',
+        'sm:grid-cols-2',
+        'lg:grid-cols-1'
       );
     });
 
@@ -425,6 +482,96 @@ describe('StatisticsCard', () => {
 
       expect(screen.getByText('95.5%')).toBeInTheDocument();
       expect(screen.getByText('Taxa')).toBeInTheDocument();
+    });
+
+    it('should render placeholder "-" when showPlaceholder is true', () => {
+      render(
+        <StatisticsCard
+          title="Estatística"
+          data={mockData}
+          showPlaceholder={true}
+        />
+      );
+
+      const placeholders = screen.getAllByText('-');
+      expect(placeholders).toHaveLength(4); // One for each card
+    });
+
+    it('should render actual values when showPlaceholder is false', () => {
+      render(
+        <StatisticsCard
+          title="Estatística"
+          data={mockData}
+          showPlaceholder={false}
+        />
+      );
+
+      expect(screen.getByText('85%')).toBeInTheDocument();
+      expect(screen.getByText('12')).toBeInTheDocument();
+      expect(screen.getByText('15%')).toBeInTheDocument();
+      expect(screen.getByText('24')).toBeInTheDocument();
+    });
+
+    it('should render labels correctly even with placeholder', () => {
+      render(
+        <StatisticsCard
+          title="Estatística"
+          data={mockData}
+          showPlaceholder={true}
+        />
+      );
+
+      expect(screen.getByText('Acertos')).toBeInTheDocument();
+      expect(screen.getByText('Em andamento')).toBeInTheDocument();
+      expect(screen.getByText('Erros')).toBeInTheDocument();
+      expect(screen.getByText('Concluídas')).toBeInTheDocument();
+    });
+
+    it('should maintain variant styles with placeholder', () => {
+      const { container } = render(
+        <StatisticsCard
+          title="Estatística"
+          data={mockData}
+          showPlaceholder={true}
+        />
+      );
+
+      const successCard = container.querySelector('.bg-success-background');
+      expect(successCard).toBeInTheDocument();
+
+      const warningCard = container.querySelector('.bg-warning-background');
+      expect(warningCard).toBeInTheDocument();
+
+      const errorCard = container.querySelector('.bg-error-background');
+      expect(errorCard).toBeInTheDocument();
+
+      const infoCard = container.querySelector('.bg-info-background');
+      expect(infoCard).toBeInTheDocument();
+    });
+
+    it('should work with placeholder and dropdown together', () => {
+      const dropdownOptions = [
+        { label: '1 ano', value: '1year' },
+        { label: '6 meses', value: '6months' },
+      ];
+
+      render(
+        <StatisticsCard
+          title="Estatística"
+          data={mockData}
+          showPlaceholder={true}
+          dropdownOptions={dropdownOptions}
+          selectedDropdownValue="1year"
+        />
+      );
+
+      const placeholders = screen.getAllByText('-');
+      expect(placeholders).toHaveLength(4);
+
+      const dropdown = screen.getByRole('button', {
+        name: 'Filtro de período',
+      });
+      expect(dropdown).toBeInTheDocument();
     });
   });
 
