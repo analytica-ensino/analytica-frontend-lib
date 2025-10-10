@@ -102,6 +102,16 @@ const StatCard = ({ item }: StatCardProps) => {
 };
 
 /**
+ * Get grid column class based on number of items
+ */
+const getGridColumnsClass = (itemCount: number): string => {
+  if (itemCount === 4) return 'lg:grid-cols-4';
+  if (itemCount === 3) return 'lg:grid-cols-3';
+  if (itemCount === 2) return 'lg:grid-cols-2';
+  return 'lg:grid-cols-1';
+};
+
+/**
  * StatisticsCard component - displays statistics with empty state support
  *
  * @example
@@ -146,6 +156,7 @@ export const StatisticsCard = ({
   className = '',
 }: StatisticsCardProps) => {
   const hasData = data && data.length > 0;
+  const gridColumnsClass = hasData ? getGridColumnsClass(data.length) : '';
 
   return (
     <div
@@ -184,7 +195,9 @@ export const StatisticsCard = ({
 
       {/* Content: Data Grid or Empty State */}
       {hasData ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13px]">
+        <div
+          className={`grid grid-cols-1 sm:grid-cols-2 gap-[13px] ${gridColumnsClass}`}
+        >
           {data.map((item, index) => (
             <StatCard
               key={`${item.variant}-${item.label}-${index}`}
