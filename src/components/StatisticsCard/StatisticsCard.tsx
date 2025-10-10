@@ -28,6 +28,8 @@ interface StatisticsCardProps {
   title: string;
   /** Statistics data to display */
   data?: StatItem[];
+  /** Show placeholder "-" in values when true (for created items without data yet) */
+  showPlaceholder?: boolean;
   /** Message shown in empty state */
   emptyStateMessage?: string;
   /** Text for the empty state button */
@@ -76,9 +78,10 @@ const VALUE_TEXT_COLORS = {
  */
 interface StatCardProps {
   item: StatItem;
+  showPlaceholder?: boolean;
 }
 
-const StatCard = ({ item }: StatCardProps) => {
+const StatCard = ({ item, showPlaceholder = false }: StatCardProps) => {
   return (
     <div
       className={`rounded-xl py-[17px] px-6 min-h-[105px] flex flex-col justify-center items-start gap-1 ${VARIANT_STYLES[item.variant]}`}
@@ -88,7 +91,7 @@ const StatCard = ({ item }: StatCardProps) => {
         weight="bold"
         className={`${VALUE_TEXT_COLORS[item.variant]} leading-[42px] tracking-[0.2px] self-stretch`}
       >
-        {item.value}
+        {showPlaceholder ? '-' : item.value}
       </Text>
       <Text
         size="xs"
@@ -145,6 +148,7 @@ const getGridColumnsClass = (itemCount: number): string => {
 export const StatisticsCard = ({
   title,
   data,
+  showPlaceholder = false,
   emptyStateMessage,
   emptyStateButtonText,
   onEmptyStateButtonClick,
@@ -202,6 +206,7 @@ export const StatisticsCard = ({
             <StatCard
               key={`${item.variant}-${item.label}-${index}`}
               item={item}
+              showPlaceholder={showPlaceholder}
             />
           ))}
         </div>
