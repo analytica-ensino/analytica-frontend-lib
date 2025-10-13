@@ -1,6 +1,8 @@
 import type { Story } from '@ladle/react';
 import { CardAccordation } from './Accordation';
+import { AccordionGroup } from './AccordionGroup';
 import Text from '../Text/Text';
+import { useState } from 'react';
 
 export const AllCardAccordationShowcase: Story = () => {
   return (
@@ -408,6 +410,767 @@ export const AllCardAccordationShowcase: Story = () => {
               </div>
             </div>
           </CardAccordation>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const AccordionGroupShowcase: Story = () => {
+  const [singleValue, setSingleValue] = useState<string>('item-1');
+  const [multipleValue, setMultipleValue] = useState<string[]>(['item-1']);
+
+  return (
+    <div className="space-y-12">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-text-900 mb-4">
+          Accordion Group Component
+        </h1>
+        <p className="text-text-600 text-lg">
+          Grupos de accordions com controle de expansão coordenado
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        <h2 className="text-3xl font-bold text-text-900 border-b border-border-100 pb-2">
+          Modo Single (Apenas um aberto por vez)
+        </h2>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Básico - Apenas um accordion aberto
+          </h3>
+          <p className="text-text-600">
+            No modo "single", apenas um item pode estar expandido por vez.
+            Quando você abre um item, o anterior fecha automaticamente.
+          </p>
+          <AccordionGroup type="single" className="space-y-3">
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Pergunta 1: O que é React?
+                </Text>
+              }
+              value="item-1"
+            >
+              <p className="text-text-700">
+                React é uma biblioteca JavaScript para construir interfaces de
+                usuário. Foi criada pelo Facebook e é mantida por uma comunidade
+                de desenvolvedores.
+              </p>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Pergunta 2: O que são componentes?
+                </Text>
+              }
+              value="item-2"
+            >
+              <p className="text-text-700">
+                Componentes são blocos de construção reutilizáveis que permitem
+                dividir a UI em partes independentes e reutilizáveis. Cada
+                componente pode ter seu próprio estado e lógica.
+              </p>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Pergunta 3: O que é JSX?
+                </Text>
+              }
+              value="item-3"
+            >
+              <p className="text-text-700">
+                JSX é uma extensão de sintaxe para JavaScript que se parece com
+                HTML. Ele permite escrever a estrutura da UI de forma mais
+                intuitiva dentro do código JavaScript.
+              </p>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Pergunta 4: O que são hooks?
+                </Text>
+              }
+              value="item-4"
+            >
+              <p className="text-text-700">
+                Hooks são funções especiais que permitem usar recursos do React
+                como estado e ciclo de vida em componentes funcionais. Os mais
+                comuns são useState e useEffect.
+              </p>
+            </CardAccordation>
+          </AccordionGroup>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Com valor padrão expandido
+          </h3>
+          <p className="text-text-600">
+            Use a prop{' '}
+            <code className="bg-gray-100 px-2 py-1 rounded">defaultValue</code>{' '}
+            para definir qual item inicia expandido.
+          </p>
+          <AccordionGroup
+            type="single"
+            defaultValue="faq-2"
+            className="space-y-3"
+          >
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Como faço para instalar?
+                </Text>
+              }
+              value="faq-1"
+            >
+              <div className="space-y-2">
+                <p className="text-text-700">
+                  Para instalar o componente, execute:
+                </p>
+                <code className="block bg-gray-900 text-gray-100 p-3 rounded">
+                  npm install @analytica/frontend-lib
+                </code>
+              </div>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Como uso o componente? (Expandido por padrão)
+                </Text>
+              }
+              value="faq-2"
+            >
+              <div className="space-y-2">
+                <p className="text-text-700">Importe e use em seu código:</p>
+                <code className="block bg-gray-900 text-gray-100 p-3 rounded whitespace-pre">
+                  {`import { AccordionGroup, CardAccordation } from '@analytica/frontend-lib';
+
+<AccordionGroup type="single">
+  <CardAccordation trigger="Item" value="1">
+    Content
+  </CardAccordation>
+</AccordionGroup>`}
+                </code>
+              </div>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Quais são as props disponíveis?
+                </Text>
+              }
+              value="faq-3"
+            >
+              <div className="space-y-2">
+                <p className="text-text-700 font-semibold">
+                  Props do AccordionGroup:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-text-700 ml-4">
+                  <li>type: 'single' | 'multiple'</li>
+                  <li>defaultValue: string | string[]</li>
+                  <li>value: string | string[] (controlled)</li>
+                  <li>onValueChange: (value) =&gt; void</li>
+                  <li>collapsible: boolean</li>
+                </ul>
+              </div>
+            </CardAccordation>
+          </AccordionGroup>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Modo Controlado (Controlled)
+          </h3>
+          <p className="text-text-600">
+            Controle o estado externamente usando as props{' '}
+            <code className="bg-gray-100 px-2 py-1 rounded">value</code> e{' '}
+            <code className="bg-gray-100 px-2 py-1 rounded">onValueChange</code>
+            .
+          </p>
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+            <p className="text-blue-800">
+              <strong>Item expandido atual:</strong> {singleValue || 'Nenhum'}
+            </p>
+          </div>
+          <AccordionGroup
+            type="single"
+            value={singleValue}
+            onValueChange={(value) => {
+              setSingleValue(value as string);
+              console.log('Valor alterado para:', value);
+            }}
+            className="space-y-3"
+          >
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Seção 1: Introdução
+                </Text>
+              }
+              value="item-1"
+            >
+              <p className="text-text-700">
+                Esta é a seção de introdução. O estado é controlado externamente
+                e você pode ver o valor atual no box azul acima.
+              </p>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Seção 2: Desenvolvimento
+                </Text>
+              }
+              value="item-2"
+            >
+              <p className="text-text-700">
+                Esta é a seção de desenvolvimento. Observe que ao abrir este
+                item, o anterior fecha automaticamente.
+              </p>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Seção 3: Conclusão
+                </Text>
+              }
+              value="item-3"
+            >
+              <p className="text-text-700">
+                Esta é a seção de conclusão. O controle externo permite
+                integração com outros estados da aplicação.
+              </p>
+            </CardAccordation>
+          </AccordionGroup>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Não colapsável (collapsible=false)
+          </h3>
+          <p className="text-text-600">
+            Quando{' '}
+            <code className="bg-gray-100 px-2 py-1 rounded">
+              collapsible=false
+            </code>
+            , sempre deve haver um item expandido. Você não pode fechar o item
+            atual, apenas trocar para outro.
+          </p>
+          <AccordionGroup
+            type="single"
+            defaultValue="tab-1"
+            collapsible={false}
+            className="space-y-3"
+          >
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Tab 1: Perfil
+                </Text>
+              }
+              value="tab-1"
+            >
+              <div className="space-y-2">
+                <h4 className="font-semibold text-text-900">
+                  Informações do Perfil
+                </h4>
+                <p className="text-text-700">
+                  Nome: João Silva
+                  <br />
+                  Email: joao@exemplo.com
+                  <br />
+                  Função: Desenvolvedor
+                </p>
+              </div>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Tab 2: Configurações
+                </Text>
+              }
+              value="tab-2"
+            >
+              <div className="space-y-2">
+                <h4 className="font-semibold text-text-900">Configurações</h4>
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" defaultChecked />
+                    <span className="text-text-700">
+                      Notificações por email
+                    </span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" />
+                    <span className="text-text-700">Modo escuro</span>
+                  </label>
+                </div>
+              </div>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Tab 3: Privacidade
+                </Text>
+              }
+              value="tab-3"
+            >
+              <div className="space-y-2">
+                <h4 className="font-semibold text-text-900">Privacidade</h4>
+                <p className="text-text-700">
+                  Controle quem pode ver seu perfil e suas atividades.
+                </p>
+              </div>
+            </CardAccordation>
+          </AccordionGroup>
+        </div>
+
+        <h2 className="text-3xl font-bold text-text-900 border-b border-border-100 pb-2 mt-12">
+          Modo Multiple (Múltiplos abertos)
+        </h2>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Básico - Múltiplos itens podem estar abertos
+          </h3>
+          <p className="text-text-600">
+            No modo "multiple", vários itens podem estar expandidos ao mesmo
+            tempo.
+          </p>
+          <AccordionGroup type="multiple" className="space-y-3">
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  📱 Frontend Development
+                </Text>
+              }
+              value="frontend"
+            >
+              <div className="space-y-2">
+                <p className="text-text-700">
+                  Desenvolvimento de interfaces de usuário com React, Vue,
+                  Angular.
+                </p>
+                <ul className="list-disc list-inside text-text-700 ml-4">
+                  <li>HTML5 & CSS3</li>
+                  <li>JavaScript/TypeScript</li>
+                  <li>React & Next.js</li>
+                  <li>Tailwind CSS</li>
+                </ul>
+              </div>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  ⚙️ Backend Development
+                </Text>
+              }
+              value="backend"
+            >
+              <div className="space-y-2">
+                <p className="text-text-700">
+                  Desenvolvimento de APIs e serviços.
+                </p>
+                <ul className="list-disc list-inside text-text-700 ml-4">
+                  <li>Node.js & Express</li>
+                  <li>Python & Django</li>
+                  <li>Java & Spring Boot</li>
+                  <li>PostgreSQL & MongoDB</li>
+                </ul>
+              </div>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  ☁️ DevOps & Cloud
+                </Text>
+              }
+              value="devops"
+            >
+              <div className="space-y-2">
+                <p className="text-text-700">
+                  Infraestrutura, deployment e automação.
+                </p>
+                <ul className="list-disc list-inside text-text-700 ml-4">
+                  <li>Docker & Kubernetes</li>
+                  <li>AWS, Azure, GCP</li>
+                  <li>CI/CD Pipelines</li>
+                  <li>Terraform</li>
+                </ul>
+              </div>
+            </CardAccordation>
+          </AccordionGroup>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Com valores padrão múltiplos
+          </h3>
+          <p className="text-text-600">
+            Use um array no{' '}
+            <code className="bg-gray-100 px-2 py-1 rounded">defaultValue</code>{' '}
+            para definir múltiplos itens expandidos inicialmente.
+          </p>
+          <AccordionGroup
+            type="multiple"
+            defaultValue={['step-1', 'step-2']}
+            className="space-y-3"
+          >
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  ✅ Passo 1: Criar conta (Expandido)
+                </Text>
+              }
+              value="step-1"
+            >
+              <div className="space-y-2">
+                <p className="text-text-700">
+                  Complete o formulário de registro com seus dados pessoais.
+                </p>
+                <div className="bg-green-50 border-l-4 border-green-400 p-3">
+                  <p className="text-green-800 text-sm">
+                    ✓ Este passo está expandido por padrão
+                  </p>
+                </div>
+              </div>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  ✅ Passo 2: Verificar email (Expandido)
+                </Text>
+              }
+              value="step-2"
+            >
+              <div className="space-y-2">
+                <p className="text-text-700">
+                  Verifique sua caixa de entrada e clique no link de
+                  confirmação.
+                </p>
+                <div className="bg-green-50 border-l-4 border-green-400 p-3">
+                  <p className="text-green-800 text-sm">
+                    ✓ Este passo também está expandido por padrão
+                  </p>
+                </div>
+              </div>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Passo 3: Configurar perfil
+                </Text>
+              }
+              value="step-3"
+            >
+              <p className="text-text-700">
+                Adicione uma foto e complete as informações do seu perfil.
+              </p>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Passo 4: Começar a usar
+                </Text>
+              }
+              value="step-4"
+            >
+              <p className="text-text-700">
+                Explore as funcionalidades e comece a usar a plataforma!
+              </p>
+            </CardAccordation>
+          </AccordionGroup>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Modo Controlado Múltiplo
+          </h3>
+          <p className="text-text-600">
+            Controle múltiplos valores externamente.
+          </p>
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+            <p className="text-blue-800">
+              <strong>Itens expandidos:</strong>{' '}
+              {multipleValue.length > 0 ? multipleValue.join(', ') : 'Nenhum'}
+            </p>
+            <p className="text-blue-700 text-sm mt-1">
+              Total: {multipleValue.length} item(s)
+            </p>
+          </div>
+          <AccordionGroup
+            type="multiple"
+            value={multipleValue}
+            onValueChange={(value) => {
+              setMultipleValue(value as string[]);
+              console.log('Valores alterados para:', value);
+            }}
+            className="space-y-3"
+          >
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Item A
+                </Text>
+              }
+              value="item-1"
+            >
+              <p className="text-text-700">
+                Conteúdo do Item A. Você pode ter este e outros itens abertos ao
+                mesmo tempo.
+              </p>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Item B
+                </Text>
+              }
+              value="item-2"
+            >
+              <p className="text-text-700">
+                Conteúdo do Item B. Observe o contador acima atualizando
+                conforme você abre/fecha itens.
+              </p>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Item C
+                </Text>
+              }
+              value="item-3"
+            >
+              <p className="text-text-700">
+                Conteúdo do Item C. O estado é controlado externamente
+                permitindo sincronização complexa.
+              </p>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Item D
+                </Text>
+              }
+              value="item-4"
+            >
+              <p className="text-text-700">
+                Conteúdo do Item D. Todos os itens podem estar abertos ou
+                fechados simultaneamente.
+              </p>
+            </CardAccordation>
+          </AccordionGroup>
+        </div>
+
+        <h2 className="text-3xl font-bold text-text-900 border-b border-border-100 pb-2 mt-12">
+          Casos de Uso Práticos
+        </h2>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            FAQ - Perguntas Frequentes (Single Mode)
+          </h3>
+          <AccordionGroup type="single" className="space-y-3">
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Qual é a política de devolução?
+                </Text>
+              }
+              value="faq-return"
+            >
+              <div className="space-y-2">
+                <p className="text-text-700">
+                  Aceitamos devoluções em até 30 dias após a compra, desde que o
+                  produto esteja em perfeito estado e na embalagem original.
+                </p>
+                <p className="text-text-600 text-sm">
+                  Para iniciar uma devolução, entre em contato com nosso
+                  suporte.
+                </p>
+              </div>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Quais formas de pagamento são aceitas?
+                </Text>
+              }
+              value="faq-payment"
+            >
+              <div className="space-y-2">
+                <p className="text-text-700">Aceitamos:</p>
+                <ul className="list-disc list-inside text-text-700 ml-4">
+                  <li>
+                    Cartão de crédito (Visa, Mastercard, American Express)
+                  </li>
+                  <li>Cartão de débito</li>
+                  <li>PIX</li>
+                  <li>Boleto bancário</li>
+                </ul>
+              </div>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Quanto tempo leva para entregar?
+                </Text>
+              }
+              value="faq-shipping"
+            >
+              <div className="space-y-2">
+                <p className="text-text-700">
+                  O prazo de entrega varia conforme sua região:
+                </p>
+                <ul className="list-disc list-inside text-text-700 ml-4">
+                  <li>Capitais: 3-5 dias úteis</li>
+                  <li>Região metropolitana: 5-7 dias úteis</li>
+                  <li>Interior: 7-15 dias úteis</li>
+                </ul>
+              </div>
+            </CardAccordation>
+          </AccordionGroup>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Filtros de Pesquisa (Multiple Mode)
+          </h3>
+          <AccordionGroup
+            type="multiple"
+            defaultValue={['filter-category']}
+            className="space-y-3"
+          >
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Categoria
+                </Text>
+              }
+              value="filter-category"
+            >
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" />
+                  <span className="text-text-700">Eletrônicos</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" />
+                  <span className="text-text-700">Roupas</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" />
+                  <span className="text-text-700">Livros</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" />
+                  <span className="text-text-700">Casa & Jardim</span>
+                </label>
+              </div>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Faixa de Preço
+                </Text>
+              }
+              value="filter-price"
+            >
+              <div className="space-y-3">
+                <label className="flex items-center space-x-2">
+                  <input type="radio" name="price" />
+                  <span className="text-text-700">Até R$ 50</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="radio" name="price" />
+                  <span className="text-text-700">R$ 50 - R$ 100</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="radio" name="price" />
+                  <span className="text-text-700">R$ 100 - R$ 500</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="radio" name="price" />
+                  <span className="text-text-700">Acima de R$ 500</span>
+                </label>
+              </div>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Avaliação
+                </Text>
+              }
+              value="filter-rating"
+            >
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" />
+                  <span className="text-text-700">⭐⭐⭐⭐⭐ 5 estrelas</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" />
+                  <span className="text-text-700">⭐⭐⭐⭐ 4+ estrelas</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" />
+                  <span className="text-text-700">⭐⭐⭐ 3+ estrelas</span>
+                </label>
+              </div>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <Text size="sm" weight="bold">
+                  Marca
+                </Text>
+              }
+              value="filter-brand"
+            >
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" />
+                  <span className="text-text-700">Samsung</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" />
+                  <span className="text-text-700">Apple</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" />
+                  <span className="text-text-700">Sony</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" />
+                  <span className="text-text-700">LG</span>
+                </label>
+              </div>
+            </CardAccordation>
+          </AccordionGroup>
         </div>
       </div>
     </div>
