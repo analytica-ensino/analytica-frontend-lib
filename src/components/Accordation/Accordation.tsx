@@ -89,6 +89,7 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
         {/* Clickable header */}
         <button
           id={headerId}
+          type="button"
           onClick={handleToggle}
           onKeyDown={handleKeyDown}
           disabled={disabled}
