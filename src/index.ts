@@ -13,7 +13,6 @@ export { default as IconButton } from './components/IconButton/IconButton';
 export { default as IconRoundedButton } from './components/IconRoundedButton/IconRoundedButton';
 export { default as NavButton } from './components/NavButton/NavButton';
 export { default as SelectionButton } from './components/SelectionButton/SelectionButton';
-export { default as Table } from './components/Table/Table';
 export { default as CheckBox } from './components/CheckBox/CheckBox';
 export {
   default as CheckboxList,
@@ -106,6 +105,16 @@ export {
   ProfileToggleTheme,
 } from './components/DropdownMenu/DropdownMenu';
 
+export {
+  default as Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableFooter,
+  TableCaption,
+} from './components/Table/Table';
 // Select Components
 export {
   default as Select,
@@ -173,7 +182,10 @@ export {
   useRouteAuth,
   getRootDomain,
 } from './components/Auth/Auth';
-export { CardAccordation } from './components/Accordation/Accordation';
+export {
+  CardAccordation,
+  AccordionGroup,
+} from './components/Accordation/index';
 export { AlternativesList } from './components/Alternative/Alternative';
 export { createZustandAuthAdapter } from './components/Auth/zustandAuthAdapter';
 export { useUrlAuthentication } from './components/Auth/useUrlAuthentication';

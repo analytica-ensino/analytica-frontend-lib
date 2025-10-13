@@ -191,6 +191,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       containerClassName = '',
       disabled,
       readOnly,
+      required,
       id,
       type = 'text',
       ...props
@@ -240,7 +241,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             htmlFor={inputId}
             className={`block font-bold text-text-900 mb-1.5 ${sizeClasses}`}
           >
-            {label}
+            {label}{' '}
+            {required && <span className="text-indicator-error">*</span>}
           </label>
         )}
 
@@ -267,6 +269,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             } ${actualIconRight ? 'pr-10' : ''} ${className}`}
             disabled={disabled}
             readOnly={readOnly}
+            required={required}
             aria-invalid={actualState === 'error' ? 'true' : undefined}
             {...props}
           />

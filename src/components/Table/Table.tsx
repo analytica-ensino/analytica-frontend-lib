@@ -1,15 +1,25 @@
 import { forwardRef, HTMLAttributes, TdHTMLAttributes } from 'react';
 import { cn } from '../../utils/utils';
 
+type TableVariant = 'default' | 'borderless';
 type TableRowState = 'default' | 'selected' | 'invalid' | 'disabled';
+
+interface TableProps extends HTMLAttributes<HTMLTableElement> {
+  variant?: TableVariant;
+}
 
 interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
   state?: TableRowState;
 }
 
-const Table = forwardRef<HTMLTableElement, HTMLAttributes<HTMLTableElement>>(
-  ({ className, children, ...props }, ref) => (
-    <div className="border border-border-200 rounded-xl relative w-full overflow-hidden">
+const Table = forwardRef<HTMLTableElement, TableProps>(
+  ({ variant = 'default', className, children, ...props }, ref) => (
+    <div
+      className={cn(
+        'relative w-full overflow-hidden',
+        variant === 'default' && 'border border-border-200 rounded-xl'
+      )}
+    >
       <table
         ref={ref}
         className={cn('w-full caption-bottom text-sm', className)}
@@ -37,53 +47,77 @@ const TableHeader = forwardRef<
 ));
 TableHeader.displayName = 'TableHeader';
 
-const TableBody = forwardRef<
-  HTMLTableSectionElement,
-  HTMLAttributes<HTMLTableSectionElement>
->(({ className, ...props }, ref) => (
-  <tbody
-    ref={ref}
-    className={cn(
-      '[&_tr:last-child]:border-0 border-t border-border-200',
-      className
-    )}
-    {...props}
-  />
-));
+interface TableBodyProps extends HTMLAttributes<HTMLTableSectionElement> {
+  variant?: TableVariant;
+}
+
+const TableBody = forwardRef<HTMLTableSectionElement, TableBodyProps>(
+  ({ variant = 'default', className, ...props }, ref) => (
+    <tbody
+      ref={ref}
+      className={cn(
+        '[&_tr:last-child]:border-0',
+        variant === 'default' && 'border-t border-border-200',
+        className
+      )}
+      {...props}
+    />
+  )
+);
 TableBody.displayName = 'TableBody';
 
-const TableFooter = forwardRef<
-  HTMLTableSectionElement,
-  HTMLAttributes<HTMLTableSectionElement>
->(({ className, ...props }, ref) => (
-  <tfoot
-    ref={ref}
-    className={cn(
-      'border-t bg-background-50 border-border-200 font-medium [&>tr]:last:border-b-0 px-6 py-3.5',
-      className
-    )}
-    {...props}
-  />
-));
+interface TableFooterProps extends HTMLAttributes<HTMLTableSectionElement> {
+  variant?: TableVariant;
+}
+
+const TableFooter = forwardRef<HTMLTableSectionElement, TableFooterProps>(
+  ({ variant = 'default', className, ...props }, ref) => (
+    <tfoot
+      ref={ref}
+      className={cn(
+        'bg-background-50 font-medium [&>tr]:last:border-b-0 px-6 py-3.5',
+        variant === 'default' && 'border-t border-border-200',
+        className
+      )}
+      {...props}
+    />
+  )
+);
 TableFooter.displayName = 'TableFooter';
 
 const VARIANT_STATES_ROW = {
-  default: 'border-b border-border-200',
-  selected: 'border-b-2 border-indicator-primary',
-  invalid: 'border-b-2 border-indicator-error',
-  disabled:
-    'border-b border-border-100 bg-background-50 opacity-50 cursor-not-allowed',
+  default: {
+    default: 'border-b border-border-200',
+    borderless: '',
+  },
+  selected: {
+    default: 'border-b-2 border-indicator-primary',
+    borderless: 'bg-indicator-primary/10',
+  },
+  invalid: {
+    default: 'border-b-2 border-indicator-error',
+    borderless: 'bg-indicator-error/10',
+  },
+  disabled: {
+    default:
+      'border-b border-border-100 bg-background-50 opacity-50 cursor-not-allowed',
+    borderless: 'bg-background-50 opacity-50 cursor-not-allowed',
+  },
 } as const;
 
-const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
-  ({ state = 'default', className, ...props }, ref) => {
+interface TableRowPropsExtended extends TableRowProps {
+  variant?: TableVariant;
+}
+
+const TableRow = forwardRef<HTMLTableRowElement, TableRowPropsExtended>(
+  ({ variant = 'default', state = 'default', className, ...props }, ref) => {
     return (
       <tr
         ref={ref}
         className={cn(
           'transition-colors',
           state !== 'disabled' ? 'hover:bg-muted/50' : '',
-          VARIANT_STATES_ROW[state],
+          VARIANT_STATES_ROW[state][variant],
           className
         )}
         aria-disabled={state === 'disabled'}
