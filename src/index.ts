@@ -186,10 +186,6 @@ export {
   CardAccordation,
   AccordionGroup,
 } from './components/Accordation/index';
-export type {
-  CardAccordationProps,
-  AccordionGroupProps,
-} from './components/Accordation/index';
 export { AlternativesList } from './components/Alternative/Alternative';
 export { createZustandAuthAdapter } from './components/Auth/zustandAuthAdapter';
 export { useUrlAuthentication } from './components/Auth/useUrlAuthentication';

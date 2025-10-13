@@ -430,4 +430,95 @@ describe('AccordionGroup', () => {
       expect(container.firstChild).toHaveClass('custom-class');
     });
   });
+
+  describe('Nested structure with divs', () => {
+    it('should work with divs between AccordionGroup and CardAccordation', () => {
+      render(
+        <AccordionGroup type="single">
+          <div className="section">
+            <h3>Section 1</h3>
+            <CardAccordation trigger="Item 1" value="item-1">
+              Content 1
+            </CardAccordation>
+            <CardAccordation trigger="Item 2" value="item-2">
+              Content 2
+            </CardAccordation>
+          </div>
+          <div className="section">
+            <h3>Section 2</h3>
+            <CardAccordation trigger="Item 3" value="item-3">
+              Content 3
+            </CardAccordation>
+          </div>
+        </AccordionGroup>
+      );
+
+      expect(screen.getByText('Item 1')).toBeInTheDocument();
+      expect(screen.getByText('Item 2')).toBeInTheDocument();
+      expect(screen.getByText('Item 3')).toBeInTheDocument();
+      expect(screen.getByText('Section 1')).toBeInTheDocument();
+      expect(screen.getByText('Section 2')).toBeInTheDocument();
+    });
+
+    it('should maintain single mode behavior with nested divs', () => {
+      render(
+        <AccordionGroup type="single">
+          <div className="wrapper">
+            <CardAccordation trigger="Item 1" value="item-1">
+              Content 1
+            </CardAccordation>
+          </div>
+          <div className="wrapper">
+            <CardAccordation trigger="Item 2" value="item-2">
+              Content 2
+            </CardAccordation>
+          </div>
+        </AccordionGroup>
+      );
+
+      const item1Button = screen.getByText('Item 1').closest('button')!;
+      const item2Button = screen.getByText('Item 2').closest('button')!;
+
+      // Open first item
+      fireEvent.click(item1Button);
+      expect(item1Button).toHaveAttribute('aria-expanded', 'true');
+      expect(item2Button).toHaveAttribute('aria-expanded', 'false');
+
+      // Open second item - first should close
+      fireEvent.click(item2Button);
+      expect(item1Button).toHaveAttribute('aria-expanded', 'false');
+      expect(item2Button).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('should work with deeply nested structure', () => {
+      render(
+        <AccordionGroup type="multiple">
+          <div>
+            <div>
+              <div>
+                <CardAccordation trigger="Deep Item 1" value="deep-1">
+                  Deep Content 1
+                </CardAccordation>
+              </div>
+            </div>
+            <CardAccordation trigger="Item 2" value="item-2">
+              Content 2
+            </CardAccordation>
+          </div>
+        </AccordionGroup>
+      );
+
+      const deepItem1Button = screen
+        .getByText('Deep Item 1')
+        .closest('button')!;
+      const item2Button = screen.getByText('Item 2').closest('button')!;
+
+      // Both should be able to open in multiple mode
+      fireEvent.click(deepItem1Button);
+      fireEvent.click(item2Button);
+
+      expect(deepItem1Button).toHaveAttribute('aria-expanded', 'true');
+      expect(item2Button).toHaveAttribute('aria-expanded', 'true');
+    });
+  });
 });

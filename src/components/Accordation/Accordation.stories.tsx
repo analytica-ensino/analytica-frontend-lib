@@ -411,6 +411,155 @@ export const AllCardAccordationShowcase: Story = () => {
             </div>
           </CardAccordation>
         </div>
+
+        <h2 className="text-3xl font-bold text-text-900 border-b border-border-100 pb-2 mt-12">
+          Estado Desabilitado
+        </h2>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Accordion Desabilitado
+          </h3>
+          <p className="text-text-600">
+            Use a prop{' '}
+            <code className="bg-gray-100 px-2 py-1 rounded">disabled=true</code>{' '}
+            para desabilitar a interação com o accordion. Útil quando o conteúdo
+            não está disponível ou depende de alguma condição.
+          </p>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-text-800">
+                Desabilitado Fechado
+              </h4>
+              <CardAccordation
+                trigger={
+                  <Text size="sm" weight="bold">
+                    🔒 Conteúdo Bloqueado
+                  </Text>
+                }
+                disabled={true}
+              >
+                <p className="text-text-700">
+                  Este conteúdo não está disponível. Você precisa de permissões
+                  especiais para acessá-lo.
+                </p>
+              </CardAccordation>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-text-800">
+                Desabilitado Expandido
+              </h4>
+              <CardAccordation
+                trigger={
+                  <Text size="sm" weight="bold">
+                    ⚠️ Informação Importante (Bloqueada)
+                  </Text>
+                }
+                defaultExpanded={true}
+                disabled={true}
+              >
+                <p className="text-text-700">
+                  Este accordion está expandido mas desabilitado. O usuário pode
+                  ver o conteúdo mas não pode fechá-lo.
+                </p>
+              </CardAccordation>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Casos de Uso do Estado Desabilitado
+          </h3>
+          <div className="space-y-3">
+            <CardAccordation
+              trigger={
+                <div className="flex items-center gap-2">
+                  <Text size="sm" weight="bold">
+                    📦 Produto Indisponível
+                  </Text>
+                  <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                    Fora de Estoque
+                  </span>
+                </div>
+              }
+              disabled={true}
+            >
+              <p className="text-text-700">
+                Este produto está temporariamente indisponível.
+              </p>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <div className="flex items-center gap-2">
+                  <Text size="sm" weight="bold">
+                    🎯 Recurso Premium
+                  </Text>
+                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                    Premium
+                  </span>
+                </div>
+              }
+              disabled={true}
+            >
+              <p className="text-text-700">
+                Este recurso está disponível apenas para usuários premium. Faça
+                upgrade para desbloquear.
+              </p>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <div className="flex items-center gap-2">
+                  <Text size="sm" weight="bold">
+                    ⏳ Em Manutenção
+                  </Text>
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    Manutenção
+                  </span>
+                </div>
+              }
+              disabled={true}
+            >
+              <p className="text-text-700">
+                Esta seção está temporariamente em manutenção. Voltaremos em
+                breve!
+              </p>
+            </CardAccordation>
+
+            <CardAccordation
+              trigger={
+                <div className="flex items-center gap-2">
+                  <Text size="sm" weight="bold">
+                    ✅ Tarefa Concluída
+                  </Text>
+                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                    Completo
+                  </span>
+                </div>
+              }
+              defaultExpanded={true}
+              disabled={true}
+            >
+              <div className="space-y-2">
+                <p className="text-text-700">
+                  Esta tarefa foi concluída e não pode ser modificada.
+                </p>
+                <div className="bg-green-50 p-3 rounded">
+                  <p className="text-green-800 text-sm font-semibold">
+                    ✓ Finalizado em: 10/10/2025
+                  </p>
+                  <p className="text-green-700 text-sm">
+                    Responsável: João Silva
+                  </p>
+                </div>
+              </div>
+            </CardAccordation>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1170,6 +1319,188 @@ export const AccordionGroupShowcase: Story = () => {
                 </label>
               </div>
             </CardAccordation>
+          </AccordionGroup>
+        </div>
+
+        <h2 className="text-3xl font-bold text-text-900 border-b border-border-100 pb-2 mt-12">
+          Estrutura Aninhada com Divs
+        </h2>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Agrupamento com Divs e Seções
+          </h3>
+          <p className="text-text-600">
+            Você pode adicionar divs, headers e outros elementos entre o{' '}
+            <code className="bg-gray-100 px-2 py-1 rounded">
+              AccordionGroup
+            </code>{' '}
+            e os{' '}
+            <code className="bg-gray-100 px-2 py-1 rounded">
+              CardAccordation
+            </code>
+            . O componente injeta as props automaticamente apenas nos accordions
+            corretos.
+          </p>
+
+          <AccordionGroup type="single" className="space-y-6">
+            {/* Seção 1 com header próprio */}
+            <div className="border-l-4 border-blue-500 pl-4">
+              <h4 className="text-lg font-semibold text-blue-900 mb-3">
+                📚 Seção de Documentação
+              </h4>
+              <div className="space-y-2">
+                <CardAccordation
+                  trigger={
+                    <Text size="sm" weight="bold">
+                      Guia de Início Rápido
+                    </Text>
+                  }
+                  value="docs-quickstart"
+                >
+                  <p className="text-text-700">
+                    Um guia rápido para começar a usar nossa plataforma em
+                    minutos. Inclui instalação, configuração básica e primeiro
+                    projeto.
+                  </p>
+                </CardAccordation>
+
+                <CardAccordation
+                  trigger={
+                    <Text size="sm" weight="bold">
+                      API Reference
+                    </Text>
+                  }
+                  value="docs-api"
+                >
+                  <p className="text-text-700">
+                    Documentação completa da API com todos os endpoints,
+                    parâmetros e exemplos de uso.
+                  </p>
+                </CardAccordation>
+              </div>
+            </div>
+
+            {/* Seção 2 com header diferente */}
+            <div className="border-l-4 border-green-500 pl-4">
+              <h4 className="text-lg font-semibold text-green-900 mb-3">
+                🎓 Seção de Tutoriais
+              </h4>
+              <div className="space-y-2">
+                <CardAccordation
+                  trigger={
+                    <Text size="sm" weight="bold">
+                      Tutorial para Iniciantes
+                    </Text>
+                  }
+                  value="tutorial-beginner"
+                >
+                  <p className="text-text-700">
+                    Passo a passo detalhado para quem está começando. Sem
+                    conhecimento prévio necessário.
+                  </p>
+                </CardAccordation>
+
+                <CardAccordation
+                  trigger={
+                    <Text size="sm" weight="bold">
+                      Tutorial Avançado
+                    </Text>
+                  }
+                  value="tutorial-advanced"
+                >
+                  <p className="text-text-700">
+                    Técnicas avançadas e melhores práticas para usuários
+                    experientes.
+                  </p>
+                </CardAccordation>
+              </div>
+            </div>
+
+            {/* Seção 3 */}
+            <div className="border-l-4 border-purple-500 pl-4">
+              <h4 className="text-lg font-semibold text-purple-900 mb-3">
+                💡 Seção de Exemplos
+              </h4>
+              <div className="space-y-2">
+                <CardAccordation
+                  trigger={
+                    <Text size="sm" weight="bold">
+                      Exemplos Práticos
+                    </Text>
+                  }
+                  value="examples-practical"
+                >
+                  <p className="text-text-700">
+                    Projetos completos e prontos para usar como base para seus
+                    próprios desenvolvimentos.
+                  </p>
+                </CardAccordation>
+              </div>
+            </div>
+          </AccordionGroup>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Cards Organizados por Categoria
+          </h3>
+          <AccordionGroup
+            type="multiple"
+            defaultValue={['category-tech']}
+            className="space-y-4"
+          >
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-2xl">💻</span>
+                <h4 className="text-lg font-semibold text-blue-900">
+                  Tecnologia
+                </h4>
+              </div>
+              <div className="space-y-2">
+                <CardAccordation
+                  trigger={<Text size="sm">Inteligência Artificial</Text>}
+                  value="category-tech"
+                >
+                  <p className="text-text-700">
+                    Descubra as últimas novidades em IA e machine learning.
+                  </p>
+                </CardAccordation>
+                <CardAccordation
+                  trigger={<Text size="sm">Desenvolvimento Web</Text>}
+                  value="web-dev"
+                >
+                  <p className="text-text-700">
+                    Frameworks modernos e tendências de desenvolvimento.
+                  </p>
+                </CardAccordation>
+              </div>
+            </div>
+
+            <div className="bg-green-50 p-4 rounded-lg">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-2xl">🎨</span>
+                <h4 className="text-lg font-semibold text-green-900">Design</h4>
+              </div>
+              <div className="space-y-2">
+                <CardAccordation
+                  trigger={<Text size="sm">UI/UX Design</Text>}
+                  value="uiux"
+                >
+                  <p className="text-text-700">
+                    Princípios de design de interface e experiência do usuário.
+                  </p>
+                </CardAccordation>
+                <CardAccordation
+                  trigger={<Text size="sm">Design Systems</Text>}
+                  value="design-systems"
+                >
+                  <p className="text-text-700">
+                    Criação e manutenção de sistemas de design escaláveis.
+                  </p>
+                </CardAccordation>
+              </div>
+            </div>
           </AccordionGroup>
         </div>
       </div>

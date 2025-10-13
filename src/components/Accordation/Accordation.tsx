@@ -18,6 +18,7 @@ interface CardAccordationProps extends HTMLAttributes<HTMLDivElement> {
   expanded?: boolean;
   onToggleExpanded?: (isExpanded: boolean) => void;
   value?: string;
+  disabled?: boolean;
 }
 
 const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
@@ -30,6 +31,7 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
       expanded: controlledExpanded,
       onToggleExpanded,
       value,
+      disabled = false,
       ...props
     },
     ref
@@ -55,6 +57,8 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
     }, [isControlled, controlledExpanded]);
 
     const handleToggle = () => {
+      if (disabled) return;
+
       const newExpanded = !isExpanded;
 
       if (!isControlled) {
@@ -65,6 +69,8 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
     };
 
     const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+      if (disabled) return;
+
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         handleToggle();
@@ -85,9 +91,14 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
           id={headerId}
           onClick={handleToggle}
           onKeyDown={handleKeyDown}
-          className="w-full cursor-pointer text-text-950 not-aria-expanded:rounded-xl aria-expanded:rounded-t-xl p-4 flex items-center justify-between gap-3 text-left transition-colors duration-200 focus:outline-none focus:border-2 focus:border-primary-950 focus:ring-inset"
+          disabled={disabled}
+          className={cn(
+            'w-full cursor-pointer not-aria-expanded:rounded-xl aria-expanded:rounded-t-xl flex items-center justify-between gap-3 text-left transition-colors duration-200 focus:outline-none focus:border-2 focus:border-primary-950 focus:ring-inset px-2',
+            disabled && 'cursor-not-allowed text-text-400'
+          )}
           aria-expanded={isExpanded}
           aria-controls={contentId}
+          aria-disabled={disabled}
           data-value={value}
         >
           {trigger}
@@ -95,7 +106,8 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
           <CaretRight
             size={20}
             className={cn(
-              'text-text-700 transition-transform duration-200 flex-shrink-0',
+              'transition-transform duration-200 flex-shrink-0',
+              disabled ? 'text-gray-400' : 'text-text-700',
               isExpanded ? 'rotate-90' : 'rotate-0'
             )}
             data-testid="accordion-caret"
@@ -114,7 +126,7 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
           data-testid="accordion-content"
           data-value={value}
         >
-          <div className="p-4 pt-0 border-border-50">{children}</div>
+          <div className="p-4 pt-0">{children}</div>
         </div>
       </CardBase>
     );

@@ -534,4 +534,126 @@ describe('CardAccordation', () => {
       expect(ref).toHaveBeenCalled();
     });
   });
+
+  describe('Disabled state', () => {
+    it('should render with disabled attribute when disabled prop is true', () => {
+      render(
+        <CardAccordation trigger={mockTitle} disabled={true}>
+          <p>{mockContent}</p>
+        </CardAccordation>
+      );
+
+      const header = getHeader();
+      expect(header).toBeDisabled();
+      expect(header).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('should not expand when clicked if disabled', async () => {
+      const user = userEvent.setup();
+      render(
+        <CardAccordation trigger={mockTitle} disabled={true}>
+          <p>{mockContent}</p>
+        </CardAccordation>
+      );
+
+      const header = getHeader();
+      const content = screen.getByTestId('accordion-content');
+
+      expect(header).toHaveAttribute('aria-expanded', 'false');
+      expect(content).toHaveClass('max-h-0', 'opacity-0');
+
+      await user.click(header!);
+
+      // Should remain collapsed
+      expect(header).toHaveAttribute('aria-expanded', 'false');
+      expect(content).toHaveClass('max-h-0', 'opacity-0');
+    });
+
+    it('should not call onToggleExpanded when disabled', async () => {
+      const onToggle = jest.fn();
+      const user = userEvent.setup();
+
+      render(
+        <CardAccordation
+          trigger={mockTitle}
+          disabled={true}
+          onToggleExpanded={onToggle}
+        >
+          <p>{mockContent}</p>
+        </CardAccordation>
+      );
+
+      const header = getHeader();
+      await user.click(header!);
+
+      expect(onToggle).not.toHaveBeenCalled();
+    });
+
+    it('should not respond to keyboard events when disabled', () => {
+      render(
+        <CardAccordation trigger={mockTitle} disabled={true}>
+          <p>{mockContent}</p>
+        </CardAccordation>
+      );
+
+      const header = getHeader();
+      const content = screen.getByTestId('accordion-content');
+
+      // Try Enter key
+      fireEvent.keyDown(header!, { key: 'Enter' });
+      expect(content).toHaveClass('max-h-0', 'opacity-0');
+
+      // Try Space key
+      fireEvent.keyDown(header!, { key: ' ' });
+      expect(content).toHaveClass('max-h-0', 'opacity-0');
+    });
+
+    it('should have disabled visual styles', () => {
+      render(
+        <CardAccordation trigger={mockTitle} disabled={true}>
+          <p>{mockContent}</p>
+        </CardAccordation>
+      );
+
+      const header = getHeader();
+      expect(header).toHaveClass('cursor-not-allowed', 'text-text-400');
+    });
+
+    it('should work normally when disabled is false', async () => {
+      const user = userEvent.setup();
+      render(
+        <CardAccordation trigger={mockTitle} disabled={false}>
+          <p>{mockContent}</p>
+        </CardAccordation>
+      );
+
+      const header = getHeader();
+      const content = screen.getByTestId('accordion-content');
+
+      expect(header).not.toBeDisabled();
+
+      await user.click(header!);
+      expect(content).toHaveClass('max-h-screen', 'opacity-100');
+    });
+
+    it('should disable an already expanded accordion', () => {
+      render(
+        <CardAccordation
+          trigger={mockTitle}
+          defaultExpanded={true}
+          disabled={true}
+        >
+          <p>{mockContent}</p>
+        </CardAccordation>
+      );
+
+      const header = getHeader();
+      const content = screen.getByTestId('accordion-content');
+
+      // Should be expanded but disabled
+      expect(header).toBeDisabled();
+      expect(header).toHaveAttribute('aria-expanded', 'true');
+      expect(content).toHaveClass('max-h-screen', 'opacity-100');
+    });
+  });
 });
