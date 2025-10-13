@@ -269,6 +269,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             } ${actualIconRight ? 'pr-10' : ''} ${className}`}
             disabled={disabled}
             readOnly={readOnly}
+            required={required}
             aria-invalid={actualState === 'error' ? 'true' : undefined}
             {...props}
           />

@@ -155,6 +155,17 @@ const AccordionGroup = forwardRef<HTMLDivElement, AccordionGroupProps>(
         currentValue,
         collapsible
       );
+    } else {
+      storeRef.current.setState((prev) => {
+        const nextState: Partial<AccordionGroupStore> = {};
+        if (prev.type !== type) {
+          nextState.type = type;
+        }
+        if (prev.collapsible !== collapsible) {
+          nextState.collapsible = collapsible;
+        }
+        return nextState;
+      });
     }
     const store = storeRef.current;
 
@@ -162,6 +173,24 @@ const AccordionGroup = forwardRef<HTMLDivElement, AccordionGroupProps>(
     useEffect(() => {
       store.setState({ value: currentValue });
     }, [currentValue, store]);
+
+    // Normalize internal value when type changes (uncontrolled mode)
+    useEffect(() => {
+      if (!isControlled) {
+        setInternalValue((prev) => {
+          if (type === 'single') {
+            if (Array.isArray(prev)) {
+              return prev[0] ?? '';
+            }
+            return typeof prev === 'string' ? prev : '';
+          }
+          if (Array.isArray(prev)) {
+            return prev;
+          }
+          return prev ? [prev] : [];
+        });
+      }
+    }, [isControlled, type]);
 
     const handleItemToggle = (itemValue: string, isExpanded: boolean) => {
       const storeState = store.getState();

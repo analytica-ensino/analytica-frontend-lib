@@ -220,6 +220,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           onBlur={handleBlur}
           className={textareaClasses}
           placeholder={placeholder}
+          required={required}
           {...props}
         />
 

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AccordionGroup } from './AccordionGroup';
 import { CardAccordation } from './Accordation';
 
@@ -519,6 +519,130 @@ describe('AccordionGroup', () => {
 
       expect(deepItem1Button).toHaveAttribute('aria-expanded', 'true');
       expect(item2Button).toHaveAttribute('aria-expanded', 'true');
+    });
+  });
+
+  describe('Dynamic prop changes', () => {
+    it('should update store when type changes from single to multiple', () => {
+      const { rerender } = render(
+        <AccordionGroup type="single">
+          <CardAccordation trigger="Item 1" value="item-1">
+            Content 1
+          </CardAccordation>
+          <CardAccordation trigger="Item 2" value="item-2">
+            Content 2
+          </CardAccordation>
+        </AccordionGroup>
+      );
+
+      const item1Button = screen.getByText('Item 1').closest('button')!;
+      const item2Button = screen.getByText('Item 2').closest('button')!;
+
+      // Open first item in single mode
+      fireEvent.click(item1Button);
+      expect(item1Button).toHaveAttribute('aria-expanded', 'true');
+
+      // Change to multiple mode
+      rerender(
+        <AccordionGroup type="multiple">
+          <CardAccordation trigger="Item 1" value="item-1">
+            Content 1
+          </CardAccordation>
+          <CardAccordation trigger="Item 2" value="item-2">
+            Content 2
+          </CardAccordation>
+        </AccordionGroup>
+      );
+
+      // In multiple mode, both can be open
+      fireEvent.click(item2Button);
+      expect(item1Button).toHaveAttribute('aria-expanded', 'true');
+      expect(item2Button).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('should enforce single mode behavior when type changes from multiple to single', async () => {
+      const { rerender } = render(
+        <AccordionGroup type="multiple" defaultValue={['item-1', 'item-2']}>
+          <CardAccordation trigger="Item 1" value="item-1">
+            Content 1
+          </CardAccordation>
+          <CardAccordation trigger="Item 2" value="item-2">
+            Content 2
+          </CardAccordation>
+          <CardAccordation trigger="Item 3" value="item-3">
+            Content 3
+          </CardAccordation>
+        </AccordionGroup>
+      );
+
+      const item1Button = screen.getByText('Item 1').closest('button')!;
+      const item2Button = screen.getByText('Item 2').closest('button')!;
+      const item3Button = screen.getByText('Item 3').closest('button')!;
+
+      // Both should be open in multiple mode
+      expect(item1Button).toHaveAttribute('aria-expanded', 'true');
+      expect(item2Button).toHaveAttribute('aria-expanded', 'true');
+
+      // Change to single mode
+      rerender(
+        <AccordionGroup type="single">
+          <CardAccordation trigger="Item 1" value="item-1">
+            Content 1
+          </CardAccordation>
+          <CardAccordation trigger="Item 2" value="item-2">
+            Content 2
+          </CardAccordation>
+          <CardAccordation trigger="Item 3" value="item-3">
+            Content 3
+          </CardAccordation>
+        </AccordionGroup>
+      );
+
+      // In single mode, clicking a new item should close others
+      fireEvent.click(item3Button);
+
+      await waitFor(() => {
+        expect(item3Button).toHaveAttribute('aria-expanded', 'true');
+      });
+
+      // Other items should be closed
+      expect(item1Button).toHaveAttribute('aria-expanded', 'false');
+      expect(item2Button).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('should update collapsible behavior when prop changes', () => {
+      const { rerender } = render(
+        <AccordionGroup type="single" collapsible={true} defaultValue="item-1">
+          <CardAccordation trigger="Item 1" value="item-1">
+            Content 1
+          </CardAccordation>
+        </AccordionGroup>
+      );
+
+      const item1Button = screen.getByText('Item 1').closest('button')!;
+
+      expect(item1Button).toHaveAttribute('aria-expanded', 'true');
+
+      // Should be able to close when collapsible=true
+      fireEvent.click(item1Button);
+      expect(item1Button).toHaveAttribute('aria-expanded', 'false');
+
+      // Change to collapsible=false
+      rerender(
+        <AccordionGroup type="single" collapsible={false} defaultValue="item-1">
+          <CardAccordation trigger="Item 1" value="item-1">
+            Content 1
+          </CardAccordation>
+        </AccordionGroup>
+      );
+
+      // Open it again
+      fireEvent.click(item1Button);
+      expect(item1Button).toHaveAttribute('aria-expanded', 'true');
+
+      // Now should NOT be able to close when collapsible=false
+      fireEvent.click(item1Button);
+      expect(item1Button).toHaveAttribute('aria-expanded', 'true');
     });
   });
 });
