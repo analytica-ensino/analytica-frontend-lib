@@ -28,6 +28,8 @@ interface StatisticsCardProps {
   title: string;
   /** Statistics data to display */
   data?: StatItem[];
+  /** Show placeholder "-" in values when true (for created items without data yet) */
+  showPlaceholder?: boolean;
   /** Message shown in empty state */
   emptyStateMessage?: string;
   /** Text for the empty state button */
@@ -76,9 +78,10 @@ const VALUE_TEXT_COLORS = {
  */
 interface StatCardProps {
   item: StatItem;
+  showPlaceholder?: boolean;
 }
 
-const StatCard = ({ item }: StatCardProps) => {
+const StatCard = ({ item, showPlaceholder = false }: StatCardProps) => {
   return (
     <div
       className={`rounded-xl py-[17px] px-6 min-h-[105px] flex flex-col justify-center items-start gap-1 ${VARIANT_STYLES[item.variant]}`}
@@ -88,7 +91,7 @@ const StatCard = ({ item }: StatCardProps) => {
         weight="bold"
         className={`${VALUE_TEXT_COLORS[item.variant]} leading-[42px] tracking-[0.2px] self-stretch`}
       >
-        {item.value}
+        {showPlaceholder ? '-' : item.value}
       </Text>
       <Text
         size="xs"
@@ -99,6 +102,16 @@ const StatCard = ({ item }: StatCardProps) => {
       </Text>
     </div>
   );
+};
+
+/**
+ * Get grid column class based on number of items
+ */
+const getGridColumnsClass = (itemCount: number): string => {
+  if (itemCount === 4) return 'lg:grid-cols-4';
+  if (itemCount === 3) return 'lg:grid-cols-3';
+  if (itemCount === 2) return 'lg:grid-cols-2';
+  return 'lg:grid-cols-1';
 };
 
 /**
@@ -135,6 +148,7 @@ const StatCard = ({ item }: StatCardProps) => {
 export const StatisticsCard = ({
   title,
   data,
+  showPlaceholder = false,
   emptyStateMessage,
   emptyStateButtonText,
   onEmptyStateButtonClick,
@@ -146,6 +160,7 @@ export const StatisticsCard = ({
   className = '',
 }: StatisticsCardProps) => {
   const hasData = data && data.length > 0;
+  const gridColumnsClass = hasData ? getGridColumnsClass(data.length) : '';
 
   return (
     <div
@@ -184,11 +199,14 @@ export const StatisticsCard = ({
 
       {/* Content: Data Grid or Empty State */}
       {hasData ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13px]">
+        <div
+          className={`grid grid-cols-1 sm:grid-cols-2 gap-[13px] ${gridColumnsClass}`}
+        >
           {data.map((item, index) => (
             <StatCard
               key={`${item.variant}-${item.label}-${index}`}
               item={item}
+              showPlaceholder={showPlaceholder}
             />
           ))}
         </div>
