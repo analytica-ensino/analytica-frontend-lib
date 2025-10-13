@@ -149,13 +149,8 @@ const AccordionGroup = forwardRef<HTMLDivElement, AccordionGroupProps>(
 
     // Create store only once using useRef
     const storeRef = useRef<AccordionGroupStoreApi | null>(null);
-    if (!storeRef.current) {
-      storeRef.current = createAccordionGroupStore(
-        type,
-        currentValue,
-        collapsible
-      );
-    } else {
+    if (storeRef.current) {
+      // Update store configuration when props change
       storeRef.current.setState((prev) => {
         const nextState: Partial<AccordionGroupStore> = {};
         if (prev.type !== type) {
@@ -166,6 +161,13 @@ const AccordionGroup = forwardRef<HTMLDivElement, AccordionGroupProps>(
         }
         return nextState;
       });
+    } else {
+      // Create store on first render
+      storeRef.current = createAccordionGroupStore(
+        type,
+        currentValue,
+        collapsible
+      );
     }
     const store = storeRef.current;
 

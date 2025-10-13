@@ -313,8 +313,8 @@ describe('CardAccordation', () => {
       expect(header).toHaveAttribute('data-value', 'test-value');
       expect(content).toHaveAttribute('data-value', 'test-value');
 
-      // Verify content has role and labelledby
-      expect(content).toHaveAttribute('role', 'region');
+      // Verify content is a section element (implicitly has role="region")
+      expect(content.tagName).toBe('SECTION');
       expect(content).toHaveAttribute('aria-labelledby', header?.id);
     });
 
@@ -338,7 +338,7 @@ describe('CardAccordation', () => {
       expect(ariaControls).toBe(contentId);
 
       // Verify relationships
-      expect(content).toHaveAttribute('role', 'region');
+      expect(content.tagName).toBe('SECTION');
       expect(content).toHaveAttribute('aria-labelledby', header?.id);
     });
 

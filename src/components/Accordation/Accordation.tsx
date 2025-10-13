@@ -115,10 +115,10 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
         </button>
 
         {/* Expandable content */}
-        <div
+        <section
           id={contentId}
-          role="region"
           aria-labelledby={headerId}
+          aria-hidden={!isExpanded}
           className={cn(
             'transition-all duration-300 ease-in-out overflow-hidden',
             isExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
@@ -127,7 +127,7 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
           data-value={value}
         >
           <div className="p-4 pt-0">{children}</div>
-        </div>
+        </section>
       </CardBase>
     );
   }
