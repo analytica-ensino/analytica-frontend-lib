@@ -380,6 +380,7 @@ const QuizFooter = forwardRef<
       getUnansweredQuestionsFromUserAnswers,
       getCurrentAnswer,
       skipQuestion,
+      skipCurrentQuestionIfUnanswered,
       getCurrentQuestion,
       getQuestionStatusFromUserAnswers,
       variant,
@@ -411,6 +412,9 @@ const QuizFooter = forwardRef<
     const quizTypeLabel = getTypeLabel(quizType);
 
     const handleFinishQuiz = async () => {
+      // Marca a questão atual como pulada se não foi respondida
+      skipCurrentQuestionIfUnanswered();
+
       if (unansweredQuestions.length > 0) {
         openModal('alertDialog');
         return;
