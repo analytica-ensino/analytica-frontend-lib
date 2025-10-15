@@ -206,6 +206,7 @@ export interface QuizState {
   selectMultipleAnswer: (questionId: string, answerIds: string[]) => void;
   selectDissertativeAnswer: (questionId: string, answer: string) => void;
   skipQuestion: () => void;
+  skipCurrentQuestionIfUnanswered: () => void;
   addUserAnswer: (questionId: string, answerId?: string) => void;
   startQuiz: () => void;
   finishQuiz: () => void;
@@ -568,6 +569,23 @@ export const useQuizStore = create<QuizState>()(
             set({
               userAnswers: updatedUserAnswers,
             });
+          }
+        },
+
+        skipCurrentQuestionIfUnanswered: () => {
+          const { getCurrentQuestion, getCurrentAnswer, skipQuestion } = get();
+          const currentQuestion = getCurrentQuestion();
+          const currentAnswer = getCurrentAnswer();
+
+          // Se não há questão atual, não faz nada
+          if (!currentQuestion) return;
+
+          // Se não há resposta ou a resposta está vazia (null), marca como pulada
+          if (
+            !currentAnswer ||
+            (currentAnswer.optionId === null && currentAnswer.answer === null)
+          ) {
+            skipQuestion();
           }
         },
 

@@ -455,6 +455,7 @@ describe('Quiz', () => {
       resetQuiz: jest.fn(),
       setVariant: jest.fn(),
       getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+      skipCurrentQuestionIfUnanswered: jest.fn(),
       getQuestionResultStatistics: jest.fn().mockReturnValue({
         totalQuestions: 1,
         correctAnswers: 0,
@@ -1869,6 +1870,7 @@ describe('Quiz', () => {
         mockGetUnansweredQuestionsFromUserAnswers,
       getCurrentAnswer: mockGetCurrentAnswer,
       skipQuestion: mockSkipQuestion,
+      skipCurrentQuestionIfUnanswered: jest.fn(),
       getCurrentQuestion: mockGetCurrentQuestion,
       getQuestionStatusFromUserAnswers: mockGetQuestionStatusFromUserAnswers,
       variant: 'default',
@@ -3284,6 +3286,7 @@ describe('Quiz', () => {
           timeSpent: 120,
         }),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+        skipCurrentQuestionIfUnanswered: jest.fn(),
       });
 
       render(<QuizFooter />);
@@ -3325,6 +3328,7 @@ describe('Quiz', () => {
           timeSpent: 120,
         }),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+        skipCurrentQuestionIfUnanswered: jest.fn(),
       });
 
       render(<QuizFooter />);
@@ -3364,6 +3368,7 @@ describe('Quiz', () => {
           timeSpent: 120,
         }),
         getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+        skipCurrentQuestionIfUnanswered: jest.fn(),
       });
 
       render(<QuizFooter />);
