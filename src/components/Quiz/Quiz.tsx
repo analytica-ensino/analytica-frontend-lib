@@ -543,7 +543,6 @@ const QuizFooter = forwardRef<
                   size="medium"
                   variant="solid"
                   action="primary"
-                  disabled={!currentAnswer && !isCurrentQuestionSkipped}
                   onClick={handleFinishQuiz}
                 >
                   Finalizar

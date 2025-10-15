@@ -1998,20 +1998,6 @@ describe('Quiz', () => {
         expect(nextButton).toHaveAttribute('data-disabled', 'false');
       });
 
-      it('should disable finish button when no answer and question not skipped', () => {
-        mockUseQuizStore.mockReturnValue({
-          ...defaultStoreState,
-          currentQuestionIndex: 4, // Last question
-        });
-        mockGetCurrentAnswer.mockReturnValue(null);
-        mockGetQuestionStatusFromUserAnswers.mockReturnValue('unanswered');
-
-        render(<QuizFooter />);
-
-        const finishButton = screen.getByText('Finalizar');
-        expect(finishButton).toHaveAttribute('data-disabled', 'true');
-      });
-
       it('should call both skipQuestion and goToNextQuestion in correct order when skip is clicked on first question', () => {
         render(<QuizFooter />);
 
