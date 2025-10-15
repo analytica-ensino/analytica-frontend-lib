@@ -7,6 +7,7 @@ import {
   QuestionResult,
   MINUTE_INTERVAL_MS,
   QUIZ_TYPE,
+  QuizInterface,
 } from './useQuizStore';
 
 // Type alias for question answers in result context
@@ -3232,6 +3233,127 @@ describe('useQuizStore', () => {
 
       expect(result.current.getUserAnswers()).toEqual(newUserAnswers);
       expect(result.current.getUserAnswers()).not.toEqual(initialUserAnswers);
+    });
+  });
+
+  describe('skipCurrentQuestionIfUnanswered Tests', () => {
+    beforeEach(() => {
+      act(() => {
+        useQuizStore.getState().setQuiz(mockSimulado);
+      });
+    });
+
+    it('should skip current question when no answer is provided', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimulado);
+        result.current.setUserId('test-user-id');
+        // Não responder a questão atual
+        result.current.skipCurrentQuestionIfUnanswered();
+      });
+
+      // Verifica se a questão foi marcada como pulada
+      expect(result.current.isQuestionSkipped('q1')).toBe(true);
+
+      // Verifica se foi criado um userAnswer com valores null
+      const userAnswer = result.current.getUserAnswerByQuestionId('q1');
+      expect(userAnswer).toBeDefined();
+      expect(userAnswer?.optionId).toBe(null);
+      expect(userAnswer?.answer).toBe(null);
+      expect(userAnswer?.answerStatus).toBe(ANSWER_STATUS.PENDENTE_AVALIACAO);
+    });
+
+    it('should skip current question when answer is null', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimulado);
+        result.current.setUserId('test-user-id');
+        // Simular uma resposta null (questão não respondida)
+        result.current.selectAnswer('q1', 'opt1');
+        result.current.selectAnswer('q1', null as unknown as string); // Simula resposta vazia
+        result.current.skipCurrentQuestionIfUnanswered();
+      });
+
+      // Verifica se a questão foi marcada como pulada
+      expect(result.current.isQuestionSkipped('q1')).toBe(true);
+
+      // Verifica se foi criado um userAnswer com valores null
+      const userAnswer = result.current.getUserAnswerByQuestionId('q1');
+      expect(userAnswer).toBeDefined();
+      expect(userAnswer?.optionId).toBe(null);
+      expect(userAnswer?.answer).toBe(null);
+    });
+
+    it('should not skip current question when answer is already provided', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimulado);
+        result.current.setUserId('test-user-id');
+        // Responder a questão atual
+        result.current.selectAnswer('q1', 'opt1');
+        result.current.skipCurrentQuestionIfUnanswered();
+      });
+
+      // Verifica se a questão NÃO foi marcada como pulada
+      expect(result.current.isQuestionSkipped('q1')).toBe(false);
+
+      // Verifica se a resposta original foi mantida
+      const userAnswer = result.current.getUserAnswerByQuestionId('q1');
+      expect(userAnswer?.optionId).toBe('opt1');
+      expect(userAnswer?.answer).toBe(null); // Para questões ALTERNATIVA, answer é sempre null
+    });
+
+    it('should do nothing when no current question exists', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        // Reset quiz to null to ensure no current question
+        useQuizStore.getState().setQuiz(null as unknown as QuizInterface);
+        result.current.setUserId('test-user-id');
+        result.current.skipCurrentQuestionIfUnanswered();
+      });
+
+      // Verifica se não foi criado nenhum userAnswer
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toHaveLength(0);
+    });
+
+    it('should do nothing when userId is not set', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimulado);
+        // Não definir userId
+        result.current.skipCurrentQuestionIfUnanswered();
+      });
+
+      // Verifica se não foi criado nenhum userAnswer (devido à validação de userId)
+      const userAnswers = result.current.getUserAnswers();
+      expect(userAnswers).toHaveLength(0);
+    });
+
+    it('should handle dissertative questions correctly', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimulado);
+        result.current.setUserId('test-user-id');
+        // Simular uma questão dissertativa não respondida
+        result.current.selectDissertativeAnswer('q1', ''); // Resposta vazia
+        result.current.skipCurrentQuestionIfUnanswered();
+      });
+
+      // Verifica se a questão foi marcada como pulada
+      expect(result.current.isQuestionSkipped('q1')).toBe(true);
+
+      // Verifica se foi criado um userAnswer com valores null
+      const userAnswer = result.current.getUserAnswerByQuestionId('q1');
+      expect(userAnswer).toBeDefined();
+      expect(userAnswer?.optionId).toBe(null);
+      expect(userAnswer?.answer).toBe(null);
     });
   });
 
