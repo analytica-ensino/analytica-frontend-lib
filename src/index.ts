@@ -14,6 +14,8 @@ export { default as IconRoundedButton } from './components/IconRoundedButton/Ico
 export { default as NavButton } from './components/NavButton/NavButton';
 export { default as SelectionButton } from './components/SelectionButton/SelectionButton';
 export { default as CheckBox } from './components/CheckBox/CheckBox';
+export { default as ImageUpload } from './components/ImageUpload/ImageUpload';
+export type { ImageUploadProps } from './components/ImageUpload/ImageUpload';
 export {
   default as CheckboxList,
   CheckboxListItem,
