@@ -3336,21 +3336,34 @@ describe('useQuizStore', () => {
     });
 
     it('should handle dissertative questions correctly', () => {
+      const mockDissertativeQuestion = {
+        ...mockQuestion1,
+        id: 'dissertative-q1',
+        questionType: QUESTION_TYPE.DISSERTATIVA,
+        options: [], // Dissertative questions don't have options
+      };
+
+      const mockSimuladoWithDissertative = {
+        ...mockSimulado,
+        questions: [mockDissertativeQuestion, mockQuestion2],
+      };
+
       const { result } = renderQuizStoreHook();
 
       act(() => {
-        result.current.setQuiz(mockSimulado);
+        result.current.setQuiz(mockSimuladoWithDissertative);
         result.current.setUserId('test-user-id');
         // Simular uma questão dissertativa não respondida
-        result.current.selectDissertativeAnswer('q1', ''); // Resposta vazia
+        result.current.selectDissertativeAnswer('dissertative-q1', ''); // Resposta vazia
         result.current.skipCurrentQuestionIfUnanswered();
       });
 
       // Verifica se a questão foi marcada como pulada
-      expect(result.current.isQuestionSkipped('q1')).toBe(true);
+      expect(result.current.isQuestionSkipped('dissertative-q1')).toBe(true);
 
       // Verifica se foi criado um userAnswer com valores null
-      const userAnswer = result.current.getUserAnswerByQuestionId('q1');
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
       expect(userAnswer).toBeDefined();
       expect(userAnswer?.optionId).toBe(null);
       expect(userAnswer?.answer).toBe(null);
