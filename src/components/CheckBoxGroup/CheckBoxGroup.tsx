@@ -568,7 +568,6 @@ export const CheckboxGroup = ({
     // Check if category is enabled based on dependencies (inline to avoid stale closure)
     const isEnabled =
       !category.dependsOn ||
-      category.dependsOn.length === 0 ||
       category.dependsOn.every((depKey) => {
         const depCat = categories.find((c) => c.key === depKey);
         return depCat?.selectedIds && depCat.selectedIds.length > 0;
