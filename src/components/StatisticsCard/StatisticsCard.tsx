@@ -96,7 +96,7 @@ const StatCard = ({ item, showPlaceholder = false }: StatCardProps) => {
       <Text
         size="xs"
         weight="bold"
-        className="uppercase text-[8px] leading-[9px] text-text-800 self-stretch"
+        className="uppercase text-[8px] leading-[9px] text-text-800 whitespace-nowrap"
       >
         {item.label}
       </Text>
@@ -168,26 +168,36 @@ export const StatisticsCard = ({
     >
       {/* Header with title and optional dropdown */}
       <div className="flex flex-row justify-between items-center gap-4">
-        <Text as="h3" size="sm" weight="medium" color="text-text-600">
+        <Text
+          as="h3"
+          size="sm"
+          weight="medium"
+          color="text-text-600"
+          className="flex-1 min-w-0"
+        >
           {title}
         </Text>
 
         {dropdownOptions && dropdownOptions.length > 0 && (
-          <div className="w-[99px]">
+          <div className="w-[120px] min-w-[90px] sm:shrink-0">
             <Select
               value={selectedDropdownValue}
               onValueChange={onDropdownChange}
               size="medium"
             >
               <SelectTrigger
-                className="border border-border-300 rounded whitespace-nowrap"
+                className="border border-border-300 rounded [&>span]:whitespace-nowrap [&>span]:overflow-hidden [&>span]:text-ellipsis"
                 aria-label={dropdownAriaLabel}
               >
                 <SelectValue placeholder={selectPlaceholder} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="min-w-[120px]">
                 {dropdownOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className="whitespace-nowrap"
+                  >
                     {option.label}
                   </SelectItem>
                 ))}
