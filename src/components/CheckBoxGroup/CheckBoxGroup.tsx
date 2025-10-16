@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AccordionGroup,
   Badge,
@@ -33,6 +33,28 @@ export const CheckboxGroup = ({
 }) => {
   const [openAccordion, setOpenAccordion] = useState<string>('');
 
+  // Refs to prevent infinite loops and track auto-selection state
+  const autoSelectionAppliedRef = useRef<boolean>(false);
+  const onCategoriesChangeRef = useRef(onCategoriesChange);
+  const previousCategoriesRef = useRef<CategoryConfig[]>(categories);
+
+  // Update ref when onCategoriesChange changes
+  useEffect(() => {
+    onCategoriesChangeRef.current = onCategoriesChange;
+  }, [onCategoriesChange]);
+
+  // Helper function to efficiently compare selectedIds arrays
+  const areSelectedIdsEqual = (ids1?: string[], ids2?: string[]): boolean => {
+    if (ids1 === ids2) return true;
+    if (!ids1 || !ids2) return ids1 === ids2;
+    if (ids1.length !== ids2.length) return false;
+
+    for (let i = 0; i < ids1.length; i++) {
+      if (ids1[i] !== ids2[i]) return false;
+    }
+    return true;
+  };
+
   // Auto-seleciona categorias com apenas um item
   const categoriesWithAutoSelection = useMemo(() => {
     return categories.map((category) => {
@@ -51,17 +73,36 @@ export const CheckboxGroup = ({
   }, [categories]);
 
   // Aplica a auto-seleção se necessário
+  // Note: onCategoriesChange should be memoized by the parent component to prevent re-renders
   useEffect(() => {
-    const hasChanges = categoriesWithAutoSelection.some(
-      (cat, index) =>
-        JSON.stringify(cat.selectedIds) !==
-        JSON.stringify(categories[index].selectedIds)
+    // Check if categories have actually changed by comparing with previous reference
+    const categoriesChanged = categories !== previousCategoriesRef.current;
+
+    if (!categoriesChanged && autoSelectionAppliedRef.current) {
+      // No changes and auto-selection already applied, skip
+      return;
+    }
+
+    // Update previous categories reference
+    previousCategoriesRef.current = categories;
+
+    // Check for auto-selection changes using efficient comparison
+    const hasAutoSelectionChanges = categoriesWithAutoSelection.some(
+      (cat, index) => {
+        const originalCat = categories[index];
+        return !areSelectedIdsEqual(cat.selectedIds, originalCat.selectedIds);
+      }
     );
 
-    if (hasChanges) {
-      onCategoriesChange(categoriesWithAutoSelection);
+    if (hasAutoSelectionChanges) {
+      autoSelectionAppliedRef.current = true;
+      // Use ref to avoid dependency on potentially non-memoized callback
+      onCategoriesChangeRef.current(categoriesWithAutoSelection);
+    } else if (categoriesChanged) {
+      // Reset auto-selection flag when categories change externally
+      autoSelectionAppliedRef.current = false;
     }
-  }, [categoriesWithAutoSelection, categories, onCategoriesChange]);
+  }, [categoriesWithAutoSelection, categories]);
 
   const isEnabledCategory = (categoryKey: string, dependsOn: string[]) => {
     const category = categories.find((c) => c.key === categoryKey);
@@ -100,15 +141,23 @@ export const CheckboxGroup = ({
     );
   };
 
+  // Helper function to create combination of two arrays
+  const createCombinations = (
+    acc: string[][],
+    currentArray: string[]
+  ): string[][] => {
+    const combinations: string[][] = [];
+    for (const existingCombo of acc) {
+      for (const item of currentArray) {
+        combinations.push([...existingCombo, item]);
+      }
+    }
+    return combinations;
+  };
+
   // Helper function to calculate cartesian product of arrays
   const cartesian = (arr: string[][]): string[][] => {
-    return arr.reduce(
-      (a, b) =>
-        a
-          .map((x) => b.map((y) => x.concat([y])))
-          .reduce((a, b) => a.concat(b), []),
-      [[]] as string[][]
-    );
+    return arr.reduce(createCombinations, [[]] as string[][]);
   };
 
   // Helper function to get selected IDs for filters
@@ -175,7 +224,7 @@ export const CheckboxGroup = ({
       groupLabel = generateMultipleFiltersLabel(filters, comboIds);
     }
 
-    const key = groupLabel ? groupLabel : '';
+    const key = groupLabel || '';
     if (!groupedMap[key]) {
       groupedMap[key] = groupLabel ? { groupLabel, itens: [] } : { itens: [] };
     }
@@ -456,6 +505,105 @@ export const CheckboxGroup = ({
     onCategoriesChange(updatedCategories);
   };
 
+  // Helper component to render individual checkbox item
+  const renderCheckboxItem = (item: Item, categoryKey: string) => (
+    <div key={item.id} className="flex items-center gap-3 px-2">
+      <CheckBox
+        id={item.id}
+        checked={isCheckBoxIsSelected(categoryKey, item.id)}
+        onChange={() => toggleItem(categoryKey, item.id)}
+      />
+      <label
+        htmlFor={item.id}
+        className="text-sm text-text-950 cursor-pointer select-none"
+      >
+        {item.name}
+      </label>
+    </div>
+  );
+
+  // Helper component to render formatted group
+  const renderFormattedGroup = (
+    formattedGroup: { groupLabel?: string; itens: Item[] },
+    idx: number,
+    categoryKey: string
+  ) => (
+    <div
+      key={formattedGroup.groupLabel || `group-${idx}`}
+      className="flex flex-col gap-3"
+    >
+      {'groupLabel' in formattedGroup && formattedGroup.groupLabel && (
+        <Text size="sm" className="mt-2" weight="semibold">
+          {formattedGroup.groupLabel}
+        </Text>
+      )}
+      {formattedGroup.itens?.map((item: Item) =>
+        renderCheckboxItem(item, categoryKey)
+      )}
+    </div>
+  );
+
+  // Helper component to render accordion trigger
+  const renderAccordionTrigger = (
+    category: CategoryConfig,
+    isEnabled: boolean
+  ) => (
+    <div className="flex items-center justify-between w-full p-2">
+      <div className="flex items-center gap-3">
+        <CheckBox
+          checked={isMinimalOneCheckBoxIsSelected(category.key)}
+          disabled={!isEnabled}
+          indeterminate={isMinimalOneCheckBoxIsSelected(category.key)}
+          onChange={() => toggleAllInCategory(category.key)}
+        />
+        <Text
+          size="sm"
+          weight="medium"
+          className={cn('text-text-800', !isEnabled && 'opacity-40')}
+        >
+          {category.label}
+        </Text>
+      </div>
+      {(openAccordion === category.key || isEnabled) && (
+        <Badge variant="solid" action="info">
+          {category.selectedIds?.length || 0} de{' '}
+          {getFilteredItemsCount(category.key) || 0} selecionado
+        </Badge>
+      )}
+    </div>
+  );
+
+  // Helper component to render category accordion
+  const renderCategoryAccordion = (category: CategoryConfig) => {
+    const isEnabled = isEnabledCategory(category.key, category.dependsOn || []);
+    const hasOnlyOneItem = category.itens?.length === 1;
+
+    if (hasOnlyOneItem) {
+      return null;
+    }
+
+    return (
+      <div key={category.key}>
+        <CardAccordation
+          value={category.key}
+          disabled={!isEnabled}
+          className={cn(
+            'bg-transparent border-0',
+            openAccordion === category.key && 'bg-background-50 border-none'
+          )}
+          trigger={renderAccordionTrigger(category, isEnabled)}
+        >
+          <div className="flex flex-col gap-3 pt-2">
+            {getFormattedItems(category.key).map((formattedGroup, idx) =>
+              renderFormattedGroup(formattedGroup, idx, category.key)
+            )}
+          </div>
+        </CardAccordation>
+        {openAccordion !== category.key && <Divider />}
+      </div>
+    );
+  };
+
   return (
     <AccordionGroup
       type="single"
@@ -466,93 +614,7 @@ export const CheckboxGroup = ({
         }
       }}
     >
-      {categories.map((category) => {
-        const isEnabled = isEnabledCategory(
-          category.key,
-          category.dependsOn || []
-        );
-        const hasOnlyOneItem = category.itens?.length === 1;
-
-        // Se tem apenas um item, não mostra o accordion
-        if (hasOnlyOneItem) {
-          return null;
-        }
-
-        return (
-          <div key={category.key}>
-            <CardAccordation
-              value={category.key}
-              disabled={!isEnabled}
-              className={cn(
-                'bg-transparent border-0',
-                openAccordion === category.key && 'bg-background-50 border-none'
-              )}
-              trigger={
-                <div className="flex items-center justify-between w-full p-2">
-                  <div className="flex items-center gap-3">
-                    <CheckBox
-                      checked={isMinimalOneCheckBoxIsSelected(category.key)}
-                      disabled={!isEnabled}
-                      indeterminate={isMinimalOneCheckBoxIsSelected(
-                        category.key
-                      )}
-                      onChange={() => toggleAllInCategory(category.key)}
-                    />
-                    <Text
-                      size="sm"
-                      weight="medium"
-                      className={cn(
-                        'text-text-800',
-                        !isEnabled && 'opacity-40'
-                      )}
-                    >
-                      {category.label}
-                    </Text>
-                  </div>
-                  {(openAccordion === category.key || isEnabled) && (
-                    <Badge variant="solid" action="info">
-                      {category.selectedIds?.length || 0} de{' '}
-                      {getFilteredItemsCount(category.key) || 0} selecionado
-                    </Badge>
-                  )}
-                </div>
-              }
-            >
-              <div className="flex flex-col gap-3 pt-2">
-                {getFormattedItems(category.key).map((formattedGroup, idx) => (
-                  <div key={idx} className="flex flex-col gap-3">
-                    {'groupLabel' in formattedGroup &&
-                      formattedGroup.groupLabel && (
-                        <Text size="sm" className="mt-2" weight="semibold">
-                          {formattedGroup.groupLabel}
-                        </Text>
-                      )}
-                    {formattedGroup.itens?.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center gap-3 px-2"
-                      >
-                        <CheckBox
-                          id={item.id}
-                          checked={isCheckBoxIsSelected(category.key, item.id)}
-                          onChange={() => toggleItem(category.key, item.id)}
-                        />
-                        <label
-                          htmlFor={item.id}
-                          className="text-sm text-text-950 cursor-pointer select-none"
-                        >
-                          {item.name}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </CardAccordation>
-            {openAccordion !== category.key && <Divider />}
-          </div>
-        );
-      })}
+      {categories.map(renderCategoryAccordion)}
     </AccordionGroup>
   );
 };
