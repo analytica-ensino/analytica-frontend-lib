@@ -104,22 +104,6 @@ export const CheckboxGroup = ({
     }
   }, [categoriesWithAutoSelection, categories]);
 
-  const isEnabledCategory = (categoryKey: string, dependsOn: string[]) => {
-    const category = categories.find((c) => c.key === categoryKey);
-    if (!category?.dependsOn || category.dependsOn.length === 0) {
-      return true;
-    }
-    let isEnabled = true;
-    for (const d of dependsOn) {
-      const categorySelectedMinimalOne = categories.find((c) => c.key === d)
-        ?.selectedIds?.length;
-      if (!categorySelectedMinimalOne) {
-        isEnabled = false;
-      }
-    }
-    return isEnabled;
-  };
-
   const isCheckBoxIsSelected = (categoryKey: string, itemId: string) => {
     const category = categories.find((c) => c.key === categoryKey);
     if (!category) return false;
@@ -239,7 +223,13 @@ export const CheckboxGroup = ({
       return [{ itens: category?.itens || [] }];
     }
 
-    if (!isEnabledCategory(categoryKey, category.dependsOn || [])) {
+    // Check if category is enabled based on dependencies (inline to avoid stale closure)
+    const isEnabled = category.dependsOn.every((depKey) => {
+      const depCat = categories.find((c) => c.key === depKey);
+      return depCat?.selectedIds && depCat.selectedIds.length > 0;
+    });
+
+    if (!isEnabled) {
       return [{ itens: category?.itens || [] }];
     }
 
@@ -575,7 +565,14 @@ export const CheckboxGroup = ({
 
   // Helper component to render category accordion
   const renderCategoryAccordion = (category: CategoryConfig) => {
-    const isEnabled = isEnabledCategory(category.key, category.dependsOn || []);
+    // Check if category is enabled based on dependencies (inline to avoid stale closure)
+    const isEnabled =
+      !category.dependsOn ||
+      category.dependsOn.length === 0 ||
+      category.dependsOn.every((depKey) => {
+        const depCat = categories.find((c) => c.key === depKey);
+        return depCat?.selectedIds && depCat.selectedIds.length > 0;
+      });
     const hasOnlyOneItem = category.itens?.length === 1;
 
     if (hasOnlyOneItem) {
