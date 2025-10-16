@@ -168,12 +168,18 @@ export const StatisticsCard = ({
     >
       {/* Header with title and optional dropdown */}
       <div className="flex flex-row justify-between items-center gap-4">
-        <Text as="h3" size="sm" weight="medium" color="text-text-600">
+        <Text
+          as="h3"
+          size="sm"
+          weight="medium"
+          color="text-text-600"
+          className="flex-1 min-w-0"
+        >
           {title}
         </Text>
 
         {dropdownOptions && dropdownOptions.length > 0 && (
-          <div className="w-[120px] shrink-0">
+          <div className="w-[120px] min-w-[90px] sm:shrink-0">
             <Select
               value={selectedDropdownValue}
               onValueChange={onDropdownChange}
