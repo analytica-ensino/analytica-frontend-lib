@@ -425,10 +425,7 @@ export const CheckboxGroup = ({
               )}
               trigger={
                 <div className="flex items-center justify-between w-full p-2">
-                  <div
-                    className="flex items-center gap-3"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <div className="flex items-center gap-3">
                     <CheckBox
                       checked={isMinimalOneCheckBoxIsSelected(category.key)}
                       disabled={!isEnabled}
