@@ -69,13 +69,13 @@ export const CheckboxGroup = ({
       return true;
     }
     let isEnabled = true;
-    dependsOn.forEach((d) => {
+    for (const d of dependsOn) {
       const categorySelectedMinimalOne = categories.find((c) => c.key === d)
         ?.selectedIds?.length;
       if (!categorySelectedMinimalOne) {
         isEnabled = false;
       }
-    });
+    }
     return isEnabled;
   };
 
@@ -100,6 +100,134 @@ export const CheckboxGroup = ({
     );
   };
 
+  // Helper function to calculate cartesian product of arrays
+  const cartesian = (arr: string[][]): string[][] => {
+    return arr.reduce(
+      (a, b) =>
+        a
+          .map((x) => b.map((y) => x.concat([y])))
+          .reduce((a, b) => a.concat(b), []),
+      [[]] as string[][]
+    );
+  };
+
+  // Helper function to get selected IDs for filters
+  const getSelectedIdsForFilters = (
+    filters: { key: string; internalField: string; label?: string }[]
+  ) => {
+    return filters.map((f) => {
+      const parentCat = categories.find((c) => c.key === f.key);
+      if (!parentCat?.selectedIds?.length) {
+        return [];
+      }
+      return parentCat.selectedIds;
+    });
+  };
+
+  // Helper function to generate group label for single filter
+  const generateSingleFilterLabel = (
+    filter: { key: string; internalField: string },
+    comboId: string
+  ) => {
+    const cat = categories.find((c) => c.key === filter.key);
+    return cat?.itens?.find((i) => i.id === comboId)?.name || comboId;
+  };
+
+  // Helper function to generate group label for multiple filters
+  const generateMultipleFiltersLabel = (
+    filters: { key: string; internalField: string }[],
+    comboIds: string[]
+  ) => {
+    const firstCat = categories.find((c) => c.key === filters[0].key);
+    const firstVal =
+      firstCat?.itens?.find((i) => i.id === comboIds[0])?.name || comboIds[0];
+
+    const labelParts: string[] = [firstVal];
+
+    for (let idx = 1; idx < filters.length; idx++) {
+      const f = filters[idx];
+      const cat = categories.find((c) => c.key === f.key);
+      const val =
+        cat?.itens?.find((i) => i.id === comboIds[idx])?.name || comboIds[idx];
+      labelParts.push(`(${val})`);
+    }
+    return labelParts.join(' ');
+  };
+
+  // Helper function to process combination and add to grouped map
+  const processCombination = (
+    comboIds: string[],
+    filters: { key: string; internalField: string; label?: string }[],
+    category: CategoryConfig,
+    groupedMap: Record<string, { groupLabel?: string; itens: Item[] }>
+  ) => {
+    const filteredItems = (category?.itens || []).filter((item) =>
+      filters.every((f, idx) => item[f.internalField] === comboIds[idx])
+    );
+
+    if (filteredItems.length === 0) return;
+
+    let groupLabel: string | undefined = undefined;
+
+    if (filters.length === 1) {
+      groupLabel = generateSingleFilterLabel(filters[0], comboIds[0]);
+    } else if (filters.length > 1) {
+      groupLabel = generateMultipleFiltersLabel(filters, comboIds);
+    }
+
+    const key = groupLabel ? groupLabel : '';
+    if (!groupedMap[key]) {
+      groupedMap[key] = groupLabel ? { groupLabel, itens: [] } : { itens: [] };
+    }
+    groupedMap[key].itens.push(...filteredItems);
+  };
+
+  // Helper function to calculate formatted items for a category
+  const calculateFormattedItems = (categoryKey: string) => {
+    const category = categories.find((c) => c.key === categoryKey);
+
+    if (!category?.dependsOn || category.dependsOn.length === 0) {
+      return [{ itens: category?.itens || [] }];
+    }
+
+    if (!isEnabledCategory(categoryKey, category.dependsOn || [])) {
+      return [{ itens: category?.itens || [] }];
+    }
+
+    const filters =
+      (category.filteredBy as {
+        key: string;
+        internalField: string;
+        label?: string;
+      }[]) || [];
+
+    if (filters.length === 0) {
+      return [{ itens: category?.itens || [] }];
+    }
+
+    const selectedIdsArr = getSelectedIdsForFilters(filters);
+
+    if (selectedIdsArr.some((arr) => arr.length === 0)) {
+      return [{ itens: category?.itens || [] }];
+    }
+
+    const combinations = cartesian(selectedIdsArr);
+    const groupedMap: Record<string, { groupLabel?: string; itens: Item[] }> =
+      {};
+
+    for (const comboIds of combinations) {
+      processCombination(comboIds, filters, category, groupedMap);
+    }
+
+    const groupedItems = Object.values(groupedMap).filter(
+      (g) => g.itens.length
+    );
+
+    return groupedItems.length
+      ? groupedItems
+      : [{ itens: category?.itens || [] }];
+  };
+
   const { formattedItemsMap, filteredItemsCountMap } = useMemo(() => {
     const formattedItemsMap: Record<
       string,
@@ -107,129 +235,14 @@ export const CheckboxGroup = ({
     > = {};
     const filteredItemsCountMap: Record<string, number> = {};
 
-    const calculateFormattedItems = (categoryKey: string) => {
-      const category = categories.find((c) => c.key === categoryKey);
-      // Se não houver dependeOn, não retorna groupLabel
-      if (!category?.dependsOn || category.dependsOn.length === 0) {
-        return [{ itens: category?.itens || [] }];
-      }
-
-      if (!isEnabledCategory(categoryKey, category.dependsOn || [])) {
-        return [{ itens: category?.itens || [] }];
-      }
-
-      const filters =
-        (category.filteredBy as {
-          key: string;
-          internalField: string;
-          label?: string;
-        }[]) || [];
-
-      // Se não houver filtros, retorna tudo como um bloco só
-      if (filters.length === 0) {
-        return [{ itens: category?.itens || [] }];
-      }
-
-      // Pega selectedIds de cada filtro
-      const selectedIdsArr = filters.map((f) => {
-        const parentCat = categories.find((c) => c.key === f.key);
-        if (
-          !parentCat ||
-          !parentCat.selectedIds ||
-          parentCat.selectedIds.length === 0
-        ) {
-          return [];
-        }
-        return parentCat.selectedIds;
-      });
-
-      // Se algum filtro não tem selectedIds, não agrupa, retorna tudo
-      if (selectedIdsArr.some((arr) => arr.length === 0)) {
-        return [{ itens: category?.itens || [] }];
-      }
-
-      // Função para produto cartesiano de arrays de ids
-      function cartesian(arr: string[][]): string[][] {
-        return arr.reduce(
-          (a, b) =>
-            a
-              .map((x) => b.map((y) => x.concat([y])))
-              .reduce((a, b) => a.concat(b), []),
-          [[]] as string[][]
-        );
-      }
-
-      const combinations = cartesian(selectedIdsArr);
-
-      const groupedMap: Record<string, { groupLabel?: string; itens: Item[] }> =
-        {};
-
-      combinations.forEach((comboIds) => {
-        const filteredItems = (category?.itens || []).filter((item) =>
-          filters.every((f, idx) => item[f.internalField] === comboIds[idx])
-        );
-
-        if (filteredItems.length === 0) return;
-
-        let groupLabel: string | undefined = undefined;
-
-        // Determina groupLabel conforme as regras pedidas:
-        if (filters.length === 1) {
-          // Só tem 1 dependeOn, então só mostra o nome do valor selecionado, sem parênteses nem label repetida
-          const cat = categories.find((c) => c.key === filters[0].key);
-          const val =
-            cat?.itens?.find((i) => i.id === comboIds[0])?.name || comboIds[0];
-          groupLabel = val;
-        } else if (filters.length > 1) {
-          // Primeira label/valor NUNCA entre parênteses, demais SEM label e apenas entre parênteses
-          const firstCat = categories.find((c) => c.key === filters[0].key);
-          const firstVal =
-            firstCat?.itens?.find((i) => i.id === comboIds[0])?.name ||
-            comboIds[0];
-
-          let labelParts: string[] = [firstVal]; // Inicia só com o valor da primeira
-
-          for (let idx = 1; idx < filters.length; idx++) {
-            const f = filters[idx];
-            const cat = categories.find((c) => c.key === f.key);
-            const val =
-              cat?.itens?.find((i) => i.id === comboIds[idx])?.name ||
-              comboIds[idx];
-            labelParts.push(`(${val})`); // Apenas o valor entre parênteses, sem label
-          }
-          groupLabel = labelParts.join(' ');
-        }
-
-        const key = groupLabel !== undefined ? groupLabel : '';
-        if (!groupedMap[key]) {
-          groupedMap[key] =
-            groupLabel !== undefined
-              ? { groupLabel, itens: [] }
-              : { itens: [] };
-        }
-        groupedMap[key].itens.push(...filteredItems);
-      });
-
-      // Se não houver nenhum groupLabel (devolve só itens)
-      const groupedItems = Object.values(groupedMap).filter(
-        (g) => g.itens.length
-      );
-
-      // Remove groupLabel se não há dependsOn (já retornaria antes, mas reforça lógica)
-      return groupedItems.length
-        ? groupedItems
-        : [{ itens: category?.itens || [] }];
-    };
-
-    // Calcula para todas as categorias
-    categories.forEach((category) => {
+    for (const category of categories) {
       const formattedItems = calculateFormattedItems(category.key);
       formattedItemsMap[category.key] = formattedItems;
       filteredItemsCountMap[category.key] = formattedItems.reduce(
         (total, group) => total + (group.itens?.length || 0),
         0
       );
-    });
+    }
 
     return { formattedItemsMap, filteredItemsCountMap };
   }, [categories]);
@@ -248,6 +261,46 @@ export const CheckboxGroup = ({
       .map((cat) => cat.key);
   };
 
+  // Helper function to find items to remove from dependent category
+  const findItemsToRemove = (
+    depCategory: CategoryConfig,
+    relevantFilter: { key: string; internalField: string },
+    deselectedItemId: string
+  ): string[] => {
+    return (
+      depCategory.itens
+        ?.filter(
+          (item) => item[relevantFilter.internalField] === deselectedItemId
+        )
+        .map((item) => item.id) || []
+    );
+  };
+
+  // Helper function to process dependent category for deselection
+  const processDependentCategory = (
+    depCategoryKey: string,
+    categoryKey: string,
+    deselectedItemId: string,
+    itemsToDeselect: Record<string, string[]>
+  ) => {
+    const depCategory = categories.find((c) => c.key === depCategoryKey);
+    if (!depCategory?.filteredBy) return;
+
+    const relevantFilter = depCategory.filteredBy.find(
+      (f) => f.key === categoryKey
+    );
+    if (!relevantFilter) return;
+
+    const itemsToRemove = findItemsToRemove(
+      depCategory,
+      relevantFilter,
+      deselectedItemId
+    );
+    if (itemsToRemove.length > 0) {
+      itemsToDeselect[depCategoryKey] = itemsToRemove;
+    }
+  };
+
   const getItemsToDeselect = (
     categoryKey: string,
     deselectedItemId: string
@@ -258,33 +311,49 @@ export const CheckboxGroup = ({
     if (!deselectedItem) return {};
 
     const itemsToDeselect: Record<string, string[]> = {};
-
-    // Para cada categoria dependente
     const dependentCategories = getDependentCategories(categoryKey);
-    dependentCategories.forEach((depCategoryKey) => {
-      const depCategory = categories.find((c) => c.key === depCategoryKey);
-      if (!depCategory?.filteredBy) return;
 
-      // Encontra o filtro que referencia a categoria atual
-      const relevantFilter = depCategory.filteredBy.find(
-        (f) => f.key === categoryKey
+    for (const depCategoryKey of dependentCategories) {
+      processDependentCategory(
+        depCategoryKey,
+        categoryKey,
+        deselectedItemId,
+        itemsToDeselect
       );
-      if (!relevantFilter) return;
-
-      // Encontra itens na categoria dependente que referenciam o item deselecionado
-      const itemsToRemove =
-        depCategory.itens
-          ?.filter(
-            (item) => item[relevantFilter.internalField] === deselectedItemId
-          )
-          .map((item) => item.id) || [];
-
-      if (itemsToRemove.length > 0) {
-        itemsToDeselect[depCategoryKey] = itemsToRemove;
-      }
-    });
+    }
 
     return itemsToDeselect;
+  };
+
+  // Helper function to update category with new selected IDs
+  const updateCategorySelectedIds = (
+    updatedCategories: CategoryConfig[],
+    depCategoryIndex: number,
+    depCategory: CategoryConfig,
+    itemIds: string[]
+  ): CategoryConfig[] => {
+    const newSelectedIds =
+      depCategory.selectedIds?.filter((id) => !itemIds.includes(id)) || [];
+
+    updatedCategories[depCategoryIndex] = {
+      ...depCategory,
+      selectedIds: newSelectedIds,
+    };
+
+    return updatedCategories;
+  };
+
+  // Helper function to apply recursive cascade deselection
+  const applyRecursiveCascade = (
+    depCategoryKey: string,
+    itemIds: string[],
+    updatedCategories: CategoryConfig[]
+  ): CategoryConfig[] => {
+    let result = updatedCategories;
+    for (const itemId of itemIds) {
+      result = applyCascadeDeselection(depCategoryKey, itemId, result);
+    }
+    return result;
   };
 
   const applyCascadeDeselection = (
@@ -295,31 +364,26 @@ export const CheckboxGroup = ({
     const itemsToDeselect = getItemsToDeselect(categoryKey, deselectedItemId);
     let updatedCategories = [...currentCategories];
 
-    // Remove os itens identificados
-    Object.entries(itemsToDeselect).forEach(([depCategoryKey, itemIds]) => {
+    for (const [depCategoryKey, itemIds] of Object.entries(itemsToDeselect)) {
       const depCategoryIndex = updatedCategories.findIndex(
         (c) => c.key === depCategoryKey
       );
+
       if (depCategoryIndex !== -1) {
         const depCategory = updatedCategories[depCategoryIndex];
-        const newSelectedIds =
-          depCategory.selectedIds?.filter((id) => !itemIds.includes(id)) || [];
-
-        updatedCategories[depCategoryIndex] = {
-          ...depCategory,
-          selectedIds: newSelectedIds,
-        };
-
-        // Aplica recursivamente para categorias que dependem desta
-        itemIds.forEach((itemId) => {
-          updatedCategories = applyCascadeDeselection(
-            depCategoryKey,
-            itemId,
-            updatedCategories
-          );
-        });
+        updatedCategories = updateCategorySelectedIds(
+          updatedCategories,
+          depCategoryIndex,
+          depCategory,
+          itemIds
+        );
+        updatedCategories = applyRecursiveCascade(
+          depCategoryKey,
+          itemIds,
+          updatedCategories
+        );
       }
-    });
+    }
 
     return updatedCategories;
   };
@@ -356,13 +420,13 @@ export const CheckboxGroup = ({
 
     // Se está deselecionando, aplica cascata para os itens que foram deselecionados
     if (allFilteredSelected) {
-      filteredItemIds.forEach((itemId) => {
+      for (const itemId of filteredItemIds) {
         updatedCategories = applyCascadeDeselection(
           categoryKey,
           itemId,
           updatedCategories
         );
-      });
+      }
     }
 
     onCategoriesChange(updatedCategories);
