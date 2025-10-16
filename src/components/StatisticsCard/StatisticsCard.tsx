@@ -96,7 +96,7 @@ const StatCard = ({ item, showPlaceholder = false }: StatCardProps) => {
       <Text
         size="xs"
         weight="bold"
-        className="uppercase text-[8px] leading-[9px] text-text-800 self-stretch"
+        className="uppercase text-[8px] leading-[9px] text-text-800 whitespace-nowrap"
       >
         {item.label}
       </Text>
@@ -173,14 +173,14 @@ export const StatisticsCard = ({
         </Text>
 
         {dropdownOptions && dropdownOptions.length > 0 && (
-          <div className="w-[99px]">
+          <div className="w-[99px] shrink-0">
             <Select
               value={selectedDropdownValue}
               onValueChange={onDropdownChange}
               size="medium"
             >
               <SelectTrigger
-                className="border border-border-300 rounded whitespace-nowrap"
+                className="border border-border-300 rounded [&>span]:whitespace-nowrap [&>span]:overflow-hidden [&>span]:text-ellipsis"
                 aria-label={dropdownAriaLabel}
               >
                 <SelectValue placeholder={selectPlaceholder} />
