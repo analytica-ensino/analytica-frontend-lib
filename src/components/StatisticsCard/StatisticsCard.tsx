@@ -173,7 +173,7 @@ export const StatisticsCard = ({
         </Text>
 
         {dropdownOptions && dropdownOptions.length > 0 && (
-          <div className="w-[99px] shrink-0">
+          <div className="w-[120px] shrink-0">
             <Select
               value={selectedDropdownValue}
               onValueChange={onDropdownChange}
@@ -185,9 +185,13 @@ export const StatisticsCard = ({
               >
                 <SelectValue placeholder={selectPlaceholder} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="min-w-[120px]">
                 {dropdownOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className="whitespace-nowrap"
+                  >
                     {option.label}
                   </SelectItem>
                 ))}
