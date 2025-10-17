@@ -14,7 +14,7 @@ interface MockTextProps {
 }
 
 // Mock components
-jest.mock('../../..', () => ({
+jest.mock('../../../..', () => ({
   Text: ({ children, size, weight, className }: MockTextProps) => (
     <span data-size={size} data-weight={weight} className={className}>
       {children}

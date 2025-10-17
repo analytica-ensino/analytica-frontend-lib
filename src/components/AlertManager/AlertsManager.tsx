@@ -139,12 +139,11 @@ export const AlertsManager = ({
       sendToday: formData.sendToday,
       sendCopyToEmail: formData.sendCopyToEmail,
       recipientCategories: Object.fromEntries(
-        categories.map((cat) => [
-          cat.key,
+        Object.entries(formData.recipientCategories).map(([key, c]) => [
+          key,
           {
-            selectedIds: cat.selectedIds || [],
-            allSelected:
-              (cat.selectedIds?.length || 0) === (cat.itens?.length || 0),
+            selectedIds: c.selectedIds || [],
+            allSelected: !!c.allSelected,
           },
         ])
       ),
