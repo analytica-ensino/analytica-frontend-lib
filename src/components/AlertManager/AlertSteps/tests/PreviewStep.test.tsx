@@ -170,7 +170,7 @@ describe('PreviewStep', () => {
     it('should display default image when image is not a File', () => {
       const imageUrl = 'https://example.com/image.jpg';
       act(() => {
-        useAlertFormStore.getState().setImage(imageUrl);
+        useAlertFormStore.getState().setImage(imageUrl as unknown as File);
       });
 
       render(<PreviewStep />);
@@ -196,7 +196,7 @@ describe('PreviewStep', () => {
     it('should display default image when image is a Blob (not supported)', () => {
       const mockBlob = new Blob(['test'], { type: 'image/jpeg' });
       act(() => {
-        useAlertFormStore.getState().setImage(mockBlob);
+        useAlertFormStore.getState().setImage(mockBlob as unknown as File);
       });
 
       render(<PreviewStep />);
@@ -207,7 +207,7 @@ describe('PreviewStep', () => {
     });
 
     it('should handle undefined image', () => {
-      useAlertFormStore.getState().setImage(undefined);
+      useAlertFormStore.getState().setImage(undefined as unknown as File);
 
       render(<PreviewStep />);
 
@@ -216,7 +216,7 @@ describe('PreviewStep', () => {
     });
 
     it('should handle null image', () => {
-      useAlertFormStore.getState().setImage(null);
+      useAlertFormStore.getState().setImage(null as unknown as File);
 
       render(<PreviewStep />);
 
@@ -249,7 +249,9 @@ describe('PreviewStep', () => {
       act(() => {
         useAlertFormStore.getState().setTitle('Selector Title');
         useAlertFormStore.getState().setMessage('Selector Message');
-        useAlertFormStore.getState().setImage('selector-image.jpg');
+        useAlertFormStore
+          .getState()
+          .setImage('selector-image.jpg' as unknown as File);
       });
 
       render(<PreviewStep />);
