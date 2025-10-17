@@ -51,12 +51,12 @@ export default function ImageUpload({
   onSizeError,
   onTypeError,
   variant = 'default',
-}: ImageUploadProps) {
+}: Readonly<ImageUploadProps>) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [internalFile, setInternalFile] = useState<File | null>(null);
 
   // Use controlled or uncontrolled mode
-  const currentFile = selectedFile !== undefined ? selectedFile : internalFile;
+  const currentFile = selectedFile ? selectedFile : internalFile;
   const hasFile = currentFile !== null;
 
   const handleButtonClick = () => {
@@ -122,18 +122,7 @@ export default function ImageUpload({
   if (variant === 'compact') {
     return (
       <div className={cn('inline-flex items-center gap-2', className)}>
-        {!hasFile ? (
-          <Button
-            type="button"
-            variant="link"
-            size="extra-small"
-            onClick={handleButtonClick}
-            disabled={disabled}
-          >
-            {buttonIcon || <Image className="h-4 w-4" />}
-            <span className="ml-2">{buttonText}</span>
-          </Button>
-        ) : (
+        {hasFile ? (
           <div className="inline-flex items-center gap-2 bg-muted rounded-md px-3 py-1.5">
             <Paperclip className="h-4 w-4 text-text-800" />
             <Text size="sm" weight="medium" className="text-text-800">
@@ -148,6 +137,17 @@ export default function ImageUpload({
               <X className="h-3 w-3 text-primary-950" />
             </button>
           </div>
+        ) : (
+          <Button
+            type="button"
+            variant="link"
+            size="extra-small"
+            onClick={handleButtonClick}
+            disabled={disabled}
+          >
+            {buttonIcon || <Image className="h-4 w-4" />}
+            <span className="ml-2">{buttonText}</span>
+          </Button>
         )}
         <input
           ref={fileInputRef}
@@ -163,17 +163,7 @@ export default function ImageUpload({
 
   return (
     <div className={cn('space-y-3', className)}>
-      {!hasFile ? (
-        <Button
-          type="button"
-          variant="link"
-          onClick={handleButtonClick}
-          disabled={disabled}
-        >
-          {buttonIcon || <Image className="h-4 w-4 mr-2" />}
-          {buttonText}
-        </Button>
-      ) : (
+      {hasFile ? (
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 bg-muted rounded-md px-3 py-2">
             <Paperclip className="h-4 w-4 text-text-800" />
@@ -190,18 +180,29 @@ export default function ImageUpload({
             </button>
           </div>
           {showProgressBar && (
-            <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary-600 transition-all duration-300"
-                style={{ width: `${uploadProgress}%` }}
+            <div className="w-full h-1 flex items-center">
+              <progress
+                value={uploadProgress}
+                max={100}
                 role="progressbar"
                 aria-valuenow={uploadProgress}
                 aria-valuemin={0}
                 aria-valuemax={100}
+                className="w-full h-1 bg-muted rounded-full overflow-hidden [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-primary-600 [&::-moz-progress-bar]:bg-primary-600"
               />
             </div>
           )}
         </div>
+      ) : (
+        <Button
+          type="button"
+          variant="link"
+          onClick={handleButtonClick}
+          disabled={disabled}
+        >
+          {buttonIcon || <Image className="h-4 w-4 mr-2" />}
+          {buttonText}
+        </Button>
       )}
       <input
         ref={fileInputRef}

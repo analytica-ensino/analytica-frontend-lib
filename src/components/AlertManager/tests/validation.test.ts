@@ -4,6 +4,8 @@ import {
   validateDateStep,
   canFinish,
   isCurrentStepValid,
+  validateCurrentStep,
+  advanceToNextStep,
   handleNext,
 } from '../validation';
 import type { AlertData, CategoryConfig } from '../types';
@@ -280,6 +282,116 @@ describe('AlertsManager Validation Functions', () => {
         undefined
       );
       expect(result).toBe(true);
+    });
+  });
+
+  describe('validateCurrentStep', () => {
+    it('should validate message step (step 0)', () => {
+      const result = validateCurrentStep(0, mockFormData, mockCategories);
+      expect(result).toBe(true);
+    });
+
+    it('should validate recipients step (step 1)', () => {
+      const result = validateCurrentStep(1, mockFormData, mockCategories);
+      expect(result).toBe(true);
+    });
+
+    it('should validate date step (step 2)', () => {
+      const result = validateCurrentStep(2, mockFormData, mockCategories);
+      expect(result).toBe(true);
+    });
+
+    it('should return true for preview step (step 3)', () => {
+      const result = validateCurrentStep(3, mockFormData, mockCategories);
+      expect(result).toBe(true);
+    });
+
+    it('should validate custom step with validation function', () => {
+      const customValidate = jest.fn().mockReturnValue(true);
+      const customSteps = [
+        { id: '1', label: 'Custom Step', validate: customValidate },
+      ];
+      const result = validateCurrentStep(
+        4, // Step customizado (após os 4 steps padrão)
+        mockFormData,
+        mockCategories,
+        customSteps
+      );
+      expect(result).toBe(true);
+      expect(customValidate).toHaveBeenCalledWith(mockFormData);
+    });
+
+    it('should return true for custom step without validation function', () => {
+      const customSteps = [{ id: '1', label: 'Custom Step' }];
+      const result = validateCurrentStep(
+        4, // Step customizado (após os 4 steps padrão)
+        mockFormData,
+        mockCategories,
+        customSteps
+      );
+      expect(result).toBe(true);
+    });
+
+    it('should return error for invalid message step', () => {
+      const invalidFormData = { ...mockFormData, title: '' };
+      const result = validateCurrentStep(0, invalidFormData, mockCategories);
+      expect(result).toBe('Título é obrigatório');
+    });
+
+    it('should return error for invalid recipients step', () => {
+      const invalidCategories = [
+        {
+          ...mockCategories[0],
+          selectedIds: [],
+        },
+      ];
+      const result = validateCurrentStep(1, mockFormData, invalidCategories);
+      expect(result).toBe('Selecione destinatários');
+    });
+
+    it('should return error for invalid date step', () => {
+      const invalidFormData = { ...mockFormData, sendToday: false, date: '' };
+      const result = validateCurrentStep(2, invalidFormData, mockCategories);
+      expect(result).toBe('Data é obrigatória');
+    });
+  });
+
+  describe('advanceToNextStep', () => {
+    const mockSetCompletedSteps = jest.fn();
+    const mockSetCurrentStep = jest.fn();
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should add current step to completed steps if not already completed', () => {
+      advanceToNextStep(0, [], mockSetCompletedSteps, mockSetCurrentStep);
+      expect(mockSetCompletedSteps).toHaveBeenCalledWith([0]);
+      expect(mockSetCurrentStep).toHaveBeenCalledWith(1);
+    });
+
+    it('should not add current step to completed steps if already completed', () => {
+      advanceToNextStep(0, [0], mockSetCompletedSteps, mockSetCurrentStep);
+      expect(mockSetCompletedSteps).not.toHaveBeenCalled();
+      expect(mockSetCurrentStep).toHaveBeenCalledWith(1);
+    });
+
+    it('should work without setter functions', () => {
+      expect(() => {
+        advanceToNextStep(0, []);
+      }).not.toThrow();
+    });
+
+    it('should work with only setCurrentStep', () => {
+      advanceToNextStep(0, [], undefined, mockSetCurrentStep);
+      expect(mockSetCompletedSteps).not.toHaveBeenCalled();
+      expect(mockSetCurrentStep).toHaveBeenCalledWith(1);
+    });
+
+    it('should work with only setCompletedSteps', () => {
+      advanceToNextStep(0, [], mockSetCompletedSteps, undefined);
+      expect(mockSetCompletedSteps).toHaveBeenCalledWith([0]);
+      expect(mockSetCurrentStep).not.toHaveBeenCalled();
     });
   });
 

@@ -290,9 +290,10 @@ describe('ImageUpload Component', () => {
         <ImageUpload selectedFile={mockFile} uploadProgress={50} />
       );
 
-      const progressBar = container.querySelector('[role="progressbar"]');
+      const progressBar = container.querySelector('progress');
       expect(progressBar).toBeInTheDocument();
-      expect(progressBar).toHaveStyle({ width: '50%' });
+      expect(progressBar).toHaveAttribute('value', '50');
+      expect(progressBar).toHaveAttribute('max', '100');
     });
 
     it('should render progress bar when progress is 100 and showProgress is true', () => {
@@ -304,9 +305,10 @@ describe('ImageUpload Component', () => {
         />
       );
 
-      const progressBar = container.querySelector('[role="progressbar"]');
+      const progressBar = container.querySelector('progress');
       expect(progressBar).toBeInTheDocument();
-      expect(progressBar).toHaveStyle({ width: '100%' });
+      expect(progressBar).toHaveAttribute('value', '100');
+      expect(progressBar).toHaveAttribute('max', '100');
     });
 
     it('should not render progress bar when progress is 100 and showProgress is false', () => {
@@ -318,7 +320,7 @@ describe('ImageUpload Component', () => {
         />
       );
 
-      const progressBar = container.querySelector('[role="progressbar"]');
+      const progressBar = container.querySelector('progress');
       expect(progressBar).not.toBeInTheDocument();
     });
 
@@ -331,9 +333,10 @@ describe('ImageUpload Component', () => {
         />
       );
 
-      const progressBar = container.querySelector('[role="progressbar"]');
+      const progressBar = container.querySelector('progress');
       expect(progressBar).toBeInTheDocument();
-      expect(progressBar).toHaveStyle({ width: '50%' });
+      expect(progressBar).toHaveAttribute('value', '50');
+      expect(progressBar).toHaveAttribute('max', '100');
     });
   });
 
@@ -361,7 +364,8 @@ describe('ImageUpload Component', () => {
         <ImageUpload selectedFile={mockFile} uploadProgress={75} />
       );
 
-      const progressBar = container.querySelector('[role="progressbar"]');
+      const progressBar = container.querySelector('progress');
+      expect(progressBar).toHaveAttribute('role', 'progressbar');
       expect(progressBar).toHaveAttribute('aria-valuenow', '75');
       expect(progressBar).toHaveAttribute('aria-valuemin', '0');
       expect(progressBar).toHaveAttribute('aria-valuemax', '100');

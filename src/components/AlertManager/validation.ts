@@ -78,6 +78,51 @@ export const isCurrentStepValid = (
 };
 
 /**
+ * Valida o step atual
+ */
+export const validateCurrentStep = (
+  currentStep: number,
+  formData: AlertData,
+  categories: CategoryConfig[],
+  customSteps?: StepConfig[]
+): boolean | string => {
+  switch (currentStep) {
+    case 0:
+      return validateMessageStep(formData);
+    case 1:
+      return validateRecipientsStep(categories);
+    case 2:
+      return validateDateStep(formData);
+    case 3:
+      return true;
+    default: {
+      const currentStepConfig = customSteps?.[currentStep - 4]; // Ajusta para o índice correto dos custom steps
+      return currentStepConfig?.validate
+        ? currentStepConfig.validate(formData)
+        : true;
+    }
+  }
+};
+
+/**
+ * Avança para o próximo step
+ */
+export const advanceToNextStep = (
+  currentStep: number,
+  completedSteps: number[],
+  setCompletedSteps?: (steps: number[]) => void,
+  setCurrentStep?: (step: number) => void
+): void => {
+  if (setCompletedSteps && !completedSteps.includes(currentStep)) {
+    setCompletedSteps([...completedSteps, currentStep]);
+  }
+
+  if (setCurrentStep) {
+    setCurrentStep(currentStep + 1);
+  }
+};
+
+/**
  * Valida e avança para o próximo step
  */
 export const handleNext = (
@@ -90,50 +135,32 @@ export const handleNext = (
   setCompletedSteps?: (steps: number[]) => void,
   setCurrentStep?: (step: number) => void
 ): { success: boolean; error?: string } => {
-  if (currentStep < steps.length - 1) {
-    let validation: boolean | string = true;
-
-    switch (currentStep) {
-      case 0:
-        validation = validateMessageStep(formData);
-        break;
-      case 1:
-        validation = validateRecipientsStep(categories);
-        break;
-      case 2:
-        validation = validateDateStep(formData);
-        break;
-      case 3:
-        validation = true;
-        break;
-      default: {
-        const currentStepConfig = customSteps?.[currentStep];
-        validation = currentStepConfig?.validate
-          ? currentStepConfig.validate(formData)
-          : true;
-      }
-    }
-
-    if (validation !== true) {
-      console.error('Validação falhou:', validation);
-      const errorMessage =
-        typeof validation === 'string'
-          ? validation
-          : 'Preencha todos os campos obrigatórios';
-
-      return { success: false, error: errorMessage };
-    }
-
-    if (setCompletedSteps && !completedSteps.includes(currentStep)) {
-      setCompletedSteps([...completedSteps, currentStep]);
-    }
-
-    if (setCurrentStep) {
-      setCurrentStep(currentStep + 1);
-    }
-
-    return { success: true };
+  if (currentStep >= steps.length - 1) {
+    return { success: false, error: 'Já está no último step' };
   }
 
-  return { success: false, error: 'Já está no último step' };
+  const validation = validateCurrentStep(
+    currentStep,
+    formData,
+    categories,
+    customSteps
+  );
+
+  if (validation !== true) {
+    console.error('Validação falhou:', validation);
+    const errorMessage =
+      typeof validation === 'string'
+        ? validation
+        : 'Preencha todos os campos obrigatórios';
+
+    return { success: false, error: errorMessage };
+  }
+
+  advanceToNextStep(
+    currentStep,
+    completedSteps,
+    setCompletedSteps,
+    setCurrentStep
+  );
+  return { success: true };
 };
