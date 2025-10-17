@@ -31,5 +31,4 @@ export {
   useAlertFormStore,
   type RecipientItem,
   type RecipientCategory,
-  type FormatGroupLabelFn,
 } from './useAlertForm';

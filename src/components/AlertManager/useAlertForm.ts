@@ -7,14 +7,7 @@ export interface RecipientItem {
   [key: string]: unknown; // Permite propriedades adicionais (ex: abbreviation, parentId, etc)
 }
 
-// Tipo para função de formatação de label de grupo
-export type FormatGroupLabelFn = (params: {
-  parentItem: RecipientItem;
-  allParentItems?: RecipientItem[]; // Todos os pais selecionados (útil para contexto)
-  categoryKey: string;
-}) => string;
-
-// Estrutura genérica para categorias de destinatários
+// Estrutura genérica para categorias de destinatários (legado - mantido para compatibilidade)
 export interface RecipientCategory {
   key: string; // ex: 'escola', 'turma', 'alunos', 'instituicoes'
   label: string; // ex: 'Escola', 'Turma', 'Alunos', 'Instituições'
@@ -23,7 +16,6 @@ export interface RecipientCategory {
   allSelected: boolean; // Se todos os itens foram selecionados
   parentKey?: string; // Chave da categoria pai (para hierarquia)
   dependsOn?: string[]; // Array de chaves das categorias das quais esta depende
-  formatGroupLabel?: FormatGroupLabelFn; // Função opcional para customizar label do grupo
 }
 
 interface AlertFormData {

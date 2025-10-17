@@ -103,7 +103,7 @@ describe('RecipientsStep', () => {
   const basicCategory: CategoryConfig = {
     key: 'users',
     label: 'Users',
-    initialItems: mockItems,
+    itens: mockItems,
   };
 
   beforeEach(() => {
@@ -294,11 +294,11 @@ describe('RecipientsStep', () => {
       ];
 
       const categories: CategoryConfig[] = [
-        { key: 'parent', label: 'Parent', initialItems: parentItems },
+        { key: 'parent', label: 'Parent', itens: parentItems },
         {
           key: 'child',
           label: 'Child',
-          initialItems: childItems,
+          itens: childItems,
           dependsOn: ['parent'],
         },
       ];
@@ -316,11 +316,11 @@ describe('RecipientsStep', () => {
       ];
 
       const categories: CategoryConfig[] = [
-        { key: 'parent', label: 'Parent', initialItems: parentItems },
+        { key: 'parent', label: 'Parent', itens: parentItems },
         {
           key: 'child',
           label: 'Child',
-          initialItems: childItems,
+          itens: childItems,
           dependsOn: ['parent'],
         },
       ];
@@ -346,11 +346,11 @@ describe('RecipientsStep', () => {
       ];
 
       const categories: CategoryConfig[] = [
-        { key: 'parent', label: 'Parent', initialItems: parentItems },
+        { key: 'parent', label: 'Parent', itens: parentItems },
         {
           key: 'child',
           label: 'Child',
-          initialItems: childItems,
+          itens: childItems,
           dependsOn: ['parent'],
         },
       ];
@@ -399,7 +399,7 @@ describe('RecipientsStep', () => {
       const emptyCategory: CategoryConfig = {
         key: 'empty',
         label: 'Empty',
-        initialItems: [],
+        itens: [],
       };
 
       render(<RecipientsStep categories={[emptyCategory]} />);
@@ -416,7 +416,7 @@ describe('RecipientsStep', () => {
       ).toBeInTheDocument();
     });
 
-    it('should handle category without initialItems', () => {
+    it('should handle category without itens', () => {
       const categoryNoItems: CategoryConfig = {
         key: 'noitems',
         label: 'No Items',
@@ -487,12 +487,12 @@ describe('RecipientsStep', () => {
         {
           key: 'cat1',
           label: 'Category 1',
-          initialItems: [{ id: '1', name: 'Item 1' }],
+          itens: [{ id: '1', name: 'Item 1' }],
         },
         {
           key: 'cat2',
           label: 'Category 2',
-          initialItems: [{ id: '2', name: 'Item 2' }],
+          itens: [{ id: '2', name: 'Item 2' }],
         },
       ];
 
@@ -509,12 +509,12 @@ describe('RecipientsStep', () => {
         {
           key: 'cat1',
           label: 'Category 1',
-          initialItems: [{ id: '1', name: 'Item 1' }],
+          itens: [{ id: '1', name: 'Item 1' }],
         },
         {
           key: 'cat2',
           label: 'Category 2',
-          initialItems: [{ id: '2', name: 'Item 2' }],
+          itens: [{ id: '2', name: 'Item 2' }],
         },
       ];
 
@@ -573,8 +573,8 @@ describe('RecipientsStep', () => {
 
     it('should render dividers', () => {
       const categories: CategoryConfig[] = [
-        { key: 'cat1', label: 'Cat 1', initialItems: [] },
-        { key: 'cat2', label: 'Cat 2', initialItems: [] },
+        { key: 'cat1', label: 'Cat 1', itens: [] },
+        { key: 'cat2', label: 'Cat 2', itens: [] },
       ];
 
       render(<RecipientsStep categories={categories} />);

@@ -2,12 +2,6 @@ import type { Story } from '@ladle/react';
 import { AlertsManager } from './AlertsManager';
 import type { AlertsConfig, RecipientItem, CategoryConfig } from '.';
 
-// Helper type para items com propriedades extras
-type ItemWithExtras = RecipientItem & {
-  parentId?: string;
-  abbreviation?: string;
-};
-
 const mockEscolas: RecipientItem[] = [
   {
     id: 'escola-1',
@@ -114,46 +108,30 @@ const fullConfig: AlertsConfig = {
     {
       key: 'escola',
       label: 'Escola',
-      initialItems: mockEscolas,
+      itens: mockEscolas,
     },
     {
       key: 'serie',
       label: 'Série',
       dependsOn: ['escola'],
-      initialItems: mockSeries,
+      itens: mockSeries,
     },
     {
       key: 'turma',
       label: 'Turma',
       dependsOn: ['serie'],
-      initialItems: mockTurmas,
-      formatGroupLabel: ({ parentItem }: { parentItem: RecipientItem }) => {
-        const serie = parentItem as ItemWithExtras;
-        const escola = mockEscolas.find(
-          (e) => e.id === serie.parentId
-        ) as ItemWithExtras;
-
-        if (escola?.abbreviation) {
-          return `${escola.abbreviation} - ${parentItem.name}`;
-        }
-
-        return parentItem.name;
-      },
+      itens: mockTurmas,
     },
     {
-      key: 'alunos',
-      label: 'Alunos',
-      dependsOn: ['turma'],
-      loadItems: async (turmaIds: string[]) => {
-        return new Promise<RecipientItem[]>((resolve) => {
-          setTimeout(() => {
-            const alunosFiltrados = mockAlunos.filter((aluno) =>
-              turmaIds.includes((aluno as ItemWithExtras).parentId || '')
-            );
-            resolve(alunosFiltrados);
-          }, 500);
-        });
-      },
+      key: 'aluno',
+      label: 'Aluno',
+      dependsOn: ['escola', 'serie', 'turma'],
+      itens: mockAlunos,
+      filteredBy: [
+        { key: 'escola', internalField: 'escolaId' },
+        { key: 'serie', internalField: 'serieId' },
+        { key: 'turma', internalField: 'turmaId' },
+      ],
     },
   ],
   labels: {
@@ -236,7 +214,7 @@ export const SimpleCategory: Story = () => {
       {
         key: 'usuarios',
         label: 'Usuários',
-        initialItems: [
+        itens: [
           { id: '1', name: 'João Silva' },
           { id: '2', name: 'Maria Santos' },
           { id: '3', name: 'Pedro Oliveira' },
@@ -276,7 +254,7 @@ export const TwoLevelHierarchy: Story = () => {
       {
         key: 'departamento',
         label: 'Departamento',
-        initialItems: [
+        itens: [
           { id: 'dep-1', name: 'Tecnologia' },
           { id: 'dep-2', name: 'Marketing' },
           { id: 'dep-3', name: 'Vendas' },
@@ -286,7 +264,7 @@ export const TwoLevelHierarchy: Story = () => {
         key: 'funcionarios',
         label: 'Funcionários',
         dependsOn: ['departamento'],
-        initialItems: [
+        itens: [
           { id: 'func-1', name: 'Carlos Developer', parentId: 'dep-1' },
           { id: 'func-2', name: 'Ana Designer', parentId: 'dep-2' },
           { id: 'func-3', name: 'Bruno Vendedor', parentId: 'dep-3' },
@@ -344,7 +322,7 @@ export const WithoutAlertsTable: Story = () => {
       {
         key: 'grupos',
         label: 'Grupos',
-        initialItems: [
+        itens: [
           { id: 'g1', name: 'Grupo A' },
           { id: 'g2', name: 'Grupo B' },
           { id: 'g3', name: 'Grupo C' },
@@ -380,7 +358,7 @@ export const CustomLabelsEnglish: Story = () => {
       {
         key: 'users',
         label: 'Users',
-        initialItems: [
+        itens: [
           { id: 'u1', name: 'John Doe' },
           { id: 'u2', name: 'Jane Smith' },
           { id: 'u3', name: 'Bob Johnson' },
@@ -446,7 +424,7 @@ export const MinimalConfig: Story = () => {
       {
         key: 'recipients',
         label: 'Recipients',
-        initialItems: [
+        itens: [
           { id: '1', name: 'User 1' },
           { id: '2', name: 'User 2' },
         ],

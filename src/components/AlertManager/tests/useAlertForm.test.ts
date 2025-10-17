@@ -360,7 +360,6 @@ describe('useAlertFormStore', () => {
       const categoryWithExtras: RecipientCategory = {
         ...mockCategory,
         dependsOn: ['parent-category'],
-        formatGroupLabel: ({ parentItem }) => parentItem.name,
       };
 
       act(() => {
@@ -379,9 +378,6 @@ describe('useAlertFormStore', () => {
       expect(
         result.current.recipientCategories['test-category'].dependsOn
       ).toEqual(['parent-category']);
-      expect(
-        result.current.recipientCategories['test-category'].formatGroupLabel
-      ).toBeDefined();
     });
   });
 

@@ -1,23 +1,11 @@
-import { RecipientItem, FormatGroupLabelFn } from './useAlertForm';
 import { ComponentType } from 'react';
+import type { CategoryConfig, Item } from '../CheckBoxGroup/CheckBoxGroup';
 
 // Re-export para facilitar imports
-export type { RecipientItem, FormatGroupLabelFn } from './useAlertForm';
+export type { RecipientItem } from './useAlertForm';
 
-// Re-export dos tipos do CheckboxGroup
-export type { CategoryConfig, Item } from '../../CheckBoxGroup/CheckBoxGroup';
-
-// Configuração de uma categoria de destinatários (formato legado - mantido para compatibilidade)
-export interface LegacyCategoryConfig {
-  key: string;
-  label: string;
-  dependsOn?: string[];
-  formatGroupLabel?: FormatGroupLabelFn;
-  // Função para carregar items quando a categoria é ativada
-  loadItems?: (selectedParentIds: string[]) => Promise<RecipientItem[]>;
-  // Items iniciais (se já tiver os dados)
-  initialItems?: RecipientItem[];
-}
+// Re-export dos tipos do CheckboxGroup (usamos diretamente)
+export type { CategoryConfig, Item };
 
 // Configuração de um step do wizard
 export interface StepConfig {
