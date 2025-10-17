@@ -122,6 +122,8 @@ describe('useAlertFormStore', () => {
       const { result } = renderHook(() => useAlertFormStore());
 
       act(() => {
+        // Reset first to ensure clean state
+        result.current.resetForm();
         result.current.setDate('2024-12-25');
         result.current.setTime('10:00');
         result.current.setSendToday(false);
@@ -381,6 +383,8 @@ describe('useAlertFormStore', () => {
 
       // Set all fields
       act(() => {
+        // Reset first to ensure clean state
+        result.current.resetForm();
         result.current.setTitle('Test Title');
         result.current.setMessage('Test Message');
         result.current.setImage(mockFile);

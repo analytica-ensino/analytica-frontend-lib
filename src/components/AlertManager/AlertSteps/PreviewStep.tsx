@@ -10,12 +10,12 @@ export const PreviewStep = () => {
 
   // Criar URL blob apenas no cliente e apenas quando necessário
   const imageUrl = useMemo(() => {
-    if (typeof window === 'undefined') {
+    if (typeof globalThis.window === 'undefined') {
       return undefined;
     }
 
     if (image instanceof File) {
-      return URL.createObjectURL(image);
+      return globalThis.window.URL.createObjectURL(image);
     }
 
     return undefined;

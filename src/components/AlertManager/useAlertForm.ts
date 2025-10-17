@@ -148,9 +148,9 @@ export const useAlertFormStore = create<AlertFormStore>((set) => ({
 
   setTime: (time) => set({ time }),
 
-  setSendToday: (sendToday) => {
+  setSendToday: (sendToday: boolean) => {
     if (sendToday) {
-      // Se marcar "Enviar Hoje", define data e hora atuais
+      // Define data e hora atuais
       const now = new Date();
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -159,12 +159,12 @@ export const useAlertFormStore = create<AlertFormStore>((set) => ({
       const minutes = String(now.getMinutes()).padStart(2, '0');
 
       set({
-        sendToday,
+        sendToday: true,
         date: `${year}-${month}-${day}`,
         time: `${hours}:${minutes}`,
       });
     } else {
-      set({ sendToday });
+      set({ sendToday: false });
     }
   },
 

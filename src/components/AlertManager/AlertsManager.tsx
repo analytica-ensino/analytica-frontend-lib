@@ -178,7 +178,7 @@ export const AlertsManager = ({
 
   const renderCurrentStep = () => {
     if (customSteps?.[currentStep]?.component) {
-      const CustomComponent = customSteps[currentStep].component!;
+      const CustomComponent = customSteps[currentStep].component;
       return (
         <CustomComponent onNext={handleNext} onPrevious={handlePrevious} />
       );

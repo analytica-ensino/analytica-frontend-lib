@@ -181,15 +181,17 @@ describe('DateStep', () => {
     });
 
     it('should enable inputs when sendToday is unchecked', () => {
+      // Reset store to ensure clean state
+      useAlertFormStore.getState().resetForm();
       render(<DateStep />);
 
       const checkbox = screen.getByTestId('checkbox-Sim');
 
-      // Check
+      // Check (should disable inputs)
       fireEvent.click(checkbox);
       expect(screen.getByTestId('input-Data de envio')).toBeDisabled();
 
-      // Uncheck
+      // Uncheck (should enable inputs)
       fireEvent.click(checkbox);
       expect(screen.getByTestId('input-Data de envio')).not.toBeDisabled();
     });
@@ -348,6 +350,8 @@ describe('DateStep', () => {
     });
 
     it('should enable inputs when sendToday is false', () => {
+      // Reset store and set sendToday to false
+      useAlertFormStore.getState().resetForm();
       useAlertFormStore.getState().setSendToday(false);
 
       render(<DateStep />);
@@ -486,6 +490,8 @@ describe('DateStep', () => {
 
   describe('integration with store', () => {
     it('should read initial values from store', () => {
+      // Reset store first to ensure clean state
+      useAlertFormStore.getState().resetForm();
       useAlertFormStore.getState().setDate('2024-10-15');
       useAlertFormStore.getState().setTime('14:30');
       useAlertFormStore.getState().setSendToday(false);
@@ -536,6 +542,8 @@ describe('DateStep', () => {
     });
 
     it('should handle rapid checkbox toggling', () => {
+      // Reset store to ensure clean state
+      useAlertFormStore.getState().resetForm();
       render(<DateStep />);
 
       const checkbox = screen.getByTestId('checkbox-Sim');

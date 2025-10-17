@@ -19,7 +19,7 @@ export const RecipientsStep = ({
 
   // Initialize categories on mount
   useEffect(() => {
-    categories.forEach((category) => {
+    for (const category of categories) {
       const existingCategory = recipientCategories[category.key];
       if (!existingCategory) {
         initializeCategory({
@@ -30,13 +30,13 @@ export const RecipientsStep = ({
           allSelected: false,
         });
       }
-    });
+    }
   }, [categories, recipientCategories, initializeCategory]);
 
   // Handle categories change from CheckboxGroup
   const handleCategoriesChange = (updatedCategories: CategoryConfig[]) => {
     // Update store for each category
-    updatedCategories.forEach((category) => {
+    for (const category of updatedCategories) {
       const selectedIds = category.selectedIds || [];
       const allSelected = selectedIds.length === (category.itens?.length || 0);
 
@@ -47,7 +47,7 @@ export const RecipientsStep = ({
         selectedIds,
         allSelected,
       });
-    });
+    }
 
     // Call parent callback if provided
     if (onCategoriesChange) {

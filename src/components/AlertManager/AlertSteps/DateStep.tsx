@@ -71,7 +71,7 @@ export const DateStep = ({
 
     if (value) {
       const dateObj = new Date(value);
-      if (!isNaN(dateObj.getTime())) {
+      if (!Number.isNaN(dateObj.getTime())) {
         setSelectedDate(dateObj);
       }
     }

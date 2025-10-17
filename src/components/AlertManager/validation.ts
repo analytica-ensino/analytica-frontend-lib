@@ -16,8 +16,8 @@ export const validateRecipientsStep = (
   categories: CategoryConfig[]
 ): boolean | string => {
   if (categories.length === 0) return 'Nenhuma categoria configurada';
-  const lastCategory = categories[categories.length - 1];
-  if (!lastCategory.selectedIds?.length) return 'Selecione destinatários';
+  const lastCategory = categories.at(-1);
+  if (!lastCategory?.selectedIds?.length) return 'Selecione destinatários';
   return true;
 };
 

@@ -1,11 +1,12 @@
 import { ComponentType } from 'react';
-import type { CategoryConfig, Item } from '../CheckBoxGroup/CheckBoxGroup';
+import type { CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
 
 // Re-export para facilitar imports
 export type { RecipientItem } from './useAlertForm';
 
 // Re-export dos tipos do CheckboxGroup (usamos diretamente)
-export type { CategoryConfig, Item };
+export type { CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
+export type { Item } from '../CheckBoxGroup/CheckBoxGroup';
 
 // Configuração de um step do wizard
 export interface StepConfig {
