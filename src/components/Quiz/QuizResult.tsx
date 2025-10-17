@@ -190,6 +190,70 @@ const QuizResultTitle = forwardRef<
   );
 });
 
+/**
+ * Update statistics counters based on difficulty level
+ * @param stats - Statistics object to update
+ * @param difficulty - Question difficulty level
+ * @param isCorrect - Whether the answer is correct
+ */
+const updateDifficultyStats = (
+  stats: {
+    correctEasyAnswers: number;
+    correctMediumAnswers: number;
+    correctDifficultAnswers: number;
+    totalEasyQuestions: number;
+    totalMediumQuestions: number;
+    totalDifficultQuestions: number;
+  },
+  difficulty: string | undefined,
+  isCorrect: boolean
+) => {
+  if (difficulty === QUESTION_DIFFICULTY.FACIL) {
+    stats.totalEasyQuestions++;
+    if (isCorrect) stats.correctEasyAnswers++;
+  } else if (difficulty === QUESTION_DIFFICULTY.MEDIO) {
+    stats.totalMediumQuestions++;
+    if (isCorrect) stats.correctMediumAnswers++;
+  } else if (difficulty === QUESTION_DIFFICULTY.DIFICIL) {
+    stats.totalDifficultQuestions++;
+    if (isCorrect) stats.correctDifficultAnswers++;
+  }
+};
+
+/**
+ * Calculate answer statistics by difficulty level
+ * @param answers - Array of question answers
+ * @returns Statistics object with counts by difficulty
+ */
+const calculateAnswerStatistics = (
+  answers: Array<{
+    answerStatus: string;
+    difficultyLevel?: string;
+  }>
+) => {
+  const stats = {
+    correctAnswers: 0,
+    correctEasyAnswers: 0,
+    correctMediumAnswers: 0,
+    correctDifficultAnswers: 0,
+    totalEasyQuestions: 0,
+    totalMediumQuestions: 0,
+    totalDifficultQuestions: 0,
+  };
+
+  for (const answer of answers) {
+    const isCorrect = answer.answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA;
+
+    if (isCorrect) {
+      stats.correctAnswers++;
+    }
+
+    updateDifficultyStats(stats, answer.difficultyLevel, isCorrect);
+  }
+
+  return stats;
+};
+
 const QuizResultPerformance = forwardRef<
   HTMLDivElement,
   { showDetails?: boolean }
@@ -204,44 +268,21 @@ const QuizResultPerformance = forwardRef<
   const totalQuestions = getTotalQuestions();
   const questionResult = getQuestionResult();
 
-  let correctAnswers = 0;
-  let correctEasyAnswers = 0;
-  let correctMediumAnswers = 0;
-  let correctDifficultAnswers = 0;
-  let totalEasyQuestions = 0;
-  let totalMediumQuestions = 0;
-  let totalDifficultQuestions = 0;
-
-  if (questionResult) {
-    questionResult.answers.forEach((answer) => {
-      const isCorrect = answer.answerStatus == ANSWER_STATUS.RESPOSTA_CORRETA;
-
-      if (isCorrect) {
-        correctAnswers++;
-      }
-
-      if (answer.difficultyLevel === QUESTION_DIFFICULTY.FACIL) {
-        totalEasyQuestions++;
-        if (isCorrect) {
-          correctEasyAnswers++;
-        }
-      } else if (answer.difficultyLevel === QUESTION_DIFFICULTY.MEDIO) {
-        totalMediumQuestions++;
-        if (isCorrect) {
-          correctMediumAnswers++;
-        }
-      } else if (answer.difficultyLevel === QUESTION_DIFFICULTY.DIFICIL) {
-        totalDifficultQuestions++;
-        if (isCorrect) {
-          correctDifficultAnswers++;
-        }
-      }
-    });
-  }
+  const stats = questionResult
+    ? calculateAnswerStatistics(questionResult.answers)
+    : {
+        correctAnswers: 0,
+        correctEasyAnswers: 0,
+        correctMediumAnswers: 0,
+        correctDifficultAnswers: 0,
+        totalEasyQuestions: 0,
+        totalMediumQuestions: 0,
+        totalDifficultQuestions: 0,
+      };
 
   const percentage =
     totalQuestions > 0
-      ? Math.round((correctAnswers / totalQuestions) * 100)
+      ? Math.round((stats.correctAnswers / totalQuestions) * 100)
       : 0;
 
   const classesJustifyBetween = showDetails
@@ -294,8 +335,8 @@ const QuizResultPerformance = forwardRef<
             className="w-full"
             layout="stacked"
             variant="green"
-            value={correctEasyAnswers}
-            max={totalEasyQuestions}
+            value={stats.correctEasyAnswers}
+            max={stats.totalEasyQuestions}
             label="Fáceis"
             showHitCount
             labelClassName="text-base font-medium text-text-800 leading-none"
@@ -306,8 +347,8 @@ const QuizResultPerformance = forwardRef<
             className="w-full"
             layout="stacked"
             variant="green"
-            value={correctMediumAnswers}
-            max={totalMediumQuestions}
+            value={stats.correctMediumAnswers}
+            max={stats.totalMediumQuestions}
             label="Médias"
             showHitCount
             labelClassName="text-base font-medium text-text-800 leading-none"
@@ -318,8 +359,8 @@ const QuizResultPerformance = forwardRef<
             className="w-full"
             layout="stacked"
             variant="green"
-            value={correctDifficultAnswers}
-            max={totalDifficultQuestions}
+            value={stats.correctDifficultAnswers}
+            max={stats.totalDifficultQuestions}
             label="Difíceis"
             showHitCount
             labelClassName="text-base font-medium text-text-800 leading-none"
@@ -346,13 +387,13 @@ const QuizListResult = forwardRef<
       let correct = 0;
       let incorrect = 0;
 
-      questions.forEach((question) => {
-        if (question.answerStatus == ANSWER_STATUS.RESPOSTA_CORRETA) {
+      for (const question of questions) {
+        if (question.answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA) {
           correct++;
         } else {
           incorrect++;
         }
-      });
+      }
 
       return {
         subject: {
