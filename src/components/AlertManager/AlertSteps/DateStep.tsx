@@ -32,13 +32,7 @@ export const DateStep = ({
   const sendCopyToEmail = useAlertFormStore((state) => state.sendCopyToEmail);
   const setDate = useAlertFormStore((state) => state.setDate);
   const setTime = useAlertFormStore((state) => state.setTime);
-  const setSendTodayTrue = useAlertFormStore((state) => state.setSendTodayTrue);
-  const setSendTodayFalse = useAlertFormStore(
-    (state) => state.setSendTodayFalse
-  );
-  const setCurrentDateTime = useAlertFormStore(
-    (state) => state.setCurrentDateTime
-  );
+  const setSendToday = useAlertFormStore((state) => state.setSendToday);
   const setSendCopyToEmail = useAlertFormStore(
     (state) => state.setSendCopyToEmail
   );
@@ -101,14 +95,7 @@ export const DateStep = ({
         <CheckBox
           label="Sim"
           checked={sendToday}
-          onChange={(e) => {
-            if (e.target.checked) {
-              setSendTodayTrue();
-              setCurrentDateTime();
-            } else {
-              setSendTodayFalse();
-            }
-          }}
+          onChange={(e) => setSendToday(e.target.checked)}
         />
       </span>
 

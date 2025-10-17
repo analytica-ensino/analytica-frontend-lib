@@ -338,7 +338,7 @@ describe('DateStep', () => {
 
   describe('disabled state', () => {
     it('should disable inputs when sendToday is true', () => {
-      useAlertFormStore.getState().setSendTodayTrue();
+      useAlertFormStore.getState().setSendToday(true);
 
       render(<DateStep />);
 
@@ -352,7 +352,7 @@ describe('DateStep', () => {
     it('should enable inputs when sendToday is false', () => {
       // Reset store and set sendToday to false
       useAlertFormStore.getState().resetForm();
-      useAlertFormStore.getState().setSendTodayFalse();
+      useAlertFormStore.getState().setSendToday(false);
 
       render(<DateStep />);
 
@@ -490,11 +490,16 @@ describe('DateStep', () => {
 
   describe('integration with store', () => {
     it('should read initial values from store', () => {
+      // Mock current date using Jest fake timers
+      const mockDate = new Date('2024-10-15T14:30:00');
+      jest.useFakeTimers();
+      jest.setSystemTime(mockDate);
+
       // Reset store first to ensure clean state
       useAlertFormStore.getState().resetForm();
       useAlertFormStore.getState().setDate('2024-10-15');
       useAlertFormStore.getState().setTime('14:30');
-      useAlertFormStore.getState().setSendTodayFalse();
+      useAlertFormStore.getState().setSendToday(false);
 
       render(<DateStep />);
 
@@ -505,6 +510,8 @@ describe('DateStep', () => {
       expect(dateInput).toHaveValue('2024-10-15');
       expect(timeInput).toHaveValue('14:30');
       expect(checkbox).not.toBeChecked();
+
+      jest.useRealTimers();
     });
 
     it('should update store when inputs change', () => {
