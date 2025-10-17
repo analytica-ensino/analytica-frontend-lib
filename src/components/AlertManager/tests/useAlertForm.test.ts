@@ -99,23 +99,17 @@ describe('useAlertFormStore', () => {
       expect(result.current.time).toBe('14:30');
     });
 
-    it('should set sendToday to true and auto-fill date and time', () => {
+    it('should set sendToday to true without auto-filling date and time', () => {
       const { result } = renderHook(() => useAlertFormStore());
-
-      // Mock current date using Jest fake timers
-      const mockDate = new Date('2024-10-15T14:30:00');
-      jest.useFakeTimers();
-      jest.setSystemTime(mockDate);
 
       act(() => {
         result.current.setSendToday(true);
       });
 
       expect(result.current.sendToday).toBe(true);
-      expect(result.current.date).toBe('2024-10-15');
-      expect(result.current.time).toBe('14:30');
-
-      jest.useRealTimers();
+      // Date and time should remain unchanged unless explicitly set
+      expect(result.current.date).toBe('');
+      expect(result.current.time).toBe('');
     });
 
     it('should set sendToday to false without changing date and time', () => {
@@ -134,7 +128,7 @@ describe('useAlertFormStore', () => {
       expect(result.current.time).toBe('10:00');
     });
 
-    it('should update date and time when toggling sendToday from false to true', () => {
+    it('should not update date and time when toggling sendToday from false to true', () => {
       const { result } = renderHook(() => useAlertFormStore());
 
       act(() => {
@@ -145,15 +139,91 @@ describe('useAlertFormStore', () => {
       expect(result.current.date).toBe('2024-12-25');
       expect(result.current.time).toBe('10:00');
 
-      const mockDate = new Date('2024-10-15T14:30:00');
-      jest.useFakeTimers();
-      jest.setSystemTime(mockDate);
-
       act(() => {
         result.current.setSendToday(true);
       });
 
       expect(result.current.sendToday).toBe(true);
+      // Date and time should remain unchanged unless explicitly set
+      expect(result.current.date).toBe('2024-12-25');
+      expect(result.current.time).toBe('10:00');
+    });
+  });
+
+  describe('new date/time methods', () => {
+    it('should set sendToday to true using setSendTodayTrue', () => {
+      const { result } = renderHook(() => useAlertFormStore());
+
+      act(() => {
+        result.current.setSendTodayTrue();
+      });
+
+      expect(result.current.sendToday).toBe(true);
+    });
+
+    it('should set sendToday to false using setSendTodayFalse', () => {
+      const { result } = renderHook(() => useAlertFormStore());
+
+      act(() => {
+        result.current.setSendTodayTrue();
+        result.current.setSendTodayFalse();
+      });
+
+      expect(result.current.sendToday).toBe(false);
+    });
+
+    it('should set current date and time using setCurrentDateTime', () => {
+      const { result } = renderHook(() => useAlertFormStore());
+
+      // Mock current date using Jest fake timers
+      const mockDate = new Date('2024-10-15T14:30:00');
+      jest.useFakeTimers();
+      jest.setSystemTime(mockDate);
+
+      act(() => {
+        result.current.setCurrentDateTime();
+      });
+
+      expect(result.current.date).toBe('2024-10-15');
+      expect(result.current.time).toBe('14:30');
+
+      jest.useRealTimers();
+    });
+
+    it('should combine setSendTodayTrue and setCurrentDateTime for complete setup', () => {
+      const { result } = renderHook(() => useAlertFormStore());
+
+      // Mock current date using Jest fake timers
+      const mockDate = new Date('2024-10-15T14:30:00');
+      jest.useFakeTimers();
+      jest.setSystemTime(mockDate);
+
+      act(() => {
+        result.current.setSendTodayTrue();
+        result.current.setCurrentDateTime();
+      });
+
+      expect(result.current.sendToday).toBe(true);
+      expect(result.current.date).toBe('2024-10-15');
+      expect(result.current.time).toBe('14:30');
+
+      jest.useRealTimers();
+    });
+
+    it('should not affect sendToday when using setCurrentDateTime alone', () => {
+      const { result } = renderHook(() => useAlertFormStore());
+
+      // Mock current date using Jest fake timers
+      const mockDate = new Date('2024-10-15T14:30:00');
+      jest.useFakeTimers();
+      jest.setSystemTime(mockDate);
+
+      act(() => {
+        result.current.setSendTodayFalse();
+        result.current.setCurrentDateTime();
+      });
+
+      expect(result.current.sendToday).toBe(false);
       expect(result.current.date).toBe('2024-10-15');
       expect(result.current.time).toBe('14:30');
 

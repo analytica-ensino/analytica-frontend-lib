@@ -36,7 +36,10 @@ interface AlertFormStore extends AlertFormData {
   setImage: (image: File | null) => void;
   setDate: (date: string) => void;
   setTime: (time: string) => void;
-  setSendToday: (sendToday: boolean) => void;
+  setSendToday: (sendToday: boolean) => void; // Mantido para compatibilidade
+  setSendTodayTrue: () => void;
+  setSendTodayFalse: () => void;
+  setCurrentDateTime: () => void;
   setSendCopyToEmail: (sendCopyToEmail: boolean) => void;
 
   // Ações dinâmicas para destinatários
@@ -149,23 +152,34 @@ export const useAlertFormStore = create<AlertFormStore>((set) => ({
   setTime: (time) => set({ time }),
 
   setSendToday: (sendToday: boolean) => {
+    // Mantido para compatibilidade - delega para os métodos específicos
     if (sendToday) {
-      // Define data e hora atuais
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-
-      set({
-        sendToday: true,
-        date: `${year}-${month}-${day}`,
-        time: `${hours}:${minutes}`,
-      });
+      set({ sendToday: true });
     } else {
       set({ sendToday: false });
     }
+  },
+
+  setSendTodayTrue: () => {
+    set({ sendToday: true });
+  },
+
+  setSendTodayFalse: () => {
+    set({ sendToday: false });
+  },
+
+  setCurrentDateTime: () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+
+    set({
+      date: `${year}-${month}-${day}`,
+      time: `${hours}:${minutes}`,
+    });
   },
 
   setSendCopyToEmail: (sendCopyToEmail) => set({ sendCopyToEmail }),

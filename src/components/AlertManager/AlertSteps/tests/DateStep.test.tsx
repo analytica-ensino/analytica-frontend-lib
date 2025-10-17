@@ -338,7 +338,7 @@ describe('DateStep', () => {
 
   describe('disabled state', () => {
     it('should disable inputs when sendToday is true', () => {
-      useAlertFormStore.getState().setSendToday(true);
+      useAlertFormStore.getState().setSendTodayTrue();
 
       render(<DateStep />);
 
@@ -352,7 +352,7 @@ describe('DateStep', () => {
     it('should enable inputs when sendToday is false', () => {
       // Reset store and set sendToday to false
       useAlertFormStore.getState().resetForm();
-      useAlertFormStore.getState().setSendToday(false);
+      useAlertFormStore.getState().setSendTodayFalse();
 
       render(<DateStep />);
 
@@ -494,7 +494,7 @@ describe('DateStep', () => {
       useAlertFormStore.getState().resetForm();
       useAlertFormStore.getState().setDate('2024-10-15');
       useAlertFormStore.getState().setTime('14:30');
-      useAlertFormStore.getState().setSendToday(false);
+      useAlertFormStore.getState().setSendTodayFalse();
 
       render(<DateStep />);
 

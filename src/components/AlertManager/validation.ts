@@ -1,5 +1,7 @@
 import type { AlertData, CategoryConfig, StepConfig } from './types';
 
+const BASE_STEPS_COUNT = 4;
+
 /**
  * Parâmetros para a função handleNext
  */
@@ -66,29 +68,9 @@ export const isCurrentStepValid = (
   categories: CategoryConfig[],
   customSteps?: StepConfig[]
 ): boolean => {
-  let isValid = false;
-  switch (currentStep) {
-    case 0:
-      isValid = validateMessageStep(formData) === true;
-      break;
-    case 1:
-      isValid = validateRecipientsStep(categories) === true;
-      break;
-    case 2:
-      isValid = validateDateStep(formData) === true;
-      break;
-    case 3:
-      isValid = true;
-      break;
-    default: {
-      const currentStepConfig = customSteps?.[currentStep];
-      isValid = currentStepConfig?.validate
-        ? currentStepConfig.validate(formData) === true
-        : true;
-    }
-  }
-
-  return isValid;
+  return (
+    validateCurrentStep(currentStep, formData, categories, customSteps) === true
+  );
 };
 
 /**
@@ -110,7 +92,7 @@ export const validateCurrentStep = (
     case 3:
       return true;
     default: {
-      const currentStepConfig = customSteps?.[currentStep - 4]; // Ajusta para o índice correto dos custom steps
+      const currentStepConfig = customSteps?.[currentStep - BASE_STEPS_COUNT]; // Ajusta para o índice correto dos custom steps
       return currentStepConfig?.validate
         ? currentStepConfig.validate(formData)
         : true;
