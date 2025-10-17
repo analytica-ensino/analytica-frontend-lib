@@ -557,7 +557,10 @@ export const CheckboxGroup = ({
       {(openAccordion === category.key || isEnabled) && (
         <Badge variant="solid" action="info">
           {category.selectedIds?.length || 0} de{' '}
-          {getFilteredItemsCount(category.key) || 0} selecionado
+          {getFilteredItemsCount(category.key) || 0}{' '}
+          {(category.selectedIds?.length || 0) === 1
+            ? 'selecionado'
+            : 'selecionados'}
         </Badge>
       )}
     </div>
