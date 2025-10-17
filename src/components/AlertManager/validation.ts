@@ -1,6 +1,20 @@
 import type { AlertData, CategoryConfig, StepConfig } from './types';
 
 /**
+ * Parâmetros para a função handleNext
+ */
+interface HandleNextParams {
+  currentStep: number;
+  steps: StepConfig[];
+  formData: AlertData;
+  categories: CategoryConfig[];
+  customSteps?: StepConfig[];
+  completedSteps?: number[];
+  setCompletedSteps?: (steps: number[]) => void;
+  setCurrentStep?: (step: number) => void;
+}
+
+/**
  * Valida o step de mensagem
  */
 export const validateMessageStep = (formData: AlertData): boolean | string => {
@@ -125,16 +139,16 @@ export const advanceToNextStep = (
 /**
  * Valida e avança para o próximo step
  */
-export const handleNext = (
-  currentStep: number,
-  steps: StepConfig[],
-  formData: AlertData,
-  categories: CategoryConfig[],
-  customSteps?: StepConfig[],
-  completedSteps: number[] = [],
-  setCompletedSteps?: (steps: number[]) => void,
-  setCurrentStep?: (step: number) => void
-): { success: boolean; error?: string } => {
+export const handleNext = ({
+  currentStep,
+  steps,
+  formData,
+  categories,
+  customSteps,
+  completedSteps = [],
+  setCompletedSteps,
+  setCurrentStep,
+}: HandleNextParams): { success: boolean; error?: string } => {
   if (currentStep >= steps.length - 1) {
     return { success: false, error: 'Já está no último step' };
   }

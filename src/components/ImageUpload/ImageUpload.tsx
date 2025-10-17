@@ -38,8 +38,6 @@ export interface ImageUploadProps {
 
 export default function ImageUpload({
   selectedFile,
-  uploadProgress = 0,
-  showProgress = true,
   onFileSelect,
   onRemoveFile,
   buttonText = 'Inserir imagem',
@@ -56,7 +54,7 @@ export default function ImageUpload({
   const [internalFile, setInternalFile] = useState<File | null>(null);
 
   // Use controlled or uncontrolled mode
-  const currentFile = selectedFile ? selectedFile : internalFile;
+  const currentFile = selectedFile ?? internalFile;
   const hasFile = currentFile !== null;
 
   const handleButtonClick = () => {
@@ -112,12 +110,6 @@ export default function ImageUpload({
       onRemoveFile?.();
     }
   };
-
-  const showProgressBar =
-    hasFile &&
-    uploadProgress !== undefined &&
-    // if showProgress is true, also show at 100
-    (showProgress || uploadProgress < 100);
 
   if (variant === 'compact') {
     return (
@@ -179,19 +171,6 @@ export default function ImageUpload({
               <X className="h-4 w-4 text-primary-950 cursor-pointer" />
             </button>
           </div>
-          {showProgressBar && (
-            <div className="w-full h-1 flex items-center">
-              <progress
-                value={uploadProgress}
-                max={100}
-                role="progressbar"
-                aria-valuenow={uploadProgress}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                className="w-full h-1 bg-muted rounded-full overflow-hidden [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-primary-600 [&::-moz-progress-bar]:bg-primary-600"
-              />
-            </div>
-          )}
         </div>
       ) : (
         <Button

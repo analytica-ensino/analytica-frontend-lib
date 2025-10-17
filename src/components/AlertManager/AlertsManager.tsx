@@ -102,7 +102,7 @@ export const AlertsManager = ({
 
   const handleNext = () => {
     const formData = useAlertFormStore.getState();
-    const result = handleNextValidation(
+    const result = handleNextValidation({
       currentStep,
       steps,
       formData,
@@ -110,8 +110,8 @@ export const AlertsManager = ({
       customSteps,
       completedSteps,
       setCompletedSteps,
-      setCurrentStep
-    );
+      setCurrentStep,
+    });
 
     if (!result.success && result.error) {
       alert(result.error);

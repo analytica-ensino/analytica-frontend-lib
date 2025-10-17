@@ -284,62 +284,6 @@ describe('ImageUpload Component', () => {
     });
   });
 
-  describe('progress bar', () => {
-    it('should render progress bar when file is selected and progress is less than 100', () => {
-      const { container } = render(
-        <ImageUpload selectedFile={mockFile} uploadProgress={50} />
-      );
-
-      const progressBar = container.querySelector('progress');
-      expect(progressBar).toBeInTheDocument();
-      expect(progressBar).toHaveAttribute('value', '50');
-      expect(progressBar).toHaveAttribute('max', '100');
-    });
-
-    it('should render progress bar when progress is 100 and showProgress is true', () => {
-      const { container } = render(
-        <ImageUpload
-          selectedFile={mockFile}
-          uploadProgress={100}
-          showProgress={true}
-        />
-      );
-
-      const progressBar = container.querySelector('progress');
-      expect(progressBar).toBeInTheDocument();
-      expect(progressBar).toHaveAttribute('value', '100');
-      expect(progressBar).toHaveAttribute('max', '100');
-    });
-
-    it('should not render progress bar when progress is 100 and showProgress is false', () => {
-      const { container } = render(
-        <ImageUpload
-          selectedFile={mockFile}
-          uploadProgress={100}
-          showProgress={false}
-        />
-      );
-
-      const progressBar = container.querySelector('progress');
-      expect(progressBar).not.toBeInTheDocument();
-    });
-
-    it('should render progress bar when showProgress is false but progress < 100', () => {
-      const { container } = render(
-        <ImageUpload
-          selectedFile={mockFile}
-          uploadProgress={50}
-          showProgress={false}
-        />
-      );
-
-      const progressBar = container.querySelector('progress');
-      expect(progressBar).toBeInTheDocument();
-      expect(progressBar).toHaveAttribute('value', '50');
-      expect(progressBar).toHaveAttribute('max', '100');
-    });
-  });
-
   describe('uncontrolled mode', () => {
     it('should work in uncontrolled mode without selectedFile prop', () => {
       const onFileSelect = jest.fn();
@@ -359,18 +303,6 @@ describe('ImageUpload Component', () => {
   });
 
   describe('accessibility', () => {
-    it('should have proper aria attributes on progress bar', () => {
-      const { container } = render(
-        <ImageUpload selectedFile={mockFile} uploadProgress={75} />
-      );
-
-      const progressBar = container.querySelector('progress');
-      expect(progressBar).toHaveAttribute('role', 'progressbar');
-      expect(progressBar).toHaveAttribute('aria-valuenow', '75');
-      expect(progressBar).toHaveAttribute('aria-valuemin', '0');
-      expect(progressBar).toHaveAttribute('aria-valuemax', '100');
-    });
-
     it('should have disabled state on buttons when disabled', () => {
       render(<ImageUpload disabled />);
       const button = screen.getByRole('button');

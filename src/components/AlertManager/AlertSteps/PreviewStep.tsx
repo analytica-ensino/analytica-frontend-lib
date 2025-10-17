@@ -10,7 +10,7 @@ export const PreviewStep = () => {
 
   // Criar URL blob apenas no cliente e apenas quando necessário
   const imageUrl = useMemo(() => {
-    if (typeof globalThis.window === 'undefined') {
+    if (globalThis.window === undefined) {
       return undefined;
     }
 
@@ -24,7 +24,7 @@ export const PreviewStep = () => {
   // Limpar URL blob quando componente desmontar ou imagem mudar
   useEffect(() => {
     return () => {
-      if (imageUrl && typeof window !== 'undefined') {
+      if (imageUrl && globalThis.window !== undefined) {
         URL.revokeObjectURL(imageUrl);
       }
     };

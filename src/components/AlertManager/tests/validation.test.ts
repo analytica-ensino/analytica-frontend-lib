@@ -410,16 +410,16 @@ describe('AlertsManager Validation Functions', () => {
     });
 
     it('should advance to next step when validation passes', () => {
-      const result = handleNext(
-        0,
-        mockSteps,
-        mockFormData,
-        mockCategories,
-        undefined,
-        [],
-        mockSetCompletedSteps,
-        mockSetCurrentStep
-      );
+      const result = handleNext({
+        currentStep: 0,
+        steps: mockSteps,
+        formData: mockFormData,
+        categories: mockCategories,
+        customSteps: undefined,
+        completedSteps: [],
+        setCompletedSteps: mockSetCompletedSteps,
+        setCurrentStep: mockSetCurrentStep,
+      });
 
       expect(result.success).toBe(true);
       expect(mockSetCompletedSteps).toHaveBeenCalledWith([0]);
@@ -428,16 +428,16 @@ describe('AlertsManager Validation Functions', () => {
 
     it('should not advance when validation fails', () => {
       const invalidFormData = { ...mockFormData, title: '' };
-      const result = handleNext(
-        0,
-        mockSteps,
-        invalidFormData,
-        mockCategories,
-        undefined,
-        [],
-        mockSetCompletedSteps,
-        mockSetCurrentStep
-      );
+      const result = handleNext({
+        currentStep: 0,
+        steps: mockSteps,
+        formData: invalidFormData,
+        categories: mockCategories,
+        customSteps: undefined,
+        completedSteps: [],
+        setCompletedSteps: mockSetCompletedSteps,
+        setCurrentStep: mockSetCurrentStep,
+      });
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Título é obrigatório');
@@ -446,16 +446,16 @@ describe('AlertsManager Validation Functions', () => {
     });
 
     it('should not advance when already on last step', () => {
-      const result = handleNext(
-        2,
-        mockSteps,
-        mockFormData,
-        mockCategories,
-        undefined,
-        [],
-        mockSetCompletedSteps,
-        mockSetCurrentStep
-      );
+      const result = handleNext({
+        currentStep: 2,
+        steps: mockSteps,
+        formData: mockFormData,
+        categories: mockCategories,
+        customSteps: undefined,
+        completedSteps: [],
+        setCompletedSteps: mockSetCompletedSteps,
+        setCurrentStep: mockSetCurrentStep,
+      });
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Já está no último step');
@@ -464,16 +464,16 @@ describe('AlertsManager Validation Functions', () => {
     });
 
     it('should not add to completed steps if already completed', () => {
-      const result = handleNext(
-        0,
-        mockSteps,
-        mockFormData,
-        mockCategories,
-        undefined,
-        [0], // Already completed
-        mockSetCompletedSteps,
-        mockSetCurrentStep
-      );
+      const result = handleNext({
+        currentStep: 0,
+        steps: mockSteps,
+        formData: mockFormData,
+        categories: mockCategories,
+        customSteps: undefined,
+        completedSteps: [0], // Already completed
+        setCompletedSteps: mockSetCompletedSteps,
+        setCurrentStep: mockSetCurrentStep,
+      });
 
       expect(result.success).toBe(true);
       expect(mockSetCompletedSteps).not.toHaveBeenCalled();
@@ -488,23 +488,28 @@ describe('AlertsManager Validation Functions', () => {
         },
       ];
 
-      const result = handleNext(
-        1,
-        mockSteps,
-        mockFormData,
-        invalidCategories,
-        undefined,
-        [],
-        mockSetCompletedSteps,
-        mockSetCurrentStep
-      );
+      const result = handleNext({
+        currentStep: 1,
+        steps: mockSteps,
+        formData: mockFormData,
+        categories: invalidCategories,
+        customSteps: undefined,
+        completedSteps: [],
+        setCompletedSteps: mockSetCompletedSteps,
+        setCurrentStep: mockSetCurrentStep,
+      });
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Selecione destinatários');
     });
 
     it('should work without setter functions', () => {
-      const result = handleNext(0, mockSteps, mockFormData, mockCategories);
+      const result = handleNext({
+        currentStep: 0,
+        steps: mockSteps,
+        formData: mockFormData,
+        categories: mockCategories,
+      });
 
       expect(result.success).toBe(true);
     });
