@@ -115,11 +115,22 @@ const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
         (selectedOption) => selectedOption.optionId === option.id
       );
 
-      if (isCorrectOption) {
-        status = Status.CORRECT;
-      } else if (isSelected && !isCorrectOption) {
-        status = Status.INCORRECT;
+      // Only show correct/incorrect status if answer is not pending evaluation
+      const shouldShowCorrectAnswers =
+        currentQuestionResult?.answerStatus !==
+          ANSWER_STATUS.PENDENTE_AVALIACAO &&
+        currentQuestionResult?.answerStatus !== ANSWER_STATUS.NAO_RESPONDIDO;
+
+      if (shouldShowCorrectAnswers) {
+        if (isCorrectOption) {
+          status = Status.CORRECT;
+        } else if (isSelected && !isCorrectOption) {
+          status = Status.INCORRECT;
+        } else {
+          status = Status.NEUTRAL;
+        }
       } else {
+        // When pending evaluation, show all options as neutral
         status = Status.NEUTRAL;
       }
     }
@@ -260,11 +271,22 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
         (op) => op.optionId === option.id
       );
 
-      if (isCorrectOption) {
-        status = Status.CORRECT;
-      } else if (isSelected && !isCorrectOption) {
-        status = Status.INCORRECT;
+      // Only show correct/incorrect status if answer is not pending evaluation
+      const shouldShowCorrectAnswers =
+        currentQuestionResult?.answerStatus !==
+          ANSWER_STATUS.PENDENTE_AVALIACAO &&
+        currentQuestionResult?.answerStatus !== ANSWER_STATUS.NAO_RESPONDIDO;
+
+      if (shouldShowCorrectAnswers) {
+        if (isCorrectOption) {
+          status = Status.CORRECT;
+        } else if (isSelected && !isCorrectOption) {
+          status = Status.INCORRECT;
+        } else {
+          status = Status.NEUTRAL;
+        }
       } else {
+        // When pending evaluation, show all options as neutral
         status = Status.NEUTRAL;
       }
     }
@@ -419,9 +441,9 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
     },
   ];
 
-  const getLetterByIndex = (index: number) => String.fromCharCode(97 + index); // 97 = 'a' in ASCII
+  const getLetterByIndex = (index: number) => String.fromCodePoint(97 + index); // 97 = 'a' in ASCII
 
-  const isDefaultVariant = variant == 'default';
+  const isDefaultVariant = variant === 'default';
 
   return (
     <>
@@ -439,7 +461,7 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
                 <div
                   className={cn(
                     'flex flex-row justify-between items-center gap-2 p-2 rounded-md',
-                    !isDefaultVariant ? getStatusStyles(variantCorrect) : ''
+                    isDefaultVariant ? '' : getStatusStyles(variantCorrect)
                   )}
                 >
                   <p className="text-text-900 text-sm">
@@ -573,7 +595,7 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
     });
   };
 
-  const getLetterByIndex = (index: number) => String.fromCharCode(97 + index); // 'a', 'b', 'c'...
+  const getLetterByIndex = (index: number) => String.fromCodePoint(97 + index); // 'a', 'b', 'c'...
 
   const isDefaultVariant = variant === 'default';
   const assignedDots = new Set(
@@ -594,7 +616,7 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                 <div
                   className={cn(
                     'flex flex-row justify-between items-center gap-2 p-2 rounded-md',
-                    !isDefaultVariant ? getStatusStyles(variantCorrect) : ''
+                    isDefaultVariant ? '' : getStatusStyles(variantCorrect)
                   )}
                 >
                   <p className="text-text-900 text-sm">
@@ -715,11 +737,13 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
 
   // Get available options for a specific select
   const getAvailableOptionsForSelect = (selectId: string) => {
-    const usedOptions = Object.entries(answers)
-      .filter(([key]) => key !== selectId) // Exclude the current selection itself
-      .map(([, value]) => value);
+    const usedOptions = new Set(
+      Object.entries(answers)
+        .filter(([key]) => key !== selectId) // Exclude the current selection itself
+        .map(([, value]) => value)
+    );
 
-    return options.filter((option) => !usedOptions.includes(option));
+    return options.filter((option) => !usedOptions.has(option));
   };
 
   const handleSelectChange = (selectId: string, value: string) => {
