@@ -267,31 +267,22 @@ export const CheckboxGroup = ({
       : [{ itens: category?.itens || [] }];
   };
 
-  const { formattedItemsMap, filteredItemsCountMap } = useMemo(() => {
+  const formattedItemsMap = useMemo(() => {
     const formattedItemsMap: Record<
       string,
       { groupLabel?: string; itens: Item[] }[]
     > = {};
-    const filteredItemsCountMap: Record<string, number> = {};
 
     for (const category of categories) {
       const formattedItems = calculateFormattedItems(category.key);
       formattedItemsMap[category.key] = formattedItems;
-      filteredItemsCountMap[category.key] = formattedItems.reduce(
-        (total, group) => total + (group.itens?.length || 0),
-        0
-      );
     }
 
-    return { formattedItemsMap, filteredItemsCountMap };
+    return formattedItemsMap;
   }, [categories]);
 
   const getFormattedItems = (categoryKey: string) => {
     return formattedItemsMap[categoryKey] || [{ itens: [] }];
-  };
-
-  const getFilteredItemsCount = (categoryKey: string) => {
-    return filteredItemsCountMap[categoryKey] || 0;
   };
 
   const getDependentCategories = (categoryKey: string): string[] => {
@@ -556,8 +547,18 @@ export const CheckboxGroup = ({
       </div>
       {(openAccordion === category.key || isEnabled) && (
         <Badge variant="solid" action="info">
-          {category.selectedIds?.length || 0} de{' '}
-          {getFilteredItemsCount(category.key) || 0} selecionado
+          {(() => {
+            const visibleIds = getFormattedItems(category.key)
+              .flatMap((group) => group.itens || [])
+              .map((i) => i.id);
+            const selectedVisibleCount = visibleIds.filter((id) =>
+              category.selectedIds?.includes(id)
+            ).length;
+            const totalVisible = visibleIds.length;
+            return `${selectedVisibleCount} de ${totalVisible} ${
+              selectedVisibleCount === 1 ? 'selecionado' : 'selecionados'
+            }`;
+          })()}
         </Badge>
       )}
     </div>
