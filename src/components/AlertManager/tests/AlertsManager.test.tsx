@@ -2,8 +2,14 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AlertsManager } from '../AlertsManager';
 import { useAlertFormStore } from '../useAlertForm';
-import type { AlertsConfig, AlertTableItem } from '../types';
+import type {
+  AlertsConfig,
+  AlertTableItem,
+  CategoryConfig,
+  LabelsConfig,
+} from '../types';
 import type { ReactNode } from 'react';
+import { StepData } from '@/components/Stepper/Stepper';
 
 // Mock components
 jest.mock('../../..', () => ({
@@ -63,7 +69,19 @@ jest.mock('../../..', () => ({
     children: ReactNode;
     [key: string]: unknown;
   }) => <tr {...props}>{children}</tr>,
-  Modal: ({ children, isOpen, onClose, title, footer }: any) =>
+  Modal: ({
+    children,
+    isOpen,
+    onClose,
+    title,
+    footer,
+  }: {
+    children: ReactNode;
+    isOpen: boolean;
+    onClose: () => void;
+    title: string;
+    footer: ReactNode;
+  }) =>
     isOpen ? (
       <div data-testid="modal">
         <div data-testid="modal-title">{title}</div>
@@ -74,9 +92,15 @@ jest.mock('../../..', () => ({
         </button>
       </div>
     ) : null,
-  Stepper: ({ steps, ...props }: any) => (
+  Stepper: ({
+    steps,
+    ...props
+  }: {
+    steps: StepData[];
+    [key: string]: unknown;
+  }) => (
     <div data-testid="stepper" {...props}>
-      {steps?.map((step: any, index: number) => (
+      {steps?.map((step: StepData, index: number) => (
         <div key={index} data-testid={`step-${index}`}>
           {step.label} - {step.state}
         </div>
@@ -95,18 +119,24 @@ jest.mock('phosphor-react', () => ({
 
 // Mock AlertSteps
 jest.mock('../AlertSteps', () => ({
-  MessageStep: ({ labels }: any) => (
+  MessageStep: ({ labels }: { labels: LabelsConfig }) => (
     <div data-testid="message-step">
       Message Step - {labels?.messageLabel || 'Message'}
     </div>
   ),
-  RecipientsStep: ({ categories, labels }: any) => (
+  RecipientsStep: ({
+    categories,
+    labels,
+  }: {
+    categories: CategoryConfig[];
+    labels: LabelsConfig;
+  }) => (
     <div data-testid="recipients-step">
       Recipients Step - {labels?.recipientsDescription || 'Recipients'}
       <span data-testid="categories-count">{categories?.length || 0}</span>
     </div>
   ),
-  DateStep: ({ labels }: any) => (
+  DateStep: ({ labels }: { labels: LabelsConfig }) => (
     <div data-testid="date-step">Date Step - {labels?.dateLabel || 'Date'}</div>
   ),
   PreviewStep: () => <div data-testid="preview-step">Preview Step</div>,

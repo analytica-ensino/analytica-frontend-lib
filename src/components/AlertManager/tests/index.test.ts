@@ -1,3 +1,6 @@
+import { describe, it, expect, jest } from '@jest/globals';
+import * as AlertManagerModule from '../index';
+
 // Mock only the files that actually exist and cause issues
 jest.mock('../../../styles.css', () => ({}));
 jest.mock('../../../index', () => ({}));
@@ -36,47 +39,41 @@ jest.mock('phosphor-react', () => ({
 }));
 
 describe('AlertManager index exports', () => {
-  describe('module structure', () => {
+  describe('component exports', () => {
     it('should export AlertsManager component', () => {
-      // Test that the component can be imported
-      expect(() => {
-        const { AlertsManager } = require('../index');
-        expect(AlertsManager).toBeDefined();
-        expect(typeof AlertsManager).toBe('function');
-      }).not.toThrow();
+      expect(AlertManagerModule.AlertsManager).toBeDefined();
+      expect(typeof AlertManagerModule.AlertsManager).toBe('function');
     });
 
-    it('should export AlertSteps components', () => {
-      expect(() => {
-        const {
-          MessageStep,
-          RecipientsStep,
-          DateStep,
-          PreviewStep,
-        } = require('../AlertSteps');
-
-        expect(MessageStep).toBeDefined();
-        expect(typeof MessageStep).toBe('function');
-        expect(RecipientsStep).toBeDefined();
-        expect(typeof RecipientsStep).toBe('function');
-        expect(DateStep).toBeDefined();
-        expect(typeof DateStep).toBe('function');
-        expect(PreviewStep).toBeDefined();
-        expect(typeof PreviewStep).toBe('function');
-      }).not.toThrow();
+    it('should export MessageStep component', () => {
+      expect(AlertManagerModule.MessageStep).toBeDefined();
+      expect(typeof AlertManagerModule.MessageStep).toBe('function');
     });
 
+    it('should export RecipientsStep component', () => {
+      expect(AlertManagerModule.RecipientsStep).toBeDefined();
+      expect(typeof AlertManagerModule.RecipientsStep).toBe('function');
+    });
+
+    it('should export DateStep component', () => {
+      expect(AlertManagerModule.DateStep).toBeDefined();
+      expect(typeof AlertManagerModule.DateStep).toBe('function');
+    });
+
+    it('should export PreviewStep component', () => {
+      expect(AlertManagerModule.PreviewStep).toBeDefined();
+      expect(typeof AlertManagerModule.PreviewStep).toBe('function');
+    });
+  });
+
+  describe('store exports', () => {
     it('should export useAlertFormStore', () => {
-      expect(() => {
-        const { useAlertFormStore } = require('../useAlertForm');
-        expect(useAlertFormStore).toBeDefined();
-        expect(typeof useAlertFormStore).toBe('function');
-      }).not.toThrow();
+      expect(AlertManagerModule.useAlertFormStore).toBeDefined();
+      expect(typeof AlertManagerModule.useAlertFormStore).toBe('function');
     });
 
     it('should have useAlertFormStore with expected methods', () => {
-      const { useAlertFormStore } = require('../useAlertForm');
-      const store = useAlertFormStore.getState();
+      const store = AlertManagerModule.useAlertFormStore.getState();
 
       expect(store).toBeDefined();
       expect(typeof store.resetForm).toBe('function');
@@ -91,8 +88,7 @@ describe('AlertManager index exports', () => {
     });
 
     it('should have useAlertFormStore with expected state properties', () => {
-      const { useAlertFormStore } = require('../useAlertForm');
-      const store = useAlertFormStore.getState();
+      const store = AlertManagerModule.useAlertFormStore.getState();
 
       expect(store.title).toBeDefined();
       expect(store.message).toBeDefined();
@@ -104,70 +100,54 @@ describe('AlertManager index exports', () => {
     });
   });
 
-  describe('re-export functionality', () => {
-    it('should allow importing all exports from main index', () => {
-      expect(() => {
-        // Test that we can import from the main index file
-        const indexModule = require('../index');
+  describe('module structure', () => {
+    it('should have all expected exports', () => {
+      const exports = Object.keys(AlertManagerModule);
 
-        // Check that all expected exports are present
-        expect(indexModule).toHaveProperty('AlertsManager');
-        expect(indexModule).toHaveProperty('MessageStep');
-        expect(indexModule).toHaveProperty('RecipientsStep');
-        expect(indexModule).toHaveProperty('DateStep');
-        expect(indexModule).toHaveProperty('PreviewStep');
-        expect(indexModule).toHaveProperty('useAlertFormStore');
-      }).not.toThrow();
+      expect(exports).toContain('AlertsManager');
+      expect(exports).toContain('MessageStep');
+      expect(exports).toContain('RecipientsStep');
+      expect(exports).toContain('DateStep');
+      expect(exports).toContain('PreviewStep');
+      expect(exports).toContain('useAlertFormStore');
+
+      // Should have at least these 6 exports
+      expect(exports.length).toBeGreaterThanOrEqual(6);
     });
 
     it('should maintain proper module structure', () => {
-      const indexModule = require('../index');
-
       // Verify all components are functions
-      expect(typeof indexModule.AlertsManager).toBe('function');
-      expect(typeof indexModule.MessageStep).toBe('function');
-      expect(typeof indexModule.RecipientsStep).toBe('function');
-      expect(typeof indexModule.DateStep).toBe('function');
-      expect(typeof indexModule.PreviewStep).toBe('function');
-      expect(typeof indexModule.useAlertFormStore).toBe('function');
-    });
-  });
-
-  describe('type exports', () => {
-    it('should have type definitions available', () => {
-      // Types don't exist at runtime, but we can test that the module structure
-      // supports type imports by checking the module exists
-      expect(() => {
-        require('../types');
-        require('../useAlertForm');
-      }).not.toThrow();
+      expect(typeof AlertManagerModule.AlertsManager).toBe('function');
+      expect(typeof AlertManagerModule.MessageStep).toBe('function');
+      expect(typeof AlertManagerModule.RecipientsStep).toBe('function');
+      expect(typeof AlertManagerModule.DateStep).toBe('function');
+      expect(typeof AlertManagerModule.PreviewStep).toBe('function');
+      expect(typeof AlertManagerModule.useAlertFormStore).toBe('function');
     });
   });
 
   describe('store functionality', () => {
     it('should allow store state manipulation', () => {
-      const { useAlertFormStore } = require('../useAlertForm');
-
       // Test that we can call store methods
       expect(() => {
-        useAlertFormStore.getState().setTitle('Test Title');
-        useAlertFormStore.getState().setMessage('Test Message');
-        useAlertFormStore.getState().resetForm();
+        AlertManagerModule.useAlertFormStore.getState().setTitle('Test Title');
+        AlertManagerModule.useAlertFormStore
+          .getState()
+          .setMessage('Test Message');
+        AlertManagerModule.useAlertFormStore.getState().resetForm();
       }).not.toThrow();
     });
 
     it('should maintain store state consistency', () => {
-      const { useAlertFormStore } = require('../useAlertForm');
+      const initialState = AlertManagerModule.useAlertFormStore.getState();
+      AlertManagerModule.useAlertFormStore.getState().setTitle('Test');
 
-      const initialState = useAlertFormStore.getState();
-      useAlertFormStore.getState().setTitle('Test');
-
-      const updatedState = useAlertFormStore.getState();
+      const updatedState = AlertManagerModule.useAlertFormStore.getState();
       expect(updatedState.title).toBe('Test');
 
       // Reset and verify
-      useAlertFormStore.getState().resetForm();
-      const resetState = useAlertFormStore.getState();
+      AlertManagerModule.useAlertFormStore.getState().resetForm();
+      const resetState = AlertManagerModule.useAlertFormStore.getState();
       expect(resetState.title).toBe(initialState.title);
     });
   });
