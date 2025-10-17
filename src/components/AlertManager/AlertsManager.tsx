@@ -35,7 +35,7 @@ export const AlertsManager = ({
 
   // Força re-renderização quando o estado do formulário muda
   useEffect(() => {
-    const unsubscribe = useAlertFormStore.subscribe((_state) => {
+    const unsubscribe = useAlertFormStore.subscribe(() => {
       setForceUpdate((prev) => prev + 1);
     });
     return unsubscribe;
@@ -81,8 +81,6 @@ export const AlertsManager = ({
 
   // Verifica se o step atual é válido
   const isCurrentStepValid = () => {
-    // Usa forceUpdate para garantir que o estado está atualizado
-    const _ = forceUpdate;
     const formData = useAlertFormStore.getState();
     return isCurrentStepValidValidation(
       currentStep,
