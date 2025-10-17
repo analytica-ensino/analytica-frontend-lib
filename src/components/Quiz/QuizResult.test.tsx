@@ -33,7 +33,7 @@ jest.mock('../Card/Card', () => ({
     onClick: () => void;
     status: string;
   }) => {
-    const statusProps = status !== undefined ? { 'data-status': status } : {};
+    const statusProps = status === undefined ? {} : { 'data-status': status };
     return (
       <button
         data-testid="card-status"
@@ -256,6 +256,7 @@ describe('Quiz', () => {
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
+        questionsResult: null,
       } as MockQuizStore);
     });
 
@@ -307,17 +308,15 @@ describe('Quiz', () => {
       expect(screen.getByText('Avaliação pendente')).toBeInTheDocument();
     });
 
-    it('should show failure message when no current question', () => {
+    it('should show loading message when no current question', () => {
       mockGetCurrentQuestion.mockReturnValue(null);
 
       render(<QuizHeaderResult />);
 
-      expect(
-        screen.getByText('Não foi dessa vez...você deixou a resposta em branco')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Carregando...')).toBeInTheDocument();
     });
 
-    it('should show failure message when no question result', () => {
+    it('should show loading message when no question result', () => {
       const mockQuestion = { id: 'question-1' };
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
@@ -325,9 +324,7 @@ describe('Quiz', () => {
 
       render(<QuizHeaderResult />);
 
-      expect(
-        screen.getByText('Não foi dessa vez...você deixou a resposta em branco')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Carregando...')).toBeInTheDocument();
     });
 
     it('should apply success background when answer is correct', () => {
@@ -1259,7 +1256,7 @@ describe('Quiz', () => {
 
       const progressBars = screen.getAllByTestId('progress-bar');
       const easyProgressBar = progressBars.find(
-        (bar) => bar.getAttribute('data-label') === 'Fáceis'
+        (bar) => bar.dataset.label === 'Fáceis'
       );
       expect(easyProgressBar).toHaveAttribute('data-value', '2'); // 2 correct easy
       expect(easyProgressBar).toHaveAttribute('data-max', '3'); // 3 total easy
@@ -1301,7 +1298,7 @@ describe('Quiz', () => {
 
       const progressBars = screen.getAllByTestId('progress-bar');
       const mediumProgressBar = progressBars.find(
-        (bar) => bar.getAttribute('data-label') === 'Médias'
+        (bar) => bar.dataset.label === 'Médias'
       );
       expect(mediumProgressBar).toHaveAttribute('data-value', '2'); // 2 correct medium
       expect(mediumProgressBar).toHaveAttribute('data-max', '3'); // 3 total medium
@@ -1343,7 +1340,7 @@ describe('Quiz', () => {
 
       const progressBars = screen.getAllByTestId('progress-bar');
       const difficultProgressBar = progressBars.find(
-        (bar) => bar.getAttribute('data-label') === 'Difíceis'
+        (bar) => bar.dataset.label === 'Difíceis'
       );
       expect(difficultProgressBar).toHaveAttribute('data-value', '2'); // 2 correct difficult
       expect(difficultProgressBar).toHaveAttribute('data-max', '4'); // 4 total difficult
@@ -1360,10 +1357,10 @@ describe('Quiz', () => {
       expect(progressCircle).toHaveAttribute('data-value', '0');
 
       const progressBars = screen.getAllByTestId('progress-bar');
-      progressBars.forEach((bar) => {
+      for (const bar of progressBars) {
         expect(bar).toHaveAttribute('data-value', '0');
         expect(bar).toHaveAttribute('data-max', '0');
-      });
+      }
     });
 
     it('should display fallback when getQuestionResultStatistics returns null', () => {
@@ -1414,11 +1411,11 @@ describe('Quiz', () => {
 
       // Test ProgressBar props
       const progressBars = screen.getAllByTestId('progress-bar');
-      progressBars.forEach((bar) => {
+      for (const bar of progressBars) {
         expect(bar).toHaveAttribute('data-layout', 'stacked');
         expect(bar).toHaveAttribute('data-variant', 'green');
         expect(bar).toHaveAttribute('data-show-hit-count', 'true');
-      });
+      }
     });
 
     it('should round percentage correctly', () => {
