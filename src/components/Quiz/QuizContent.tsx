@@ -115,11 +115,22 @@ const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
         (selectedOption) => selectedOption.optionId === option.id
       );
 
-      if (isCorrectOption) {
-        status = Status.CORRECT;
-      } else if (isSelected && !isCorrectOption) {
-        status = Status.INCORRECT;
+      // Only show correct/incorrect status if answer is not pending evaluation
+      const shouldShowCorrectAnswers =
+        currentQuestionResult?.answerStatus !==
+          ANSWER_STATUS.PENDENTE_AVALIACAO &&
+        currentQuestionResult?.answerStatus !== ANSWER_STATUS.NAO_RESPONDIDO;
+
+      if (shouldShowCorrectAnswers) {
+        if (isCorrectOption) {
+          status = Status.CORRECT;
+        } else if (isSelected && !isCorrectOption) {
+          status = Status.INCORRECT;
+        } else {
+          status = Status.NEUTRAL;
+        }
       } else {
+        // When pending evaluation, show all options as neutral
         status = Status.NEUTRAL;
       }
     }
@@ -260,11 +271,22 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
         (op) => op.optionId === option.id
       );
 
-      if (isCorrectOption) {
-        status = Status.CORRECT;
-      } else if (isSelected && !isCorrectOption) {
-        status = Status.INCORRECT;
+      // Only show correct/incorrect status if answer is not pending evaluation
+      const shouldShowCorrectAnswers =
+        currentQuestionResult?.answerStatus !==
+          ANSWER_STATUS.PENDENTE_AVALIACAO &&
+        currentQuestionResult?.answerStatus !== ANSWER_STATUS.NAO_RESPONDIDO;
+
+      if (shouldShowCorrectAnswers) {
+        if (isCorrectOption) {
+          status = Status.CORRECT;
+        } else if (isSelected && !isCorrectOption) {
+          status = Status.INCORRECT;
+        } else {
+          status = Status.NEUTRAL;
+        }
       } else {
+        // When pending evaluation, show all options as neutral
         status = Status.NEUTRAL;
       }
     }

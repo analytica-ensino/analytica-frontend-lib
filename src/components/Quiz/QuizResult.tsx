@@ -59,8 +59,11 @@ const QuizBadge = ({
 
 const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
   ({ className, ...props }, ref) => {
-    const { getQuestionResultByQuestionId, getCurrentQuestion } =
-      useQuizStore();
+    const {
+      getQuestionResultByQuestionId,
+      getCurrentQuestion,
+      questionsResult,
+    } = useQuizStore();
     const [status, setStatus] = useState<ANSWER_STATUS | undefined>(undefined);
     useEffect(() => {
       const cq = getCurrentQuestion();
@@ -74,9 +77,15 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
       getCurrentQuestion,
       getQuestionResultByQuestionId,
       getCurrentQuestion()?.id,
+      questionsResult,
     ]);
 
     const getClassesByAnswersStatus = () => {
+      // Guard para quando status ainda está carregando
+      if (status === undefined) {
+        return 'bg-gray-100';
+      }
+
       switch (status) {
         case ANSWER_STATUS.RESPOSTA_CORRETA:
           return 'bg-success-background';
@@ -90,6 +99,11 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
     };
 
     const getLabelByAnswersStatus = () => {
+      // Guard para quando status ainda está carregando
+      if (status === undefined) {
+        return 'Carregando...';
+      }
+
       switch (status) {
         case ANSWER_STATUS.RESPOSTA_CORRETA:
           return '🎉 Parabéns!!';
@@ -98,6 +112,7 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
         case ANSWER_STATUS.PENDENTE_AVALIACAO:
           return 'Avaliação pendente';
         case ANSWER_STATUS.NAO_RESPONDIDO:
+          return 'Não foi dessa vez...você deixou a resposta em branco';
         default:
           return 'Não foi dessa vez...você deixou a resposta em branco';
       }
