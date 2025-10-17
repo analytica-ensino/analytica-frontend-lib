@@ -246,6 +246,7 @@ export const AlertsManager = ({ config }: AlertsManagerProps) => {
       date: formData.date,
       time: formData.time,
       sendToday: formData.sendToday,
+      sendCopyToEmail: formData.sendCopyToEmail,
       recipientCategories: Object.fromEntries(
         categories.map((cat) => [
           cat.key,

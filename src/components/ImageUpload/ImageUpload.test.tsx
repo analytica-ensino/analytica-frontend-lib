@@ -76,6 +76,162 @@ describe('ImageUpload Component', () => {
       expect(onTypeError).toHaveBeenCalledWith(invalidFile);
     });
 
+    it('should accept file with valid extension pattern', () => {
+      const onFileSelect = jest.fn();
+      const onTypeError = jest.fn();
+      const pngFile = new File(['content'], 'test.PNG', {
+        type: 'image/png',
+      });
+
+      render(
+        <ImageUpload
+          accept=".png,.jpg,.jpeg"
+          onFileSelect={onFileSelect}
+          onTypeError={onTypeError}
+        />
+      );
+
+      const button = screen.getByText('Inserir imagem');
+      fireEvent.click(button);
+
+      const input = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [pngFile] } });
+
+      expect(onFileSelect).toHaveBeenCalledWith(pngFile);
+      expect(onTypeError).not.toHaveBeenCalled();
+    });
+
+    it('should accept file with valid extension pattern (case insensitive)', () => {
+      const onFileSelect = jest.fn();
+      const onTypeError = jest.fn();
+      const jpgFile = new File(['content'], 'test.JPG', {
+        type: 'image/jpeg',
+      });
+
+      render(
+        <ImageUpload
+          accept=".png,.jpg,.jpeg"
+          onFileSelect={onFileSelect}
+          onTypeError={onTypeError}
+        />
+      );
+
+      const button = screen.getByText('Inserir imagem');
+      fireEvent.click(button);
+
+      const input = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [jpgFile] } });
+
+      expect(onFileSelect).toHaveBeenCalledWith(jpgFile);
+      expect(onTypeError).not.toHaveBeenCalled();
+    });
+
+    it('should call onTypeError for invalid extension pattern', () => {
+      const onTypeError = jest.fn();
+      const invalidFile = new File(['content'], 'test.txt', {
+        type: 'text/plain',
+      });
+
+      render(
+        <ImageUpload accept=".png,.jpg,.jpeg" onTypeError={onTypeError} />
+      );
+
+      const button = screen.getByText('Inserir imagem');
+      fireEvent.click(button);
+
+      const input = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [invalidFile] } });
+
+      expect(onTypeError).toHaveBeenCalledWith(invalidFile);
+    });
+
+    it('should accept file with mixed accept patterns (MIME and extension)', () => {
+      const onFileSelect = jest.fn();
+      const onTypeError = jest.fn();
+      const pngFile = new File(['content'], 'test.png', {
+        type: 'image/png',
+      });
+
+      render(
+        <ImageUpload
+          accept="image/*,.pdf,.doc"
+          onFileSelect={onFileSelect}
+          onTypeError={onTypeError}
+        />
+      );
+
+      const button = screen.getByText('Inserir imagem');
+      fireEvent.click(button);
+
+      const input = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [pngFile] } });
+
+      expect(onFileSelect).toHaveBeenCalledWith(pngFile);
+      expect(onTypeError).not.toHaveBeenCalled();
+    });
+
+    it('should accept file with exact MIME type match', () => {
+      const onFileSelect = jest.fn();
+      const onTypeError = jest.fn();
+      const pngFile = new File(['content'], 'test.png', {
+        type: 'image/png',
+      });
+
+      render(
+        <ImageUpload
+          accept="image/png,image/jpeg"
+          onFileSelect={onFileSelect}
+          onTypeError={onTypeError}
+        />
+      );
+
+      const button = screen.getByText('Inserir imagem');
+      fireEvent.click(button);
+
+      const input = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [pngFile] } });
+
+      expect(onFileSelect).toHaveBeenCalledWith(pngFile);
+      expect(onTypeError).not.toHaveBeenCalled();
+    });
+
+    it('should handle accept string with spaces and mixed patterns', () => {
+      const onFileSelect = jest.fn();
+      const onTypeError = jest.fn();
+      const pngFile = new File(['content'], 'test.png', {
+        type: 'image/png',
+      });
+
+      render(
+        <ImageUpload
+          accept="image/*, .pdf, .doc, image/jpeg"
+          onFileSelect={onFileSelect}
+          onTypeError={onTypeError}
+        />
+      );
+
+      const button = screen.getByText('Inserir imagem');
+      fireEvent.click(button);
+
+      const input = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [pngFile] } });
+
+      expect(onFileSelect).toHaveBeenCalledWith(pngFile);
+      expect(onTypeError).not.toHaveBeenCalled();
+    });
+
     it('should call onSizeError when file exceeds maxSize', () => {
       const onSizeError = jest.fn();
       const largeFile = new File(['x'.repeat(2000)], 'large.png', {
@@ -139,16 +295,34 @@ describe('ImageUpload Component', () => {
       expect(progressBar).toHaveStyle({ width: '50%' });
     });
 
-    it('should not render progress bar when progress is 100', () => {
+    it('should render progress bar when progress is 100 and showProgress is true', () => {
       const { container } = render(
-        <ImageUpload selectedFile={mockFile} uploadProgress={100} />
+        <ImageUpload
+          selectedFile={mockFile}
+          uploadProgress={100}
+          showProgress={true}
+        />
+      );
+
+      const progressBar = container.querySelector('[role="progressbar"]');
+      expect(progressBar).toBeInTheDocument();
+      expect(progressBar).toHaveStyle({ width: '100%' });
+    });
+
+    it('should not render progress bar when progress is 100 and showProgress is false', () => {
+      const { container } = render(
+        <ImageUpload
+          selectedFile={mockFile}
+          uploadProgress={100}
+          showProgress={false}
+        />
       );
 
       const progressBar = container.querySelector('[role="progressbar"]');
       expect(progressBar).not.toBeInTheDocument();
     });
 
-    it('should not render progress bar when showProgress is false', () => {
+    it('should render progress bar when showProgress is false but progress < 100', () => {
       const { container } = render(
         <ImageUpload
           selectedFile={mockFile}
@@ -158,7 +332,8 @@ describe('ImageUpload Component', () => {
       );
 
       const progressBar = container.querySelector('[role="progressbar"]');
-      expect(progressBar).not.toBeInTheDocument();
+      expect(progressBar).toBeInTheDocument();
+      expect(progressBar).toHaveStyle({ width: '50%' });
     });
   });
 

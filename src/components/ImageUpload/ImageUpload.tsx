@@ -77,6 +77,9 @@ export default function ImageUpload({
         const mainType = type.split('/')[0];
         return file.type.startsWith(mainType + '/');
       }
+      if (type.startsWith('.')) {
+        return file.name.toLowerCase().endsWith(type.toLowerCase());
+      }
       return file.type === type;
     });
 
@@ -111,10 +114,10 @@ export default function ImageUpload({
   };
 
   const showProgressBar =
-    showProgress &&
     hasFile &&
     uploadProgress !== undefined &&
-    uploadProgress < 100;
+    // if showProgress is true, also show at 100
+    (showProgress || uploadProgress < 100);
 
   if (variant === 'compact') {
     return (

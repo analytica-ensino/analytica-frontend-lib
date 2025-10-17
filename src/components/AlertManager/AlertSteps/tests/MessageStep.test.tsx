@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MessageStep } from '../MessageStep';
 import { useAlertFormStore } from '../../useAlertForm';
@@ -26,7 +26,6 @@ interface MockTextAreaProps {
 
 interface MockImageUploadProps {
   selectedFile?: File | null;
-  uploadProgress?: number;
   onFileSelect?: (file: File) => void;
   onRemoveFile?: () => void;
 }
@@ -75,12 +74,10 @@ jest.mock('../../../ImageUpload/ImageUpload', () => ({
   __esModule: true,
   default: ({
     selectedFile,
-    uploadProgress,
     onFileSelect,
     onRemoveFile,
   }: MockImageUploadProps) => (
     <div data-testid="image-upload">
-      <div data-testid="upload-progress">{uploadProgress}</div>
       <button
         onClick={() => {
           const mockFile = new File(['content'], 'test.png', {
@@ -108,13 +105,6 @@ describe('MessageStep', () => {
   beforeEach(() => {
     // Reset store before each test
     useAlertFormStore.getState().resetForm();
-    jest.clearAllTimers();
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
   });
 
   describe('rendering', () => {
@@ -250,72 +240,6 @@ describe('MessageStep', () => {
       expect(state.image?.name).toBe('test.png');
     });
 
-    it('should start upload progress simulation when file is selected', () => {
-      render(<MessageStep />);
-
-      const selectButton = screen.getByTestId('select-file-button');
-      fireEvent.click(selectButton);
-
-      // Initially progress should be 0
-      expect(screen.getByTestId('upload-progress')).toHaveTextContent('0');
-
-      // Advance timer by 100ms (one interval)
-      act(() => {
-        jest.advanceTimersByTime(100);
-      });
-
-      expect(screen.getByTestId('upload-progress')).toHaveTextContent('10');
-
-      // Advance to 50%
-      act(() => {
-        jest.advanceTimersByTime(400);
-      });
-
-      expect(screen.getByTestId('upload-progress')).toHaveTextContent('50');
-    });
-
-    it('should complete upload progress at 100%', () => {
-      render(<MessageStep />);
-
-      const selectButton = screen.getByTestId('select-file-button');
-      fireEvent.click(selectButton);
-
-      // Advance timer to completion (10 intervals * 100ms = 1000ms)
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      expect(screen.getByTestId('upload-progress')).toHaveTextContent('100');
-
-      // Advance more time - should stay at 100
-      act(() => {
-        jest.advanceTimersByTime(500);
-      });
-
-      expect(screen.getByTestId('upload-progress')).toHaveTextContent('100');
-    });
-
-    it('should stop incrementing progress after reaching 100', () => {
-      render(<MessageStep />);
-
-      const selectButton = screen.getByTestId('select-file-button');
-      fireEvent.click(selectButton);
-
-      // Advance to 100%
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      expect(screen.getByTestId('upload-progress')).toHaveTextContent('100');
-
-      // Advance more time - progress should stay at 100 (interval is cleared)
-      act(() => {
-        jest.advanceTimersByTime(500);
-      });
-
-      expect(screen.getByTestId('upload-progress')).toHaveTextContent('100');
-    });
-
     it('should remove file from store when remove button is clicked', () => {
       render(<MessageStep />);
 
@@ -330,27 +254,6 @@ describe('MessageStep', () => {
       fireEvent.click(removeButton);
 
       expect(useAlertFormStore.getState().image).toBeNull();
-    });
-
-    it('should reset upload progress when file is removed', () => {
-      render(<MessageStep />);
-
-      // Select file and advance progress
-      const selectButton = screen.getByTestId('select-file-button');
-      fireEvent.click(selectButton);
-
-      act(() => {
-        jest.advanceTimersByTime(500);
-      });
-
-      expect(screen.getByTestId('upload-progress')).toHaveTextContent('50');
-
-      // Remove file
-      const removeButton = screen.getByTestId('remove-file-button');
-      fireEvent.click(removeButton);
-
-      // Progress should reset to 0
-      expect(screen.getByTestId('upload-progress')).toHaveTextContent('0');
     });
 
     it('should display selected file name', () => {
@@ -463,73 +366,6 @@ describe('MessageStep', () => {
     });
   });
 
-  describe('upload progress simulation', () => {
-    it('should increment progress by 10 every 100ms', () => {
-      render(<MessageStep />);
-
-      const selectButton = screen.getByTestId('select-file-button');
-      fireEvent.click(selectButton);
-
-      const progressElement = screen.getByTestId('upload-progress');
-
-      // Check progress at each interval
-      expect(progressElement).toHaveTextContent('0');
-
-      act(() => jest.advanceTimersByTime(100));
-      expect(progressElement).toHaveTextContent('10');
-
-      act(() => jest.advanceTimersByTime(100));
-      expect(progressElement).toHaveTextContent('20');
-
-      act(() => jest.advanceTimersByTime(100));
-      expect(progressElement).toHaveTextContent('30');
-    });
-
-    it('should stop at 100 and clear interval', () => {
-      render(<MessageStep />);
-
-      const selectButton = screen.getByTestId('select-file-button');
-      fireEvent.click(selectButton);
-
-      // Fast-forward to completion
-      act(() => jest.advanceTimersByTime(1000));
-
-      expect(screen.getByTestId('upload-progress')).toHaveTextContent('100');
-
-      // Advance more time - should not exceed 100
-      act(() => jest.advanceTimersByTime(1000));
-
-      expect(screen.getByTestId('upload-progress')).toHaveTextContent('100');
-    });
-
-    it('should reset progress to 0 when starting new upload', () => {
-      render(<MessageStep />);
-
-      const selectButton = screen.getByTestId('select-file-button');
-
-      // First upload
-      fireEvent.click(selectButton);
-      act(() => jest.advanceTimersByTime(300));
-
-      // Progress should be at 30
-      let progress = parseInt(
-        screen.getByTestId('upload-progress').textContent || '0'
-      );
-      expect(progress).toBeGreaterThan(0);
-
-      // Remove file
-      const removeButton = screen.getByTestId('remove-file-button');
-      fireEvent.click(removeButton);
-
-      // Progress resets to 0
-      expect(screen.getByTestId('upload-progress')).toHaveTextContent('0');
-
-      // Second upload - should start from 0 again
-      fireEvent.click(selectButton);
-      expect(screen.getByTestId('upload-progress')).toHaveTextContent('0');
-    });
-  });
-
   describe('form validation', () => {
     it('should have required attribute on title input', () => {
       render(<MessageStep />);
@@ -616,25 +452,6 @@ describe('MessageStep', () => {
       expect(screen.getByPlaceholderText('Type title')).toBeInTheDocument();
       expect(screen.getByText('Message Field')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('Type message')).toBeInTheDocument();
-    });
-  });
-
-  describe('component cleanup', () => {
-    it('should clear interval when component unmounts during upload', () => {
-      const { unmount } = render(<MessageStep />);
-
-      const selectButton = screen.getByTestId('select-file-button');
-      fireEvent.click(selectButton);
-
-      act(() => jest.advanceTimersByTime(300));
-
-      // Unmount while upload is in progress
-      unmount();
-
-      // No errors should occur
-      expect(() => {
-        act(() => jest.advanceTimersByTime(1000));
-      }).not.toThrow();
     });
   });
 });

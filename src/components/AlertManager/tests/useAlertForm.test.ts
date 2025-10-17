@@ -102,16 +102,10 @@ describe('useAlertFormStore', () => {
     it('should set sendToday to true and auto-fill date and time', () => {
       const { result } = renderHook(() => useAlertFormStore());
 
-      // Mock current date
+      // Mock current date using Jest fake timers
       const mockDate = new Date('2024-10-15T14:30:00');
-      const RealDate = Date;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (globalThis as any).Date = class extends RealDate {
-        constructor() {
-          super();
-          return mockDate;
-        }
-      };
+      jest.useFakeTimers();
+      jest.setSystemTime(mockDate);
 
       act(() => {
         result.current.setSendToday(true);
@@ -121,8 +115,7 @@ describe('useAlertFormStore', () => {
       expect(result.current.date).toBe('2024-10-15');
       expect(result.current.time).toBe('14:30');
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (globalThis as any).Date = RealDate;
+      jest.useRealTimers();
     });
 
     it('should set sendToday to false without changing date and time', () => {
@@ -151,14 +144,8 @@ describe('useAlertFormStore', () => {
       expect(result.current.time).toBe('10:00');
 
       const mockDate = new Date('2024-10-15T14:30:00');
-      const RealDate = Date;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (globalThis as any).Date = class extends RealDate {
-        constructor() {
-          super();
-          return mockDate;
-        }
-      };
+      jest.useFakeTimers();
+      jest.setSystemTime(mockDate);
 
       act(() => {
         result.current.setSendToday(true);
@@ -168,8 +155,7 @@ describe('useAlertFormStore', () => {
       expect(result.current.date).toBe('2024-10-15');
       expect(result.current.time).toBe('14:30');
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (globalThis as any).Date = RealDate;
+      jest.useRealTimers();
     });
   });
 
@@ -516,6 +502,100 @@ describe('useAlertFormStore', () => {
       expect(
         result.current.recipientCategories['class'].availableItems[0].parentId
       ).toBe('school-1');
+    });
+  });
+
+  describe('guard against missing categories', () => {
+    it('should create default category when updateCategoryItems is called before initializeCategory', () => {
+      const { result } = renderHook(() => useAlertFormStore());
+
+      act(() => {
+        result.current.updateCategoryItems('new-category', [
+          { id: '1', name: 'Item 1' },
+        ]);
+      });
+
+      expect(result.current.recipientCategories['new-category']).toEqual({
+        key: 'new-category',
+        label: 'new-category',
+        availableItems: [{ id: '1', name: 'Item 1' }],
+        selectedIds: [],
+        allSelected: false,
+      });
+    });
+
+    it('should create default category when updateCategorySelection is called before initializeCategory', () => {
+      const { result } = renderHook(() => useAlertFormStore());
+
+      act(() => {
+        result.current.updateCategorySelection(
+          'new-category',
+          ['1', '2'],
+          true
+        );
+      });
+
+      expect(result.current.recipientCategories['new-category']).toEqual({
+        key: 'new-category',
+        label: 'new-category',
+        availableItems: [],
+        selectedIds: ['1', '2'],
+        allSelected: true,
+      });
+    });
+
+    it('should create default category when clearCategorySelection is called before initializeCategory', () => {
+      const { result } = renderHook(() => useAlertFormStore());
+
+      act(() => {
+        result.current.clearCategorySelection('new-category');
+      });
+
+      expect(result.current.recipientCategories['new-category']).toEqual({
+        key: 'new-category',
+        label: 'new-category',
+        availableItems: [],
+        selectedIds: [],
+        allSelected: false,
+      });
+    });
+
+    it('should preserve existing category properties when updating non-existent category', () => {
+      const { result } = renderHook(() => useAlertFormStore());
+
+      // First initialize a category
+      act(() => {
+        result.current.initializeCategory({
+          key: 'existing-category',
+          label: 'Existing Category',
+          availableItems: [{ id: '1', name: 'Item 1' }],
+          selectedIds: ['1'],
+          allSelected: false,
+        });
+      });
+
+      // Then update a non-existent category - should not affect existing one
+      act(() => {
+        result.current.updateCategoryItems('new-category', [
+          { id: '2', name: 'Item 2' },
+        ]);
+      });
+
+      expect(result.current.recipientCategories['existing-category']).toEqual({
+        key: 'existing-category',
+        label: 'Existing Category',
+        availableItems: [{ id: '1', name: 'Item 1' }],
+        selectedIds: ['1'],
+        allSelected: false,
+      });
+
+      expect(result.current.recipientCategories['new-category']).toEqual({
+        key: 'new-category',
+        label: 'new-category',
+        availableItems: [{ id: '2', name: 'Item 2' }],
+        selectedIds: [],
+        allSelected: false,
+      });
     });
   });
 });

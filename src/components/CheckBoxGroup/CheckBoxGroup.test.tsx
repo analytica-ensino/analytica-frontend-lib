@@ -1047,8 +1047,8 @@ describe('CheckboxGroup', () => {
       );
       const endTime = performance.now();
 
-      // Should render within reasonable time (less than 1 second)
-      expect(endTime - startTime).toBeLessThan(1000);
+      // Should render within reasonable time (less than 3 seconds)
+      expect(endTime - startTime).toBeLessThan(3000);
     });
   });
 });

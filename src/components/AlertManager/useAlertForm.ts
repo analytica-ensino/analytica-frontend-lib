@@ -25,6 +25,7 @@ interface AlertFormData {
   date: string;
   time: string;
   sendToday: boolean;
+  sendCopyToEmail: boolean;
   recipientCategories: Record<string, RecipientCategory>; // Categorias dinâmicas
 }
 
@@ -36,6 +37,7 @@ interface AlertFormStore extends AlertFormData {
   setDate: (date: string) => void;
   setTime: (time: string) => void;
   setSendToday: (sendToday: boolean) => void;
+  setSendCopyToEmail: (sendCopyToEmail: boolean) => void;
 
   // Ações dinâmicas para destinatários
   initializeCategory: (category: RecipientCategory) => void;
@@ -57,6 +59,7 @@ const initialState: AlertFormData = {
   date: '',
   time: '',
   sendToday: false,
+  sendCopyToEmail: false,
   recipientCategories: {},
 };
 
@@ -84,39 +87,61 @@ export const useAlertFormStore = create<AlertFormStore>((set) => ({
     })),
 
   updateCategoryItems: (key, items) =>
-    set((state) => ({
-      recipientCategories: {
-        ...state.recipientCategories,
-        [key]: {
-          ...state.recipientCategories[key],
-          availableItems: items,
-        },
-      },
-    })),
-
-  updateCategorySelection: (key, selectedIds, allSelected) =>
-    set((state) => ({
-      recipientCategories: {
-        ...state.recipientCategories,
-        [key]: {
-          ...state.recipientCategories[key],
-          selectedIds,
-          allSelected,
-        },
-      },
-    })),
-
-  clearCategorySelection: (key) =>
-    set((state) => ({
-      recipientCategories: {
-        ...state.recipientCategories,
-        [key]: {
-          ...state.recipientCategories[key],
+    set((state) => {
+      const base =
+        state.recipientCategories[key] ??
+        ({
+          key,
+          label: key,
+          availableItems: [],
           selectedIds: [],
           allSelected: false,
+        } as RecipientCategory);
+      return {
+        recipientCategories: {
+          ...state.recipientCategories,
+          [key]: { ...base, availableItems: items },
         },
-      },
-    })),
+      };
+    }),
+
+  updateCategorySelection: (key, selectedIds, allSelected) =>
+    set((state) => {
+      const base =
+        state.recipientCategories[key] ??
+        ({
+          key,
+          label: key,
+          availableItems: [],
+          selectedIds: [],
+          allSelected: false,
+        } as RecipientCategory);
+      return {
+        recipientCategories: {
+          ...state.recipientCategories,
+          [key]: { ...base, selectedIds, allSelected },
+        },
+      };
+    }),
+
+  clearCategorySelection: (key) =>
+    set((state) => {
+      const base =
+        state.recipientCategories[key] ??
+        ({
+          key,
+          label: key,
+          availableItems: [],
+          selectedIds: [],
+          allSelected: false,
+        } as RecipientCategory);
+      return {
+        recipientCategories: {
+          ...state.recipientCategories,
+          [key]: { ...base, selectedIds: [], allSelected: false },
+        },
+      };
+    }),
 
   // Step 3 - Data de envio
   setDate: (date) => set({ date }),
@@ -142,6 +167,8 @@ export const useAlertFormStore = create<AlertFormStore>((set) => ({
       set({ sendToday });
     }
   },
+
+  setSendCopyToEmail: (sendCopyToEmail) => set({ sendCopyToEmail }),
 
   // Reset form
   resetForm: () => set(initialState),

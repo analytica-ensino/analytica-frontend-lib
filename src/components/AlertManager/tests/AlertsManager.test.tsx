@@ -319,7 +319,7 @@ describe('AlertsManager', () => {
       expect(screen.queryByText('Test Alert 1')).not.toBeInTheDocument();
     });
 
-    it('should call onDeleteAlert when delete button is clicked', async () => {
+    it('should not call onDeleteAlert by default when no delete action occurs', async () => {
       const mockOnDeleteAlert = jest.fn().mockResolvedValue(undefined);
       const mockOnLoadAlerts = jest.fn().mockResolvedValue(mockAlerts);
 

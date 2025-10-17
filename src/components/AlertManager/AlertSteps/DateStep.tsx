@@ -29,9 +29,13 @@ export const DateStep = ({
   const date = useAlertFormStore((state) => state.date);
   const time = useAlertFormStore((state) => state.time);
   const sendToday = useAlertFormStore((state) => state.sendToday);
+  const sendCopyToEmail = useAlertFormStore((state) => state.sendCopyToEmail);
   const setDate = useAlertFormStore((state) => state.setDate);
   const setTime = useAlertFormStore((state) => state.setTime);
   const setSendToday = useAlertFormStore((state) => state.setSendToday);
+  const setSendCopyToEmail = useAlertFormStore(
+    (state) => state.setSendCopyToEmail
+  );
 
   // Formata Date para o formato date (YYYY-MM-DD)
   const formatDateToInput = (dateObj: Date): string => {
@@ -139,6 +143,8 @@ export const DateStep = ({
       {allowEmailCopy && (
         <CheckBox
           label={labels?.sendCopyToEmailLabel || 'Enviar cópia para e-mail'}
+          checked={sendCopyToEmail}
+          onChange={(e) => setSendCopyToEmail(e.target.checked)}
         />
       )}
     </section>

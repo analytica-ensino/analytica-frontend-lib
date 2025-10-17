@@ -33,28 +33,6 @@ export const RecipientsStep = ({
     });
   }, [categories, recipientCategories, initializeCategory]);
 
-  // Get total selected count across all categories
-  const totalSelected = useMemo(() => {
-    return categories.reduce((total, category) => {
-      return total + (category.selectedIds?.length || 0);
-    }, 0);
-  }, [categories]);
-
-  // Get total available count across all categories
-  const totalAvailable = useMemo(() => {
-    return categories.reduce((total, category) => {
-      return total + (category.itens?.length || 0);
-    }, 0);
-  }, [categories]);
-
-  // Format selection count text
-  const getSelectionText = (count: number, total: number) => {
-    if (count === 1) {
-      return `${count} de ${total} selecionado`;
-    }
-    return `${count} de ${total} selecionados`;
-  };
-
   // Handle categories change from CheckboxGroup
   const handleCategoriesChange = (updatedCategories: CategoryConfig[]) => {
     // Update store for each category
@@ -101,12 +79,6 @@ export const RecipientsStep = ({
         categories={syncedCategories}
         onCategoriesChange={handleCategoriesChange}
       />
-
-      <div className="mt-4 p-3 bg-background-50 rounded-lg">
-        <Text size="sm" weight="medium" className="text-text-700">
-          Total: {getSelectionText(totalSelected, totalAvailable)}
-        </Text>
-      </div>
     </section>
   );
 };
