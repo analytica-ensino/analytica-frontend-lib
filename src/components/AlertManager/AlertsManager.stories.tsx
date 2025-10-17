@@ -1,5 +1,7 @@
 import type { Story } from '@ladle/react';
+import { useState } from 'react';
 import { AlertsManager } from './AlertsManager';
+import { Button } from '../..';
 import type { AlertsConfig, RecipientItem, CategoryConfig } from '.';
 
 const mockEscolas: RecipientItem[] = [
@@ -194,21 +196,32 @@ const fullConfig: AlertsConfig = {
 /**
  * Showcase principal: AlertsManager completo com todas as funcionalidades
  */
-export const FullAlertsManager: Story = () => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-    <h2 className="font-bold text-3xl text-text-900">Alerts Manager</h2>
-    <p className="text-text-700">
-      Sistema completo de gerenciamento de avisos com hierarquia de
-      destinatários (Escola → Série → Turma → Alunos)
-    </p>
-    <AlertsManager config={fullConfig} />
-  </div>
-);
+export const FullAlertsManager: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <h2 className="font-bold text-3xl text-text-900">Alerts Manager</h2>
+      <p className="text-text-700">
+        Sistema completo de gerenciamento de avisos com hierarquia de
+        destinatários (Escola → Série → Turma → Alunos)
+      </p>
+      <Button onClick={() => setIsOpen(true)}>Abrir Modal de Avisos</Button>
+      <AlertsManager
+        config={fullConfig}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+      />
+    </div>
+  );
+};
 
 /**
  * Configuração simples com apenas uma categoria
  */
 export const SimpleCategory: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
   const simpleConfig: AlertsConfig = {
     categories: [
       {
@@ -240,7 +253,12 @@ export const SimpleCategory: Story = () => {
       <p className="text-text-700">
         AlertsManager com apenas uma categoria e funcionalidades básicas
       </p>
-      <AlertsManager config={simpleConfig} />
+      <Button onClick={() => setIsOpen(true)}>Enviar Aviso Simples</Button>
+      <AlertsManager
+        config={simpleConfig}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+      />
     </div>
   );
 };
@@ -249,6 +267,8 @@ export const SimpleCategory: Story = () => {
  * Configuração com duas categorias hierárquicas
  */
 export const TwoLevelHierarchy: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
   const twoLevelConfig: AlertsConfig = {
     categories: [
       {
@@ -308,7 +328,14 @@ export const TwoLevelHierarchy: Story = () => {
       <p className="text-text-700">
         AlertsManager com Departamento → Funcionários
       </p>
-      <AlertsManager config={twoLevelConfig} />
+      <Button onClick={() => setIsOpen(true)}>
+        Enviar Comunicado Corporativo
+      </Button>
+      <AlertsManager
+        config={twoLevelConfig}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+      />
     </div>
   );
 };
@@ -419,6 +446,8 @@ export const CustomLabelsEnglish: Story = () => {
  * Configuração mínima obrigatória
  */
 export const MinimalConfig: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
   const minimalConfig: AlertsConfig = {
     categories: [
       {
@@ -440,7 +469,12 @@ export const MinimalConfig: Story = () => {
       <p className="text-text-700">
         AlertsManager with minimal required configuration
       </p>
-      <AlertsManager config={minimalConfig} />
+      <Button onClick={() => setIsOpen(true)}>Open Minimal Modal</Button>
+      <AlertsManager
+        config={minimalConfig}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+      />
     </div>
   );
 };
@@ -609,6 +643,8 @@ const dynamicConfig: AlertsConfig = {
 };
 
 export const DynamicCheckboxGroup: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
       <h2 className="font-bold text-2xl text-text-900">
@@ -618,7 +654,12 @@ export const DynamicCheckboxGroup: Story = () => {
         AlertsManager using the new dynamic CheckboxGroup format with
         hierarchical dependencies
       </p>
-      <AlertsManager config={dynamicConfig} />
+      <Button onClick={() => setIsOpen(true)}>Open Dynamic Modal</Button>
+      <AlertsManager
+        config={dynamicConfig}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+      />
     </div>
   );
 };

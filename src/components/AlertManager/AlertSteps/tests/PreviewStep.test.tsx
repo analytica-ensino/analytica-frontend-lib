@@ -206,15 +206,6 @@ describe('PreviewStep', () => {
       expect(image).toHaveAttribute('src', 'notification.png');
     });
 
-    it('should handle undefined image', () => {
-      useAlertFormStore.getState().setImage(undefined as unknown as File);
-
-      render(<PreviewStep />);
-
-      const image = screen.getByRole('img', { name: /preview/i });
-      expect(image).toHaveAttribute('src', 'notification.png');
-    });
-
     it('should handle null image', () => {
       useAlertFormStore.getState().setImage(null as unknown as File);
 

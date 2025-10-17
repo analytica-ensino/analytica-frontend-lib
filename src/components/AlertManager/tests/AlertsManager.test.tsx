@@ -1,13 +1,9 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import React from 'react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AlertsManager } from '../AlertsManager';
 import { useAlertFormStore } from '../useAlertForm';
-import type {
-  AlertsConfig,
-  AlertTableItem,
-  CategoryConfig,
-  LabelsConfig,
-} from '../types';
+import type { AlertsConfig, CategoryConfig, LabelsConfig } from '../types';
 import type { ReactNode } from 'react';
 import { StepData } from '@/components/Stepper/Stepper';
 
@@ -17,58 +13,31 @@ jest.mock('../../..', () => ({
     children,
     onClick,
     disabled,
-    ...props
+    variant,
+    size,
+    iconLeft,
+    iconRight,
   }: {
     children: ReactNode;
-    onClick: () => void;
-    disabled: boolean;
-    [key: string]: unknown;
+    onClick?: () => void;
+    disabled?: boolean;
+    variant?: string;
+    size?: string;
+    iconLeft?: ReactNode;
+    iconRight?: ReactNode;
   }) => (
-    <button onClick={onClick} disabled={disabled} {...props}>
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      data-testid="button"
+      data-variant={variant}
+      data-size={size}
+    >
+      {iconLeft}
       {children}
+      {iconRight}
     </button>
   ),
-  Table: ({
-    children,
-    ...props
-  }: {
-    children: ReactNode;
-    [key: string]: unknown;
-  }) => <table {...props}>{children}</table>,
-  Text: ({
-    children,
-    ...props
-  }: {
-    children: ReactNode;
-    [key: string]: unknown;
-  }) => <span {...props}>{children}</span>,
-  TableBody: ({ children }: { children: ReactNode }) => (
-    <tbody>{children}</tbody>
-  ),
-  TableCell: ({
-    children,
-    ...props
-  }: {
-    children: ReactNode;
-    [key: string]: unknown;
-  }) => <td {...props}>{children}</td>,
-  TableHead: ({
-    children,
-    ...props
-  }: {
-    children: ReactNode;
-    [key: string]: unknown;
-  }) => <th {...props}>{children}</th>,
-  TableHeader: ({ children }: { children: ReactNode }) => (
-    <thead>{children}</thead>
-  ),
-  TableRow: ({
-    children,
-    ...props
-  }: {
-    children: ReactNode;
-    [key: string]: unknown;
-  }) => <tr {...props}>{children}</tr>,
   Modal: ({
     children,
     isOpen,
@@ -94,15 +63,27 @@ jest.mock('../../..', () => ({
     ) : null,
   Stepper: ({
     steps,
-    ...props
+    size,
+    showProgress,
+    responsive,
+    progressText,
   }: {
     steps: StepData[];
-    [key: string]: unknown;
+    size?: string;
+    showProgress?: boolean;
+    responsive?: boolean;
+    progressText?: string;
   }) => (
-    <div data-testid="stepper" {...props}>
+    <div
+      data-testid="stepper"
+      data-size={size}
+      data-show-progress={showProgress}
+      data-responsive={responsive}
+    >
+      {progressText && <div data-testid="progress-text">{progressText}</div>}
       {steps?.map((step: StepData, index: number) => (
-        <div key={index} data-testid={`step-${index}`}>
-          {step.label} - {step.state}
+        <div key={index} data-testid={`step-${index}`} data-state={step.state}>
+          {step.label}
         </div>
       ))}
     </div>
@@ -114,40 +95,69 @@ jest.mock('phosphor-react', () => ({
   CaretLeft: () => <span data-testid="caret-left">←</span>,
   CaretRight: () => <span data-testid="caret-right">→</span>,
   PaperPlaneTilt: () => <span data-testid="paper-plane">✈</span>,
-  Trash: () => <span data-testid="trash">🗑</span>,
 }));
 
 // Mock AlertSteps
 jest.mock('../AlertSteps', () => ({
-  MessageStep: ({ labels }: { labels: LabelsConfig }) => (
-    <div data-testid="message-step">
+  MessageStep: ({
+    labels,
+    allowImageAttachment,
+  }: {
+    labels: LabelsConfig;
+    allowImageAttachment?: boolean;
+  }) => (
+    <div data-testid="message-step" data-allow-image={allowImageAttachment}>
       Message Step - {labels?.messageLabel || 'Message'}
     </div>
   ),
   RecipientsStep: ({
     categories,
     labels,
+    onCategoriesChange,
   }: {
     categories: CategoryConfig[];
     labels: LabelsConfig;
+    onCategoriesChange?: (cats: CategoryConfig[]) => void;
+  }) => {
+    // Simula seleção automática para permitir navegação
+    React.useEffect(() => {
+      if (onCategoriesChange && categories.length > 0) {
+        const updatedCategories = categories.map((cat) => ({
+          ...cat,
+          selectedIds: cat.selectedIds || ['1'], // Simula seleção automática
+        }));
+        onCategoriesChange(updatedCategories);
+      }
+    }, [categories, onCategoriesChange]);
+
+    return (
+      <div data-testid="recipients-step">
+        Recipients Step - {labels?.recipientsDescription || 'Recipients'}
+        <span data-testid="categories-count">{categories?.length || 0}</span>
+      </div>
+    );
+  },
+  DateStep: ({
+    labels,
+    allowScheduling,
+    allowEmailCopy,
+  }: {
+    labels: LabelsConfig;
+    allowScheduling?: boolean;
+    allowEmailCopy?: boolean;
   }) => (
-    <div data-testid="recipients-step">
-      Recipients Step - {labels?.recipientsDescription || 'Recipients'}
-      <span data-testid="categories-count">{categories?.length || 0}</span>
+    <div
+      data-testid="date-step"
+      data-allow-scheduling={allowScheduling}
+      data-allow-email-copy={allowEmailCopy}
+    >
+      Date Step - {labels?.dateLabel || 'Date'}
     </div>
-  ),
-  DateStep: ({ labels }: { labels: LabelsConfig }) => (
-    <div data-testid="date-step">Date Step - {labels?.dateLabel || 'Date'}</div>
   ),
   PreviewStep: () => <div data-testid="preview-step">Preview Step</div>,
 }));
 
 describe('AlertsManager', () => {
-  const mockAlerts: AlertTableItem[] = [
-    { id: '1', title: 'Test Alert 1', sentAt: '2024-01-01' },
-    { id: '2', title: 'Test Alert 2', sentAt: '2024-01-02' },
-  ];
-
   const mockCategories = [
     {
       key: 'users',
@@ -183,11 +193,17 @@ describe('AlertsManager', () => {
   });
 
   describe('rendering', () => {
-    it('should render with default configuration', () => {
-      render(<AlertsManager config={defaultConfig} />);
+    it('should render modal when isOpen is true', () => {
+      render(<AlertsManager config={defaultConfig} isOpen={true} />);
 
-      expect(screen.getByText('Alerts')).toBeInTheDocument();
-      expect(screen.getByText('Send Alert')).toBeInTheDocument();
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
+      expect(screen.getByTestId('modal-title')).toHaveTextContent('Send Alert');
+    });
+
+    it('should not render modal when isOpen is false', () => {
+      render(<AlertsManager config={defaultConfig} isOpen={false} />);
+
+      expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
     });
 
     it('should render with custom labels', () => {
@@ -200,93 +216,51 @@ describe('AlertsManager', () => {
         },
       };
 
-      render(<AlertsManager config={customConfig} />);
+      render(<AlertsManager config={customConfig} isOpen={true} />);
 
-      expect(screen.getByText('Custom Alerts')).toBeInTheDocument();
-      expect(screen.getByText('Custom Send')).toBeInTheDocument();
+      expect(screen.getByTestId('modal-title')).toHaveTextContent(
+        'Custom Modal'
+      );
     });
 
-    it('should render alerts table when showAlertsTable is true', () => {
-      render(<AlertsManager config={defaultConfig} />);
+    it('should render stepper with correct steps', () => {
+      render(<AlertsManager config={defaultConfig} isOpen={true} />);
 
-      expect(screen.getByText('Titulo')).toBeInTheDocument();
-      expect(screen.getByText('Enviado em')).toBeInTheDocument();
+      expect(screen.getByTestId('stepper')).toBeInTheDocument();
+      expect(screen.getByTestId('step-0')).toHaveTextContent('Mensagem');
+      expect(screen.getByTestId('step-1')).toHaveTextContent('Destinatários');
+      expect(screen.getByTestId('step-2')).toHaveTextContent('Data de envio');
+      expect(screen.getByTestId('step-3')).toHaveTextContent('Prévia');
     });
 
-    it('should not render alerts table when showAlertsTable is false', () => {
-      const configWithoutTable: AlertsConfig = {
-        ...defaultConfig,
-        behavior: { ...defaultConfig.behavior, showAlertsTable: false },
-      };
+    it('should render progress text in stepper', () => {
+      render(<AlertsManager config={defaultConfig} isOpen={true} />);
 
-      render(<AlertsManager config={configWithoutTable} />);
-
-      expect(screen.queryByText('Titulo')).not.toBeInTheDocument();
-      expect(screen.queryByText('Enviado em')).not.toBeInTheDocument();
+      expect(screen.getByTestId('progress-text')).toHaveTextContent(
+        'Etapa 1 de 4'
+      );
     });
   });
 
   describe('modal functionality', () => {
-    it('should open modal when send button is clicked', () => {
-      render(<AlertsManager config={defaultConfig} />);
-
-      const sendButton = screen.getByText('Send Alert');
-      fireEvent.click(sendButton);
-
-      expect(screen.getByTestId('modal')).toBeInTheDocument();
-      expect(screen.getByTestId('modal-title')).toHaveTextContent('Send Alert');
-    });
-
     it('should close modal when close button is clicked', () => {
-      render(<AlertsManager config={defaultConfig} />);
+      const onClose = jest.fn();
+      render(
+        <AlertsManager config={defaultConfig} isOpen={true} onClose={onClose} />
+      );
 
-      // Open modal
-      fireEvent.click(screen.getByText('Send Alert'));
       expect(screen.getByTestId('modal')).toBeInTheDocument();
 
-      // Close modal
       fireEvent.click(screen.getByTestId('modal-close'));
-      expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
-    });
 
-    it('should reset form when modal opens', () => {
-      const resetSpy = jest.spyOn(useAlertFormStore.getState(), 'resetForm');
-
-      render(<AlertsManager config={defaultConfig} />);
-
-      fireEvent.click(screen.getByText('Send Alert'));
-
-      expect(resetSpy).toHaveBeenCalled();
-    });
-
-    it('should render stepper with correct steps', () => {
-      render(<AlertsManager config={defaultConfig} />);
-
-      fireEvent.click(screen.getByText('Send Alert'));
-
-      expect(screen.getByTestId('stepper')).toBeInTheDocument();
-      expect(screen.getByTestId('step-0')).toHaveTextContent(
-        'Mensagem - current'
-      );
-      expect(screen.getByTestId('step-1')).toHaveTextContent(
-        'Destinatários - pending'
-      );
-      expect(screen.getByTestId('step-2')).toHaveTextContent(
-        'Data de envio - pending'
-      );
-      expect(screen.getByTestId('step-3')).toHaveTextContent(
-        'Prévia - pending'
-      );
+      expect(onClose).toHaveBeenCalled();
     });
   });
 
   describe('step rendering', () => {
-    beforeEach(() => {
-      render(<AlertsManager config={defaultConfig} />);
-      fireEvent.click(screen.getByText('Send Alert'));
-    });
-
     it('should render MessageStep initially', () => {
+      render(<AlertsManager config={defaultConfig} isOpen={true} />);
+
       expect(screen.getByTestId('message-step')).toBeInTheDocument();
       expect(screen.getByText('Message Step - Message')).toBeInTheDocument();
     });
@@ -300,46 +274,33 @@ describe('AlertsManager', () => {
         },
       };
 
-      render(<AlertsManager config={configWithImage} />);
-      // Use getAllByText and select the first one (main button)
-      const sendButtons = screen.getAllByText('Send Alert');
-      fireEvent.click(sendButtons[0]);
+      render(<AlertsManager config={configWithImage} isOpen={true} />);
 
       expect(screen.getByTestId('message-step')).toBeInTheDocument();
     });
   });
 
-  describe('alerts table functionality', () => {
-    it('should render empty table by default', () => {
-      render(<AlertsManager config={defaultConfig} />);
-
-      expect(screen.getByText('Titulo')).toBeInTheDocument();
-      expect(screen.getByText('Enviado em')).toBeInTheDocument();
-      // Table should be empty by default
-      expect(screen.queryByText('Test Alert 1')).not.toBeInTheDocument();
+  describe('navigation buttons', () => {
+    beforeEach(() => {
+      render(<AlertsManager config={defaultConfig} isOpen={true} />);
     });
 
-    it('should not call onDeleteAlert by default when no delete action occurs', async () => {
-      const mockOnDeleteAlert = jest.fn().mockResolvedValue(undefined);
-      const mockOnLoadAlerts = jest.fn().mockResolvedValue(mockAlerts);
+    it('should show cancel button', () => {
+      expect(screen.getByText('Cancel')).toBeInTheDocument();
+    });
 
-      const configWithBehavior: AlertsConfig = {
-        ...defaultConfig,
-        behavior: {
-          ...defaultConfig.behavior,
-          onLoadAlerts: mockOnLoadAlerts,
-          onDeleteAlert: mockOnDeleteAlert,
-        },
-      };
+    it('should show next button', () => {
+      expect(screen.getByText('Next')).toBeInTheDocument();
+    });
 
-      render(<AlertsManager config={configWithBehavior} />);
+    it('should not show previous button on first step', () => {
+      expect(screen.queryByText('Previous')).not.toBeInTheDocument();
+    });
 
-      // Simulate loading alerts by calling the function manually
-      await mockOnLoadAlerts();
-
-      // Since onLoadAlerts is not called automatically on mount,
-      // we'll test the delete functionality differently
-      expect(mockOnDeleteAlert).not.toHaveBeenCalled();
+    it('should not show finish button on first step', () => {
+      // O botão "Send Alert" aparece no título do modal, não como botão de finish
+      const finishButtons = screen.queryAllByText('Send Alert');
+      expect(finishButtons).toHaveLength(1); // Apenas no título
     });
   });
 
@@ -355,97 +316,148 @@ describe('AlertsManager', () => {
         ],
       };
 
-      render(<AlertsManager config={configWithCustomSteps} />);
-      fireEvent.click(screen.getByText('Send Alert'));
+      render(<AlertsManager config={configWithCustomSteps} isOpen={true} />);
 
       expect(screen.getByTestId('custom-step')).toBeInTheDocument();
-      expect(screen.getByTestId('step-0')).toHaveTextContent(
-        'Custom Step 1 - current'
+      expect(screen.getByTestId('step-0')).toHaveTextContent('Custom Step 1');
+      expect(screen.getByTestId('step-1')).toHaveTextContent('Custom Step 2');
+    });
+  });
+
+  describe('step rendering with props', () => {
+    it('should render MessageStep with correct props', () => {
+      render(<AlertsManager config={defaultConfig} isOpen={true} />);
+
+      expect(screen.getByTestId('message-step')).toBeInTheDocument();
+      expect(screen.getByTestId('message-step')).toHaveAttribute(
+        'data-allow-image',
+        'true'
       );
-      expect(screen.getByTestId('step-1')).toHaveTextContent(
-        'Custom Step 2 - pending'
+    });
+
+    it('should render MessageStep without image attachment when disabled', () => {
+      const configWithoutImage: AlertsConfig = {
+        ...defaultConfig,
+        behavior: {
+          ...defaultConfig.behavior,
+          allowImageAttachment: false,
+        },
+      };
+
+      render(<AlertsManager config={configWithoutImage} isOpen={true} />);
+
+      expect(screen.getByTestId('message-step')).toHaveAttribute(
+        'data-allow-image',
+        'false'
       );
     });
   });
 
-  describe('configuration', () => {
-    it('should pass correct props to MessageStep', () => {
-      render(<AlertsManager config={defaultConfig} />);
-      fireEvent.click(screen.getByText('Send Alert'));
+  describe('stepper configuration', () => {
+    it('should render stepper with correct attributes', () => {
+      render(<AlertsManager config={defaultConfig} isOpen={true} />);
 
-      expect(screen.getByTestId('message-step')).toBeInTheDocument();
+      const stepper = screen.getByTestId('stepper');
+      expect(stepper).toHaveAttribute('data-size', 'small');
+      expect(stepper).toHaveAttribute('data-show-progress', 'true');
+      expect(stepper).toHaveAttribute('data-responsive', 'true');
     });
 
-    it('should pass correct props to RecipientsStep', () => {
-      render(<AlertsManager config={defaultConfig} />);
-      fireEvent.click(screen.getByText('Send Alert'));
+    it('should render steps with correct states', () => {
+      render(<AlertsManager config={defaultConfig} isOpen={true} />);
 
-      // Navigate to RecipientsStep (this would normally require validation)
-      // For testing purposes, we'll just check that the component exists
-      expect(screen.getByTestId('message-step')).toBeInTheDocument();
+      expect(screen.getByTestId('step-0')).toHaveAttribute(
+        'data-state',
+        'current'
+      );
+      expect(screen.getByTestId('step-1')).toHaveAttribute(
+        'data-state',
+        'pending'
+      );
+      expect(screen.getByTestId('step-2')).toHaveAttribute(
+        'data-state',
+        'pending'
+      );
+      expect(screen.getByTestId('step-3')).toHaveAttribute(
+        'data-state',
+        'pending'
+      );
     });
+  });
 
-    it('should pass correct props to DateStep', () => {
-      render(<AlertsManager config={defaultConfig} />);
-      fireEvent.click(screen.getByText('Send Alert'));
+  describe('button configuration', () => {
+    it('should render buttons with correct attributes', () => {
+      render(<AlertsManager config={defaultConfig} isOpen={true} />);
 
-      expect(screen.getByTestId('message-step')).toBeInTheDocument();
+      const buttons = screen.getAllByTestId('button');
+      expect(buttons).toHaveLength(2); // Cancel and Next buttons
+
+      // Cancel button
+      expect(buttons[0]).toHaveAttribute('data-variant', 'link');
+      expect(buttons[0]).toHaveAttribute('data-size', 'small');
+
+      // Next button
+      expect(buttons[1]).toHaveAttribute('data-variant', 'solid');
+      expect(buttons[1]).toHaveAttribute('data-size', 'small');
     });
+  });
 
-    it('should pass correct props to PreviewStep', () => {
-      render(<AlertsManager config={defaultConfig} />);
-      fireEvent.click(screen.getByText('Send Alert'));
+  describe('form state management', () => {
+    it('should update form state when store changes', () => {
+      render(<AlertsManager config={defaultConfig} isOpen={true} />);
 
-      expect(screen.getByTestId('message-step')).toBeInTheDocument();
+      // Simula mudança no estado do formulário
+      act(() => {
+        useAlertFormStore.getState().setTitle('Test Title');
+        useAlertFormStore.getState().setMessage('Test Message');
+      });
+
+      // O componente deve re-renderizar devido ao forceUpdate
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
     });
   });
 
   describe('error handling', () => {
-    it('should handle onSendAlert errors', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      const mockOnSendAlert = jest
-        .fn()
-        .mockRejectedValue(new Error('Send failed'));
-
-      const configWithBehavior: AlertsConfig = {
-        ...defaultConfig,
-        behavior: {
-          ...defaultConfig.behavior,
-          onSendAlert: mockOnSendAlert,
-        },
-      };
-
-      render(<AlertsManager config={configWithBehavior} />);
-      fireEvent.click(screen.getByText('Send Alert'));
-
-      // Note: This test would require navigating through all steps
-      // For now, we'll just test that the component renders without errors
-      expect(screen.getByTestId('modal')).toBeInTheDocument();
-
-      consoleSpy.mockRestore();
+    it('should handle missing onClose callback', () => {
+      // Não deve quebrar se onClose não for fornecido
+      expect(() => {
+        render(<AlertsManager config={defaultConfig} isOpen={true} />);
+      }).not.toThrow();
     });
 
-    it('should handle onDeleteAlert errors', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      const mockOnDeleteAlert = jest
-        .fn()
-        .mockRejectedValue(new Error('Delete failed'));
-
-      const configWithBehavior: AlertsConfig = {
-        ...defaultConfig,
-        behavior: {
-          ...defaultConfig.behavior,
-          onDeleteAlert: mockOnDeleteAlert,
-        },
+    it('should handle missing behavior configuration', () => {
+      const configWithoutBehavior: AlertsConfig = {
+        categories: mockCategories,
       };
 
-      render(<AlertsManager config={configWithBehavior} />);
+      expect(() => {
+        render(<AlertsManager config={configWithoutBehavior} isOpen={true} />);
+      }).not.toThrow();
+    });
+  });
 
-      // Since there are no alerts loaded by default, we'll test the error handling
-      // by verifying the component renders without errors
-      expect(screen.getByText('Alerts')).toBeInTheDocument();
+  describe('component props', () => {
+    it('should handle isOpen prop changes', () => {
+      const { rerender } = render(
+        <AlertsManager config={defaultConfig} isOpen={false} />
+      );
 
-      consoleSpy.mockRestore();
+      expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+
+      rerender(<AlertsManager config={defaultConfig} isOpen={true} />);
+
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
+    });
+
+    it('should handle onClose prop', () => {
+      const onClose = jest.fn();
+      render(
+        <AlertsManager config={defaultConfig} isOpen={true} onClose={onClose} />
+      );
+
+      fireEvent.click(screen.getByTestId('modal-close'));
+
+      expect(onClose).toHaveBeenCalledTimes(1);
     });
   });
 });
