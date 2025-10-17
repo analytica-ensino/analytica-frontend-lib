@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Button,
   Table,
@@ -31,8 +31,20 @@ export const AlertsManager = ({ config }: AlertsManagerProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [alerts, setAlerts] = useState<AlertTableItem[]>([]);
+  const [categories, setCategories] = useState(config.categories);
+  const [forceUpdate, setForceUpdate] = useState(0);
 
-  const { categories, labels, behavior, steps: customSteps } = config;
+  // Força re-renderização quando o estado do formulário muda
+  useEffect(() => {
+    const unsubscribe = useAlertFormStore.subscribe((_state) => {
+      // Força uma re-renderização para atualizar a validação
+      setForceUpdate((prev) => prev + 1);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const { labels, behavior, steps: customSteps } = config;
 
   // Steps padrão se não fornecidos
   const defaultSteps: StepData[] = [
@@ -71,19 +83,140 @@ export const AlertsManager = ({ config }: AlertsManagerProps) => {
     setIsModalOpen(false);
   };
 
+  // Funções de validação para cada step
+  const validateMessageStep = (formData: {
+    title?: string;
+    message?: string;
+  }) => {
+    if (!formData.title?.trim()) {
+      return 'Título é obrigatório';
+    }
+    if (!formData.message?.trim()) {
+      return 'Mensagem é obrigatória';
+    }
+    return true;
+  };
+
+  const validateRecipientsStep = (_formData: unknown) => {
+    // Verifica se há pelo menos um item selecionado no ÚLTIMO grupo de categorias
+    if (categories.length === 0) {
+      return 'Nenhuma categoria de destinatários configurada';
+    }
+
+    const lastCategory = categories[categories.length - 1];
+    const hasSelectedInLastCategory =
+      lastCategory.selectedIds && lastCategory.selectedIds.length > 0;
+
+    if (!hasSelectedInLastCategory) {
+      return `Selecione pelo menos um ${lastCategory.label?.toLowerCase() || 'destinatário'} no último grupo`;
+    }
+    return true;
+  };
+
+  const validateDateStep = (formData: {
+    sendToday?: boolean;
+    date?: string;
+  }) => {
+    // Se não está enviando hoje, precisa de data
+    if (!formData.sendToday && !formData.date) {
+      return 'Data é obrigatória quando não está enviando hoje';
+    }
+    return true;
+  };
+
+  // Verifica se o step atual é válido
+  const isCurrentStepValid = () => {
+    // Usa forceUpdate para garantir que o estado está atualizado
+    const _ = forceUpdate;
+    const formData = useAlertFormStore.getState();
+
+    switch (currentStep) {
+      case 0: {
+        // MessageStep
+        return validateMessageStep(formData) === true;
+      }
+      case 1: {
+        // RecipientsStep
+        return validateRecipientsStep(formData) === true;
+      }
+      case 2: {
+        // DateStep
+        return validateDateStep(formData) === true;
+      }
+      case 3: {
+        // PreviewStep
+        return true;
+      }
+      default: {
+        const currentStepConfig = customSteps?.[currentStep];
+        if (currentStepConfig?.validate) {
+          return currentStepConfig.validate(formData) === true;
+        }
+        return true;
+      }
+    }
+  };
+
+  // Verifica se pode finalizar (todos os steps obrigatórios estão completos)
+  const canFinish = () => {
+    // Usa forceUpdate para garantir que o estado está atualizado
+    const _ = forceUpdate;
+    const formData = useAlertFormStore.getState();
+
+    // Valida todos os steps obrigatórios
+    return (
+      validateMessageStep(formData) === true &&
+      validateRecipientsStep(formData) === true &&
+      validateDateStep(formData) === true
+    );
+  };
+
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
-      // Valida antes de avançar (se tiver validação customizada)
-      const currentStepConfig = customSteps?.[currentStep];
-      if (currentStepConfig?.validate) {
-        const formData = useAlertFormStore.getState();
-        const validation = currentStepConfig.validate(formData);
+      const formData = useAlertFormStore.getState();
+      let validation: boolean | string = true;
 
-        if (validation === false || typeof validation === 'string') {
-          // Mostra erro (você pode implementar um toast aqui)
-          console.error('Validação falhou:', validation);
-          return;
+      // Validação específica por step
+      switch (currentStep) {
+        case 0: {
+          // MessageStep
+          validation = validateMessageStep(formData);
+          break;
         }
+        case 1: {
+          // RecipientsStep
+          validation = validateRecipientsStep(formData);
+          break;
+        }
+        case 2: {
+          // DateStep
+          validation = validateDateStep(formData);
+          break;
+        }
+        case 3: {
+          // PreviewStep - sempre pode avançar
+          validation = true;
+          break;
+        }
+        default: {
+          // Validação customizada se existir
+          const currentStepConfig = customSteps?.[currentStep];
+          if (currentStepConfig?.validate) {
+            validation = currentStepConfig.validate(formData);
+          }
+          break;
+        }
+      }
+
+      if (validation !== true) {
+        // Mostra erro
+        console.error('Validação falhou:', validation);
+        alert(
+          typeof validation === 'string'
+            ? validation
+            : 'Preencha todos os campos obrigatórios'
+        );
+        return;
       }
 
       if (!completedSteps.includes(currentStep)) {
@@ -114,11 +247,12 @@ export const AlertsManager = ({ config }: AlertsManagerProps) => {
       time: formData.time,
       sendToday: formData.sendToday,
       recipientCategories: Object.fromEntries(
-        Object.entries(formData.recipientCategories).map(([key, cat]) => [
-          key,
+        categories.map((cat) => [
+          cat.key,
           {
-            selectedIds: cat.selectedIds,
-            allSelected: cat.allSelected,
+            selectedIds: cat.selectedIds || [],
+            allSelected:
+              (cat.selectedIds?.length || 0) === (cat.itens?.length || 0),
           },
         ])
       ),
@@ -195,7 +329,13 @@ export const AlertsManager = ({ config }: AlertsManagerProps) => {
           />
         );
       case 1:
-        return <RecipientsStep categories={categories} labels={labels} />;
+        return (
+          <RecipientsStep
+            categories={categories}
+            labels={labels}
+            onCategoriesChange={setCategories}
+          />
+        );
       case 2:
         return (
           <DateStep
@@ -205,7 +345,7 @@ export const AlertsManager = ({ config }: AlertsManagerProps) => {
           />
         );
       case 3:
-        return <PreviewStep labels={labels} />;
+        return <PreviewStep />;
       default:
         return null;
     }
@@ -263,7 +403,7 @@ export const AlertsManager = ({ config }: AlertsManagerProps) => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         title={labels?.modalTitle || 'Enviar aviso'}
-        size={'lg'}
+        size={'md'}
         footer={
           <div className="flex gap-3 justify-end w-full">
             <div className="flex gap-3">
@@ -286,6 +426,7 @@ export const AlertsManager = ({ config }: AlertsManagerProps) => {
                   iconLeft={<PaperPlaneTilt />}
                   size="small"
                   onClick={handleFinish}
+                  disabled={!canFinish()}
                 >
                   {labels?.finishButton || 'Enviar Aviso'}
                 </Button>
@@ -295,6 +436,7 @@ export const AlertsManager = ({ config }: AlertsManagerProps) => {
                   iconRight={<CaretRight />}
                   size="small"
                   onClick={handleNext}
+                  disabled={!isCurrentStepValid()}
                 >
                   {labels?.nextButton || 'Próximo'}
                 </Button>
@@ -306,7 +448,7 @@ export const AlertsManager = ({ config }: AlertsManagerProps) => {
         <div className="flex flex-col gap-4">
           <Stepper
             steps={dynamicSteps}
-            size="medium"
+            size="small"
             showProgress
             responsive
             progressText={`Etapa ${currentStep + 1} de ${steps.length}`}

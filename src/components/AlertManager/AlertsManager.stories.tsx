@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react';
 import { AlertsManager } from './AlertsManager';
-import type { AlertsConfig, RecipientItem } from '.';
+import type { AlertsConfig, RecipientItem, CategoryConfig } from '.';
 
 // Helper type para items com propriedades extras
 type ItemWithExtras = RecipientItem & {
@@ -463,6 +463,184 @@ export const MinimalConfig: Story = () => {
         AlertsManager with minimal required configuration
       </p>
       <AlertsManager config={minimalConfig} />
+    </div>
+  );
+};
+
+// Exemplo usando o novo formato dinâmico do CheckboxGroup
+const dynamicCheckboxCategories: CategoryConfig[] = [
+  {
+    key: 'escola',
+    label: 'Escola',
+    itens: [
+      {
+        id: 'escola-1',
+        name: 'Escola Municipal Central',
+        cidade: 'São Paulo',
+        tipo: 'Pública',
+      },
+      {
+        id: 'escola-2',
+        name: 'Colégio Particular Elite',
+        cidade: 'São Paulo',
+        tipo: 'Privada',
+      },
+    ],
+    selectedIds: [],
+  },
+  {
+    key: 'serie',
+    label: 'Série',
+    dependsOn: ['escola'],
+    itens: [
+      { id: 'serie-1', name: '1ª Série', escolaId: 'escola-1' },
+      { id: 'serie-2', name: '2ª Série', escolaId: 'escola-1' },
+      { id: 'serie-3', name: '7º Ano', escolaId: 'escola-2' },
+      { id: 'serie-4', name: '8º Ano', escolaId: 'escola-2' },
+    ],
+    filteredBy: [{ key: 'escola', internalField: 'escolaId' }],
+    selectedIds: [],
+  },
+  {
+    key: 'turma',
+    label: 'Turma',
+    dependsOn: ['escola', 'serie'],
+    itens: [
+      {
+        id: 'turma-1',
+        name: 'A',
+        serieId: 'serie-1',
+        escolaId: 'escola-1',
+        turno: 'Manhã',
+      },
+      {
+        id: 'turma-2',
+        name: 'B',
+        serieId: 'serie-1',
+        escolaId: 'escola-1',
+        turno: 'Tarde',
+      },
+      {
+        id: 'turma-3',
+        name: 'A',
+        serieId: 'serie-3',
+        escolaId: 'escola-2',
+        turno: 'Noite',
+      },
+    ],
+    filteredBy: [
+      { key: 'escola', internalField: 'escolaId' },
+      { key: 'serie', internalField: 'serieId' },
+    ],
+    selectedIds: [],
+  },
+  {
+    key: 'aluno',
+    label: 'Aluno',
+    dependsOn: ['escola', 'serie', 'turma'],
+    itens: [
+      // Alunos da Turma A - 1ª Série - Escola Municipal Central
+      {
+        id: 'aluno-1',
+        name: 'Alice Silva',
+        turmaId: 'turma-1',
+        serieId: 'serie-1',
+        escolaId: 'escola-1',
+        genero: 'F',
+      },
+      {
+        id: 'aluno-2',
+        name: 'Bruno Santos',
+        turmaId: 'turma-1',
+        serieId: 'serie-1',
+        escolaId: 'escola-1',
+        genero: 'M',
+      },
+      {
+        id: 'aluno-3',
+        name: 'Carlos Oliveira',
+        turmaId: 'turma-1',
+        serieId: 'serie-1',
+        escolaId: 'escola-1',
+        genero: 'M',
+      },
+      // Alunos da Turma B - 1ª Série - Escola Municipal Central
+      {
+        id: 'aluno-4',
+        name: 'Diana Costa',
+        turmaId: 'turma-2',
+        serieId: 'serie-1',
+        escolaId: 'escola-1',
+        genero: 'F',
+      },
+      {
+        id: 'aluno-5',
+        name: 'Eduardo Lima',
+        turmaId: 'turma-2',
+        serieId: 'serie-1',
+        escolaId: 'escola-1',
+        genero: 'M',
+      },
+      // Alunos da Turma A - 7º Ano - Colégio Particular Elite
+      {
+        id: 'aluno-6',
+        name: 'Fernanda Souza',
+        turmaId: 'turma-3',
+        serieId: 'serie-3',
+        escolaId: 'escola-2',
+        genero: 'F',
+      },
+      {
+        id: 'aluno-7',
+        name: 'Gabriel Martins',
+        turmaId: 'turma-3',
+        serieId: 'serie-3',
+        escolaId: 'escola-2',
+        genero: 'M',
+      },
+      {
+        id: 'aluno-8',
+        name: 'Helena Ferreira',
+        turmaId: 'turma-3',
+        serieId: 'serie-3',
+        escolaId: 'escola-2',
+        genero: 'F',
+      },
+    ],
+    filteredBy: [
+      { key: 'escola', internalField: 'escolaId' },
+      { key: 'serie', internalField: 'serieId' },
+      { key: 'turma', internalField: 'turmaId' },
+    ],
+    selectedIds: [],
+  },
+];
+
+const dynamicConfig: AlertsConfig = {
+  categories: dynamicCheckboxCategories,
+  labels: {
+    recipientsDescription:
+      'Selecione os destinatários usando o novo formato dinâmico',
+  },
+  behavior: {
+    showAlertsTable: true,
+    allowImageAttachment: true,
+    allowScheduling: true,
+    allowEmailCopy: true,
+  },
+};
+
+export const DynamicCheckboxGroup: Story = () => {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <h2 className="font-bold text-2xl text-text-900">
+        Dynamic CheckboxGroup Format
+      </h2>
+      <p className="text-text-700">
+        AlertsManager using the new dynamic CheckboxGroup format with
+        hierarchical dependencies
+      </p>
+      <AlertsManager config={dynamicConfig} />
     </div>
   );
 };

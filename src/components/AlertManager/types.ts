@@ -4,8 +4,11 @@ import { ComponentType } from 'react';
 // Re-export para facilitar imports
 export type { RecipientItem, FormatGroupLabelFn } from './useAlertForm';
 
-// Configuração de uma categoria de destinatários
-export interface CategoryConfig {
+// Re-export dos tipos do CheckboxGroup
+export type { CategoryConfig, Item } from '../../CheckBoxGroup/CheckBoxGroup';
+
+// Configuração de uma categoria de destinatários (formato legado - mantido para compatibilidade)
+export interface LegacyCategoryConfig {
   key: string;
   label: string;
   dependsOn?: string[];
@@ -78,7 +81,7 @@ export interface LabelsConfig {
 
 // Configuração completa do componente de Avisos
 export interface AlertsConfig {
-  // Categorias de destinatários
+  // Categorias de destinatários (agora usando o formato do CheckboxGroup)
   categories: CategoryConfig[];
 
   // Steps do wizard (opcional - usa padrão se não fornecido)

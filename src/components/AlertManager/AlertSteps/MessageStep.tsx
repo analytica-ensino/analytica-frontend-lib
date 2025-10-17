@@ -55,6 +55,7 @@ export const MessageStep = ({
       />
 
       <TextArea
+        required
         label={labels?.messageLabel || 'Mensagem'}
         placeholder={labels?.messagePlaceholder || 'Digite a mensagem do aviso'}
         value={message}

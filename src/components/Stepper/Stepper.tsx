@@ -185,7 +185,6 @@ export const Step = ({
             ${sizeClasses.indicator} ${stateClasses.indicator}
             rounded-full flex items-center justify-center relative
             flex-none transition-all duration-300 ease-out
-            w-4 h-4 sm:w-5 sm:h-5 md:w-5 md:h-5 lg:w-6 lg:h-6
           `}
           aria-label={getAriaLabel()}
         >
@@ -202,10 +201,7 @@ export const Step = ({
               size={sizeClasses.indicatorTextSize as '2xs' | 'xs' | 'sm'}
               weight="medium"
               color=""
-              className={cn(
-                stateClasses.indicatorText,
-                'leading-none text-2xs sm:text-xs'
-              )}
+              className={cn(stateClasses.indicatorText, 'leading-none')}
             >
               {stepNumber}
             </Text>
@@ -219,7 +215,7 @@ export const Step = ({
           color=""
           className={cn(
             stateClasses.label,
-            'leading-tight flex-none text-center sm:text-left break-words px-1 sm:px-0 max-w-full text-2xs sm:text-xs md:text-xs lg:text-sm whitespace-normal'
+            'leading-tight flex-none text-center sm:text-left break-words px-1 sm:px-0 max-w-full whitespace-normal'
           )}
         >
           {step.label}

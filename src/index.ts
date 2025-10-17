@@ -20,6 +20,13 @@ export {
   default as CheckboxList,
   CheckboxListItem,
 } from './components/CheckBox/CheckboxList';
+
+// CheckboxGroup Component
+export {
+  CheckboxGroup,
+  type CategoryConfig,
+  type Item,
+} from './components/CheckBoxGroup/CheckBoxGroup';
 export {
   default as Radio,
   RadioGroup,
