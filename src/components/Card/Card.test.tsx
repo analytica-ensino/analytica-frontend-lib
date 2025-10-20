@@ -363,131 +363,43 @@ describe('CardQuestions', () => {
     header: 'Questão de Teste',
   };
 
-  it('should render with minimal props and show "Não Realizado" and "Sem nota"', () => {
+  it('should render with default state "undone" showing "Não Realizado" and "Responder" button', () => {
     render(<CardQuestions {...baseProps} />);
+
     expect(screen.getByText('Questão de Teste')).toBeInTheDocument();
     expect(screen.getByText('Não Realizado')).toBeInTheDocument();
-    expect(screen.getByText('Sem nota')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /Responder/i })
     ).toBeInTheDocument();
   });
 
-  it('should render with state="done" and show "Realizado", "Nota", and badge with default label', () => {
+  it('should render with state "done" showing "Realizado" and "Ver Resultado" button', () => {
     render(<CardQuestions {...baseProps} state="done" />);
+
     expect(screen.getByText('Realizado')).toBeInTheDocument();
-    expect(screen.getByText('Nota')).toBeInTheDocument();
-    expect(screen.getByText('00')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /Ver Resultado/i })
     ).toBeInTheDocument();
   });
 
-  it('should render with custom label when state="done"', () => {
-    render(<CardQuestions {...baseProps} state="done" label="85" />);
-    expect(screen.getByText('Realizado')).toBeInTheDocument();
-    expect(screen.getByText('Nota')).toBeInTheDocument();
-    expect(screen.getByText('85')).toBeInTheDocument();
-    expect(screen.queryByText('00')).not.toBeInTheDocument();
-  });
-
-  it('should not show label badge when state="undone"', () => {
-    render(<CardQuestions {...baseProps} state="undone" label="85" />);
-    expect(screen.getByText('Não Realizado')).toBeInTheDocument();
-    expect(screen.getByText('Sem nota')).toBeInTheDocument();
-    expect(screen.queryByText('85')).not.toBeInTheDocument();
-    expect(screen.queryByText('Nota')).not.toBeInTheDocument();
-  });
-
-  it('should handle different label values correctly', () => {
-    const { rerender } = render(
-      <CardQuestions {...baseProps} state="done" label="100" />
-    );
-    expect(screen.getByText('100')).toBeInTheDocument();
-
-    rerender(<CardQuestions {...baseProps} state="done" label="0" />);
-    expect(screen.getByText('0')).toBeInTheDocument();
-    expect(screen.queryByText('100')).not.toBeInTheDocument();
-
-    rerender(<CardQuestions {...baseProps} state="done" label="--" />);
-    expect(screen.getByText('--')).toBeInTheDocument();
-    expect(screen.queryByText('0')).not.toBeInTheDocument();
-  });
-
-  it('should handle empty label gracefully', () => {
-    render(<CardQuestions {...baseProps} state="done" label="" />);
-    expect(screen.getByText('Realizado')).toBeInTheDocument();
-    expect(screen.getByText('Nota')).toBeInTheDocument();
-    // Badge should still render but with empty content
-    const badgeElement = screen
-      .getByText('Nota')
-      .parentElement?.querySelector('[data-testid="badge"]');
-    expect(badgeElement).toBeInTheDocument();
-  });
-
-  it('should handle undefined label by using default value', () => {
-    render(<CardQuestions {...baseProps} state="done" label={undefined} />);
-    expect(screen.getByText('Realizado')).toBeInTheDocument();
-    expect(screen.getByText('Nota')).toBeInTheDocument();
-    expect(screen.getByText('00')).toBeInTheDocument();
-  });
-
-  it('should work correctly with label and onClickButton together', () => {
+  it('should call onClickButton with valueButton when button is clicked', () => {
     const handleClick = jest.fn();
     render(
       <CardQuestions
         {...baseProps}
         state="done"
-        label="92"
         onClickButton={handleClick}
         valueButton="test-value"
       />
     );
 
-    expect(screen.getByText('92')).toBeInTheDocument();
-    expect(screen.getByText('Realizado')).toBeInTheDocument();
-
     const button = screen.getByRole('button', { name: /Ver Resultado/i });
-    button.click();
+    fireEvent.click(button);
 
     expect(handleClick).toHaveBeenCalledWith('test-value');
   });
 
-  it('should maintain label functionality with custom className', () => {
-    render(
-      <CardQuestions
-        {...baseProps}
-        state="done"
-        label="75"
-        className="custom-class"
-        data-testid="card-with-label"
-      />
-    );
-
-    const container = screen.getByTestId('card-with-label');
-    expect(container.className).toContain('custom-class');
-    expect(screen.getByText('75')).toBeInTheDocument();
-    expect(screen.getByText('Realizado')).toBeInTheDocument();
-  });
-
-  it('should call onClickButton with valueButton when button is clicked', () => {
-    const handleClick = jest.fn();
-
-    render(
-      <CardQuestions
-        {...baseProps}
-        state="done"
-        onClickButton={handleClick}
-        valueButton="123"
-      />
-    );
-
-    const button = screen.getByRole('button', { name: /Ver Resultado/i });
-    fireEvent.click(button);
-    expect(handleClick).toHaveBeenCalledWith('123');
-  });
-
-  it('should accept and apply custom className', () => {
+  it('should apply custom className and forward props correctly', () => {
     render(
       <CardQuestions
         {...baseProps}
@@ -500,9 +412,17 @@ describe('CardQuestions', () => {
     expect(container.className).toContain('custom-class');
   });
 
-  it('should forward extra HTML attributes', () => {
-    render(<CardQuestions {...baseProps} data-testid="card-container" />);
-    expect(screen.getByTestId('card-container')).toBeInTheDocument();
+  it('should render correct badge action based on state', () => {
+    const { rerender } = render(<CardQuestions {...baseProps} />);
+
+    // Test "undone" state with error action
+    let badge = screen.getByTestId('badge');
+    expect(badge).toHaveAttribute('data-action', 'error');
+
+    // Test "done" state with success action
+    rerender(<CardQuestions {...baseProps} state="done" />);
+    badge = screen.getByTestId('badge');
+    expect(badge).toHaveAttribute('data-action', 'success');
   });
 });
 
