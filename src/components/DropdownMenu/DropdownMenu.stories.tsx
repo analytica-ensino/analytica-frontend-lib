@@ -222,6 +222,79 @@ export const AllDropdownComponents: Story = () => {
             </DropdownMenu>
           </div>
         </div>
+
+        {/* Profile Menu com foto */}
+        <div className="flex flex-col gap-4">
+          <h3 className="font-bold text-2xl text-text-900">
+            Com Foto de Perfil
+          </h3>
+          <div className="flex flex-row gap-4">
+            <DropdownMenu>
+              <ProfileMenuTrigger />
+              <DropdownMenuContent
+                className="min-w-[320px]"
+                side="top"
+                variant="profile"
+              >
+                <ProfileMenuHeader
+                  name="Maria Santos"
+                  email="maria@exemplo.com"
+                  photoUrl="https://i.pravatar.cc/150?img=5"
+                />
+
+                <ProfileMenuSection>
+                  <DropdownMenuItem
+                    variant="profile"
+                    iconLeft={<User />}
+                    iconRight={<CaretRight />}
+                  >
+                    Meus dados
+                  </DropdownMenuItem>
+
+                  <ProfileToggleTheme />
+                </ProfileMenuSection>
+
+                <ProfileMenuFooter onClick={() => console.log('Sair')} />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Profile Menu sem foto */}
+        <div className="flex flex-col gap-4">
+          <h3 className="font-bold text-2xl text-text-900">
+            Sem Foto de Perfil (ícone padrão)
+          </h3>
+          <div className="flex flex-row gap-4">
+            <DropdownMenu>
+              <ProfileMenuTrigger />
+              <DropdownMenuContent
+                className="min-w-[320px]"
+                side="top"
+                variant="profile"
+              >
+                <ProfileMenuHeader
+                  name="Carlos Oliveira"
+                  email="carlos@exemplo.com"
+                />
+
+                <ProfileMenuSection>
+                  <DropdownMenuItem
+                    variant="profile"
+                    iconLeft={<User />}
+                    iconRight={<CaretRight />}
+                  >
+                    Meus dados
+                  </DropdownMenuItem>
+
+                  <ProfileToggleTheme />
+                </ProfileMenuSection>
+
+                <ProfileMenuFooter onClick={() => console.log('Sair')} />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
       </section>
     </div>
   );
@@ -384,6 +457,50 @@ export const ProfileMenuWithDisabledItems: Story = () => (
         </DropdownMenuItem>
       </ProfileMenuSection>
       <ProfileMenuFooter />
+    </DropdownMenuContent>
+  </DropdownMenu>
+);
+
+export const ProfileMenuWithPhoto: Story = () => (
+  <DropdownMenu>
+    <ProfileMenuTrigger />
+    <DropdownMenuContent className="min-w-[320px]" variant="profile">
+      <ProfileMenuHeader
+        name="Maria Santos"
+        email="maria@exemplo.com"
+        photoUrl="https://i.pravatar.cc/150?img=5"
+      />
+      <ProfileMenuSection>
+        <DropdownMenuItem
+          variant="profile"
+          iconLeft={<User />}
+          iconRight={<CaretRight />}
+        >
+          Meus dados
+        </DropdownMenuItem>
+        <ProfileToggleTheme />
+      </ProfileMenuSection>
+      <ProfileMenuFooter onClick={() => console.log('Sair')} />
+    </DropdownMenuContent>
+  </DropdownMenu>
+);
+
+export const ProfileMenuWithoutPhoto: Story = () => (
+  <DropdownMenu>
+    <ProfileMenuTrigger />
+    <DropdownMenuContent className="min-w-[320px]" variant="profile">
+      <ProfileMenuHeader name="Carlos Oliveira" email="carlos@exemplo.com" />
+      <ProfileMenuSection>
+        <DropdownMenuItem
+          variant="profile"
+          iconLeft={<User />}
+          iconRight={<CaretRight />}
+        >
+          Meus dados
+        </DropdownMenuItem>
+        <ProfileToggleTheme />
+      </ProfileMenuSection>
+      <ProfileMenuFooter onClick={() => console.log('Sair')} />
     </DropdownMenuContent>
   </DropdownMenu>
 );

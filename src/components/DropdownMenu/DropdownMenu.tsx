@@ -503,9 +503,10 @@ const ProfileMenuHeader = forwardRef<
   HTMLAttributes<HTMLDivElement> & {
     name: string;
     email: string;
+    photoUrl?: string | null;
     store?: DropdownStoreApi;
   }
->(({ className, name, email, store: _store, ...props }, ref) => {
+>(({ className, name, email, photoUrl, store: _store, ...props }, ref) => {
   return (
     <div
       ref={ref}
@@ -513,8 +514,16 @@ const ProfileMenuHeader = forwardRef<
       className={cn('flex flex-row gap-4 items-center', className)}
       {...props}
     >
-      <span className="size-16 bg-primary-100 rounded-full flex items-center justify-center">
-        <User size={34} className="text-primary-800" />
+      <span className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden">
+        {photoUrl ? (
+          <img
+            src={photoUrl}
+            alt="Foto de perfil"
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <User size={34} className="text-primary-800" />
+        )}
       </span>
       <div className="flex flex-col ">
         <Text size="xl" weight="bold" color="text-text-950">
