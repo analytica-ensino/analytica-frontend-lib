@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { Button, Modal, Stepper } from '../..';
 import { CaretLeft, CaretRight, PaperPlaneTilt } from 'phosphor-react';
 import { StepData } from '../Stepper/Stepper';
@@ -175,39 +175,55 @@ export const AlertsManager = ({
   );
 
   const renderCurrentStep = () => {
+    const BaseComponent = ({ children }: { children: ReactNode }) => (
+      <div className="px-6">{children}</div>
+    );
+
     if (customSteps?.[currentStep]?.component) {
       const CustomComponent = customSteps[currentStep].component;
       return (
-        <CustomComponent onNext={handleNext} onPrevious={handlePrevious} />
+        <BaseComponent>
+          <CustomComponent onNext={handleNext} onPrevious={handlePrevious} />
+        </BaseComponent>
       );
     }
 
     switch (currentStep) {
       case 0:
         return (
-          <MessageStep
-            labels={labels}
-            allowImageAttachment={behavior?.allowImageAttachment}
-          />
+          <BaseComponent>
+            <MessageStep
+              labels={labels}
+              allowImageAttachment={behavior?.allowImageAttachment}
+            />
+          </BaseComponent>
         );
       case 1:
         return (
-          <RecipientsStep
-            categories={categories}
-            labels={labels}
-            onCategoriesChange={setCategories}
-          />
+          <BaseComponent>
+            <RecipientsStep
+              categories={categories}
+              labels={labels}
+              onCategoriesChange={setCategories}
+            />
+          </BaseComponent>
         );
       case 2:
         return (
-          <DateStep
-            labels={labels}
-            allowScheduling={behavior?.allowScheduling}
-            allowEmailCopy={behavior?.allowEmailCopy}
-          />
+          <BaseComponent>
+            <DateStep
+              labels={labels}
+              allowScheduling={behavior?.allowScheduling}
+              allowEmailCopy={behavior?.allowEmailCopy}
+            />
+          </BaseComponent>
         );
       case 3:
-        return <PreviewStep />;
+        return (
+          <BaseComponent>
+            <PreviewStep />
+          </BaseComponent>
+        );
       default:
         return null;
     }
@@ -222,6 +238,7 @@ export const AlertsManager = ({
       onClose={handleCloseModal}
       title={labels?.modalTitle || 'Enviar aviso'}
       size={'md'}
+      contentClassName="p-0"
       footer={
         <div className="flex gap-3 justify-end w-full">
           <div className="flex gap-3">
@@ -263,7 +280,7 @@ export const AlertsManager = ({
         </div>
       }
     >
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 bg-red-500">
         <Stepper
           steps={dynamicSteps}
           size="small"
