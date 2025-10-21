@@ -1147,10 +1147,12 @@ describe('Quiz', () => {
 
   describe('QuizHeader Component', () => {
     const mockGetCurrentQuestion = jest.fn();
+    const mockGetQuestionIndex = jest.fn();
 
     beforeEach(() => {
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
+        getQuestionIndex: mockGetQuestionIndex,
         currentQuestionIndex: 0,
       });
     });
@@ -1169,11 +1171,12 @@ describe('Quiz', () => {
       };
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
+      mockGetQuestionIndex.mockReturnValue(1);
 
       render(<QuizHeader />);
 
       expect(screen.getByTestId('header-alternative')).toBeInTheDocument();
-      expect(screen.getByTestId('title')).toHaveTextContent('Questão 1');
+      expect(screen.getByTestId('title')).toHaveTextContent('Questão 01');
       expect(screen.getByTestId('subtitle')).toHaveTextContent('Geografia');
       expect(screen.getByTestId('content')).toHaveTextContent(
         'Qual é a capital do Brasil?'
@@ -1194,18 +1197,21 @@ describe('Quiz', () => {
       };
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
+      mockGetQuestionIndex.mockReturnValue(5);
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
+        getQuestionIndex: mockGetQuestionIndex,
         currentQuestionIndex: 4,
       });
 
       render(<QuizHeader />);
 
-      expect(screen.getByTestId('title')).toHaveTextContent('Questão 5');
+      expect(screen.getByTestId('title')).toHaveTextContent('Questão 05');
     });
 
     it('should render default title when no current question', () => {
       mockGetCurrentQuestion.mockReturnValue(null);
+      mockGetQuestionIndex.mockReturnValue(0);
 
       render(<QuizHeader />);
 
@@ -1222,10 +1228,11 @@ describe('Quiz', () => {
       };
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
+      mockGetQuestionIndex.mockReturnValue(1);
 
       render(<QuizHeader />);
 
-      expect(screen.getByTestId('title')).toHaveTextContent('Questão 1');
+      expect(screen.getByTestId('title')).toHaveTextContent('Questão 01');
       expect(screen.getByTestId('subtitle')).toHaveTextContent('');
       expect(screen.getByTestId('content')).toHaveTextContent(
         'Test question without knowledge matrix'
@@ -1246,6 +1253,7 @@ describe('Quiz', () => {
       };
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
+      mockGetQuestionIndex.mockReturnValue(1);
 
       render(<QuizHeader />);
 
@@ -1260,6 +1268,7 @@ describe('Quiz', () => {
       };
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
+      mockGetQuestionIndex.mockReturnValue(1);
 
       render(<QuizHeader />);
 
@@ -1280,6 +1289,7 @@ describe('Quiz', () => {
       };
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
+      mockGetQuestionIndex.mockReturnValue(1);
 
       render(<QuizHeader />);
 
@@ -1312,23 +1322,26 @@ describe('Quiz', () => {
       };
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion1);
+      mockGetQuestionIndex.mockReturnValue(1);
 
       const { rerender } = render(<QuizHeader />);
 
-      expect(screen.getByTestId('title')).toHaveTextContent('Questão 1');
+      expect(screen.getByTestId('title')).toHaveTextContent('Questão 01');
       expect(screen.getByTestId('subtitle')).toHaveTextContent('Topic 1');
       expect(screen.getByTestId('content')).toHaveTextContent('First question');
 
       // Change question
       mockGetCurrentQuestion.mockReturnValue(mockQuestion2);
+      mockGetQuestionIndex.mockReturnValue(2);
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
+        getQuestionIndex: mockGetQuestionIndex,
         currentQuestionIndex: 1,
       });
 
       rerender(<QuizHeader />);
 
-      expect(screen.getByTestId('title')).toHaveTextContent('Questão 2');
+      expect(screen.getByTestId('title')).toHaveTextContent('Questão 02');
       expect(screen.getByTestId('subtitle')).toHaveTextContent('Topic 2');
       expect(screen.getByTestId('content')).toHaveTextContent(
         'Second question'
@@ -1355,6 +1368,7 @@ describe('Quiz', () => {
       };
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
+      mockGetQuestionIndex.mockReturnValue(1);
 
       render(<QuizHeader />);
 
