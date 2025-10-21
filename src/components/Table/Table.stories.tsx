@@ -9,6 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from './Table';
+import Badge from '../Badge/Badge';
+import ProgressBar from '../ProgressBar/ProgressBar';
+import { CaretRight, FileText } from 'phosphor-react';
 
 // Definindo os estados para demonstração
 const rowStates = ['default', 'selected', 'invalid', 'disabled'] as const;
@@ -233,3 +236,167 @@ export const RowStates: Story = () => (
     </TableBody>
   </Table>
 );
+
+/**
+ * Tabela de Atividades
+ * Demonstra uma tabela completa de atividades escolares com badges de status,
+ * barras de progresso, ícones e linhas clicáveis para navegação.
+ */
+export const ActivityTable: Story = () => {
+  const handleRowClick = (activityId: number) => {
+    alert(`Navegando para atividade #${activityId}`);
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h2 className="font-bold text-2xl text-text-900 mb-4">
+        Tabela de Atividades
+      </h2>
+      <p className="text-text-700 mb-6">
+        Exemplo de tabela de atividades escolares com badges de status, barras
+        de progresso e linhas clicáveis.
+      </p>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Início</TableHead>
+            <TableHead>Prazo</TableHead>
+            <TableHead>Título</TableHead>
+            <TableHead>Escola</TableHead>
+            <TableHead>Ano</TableHead>
+            <TableHead>Matéria</TableHead>
+            <TableHead>Turma</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Conclusão</TableHead>
+            <TableHead className="w-12"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow clickable onClick={() => handleRowClick(1)}>
+            <TableCell>12/05</TableCell>
+            <TableCell>12/05</TableCell>
+            <TableCell>Explorando a Fotossíntese: Atividade...</TableCell>
+            <TableCell>Escola Estadual Professor J...</TableCell>
+            <TableCell>3° ano</TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <FileText
+                  size={20}
+                  className="text-success-600"
+                  weight="fill"
+                />
+                <span>Biologia</span>
+              </div>
+            </TableCell>
+            <TableCell>A</TableCell>
+            <TableCell>
+              <Badge variant="solid" action="error" size="small">
+                VENCIDA
+              </Badge>
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <ProgressBar
+                  value={90}
+                  variant="blue"
+                  size="medium"
+                  layout="compact"
+                  showPercentage
+                  compactWidth="w-[100px]"
+                />
+              </div>
+            </TableCell>
+            <TableCell>
+              <div className="flex justify-center">
+                <CaretRight size={20} className="text-text-600" />
+              </div>
+            </TableCell>
+          </TableRow>
+
+          <TableRow clickable onClick={() => handleRowClick(2)}>
+            <TableCell>12/05</TableCell>
+            <TableCell>12/05</TableCell>
+            <TableCell>Explorando a Fotossíntese: Atividade...</TableCell>
+            <TableCell>Escola Estadual Professor J...</TableCell>
+            <TableCell>3° ano</TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <FileText
+                  size={20}
+                  className="text-success-600"
+                  weight="fill"
+                />
+                <span>Biologia</span>
+              </div>
+            </TableCell>
+            <TableCell>A</TableCell>
+            <TableCell>
+              <Badge variant="solid" action="error" size="small">
+                VENCIDA
+              </Badge>
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <ProgressBar
+                  value={90}
+                  variant="blue"
+                  size="medium"
+                  layout="compact"
+                  showPercentage
+                  compactWidth="w-[100px]"
+                />
+              </div>
+            </TableCell>
+            <TableCell>
+              <div className="flex justify-center">
+                <CaretRight size={20} className="text-text-600" />
+              </div>
+            </TableCell>
+          </TableRow>
+
+          <TableRow clickable onClick={() => handleRowClick(3)}>
+            <TableCell>12/05</TableCell>
+            <TableCell>12/05</TableCell>
+            <TableCell>Explorando a Fotossíntese: Atividade...</TableCell>
+            <TableCell>Escola Estadual Professor J...</TableCell>
+            <TableCell>3° ano</TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <FileText
+                  size={20}
+                  className="text-success-600"
+                  weight="fill"
+                />
+                <span>Biologia</span>
+              </div>
+            </TableCell>
+            <TableCell>A</TableCell>
+            <TableCell>
+              <Badge variant="solid" action="error" size="small">
+                VENCIDA
+              </Badge>
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <ProgressBar
+                  value={90}
+                  variant="blue"
+                  size="medium"
+                  layout="compact"
+                  showPercentage
+                  compactWidth="w-[100px]"
+                />
+              </div>
+            </TableCell>
+            <TableCell>
+              <div className="flex justify-center">
+                <CaretRight size={20} className="text-text-600" />
+              </div>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  );
+};

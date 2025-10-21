@@ -107,16 +107,27 @@ const VARIANT_STATES_ROW = {
 
 interface TableRowPropsExtended extends TableRowProps {
   variant?: TableVariant;
+  clickable?: boolean;
 }
 
 const TableRow = forwardRef<HTMLTableRowElement, TableRowPropsExtended>(
-  ({ variant = 'default', state = 'default', className, ...props }, ref) => {
+  (
+    {
+      variant = 'default',
+      state = 'default',
+      clickable = false,
+      className,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <tr
         ref={ref}
         className={cn(
           'transition-colors',
           state !== 'disabled' ? 'hover:bg-muted/50' : '',
+          clickable && state !== 'disabled' ? 'cursor-pointer' : '',
           VARIANT_STATES_ROW[state][variant],
           className
         )}
@@ -135,7 +146,7 @@ const TableHead = forwardRef<
   <th
     ref={ref}
     className={cn(
-      'h-10 px-6 py-3.5 bg-muted/50 text-left align-middle font-bold text-text-800 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
+      'h-10 px-6 py-3.5 bg-muted/50 text-left align-middle font-bold text-text-800 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] whitespace-nowrap',
       className
     )}
     {...props}
@@ -150,7 +161,7 @@ const TableCell = forwardRef<
   <td
     ref={ref}
     className={cn(
-      'p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-md text-text-800 px-6 py-3.5',
+      'p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-md text-text-800 px-6 py-3.5 whitespace-nowrap',
       className
     )}
     {...props}
