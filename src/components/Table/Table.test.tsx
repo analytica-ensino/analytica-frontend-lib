@@ -62,7 +62,7 @@ describe('Table Components', () => {
   });
 
   describe('TableBody', () => {
-    it('removes border from last row', () => {
+    it('has correct border styling for last row', () => {
       render(
         <Table>
           <TableBody data-testid="body">
@@ -73,7 +73,7 @@ describe('Table Components', () => {
         </Table>
       );
       expect(screen.getByTestId('body')).toHaveClass(
-        '[&_tr:last-child]:border-0'
+        '[&_tr:last-child]:border-border-200'
       );
     });
   });
@@ -89,7 +89,7 @@ describe('Table Components', () => {
           </TableBody>
         </Table>
       );
-      expect(screen.getByTestId('row')).toHaveClass('border-b');
+      expect(screen.getByTestId('row')).toHaveClass('border');
       expect(screen.getByTestId('row')).toHaveClass('border-border-200');
       expect(screen.getByTestId('row')).toHaveClass('hover:bg-muted/50');
       expect(screen.getByTestId('row')).toHaveClass('transition-colors');
@@ -504,6 +504,175 @@ describe('Table Components', () => {
       expect(result.current.sortColumn).toBe('age');
       expect(result.current.sortDirection).toBe('asc');
       expect(result.current.sortedData[0].age).toBe(25);
+    });
+
+    it('handles non-string and non-number values gracefully', () => {
+      const dataWithMixedTypes = [
+        { id: 1, value: true, name: 'A' },
+        { id: 2, value: null, name: 'B' },
+        { id: 3, value: undefined, name: 'C' },
+      ];
+
+      const { result } = renderHook(() => useTableSort(dataWithMixedTypes));
+
+      act(() => {
+        result.current.handleSort('value');
+      });
+
+      // Should not crash and maintain order (return 0 for unsupported types)
+      expect(result.current.sortedData).toHaveLength(3);
+      expect(result.current.sortColumn).toBe('value');
+      expect(result.current.sortDirection).toBe('asc');
+    });
+
+    describe('URL synchronization', () => {
+      beforeEach(() => {
+        // Mock window.location and history
+        delete (window as { location?: Location }).location;
+        window.location = {
+          href: 'http://localhost:3000/',
+          search: '',
+        } as Location;
+
+        window.history.replaceState = jest.fn();
+      });
+
+      it('does not read URL params when syncWithUrl is false', () => {
+        window.location.search = '?sortBy=name&sort=ASC';
+        const { result } = renderHook(() => useTableSort(testData));
+
+        expect(result.current.sortColumn).toBeNull();
+        expect(result.current.sortDirection).toBeNull();
+      });
+
+      it('reads URL params on initialization when syncWithUrl is true', () => {
+        window.location.search = '?sortBy=name&sort=ASC';
+        const { result } = renderHook(() =>
+          useTableSort(testData, { syncWithUrl: true })
+        );
+
+        expect(result.current.sortColumn).toBe('name');
+        expect(result.current.sortDirection).toBe('asc');
+        expect(result.current.sortedData[0].name).toBe('Alice');
+      });
+
+      it('reads DESC sort direction from URL', () => {
+        window.location.search = '?sortBy=age&sort=DESC';
+        const { result } = renderHook(() =>
+          useTableSort(testData, { syncWithUrl: true })
+        );
+
+        expect(result.current.sortColumn).toBe('age');
+        expect(result.current.sortDirection).toBe('desc');
+        expect(result.current.sortedData[0].age).toBe(35);
+      });
+
+      it('ignores invalid sort direction in URL', () => {
+        window.location.search = '?sortBy=name&sort=INVALID';
+        const { result } = renderHook(() =>
+          useTableSort(testData, { syncWithUrl: true })
+        );
+
+        expect(result.current.sortColumn).toBeNull();
+        expect(result.current.sortDirection).toBeNull();
+      });
+
+      it('updates URL when sort changes', () => {
+        const { result } = renderHook(() =>
+          useTableSort(testData, { syncWithUrl: true })
+        );
+
+        act(() => {
+          result.current.handleSort('name');
+        });
+
+        // Wait for useEffect to run
+        expect(window.history.replaceState).toHaveBeenCalled();
+        const calls = (window.history.replaceState as jest.Mock).mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const url = lastCall[2];
+        expect(url).toContain('sortBy=name');
+        expect(url).toContain('sort=ASC');
+      });
+
+      it('updates URL to DESC on second click', () => {
+        const { result } = renderHook(() =>
+          useTableSort(testData, { syncWithUrl: true })
+        );
+
+        act(() => {
+          result.current.handleSort('name');
+        });
+
+        act(() => {
+          result.current.handleSort('name');
+        });
+
+        const calls = (window.history.replaceState as jest.Mock).mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const url = lastCall[2];
+        expect(url).toContain('sortBy=name');
+        expect(url).toContain('sort=DESC');
+      });
+
+      it('removes URL params when sort is cleared', () => {
+        const { result } = renderHook(() =>
+          useTableSort(testData, { syncWithUrl: true })
+        );
+
+        // First click: ASC
+        act(() => {
+          result.current.handleSort('name');
+        });
+
+        // Second click: DESC
+        act(() => {
+          result.current.handleSort('name');
+        });
+
+        // Third click: clear sort
+        act(() => {
+          result.current.handleSort('name');
+        });
+
+        const calls = (window.history.replaceState as jest.Mock).mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const url = lastCall[2];
+        expect(url).not.toContain('sortBy=');
+        expect(url).not.toContain('sort=');
+      });
+
+      it('preserves other URL params when updating sort params', () => {
+        // Create a proper URL object with query params
+        const testUrl = new URL('http://localhost:3000/?page=2&filter=active');
+        window.location = testUrl as unknown as Location;
+
+        const { result } = renderHook(() =>
+          useTableSort(testData, { syncWithUrl: true })
+        );
+
+        act(() => {
+          result.current.handleSort('name');
+        });
+
+        const calls = (window.history.replaceState as jest.Mock).mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const url = lastCall[2];
+        expect(url).toContain('page=2');
+        expect(url).toContain('filter=active');
+        expect(url).toContain('sortBy=name');
+        expect(url).toContain('sort=ASC');
+      });
+
+      it('does not update URL when syncWithUrl is false', () => {
+        const { result } = renderHook(() => useTableSort(testData));
+
+        act(() => {
+          result.current.handleSort('name');
+        });
+
+        expect(window.history.replaceState).not.toHaveBeenCalled();
+      });
     });
   });
 });

@@ -4,6 +4,7 @@ import {
   TdHTMLAttributes,
   useState,
   useMemo,
+  useEffect,
 } from 'react';
 import { cn } from '../../utils/utils';
 import { CaretUp, CaretDown } from 'phosphor-react';
@@ -12,10 +13,16 @@ type TableVariant = 'default' | 'borderless';
 type TableRowState = 'default' | 'selected' | 'invalid' | 'disabled';
 export type SortDirection = 'asc' | 'desc' | null;
 
+interface UseTableSortOptions {
+  /** Se true, sincroniza o estado de ordenação com os parâmetros da URL */
+  syncWithUrl?: boolean;
+}
+
 /**
  * Hook para gerenciar ordenação de dados da tabela
  *
  * @param data - Array de dados a serem ordenados
+ * @param options - Opções de configuração do hook
  * @returns Objeto com dados ordenados, coluna/direção atual e função de sort
  *
  * @example
@@ -25,7 +32,11 @@ export type SortDirection = 'asc' | 'desc' | null;
  *   { id: 2, name: 'Task B', date: '2024-01-02' },
  * ];
  *
+ * // Sem sincronização com URL
  * const { sortedData, sortColumn, sortDirection, handleSort } = useTableSort(activities);
+ *
+ * // Com sincronização com URL
+ * const { sortedData, sortColumn, sortDirection, handleSort } = useTableSort(activities, { syncWithUrl: true });
  *
  * <TableHead
  *   sortDirection={sortColumn === 'name' ? sortDirection : null}
@@ -35,9 +46,58 @@ export type SortDirection = 'asc' | 'desc' | null;
  * </TableHead>
  * ```
  */
-export function useTableSort<T extends Record<string, unknown>>(data: T[]) {
-  const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+export function useTableSort<T extends Record<string, unknown>>(
+  data: T[],
+  options: UseTableSortOptions = {}
+) {
+  const { syncWithUrl = false } = options;
+
+  // Inicializar estado a partir da URL se syncWithUrl estiver habilitado
+  const getInitialState = () => {
+    if (!syncWithUrl || typeof window === 'undefined') {
+      return { column: null, direction: null };
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const sortBy = params.get('sortBy');
+    const sort = params.get('sort');
+
+    if (sortBy && sort && (sort === 'ASC' || sort === 'DESC')) {
+      return {
+        column: sortBy,
+        direction: sort.toLowerCase() as SortDirection,
+      };
+    }
+
+    return { column: null, direction: null };
+  };
+
+  const initialState = getInitialState();
+  const [sortColumn, setSortColumn] = useState<string | null>(
+    initialState.column
+  );
+  const [sortDirection, setSortDirection] = useState<SortDirection>(
+    initialState.direction
+  );
+
+  // Atualizar URL quando o estado de ordenação mudar
+  useEffect(() => {
+    if (!syncWithUrl || typeof window === 'undefined') return;
+
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
+
+    if (sortColumn && sortDirection) {
+      params.set('sortBy', sortColumn);
+      params.set('sort', sortDirection.toUpperCase());
+    } else {
+      params.delete('sortBy');
+      params.delete('sort');
+    }
+
+    // Atualizar URL sem recarregar a página
+    window.history.replaceState({}, '', url.toString());
+  }, [sortColumn, sortDirection, syncWithUrl]);
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {

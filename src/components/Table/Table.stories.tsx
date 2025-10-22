@@ -359,13 +359,13 @@ export const ActivityTable: Story = () => {
     },
   ];
 
-  // Hook personalizado para gerenciar a ordenação
+  // Hook personalizado para gerenciar a ordenação com sincronização de URL
   const {
     sortedData: sortedActivities,
     sortColumn,
     sortDirection,
     handleSort,
-  } = useTableSort(activitiesData);
+  } = useTableSort(activitiesData, { syncWithUrl: true });
 
   const handleRowClick = (activityId: number) => {
     alert(`Navegando para atividade #${activityId}`);
@@ -389,8 +389,10 @@ export const ActivityTable: Story = () => {
       </h2>
       <p className="text-text-700 mb-6">
         Exemplo de tabela de atividades escolares com badges de status, barras
-        de progresso, linhas clicáveis e ordenação. Clique nos headers para
-        ordenar.
+        de progresso, linhas clicáveis e ordenação sincronizada com URL. Clique
+        nos headers para ordenar - a URL será atualizada com os parâmetros de
+        sortBy e sort (ASC/DESC). Copie e cole a URL para reproduzir o estado de
+        ordenação.
       </p>
 
       <Table variant="borderless">
