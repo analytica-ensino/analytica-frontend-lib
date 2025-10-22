@@ -96,7 +96,10 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
     >
       <table
         ref={ref}
-        className={cn('w-full caption-bottom text-sm', className)}
+        className={cn(
+          'w-full caption-bottom text-sm border-separate border-spacing-0',
+          className
+        )}
         {...props}
       >
         {/* Fix Sonnar */}
