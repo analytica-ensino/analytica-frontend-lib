@@ -1,8 +1,82 @@
-import { forwardRef, HTMLAttributes, TdHTMLAttributes } from 'react';
+import {
+  forwardRef,
+  HTMLAttributes,
+  TdHTMLAttributes,
+  useState,
+  useMemo,
+} from 'react';
 import { cn } from '../../utils/utils';
+import { CaretUp, CaretDown } from 'phosphor-react';
 
 type TableVariant = 'default' | 'borderless';
 type TableRowState = 'default' | 'selected' | 'invalid' | 'disabled';
+export type SortDirection = 'asc' | 'desc' | null;
+
+/**
+ * Hook para gerenciar ordenação de dados da tabela
+ *
+ * @param data - Array de dados a serem ordenados
+ * @returns Objeto com dados ordenados, coluna/direção atual e função de sort
+ *
+ * @example
+ * ```tsx
+ * const activities = [
+ *   { id: 1, name: 'Task A', date: '2024-01-01' },
+ *   { id: 2, name: 'Task B', date: '2024-01-02' },
+ * ];
+ *
+ * const { sortedData, sortColumn, sortDirection, handleSort } = useTableSort(activities);
+ *
+ * <TableHead
+ *   sortDirection={sortColumn === 'name' ? sortDirection : null}
+ *   onSort={() => handleSort('name')}
+ * >
+ *   Name
+ * </TableHead>
+ * ```
+ */
+export function useTableSort<T extends Record<string, unknown>>(data: T[]) {
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortColumn(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedData = useMemo(() => {
+    if (!sortColumn || !sortDirection) {
+      return data;
+    }
+
+    return [...data].sort((a, b) => {
+      const aValue = a[sortColumn as keyof T];
+      const bValue = b[sortColumn as keyof T];
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      return 0;
+    });
+  }, [data, sortColumn, sortDirection]);
+
+  return { sortedData, sortColumn, sortDirection, handleSort };
+}
 
 interface TableProps extends HTMLAttributes<HTMLTableElement> {
   variant?: TableVariant;
@@ -16,7 +90,7 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
   ({ variant = 'default', className, children, ...props }, ref) => (
     <div
       className={cn(
-        'relative w-full overflow-hidden',
+        'relative w-full overflow-x-auto',
         variant === 'default' && 'border border-border-200 rounded-xl'
       )}
     >
@@ -52,14 +126,10 @@ interface TableBodyProps extends HTMLAttributes<HTMLTableSectionElement> {
 }
 
 const TableBody = forwardRef<HTMLTableSectionElement, TableBodyProps>(
-  ({ variant = 'default', className, ...props }, ref) => (
+  ({ className, ...props }, ref) => (
     <tbody
       ref={ref}
-      className={cn(
-        '[&_tr:last-child]:border-0',
-        variant === 'default' && 'border-t border-border-200',
-        className
-      )}
+      className={cn('[&_tr:last-child]:border-border-200', className)}
       {...props}
     />
   )
@@ -87,7 +157,7 @@ TableFooter.displayName = 'TableFooter';
 
 const VARIANT_STATES_ROW = {
   default: {
-    default: 'border-b border-border-200',
+    default: 'border border-border-200',
     borderless: '',
   },
   selected: {
@@ -139,19 +209,61 @@ const TableRow = forwardRef<HTMLTableRowElement, TableRowPropsExtended>(
 );
 TableRow.displayName = 'TableRow';
 
-const TableHead = forwardRef<
-  HTMLTableCellElement,
-  TdHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
-  <th
-    ref={ref}
-    className={cn(
-      'h-10 px-6 py-3.5 bg-muted/50 text-left align-middle font-bold text-text-800 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] whitespace-nowrap',
-      className
-    )}
-    {...props}
-  />
-));
+interface TableHeadProps extends TdHTMLAttributes<HTMLTableCellElement> {
+  /** Enable sorting on this column (default: true) */
+  sortable?: boolean;
+  /** Current sort direction for this column */
+  sortDirection?: SortDirection;
+  /** Callback when column header is clicked */
+  onSort?: () => void;
+}
+
+const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
+  (
+    {
+      className,
+      sortable = true,
+      sortDirection = null,
+      onSort,
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    const handleClick = () => {
+      if (sortable && onSort) {
+        onSort();
+      }
+    };
+
+    return (
+      <th
+        ref={ref}
+        className={cn(
+          'h-10 px-6 py-3.5 text-left align-middle font-bold text-base text-text-800 tracking-[0.2px] leading-none [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] whitespace-nowrap',
+          sortable && 'cursor-pointer select-none hover:bg-muted/30',
+          className
+        )}
+        onClick={handleClick}
+        {...props}
+      >
+        <div className="flex items-center gap-2">
+          {children}
+          {sortable && (
+            <div className="flex flex-col">
+              {sortDirection === 'asc' && (
+                <CaretUp size={16} weight="fill" className="text-text-800" />
+              )}
+              {sortDirection === 'desc' && (
+                <CaretDown size={16} weight="fill" className="text-text-800" />
+              )}
+            </div>
+          )}
+        </div>
+      </th>
+    );
+  }
+);
 TableHead.displayName = 'TableHead';
 
 const TableCell = forwardRef<
@@ -161,7 +273,7 @@ const TableCell = forwardRef<
   <td
     ref={ref}
     className={cn(
-      'p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-md text-text-800 px-6 py-3.5 whitespace-nowrap',
+      'p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-base font-normal text-text-800 leading-[150%] tracking-normal px-6 py-3.5 whitespace-nowrap',
       className
     )}
     {...props}

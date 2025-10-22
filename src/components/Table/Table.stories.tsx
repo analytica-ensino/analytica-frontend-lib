@@ -1,6 +1,5 @@
 import type { Story } from '@ladle/react';
-import Table from './Table';
-import {
+import Table, {
   TableBody,
   TableCaption,
   TableCell,
@@ -8,6 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  useTableSort,
 } from './Table';
 import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
@@ -240,11 +240,146 @@ export const RowStates: Story = () => (
 /**
  * Tabela de Atividades
  * Demonstra uma tabela completa de atividades escolares com badges de status,
- * barras de progresso, ícones e linhas clicáveis para navegação.
+ * barras de progresso, ícones, linhas clicáveis e ordenação por coluna.
  */
 export const ActivityTable: Story = () => {
+  // Dados das atividades
+  const activitiesData = [
+    {
+      id: 1,
+      inicio: '12/05',
+      prazo: '12/05',
+      titulo: 'Explorando a Fotossíntese: Atividade...',
+      escola: 'Escola Estadual Professor J...',
+      ano: '3° ano',
+      materia: 'Biologia',
+      materiaIcon: 'success',
+      turma: 'A',
+      status: 'VENCIDA',
+      statusAction: 'error' as const,
+      conclusao: 90,
+    },
+    {
+      id: 2,
+      inicio: '12/05',
+      prazo: '12/05',
+      titulo: 'Explorando a Fotossíntese: Atividade...',
+      escola: 'Escola Estadual Professor J...',
+      ano: '3° ano',
+      materia: 'Biologia',
+      materiaIcon: 'success',
+      turma: 'A',
+      status: 'VENCIDA',
+      statusAction: 'error' as const,
+      conclusao: 90,
+    },
+    {
+      id: 3,
+      inicio: '12/05',
+      prazo: '12/05',
+      titulo: 'Explorando a Fotossíntese: Atividade...',
+      escola: 'Escola Estadual Professor J...',
+      ano: '3° ano',
+      materia: 'Biologia',
+      materiaIcon: 'success',
+      turma: 'A',
+      status: 'VENCIDA',
+      statusAction: 'error' as const,
+      conclusao: 90,
+    },
+    {
+      id: 4,
+      inicio: '15/05',
+      prazo: '20/05',
+      titulo: 'Sistema Circulatório: Quiz Interativo',
+      escola: 'Colégio Santa Maria',
+      ano: '2° ano',
+      materia: 'Biologia',
+      materiaIcon: 'success',
+      turma: 'B',
+      status: 'ATIVA',
+      statusAction: 'success' as const,
+      conclusao: 65,
+    },
+    {
+      id: 5,
+      inicio: '18/05',
+      prazo: '25/05',
+      titulo: 'Equações do Segundo Grau',
+      escola: 'Escola Estadual Dom Pedro II',
+      ano: '1° ano',
+      materia: 'Matemática',
+      materiaIcon: 'primary',
+      turma: 'C',
+      status: 'ATIVA',
+      statusAction: 'success' as const,
+      conclusao: 45,
+    },
+    {
+      id: 6,
+      inicio: '20/05',
+      prazo: '28/05',
+      titulo: 'A Revolução Industrial e suas...',
+      escola: 'Instituto Educacional São José',
+      ano: '3° ano',
+      materia: 'História',
+      materiaIcon: 'warning',
+      turma: 'A',
+      status: 'ATIVA',
+      statusAction: 'success' as const,
+      conclusao: 30,
+    },
+    {
+      id: 7,
+      inicio: '22/05',
+      prazo: '30/05',
+      titulo: 'Leis de Newton: Exercícios Práticos',
+      escola: 'Colégio Objetivo',
+      ano: '1° ano',
+      materia: 'Física',
+      materiaIcon: 'info',
+      turma: 'D',
+      status: 'ATIVA',
+      statusAction: 'success' as const,
+      conclusao: 80,
+    },
+    {
+      id: 8,
+      inicio: '10/05',
+      prazo: '18/05',
+      titulo: 'Verbos Irregulares em Inglês',
+      escola: 'Escola Internacional Anglo',
+      ano: '2° ano',
+      materia: 'Inglês',
+      materiaIcon: 'error',
+      turma: 'B',
+      status: 'PRÓXIMA',
+      statusAction: 'warning' as const,
+      conclusao: 15,
+    },
+  ];
+
+  // Hook personalizado para gerenciar a ordenação
+  const {
+    sortedData: sortedActivities,
+    sortColumn,
+    sortDirection,
+    handleSort,
+  } = useTableSort(activitiesData);
+
   const handleRowClick = (activityId: number) => {
     alert(`Navegando para atividade #${activityId}`);
+  };
+
+  const getIconColor = (icon: string) => {
+    const colors: Record<string, string> = {
+      success: 'text-success-600',
+      primary: 'text-primary-600',
+      warning: 'text-warning-600',
+      info: 'text-info-600',
+      error: 'text-error-600',
+    };
+    return colors[icon] || 'text-text-600';
   };
 
   return (
@@ -254,147 +389,121 @@ export const ActivityTable: Story = () => {
       </h2>
       <p className="text-text-700 mb-6">
         Exemplo de tabela de atividades escolares com badges de status, barras
-        de progresso e linhas clicáveis.
+        de progresso, linhas clicáveis e ordenação. Clique nos headers para
+        ordenar.
       </p>
 
-      <Table>
+      <Table variant="borderless">
         <TableHeader>
-          <TableRow>
-            <TableHead>Início</TableHead>
-            <TableHead>Prazo</TableHead>
-            <TableHead>Título</TableHead>
-            <TableHead>Escola</TableHead>
-            <TableHead>Ano</TableHead>
-            <TableHead>Matéria</TableHead>
-            <TableHead>Turma</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Conclusão</TableHead>
-            <TableHead className="w-12"></TableHead>
+          <TableRow variant="borderless">
+            <TableHead
+              sortDirection={sortColumn === 'inicio' ? sortDirection : null}
+              onSort={() => handleSort('inicio')}
+            >
+              Início
+            </TableHead>
+            <TableHead
+              sortDirection={sortColumn === 'prazo' ? sortDirection : null}
+              onSort={() => handleSort('prazo')}
+            >
+              Prazo
+            </TableHead>
+            <TableHead
+              sortDirection={sortColumn === 'titulo' ? sortDirection : null}
+              onSort={() => handleSort('titulo')}
+            >
+              Título
+            </TableHead>
+            <TableHead
+              sortDirection={sortColumn === 'escola' ? sortDirection : null}
+              onSort={() => handleSort('escola')}
+            >
+              Escola
+            </TableHead>
+            <TableHead
+              sortDirection={sortColumn === 'ano' ? sortDirection : null}
+              onSort={() => handleSort('ano')}
+            >
+              Ano
+            </TableHead>
+            <TableHead
+              sortDirection={sortColumn === 'materia' ? sortDirection : null}
+              onSort={() => handleSort('materia')}
+            >
+              Matéria
+            </TableHead>
+            <TableHead
+              sortDirection={sortColumn === 'turma' ? sortDirection : null}
+              onSort={() => handleSort('turma')}
+            >
+              Turma
+            </TableHead>
+            <TableHead
+              sortDirection={sortColumn === 'status' ? sortDirection : null}
+              onSort={() => handleSort('status')}
+            >
+              Status
+            </TableHead>
+            <TableHead
+              sortDirection={sortColumn === 'conclusao' ? sortDirection : null}
+              onSort={() => handleSort('conclusao')}
+            >
+              Conclusão
+            </TableHead>
+            <TableHead sortable={false} className="w-12"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow clickable onClick={() => handleRowClick(1)}>
-            <TableCell>12/05</TableCell>
-            <TableCell>12/05</TableCell>
-            <TableCell>Explorando a Fotossíntese: Atividade...</TableCell>
-            <TableCell>Escola Estadual Professor J...</TableCell>
-            <TableCell>3° ano</TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <FileText
-                  size={20}
-                  className="text-success-600"
-                  weight="fill"
-                />
-                <span>Biologia</span>
-              </div>
-            </TableCell>
-            <TableCell>A</TableCell>
-            <TableCell>
-              <Badge variant="solid" action="error" size="small">
-                VENCIDA
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <ProgressBar
-                  value={90}
-                  variant="blue"
-                  size="medium"
-                  layout="compact"
-                  showPercentage
-                  compactWidth="w-[100px]"
-                />
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="flex justify-center">
-                <CaretRight size={20} className="text-text-600" />
-              </div>
-            </TableCell>
-          </TableRow>
-
-          <TableRow clickable onClick={() => handleRowClick(2)}>
-            <TableCell>12/05</TableCell>
-            <TableCell>12/05</TableCell>
-            <TableCell>Explorando a Fotossíntese: Atividade...</TableCell>
-            <TableCell>Escola Estadual Professor J...</TableCell>
-            <TableCell>3° ano</TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <FileText
-                  size={20}
-                  className="text-success-600"
-                  weight="fill"
-                />
-                <span>Biologia</span>
-              </div>
-            </TableCell>
-            <TableCell>A</TableCell>
-            <TableCell>
-              <Badge variant="solid" action="error" size="small">
-                VENCIDA
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <ProgressBar
-                  value={90}
-                  variant="blue"
-                  size="medium"
-                  layout="compact"
-                  showPercentage
-                  compactWidth="w-[100px]"
-                />
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="flex justify-center">
-                <CaretRight size={20} className="text-text-600" />
-              </div>
-            </TableCell>
-          </TableRow>
-
-          <TableRow clickable onClick={() => handleRowClick(3)}>
-            <TableCell>12/05</TableCell>
-            <TableCell>12/05</TableCell>
-            <TableCell>Explorando a Fotossíntese: Atividade...</TableCell>
-            <TableCell>Escola Estadual Professor J...</TableCell>
-            <TableCell>3° ano</TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <FileText
-                  size={20}
-                  className="text-success-600"
-                  weight="fill"
-                />
-                <span>Biologia</span>
-              </div>
-            </TableCell>
-            <TableCell>A</TableCell>
-            <TableCell>
-              <Badge variant="solid" action="error" size="small">
-                VENCIDA
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <ProgressBar
-                  value={90}
-                  variant="blue"
-                  size="medium"
-                  layout="compact"
-                  showPercentage
-                  compactWidth="w-[100px]"
-                />
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="flex justify-center">
-                <CaretRight size={20} className="text-text-600" />
-              </div>
-            </TableCell>
-          </TableRow>
+          {sortedActivities.map((activity) => (
+            <TableRow
+              key={activity.id}
+              clickable
+              onClick={() => handleRowClick(activity.id)}
+            >
+              <TableCell>{activity.inicio}</TableCell>
+              <TableCell>{activity.prazo}</TableCell>
+              <TableCell>{activity.titulo}</TableCell>
+              <TableCell>{activity.escola}</TableCell>
+              <TableCell>{activity.ano}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <FileText
+                    size={20}
+                    className={getIconColor(activity.materiaIcon)}
+                    weight="fill"
+                  />
+                  <span>{activity.materia}</span>
+                </div>
+              </TableCell>
+              <TableCell>{activity.turma}</TableCell>
+              <TableCell>
+                <Badge
+                  variant="solid"
+                  action={activity.statusAction}
+                  size="small"
+                >
+                  {activity.status}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <ProgressBar
+                    value={activity.conclusao}
+                    variant="blue"
+                    size="medium"
+                    layout="compact"
+                    showPercentage
+                    compactWidth="w-[100px]"
+                  />
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex justify-center">
+                  <CaretRight size={20} className="text-text-600" />
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </div>
