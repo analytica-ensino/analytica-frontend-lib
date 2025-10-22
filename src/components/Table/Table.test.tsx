@@ -263,7 +263,11 @@ describe('Table Components', () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead data-testid="head" sortable={false} onSort={handleSort}>
+              <TableHead
+                data-testid="head"
+                sortable={false}
+                onSort={handleSort}
+              >
                 Actions
               </TableHead>
             </TableRow>
@@ -529,10 +533,10 @@ describe('Table Components', () => {
       beforeEach(() => {
         // Mock window.location and history
         delete (window as { location?: Location }).location;
-        window.location = {
+        (window as { location: Partial<Location> }).location = {
           href: 'http://localhost:3000/',
           search: '',
-        } as Location;
+        };
 
         window.history.replaceState = jest.fn();
       });
@@ -645,7 +649,7 @@ describe('Table Components', () => {
       it('preserves other URL params when updating sort params', () => {
         // Create a proper URL object with query params
         const testUrl = new URL('http://localhost:3000/?page=2&filter=active');
-        window.location = testUrl as unknown as Location;
+        (window as { location: Partial<Location> }).location = testUrl;
 
         const { result } = renderHook(() =>
           useTableSort(testData, { syncWithUrl: true })
