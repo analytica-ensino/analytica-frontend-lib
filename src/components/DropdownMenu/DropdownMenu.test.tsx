@@ -721,6 +721,63 @@ describe('ProfileMenu component', () => {
       expect(screen.getByText('Ana Paula')).toBeInTheDocument();
       expect(screen.getByText('ana@gmail.com')).toBeInTheDocument();
     });
+
+    it('renders user icon when no photoUrl is provided', () => {
+      const { container } = render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuHeader email="test@test.com" name="Test User" />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      // Verifica que o ícone de usuário está presente
+      const userIcon = container.querySelector('svg');
+      expect(userIcon).toBeInTheDocument();
+      // Verifica que não há imagem
+      expect(screen.queryByAltText('Foto de perfil')).not.toBeInTheDocument();
+    });
+
+    it('renders profile image when photoUrl is provided', () => {
+      const photoUrl = 'https://example.com/photo.jpg';
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuHeader
+              email="test@test.com"
+              name="Test User"
+              photoUrl={photoUrl}
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const img = screen.getByAltText('Foto de perfil');
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute('src', photoUrl);
+      expect(img).toHaveClass('w-full', 'h-full', 'object-cover');
+    });
+
+    it('does not render image when photoUrl is null', () => {
+      const { container } = render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuHeader
+              email="test@test.com"
+              name="Test User"
+              photoUrl={null}
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(screen.queryByAltText('Foto de perfil')).not.toBeInTheDocument();
+      const userIcon = container.querySelector('svg');
+      expect(userIcon).toBeInTheDocument();
+    });
   });
 
   describe('ProfileMenuSection behavior', () => {
