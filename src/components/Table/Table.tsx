@@ -2,6 +2,7 @@ import {
   forwardRef,
   HTMLAttributes,
   TdHTMLAttributes,
+  ThHTMLAttributes,
   useState,
   useMemo,
   useEffect,
@@ -157,7 +158,7 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
       <table
         ref={ref}
         className={cn(
-          'w-full caption-bottom text-sm border-separate border-spacing-0',
+          'analytica-table w-full caption-bottom text-sm border-separate border-spacing-0',
           className
         )}
         {...props}
@@ -272,7 +273,7 @@ const TableRow = forwardRef<HTMLTableRowElement, TableRowPropsExtended>(
 );
 TableRow.displayName = 'TableRow';
 
-interface TableHeadProps extends TdHTMLAttributes<HTMLTableCellElement> {
+interface TableHeadProps extends ThHTMLAttributes<HTMLTableCellElement> {
   /** Enable sorting on this column (default: true) */
   sortable?: boolean;
   /** Current sort direction for this column */
