@@ -14,7 +14,7 @@ type TableVariant = 'default' | 'borderless';
 type TableRowState = 'default' | 'selected' | 'invalid' | 'disabled';
 export type SortDirection = 'asc' | 'desc' | null;
 
-interface UseTableSortOptions {
+export interface UseTableSortOptions {
   /** Se true, sincroniza o estado de ordenação com os parâmetros da URL */
   syncWithUrl?: boolean;
 }
