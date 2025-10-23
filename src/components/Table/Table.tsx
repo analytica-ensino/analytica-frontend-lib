@@ -55,7 +55,7 @@ export function useTableSort<T extends Record<string, unknown>>(
 
   // Inicializar estado a partir da URL se syncWithUrl estiver habilitado
   const getInitialState = () => {
-    if (!syncWithUrl || typeof globalThis.window === 'undefined') {
+    if (!syncWithUrl || globalThis.window === undefined) {
       return { column: null, direction: null };
     }
 
@@ -83,7 +83,7 @@ export function useTableSort<T extends Record<string, unknown>>(
 
   // Atualizar URL quando o estado de ordenação mudar
   useEffect(() => {
-    if (!syncWithUrl || typeof globalThis.window === 'undefined') return;
+    if (!syncWithUrl || globalThis.window === undefined) return;
 
     const url = new URL(globalThis.location.href);
     const params = url.searchParams;
