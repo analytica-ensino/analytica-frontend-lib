@@ -21,7 +21,7 @@
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
   --color-background-dark: #181719;
-  --color-background-light: #FBFBFB;
+  --color-background-light: #fbfbfb;
   /* Primary Colors */
   --color-primary: #b3b3b3;
   --color-primary-50: #999999;
@@ -259,18 +259,18 @@
 @layer base {
   [data-theme='dark'] {
     /* Primary Colors */
-    --color-primary: #F4FAFF;
-    --color-primary-50: #27344A;
-    --color-primary-100: #BBDCF7;
-    --color-primary-200: #91C7F1;
-    --color-primary-300: #67B0EB;
-    --color-primary-400: #48A0E8;
-    --color-primary-500: #2D91E4;
-    --color-primary-600: #2883D7;
-    --color-primary-700: #2271C4;
-    --color-primary-800: #1C61B2;
-    --color-primary-900: #144BA4;
-    --color-primary-950: #80B8E4;
+    --color-primary: #f4faff;
+    --color-primary-50: #27344a;
+    --color-primary-100: #bbdcf7;
+    --color-primary-200: #91c7f1;
+    --color-primary-300: #67b0eb;
+    --color-primary-400: #48a0e8;
+    --color-primary-500: #2d91e4;
+    --color-primary-600: #2883d7;
+    --color-primary-700: #2271c4;
+    --color-primary-800: #1c61b2;
+    --color-primary-900: #144ba4;
+    --color-primary-950: #80b8e4;
 
     /* Secondary Colors */
     --color-secondary: #141414;
@@ -688,4 +688,36 @@ div textarea:focus {
 
 .analytica-video::-webkit-media-controls-enclosure {
   display: none !important;
+}
+
+/* Table - Bordas arredondadas nas células do tbody */
+/* Aplicar bordas nas células ao invés das linhas para permitir border-radius */
+.analytica-table tbody tr td {
+  border-top: 1px solid var(--color-border-200);
+  border-bottom: 1px solid var(--color-border-200);
+}
+
+.analytica-table tbody tr td:first-child {
+  border-left: 1px solid var(--color-border-200);
+}
+
+.analytica-table tbody tr td:last-child {
+  border-right: 1px solid var(--color-border-200);
+}
+
+/* Bordas arredondadas nos cantos */
+.analytica-table tbody tr:first-child td:first-child {
+  border-top-left-radius: 12px;
+}
+
+.analytica-table tbody tr:first-child td:last-child {
+  border-top-right-radius: 12px;
+}
+
+.analytica-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 12px;
+}
+
+.analytica-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 12px;
 }
