@@ -31,7 +31,7 @@ jest.mock('../Modal/Modal', () => ({
     ) : null,
 }));
 
-jest.mock('../CheckboxGroup/CheckBoxGroup', () => ({
+jest.mock('../CheckBoxGroup/CheckBoxGroup', () => ({
   CheckboxGroup: ({
     categories,
     onCategoriesChange,

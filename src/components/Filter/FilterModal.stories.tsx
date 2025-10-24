@@ -292,6 +292,7 @@ export const BasicFilterModal: Story = () => {
           setIsOpen(false);
         }}
         onClear={clearFilters}
+        size="xl"
       />
     </div>
   );
@@ -314,34 +315,34 @@ export const WithTableIntegration: Story = () => {
   const filteredActivities = mockActivities.filter((activity) => {
     // Check escola filter
     if (activeFilters.escola && activeFilters.escola.length > 0) {
-      const escolaNome = mockEscolas.find((e) =>
-        activeFilters.escola.includes(e.id)
-      )?.name;
-      if (escolaNome && activity.escola !== escolaNome) return false;
+      const escolaNomes = mockEscolas
+        .filter((e) => activeFilters.escola.includes(e.id))
+        .map((e) => e.name);
+      if (!escolaNomes.includes(activity.escola)) return false;
     }
 
     // Check serie filter
     if (activeFilters.serie && activeFilters.serie.length > 0) {
-      const serieNome = mockSeries.find((s) =>
-        activeFilters.serie.includes(s.id)
-      )?.name;
-      if (serieNome && activity.serie !== serieNome) return false;
+      const serieNomes = mockSeries
+        .filter((s) => activeFilters.serie.includes(s.id))
+        .map((s) => s.name);
+      if (!serieNomes.includes(activity.serie)) return false;
     }
 
     // Check turma filter
     if (activeFilters.turma && activeFilters.turma.length > 0) {
-      const turmaNome = mockTurmas.find((t) =>
-        activeFilters.turma.includes(t.id)
-      )?.name;
-      if (turmaNome && activity.turma !== turmaNome) return false;
+      const turmaNomes = mockTurmas
+        .filter((t) => activeFilters.turma.includes(t.id))
+        .map((t) => t.name);
+      if (!turmaNomes.includes(activity.turma)) return false;
     }
 
     // Check materia filter
     if (activeFilters.materia && activeFilters.materia.length > 0) {
-      const materiaNome = mockMaterias.find((m) =>
-        activeFilters.materia.includes(m.id)
-      )?.name;
-      if (materiaNome && activity.materia !== materiaNome) return false;
+      const materiaNomes = mockMaterias
+        .filter((m) => activeFilters.materia.includes(m.id))
+        .map((m) => m.name);
+      if (!materiaNomes.includes(activity.materia)) return false;
     }
 
     return true;
@@ -478,6 +479,7 @@ export const WithTableIntegration: Story = () => {
           setIsOpen(false);
         }}
         onClear={clearFilters}
+        size="xl"
       />
     </div>
   );
@@ -499,31 +501,31 @@ export const WithURLSync: Story = () => {
   // Filter activities based on active filters
   const filteredActivities = mockActivities.filter((activity) => {
     if (activeFilters.escola && activeFilters.escola.length > 0) {
-      const escolaNome = mockEscolas.find((e) =>
-        activeFilters.escola.includes(e.id)
-      )?.name;
-      if (escolaNome && activity.escola !== escolaNome) return false;
+      const escolaNomes = mockEscolas
+        .filter((e) => activeFilters.escola.includes(e.id))
+        .map((e) => e.name);
+      if (!escolaNomes.includes(activity.escola)) return false;
     }
 
     if (activeFilters.serie && activeFilters.serie.length > 0) {
-      const serieNome = mockSeries.find((s) =>
-        activeFilters.serie.includes(s.id)
-      )?.name;
-      if (serieNome && activity.serie !== serieNome) return false;
+      const serieNomes = mockSeries
+        .filter((s) => activeFilters.serie.includes(s.id))
+        .map((s) => s.name);
+      if (!serieNomes.includes(activity.serie)) return false;
     }
 
     if (activeFilters.turma && activeFilters.turma.length > 0) {
-      const turmaNome = mockTurmas.find((t) =>
-        activeFilters.turma.includes(t.id)
-      )?.name;
-      if (turmaNome && activity.turma !== turmaNome) return false;
+      const turmaNomes = mockTurmas
+        .filter((t) => activeFilters.turma.includes(t.id))
+        .map((t) => t.name);
+      if (!turmaNomes.includes(activity.turma)) return false;
     }
 
     if (activeFilters.materia && activeFilters.materia.length > 0) {
-      const materiaNome = mockMaterias.find((m) =>
-        activeFilters.materia.includes(m.id)
-      )?.name;
-      if (materiaNome && activity.materia !== materiaNome) return false;
+      const materiaNomes = mockMaterias
+        .filter((m) => activeFilters.materia.includes(m.id))
+        .map((m) => m.name);
+      if (!materiaNomes.includes(activity.materia)) return false;
     }
 
     return true;
@@ -686,6 +688,7 @@ export const WithURLSync: Story = () => {
           setIsOpen(false);
         }}
         onClear={clearFilters}
+        size="xl"
       />
     </div>
   );
@@ -712,7 +715,7 @@ export const CustomLabels: Story = () => {
         title="Filtros Personalizados"
         applyLabel="Confirmar"
         clearLabel="Resetar Tudo"
-        size="lg"
+        size="xl"
       />
     </div>
   );

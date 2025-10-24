@@ -427,13 +427,16 @@ export const CheckboxGroup = ({
     const filteredItems = formattedItems.flatMap((group) => group.itens || []);
     const filteredItemIds = filteredItems.map((item) => item.id);
 
-    // Verifica se todos os itens filtrados estão selecionados
-    const allFilteredSelected = filteredItemIds.every((itemId) =>
+    // Verifica quantos itens filtrados estão selecionados
+    const selectedFilteredCount = filteredItemIds.filter((itemId) =>
       category.selectedIds?.includes(itemId)
-    );
+    ).length;
 
-    // Se todos os itens filtrados estão selecionados, deseleciona todos os filtrados
-    // Caso contrário, seleciona todos os itens filtrados
+    // Se NENHUM item filtrado está selecionado OU pelo menos um está selecionado mas não todos,
+    // então seleciona todos os itens filtrados
+    // Se TODOS os itens filtrados estão selecionados, então deseleciona todos os filtrados
+    const allFilteredSelected = selectedFilteredCount === filteredItemIds.length;
+
     const newSelection = allFilteredSelected
       ? category.selectedIds?.filter((id) => !filteredItemIds.includes(id)) ||
         []
