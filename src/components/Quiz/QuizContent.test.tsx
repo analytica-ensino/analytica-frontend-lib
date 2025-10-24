@@ -67,18 +67,23 @@ jest.mock('../TextArea/TextArea', () => {
     value,
     onChange,
     placeholder,
+    maxLength,
     ...props
   }: {
     value: string;
     onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
     placeholder: string;
+    maxLength?: number;
+    showCharacterCount?: boolean;
   }) {
+    // Ignore showCharacterCount in mock as it's handled by the real TextArea
     return (
       <textarea
         data-testid="quiz-textarea"
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        maxLength={maxLength}
         {...props}
       />
     );
@@ -1079,13 +1084,16 @@ describe('QuizContent', () => {
     const mockGetCurrentAnswer = jest.fn();
     const mockSelectDissertativeAnswer = jest.fn();
     const mockGetQuestionResultByQuestionId = jest.fn();
+    const mockGetDissertativeCharLimit = jest.fn();
 
     beforeEach(() => {
+      mockGetDissertativeCharLimit.mockReturnValue(undefined); // Default: no limit
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
         getCurrentAnswer: mockGetCurrentAnswer,
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
+        getDissertativeCharLimit: mockGetDissertativeCharLimit,
         variant: 'default',
       } as unknown as ReturnType<typeof useQuizStore>);
 
@@ -1176,6 +1184,7 @@ describe('QuizContent', () => {
         getCurrentAnswer: mockGetCurrentAnswer,
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
+        getDissertativeCharLimit: mockGetDissertativeCharLimit,
         variant: 'result',
       } as unknown as ReturnType<typeof useQuizStore>);
 
@@ -1209,6 +1218,7 @@ describe('QuizContent', () => {
         getCurrentAnswer: mockGetCurrentAnswer,
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
+        getDissertativeCharLimit: mockGetDissertativeCharLimit,
         variant: 'result',
       } as unknown as ReturnType<typeof useQuizStore>);
 
@@ -1239,6 +1249,7 @@ describe('QuizContent', () => {
         getCurrentAnswer: mockGetCurrentAnswer,
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
+        getDissertativeCharLimit: mockGetDissertativeCharLimit,
         variant: 'result',
       } as unknown as ReturnType<typeof useQuizStore>);
 
@@ -1269,6 +1280,7 @@ describe('QuizContent', () => {
         getCurrentAnswer: mockGetCurrentAnswer,
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
+        getDissertativeCharLimit: mockGetDissertativeCharLimit,
         variant: 'result',
       } as unknown as ReturnType<typeof useQuizStore>);
 
@@ -1348,6 +1360,7 @@ describe('QuizContent', () => {
         getCurrentAnswer: mockGetCurrentAnswer,
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
+        getDissertativeCharLimit: mockGetDissertativeCharLimit,
         variant: 'result',
       } as unknown as ReturnType<typeof useQuizStore>);
 

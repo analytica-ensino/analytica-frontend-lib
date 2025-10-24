@@ -331,6 +331,7 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
     selectDissertativeAnswer,
     getQuestionResultByQuestionId,
     variant,
+    getDissertativeCharLimit,
   } = useQuizStore();
 
   const currentQuestion = getCurrentQuestion();
@@ -340,6 +341,7 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
 
   const currentAnswer = getCurrentAnswer();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const charLimit = getDissertativeCharLimit();
 
   const handleAnswerChange = (value: string) => {
     if (currentQuestion) {
@@ -391,6 +393,8 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
                 onChange={(e) => handleAnswerChange(e.target.value)}
                 rows={4}
                 className="min-h-[120px] max-h-[400px] resize-none overflow-y-auto"
+                maxLength={charLimit}
+                showCharacterCount={!!charLimit}
               />
             </div>
           ) : (

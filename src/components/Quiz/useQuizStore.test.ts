@@ -5672,4 +5672,158 @@ describe('useQuizStore', () => {
       });
     });
   });
+
+  describe('Dissertative Character Limit Tests', () => {
+    const mockDissertativeQuestion = {
+      ...mockQuestion1,
+      id: 'dissertative-q1',
+      questionType: QUESTION_TYPE.DISSERTATIVA,
+      options: [],
+    };
+
+    const mockSimuladoWithDissertative = {
+      ...mockSimulado,
+      questions: [mockDissertativeQuestion, mockQuestion2],
+    };
+
+    it('should set and get dissertative character limit', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setDissertativeCharLimit(500);
+      });
+
+      expect(result.current.getDissertativeCharLimit()).toBe(500);
+    });
+
+    it('should allow setting dissertative character limit to undefined', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setDissertativeCharLimit(500);
+        result.current.setDissertativeCharLimit(undefined);
+      });
+
+      expect(result.current.getDissertativeCharLimit()).toBeUndefined();
+    });
+
+    it('should truncate dissertative answer when exceeding character limit', () => {
+      const { result } = renderQuizStoreHook();
+      const longAnswer = 'A'.repeat(600); // 600 characters
+      const expectedAnswer = 'A'.repeat(500); // Should be truncated to 500
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.setDissertativeCharLimit(500);
+        result.current.selectDissertativeAnswer('dissertative-q1', longAnswer);
+      });
+
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.answer).toBe(expectedAnswer);
+      expect(userAnswer?.answer?.length).toBe(500);
+    });
+
+    it('should not truncate dissertative answer when under character limit', () => {
+      const { result } = renderQuizStoreHook();
+      const shortAnswer = 'A'.repeat(300); // 300 characters
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.setDissertativeCharLimit(500);
+        result.current.selectDissertativeAnswer('dissertative-q1', shortAnswer);
+      });
+
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.answer).toBe(shortAnswer);
+      expect(userAnswer?.answer?.length).toBe(300);
+    });
+
+    it('should not truncate dissertative answer when limit is not set', () => {
+      const { result } = renderQuizStoreHook();
+      const longAnswer = 'A'.repeat(1000); // 1000 characters
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        // Explicitly ensure no character limit is set
+        result.current.setDissertativeCharLimit(undefined);
+        result.current.selectDissertativeAnswer('dissertative-q1', longAnswer);
+      });
+
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.answer).toBe(longAnswer);
+      expect(userAnswer?.answer?.length).toBe(1000);
+    });
+
+    it('should handle character limit when updating existing answer', () => {
+      const { result } = renderQuizStoreHook();
+      const firstAnswer = 'First answer';
+      const longAnswer = 'B'.repeat(600); // 600 characters
+      const expectedAnswer = 'B'.repeat(500); // Should be truncated to 500
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.setDissertativeCharLimit(500);
+
+        // First answer
+        result.current.selectDissertativeAnswer('dissertative-q1', firstAnswer);
+      });
+
+      let userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer?.answer).toBe(firstAnswer);
+
+      // Update with long answer
+      act(() => {
+        result.current.selectDissertativeAnswer('dissertative-q1', longAnswer);
+      });
+
+      userAnswer = result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer?.answer).toBe(expectedAnswer);
+      expect(userAnswer?.answer?.length).toBe(500);
+    });
+
+    it('should handle exactly 500 characters', () => {
+      const { result } = renderQuizStoreHook();
+      const exactAnswer = 'C'.repeat(500); // Exactly 500 characters
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.setDissertativeCharLimit(500);
+        result.current.selectDissertativeAnswer('dissertative-q1', exactAnswer);
+      });
+
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.answer).toBe(exactAnswer);
+      expect(userAnswer?.answer?.length).toBe(500);
+    });
+
+    it('should handle empty string with character limit set', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithDissertative);
+        result.current.setUserId('test-user-id');
+        result.current.setDissertativeCharLimit(500);
+        result.current.selectDissertativeAnswer('dissertative-q1', '');
+      });
+
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('dissertative-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.answer).toBe('');
+    });
+  });
 });
