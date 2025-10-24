@@ -36,11 +36,22 @@ jobs:
           key: ${{ inputs.cache-key }}
           fail-on-cache-miss: true
 
+      - name: Fix sonarqube-scanner permissions
+        run: |
+          chmod +x node_modules/.bin/sonar 2>/dev/null || true
+          chmod +x node_modules/.bin/sonar-scanner 2>/dev/null || true
+          chmod +x node_modules/sonarqube-scanner/bin/sonar-scanner.js 2>/dev/null || true
+
       - name: Download Coverage Reports
         uses: actions/download-artifact@v4
         with:
           name: coverage-reports
           path: coverage/
+
+      - name: Prepare Sonar cache directory
+        run: |
+          mkdir -p $HOME/.sonar
+          chmod 755 $HOME/.sonar
 
       - name: Run SonarCloud Scanner
         run: npx sonarqube-scanner
