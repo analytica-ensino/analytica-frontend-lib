@@ -573,7 +573,7 @@ describe('TextArea', () => {
       expect(counterElement).toHaveClass('text-indicator-warning');
     });
 
-    it('shows normal color when exactly at limit', () => {
+    it('shows warning color when exactly at limit', () => {
       render(
         <TextArea value={'A'.repeat(500)} maxLength={500} showCharacterCount />
       );
