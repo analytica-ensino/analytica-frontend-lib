@@ -172,6 +172,8 @@ export {
 
 // Media Components
 export { default as NotFound } from './components/NotFound/NotFound';
+export { default as NoSearchResult } from './components/NoSearchResult/NoSearchResult';
+export type { NoSearchResultProps } from './components/NoSearchResult/NoSearchResult';
 export { default as VideoPlayer } from './components/VideoPlayer/VideoPlayer';
 export { default as Whiteboard } from './components/Whiteboard/Whiteboard';
 export { default as DownloadButton } from './components/DownloadButton/DownloadButton';
