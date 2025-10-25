@@ -102,16 +102,16 @@ const TablePagination = ({
       {...props}
     >
       {/* Column 1: Items count */}
-      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[171px] h-[52px] bg-[#F6F6F6] border-b border-l border-[#DDDCDB] rounded-bl-xl">
+      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[171px] h-[52px] bg-background-50 border-b border-l border-border-200 rounded-bl-xl">
         <div className="flex flex-row items-start w-full h-3.5">
-          <span className="flex items-center w-full h-3.5 font-normal text-xs leading-[14px] text-[#404040]">
+          <span className="flex items-center w-full h-3.5 font-normal text-xs leading-[14px] text-text-800">
             {startItem} de {totalItems} {itemLabel}
           </span>
         </div>
       </div>
 
       {/* Column 2: Empty space with items per page selector */}
-      <div className="flex flex-row justify-end items-center py-3.5 px-2 gap-2 flex-grow h-[52px] bg-[#F6F6F6] border-b border-[#DDDCDB]">
+      <div className="flex flex-row justify-end items-center py-3.5 px-2 gap-2 flex-grow h-[52px] bg-background-50 border-b border-border-200">
         <div className="flex flex-row justify-end items-start w-full h-3.5">
           <span className="flex items-center w-full h-3.5" />
         </div>
@@ -120,7 +120,7 @@ const TablePagination = ({
             <select
               value={itemsPerPage}
               onChange={handleItemsPerPageChange}
-              className="flex flex-row items-center py-0 px-3 gap-2 w-24 h-9 bg-white border border-[#D3D3D3] rounded appearance-none cursor-pointer font-normal text-sm leading-[21px] text-[#262627] pr-8"
+              className="flex flex-row items-center py-0 px-3 gap-2 w-24 h-9 bg-background border border-border-300 rounded appearance-none cursor-pointer font-normal text-sm leading-[21px] text-text-900 pr-8"
               aria-label="Items por página"
             >
               {itemsPerPageOptions.map((option) => (
@@ -132,23 +132,23 @@ const TablePagination = ({
             <CaretDown
               size={14}
               weight="regular"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#747474] pointer-events-none"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-background-600 pointer-events-none"
             />
           </div>
         )}
       </div>
 
       {/* Column 3: Page info */}
-      <div className="flex flex-row justify-end items-center py-3.5 px-2 gap-2 w-[103.5px] h-[52px] bg-[#F6F6F6] border-b border-[#DDDCDB]">
+      <div className="flex flex-row justify-end items-center py-3.5 px-2 gap-2 w-[103.5px] h-[52px] bg-background-50 border-b border-border-200">
         <div className="flex flex-row justify-end items-start w-full h-3.5">
-          <span className="flex items-center text-right w-full h-3.5 font-normal text-xs leading-[14px] text-[#171717]">
+          <span className="flex items-center text-right w-full h-3.5 font-normal text-xs leading-[14px] text-text-950">
             Página {currentPage} de {totalPages}
           </span>
         </div>
       </div>
 
       {/* Column 4: Previous button */}
-      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[108px] h-[52px] bg-[#F6F6F6] border-b border-[#DDDCDB]">
+      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[108px] h-[52px] bg-background-50 border-b border-border-200">
         <button
           onClick={handlePrevious}
           disabled={isFirstPage}
@@ -156,19 +156,19 @@ const TablePagination = ({
             'flex flex-row justify-center items-center py-0 px-3.5 gap-2 w-[92px] h-8 rounded-3xl transition-opacity',
             isFirstPage
               ? 'opacity-50 cursor-not-allowed'
-              : 'hover:bg-[#124393]/10 cursor-pointer'
+              : 'hover:bg-primary-950/10 cursor-pointer'
           )}
           aria-label="Página anterior"
         >
-          <CaretLeft size={12} weight="bold" className="text-[#124393]" />
-          <span className="font-medium text-xs leading-[14px] text-[#124393]">
+          <CaretLeft size={12} weight="bold" className="text-primary-950" />
+          <span className="font-medium text-xs leading-[14px] text-primary-950">
             Anterior
           </span>
         </button>
       </div>
 
       {/* Column 5: Next button */}
-      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[111px] h-[52px] bg-[#F6F6F6] border-b border-r border-[#DDDCDB] rounded-br-xl">
+      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[111px] h-[52px] bg-background-50 border-b border-r border-border-200 rounded-br-xl">
         <button
           onClick={handleNext}
           disabled={isLastPage}
@@ -176,14 +176,14 @@ const TablePagination = ({
             'flex flex-row justify-center items-center py-0 px-3.5 gap-2 w-[95px] h-8 rounded-3xl transition-opacity',
             isLastPage
               ? 'opacity-50 cursor-not-allowed'
-              : 'hover:bg-[#124393]/10 cursor-pointer'
+              : 'hover:bg-primary-950/10 cursor-pointer'
           )}
           aria-label="Próxima página"
         >
-          <span className="font-medium text-xs leading-[14px] text-[#124393]">
+          <span className="font-medium text-xs leading-[14px] text-primary-950">
             Próxima
           </span>
-          <CaretRight size={14} weight="bold" className="text-[#124393]" />
+          <CaretRight size={14} weight="bold" className="text-primary-950" />
         </button>
       </div>
     </div>
