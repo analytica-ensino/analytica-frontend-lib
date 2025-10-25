@@ -123,8 +123,10 @@ export {
   TableCell,
   TableFooter,
   TableCaption,
+  TablePagination,
   useTableSort,
 } from './components/Table/Table';
+export type { TablePaginationProps } from './components/Table/Table';
 // Select Components
 export {
   default as Select,

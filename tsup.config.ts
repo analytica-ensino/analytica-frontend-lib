@@ -29,6 +29,7 @@ export default defineConfig({
       'src/components/SelectionButton/SelectionButton.tsx',
     'Select/index': 'src/components/Select/Select.tsx',
     'Table/index': 'src/components/Table/Table.tsx',
+    'Table/TablePagination/index': 'src/components/Table/TablePagination.tsx',
     'Text/index': 'src/components/Text/Text.tsx',
     'TextArea/index': 'src/components/TextArea/TextArea.tsx',
     'Toast/index': 'src/components/Toast/Toast.tsx',
