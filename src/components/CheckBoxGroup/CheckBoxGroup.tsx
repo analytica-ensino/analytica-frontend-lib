@@ -500,6 +500,7 @@ export const CheckboxGroup = ({
       <div
         key={item.id}
         className="flex items-center gap-3 px-2"
+        role="presentation"
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
         onMouseUp={(e) => e.stopPropagation()}
