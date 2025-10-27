@@ -290,7 +290,7 @@ export const AlertsManager = ({
     >
       <div className="flex flex-col h-[calc(100vh-14rem)] max-h-[600px]">
         {/* Stepper fixo no topo */}
-        <div className="flex-shrink-0 px-6 pt-4">
+        <div className="shrink-0 px-6 pt-4">
           <Stepper
             steps={dynamicSteps}
             size="small"
