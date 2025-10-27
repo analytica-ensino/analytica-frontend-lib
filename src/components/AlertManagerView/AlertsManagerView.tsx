@@ -50,12 +50,12 @@ export const AlertsManagerView = ({
 }: AlertsManagerViewProps) => {
   // Criar URL blob para a imagem
   const imageUrl = useMemo(() => {
-    if (typeof window === 'undefined') {
+    if (typeof globalThis.window === 'undefined') {
       return undefined;
     }
 
     if (alertData.image instanceof File) {
-      return window.URL.createObjectURL(alertData.image);
+      return globalThis.window.URL.createObjectURL(alertData.image);
     }
 
     return undefined;
@@ -64,7 +64,7 @@ export const AlertsManagerView = ({
   // Limpar URL blob quando componente desmontar ou imagem mudar
   useEffect(() => {
     return () => {
-      if (imageUrl && typeof window !== 'undefined') {
+      if (imageUrl && typeof globalThis.window !== 'undefined') {
         URL.revokeObjectURL(imageUrl);
       }
     };
@@ -88,7 +88,7 @@ export const AlertsManagerView = ({
 
   const formatDate = (dateInput: string | Date) => {
     const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
-    if (isNaN(date.getTime())) return String(dateInput);
+    if (Number.isNaN(date.getTime())) return String(dateInput);
     return date.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',

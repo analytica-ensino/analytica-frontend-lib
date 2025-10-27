@@ -76,6 +76,7 @@ export const RecipientsStep = ({
       </Text>
 
       <div
+        role="presentation"
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
         onMouseUp={(e) => e.stopPropagation()}

@@ -31,7 +31,7 @@ export const AlertsManager = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [categories, setCategories] = useState(config.categories);
-  const [, forceUpdate] = useState({});
+  const [_unused, forceUpdate] = useState({});
 
   // Subscribe to form changes to update button states
   useEffect(() => {
