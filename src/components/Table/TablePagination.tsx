@@ -96,13 +96,13 @@ const TablePagination = ({
   return (
     <div
       className={cn(
-        'flex flex-row justify-between items-center gap-[25px] h-[52px]',
+        'flex flex-row justify-between items-center gap-[25px] h-[50px]',
         className
       )}
       {...props}
     >
       {/* Column 1: Items count */}
-      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[171px] h-[52px] bg-background-50 border-b border-l border-border-200 rounded-bl-xl">
+      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[171px] h-[50px] bg-background-50 border-l border-border-200 rounded-bl-xl">
         <div className="flex flex-row items-start w-full h-3.5">
           <span className="flex items-center w-full h-3.5 font-normal text-xs leading-[14px] text-text-800">
             {startItem} de {totalItems} {itemLabel}
@@ -111,7 +111,7 @@ const TablePagination = ({
       </div>
 
       {/* Column 2: Empty space with items per page selector */}
-      <div className="flex flex-row justify-end items-center py-3.5 px-2 gap-2 flex-grow h-[52px] bg-background-50 border-b border-border-200">
+      <div className="flex flex-row justify-end items-center py-3.5 px-2 gap-2 flex-grow h-[50px] bg-background-50">
         <div className="flex flex-row justify-end items-start w-full h-3.5">
           <span className="flex items-center w-full h-3.5" />
         </div>
@@ -139,7 +139,7 @@ const TablePagination = ({
       </div>
 
       {/* Column 3: Page info */}
-      <div className="flex flex-row justify-end items-center py-3.5 px-2 gap-2 w-[103.5px] h-[52px] bg-background-50 border-b border-border-200">
+      <div className="flex flex-row justify-end items-center py-3.5 px-2 gap-2 w-[103.5px] h-[50px] bg-background-50">
         <div className="flex flex-row justify-end items-start w-full h-3.5">
           <span className="flex items-center text-right w-full h-3.5 font-normal text-xs leading-[14px] text-text-950">
             Página {currentPage} de {totalPages}
@@ -148,7 +148,7 @@ const TablePagination = ({
       </div>
 
       {/* Column 4: Previous button */}
-      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[108px] h-[52px] bg-background-50 border-b border-border-200">
+      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[108px] h-[50px] bg-background-50">
         <button
           onClick={handlePrevious}
           disabled={isFirstPage}
@@ -168,7 +168,7 @@ const TablePagination = ({
       </div>
 
       {/* Column 5: Next button */}
-      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[111px] h-[52px] bg-background-50 border-b border-r border-border-200 rounded-br-xl">
+      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[111px] h-[50px] bg-background-50 border-r border-border-200 rounded-br-xl">
         <button
           onClick={handleNext}
           disabled={isLastPage}
