@@ -53,7 +53,7 @@ export default defineConfig({
     'utils/index': 'src/utils/utils.ts',
 
     'MultipleChoice/index': 'src/components/MultipleChoice/MultipleChoice.tsx',
-    'AlertManager/index': 'src/components/AlertManager/AlertManager.tsx',
+    'AlertManager/index': 'src/components/AlertManager/AlertsManager.tsx',
     'AlertManagerView/index':
       'src/components/AlertManagerView/AlertsManagerView.tsx',
     // Hooks

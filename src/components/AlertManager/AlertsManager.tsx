@@ -1,4 +1,11 @@
-import { useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
+import {
+  useState,
+  useEffect,
+  ReactNode,
+  useMemo,
+  useCallback,
+  useSyncExternalStore,
+} from 'react';
 import { Button, Modal, Stepper } from '../..';
 import { CaretLeft, CaretRight, PaperPlaneTilt } from 'phosphor-react';
 import { StepData } from '../Stepper/Stepper';
@@ -35,17 +42,12 @@ export const AlertsManager = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [categories, setCategories] = useState(config.categories);
-  const forceUpdateState = useState({});
-  const forceUpdate = forceUpdateState[1];
 
-  // Subscribe to form changes to update button states
-  useEffect(() => {
-    const unsubscribe = useAlertFormStore.subscribe(() => {
-      // Force re-render to update button disabled states
-      forceUpdate({});
-    });
-    return unsubscribe;
-  }, []);
+  // Subscribe to form store changes using useSyncExternalStore
+  const formData = useSyncExternalStore(
+    useAlertFormStore.subscribe,
+    useAlertFormStore.getState
+  );
 
   // Sincroniza com a prop isOpen
   useEffect(() => {
@@ -87,23 +89,20 @@ export const AlertsManager = ({
 
   // Verifica se o step atual é válido
   const isCurrentStepValid = useCallback(() => {
-    const formData = useAlertFormStore.getState();
     return isCurrentStepValidValidation(
       currentStep,
       formData,
       categories,
       customSteps
     );
-  }, [currentStep, categories, customSteps]);
+  }, [currentStep, categories, customSteps, formData]);
 
   // Verifica se pode finalizar
   const canFinish = useCallback(() => {
-    const formData = useAlertFormStore.getState();
     return canFinishValidation(formData, categories);
-  }, [categories]);
+  }, [categories, formData]);
 
   const handleNext = useCallback(() => {
-    const formData = useAlertFormStore.getState();
     const result = handleNextValidation({
       currentStep,
       steps,
@@ -126,6 +125,7 @@ export const AlertsManager = ({
     completedSteps,
     setCompletedSteps,
     setCurrentStep,
+    formData,
   ]);
 
   const handlePrevious = useCallback(() => {
@@ -139,7 +139,6 @@ export const AlertsManager = ({
       setCompletedSteps([...completedSteps, currentStep]);
     }
 
-    const formData = useAlertFormStore.getState();
     const alertData = {
       title: formData.title,
       message: formData.message,
