@@ -75,18 +75,10 @@ export const RecipientsStep = ({
         {labels?.recipientsDescription || 'Para quem você vai enviar o aviso?'}
       </Text>
 
-      <div
-        role="presentation"
-        onClick={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
-        onMouseUp={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
-        <CheckboxGroup
-          categories={syncedCategories}
-          onCategoriesChange={handleCategoriesChange}
-        />
-      </div>
+      <CheckboxGroup
+        categories={syncedCategories}
+        onCategoriesChange={handleCategoriesChange}
+      />
     </section>
   );
 };
