@@ -49,11 +49,11 @@ export const useTableFilter = (
 
   // Get initial state from URL if syncWithUrl is enabled
   const getInitialState = useCallback((): FilterConfig[] => {
-    if (!syncWithUrl || typeof window === 'undefined') {
+    if (!syncWithUrl || typeof globalThis.window === 'undefined') {
       return initialConfigs;
     }
 
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(globalThis.window.location.search);
     const configsWithUrlState = initialConfigs.map((config) => ({
       ...config,
       categories: config.categories.map((category) => {
@@ -76,14 +76,14 @@ export const useTableFilter = (
   const activeFilters: Record<string, string[]> = {};
   let hasActiveFilters = false;
 
-  filterConfigs.forEach((config) => {
-    config.categories.forEach((category) => {
+  for (const config of filterConfigs) {
+    for (const category of config.categories) {
       if (category.selectedIds && category.selectedIds.length > 0) {
         activeFilters[category.key] = category.selectedIds;
         hasActiveFilters = true;
       }
-    });
-  });
+    }
+  }
 
   /**
    * Update filter configs (temporary state, not applied to URL yet)
@@ -96,16 +96,16 @@ export const useTableFilter = (
    * Apply filters to URL (commit the changes)
    */
   const applyFilters = useCallback(() => {
-    if (!syncWithUrl || typeof window === 'undefined') {
+    if (!syncWithUrl || typeof globalThis.window === 'undefined') {
       return;
     }
 
-    const url = new URL(window.location.href);
+    const url = new URL(globalThis.window.location.href);
     const params = url.searchParams;
 
     // Update URL parameters for each category
-    filterConfigs.forEach((config) => {
-      config.categories.forEach((category) => {
+    for (const config of filterConfigs) {
+      for (const category of config.categories) {
         const paramKey = `filter_${category.key}`;
 
         if (category.selectedIds && category.selectedIds.length > 0) {
@@ -113,11 +113,11 @@ export const useTableFilter = (
         } else {
           params.delete(paramKey);
         }
-      });
-    });
+      }
+    }
 
     // Update URL without page reload
-    window.history.replaceState({}, '', url.toString());
+    globalThis.window.history.replaceState({}, '', url.toString());
   }, [filterConfigs, syncWithUrl]);
 
   /**
@@ -135,23 +135,23 @@ export const useTableFilter = (
     setFilterConfigs(clearedConfigs);
 
     // If syncWithUrl, also clear URL parameters
-    if (syncWithUrl && typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
+    if (syncWithUrl && typeof globalThis.window !== 'undefined') {
+      const url = new URL(globalThis.window.location.href);
       const params = url.searchParams;
 
-      filterConfigs.forEach((config) => {
-        config.categories.forEach((category) => {
+      for (const config of filterConfigs) {
+        for (const category of config.categories) {
           params.delete(`filter_${category.key}`);
-        });
-      });
+        }
+      }
 
-      window.history.replaceState({}, '', url.toString());
+      globalThis.window.history.replaceState({}, '', url.toString());
     }
   }, [filterConfigs, syncWithUrl]);
 
   // Sync with URL on mount and when URL changes externally
   useEffect(() => {
-    if (!syncWithUrl || typeof window === 'undefined') {
+    if (!syncWithUrl || typeof globalThis.window === 'undefined') {
       return;
     }
 
@@ -159,8 +159,9 @@ export const useTableFilter = (
       setFilterConfigs(getInitialState());
     };
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    globalThis.window.addEventListener('popstate', handlePopState);
+    return () =>
+      globalThis.window.removeEventListener('popstate', handlePopState);
   }, [syncWithUrl, getInitialState]);
 
   return {
