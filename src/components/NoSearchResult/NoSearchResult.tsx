@@ -33,11 +33,12 @@ export interface NoSearchResultProps {
  * />
  * ```
  */
-const NoSearchResult = ({
-  image,
-  title = 'Nenhum resultado encontrado',
-  description = 'Não encontramos nenhum resultado com esse nome. Tente revisar a busca ou usar outra palavra-chave.',
-}: NoSearchResultProps) => {
+const NoSearchResult = ({ image, title, description }: NoSearchResultProps) => {
+  const displayTitle = title || 'Nenhum resultado encontrado';
+  const displayDescription =
+    description ||
+    'Não encontramos nenhum resultado com esse nome. Tente revisar a busca ou usar outra palavra-chave.';
+
   return (
     <div className="flex flex-row justify-center items-center gap-8 w-full max-w-4xl min-h-96">
       {/* Illustration */}
@@ -58,7 +59,7 @@ const NoSearchResult = ({
             as="h2"
             className="text-text-950 font-semibold text-3xl leading-tight w-full flex items-center"
           >
-            {title}
+            {displayTitle}
           </Text>
         </div>
 
@@ -66,7 +67,7 @@ const NoSearchResult = ({
         <div className="flex flex-row justify-center items-center px-6 gap-2 w-full">
           {/* Description */}
           <Text className="text-text-600 font-normal text-lg leading-relaxed w-full text-justify">
-            {description}
+            {displayDescription}
           </Text>
         </div>
       </div>
