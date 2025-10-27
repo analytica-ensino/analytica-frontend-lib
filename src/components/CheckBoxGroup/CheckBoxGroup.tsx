@@ -436,7 +436,8 @@ export const CheckboxGroup = ({
     // Se NENHUM item filtrado está selecionado OU pelo menos um está selecionado mas não todos,
     // então seleciona todos os itens filtrados
     // Se TODOS os itens filtrados estão selecionados, então deseleciona todos os filtrados
-    const allFilteredSelected = selectedFilteredCount === filteredItemIds.length;
+    const allFilteredSelected =
+      selectedFilteredCount === filteredItemIds.length;
 
     const newSelection = allFilteredSelected
       ? category.selectedIds?.filter((id) => !filteredItemIds.includes(id)) ||
@@ -496,7 +497,15 @@ export const CheckboxGroup = ({
     const uniqueId = `${categoryKey}-${item.id}`;
 
     return (
-      <div key={item.id} className="flex items-center gap-3 px-2">
+      <div
+        key={item.id}
+        className="flex items-center gap-3 px-2"
+        role="presentation"
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onMouseUp={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
         <CheckBox
           id={uniqueId}
           checked={isCheckBoxIsSelected(categoryKey, item.id)}

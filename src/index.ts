@@ -27,6 +27,17 @@ export {
   type CategoryConfig,
   type Item,
 } from './components/CheckBoxGroup/CheckBoxGroup';
+export { AlertsManager } from './components/AlertManager/AlertsManager';
+export { AlertsManagerView } from './components/AlertManagerView/AlertsManagerView';
+export type {
+  AlertViewData,
+  RecipientStatus,
+} from './components/AlertManagerView/AlertsManagerView';
+export type {
+  AlertsConfig,
+  AlertData,
+  RecipientItem,
+} from './components/AlertManager/types';
 export {
   default as Radio,
   RadioGroup,

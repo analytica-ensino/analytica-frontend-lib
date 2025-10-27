@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow';
 import Input from '../../Input/Input';
 import TextArea from '../../TextArea/TextArea';
 import ImageUpload from '../../ImageUpload/ImageUpload';
@@ -13,12 +14,17 @@ export const MessageStep = ({
   labels,
   allowImageAttachment = true,
 }: MessageStepProps) => {
-  const title = useAlertFormStore((state) => state.title);
-  const message = useAlertFormStore((state) => state.message);
-  const image = useAlertFormStore((state) => state.image);
-  const setTitle = useAlertFormStore((state) => state.setTitle);
-  const setMessage = useAlertFormStore((state) => state.setMessage);
-  const setImage = useAlertFormStore((state) => state.setImage);
+  const { title, message, image, setTitle, setMessage, setImage } =
+    useAlertFormStore(
+      useShallow((state) => ({
+        title: state.title,
+        message: state.message,
+        image: state.image,
+        setTitle: state.setTitle,
+        setMessage: state.setMessage,
+        setImage: state.setImage,
+      }))
+    );
 
   const handleFileSelect = (file: File) => {
     setImage(file);
