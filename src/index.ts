@@ -33,8 +33,11 @@ export type {
   AlertViewData,
   RecipientStatus,
 } from './components/AlertManagerView/AlertsManagerView';
-export type { AlertsConfig } from './components/AlertManager/types';
-export type { RecipientItem } from './components/AlertManager/useAlertForm';
+export type {
+  AlertsConfig,
+  AlertData,
+  RecipientItem,
+} from './components/AlertManager/types';
 export {
   default as Radio,
   RadioGroup,
