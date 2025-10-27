@@ -79,6 +79,7 @@ export const RecipientsStep = ({
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
         onMouseUp={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         <CheckboxGroup
           categories={syncedCategories}
