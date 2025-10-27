@@ -1,8 +1,143 @@
-import { forwardRef, HTMLAttributes, TdHTMLAttributes } from 'react';
+import {
+  forwardRef,
+  HTMLAttributes,
+  TdHTMLAttributes,
+  ThHTMLAttributes,
+  useState,
+  useMemo,
+  useEffect,
+} from 'react';
 import { cn } from '../../utils/utils';
+import { CaretUp, CaretDown } from 'phosphor-react';
 
 type TableVariant = 'default' | 'borderless';
 type TableRowState = 'default' | 'selected' | 'invalid' | 'disabled';
+export type SortDirection = 'asc' | 'desc' | null;
+
+interface UseTableSortOptions {
+  /** Se true, sincroniza o estado de ordenação com os parâmetros da URL */
+  syncWithUrl?: boolean;
+}
+
+/**
+ * Hook para gerenciar ordenação de dados da tabela
+ *
+ * @param data - Array de dados a serem ordenados
+ * @param options - Opções de configuração do hook
+ * @returns Objeto com dados ordenados, coluna/direção atual e função de sort
+ *
+ * @example
+ * ```tsx
+ * const activities = [
+ *   { id: 1, name: 'Task A', date: '2024-01-01' },
+ *   { id: 2, name: 'Task B', date: '2024-01-02' },
+ * ];
+ *
+ * // Sem sincronização com URL
+ * const { sortedData, sortColumn, sortDirection, handleSort } = useTableSort(activities);
+ *
+ * // Com sincronização com URL
+ * const { sortedData, sortColumn, sortDirection, handleSort } = useTableSort(activities, { syncWithUrl: true });
+ *
+ * <TableHead
+ *   sortDirection={sortColumn === 'name' ? sortDirection : null}
+ *   onSort={() => handleSort('name')}
+ * >
+ *   Name
+ * </TableHead>
+ * ```
+ */
+export function useTableSort<T extends Record<string, unknown>>(
+  data: T[],
+  options: UseTableSortOptions = {}
+) {
+  const { syncWithUrl = false } = options;
+
+  // Inicializar estado a partir da URL se syncWithUrl estiver habilitado
+  const getInitialState = () => {
+    if (!syncWithUrl || globalThis.window === undefined) {
+      return { column: null, direction: null };
+    }
+
+    const params = new URLSearchParams(globalThis.location.search);
+    const sortBy = params.get('sortBy');
+    const sort = params.get('sort');
+
+    if (sortBy && sort && (sort === 'ASC' || sort === 'DESC')) {
+      return {
+        column: sortBy,
+        direction: sort.toLowerCase() as SortDirection,
+      };
+    }
+
+    return { column: null, direction: null };
+  };
+
+  const initialState = getInitialState();
+  const [sortColumn, setSortColumn] = useState<string | null>(
+    initialState.column
+  );
+  const [sortDirection, setSortDirection] = useState<SortDirection>(
+    initialState.direction
+  );
+
+  // Atualizar URL quando o estado de ordenação mudar
+  useEffect(() => {
+    if (!syncWithUrl || globalThis.window === undefined) return;
+
+    const url = new URL(globalThis.location.href);
+    const params = url.searchParams;
+
+    if (sortColumn && sortDirection) {
+      params.set('sortBy', sortColumn);
+      params.set('sort', sortDirection.toUpperCase());
+    } else {
+      params.delete('sortBy');
+      params.delete('sort');
+    }
+
+    // Atualizar URL sem recarregar a página
+    globalThis.history.replaceState({}, '', url.toString());
+  }, [sortColumn, sortDirection, syncWithUrl]);
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortColumn(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedData = useMemo(() => {
+    if (!sortColumn || !sortDirection) {
+      return data;
+    }
+
+    return [...data].sort((a, b) => {
+      const aValue = a[sortColumn as keyof T];
+      const bValue = b[sortColumn as keyof T];
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      return 0;
+    });
+  }, [data, sortColumn, sortDirection]);
+
+  return { sortedData, sortColumn, sortDirection, handleSort };
+}
 
 interface TableProps extends HTMLAttributes<HTMLTableElement> {
   variant?: TableVariant;
@@ -16,13 +151,16 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
   ({ variant = 'default', className, children, ...props }, ref) => (
     <div
       className={cn(
-        'relative w-full overflow-hidden',
+        'relative w-full overflow-x-auto',
         variant === 'default' && 'border border-border-200 rounded-xl'
       )}
     >
       <table
         ref={ref}
-        className={cn('w-full caption-bottom text-sm', className)}
+        className={cn(
+          'analytica-table w-full caption-bottom text-sm border-separate border-spacing-0',
+          className
+        )}
         {...props}
       >
         {/* Fix Sonnar */}
@@ -52,14 +190,10 @@ interface TableBodyProps extends HTMLAttributes<HTMLTableSectionElement> {
 }
 
 const TableBody = forwardRef<HTMLTableSectionElement, TableBodyProps>(
-  ({ variant = 'default', className, ...props }, ref) => (
+  ({ className, ...props }, ref) => (
     <tbody
       ref={ref}
-      className={cn(
-        '[&_tr:last-child]:border-0',
-        variant === 'default' && 'border-t border-border-200',
-        className
-      )}
+      className={cn('[&_tr:last-child]:border-border-200', className)}
       {...props}
     />
   )
@@ -87,7 +221,7 @@ TableFooter.displayName = 'TableFooter';
 
 const VARIANT_STATES_ROW = {
   default: {
-    default: 'border-b border-border-200',
+    default: 'border border-border-200',
     borderless: '',
   },
   selected: {
@@ -107,16 +241,27 @@ const VARIANT_STATES_ROW = {
 
 interface TableRowPropsExtended extends TableRowProps {
   variant?: TableVariant;
+  clickable?: boolean;
 }
 
 const TableRow = forwardRef<HTMLTableRowElement, TableRowPropsExtended>(
-  ({ variant = 'default', state = 'default', className, ...props }, ref) => {
+  (
+    {
+      variant = 'default',
+      state = 'default',
+      clickable = false,
+      className,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <tr
         ref={ref}
         className={cn(
           'transition-colors',
           state !== 'disabled' ? 'hover:bg-muted/50' : '',
+          clickable && state !== 'disabled' ? 'cursor-pointer' : '',
           VARIANT_STATES_ROW[state][variant],
           className
         )}
@@ -128,19 +273,61 @@ const TableRow = forwardRef<HTMLTableRowElement, TableRowPropsExtended>(
 );
 TableRow.displayName = 'TableRow';
 
-const TableHead = forwardRef<
-  HTMLTableCellElement,
-  TdHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
-  <th
-    ref={ref}
-    className={cn(
-      'h-10 px-6 py-3.5 bg-muted/50 text-left align-middle font-bold text-text-800 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
-      className
-    )}
-    {...props}
-  />
-));
+interface TableHeadProps extends ThHTMLAttributes<HTMLTableCellElement> {
+  /** Enable sorting on this column (default: true) */
+  sortable?: boolean;
+  /** Current sort direction for this column */
+  sortDirection?: SortDirection;
+  /** Callback when column header is clicked */
+  onSort?: () => void;
+}
+
+const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
+  (
+    {
+      className,
+      sortable = true,
+      sortDirection = null,
+      onSort,
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    const handleClick = () => {
+      if (sortable && onSort) {
+        onSort();
+      }
+    };
+
+    return (
+      <th
+        ref={ref}
+        className={cn(
+          'h-10 px-6 py-3.5 text-left align-middle font-bold text-base text-text-800 tracking-[0.2px] leading-none [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] whitespace-nowrap',
+          sortable && 'cursor-pointer select-none hover:bg-muted/30',
+          className
+        )}
+        onClick={handleClick}
+        {...props}
+      >
+        <div className="flex items-center gap-2">
+          {children}
+          {sortable && (
+            <div className="flex flex-col">
+              {sortDirection === 'asc' && (
+                <CaretUp size={16} weight="fill" className="text-text-800" />
+              )}
+              {sortDirection === 'desc' && (
+                <CaretDown size={16} weight="fill" className="text-text-800" />
+              )}
+            </div>
+          )}
+        </div>
+      </th>
+    );
+  }
+);
 TableHead.displayName = 'TableHead';
 
 const TableCell = forwardRef<
@@ -150,7 +337,7 @@ const TableCell = forwardRef<
   <td
     ref={ref}
     className={cn(
-      'p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-md text-text-800 px-6 py-3.5',
+      'p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-base font-normal text-text-800 leading-[150%] tracking-normal px-6 py-3.5 whitespace-nowrap',
       className
     )}
     {...props}

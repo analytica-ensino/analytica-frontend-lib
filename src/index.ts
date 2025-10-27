@@ -134,6 +134,7 @@ export {
   TableCell,
   TableFooter,
   TableCaption,
+  useTableSort,
 } from './components/Table/Table';
 // Select Components
 export {

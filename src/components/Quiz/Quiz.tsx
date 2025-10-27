@@ -204,12 +204,19 @@ const QuizTitle = forwardRef<
 });
 
 const QuizHeader = () => {
-  const { getCurrentQuestion, currentQuestionIndex } = useQuizStore();
+  const { getCurrentQuestion, getQuestionIndex } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
+  let currentId =
+    currentQuestion && 'questionId' in currentQuestion
+      ? (currentQuestion.questionId as string)
+      : currentQuestion?.id;
+  const questionIndex = getQuestionIndex(currentId!);
   return (
     <HeaderAlternative
       title={
-        currentQuestion ? `Questão ${currentQuestionIndex + 1}` : 'Questão'
+        currentQuestion
+          ? `Questão ${questionIndex.toString().padStart(2, '0')}`
+          : 'Questão'
       }
       subTitle={currentQuestion?.knowledgeMatrix?.[0]?.topic?.name ?? ''}
       content={currentQuestion?.statement ?? ''}
