@@ -229,8 +229,9 @@ export const CheckboxGroup = ({
       return depCat?.selectedIds && depCat.selectedIds.length > 0;
     });
 
+    // If category is disabled, return empty items array to hide all items
     if (!isEnabled) {
-      return [{ itens: category?.itens || [] }];
+      return [{ itens: [] }];
     }
 
     const filters =
@@ -427,13 +428,16 @@ export const CheckboxGroup = ({
     const filteredItems = formattedItems.flatMap((group) => group.itens || []);
     const filteredItemIds = filteredItems.map((item) => item.id);
 
-    // Verifica se todos os itens filtrados estão selecionados
-    const allFilteredSelected = filteredItemIds.every((itemId) =>
+    // Verifica quantos itens filtrados estão selecionados
+    const selectedFilteredCount = filteredItemIds.filter((itemId) =>
       category.selectedIds?.includes(itemId)
-    );
+    ).length;
 
-    // Se todos os itens filtrados estão selecionados, deseleciona todos os filtrados
-    // Caso contrário, seleciona todos os itens filtrados
+    // Se NENHUM item filtrado está selecionado OU pelo menos um está selecionado mas não todos,
+    // então seleciona todos os itens filtrados
+    // Se TODOS os itens filtrados estão selecionados, então deseleciona todos os filtrados
+    const allFilteredSelected = selectedFilteredCount === filteredItemIds.length;
+
     const newSelection = allFilteredSelected
       ? category.selectedIds?.filter((id) => !filteredItemIds.includes(id)) ||
         []
@@ -487,21 +491,26 @@ export const CheckboxGroup = ({
   };
 
   // Helper component to render individual checkbox item
-  const renderCheckboxItem = (item: Item, categoryKey: string) => (
-    <div key={item.id} className="flex items-center gap-3 px-2">
-      <CheckBox
-        id={item.id}
-        checked={isCheckBoxIsSelected(categoryKey, item.id)}
-        onChange={() => toggleItem(categoryKey, item.id)}
-      />
-      <label
-        htmlFor={item.id}
-        className="text-sm text-text-950 cursor-pointer select-none"
-      >
-        {item.name}
-      </label>
-    </div>
-  );
+  const renderCheckboxItem = (item: Item, categoryKey: string) => {
+    // Generate unique ID by combining category key and item id to avoid conflicts
+    const uniqueId = `${categoryKey}-${item.id}`;
+
+    return (
+      <div key={item.id} className="flex items-center gap-3 px-2">
+        <CheckBox
+          id={uniqueId}
+          checked={isCheckBoxIsSelected(categoryKey, item.id)}
+          onChange={() => toggleItem(categoryKey, item.id)}
+        />
+        <label
+          htmlFor={uniqueId}
+          className="text-sm text-text-950 cursor-pointer select-none"
+        >
+          {item.name}
+        </label>
+      </div>
+    );
+  };
 
   // Helper component to render formatted group
   const renderFormattedGroup = (
@@ -601,12 +610,51 @@ export const CheckboxGroup = ({
     );
   };
 
+  // Auto-collapse accordion when category becomes disabled
+  useEffect(() => {
+    if (!openAccordion) return;
+
+    const category = categories.find((c) => c.key === openAccordion);
+    if (!category) return;
+
+    // Check if the open category is now disabled
+    const isEnabled =
+      !category.dependsOn ||
+      category.dependsOn.every((depKey) => {
+        const depCat = categories.find((c) => c.key === depKey);
+        return depCat?.selectedIds && depCat.selectedIds.length > 0;
+      });
+
+    // If category is disabled, close it
+    if (!isEnabled) {
+      // Use setTimeout to ensure this runs after any other state updates
+      setTimeout(() => {
+        setOpenAccordion('');
+      }, 0);
+    }
+  }, [categories, openAccordion]);
+
   return (
     <AccordionGroup
       type="single"
+      collapsible
       value={openAccordion}
       onValueChange={(value) => {
         if (typeof value === 'string') {
+          // Prevent opening disabled categories
+          if (value) {
+            const category = categories.find((c) => c.key === value);
+            const isEnabled =
+              !category?.dependsOn ||
+              category.dependsOn.every((depKey) => {
+                const depCat = categories.find((c) => c.key === depKey);
+                return depCat?.selectedIds && depCat.selectedIds.length > 0;
+              });
+
+            if (!isEnabled) {
+              return; // Don't allow opening disabled accordions
+            }
+          }
           setOpenAccordion(value);
         }
       }}

@@ -581,7 +581,7 @@ describe('CheckboxGroup', () => {
 
       // Find and click the Level 2 Item 1 checkbox
       const checkboxes = screen.getAllByTestId('checkbox');
-      const level2Checkbox = checkboxes.find((cb) => cb.id === 'l2-1');
+      const level2Checkbox = checkboxes.find((cb) => cb.id === 'level2-l2-1');
       if (level2Checkbox) {
         await user.click(level2Checkbox);
       }

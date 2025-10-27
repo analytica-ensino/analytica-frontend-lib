@@ -125,6 +125,20 @@ export {
   TableCaption,
   useTableSort,
 } from './components/Table/Table';
+export type {
+  UseTableSortOptions,
+  SortDirection,
+} from './components/Table/Table';
+
+// Filter Components
+export { FilterModal, useTableFilter } from './components/Filter';
+export type {
+  FilterModalProps,
+  FilterConfig,
+  UseTableFilterOptions,
+  UseTableFilterReturn,
+} from './components/Filter';
+
 // Select Components
 export {
   default as Select,
