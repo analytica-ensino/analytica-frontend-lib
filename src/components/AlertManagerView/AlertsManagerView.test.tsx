@@ -5,8 +5,9 @@ import { AlertsManagerView, type AlertViewData } from './AlertsManagerView';
 import type { ReactNode } from 'react';
 
 // Mock components
-jest.mock('../..', () => ({
-  Modal: ({
+jest.mock('../Modal/Modal', () => ({
+  __esModule: true,
+  default: ({
     children,
     isOpen,
     onClose,
@@ -34,7 +35,11 @@ jest.mock('../..', () => ({
         </button>
       </div>
     ) : null,
-  Text: ({
+}));
+
+jest.mock('../Text/Text', () => ({
+  __esModule: true,
+  default: ({
     children,
     size,
     weight,
@@ -54,10 +59,18 @@ jest.mock('../..', () => ({
       {children}
     </div>
   ),
-  Divider: ({ className }: { className?: string }) => (
+}));
+
+jest.mock('../Divider/Divider', () => ({
+  __esModule: true,
+  default: ({ className }: { className?: string }) => (
     <hr data-testid="divider" className={className} />
   ),
-  Table: ({
+}));
+
+jest.mock('../Table/Table', () => ({
+  __esModule: true,
+  default: ({
     children,
     variant,
     className,
@@ -117,7 +130,11 @@ jest.mock('../..', () => ({
       {children}
     </div>
   ),
-  Button: ({
+}));
+
+jest.mock('../Button/Button', () => ({
+  __esModule: true,
+  default: ({
     children,
     onClick,
     disabled,
@@ -146,7 +163,11 @@ jest.mock('../..', () => ({
       {iconRight}
     </button>
   ),
-  Badge: ({
+}));
+
+jest.mock('../Badge/Badge', () => ({
+  __esModule: true,
+  default: ({
     children,
     variant,
     action,
@@ -262,7 +283,7 @@ describe('AlertsManagerView', () => {
     it('should display image or default notification', () => {
       render(<AlertsManagerView alertData={mockAlertData} isOpen={true} />);
 
-      const images = screen.getAllByAltText('Preview');
+      const images = screen.getAllByAltText('Test Alert');
       expect(images.length).toBeGreaterThan(0);
     });
 
@@ -295,6 +316,8 @@ describe('AlertsManagerView', () => {
       render(<AlertsManagerView alertData={alertWithoutTitle} isOpen={true} />);
 
       expect(screen.getByText('Sem Título')).toBeInTheDocument();
+      // When title is empty, image alt should be "Imagem do alerta"
+      expect(screen.getByAltText('Imagem do alerta')).toBeInTheDocument();
     });
   });
 
@@ -488,6 +511,79 @@ describe('AlertsManagerView', () => {
 
       expect(screen.getByText('Página 1 de 3')).toBeInTheDocument();
     });
+
+    it('should display only recipients for current page', () => {
+      const manyRecipients: AlertViewData = {
+        ...mockAlertData,
+        recipients: Array.from({ length: 25 }, (_, i) => ({
+          id: `${i + 1}`,
+          name: `Recipient ${i + 1}`,
+          status: i % 2 === 0 ? 'viewed' : 'pending',
+        })),
+      };
+
+      render(
+        <AlertsManagerView
+          alertData={manyRecipients}
+          isOpen={true}
+          currentPage={1}
+        />
+      );
+
+      // Should only show first 10 recipients
+      expect(screen.getByText('Recipient 1')).toBeInTheDocument();
+      expect(screen.getByText('Recipient 10')).toBeInTheDocument();
+      expect(screen.queryByText('Recipient 11')).not.toBeInTheDocument();
+    });
+
+    it('should display correct recipients when navigating to second page', () => {
+      const manyRecipients: AlertViewData = {
+        ...mockAlertData,
+        recipients: Array.from({ length: 25 }, (_, i) => ({
+          id: `${i + 1}`,
+          name: `Recipient ${i + 1}`,
+          status: i % 2 === 0 ? 'viewed' : 'pending',
+        })),
+      };
+
+      render(
+        <AlertsManagerView
+          alertData={manyRecipients}
+          isOpen={true}
+          currentPage={2}
+        />
+      );
+
+      // Should show recipients 11-20
+      expect(screen.getByText('Recipient 11')).toBeInTheDocument();
+      expect(screen.getByText('Recipient 20')).toBeInTheDocument();
+      expect(screen.queryByText('Recipient 1')).not.toBeInTheDocument();
+      expect(screen.queryByText('Recipient 21')).not.toBeInTheDocument();
+    });
+
+    it('should clamp currentPage to valid range', () => {
+      const manyRecipients: AlertViewData = {
+        ...mockAlertData,
+        recipients: Array.from({ length: 25 }, (_, i) => ({
+          id: `${i + 1}`,
+          name: `Recipient ${i + 1}`,
+          status: i % 2 === 0 ? 'viewed' : 'pending',
+        })),
+      };
+
+      render(
+        <AlertsManagerView
+          alertData={manyRecipients}
+          isOpen={true}
+          currentPage={10}
+        />
+      );
+
+      // Should clamp to last page (3) and show last 5 recipients
+      expect(screen.getByText('Recipient 21')).toBeInTheDocument();
+      expect(screen.getByText('Recipient 25')).toBeInTheDocument();
+      expect(screen.getByText('Página 3 de 3')).toBeInTheDocument();
+    });
   });
 
   describe('component props', () => {
@@ -552,28 +648,36 @@ describe('AlertsManagerView', () => {
 
       render(<AlertsManagerView alertData={invalidDate} isOpen={true} />);
 
-      expect(screen.getByText('Invalid Date')).toBeInTheDocument();
+      // Should return the original date string as a string when invalid
+      expect(screen.getByText('invalid-date')).toBeInTheDocument();
     });
 
-    it('should handle toLocaleDateString error in catch block', () => {
-      // Mock Date.prototype.toLocaleDateString to throw an error
-      const originalToLocaleDateString = Date.prototype.toLocaleDateString;
-      Date.prototype.toLocaleDateString = jest.fn(() => {
-        throw new Error('Locale date string error');
-      });
-
-      const alertWithDate: AlertViewData = {
+    it('should handle Date object input', () => {
+      const dateObj = new Date('2024-01-10T08:00:00');
+      const alertWithDateObj: AlertViewData = {
         ...mockAlertData,
-        sentAt: '2024-01-10T08:00:00',
+        sentAt: dateObj,
       };
 
-      render(<AlertsManagerView alertData={alertWithDate} isOpen={true} />);
+      render(<AlertsManagerView alertData={alertWithDateObj} isOpen={true} />);
 
-      // Should return the original date string when toLocaleDateString throws
-      expect(screen.getByText('2024-01-10T08:00:00')).toBeInTheDocument();
+      // Should format the date correctly
+      expect(screen.getByText('10/01/2024')).toBeInTheDocument();
+    });
 
-      // Restore original function
-      Date.prototype.toLocaleDateString = originalToLocaleDateString;
+    it('should handle invalid Date object input', () => {
+      const invalidDateObj = new Date('invalid');
+      const alertWithInvalidDateObj: AlertViewData = {
+        ...mockAlertData,
+        sentAt: invalidDateObj,
+      };
+
+      render(
+        <AlertsManagerView alertData={alertWithInvalidDateObj} isOpen={true} />
+      );
+
+      // Should return the string representation of invalid date
+      expect(screen.getByText('Invalid Date')).toBeInTheDocument();
     });
 
     it('should handle only viewed recipients', () => {

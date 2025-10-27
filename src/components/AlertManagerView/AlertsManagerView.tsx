@@ -1,24 +1,23 @@
 import { useMemo, useEffect } from 'react';
-import {
-  Modal,
-  Text,
-  Divider,
-  Table,
+import Modal from '../Modal/Modal';
+import Text from '../Text/Text';
+import Divider from '../Divider/Divider';
+import Table, {
   TableHeader,
   TableBody,
   TableRow,
   TableHead,
   TableCell,
-  Button,
-  Badge,
-} from '../..';
+} from '../Table/Table';
+import Button from '../Button/Button';
+import Badge from '../Badge/Badge';
 import { CaretLeft, CaretRight, User } from 'phosphor-react';
 import type { AlertData } from '../AlertManager/types';
 import notification from '../../assets/img/notification.png';
 
 // Interface para os dados de visualização do alerta
 export interface AlertViewData extends AlertData {
-  sentAt: string; // Data de envio formatada
+  sentAt: string | Date; // Data de envio formatada
   recipients: RecipientStatus[];
 }
 
@@ -37,6 +36,7 @@ interface AlertsManagerViewProps {
   currentPage?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
+  itemsPerPage?: number;
 }
 
 export const AlertsManagerView = ({
@@ -46,6 +46,7 @@ export const AlertsManagerView = ({
   currentPage = 1,
   totalPages: externalTotalPages,
   onPageChange,
+  itemsPerPage = 10,
 }: AlertsManagerViewProps) => {
   // Criar URL blob para a imagem
   const imageUrl = useMemo(() => {
@@ -71,24 +72,28 @@ export const AlertsManagerView = ({
 
   // Calcular paginação (usar props externas se fornecidas, senão calcular)
   const totalPages =
-    externalTotalPages ?? Math.ceil(alertData.recipients.length / 10);
-  const paginatedRecipients = alertData.recipients;
+    externalTotalPages ?? Math.ceil(alertData.recipients.length / itemsPerPage);
+
+  // Clamp currentPage to valid range
+  const effectiveCurrentPage = Math.min(totalPages, Math.max(1, currentPage));
+
+  // Slice recipients based on effective page
+  const startIndex = (effectiveCurrentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedRecipients = alertData.recipients.slice(startIndex, endIndex);
 
   const handleClose = () => {
     onClose?.();
   };
 
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      });
-    } catch {
-      return dateString;
-    }
+  const formatDate = (dateInput: string | Date) => {
+    const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+    if (isNaN(date.getTime())) return String(dateInput);
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
   };
 
   return (
@@ -99,15 +104,15 @@ export const AlertsManagerView = ({
       size="md"
       contentClassName="p-0"
     >
-      <div
-        className="flex flex-col h-[calc(100vh-8rem)] max-h-[700px]"
-        data-theme="enem-parana-light"
-      >
+      <div className="flex flex-col h-[calc(100vh-8rem)] max-h-[700px]">
         {/* Área de conteúdo com scroll */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {/* Preview do alerta */}
           <div className="bg-background-50 px-5 py-6 flex flex-col items-center gap-4 rounded-xl mb-4">
-            <img src={imageUrl || notification} alt="Preview" className="" />
+            <img
+              src={imageUrl || notification}
+              alt={alertData.title || 'Imagem do alerta'}
+            />
             <div className="flex flex-col items-center text-center gap-3">
               <Text size="lg" weight="semibold">
                 {alertData.title || 'Sem Título'}
@@ -178,7 +183,7 @@ export const AlertsManagerView = ({
           {totalPages > 1 && (
             <div className="flex justify-end items-center gap-2 bg-background-50 border border-border-200 py-3.5 px-2 rounded-b-2xl">
               <Text size="sm" className="text-text-600">
-                Página {currentPage} de {totalPages}
+                Página {effectiveCurrentPage} de {totalPages}
               </Text>
               <div className="flex gap-2">
                 {onPageChange ? (
@@ -186,8 +191,10 @@ export const AlertsManagerView = ({
                     <Button
                       variant="link"
                       size="extra-small"
-                      onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                      disabled={currentPage === 1}
+                      onClick={() =>
+                        onPageChange(Math.max(1, effectiveCurrentPage - 1))
+                      }
+                      disabled={effectiveCurrentPage === 1}
                       iconLeft={<CaretLeft />}
                     >
                       Anterior
@@ -196,9 +203,11 @@ export const AlertsManagerView = ({
                       variant="link"
                       size="extra-small"
                       onClick={() =>
-                        onPageChange(Math.min(totalPages, currentPage + 1))
+                        onPageChange(
+                          Math.min(totalPages, effectiveCurrentPage + 1)
+                        )
                       }
-                      disabled={currentPage === totalPages}
+                      disabled={effectiveCurrentPage === totalPages}
                       iconRight={<CaretRight />}
                     >
                       Próximo
@@ -209,7 +218,7 @@ export const AlertsManagerView = ({
                     <Button
                       variant="link"
                       size="extra-small"
-                      disabled={currentPage === 1}
+                      disabled={effectiveCurrentPage === 1}
                       iconLeft={<CaretLeft />}
                     >
                       Anterior
@@ -217,7 +226,7 @@ export const AlertsManagerView = ({
                     <Button
                       variant="link"
                       size="extra-small"
-                      disabled={currentPage === totalPages}
+                      disabled={effectiveCurrentPage === totalPages}
                       iconRight={<CaretRight />}
                     >
                       Próximo
