@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import TablePagination from './TablePagination';
 
 describe('TablePagination', () => {
@@ -235,14 +235,13 @@ describe('TablePagination', () => {
         />
       );
 
-      const select = screen.getByLabelText(
-        'Items por página'
-      ) as HTMLSelectElement;
-      expect(select.options).toHaveLength(4);
-      expect(select.options[0].text).toBe('10 itens');
-      expect(select.options[1].text).toBe('20 itens');
-      expect(select.options[2].text).toBe('50 itens');
-      expect(select.options[3].text).toBe('100 itens');
+      const select = screen.getByLabelText('Items por página');
+      const options = within(select).getAllByRole('option');
+      expect(options).toHaveLength(4);
+      expect(options[0]).toHaveTextContent('10 itens');
+      expect(options[1]).toHaveTextContent('20 itens');
+      expect(options[2]).toHaveTextContent('50 itens');
+      expect(options[3]).toHaveTextContent('100 itens');
     });
 
     it('should render with custom options', () => {
@@ -255,13 +254,12 @@ describe('TablePagination', () => {
         />
       );
 
-      const select = screen.getByLabelText(
-        'Items por página'
-      ) as HTMLSelectElement;
-      expect(select.options).toHaveLength(3);
-      expect(select.options[0].text).toBe('5 itens');
-      expect(select.options[1].text).toBe('15 itens');
-      expect(select.options[2].text).toBe('25 itens');
+      const select = screen.getByLabelText('Items por página');
+      const options = within(select).getAllByRole('option');
+      expect(options).toHaveLength(3);
+      expect(options[0]).toHaveTextContent('5 itens');
+      expect(options[1]).toHaveTextContent('15 itens');
+      expect(options[2]).toHaveTextContent('25 itens');
     });
 
     it('should display current itemsPerPage value', () => {
@@ -274,10 +272,8 @@ describe('TablePagination', () => {
         />
       );
 
-      const select = screen.getByLabelText(
-        'Items por página'
-      ) as HTMLSelectElement;
-      expect(select.value).toBe('20');
+      const select = screen.getByLabelText('Items por página');
+      expect(select).toHaveValue('20');
     });
 
     it('should call onItemsPerPageChange when changed', () => {
