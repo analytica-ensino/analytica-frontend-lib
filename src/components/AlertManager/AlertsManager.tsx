@@ -1,4 +1,4 @@
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { Button, Modal, Stepper } from '../..';
 import { CaretLeft, CaretRight, PaperPlaneTilt } from 'phosphor-react';
 import { StepData } from '../Stepper/Stepper';
@@ -31,12 +31,13 @@ export const AlertsManager = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [categories, setCategories] = useState(config.categories);
-  const [forceUpdate, setForceUpdate] = useState(0);
+  const [, forceUpdate] = useState({});
 
-  // Força re-renderização quando o estado do formulário muda
+  // Subscribe to form changes to update button states
   useEffect(() => {
     const unsubscribe = useAlertFormStore.subscribe(() => {
-      setForceUpdate((prev) => prev + 1);
+      // Force re-render to update button disabled states
+      forceUpdate({});
     });
     return unsubscribe;
   }, []);
@@ -80,7 +81,7 @@ export const AlertsManager = ({
   };
 
   // Verifica se o step atual é válido
-  const isCurrentStepValid = () => {
+  const isCurrentStepValid = useCallback(() => {
     const formData = useAlertFormStore.getState();
     return isCurrentStepValidValidation(
       currentStep,
@@ -88,17 +89,15 @@ export const AlertsManager = ({
       categories,
       customSteps
     );
-  };
+  }, [currentStep, categories, customSteps]);
 
   // Verifica se pode finalizar
-  const canFinish = () => {
-    // Usa forceUpdate para garantir que o estado está atualizado
-    const _ = forceUpdate;
+  const canFinish = useCallback(() => {
     const formData = useAlertFormStore.getState();
     return canFinishValidation(formData, categories);
-  };
+  }, [categories]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     const formData = useAlertFormStore.getState();
     const result = handleNextValidation({
       currentStep,
@@ -114,13 +113,21 @@ export const AlertsManager = ({
     if (!result.success && result.error) {
       alert(result.error);
     }
-  };
+  }, [
+    currentStep,
+    steps,
+    categories,
+    customSteps,
+    completedSteps,
+    setCompletedSteps,
+    setCurrentStep,
+  ]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
-  };
+  }, [currentStep, setCurrentStep]);
 
   const handleFinish = async () => {
     if (!completedSteps.includes(currentStep)) {
@@ -174,7 +181,8 @@ export const AlertsManager = ({
     }
   );
 
-  const renderCurrentStep = () => {
+  // Memoize step content to prevent re-renders and focus loss
+  const currentStepContent = useMemo(() => {
     const BaseComponent = ({ children }: { children: ReactNode }) => (
       <div className="px-6">{children}</div>
     );
@@ -227,7 +235,7 @@ export const AlertsManager = ({
       default:
         return null;
     }
-  };
+  }, [currentStep, customSteps, categories, labels, behavior]); // handleNext e handlePrevious são estáveis com useCallback
 
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === steps.length - 1;
@@ -280,7 +288,7 @@ export const AlertsManager = ({
         </div>
       }
     >
-      <div className="flex flex-col gap-4 bg-red-500">
+      <div className="flex flex-col gap-4 pb-4">
         <Stepper
           steps={dynamicSteps}
           size="small"
@@ -288,7 +296,7 @@ export const AlertsManager = ({
           responsive
           progressText={`Etapa ${currentStep + 1} de ${steps.length}`}
         />
-        {renderCurrentStep()}
+        {currentStepContent}
       </div>
     </Modal>
   );

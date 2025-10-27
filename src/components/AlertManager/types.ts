@@ -95,12 +95,6 @@ export interface AlertsConfig {
 
     // Callback ao enviar aviso
     onSendAlert?: (alertData: AlertData) => Promise<void>;
-
-    // Callback ao carregar avisos da tabela
-    onLoadAlerts?: () => Promise<AlertTableItem[]>;
-
-    // Callback ao deletar aviso
-    onDeleteAlert?: (alertId: string) => Promise<void>;
   };
 }
 
