@@ -49,7 +49,7 @@ export const useTableFilter = (
 
   // Get initial state from URL if syncWithUrl is enabled
   const getInitialState = useCallback((): FilterConfig[] => {
-    if (!syncWithUrl || typeof globalThis.window === 'undefined') {
+    if (!syncWithUrl || globalThis.window === undefined) {
       return initialConfigs;
     }
 
@@ -96,7 +96,7 @@ export const useTableFilter = (
    * Apply filters to URL (commit the changes)
    */
   const applyFilters = useCallback(() => {
-    if (!syncWithUrl || typeof globalThis.window === 'undefined') {
+    if (!syncWithUrl || globalThis.window === undefined) {
       return;
     }
 
@@ -135,7 +135,7 @@ export const useTableFilter = (
     setFilterConfigs(clearedConfigs);
 
     // If syncWithUrl, also clear URL parameters
-    if (syncWithUrl && typeof globalThis.window !== 'undefined') {
+    if (syncWithUrl && globalThis.window !== undefined) {
       const url = new URL(globalThis.window.location.href);
       const params = url.searchParams;
 
@@ -151,7 +151,7 @@ export const useTableFilter = (
 
   // Sync with URL on mount and when URL changes externally
   useEffect(() => {
-    if (!syncWithUrl || typeof globalThis.window === 'undefined') {
+    if (!syncWithUrl || globalThis.window === undefined) {
       return;
     }
 
