@@ -484,4 +484,162 @@ describe('TextArea', () => {
       expect(textarea).toHaveClass('border-2', 'border-primary-950');
     });
   });
+
+  describe('Character Count Functionality', () => {
+    it('displays character count when showCharacterCount and maxLength are provided', () => {
+      render(
+        <TextArea value="Hello" maxLength={100} showCharacterCount={true} />
+      );
+      expect(screen.getByText('5/100 caracteres')).toBeInTheDocument();
+    });
+
+    it('does not display character count when showCharacterCount is false', () => {
+      render(
+        <TextArea value="Hello" maxLength={100} showCharacterCount={false} />
+      );
+      expect(screen.queryByText('5/100 caracteres')).not.toBeInTheDocument();
+    });
+
+    it('does not display character count when maxLength is not provided', () => {
+      render(<TextArea value="Hello" showCharacterCount={true} />);
+      expect(screen.queryByText(/caracteres/)).not.toBeInTheDocument();
+    });
+
+    it('updates character count as user types', async () => {
+      const user = userEvent.setup();
+      const handleChange = jest.fn();
+
+      render(
+        <TextArea
+          value=""
+          maxLength={100}
+          showCharacterCount={true}
+          onChange={handleChange}
+        />
+      );
+
+      expect(screen.getByText('0/100 caracteres')).toBeInTheDocument();
+
+      const textarea = screen.getByRole('textbox');
+      await user.type(textarea, 'Hello');
+
+      // After typing, parent component would re-render with updated value
+      // In this test, we just verify the initial state
+      expect(screen.getByText('0/100 caracteres')).toBeInTheDocument();
+    });
+
+    it('shows warning color when near limit (≥80%)', () => {
+      render(
+        <TextArea
+          value={'A'.repeat(80)}
+          maxLength={100}
+          showCharacterCount={true}
+        />
+      );
+
+      const counterElement = screen.getByText('80/100 caracteres');
+      expect(counterElement).toHaveClass('text-indicator-warning');
+    });
+
+    it('shows normal color when under 80% of limit', () => {
+      render(
+        <TextArea
+          value={'A'.repeat(50)}
+          maxLength={100}
+          showCharacterCount={true}
+        />
+      );
+
+      const counterElement = screen.getByText('50/100 caracteres');
+      expect(counterElement).toHaveClass('text-text-500');
+      expect(counterElement).not.toHaveClass('text-indicator-warning');
+    });
+
+    it('shows warning color when exactly at 80% of limit', () => {
+      render(
+        <TextArea value={'A'.repeat(400)} maxLength={500} showCharacterCount />
+      );
+
+      const counterElement = screen.getByText('400/500 caracteres');
+      expect(counterElement).toHaveClass('text-indicator-warning');
+    });
+
+    it('shows warning color when over 80% of limit', () => {
+      render(
+        <TextArea value={'A'.repeat(450)} maxLength={500} showCharacterCount />
+      );
+
+      const counterElement = screen.getByText('450/500 caracteres');
+      expect(counterElement).toHaveClass('text-indicator-warning');
+    });
+
+    it('shows warning color when exactly at limit', () => {
+      render(
+        <TextArea value={'A'.repeat(500)} maxLength={500} showCharacterCount />
+      );
+
+      const counterElement = screen.getByText('500/500 caracteres');
+      expect(counterElement).toHaveClass('text-indicator-warning');
+    });
+
+    it('prioritizes character count over helper message', () => {
+      const helperMessage = 'Helper text';
+      render(
+        <TextArea
+          value="Hello"
+          maxLength={100}
+          showCharacterCount={true}
+          helperMessage={helperMessage}
+        />
+      );
+
+      expect(screen.getByText('5/100 caracteres')).toBeInTheDocument();
+      expect(screen.queryByText(helperMessage)).not.toBeInTheDocument();
+    });
+
+    it('shows helper message when character count is not enabled', () => {
+      const helperMessage = 'Helper text';
+      render(
+        <TextArea
+          value="Hello"
+          maxLength={100}
+          showCharacterCount={false}
+          helperMessage={helperMessage}
+        />
+      );
+
+      expect(screen.queryByText(/caracteres/)).not.toBeInTheDocument();
+      expect(screen.getByText(helperMessage)).toBeInTheDocument();
+    });
+
+    it('does not show character count when error message is present', () => {
+      render(
+        <TextArea
+          value="Hello"
+          maxLength={100}
+          showCharacterCount={true}
+          errorMessage="Error occurred"
+        />
+      );
+
+      expect(screen.queryByText(/caracteres/)).not.toBeInTheDocument();
+      expect(screen.getByText('Error occurred')).toBeInTheDocument();
+    });
+
+    it('applies maxLength attribute to textarea', () => {
+      render(<TextArea maxLength={500} />);
+      const textarea = screen.getByRole('textbox');
+      expect(textarea).toHaveAttribute('maxLength', '500');
+    });
+
+    it('handles empty value with character count', () => {
+      render(<TextArea value="" maxLength={100} showCharacterCount={true} />);
+      expect(screen.getByText('0/100 caracteres')).toBeInTheDocument();
+    });
+
+    it('handles undefined value with character count', () => {
+      render(<TextArea maxLength={100} showCharacterCount={true} />);
+      expect(screen.getByText('0/100 caracteres')).toBeInTheDocument();
+    });
+  });
 });

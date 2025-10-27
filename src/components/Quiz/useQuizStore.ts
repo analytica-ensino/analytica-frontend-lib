@@ -190,12 +190,15 @@ export interface QuizState {
   userId: string;
   variant: 'result' | 'default';
   minuteCallback: (() => void) | null;
+  dissertativeCharLimit?: number;
   // Actions
   setQuiz: (quiz: QuizInterface) => void;
   setQuestionResult: (questionResult: QuestionResult) => void;
   setUserId: (userId: string) => void;
   setUserAnswers: (userAnswers: UserAnswerItem[]) => void;
   setVariant: (variant: 'result' | 'default') => void;
+  setDissertativeCharLimit: (limit?: number) => void;
+  getDissertativeCharLimit: () => number | undefined;
   // Quiz Navigation
   goToNextQuestion: () => void;
   goToPreviousQuestion: () => void;
@@ -348,6 +351,7 @@ export const useQuizStore = create<QuizState>()(
         userId: '',
         variant: 'default',
         minuteCallback: null,
+        dissertativeCharLimit: undefined,
         questionsResult: null,
         currentQuestionResult: null,
         // Setters
@@ -357,6 +361,9 @@ export const useQuizStore = create<QuizState>()(
         getUserId: () => get().userId,
         setVariant: (variant) => set({ variant }),
         setQuestionResult: (questionsResult) => set({ questionsResult }),
+        setDissertativeCharLimit: (limit?: number) =>
+          set({ dissertativeCharLimit: limit }),
+        getDissertativeCharLimit: () => get().dissertativeCharLimit,
         // Navigation
         goToNextQuestion: () => {
           const { currentQuestionIndex, getTotalQuestions } = get();
@@ -479,7 +486,7 @@ export const useQuizStore = create<QuizState>()(
         },
 
         selectDissertativeAnswer: (questionId, answer) => {
-          const { quiz, userAnswers } = get();
+          const { quiz, userAnswers, dissertativeCharLimit } = get();
 
           if (!quiz) return;
 
@@ -500,6 +507,15 @@ export const useQuizStore = create<QuizState>()(
             return;
           }
 
+          // Validate character limit if set
+          let validatedAnswer = answer;
+          if (
+            dissertativeCharLimit !== undefined &&
+            answer.length > dissertativeCharLimit
+          ) {
+            validatedAnswer = answer.substring(0, dissertativeCharLimit);
+          }
+
           const existingAnswerIndex = userAnswers.findIndex(
             (answerItem) => answerItem.questionId === questionId
           );
@@ -508,7 +524,7 @@ export const useQuizStore = create<QuizState>()(
             questionId,
             activityId,
             userId,
-            answer: answer,
+            answer: validatedAnswer,
             optionId: null,
             questionType: QUESTION_TYPE.DISSERTATIVA,
             answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
@@ -663,6 +679,7 @@ export const useQuizStore = create<QuizState>()(
             userId: '',
             variant: 'default',
             minuteCallback: null,
+            dissertativeCharLimit: undefined,
             questionsResult: null,
             currentQuestionResult: null,
           });

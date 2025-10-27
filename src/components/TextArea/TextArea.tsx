@@ -98,6 +98,8 @@ export type TextAreaProps = {
   className?: string;
   /** Label CSS classes */
   labelClassName?: string;
+  /** Show character count when maxLength is provided */
+  showCharacterCount?: boolean;
 } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'>;
 
 /**
@@ -137,6 +139,9 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       onChange,
       placeholder,
       required,
+      showCharacterCount = false,
+      maxLength,
+      value,
       ...props
     },
     ref
@@ -147,6 +152,10 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 
     // Internal state for focus tracking
     const [isFocused, setIsFocused] = useState(false);
+
+    // Calculate current character count
+    const currentLength = typeof value === 'string' ? value.length : 0;
+    const isNearLimit = maxLength && currentLength >= maxLength * 0.8;
 
     // Handle change events
     const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -221,6 +230,8 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           className={textareaClasses}
           placeholder={placeholder}
           required={required}
+          maxLength={maxLength}
+          value={value}
           {...props}
         />
 
@@ -231,12 +242,23 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           </p>
         )}
 
-        {/* Helper text */}
-        {helperMessage && !errorMessage && (
-          <Text size="sm" weight="normal" className="mt-1.5 text-text-500">
-            {helperMessage}
+        {/* Helper text or Character count */}
+        {!errorMessage && showCharacterCount && maxLength && (
+          <Text
+            size="sm"
+            weight="normal"
+            className={`mt-1.5 ${isNearLimit ? 'text-indicator-warning' : 'text-text-500'}`}
+          >
+            {currentLength}/{maxLength} caracteres
           </Text>
         )}
+        {!errorMessage &&
+          helperMessage &&
+          !(showCharacterCount && maxLength) && (
+            <Text size="sm" weight="normal" className="mt-1.5 text-text-500">
+              {helperMessage}
+            </Text>
+          )}
       </div>
     );
   }
