@@ -28,6 +28,11 @@ export {
   type Item,
 } from './components/CheckBoxGroup/CheckBoxGroup';
 export { AlertsManager } from './components/AlertManager/AlertsManager';
+export { AlertsManagerView } from './components/AlertManagerView/AlertsManagerView';
+export type {
+  AlertViewData,
+  RecipientStatus,
+} from './components/AlertManagerView/AlertsManagerView';
 export type { AlertsConfig } from './components/AlertManager/types';
 export type { RecipientItem } from './components/AlertManager/useAlertForm';
 export {
