@@ -22,6 +22,10 @@ interface AlertsManagerProps {
   onClose?: () => void;
 }
 
+const StepWrapper = ({ children }: { children: ReactNode }) => (
+  <div>{children}</div>
+);
+
 export const AlertsManager = ({
   config,
   isOpen = false,
@@ -31,7 +35,8 @@ export const AlertsManager = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [categories, setCategories] = useState(config.categories);
-  const [_unused, forceUpdate] = useState({});
+  const forceUpdateState = useState({});
+  const forceUpdate = forceUpdateState[1];
 
   // Subscribe to form changes to update button states
   useEffect(() => {
@@ -183,59 +188,63 @@ export const AlertsManager = ({
 
   // Memoize step content to prevent re-renders and focus loss
   const currentStepContent = useMemo(() => {
-    const BaseComponent = ({ children }: { children: ReactNode }) => (
-      <div>{children}</div>
-    );
-
     if (customSteps?.[currentStep]?.component) {
       const CustomComponent = customSteps[currentStep].component;
       return (
-        <BaseComponent>
+        <StepWrapper>
           <CustomComponent onNext={handleNext} onPrevious={handlePrevious} />
-        </BaseComponent>
+        </StepWrapper>
       );
     }
 
     switch (currentStep) {
       case 0:
         return (
-          <BaseComponent>
+          <StepWrapper>
             <MessageStep
               labels={labels}
               allowImageAttachment={behavior?.allowImageAttachment}
             />
-          </BaseComponent>
+          </StepWrapper>
         );
       case 1:
         return (
-          <BaseComponent>
+          <StepWrapper>
             <RecipientsStep
               categories={categories}
               labels={labels}
               onCategoriesChange={setCategories}
             />
-          </BaseComponent>
+          </StepWrapper>
         );
       case 2:
         return (
-          <BaseComponent>
+          <StepWrapper>
             <DateStep
               labels={labels}
               allowScheduling={behavior?.allowScheduling}
               allowEmailCopy={behavior?.allowEmailCopy}
             />
-          </BaseComponent>
+          </StepWrapper>
         );
       case 3:
         return (
-          <BaseComponent>
+          <StepWrapper>
             <PreviewStep />
-          </BaseComponent>
+          </StepWrapper>
         );
       default:
         return null;
     }
-  }, [currentStep, customSteps, categories, labels, behavior]); // handleNext e handlePrevious são estáveis com useCallback
+  }, [
+    currentStep,
+    customSteps,
+    categories,
+    labels,
+    behavior,
+    handleNext,
+    handlePrevious,
+  ]); // handleNext e handlePrevious agora estão nas dependências
 
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === steps.length - 1;

@@ -50,7 +50,7 @@ export const AlertsManagerView = ({
 }: AlertsManagerViewProps) => {
   // Criar URL blob para a imagem
   const imageUrl = useMemo(() => {
-    if (typeof globalThis.window === 'undefined') {
+    if (globalThis.window == undefined) {
       return undefined;
     }
 
@@ -64,7 +64,7 @@ export const AlertsManagerView = ({
   // Limpar URL blob quando componente desmontar ou imagem mudar
   useEffect(() => {
     return () => {
-      if (imageUrl && typeof globalThis.window !== 'undefined') {
+      if (imageUrl && globalThis.window !== undefined) {
         URL.revokeObjectURL(imageUrl);
       }
     };
