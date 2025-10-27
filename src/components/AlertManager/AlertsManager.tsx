@@ -184,7 +184,7 @@ export const AlertsManager = ({
   // Memoize step content to prevent re-renders and focus loss
   const currentStepContent = useMemo(() => {
     const BaseComponent = ({ children }: { children: ReactNode }) => (
-      <div className="px-6">{children}</div>
+      <div>{children}</div>
     );
 
     if (customSteps?.[currentStep]?.component) {
@@ -288,15 +288,22 @@ export const AlertsManager = ({
         </div>
       }
     >
-      <div className="flex flex-col gap-4 pb-4">
-        <Stepper
-          steps={dynamicSteps}
-          size="small"
-          showProgress
-          responsive
-          progressText={`Etapa ${currentStep + 1} de ${steps.length}`}
-        />
-        {currentStepContent}
+      <div className="flex flex-col h-[calc(100vh-14rem)] max-h-[600px]">
+        {/* Stepper fixo no topo */}
+        <div className="flex-shrink-0 px-6 pt-4">
+          <Stepper
+            steps={dynamicSteps}
+            size="small"
+            showProgress
+            responsive
+            progressText={`Etapa ${currentStep + 1} de ${steps.length}`}
+          />
+        </div>
+
+        {/* Área de conteúdo com scroll */}
+        <div className="flex-1 overflow-y-auto px-6 pb-4">
+          {currentStepContent}
+        </div>
       </div>
     </Modal>
   );
