@@ -679,6 +679,7 @@ export const useQuizStore = create<QuizState>()(
             userId: '',
             variant: 'default',
             minuteCallback: null,
+            dissertativeCharLimit: undefined,
             questionsResult: null,
             currentQuestionResult: null,
           });
