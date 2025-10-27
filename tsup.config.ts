@@ -43,6 +43,7 @@ export default defineConfig({
     'NotificationCard/index':
       'src/components/NotificationCard/NotificationCard.tsx',
     'NotFound/index': 'src/components/NotFound/NotFound.tsx',
+    'NoSearchResult/index': 'src/components/NoSearchResult/NoSearchResult.tsx',
     'VideoPlayer/index': 'src/components/VideoPlayer/VideoPlayer.tsx',
     'Whiteboard/index': 'src/components/Whiteboard/Whiteboard.tsx',
     'DownloadButton/index': 'src/components/DownloadButton/DownloadButton.tsx',

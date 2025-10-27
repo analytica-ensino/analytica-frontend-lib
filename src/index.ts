@@ -136,6 +136,20 @@ export {
   TableCaption,
   useTableSort,
 } from './components/Table/Table';
+export type {
+  UseTableSortOptions,
+  SortDirection,
+} from './components/Table/Table';
+
+// Filter Components
+export { FilterModal, useTableFilter } from './components/Filter';
+export type {
+  FilterModalProps,
+  FilterConfig,
+  UseTableFilterOptions,
+  UseTableFilterReturn,
+} from './components/Filter';
+
 // Select Components
 export {
   default as Select,
@@ -183,6 +197,8 @@ export {
 
 // Media Components
 export { default as NotFound } from './components/NotFound/NotFound';
+export { default as NoSearchResult } from './components/NoSearchResult/NoSearchResult';
+export type { NoSearchResultProps } from './components/NoSearchResult/NoSearchResult';
 export { default as VideoPlayer } from './components/VideoPlayer/VideoPlayer';
 export { default as Whiteboard } from './components/Whiteboard/Whiteboard';
 export { default as DownloadButton } from './components/DownloadButton/DownloadButton';
