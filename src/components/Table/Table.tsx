@@ -249,11 +249,22 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
           </table>
           {/* NoSearchResult outside table structure */}
           <div className="py-8 flex justify-center">
-            <NoSearchResult
-              image={noSearchResultImage || ''}
-              title={noSearchResultTitle}
-              description={noSearchResultDescription}
-            />
+            {noSearchResultImage ? (
+              <NoSearchResult
+                image={noSearchResultImage}
+                title={noSearchResultTitle}
+                description={noSearchResultDescription}
+              />
+            ) : (
+              <div className="text-center">
+                <p className="text-text-600 text-lg font-semibold mb-2">
+                  {noSearchResultTitle}
+                </p>
+                <p className="text-text-500 text-sm">
+                  {noSearchResultDescription}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       );
@@ -304,8 +315,10 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
           )}
           {...props}
         >
-          {/* Fix Sonnar */}
-          <caption className="sr-only">My Table</caption>
+          {/* Render fallback caption only if no TableCaption provided */}
+          {!Children.toArray(children).some(
+            (child) => isValidElement(child) && child.type === TableCaption
+          ) && <caption className="sr-only">My Table</caption>}
           {modifiedChildren}
         </table>
       </div>
