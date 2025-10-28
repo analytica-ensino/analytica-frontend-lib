@@ -414,6 +414,394 @@ describe('Table Components', () => {
     });
   });
 
+  describe('Empty State', () => {
+    it('should render normally when TableBody has children', () => {
+      render(
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>John Doe</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      );
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+      expect(
+        screen.queryByText('Nenhum dado disponível no momento.')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should show empty state when TableBody is empty and no searchTerm', () => {
+      render(
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      expect(
+        screen.getByText('Nenhum dado disponível no momento.')
+      ).toBeInTheDocument();
+    });
+
+    it('should show custom empty state message', () => {
+      const customMessage = 'Nenhum usuário cadastrado';
+      render(
+        <Table emptyStateMessage={customMessage}>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      expect(screen.getByText(customMessage)).toBeInTheDocument();
+    });
+  });
+
+  describe('Empty State Button', () => {
+    it('should render button when onEmptyStateButtonClick is provided', () => {
+      const handleClick = jest.fn();
+      render(
+        <Table onEmptyStateButtonClick={handleClick}>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      expect(
+        screen.getByRole('button', { name: 'Adicionar item' })
+      ).toBeInTheDocument();
+    });
+
+    it('should not render button when onEmptyStateButtonClick is not provided', () => {
+      render(
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    });
+
+    it('should call onEmptyStateButtonClick when button is clicked', () => {
+      const handleClick = jest.fn();
+      render(
+        <Table onEmptyStateButtonClick={handleClick}>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Adicionar item' }));
+      expect(handleClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use custom button text', () => {
+      const handleClick = jest.fn();
+      render(
+        <Table
+          onEmptyStateButtonClick={handleClick}
+          emptyStateButtonText="Criar Novo"
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      expect(
+        screen.getByRole('button', { name: 'Criar Novo' })
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe('No Search Result', () => {
+    const mockImage = 'data:image/png;base64,test';
+
+    it('should show NoSearchResult when searchTerm is present and no data', () => {
+      render(
+        <Table searchTerm="test query" noSearchResultImage={mockImage}>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      expect(
+        screen.getByText('Nenhum resultado encontrado')
+      ).toBeInTheDocument();
+      expect(screen.getByAltText('No search results')).toBeInTheDocument();
+    });
+
+    it('should not show NoSearchResult when searchTerm is empty string', () => {
+      render(
+        <Table searchTerm="" noSearchResultImage={mockImage}>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      expect(
+        screen.queryByAltText('No search results')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Nenhum dado disponível no momento.')
+      ).toBeInTheDocument();
+    });
+
+    it('should use custom no search result props', () => {
+      const customTitle = 'Sem resultados';
+      const customDescription = 'Tente outra busca';
+      render(
+        <Table
+          searchTerm="query"
+          noSearchResultImage={mockImage}
+          noSearchResultTitle={customTitle}
+          noSearchResultDescription={customDescription}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      expect(screen.getByText(customTitle)).toBeInTheDocument();
+      expect(screen.getByText(customDescription)).toBeInTheDocument();
+    });
+
+    it('should render table normally when searchTerm is present but has data', () => {
+      render(
+        <Table searchTerm="test" noSearchResultImage={mockImage}>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>Test Result</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      );
+      expect(screen.getByText('Test Result')).toBeInTheDocument();
+      expect(
+        screen.queryByAltText('No search results')
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Column Span Calculation', () => {
+    it('should calculate correct colspan for single column', () => {
+      const { container } = render(
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      const cell = container.querySelector('td');
+      expect(cell).toHaveAttribute('colspan', '1');
+    });
+
+    it('should calculate correct colspan for multiple columns', () => {
+      const { container } = render(
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Age</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      const cell = container.querySelector('td');
+      expect(cell).toHaveAttribute('colspan', '3');
+    });
+  });
+
+  describe('Backward Compatibility', () => {
+    it('should not affect existing Table usage without new props', () => {
+      render(
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>John</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Jane</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      );
+      expect(screen.getByText('John')).toBeInTheDocument();
+      expect(screen.getByText('Jane')).toBeInTheDocument();
+      expect(
+        screen.queryByText('Nenhum dado disponível no momento.')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should work with all table subcomponents', () => {
+      render(
+        <Table>
+          <TableCaption>Test Caption</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>Test</TableCell>
+            </TableRow>
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell>Footer</TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
+      );
+      expect(screen.getByText('Test Caption')).toBeInTheDocument();
+      expect(screen.getByText('Test')).toBeInTheDocument();
+      expect(screen.getByText('Footer')).toBeInTheDocument();
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle searchTerm with only whitespace as no search', () => {
+      render(
+        <Table searchTerm="   " noSearchResultImage="test.png">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      expect(
+        screen.getByText('Nenhum dado disponível no momento.')
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByAltText('No search results')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should handle empty noSearchResultImage gracefully', () => {
+      render(
+        <Table searchTerm="test">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      expect(
+        screen.getByText('Nenhum resultado encontrado')
+      ).toBeInTheDocument();
+    });
+
+    it('should handle table without TableHeader', () => {
+      render(
+        <Table>
+          <TableBody />
+        </Table>
+      );
+      expect(
+        screen.getByText('Nenhum dado disponível no momento.')
+      ).toBeInTheDocument();
+    });
+
+    it('should calculate colspan as 1 when no header is present', () => {
+      const { container } = render(
+        <Table>
+          <TableBody />
+        </Table>
+      );
+      const cell = container.querySelector('td');
+      expect(cell).toHaveAttribute('colspan', '1');
+    });
+
+    it('should show empty state with borderless variant', () => {
+      render(
+        <Table variant="borderless">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      expect(
+        screen.getByText('Nenhum dado disponível no momento.')
+      ).toBeInTheDocument();
+    });
+
+    it('should show NoSearchResult with borderless variant', () => {
+      const mockImage = 'data:image/png;base64,test';
+      render(
+        <Table
+          variant="borderless"
+          searchTerm="test"
+          noSearchResultImage={mockImage}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+      expect(
+        screen.getByText('Nenhum resultado encontrado')
+      ).toBeInTheDocument();
+    });
+  });
+
   describe('useTableSort hook', () => {
     const testData = [
       { id: 1, name: 'Charlie', age: 30, city: 'New York' },

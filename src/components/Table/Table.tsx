@@ -6,9 +6,16 @@ import {
   useState,
   useMemo,
   useEffect,
+  Children,
+  isValidElement,
+  cloneElement,
+  ReactElement,
+  ReactNode,
 } from 'react';
 import { cn } from '../../utils/utils';
 import { CaretUp, CaretDown } from 'phosphor-react';
+import NoSearchResult from '../NoSearchResult/NoSearchResult';
+import Button from '../Button/Button';
 
 type TableVariant = 'default' | 'borderless';
 type TableRowState = 'default' | 'selected' | 'invalid' | 'disabled';
@@ -141,6 +148,20 @@ export function useTableSort<T extends Record<string, unknown>>(
 
 interface TableProps extends HTMLAttributes<HTMLTableElement> {
   variant?: TableVariant;
+  /** Search term to detect if search is active */
+  searchTerm?: string;
+  /** Image source for no search result state */
+  noSearchResultImage?: string;
+  /** Title for no search result state */
+  noSearchResultTitle?: string;
+  /** Description for no search result state */
+  noSearchResultDescription?: string;
+  /** Message displayed when table is empty (no search active) */
+  emptyStateMessage?: string;
+  /** Text for the action button in empty state */
+  emptyStateButtonText?: string;
+  /** Callback when empty state button is clicked */
+  onEmptyStateButtonClick?: () => void;
 }
 
 interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
@@ -148,27 +169,147 @@ interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
 }
 
 const Table = forwardRef<HTMLTableElement, TableProps>(
-  ({ variant = 'default', className, children, ...props }, ref) => (
-    <div
-      className={cn(
-        'relative w-full overflow-x-auto',
-        variant === 'default' && 'border border-border-200 rounded-xl'
-      )}
-    >
-      <table
-        ref={ref}
+  (
+    {
+      variant = 'default',
+      className,
+      children,
+      searchTerm,
+      noSearchResultImage,
+      noSearchResultTitle = 'Nenhum resultado encontrado',
+      noSearchResultDescription = 'Não encontramos nenhum resultado com esse nome. Tente revisar a busca ou usar outra palavra-chave.',
+      emptyStateMessage = 'Nenhum dado disponível no momento.',
+      emptyStateButtonText = 'Adicionar item',
+      onEmptyStateButtonClick,
+      ...props
+    },
+    ref
+  ) => {
+    // Detect if TableBody is empty
+    const isTableBodyEmpty = useMemo(() => {
+      let isEmpty = false;
+      Children.forEach(children, (child) => {
+        if (isValidElement(child) && child.type === TableBody) {
+          const bodyProps = child.props as { children?: ReactNode };
+          isEmpty = Children.count(bodyProps.children) === 0;
+        }
+      });
+      return isEmpty;
+    }, [children]);
+
+    // Calculate column count for colspan
+    const columnCount = useMemo(() => {
+      let count = 0;
+      Children.forEach(children, (child) => {
+        if (isValidElement(child) && child.type === TableHeader) {
+          const headerProps = child.props as { children?: ReactNode };
+          Children.forEach(headerProps.children, (row) => {
+            if (isValidElement(row) && row.type === TableRow) {
+              const rowProps = row.props as { children?: ReactNode };
+              count = Children.count(rowProps.children);
+            }
+          });
+        }
+      });
+      return count || 1;
+    }, [children]);
+
+    // Determine which state to show
+    const hasSearchTerm = searchTerm && searchTerm.trim() !== '';
+    const showNoSearchResult = hasSearchTerm && isTableBodyEmpty;
+    const showEmptyState = !hasSearchTerm && isTableBodyEmpty;
+
+    // Render NoSearchResult outside table
+    if (showNoSearchResult) {
+      return (
+        <div
+          className={cn(
+            'relative w-full overflow-x-auto',
+            variant === 'default' && 'border border-border-200 rounded-xl'
+          )}
+        >
+          <table
+            ref={ref}
+            className={cn(
+              'analytica-table w-full caption-bottom text-sm border-separate border-spacing-0',
+              className
+            )}
+            {...props}
+          >
+            {/* Fix Sonnar */}
+            <caption className="sr-only">My Table</caption>
+            {/* Render TableHeader normally */}
+            {Children.map(children, (child) => {
+              if (isValidElement(child) && child.type === TableHeader) {
+                return child;
+              }
+              return null;
+            })}
+          </table>
+          {/* NoSearchResult outside table structure */}
+          <div className="py-8 flex justify-center">
+            <NoSearchResult
+              image={noSearchResultImage || ''}
+              title={noSearchResultTitle}
+              description={noSearchResultDescription}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Render Empty State inside TableBody
+    const modifiedChildren = Children.map(children, (child) => {
+      if (isValidElement(child) && child.type === TableBody && showEmptyState) {
+        return cloneElement(child as ReactElement<TableBodyProps>, {
+          children: (
+            <TableRow>
+              <TableCell colSpan={columnCount}>
+                <div className="flex flex-col items-center justify-center py-12 gap-4">
+                  <p className="text-text-600 text-base font-normal">
+                    {emptyStateMessage}
+                  </p>
+                  {onEmptyStateButtonClick && (
+                    <Button
+                      variant="solid"
+                      action="primary"
+                      size="medium"
+                      onClick={onEmptyStateButtonClick}
+                    >
+                      {emptyStateButtonText}
+                    </Button>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ),
+        });
+      }
+      return child;
+    });
+
+    return (
+      <div
         className={cn(
-          'analytica-table w-full caption-bottom text-sm border-separate border-spacing-0',
-          className
+          'relative w-full overflow-x-auto',
+          variant === 'default' && 'border border-border-200 rounded-xl'
         )}
-        {...props}
       >
-        {/* Fix Sonnar */}
-        <caption className="sr-only">My Table</caption>
-        {children}
-      </table>
-    </div>
-  )
+        <table
+          ref={ref}
+          className={cn(
+            'analytica-table w-full caption-bottom text-sm border-separate border-spacing-0',
+            className
+          )}
+          {...props}
+        >
+          {/* Fix Sonnar */}
+          <caption className="sr-only">My Table</caption>
+          {modifiedChildren}
+        </table>
+      </div>
+    );
+  }
 );
 
 Table.displayName = 'Table';
