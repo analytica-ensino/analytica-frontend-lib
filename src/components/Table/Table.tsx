@@ -187,14 +187,18 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
   ) => {
     // Detect if TableBody is empty
     const isTableBodyEmpty = useMemo(() => {
-      let isEmpty = false;
+      let foundBody = false;
+      let empty = true;
       Children.forEach(children, (child) => {
         if (isValidElement(child) && child.type === TableBody) {
+          foundBody = true;
           const bodyProps = child.props as { children?: ReactNode };
-          isEmpty = Children.count(bodyProps.children) === 0;
+          if (Children.count(bodyProps?.children) > 0) {
+            empty = false;
+          }
         }
       });
-      return isEmpty;
+      return foundBody ? empty : false;
     }, [children]);
 
     // Calculate column count for colspan
