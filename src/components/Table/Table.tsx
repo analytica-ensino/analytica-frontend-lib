@@ -401,8 +401,8 @@ const TableRow = forwardRef<HTMLTableRowElement, TableRowPropsExtended>(
         ref={ref}
         className={cn(
           'transition-colors',
-          state !== 'disabled' ? 'hover:bg-muted/50' : '',
-          clickable && state !== 'disabled' ? 'cursor-pointer' : '',
+          state === 'disabled' ? '' : 'hover:bg-muted/50',
+          state === 'disabled' || !clickable ? '' : 'cursor-pointer',
           VARIANT_STATES_ROW[state][variant],
           className
         )}

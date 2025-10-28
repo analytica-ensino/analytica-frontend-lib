@@ -1,6 +1,11 @@
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { renderHook, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  renderHook,
+  act,
+} from '@testing-library/react';
 import Table, {
   TableHeader,
   TableBody,
@@ -11,6 +16,48 @@ import Table, {
   TableCaption,
   useTableSort,
 } from './Table';
+
+/**
+ * Test data for useTableSort hook tests
+ */
+const testData = [
+  { id: 1, name: 'Bob', age: 30, value: 10 },
+  { id: 2, name: 'Alice', age: 25, value: 20 },
+  { id: 3, name: 'Charlie', age: 35, value: 15 },
+];
+
+/**
+ * Test helper: Setup hook without URL synchronization
+ */
+function setupHookWithoutSync() {
+  return renderHook(() => useTableSort(testData));
+}
+
+/**
+ * Test helper: Setup hook with URL synchronization
+ */
+function setupHookWithSync() {
+  return renderHook(() => useTableSort(testData, { syncWithUrl: true }));
+}
+
+/**
+ * Test helper: Perform sort action
+ */
+function performSort(
+  result: { current: { handleSort: (column: string) => void } },
+  column: string
+) {
+  act(() => result.current.handleSort(column));
+}
+
+/**
+ * Test helper: Get last URL from history mock
+ */
+function getLastUrlFromHistory(): string {
+  const calls = (globalThis.history.replaceState as jest.Mock).mock.calls;
+  const lastCall = calls.at(-1);
+  return lastCall[2];
+}
 
 describe('Table Components', () => {
   describe('Table', () => {
@@ -919,29 +966,27 @@ describe('Table Components', () => {
 
     describe('URL synchronization', () => {
       beforeEach(() => {
-        // Mock window.location and history
-        delete (window as { location?: Location }).location;
-        (window as { location: Partial<Location> }).location = {
+        // Mock globalThis.location and history
+        delete (globalThis as { location?: Location }).location;
+        (globalThis as { location: Partial<Location> }).location = {
           href: 'http://localhost:3000/',
           search: '',
         };
 
-        window.history.replaceState = jest.fn();
+        globalThis.history.replaceState = jest.fn();
       });
 
       it('does not read URL params when syncWithUrl is false', () => {
-        window.location.search = '?sortBy=name&sort=ASC';
-        const { result } = renderHook(() => useTableSort(testData));
+        globalThis.location.search = '?sortBy=name&sort=ASC';
+        const { result } = setupHookWithoutSync();
 
         expect(result.current.sortColumn).toBeNull();
         expect(result.current.sortDirection).toBeNull();
       });
 
       it('reads URL params on initialization when syncWithUrl is true', () => {
-        window.location.search = '?sortBy=name&sort=ASC';
-        const { result } = renderHook(() =>
-          useTableSort(testData, { syncWithUrl: true })
-        );
+        globalThis.location.search = '?sortBy=name&sort=ASC';
+        const { result } = setupHookWithSync();
 
         expect(result.current.sortColumn).toBe('name');
         expect(result.current.sortDirection).toBe('asc');
@@ -949,10 +994,8 @@ describe('Table Components', () => {
       });
 
       it('reads DESC sort direction from URL', () => {
-        window.location.search = '?sortBy=age&sort=DESC';
-        const { result } = renderHook(() =>
-          useTableSort(testData, { syncWithUrl: true })
-        );
+        globalThis.location.search = '?sortBy=age&sort=DESC';
+        const { result } = setupHookWithSync();
 
         expect(result.current.sortColumn).toBe('age');
         expect(result.current.sortDirection).toBe('desc');
@@ -960,76 +1003,47 @@ describe('Table Components', () => {
       });
 
       it('ignores invalid sort direction in URL', () => {
-        window.location.search = '?sortBy=name&sort=INVALID';
-        const { result } = renderHook(() =>
-          useTableSort(testData, { syncWithUrl: true })
-        );
+        globalThis.location.search = '?sortBy=name&sort=INVALID';
+        const { result } = setupHookWithSync();
 
         expect(result.current.sortColumn).toBeNull();
         expect(result.current.sortDirection).toBeNull();
       });
 
       it('updates URL when sort changes', () => {
-        const { result } = renderHook(() =>
-          useTableSort(testData, { syncWithUrl: true })
-        );
-
-        act(() => {
-          result.current.handleSort('name');
-        });
+        const { result } = setupHookWithSync();
+        performSort(result, 'name');
 
         // Wait for useEffect to run
-        expect(window.history.replaceState).toHaveBeenCalled();
-        const calls = (window.history.replaceState as jest.Mock).mock.calls;
-        const lastCall = calls[calls.length - 1];
-        const url = lastCall[2];
+        expect(globalThis.history.replaceState).toHaveBeenCalled();
+        const url = getLastUrlFromHistory();
         expect(url).toContain('sortBy=name');
         expect(url).toContain('sort=ASC');
       });
 
       it('updates URL to DESC on second click', () => {
-        const { result } = renderHook(() =>
-          useTableSort(testData, { syncWithUrl: true })
-        );
+        const { result } = setupHookWithSync();
+        performSort(result, 'name');
+        performSort(result, 'name');
 
-        act(() => {
-          result.current.handleSort('name');
-        });
-
-        act(() => {
-          result.current.handleSort('name');
-        });
-
-        const calls = (window.history.replaceState as jest.Mock).mock.calls;
-        const lastCall = calls[calls.length - 1];
-        const url = lastCall[2];
+        const url = getLastUrlFromHistory();
         expect(url).toContain('sortBy=name');
         expect(url).toContain('sort=DESC');
       });
 
       it('removes URL params when sort is cleared', () => {
-        const { result } = renderHook(() =>
-          useTableSort(testData, { syncWithUrl: true })
-        );
+        const { result } = setupHookWithSync();
 
         // First click: ASC
-        act(() => {
-          result.current.handleSort('name');
-        });
+        performSort(result, 'name');
 
         // Second click: DESC
-        act(() => {
-          result.current.handleSort('name');
-        });
+        performSort(result, 'name');
 
         // Third click: clear sort
-        act(() => {
-          result.current.handleSort('name');
-        });
+        performSort(result, 'name');
 
-        const calls = (window.history.replaceState as jest.Mock).mock.calls;
-        const lastCall = calls[calls.length - 1];
-        const url = lastCall[2];
+        const url = getLastUrlFromHistory();
         expect(url).not.toContain('sortBy=');
         expect(url).not.toContain('sort=');
       });
@@ -1037,19 +1051,12 @@ describe('Table Components', () => {
       it('preserves other URL params when updating sort params', () => {
         // Create a proper URL object with query params
         const testUrl = new URL('http://localhost:3000/?page=2&filter=active');
-        (window as { location: Partial<Location> }).location = testUrl;
+        (globalThis as { location: Partial<Location> }).location = testUrl;
 
-        const { result } = renderHook(() =>
-          useTableSort(testData, { syncWithUrl: true })
-        );
+        const { result } = setupHookWithSync();
+        performSort(result, 'name');
 
-        act(() => {
-          result.current.handleSort('name');
-        });
-
-        const calls = (window.history.replaceState as jest.Mock).mock.calls;
-        const lastCall = calls[calls.length - 1];
-        const url = lastCall[2];
+        const url = getLastUrlFromHistory();
         expect(url).toContain('page=2');
         expect(url).toContain('filter=active');
         expect(url).toContain('sortBy=name');
@@ -1057,13 +1064,10 @@ describe('Table Components', () => {
       });
 
       it('does not update URL when syncWithUrl is false', () => {
-        const { result } = renderHook(() => useTableSort(testData));
+        const { result } = setupHookWithoutSync();
+        performSort(result, 'name');
 
-        act(() => {
-          result.current.handleSort('name');
-        });
-
-        expect(window.history.replaceState).not.toHaveBeenCalled();
+        expect(globalThis.history.replaceState).not.toHaveBeenCalled();
       });
     });
   });

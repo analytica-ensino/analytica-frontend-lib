@@ -114,7 +114,7 @@ export const AllTables: Story = () => (
               {state === 'disabled' && 'Linha desabilitada'}
             </TableCell>
             <TableCell className="text-right">
-              {state !== 'disabled' ? 'Ação disponível' : 'Ação bloqueada'}
+              {state === 'disabled' ? 'Ação bloqueada' : 'Ação disponível'}
             </TableCell>
           </TableRow>
         ))}
