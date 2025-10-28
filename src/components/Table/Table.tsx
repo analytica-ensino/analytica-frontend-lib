@@ -236,11 +236,12 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
             )}
             {...props}
           >
-            {/* Fix Sonnar */}
-            <caption className="sr-only">My Table</caption>
-            {/* Render TableHeader normally */}
+            {/* Render existing TableCaption (if any) and TableHeader */}
             {Children.map(children, (child) => {
-              if (isValidElement(child) && child.type === TableHeader) {
+              if (
+                isValidElement(child) &&
+                (child.type === TableCaption || child.type === TableHeader)
+              ) {
                 return child;
               }
               return null;
@@ -263,7 +264,7 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
       if (isValidElement(child) && child.type === TableBody && showEmptyState) {
         return cloneElement(child as ReactElement<TableBodyProps>, {
           children: (
-            <TableRow>
+            <TableRow variant={variant}>
               <TableCell colSpan={columnCount}>
                 <div className="flex flex-col items-center justify-center py-12 gap-4">
                   <p className="text-text-600 text-base font-normal">
