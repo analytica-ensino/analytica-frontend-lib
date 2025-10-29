@@ -96,31 +96,26 @@ const TablePagination = ({
   return (
     <div
       className={cn(
-        'flex flex-row justify-between items-center gap-[25px] h-[50px]',
+        'flex flex-wrap items-center gap-4 w-full bg-background-50 rounded-xl p-4',
+        'md:justify-between md:flex-nowrap',
         className
       )}
       {...props}
     >
-      {/* Column 1: Items count */}
-      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[171px] h-[50px] bg-background-50 border-l border-border-200 rounded-bl-xl">
-        <div className="flex flex-row items-start w-full h-3.5">
-          <span className="flex items-center w-full h-3.5 font-normal text-xs leading-[14px] text-text-800">
-            {startItem} de {totalItems} {itemLabel}
-          </span>
-        </div>
-      </div>
+      {/* Items count - fica à esquerda no desktop */}
+      <span className="font-normal text-xs leading-[14px] text-text-800">
+        {startItem} de {totalItems} {itemLabel}
+      </span>
 
-      {/* Column 2: Empty space with items per page selector */}
-      <div className="flex flex-row justify-end items-center py-3.5 px-2 gap-2 flex-grow h-[50px] bg-background-50">
-        <div className="flex flex-row justify-end items-start w-full h-3.5">
-          <span className="flex items-center w-full h-3.5" />
-        </div>
+      {/* Grupo direita - selector + page info + buttons */}
+      <div className="flex flex-wrap items-center gap-4 md:flex-nowrap">
+        {/* Items per page selector */}
         {onItemsPerPageChange && (
           <div className="relative">
             <select
               value={itemsPerPage}
               onChange={handleItemsPerPageChange}
-              className="flex flex-row items-center py-0 px-3 gap-2 w-24 h-9 bg-background border border-border-300 rounded appearance-none cursor-pointer font-normal text-sm leading-[21px] text-text-900 pr-8"
+              className="w-24 h-9 py-0 px-3 pr-8 bg-background border border-border-300 rounded appearance-none cursor-pointer font-normal text-sm leading-[21px] text-text-900"
               aria-label="Items por página"
             >
               {itemsPerPageOptions.map((option) => (
@@ -136,24 +131,18 @@ const TablePagination = ({
             />
           </div>
         )}
-      </div>
 
-      {/* Column 3: Page info */}
-      <div className="flex flex-row justify-end items-center py-3.5 px-2 gap-2 w-[103.5px] h-[50px] bg-background-50">
-        <div className="flex flex-row justify-end items-start w-full h-3.5">
-          <span className="flex items-center text-right w-full h-3.5 font-normal text-xs leading-[14px] text-text-950">
-            Página {currentPage} de {totalPages}
-          </span>
-        </div>
-      </div>
+        {/* Page info */}
+        <span className="font-normal text-xs leading-[14px] text-text-950">
+          Página {currentPage} de {totalPages}
+        </span>
 
-      {/* Column 4: Previous button */}
-      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[108px] h-[50px] bg-background-50">
+        {/* Previous button */}
         <button
           onClick={handlePrevious}
           disabled={isFirstPage}
           className={cn(
-            'flex flex-row justify-center items-center py-0 px-3.5 gap-2 w-[92px] h-8 rounded-3xl transition-opacity',
+            'flex flex-row justify-center items-center py-2 px-4 gap-2 rounded-3xl transition-all',
             isFirstPage
               ? 'opacity-50 cursor-not-allowed'
               : 'hover:bg-primary-950/10 cursor-pointer'
@@ -165,15 +154,13 @@ const TablePagination = ({
             Anterior
           </span>
         </button>
-      </div>
 
-      {/* Column 5: Next button */}
-      <div className="flex flex-row items-center py-3.5 px-2 gap-2 w-[111px] h-[50px] bg-background-50 border-r border-border-200 rounded-br-xl">
+        {/* Next button */}
         <button
           onClick={handleNext}
           disabled={isLastPage}
           className={cn(
-            'flex flex-row justify-center items-center py-0 px-3.5 gap-2 w-[95px] h-8 rounded-3xl transition-opacity',
+            'flex flex-row justify-center items-center py-2 px-4 gap-2 rounded-3xl transition-all',
             isLastPage
               ? 'opacity-50 cursor-not-allowed'
               : 'hover:bg-primary-950/10 cursor-pointer'
@@ -183,7 +170,7 @@ const TablePagination = ({
           <span className="font-medium text-xs leading-[14px] text-primary-950">
             Próxima
           </span>
-          <CaretRight size={14} weight="bold" className="text-primary-950" />
+          <CaretRight size={12} weight="bold" className="text-primary-950" />
         </button>
       </div>
     </div>
