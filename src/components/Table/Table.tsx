@@ -519,6 +519,9 @@ const TableCaption = forwardRef<
 ));
 TableCaption.displayName = 'TableCaption';
 
+export { default as TablePagination } from './TablePagination';
+export type { TablePaginationProps } from './TablePagination';
+
 export default Table;
 export {
   TableHeader,
