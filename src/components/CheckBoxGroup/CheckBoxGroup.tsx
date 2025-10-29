@@ -248,7 +248,7 @@ export const CheckboxGroup = ({
     const selectedIdsArr = getSelectedIdsForFilters(filters);
 
     if (selectedIdsArr.some((arr) => arr.length === 0)) {
-      return [{ itens: category?.itens || [] }];
+      return [{ itens: [] }];
     }
 
     const combinations = cartesian(selectedIdsArr);
@@ -263,9 +263,7 @@ export const CheckboxGroup = ({
       (g) => g.itens.length
     );
 
-    return groupedItems.length
-      ? groupedItems
-      : [{ itens: category?.itens || [] }];
+    return groupedItems.length ? groupedItems : [{ itens: [] }];
   };
 
   const formattedItemsMap = useMemo(() => {
@@ -597,6 +595,11 @@ export const CheckboxGroup = ({
       return null;
     }
 
+    const formattedItems = getFormattedItems(category.key);
+    const hasNoItems = formattedItems.every(
+      (group) => !group.itens || group.itens.length === 0
+    );
+
     return (
       <div key={category.key}>
         <CardAccordation
@@ -609,8 +612,16 @@ export const CheckboxGroup = ({
           trigger={renderAccordionTrigger(category, isEnabled)}
         >
           <div className="flex flex-col gap-3 pt-2">
-            {getFormattedItems(category.key).map((formattedGroup, idx) =>
-              renderFormattedGroup(formattedGroup, idx, category.key)
+            {hasNoItems && isEnabled ? (
+              <div className="px-2 py-4">
+                <Text size="sm" className="text-text-500 text-center">
+                  Sem dados
+                </Text>
+              </div>
+            ) : (
+              formattedItems.map((formattedGroup, idx) =>
+                renderFormattedGroup(formattedGroup, idx, category.key)
+              )
             )}
           </div>
         </CardAccordation>
