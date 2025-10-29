@@ -596,9 +596,9 @@ export const CheckboxGroup = ({
     }
 
     const formattedItems = getFormattedItems(category.key);
-    const hasNoItems =
-      formattedItems.length === 0 ||
-      formattedItems.every((group) => !group.itens || group.itens.length === 0);
+    const hasNoItems = formattedItems.every(
+      (group) => !group.itens || group.itens.length === 0
+    );
 
     return (
       <div key={category.key}>
