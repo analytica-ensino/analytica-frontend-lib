@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import type { CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
 
 export type FilterConfig = {
@@ -73,17 +73,22 @@ export const useTableFilter = (
     useState<FilterConfig[]>(getInitialState);
 
   // Calculate active filters (only categories with selections)
-  const activeFilters: Record<string, string[]> = {};
-  let hasActiveFilters = false;
+  // Memoize to prevent creating new object reference on every render
+  const activeFilters = useMemo(() => {
+    const filters: Record<string, string[]> = {};
 
-  for (const config of filterConfigs) {
-    for (const category of config.categories) {
-      if (category.selectedIds && category.selectedIds.length > 0) {
-        activeFilters[category.key] = category.selectedIds;
-        hasActiveFilters = true;
+    for (const config of filterConfigs) {
+      for (const category of config.categories) {
+        if (category.selectedIds && category.selectedIds.length > 0) {
+          filters[category.key] = category.selectedIds;
+        }
       }
     }
-  }
+
+    return filters;
+  }, [filterConfigs]);
+
+  const hasActiveFilters = Object.keys(activeFilters).length > 0;
 
   /**
    * Update filter configs (temporary state, not applied to URL yet)
