@@ -1051,4 +1051,37 @@ describe('CheckboxGroup', () => {
       expect(endTime - startTime).toBeLessThan(3000);
     });
   });
+
+  describe('Empty State', () => {
+    it('should not display "Sem dados" when category is disabled', () => {
+      const dependentCategories: CategoryConfig[] = [
+        {
+          key: 'parent',
+          label: 'Parent Category',
+          itens: [
+            { id: 'parent-1', name: 'Parent 1' },
+            { id: 'parent-2', name: 'Parent 2' },
+          ],
+          selectedIds: [],
+        },
+        {
+          key: 'child',
+          label: 'Child Category',
+          dependsOn: ['parent'],
+          itens: [],
+          selectedIds: [],
+        },
+      ];
+
+      render(
+        <CheckboxGroup
+          categories={dependentCategories}
+          onCategoriesChange={jest.fn()}
+        />
+      );
+
+      // Child category is disabled and has no items, but "Sem dados" should not appear
+      expect(screen.queryByText('Sem dados')).not.toBeInTheDocument();
+    });
+  });
 });
