@@ -357,7 +357,7 @@ const Stepper = ({
           responsive
             ? 'flex-row overflow-x-auto overflow-y-hidden scrollbar-hide justify-start sm:justify-center md:justify-center lg:justify-center'
             : 'flex-row justify-center',
-          'px-2 sm:px-4 md:px-6 lg:px-0 max-w-full min-w-0 gap-2 sm:gap-3 md:gap-4 lg:gap-4'
+          'max-w-full min-w-0 gap-2 sm:gap-3 md:gap-4 lg:gap-4'
         )}
         role="tablist"
         aria-label="Progress steps"

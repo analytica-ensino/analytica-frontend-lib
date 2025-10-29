@@ -114,7 +114,7 @@ export const AllTables: Story = () => (
               {state === 'disabled' && 'Linha desabilitada'}
             </TableCell>
             <TableCell className="text-right">
-              {state !== 'disabled' ? 'Ação disponível' : 'Ação bloqueada'}
+              {state === 'disabled' ? 'Ação bloqueada' : 'Ação disponível'}
             </TableCell>
           </TableRow>
         ))}
@@ -508,6 +508,173 @@ export const ActivityTable: Story = () => {
           ))}
         </TableBody>
       </Table>
+    </div>
+  );
+};
+
+/**
+ * Empty State Without Search
+ * Shows message and optional action button when table has no data
+ */
+export const EmptyState: Story = () => {
+  const handleAddItem = () => {
+    alert('Adicionar novo item');
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <h2 className="font-bold text-3xl text-text-900">Empty State</h2>
+
+      <div>
+        <h3 className="font-bold text-xl mb-4">Com botão de ação</h3>
+        <Table
+          onEmptyStateButtonClick={handleAddItem}
+          emptyStateButtonText="Adicionar Atividade"
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Título</TableHead>
+              <TableHead>Escola</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      </div>
+
+      <div>
+        <h3 className="font-bold text-xl mb-4">Sem botão de ação</h3>
+        <Table emptyStateMessage="Nenhuma atividade disponível">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Título</TableHead>
+              <TableHead>Escola</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      </div>
+
+      <div>
+        <h3 className="font-bold text-xl mb-4">Mensagem customizada</h3>
+        <Table
+          emptyStateMessage="Você ainda não criou nenhuma turma. Comece criando sua primeira turma!"
+          emptyStateButtonText="Criar Turma"
+          onEmptyStateButtonClick={handleAddItem}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Ano</TableHead>
+              <TableHead>Alunos</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * No Search Results
+ * Shows illustration and message when search returns no results
+ */
+export const NoSearchResults: Story = () => {
+  // Placeholder image for demonstration
+  const noSearchImage = 'https://via.placeholder.com/288x288?text=No+Results';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <h2 className="font-bold text-3xl text-text-900">No Search Results</h2>
+
+      <div>
+        <h3 className="font-bold text-xl mb-4">Com props padrão</h3>
+        <Table
+          searchTerm="query não encontrada"
+          noSearchResultImage={noSearchImage}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      </div>
+
+      <div>
+        <h3 className="font-bold text-xl mb-4">Com mensagens customizadas</h3>
+        <Table
+          searchTerm="João Silva"
+          noSearchResultImage={noSearchImage}
+          noSearchResultTitle="Nenhum aluno encontrado"
+          noSearchResultDescription="Não encontramos nenhum aluno com esse nome. Verifique a ortografia ou tente usar outros filtros."
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Matrícula</TableHead>
+              <TableHead>Turma</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Empty States Comparison
+ * Shows both empty state scenarios side by side
+ */
+export const EmptyStatesComparison: Story = () => {
+  const noSearchImage = 'https://via.placeholder.com/288x288?text=No+Results';
+  const handleAddItem = () => alert('Add item');
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
+      <h2 className="font-bold text-3xl text-text-900">
+        Comparação de Empty States
+      </h2>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 }}>
+        <div>
+          <h3 className="font-bold text-xl mb-4">Sem busca ativa</h3>
+          <p className="text-text-600 mb-4">Mostra empty state com ação</p>
+          <Table
+            emptyStateMessage="Nenhuma atividade cadastrada"
+            emptyStateButtonText="Criar Atividade"
+            onEmptyStateButtonClick={handleAddItem}
+          >
+            <TableHeader>
+              <TableRow>
+                <TableHead>Título</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody />
+          </Table>
+        </div>
+
+        <div>
+          <h3 className="font-bold text-xl mb-4">Com busca ativa</h3>
+          <p className="text-text-600 mb-4">Mostra no search result</p>
+          <Table searchTerm="teste" noSearchResultImage={noSearchImage}>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Título</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody />
+          </Table>
+        </div>
+      </div>
     </div>
   );
 };

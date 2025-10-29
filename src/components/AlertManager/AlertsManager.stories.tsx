@@ -167,29 +167,6 @@ const fullConfig: AlertsConfig = {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       alert('Aviso enviado com sucesso!');
     },
-    onLoadAlerts: async () => {
-      return [
-        {
-          id: '1',
-          title: 'Atualização Importante para os Estudantes',
-          sentAt: '15/10/2024',
-        },
-        {
-          id: '2',
-          title: 'Reunião de Pais',
-          sentAt: '14/10/2024',
-        },
-        {
-          id: '3',
-          title: 'Feriado Prolongado',
-          sentAt: '10/10/2024',
-        },
-      ];
-    },
-    onDeleteAlert: async (alertId: string) => {
-      console.log('Deletando aviso:', alertId);
-      alert(`Aviso ${alertId} deletado`);
-    },
   },
 };
 
@@ -307,16 +284,6 @@ export const TwoLevelHierarchy: Story = () => {
         console.log('Comunicado:', alertData);
         alert('Comunicado enviado!');
       },
-      onLoadAlerts: async () => {
-        return [
-          {
-            id: '1',
-            title: 'Nova política de home office',
-            sentAt: '01/10/2024',
-          },
-          { id: '2', title: 'Atualização de benefícios', sentAt: '28/09/2024' },
-        ];
-      },
     },
   };
 
@@ -419,12 +386,6 @@ export const CustomLabelsEnglish: Story = () => {
       onSendAlert: async (alertData) => {
         console.log('Sending notification:', alertData);
         alert('Notification sent successfully!');
-      },
-      onLoadAlerts: async () => {
-        return [
-          { id: '1', title: 'System Update', sentAt: '10/15/2024' },
-          { id: '2', title: 'Maintenance Notice', sentAt: '10/14/2024' },
-        ];
       },
     },
   };

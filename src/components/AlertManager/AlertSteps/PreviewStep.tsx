@@ -33,7 +33,7 @@ export const PreviewStep = () => {
   return (
     <section className="flex flex-col gap-4">
       <div className="bg-background-50 px-5 py-6 flex flex-col items-center gap-4 rounded-xl">
-        <img src={imageUrl || notification} alt="Preview" className="" />
+        <img src={imageUrl || notification} alt={title || 'Imagem do alerta'} />
         <div className="flex flex-col items-center text-center gap-3">
           <Text size="lg" weight="semibold">
             {title || 'Nenhum Título de Alerta'}

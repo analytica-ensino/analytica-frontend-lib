@@ -47,7 +47,9 @@ describe('PreviewStep', () => {
     it('should render preview section', () => {
       render(<PreviewStep />);
 
-      expect(screen.getByRole('img', { name: /preview/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('img', { name: /imagem do alerta/i })
+      ).toBeInTheDocument();
       expect(screen.getByText('Nenhum Título de Alerta')).toBeInTheDocument();
       expect(
         screen.getByText(
@@ -59,7 +61,7 @@ describe('PreviewStep', () => {
     it('should render with default image when no image is set', () => {
       render(<PreviewStep />);
 
-      const image = screen.getByRole('img', { name: /preview/i });
+      const image = screen.getByRole('img', { name: /imagem do alerta/i });
       expect(image).toHaveAttribute('src', 'notification.png');
     });
   });
@@ -163,7 +165,7 @@ describe('PreviewStep', () => {
     it('should display default notification image when no image is set', () => {
       render(<PreviewStep />);
 
-      const image = screen.getByRole('img', { name: /preview/i });
+      const image = screen.getByRole('img', { name: /imagem do alerta/i });
       expect(image).toHaveAttribute('src', 'notification.png');
     });
 
@@ -175,7 +177,7 @@ describe('PreviewStep', () => {
 
       render(<PreviewStep />);
 
-      const image = screen.getByRole('img', { name: /preview/i });
+      const image = screen.getByRole('img', { name: /imagem do alerta/i });
       // Since we only support File objects, it should fallback to default image
       expect(image).toHaveAttribute('src', 'notification.png');
     });
@@ -188,7 +190,7 @@ describe('PreviewStep', () => {
 
       render(<PreviewStep />);
 
-      const image = screen.getByRole('img', { name: /preview/i });
+      const image = screen.getByRole('img', { name: /imagem do alerta/i });
       // File objects create blob URLs, so we check that src starts with 'blob:'
       expect(image.getAttribute('src')).toMatch(/^blob:/);
     });
@@ -201,7 +203,7 @@ describe('PreviewStep', () => {
 
       render(<PreviewStep />);
 
-      const image = screen.getByRole('img', { name: /preview/i });
+      const image = screen.getByRole('img', { name: /imagem do alerta/i });
       // Since we only support File objects, Blob should fallback to default image
       expect(image).toHaveAttribute('src', 'notification.png');
     });
@@ -211,7 +213,7 @@ describe('PreviewStep', () => {
 
       render(<PreviewStep />);
 
-      const image = screen.getByRole('img', { name: /preview/i });
+      const image = screen.getByRole('img', { name: /imagem do alerta/i });
       expect(image).toHaveAttribute('src', 'notification.png');
     });
   });
@@ -250,7 +252,8 @@ describe('PreviewStep', () => {
       expect(screen.getByText('Selector Title')).toBeInTheDocument();
       expect(screen.getByText('Selector Message')).toBeInTheDocument();
 
-      const image = screen.getByRole('img', { name: /preview/i });
+      // When there is a title, image alt should be the title
+      const image = screen.getByAltText('Selector Title');
       // Since we only support File objects, string should fallback to default image
       expect(image).toHaveAttribute('src', 'notification.png');
     });
@@ -261,7 +264,7 @@ describe('PreviewStep', () => {
       render(<PreviewStep />);
 
       const section = screen
-        .getByRole('img', { name: /preview/i })
+        .getByRole('img', { name: /imagem do alerta/i })
         .closest('section');
       expect(section).toHaveClass('flex', 'flex-col', 'gap-4');
     });
@@ -269,7 +272,7 @@ describe('PreviewStep', () => {
     it('should have proper preview container structure', () => {
       render(<PreviewStep />);
 
-      const image = screen.getByRole('img', { name: /preview/i });
+      const image = screen.getByRole('img', { name: /imagem do alerta/i });
       const container = image.closest('div');
       expect(container).toHaveClass(
         'bg-background-50',

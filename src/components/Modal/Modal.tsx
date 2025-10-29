@@ -23,6 +23,7 @@ const SIZE_CLASSES = {
  * Modal component props interface
  */
 type ModalProps = {
+  contentClassName?: string;
   /** Whether the modal is open */
   isOpen: boolean;
   /** Function to close the modal */
@@ -105,6 +106,7 @@ const Modal = ({
   imageAlt,
   actionLink,
   actionLabel,
+  contentClassName = '',
 }: ModalProps) => {
   const titleId = useId();
 
@@ -324,7 +326,7 @@ const Modal = ({
 
         {/* Content */}
         {children && (
-          <div className="px-6 pb-6">
+          <div className={cn('px-6 pb-6', contentClassName)}>
             <div className="text-text-500 font-normal text-sm leading-6">
               {children}
             </div>
