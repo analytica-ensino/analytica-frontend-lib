@@ -96,19 +96,19 @@ const TablePagination = ({
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center gap-4 w-full bg-background-50 rounded-xl p-4',
-        'md:justify-between md:flex-nowrap',
+        'flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full bg-background-50 rounded-xl p-4',
+        'sm:justify-start md:justify-between md:flex-nowrap',
         className
       )}
       {...props}
     >
-      {/* Items count - fica à esquerda no desktop */}
-      <span className="font-normal text-xs leading-[14px] text-text-800">
-        {startItem} de {totalItems} {itemLabel}
-      </span>
+      {/* Primeira linha mobile: contador + selector + page info */}
+      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-4 w-full sm:w-auto">
+        {/* Items count - sempre visível */}
+        <span className="font-normal text-xs leading-[14px] text-text-800">
+          {startItem} de {totalItems} {itemLabel}
+        </span>
 
-      {/* Grupo direita - selector + page info + buttons */}
-      <div className="flex flex-wrap items-center gap-4 md:flex-nowrap">
         {/* Items per page selector */}
         {onItemsPerPageChange && (
           <div className="relative">
@@ -136,7 +136,10 @@ const TablePagination = ({
         <span className="font-normal text-xs leading-[14px] text-text-950">
           Página {currentPage} de {totalPages}
         </span>
+      </div>
 
+      {/* Segunda linha mobile: botões de navegação sempre juntos */}
+      <div className="flex items-center justify-center sm:justify-start gap-4">
         {/* Previous button */}
         <button
           onClick={handlePrevious}
