@@ -1,4 +1,3 @@
-import React from 'react';
 import Modal from '../Modal/Modal';
 import { CheckboxGroup } from '../CheckBoxGroup/CheckBoxGroup';
 import Button from '../Button/Button';
