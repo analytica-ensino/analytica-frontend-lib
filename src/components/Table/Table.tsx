@@ -314,7 +314,9 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
         <table
           ref={ref}
           className={cn(
-            'analytica-table w-full caption-bottom text-sm border-separate border-spacing-0',
+            variant === 'default' && 'analytica-table',
+            variant === 'default' && 'border-separate border-spacing-0',
+            'w-full caption-bottom text-sm',
             className
           )}
           {...props}
@@ -349,10 +351,14 @@ interface TableBodyProps extends HTMLAttributes<HTMLTableSectionElement> {
 }
 
 const TableBody = forwardRef<HTMLTableSectionElement, TableBodyProps>(
-  ({ className, ...props }, ref) => (
+  ({ className, variant = 'default', ...props }, ref) => (
     <tbody
       ref={ref}
-      className={cn('[&_tr:last-child]:border-border-200', className)}
+      className={cn(
+        '[&_tr:last-child]:border-border-200',
+        variant === 'default' && 'border-t border-border-200',
+        className
+      )}
       {...props}
     />
   )
@@ -381,25 +387,30 @@ TableFooter.displayName = 'TableFooter';
 const VARIANT_STATES_ROW = {
   default: {
     default: 'border border-border-200',
+    defaultBorderless: 'border-b border-border-200',
     borderless: '',
   },
   selected: {
     default: 'border-b-2 border-indicator-primary',
+    defaultBorderless: 'border-b border-indicator-primary',
     borderless: 'bg-indicator-primary/10',
   },
   invalid: {
     default: 'border-b-2 border-indicator-error',
+    defaultBorderless: 'border-b border-indicator-error',
     borderless: 'bg-indicator-error/10',
   },
   disabled: {
     default:
+      'border-b border-border-100 bg-background-50 opacity-50 cursor-not-allowed',
+    defaultBorderless:
       'border-b border-border-100 bg-background-50 opacity-50 cursor-not-allowed',
     borderless: 'bg-background-50 opacity-50 cursor-not-allowed',
   },
 } as const;
 
 interface TableRowPropsExtended extends TableRowProps {
-  variant?: TableVariant;
+  variant?: TableVariant | 'defaultBorderless';
   clickable?: boolean;
 }
 
