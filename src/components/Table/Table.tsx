@@ -314,7 +314,9 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
         <table
           ref={ref}
           className={cn(
-            'analytica-table w-full caption-bottom text-sm border-separate border-spacing-0',
+            variant === 'default' && 'analytica-table',
+            variant === 'default' && 'border-separate border-spacing-0',
+            'w-full caption-bottom text-sm',
             className
           )}
           {...props}
@@ -349,10 +351,14 @@ interface TableBodyProps extends HTMLAttributes<HTMLTableSectionElement> {
 }
 
 const TableBody = forwardRef<HTMLTableSectionElement, TableBodyProps>(
-  ({ className, ...props }, ref) => (
+  ({ className, variant = 'default', ...props }, ref) => (
     <tbody
       ref={ref}
-      className={cn('[&_tr:last-child]:border-border-200', className)}
+      className={cn(
+        '[&_tr:last-child]:border-border-200',
+        variant === 'default' && 'border-t border-border-200',
+        className
+      )}
       {...props}
     />
   )
@@ -379,10 +385,7 @@ const TableFooter = forwardRef<HTMLTableSectionElement, TableFooterProps>(
 TableFooter.displayName = 'TableFooter';
 
 const VARIANT_STATES_ROW = {
-  default: {
-    default: 'border border-border-200',
-    borderless: '',
-  },
+  default: { default: 'border-b border-border-200', borderless: '' },
   selected: {
     default: 'border-b-2 border-indicator-primary',
     borderless: 'bg-indicator-primary/10',
@@ -400,27 +403,16 @@ const VARIANT_STATES_ROW = {
 
 interface TableRowPropsExtended extends TableRowProps {
   variant?: TableVariant;
-  clickable?: boolean;
 }
 
 const TableRow = forwardRef<HTMLTableRowElement, TableRowPropsExtended>(
-  (
-    {
-      variant = 'default',
-      state = 'default',
-      clickable = false,
-      className,
-      ...props
-    },
-    ref
-  ) => {
+  ({ variant = 'default', state = 'default', className, ...props }, ref) => {
     return (
       <tr
         ref={ref}
         className={cn(
           'transition-colors',
-          state === 'disabled' ? '' : 'hover:bg-muted/50',
-          state === 'disabled' || !clickable ? '' : 'cursor-pointer',
+          state !== 'disabled' ? 'hover:bg-muted/50' : '',
           VARIANT_STATES_ROW[state][variant],
           className
         )}
