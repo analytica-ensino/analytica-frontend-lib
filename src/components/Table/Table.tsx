@@ -385,34 +385,53 @@ const TableFooter = forwardRef<HTMLTableSectionElement, TableFooterProps>(
 TableFooter.displayName = 'TableFooter';
 
 const VARIANT_STATES_ROW = {
-  default: { default: 'border-b border-border-200', borderless: '' },
+  default: {
+    default: 'border border-border-200',
+    defaultBorderless: 'border-b border-border-200',
+    borderless: '',
+  },
   selected: {
     default: 'border-b-2 border-indicator-primary',
+    defaultBorderless: 'border-b border-indicator-primary',
     borderless: 'bg-indicator-primary/10',
   },
   invalid: {
     default: 'border-b-2 border-indicator-error',
+    defaultBorderless: 'border-b border-indicator-error',
     borderless: 'bg-indicator-error/10',
   },
   disabled: {
     default:
+      'border-b border-border-100 bg-background-50 opacity-50 cursor-not-allowed',
+    defaultBorderless:
       'border-b border-border-100 bg-background-50 opacity-50 cursor-not-allowed',
     borderless: 'bg-background-50 opacity-50 cursor-not-allowed',
   },
 } as const;
 
 interface TableRowPropsExtended extends TableRowProps {
-  variant?: TableVariant;
+  variant?: TableVariant | 'defaultBorderless';
+  clickable?: boolean;
 }
 
 const TableRow = forwardRef<HTMLTableRowElement, TableRowPropsExtended>(
-  ({ variant = 'default', state = 'default', className, ...props }, ref) => {
+  (
+    {
+      variant = 'default',
+      state = 'default',
+      clickable = false,
+      className,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <tr
         ref={ref}
         className={cn(
           'transition-colors',
           state !== 'disabled' ? 'hover:bg-muted/50' : '',
+          state === 'disabled' || !clickable ? '' : 'cursor-pointer',
           VARIANT_STATES_ROW[state][variant],
           className
         )}
