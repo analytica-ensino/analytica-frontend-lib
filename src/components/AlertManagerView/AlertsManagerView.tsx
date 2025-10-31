@@ -1,4 +1,3 @@
-import { useMemo, useEffect } from 'react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Divider from '../Divider/Divider';
@@ -13,10 +12,10 @@ import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
 import { CaretLeft, CaretRight, User } from 'phosphor-react';
 import type { AlertData } from '../AlertManager/types';
-import notification from '../../assets/img/notification.png';
 
 // Interface para os dados de visualização do alerta
-export interface AlertViewData extends AlertData {
+export interface AlertViewData extends Omit<AlertData, 'image'> {
+  image?: string; // No view, a imagem sempre é uma URL (string)
   sentAt: string | Date; // Data de envio formatada
   recipients: RecipientStatus[];
 }
@@ -32,6 +31,10 @@ interface AlertsManagerViewProps {
   alertData: AlertViewData;
   isOpen?: boolean;
   onClose?: () => void;
+  /** URL da imagem após upload (prioritária - será exibida primeiro) */
+  imageLink?: string | null;
+  /** Imagem padrão a ser exibida quando não há imagem no alertData (URL string) */
+  defaultImage?: string | null;
   // Controle de paginação
   currentPage?: number;
   totalPages?: number;
@@ -43,33 +46,13 @@ export const AlertsManagerView = ({
   alertData,
   isOpen = false,
   onClose,
+  imageLink,
+  defaultImage,
   currentPage = 1,
   totalPages: externalTotalPages,
   onPageChange,
   itemsPerPage = 10,
 }: AlertsManagerViewProps) => {
-  // Criar URL blob para a imagem
-  const imageUrl = useMemo(() => {
-    if (globalThis.window == undefined) {
-      return undefined;
-    }
-
-    if (alertData.image instanceof File) {
-      return globalThis.window.URL.createObjectURL(alertData.image);
-    }
-
-    return undefined;
-  }, [alertData.image]);
-
-  // Limpar URL blob quando componente desmontar ou imagem mudar
-  useEffect(() => {
-    return () => {
-      if (imageUrl && globalThis.window !== undefined) {
-        URL.revokeObjectURL(imageUrl);
-      }
-    };
-  }, [imageUrl]);
-
   // Calcular paginação (usar props externas se fornecidas, senão calcular)
   const totalPages =
     externalTotalPages ?? Math.ceil(alertData.recipients.length / itemsPerPage);
@@ -109,10 +92,13 @@ export const AlertsManagerView = ({
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {/* Preview do alerta */}
           <div className="bg-background-50 px-5 py-6 flex flex-col items-center gap-4 rounded-xl mb-4">
-            <img
-              src={imageUrl || notification}
-              alt={alertData.title || 'Imagem do alerta'}
-            />
+            {/* Prioridade: imageLink > alertData.image > defaultImage */}
+            {(imageLink || alertData.image || defaultImage) && (
+              <img
+                src={imageLink || alertData.image || defaultImage || undefined}
+                alt={alertData.title || 'Imagem do alerta'}
+              />
+            )}
             <div className="flex flex-col items-center text-center gap-3">
               <Text size="lg" weight="semibold">
                 {alertData.title || 'Sem Título'}

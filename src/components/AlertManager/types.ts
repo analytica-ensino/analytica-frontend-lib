@@ -102,7 +102,7 @@ export interface AlertsConfig {
 export interface AlertData {
   title: string;
   message: string;
-  image?: File | null;
+  image?: string | File | null;
   date: string;
   time: string;
   sendToday: boolean;

@@ -34,6 +34,7 @@ export const MessageStep = ({
     setImage(null);
   };
 
+  const isImageFile = image instanceof File;
   return (
     <section className="flex flex-col gap-4">
       <Input
@@ -55,7 +56,7 @@ export const MessageStep = ({
 
       {allowImageAttachment && (
         <ImageUpload
-          selectedFile={image}
+          selectedFile={isImageFile ? image : null}
           onFileSelect={handleFileSelect}
           onRemoveFile={handleRemoveFile}
         />

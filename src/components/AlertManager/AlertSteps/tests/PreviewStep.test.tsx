@@ -45,7 +45,7 @@ describe('PreviewStep', () => {
 
   describe('rendering', () => {
     it('should render preview section', () => {
-      render(<PreviewStep />);
+      render(<PreviewStep defaultImage="notification.png" />);
 
       expect(
         screen.getByRole('img', { name: /imagem do alerta/i })
@@ -59,7 +59,7 @@ describe('PreviewStep', () => {
     });
 
     it('should render with default image when no image is set', () => {
-      render(<PreviewStep />);
+      render(<PreviewStep defaultImage="notification.png" />);
 
       const image = screen.getByRole('img', { name: /imagem do alerta/i });
       expect(image).toHaveAttribute('src', 'notification.png');
@@ -163,23 +163,23 @@ describe('PreviewStep', () => {
 
   describe('image display', () => {
     it('should display default notification image when no image is set', () => {
-      render(<PreviewStep />);
+      render(<PreviewStep defaultImage="notification.png" />);
 
       const image = screen.getByRole('img', { name: /imagem do alerta/i });
       expect(image).toHaveAttribute('src', 'notification.png');
     });
 
-    it('should display default image when image is not a File', () => {
+    it('should display image URL when image is a string', () => {
       const imageUrl = 'https://example.com/image.jpg';
       act(() => {
-        useAlertFormStore.getState().setImage(imageUrl as unknown as File);
+        useAlertFormStore.getState().setImage(imageUrl);
       });
 
       render(<PreviewStep />);
 
       const image = screen.getByRole('img', { name: /imagem do alerta/i });
-      // Since we only support File objects, it should fallback to default image
-      expect(image).toHaveAttribute('src', 'notification.png');
+      // String URLs should be used directly
+      expect(image).toHaveAttribute('src', imageUrl);
     });
 
     it('should display image from File object', () => {
@@ -201,7 +201,7 @@ describe('PreviewStep', () => {
         useAlertFormStore.getState().setImage(mockBlob as unknown as File);
       });
 
-      render(<PreviewStep />);
+      render(<PreviewStep defaultImage="notification.png" />);
 
       const image = screen.getByRole('img', { name: /imagem do alerta/i });
       // Since we only support File objects, Blob should fallback to default image
@@ -209,9 +209,9 @@ describe('PreviewStep', () => {
     });
 
     it('should handle null image', () => {
-      useAlertFormStore.getState().setImage(null as unknown as File);
+      useAlertFormStore.getState().setImage(null);
 
-      render(<PreviewStep />);
+      render(<PreviewStep defaultImage="notification.png" />);
 
       const image = screen.getByRole('img', { name: /imagem do alerta/i });
       expect(image).toHaveAttribute('src', 'notification.png');
@@ -220,7 +220,9 @@ describe('PreviewStep', () => {
 
   describe('store integration', () => {
     it('should update when store values change', () => {
-      const { rerender } = render(<PreviewStep />);
+      const { rerender } = render(
+        <PreviewStep defaultImage="notification.png" />
+      );
 
       // Initial state
       expect(screen.getByText('Nenhum Título de Alerta')).toBeInTheDocument();
@@ -231,7 +233,7 @@ describe('PreviewStep', () => {
         useAlertFormStore.getState().setMessage('Updated Message');
       });
 
-      rerender(<PreviewStep />);
+      rerender(<PreviewStep defaultImage="notification.png" />);
 
       expect(screen.getByText('Updated Title')).toBeInTheDocument();
       expect(screen.getByText('Updated Message')).toBeInTheDocument();
@@ -239,29 +241,110 @@ describe('PreviewStep', () => {
 
     it('should use selector to get specific state values', () => {
       // Set initial values
+      const imageUrl = 'selector-image.jpg';
       act(() => {
         useAlertFormStore.getState().setTitle('Selector Title');
         useAlertFormStore.getState().setMessage('Selector Message');
-        useAlertFormStore
-          .getState()
-          .setImage('selector-image.jpg' as unknown as File);
+        useAlertFormStore.getState().setImage(imageUrl);
       });
 
-      render(<PreviewStep />);
+      render(<PreviewStep defaultImage="notification.png" />);
 
       expect(screen.getByText('Selector Title')).toBeInTheDocument();
       expect(screen.getByText('Selector Message')).toBeInTheDocument();
 
       // When there is a title, image alt should be the title
       const image = screen.getByAltText('Selector Title');
-      // Since we only support File objects, string should fallback to default image
-      expect(image).toHaveAttribute('src', 'notification.png');
+      // String URLs should be used directly
+      expect(image).toHaveAttribute('src', imageUrl);
+    });
+  });
+
+  describe('imageLink and defaultImage functionality', () => {
+    it('should prioritize imageLink over image from store', () => {
+      const imageUrl = 'https://example.com/store-image.jpg';
+      act(() => {
+        useAlertFormStore.getState().setImage(imageUrl);
+      });
+
+      render(
+        <PreviewStep
+          imageLink="https://example.com/uploaded-image.jpg"
+          defaultImage="notification.png"
+        />
+      );
+
+      const image = screen.getByRole('img', { name: /imagem do alerta/i });
+      expect(image).toHaveAttribute(
+        'src',
+        'https://example.com/uploaded-image.jpg'
+      );
+    });
+
+    it('should prioritize imageLink over defaultImage', () => {
+      render(
+        <PreviewStep
+          imageLink="https://example.com/uploaded-image.jpg"
+          defaultImage="notification.png"
+        />
+      );
+
+      const image = screen.getByRole('img', { name: /imagem do alerta/i });
+      expect(image).toHaveAttribute(
+        'src',
+        'https://example.com/uploaded-image.jpg'
+      );
+    });
+
+    it('should use image from store when imageLink is not provided', () => {
+      const imageUrl = 'https://example.com/store-image.jpg';
+      act(() => {
+        useAlertFormStore.getState().setImage(imageUrl);
+      });
+
+      render(<PreviewStep defaultImage="notification.png" />);
+
+      const image = screen.getByRole('img', { name: /imagem do alerta/i });
+      expect(image).toHaveAttribute('src', imageUrl);
+    });
+
+    it('should use defaultImage as fallback when no image is set', () => {
+      render(<PreviewStep defaultImage="https://example.com/default.jpg" />);
+
+      const image = screen.getByRole('img', { name: /imagem do alerta/i });
+      expect(image).toHaveAttribute('src', 'https://example.com/default.jpg');
+    });
+
+    it('should not render image when no image source is available', () => {
+      render(<PreviewStep />);
+
+      expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    });
+
+    it('should prioritize: imageLink > File (blob) > defaultImage', () => {
+      const testFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+      act(() => {
+        useAlertFormStore.getState().setImage(testFile);
+      });
+
+      render(
+        <PreviewStep
+          imageLink="https://example.com/uploaded-image.jpg"
+          defaultImage="notification.png"
+        />
+      );
+
+      const image = screen.getByRole('img', { name: /imagem do alerta/i });
+      expect(image).toHaveAttribute(
+        'src',
+        'https://example.com/uploaded-image.jpg'
+      );
     });
   });
 
   describe('component structure', () => {
     it('should have proper section structure', () => {
-      render(<PreviewStep />);
+      render(<PreviewStep defaultImage="notification.png" />);
 
       const section = screen
         .getByRole('img', { name: /imagem do alerta/i })
@@ -270,7 +353,7 @@ describe('PreviewStep', () => {
     });
 
     it('should have proper preview container structure', () => {
-      render(<PreviewStep />);
+      render(<PreviewStep defaultImage="notification.png" />);
 
       const image = screen.getByRole('img', { name: /imagem do alerta/i });
       const container = image.closest('div');
@@ -287,7 +370,7 @@ describe('PreviewStep', () => {
     });
 
     it('should have proper content structure', () => {
-      render(<PreviewStep />);
+      render(<PreviewStep defaultImage="notification.png" />);
 
       const title = screen.getByText('Nenhum Título de Alerta');
       const contentContainer = title.closest('div');

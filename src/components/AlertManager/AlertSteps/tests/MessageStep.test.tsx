@@ -237,7 +237,7 @@ describe('MessageStep', () => {
 
       const state = useAlertFormStore.getState();
       expect(state.image).toBeTruthy();
-      expect(state.image?.name).toBe('test.png');
+      expect(state.image instanceof File && state.image.name).toBe('test.png');
     });
 
     it('should remove file from store when remove button is clicked', () => {
@@ -344,7 +344,7 @@ describe('MessageStep', () => {
       expect(state.title).toBe('Important Alert');
       expect(state.message).toBe('This is an important message');
       expect(state.image).toBeTruthy();
-      expect(state.image?.name).toBe('test.png');
+      expect(state.image instanceof File && state.image.name).toBe('test.png');
     });
 
     it('should handle form with image upload disabled', () => {
@@ -392,7 +392,8 @@ describe('MessageStep', () => {
 
       // Select first file
       fireEvent.click(selectButton);
-      expect(useAlertFormStore.getState().image?.name).toBe('test.png');
+      const image1 = useAlertFormStore.getState().image;
+      expect(image1 instanceof File && image1.name).toBe('test.png');
 
       // Remove
       const removeButton = screen.getByTestId('remove-file-button');
@@ -401,7 +402,8 @@ describe('MessageStep', () => {
 
       // Select again
       fireEvent.click(selectButton);
-      expect(useAlertFormStore.getState().image?.name).toBe('test.png');
+      const image2 = useAlertFormStore.getState().image;
+      expect(image2 instanceof File && image2.name).toBe('test.png');
     });
 
     it('should maintain title and message when uploading files', () => {
