@@ -55,7 +55,7 @@ export const MessageStep = ({
 
       {allowImageAttachment && (
         <ImageUpload
-          selectedFile={image}
+          selectedFile={image instanceof File ? image : null}
           onFileSelect={handleFileSelect}
           onRemoveFile={handleRemoveFile}
         />
