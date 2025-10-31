@@ -21,7 +21,7 @@ export interface RecipientCategory {
 interface AlertFormData {
   title: string;
   message: string;
-  image: File | null;
+  image: File | string | null;
   date: string;
   time: string;
   sendToday: boolean;
@@ -33,7 +33,7 @@ interface AlertFormStore extends AlertFormData {
   // Actions
   setTitle: (title: string) => void;
   setMessage: (message: string) => void;
-  setImage: (image: File | null) => void;
+  setImage: (image: File | string | null) => void;
   setDate: (date: string) => void;
   setTime: (time: string) => void;
   setSendToday: (sendToday: boolean) => void;

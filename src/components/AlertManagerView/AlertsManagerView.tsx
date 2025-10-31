@@ -48,7 +48,7 @@ export const AlertsManagerView = ({
   onPageChange,
   itemsPerPage = 10,
 }: AlertsManagerViewProps) => {
-  // Criar URL blob para a imagem
+  // Criar URL blob para a imagem ou usar URL direta
   const imageUrl = useMemo(() => {
     if (globalThis.window == undefined) {
       return undefined;
@@ -58,17 +58,26 @@ export const AlertsManagerView = ({
       return globalThis.window.URL.createObjectURL(alertData.image);
     }
 
+    if (typeof alertData.image === 'string') {
+      return alertData.image;
+    }
+
     return undefined;
   }, [alertData.image]);
 
   // Limpar URL blob quando componente desmontar ou imagem mudar
+  // Apenas limpar se for um blob URL (criado a partir de File), não URLs externas
   useEffect(() => {
     return () => {
-      if (imageUrl && globalThis.window !== undefined) {
+      if (
+        imageUrl &&
+        globalThis.window !== undefined &&
+        alertData.image instanceof File
+      ) {
         URL.revokeObjectURL(imageUrl);
       }
     };
-  }, [imageUrl]);
+  }, [imageUrl, alertData.image]);
 
   // Calcular paginação (usar props externas se fornecidas, senão calcular)
   const totalPages =

@@ -8,7 +8,7 @@ export const PreviewStep = () => {
   const message = useAlertFormStore((state) => state.message);
   const image = useAlertFormStore((state) => state.image);
 
-  // Criar URL blob apenas no cliente e apenas quando necessário
+  // Criar URL blob apenas no cliente e apenas quando necessário, ou usar URL direta
   const imageUrl = useMemo(() => {
     if (globalThis.window === undefined) {
       return undefined;
@@ -18,17 +18,26 @@ export const PreviewStep = () => {
       return globalThis.window.URL.createObjectURL(image);
     }
 
+    if (typeof image === 'string') {
+      return image;
+    }
+
     return undefined;
   }, [image]);
 
   // Limpar URL blob quando componente desmontar ou imagem mudar
+  // Apenas limpar se for um blob URL (criado a partir de File), não URLs externas
   useEffect(() => {
     return () => {
-      if (imageUrl && globalThis.window !== undefined) {
+      if (
+        imageUrl &&
+        globalThis.window !== undefined &&
+        image instanceof File
+      ) {
         URL.revokeObjectURL(imageUrl);
       }
     };
-  }, [imageUrl]);
+  }, [imageUrl, image]);
 
   return (
     <section className="flex flex-col gap-4">

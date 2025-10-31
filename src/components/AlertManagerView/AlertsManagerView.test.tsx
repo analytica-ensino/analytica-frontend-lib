@@ -743,5 +743,35 @@ describe('AlertsManagerView', () => {
       // Should revoke blob URL when component unmounts
       expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
     });
+
+    it('should handle string URL and use it directly without creating blob URL', () => {
+      const imageUrl = 'https://example.com/image.jpg';
+
+      const alertWithUrl: AlertViewData = {
+        ...mockAlertData,
+        image: imageUrl,
+      };
+
+      const createObjectURLMock = jest.fn();
+      window.URL.createObjectURL = createObjectURLMock;
+      window.URL.revokeObjectURL = jest.fn();
+
+      const { unmount } = render(
+        <AlertsManagerView alertData={alertWithUrl} isOpen={true} />
+      );
+
+      // Should NOT create blob URL when image is a string
+      expect(createObjectURLMock).not.toHaveBeenCalled();
+
+      // Should display the image with the string URL
+      const image = screen.getByAltText('Test Alert');
+      expect(image).toHaveAttribute('src', imageUrl);
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
+
+      unmount();
+
+      // Should NOT revoke URL when it's a string (not a blob URL)
+      expect(window.URL.revokeObjectURL).not.toHaveBeenCalled();
+    });
   });
 });

@@ -169,17 +169,17 @@ describe('PreviewStep', () => {
       expect(image).toHaveAttribute('src', 'notification.png');
     });
 
-    it('should display default image when image is not a File', () => {
+    it('should display image URL when image is a string', () => {
       const imageUrl = 'https://example.com/image.jpg';
       act(() => {
-        useAlertFormStore.getState().setImage(imageUrl as unknown as File);
+        useAlertFormStore.getState().setImage(imageUrl);
       });
 
       render(<PreviewStep />);
 
       const image = screen.getByRole('img', { name: /imagem do alerta/i });
-      // Since we only support File objects, it should fallback to default image
-      expect(image).toHaveAttribute('src', 'notification.png');
+      // String URLs should be used directly
+      expect(image).toHaveAttribute('src', imageUrl);
     });
 
     it('should display image from File object', () => {
@@ -209,7 +209,7 @@ describe('PreviewStep', () => {
     });
 
     it('should handle null image', () => {
-      useAlertFormStore.getState().setImage(null as unknown as File);
+      useAlertFormStore.getState().setImage(null);
 
       render(<PreviewStep />);
 
@@ -239,12 +239,11 @@ describe('PreviewStep', () => {
 
     it('should use selector to get specific state values', () => {
       // Set initial values
+      const imageUrl = 'selector-image.jpg';
       act(() => {
         useAlertFormStore.getState().setTitle('Selector Title');
         useAlertFormStore.getState().setMessage('Selector Message');
-        useAlertFormStore
-          .getState()
-          .setImage('selector-image.jpg' as unknown as File);
+        useAlertFormStore.getState().setImage(imageUrl);
       });
 
       render(<PreviewStep />);
@@ -254,8 +253,8 @@ describe('PreviewStep', () => {
 
       // When there is a title, image alt should be the title
       const image = screen.getByAltText('Selector Title');
-      // Since we only support File objects, string should fallback to default image
-      expect(image).toHaveAttribute('src', 'notification.png');
+      // String URLs should be used directly
+      expect(image).toHaveAttribute('src', imageUrl);
     });
   });
 
