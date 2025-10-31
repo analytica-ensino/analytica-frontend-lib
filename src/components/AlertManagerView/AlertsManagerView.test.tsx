@@ -281,7 +281,13 @@ describe('AlertsManagerView', () => {
     });
 
     it('should display image or default notification', () => {
-      render(<AlertsManagerView alertData={mockAlertData} isOpen={true} />);
+      render(
+        <AlertsManagerView
+          alertData={mockAlertData}
+          isOpen={true}
+          defaultImage="notification.png"
+        />
+      );
 
       const images = screen.getAllByAltText('Test Alert');
       expect(images.length).toBeGreaterThan(0);
@@ -313,11 +319,94 @@ describe('AlertsManagerView', () => {
         title: '',
       };
 
-      render(<AlertsManagerView alertData={alertWithoutTitle} isOpen={true} />);
+      render(
+        <AlertsManagerView
+          alertData={alertWithoutTitle}
+          isOpen={true}
+          defaultImage="notification.png"
+        />
+      );
 
       expect(screen.getByText('Sem Título')).toBeInTheDocument();
       // When title is empty, image alt should be "Imagem do alerta"
       expect(screen.getByAltText('Imagem do alerta')).toBeInTheDocument();
+    });
+
+    describe('imageLink and defaultImage functionality', () => {
+      it('should prioritize imageLink over alertData.image', () => {
+        const alertWithImage: AlertViewData = {
+          ...mockAlertData,
+          image: 'https://example.com/alert-image.jpg',
+        };
+
+        render(
+          <AlertsManagerView
+            alertData={alertWithImage}
+            isOpen={true}
+            imageLink="https://example.com/uploaded-image.jpg"
+          />
+        );
+
+        const image = screen.getByAltText('Test Alert');
+        expect(image).toHaveAttribute(
+          'src',
+          'https://example.com/uploaded-image.jpg'
+        );
+      });
+
+      it('should prioritize imageLink over defaultImage', () => {
+        render(
+          <AlertsManagerView
+            alertData={mockAlertData}
+            isOpen={true}
+            imageLink="https://example.com/uploaded-image.jpg"
+            defaultImage="notification.png"
+          />
+        );
+
+        const image = screen.getByAltText('Test Alert');
+        expect(image).toHaveAttribute(
+          'src',
+          'https://example.com/uploaded-image.jpg'
+        );
+      });
+
+      it('should use alertData.image when imageLink is not provided', () => {
+        const alertWithImage: AlertViewData = {
+          ...mockAlertData,
+          image: 'https://example.com/alert-image.jpg',
+        };
+
+        render(<AlertsManagerView alertData={alertWithImage} isOpen={true} />);
+
+        const image = screen.getByAltText('Test Alert');
+        expect(image).toHaveAttribute(
+          'src',
+          'https://example.com/alert-image.jpg'
+        );
+      });
+
+      it('should use defaultImage as fallback when no image is provided', () => {
+        render(
+          <AlertsManagerView
+            alertData={mockAlertData}
+            isOpen={true}
+            defaultImage="https://example.com/default-image.jpg"
+          />
+        );
+
+        const image = screen.getByAltText('Test Alert');
+        expect(image).toHaveAttribute(
+          'src',
+          'https://example.com/default-image.jpg'
+        );
+      });
+
+      it('should not render image when no image source is available', () => {
+        render(<AlertsManagerView alertData={mockAlertData} isOpen={true} />);
+
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -716,32 +805,19 @@ describe('AlertsManagerView', () => {
   });
 
   describe('SSR environment', () => {
-    it('should handle File object and create blob URL when window is defined', () => {
-      const testFile = new File(['test content'], 'test.jpg', {
-        type: 'image/jpeg',
-      });
-
-      const alertWithFile: AlertViewData = {
+    it('should handle image URL when provided', () => {
+      const alertWithImage: AlertViewData = {
         ...mockAlertData,
-        image: testFile,
+        image: 'https://example.com/image.jpg',
       };
 
-      const createObjectURLMock = jest.fn(() => 'blob:test-url');
-      window.URL.createObjectURL = createObjectURLMock;
-      window.URL.revokeObjectURL = jest.fn();
-
       const { unmount } = render(
-        <AlertsManagerView alertData={alertWithFile} isOpen={true} />
+        <AlertsManagerView alertData={alertWithImage} isOpen={true} />
       );
 
-      // Should create blob URL when image is a File
-      expect(createObjectURLMock).toHaveBeenCalledWith(testFile);
       expect(screen.getByTestId('modal')).toBeInTheDocument();
 
       unmount();
-
-      // Should revoke blob URL when component unmounts
-      expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
     });
 
     it('should handle string URL and use it directly without creating blob URL', () => {

@@ -10,6 +10,7 @@ export const Default: Story = () => {
     title: 'Aviso Importante - Início das Aulas',
     message:
       'As aulas do semestre 2024.1 começam na próxima segunda-feira, dia 15/01. Todos os alunos devem comparecer pontualmente às 8h.',
+    image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800',
     date: '2024-01-10',
     time: '08:00',
     sendToday: false,
@@ -41,6 +42,7 @@ export const Default: Story = () => {
         alertData={alertData}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        defaultImage="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800"
       />
     </div>
   );
@@ -66,6 +68,7 @@ export const ManyRecipients: Story = () => {
     title: 'Aviso com Muitos Destinatários',
     message:
       'Este é um aviso que foi enviado para 30 destinatários diferentes. A tabela deve mostrar apenas 10 destinatários por página.',
+    image: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=800',
     date: '2024-01-10',
     time: '08:00',
     sendToday: false,
@@ -86,6 +89,7 @@ export const ManyRecipients: Story = () => {
         alertData={alertData}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        defaultImage="https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=800"
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
@@ -100,6 +104,7 @@ export const AllViewed: Story = () => {
   const alertData: AlertViewData = {
     title: 'Todos Visualizaram',
     message: 'Este aviso foi visualizado por todos os destinatários.',
+    image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800',
     date: '2024-01-10',
     time: '08:00',
     sendToday: false,
@@ -126,6 +131,7 @@ export const AllViewed: Story = () => {
         alertData={alertData}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        defaultImage="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800"
       />
     </div>
   );
@@ -138,6 +144,7 @@ export const AllPending: Story = () => {
     title: 'Nenhum Visualizou',
     message:
       'Este aviso foi enviado recentemente e ainda não foi visualizado por nenhum destinatário.',
+    image: undefined, // Exemplo sem imagem
     date: '2024-01-10',
     time: '08:00',
     sendToday: false,
@@ -162,6 +169,7 @@ export const AllPending: Story = () => {
         alertData={alertData}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        defaultImage="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800"
       />
     </div>
   );

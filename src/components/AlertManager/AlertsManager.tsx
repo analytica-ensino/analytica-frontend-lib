@@ -27,6 +27,10 @@ interface AlertsManagerProps {
   config: AlertsConfig;
   isOpen?: boolean;
   onClose?: () => void;
+  /** URL da imagem após upload (prioritária - será exibida primeiro) */
+  imageLink?: string | null;
+  /** Imagem padrão a ser exibida quando não há imagem selecionada (deve ser URL string - o front deve converter File para URL se necessário) */
+  defaultImage?: string | null;
 }
 
 const StepWrapper = ({ children }: { children: ReactNode }) => (
@@ -37,6 +41,8 @@ export const AlertsManager = ({
   config,
   isOpen = false,
   onClose,
+  imageLink,
+  defaultImage,
 }: AlertsManagerProps) => {
   const [isModalOpen, setIsModalOpen] = useState(isOpen);
   const [currentStep, setCurrentStep] = useState(0);
@@ -229,7 +235,7 @@ export const AlertsManager = ({
       case 3:
         return (
           <StepWrapper>
-            <PreviewStep />
+            <PreviewStep imageLink={imageLink} defaultImage={defaultImage} />
           </StepWrapper>
         );
       default:
@@ -243,6 +249,8 @@ export const AlertsManager = ({
     behavior,
     handleNext,
     handlePrevious,
+    imageLink,
+    defaultImage,
   ]); // handleNext e handlePrevious agora estão nas dependências
 
   const isFirstStep = currentStep === 0;

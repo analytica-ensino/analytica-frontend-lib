@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { AlertsManager } from './AlertsManager';
 import { Button } from '../..';
 import type { AlertsConfig, RecipientItem, CategoryConfig } from '.';
+import notification from '../../assets/img/notification.png';
 
 const mockEscolas: RecipientItem[] = [
   {
@@ -188,6 +189,7 @@ export const FullAlertsManager: Story = () => {
         config={fullConfig}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        defaultImage={notification}
       />
     </div>
   );
@@ -235,6 +237,7 @@ export const SimpleCategory: Story = () => {
         config={simpleConfig}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        defaultImage={notification}
       />
     </div>
   );
@@ -302,6 +305,7 @@ export const TwoLevelHierarchy: Story = () => {
         config={twoLevelConfig}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        defaultImage={notification}
       />
     </div>
   );
@@ -338,7 +342,7 @@ export const WithoutAlertsTable: Story = () => {
       <p className="text-text-700">
         AlertsManager focado apenas no envio, sem histórico
       </p>
-      <AlertsManager config={noTableConfig} />
+      <AlertsManager config={noTableConfig} defaultImage={notification} />
     </div>
   );
 };
@@ -398,7 +402,7 @@ export const CustomLabelsEnglish: Story = () => {
       <p className="text-text-700">
         AlertsManager with customized labels in English
       </p>
-      <AlertsManager config={englishConfig} />
+      <AlertsManager config={englishConfig} defaultImage={notification} />
     </div>
   );
 };
@@ -435,6 +439,7 @@ export const MinimalConfig: Story = () => {
         config={minimalConfig}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        defaultImage={notification}
       />
     </div>
   );
@@ -620,6 +625,7 @@ export const DynamicCheckboxGroup: Story = () => {
         config={dynamicConfig}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        defaultImage={notification}
       />
     </div>
   );
