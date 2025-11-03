@@ -289,6 +289,7 @@ export function TableProvider<T extends Record<string, unknown>>({
               <Search
                 value={searchQuery}
                 onSearch={handleSearchChange}
+                onClear={() => handleSearchChange('')}
                 options={[]}
                 placeholder={searchPlaceholder}
               />

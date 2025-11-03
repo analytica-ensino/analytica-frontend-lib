@@ -4,7 +4,7 @@ import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
 
 // Mock data type
-interface Activity {
+interface Activity extends Record<string, unknown> {
   id: string;
   title: string;
   status: 'ATIVA' | 'CONCLUÍDA' | 'VENCIDA';
@@ -152,7 +152,11 @@ const filterConfigs = [
  */
 export const Basic: Story = () => {
   return (
-    <TableProvider data={mockActivities} headers={columns} variant="default" />
+    <TableProvider<Activity>
+      data={mockActivities}
+      headers={columns}
+      variant="default"
+    />
   );
 };
 
@@ -161,7 +165,7 @@ export const Basic: Story = () => {
  */
 export const AllFeatures: Story = () => {
   return (
-    <TableProvider
+    <TableProvider<Activity>
       data={mockActivities}
       headers={columns}
       variant="borderless"
@@ -192,7 +196,7 @@ export const AllFeatures: Story = () => {
  */
 export const SearchAndSort: Story = () => {
   return (
-    <TableProvider
+    <TableProvider<Activity>
       data={mockActivities}
       headers={columns}
       variant="default"
@@ -227,16 +231,7 @@ export const Loading: Story = () => {
  */
 export const Empty: Story = () => {
   return (
-    <TableProvider
-      data={[]}
-      headers={columns}
-      variant="default"
-      emptyStateMessage="Nenhuma atividade encontrada"
-      emptyStateButtonLabel="Criar Atividade"
-      onEmptyStateButtonClick={() => {
-        alert('Criar nova atividade');
-      }}
-    />
+    <TableProvider<Activity> data={[]} headers={columns} variant="default" />
   );
 };
 
@@ -245,7 +240,7 @@ export const Empty: Story = () => {
  */
 export const BorderlessWithPagination: Story = () => {
   return (
-    <TableProvider
+    <TableProvider<Activity>
       data={mockActivities}
       headers={columns}
       variant="borderless"
