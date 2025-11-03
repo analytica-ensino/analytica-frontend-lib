@@ -253,3 +253,57 @@ export const BorderlessWithPagination: Story = () => {
     />
   );
 };
+
+/**
+ * Custom responsive layout using render props
+ * This demonstrates how to use the render prop pattern to create custom layouts
+ * while preserving the original responsive behavior
+ */
+export const CustomResponsiveLayout: Story = () => {
+  const handleCreateActivity = () => {
+    console.log('Create activity clicked');
+  };
+
+  return (
+    <TableProvider<Activity>
+      data={mockActivities}
+      headers={columns}
+      variant="borderless"
+      enableSearch
+      enableFilters
+      enableTableSort
+      enablePagination
+      initialFilters={filterConfigs}
+      paginationConfig={{
+        itemLabel: 'atividades',
+        itemsPerPageOptions: [5, 10, 20],
+        defaultItemsPerPage: 5,
+      }}
+      searchPlaceholder="Buscar atividades..."
+    >
+      {({ controls, table, pagination }) => (
+        <>
+          {/* Actions Bar - Responsive layout */}
+          <div className="flex flex-col md:flex-row w-full items-stretch md:items-center md:justify-between gap-4 mb-4">
+            {/* Left side - Action button */}
+            <button
+              onClick={handleCreateActivity}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              + Criar Atividade
+            </button>
+
+            {/* Right side - Search and Filter Controls */}
+            {controls}
+          </div>
+
+          {/* Content - Inside white card */}
+          <div className="w-full bg-white rounded-xl p-6 space-y-4 shadow-sm">
+            {table}
+            {pagination}
+          </div>
+        </>
+      )}
+    </TableProvider>
+  );
+};

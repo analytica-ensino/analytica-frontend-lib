@@ -68,6 +68,18 @@ export interface PaginationConfig {
 }
 
 /**
+ * Table components exposed via render prop
+ */
+export interface TableComponents {
+  /** Search and filter controls */
+  controls: ReactNode;
+  /** Table with data */
+  table: ReactNode;
+  /** Pagination controls */
+  pagination: ReactNode;
+}
+
+/**
  * TableProvider Props
  */
 export interface TableProviderProps<T = Record<string, unknown>> {
@@ -104,6 +116,29 @@ export interface TableProviderProps<T = Record<string, unknown>> {
   onParamsChange?: (params: TableParams) => void;
   /** Callback when row is clicked */
   onRowClick?: (row: T, index: number) => void;
+
+  /**
+   * Render prop for custom layout control
+   * When provided, gives full control over component positioning
+   * @param components - Table components (controls, table, pagination)
+   * @returns Custom layout JSX
+   *
+   * @example
+   * ```tsx
+   * <TableProvider {...props}>
+   *   {({ controls, table, pagination }) => (
+   *     <>
+   *       <div className="mb-4">{controls}</div>
+   *       <div className="bg-white p-6">
+   *         {table}
+   *         {pagination}
+   *       </div>
+   *     </>
+   *   )}
+   * </TableProvider>
+   * ```
+   */
+  children?: (components: TableComponents) => ReactNode;
 }
 
 /**
@@ -147,6 +182,7 @@ export function TableProvider<T extends Record<string, unknown>>({
   noSearchResultImage,
   onParamsChange,
   onRowClick,
+  children,
 }: TableProviderProps<T>) {
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -278,132 +314,154 @@ export function TableProvider<T extends Record<string, unknown>>({
   // Empty state check
   const isEmpty = data.length === 0;
 
-  return (
-    <div className="w-full space-y-4">
-      {/* Header with Search and Filters */}
-      {(enableSearch || enableFilters) && (
-        <div className="flex items-center gap-4">
-          {/* Search */}
-          {enableSearch && (
-            <div className="flex-1">
-              <Search
-                value={searchQuery}
-                onSearch={handleSearchChange}
-                onClear={() => handleSearchChange('')}
-                options={[]}
-                placeholder={searchPlaceholder}
-              />
-            </div>
-          )}
-
-          {/* Filter Button */}
-          {enableFilters && (
-            <Button
-              variant="outline"
-              size="medium"
-              onClick={() => setIsFilterModalOpen(true)}
-            >
-              <Funnel size={20} />
-              Filtros
-              {hasActiveFilters && (
-                <span className="ml-2 rounded-full bg-primary-500 px-2 py-0.5 text-xs text-white">
-                  {Object.keys(activeFilters).length}
-                </span>
-              )}
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* Table */}
-      <div className="w-full overflow-x-auto">
-        <Table
-          variant={variant}
-          searchTerm={enableSearch ? searchQuery : undefined}
-          noSearchResultImage={noSearchResultImage}
-        >
-          {/* Table Header */}
-          <thead>
-            <TableRow variant={variant}>
-              {headers.map((header, index) => (
-                <TableHead
-                  key={`header-${header.key}-${index}`}
-                  sortable={enableTableSort && header.sortable}
-                  sortDirection={
-                    enableTableSort && sortColumn === header.key
-                      ? sortDirection
-                      : null
-                  }
-                  onSort={() =>
-                    enableTableSort && header.sortable && handleSort(header.key)
-                  }
-                  className={header.className}
-                  style={header.width ? { width: header.width } : undefined}
-                >
-                  {header.label}
-                </TableHead>
-              ))}
-            </TableRow>
-          </thead>
-
-          {/* Table Body */}
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={headers.length}
-                  className="text-center py-8"
-                >
-                  <span className="text-text-400 text-sm">Carregando...</span>
-                </TableCell>
-              </TableRow>
-            ) : (
-              sortedData.map((row, rowIndex) => (
-                <TableRow
-                  key={`row-${rowIndex}`}
-                  clickable={enableRowClick}
-                  onClick={() => handleRowClickInternal(row, rowIndex)}
-                >
-                  {headers.map((header, cellIndex) => {
-                    const value = row[header.key];
-                    const content = header.render
-                      ? header.render(value, row, rowIndex)
-                      : String(value ?? '');
-
-                    return (
-                      <TableCell
-                        key={`cell-${rowIndex}-${cellIndex}`}
-                        className={header.className}
-                        style={{
-                          textAlign: header.align,
-                        }}
-                      >
-                        {content}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Pagination */}
-      {enablePagination && !isEmpty && (
-        <div className="flex justify-end">
-          <TablePagination
-            currentPage={currentPage}
-            totalPages={calculatedTotalPages}
-            totalItems={calculatedTotalItems}
-            itemsPerPage={itemsPerPage}
-            itemsPerPageOptions={itemsPerPageOptions}
-            onPageChange={handlePageChange}
-            onItemsPerPageChange={handleItemsPerPageChange}
-            itemLabel={itemLabel}
+  // Extract components for render prop pattern
+  const controls = (enableSearch || enableFilters) && (
+    <div className="flex items-center gap-4">
+      {/* Search */}
+      {enableSearch && (
+        <div className="flex-1">
+          <Search
+            value={searchQuery}
+            onSearch={handleSearchChange}
+            onClear={() => handleSearchChange('')}
+            options={[]}
+            placeholder={searchPlaceholder}
           />
         </div>
       )}
+
+      {/* Filter Button */}
+      {enableFilters && (
+        <Button
+          variant="outline"
+          size="medium"
+          onClick={() => setIsFilterModalOpen(true)}
+        >
+          <Funnel size={20} />
+          Filtros
+          {hasActiveFilters && (
+            <span className="ml-2 rounded-full bg-primary-500 px-2 py-0.5 text-xs text-white">
+              {Object.keys(activeFilters).length}
+            </span>
+          )}
+        </Button>
+      )}
+    </div>
+  );
+
+  const table = (
+    <div className="w-full overflow-x-auto">
+      <Table
+        variant={variant}
+        searchTerm={enableSearch ? searchQuery : undefined}
+        noSearchResultImage={noSearchResultImage}
+      >
+        {/* Table Header */}
+        <thead>
+          <TableRow variant={variant}>
+            {headers.map((header, index) => (
+              <TableHead
+                key={`header-${header.key}-${index}`}
+                sortable={enableTableSort && header.sortable}
+                sortDirection={
+                  enableTableSort && sortColumn === header.key
+                    ? sortDirection
+                    : null
+                }
+                onSort={() =>
+                  enableTableSort && header.sortable && handleSort(header.key)
+                }
+                className={header.className}
+                style={header.width ? { width: header.width } : undefined}
+              >
+                {header.label}
+              </TableHead>
+            ))}
+          </TableRow>
+        </thead>
+
+        {/* Table Body */}
+        <TableBody>
+          {loading ? (
+            <TableRow>
+              <TableCell colSpan={headers.length} className="text-center py-8">
+                <span className="text-text-400 text-sm">Carregando...</span>
+              </TableCell>
+            </TableRow>
+          ) : (
+            sortedData.map((row, rowIndex) => (
+              <TableRow
+                key={`row-${rowIndex}`}
+                clickable={enableRowClick}
+                onClick={() => handleRowClickInternal(row, rowIndex)}
+              >
+                {headers.map((header, cellIndex) => {
+                  const value = row[header.key];
+                  const content = header.render
+                    ? header.render(value, row, rowIndex)
+                    : String(value ?? '');
+
+                  return (
+                    <TableCell
+                      key={`cell-${rowIndex}-${cellIndex}`}
+                      className={header.className}
+                      style={{
+                        textAlign: header.align,
+                      }}
+                    >
+                      {content}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
+  const pagination = enablePagination && !isEmpty && (
+    <div className="flex justify-end">
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={calculatedTotalPages}
+        totalItems={calculatedTotalItems}
+        itemsPerPage={itemsPerPage}
+        itemsPerPageOptions={itemsPerPageOptions}
+        onPageChange={handlePageChange}
+        onItemsPerPageChange={handleItemsPerPageChange}
+        itemLabel={itemLabel}
+      />
+    </div>
+  );
+
+  // If children prop provided, use render props pattern
+  if (children) {
+    return (
+      <>
+        {children({ controls, table, pagination })}
+        {/* Filter Modal */}
+        {enableFilters && (
+          <FilterModal
+            isOpen={isFilterModalOpen}
+            onClose={() => setIsFilterModalOpen(false)}
+            filterConfigs={filterConfigs}
+            onFiltersChange={updateFilters}
+            onApply={handleFilterApply}
+            onClear={clearFilters}
+          />
+        )}
+      </>
+    );
+  }
+
+  // Default layout (backward compatible)
+  return (
+    <div className="w-full space-y-4">
+      {controls}
+      {table}
+      {pagination}
 
       {/* Filter Modal */}
       {enableFilters && (
