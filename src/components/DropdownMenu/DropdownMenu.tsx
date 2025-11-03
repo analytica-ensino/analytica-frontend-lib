@@ -569,7 +569,7 @@ const ProfileMenuInfo = forwardRef<
     return (
       <div
         ref={ref}
-        data-component="ProfileMenuHeader"
+        data-component="ProfileMenuInfo"
         className={cn('flex flex-row gap-4 items-center', className)}
         {...props}
       >

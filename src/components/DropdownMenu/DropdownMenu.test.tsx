@@ -884,7 +884,7 @@ describe('ProfileMenu component', () => {
       );
 
       const info = screen.getByTestId('profile-info');
-      expect(info).toHaveAttribute('data-component', 'ProfileMenuHeader');
+      expect(info).toHaveAttribute('data-component', 'ProfileMenuInfo');
     });
 
     it('renders ProfileMenuInfo with custom className', () => {
