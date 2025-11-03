@@ -511,10 +511,13 @@ const ProfileMenuHeader = forwardRef<
     <div
       ref={ref}
       data-component="ProfileMenuHeader"
-      className={cn('flex flex-row gap-4 items-center', className)}
+      className={cn(
+        'flex flex-row gap-4 items-center min-w-[280px]',
+        className
+      )}
       {...props}
     >
-      <span className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden">
+      <span className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
         {photoUrl ? (
           <img
             src={photoUrl}
@@ -525,11 +528,16 @@ const ProfileMenuHeader = forwardRef<
           <User size={34} className="text-primary-800" />
         )}
       </span>
-      <div className="flex flex-col ">
-        <Text size="xl" weight="bold" color="text-text-950">
+      <div className="flex flex-col min-w-0">
+        <Text
+          size="xl"
+          weight="bold"
+          color="text-text-950"
+          className="truncate"
+        >
           {name}
         </Text>
-        <Text size="md" color="text-text-600">
+        <Text size="md" color="text-text-600" className="truncate">
           {email}
         </Text>
       </div>
@@ -537,6 +545,55 @@ const ProfileMenuHeader = forwardRef<
   );
 });
 ProfileMenuHeader.displayName = 'ProfileMenuHeader';
+
+const ProfileMenuInfo = forwardRef<
+  HTMLDivElement,
+  HTMLAttributes<HTMLDivElement> & {
+    schoolName: string;
+    classYearName: string;
+    schoolYearName: string;
+    store?: DropdownStoreApi;
+  }
+>(
+  (
+    {
+      className,
+      schoolName,
+      classYearName,
+      schoolYearName,
+      store: _store,
+      ...props
+    },
+    ref
+  ) => {
+    return (
+      <div
+        ref={ref}
+        data-component="ProfileMenuInfo"
+        className={cn('flex flex-row gap-4 items-center', className)}
+        {...props}
+      >
+        <span className="w-16 h-16" />
+        <div className="flex flex-col ">
+          <Text size="md" color="text-text-600">
+            {schoolName}
+          </Text>
+
+          <span className="flex flex-row items-center gap-2">
+            <Text size="md" color="text-text-600">
+              {classYearName}
+            </Text>
+            <p className="text-text-600 text-xs align-middle">●</p>
+            <Text size="md" color="text-text-600">
+              {schoolYearName}
+            </Text>
+          </span>
+        </div>
+      </div>
+    );
+  }
+);
+ProfileMenuInfo.displayName = 'ProfileMenuInfo';
 
 const ProfileToggleTheme = ({
   store: externalStore,
@@ -692,4 +749,5 @@ export {
   ProfileMenuSection,
   ProfileMenuFooter,
   ProfileToggleTheme,
+  ProfileMenuInfo,
 };

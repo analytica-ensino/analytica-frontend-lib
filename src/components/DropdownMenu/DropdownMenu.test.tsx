@@ -9,6 +9,7 @@ import '@testing-library/jest-dom';
 import DropdownMenu, {
   ProfileMenuFooter,
   ProfileMenuHeader,
+  ProfileMenuInfo,
   ProfileMenuSection,
   ProfileMenuTrigger,
   ProfileToggleTheme,
@@ -723,17 +724,22 @@ describe('ProfileMenu component', () => {
     });
 
     it('renders user icon when no photoUrl is provided', () => {
-      const { container } = render(
+      render(
         <DropdownMenu open>
           <ProfileMenuTrigger />
           <DropdownMenuContent>
-            <ProfileMenuHeader email="test@test.com" name="Test User" />
+            <ProfileMenuHeader
+              data-testid="profile-header"
+              email="test@test.com"
+              name="Test User"
+            />
           </DropdownMenuContent>
         </DropdownMenu>
       );
 
-      // Verifica que o ícone de usuário está presente
-      const userIcon = container.querySelector('svg');
+      const header = screen.getByTestId('profile-header');
+      // Verifica que o ícone de usuário está presente dentro do header
+      const userIcon = header.querySelector('svg');
       expect(userIcon).toBeInTheDocument();
       // Verifica que não há imagem
       expect(screen.queryByAltText('Foto de perfil')).not.toBeInTheDocument();
@@ -761,11 +767,12 @@ describe('ProfileMenu component', () => {
     });
 
     it('does not render image when photoUrl is null', () => {
-      const { container } = render(
+      render(
         <DropdownMenu open>
           <ProfileMenuTrigger />
           <DropdownMenuContent>
             <ProfileMenuHeader
+              data-testid="profile-header"
               email="test@test.com"
               name="Test User"
               photoUrl={null}
@@ -775,8 +782,151 @@ describe('ProfileMenu component', () => {
       );
 
       expect(screen.queryByAltText('Foto de perfil')).not.toBeInTheDocument();
-      const userIcon = container.querySelector('svg');
+      const header = screen.getByTestId('profile-header');
+      const userIcon = header.querySelector('svg');
       expect(userIcon).toBeInTheDocument();
+    });
+
+    it('renders ProfileMenuHeader with custom className', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuHeader
+              data-testid="profile-header"
+              email="test@test.com"
+              name="Test User"
+              className="custom-class"
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const header = screen.getByTestId('profile-header');
+      expect(header).toHaveClass('custom-class');
+    });
+
+    it('renders ProfileMenuHeader with correct data-component attribute', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuHeader
+              data-testid="profile-header"
+              email="test@test.com"
+              name="Test User"
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const header = screen.getByTestId('profile-header');
+      expect(header).toHaveAttribute('data-component', 'ProfileMenuHeader');
+    });
+  });
+
+  describe('ProfileMenuInfo behavior', () => {
+    it('renders ProfileMenuInfo with correct content', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuInfo
+              data-testid="profile-info"
+              schoolName="Escola Municipal"
+              classYearName="1º Ano A"
+              schoolYearName="2024"
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(screen.getByTestId('profile-info')).toBeInTheDocument();
+      expect(screen.getByText('Escola Municipal')).toBeInTheDocument();
+      expect(screen.getByText('1º Ano A')).toBeInTheDocument();
+      expect(screen.getByText('2024')).toBeInTheDocument();
+    });
+
+    it('renders ProfileMenuInfo with correct separator between classYearName and schoolYearName', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuInfo
+              data-testid="profile-info"
+              schoolName="Escola Municipal"
+              classYearName="1º Ano A"
+              schoolYearName="2024"
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const info = screen.getByTestId('profile-info');
+      const separator = info.querySelector('p.text-xs.align-middle');
+      expect(separator).toBeInTheDocument();
+      expect(separator).toHaveTextContent('●');
+    });
+
+    it('renders ProfileMenuInfo with correct data-component attribute', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuInfo
+              data-testid="profile-info"
+              schoolName="Escola Municipal"
+              classYearName="1º Ano A"
+              schoolYearName="2024"
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const info = screen.getByTestId('profile-info');
+      expect(info).toHaveAttribute('data-component', 'ProfileMenuInfo');
+    });
+
+    it('renders ProfileMenuInfo with custom className', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuInfo
+              data-testid="profile-info"
+              schoolName="Escola Municipal"
+              classYearName="1º Ano A"
+              schoolYearName="2024"
+              className="custom-info-class"
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const info = screen.getByTestId('profile-info');
+      expect(info).toHaveClass('custom-info-class');
+    });
+
+    it('renders ProfileMenuInfo with correct structure and spacing', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuInfo
+              data-testid="profile-info"
+              schoolName="Escola Municipal"
+              classYearName="1º Ano A"
+              schoolYearName="2024"
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const info = screen.getByTestId('profile-info');
+      // Verifica que tem a estrutura correta: span vazio + div com informações
+      expect(info).toHaveClass('flex', 'flex-row', 'gap-4', 'items-center');
+      const emptySpan = info.querySelector('span.w-16.h-16');
+      expect(emptySpan).toBeInTheDocument();
     });
   });
 
