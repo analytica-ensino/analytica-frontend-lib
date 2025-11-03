@@ -97,17 +97,13 @@ export interface TableProviderProps<T = Record<string, unknown>> {
   paginationConfig?: PaginationConfig;
   /** Search placeholder text */
   searchPlaceholder?: string;
-  /** Empty state message */
-  emptyStateMessage?: string;
-  /** Empty state button label */
-  emptyStateButtonLabel?: string;
+  /** Image for no search result state */
+  noSearchResultImage?: string;
 
   /** Callback when any parameter changes */
   onParamsChange?: (params: TableParams) => void;
   /** Callback when row is clicked */
   onRowClick?: (row: T, index: number) => void;
-  /** Callback when empty state button is clicked */
-  onEmptyStateButtonClick?: () => void;
 }
 
 /**
@@ -148,11 +144,9 @@ export function TableProvider<T extends Record<string, unknown>>({
   initialFilters = [],
   paginationConfig = {},
   searchPlaceholder = 'Buscar...',
-  emptyStateMessage = 'Nenhum item encontrado',
-  emptyStateButtonLabel,
+  noSearchResultImage,
   onParamsChange,
   onRowClick,
-  onEmptyStateButtonClick,
 }: TableProviderProps<T>) {
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -283,7 +277,6 @@ export function TableProvider<T extends Record<string, unknown>>({
 
   // Empty state check
   const isEmpty = data.length === 0;
-  const hasSearch = enableSearch && searchQuery.trim().length > 0;
 
   return (
     <div className="w-full space-y-4">
@@ -323,7 +316,11 @@ export function TableProvider<T extends Record<string, unknown>>({
 
       {/* Table */}
       <div className="w-full overflow-x-auto">
-        <Table variant={variant}>
+        <Table
+          variant={variant}
+          searchTerm={enableSearch ? searchQuery : undefined}
+          noSearchResultImage={noSearchResultImage}
+        >
           {/* Table Header */}
           <thead>
             <TableRow variant={variant}>
@@ -357,32 +354,6 @@ export function TableProvider<T extends Record<string, unknown>>({
                   className="text-center py-8"
                 >
                   <span className="text-text-400 text-sm">Carregando...</span>
-                </TableCell>
-              </TableRow>
-            ) : isEmpty ? (
-              <TableRow>
-                <TableCell
-                  colSpan={headers.length}
-                  className="text-center py-8"
-                >
-                  <div className="flex flex-col items-center gap-4">
-                    <span className="text-text-400 text-sm">
-                      {hasSearch
-                        ? 'Nenhum resultado encontrado'
-                        : emptyStateMessage}
-                    </span>
-                    {!hasSearch &&
-                      emptyStateButtonLabel &&
-                      onEmptyStateButtonClick && (
-                        <Button
-                          variant="solid"
-                          size="medium"
-                          onClick={onEmptyStateButtonClick}
-                        >
-                          {emptyStateButtonLabel}
-                        </Button>
-                      )}
-                  </div>
                 </TableCell>
               </TableRow>
             ) : (
