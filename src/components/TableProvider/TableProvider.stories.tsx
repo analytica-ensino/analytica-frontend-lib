@@ -293,7 +293,7 @@ export const CustomResponsiveLayout: Story = () => {
               + Criar Atividade
             </button>
 
-            {/* Right side - Search and Filter Controls */}
+            {/* Right side - Filter and Search Controls */}
             {controls}
           </div>
 

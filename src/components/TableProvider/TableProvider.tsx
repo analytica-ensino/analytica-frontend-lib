@@ -317,19 +317,6 @@ export function TableProvider<T extends Record<string, unknown>>({
   // Extract components for render prop pattern
   const controls = (enableSearch || enableFilters) && (
     <div className="flex items-center gap-4">
-      {/* Search */}
-      {enableSearch && (
-        <div className="flex-1">
-          <Search
-            value={searchQuery}
-            onSearch={handleSearchChange}
-            onClear={() => handleSearchChange('')}
-            options={[]}
-            placeholder={searchPlaceholder}
-          />
-        </div>
-      )}
-
       {/* Filter Button */}
       {enableFilters && (
         <Button
@@ -345,6 +332,19 @@ export function TableProvider<T extends Record<string, unknown>>({
             </span>
           )}
         </Button>
+      )}
+
+      {/* Search */}
+      {enableSearch && (
+        <div className="flex-1">
+          <Search
+            value={searchQuery}
+            onSearch={handleSearchChange}
+            onClear={() => handleSearchChange('')}
+            options={[]}
+            placeholder={searchPlaceholder}
+          />
+        </div>
       )}
     </div>
   );
