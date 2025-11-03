@@ -863,8 +863,7 @@ describe('ProfileMenu component', () => {
       );
 
       const info = screen.getByTestId('profile-info');
-      // Verifica que há um separador (bullet) entre classYearName e schoolYearName
-      const separator = info.querySelector('p.text-text-600');
+      const separator = info.querySelector('p.text-xs.align-middle');
       expect(separator).toBeInTheDocument();
       expect(separator).toHaveTextContent('●');
     });
