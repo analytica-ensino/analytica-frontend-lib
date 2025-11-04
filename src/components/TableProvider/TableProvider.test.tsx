@@ -4,6 +4,10 @@ import { TableProvider } from './TableProvider';
 import type { ColumnConfig } from './TableProvider';
 import type { FilterConfig } from '../Filter/useTableFilter';
 
+// Mock para imagens PNG
+jest.mock('../../assets/img/mock-content.png', () => 'test-file-stub');
+jest.mock('../../assets/img/mock-image-question.png', () => 'test-file-stub');
+
 /**
  * Mock data interface for testing
  */
