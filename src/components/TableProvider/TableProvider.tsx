@@ -84,38 +84,40 @@ export interface TableComponents {
  */
 export interface TableProviderProps<T = Record<string, unknown>> {
   /** Data to display in the table */
-  data: T[];
+  readonly data: T[];
   /** Column configurations */
-  headers: ColumnConfig<T>[];
+  readonly headers: ColumnConfig<T>[];
   /** Loading state */
-  loading?: boolean;
+  readonly loading?: boolean;
   /** Table variant */
-  variant?: 'default' | 'borderless';
+  readonly variant?: 'default' | 'borderless';
 
   /** Enable search functionality */
-  enableSearch?: boolean;
+  readonly enableSearch?: boolean;
   /** Enable filters functionality */
-  enableFilters?: boolean;
+  readonly enableFilters?: boolean;
   /** Enable table sorting */
-  enableTableSort?: boolean;
+  readonly enableTableSort?: boolean;
   /** Enable pagination */
-  enablePagination?: boolean;
+  readonly enablePagination?: boolean;
   /** Enable row click functionality */
-  enableRowClick?: boolean;
+  readonly enableRowClick?: boolean;
 
   /** Initial filter configurations */
-  initialFilters?: FilterConfig[];
+  readonly initialFilters?: FilterConfig[];
   /** Pagination configuration */
-  paginationConfig?: PaginationConfig;
+  readonly paginationConfig?: PaginationConfig;
   /** Search placeholder text */
-  searchPlaceholder?: string;
+  readonly searchPlaceholder?: string;
   /** Image for no search result state */
-  noSearchResultImage?: string;
+  readonly noSearchResultImage?: string;
+  /** Key field name to use for unique row identification (recommended for better performance) */
+  readonly rowKey?: keyof T;
 
   /** Callback when any parameter changes */
-  onParamsChange?: (params: TableParams) => void;
+  readonly onParamsChange?: (params: TableParams) => void;
   /** Callback when row is clicked */
-  onRowClick?: (row: T, index: number) => void;
+  readonly onRowClick?: (row: T, index: number) => void;
 
   /**
    * Render prop for custom layout control
@@ -138,7 +140,7 @@ export interface TableProviderProps<T = Record<string, unknown>> {
    * </TableProvider>
    * ```
    */
-  children?: (components: TableComponents) => ReactNode;
+  readonly children?: (components: TableComponents) => ReactNode;
 }
 
 /**
@@ -180,6 +182,7 @@ export function TableProvider<T extends Record<string, unknown>>({
   paginationConfig = {},
   searchPlaceholder = 'Buscar...',
   noSearchResultImage,
+  rowKey,
   onParamsChange,
   onRowClick,
   children,
@@ -187,9 +190,10 @@ export function TableProvider<T extends Record<string, unknown>>({
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Sorting state (only if enabled)
+  // Sorting state - always call hook (React Rules of Hooks)
+  const sortResultRaw = useTableSort(data, { syncWithUrl: true });
   const sortResult = enableTableSort
-    ? useTableSort(data, { syncWithUrl: true })
+    ? sortResultRaw
     : {
         sortedData: data,
         sortColumn: null,
@@ -199,9 +203,10 @@ export function TableProvider<T extends Record<string, unknown>>({
 
   const { sortedData, sortColumn, sortDirection, handleSort } = sortResult;
 
-  // Filter state (only if enabled)
+  // Filter state - always call hook (React Rules of Hooks)
+  const filterResultRaw = useTableFilter(initialFilters, { syncWithUrl: true });
   const filterResult = enableFilters
-    ? useTableFilter(initialFilters, { syncWithUrl: true })
+    ? filterResultRaw
     : {
         filterConfigs: [],
         activeFilters: {},
@@ -391,35 +396,40 @@ export function TableProvider<T extends Record<string, unknown>>({
               </TableCell>
             </TableRow>
           ) : (
-            sortedData.map((row, rowIndex) => (
-              <TableRow
-                key={`row-${rowIndex}`}
-                variant={
-                  variant === 'borderless' ? 'defaultBorderless' : 'default'
-                }
-                clickable={enableRowClick}
-                onClick={() => handleRowClickInternal(row, rowIndex)}
-              >
-                {headers.map((header, cellIndex) => {
-                  const value = row[header.key];
-                  const content = header.render
-                    ? header.render(value, row, rowIndex)
-                    : String(value ?? '');
+            sortedData.map((row, rowIndex) => {
+              const rowKeyValue = rowKey
+                ? String(row[rowKey])
+                : `row-${rowIndex}`;
+              return (
+                <TableRow
+                  key={rowKeyValue}
+                  variant={
+                    variant === 'borderless' ? 'defaultBorderless' : 'default'
+                  }
+                  clickable={enableRowClick}
+                  onClick={() => handleRowClickInternal(row, rowIndex)}
+                >
+                  {headers.map((header, cellIndex) => {
+                    const value = row[header.key];
+                    const content = header.render
+                      ? header.render(value, row, rowIndex)
+                      : String(value ?? '');
 
-                  return (
-                    <TableCell
-                      key={`cell-${rowIndex}-${cellIndex}`}
-                      className={header.className}
-                      style={{
-                        textAlign: header.align,
-                      }}
-                    >
-                      {content}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            ))
+                    return (
+                      <TableCell
+                        key={`cell-${rowIndex}-${cellIndex}`}
+                        className={header.className}
+                        style={{
+                          textAlign: header.align,
+                        }}
+                      >
+                        {content}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>
