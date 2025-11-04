@@ -411,9 +411,17 @@ export function TableProvider<T extends Record<string, unknown>>({
                 >
                   {headers.map((header, cellIndex) => {
                     const value = row[header.key];
+
+                    let defaultContent = '';
+                    if (typeof value === 'object' && value !== null) {
+                      defaultContent = JSON.stringify(value);
+                    } else {
+                      defaultContent = String(value ?? '');
+                    }
+
                     const content = header.render
                       ? header.render(value, row, rowIndex)
-                      : String(value ?? '');
+                      : defaultContent;
 
                     return (
                       <TableCell
