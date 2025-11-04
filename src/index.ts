@@ -120,6 +120,7 @@ export {
   ProfileMenuTrigger,
   ProfileMenuFooter,
   ProfileMenuHeader,
+  ProfileMenuInfo,
   ProfileMenuSection,
   MenuLabel,
   DropdownMenuSeparator,
