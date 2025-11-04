@@ -358,7 +358,9 @@ export function TableProvider<T extends Record<string, unknown>>({
       >
         {/* Table Header */}
         <thead>
-          <TableRow variant={variant}>
+          <TableRow
+            variant={variant === 'borderless' ? 'defaultBorderless' : 'default'}
+          >
             {headers.map((header, index) => (
               <TableHead
                 key={`header-${header.key}-${index}`}
@@ -392,6 +394,9 @@ export function TableProvider<T extends Record<string, unknown>>({
             sortedData.map((row, rowIndex) => (
               <TableRow
                 key={`row-${rowIndex}`}
+                variant={
+                  variant === 'borderless' ? 'defaultBorderless' : 'default'
+                }
                 clickable={enableRowClick}
                 onClick={() => handleRowClickInternal(row, rowIndex)}
               >
