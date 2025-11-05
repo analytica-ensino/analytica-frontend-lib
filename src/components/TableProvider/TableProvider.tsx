@@ -404,7 +404,16 @@ export function TableProvider<T extends Record<string, unknown>>({
           ) : (
             sortedData.map((row, rowIndex) => {
               const rowKeyValue = rowKey
-                ? String(row[rowKey])
+                ? (() => {
+                    const keyValue = row[rowKey];
+                    if (keyValue === null || keyValue === undefined) {
+                      return `row-${rowIndex}`;
+                    }
+                    if (typeof keyValue === 'object') {
+                      return JSON.stringify(keyValue);
+                    }
+                    return String(keyValue);
+                  })()
                 : `row-${rowIndex}`;
               return (
                 <TableRow
@@ -432,8 +441,14 @@ export function TableProvider<T extends Record<string, unknown>>({
                       } else if (typeof value === 'object') {
                         // Serialize objects and arrays with JSON
                         defaultContent = JSON.stringify(value);
+                      } else if (typeof value === 'function') {
+                        // Handle functions - don't expose function code
+                        defaultContent = '[Function]';
+                      } else if (typeof value === 'symbol') {
+                        // Handle symbols
+                        defaultContent = String(value);
                       } else {
-                        // Handle edge cases: functions, symbols, etc.
+                        // Handle any other edge cases
                         defaultContent = String(value);
                       }
                     }
