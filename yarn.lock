@@ -2102,13 +2102,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/identity-obj-proxy@npm:^3":
-  version: 3.0.2
-  resolution: "@types/identity-obj-proxy@npm:3.0.2"
-  checksum: 10c0/9277c7bf75aaf3688b659ad86f33eb57bd9fab9a5ed342adfbab6b6a804b8f7ce2f0a9ce0394dc6e73b3128d61920c5d35d71b825b84bfe28a97f86f5360c7e3
-  languageName: node
-  linkType: hard
-
 "@types/istanbul-lib-coverage@npm:*, @types/istanbul-lib-coverage@npm:^2.0.0, @types/istanbul-lib-coverage@npm:^2.0.1":
   version: 2.0.6
   resolution: "@types/istanbul-lib-coverage@npm:2.0.6"
@@ -2549,7 +2542,6 @@ __metadata:
     "@testing-library/jest-dom": "npm:^6.6.3"
     "@testing-library/react": "npm:^16.3.0"
     "@testing-library/user-event": "npm:^14.6.1"
-    "@types/identity-obj-proxy": "npm:^3"
     "@types/jest": "npm:^29.5.14"
     "@types/react": "npm:^19.1.6"
     "@types/react-dom": "npm:^19.1.6"
@@ -2562,7 +2554,6 @@ __metadata:
     eslint-plugin-jsdoc: "npm:^50.7.1"
     eslint-plugin-prettier: "npm:^5.4.1"
     husky: "npm:^9.1.7"
-    identity-obj-proxy: "npm:^3.0.0"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
     jest-sonar-reporter: "npm:^2.0.0"
@@ -4723,13 +4714,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"harmony-reflect@npm:^1.4.6":
-  version: 1.6.2
-  resolution: "harmony-reflect@npm:1.6.2"
-  checksum: 10c0/fa5b251fbeff0e2d925f0bfb5ffe39e0627639e998c453562d6a39e41789c15499649dc022178c807cf99bfb97e7b974bbbc031ba82078a26be7b098b9bc2b1a
-  languageName: node
-  linkType: hard
-
 "has-flag@npm:^4.0.0":
   version: 4.0.0
   resolution: "has-flag@npm:4.0.0"
@@ -5091,15 +5075,6 @@ __metadata:
   dependencies:
     safer-buffer: "npm:>= 2.1.2 < 3.0.0"
   checksum: 10c0/98102bc66b33fcf5ac044099d1257ba0b7ad5e3ccd3221f34dd508ab4070edff183276221684e1e0555b145fce0850c9f7d2b60a9fcac50fbb4ea0d6e845a3b1
-  languageName: node
-  linkType: hard
-
-"identity-obj-proxy@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "identity-obj-proxy@npm:3.0.0"
-  dependencies:
-    harmony-reflect: "npm:^1.4.6"
-  checksum: 10c0/a3fc4de0042d7b45bf8652d5596c80b42139d8625c9cd6a8834e29e1b6dce8fccabd1228e08744b78677a19ceed7201a32fed8ca3dc3e4852e8fee24360a6cfc
   languageName: node
   linkType: hard
 
