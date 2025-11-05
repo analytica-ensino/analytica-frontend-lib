@@ -205,16 +205,21 @@ export function TableProvider<T extends Record<string, unknown>>({
 
   // Filter state - always call hook (React Rules of Hooks)
   const filterResultRaw = useTableFilter(initialFilters, { syncWithUrl: true });
-  const filterResult = enableFilters
-    ? filterResultRaw
-    : {
-        filterConfigs: [],
-        activeFilters: {},
-        hasActiveFilters: false,
-        updateFilters: () => {},
-        applyFilters: () => {},
-        clearFilters: () => {},
-      };
+
+  // Memoize disabled filter result to prevent recreating object on every render
+  const disabledFilterResult = useMemo(
+    () => ({
+      filterConfigs: [],
+      activeFilters: {},
+      hasActiveFilters: false,
+      updateFilters: () => {},
+      applyFilters: () => {},
+      clearFilters: () => {},
+    }),
+    []
+  );
+
+  const filterResult = enableFilters ? filterResultRaw : disabledFilterResult;
 
   const {
     filterConfigs,
@@ -274,9 +279,10 @@ export function TableProvider<T extends Record<string, unknown>>({
   ]);
 
   // Notify parent when parameters change
+  // Note: onParamsChange is omitted from dependencies intentionally to prevent infinite loops
   useEffect(() => {
     onParamsChange?.(combinedParams);
-  }, [combinedParams, onParamsChange]);
+  }, [combinedParams]);
 
   // Handle search changes
   const handleSearchChange = useCallback((value: string) => {
