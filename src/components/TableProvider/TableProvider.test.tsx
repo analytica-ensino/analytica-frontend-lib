@@ -60,6 +60,13 @@ const testFilters: FilterConfig[] = [
 describe('TableProvider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Reset URL to prevent test contamination from syncWithUrl feature
+    if (globalThis.window) {
+      const url = new URL(globalThis.location.href);
+      url.search = ''; // Clear all query params
+      globalThis.history.replaceState({}, '', url.toString());
+    }
   });
 
   // ======================
@@ -800,7 +807,7 @@ describe('TableProvider', () => {
           page: 1,
           limit: 10,
           sortBy: 'name',
-          sortOrder: 'desc',
+          sortOrder: 'asc',
         })
       );
     });
