@@ -416,7 +416,10 @@ export function TableProvider<T extends Record<string, unknown>>({
                     if (typeof value === 'object' && value !== null) {
                       defaultContent = JSON.stringify(value);
                     } else {
-                      defaultContent = String(value ?? '');
+                      defaultContent =
+                        value === null || value === undefined
+                          ? ''
+                          : String(value);
                     }
 
                     const content = header.render
