@@ -419,13 +419,23 @@ export function TableProvider<T extends Record<string, unknown>>({
                     const value = row[header.key];
 
                     let defaultContent = '';
-                    if (typeof value === 'object' && value !== null) {
-                      defaultContent = JSON.stringify(value);
-                    } else {
-                      defaultContent =
-                        value === null || value === undefined
-                          ? ''
-                          : String(value);
+
+                    if (value !== null && value !== undefined) {
+                      if (
+                        typeof value === 'string' ||
+                        typeof value === 'number' ||
+                        typeof value === 'boolean' ||
+                        typeof value === 'bigint'
+                      ) {
+                        // Only convert primitives directly to string
+                        defaultContent = String(value);
+                      } else if (typeof value === 'object') {
+                        // Serialize objects and arrays with JSON
+                        defaultContent = JSON.stringify(value);
+                      } else {
+                        // Handle edge cases: functions, symbols, etc.
+                        defaultContent = String(value);
+                      }
                     }
 
                     const content = header.render
