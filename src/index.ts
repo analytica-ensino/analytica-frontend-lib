@@ -154,6 +154,16 @@ export type {
 } from './components/Filter';
 
 export type { TablePaginationProps } from './components/Table/Table';
+
+// TableProvider Component
+export { TableProvider } from './components/TableProvider';
+export type {
+  ColumnConfig,
+  TableParams,
+  PaginationConfig,
+  TableProviderProps,
+} from './components/TableProvider';
+
 // Select Components
 export {
   default as Select,

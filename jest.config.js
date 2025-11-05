@@ -18,6 +18,7 @@ const config = {
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    [String.raw`\.(css|less|scss|sass)$`]: 'identity-obj-proxy',
   },
   // Coverage configuration
   collectCoverage: true,
@@ -31,7 +32,7 @@ const config = {
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
     '<rootDir>/.ladle/',
-    '.*\\.stories\\.(ts|tsx)$',
+    String.raw`.*\.stories\.(ts|tsx)$`,
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
