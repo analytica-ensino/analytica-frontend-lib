@@ -317,13 +317,39 @@ export function TableProvider<T extends Record<string, unknown>>({
     [enableRowClick, onRowClick]
   );
 
+  // Detect if pagination should be managed internally
+  const useInternalPagination = useMemo(
+    () =>
+      enablePagination &&
+      !onParamsChange &&
+      totalItems === undefined &&
+      totalPages === undefined,
+    [enablePagination, onParamsChange, totalItems, totalPages]
+  );
+
   // Calculate total pages from data if not provided
   const calculatedTotalPages =
-    totalPages ?? Math.ceil((totalItems ?? data.length) / itemsPerPage);
-  const calculatedTotalItems = totalItems ?? data.length;
+    totalPages ??
+    Math.ceil(
+      (totalItems ??
+        (useInternalPagination ? sortedData.length : data.length)) /
+        itemsPerPage
+    );
+  const calculatedTotalItems =
+    totalItems ?? (useInternalPagination ? sortedData.length : data.length);
+
+  // Apply pagination to data when managed internally
+  const displayData = useMemo(() => {
+    if (!useInternalPagination) {
+      return sortedData;
+    }
+
+    const start = (currentPage - 1) * itemsPerPage;
+    return sortedData.slice(start, start + itemsPerPage);
+  }, [useInternalPagination, sortedData, currentPage, itemsPerPage]);
 
   // Empty state check
-  const isEmpty = data.length === 0;
+  const isEmpty = sortedData.length === 0;
 
   // Extract components for render prop pattern
   const controls = (enableSearch || enableFilters) && (
@@ -402,19 +428,24 @@ export function TableProvider<T extends Record<string, unknown>>({
               </TableCell>
             </TableRow>
           ) : (
-            sortedData.map((row, rowIndex) => {
+            displayData.map((row, rowIndex) => {
+              // Calculate effective index for row click and keys
+              const effectiveIndex = useInternalPagination
+                ? (currentPage - 1) * itemsPerPage + rowIndex
+                : rowIndex;
+
               const rowKeyValue = rowKey
                 ? (() => {
                     const keyValue = row[rowKey];
                     if (keyValue === null || keyValue === undefined) {
-                      return `row-${rowIndex}`;
+                      return `row-${effectiveIndex}`;
                     }
                     if (typeof keyValue === 'object') {
                       return JSON.stringify(keyValue);
                     }
                     return String(keyValue);
                   })()
-                : `row-${rowIndex}`;
+                : `row-${effectiveIndex}`;
               return (
                 <TableRow
                   key={rowKeyValue}
@@ -422,7 +453,7 @@ export function TableProvider<T extends Record<string, unknown>>({
                     variant === 'borderless' ? 'defaultBorderless' : 'default'
                   }
                   clickable={enableRowClick}
-                  onClick={() => handleRowClickInternal(row, rowIndex)}
+                  onClick={() => handleRowClickInternal(row, effectiveIndex)}
                 >
                   {headers.map((header, cellIndex) => {
                     const value = row[header.key];
@@ -452,12 +483,12 @@ export function TableProvider<T extends Record<string, unknown>>({
                     }
 
                     const content = header.render
-                      ? header.render(value, row, rowIndex)
+                      ? header.render(value, row, effectiveIndex)
                       : defaultContent;
 
                     return (
                       <TableCell
-                        key={`cell-${rowIndex}-${cellIndex}`}
+                        key={`cell-${effectiveIndex}-${cellIndex}`}
                         className={header.className}
                         style={{
                           textAlign: header.align,

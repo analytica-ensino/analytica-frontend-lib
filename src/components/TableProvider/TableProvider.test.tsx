@@ -530,6 +530,92 @@ describe('TableProvider', () => {
       expect(screen.getByText(/Página 1 de 3/)).toBeInTheDocument();
     });
 
+    it('should only display items for the current page (local pagination)', () => {
+      const largeData = Array.from({ length: 25 }, (_, i) => ({
+        id: i,
+        name: `User ${i}`,
+        age: 20 + i,
+        status: 'active' as const,
+      }));
+
+      render(
+        <TableProvider
+          data={largeData}
+          headers={testHeaders}
+          enablePagination={true}
+          paginationConfig={{ defaultItemsPerPage: 10 }}
+        />
+      );
+
+      // Should only render 10 items on page 1 (User 0-9)
+      expect(screen.getByText('User 0')).toBeInTheDocument();
+      expect(screen.getByText('User 9')).toBeInTheDocument();
+      expect(screen.queryByText('User 10')).not.toBeInTheDocument();
+      expect(screen.queryByText('User 24')).not.toBeInTheDocument();
+
+      // Navigate to page 2
+      const nextButton = screen.getByLabelText('Próxima página');
+      fireEvent.click(nextButton);
+
+      // Should now render items 10-19
+      expect(screen.queryByText('User 0')).not.toBeInTheDocument();
+      expect(screen.getByText('User 10')).toBeInTheDocument();
+      expect(screen.getByText('User 19')).toBeInTheDocument();
+      expect(screen.queryByText('User 20')).not.toBeInTheDocument();
+
+      // Navigate to page 3
+      fireEvent.click(nextButton);
+
+      // Should now render items 20-24 (only 5 items on last page)
+      expect(screen.queryByText('User 19')).not.toBeInTheDocument();
+      expect(screen.getByText('User 20')).toBeInTheDocument();
+      expect(screen.getByText('User 24')).toBeInTheDocument();
+    });
+
+    it('should calculate correct row indices with local pagination', () => {
+      const largeData = Array.from({ length: 25 }, (_, i) => ({
+        id: i,
+        name: `User ${i}`,
+        age: 20 + i,
+        status: 'active' as const,
+      }));
+
+      const onRowClick = jest.fn();
+
+      render(
+        <TableProvider
+          data={largeData}
+          headers={testHeaders}
+          enablePagination={true}
+          enableRowClick={true}
+          onRowClick={onRowClick}
+          paginationConfig={{ defaultItemsPerPage: 10 }}
+        />
+      );
+
+      // Click first row on page 1 (User 0, index 0)
+      const firstRow = screen.getByText('User 0').closest('tr');
+      if (firstRow) fireEvent.click(firstRow);
+
+      expect(onRowClick).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'User 0' }),
+        0
+      );
+
+      // Navigate to page 2
+      const nextButton = screen.getByLabelText('Próxima página');
+      fireEvent.click(nextButton);
+
+      // Click first row on page 2 (User 10, index 10)
+      const firstRowPage2 = screen.getByText('User 10').closest('tr');
+      if (firstRowPage2) fireEvent.click(firstRowPage2);
+
+      expect(onRowClick).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'User 10' }),
+        10
+      );
+    });
+
     it('should not render pagination when data is empty', () => {
       render(
         <TableProvider
