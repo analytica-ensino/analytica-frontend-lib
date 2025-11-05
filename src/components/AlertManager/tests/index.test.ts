@@ -2,7 +2,6 @@ import { describe, it, expect, jest } from '@jest/globals';
 import * as AlertManagerModule from '../index';
 
 // Mock only the files that actually exist and cause issues
-jest.mock('../../../styles.css', () => ({}));
 jest.mock('../../../index', () => ({}));
 jest.mock('../../../assets/img/notification.png', () => ({}));
 
