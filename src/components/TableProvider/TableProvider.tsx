@@ -447,10 +447,8 @@ export function TableProvider<T extends Record<string, unknown>>({
                       } else if (typeof value === 'symbol') {
                         // Handle symbols
                         defaultContent = String(value);
-                      } else {
-                        // Handle any other edge cases
-                        defaultContent = String(value);
                       }
+                      // All possible types covered - no else needed
                     }
 
                     const content = header.render
