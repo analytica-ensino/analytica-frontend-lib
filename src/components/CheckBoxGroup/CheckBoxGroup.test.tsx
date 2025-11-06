@@ -2,8 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 
-// Mock all problematic imports before importing the component
-jest.mock('../../styles.css', () => ({}));
+// Mock problematic image imports
 jest.mock('../../assets/img/mock-content.png', () => ({}));
 
 // Mock the entire index.ts to avoid CSS imports
@@ -29,7 +28,6 @@ jest.mock('../../', () => ({
   }) => (
     <div data-testid="card-accordion" {...props}>
       <button
-        role="button"
         disabled={disabled}
         onClick={() => {}}
         data-testid="accordion-trigger"
@@ -970,9 +968,9 @@ describe('CheckboxGroup', () => {
       render(<CheckboxGroup {...defaultProps} />);
 
       const checkboxes = screen.getAllByRole('checkbox');
-      checkboxes.forEach((checkbox) => {
+      for (const checkbox of checkboxes) {
         expect(checkbox).toHaveAttribute('type', 'checkbox');
-      });
+      }
     });
 
     it('associates labels with checkboxes correctly', async () => {

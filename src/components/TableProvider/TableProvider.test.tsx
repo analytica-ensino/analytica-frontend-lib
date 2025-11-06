@@ -1,3 +1,4 @@
+import type { HTMLAttributes, InputHTMLAttributes } from 'react';
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TableProvider } from './TableProvider';
@@ -7,6 +8,37 @@ import type { FilterConfig } from '../Filter/useTableFilter';
 // Mock para imagens PNG
 jest.mock('../../assets/img/mock-content.png', () => 'test-file-stub');
 jest.mock('../../assets/img/mock-image-question.png', () => 'test-file-stub');
+
+// Mock the index.ts to avoid CSS import issues
+jest.mock('../../index', () => ({
+  AccordionGroup: ({ children, ...props }: HTMLAttributes<HTMLDivElement>) => (
+    <div data-testid="accordion-group" {...props}>
+      {children}
+    </div>
+  ),
+  Badge: ({ children, ...props }: HTMLAttributes<HTMLSpanElement>) => (
+    <span data-testid="badge" {...props}>
+      {children}
+    </span>
+  ),
+  CardAccordation: ({ children, ...props }: HTMLAttributes<HTMLDivElement>) => (
+    <div data-testid="card-accordation" {...props}>
+      {children}
+    </div>
+  ),
+  CheckBox: ({ ...props }: InputHTMLAttributes<HTMLInputElement>) => (
+    <input type="checkbox" data-testid="checkbox" {...props} />
+  ),
+  cn: (...inputs: (string | undefined)[]) => inputs.filter(Boolean).join(' '),
+  Text: ({ children, ...props }: HTMLAttributes<HTMLParagraphElement>) => (
+    <p data-testid="text" {...props}>
+      {children}
+    </p>
+  ),
+  Divider: (props: HTMLAttributes<HTMLHRElement>) => (
+    <hr data-testid="divider" {...props} />
+  ),
+}));
 
 /**
  * Mock data interface for testing
