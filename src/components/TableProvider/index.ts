@@ -4,4 +4,7 @@ export type {
   TableParams,
   PaginationConfig,
   TableProviderProps,
+  EmptyStateConfig,
+  LoadingStateConfig,
+  NoSearchResultConfig,
 } from './TableProvider';

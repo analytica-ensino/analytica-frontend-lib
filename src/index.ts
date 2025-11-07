@@ -162,6 +162,7 @@ export type {
   TableParams,
   PaginationConfig,
   TableProviderProps,
+  EmptyStateConfig,
 } from './components/TableProvider';
 
 // Select Components

@@ -68,6 +68,44 @@ export interface PaginationConfig {
 }
 
 /**
+ * Empty state configuration
+ */
+export interface EmptyStateConfig {
+  /** Custom component to render when table is empty (no data and no search active) */
+  component?: ReactNode;
+  /** Text message to show in empty state (used if component not provided) */
+  message?: string;
+  /** Image to display in empty state */
+  image?: string;
+  /** Button text for empty state action */
+  buttonText?: string;
+  /** Callback when empty state button is clicked */
+  onButtonClick?: () => void;
+}
+
+/**
+ * Loading state configuration
+ */
+export interface LoadingStateConfig {
+  /** Custom component to render when table is loading */
+  component?: ReactNode;
+}
+
+/**
+ * No search result state configuration
+ */
+export interface NoSearchResultConfig {
+  /** Custom component to render when search returns no results */
+  component?: ReactNode;
+  /** Title for no search result state */
+  title?: string;
+  /** Description for no search result state */
+  description?: string;
+  /** Image to display in no search result state */
+  image?: string;
+}
+
+/**
  * Table components exposed via render prop
  */
 export interface TableComponents {
@@ -109,8 +147,12 @@ export interface TableProviderProps<T = Record<string, unknown>> {
   readonly paginationConfig?: PaginationConfig;
   /** Search placeholder text */
   readonly searchPlaceholder?: string;
-  /** Image for no search result state */
-  readonly noSearchResultImage?: string;
+  /** Empty state configuration (when table is empty with no search) */
+  readonly emptyState?: EmptyStateConfig;
+  /** Loading state configuration (when table is loading) */
+  readonly loadingState?: LoadingStateConfig;
+  /** No search result state configuration (when search returns no results) */
+  readonly noSearchResultState?: NoSearchResultConfig;
   /** Key field name to use for unique row identification (recommended for better performance) */
   readonly rowKey?: keyof T;
 
@@ -181,7 +223,9 @@ export function TableProvider<T extends Record<string, unknown>>({
   initialFilters = [],
   paginationConfig = {},
   searchPlaceholder = 'Buscar...',
-  noSearchResultImage,
+  emptyState,
+  loadingState,
+  noSearchResultState,
   rowKey,
   onParamsChange,
   onRowClick,
@@ -349,7 +393,13 @@ export function TableProvider<T extends Record<string, unknown>>({
   }, [useInternalPagination, sortedData, currentPage, itemsPerPage]);
 
   // Empty state check
-  const isEmpty = sortedData.length === 0;
+  const isEmpty = data.length === 0;
+
+  // Calculate state control booleans - Table is responsible for rendering, TableProvider controls WHEN
+  const showLoading = loading;
+  const showNoSearchResult =
+    !loading && data.length === 0 && searchQuery.trim() !== '';
+  const showEmpty = !loading && data.length === 0 && searchQuery.trim() === '';
 
   // Extract components for render prop pattern
   const controls = (enableSearch || enableFilters) && (
@@ -390,8 +440,12 @@ export function TableProvider<T extends Record<string, unknown>>({
     <div className="w-full overflow-x-auto">
       <Table
         variant={variant}
-        searchTerm={enableSearch ? searchQuery : undefined}
-        noSearchResultImage={noSearchResultImage}
+        showLoading={showLoading}
+        loadingState={loadingState}
+        showNoSearchResult={showNoSearchResult}
+        noSearchResultState={noSearchResultState}
+        showEmpty={showEmpty}
+        emptyState={emptyState}
       >
         {/* Table Header */}
         <thead>

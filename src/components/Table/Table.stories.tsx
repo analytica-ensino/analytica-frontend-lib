@@ -528,8 +528,11 @@ export const EmptyState: Story = () => {
       <div>
         <h3 className="font-bold text-xl mb-4">Com botão de ação</h3>
         <Table
-          onEmptyStateButtonClick={handleAddItem}
-          emptyStateButtonText="Adicionar Atividade"
+          showEmpty
+          emptyState={{
+            onButtonClick: handleAddItem,
+            buttonText: 'Adicionar Atividade',
+          }}
         >
           <TableHeader>
             <TableRow>
@@ -544,7 +547,12 @@ export const EmptyState: Story = () => {
 
       <div>
         <h3 className="font-bold text-xl mb-4">Sem botão de ação</h3>
-        <Table emptyStateMessage="Nenhuma atividade disponível">
+        <Table
+          showEmpty
+          emptyState={{
+            message: 'Nenhuma atividade disponível',
+          }}
+        >
           <TableHeader>
             <TableRow>
               <TableHead>Título</TableHead>
@@ -559,9 +567,13 @@ export const EmptyState: Story = () => {
       <div>
         <h3 className="font-bold text-xl mb-4">Mensagem customizada</h3>
         <Table
-          emptyStateMessage="Você ainda não criou nenhuma turma. Comece criando sua primeira turma!"
-          emptyStateButtonText="Criar Turma"
-          onEmptyStateButtonClick={handleAddItem}
+          showEmpty
+          emptyState={{
+            message:
+              'Você ainda não criou nenhuma turma. Comece criando sua primeira turma!',
+            buttonText: 'Criar Turma',
+            onButtonClick: handleAddItem,
+          }}
         >
           <TableHeader>
             <TableRow>
@@ -592,8 +604,10 @@ export const NoSearchResults: Story = () => {
       <div>
         <h3 className="font-bold text-xl mb-4">Com props padrão</h3>
         <Table
-          searchTerm="query não encontrada"
-          noSearchResultImage={noSearchImage}
+          showNoSearchResult
+          noSearchResultState={{
+            image: noSearchImage,
+          }}
         >
           <TableHeader>
             <TableRow>
@@ -609,10 +623,13 @@ export const NoSearchResults: Story = () => {
       <div>
         <h3 className="font-bold text-xl mb-4">Com mensagens customizadas</h3>
         <Table
-          searchTerm="João Silva"
-          noSearchResultImage={noSearchImage}
-          noSearchResultTitle="Nenhum aluno encontrado"
-          noSearchResultDescription="Não encontramos nenhum aluno com esse nome. Verifique a ortografia ou tente usar outros filtros."
+          showNoSearchResult
+          noSearchResultState={{
+            image: noSearchImage,
+            title: 'Nenhum aluno encontrado',
+            description:
+              'Não encontramos nenhum aluno com esse nome. Verifique a ortografia ou tente usar outros filtros.',
+          }}
         >
           <TableHeader>
             <TableRow>
@@ -647,9 +664,12 @@ export const EmptyStatesComparison: Story = () => {
           <h3 className="font-bold text-xl mb-4">Sem busca ativa</h3>
           <p className="text-text-600 mb-4">Mostra empty state com ação</p>
           <Table
-            emptyStateMessage="Nenhuma atividade cadastrada"
-            emptyStateButtonText="Criar Atividade"
-            onEmptyStateButtonClick={handleAddItem}
+            showEmpty
+            emptyState={{
+              message: 'Nenhuma atividade cadastrada',
+              buttonText: 'Criar Atividade',
+              onButtonClick: handleAddItem,
+            }}
           >
             <TableHeader>
               <TableRow>
@@ -664,7 +684,12 @@ export const EmptyStatesComparison: Story = () => {
         <div>
           <h3 className="font-bold text-xl mb-4">Com busca ativa</h3>
           <p className="text-text-600 mb-4">Mostra no search result</p>
-          <Table searchTerm="teste" noSearchResultImage={noSearchImage}>
+          <Table
+            showNoSearchResult
+            noSearchResultState={{
+              image: noSearchImage,
+            }}
+          >
             <TableHeader>
               <TableRow>
                 <TableHead>Título</TableHead>

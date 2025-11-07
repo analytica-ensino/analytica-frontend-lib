@@ -144,7 +144,11 @@ describe('TableProvider', () => {
         <TableProvider data={testData} headers={testHeaders} loading={true} />
       );
 
-      expect(screen.getByText('Carregando...')).toBeInTheDocument();
+      // Should render skeleton loading state instead of text
+      const skeletonElements = document.querySelectorAll(
+        '.bg-background-200.animate-pulse'
+      );
+      expect(skeletonElements.length).toBeGreaterThan(0);
       expect(screen.queryByText('Alice')).not.toBeInTheDocument();
     });
 
@@ -1006,13 +1010,13 @@ describe('TableProvider', () => {
       expect(screen.queryByText('Alice')).not.toBeInTheDocument();
     });
 
-    it('should handle custom noSearchResultImage', () => {
+    it('should handle custom noSearchResultState', () => {
       render(
         <TableProvider
           data={[]}
           headers={testHeaders}
           enableSearch={true}
-          noSearchResultImage="/custom-image.png"
+          noSearchResultState={{ image: '/custom-image.png' }}
         />
       );
 
