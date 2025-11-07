@@ -1,4 +1,4 @@
-import {
+import React, {
   forwardRef,
   HTMLAttributes,
   TdHTMLAttributes,
@@ -14,7 +14,12 @@ import { cn } from '../../utils/utils';
 import { CaretUp, CaretDown } from 'phosphor-react';
 import NoSearchResult from '../NoSearchResult/NoSearchResult';
 import Button from '../Button/Button';
-import type { EmptyStateConfig } from '../TableProvider/TableProvider';
+import { SkeletonTable } from '../Skeleton/Skeleton';
+import type {
+  EmptyStateConfig,
+  LoadingStateConfig,
+  NoSearchResultConfig,
+} from '../TableProvider/TableProvider';
 
 type TableVariant = 'default' | 'borderless';
 type TableRowState = 'default' | 'selected' | 'invalid' | 'disabled';
@@ -147,21 +152,37 @@ export function useTableSort<T extends Record<string, unknown>>(
 
 interface TableProps extends HTMLAttributes<HTMLTableElement> {
   variant?: TableVariant;
-  /** Search term to detect if search is active */
+
+  /** Show loading state (controlled by TableProvider) */
+  showLoading?: boolean;
+  /** Loading state configuration */
+  loadingState?: LoadingStateConfig;
+
+  /** Show no search result state (controlled by TableProvider) */
+  showNoSearchResult?: boolean;
+  /** No search result state configuration */
+  noSearchResultState?: NoSearchResultConfig;
+
+  /** Show empty state (controlled by TableProvider) */
+  showEmpty?: boolean;
+  /** Empty state configuration */
+  emptyState?: EmptyStateConfig;
+
+  /** @deprecated Use showNoSearchResult and noSearchResultState instead */
   searchTerm?: string;
-  /** Image source for no search result state */
+  /** @deprecated Use noSearchResultState.image instead */
   noSearchResultImage?: string;
-  /** Title for no search result state */
+  /** @deprecated Use noSearchResultState.title instead */
   noSearchResultTitle?: string;
-  /** Description for no search result state */
+  /** @deprecated Use noSearchResultState.description instead */
   noSearchResultDescription?: string;
-  /** Empty state configuration (custom component or simple config) */
+  /** @deprecated Use emptyState instead */
   emptyStateConfig?: EmptyStateConfig;
-  /** Message displayed when table is empty (no search active) */
+  /** @deprecated Use emptyState.message instead */
   emptyStateMessage?: string;
-  /** Text for the action button in empty state */
+  /** @deprecated Use emptyState.buttonText instead */
   emptyStateButtonText?: string;
-  /** Callback when empty state button is clicked */
+  /** @deprecated Use emptyState.onButtonClick instead */
   onEmptyStateButtonClick?: () => void;
 }
 
@@ -169,12 +190,160 @@ interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
   state?: TableRowState;
 }
 
+/**
+ * Renders the table header and caption from children
+ */
+const renderHeaderElements = (children: ReactNode) => {
+  return Children.map(children, (child) => {
+    if (
+      isValidElement(child) &&
+      (child.type === TableCaption || child.type === TableHeader)
+    ) {
+      return child;
+    }
+    return null;
+  });
+};
+
+/**
+ * Gets no search result content based on configuration
+ */
+const getNoSearchResultContent = (
+  config: NoSearchResultConfig,
+  defaultTitle: string,
+  defaultDescription: string
+) => {
+  if (config.component) {
+    return config.component;
+  }
+
+  if (config.image) {
+    return (
+      <NoSearchResult
+        image={config.image}
+        title={config.title || defaultTitle}
+        description={config.description || defaultDescription}
+      />
+    );
+  }
+
+  return (
+    <div className="text-center">
+      <p className="text-text-600 text-lg font-semibold mb-2">
+        {config.title || defaultTitle}
+      </p>
+      <p className="text-text-500 text-sm">
+        {config.description || defaultDescription}
+      </p>
+    </div>
+  );
+};
+
+/**
+ * Gets empty state content based on configuration
+ */
+const getEmptyStateContent = (
+  config: EmptyStateConfig | undefined,
+  defaultMessage: string,
+  defaultButtonText: string,
+  onButtonClick?: () => void
+) => {
+  if (config?.component) {
+    return config.component;
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center gap-4">
+      {config?.image && (
+        <img
+          src={config.image}
+          alt="Empty state"
+          className="w-auto h-auto max-w-full"
+        />
+      )}
+      <p className="text-text-600 text-base font-normal">
+        {config?.message || defaultMessage}
+      </p>
+      {(config?.onButtonClick || onButtonClick) && (
+        <Button
+          variant="solid"
+          action="primary"
+          size="medium"
+          onClick={config?.onButtonClick || onButtonClick}
+        >
+          {config?.buttonText || defaultButtonText}
+        </Button>
+      )}
+    </div>
+  );
+};
+
+/**
+ * Checks if table body is empty by inspecting children
+ */
+const checkTableBodyEmpty = (children: ReactNode): boolean => {
+  let foundBody = false;
+  let empty = true;
+
+  Children.forEach(children, (child) => {
+    if (isValidElement(child) && child.type === TableBody) {
+      foundBody = true;
+      const bodyProps = child.props as { children?: ReactNode };
+      if (Children.count(bodyProps?.children) > 0) {
+        empty = false;
+      }
+    }
+  });
+
+  return foundBody ? empty : false;
+};
+
+/**
+ * Renders table wrapper with header and state content
+ */
+const renderTableWrapper = (
+  variant: TableVariant,
+  tableRef: React.Ref<HTMLTableElement>,
+  className: string | undefined,
+  children: ReactNode,
+  stateContent: ReactNode,
+  tableProps: HTMLAttributes<HTMLTableElement>
+) => {
+  return (
+    <div
+      className={cn(
+        'relative w-full overflow-x-auto',
+        variant === 'default' && 'border border-border-200 rounded-xl'
+      )}
+    >
+      <table
+        ref={tableRef}
+        className={cn(
+          'analytica-table w-full caption-bottom text-sm border-separate border-spacing-0',
+          className
+        )}
+        {...tableProps}
+      >
+        {renderHeaderElements(children)}
+      </table>
+      <div className="py-8 flex justify-center">{stateContent}</div>
+    </div>
+  );
+};
+
 const Table = forwardRef<HTMLTableElement, TableProps>(
   (
     {
       variant = 'default',
       className,
       children,
+      showLoading = false,
+      loadingState,
+      showNoSearchResult = false,
+      noSearchResultState,
+      showEmpty = false,
+      emptyState,
+      // Deprecated props (backward compatibility)
       searchTerm,
       noSearchResultImage,
       noSearchResultTitle = 'Nenhum resultado encontrado',
@@ -187,141 +356,74 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
     },
     ref
   ) => {
-    // Detect if TableBody is empty
+    // Backward compatibility: detect states from deprecated props if new props not provided
     const isTableBodyEmpty = useMemo(() => {
-      let foundBody = false;
-      let empty = true;
-      Children.forEach(children, (child) => {
-        if (isValidElement(child) && child.type === TableBody) {
-          foundBody = true;
-          const bodyProps = child.props as { children?: ReactNode };
-          if (Children.count(bodyProps?.children) > 0) {
-            empty = false;
-          }
-        }
-      });
-      return foundBody ? empty : false;
-    }, [children]);
+      if (showLoading || showNoSearchResult || showEmpty) {
+        return false; // New props take precedence
+      }
+      return checkTableBodyEmpty(children);
+    }, [children, showLoading, showNoSearchResult, showEmpty]);
 
-    // Determine which state to show
     const hasSearchTerm = searchTerm && searchTerm.trim() !== '';
-    const showNoSearchResult = hasSearchTerm && isTableBodyEmpty;
-    const showEmptyState = !hasSearchTerm && isTableBodyEmpty;
+    const finalShowNoSearchResult =
+      showNoSearchResult || (hasSearchTerm && isTableBodyEmpty);
+    const finalShowEmpty = showEmpty || (!hasSearchTerm && isTableBodyEmpty);
+
+    // Merge old and new configurations
+    const finalNoSearchResultState = noSearchResultState || {
+      image: noSearchResultImage,
+      title: noSearchResultTitle,
+      description: noSearchResultDescription,
+    };
+    const finalEmptyState = emptyState || emptyStateConfig;
+
+    // Render Loading State FIRST (highest priority)
+    if (showLoading) {
+      const loadingContent = loadingState?.component || (
+        <SkeletonTable rows={5} columns={4} showHeader={false} />
+      );
+      return renderTableWrapper(
+        variant,
+        ref,
+        className,
+        children,
+        loadingContent,
+        props
+      );
+    }
 
     // Render NoSearchResult outside table
-    if (showNoSearchResult) {
-      return (
-        <div
-          className={cn(
-            'relative w-full overflow-x-auto',
-            variant === 'default' && 'border border-border-200 rounded-xl'
-          )}
-        >
-          <table
-            ref={ref}
-            className={cn(
-              'analytica-table w-full caption-bottom text-sm border-separate border-spacing-0',
-              className
-            )}
-            {...props}
-          >
-            {/* Render existing TableCaption (if any) and TableHeader */}
-            {Children.map(children, (child) => {
-              if (
-                isValidElement(child) &&
-                (child.type === TableCaption || child.type === TableHeader)
-              ) {
-                return child;
-              }
-              return null;
-            })}
-          </table>
-          {/* NoSearchResult outside table structure */}
-          <div className="py-8 flex justify-center">
-            {noSearchResultImage ? (
-              <NoSearchResult
-                image={noSearchResultImage}
-                title={noSearchResultTitle}
-                description={noSearchResultDescription}
-              />
-            ) : (
-              <div className="text-center">
-                <p className="text-text-600 text-lg font-semibold mb-2">
-                  {noSearchResultTitle}
-                </p>
-                <p className="text-text-500 text-sm">
-                  {noSearchResultDescription}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+    if (finalShowNoSearchResult) {
+      const noSearchContent = getNoSearchResultContent(
+        finalNoSearchResultState,
+        noSearchResultTitle,
+        noSearchResultDescription
+      );
+      return renderTableWrapper(
+        variant,
+        ref,
+        className,
+        children,
+        noSearchContent,
+        props
       );
     }
 
     // Render Empty State outside table (same pattern as NoSearchResult)
-    if (showEmptyState) {
-      return (
-        <div
-          className={cn(
-            'relative w-full overflow-x-auto',
-            variant === 'default' && 'border border-border-200 rounded-xl'
-          )}
-        >
-          <table
-            ref={ref}
-            className={cn(
-              'analytica-table w-full caption-bottom text-sm border-separate border-spacing-0',
-              className
-            )}
-            {...props}
-          >
-            {/* Render existing TableCaption (if any) and TableHeader */}
-            {Children.map(children, (child) => {
-              if (
-                isValidElement(child) &&
-                (child.type === TableCaption || child.type === TableHeader)
-              ) {
-                return child;
-              }
-              return null;
-            })}
-          </table>
-          {/* Empty State outside table structure */}
-          <div className="py-8 flex justify-center">
-            {emptyStateConfig?.component ? (
-              // Custom component provided
-              emptyStateConfig.component
-            ) : (
-              // Default empty state layout
-              <div className="flex flex-col items-center justify-center gap-4">
-                {emptyStateConfig?.image && (
-                  <img
-                    src={emptyStateConfig.image}
-                    alt="Empty state"
-                    className="w-auto h-auto max-w-full"
-                  />
-                )}
-                <p className="text-text-600 text-base font-normal">
-                  {emptyStateConfig?.message || emptyStateMessage}
-                </p>
-                {(emptyStateConfig?.onButtonClick ||
-                  onEmptyStateButtonClick) && (
-                  <Button
-                    variant="solid"
-                    action="primary"
-                    size="medium"
-                    onClick={
-                      emptyStateConfig?.onButtonClick || onEmptyStateButtonClick
-                    }
-                  >
-                    {emptyStateConfig?.buttonText || emptyStateButtonText}
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+    if (finalShowEmpty) {
+      const emptyContent = getEmptyStateContent(
+        finalEmptyState,
+        emptyStateMessage,
+        emptyStateButtonText,
+        onEmptyStateButtonClick
+      );
+      return renderTableWrapper(
+        variant,
+        ref,
+        className,
+        children,
+        emptyContent,
+        props
       );
     }
 
