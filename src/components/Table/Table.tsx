@@ -8,14 +8,13 @@ import {
   useEffect,
   Children,
   isValidElement,
-  cloneElement,
-  ReactElement,
   ReactNode,
 } from 'react';
 import { cn } from '../../utils/utils';
 import { CaretUp, CaretDown } from 'phosphor-react';
 import NoSearchResult from '../NoSearchResult/NoSearchResult';
 import Button from '../Button/Button';
+import type { EmptyStateConfig } from '../TableProvider/TableProvider';
 
 type TableVariant = 'default' | 'borderless';
 type TableRowState = 'default' | 'selected' | 'invalid' | 'disabled';
@@ -156,6 +155,8 @@ interface TableProps extends HTMLAttributes<HTMLTableElement> {
   noSearchResultTitle?: string;
   /** Description for no search result state */
   noSearchResultDescription?: string;
+  /** Empty state configuration (custom component or simple config) */
+  emptyStateConfig?: EmptyStateConfig;
   /** Message displayed when table is empty (no search active) */
   emptyStateMessage?: string;
   /** Text for the action button in empty state */
@@ -178,6 +179,7 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
       noSearchResultImage,
       noSearchResultTitle = 'Nenhum resultado encontrado',
       noSearchResultDescription = 'Não encontramos nenhum resultado com esse nome. Tente revisar a busca ou usar outra palavra-chave.',
+      emptyStateConfig,
       emptyStateMessage = 'Nenhum dado disponível no momento.',
       emptyStateButtonText = 'Adicionar item',
       onEmptyStateButtonClick,
@@ -199,23 +201,6 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
         }
       });
       return foundBody ? empty : false;
-    }, [children]);
-
-    // Calculate column count for colspan
-    const columnCount = useMemo(() => {
-      let count = 0;
-      Children.forEach(children, (child) => {
-        if (isValidElement(child) && child.type === TableHeader) {
-          const headerProps = child.props as { children?: ReactNode };
-          Children.forEach(headerProps.children, (row) => {
-            if (isValidElement(row) && row.type === TableRow) {
-              const rowProps = row.props as { children?: ReactNode };
-              count = Children.count(rowProps.children);
-            }
-          });
-        }
-      });
-      return count || 1;
     }, [children]);
 
     // Determine which state to show
@@ -274,35 +259,71 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
       );
     }
 
-    // Render Empty State inside TableBody
-    const modifiedChildren = Children.map(children, (child) => {
-      if (isValidElement(child) && child.type === TableBody && showEmptyState) {
-        return cloneElement(child as ReactElement<TableBodyProps>, {
-          children: (
-            <TableRow variant={variant}>
-              <TableCell colSpan={columnCount}>
-                <div className="flex flex-col items-center justify-center py-12 gap-4">
-                  <p className="text-text-600 text-base font-normal">
-                    {emptyStateMessage}
-                  </p>
-                  {onEmptyStateButtonClick && (
-                    <Button
-                      variant="solid"
-                      action="primary"
-                      size="medium"
-                      onClick={onEmptyStateButtonClick}
-                    >
-                      {emptyStateButtonText}
-                    </Button>
-                  )}
-                </div>
-              </TableCell>
-            </TableRow>
-          ),
-        });
-      }
-      return child;
-    });
+    // Render Empty State outside table (same pattern as NoSearchResult)
+    if (showEmptyState) {
+      return (
+        <div
+          className={cn(
+            'relative w-full overflow-x-auto',
+            variant === 'default' && 'border border-border-200 rounded-xl'
+          )}
+        >
+          <table
+            ref={ref}
+            className={cn(
+              'analytica-table w-full caption-bottom text-sm border-separate border-spacing-0',
+              className
+            )}
+            {...props}
+          >
+            {/* Render existing TableCaption (if any) and TableHeader */}
+            {Children.map(children, (child) => {
+              if (
+                isValidElement(child) &&
+                (child.type === TableCaption || child.type === TableHeader)
+              ) {
+                return child;
+              }
+              return null;
+            })}
+          </table>
+          {/* Empty State outside table structure */}
+          <div className="py-8 flex justify-center">
+            {emptyStateConfig?.component ? (
+              // Custom component provided
+              emptyStateConfig.component
+            ) : (
+              // Default empty state layout
+              <div className="flex flex-col items-center justify-center gap-4">
+                {emptyStateConfig?.image && (
+                  <img
+                    src={emptyStateConfig.image}
+                    alt="Empty state"
+                    className="w-auto h-auto max-w-full"
+                  />
+                )}
+                <p className="text-text-600 text-base font-normal">
+                  {emptyStateConfig?.message || emptyStateMessage}
+                </p>
+                {(emptyStateConfig?.onButtonClick ||
+                  onEmptyStateButtonClick) && (
+                  <Button
+                    variant="solid"
+                    action="primary"
+                    size="medium"
+                    onClick={
+                      emptyStateConfig?.onButtonClick || onEmptyStateButtonClick
+                    }
+                  >
+                    {emptyStateConfig?.buttonText || emptyStateButtonText}
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div
@@ -325,7 +346,7 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
           {!Children.toArray(children).some(
             (child) => isValidElement(child) && child.type === TableCaption
           ) && <caption className="sr-only">My Table</caption>}
-          {modifiedChildren}
+          {children}
         </table>
       </div>
     );
