@@ -13,7 +13,7 @@ import React, {
 import { cn } from '../../utils/utils';
 import { CaretUp, CaretDown } from 'phosphor-react';
 import NoSearchResult from '../NoSearchResult/NoSearchResult';
-import Button from '../Button/Button';
+import EmptyState from '../EmptyState/EmptyState';
 import { SkeletonTable } from '../Skeleton/Skeleton';
 import type {
   EmptyStateConfig,
@@ -227,36 +227,36 @@ const getNoSearchResultContent = (
  */
 const getEmptyStateContent = (
   config: EmptyStateConfig | undefined,
-  defaultMessage: string,
-  defaultButtonText: string,
-  onButtonClick?: () => void
+  defaultTitle: string,
+  defaultDescription: string
 ) => {
   if (config?.component) {
     return config.component;
   }
 
+  if (config?.image) {
+    return (
+      <EmptyState
+        image={config.image}
+        title={config.title || defaultTitle}
+        description={config.description || defaultDescription}
+        buttonText={config.buttonText}
+        buttonIcon={config.buttonIcon}
+        onButtonClick={config.onButtonClick}
+        buttonVariant={config.buttonVariant}
+        buttonAction={config.buttonAction}
+      />
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center gap-4">
-      {config?.image && (
-        <img
-          src={config.image}
-          alt="Empty state"
-          className="w-auto h-auto max-w-full"
-        />
-      )}
-      <p className="text-text-600 text-base font-normal">
-        {config?.message || defaultMessage}
+    <div className="text-center">
+      <p className="text-text-600 text-lg font-semibold mb-2">
+        {config?.title || defaultTitle}
       </p>
-      {(config?.onButtonClick || onButtonClick) && (
-        <Button
-          variant="solid"
-          action="primary"
-          size="medium"
-          onClick={config?.onButtonClick || onButtonClick}
-        >
-          {config?.buttonText || defaultButtonText}
-        </Button>
-      )}
+      <p className="text-text-500 text-sm">
+        {config?.description || defaultDescription}
+      </p>
     </div>
   );
 };
@@ -318,8 +318,8 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
     };
 
     const defaultEmptyState: EmptyStateConfig = {
-      message: 'Nenhum dado disponível no momento.',
-      buttonText: 'Adicionar item',
+      title: 'Nenhum dado disponível',
+      description: 'Não há dados para exibir no momento.',
     };
 
     const finalNoSearchResultState =
@@ -362,8 +362,8 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
     if (showEmpty) {
       const emptyContent = getEmptyStateContent(
         finalEmptyState,
-        defaultEmptyState.message || 'Nenhum dado disponível no momento.',
-        defaultEmptyState.buttonText || 'Adicionar item'
+        defaultEmptyState.title || 'Nenhum dado disponível',
+        defaultEmptyState.description || 'Não há dados para exibir no momento.'
       );
       return renderTableWrapper(
         variant,

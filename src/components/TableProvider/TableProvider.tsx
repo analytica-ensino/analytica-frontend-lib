@@ -73,14 +73,22 @@ export interface PaginationConfig {
 export interface EmptyStateConfig {
   /** Custom component to render when table is empty (no data and no search active) */
   component?: ReactNode;
-  /** Text message to show in empty state (used if component not provided) */
-  message?: string;
-  /** Image to display in empty state */
+  /** Image to display in empty state (path from project) */
   image?: string;
-  /** Button text for empty state action */
+  /** Title text for empty state */
+  title?: string;
+  /** Description text for empty state */
+  description?: string;
+  /** Button text for empty state action (optional) */
   buttonText?: string;
+  /** Icon to display on button (optional) */
+  buttonIcon?: ReactNode;
   /** Callback when empty state button is clicked */
   onButtonClick?: () => void;
+  /** Button variant (solid, outline, or link) */
+  buttonVariant?: 'solid' | 'outline' | 'link';
+  /** Button action color (primary, positive, or negative) */
+  buttonAction?: 'primary' | 'positive' | 'negative';
 }
 
 /**

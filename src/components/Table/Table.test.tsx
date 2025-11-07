@@ -500,12 +500,14 @@ describe('Table Components', () => {
     });
 
     it('should show custom empty state message', () => {
-      const customMessage = 'Nenhum usuário cadastrado';
+      const customTitle = 'Nenhum usuário cadastrado';
+      const customDescription = 'Comece adicionando seu primeiro usuário.';
       render(
         <Table
           showEmpty
           emptyState={{
-            message: customMessage,
+            title: customTitle,
+            description: customDescription,
           }}
         >
           <TableHeader>
@@ -516,7 +518,8 @@ describe('Table Components', () => {
           <TableBody />
         </Table>
       );
-      expect(screen.getByText(customMessage)).toBeInTheDocument();
+      expect(screen.getByText(customTitle)).toBeInTheDocument();
+      expect(screen.getByText(customDescription)).toBeInTheDocument();
     });
   });
 
