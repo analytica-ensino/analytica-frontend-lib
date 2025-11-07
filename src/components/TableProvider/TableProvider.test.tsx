@@ -144,7 +144,11 @@ describe('TableProvider', () => {
         <TableProvider data={testData} headers={testHeaders} loading={true} />
       );
 
-      expect(screen.getByText('Carregando...')).toBeInTheDocument();
+      // Should render skeleton loading state instead of text
+      const skeletonElements = document.querySelectorAll(
+        '.bg-background-200.animate-pulse'
+      );
+      expect(skeletonElements.length).toBeGreaterThan(0);
       expect(screen.queryByText('Alice')).not.toBeInTheDocument();
     });
 
