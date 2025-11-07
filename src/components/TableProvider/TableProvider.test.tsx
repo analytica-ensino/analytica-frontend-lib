@@ -1010,13 +1010,13 @@ describe('TableProvider', () => {
       expect(screen.queryByText('Alice')).not.toBeInTheDocument();
     });
 
-    it('should handle custom noSearchResultImage', () => {
+    it('should handle custom noSearchResultState', () => {
       render(
         <TableProvider
           data={[]}
           headers={testHeaders}
           enableSearch={true}
-          noSearchResultImage="/custom-image.png"
+          noSearchResultState={{ image: '/custom-image.png' }}
         />
       );
 

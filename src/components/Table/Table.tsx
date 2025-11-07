@@ -167,23 +167,6 @@ interface TableProps extends HTMLAttributes<HTMLTableElement> {
   showEmpty?: boolean;
   /** Empty state configuration */
   emptyState?: EmptyStateConfig;
-
-  /** @deprecated Use showNoSearchResult and noSearchResultState instead */
-  searchTerm?: string;
-  /** @deprecated Use noSearchResultState.image instead */
-  noSearchResultImage?: string;
-  /** @deprecated Use noSearchResultState.title instead */
-  noSearchResultTitle?: string;
-  /** @deprecated Use noSearchResultState.description instead */
-  noSearchResultDescription?: string;
-  /** @deprecated Use emptyState instead */
-  emptyStateConfig?: EmptyStateConfig;
-  /** @deprecated Use emptyState.message instead */
-  emptyStateMessage?: string;
-  /** @deprecated Use emptyState.buttonText instead */
-  emptyStateButtonText?: string;
-  /** @deprecated Use emptyState.onButtonClick instead */
-  onEmptyStateButtonClick?: () => void;
 }
 
 interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
@@ -279,26 +262,6 @@ const getEmptyStateContent = (
 };
 
 /**
- * Checks if table body is empty by inspecting children
- */
-const checkTableBodyEmpty = (children: ReactNode): boolean => {
-  let foundBody = false;
-  let empty = true;
-
-  Children.forEach(children, (child) => {
-    if (isValidElement(child) && child.type === TableBody) {
-      foundBody = true;
-      const bodyProps = child.props as { children?: ReactNode };
-      if (Children.count(bodyProps?.children) > 0) {
-        empty = false;
-      }
-    }
-  });
-
-  return foundBody ? empty : false;
-};
-
-/**
  * Renders table wrapper with header and state content
  */
 const renderTableWrapper = (
@@ -343,39 +306,25 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
       noSearchResultState,
       showEmpty = false,
       emptyState,
-      // Deprecated props (backward compatibility)
-      searchTerm,
-      noSearchResultImage,
-      noSearchResultTitle = 'Nenhum resultado encontrado',
-      noSearchResultDescription = 'Não encontramos nenhum resultado com esse nome. Tente revisar a busca ou usar outra palavra-chave.',
-      emptyStateConfig,
-      emptyStateMessage = 'Nenhum dado disponível no momento.',
-      emptyStateButtonText = 'Adicionar item',
-      onEmptyStateButtonClick,
       ...props
     },
     ref
   ) => {
-    // Backward compatibility: detect states from deprecated props if new props not provided
-    const isTableBodyEmpty = useMemo(() => {
-      if (showLoading || showNoSearchResult || showEmpty) {
-        return false; // New props take precedence
-      }
-      return checkTableBodyEmpty(children);
-    }, [children, showLoading, showNoSearchResult, showEmpty]);
-
-    const hasSearchTerm = searchTerm && searchTerm.trim() !== '';
-    const finalShowNoSearchResult =
-      showNoSearchResult || (hasSearchTerm && isTableBodyEmpty);
-    const finalShowEmpty = showEmpty || (!hasSearchTerm && isTableBodyEmpty);
-
-    // Merge old and new configurations
-    const finalNoSearchResultState = noSearchResultState || {
-      image: noSearchResultImage,
-      title: noSearchResultTitle,
-      description: noSearchResultDescription,
+    // Default configurations
+    const defaultNoSearchResultState: NoSearchResultConfig = {
+      title: 'Nenhum resultado encontrado',
+      description:
+        'Não encontramos nenhum resultado com esse nome. Tente revisar a busca ou usar outra palavra-chave.',
     };
-    const finalEmptyState = emptyState || emptyStateConfig;
+
+    const defaultEmptyState: EmptyStateConfig = {
+      message: 'Nenhum dado disponível no momento.',
+      buttonText: 'Adicionar item',
+    };
+
+    const finalNoSearchResultState =
+      noSearchResultState || defaultNoSearchResultState;
+    const finalEmptyState = emptyState || defaultEmptyState;
 
     // Render Loading State FIRST (highest priority)
     if (showLoading) {
@@ -393,11 +342,11 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
     }
 
     // Render NoSearchResult outside table
-    if (finalShowNoSearchResult) {
+    if (showNoSearchResult) {
       const noSearchContent = getNoSearchResultContent(
         finalNoSearchResultState,
-        noSearchResultTitle,
-        noSearchResultDescription
+        defaultNoSearchResultState.title || '',
+        defaultNoSearchResultState.description || ''
       );
       return renderTableWrapper(
         variant,
@@ -410,12 +359,11 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
     }
 
     // Render Empty State outside table (same pattern as NoSearchResult)
-    if (finalShowEmpty) {
+    if (showEmpty) {
       const emptyContent = getEmptyStateContent(
         finalEmptyState,
-        emptyStateMessage,
-        emptyStateButtonText,
-        onEmptyStateButtonClick
+        defaultEmptyState.message || 'Nenhum dado disponível no momento.',
+        defaultEmptyState.buttonText || 'Adicionar item'
       );
       return renderTableWrapper(
         variant,

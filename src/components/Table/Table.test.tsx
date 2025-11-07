@@ -483,9 +483,9 @@ describe('Table Components', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('should show empty state when TableBody is empty and no searchTerm', () => {
+    it('should show empty state when TableBody is empty and showEmpty is true', () => {
       render(
-        <Table>
+        <Table showEmpty>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -502,7 +502,12 @@ describe('Table Components', () => {
     it('should show custom empty state message', () => {
       const customMessage = 'Nenhum usuário cadastrado';
       render(
-        <Table emptyStateMessage={customMessage}>
+        <Table
+          showEmpty
+          emptyState={{
+            message: customMessage,
+          }}
+        >
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -516,10 +521,15 @@ describe('Table Components', () => {
   });
 
   describe('Empty State Button', () => {
-    it('should render button when onEmptyStateButtonClick is provided', () => {
+    it('should render button when onButtonClick is provided in emptyState', () => {
       const handleClick = jest.fn();
       render(
-        <Table onEmptyStateButtonClick={handleClick}>
+        <Table
+          showEmpty
+          emptyState={{
+            onButtonClick: handleClick,
+          }}
+        >
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -533,9 +543,9 @@ describe('Table Components', () => {
       ).toBeInTheDocument();
     });
 
-    it('should not render button when onEmptyStateButtonClick is not provided', () => {
+    it('should not render button when onButtonClick is not provided', () => {
       render(
-        <Table>
+        <Table showEmpty>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -547,10 +557,15 @@ describe('Table Components', () => {
       expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
 
-    it('should call onEmptyStateButtonClick when button is clicked', () => {
+    it('should call onButtonClick when button is clicked', () => {
       const handleClick = jest.fn();
       render(
-        <Table onEmptyStateButtonClick={handleClick}>
+        <Table
+          showEmpty
+          emptyState={{
+            onButtonClick: handleClick,
+          }}
+        >
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -567,8 +582,11 @@ describe('Table Components', () => {
       const handleClick = jest.fn();
       render(
         <Table
-          onEmptyStateButtonClick={handleClick}
-          emptyStateButtonText="Criar Novo"
+          showEmpty
+          emptyState={{
+            onButtonClick: handleClick,
+            buttonText: 'Criar Novo',
+          }}
         >
           <TableHeader>
             <TableRow>
@@ -587,9 +605,14 @@ describe('Table Components', () => {
   describe('No Search Result', () => {
     const mockImage = 'data:image/png;base64,test';
 
-    it('should show NoSearchResult when searchTerm is present and no data', () => {
+    it('should show NoSearchResult when showNoSearchResult is true and no data', () => {
       render(
-        <Table searchTerm="test query" noSearchResultImage={mockImage}>
+        <Table
+          showNoSearchResult
+          noSearchResultState={{
+            image: mockImage,
+          }}
+        >
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -604,9 +627,13 @@ describe('Table Components', () => {
       expect(screen.getByAltText('No search results')).toBeInTheDocument();
     });
 
-    it('should not show NoSearchResult when searchTerm is empty string', () => {
+    it('should not show NoSearchResult when showNoSearchResult is false', () => {
       render(
-        <Table searchTerm="" noSearchResultImage={mockImage}>
+        <Table
+          noSearchResultState={{
+            image: mockImage,
+          }}
+        >
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -615,12 +642,13 @@ describe('Table Components', () => {
           <TableBody />
         </Table>
       );
+      // When showNoSearchResult is false, it should render table normally without special states
       expect(
         screen.queryByAltText('No search results')
       ).not.toBeInTheDocument();
       expect(
-        screen.getByText('Nenhum dado disponível no momento.')
-      ).toBeInTheDocument();
+        screen.queryByText('Nenhum dado disponível no momento.')
+      ).not.toBeInTheDocument();
     });
 
     it('should use custom no search result props', () => {
@@ -628,10 +656,12 @@ describe('Table Components', () => {
       const customDescription = 'Tente outra busca';
       render(
         <Table
-          searchTerm="query"
-          noSearchResultImage={mockImage}
-          noSearchResultTitle={customTitle}
-          noSearchResultDescription={customDescription}
+          showNoSearchResult
+          noSearchResultState={{
+            image: mockImage,
+            title: customTitle,
+            description: customDescription,
+          }}
         >
           <TableHeader>
             <TableRow>
@@ -645,9 +675,14 @@ describe('Table Components', () => {
       expect(screen.getByText(customDescription)).toBeInTheDocument();
     });
 
-    it('should render table normally when searchTerm is present but has data', () => {
+    it('should render no search result even when has data if showNoSearchResult is true', () => {
       render(
-        <Table searchTerm="test" noSearchResultImage={mockImage}>
+        <Table
+          showNoSearchResult
+          noSearchResultState={{
+            image: mockImage,
+          }}
+        >
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -660,10 +695,11 @@ describe('Table Components', () => {
           </TableBody>
         </Table>
       );
-      expect(screen.getByText('Test Result')).toBeInTheDocument();
+      // When showNoSearchResult is true, it shows no search result regardless of data
       expect(
-        screen.queryByAltText('No search results')
-      ).not.toBeInTheDocument();
+        screen.getByText('Nenhum resultado encontrado')
+      ).toBeInTheDocument();
+      expect(screen.getByAltText('No search results')).toBeInTheDocument();
     });
   });
 
@@ -721,9 +757,14 @@ describe('Table Components', () => {
   });
 
   describe('Edge Cases', () => {
-    it('should handle searchTerm with only whitespace as no search', () => {
+    it('should show empty state when showNoSearchResult is not true', () => {
       render(
-        <Table searchTerm="   " noSearchResultImage="test.png">
+        <Table
+          showEmpty
+          noSearchResultState={{
+            image: 'test.png',
+          }}
+        >
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -740,9 +781,9 @@ describe('Table Components', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('should handle empty noSearchResultImage gracefully', () => {
+    it('should handle empty noSearchResultState image gracefully', () => {
       render(
-        <Table searchTerm="test">
+        <Table showNoSearchResult>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -758,7 +799,7 @@ describe('Table Components', () => {
 
     it('should handle table without TableHeader', () => {
       render(
-        <Table>
+        <Table showEmpty>
           <TableBody />
         </Table>
       );
@@ -769,7 +810,7 @@ describe('Table Components', () => {
 
     it('should show empty state with borderless variant', () => {
       render(
-        <Table variant="borderless">
+        <Table variant="borderless" showEmpty>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -788,8 +829,10 @@ describe('Table Components', () => {
       render(
         <Table
           variant="borderless"
-          searchTerm="test"
-          noSearchResultImage={mockImage}
+          showNoSearchResult
+          noSearchResultState={{
+            image: mockImage,
+          }}
         >
           <TableHeader>
             <TableRow>

@@ -156,11 +156,6 @@ export interface TableProviderProps<T = Record<string, unknown>> {
   /** Key field name to use for unique row identification (recommended for better performance) */
   readonly rowKey?: keyof T;
 
-  /** @deprecated Use emptyState instead */
-  readonly emptyStateConfig?: EmptyStateConfig;
-  /** @deprecated Use noSearchResultState.image instead */
-  readonly noSearchResultImage?: string;
-
   /** Callback when any parameter changes */
   readonly onParamsChange?: (params: TableParams) => void;
   /** Callback when row is clicked */
@@ -235,9 +230,6 @@ export function TableProvider<T extends Record<string, unknown>>({
   onParamsChange,
   onRowClick,
   children,
-  // Deprecated props (backward compatibility)
-  emptyStateConfig,
-  noSearchResultImage,
 }: TableProviderProps<T>) {
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -409,12 +401,6 @@ export function TableProvider<T extends Record<string, unknown>>({
     !loading && data.length === 0 && searchQuery.trim() !== '';
   const showEmpty = !loading && data.length === 0 && searchQuery.trim() === '';
 
-  // Backward compatibility: merge old props with new props
-  const finalEmptyState = emptyState || emptyStateConfig;
-  const finalNoSearchResultState: NoSearchResultConfig | undefined =
-    noSearchResultState ||
-    (noSearchResultImage ? { image: noSearchResultImage } : undefined);
-
   // Extract components for render prop pattern
   const controls = (enableSearch || enableFilters) && (
     <div className="flex items-center gap-4">
@@ -457,9 +443,9 @@ export function TableProvider<T extends Record<string, unknown>>({
         showLoading={showLoading}
         loadingState={loadingState}
         showNoSearchResult={showNoSearchResult}
-        noSearchResultState={finalNoSearchResultState}
+        noSearchResultState={noSearchResultState}
         showEmpty={showEmpty}
-        emptyState={finalEmptyState}
+        emptyState={emptyState}
       >
         {/* Table Header */}
         <thead>
