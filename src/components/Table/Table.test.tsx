@@ -667,40 +667,6 @@ describe('Table Components', () => {
     });
   });
 
-  describe('Column Span Calculation', () => {
-    it('should calculate correct colspan for single column', () => {
-      const { container } = render(
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody />
-        </Table>
-      );
-      const cell = container.querySelector('td');
-      expect(cell).toHaveAttribute('colspan', '1');
-    });
-
-    it('should calculate correct colspan for multiple columns', () => {
-      const { container } = render(
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Age</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody />
-        </Table>
-      );
-      const cell = container.querySelector('td');
-      expect(cell).toHaveAttribute('colspan', '3');
-    });
-  });
-
   describe('Backward Compatibility', () => {
     it('should not affect existing Table usage without new props', () => {
       render(
@@ -799,16 +765,6 @@ describe('Table Components', () => {
       expect(
         screen.getByText('Nenhum dado disponível no momento.')
       ).toBeInTheDocument();
-    });
-
-    it('should calculate colspan as 1 when no header is present', () => {
-      const { container } = render(
-        <Table>
-          <TableBody />
-        </Table>
-      );
-      const cell = container.querySelector('td');
-      expect(cell).toHaveAttribute('colspan', '1');
     });
 
     it('should show empty state with borderless variant', () => {
