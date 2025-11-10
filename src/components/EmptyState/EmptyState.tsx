@@ -77,52 +77,39 @@ const EmptyState = ({
     description || 'Não há dados para exibir no momento.';
 
   return (
-    <div className="flex flex-row justify-center items-center gap-8 w-full max-w-4xl min-h-96">
+    <div className="flex flex-col justify-center items-center gap-6 w-full min-h-[705px] bg-background rounded-xl p-6">
       {/* Illustration */}
-      <div className="w-72 h-72 flex-shrink-0 relative">
-        <img
-          src={image}
-          alt={displayTitle}
-          className="w-full h-full object-contain"
-        />
+      <img src={image} alt={displayTitle} className="w-[170px] h-[150px]" />
+
+      {/* Text Content Container */}
+      <div className="flex flex-col items-center gap-4 w-full max-w-[600px] px-6">
+        {/* Title */}
+        <Text
+          as="h2"
+          className="text-text-950 font-semibold text-3xl leading-[35px] text-center"
+        >
+          {displayTitle}
+        </Text>
+
+        {/* Description */}
+        <Text className="text-text-600 font-normal text-[18px] leading-[27px] text-center">
+          {displayDescription}
+        </Text>
       </div>
 
-      {/* Text Content */}
-      <div className="flex flex-col items-start w-full max-w-md gap-4">
-        {/* Header Container */}
-        <div className="flex flex-row justify-between items-end px-6 pt-6 pb-4 w-full rounded-t-xl">
-          {/* Title */}
-          <Text
-            as="h2"
-            className="text-text-950 font-semibold text-3xl leading-tight w-full flex items-center"
-          >
-            {displayTitle}
-          </Text>
-        </div>
-
-        {/* Description Container */}
-        <div className="flex flex-row justify-center items-center px-6 gap-2 w-full">
-          {/* Description */}
-          <Text className="text-text-600 font-normal text-lg leading-relaxed w-full text-justify">
-            {displayDescription}
-          </Text>
-        </div>
-
-        {/* Button Container */}
-        {buttonText && onButtonClick && (
-          <div className="flex flex-row justify-center items-center px-6 w-full mt-2">
-            <Button
-              variant={buttonVariant}
-              action={buttonAction}
-              size="large"
-              onClick={onButtonClick}
-              iconLeft={buttonIcon}
-            >
-              {buttonText}
-            </Button>
-          </div>
-        )}
-      </div>
+      {/* Button */}
+      {buttonText && onButtonClick && (
+        <Button
+          variant={buttonVariant}
+          action={buttonAction}
+          size="large"
+          onClick={onButtonClick}
+          iconLeft={buttonIcon}
+          className="rounded-full px-5 py-2.5"
+        >
+          {buttonText}
+        </Button>
+      )}
     </div>
   );
 };
