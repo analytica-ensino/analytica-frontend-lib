@@ -521,6 +521,34 @@ describe('Table Components', () => {
       expect(screen.getByText(customTitle)).toBeInTheDocument();
       expect(screen.getByText(customDescription)).toBeInTheDocument();
     });
+
+    it('should render EmptyState component with image', () => {
+      const mockImage = 'data:image/png;base64,test';
+      const customTitle = 'No items';
+      const customDescription = 'Add your first item';
+
+      render(
+        <Table
+          showEmpty
+          emptyState={{
+            image: mockImage,
+            title: customTitle,
+            description: customDescription,
+          }}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+
+      expect(screen.getByRole('img')).toHaveAttribute('src', mockImage);
+      expect(screen.getByText(customTitle)).toBeInTheDocument();
+      expect(screen.getByText(customDescription)).toBeInTheDocument();
+    });
   });
 
   describe('Empty State Custom Component', () => {
@@ -699,6 +727,31 @@ describe('Table Components', () => {
       ).toBeInTheDocument();
       expect(screen.getByAltText('No search results')).toBeInTheDocument();
     });
+
+    it('should render custom NoSearchResult component', () => {
+      const CustomNoSearchComponent = () => (
+        <div data-testid="custom-no-search">Custom No Search State</div>
+      );
+
+      render(
+        <Table
+          showNoSearchResult
+          noSearchResultState={{
+            component: <CustomNoSearchComponent />,
+          }}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+
+      expect(screen.getByTestId('custom-no-search')).toBeInTheDocument();
+      expect(screen.getByText('Custom No Search State')).toBeInTheDocument();
+    });
   });
 
   describe('Backward Compatibility', () => {
@@ -755,6 +808,37 @@ describe('Table Components', () => {
   });
 
   describe('Edge Cases', () => {
+    it('should render custom loading component', () => {
+      const CustomLoadingComponent = () => (
+        <div data-testid="custom-loading">Custom Loading State</div>
+      );
+
+      render(
+        <Table
+          showLoading
+          loadingState={{
+            component: <CustomLoadingComponent />,
+          }}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>Test</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      );
+
+      expect(screen.getByTestId('custom-loading')).toBeInTheDocument();
+      expect(screen.getByText('Custom Loading State')).toBeInTheDocument();
+      // Should not render table data when loading
+      expect(screen.queryByText('Test')).not.toBeInTheDocument();
+    });
+
     it('should show empty state when showNoSearchResult is not true', () => {
       render(
         <Table
