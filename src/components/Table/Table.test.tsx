@@ -479,7 +479,7 @@ describe('Table Components', () => {
       );
       expect(screen.getByText('John Doe')).toBeInTheDocument();
       expect(
-        screen.queryByText('Nenhum dado disponível no momento.')
+        screen.queryByText('Não há dados para exibir no momento.')
       ).not.toBeInTheDocument();
     });
 
@@ -495,17 +495,19 @@ describe('Table Components', () => {
         </Table>
       );
       expect(
-        screen.getByText('Nenhum dado disponível no momento.')
+        screen.getByText('Não há dados para exibir no momento.')
       ).toBeInTheDocument();
     });
 
     it('should show custom empty state message', () => {
-      const customMessage = 'Nenhum usuário cadastrado';
+      const customTitle = 'Nenhum usuário cadastrado';
+      const customDescription = 'Comece adicionando seu primeiro usuário.';
       render(
         <Table
           showEmpty
           emptyState={{
-            message: customMessage,
+            title: customTitle,
+            description: customDescription,
           }}
         >
           <TableHeader>
@@ -516,18 +518,50 @@ describe('Table Components', () => {
           <TableBody />
         </Table>
       );
-      expect(screen.getByText(customMessage)).toBeInTheDocument();
+      expect(screen.getByText(customTitle)).toBeInTheDocument();
+      expect(screen.getByText(customDescription)).toBeInTheDocument();
+    });
+
+    it('should render EmptyState component with image', () => {
+      const mockImage = 'data:image/png;base64,test';
+      const customTitle = 'No items';
+      const customDescription = 'Add your first item';
+
+      render(
+        <Table
+          showEmpty
+          emptyState={{
+            image: mockImage,
+            title: customTitle,
+            description: customDescription,
+          }}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+
+      expect(screen.getByRole('img')).toHaveAttribute('src', mockImage);
+      expect(screen.getByText(customTitle)).toBeInTheDocument();
+      expect(screen.getByText(customDescription)).toBeInTheDocument();
     });
   });
 
-  describe('Empty State Button', () => {
-    it('should render button when onButtonClick is provided in emptyState', () => {
-      const handleClick = jest.fn();
+  describe('Empty State Custom Component', () => {
+    it('should render custom component when provided', () => {
+      const CustomEmptyComponent = () => (
+        <div data-testid="custom-empty">Custom Empty State</div>
+      );
+
       render(
         <Table
           showEmpty
           emptyState={{
-            onButtonClick: handleClick,
+            component: <CustomEmptyComponent />,
           }}
         >
           <TableHeader>
@@ -538,12 +572,44 @@ describe('Table Components', () => {
           <TableBody />
         </Table>
       );
+
+      expect(screen.getByTestId('custom-empty')).toBeInTheDocument();
+      expect(screen.getByText('Custom Empty State')).toBeInTheDocument();
+    });
+
+    it('should render button-only empty state without image', () => {
+      const handleClick = jest.fn();
+
+      render(
+        <Table
+          showEmpty
+          emptyState={{
+            buttonText: 'Add Item',
+            onButtonClick: handleClick,
+            title: 'No items yet',
+            description: 'Click the button to add your first item',
+          }}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+
+      expect(screen.queryByRole('img')).not.toBeInTheDocument();
       expect(
-        screen.getByRole('button', { name: 'Adicionar item' })
+        screen.getByRole('button', { name: 'Add Item' })
+      ).toBeInTheDocument();
+      expect(screen.getByText('No items yet')).toBeInTheDocument();
+      expect(
+        screen.getByText('Click the button to add your first item')
       ).toBeInTheDocument();
     });
 
-    it('should not render button when onButtonClick is not provided', () => {
+    it('should render default empty state when no custom component is provided', () => {
       render(
         <Table showEmpty>
           <TableHeader>
@@ -554,51 +620,43 @@ describe('Table Components', () => {
           <TableBody />
         </Table>
       );
-      expect(screen.queryByRole('button')).not.toBeInTheDocument();
-    });
 
-    it('should call onButtonClick when button is clicked', () => {
-      const handleClick = jest.fn();
-      render(
-        <Table
-          showEmpty
-          emptyState={{
-            onButtonClick: handleClick,
-          }}
-        >
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody />
-        </Table>
-      );
-      fireEvent.click(screen.getByRole('button', { name: 'Adicionar item' }));
-      expect(handleClick).toHaveBeenCalledTimes(1);
-    });
-
-    it('should use custom button text', () => {
-      const handleClick = jest.fn();
-      render(
-        <Table
-          showEmpty
-          emptyState={{
-            onButtonClick: handleClick,
-            buttonText: 'Criar Novo',
-          }}
-        >
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody />
-        </Table>
-      );
+      expect(screen.getByText('Nenhum dado disponível')).toBeInTheDocument();
       expect(
-        screen.getByRole('button', { name: 'Criar Novo' })
+        screen.getByText('Não há dados para exibir no momento.')
       ).toBeInTheDocument();
+    });
+
+    it('should render custom component with interactive elements', () => {
+      const handleClick = jest.fn();
+      const CustomEmptyWithButton = () => (
+        <div>
+          <p>No items found</p>
+          <button onClick={handleClick}>Add New Item</button>
+        </div>
+      );
+
+      render(
+        <Table
+          showEmpty
+          emptyState={{
+            component: <CustomEmptyWithButton />,
+          }}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+
+      const button = screen.getByRole('button', { name: 'Add New Item' });
+      expect(button).toBeInTheDocument();
+
+      fireEvent.click(button);
+      expect(handleClick).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -647,7 +705,7 @@ describe('Table Components', () => {
         screen.queryByAltText('No search results')
       ).not.toBeInTheDocument();
       expect(
-        screen.queryByText('Nenhum dado disponível no momento.')
+        screen.queryByText('Não há dados para exibir no momento.')
       ).not.toBeInTheDocument();
     });
 
@@ -701,6 +759,31 @@ describe('Table Components', () => {
       ).toBeInTheDocument();
       expect(screen.getByAltText('No search results')).toBeInTheDocument();
     });
+
+    it('should render custom NoSearchResult component', () => {
+      const CustomNoSearchComponent = () => (
+        <div data-testid="custom-no-search">Custom No Search State</div>
+      );
+
+      render(
+        <Table
+          showNoSearchResult
+          noSearchResultState={{
+            component: <CustomNoSearchComponent />,
+          }}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+
+      expect(screen.getByTestId('custom-no-search')).toBeInTheDocument();
+      expect(screen.getByText('Custom No Search State')).toBeInTheDocument();
+    });
   });
 
   describe('Backward Compatibility', () => {
@@ -725,7 +808,7 @@ describe('Table Components', () => {
       expect(screen.getByText('John')).toBeInTheDocument();
       expect(screen.getByText('Jane')).toBeInTheDocument();
       expect(
-        screen.queryByText('Nenhum dado disponível no momento.')
+        screen.queryByText('Não há dados para exibir no momento.')
       ).not.toBeInTheDocument();
     });
 
@@ -757,6 +840,37 @@ describe('Table Components', () => {
   });
 
   describe('Edge Cases', () => {
+    it('should render custom loading component', () => {
+      const CustomLoadingComponent = () => (
+        <div data-testid="custom-loading">Custom Loading State</div>
+      );
+
+      render(
+        <Table
+          showLoading
+          loadingState={{
+            component: <CustomLoadingComponent />,
+          }}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>Test</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      );
+
+      expect(screen.getByTestId('custom-loading')).toBeInTheDocument();
+      expect(screen.getByText('Custom Loading State')).toBeInTheDocument();
+      // Should not render table data when loading
+      expect(screen.queryByText('Test')).not.toBeInTheDocument();
+    });
+
     it('should show empty state when showNoSearchResult is not true', () => {
       render(
         <Table
@@ -774,7 +888,7 @@ describe('Table Components', () => {
         </Table>
       );
       expect(
-        screen.getByText('Nenhum dado disponível no momento.')
+        screen.getByText('Não há dados para exibir no momento.')
       ).toBeInTheDocument();
       expect(
         screen.queryByAltText('No search results')
@@ -804,7 +918,7 @@ describe('Table Components', () => {
         </Table>
       );
       expect(
-        screen.getByText('Nenhum dado disponível no momento.')
+        screen.getByText('Não há dados para exibir no momento.')
       ).toBeInTheDocument();
     });
 
@@ -820,7 +934,7 @@ describe('Table Components', () => {
         </Table>
       );
       expect(
-        screen.getByText('Nenhum dado disponível no momento.')
+        screen.getByText('Não há dados para exibir no momento.')
       ).toBeInTheDocument();
     });
 

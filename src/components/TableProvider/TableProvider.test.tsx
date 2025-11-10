@@ -156,7 +156,7 @@ describe('TableProvider', () => {
       render(<TableProvider data={[]} headers={testHeaders} />);
 
       expect(
-        screen.getByText('Nenhum dado disponível no momento.')
+        screen.getByText('Não há dados para exibir no momento.')
       ).toBeInTheDocument();
     });
 
@@ -1000,7 +1000,7 @@ describe('TableProvider', () => {
       render(<TableProvider data={[]} headers={testHeaders} />);
 
       expect(
-        screen.getByText('Nenhum dado disponível no momento.')
+        screen.getByText('Não há dados para exibir no momento.')
       ).toBeInTheDocument();
     });
 

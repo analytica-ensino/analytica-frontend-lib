@@ -550,7 +550,8 @@ export const EmptyState: Story = () => {
         <Table
           showEmpty
           emptyState={{
-            message: 'Nenhuma atividade disponível',
+            title: 'Nenhuma atividade disponível',
+            description: 'Não há atividades para exibir no momento.',
           }}
         >
           <TableHeader>
@@ -569,7 +570,8 @@ export const EmptyState: Story = () => {
         <Table
           showEmpty
           emptyState={{
-            message:
+            title: 'Nenhuma turma disponível',
+            description:
               'Você ainda não criou nenhuma turma. Comece criando sua primeira turma!',
             buttonText: 'Criar Turma',
             onButtonClick: handleAddItem,
@@ -666,7 +668,8 @@ export const EmptyStatesComparison: Story = () => {
           <Table
             showEmpty
             emptyState={{
-              message: 'Nenhuma atividade cadastrada',
+              title: 'Nenhuma atividade cadastrada',
+              description: 'Comece criando sua primeira atividade!',
               buttonText: 'Criar Atividade',
               onButtonClick: handleAddItem,
             }}
