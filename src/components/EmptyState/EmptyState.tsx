@@ -4,9 +4,9 @@ import Button from '../Button/Button';
 
 export interface EmptyStateProps {
   /**
-   * Image source for the illustration
+   * Image source for the illustration (optional)
    */
-  image: string;
+  image?: string;
   /**
    * Title text to display
    * @default "Nenhum dado disponível"
@@ -79,7 +79,9 @@ const EmptyState = ({
   return (
     <div className="flex flex-col justify-center items-center gap-6 w-full min-h-[705px] bg-background rounded-xl p-6">
       {/* Illustration */}
-      <img src={image} alt={displayTitle} className="w-[170px] h-[150px]" />
+      {image && (
+        <img src={image} alt={displayTitle} className="w-[170px] h-[150px]" />
+      )}
 
       {/* Text Content Container */}
       <div className="flex flex-col items-center gap-4 w-full max-w-[600px] px-6">

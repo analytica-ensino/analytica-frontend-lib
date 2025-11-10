@@ -119,6 +119,18 @@ describe('EmptyState', () => {
 
       expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
     });
+
+    it('should render button without image', () => {
+      const handleClick = jest.fn();
+
+      render(<EmptyState buttonText="Add Item" onButtonClick={handleClick} />);
+
+      expect(screen.queryByRole('img')).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Add Item' })
+      ).toBeInTheDocument();
+      expect(screen.getByText('Nenhum dado disponível')).toBeInTheDocument();
+    });
   });
 
   describe('Button Variants and Actions', () => {

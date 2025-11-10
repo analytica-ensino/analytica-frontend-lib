@@ -234,30 +234,17 @@ const getEmptyStateContent = (
     return config.component;
   }
 
-  if (config?.image) {
-    return (
-      <EmptyState
-        image={config.image}
-        title={config.title || defaultTitle}
-        description={config.description || defaultDescription}
-        buttonText={config.buttonText}
-        buttonIcon={config.buttonIcon}
-        onButtonClick={config.onButtonClick}
-        buttonVariant={config.buttonVariant}
-        buttonAction={config.buttonAction}
-      />
-    );
-  }
-
   return (
-    <div className="text-center">
-      <p className="text-text-600 text-lg font-semibold mb-2">
-        {config?.title || defaultTitle}
-      </p>
-      <p className="text-text-500 text-sm">
-        {config?.description || defaultDescription}
-      </p>
-    </div>
+    <EmptyState
+      image={config?.image}
+      title={config?.title || defaultTitle}
+      description={config?.description || defaultDescription}
+      buttonText={config?.buttonText}
+      buttonIcon={config?.buttonIcon}
+      onButtonClick={config?.onButtonClick}
+      buttonVariant={config?.buttonVariant}
+      buttonAction={config?.buttonAction}
+    />
   );
 };
 

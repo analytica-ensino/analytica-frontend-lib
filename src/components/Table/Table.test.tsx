@@ -577,6 +577,38 @@ describe('Table Components', () => {
       expect(screen.getByText('Custom Empty State')).toBeInTheDocument();
     });
 
+    it('should render button-only empty state without image', () => {
+      const handleClick = jest.fn();
+
+      render(
+        <Table
+          showEmpty
+          emptyState={{
+            buttonText: 'Add Item',
+            onButtonClick: handleClick,
+            title: 'No items yet',
+            description: 'Click the button to add your first item',
+          }}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody />
+        </Table>
+      );
+
+      expect(screen.queryByRole('img')).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Add Item' })
+      ).toBeInTheDocument();
+      expect(screen.getByText('No items yet')).toBeInTheDocument();
+      expect(
+        screen.getByText('Click the button to add your first item')
+      ).toBeInTheDocument();
+    });
+
     it('should render default empty state when no custom component is provided', () => {
       render(
         <Table showEmpty>
