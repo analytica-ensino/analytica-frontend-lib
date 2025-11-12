@@ -18,6 +18,7 @@ const config = {
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    'katex/dist/katex.min.css': 'identity-obj-proxy',
     [String.raw`\.(css|less|scss|sass)$`]: 'identity-obj-proxy',
   },
   // Coverage configuration
