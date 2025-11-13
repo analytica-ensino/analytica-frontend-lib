@@ -2,7 +2,11 @@ import { CSSProperties, ReactNode } from 'react';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
 import DOMPurify from 'dompurify';
-import parse, { Element, HTMLReactParserOptions } from 'html-react-parser';
+import parse, {
+  DOMNode,
+  Element,
+  HTMLReactParserOptions,
+} from 'html-react-parser';
 import { cn } from '../../utils/utils';
 
 /**
@@ -34,6 +38,57 @@ const sanitizeHtml = (value: string): string => {
 const cleanLatex = (str: string): string => {
   // Remove zero-width characters, invisible characters, and other problematic Unicode
   return str.replaceAll(/[\u200B-\u200D\uFEFF]/g, '').trim();
+};
+
+/**
+ * Type for math parts used in rendering
+ */
+interface MathPart {
+  id: number;
+  type: 'inline' | 'block';
+  latex: string;
+}
+
+/**
+ * Creates a replace function for html-react-parser that replaces math placeholders
+ * with KaTeX components
+ */
+const createMathReplacer = (
+  mathParts: MathPart[],
+  errorRenderer: (latex: string) => ReactNode
+) => {
+  return (domNode: DOMNode) => {
+    if (
+      domNode instanceof Element &&
+      domNode.name === 'span' &&
+      domNode.attribs['data-math-id']
+    ) {
+      const mathId = Number.parseInt(domNode.attribs['data-math-id'], 10);
+      const mathPart = mathParts[mathId];
+
+      if (!mathPart) return domNode;
+
+      if (mathPart.type === 'inline') {
+        return (
+          <InlineMath
+            key={`math-${mathId}`}
+            math={mathPart.latex}
+            renderError={() => errorRenderer(mathPart.latex)}
+          />
+        );
+      } else {
+        return (
+          <div key={`math-${mathId}`} className="my-2.5 text-center">
+            <BlockMath
+              math={mathPart.latex}
+              renderError={() => errorRenderer(mathPart.latex)}
+            />
+          </div>
+        );
+      }
+    }
+    return domNode;
+  };
 };
 
 /**
@@ -77,11 +132,7 @@ const LatexRenderer = ({
     if (!htmlContent) return null;
 
     let processedContent = htmlContent;
-    const mathParts: Array<{
-      id: number;
-      type: 'inline' | 'block';
-      latex: string;
-    }> = [];
+    const mathParts: MathPart[] = [];
 
     // Step 1: Handle math-formula spans (from the editor)
     const mathFormulaPattern =
@@ -186,38 +237,7 @@ const LatexRenderer = ({
 
     // Parse HTML and replace math placeholders with React components
     const options: HTMLReactParserOptions = {
-      replace: (domNode) => {
-        if (
-          domNode instanceof Element &&
-          domNode.name === 'span' &&
-          domNode.attribs['data-math-id']
-        ) {
-          const mathId = Number.parseInt(domNode.attribs['data-math-id'], 10);
-          const mathPart = mathParts[mathId];
-
-          if (!mathPart) return domNode;
-
-          if (mathPart.type === 'inline') {
-            return (
-              <InlineMath
-                key={`math-${mathId}`}
-                math={mathPart.latex}
-                renderError={() => errorRenderer(mathPart.latex)}
-              />
-            );
-          } else {
-            return (
-              <div key={`math-${mathId}`} className="my-2.5 text-center">
-                <BlockMath
-                  math={mathPart.latex}
-                  renderError={() => errorRenderer(mathPart.latex)}
-                />
-              </div>
-            );
-          }
-        }
-        return domNode;
-      },
+      replace: createMathReplacer(mathParts, errorRenderer),
     };
 
     return <>{parse(sanitizedContent, options)}</>;
