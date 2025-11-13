@@ -22,7 +22,7 @@ export interface LatexRendererProps {
  */
 const cleanLatex = (str: string): string => {
   // Remove zero-width characters, invisible characters, and other problematic Unicode
-  return str.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+  return str.replaceAll(/[\u200B-\u200D\uFEFF]/g, '').trim();
 };
 
 /**
@@ -75,7 +75,7 @@ const LatexRenderer = ({
     // Step 1: Handle math-formula spans (from the editor)
     const mathFormulaPattern =
       /<span[^>]*class="math-formula"[^>]*data-latex="([^"]*)"[^>]*>[\s\S]*?<\/span>/g;
-    processedContent = processedContent.replace(
+    processedContent = processedContent.replaceAll(
       mathFormulaPattern,
       (match, latex) => {
         const isDisplayMode = match.includes('data-display-mode="true"');
@@ -92,7 +92,7 @@ const LatexRenderer = ({
     // Step 2: Handle wrapped math expressions (from math modal - legacy)
     const wrappedMathPattern =
       /<span[^>]*class="math-expression"[^>]*data-math="([^"]*)"[^>]*>.*?<\/span>/g;
-    processedContent = processedContent.replace(
+    processedContent = processedContent.replaceAll(
       wrappedMathPattern,
       (match, latex) => {
         const placeholder = `__MATH_${parts.length}__`;
@@ -109,7 +109,7 @@ const LatexRenderer = ({
     // Use non-greedy match to avoid matching nested content
     // Use negative lookbehind to avoid matching \$$ (escaped dollars)
     const doubleDollarPattern = /(?<!\\)\$\$([\s\S]+?)\$\$/g;
-    processedContent = processedContent.replace(
+    processedContent = processedContent.replaceAll(
       doubleDollarPattern,
       (match, latex) => {
         const placeholder = `__MATH_${parts.length}__`;
@@ -126,7 +126,7 @@ const LatexRenderer = ({
     // Use non-greedy match to capture everything including \begin...\end within $...$
     // Use negative lookbehind to avoid matching \$ (escaped dollar)
     const singleDollarPattern = /(?<!\\)\$([\s\S]+?)\$/g;
-    processedContent = processedContent.replace(
+    processedContent = processedContent.replaceAll(
       singleDollarPattern,
       (match, latex) => {
         const placeholder = `__MATH_${parts.length}__`;
@@ -143,7 +143,7 @@ const LatexRenderer = ({
     // This handles both: actual HTML tags and escaped text like &lt;latex&gt;
     const latexTagPattern =
       /(?:<latex>|&lt;latex&gt;)([\s\S]*?)(?:<\/latex>|&lt;\/latex&gt;)/g;
-    processedContent = processedContent.replace(
+    processedContent = processedContent.replaceAll(
       latexTagPattern,
       (match, latex) => {
         const placeholder = `__MATH_${parts.length}__`;
@@ -159,7 +159,7 @@ const LatexRenderer = ({
     // Step 6: Handle standalone LaTeX environments (align, equation, pmatrix, etc.) for block math
     // This is now last to only catch environments NOT already within $ delimiters
     const latexEnvPattern = /\\begin\{([^}]+)\}([\s\S]*?)\\end\{\1\}/g;
-    processedContent = processedContent.replace(latexEnvPattern, (match) => {
+    processedContent = processedContent.replaceAll(latexEnvPattern, (match) => {
       const placeholder = `__MATH_${parts.length}__`;
       parts.push({
         type: 'block-math',
@@ -190,7 +190,7 @@ const LatexRenderer = ({
       }
 
       // Add math expression
-      const mathIndex = parseInt(match[1]);
+      const mathIndex = Number.parseInt(match[1], 10);
       if (parts[mathIndex]) {
         finalParts.push(parts[mathIndex]);
       }
@@ -207,10 +207,7 @@ const LatexRenderer = ({
     }
 
     // If no math found, return original content as HTML
-    if (
-      finalParts.length === 0 ||
-      finalParts.every((part) => part.type === 'text')
-    ) {
+    if (finalParts.every((part) => part.type === 'text')) {
       return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
     }
 
@@ -224,17 +221,20 @@ const LatexRenderer = ({
     return (
       <>
         {finalParts?.map((part, index) => {
+          // Generate a stable key based on content and position
+          const key = `${part.type}-${index}-${part.latex?.slice(0, 20) || part.content.slice(0, 20)}`;
+
           if (part.type === 'math' && part.latex) {
             return (
               <InlineMath
-                key={index}
+                key={key}
                 math={part.latex}
                 renderError={() => errorRenderer(part.latex!)}
               />
             );
           } else if (part.type === 'block-math' && part.latex) {
             return (
-              <div key={index} className="my-2.5 text-center">
+              <div key={key} className="my-2.5 text-center">
                 <BlockMath
                   math={part.latex}
                   renderError={() => errorRenderer(part.latex!)}
@@ -244,7 +244,7 @@ const LatexRenderer = ({
           } else {
             return (
               <span
-                key={index}
+                key={key}
                 dangerouslySetInnerHTML={{ __html: part.content }}
               />
             );
