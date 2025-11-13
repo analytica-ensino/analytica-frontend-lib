@@ -66,6 +66,7 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "dompurify": "^3.3.0",
     "katex": "^0.16.25",
     "phosphor-react": "^1.4.1",
     "react": "^19.1.0",
@@ -83,6 +84,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "@types/dompurify": "^3.2.0",
     "@types/identity-obj-proxy": "^3",
     "@types/jest": "^29.5.14",
     "@types/katex": "^0.16.7",

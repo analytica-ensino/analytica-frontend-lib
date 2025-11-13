@@ -1,6 +1,7 @@
 import { CSSProperties, ReactNode } from 'react';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
+import DOMPurify from 'dompurify';
 import { cn } from '../../utils/utils';
 
 /**
@@ -16,6 +17,15 @@ export interface LatexRendererProps {
   /** Custom error renderer for invalid LaTeX expressions */
   onError?: (latex: string) => ReactNode;
 }
+
+/**
+ * Helper function to sanitize HTML content to prevent XSS attacks
+ */
+const sanitizeHtml = (value: string): string => {
+  return DOMPurify.sanitize(value, {
+    ADD_ATTR: ['data-latex', 'data-display-mode', 'data-math'],
+  });
+};
 
 /**
  * Helper function to clean latex from invisible characters
@@ -208,7 +218,9 @@ const LatexRenderer = ({
 
     // If no math found, return original content as HTML
     if (finalParts.every((part) => part.type === 'text')) {
-      return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+      return (
+        <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(htmlContent) }} />
+      );
     }
 
     // Default error renderer
@@ -245,7 +257,7 @@ const LatexRenderer = ({
             return (
               <span
                 key={key}
-                dangerouslySetInnerHTML={{ __html: part.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(part.content) }}
               />
             );
           }
