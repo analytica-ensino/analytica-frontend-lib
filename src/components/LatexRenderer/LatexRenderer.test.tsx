@@ -220,6 +220,15 @@ describe('LatexRenderer Component', () => {
       const { container } = render(<LatexRenderer content={content} />);
       expect(container.firstChild).toHaveClass('whitespace-pre-wrap');
     });
+
+    it('handles invalid math-id gracefully', () => {
+      // This tests the case where a data-math-id doesn't correspond to any mathPart
+      const content = '<span data-math-id="999">Invalid</span>';
+      const { container } = render(<LatexRenderer content={content} />);
+      expect(container.firstChild).toBeInTheDocument();
+      // Should render the span as-is since the math-id is invalid
+      expect(container.textContent).toContain('Invalid');
+    });
   });
 
   describe('Multiple formats in same content', () => {

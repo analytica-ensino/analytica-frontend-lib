@@ -67,6 +67,7 @@
   "dependencies": {
     "clsx": "^2.1.1",
     "dompurify": "^3.3.0",
+    "html-react-parser": "^5.2.8",
     "katex": "^0.16.25",
     "phosphor-react": "^1.4.1",
     "react": "^19.1.0",

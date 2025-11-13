@@ -2,6 +2,7 @@ import { CSSProperties, ReactNode } from 'react';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
 import DOMPurify from 'dompurify';
+import parse, { Element, HTMLReactParserOptions } from 'html-react-parser';
 import { cn } from '../../utils/utils';
 
 /**
@@ -23,7 +24,7 @@ export interface LatexRendererProps {
  */
 const sanitizeHtml = (value: string): string => {
   return DOMPurify.sanitize(value, {
-    ADD_ATTR: ['data-latex', 'data-display-mode', 'data-math'],
+    ADD_ATTR: ['data-latex', 'data-display-mode', 'data-math', 'data-math-id'],
   });
 };
 
@@ -76,10 +77,10 @@ const LatexRenderer = ({
     if (!htmlContent) return null;
 
     let processedContent = htmlContent;
-    const parts: Array<{
-      type: 'text' | 'math' | 'block-math';
-      content: string;
-      latex?: string;
+    const mathParts: Array<{
+      id: number;
+      type: 'inline' | 'block';
+      latex: string;
     }> = [];
 
     // Step 1: Handle math-formula spans (from the editor)
@@ -89,13 +90,13 @@ const LatexRenderer = ({
       mathFormulaPattern,
       (match, latex) => {
         const isDisplayMode = match.includes('data-display-mode="true"');
-        const placeholder = `__MATH_${parts.length}__`;
-        parts.push({
-          type: isDisplayMode ? 'block-math' : 'math',
-          content: match,
+        const id = mathParts.length;
+        mathParts.push({
+          id,
+          type: isDisplayMode ? 'block' : 'inline',
           latex: cleanLatex(latex),
         });
-        return placeholder;
+        return `<span data-math-id="${id}"></span>`;
       }
     );
 
@@ -105,123 +106,76 @@ const LatexRenderer = ({
     processedContent = processedContent.replaceAll(
       wrappedMathPattern,
       (match, latex) => {
-        const placeholder = `__MATH_${parts.length}__`;
-        parts.push({
-          type: 'math',
-          content: match,
+        const id = mathParts.length;
+        mathParts.push({
+          id,
+          type: 'inline',
           latex: cleanLatex(latex),
         });
-        return placeholder;
+        return `<span data-math-id="${id}"></span>`;
       }
     );
 
     // Step 3: Handle raw $$...$$ expressions (manual input or saved content) - BEFORE single $
-    // Use non-greedy match to avoid matching nested content
-    // Use negative lookbehind to avoid matching \$$ (escaped dollars)
     const doubleDollarPattern = /(?<!\\)\$\$([\s\S]+?)\$\$/g;
     processedContent = processedContent.replaceAll(
       doubleDollarPattern,
       (match, latex) => {
-        const placeholder = `__MATH_${parts.length}__`;
-        parts.push({
-          type: 'block-math',
-          content: match,
+        const id = mathParts.length;
+        mathParts.push({
+          id,
+          type: 'block',
           latex: cleanLatex(latex),
         });
-        return placeholder;
+        return `<span data-math-id="${id}"></span>`;
       }
     );
 
-    // Step 4: Handle single $...$ expressions for inline math - BEFORE standalone \begin...\end
-    // Use non-greedy match to capture everything including \begin...\end within $...$
-    // Use negative lookbehind to avoid matching \$ (escaped dollar)
+    // Step 4: Handle single $...$ expressions for inline math
     const singleDollarPattern = /(?<!\\)\$([\s\S]+?)\$/g;
     processedContent = processedContent.replaceAll(
       singleDollarPattern,
       (match, latex) => {
-        const placeholder = `__MATH_${parts.length}__`;
-        parts.push({
-          type: 'math',
-          content: match,
+        const id = mathParts.length;
+        mathParts.push({
+          id,
+          type: 'inline',
           latex: cleanLatex(latex),
         });
-        return placeholder;
+        return `<span data-math-id="${id}"></span>`;
       }
     );
 
     // Step 5: Handle <latex>...</latex> tags for inline math
-    // This handles both: actual HTML tags and escaped text like &lt;latex&gt;
     const latexTagPattern =
       /(?:<latex>|&lt;latex&gt;)([\s\S]*?)(?:<\/latex>|&lt;\/latex&gt;)/g;
     processedContent = processedContent.replaceAll(
       latexTagPattern,
       (match, latex) => {
-        const placeholder = `__MATH_${parts.length}__`;
-        parts.push({
-          type: 'math',
-          content: match,
+        const id = mathParts.length;
+        mathParts.push({
+          id,
+          type: 'inline',
           latex: cleanLatex(latex),
         });
-        return placeholder;
+        return `<span data-math-id="${id}"></span>`;
       }
     );
 
     // Step 6: Handle standalone LaTeX environments (align, equation, pmatrix, etc.) for block math
-    // This is now last to only catch environments NOT already within $ delimiters
     const latexEnvPattern = /\\begin\{([^}]+)\}([\s\S]*?)\\end\{\1\}/g;
     processedContent = processedContent.replaceAll(latexEnvPattern, (match) => {
-      const placeholder = `__MATH_${parts.length}__`;
-      parts.push({
-        type: 'block-math',
-        content: match,
-        latex: cleanLatex(match), // Use the full environment and clean it
+      const id = mathParts.length;
+      mathParts.push({
+        id,
+        type: 'block',
+        latex: cleanLatex(match),
       });
-      return placeholder;
+      return `<span data-math-id="${id}"></span>`;
     });
 
-    // Step 7: Split remaining content by placeholders
-    const finalParts: Array<{
-      type: 'text' | 'math' | 'block-math';
-      content: string;
-      latex?: string;
-    }> = [];
-
-    let currentIndex = 0;
-    const placeholderPattern = /__MATH_(\d+)__/g;
-    let match;
-
-    while ((match = placeholderPattern.exec(processedContent)) !== null) {
-      // Add text before math
-      if (match.index > currentIndex) {
-        finalParts.push({
-          type: 'text',
-          content: processedContent.slice(currentIndex, match.index),
-        });
-      }
-
-      // Add math expression
-      const mathIndex = Number.parseInt(match[1], 10);
-      if (parts[mathIndex]) {
-        finalParts.push(parts[mathIndex]);
-      }
-
-      currentIndex = match.index + match[0].length;
-    }
-
-    // Add remaining text
-    if (currentIndex < processedContent.length) {
-      finalParts.push({
-        type: 'text',
-        content: processedContent.slice(currentIndex),
-      });
-    }
-
-    // If no math found, return original content as HTML
-    if (finalParts.every((part) => part.type === 'text')) {
-      return (
-        <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(htmlContent) }} />
-      );
-    }
+    // Sanitize the HTML with placeholders
+    const sanitizedContent = sanitizeHtml(processedContent);
 
     // Default error renderer
     const defaultErrorRenderer = (latex: string) => (
@@ -230,40 +184,43 @@ const LatexRenderer = ({
 
     const errorRenderer = onError || defaultErrorRenderer;
 
-    return (
-      <>
-        {finalParts?.map((part, index) => {
-          // Generate a stable key based on content and position
-          const key = `${part.type}-${index}-${part.latex?.slice(0, 20) || part.content.slice(0, 20)}`;
+    // Parse HTML and replace math placeholders with React components
+    const options: HTMLReactParserOptions = {
+      replace: (domNode) => {
+        if (
+          domNode instanceof Element &&
+          domNode.name === 'span' &&
+          domNode.attribs['data-math-id']
+        ) {
+          const mathId = Number.parseInt(domNode.attribs['data-math-id'], 10);
+          const mathPart = mathParts[mathId];
 
-          if (part.type === 'math' && part.latex) {
+          if (!mathPart) return domNode;
+
+          if (mathPart.type === 'inline') {
             return (
               <InlineMath
-                key={key}
-                math={part.latex}
-                renderError={() => errorRenderer(part.latex!)}
+                key={`math-${mathId}`}
+                math={mathPart.latex}
+                renderError={() => errorRenderer(mathPart.latex)}
               />
-            );
-          } else if (part.type === 'block-math' && part.latex) {
-            return (
-              <div key={key} className="my-2.5 text-center">
-                <BlockMath
-                  math={part.latex}
-                  renderError={() => errorRenderer(part.latex!)}
-                />
-              </div>
             );
           } else {
             return (
-              <span
-                key={key}
-                dangerouslySetInnerHTML={{ __html: sanitizeHtml(part.content) }}
-              />
+              <div key={`math-${mathId}`} className="my-2.5 text-center">
+                <BlockMath
+                  math={mathPart.latex}
+                  renderError={() => errorRenderer(mathPart.latex)}
+                />
+              </div>
             );
           }
-        })}
-      </>
-    );
+        }
+        return domNode;
+      },
+    };
+
+    return <>{parse(sanitizedContent, options)}</>;
   };
 
   return (
