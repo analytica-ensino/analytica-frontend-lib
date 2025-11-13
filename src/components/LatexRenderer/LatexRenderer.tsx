@@ -33,6 +33,16 @@ const sanitizeHtml = (value: string): string => {
 };
 
 /**
+ * Helper function to decode HTML entities
+ * Converts entities like &amp;, &lt;, &gt; back to their actual characters
+ */
+const decodeHtmlEntities = (str: string): string => {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = str;
+  return textarea.value;
+};
+
+/**
  * Helper function to clean latex from invisible characters
  */
 const cleanLatex = (str: string): string => {
@@ -145,7 +155,7 @@ const LatexRenderer = ({
         mathParts.push({
           id,
           type: isDisplayMode ? 'block' : 'inline',
-          latex: cleanLatex(latex),
+          latex: cleanLatex(decodeHtmlEntities(latex)),
         });
         return `<span data-math-id="${id}"></span>`;
       }
@@ -161,7 +171,7 @@ const LatexRenderer = ({
         mathParts.push({
           id,
           type: 'inline',
-          latex: cleanLatex(latex),
+          latex: cleanLatex(decodeHtmlEntities(latex)),
         });
         return `<span data-math-id="${id}"></span>`;
       }

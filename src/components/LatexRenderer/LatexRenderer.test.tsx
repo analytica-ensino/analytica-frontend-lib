@@ -121,6 +121,30 @@ describe('LatexRenderer Component', () => {
       const { container } = render(<LatexRenderer content={content} />);
       expect(container.querySelector('.katex')).toBeInTheDocument();
     });
+
+    it('decodes HTML entities in data-latex attribute', () => {
+      // Test with &lt; entity which should decode to < for LaTeX comparison
+      const content =
+        '<span class="math-formula" data-latex="a &lt; b">test</span>';
+      const { container } = render(<LatexRenderer content={content} />);
+      expect(container.querySelector('.katex')).toBeInTheDocument();
+      // The decoded LaTeX should be "a < b"
+    });
+
+    it('decodes HTML entities in data-math attribute', () => {
+      const content =
+        '<span class="math-expression" data-math="x &lt; y">test</span>';
+      const { container } = render(<LatexRenderer content={content} />);
+      expect(container.querySelector('.katex')).toBeInTheDocument();
+    });
+
+    it('decodes ampersand entities in LaTeX', () => {
+      // Test matrix with &amp; which should decode to &
+      const content =
+        '<span class="math-formula" data-latex="\\begin{matrix} a &amp; b \\\\ c &amp; d \\end{matrix}">test</span>';
+      const { container } = render(<LatexRenderer content={content} />);
+      expect(container.querySelector('.katex')).toBeInTheDocument();
+    });
   });
 
   describe('Mixed content rendering', () => {
