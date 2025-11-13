@@ -9,6 +9,8 @@ export { default as Text } from './components/Text/Text';
 export { default as Button } from './components/Button/Button';
 export { default as Badge } from './components/Badge/Badge';
 export { default as Alert } from './components/Alert/Alert';
+export { default as LatexRenderer } from './components/LatexRenderer/LatexRenderer';
+export type { LatexRendererProps } from './components/LatexRenderer/LatexRenderer';
 export { default as IconButton } from './components/IconButton/IconButton';
 export { default as IconRoundedButton } from './components/IconRoundedButton/IconRoundedButton';
 export { default as NavButton } from './components/NavButton/NavButton';
