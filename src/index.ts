@@ -94,6 +94,7 @@ export {
   createNotificationsHook,
 } from './hooks/useNotifications';
 export { NotificationEntityType } from './types/notifications';
+export { questionTypeLabels } from './types/questionTypes';
 export type {
   Notification,
   NotificationType,
@@ -154,6 +155,23 @@ export type {
   UseTableFilterOptions,
   UseTableFilterReturn,
 } from './components/Filter';
+
+// ActivityFilters Component
+export {
+  ActivityFilters,
+  ActivityFiltersPopover,
+} from './components/ActivityFilters/ActivityFilters';
+export type {
+  ActivityFiltersProps,
+  ActivityFiltersPopoverProps,
+} from './components/ActivityFilters/ActivityFilters';
+export type {
+  ActivityFiltersData,
+  Bank,
+  KnowledgeArea,
+  KnowledgeItem,
+  KnowledgeStructureState,
+} from './types/activityFilters';
 
 export type { TablePaginationProps } from './components/Table/Table';
 
@@ -330,4 +348,7 @@ export {
   cn,
   getSubjectColorWithOpacity,
   syncDropdownState,
+  getSelectedIdsFromCategories,
+  toggleArrayItem,
+  toggleSingleValue,
 } from './utils/utils';
