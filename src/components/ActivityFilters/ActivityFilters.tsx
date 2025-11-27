@@ -181,6 +181,99 @@ export const ActivityFilters = ({
 
   const { isDark } = useTheme();
 
+  // Helper function to render banks section
+  const renderBanksSection = () => {
+    if (loadingBanks) {
+      return (
+        <Text size="sm" className="text-text-600">
+          Carregando bancas...
+        </Text>
+      );
+    }
+
+    if (banksError) {
+      return (
+        <Text size="sm" className="text-text-600">
+          {banksError}
+        </Text>
+      );
+    }
+
+    if (banks.length === 0) {
+      return (
+        <Text size="sm" className="text-text-600">
+          Nenhuma banca encontrada
+        </Text>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-2 gap-2">
+        {banks.map((bank: Bank) => (
+          <Chips
+            key={bank.examInstitution}
+            selected={selectedBanks.includes(bank.examInstitution)}
+            onClick={() => toggleBank(bank.examInstitution)}
+          >
+            {bank.examInstitution}
+          </Chips>
+        ))}
+      </div>
+    );
+  };
+
+  // Helper function to render subjects section
+  const renderSubjectsSection = () => {
+    if (loadingSubjects) {
+      return (
+        <Text size="sm" className="text-text-600">
+          Carregando matérias...
+        </Text>
+      );
+    }
+
+    if (subjectsError) {
+      return (
+        <Text size="sm" className="text-text-600">
+          {subjectsError}
+        </Text>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-3 gap-3">
+        {knowledgeAreas.map((area: KnowledgeArea) => (
+          <Radio
+            key={area.id}
+            value={area.id}
+            checked={selectedSubject === area.id}
+            onChange={() => handleSubjectChange(area.id)}
+            label={
+              <div className="flex items-center gap-2 w-full min-w-0">
+                <span
+                  className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-950"
+                  style={{
+                    backgroundColor: getSubjectColorWithOpacity(
+                      area.color,
+                      isDark
+                    ),
+                  }}
+                >
+                  <IconRender
+                    iconName={area.icon || 'BookOpen'}
+                    size={14}
+                    color="currentColor"
+                  />
+                </span>
+                <span className="truncate flex-1">{area.name}</span>
+              </div>
+            }
+          />
+        ))}
+      </div>
+    );
+  };
+
   const toggleQuestionType = (questionType: QuestionType) => {
     setSelectedQuestionTypes((prev) =>
       prev.includes(questionType)
@@ -308,31 +401,7 @@ export const ActivityFilters = ({
             <Text size="sm" weight="bold" className="mb-3 block">
               Banca de vestibular
             </Text>
-            {loadingBanks ? (
-              <Text size="sm" className="text-text-600">
-                Carregando bancas...
-              </Text>
-            ) : banksError ? (
-              <Text size="sm" className="text-text-600">
-                {banksError}
-              </Text>
-            ) : banks.length === 0 ? (
-              <Text size="sm" className="text-text-600">
-                Nenhuma banca encontrada
-              </Text>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {banks.map((bank: Bank) => (
-                  <Chips
-                    key={bank.examInstitution}
-                    selected={selectedBanks.includes(bank.examInstitution)}
-                    onClick={() => toggleBank(bank.examInstitution)}
-                  >
-                    {bank.examInstitution}
-                  </Chips>
-                ))}
-              </div>
-            )}
+            {renderBanksSection()}
           </div>
 
           <div>
@@ -342,46 +411,7 @@ export const ActivityFilters = ({
               </Text>
             </div>
 
-            {loadingSubjects ? (
-              <Text size="sm" className="text-text-600">
-                Carregando matérias...
-              </Text>
-            ) : subjectsError ? (
-              <Text size="sm" className="text-text-600">
-                {subjectsError}
-              </Text>
-            ) : (
-              <div className="grid grid-cols-3 gap-3">
-                {knowledgeAreas.map((area: KnowledgeArea) => (
-                  <Radio
-                    key={area.id}
-                    value={area.id}
-                    checked={selectedSubject === area.id}
-                    onChange={() => handleSubjectChange(area.id)}
-                    label={
-                      <div className="flex items-center gap-2 w-full min-w-0">
-                        <span
-                          className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-950"
-                          style={{
-                            backgroundColor: getSubjectColorWithOpacity(
-                              area.color,
-                              isDark
-                            ),
-                          }}
-                        >
-                          <IconRender
-                            iconName={area.icon || 'BookOpen'}
-                            size={14}
-                            color="currentColor"
-                          />
-                        </span>
-                        <span className="truncate flex-1">{area.name}</span>
-                      </div>
-                    }
-                  />
-                ))}
-              </div>
-            )}
+            {renderSubjectsSection()}
           </div>
 
           {/* Knowledge Structure CheckboxGroup */}
