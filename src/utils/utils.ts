@@ -6,6 +6,11 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export { syncDropdownState } from './dropdown';
+export {
+  getSelectedIdsFromCategories,
+  toggleArrayItem,
+  toggleSingleValue,
+} from './activityFilters';
 
 /**
  * Retorna a cor hexadecimal com opacidade 0.3 (4d) se não estiver em dark mode.

@@ -12,83 +12,20 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
+  QUESTION_TYPE,
 } from '../..';
-
-/**
- * Enum for question types
- */
-export enum QuestionType {
-  ALTERNATIVA = 'ALTERNATIVA',
-  MULTIPLA_ESCOLHA = 'MULTIPLA_ESCOLHA',
-  DISSERTATIVA = 'DISSERTATIVA',
-  VERDADEIRO_FALSO = 'VERDADEIRO_FALSO',
-  LIGAR_PONTOS = 'LIGAR_PONTOS',
-  PREENCHER = 'PREENCHER',
-  IMAGEM = 'IMAGEM',
-}
-
-/**
- * Map question types to display labels
- */
-const questionTypeLabels: Record<QuestionType, string> = {
-  [QuestionType.ALTERNATIVA]: 'Alternativa',
-  [QuestionType.VERDADEIRO_FALSO]: 'Verdadeiro ou Falso',
-  [QuestionType.DISSERTATIVA]: 'Discursiva',
-  [QuestionType.IMAGEM]: 'Imagem',
-  [QuestionType.MULTIPLA_ESCOLHA]: 'Múltipla Escolha',
-  [QuestionType.LIGAR_PONTOS]: 'Ligar Pontos',
-  [QuestionType.PREENCHER]: 'Preencher Lacunas',
-};
-
-export interface ActivityFiltersData {
-  types: QuestionType[];
-  bankIds: string[];
-  knowledgeIds: string[];
-  topicIds: string[];
-  subtopicIds: string[];
-  contentIds: string[];
-}
-
-/**
- * Bank interface for vestibular banks
- */
-export interface Bank {
-  examInstitution: string;
-  id?: string;
-  name?: string;
-  [key: string]: unknown;
-}
-
-/**
- * Knowledge Area interface
- */
-export interface KnowledgeArea {
-  id: string;
-  name: string;
-  color: string;
-  icon?: string;
-  [key: string]: unknown;
-}
-
-/**
- * Knowledge Item interface for knowledge structure
- */
-export interface KnowledgeItem {
-  id: string;
-  name: string;
-  [key: string]: unknown;
-}
-
-/**
- * Knowledge Structure State interface
- */
-export interface KnowledgeStructureState {
-  topics: KnowledgeItem[];
-  subtopics: KnowledgeItem[];
-  contents: KnowledgeItem[];
-  loading: boolean;
-  error: string | null;
-}
+import { questionTypeLabels } from '../../types/questionTypes';
+import type {
+  ActivityFiltersData,
+  Bank,
+  KnowledgeArea,
+  KnowledgeStructureState,
+} from '../../types/activityFilters';
+import {
+  getSelectedIdsFromCategories,
+  toggleArrayItem,
+  toggleSingleValue,
+} from '../../utils/activityFilters';
 
 export interface ActivityFiltersProps {
   onFiltersChange: (filters: ActivityFiltersData) => void;
@@ -168,7 +105,7 @@ export const ActivityFilters = ({
   onApplyFilters,
 }: ActivityFiltersProps) => {
   const [selectedQuestionTypes, setSelectedQuestionTypes] = useState<
-    QuestionType[]
+    QUESTION_TYPE[]
   >([]);
   const [selectedBanks, setSelectedBanks] = useState<string[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
@@ -274,34 +211,26 @@ export const ActivityFilters = ({
     );
   };
 
-  const toggleQuestionType = (questionType: QuestionType) => {
-    setSelectedQuestionTypes((prev) =>
-      prev.includes(questionType)
-        ? prev.filter((type) => type !== questionType)
-        : [...prev, questionType]
-    );
+  const toggleQuestionType = (questionType: QUESTION_TYPE) => {
+    setSelectedQuestionTypes((prev) => toggleArrayItem(prev, questionType));
   };
 
   const toggleBank = (bankName: string) => {
-    setSelectedBanks((prev) =>
-      prev.includes(bankName)
-        ? prev.filter((name) => name !== bankName)
-        : [...prev, bankName]
-    );
+    setSelectedBanks((prev) => toggleArrayItem(prev, bankName));
   };
 
   const handleSubjectChange = (subjectId: string) => {
-    setSelectedSubject(subjectId === selectedSubject ? null : subjectId);
+    setSelectedSubject(toggleSingleValue(selectedSubject, subjectId));
   };
 
   const questionTypes = [
-    QuestionType.ALTERNATIVA,
-    QuestionType.VERDADEIRO_FALSO,
-    QuestionType.DISSERTATIVA,
-    QuestionType.IMAGEM,
-    QuestionType.MULTIPLA_ESCOLHA,
-    QuestionType.LIGAR_PONTOS,
-    QuestionType.PREENCHER,
+    QUESTION_TYPE.ALTERNATIVA,
+    QUESTION_TYPE.VERDADEIRO_FALSO,
+    QUESTION_TYPE.DISSERTATIVA,
+    QUESTION_TYPE.IMAGEM,
+    QUESTION_TYPE.MULTIPLA_ESCOLHA,
+    QUESTION_TYPE.LIGAR_PONTOS,
+    QUESTION_TYPE.PREENCHER,
   ];
 
   // Load banks and knowledge areas on component mount
@@ -323,21 +252,11 @@ export const ActivityFilters = ({
 
   // Extract selected IDs from knowledge categories
   const getSelectedKnowledgeIds = useCallback(() => {
-    const temaCategory = knowledgeCategories.find(
-      (c: CategoryConfig) => c.key === 'tema'
-    );
-    const subtemaCategory = knowledgeCategories.find(
-      (c: CategoryConfig) => c.key === 'subtema'
-    );
-    const assuntoCategory = knowledgeCategories.find(
-      (c: CategoryConfig) => c.key === 'assunto'
-    );
-
-    return {
-      topicIds: temaCategory?.selectedIds || [],
-      subtopicIds: subtemaCategory?.selectedIds || [],
-      contentIds: assuntoCategory?.selectedIds || [],
-    };
+    return getSelectedIdsFromCategories(knowledgeCategories, {
+      topicIds: 'tema',
+      subtopicIds: 'subtema',
+      contentIds: 'assunto',
+    });
   }, [knowledgeCategories]);
 
   // Notify parent component when filters change

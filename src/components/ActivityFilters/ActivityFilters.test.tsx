@@ -1,17 +1,14 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
-import {
-  ActivityFilters,
-  ActivityFiltersPopover,
-  QuestionType,
-} from './ActivityFilters';
+import { ActivityFilters, ActivityFiltersPopover } from './ActivityFilters';
+import { QUESTION_TYPE } from '../..';
 import type {
   Bank,
   KnowledgeArea,
   KnowledgeItem,
   KnowledgeStructureState,
-} from './ActivityFilters';
+} from '../../types/activityFilters';
 import type { CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
 
 // Mock image files
@@ -456,7 +453,7 @@ describe('ActivityFilters', () => {
         mockOnFiltersChange.mock.calls[
           mockOnFiltersChange.mock.calls.length - 1
         ][0];
-      expect(lastCall.types).toContain(QuestionType.ALTERNATIVA);
+      expect(lastCall.types).toContain(QUESTION_TYPE.ALTERNATIVA);
     });
 
     it('should deselect question type when clicked again', () => {
@@ -484,7 +481,7 @@ describe('ActivityFilters', () => {
         mockOnFiltersChange.mock.calls[
           mockOnFiltersChange.mock.calls.length - 1
         ][0];
-      expect(lastCall.types).not.toContain(QuestionType.ALTERNATIVA);
+      expect(lastCall.types).not.toContain(QUESTION_TYPE.ALTERNATIVA);
     });
 
     it('should allow multiple question types to be selected', () => {
@@ -508,8 +505,8 @@ describe('ActivityFilters', () => {
         mockOnFiltersChange.mock.calls[
           mockOnFiltersChange.mock.calls.length - 1
         ][0];
-      expect(lastCall.types).toContain(QuestionType.ALTERNATIVA);
-      expect(lastCall.types).toContain(QuestionType.MULTIPLA_ESCOLHA);
+      expect(lastCall.types).toContain(QUESTION_TYPE.ALTERNATIVA);
+      expect(lastCall.types).toContain(QUESTION_TYPE.MULTIPLA_ESCOLHA);
     });
   });
 
@@ -1282,7 +1279,7 @@ describe('ActivityFilters', () => {
         mockOnFiltersChange.mock.calls[
           mockOnFiltersChange.mock.calls.length - 1
         ][0];
-      expect(lastCall.types).toContain(QuestionType.ALTERNATIVA);
+      expect(lastCall.types).toContain(QUESTION_TYPE.ALTERNATIVA);
     });
 
     it('should call onFiltersChange when banks change', () => {
@@ -1540,7 +1537,7 @@ describe('ActivityFilters', () => {
           mockOnFiltersChange.mock.calls.length - 1
         ][0];
 
-      expect(lastCall.types).toContain(QuestionType.ALTERNATIVA);
+      expect(lastCall.types).toContain(QUESTION_TYPE.ALTERNATIVA);
       expect(lastCall.bankIds).toContain('ENEM');
       expect(lastCall.knowledgeIds).toContain('matematica');
     });

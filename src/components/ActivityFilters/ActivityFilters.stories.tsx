@@ -7,7 +7,7 @@ import type {
   KnowledgeArea,
   KnowledgeItem,
   KnowledgeStructureState,
-} from './ActivityFilters';
+} from '../../types/activityFilters';
 import type { CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
 
 // Mock data padrão
