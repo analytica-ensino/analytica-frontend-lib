@@ -452,9 +452,10 @@ describe('ActivityFilters', () => {
       fireEvent.click(alternativaChip!);
 
       expect(mockOnFiltersChange).toHaveBeenCalled();
-      const lastCall = mockOnFiltersChange.mock.calls[
-        mockOnFiltersChange.mock.calls.length - 1
-      ][0];
+      const lastCall =
+        mockOnFiltersChange.mock.calls[
+          mockOnFiltersChange.mock.calls.length - 1
+        ][0];
       expect(lastCall.types).toContain(QuestionType.ALTERNATIVA);
     });
 
@@ -479,9 +480,10 @@ describe('ActivityFilters', () => {
       fireEvent.click(alternativaChip!);
 
       expect(mockOnFiltersChange).toHaveBeenCalled();
-      const lastCall = mockOnFiltersChange.mock.calls[
-        mockOnFiltersChange.mock.calls.length - 1
-      ][0];
+      const lastCall =
+        mockOnFiltersChange.mock.calls[
+          mockOnFiltersChange.mock.calls.length - 1
+        ][0];
       expect(lastCall.types).not.toContain(QuestionType.ALTERNATIVA);
     });
 
@@ -502,9 +504,10 @@ describe('ActivityFilters', () => {
       fireEvent.click(alternativaChip!);
       fireEvent.click(multiplaEscolhaChip!);
 
-      const lastCall = mockOnFiltersChange.mock.calls[
-        mockOnFiltersChange.mock.calls.length - 1
-      ][0];
+      const lastCall =
+        mockOnFiltersChange.mock.calls[
+          mockOnFiltersChange.mock.calls.length - 1
+        ][0];
       expect(lastCall.types).toContain(QuestionType.ALTERNATIVA);
       expect(lastCall.types).toContain(QuestionType.MULTIPLA_ESCOLHA);
     });
@@ -524,9 +527,10 @@ describe('ActivityFilters', () => {
       fireEvent.click(enemChip!);
 
       expect(mockOnFiltersChange).toHaveBeenCalled();
-      const lastCall = mockOnFiltersChange.mock.calls[
-        mockOnFiltersChange.mock.calls.length - 1
-      ][0];
+      const lastCall =
+        mockOnFiltersChange.mock.calls[
+          mockOnFiltersChange.mock.calls.length - 1
+        ][0];
       expect(lastCall.bankIds).toContain('ENEM');
     });
 
@@ -545,9 +549,10 @@ describe('ActivityFilters', () => {
       fireEvent.click(enemChip!);
       fireEvent.click(fuvestChip!);
 
-      const lastCall = mockOnFiltersChange.mock.calls[
-        mockOnFiltersChange.mock.calls.length - 1
-      ][0];
+      const lastCall =
+        mockOnFiltersChange.mock.calls[
+          mockOnFiltersChange.mock.calls.length - 1
+        ][0];
       expect(lastCall.bankIds).toContain('ENEM');
       expect(lastCall.bankIds).toContain('FUVEST');
     });
@@ -569,9 +574,10 @@ describe('ActivityFilters', () => {
       fireEvent.click(matematicaRadio);
 
       expect(mockOnFiltersChange).toHaveBeenCalled();
-      const lastCall = mockOnFiltersChange.mock.calls[
-        mockOnFiltersChange.mock.calls.length - 1
-      ][0];
+      const lastCall =
+        mockOnFiltersChange.mock.calls[
+          mockOnFiltersChange.mock.calls.length - 1
+        ][0];
       expect(lastCall.knowledgeIds).toContain('matematica');
     });
 
@@ -636,9 +642,10 @@ describe('ActivityFilters', () => {
       fireEvent.click(matematicaRadio);
       fireEvent.click(portuguesRadio);
 
-      const lastCall = mockOnFiltersChange.mock.calls[
-        mockOnFiltersChange.mock.calls.length - 1
-      ][0];
+      const lastCall =
+        mockOnFiltersChange.mock.calls[
+          mockOnFiltersChange.mock.calls.length - 1
+        ][0];
       expect(lastCall.knowledgeIds).toContain('portugues');
       expect(lastCall.knowledgeIds).not.toContain('matematica');
     });
@@ -886,9 +893,7 @@ describe('ActivityFilters', () => {
         />
       );
 
-      expect(
-        screen.getByText('Nenhuma banca encontrada')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Nenhuma banca encontrada')).toBeInTheDocument();
     });
 
     it('should show empty message when no knowledge structure is available', () => {
@@ -1088,7 +1093,9 @@ describe('ActivityFilters', () => {
       fireEvent.click(matematicaRadio);
 
       expect(screen.getByText('Subtema:')).toBeInTheDocument();
-      expect(screen.getAllByText('Equações do 1º grau').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Equações do 1º grau').length).toBeGreaterThan(
+        0
+      );
     });
 
     it('should show contents in summary when available', () => {
@@ -1123,9 +1130,7 @@ describe('ActivityFilters', () => {
       expect(screen.getByText('Assunto:')).toBeInTheDocument();
       expect(
         screen.getAllByText('Resolução de equações lineares').length
-      ).toBeGreaterThan(
-        0
-      );
+      ).toBeGreaterThan(0);
     });
   });
 
@@ -1269,15 +1274,14 @@ describe('ActivityFilters', () => {
 
       mockOnFiltersChange.mockClear();
 
-      const alternativaChip = screen
-        .getByText('Alternativa')
-        .closest('button');
+      const alternativaChip = screen.getByText('Alternativa').closest('button');
       fireEvent.click(alternativaChip!);
 
       expect(mockOnFiltersChange).toHaveBeenCalled();
-      const lastCall = mockOnFiltersChange.mock.calls[
-        mockOnFiltersChange.mock.calls.length - 1
-      ][0];
+      const lastCall =
+        mockOnFiltersChange.mock.calls[
+          mockOnFiltersChange.mock.calls.length - 1
+        ][0];
       expect(lastCall.types).toContain(QuestionType.ALTERNATIVA);
     });
 
@@ -1296,9 +1300,10 @@ describe('ActivityFilters', () => {
       fireEvent.click(enemChip!);
 
       expect(mockOnFiltersChange).toHaveBeenCalled();
-      const lastCall = mockOnFiltersChange.mock.calls[
-        mockOnFiltersChange.mock.calls.length - 1
-      ][0];
+      const lastCall =
+        mockOnFiltersChange.mock.calls[
+          mockOnFiltersChange.mock.calls.length - 1
+        ][0];
       expect(lastCall.bankIds).toContain('ENEM');
     });
 
@@ -1319,9 +1324,10 @@ describe('ActivityFilters', () => {
       fireEvent.click(matematicaRadio);
 
       expect(mockOnFiltersChange).toHaveBeenCalled();
-      const lastCall = mockOnFiltersChange.mock.calls[
-        mockOnFiltersChange.mock.calls.length - 1
-      ][0];
+      const lastCall =
+        mockOnFiltersChange.mock.calls[
+          mockOnFiltersChange.mock.calls.length - 1
+        ][0];
       expect(lastCall.knowledgeIds).toContain('matematica');
     });
 
@@ -1472,9 +1478,7 @@ describe('ActivityFilters', () => {
         />
       );
 
-      expect(
-        screen.getByText('Nenhuma banca encontrada')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Nenhuma banca encontrada')).toBeInTheDocument();
     });
 
     it('should handle empty knowledge areas array', () => {
@@ -1518,9 +1522,7 @@ describe('ActivityFilters', () => {
       );
 
       // Select question type
-      const alternativaChip = screen
-        .getByText('Alternativa')
-        .closest('button');
+      const alternativaChip = screen.getByText('Alternativa').closest('button');
       fireEvent.click(alternativaChip!);
 
       // Select bank
@@ -1533,9 +1535,10 @@ describe('ActivityFilters', () => {
       );
       fireEvent.click(matematicaRadio);
 
-      const lastCall = mockOnFiltersChange.mock.calls[
-        mockOnFiltersChange.mock.calls.length - 1
-      ][0];
+      const lastCall =
+        mockOnFiltersChange.mock.calls[
+          mockOnFiltersChange.mock.calls.length - 1
+        ][0];
 
       expect(lastCall.types).toContain(QuestionType.ALTERNATIVA);
       expect(lastCall.bankIds).toContain('ENEM');
@@ -1571,9 +1574,7 @@ describe('ActivityFilters', () => {
         />
       );
 
-      const alternativaChip = screen
-        .getByText('Alternativa')
-        .closest('button');
+      const alternativaChip = screen.getByText('Alternativa').closest('button');
       fireEvent.click(alternativaChip!);
 
       // Rerender with new banks
@@ -1616,9 +1617,7 @@ describe('ActivityFilters', () => {
       );
 
       // Select question type
-      const alternativaChip = screen
-        .getByText('Alternativa')
-        .closest('button');
+      const alternativaChip = screen.getByText('Alternativa').closest('button');
       fireEvent.click(alternativaChip!);
 
       // Select bank
@@ -1650,4 +1649,3 @@ describe('ActivityFilters', () => {
     });
   });
 });
-
