@@ -1,6 +1,7 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import { ActivityFilters } from './ActivityFilters';
+import { ActivityFiltersPopover } from './ActivityFiltersPopover';
 import type {
   ActivityFiltersData,
   Bank,
@@ -209,6 +210,102 @@ export const AllActivityFilters: Story = () => {
           selectedKnowledgeSummary={selectedKnowledgeSummary}
           enableSummary={true}
         />
+
+        <div className="flex-1 p-4 bg-background-50 rounded-lg">
+          <h3 className="font-bold text-xl text-text-900 mb-4">
+            Filtros Selecionados
+          </h3>
+          <pre className="text-sm text-text-700 overflow-auto">
+            {JSON.stringify(filters, null, 2)}
+          </pre>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Showcase: ActivityFiltersPopover com dados padrão
+ */
+export const AllActivityFiltersPopover: Story = () => {
+  const [filters, setFilters] = useState<ActivityFiltersData>({
+    types: [],
+    bankIds: [],
+    knowledgeIds: [],
+    topicIds: [],
+    subtopicIds: [],
+    contentIds: [],
+  });
+
+  const [knowledgeCategories, setKnowledgeCategories] = useState<
+    CategoryConfig[]
+  >(defaultKnowledgeCategories);
+
+  const [selectedKnowledgeSummary, setSelectedKnowledgeSummary] = useState({
+    topics: [] as string[],
+    subtopics: [] as string[],
+    contents: [] as string[],
+  });
+
+  const handleCategoriesChange = (updatedCategories: CategoryConfig[]) => {
+    setKnowledgeCategories(updatedCategories);
+
+    // Update summary
+    const temaCategory = updatedCategories.find((c) => c.key === 'tema');
+    const subtemaCategory = updatedCategories.find((c) => c.key === 'subtema');
+    const assuntoCategory = updatedCategories.find((c) => c.key === 'assunto');
+
+    const selectedTopicIds = temaCategory?.selectedIds || [];
+    const selectedSubtopicIds = subtemaCategory?.selectedIds || [];
+    const selectedContentIds = assuntoCategory?.selectedIds || [];
+
+    // Update summary
+    setSelectedKnowledgeSummary({
+      topics:
+        temaCategory?.itens
+          ?.filter((item) => selectedTopicIds.includes(item.id))
+          .map((item) => item.name) || [],
+      subtopics:
+        subtemaCategory?.itens
+          ?.filter((item) => selectedSubtopicIds.includes(item.id))
+          .map((item) => item.name) || [],
+      contents:
+        assuntoCategory?.itens
+          ?.filter((item) => selectedContentIds.includes(item.id))
+          .map((item) => item.name) || [],
+    });
+  };
+
+  const handleFiltersChange = (newFilters: ActivityFiltersData) => {
+    setFilters(newFilters);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <h2 className="font-bold text-3xl text-text-900">
+        Activity Filters Popover
+      </h2>
+      <p className="text-text-700">
+        Componente ActivityFilters envolvido em um DropdownMenu/Popover,
+        acionado por um botão
+      </p>
+
+      <div className="flex flex-row gap-8 items-start">
+        <div className="flex flex-col gap-4">
+          <ActivityFiltersPopover
+            onFiltersChange={handleFiltersChange}
+            triggerLabel="Filtro de questões"
+            // Data
+            banks={mockBanks}
+            knowledgeAreas={mockKnowledgeAreas}
+            knowledgeStructure={defaultKnowledgeStructure}
+            knowledgeCategories={knowledgeCategories}
+            // Handlers
+            handleCategoriesChange={handleCategoriesChange}
+            selectedKnowledgeSummary={selectedKnowledgeSummary}
+            enableSummary={true}
+          />
+        </div>
 
         <div className="flex-1 p-4 bg-background-50 rounded-lg">
           <h3 className="font-bold text-xl text-text-900 mb-4">

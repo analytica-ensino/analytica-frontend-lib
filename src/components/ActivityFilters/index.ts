@@ -7,4 +7,6 @@ export type {
   KnowledgeItem,
   KnowledgeStructureState,
 } from './ActivityFilters';
+export { ActivityFiltersPopover } from './ActivityFiltersPopover';
+export type { ActivityFiltersPopoverProps } from './ActivityFiltersPopover';
 

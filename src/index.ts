@@ -165,6 +165,8 @@ export type {
   KnowledgeItem,
   KnowledgeStructureState,
 } from './components/ActivityFilters/ActivityFilters';
+export { ActivityFiltersPopover } from './components/ActivityFilters/ActivityFiltersPopover';
+export type { ActivityFiltersPopoverProps } from './components/ActivityFilters/ActivityFiltersPopover';
 
 export type { TablePaginationProps } from './components/Table/Table';
 
