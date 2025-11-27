@@ -89,7 +89,8 @@ export default defineConfig({
     'Accordation/index': 'src/components/Accordation/Accordation.tsx',
     'Alternative/index': 'src/components/Alternative/Alternative.tsx',
     'AlertDialog/index': 'src/components/AlertDialog/AlertDialog.tsx',
-
+    'ActivityFilters/index':
+      'src/components/ActivityFilters/ActivityFilters.tsx',
     // Toast utils
     'Toast/Toaster/index': 'src/components/Toast/utils/Toaster.tsx',
     'Toast/ToastStore/index': 'src/components/Toast/utils/ToastStore.ts',
