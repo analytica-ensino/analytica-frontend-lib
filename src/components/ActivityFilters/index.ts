@@ -15,4 +15,3 @@ export { KnowledgeSummary } from './KnowledgeSummary';
 export type { KnowledgeSummaryProps } from './KnowledgeSummary';
 export { FilterActions } from './FilterActions';
 export type { FilterActionsProps } from './FilterActions';
-
