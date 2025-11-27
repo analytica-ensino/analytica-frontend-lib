@@ -155,6 +155,17 @@ export type {
   UseTableFilterReturn,
 } from './components/Filter';
 
+// ActivityFilters Component
+export { ActivityFilters, QuestionType } from './components/ActivityFilters/ActivityFilters';
+export type {
+  ActivityFiltersData,
+  ActivityFiltersProps,
+  Bank,
+  KnowledgeArea,
+  KnowledgeItem,
+  KnowledgeStructureState,
+} from './components/ActivityFilters/ActivityFilters';
+
 export type { TablePaginationProps } from './components/Table/Table';
 
 // TableProvider Component
