@@ -156,17 +156,20 @@ export type {
 } from './components/Filter';
 
 // ActivityFilters Component
-export { ActivityFilters, QuestionType } from './components/ActivityFilters/ActivityFilters';
+export {
+  ActivityFilters,
+  ActivityFiltersPopover,
+  QuestionType,
+} from './components/ActivityFilters/ActivityFilters';
 export type {
   ActivityFiltersData,
   ActivityFiltersProps,
+  ActivityFiltersPopoverProps,
   Bank,
   KnowledgeArea,
   KnowledgeItem,
   KnowledgeStructureState,
 } from './components/ActivityFilters/ActivityFilters';
-export { ActivityFiltersPopover } from './components/ActivityFilters/ActivityFiltersPopover';
-export type { ActivityFiltersPopoverProps } from './components/ActivityFilters/ActivityFiltersPopover';
 
 export type { TablePaginationProps } from './components/Table/Table';
 

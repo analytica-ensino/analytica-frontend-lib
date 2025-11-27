@@ -1,7 +1,6 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
-import { ActivityFilters } from './ActivityFilters';
-import { ActivityFiltersPopover } from './ActivityFiltersPopover';
+import { ActivityFilters, ActivityFiltersPopover } from './ActivityFilters';
 import type {
   ActivityFiltersData,
   Bank,
@@ -188,6 +187,28 @@ export const AllActivityFilters: Story = () => {
     setFilters(newFilters);
   };
 
+  const handleClearFilters = () => {
+    setFilters({
+      types: [],
+      bankIds: [],
+      knowledgeIds: [],
+      topicIds: [],
+      subtopicIds: [],
+      contentIds: [],
+    });
+    setKnowledgeCategories(defaultKnowledgeCategories);
+    setSelectedKnowledgeSummary({
+      topics: [],
+      subtopics: [],
+      contents: [],
+    });
+    console.log('Filtros limpos');
+  };
+
+  const handleApplyFilters = () => {
+    console.log('Aplicando filtros:', filters);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
       <h2 className="font-bold text-3xl text-text-900">Activity Filters</h2>
@@ -209,6 +230,9 @@ export const AllActivityFilters: Story = () => {
           handleCategoriesChange={handleCategoriesChange}
           selectedKnowledgeSummary={selectedKnowledgeSummary}
           enableSummary={true}
+          // Action buttons
+          onClearFilters={handleClearFilters}
+          onApplyFilters={handleApplyFilters}
         />
 
         <div className="flex-1 p-4 bg-background-50 rounded-lg">
@@ -280,6 +304,28 @@ export const AllActivityFiltersPopover: Story = () => {
     setFilters(newFilters);
   };
 
+  const handleClearFilters = () => {
+    setFilters({
+      types: [],
+      bankIds: [],
+      knowledgeIds: [],
+      topicIds: [],
+      subtopicIds: [],
+      contentIds: [],
+    });
+    setKnowledgeCategories(defaultKnowledgeCategories);
+    setSelectedKnowledgeSummary({
+      topics: [],
+      subtopics: [],
+      contents: [],
+    });
+    console.log('Filtros limpos');
+  };
+
+  const handleApplyFilters = () => {
+    console.log('Aplicando filtros:', filters);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
       <h2 className="font-bold text-3xl text-text-900">
@@ -304,6 +350,9 @@ export const AllActivityFiltersPopover: Story = () => {
             handleCategoriesChange={handleCategoriesChange}
             selectedKnowledgeSummary={selectedKnowledgeSummary}
             enableSummary={true}
+            // Action buttons
+            onClearFilters={handleClearFilters}
+            onApplyFilters={handleApplyFilters}
           />
         </div>
 

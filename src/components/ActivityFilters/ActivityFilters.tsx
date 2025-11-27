@@ -8,6 +8,10 @@ import {
   getSubjectColorWithOpacity,
   useTheme,
   type CategoryConfig,
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
 } from '../..';
 
 /**
@@ -115,6 +119,9 @@ export interface ActivityFiltersProps {
     contents: string[];
   };
   enableSummary?: boolean;
+  // Action buttons
+  onClearFilters?: () => void;
+  onApplyFilters?: () => void;
 }
 
 /**
@@ -156,6 +163,9 @@ export const ActivityFilters = ({
     contents: [],
   },
   enableSummary = false,
+  // Action buttons
+  onClearFilters,
+  onApplyFilters,
 }: ActivityFiltersProps) => {
   const [selectedQuestionTypes, setSelectedQuestionTypes] = useState<
     QuestionType[]
@@ -259,7 +269,9 @@ export const ActivityFilters = ({
   ]);
 
   const containerClassName =
-    variant === 'popover' ? 'w-full' : 'w-[400px] flex-shrink-0 p-4';
+    variant === 'popover'
+      ? 'w-full bg-background'
+      : 'w-[400px] flex-shrink-0 p-4 bg-background';
 
   const contentClassName = variant === 'popover' ? 'p-4' : '';
 
@@ -472,8 +484,60 @@ export const ActivityFilters = ({
               )}
             </div>
           )}
+
+          {/* Action buttons */}
+          {(onClearFilters || onApplyFilters) && (
+            <div className="grid grid-cols-2 gap-2 justify-end mt-4 px-4 pt-4 border-t border-border-200">
+              {onClearFilters && (
+                <Button variant="link" onClick={onClearFilters} size="small">
+                  Limpar filtros
+                </Button>
+              )}
+              {onApplyFilters && (
+                <Button variant="outline" onClick={onApplyFilters} size="small">
+                  Filtrar
+                </Button>
+              )}
+            </div>
+          )}
         </section>
       </div>
     </div>
+  );
+};
+
+export interface ActivityFiltersPopoverProps
+  extends Omit<ActivityFiltersProps, 'variant' | 'onFiltersChange'> {
+  onFiltersChange: (filters: ActivityFiltersData) => void;
+  triggerLabel?: string;
+}
+
+/**
+ * ActivityFiltersPopover component
+ * Wraps ActivityFilters in a Popover/DropdownMenu triggered by a Button
+ */
+export const ActivityFiltersPopover = ({
+  onFiltersChange,
+  triggerLabel = 'Filtro de questões',
+  ...activityFiltersProps
+}: ActivityFiltersPopoverProps) => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger>
+        <Button variant="outline">{triggerLabel}</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        className="w-[90vw] max-w-[400px] max-h-[calc(100vh-8rem)] overflow-y-auto p-0"
+        align="start"
+      >
+        <ActivityFilters
+          onFiltersChange={onFiltersChange}
+          variant="popover"
+          {...activityFiltersProps}
+        />
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
