@@ -1,12 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Text,
-  Chips,
-  CheckboxGroup,
-  Radio,
-  IconRender,
-  getSubjectColorWithOpacity,
-  useTheme,
   type CategoryConfig,
   Button,
   DropdownMenu,
@@ -14,7 +8,6 @@ import {
   DropdownMenuTrigger,
   QUESTION_TYPE,
 } from '../..';
-import { questionTypeLabels } from '../../types/questionTypes';
 import type {
   ActivityFiltersData,
   Bank,
@@ -26,6 +19,11 @@ import {
   toggleArrayItem,
   toggleSingleValue,
 } from '../../utils/activityFilters';
+import { QuestionTypeFilter } from './QuestionTypeFilter';
+import { BanksFilter } from './BanksFilter';
+import { SubjectsFilter } from './SubjectsFilter';
+import { KnowledgeStructureFilter } from './KnowledgeStructureFilter';
+import { FilterActions } from './FilterActions';
 
 export interface ActivityFiltersProps {
   onFiltersChange: (filters: ActivityFiltersData) => void;
@@ -81,7 +79,7 @@ export const ActivityFilters = ({
   knowledgeCategories = [],
   // Loading states
   loadingBanks = false,
-  loadingKnowledge = false,
+  loadingKnowledge: _loadingKnowledge = false,
   loadingSubjects = false,
   // Errors
   banksError = null,
@@ -116,101 +114,6 @@ export const ActivityFilters = ({
     [selectedSubject]
   );
 
-  const { isDark } = useTheme();
-
-  // Helper function to render banks section
-  const renderBanksSection = () => {
-    if (loadingBanks) {
-      return (
-        <Text size="sm" className="text-text-600">
-          Carregando bancas...
-        </Text>
-      );
-    }
-
-    if (banksError) {
-      return (
-        <Text size="sm" className="text-text-600">
-          {banksError}
-        </Text>
-      );
-    }
-
-    if (banks.length === 0) {
-      return (
-        <Text size="sm" className="text-text-600">
-          Nenhuma banca encontrada
-        </Text>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-2 gap-2">
-        {banks.map((bank: Bank) => (
-          <Chips
-            key={bank.examInstitution}
-            selected={selectedBanks.includes(bank.examInstitution)}
-            onClick={() => toggleBank(bank.examInstitution)}
-          >
-            {bank.examInstitution}
-          </Chips>
-        ))}
-      </div>
-    );
-  };
-
-  // Helper function to render subjects section
-  const renderSubjectsSection = () => {
-    if (loadingSubjects) {
-      return (
-        <Text size="sm" className="text-text-600">
-          Carregando matérias...
-        </Text>
-      );
-    }
-
-    if (subjectsError) {
-      return (
-        <Text size="sm" className="text-text-600">
-          {subjectsError}
-        </Text>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-3 gap-3">
-        {knowledgeAreas.map((area: KnowledgeArea) => (
-          <Radio
-            key={area.id}
-            value={area.id}
-            checked={selectedSubject === area.id}
-            onChange={() => handleSubjectChange(area.id)}
-            label={
-              <div className="flex items-center gap-2 w-full min-w-0">
-                <span
-                  className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-950"
-                  style={{
-                    backgroundColor: getSubjectColorWithOpacity(
-                      area.color,
-                      isDark
-                    ),
-                  }}
-                >
-                  <IconRender
-                    iconName={area.icon || 'BookOpen'}
-                    size={14}
-                    color="currentColor"
-                  />
-                </span>
-                <span className="truncate flex-1">{area.name}</span>
-              </div>
-            }
-          />
-        ))}
-      </div>
-    );
-  };
-
   const toggleQuestionType = (questionType: QUESTION_TYPE) => {
     setSelectedQuestionTypes((prev) => toggleArrayItem(prev, questionType));
   };
@@ -222,16 +125,6 @@ export const ActivityFilters = ({
   const handleSubjectChange = (subjectId: string) => {
     setSelectedSubject(toggleSingleValue(selectedSubject, subjectId));
   };
-
-  const questionTypes = [
-    QUESTION_TYPE.ALTERNATIVA,
-    QUESTION_TYPE.VERDADEIRO_FALSO,
-    QUESTION_TYPE.DISSERTATIVA,
-    QUESTION_TYPE.IMAGEM,
-    QUESTION_TYPE.MULTIPLA_ESCOLHA,
-    QUESTION_TYPE.LIGAR_PONTOS,
-    QUESTION_TYPE.PREENCHER,
-  ];
 
   // Load banks and knowledge areas on component mount
   useEffect(() => {
@@ -299,28 +192,22 @@ export const ActivityFilters = ({
 
       <div className={contentClassName}>
         <section className="flex flex-col gap-4">
-          <div>
-            <Text size="sm" weight="bold" className="mb-3 block">
-              Tipo de questão
-            </Text>
-            <div className="grid grid-cols-2 gap-2">
-              {questionTypes.map((questionType) => (
-                <Chips
-                  key={questionType}
-                  selected={selectedQuestionTypes.includes(questionType)}
-                  onClick={() => toggleQuestionType(questionType)}
-                >
-                  {questionTypeLabels[questionType]}
-                </Chips>
-              ))}
-            </div>
-          </div>
+          <QuestionTypeFilter
+            selectedTypes={selectedQuestionTypes}
+            onToggleType={toggleQuestionType}
+          />
 
           <div>
             <Text size="sm" weight="bold" className="mb-3 block">
               Banca de vestibular
             </Text>
-            {renderBanksSection()}
+            <BanksFilter
+              banks={banks}
+              selectedBanks={selectedBanks}
+              onToggleBank={toggleBank}
+              loading={loadingBanks}
+              error={banksError}
+            />
           </div>
 
           <div>
@@ -329,126 +216,29 @@ export const ActivityFilters = ({
                 Matéria
               </Text>
             </div>
-
-            {renderSubjectsSection()}
+            <SubjectsFilter
+              knowledgeAreas={knowledgeAreas}
+              selectedSubject={selectedSubject}
+              onSubjectChange={handleSubjectChange}
+              loading={loadingSubjects}
+              error={subjectsError}
+            />
           </div>
 
-          {/* Knowledge Structure CheckboxGroup */}
           {selectedSubject && (
-            <div className="mt-4">
-              <Text size="sm" weight="bold" className="mb-3 block">
-                Tema, Subtema e Assunto
-              </Text>
-              {loadingKnowledge && (
-                <Text size="sm" className="text-text-600 mb-3">
-                  Carregando estrutura de conhecimento...
-                </Text>
-              )}
-              {knowledgeStructure.error && (
-                <Text size="sm" className="mb-3 text-error-500">
-                  {knowledgeStructure.error}
-                </Text>
-              )}
-              {knowledgeCategories.length > 0 && handleCategoriesChange && (
-                <CheckboxGroup
-                  categories={knowledgeCategories}
-                  onCategoriesChange={handleCategoriesChange}
-                />
-              )}
-              {!loadingKnowledge &&
-                knowledgeCategories.length === 0 &&
-                knowledgeStructure.topics.length === 0 && (
-                  <Text size="sm" className="text-text-600">
-                    Nenhum tema disponível para as matérias selecionadas
-                  </Text>
-                )}
-
-              {/* Summary of selected items */}
-              {enableSummary && (
-                <div className="mt-4 p-3 bg-background-50 rounded-lg border border-border-200">
-                  <Text size="sm" weight="bold" className="mb-2 block">
-                    Resumo da seleção
-                  </Text>
-                  <div className="flex flex-col gap-2">
-                    {knowledgeStructure.topics.length === 1 && (
-                      <div>
-                        <Text
-                          size="xs"
-                          weight="medium"
-                          className="text-text-600"
-                        >
-                          Tema:
-                        </Text>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {selectedKnowledgeSummary.topics.map(
-                            (topic: string) => (
-                              <Chips key={topic} selected>
-                                {topic}
-                              </Chips>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    {knowledgeStructure.subtopics.length === 1 && (
-                      <div>
-                        <Text
-                          size="xs"
-                          weight="medium"
-                          className="text-text-600"
-                        >
-                          Subtema:
-                        </Text>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {selectedKnowledgeSummary.subtopics.map(
-                            (subtopic: string) => (
-                              <Chips key={subtopic} selected>
-                                {subtopic}
-                              </Chips>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    {knowledgeStructure.contents.length === 1 && (
-                      <div>
-                        <Text
-                          size="xs"
-                          weight="medium"
-                          className="text-text-600"
-                        >
-                          Assunto:
-                        </Text>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {selectedKnowledgeSummary.contents.map((content) => (
-                            <Chips key={content} selected>
-                              {content}
-                            </Chips>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+            <KnowledgeStructureFilter
+              knowledgeStructure={knowledgeStructure}
+              knowledgeCategories={knowledgeCategories}
+              handleCategoriesChange={handleCategoriesChange}
+              selectedKnowledgeSummary={selectedKnowledgeSummary}
+              enableSummary={enableSummary}
+            />
           )}
 
-          {/* Action buttons */}
-          {(onClearFilters || onApplyFilters) && (
-            <div className="grid grid-cols-2 gap-2 justify-end mt-4 px-4 pt-4 border-t border-border-200">
-              {onClearFilters && (
-                <Button variant="link" onClick={onClearFilters} size="small">
-                  Limpar filtros
-                </Button>
-              )}
-              {onApplyFilters && (
-                <Button variant="outline" onClick={onApplyFilters} size="small">
-                  Filtrar
-                </Button>
-              )}
-            </div>
-          )}
+          <FilterActions
+            onClearFilters={onClearFilters}
+            onApplyFilters={onApplyFilters}
+          />
         </section>
       </div>
     </div>
