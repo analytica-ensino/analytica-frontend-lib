@@ -614,7 +614,7 @@ describe('CorrectActivityModal', () => {
         <CorrectActivityModal {...defaultProps} data={dataWithNoQuestions} />
       );
 
-      expect(screen.getByText('Questões')).toBeInTheDocument();
+      expect(screen.getByText('Respostas')).toBeInTheDocument();
       expect(screen.queryByText('Questão 1')).not.toBeInTheDocument();
     });
 

@@ -181,11 +181,9 @@ const CorrectActivityModal = ({
     // State: Saved
     if (isObservationSaved) {
       return (
-        <div className="space-y-2">
+        <div className="bg-white border border-border-100 rounded-lg p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <Text className="text-sm font-medium text-text-700">
-              Observação
-            </Text>
+            <Text className="text-sm font-bold text-text-950">Observação</Text>
             <Button
               type="button"
               variant="outline"
@@ -218,8 +216,8 @@ const CorrectActivityModal = ({
     // State: Expanded
     if (isObservationExpanded) {
       return (
-        <div className="space-y-3">
-          <Text className="text-sm font-medium text-text-700">Observação</Text>
+        <div className="bg-white border border-border-100 rounded-lg p-4 space-y-3">
+          <Text className="text-sm font-bold text-text-950">Observação</Text>
           <textarea
             value={observation}
             onChange={(e) => setObservation(e.target.value)}
@@ -256,8 +254,8 @@ const CorrectActivityModal = ({
 
     // State: Closed (default)
     return (
-      <div className="flex items-center justify-between">
-        <Text className="text-sm font-medium text-text-700">Observação</Text>
+      <div className="bg-white border border-border-100 rounded-lg p-4 flex items-center justify-between">
+        <Text className="text-sm font-bold text-text-950">Observação</Text>
         <Button type="button" size="small" onClick={handleOpenObservation}>
           Incluir
         </Button>
@@ -306,7 +304,7 @@ const CorrectActivityModal = ({
 
         {/* Questions List */}
         <div className="space-y-2">
-          <Text className="text-sm font-medium text-text-700">Questões</Text>
+          <Text className="text-sm font-bold text-text-950">Respostas</Text>
           <AccordionGroup type="multiple" className="space-y-2">
             {data.questions.map((question) => {
               const badgeConfig = getQuestionStatusBadgeConfig(question.status);
