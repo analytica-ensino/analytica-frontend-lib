@@ -1,14 +1,12 @@
 import { useState, useRef } from 'react';
-import { PencilSimple, Paperclip } from 'phosphor-react';
+import { PencilSimple, Paperclip, X } from 'phosphor-react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
 import { AlternativesList } from '../Alternative/Alternative';
 import { CardAccordation, AccordionGroup } from '../Accordation';
-import FileAttachment, {
-  generateFileId,
-} from '../FileAttachment/FileAttachment';
+import { generateFileId } from '../FileAttachment/FileAttachment';
 import type { AttachedFile } from '../FileAttachment/FileAttachment';
 import { cn } from '../../utils/utils';
 import {
@@ -202,13 +200,14 @@ const CorrectActivityModal = ({
             </div>
           )}
           {savedFiles.length > 0 && (
-            <FileAttachment
-              files={savedFiles}
-              onFilesAdd={() => {}}
-              onFileRemove={() => {}}
-              readOnly
-              hideButton
-            />
+            <div className="flex">
+              <div className="flex items-center gap-2 px-5 h-10 bg-secondary-500 rounded-full">
+                <Paperclip size={18} className="text-text-800" />
+                <span className="text-base font-medium text-text-800 truncate max-w-[82px]">
+                  {savedFiles[0].file.name}
+                </span>
+              </div>
+            </div>
           )}
         </div>
       );
@@ -239,30 +238,37 @@ const CorrectActivityModal = ({
                 fileInputRef.current.value = '';
               }
             }}
-            multiple
-            aria-label="Selecionar arquivos"
+            aria-label="Selecionar arquivo"
           />
-          {/* Attached files display */}
-          {attachedFiles.length > 0 && (
-            <FileAttachment
-              files={attachedFiles}
-              onFilesAdd={handleFilesAdd}
-              onFileRemove={handleFileRemove}
-              hideButton
-            />
-          )}
-          {/* Buttons row: Anexar left, Salvar right */}
+          {/* Buttons row: File indicator or Anexar button left, Salvar right */}
           <div className="flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              size="small"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2"
-            >
-              <Paperclip size={18} />
-              Anexar
-            </Button>
+            {attachedFiles.length > 0 ? (
+              <div className="flex items-center justify-center gap-2 px-5 h-10 bg-secondary-500 rounded-full">
+                <Paperclip size={18} className="text-text-800" />
+                <span className="text-base font-medium text-text-800 truncate max-w-[82px]">
+                  {attachedFiles[0].file.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleFileRemove(attachedFiles[0].id)}
+                  className="text-text-700 hover:text-text-800"
+                  aria-label={`Remover ${attachedFiles[0].file.name}`}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="small"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-2"
+              >
+                <Paperclip size={18} />
+                Anexar
+              </Button>
+            )}
             <Button
               type="button"
               size="small"
