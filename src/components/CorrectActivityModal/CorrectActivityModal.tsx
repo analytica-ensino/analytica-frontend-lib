@@ -183,30 +183,33 @@ const CorrectActivityModal = ({
         <div className="bg-white border border-border-100 rounded-lg p-4 space-y-2">
           <div className="flex items-center justify-between">
             <Text className="text-sm font-bold text-text-950">Observação</Text>
-            <Button
-              type="button"
-              variant="outline"
-              size="small"
-              onClick={handleEditObservation}
-              className="flex items-center gap-2"
-            >
-              <PencilSimple size={16} />
-              Editar
-            </Button>
+            <div className="flex items-center gap-3">
+              {savedFiles.length > 0 && (
+                <div className="flex items-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px]">
+                  <Paperclip
+                    size={18}
+                    className="text-text-800 flex-shrink-0"
+                  />
+                  <span className="text-base font-medium text-text-800 truncate">
+                    {savedFiles[0].file.name}
+                  </span>
+                </div>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="small"
+                onClick={handleEditObservation}
+                className="flex items-center gap-2 flex-shrink-0"
+              >
+                <PencilSimple size={16} />
+                Editar
+              </Button>
+            </div>
           </div>
           {savedObservation && (
             <div className="p-3 bg-background-50 rounded-lg">
               <Text className="text-sm text-text-700">{savedObservation}</Text>
-            </div>
-          )}
-          {savedFiles.length > 0 && (
-            <div className="flex">
-              <div className="flex items-center gap-2 px-5 h-10 bg-secondary-500 rounded-full">
-                <Paperclip size={18} className="text-text-800" />
-                <span className="text-base font-medium text-text-800 truncate max-w-[82px]">
-                  {savedFiles[0].file.name}
-                </span>
-              </div>
             </div>
           )}
         </div>
@@ -243,15 +246,15 @@ const CorrectActivityModal = ({
           {/* Buttons row: File indicator or Anexar button left, Salvar right */}
           <div className="flex justify-between">
             {attachedFiles.length > 0 ? (
-              <div className="flex items-center justify-center gap-2 px-5 h-10 bg-secondary-500 rounded-full">
-                <Paperclip size={18} className="text-text-800" />
-                <span className="text-base font-medium text-text-800 truncate max-w-[82px]">
+              <div className="flex items-center justify-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px]">
+                <Paperclip size={18} className="text-text-800 flex-shrink-0" />
+                <span className="text-base font-medium text-text-800 truncate">
                   {attachedFiles[0].file.name}
                 </span>
                 <button
                   type="button"
                   onClick={() => handleFileRemove(attachedFiles[0].id)}
-                  className="text-text-700 hover:text-text-800"
+                  className="text-text-700 hover:text-text-800 flex-shrink-0"
                   aria-label={`Remover ${attachedFiles[0].file.name}`}
                 >
                   <X size={18} />
