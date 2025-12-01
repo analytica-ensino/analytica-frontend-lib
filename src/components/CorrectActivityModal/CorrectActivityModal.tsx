@@ -1,5 +1,13 @@
 import { useState, useRef } from 'react';
-import { PencilSimple, Paperclip, X } from 'phosphor-react';
+import {
+  PencilSimple,
+  Paperclip,
+  X,
+  Star,
+  Medal,
+  WarningCircle,
+} from 'phosphor-react';
+import type { Icon } from 'phosphor-react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -40,39 +48,75 @@ interface StatCardProps {
 }
 
 /**
- * Stat card component for displaying statistics
+ * Configuration for each stat card variant
+ */
+const variantConfig: Record<
+  StatCardProps['variant'],
+  {
+    bg: string;
+    text: string;
+    iconBg: string;
+    iconColor: string;
+    IconComponent: Icon;
+  }
+> = {
+  score: {
+    bg: 'bg-warning-background',
+    text: 'text-warning-600',
+    iconBg: 'bg-warning-300',
+    iconColor: 'text-white',
+    IconComponent: Star,
+  },
+  correct: {
+    bg: 'bg-success-200',
+    text: 'text-success-700',
+    iconBg: 'bg-indicator-positive',
+    iconColor: 'text-text-950',
+    IconComponent: Medal,
+  },
+  incorrect: {
+    bg: 'bg-error-100',
+    text: 'text-error-700',
+    iconBg: 'bg-indicator-negative',
+    iconColor: 'text-white',
+    IconComponent: WarningCircle,
+  },
+};
+
+/**
+ * Stat card component for displaying statistics with icon
  * @param props - Component props
  * @returns JSX element
  */
 const StatCard = ({ label, value, variant }: StatCardProps) => {
-  const variantStyles = {
-    score: {
-      bg: 'bg-warning-background',
-      text: 'text-warning-600',
-    },
-    correct: {
-      bg: 'bg-success-200',
-      text: 'text-success-700',
-    },
-    incorrect: {
-      bg: 'bg-error-100',
-      text: 'text-error-700',
-    },
-  };
-
-  const styles = variantStyles[variant];
+  const config = variantConfig[variant];
+  const IconComponent = config.IconComponent;
 
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center p-4 rounded-xl',
-        styles.bg
+        'border border-border-50 rounded-xl py-4 px-3 flex flex-col items-center justify-center gap-1',
+        config.bg
       )}
     >
-      <Text className={cn('text-2xs font-bold uppercase', styles.text)}>
+      <div
+        className={cn(
+          'w-[30px] h-[30px] rounded-2xl flex items-center justify-center',
+          config.iconBg
+        )}
+      >
+        <IconComponent
+          size={16}
+          className={config.iconColor}
+          weight="regular"
+        />
+      </div>
+      <Text
+        className={cn('text-2xs font-bold uppercase text-center', config.text)}
+      >
         {label}
       </Text>
-      <Text className={cn('text-2xl font-bold', styles.text)}>{value}</Text>
+      <Text className={cn('text-xl font-bold', config.text)}>{value}</Text>
     </div>
   );
 };
