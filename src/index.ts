@@ -70,6 +70,18 @@ export type {
   StudentQuestion,
   StudentActivityCorrectionData,
 } from './types/studentActivityCorrection';
+
+// FileAttachment Component
+export { default as FileAttachment } from './components/FileAttachment/FileAttachment';
+export {
+  generateFileId,
+  formatFileSize,
+} from './components/FileAttachment/FileAttachment';
+export type {
+  FileAttachmentProps,
+  AttachedFile,
+} from './components/FileAttachment/FileAttachment';
+
 export { AlertDialog } from './components/AlertDialog/AlertDialog';
 export { default as LoadingModal } from './components/LoadingModal/loadingModal';
 export { default as NotificationCard } from './components/NotificationCard/NotificationCard';

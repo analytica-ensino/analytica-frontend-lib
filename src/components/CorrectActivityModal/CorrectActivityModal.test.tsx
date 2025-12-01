@@ -126,27 +126,47 @@ describe('CorrectActivityModal', () => {
     });
   });
 
-  describe('Seção de observação', () => {
-    it('deve exibir a seção de observação quando isViewOnly é false', () => {
+  describe('Seção de observação - Estado fechado', () => {
+    it('deve exibir seção de observação com botão "Incluir" quando isViewOnly é false', () => {
       render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
 
-      expect(screen.getByText('Observações')).toBeInTheDocument();
-      expect(
-        screen.getByPlaceholderText('Adicionar observação...')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Observação')).toBeInTheDocument();
+      expect(screen.getByText('Incluir')).toBeInTheDocument();
     });
 
     it('não deve exibir a seção de observação quando isViewOnly é true', () => {
       render(<CorrectActivityModal {...defaultProps} isViewOnly={true} />);
 
-      expect(screen.queryByText('Observações')).not.toBeInTheDocument();
+      expect(screen.queryByText('Incluir')).not.toBeInTheDocument();
+    });
+
+    it('não deve exibir textarea no estado fechado', () => {
+      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+
       expect(
         screen.queryByPlaceholderText('Adicionar observação...')
       ).not.toBeInTheDocument();
     });
+  });
 
-    it('deve exibir observação anterior quando existe', () => {
+  describe('Seção de observação - Estado expandido', () => {
+    it('deve expandir ao clicar em "Incluir"', () => {
       render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+
+      const incluirButton = screen.getByText('Incluir');
+      fireEvent.click(incluirButton);
+
+      expect(
+        screen.getByPlaceholderText('Adicionar observação...')
+      ).toBeInTheDocument();
+      expect(screen.getByText('Salvar')).toBeInTheDocument();
+    });
+
+    it('deve exibir observação anterior quando expandido e existe', () => {
+      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+
+      const incluirButton = screen.getByText('Incluir');
+      fireEvent.click(incluirButton);
 
       expect(screen.getByText('Observação anterior:')).toBeInTheDocument();
       expect(
@@ -164,12 +184,40 @@ describe('CorrectActivityModal', () => {
         />
       );
 
+      const incluirButton = screen.getByText('Incluir');
+      fireEvent.click(incluirButton);
+
       expect(
         screen.queryByText('Observação anterior:')
       ).not.toBeInTheDocument();
     });
 
-    it('deve chamar onObservationSubmit quando botão Incluir é clicado com texto', () => {
+    it('deve desabilitar botão "Salvar" quando textarea está vazio', () => {
+      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+
+      const incluirButton = screen.getByText('Incluir');
+      fireEvent.click(incluirButton);
+
+      const salvarButton = screen.getByText('Salvar');
+      expect(salvarButton).toBeDisabled();
+    });
+
+    it('deve habilitar botão "Salvar" quando textarea tem texto', () => {
+      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+
+      const incluirButton = screen.getByText('Incluir');
+      fireEvent.click(incluirButton);
+
+      const textarea = screen.getByPlaceholderText('Adicionar observação...');
+      fireEvent.change(textarea, { target: { value: 'Nova observação' } });
+
+      const salvarButton = screen.getByText('Salvar');
+      expect(salvarButton).not.toBeDisabled();
+    });
+  });
+
+  describe('Seção de observação - Estado salvo', () => {
+    it('deve salvar e exibir observação após clicar em "Salvar"', () => {
       const onObservationSubmit = jest.fn();
       render(
         <CorrectActivityModal
@@ -179,13 +227,39 @@ describe('CorrectActivityModal', () => {
         />
       );
 
+      const incluirButton = screen.getByText('Incluir');
+      fireEvent.click(incluirButton);
+
       const textarea = screen.getByPlaceholderText('Adicionar observação...');
       fireEvent.change(textarea, { target: { value: 'Nova observação' } });
+
+      const salvarButton = screen.getByText('Salvar');
+      fireEvent.click(salvarButton);
+
+      expect(screen.getByText('Nova observação')).toBeInTheDocument();
+      expect(screen.getByText('Editar')).toBeInTheDocument();
+      expect(onObservationSubmit).toHaveBeenCalledWith('Nova observação', []);
+    });
+
+    it('deve permitir editar observação salva', () => {
+      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
 
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
 
-      expect(onObservationSubmit).toHaveBeenCalledWith('Nova observação');
+      const textarea = screen.getByPlaceholderText('Adicionar observação...');
+      fireEvent.change(textarea, { target: { value: 'Nova observação' } });
+
+      const salvarButton = screen.getByText('Salvar');
+      fireEvent.click(salvarButton);
+
+      const editarButton = screen.getByText('Editar');
+      fireEvent.click(editarButton);
+
+      expect(
+        screen.getByPlaceholderText('Adicionar observação...')
+      ).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Nova observação')).toBeInTheDocument();
     });
 
     it('não deve chamar onObservationSubmit quando textarea está vazio', () => {
@@ -201,6 +275,9 @@ describe('CorrectActivityModal', () => {
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
 
+      const salvarButton = screen.getByText('Salvar');
+      fireEvent.click(salvarButton);
+
       expect(onObservationSubmit).not.toHaveBeenCalled();
     });
 
@@ -214,32 +291,16 @@ describe('CorrectActivityModal', () => {
         />
       );
 
+      const incluirButton = screen.getByText('Incluir');
+      fireEvent.click(incluirButton);
+
       const textarea = screen.getByPlaceholderText('Adicionar observação...');
       fireEvent.change(textarea, { target: { value: '   ' } });
 
-      const incluirButton = screen.getByText('Incluir');
-      fireEvent.click(incluirButton);
+      const salvarButton = screen.getByText('Salvar');
+      fireEvent.click(salvarButton);
 
       expect(onObservationSubmit).not.toHaveBeenCalled();
-    });
-
-    it('deve limpar o textarea após submeter observação', () => {
-      const onObservationSubmit = jest.fn();
-      render(
-        <CorrectActivityModal
-          {...defaultProps}
-          isViewOnly={false}
-          onObservationSubmit={onObservationSubmit}
-        />
-      );
-
-      const textarea = screen.getByPlaceholderText('Adicionar observação...');
-      fireEvent.change(textarea, { target: { value: 'Nova observação' } });
-
-      const incluirButton = screen.getByText('Incluir');
-      fireEvent.click(incluirButton);
-
-      expect(textarea).toHaveValue('');
     });
   });
 
@@ -272,7 +333,6 @@ describe('CorrectActivityModal', () => {
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
       expect(screen.getByText('Resposta correta:')).toBeInTheDocument();
-      // Both student answer and correct answer are "Opção A" for question 1
       const opcaoAElements = screen.getAllByText('Opção A');
       expect(opcaoAElements.length).toBe(2);
     });
@@ -400,11 +460,14 @@ describe('CorrectActivityModal', () => {
         />
       );
 
+      const incluirButton = screen.getByText('Incluir');
+      fireEvent.click(incluirButton);
+
       const textarea = screen.getByPlaceholderText('Adicionar observação...');
       fireEvent.change(textarea, { target: { value: 'Nova observação' } });
 
-      const incluirButton = screen.getByText('Incluir');
-      expect(() => fireEvent.click(incluirButton)).not.toThrow();
+      const salvarButton = screen.getByText('Salvar');
+      expect(() => fireEvent.click(salvarButton)).not.toThrow();
     });
   });
 });

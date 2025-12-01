@@ -40,6 +40,7 @@ export default defineConfig({
     'Modal/utils/videoUtils/index': 'src/components/Modal/utils/videoUtils.ts',
     'CorrectActivityModal/index':
       'src/components/CorrectActivityModal/CorrectActivityModal.tsx',
+    'FileAttachment/index': 'src/components/FileAttachment/FileAttachment.tsx',
     'Card/index': 'src/components/Card/Card.tsx',
     'StatisticsCard/index': 'src/components/StatisticsCard/StatisticsCard.tsx',
     'Calendar/index': 'src/components/Calendar/Calendar.tsx',

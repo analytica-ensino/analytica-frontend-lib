@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { CaretDown, CaretUp } from 'phosphor-react';
+import { CaretDown, CaretUp, PencilSimple } from 'phosphor-react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
+import FileAttachment, {
+  generateFileId,
+} from '../FileAttachment/FileAttachment';
+import type { AttachedFile } from '../FileAttachment/FileAttachment';
 import { cn } from '../../utils/utils';
 import {
   type StudentActivityCorrectionData,
@@ -23,8 +27,8 @@ export interface CorrectActivityModalProps {
   data: StudentActivityCorrectionData | null;
   /** Whether the modal is in view-only mode */
   isViewOnly?: boolean;
-  /** Callback when observation is submitted */
-  onObservationSubmit?: (observation: string) => void;
+  /** Callback when observation is submitted with optional files */
+  onObservationSubmit?: (observation: string, files: File[]) => void;
 }
 
 /**
@@ -155,7 +159,7 @@ const QuestionRow = ({ question, isExpanded, onToggle }: QuestionRowProps) => {
  *   onClose={() => setIsOpen(false)}
  *   data={studentData}
  *   isViewOnly={false}
- *   onObservationSubmit={(obs) => console.log(obs)}
+ *   onObservationSubmit={(obs, files) => console.log(obs, files)}
  * />
  * ```
  */
@@ -170,6 +174,11 @@ const CorrectActivityModal = ({
   const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(
     new Set()
   );
+  const [isObservationExpanded, setIsObservationExpanded] = useState(false);
+  const [isObservationSaved, setIsObservationSaved] = useState(false);
+  const [savedObservation, setSavedObservation] = useState('');
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+  const [savedFiles, setSavedFiles] = useState<AttachedFile[]>([]);
 
   /**
    * Toggle question expansion
@@ -188,19 +197,156 @@ const CorrectActivityModal = ({
   };
 
   /**
-   * Handle observation submit
+   * Handle opening observation section
    */
-  const handleIncludeObservation = () => {
-    if (observation.trim()) {
-      onObservationSubmit?.(observation);
-      setObservation('');
+  const handleOpenObservation = () => {
+    setIsObservationExpanded(true);
+  };
+
+  /**
+   * Handle adding files
+   * @param files - Files to add
+   */
+  const handleFilesAdd = (files: File[]) => {
+    const newAttachedFiles = files.map((file) => ({
+      file,
+      id: generateFileId(),
+    }));
+    setAttachedFiles((prev) => [...prev, ...newAttachedFiles]);
+  };
+
+  /**
+   * Handle removing a file
+   * @param id - File ID to remove
+   */
+  const handleFileRemove = (id: string) => {
+    setAttachedFiles((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  /**
+   * Handle saving observation
+   */
+  const handleSaveObservation = () => {
+    if (observation.trim() || attachedFiles.length > 0) {
+      setSavedObservation(observation);
+      setSavedFiles([...attachedFiles]);
+      setIsObservationSaved(true);
+      setIsObservationExpanded(false);
+      onObservationSubmit?.(
+        observation,
+        attachedFiles.map((f) => f.file)
+      );
     }
+  };
+
+  /**
+   * Handle editing observation
+   */
+  const handleEditObservation = () => {
+    setObservation(savedObservation);
+    setAttachedFiles([...savedFiles]);
+    setIsObservationSaved(false);
+    setIsObservationExpanded(true);
   };
 
   if (!data) return null;
 
   const title = isViewOnly ? 'Detalhes da atividade' : 'Corrigir atividade';
   const formattedScore = data.score !== null ? data.score.toFixed(1) : '-';
+
+  /**
+   * Render observation section based on current state
+   * @returns JSX element for observation section
+   */
+  const renderObservationSection = () => {
+    if (isViewOnly) return null;
+
+    // State: Saved
+    if (isObservationSaved) {
+      return (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Text className="text-sm font-medium text-text-700">
+              Observação
+            </Text>
+            <Button
+              type="button"
+              variant="outline"
+              size="small"
+              onClick={handleEditObservation}
+              className="flex items-center gap-2"
+            >
+              <PencilSimple size={16} />
+              Editar
+            </Button>
+          </div>
+          {savedObservation && (
+            <div className="p-3 bg-background-50 rounded-lg">
+              <Text className="text-sm text-text-700">{savedObservation}</Text>
+            </div>
+          )}
+          {savedFiles.length > 0 && (
+            <FileAttachment
+              files={savedFiles}
+              onFilesAdd={() => {}}
+              onFileRemove={() => {}}
+              readOnly
+              hideButton
+            />
+          )}
+        </div>
+      );
+    }
+
+    // State: Expanded
+    if (isObservationExpanded) {
+      return (
+        <div className="space-y-3">
+          <Text className="text-sm font-medium text-text-700">Observação</Text>
+          <textarea
+            value={observation}
+            onChange={(e) => setObservation(e.target.value)}
+            placeholder="Adicionar observação..."
+            className="w-full min-h-[80px] p-3 border border-border-100 rounded-lg text-sm text-text-700 placeholder:text-text-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+          />
+          <FileAttachment
+            files={attachedFiles}
+            onFilesAdd={handleFilesAdd}
+            onFileRemove={handleFileRemove}
+            multiple
+          />
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              size="small"
+              onClick={handleSaveObservation}
+              disabled={!observation.trim() && attachedFiles.length === 0}
+            >
+              Salvar
+            </Button>
+          </div>
+          {data.observation && (
+            <div className="p-3 bg-background-50 rounded-lg">
+              <Text className="text-xs text-text-500">
+                Observação anterior:
+              </Text>
+              <Text className="text-sm text-text-700">{data.observation}</Text>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // State: Closed (default)
+    return (
+      <div className="flex items-center justify-between">
+        <Text className="text-sm font-medium text-text-700">Observação</Text>
+        <Button type="button" size="small" onClick={handleOpenObservation}>
+          Incluir
+        </Button>
+      </div>
+    );
+  };
 
   return (
     <Modal
@@ -239,39 +385,7 @@ const CorrectActivityModal = ({
         </div>
 
         {/* Observation Section */}
-        {!isViewOnly && (
-          <div className="space-y-2">
-            <Text className="text-sm font-medium text-text-700">
-              Observações
-            </Text>
-            <div className="flex gap-2">
-              <textarea
-                value={observation}
-                onChange={(e) => setObservation(e.target.value)}
-                placeholder="Adicionar observação..."
-                className="flex-1 min-h-[80px] p-3 border border-border-100 rounded-lg text-sm text-text-700 placeholder:text-text-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-              <Button
-                variant="outline"
-                size="small"
-                onClick={handleIncludeObservation}
-                className="self-end"
-              >
-                Incluir
-              </Button>
-            </div>
-            {data.observation && (
-              <div className="p-3 bg-background-50 rounded-lg">
-                <Text className="text-xs text-text-500">
-                  Observação anterior:
-                </Text>
-                <Text className="text-sm text-text-700">
-                  {data.observation}
-                </Text>
-              </div>
-            )}
-          </div>
-        )}
+        {renderObservationSection()}
 
         {/* Questions List */}
         <div className="space-y-2">
