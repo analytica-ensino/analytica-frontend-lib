@@ -189,7 +189,7 @@ describe('CorrectActivityModal', () => {
       render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
 
       expect(
-        screen.queryByPlaceholderText('Adicionar observação...')
+        screen.queryByPlaceholderText('Escreva uma observação para o estudante')
       ).not.toBeInTheDocument();
     });
   });
@@ -202,7 +202,7 @@ describe('CorrectActivityModal', () => {
       fireEvent.click(incluirButton);
 
       expect(
-        screen.getByPlaceholderText('Adicionar observação...')
+        screen.getByPlaceholderText('Escreva uma observação para o estudante')
       ).toBeInTheDocument();
       expect(screen.getByText('Salvar')).toBeInTheDocument();
     });
@@ -253,7 +253,9 @@ describe('CorrectActivityModal', () => {
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
 
-      const textarea = screen.getByPlaceholderText('Adicionar observação...');
+      const textarea = screen.getByPlaceholderText(
+        'Escreva uma observação para o estudante'
+      );
       fireEvent.change(textarea, { target: { value: 'Nova observação' } });
 
       const salvarButton = screen.getByText('Salvar');
@@ -275,7 +277,9 @@ describe('CorrectActivityModal', () => {
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
 
-      const textarea = screen.getByPlaceholderText('Adicionar observação...');
+      const textarea = screen.getByPlaceholderText(
+        'Escreva uma observação para o estudante'
+      );
       fireEvent.change(textarea, { target: { value: 'Nova observação' } });
 
       const salvarButton = screen.getByText('Salvar');
@@ -292,7 +296,9 @@ describe('CorrectActivityModal', () => {
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
 
-      const textarea = screen.getByPlaceholderText('Adicionar observação...');
+      const textarea = screen.getByPlaceholderText(
+        'Escreva uma observação para o estudante'
+      );
       fireEvent.change(textarea, { target: { value: 'Nova observação' } });
 
       const salvarButton = screen.getByText('Salvar');
@@ -302,7 +308,7 @@ describe('CorrectActivityModal', () => {
       fireEvent.click(editarButton);
 
       expect(
-        screen.getByPlaceholderText('Adicionar observação...')
+        screen.getByPlaceholderText('Escreva uma observação para o estudante')
       ).toBeInTheDocument();
       expect(screen.getByDisplayValue('Nova observação')).toBeInTheDocument();
     });
@@ -339,7 +345,9 @@ describe('CorrectActivityModal', () => {
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
 
-      const textarea = screen.getByPlaceholderText('Adicionar observação...');
+      const textarea = screen.getByPlaceholderText(
+        'Escreva uma observação para o estudante'
+      );
       fireEvent.change(textarea, { target: { value: '   ' } });
 
       const salvarButton = screen.getByText('Salvar');
@@ -649,7 +657,9 @@ describe('CorrectActivityModal', () => {
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
 
-      const textarea = screen.getByPlaceholderText('Adicionar observação...');
+      const textarea = screen.getByPlaceholderText(
+        'Escreva uma observação para o estudante'
+      );
       fireEvent.change(textarea, { target: { value: 'Nova observação' } });
 
       const salvarButton = screen.getByText('Salvar');
@@ -733,7 +743,9 @@ describe('CorrectActivityModal', () => {
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
 
-      const textarea = screen.getByPlaceholderText('Adicionar observação...');
+      const textarea = screen.getByPlaceholderText(
+        'Escreva uma observação para o estudante'
+      );
       fireEvent.change(textarea, {
         target: { value: 'Observação com arquivo' },
       });
@@ -771,7 +783,9 @@ describe('CorrectActivityModal', () => {
       Object.defineProperty(fileInput, 'files', { value: [file] });
       fireEvent.change(fileInput);
 
-      const textarea = screen.getByPlaceholderText('Adicionar observação...');
+      const textarea = screen.getByPlaceholderText(
+        'Escreva uma observação para o estudante'
+      );
       fireEvent.change(textarea, { target: { value: 'Obs' } });
 
       const salvarButton = screen.getByText('Salvar');

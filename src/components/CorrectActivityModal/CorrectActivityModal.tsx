@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { PencilSimple } from 'phosphor-react';
+import { useState, useRef } from 'react';
+import { PencilSimple, Paperclip } from 'phosphor-react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -112,6 +112,7 @@ const CorrectActivityModal = ({
   const [savedObservation, setSavedObservation] = useState('');
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [savedFiles, setSavedFiles] = useState<AttachedFile[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   /**
    * Handle opening observation section
@@ -221,16 +222,47 @@ const CorrectActivityModal = ({
           <textarea
             value={observation}
             onChange={(e) => setObservation(e.target.value)}
-            placeholder="Adicionar observação..."
+            placeholder="Escreva uma observação para o estudante"
             className="w-full min-h-[80px] p-3 border border-border-100 rounded-lg text-sm text-text-700 placeholder:text-text-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
-          <FileAttachment
-            files={attachedFiles}
-            onFilesAdd={handleFilesAdd}
-            onFileRemove={handleFileRemove}
+          {/* Hidden file input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            onChange={(e) => {
+              const selectedFiles = e.target.files;
+              if (selectedFiles && selectedFiles.length > 0) {
+                handleFilesAdd(Array.from(selectedFiles));
+              }
+              if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+              }
+            }}
             multiple
+            aria-label="Selecionar arquivos"
           />
-          <div className="flex justify-end">
+          {/* Attached files display */}
+          {attachedFiles.length > 0 && (
+            <FileAttachment
+              files={attachedFiles}
+              onFilesAdd={handleFilesAdd}
+              onFileRemove={handleFileRemove}
+              hideButton
+            />
+          )}
+          {/* Buttons row: Anexar left, Salvar right */}
+          <div className="flex justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              size="small"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2"
+            >
+              <Paperclip size={18} />
+              Anexar
+            </Button>
             <Button
               type="button"
               size="small"
