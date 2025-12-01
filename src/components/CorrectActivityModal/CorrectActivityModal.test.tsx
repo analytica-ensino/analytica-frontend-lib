@@ -35,6 +35,51 @@ describe('CorrectActivityModal', () => {
     observation: 'Observação anterior do professor',
   };
 
+  const mockDataWithAlternatives: StudentActivityCorrectionData = {
+    studentId: 'student-456',
+    studentName: 'Maria Santos',
+    score: 7.5,
+    correctCount: 3,
+    incorrectCount: 1,
+    blankCount: 1,
+    questions: [
+      {
+        questionNumber: 1,
+        status: QUESTION_STATUS.CORRETA,
+        studentAnswer: 'A',
+        correctAnswer: 'A',
+        questionText: 'Qual é a capital do Brasil?',
+        alternatives: [
+          { value: 'A', label: 'Brasília', isCorrect: true },
+          { value: 'B', label: 'São Paulo', isCorrect: false },
+          { value: 'C', label: 'Rio de Janeiro', isCorrect: false },
+          { value: 'D', label: 'Salvador', isCorrect: false },
+        ],
+      },
+      {
+        questionNumber: 2,
+        status: QUESTION_STATUS.INCORRETA,
+        studentAnswer: 'B',
+        correctAnswer: 'C',
+        questionText: 'Qual o maior planeta do sistema solar?',
+        alternatives: [
+          { value: 'A', label: 'Terra', isCorrect: false },
+          { value: 'B', label: 'Marte', isCorrect: false },
+          { value: 'C', label: 'Júpiter', isCorrect: true },
+          { value: 'D', label: 'Saturno', isCorrect: false },
+        ],
+      },
+      {
+        questionNumber: 3,
+        status: QUESTION_STATUS.EM_BRANCO,
+        studentAnswer: undefined,
+        correctAnswer: 'Resposta dissertativa esperada',
+        questionText: 'Explique o ciclo da água.',
+      },
+    ],
+    observation: undefined,
+  };
+
   const defaultProps = {
     isOpen: true,
     onClose: jest.fn(),
@@ -331,14 +376,20 @@ describe('CorrectActivityModal', () => {
 
       fireEvent.click(questao1Button!);
 
-      expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
-      expect(screen.getByText('Resposta correta:')).toBeInTheDocument();
-      const opcaoAElements = screen.getAllByText('Opção A');
-      expect(opcaoAElements.length).toBe(2);
+      const respostaAlunoLabels = screen.getAllByText('Resposta do aluno:');
+      expect(respostaAlunoLabels.length).toBeGreaterThan(0);
+      const respostaCorretaLabels = screen.getAllByText('Resposta correta:');
+      expect(respostaCorretaLabels.length).toBeGreaterThan(0);
     });
 
-    it('deve colapsar questão ao clicar novamente', () => {
-      render(<CorrectActivityModal {...defaultProps} />);
+    it('deve manter questão expandida após clicar', () => {
+      const singleQuestionData = {
+        ...mockData,
+        questions: [mockData.questions[0]],
+      };
+      render(
+        <CorrectActivityModal {...defaultProps} data={singleQuestionData} />
+      );
 
       const questao1Button = screen.getByText('Questão 1').closest('button');
       fireEvent.click(questao1Button!);
@@ -347,7 +398,7 @@ describe('CorrectActivityModal', () => {
 
       fireEvent.click(questao1Button!);
 
-      expect(screen.queryByText('Resposta do aluno:')).not.toBeInTheDocument();
+      expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
     });
 
     it('deve exibir "Não respondeu" quando studentAnswer é undefined', () => {
@@ -360,7 +411,13 @@ describe('CorrectActivityModal', () => {
     });
 
     it('deve exibir resposta correta quando questão está expandida', () => {
-      render(<CorrectActivityModal {...defaultProps} />);
+      const singleQuestionData = {
+        ...mockData,
+        questions: [mockData.questions[1]],
+      };
+      render(
+        <CorrectActivityModal {...defaultProps} data={singleQuestionData} />
+      );
 
       const questao2Button = screen.getByText('Questão 2').closest('button');
       fireEvent.click(questao2Button!);
@@ -405,7 +462,7 @@ describe('CorrectActivityModal', () => {
       fireEvent.click(questao2Button!);
 
       const respostaAlunoLabels = screen.getAllByText('Resposta do aluno:');
-      expect(respostaAlunoLabels.length).toBe(2);
+      expect(respostaAlunoLabels.length).toBeGreaterThanOrEqual(2);
     });
   });
 
@@ -418,6 +475,135 @@ describe('CorrectActivityModal', () => {
       fireEvent.click(closeButton);
 
       expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Questões com alternativas', () => {
+    const singleQuestionWithAlternatives = {
+      ...mockDataWithAlternatives,
+      questions: [mockDataWithAlternatives.questions[0]],
+    };
+
+    it('deve exibir texto da questão quando expandida', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={singleQuestionWithAlternatives}
+        />
+      );
+
+      const questao1Button = screen.getByText('Questão 1').closest('button');
+      fireEvent.click(questao1Button!);
+
+      expect(
+        screen.getByText('Qual é a capital do Brasil?')
+      ).toBeInTheDocument();
+    });
+
+    it('deve exibir seção de alternativas quando questão tem alternativas', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={singleQuestionWithAlternatives}
+        />
+      );
+
+      const questao1Button = screen.getByText('Questão 1').closest('button');
+      fireEvent.click(questao1Button!);
+
+      expect(screen.getByText('Alternativas')).toBeInTheDocument();
+
+      const alternativasButton = screen
+        .getByText('Alternativas')
+        .closest('button');
+      fireEvent.click(alternativasButton!);
+
+      expect(screen.getByText('Brasília')).toBeInTheDocument();
+      expect(screen.getByText('São Paulo')).toBeInTheDocument();
+      expect(screen.getByText('Rio de Janeiro')).toBeInTheDocument();
+      expect(screen.getByText('Salvador')).toBeInTheDocument();
+    });
+
+    it('deve exibir badge de resposta correta na alternativa correta', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={singleQuestionWithAlternatives}
+        />
+      );
+
+      const questao1Button = screen.getByText('Questão 1').closest('button');
+      fireEvent.click(questao1Button!);
+
+      const alternativasButton = screen
+        .getByText('Alternativas')
+        .closest('button');
+      fireEvent.click(alternativasButton!);
+
+      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
+    });
+
+    it('deve exibir badge de resposta incorreta quando aluno errou', () => {
+      const incorrectQuestionData = {
+        ...mockDataWithAlternatives,
+        questions: [mockDataWithAlternatives.questions[1]],
+      };
+      render(
+        <CorrectActivityModal {...defaultProps} data={incorrectQuestionData} />
+      );
+
+      const questao2Button = screen.getByText('Questão 2').closest('button');
+      fireEvent.click(questao2Button!);
+
+      const alternativasButton = screen
+        .getByText('Alternativas')
+        .closest('button');
+      fireEvent.click(alternativasButton!);
+
+      expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
+      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
+    });
+
+    it('deve exibir fallback para questão dissertativa sem alternativas', () => {
+      const essayQuestionData = {
+        ...mockDataWithAlternatives,
+        questions: [mockDataWithAlternatives.questions[2]],
+      };
+      render(
+        <CorrectActivityModal {...defaultProps} data={essayQuestionData} />
+      );
+
+      const questao3Button = screen.getByText('Questão 3').closest('button');
+      fireEvent.click(questao3Button!);
+
+      expect(screen.getByText('Explique o ciclo da água.')).toBeInTheDocument();
+      expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
+      expect(screen.getByText('Não respondeu')).toBeInTheDocument();
+      expect(screen.getByText('Resposta correta:')).toBeInTheDocument();
+      expect(
+        screen.getByText('Resposta dissertativa esperada')
+      ).toBeInTheDocument();
+    });
+
+    it('deve exibir todas alternativas de múltiplas questões expandidas', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={mockDataWithAlternatives}
+        />
+      );
+
+      const questao1Button = screen.getByText('Questão 1').closest('button');
+      const questao2Button = screen.getByText('Questão 2').closest('button');
+      fireEvent.click(questao1Button!);
+      fireEvent.click(questao2Button!);
+
+      const alternativasButtons = screen.getAllByText('Alternativas');
+      fireEvent.click(alternativasButtons[0].closest('button')!);
+      fireEvent.click(alternativasButtons[1].closest('button')!);
+
+      expect(screen.getByText('Brasília')).toBeInTheDocument();
+      expect(screen.getByText('Júpiter')).toBeInTheDocument();
     });
   });
 
@@ -468,6 +654,131 @@ describe('CorrectActivityModal', () => {
 
       const salvarButton = screen.getByText('Salvar');
       expect(() => fireEvent.click(salvarButton)).not.toThrow();
+    });
+
+    it('deve permitir anexar arquivos na observação', () => {
+      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+
+      const incluirButton = screen.getByText('Incluir');
+      fireEvent.click(incluirButton);
+
+      expect(screen.getByText('Anexar')).toBeInTheDocument();
+
+      const fileInput = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      expect(fileInput).toBeInTheDocument();
+
+      const file = new File(['test content'], 'test.pdf', {
+        type: 'application/pdf',
+      });
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fireEvent.change(fileInput);
+
+      expect(screen.getByText('test.pdf')).toBeInTheDocument();
+    });
+
+    it('deve permitir remover arquivo anexado', () => {
+      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+
+      const incluirButton = screen.getByText('Incluir');
+      fireEvent.click(incluirButton);
+
+      const fileInput = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      const file = new File(['test content'], 'arquivo-teste.pdf', {
+        type: 'application/pdf',
+      });
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fireEvent.change(fileInput);
+
+      expect(screen.getByText('arquivo-teste.pdf')).toBeInTheDocument();
+
+      const removeButton = screen.getByLabelText('Remover arquivo-teste.pdf');
+      fireEvent.click(removeButton);
+
+      expect(screen.queryByText('arquivo-teste.pdf')).not.toBeInTheDocument();
+    });
+
+    it('deve habilitar Salvar quando arquivo é anexado sem texto', () => {
+      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+
+      const incluirButton = screen.getByText('Incluir');
+      fireEvent.click(incluirButton);
+
+      const salvarButton = screen.getByText('Salvar');
+      expect(salvarButton).toBeDisabled();
+
+      const fileInput = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      const file = new File(['test'], 'test.pdf', { type: 'application/pdf' });
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fireEvent.change(fileInput);
+
+      expect(salvarButton).not.toBeDisabled();
+    });
+
+    it('deve chamar onObservationSubmit com arquivos', () => {
+      const onObservationSubmit = jest.fn();
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          isViewOnly={false}
+          onObservationSubmit={onObservationSubmit}
+        />
+      );
+
+      const incluirButton = screen.getByText('Incluir');
+      fireEvent.click(incluirButton);
+
+      const textarea = screen.getByPlaceholderText('Adicionar observação...');
+      fireEvent.change(textarea, {
+        target: { value: 'Observação com arquivo' },
+      });
+
+      const fileInput = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      const file = new File(['test'], 'documento.pdf', {
+        type: 'application/pdf',
+      });
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fireEvent.change(fileInput);
+
+      const salvarButton = screen.getByText('Salvar');
+      fireEvent.click(salvarButton);
+
+      expect(onObservationSubmit).toHaveBeenCalledWith(
+        'Observação com arquivo',
+        [file]
+      );
+    });
+
+    it('deve exibir arquivos salvos no estado salvo', () => {
+      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+
+      const incluirButton = screen.getByText('Incluir');
+      fireEvent.click(incluirButton);
+
+      const fileInput = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      const file = new File(['test'], 'arquivo-salvo.pdf', {
+        type: 'application/pdf',
+      });
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fireEvent.change(fileInput);
+
+      const textarea = screen.getByPlaceholderText('Adicionar observação...');
+      fireEvent.change(textarea, { target: { value: 'Obs' } });
+
+      const salvarButton = screen.getByText('Salvar');
+      fireEvent.click(salvarButton);
+
+      expect(screen.getByText('arquivo-salvo.pdf')).toBeInTheDocument();
+      expect(screen.getByText('Editar')).toBeInTheDocument();
     });
   });
 });

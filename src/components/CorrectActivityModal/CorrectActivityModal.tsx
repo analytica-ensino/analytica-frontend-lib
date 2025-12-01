@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { CaretDown, CaretUp, PencilSimple } from 'phosphor-react';
+import { PencilSimple } from 'phosphor-react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
+import { AlternativesList } from '../Alternative/Alternative';
+import { CardAccordation, AccordionGroup } from '../Accordation';
 import FileAttachment, {
   generateFileId,
 } from '../FileAttachment/FileAttachment';
@@ -11,7 +13,6 @@ import type { AttachedFile } from '../FileAttachment/FileAttachment';
 import { cn } from '../../utils/utils';
 import {
   type StudentActivityCorrectionData,
-  type StudentQuestion,
   getQuestionStatusBadgeConfig,
 } from '../../types/studentActivityCorrection';
 
@@ -48,8 +49,8 @@ interface StatCardProps {
 const StatCard = ({ label, value, variant }: StatCardProps) => {
   const variantStyles = {
     score: {
-      bg: 'bg-error-100',
-      text: 'text-error-700',
+      bg: 'bg-warning-background',
+      text: 'text-warning-600',
     },
     correct: {
       bg: 'bg-success-200',
@@ -74,71 +75,6 @@ const StatCard = ({ label, value, variant }: StatCardProps) => {
         {label}
       </Text>
       <Text className={cn('text-2xl font-bold', styles.text)}>{value}</Text>
-    </div>
-  );
-};
-
-/**
- * Props for the QuestionRow component
- */
-interface QuestionRowProps {
-  question: StudentQuestion;
-  isExpanded: boolean;
-  onToggle: () => void;
-}
-
-/**
- * Question row component for displaying question details
- * @param props - Component props
- * @returns JSX element
- */
-const QuestionRow = ({ question, isExpanded, onToggle }: QuestionRowProps) => {
-  const badgeConfig = getQuestionStatusBadgeConfig(question.status);
-
-  return (
-    <div className="border border-border-100 rounded-lg overflow-hidden">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-background-50 transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <Text className="text-sm font-medium text-text-950">
-            Questão {question.questionNumber}
-          </Text>
-          <Badge
-            className={cn(
-              'text-xs px-2 py-1',
-              badgeConfig.bgColor,
-              badgeConfig.textColor
-            )}
-          >
-            {badgeConfig.label}
-          </Badge>
-        </div>
-        {isExpanded ? (
-          <CaretUp size={16} className="text-text-500" />
-        ) : (
-          <CaretDown size={16} className="text-text-500" />
-        )}
-      </button>
-
-      {isExpanded && (
-        <div className="px-4 pb-4 space-y-2 border-t border-border-100 pt-3">
-          <div className="flex gap-2">
-            <Text className="text-xs text-text-500">Resposta do aluno:</Text>
-            <Text className="text-xs text-text-700">
-              {question.studentAnswer || 'Não respondeu'}
-            </Text>
-          </div>
-          <div className="flex gap-2">
-            <Text className="text-xs text-text-500">Resposta correta:</Text>
-            <Text className="text-xs text-success-700">
-              {question.correctAnswer || '-'}
-            </Text>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -171,30 +107,11 @@ const CorrectActivityModal = ({
   onObservationSubmit,
 }: CorrectActivityModalProps) => {
   const [observation, setObservation] = useState('');
-  const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(
-    new Set()
-  );
   const [isObservationExpanded, setIsObservationExpanded] = useState(false);
   const [isObservationSaved, setIsObservationSaved] = useState(false);
   const [savedObservation, setSavedObservation] = useState('');
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [savedFiles, setSavedFiles] = useState<AttachedFile[]>([]);
-
-  /**
-   * Toggle question expansion
-   * @param questionNumber - Question number to toggle
-   */
-  const toggleQuestion = (questionNumber: number) => {
-    setExpandedQuestions((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(questionNumber)) {
-        newSet.delete(questionNumber);
-      } else {
-        newSet.add(questionNumber);
-      }
-      return newSet;
-    });
-  };
 
   /**
    * Handle opening observation section
@@ -390,16 +307,89 @@ const CorrectActivityModal = ({
         {/* Questions List */}
         <div className="space-y-2">
           <Text className="text-sm font-medium text-text-700">Questões</Text>
-          <div className="space-y-2">
-            {data.questions.map((question) => (
-              <QuestionRow
-                key={question.questionNumber}
-                question={question}
-                isExpanded={expandedQuestions.has(question.questionNumber)}
-                onToggle={() => toggleQuestion(question.questionNumber)}
-              />
-            ))}
-          </div>
+          <AccordionGroup type="multiple" className="space-y-2">
+            {data.questions.map((question) => {
+              const badgeConfig = getQuestionStatusBadgeConfig(question.status);
+
+              return (
+                <CardAccordation
+                  key={question.questionNumber}
+                  value={`question-${question.questionNumber}`}
+                  trigger={
+                    <div className="flex items-center gap-3">
+                      <Text className="text-sm font-medium text-text-950">
+                        Questão {question.questionNumber}
+                      </Text>
+                      <Badge
+                        className={cn(
+                          'text-xs px-2 py-1',
+                          badgeConfig.bgColor,
+                          badgeConfig.textColor
+                        )}
+                      >
+                        {badgeConfig.label}
+                      </Badge>
+                    </div>
+                  }
+                >
+                  <div className="space-y-4">
+                    {/* Question text */}
+                    {question.questionText && (
+                      <div className="text-sm text-text-700">
+                        {question.questionText}
+                      </div>
+                    )}
+
+                    {/* Alternatives sub-accordion */}
+                    {question.alternatives &&
+                      question.alternatives.length > 0 && (
+                        <CardAccordation
+                          value={`alternatives-${question.questionNumber}`}
+                          trigger={
+                            <Text className="text-sm font-medium text-text-700">
+                              Alternativas
+                            </Text>
+                          }
+                        >
+                          <AlternativesList
+                            mode="readonly"
+                            selectedValue={question.studentAnswer}
+                            alternatives={question.alternatives.map((alt) => ({
+                              value: alt.value,
+                              label: alt.label,
+                              status: alt.isCorrect ? 'correct' : undefined,
+                            }))}
+                          />
+                        </CardAccordation>
+                      )}
+
+                    {/* Fallback for essay questions */}
+                    {(!question.alternatives ||
+                      question.alternatives.length === 0) && (
+                      <>
+                        <div className="flex gap-2">
+                          <Text className="text-xs text-text-500">
+                            Resposta do aluno:
+                          </Text>
+                          <Text className="text-xs text-text-700">
+                            {question.studentAnswer || 'Não respondeu'}
+                          </Text>
+                        </div>
+                        <div className="flex gap-2">
+                          <Text className="text-xs text-text-500">
+                            Resposta correta:
+                          </Text>
+                          <Text className="text-xs text-success-700">
+                            {question.correctAnswer || '-'}
+                          </Text>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </CardAccordation>
+              );
+            })}
+          </AccordionGroup>
         </div>
       </div>
     </Modal>

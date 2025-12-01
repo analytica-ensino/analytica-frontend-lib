@@ -11,6 +11,18 @@ export type QuestionStatus =
   (typeof QUESTION_STATUS)[keyof typeof QUESTION_STATUS];
 
 /**
+ * Represents an alternative for a question
+ */
+export interface QuestionAlternative {
+  /** Alternative value (e.g., "A", "B", "C") */
+  value: string;
+  /** Alternative text content */
+  label: string;
+  /** Whether this is the correct answer */
+  isCorrect: boolean;
+}
+
+/**
  * Student question data interface
  */
 export interface StudentQuestion {
@@ -18,6 +30,10 @@ export interface StudentQuestion {
   status: QuestionStatus;
   studentAnswer?: string;
   correctAnswer?: string;
+  /** Question text content */
+  questionText?: string;
+  /** List of alternatives (for multiple choice questions) */
+  alternatives?: QuestionAlternative[];
 }
 
 /**
@@ -46,13 +62,13 @@ export const getQuestionStatusBadgeConfig = (status: QuestionStatus) => {
   > = {
     [QUESTION_STATUS.CORRETA]: {
       label: 'Correta',
-      bgColor: 'bg-success-200',
-      textColor: 'text-success-700',
+      bgColor: 'bg-success-background',
+      textColor: 'text-success-800',
     },
     [QUESTION_STATUS.INCORRETA]: {
       label: 'Incorreta',
-      bgColor: 'bg-error-100',
-      textColor: 'text-error-700',
+      bgColor: 'bg-error-background',
+      textColor: 'text-error-800',
     },
     [QUESTION_STATUS.EM_BRANCO]: {
       label: 'Em branco',
