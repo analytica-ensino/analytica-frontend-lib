@@ -59,6 +59,17 @@ export { default as ProgressCircle } from './components/ProgressCircle/ProgressC
 export { default as Stepper } from './components/Stepper/Stepper';
 export { default as Calendar } from './components/Calendar/Calendar';
 export { default as Modal } from './components/Modal/Modal';
+export { default as CorrectActivityModal } from './components/CorrectActivityModal/CorrectActivityModal';
+export type { CorrectActivityModalProps } from './components/CorrectActivityModal/CorrectActivityModal';
+export {
+  QUESTION_STATUS as CORRECTION_QUESTION_STATUS,
+  getQuestionStatusBadgeConfig,
+} from './types/studentActivityCorrection';
+export type {
+  QuestionStatus as CorrectionQuestionStatus,
+  StudentQuestion,
+  StudentActivityCorrectionData,
+} from './types/studentActivityCorrection';
 export { AlertDialog } from './components/AlertDialog/AlertDialog';
 export { default as LoadingModal } from './components/LoadingModal/loadingModal';
 export { default as NotificationCard } from './components/NotificationCard/NotificationCard';

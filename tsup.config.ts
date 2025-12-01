@@ -38,6 +38,8 @@ export default defineConfig({
     'Menu/index': 'src/components/Menu/Menu.tsx',
     'Modal/index': 'src/components/Modal/Modal.tsx',
     'Modal/utils/videoUtils/index': 'src/components/Modal/utils/videoUtils.ts',
+    'CorrectActivityModal/index':
+      'src/components/CorrectActivityModal/CorrectActivityModal.tsx',
     'Card/index': 'src/components/Card/Card.tsx',
     'StatisticsCard/index': 'src/components/StatisticsCard/StatisticsCard.tsx',
     'Calendar/index': 'src/components/Calendar/Calendar.tsx',
