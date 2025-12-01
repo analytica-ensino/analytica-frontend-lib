@@ -354,9 +354,10 @@ const CorrectActivityModal = ({
                 <CardAccordation
                   key={question.questionNumber}
                   value={`question-${question.questionNumber}`}
+                  className="bg-white rounded-xl"
                   trigger={
-                    <div className="flex items-center gap-3">
-                      <Text className="text-sm font-medium text-text-950">
+                    <div className="flex items-center justify-between w-full py-3 pr-2">
+                      <Text className="text-base font-bold text-text-950">
                         Questão {question.questionNumber}
                       </Text>
                       <Badge
@@ -384,10 +385,13 @@ const CorrectActivityModal = ({
                       question.alternatives.length > 0 && (
                         <CardAccordation
                           value={`alternatives-${question.questionNumber}`}
+                          className="border border-border-100 rounded-lg"
                           trigger={
-                            <Text className="text-sm font-medium text-text-700">
-                              Alternativas
-                            </Text>
+                            <div className="py-3 pr-2 w-full">
+                              <Text className="text-sm font-bold text-text-950">
+                                Alternativas
+                              </Text>
+                            </div>
                           }
                         >
                           <AlternativesList
