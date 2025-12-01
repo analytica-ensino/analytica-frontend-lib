@@ -225,7 +225,7 @@ const CorrectActivityModal = ({
     if (isObservationSaved) {
       return (
         <div className="bg-white border border-border-100 rounded-lg p-4 space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <Text className="text-sm font-bold text-text-950">Observação</Text>
             <div className="flex items-center gap-3">
               {savedFiles.length > 0 && (
@@ -288,7 +288,7 @@ const CorrectActivityModal = ({
             aria-label="Selecionar arquivo"
           />
           {/* Buttons row: File indicator or Anexar button left, Salvar right */}
-          <div className="flex justify-between">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
             {attachedFiles.length > 0 ? (
               <div className="flex items-center justify-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px]">
                 <Paperclip size={18} className="text-text-800 flex-shrink-0" />
@@ -339,7 +339,7 @@ const CorrectActivityModal = ({
 
     // State: Closed (default)
     return (
-      <div className="bg-white border border-border-100 rounded-lg p-4 flex items-center justify-between">
+      <div className="bg-white border border-border-100 rounded-lg p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         <Text className="text-sm font-bold text-text-950">Observação</Text>
         <Button type="button" size="small" onClick={handleOpenObservation}>
           Incluir
