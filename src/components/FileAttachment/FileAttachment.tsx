@@ -54,7 +54,7 @@ const formatFileSize = (bytes: number): string => {
  * @returns Unique string identifier
  */
 const generateFileId = (): string => {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return crypto.randomUUID();
 };
 
 /**

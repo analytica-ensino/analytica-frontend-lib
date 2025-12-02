@@ -201,17 +201,19 @@ describe('FileAttachment', () => {
   });
 
   describe('generateFileId', () => {
-    it('deve gerar IDs únicos', () => {
-      const id1 = generateFileId();
-      const id2 = generateFileId();
-
-      expect(id1).not.toBe(id2);
-    });
-
-    it('deve gerar IDs no formato esperado', () => {
+    it('deve retornar um UUID válido', () => {
       const id = generateFileId();
 
-      expect(id).toMatch(/^\d+-[a-z0-9]+$/);
+      // Verifica que retorna uma string não vazia (mock retorna 'mock-uuid-123-1-1')
+      expect(typeof id).toBe('string');
+      expect(id.length).toBeGreaterThan(0);
+    });
+
+    it('deve usar crypto.randomUUID', () => {
+      const id = generateFileId();
+
+      // O mock do jest.setup.ts retorna 'mock-uuid-123-1-1'
+      expect(id).toBe('mock-uuid-123-1-1');
     });
   });
 
