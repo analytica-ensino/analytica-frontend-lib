@@ -416,7 +416,7 @@ const CorrectActivityModal = ({
                     </div>
                   }
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-4 pt-2">
                     {/* Question text */}
                     {question.questionText && (
                       <div className="text-sm text-text-700">
@@ -438,15 +438,19 @@ const CorrectActivityModal = ({
                             </div>
                           }
                         >
-                          <AlternativesList
-                            mode="readonly"
-                            selectedValue={question.studentAnswer}
-                            alternatives={question.alternatives.map((alt) => ({
-                              value: alt.value,
-                              label: alt.label,
-                              status: alt.isCorrect ? 'correct' : undefined,
-                            }))}
-                          />
+                          <div className="pt-2">
+                            <AlternativesList
+                              mode="readonly"
+                              selectedValue={question.studentAnswer}
+                              alternatives={question.alternatives.map(
+                                (alt) => ({
+                                  value: alt.value,
+                                  label: alt.label,
+                                  status: alt.isCorrect ? 'correct' : undefined,
+                                })
+                              )}
+                            />
+                          </div>
                         </CardAccordation>
                       )}
 
