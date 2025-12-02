@@ -225,7 +225,7 @@ const CorrectActivityModal = ({
   if (!data) return null;
 
   const title = isViewOnly ? 'Detalhes da atividade' : 'Corrigir atividade';
-  const formattedScore = data.score !== null ? data.score.toFixed(1) : '-';
+  const formattedScore = data.score === null ? '-' : data.score.toFixed(1);
 
   /**
    * Render observation section based on current state
