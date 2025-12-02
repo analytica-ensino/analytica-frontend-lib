@@ -224,7 +224,7 @@ const CorrectActivityModal = ({
     // State: Saved
     if (isObservationSaved) {
       return (
-        <div className="bg-white border border-border-100 rounded-lg p-4 space-y-2">
+        <div className="bg-background border border-border-100 rounded-lg p-4 space-y-2">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <Text className="text-sm font-bold text-text-950">Observação</Text>
             <div className="flex items-center gap-3">
@@ -263,7 +263,7 @@ const CorrectActivityModal = ({
     // State: Expanded
     if (isObservationExpanded) {
       return (
-        <div className="bg-white border border-border-100 rounded-lg p-4 space-y-3">
+        <div className="bg-background border border-border-100 rounded-lg p-4 space-y-3">
           <Text className="text-sm font-bold text-text-950">Observação</Text>
           <textarea
             value={observation}
@@ -339,7 +339,7 @@ const CorrectActivityModal = ({
 
     // State: Closed (default)
     return (
-      <div className="bg-white border border-border-100 rounded-lg p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+      <div className="bg-background border border-border-100 rounded-lg p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         <Text className="text-sm font-bold text-text-950">Observação</Text>
         <Button type="button" size="small" onClick={handleOpenObservation}>
           Incluir
@@ -398,7 +398,7 @@ const CorrectActivityModal = ({
                 <CardAccordation
                   key={question.questionNumber}
                   value={`question-${question.questionNumber}`}
-                  className="bg-white rounded-xl"
+                  className="bg-background rounded-xl"
                   trigger={
                     <div className="flex items-center justify-between w-full py-3 pr-2">
                       <Text className="text-base font-bold text-text-950">
