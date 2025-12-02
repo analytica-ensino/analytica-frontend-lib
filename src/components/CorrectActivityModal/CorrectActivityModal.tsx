@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   PencilSimple,
   Paperclip,
@@ -157,6 +157,20 @@ const CorrectActivityModal = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /**
+   * Reset state when modal opens or student changes
+   */
+  useEffect(() => {
+    if (isOpen) {
+      setObservation('');
+      setIsObservationExpanded(false);
+      setIsObservationSaved(false);
+      setSavedObservation('');
+      setAttachedFiles([]);
+      setSavedFiles([]);
+    }
+  }, [isOpen, data?.studentId]);
+
+  /**
    * Handle opening observation section
    */
   const handleOpenObservation = () => {
@@ -164,15 +178,14 @@ const CorrectActivityModal = ({
   };
 
   /**
-   * Handle adding files
+   * Handle adding files (single file mode - replaces existing file)
    * @param files - Files to add
    */
   const handleFilesAdd = (files: File[]) => {
-    const newAttachedFiles = files.map((file) => ({
-      file,
-      id: generateFileId(),
-    }));
-    setAttachedFiles((prev) => [...prev, ...newAttachedFiles]);
+    const newFile = files[0];
+    if (newFile) {
+      setAttachedFiles([{ file: newFile, id: generateFileId() }]);
+    }
   };
 
   /**
