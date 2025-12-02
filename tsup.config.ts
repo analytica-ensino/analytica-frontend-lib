@@ -94,6 +94,8 @@ export default defineConfig({
     'AlertDialog/index': 'src/components/AlertDialog/AlertDialog.tsx',
     'ActivityFilters/index':
       'src/components/ActivityFilters/ActivityFilters.tsx',
+    'ActivityDetails/index':
+      'src/components/ActivityDetails/ActivityDetails.tsx',
     // Toast utils
     'Toast/Toaster/index': 'src/components/Toast/utils/Toaster.tsx',
     'Toast/ToastStore/index': 'src/components/Toast/utils/ToastStore.ts',
