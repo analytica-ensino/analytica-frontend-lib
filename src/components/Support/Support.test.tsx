@@ -453,13 +453,46 @@ describe('Support', () => {
         },
       });
 
+      const user = userEvent.setup();
+
       render(<Support {...defaultProps} />);
 
       fireEvent.click(screen.getByText('Histórico'));
 
+      // Verificar que ambos os tickets aparecem inicialmente
       await waitFor(() => {
         expect(screen.getByText('Problema técnico')).toBeInTheDocument();
         expect(screen.getByText('Problema de acesso')).toBeInTheDocument();
+      });
+
+      // Encontrar o select de Tipo pelo label e clicar no trigger
+      const tipoLabel = screen.getByText('Tipo');
+      const tipoSelectContainer = tipoLabel.closest('div')?.parentElement;
+      const tipoTrigger = tipoSelectContainer?.querySelector('button');
+
+      if (tipoTrigger) {
+        await user.click(tipoTrigger);
+      }
+
+      // Aguardar o dropdown abrir e clicar na opção "Técnico"
+      await waitFor(() => {
+        // Procurar pelo texto "Técnico" que aparece no dropdown (não o dos badges)
+        const options = screen.getAllByText(/Técnico/);
+        // A opção do dropdown é a que está dentro de um container absoluto
+        const dropdownOption = options.find(
+          (el) => el.closest('[class*="absolute"]') !== null
+        );
+        if (dropdownOption) {
+          fireEvent.click(dropdownOption);
+        }
+      });
+
+      // Verificar que apenas o ticket técnico aparece e o de acesso não
+      await waitFor(() => {
+        expect(screen.getByText('Problema técnico')).toBeInTheDocument();
+        expect(
+          screen.queryByText('Problema de acesso')
+        ).not.toBeInTheDocument();
       });
     });
 
@@ -899,6 +932,16 @@ describe('Support', () => {
           'Erro ao encerrar ticket:',
           expect.any(Error)
         );
+      });
+
+      // Verificar que o toast de erro é exibido
+      await waitFor(() => {
+        expect(screen.getByText('Erro ao encerrar pedido')).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'Não foi possível encerrar o pedido. Tente novamente.'
+          )
+        ).toBeInTheDocument();
       });
 
       consoleSpy.mockRestore();

@@ -204,6 +204,7 @@ const Support = ({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [showCloseSuccessToast, setShowCloseSuccessToast] = useState(false);
+  const [showCloseErrorToast, setShowCloseErrorToast] = useState(false);
 
   // Estados para histórico
   const [allTickets, setAllTickets] = useState<SupportTicketAPI[]>([]);
@@ -405,6 +406,9 @@ const Support = ({
       onTicketClosed?.();
     } catch (error) {
       console.error('Erro ao encerrar ticket:', error);
+      // Show error toast
+      setShowCloseErrorToast(true);
+      setTimeout(() => setShowCloseErrorToast(false), 4000);
     }
   };
 
@@ -680,6 +684,19 @@ const Support = ({
             description=""
             variant="solid"
             onClose={() => setShowCloseSuccessToast(false)}
+          />
+        </div>
+      )}
+
+      {/* Close Error Toast */}
+      {showCloseErrorToast && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+          <Toast
+            title="Erro ao encerrar pedido"
+            description="Não foi possível encerrar o pedido. Tente novamente."
+            variant="solid"
+            action="warning"
+            onClose={() => setShowCloseErrorToast(false)}
           />
         </div>
       )}

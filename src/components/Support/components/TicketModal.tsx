@@ -249,10 +249,11 @@ export const TicketModal = ({
                 >
                   Descrição
                 </Text>
-                <Text size="md" weight="normal" className="text-text-600">
-                  {ticket.description ||
-                    'Já tentei fazer o login em outro celular, mas não funciona. Não sei o que pode ser.'}
-                </Text>
+                {ticket.description && (
+                  <Text size="md" weight="normal" className="text-text-600">
+                    {ticket.description}
+                  </Text>
+                )}
               </div>
             </div>
 
