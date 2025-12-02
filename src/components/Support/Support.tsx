@@ -13,8 +13,7 @@ import SelectionButton from '../SelectionButton/SelectionButton';
 import Input from '../Input/Input';
 import TextArea from '../TextArea/TextArea';
 import Button from '../Button/Button';
-import {
-  default as Select,
+import Select, {
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -23,7 +22,7 @@ import {
 import Badge from '../Badge/Badge';
 import { SkeletonText } from '../Skeleton/Skeleton';
 import Toast from '../Toast/Toast';
-import { default as Menu, MenuContent, MenuItem } from '../Menu/Menu';
+import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import { supportSchema, SupportFormData } from './schema';
 import { TicketModal } from './components/TicketModal';
 import {
