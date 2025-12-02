@@ -95,6 +95,11 @@ export default defineConfig({
     'Toast/Toaster/index': 'src/components/Toast/utils/Toaster.tsx',
     'Toast/ToastStore/index': 'src/components/Toast/utils/ToastStore.ts',
 
+    // Support
+    'Support/index': 'src/components/Support/index.ts',
+    'Support/TicketModal/index': 'src/components/Support/components/TicketModal.tsx',
+    'types/support/index': 'src/types/support.ts',
+
     // Styles
     styles: 'src/styles.css',
   },
@@ -103,7 +108,16 @@ export default defineConfig({
   splitting: false,
   clean: true,
   dts: true,
-  external: ['react', 'react-dom'],
+  external: [
+    'react',
+    'react-dom',
+    'dayjs',
+    'dayjs/locale/pt-br',
+    'zod',
+    'react-hook-form',
+    '@hookform/resolvers/zod',
+    '@phosphor-icons/react',
+  ],
   target: 'es2022',
   sourcemap: true,
 });

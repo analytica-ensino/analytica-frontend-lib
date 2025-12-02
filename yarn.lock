@@ -825,6 +825,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@hookform/resolvers@npm:^3.10.0":
+  version: 3.10.0
+  resolution: "@hookform/resolvers@npm:3.10.0"
+  peerDependencies:
+    react-hook-form: ^7.0.0
+  checksum: 10c0/7ee44533b4cdc28c4fa2a94894c735411e5a1f830f4a617c580533321a9b901df0cc8c1e2fad81ad8d55154ebc5cb844cf9c116a3148ffae2bc48758c33cbb8e
+  languageName: node
+  linkType: hard
+
 "@humanfs/core@npm:^0.19.1":
   version: 0.19.1
   resolution: "@humanfs/core@npm:0.19.1"
@@ -1434,6 +1443,16 @@ __metadata:
   version: 2.1.0
   resolution: "@open-draft/until@npm:2.1.0"
   checksum: 10c0/61d3f99718dd86bb393fee2d7a785f961dcaf12f2055f0c693b27f4d0cd5f7a03d498a6d9289773b117590d794a43cd129366fd8e99222e4832f67b1653d54cf
+  languageName: node
+  linkType: hard
+
+"@phosphor-icons/react@npm:^2.1.7":
+  version: 2.1.10
+  resolution: "@phosphor-icons/react@npm:2.1.10"
+  peerDependencies:
+    react: ">= 16.8"
+    react-dom: ">= 16.8"
+  checksum: 10c0/9a469e1bdcabcd3db02eda13142d57be250847ebbeb82b33c8900580a6a23ed4f411dbb9b9deacef726ff3fa8ffc960c8868b518e448bd2cee654cedf3fa4bda
   languageName: node
   linkType: hard
 
@@ -2584,7 +2603,9 @@ __metadata:
   dependencies:
     "@eslint/eslintrc": "npm:^3.3.1"
     "@eslint/js": "npm:^9.28.0"
+    "@hookform/resolvers": "npm:^3.10.0"
     "@ladle/react": "npm:^5.0.3"
+    "@phosphor-icons/react": "npm:^2.1.7"
     "@tailwindcss/postcss": "npm:^4.1.8"
     "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/jest-dom": "npm:^6.6.3"
@@ -2601,6 +2622,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.34.0"
     autoprefixer: "npm:^10.4.21"
     clsx: "npm:^2.1.1"
+    dayjs: "npm:^1.11.13"
     dompurify: "npm:^3.3.0"
     eslint: "npm:^9.28.0"
     eslint-config-prettier: "npm:^10.1.5"
@@ -2620,6 +2642,7 @@ __metadata:
     prettier: "npm:^3.5.3"
     react: "npm:^19.1.0"
     react-dom: "npm:^19.1.0"
+    react-hook-form: "npm:^7.56.4"
     react-katex: "npm:^3.1.0"
     react-router-dom: "npm:^7.6.2"
     sonarqube-scanner: "npm:^4.3.0"
@@ -2628,11 +2651,17 @@ __metadata:
     ts-jest: "npm:^29.3.4"
     tsup: "npm:^8.5.0"
     typescript: "npm:^5.8.3"
+    zod: "npm:^3.24.4"
     zustand: "npm:^5.0.5"
   peerDependencies:
+    "@hookform/resolvers": ">=3.0.0"
+    "@phosphor-icons/react": ">=2.0.0"
+    dayjs: ">=1.11.0"
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
+    react-hook-form: ">=7.0.0"
     react-router-dom: ^7.6.2
+    zod: ">=3.0.0"
   languageName: unknown
   linkType: soft
 
@@ -3516,6 +3545,13 @@ __metadata:
     whatwg-mimetype: "npm:^4.0.0"
     whatwg-url: "npm:^14.0.0"
   checksum: 10c0/1b894d7d41c861f3a4ed2ae9b1c3f0909d4575ada02e36d3d3bc584bdd84278e20709070c79c3b3bff7ac98598cb191eb3e86a89a79ea4ee1ef360e1694f92ad
+  languageName: node
+  linkType: hard
+
+"dayjs@npm:^1.11.13":
+  version: 1.11.19
+  resolution: "dayjs@npm:1.11.19"
+  checksum: 10c0/7d8a6074a343f821f81ea284d700bd34ea6c7abbe8d93bce7aba818948957c1b7f56131702e5e890a5622cdfc05dcebe8aed0b8313bdc6838a594d7846b0b000
   languageName: node
   linkType: hard
 
@@ -8261,6 +8297,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-hook-form@npm:^7.56.4":
+  version: 7.67.0
+  resolution: "react-hook-form@npm:7.67.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17 || ^18 || ^19
+  checksum: 10c0/d20fec07e2f86a3c7ad60c453ae004e5ca59def04c1ca9a34e7d899e93d1587f8070e4b8b88b0ff1d01ff1651c4bb06f580e32aa3a97120d60fbc483e3f9e312
+  languageName: node
+  linkType: hard
+
 "react-hotkeys-hook@npm:^4.6.1":
   version: 4.6.2
   resolution: "react-hotkeys-hook@npm:4.6.2"
@@ -10233,6 +10278,13 @@ __metadata:
   version: 2.1.2
   resolution: "yoctocolors-cjs@npm:2.1.2"
   checksum: 10c0/a0e36eb88fea2c7981eab22d1ba45e15d8d268626e6c4143305e2c1628fa17ebfaa40cd306161a8ce04c0a60ee0262058eab12567493d5eb1409780853454c6f
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.24.4":
+  version: 3.25.76
+  resolution: "zod@npm:3.25.76"
+  checksum: 10c0/5718ec35e3c40b600316c5b4c5e4976f7fee68151bc8f8d90ec18a469be9571f072e1bbaace10f1e85cf8892ea12d90821b200e980ab46916a6166a4260a983c
   languageName: node
   linkType: hard
 

@@ -352,3 +352,44 @@ export {
   toggleArrayItem,
   toggleSingleValue,
 } from './utils/utils';
+
+// Support Components
+export {
+  Support,
+  TicketModal,
+  getCategoryIcon,
+  supportSchema,
+} from './components/Support';
+export type {
+  SupportProps,
+  TicketModalProps,
+  SupportFormData,
+} from './components/Support';
+
+// Support Types
+export {
+  SupportStatus,
+  SupportCategory,
+  getStatusBadgeAction,
+  getStatusText,
+  getCategoryText,
+  mapApiStatusToInternal,
+  mapInternalStatusToApi,
+} from './types/support';
+export type {
+  TicketStatus,
+  ProblemType,
+  TabType,
+  SupportResponse,
+  SupportTicket,
+  CreateSupportTicketRequest,
+  CreateSupportTicketResponse,
+  SupportTicketAPI,
+  Pagination,
+  GetSupportTicketsResponse,
+  SupportAnswerAPI,
+  GetSupportAnswersResponse,
+  SubmitSupportAnswerRequest,
+  SubmitSupportAnswerResponse,
+  SupportApiClient,
+} from './types/support';
