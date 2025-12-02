@@ -20,7 +20,7 @@ import Select, {
   SelectValue,
 } from '../Select/Select';
 import Badge from '../Badge/Badge';
-import { SkeletonText } from '../Skeleton/Skeleton';
+import { SkeletonText, SkeletonRounded } from '../Skeleton/Skeleton';
 import Toast from '../Toast/Toast';
 import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import { supportSchema, SupportFormData } from './schema';
@@ -44,16 +44,6 @@ import {
 } from '../../types/support';
 import { getCategoryIcon } from './utils/supportUtils';
 import SupportImage from '../../assets/img/suporthistory.png';
-
-// Generate unique IDs for skeleton components
-const generateSkeletonItems = (groupCount: number, ticketsPerGroup: number) => {
-  return Array.from({ length: groupCount }, (_, groupIndex) => ({
-    id: `skeleton-group-${Date.now()}-${groupIndex}`,
-    tickets: Array.from({ length: ticketsPerGroup }, (_, ticketIndex) => ({
-      id: `skeleton-ticket-${Date.now()}-${groupIndex}-${ticketIndex}`,
-    })),
-  }));
-};
 
 // Individual ticket component to reduce nesting
 const TicketCard = ({
@@ -129,39 +119,28 @@ const EmptyState = ({ imageSrc }: { imageSrc?: string }) => (
 );
 
 // Skeleton component for ticket loading
-const TicketSkeleton = () => {
-  const skeletonItems = generateSkeletonItems(2, 2);
+const TicketSkeleton = () => (
+  <div className="space-y-6">
+    {[0, 1].map((groupIndex) => (
+      <div key={groupIndex} className="space-y-4">
+        {/* Date skeleton */}
+        <SkeletonText width="150px" height={20} />
 
-  return (
-    <div className="space-y-6">
-      {skeletonItems.map((group) => (
-        <div key={group.id} className="space-y-4">
-          {/* Date skeleton */}
-          <SkeletonText width="150px" height={20} />
-
-          {/* Tickets skeleton */}
-          <div className="space-y-3">
-            {group.tickets.map((ticket) => (
-              <div
-                key={ticket.id}
-                className="flex items-center justify-between p-4 bg-background rounded-xl"
-              >
-                <div className="flex flex-col space-y-2">
-                  <SkeletonText width="200px" height={16} />
-                </div>
-                <div className="flex items-center gap-3">
-                  <SkeletonText width="80px" height={24} />
-                  <SkeletonText width="100px" height={24} />
-                  <SkeletonText width="24px" height={24} />
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Tickets skeleton */}
+        <div className="space-y-3">
+          {[0, 1].map((ticketIndex) => (
+            <SkeletonRounded
+              key={ticketIndex}
+              width="100%"
+              height={72}
+              className="p-4"
+            />
+          ))}
         </div>
-      ))}
-    </div>
-  );
-};
+      </div>
+    ))}
+  </div>
+);
 
 export interface SupportProps {
   /** API client instance for making requests */
