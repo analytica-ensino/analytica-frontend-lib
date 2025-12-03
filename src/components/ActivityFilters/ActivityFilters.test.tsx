@@ -17,6 +17,7 @@ jest.mock(
   '../../assets/img/mock-image-question.png',
   () => 'mocked-image-2.png'
 );
+jest.mock('../../assets/img/suporthistory.png', () => 'test-file-stub');
 
 // Mock Chips component
 jest.mock('../Chips/Chips', () => {

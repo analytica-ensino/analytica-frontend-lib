@@ -400,3 +400,44 @@ export type {
 // Activity Details Component
 export { ActivityDetails } from './components/ActivityDetails/ActivityDetails';
 export type { ActivityDetailsProps } from './components/ActivityDetails/ActivityDetails';
+
+// Support Components
+export {
+  Support,
+  TicketModal,
+  getCategoryIcon,
+  supportSchema,
+} from './components/Support';
+export type {
+  SupportProps,
+  TicketModalProps,
+  SupportFormData,
+} from './components/Support';
+
+// Support Types
+export {
+  SupportStatus,
+  SupportCategory,
+  getStatusBadgeAction,
+  getStatusText,
+  getCategoryText,
+  mapApiStatusToInternal,
+  mapInternalStatusToApi,
+} from './types/support';
+export type {
+  TicketStatus,
+  ProblemType,
+  TabType,
+  SupportResponse,
+  SupportTicket,
+  CreateSupportTicketRequest,
+  CreateSupportTicketResponse,
+  SupportTicketAPI,
+  SupportPagination,
+  GetSupportTicketsResponse,
+  SupportAnswerAPI,
+  GetSupportAnswersResponse,
+  SubmitSupportAnswerRequest,
+  SubmitSupportAnswerResponse,
+  SupportApiClient,
+} from './types/support';
