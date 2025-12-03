@@ -408,7 +408,7 @@ export type {
   CreateSupportTicketRequest,
   CreateSupportTicketResponse,
   SupportTicketAPI,
-  Pagination,
+  SupportPagination,
   GetSupportTicketsResponse,
   SupportAnswerAPI,
   GetSupportAnswersResponse,

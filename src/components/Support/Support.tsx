@@ -368,7 +368,7 @@ const Support = ({
   const handleTicketClose = async (ticketId: string) => {
     try {
       await apiClient.patch(`/support/${ticketId}`, {
-        status: 'FECHADO',
+        status: mapInternalStatusToApi(SupportStatus.ENCERRADO),
       });
 
       // Show success toast

@@ -106,7 +106,7 @@ export interface SupportTicketAPI {
   updatedAt: string;
 }
 
-export interface Pagination {
+export interface SupportPagination {
   page: number;
   limit: number;
   total: number;
@@ -119,7 +119,7 @@ export interface GetSupportTicketsResponse {
   message: string;
   data: {
     support: SupportTicketAPI[];
-    pagination: Pagination;
+    pagination: SupportPagination;
   };
 }
 
