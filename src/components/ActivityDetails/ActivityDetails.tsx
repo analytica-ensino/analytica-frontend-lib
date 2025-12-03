@@ -91,7 +91,7 @@ const createTableColumns = (
   {
     key: 'status',
     label: 'Status',
-    sortable: true,
+    sortable: false,
     render: (value: unknown) => {
       const config = getStatusBadgeConfig(value as StudentActivityStatus);
       return (
@@ -342,7 +342,13 @@ export const ActivityDetails = ({
     if (params.page) setPage(params.page);
     if (params.limit) setLimit(params.limit);
     if (params.sortBy !== undefined) {
-      setSortBy(params.sortBy as 'name' | 'score' | 'answeredAt' | undefined);
+      // Map table column keys to API parameter names
+      const sortByMap: Record<string, 'name' | 'score' | 'answeredAt'> = {
+        studentName: 'name',
+        answeredAt: 'answeredAt',
+        score: 'score',
+      };
+      setSortBy(params.sortBy ? sortByMap[params.sortBy] : undefined);
     }
     if (params.sortOrder !== undefined) {
       setSortOrder(params.sortOrder as 'asc' | 'desc' | undefined);
