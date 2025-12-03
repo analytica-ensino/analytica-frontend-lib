@@ -50,7 +50,7 @@ const mockActivityData: ActivityDetailsData = {
       studentName: 'Ana Costa',
       answeredAt: '2024-01-18T09:00:00Z',
       timeSpent: 1800,
-      score: 7.0,
+      score: 7,
       status: STUDENT_ACTIVITY_STATUS.NAO_ENTREGUE,
     },
     {
@@ -85,7 +85,7 @@ const mockActivityData: ActivityDetailsData = {
 const mockCorrectionData: StudentActivityCorrectionData = {
   studentId: 'student-2',
   studentName: 'Maria Santos',
-  score: 7.0,
+  score: 7,
   correctCount: 3,
   incorrectCount: 1,
   blankCount: 1,
@@ -200,7 +200,7 @@ export const ErrorState: Story = () => (
   <ActivityDetails
     {...defaultProps}
     fetchActivityDetails={() =>
-      Promise.reject<ActivityDetailsData>('Erro ao carregar dados')
+      Promise.reject<ActivityDetailsData>(new Error('Erro ao carregar dados'))
     }
   />
 );
