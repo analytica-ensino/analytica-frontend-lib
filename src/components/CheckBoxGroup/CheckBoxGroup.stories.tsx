@@ -780,3 +780,62 @@ export const PreSelectedExample: Story = () => {
     </div>
   );
 };
+
+// Exemplo 8: Variant compactSingleItem - mostra versão compacta quando há apenas 1 opção
+const compactSingleItemCategories: CategoryConfig[] = [
+  {
+    key: 'escola',
+    label: 'Escola',
+    itens: [{ id: 'escola-1', name: 'Escola Municipal Central' }],
+    selectedIds: [],
+  },
+  {
+    key: 'anoEscolar',
+    label: 'Ano Escolar',
+    dependsOn: ['escola'],
+    itens: [
+      { id: 'ano-1', name: '1º Ano', escolaId: 'escola-1' },
+      { id: 'ano-2', name: '2º Ano', escolaId: 'escola-1' },
+      { id: 'ano-3', name: '3º Ano', escolaId: 'escola-2' },
+    ],
+    filteredBy: [{ key: 'escola', internalField: 'escolaId' }],
+    selectedIds: [],
+  },
+];
+
+export const CompactSingleItemExample: Story = () => {
+  const [stateCategories, setStateCategories] = useState<CategoryConfig[]>(
+    compactSingleItemCategories
+  );
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <h2 className="font-bold text-3xl text-text-900">
+        Variant Compact Single Item
+      </h2>
+      <p className="text-text-700">
+        Quando há apenas 1 opção disponível após filtros, mostra uma versão
+        compacta com label em bold e a opção selecionada com justify-between.
+        Com apenas uma escola selecionada, o "Ano Escolar" aparecerá na versão
+        compacta.
+      </p>
+      <CheckboxGroup
+        categories={stateCategories}
+        onCategoriesChange={setStateCategories}
+        compactSingleItem={true}
+        showDivider={true}
+      />
+      <div style={{ marginTop: 32 }}>
+        <h3 className="font-bold text-xl text-text-900 mb-4">
+          Versão sem Divider
+        </h3>
+        <CheckboxGroup
+          categories={stateCategories}
+          onCategoriesChange={setStateCategories}
+          compactSingleItem={true}
+          showDivider={false}
+        />
+      </div>
+    </div>
+  );
+};
