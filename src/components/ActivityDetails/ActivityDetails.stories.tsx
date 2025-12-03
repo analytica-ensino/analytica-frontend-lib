@@ -80,7 +80,7 @@ const mockActivityData: ActivityDetailsData = {
 };
 
 /**
- * Mock correction data
+ * Mock correction data with alternatives
  */
 const mockCorrectionData: StudentActivityCorrectionData = {
   studentId: 'student-2',
@@ -95,30 +95,65 @@ const mockCorrectionData: StudentActivityCorrectionData = {
       status: QUESTION_STATUS.CORRETA,
       studentAnswer: 'A',
       correctAnswer: 'A',
+      questionText: 'Qual é a capital do Brasil?',
+      alternatives: [
+        { value: 'A', label: 'Brasília', isCorrect: true },
+        { value: 'B', label: 'São Paulo', isCorrect: false },
+        { value: 'C', label: 'Rio de Janeiro', isCorrect: false },
+        { value: 'D', label: 'Salvador', isCorrect: false },
+      ],
     },
     {
       questionNumber: 2,
       status: QUESTION_STATUS.INCORRETA,
       studentAnswer: 'B',
       correctAnswer: 'C',
+      questionText: 'Qual o maior planeta do sistema solar?',
+      alternatives: [
+        { value: 'A', label: 'Terra', isCorrect: false },
+        { value: 'B', label: 'Marte', isCorrect: false },
+        { value: 'C', label: 'Júpiter', isCorrect: true },
+        { value: 'D', label: 'Saturno', isCorrect: false },
+      ],
     },
     {
       questionNumber: 3,
       status: QUESTION_STATUS.CORRETA,
       studentAnswer: 'D',
       correctAnswer: 'D',
+      questionText: 'Qual elemento químico é representado pelo símbolo "O"?',
+      alternatives: [
+        { value: 'A', label: 'Ouro', isCorrect: false },
+        { value: 'B', label: 'Osmio', isCorrect: false },
+        { value: 'C', label: 'Óganesson', isCorrect: false },
+        { value: 'D', label: 'Oxigênio', isCorrect: true },
+      ],
     },
     {
       questionNumber: 4,
       status: QUESTION_STATUS.CORRETA,
       studentAnswer: 'A',
       correctAnswer: 'A',
+      questionText: 'Qual é o resultado de 2 + 2?',
+      alternatives: [
+        { value: 'A', label: '4', isCorrect: true },
+        { value: 'B', label: '5', isCorrect: false },
+        { value: 'C', label: '22', isCorrect: false },
+        { value: 'D', label: '3', isCorrect: false },
+      ],
     },
     {
       questionNumber: 5,
       status: QUESTION_STATUS.EM_BRANCO,
       studentAnswer: undefined,
       correctAnswer: 'B',
+      questionText: 'Qual é a fórmula da água?',
+      alternatives: [
+        { value: 'A', label: 'CO2', isCorrect: false },
+        { value: 'B', label: 'H2O', isCorrect: true },
+        { value: 'C', label: 'NaCl', isCorrect: false },
+        { value: 'D', label: 'O2', isCorrect: false },
+      ],
     },
   ],
 };
@@ -161,7 +196,7 @@ export const Loading: Story = () => (
 /**
  * Error state story
  */
-export const Error: Story = () => (
+export const ErrorState: Story = () => (
   <ActivityDetails
     {...defaultProps}
     fetchActivityDetails={() =>

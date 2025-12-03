@@ -35,7 +35,7 @@ import {
 export interface ActivityDetailsProps {
   /** Activity ID to display details for */
   activityId: string;
-  /** Function to fetch activity details */
+  /** Function to fetch activity details. Must be memoized (using useCallback) to prevent re-fetches on every render. */
   fetchActivityDetails: (
     id: string,
     params?: ActivityDetailsQueryParams
@@ -199,9 +199,15 @@ export const ActivityDetails = ({
 }: ActivityDetailsProps) => {
   const { isMobile } = useMobile();
 
-  // Pagination state
+  // Pagination and sorting state
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [sortBy, setSortBy] = useState<
+    'name' | 'score' | 'answeredAt' | undefined
+  >(undefined);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | undefined>(
+    undefined
+  );
 
   // Data state
   const [data, setData] = useState<ActivityDetailsData | null>(null);
@@ -215,6 +221,7 @@ export const ActivityDetails = ({
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewOnlyModal, setIsViewOnlyModal] = useState(false);
+  const [correctionError, setCorrectionError] = useState<string | null>(null);
 
   /**
    * Fetch activity details when params change
@@ -227,7 +234,12 @@ export const ActivityDetails = ({
       setError(null);
 
       try {
-        const result = await fetchActivityDetails(activityId, { page, limit });
+        const result = await fetchActivityDetails(activityId, {
+          page,
+          limit,
+          sortBy,
+          sortOrder,
+        });
         setData(result);
       } catch (err) {
         setError(
@@ -239,7 +251,7 @@ export const ActivityDetails = ({
     };
 
     loadData();
-  }, [activityId, page, limit, fetchActivityDetails]);
+  }, [activityId, page, limit, sortBy, sortOrder, fetchActivityDetails]);
 
   /**
    * Handle correct activity button click
@@ -253,12 +265,18 @@ export const ActivityDetails = ({
         student.status !== STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO;
       setIsViewOnlyModal(isViewOnly);
 
+      setCorrectionError(null);
       try {
         const correction = await fetchStudentCorrection(activityId, studentId);
         setCorrectionData(correction);
         setIsModalOpen(true);
       } catch (err) {
         console.error('Failed to fetch student correction:', err);
+        setCorrectionError(
+          err instanceof Error
+            ? err.message
+            : 'Erro ao carregar dados de correção'
+        );
       }
     },
     [data?.students, activityId, fetchStudentCorrection]
@@ -277,12 +295,17 @@ export const ActivityDetails = ({
   const handleObservationSubmit = useCallback(
     async (observation: string, files: File[]) => {
       if (!activityId || !correctionData?.studentId) return;
-      await submitObservation(
-        activityId,
-        correctionData.studentId,
-        observation,
-        files
-      );
+      try {
+        await submitObservation(
+          activityId,
+          correctionData.studentId,
+          observation,
+          files
+        );
+      } catch (error) {
+        console.error('Error submitting observation:', error);
+        throw error;
+      }
     },
     [activityId, correctionData?.studentId, submitObservation]
   );
@@ -318,6 +341,12 @@ export const ActivityDetails = ({
   const handleTableParamsChange = (params: TableParams) => {
     if (params.page) setPage(params.page);
     if (params.limit) setLimit(params.limit);
+    if (params.sortBy !== undefined) {
+      setSortBy(params.sortBy as 'name' | 'score' | 'answeredAt' | undefined);
+    }
+    if (params.sortOrder !== undefined) {
+      setSortOrder(params.sortOrder as 'asc' | 'desc' | undefined);
+    }
   };
 
   /**
@@ -588,6 +617,14 @@ export const ActivityDetails = ({
             </Text>
           </div>
         </div>
+
+        {/* Correction error message */}
+        {correctionError && (
+          <div className="w-full bg-error-50 border border-error-200 rounded-xl p-4 flex items-center gap-3">
+            <WarningCircle size={20} className="text-error-600" weight="fill" />
+            <Text className="text-error-700 text-sm">{correctionError}</Text>
+          </div>
+        )}
 
         {/* Students table */}
         <div className="w-full bg-background rounded-xl p-6 space-y-4">
