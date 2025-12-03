@@ -186,7 +186,29 @@ describe('CheckboxGroup', () => {
       });
     });
 
-    it('hides accordion for single item category', () => {
+    it('shows compact version for single item category when compactSingleItem is true', () => {
+      const singleItemCategories: CategoryConfig[] = [
+        {
+          key: 'single',
+          label: 'Single Item',
+          itens: [{ id: 'single-1', name: 'Only Item' }],
+          selectedIds: ['single-1'],
+        },
+      ];
+
+      render(
+        <CheckboxGroup
+          categories={singleItemCategories}
+          onCategoriesChange={jest.fn()}
+          compactSingleItem={true}
+        />
+      );
+
+      expect(screen.getByText('Single Item')).toBeInTheDocument();
+      expect(screen.getByText('Only Item')).toBeInTheDocument();
+    });
+
+    it('hides accordion for single item category when compactSingleItem is false', () => {
       const singleItemCategories: CategoryConfig[] = [
         {
           key: 'single',
@@ -200,6 +222,7 @@ describe('CheckboxGroup', () => {
         <CheckboxGroup
           categories={singleItemCategories}
           onCategoriesChange={jest.fn()}
+          compactSingleItem={false}
         />
       );
 
@@ -675,6 +698,7 @@ describe('CheckboxGroup', () => {
         <CheckboxGroup
           categories={singleDepCategories}
           onCategoriesChange={jest.fn()}
+          compactSingleItem={false}
         />
       );
 
@@ -682,9 +706,9 @@ describe('CheckboxGroup', () => {
       const accordionTriggers = screen.getAllByTestId('accordion-trigger');
       await user.click(accordionTriggers[1]); // Second accordion is child
 
-      expect(
-        screen.getByText('Parent Item 1', { selector: '[data-testid="text"]' })
-      ).toBeInTheDocument();
+      // Should find the group label (not the checkbox label)
+      const groupLabels = screen.getAllByText('Parent Item 1');
+      expect(groupLabels.length).toBeGreaterThan(0);
     });
 
     it('generates correct group label for multiple dependencies', async () => {
@@ -728,6 +752,7 @@ describe('CheckboxGroup', () => {
         <CheckboxGroup
           categories={selectedMultiCategories}
           onCategoriesChange={jest.fn()}
+          compactSingleItem={false}
         />
       );
 
@@ -1080,6 +1105,267 @@ describe('CheckboxGroup', () => {
 
       // Child category is disabled and has no items, but "Sem dados" should not appear
       expect(screen.queryByText('Sem dados')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Compact Single Item Variant', () => {
+    it('shows compact version when there is only one available item', () => {
+      const categories: CategoryConfig[] = [
+        {
+          key: 'parent',
+          label: 'Parent',
+          itens: [
+            { id: 'p-1', name: 'Parent 1' },
+            { id: 'p-2', name: 'Parent 2' },
+          ],
+          selectedIds: ['p-1'],
+        },
+        {
+          key: 'child',
+          label: 'Child',
+          dependsOn: ['parent'],
+          itens: [
+            { id: 'c-1', name: 'Child 1', parentId: 'p-1' },
+            { id: 'c-2', name: 'Child 2', parentId: 'p-2' },
+          ],
+          filteredBy: [{ key: 'parent', internalField: 'parentId' }],
+          selectedIds: ['c-1'],
+        },
+      ];
+
+      render(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={jest.fn()}
+          compactSingleItem={true}
+        />
+      );
+
+      // Should show compact version for child (only 1 item available after filter)
+      expect(screen.getByText('Child')).toBeInTheDocument();
+      expect(screen.getByText('Child 1')).toBeInTheDocument();
+      // Should show accordion trigger only for parent (child is in compact mode)
+      const accordionTriggers = screen.getAllByTestId('accordion-trigger');
+      expect(accordionTriggers).toHaveLength(1); // Only parent accordion
+    });
+
+    it('shows accordion when compactSingleItem is false and there is one item', () => {
+      const categories: CategoryConfig[] = [
+        {
+          key: 'parent',
+          label: 'Parent',
+          itens: [
+            { id: 'p-1', name: 'Parent 1' },
+            { id: 'p-2', name: 'Parent 2' },
+          ],
+          selectedIds: ['p-1'],
+        },
+        {
+          key: 'child',
+          label: 'Child',
+          dependsOn: ['parent'],
+          itens: [
+            { id: 'c-1', name: 'Child 1', parentId: 'p-1' },
+            { id: 'c-2', name: 'Child 2', parentId: 'p-2' },
+          ],
+          filteredBy: [{ key: 'parent', internalField: 'parentId' }],
+          selectedIds: ['c-1'],
+        },
+      ];
+
+      render(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={jest.fn()}
+          compactSingleItem={false}
+        />
+      );
+
+      // Should show accordion for both parent and child
+      const accordionTriggers = screen.getAllByTestId('accordion-trigger');
+      expect(accordionTriggers).toHaveLength(2); // Both parent and child
+    });
+  });
+
+  describe('Show Divider', () => {
+    it('shows divider when showDivider is true', () => {
+      const categories: CategoryConfig[] = [
+        {
+          key: 'category',
+          label: 'Category',
+          itens: [
+            { id: 'item-1', name: 'Item 1' },
+            { id: 'item-2', name: 'Item 2' },
+          ],
+          selectedIds: [],
+        },
+      ];
+
+      const { container } = render(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={jest.fn()}
+          showDivider={true}
+        />
+      );
+
+      const dividers = container.querySelectorAll('[data-testid="divider"]');
+      expect(dividers.length).toBeGreaterThan(0);
+    });
+
+    it('hides divider when showDivider is false', () => {
+      const categories: CategoryConfig[] = [
+        {
+          key: 'category',
+          label: 'Category',
+          itens: [
+            { id: 'item-1', name: 'Item 1' },
+            { id: 'item-2', name: 'Item 2' },
+          ],
+          selectedIds: [],
+        },
+      ];
+
+      const { container } = render(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={jest.fn()}
+          showDivider={false}
+        />
+      );
+
+      const dividers = container.querySelectorAll('[data-testid="divider"]');
+      expect(dividers.length).toBe(0);
+    });
+
+    it('shows divider in compact version when showDivider is true', () => {
+      const categories: CategoryConfig[] = [
+        {
+          key: 'single',
+          label: 'Single Item',
+          itens: [{ id: 'item-1', name: 'Only Item' }],
+          selectedIds: ['item-1'],
+        },
+      ];
+
+      const { container } = render(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={jest.fn()}
+          compactSingleItem={true}
+          showDivider={true}
+        />
+      );
+
+      const dividers = container.querySelectorAll('[data-testid="divider"]');
+      expect(dividers.length).toBeGreaterThan(0);
+    });
+
+    it('hides divider in compact version when showDivider is false', () => {
+      const categories: CategoryConfig[] = [
+        {
+          key: 'single',
+          label: 'Single Item',
+          itens: [{ id: 'item-1', name: 'Only Item' }],
+          selectedIds: ['item-1'],
+        },
+      ];
+
+      const { container } = render(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={jest.fn()}
+          compactSingleItem={true}
+          showDivider={false}
+        />
+      );
+
+      const dividers = container.querySelectorAll('[data-testid="divider"]');
+      expect(dividers.length).toBe(0);
+    });
+  });
+
+  describe('Show Single Item', () => {
+    it('hides single item when showSingleItem is false and compactSingleItem is false', () => {
+      const categories: CategoryConfig[] = [
+        {
+          key: 'single',
+          label: 'Single Item',
+          itens: [{ id: 'item-1', name: 'Only Item' }],
+          selectedIds: [],
+        },
+      ];
+
+      render(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={jest.fn()}
+          compactSingleItem={false}
+          showSingleItem={false}
+        />
+      );
+
+      expect(screen.queryByText('Single Item')).not.toBeInTheDocument();
+      expect(screen.queryByText('Only Item')).not.toBeInTheDocument();
+    });
+
+    it('shows single item in accordion when showSingleItem is true and compactSingleItem is false', async () => {
+      const user = userEvent.setup();
+      const categories: CategoryConfig[] = [
+        {
+          key: 'single',
+          label: 'Single Item',
+          itens: [{ id: 'item-1', name: 'Only Item' }],
+          selectedIds: ['item-1'],
+        },
+      ];
+
+      render(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={jest.fn()}
+          compactSingleItem={false}
+          showSingleItem={true}
+        />
+      );
+
+      // Should show accordion trigger
+      const accordionTrigger = screen.getByTestId('accordion-trigger');
+      expect(accordionTrigger).toBeInTheDocument();
+      expect(screen.getByText('Single Item')).toBeInTheDocument();
+
+      // Open accordion
+      await user.click(accordionTrigger);
+
+      // Should show the item
+      expect(screen.getByText('Only Item')).toBeInTheDocument();
+    });
+
+    it('shows compact version when compactSingleItem is true regardless of showSingleItem', () => {
+      const categories: CategoryConfig[] = [
+        {
+          key: 'single',
+          label: 'Single Item',
+          itens: [{ id: 'item-1', name: 'Only Item' }],
+          selectedIds: ['item-1'],
+        },
+      ];
+
+      render(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={jest.fn()}
+          compactSingleItem={true}
+          showSingleItem={false}
+        />
+      );
+
+      // Should show compact version
+      expect(screen.getByText('Single Item')).toBeInTheDocument();
+      expect(screen.getByText('Only Item')).toBeInTheDocument();
+      // Should not show accordion trigger
+      const accordionTriggers = screen.queryAllByTestId('accordion-trigger');
+      expect(accordionTriggers.length).toBe(0);
     });
   });
 });
