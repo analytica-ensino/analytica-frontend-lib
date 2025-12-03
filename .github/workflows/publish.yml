@@ -33,10 +33,18 @@ jobs:
           key: ${{ inputs.cache-key }}
           fail-on-cache-miss: true
 
-      - name: Build and generate exports
-        run: yarn prepack
+      - name: Add exports to package.json
+        run: yarn add:exports
+
+      - name: Build JavaScript (ESM/CJS)
+        run: rm -rf dist && yarn tsup
         env:
-          NODE_OPTIONS: --max-old-space-size=8192
+          NODE_OPTIONS: --max-old-space-size=4096
+
+      - name: Build TypeScript declarations
+        run: yarn build:types
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
 
       - name: Publish package
         run: npm publish --access public

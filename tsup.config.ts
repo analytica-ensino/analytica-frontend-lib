@@ -112,7 +112,6 @@ export default defineConfig({
   outDir: 'dist',
   splitting: false,
   clean: true,
-  dts: true,
   external: [
     'react',
     'react-dom',
@@ -125,4 +124,5 @@ export default defineConfig({
   ],
   target: 'es2022',
   sourcemap: true,
+  dts: false, // Use tsc directly for better memory efficiency
 });
