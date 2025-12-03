@@ -302,9 +302,9 @@ export const ActivityDetails = ({
           observation,
           files
         );
-      } catch (error) {
-        console.error('Error submitting observation:', error);
-        throw error;
+        setIsModalOpen(false);
+      } catch (err) {
+        console.error('Failed to submit observation:', err);
       }
     },
     [activityId, correctionData?.studentId, submitObservation]
