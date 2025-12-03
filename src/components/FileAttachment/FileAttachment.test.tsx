@@ -153,9 +153,7 @@ describe('FileAttachment', () => {
     it('deve abrir seletor de arquivos ao clicar no botão anexar', () => {
       render(<FileAttachment {...defaultProps} />);
 
-      const input = screen.getByLabelText(
-        'Selecionar arquivos'
-      ) as HTMLInputElement;
+      const input = screen.getByLabelText('Selecionar arquivos');
       const clickSpy = jest.spyOn(input, 'click');
 
       const attachButton = screen.getByRole('button', { name: /anexar/i });
@@ -251,9 +249,9 @@ describe('FileAttachment', () => {
       render(<FileAttachment {...defaultProps} onFilesAdd={onFilesAdd} />);
 
       const file = createMockFile('arquivo.pdf', 1024);
-      const input = screen.getByLabelText(
+      const input = screen.getByLabelText<HTMLInputElement>(
         'Selecionar arquivos'
-      ) as HTMLInputElement;
+      );
 
       Object.defineProperty(input, 'files', { value: [file] });
       fireEvent.change(input);

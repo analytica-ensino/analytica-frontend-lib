@@ -376,6 +376,31 @@ export {
   toggleSingleValue,
 } from './utils/utils';
 
+// Activity Details Types
+export {
+  STUDENT_ACTIVITY_STATUS,
+  getStatusBadgeConfig,
+  formatTimeSpent,
+  formatQuestionNumbers,
+  formatDateToBrazilian,
+} from './types/activityDetails';
+export type {
+  StudentActivityStatus,
+  ActivityStudentData,
+  Pagination as ActivityDetailsPagination,
+  GeneralStats,
+  QuestionStats,
+  ActivityMetadata,
+  ActivityDetailsData,
+  ActivityDetailsQueryParams,
+  ActivityStudentTableItem,
+  StatusBadgeConfig,
+} from './types/activityDetails';
+
+// Activity Details Component
+export { ActivityDetails } from './components/ActivityDetails/ActivityDetails';
+export type { ActivityDetailsProps } from './components/ActivityDetails/ActivityDetails';
+
 // Support Components
 export {
   Support,

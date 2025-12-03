@@ -235,6 +235,20 @@ export const WithPreviousObservation: Story = () => (
 );
 
 /**
+ * Get question status based on index
+ * @param index - Question index
+ * @returns Question status
+ */
+const getQuestionStatusByIndex = (index: number) => {
+  const statusMap = [
+    QUESTION_STATUS.CORRETA,
+    QUESTION_STATUS.INCORRETA,
+    QUESTION_STATUS.EM_BRANCO,
+  ];
+  return statusMap[index % 3];
+};
+
+/**
  * Muitas questões
  */
 export const ManyQuestions: Story = () => {
@@ -242,12 +256,7 @@ export const ManyQuestions: Story = () => {
     ...mockDataWithAlternatives,
     questions: Array.from({ length: 15 }, (_, i) => ({
       questionNumber: i + 1,
-      status:
-        i % 3 === 0
-          ? QUESTION_STATUS.CORRETA
-          : i % 3 === 1
-            ? QUESTION_STATUS.INCORRETA
-            : QUESTION_STATUS.EM_BRANCO,
+      status: getQuestionStatusByIndex(i),
       studentAnswer: i % 3 === 2 ? undefined : 'A',
       correctAnswer: 'A',
       questionText: `Questão ${i + 1}: Lorem ipsum dolor sit amet?`,
