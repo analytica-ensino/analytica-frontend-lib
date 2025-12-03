@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
 import Badge from '../../Badge/Badge';
@@ -79,7 +79,7 @@ export const TicketModal = ({
   };
 
   // Fetch support answers
-  const fetchAnswers = async () => {
+  const fetchAnswers = useCallback(async () => {
     if (!ticket.id || ticket.status !== SupportStatus.RESPONDIDO) return;
 
     setIsLoadingAnswers(true);
@@ -94,7 +94,7 @@ export const TicketModal = ({
     } finally {
       setIsLoadingAnswers(false);
     }
-  };
+  }, [ticket.id, ticket.status, apiClient]);
 
   // Submit user answer
   const handleSubmitAnswer = async () => {
@@ -133,11 +133,15 @@ export const TicketModal = ({
   useEffect(() => {
     if (isOpen) {
       setResponseText('');
-      fetchAnswers();
+      (async () => {
+        await fetchAnswers();
+      })().catch((error) => {
+        console.error('Erro ao carregar respostas:', error);
+      });
     } else {
       setAnswers([]);
     }
-  }, [isOpen, ticket.id]);
+  }, [isOpen, fetchAnswers]);
 
   return (
     <>

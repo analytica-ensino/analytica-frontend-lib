@@ -1115,6 +1115,17 @@ describe('Support', () => {
         expect(screen.getByText('Pedido encerrado!')).toBeInTheDocument();
       });
 
+      // Click the toast close button
+      const closeButton = screen.getByRole('button', {
+        name: 'Dismiss notification',
+      });
+      fireEvent.click(closeButton);
+
+      // Assert the toast is no longer in the document
+      await waitFor(() => {
+        expect(screen.queryByText('Pedido encerrado!')).not.toBeInTheDocument();
+      });
+
       jest.useRealTimers();
     });
   });
