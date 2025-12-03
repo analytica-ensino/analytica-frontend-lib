@@ -29,11 +29,13 @@ export const CheckboxGroup = ({
   onCategoriesChange,
   compactSingleItem = true,
   showDivider = true,
+  showSingleItem = false,
 }: {
   categories: CategoryConfig[];
   onCategoriesChange: (categories: CategoryConfig[]) => void;
   compactSingleItem?: boolean;
   showDivider?: boolean;
+  showSingleItem?: boolean;
 }) => {
   const [openAccordion, setOpenAccordion] = useState<string>('');
 
@@ -621,7 +623,7 @@ export const CheckboxGroup = ({
       });
     const hasOnlyOneItem = category.itens?.length === 1;
 
-    if (hasOnlyOneItem && !compactSingleItem) {
+    if (hasOnlyOneItem && !compactSingleItem && !showSingleItem) {
       return null;
     }
 
