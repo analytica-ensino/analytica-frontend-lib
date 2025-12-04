@@ -27,9 +27,15 @@ export type CategoryConfig = {
 export const CheckboxGroup = ({
   categories,
   onCategoriesChange,
+  compactSingleItem = true,
+  showDivider = true,
+  showSingleItem = false,
 }: {
   categories: CategoryConfig[];
   onCategoriesChange: (categories: CategoryConfig[]) => void;
+  compactSingleItem?: boolean;
+  showDivider?: boolean;
+  showSingleItem?: boolean;
 }) => {
   const [openAccordion, setOpenAccordion] = useState<string>('');
 
@@ -580,6 +586,32 @@ export const CheckboxGroup = ({
     </div>
   );
 
+  // Helper component to render compact single item view
+  const renderCompactSingleItem = (category: CategoryConfig) => {
+    const formattedItems = getFormattedItems(category.key);
+    const allItems = formattedItems.flatMap((group) => group.itens || []);
+
+    if (allItems.length !== 1) {
+      return null;
+    }
+
+    const singleItem = allItems[0];
+
+    return (
+      <div
+        key={category.key}
+        className="flex items-center justify-between w-full px-3 py-2"
+      >
+        <Text size="sm" weight="bold" className="text-text-800">
+          {category.label}
+        </Text>
+        <Text size="sm" className="text-text-950">
+          {singleItem.name}
+        </Text>
+      </div>
+    );
+  };
+
   // Helper component to render category accordion
   const renderCategoryAccordion = (category: CategoryConfig) => {
     // Check if category is enabled based on dependencies (inline to avoid stale closure)
@@ -591,11 +623,24 @@ export const CheckboxGroup = ({
       });
     const hasOnlyOneItem = category.itens?.length === 1;
 
-    if (hasOnlyOneItem) {
+    if (hasOnlyOneItem && !compactSingleItem && !showSingleItem) {
       return null;
     }
 
     const formattedItems = getFormattedItems(category.key);
+    const allItems = formattedItems.flatMap((group) => group.itens || []);
+    const hasOnlyOneAvailableItem = allItems.length === 1;
+
+    // If compactSingleItem is enabled and there's only one available item, render compact version
+    if (compactSingleItem && hasOnlyOneAvailableItem && isEnabled) {
+      return (
+        <div key={category.key}>
+          {renderCompactSingleItem(category)}
+          {showDivider && <Divider />}
+        </div>
+      );
+    }
+
     const hasNoItems = formattedItems.every(
       (group) => !group.itens || group.itens.length === 0
     );
@@ -625,7 +670,7 @@ export const CheckboxGroup = ({
             )}
           </div>
         </CardAccordation>
-        {openAccordion !== category.key && <Divider />}
+        {openAccordion !== category.key && showDivider && <Divider />}
       </div>
     );
   };
