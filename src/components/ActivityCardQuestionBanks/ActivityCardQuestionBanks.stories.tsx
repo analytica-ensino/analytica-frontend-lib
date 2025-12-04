@@ -93,6 +93,19 @@ export const AllQuestionTypes: Story = () => {
             }
           />
         </div>
+
+        <div>
+          <h3 className="font-bold text-2xl text-text-900 mb-4">
+            Tipo: Dissertativa
+          </h3>
+          <ActivityCardQuestionBanks
+            questionType={QUESTION_TYPE.DISSERTATIVA}
+            iconName="ArticleNyTimes"
+            subjectColor="#F97316"
+            isDark={isDark}
+            onAddToActivity={() => console.log('Adicionar dissertativa')}
+          />
+        </div>
       </div>
     </div>
   );

@@ -74,6 +74,29 @@ export const ActivityCardQuestionBanks = ({
     return question?.correctOptionIds || [];
   }, [question]);
 
+  // Map question type to display name
+  const getQuestionTypeLabel = (type?: QUESTION_TYPE): string => {
+    if (!type) return 'Tipo de questão';
+    switch (type) {
+      case QUESTION_TYPE.ALTERNATIVA:
+        return 'Alternativa';
+      case QUESTION_TYPE.MULTIPLA_ESCOLHA:
+        return 'Múltipla Escolha';
+      case QUESTION_TYPE.DISSERTATIVA:
+        return 'Dissertativa';
+      case QUESTION_TYPE.VERDADEIRO_FALSO:
+        return 'Verdadeiro ou Falso';
+      case QUESTION_TYPE.LIGAR_PONTOS:
+        return 'Ligar Pontos';
+      case QUESTION_TYPE.PREENCHER:
+        return 'Preencher';
+      case QUESTION_TYPE.IMAGEM:
+        return 'Imagem';
+      default:
+        return 'Tipo de questão';
+    }
+  };
+
   return (
     <div className="min-h-[500px] w-full flex flex-col gap-2 px-4 py-6">
       <section className="flex flex-row gap-2 text-text-650">
@@ -91,7 +114,7 @@ export const ActivityCardQuestionBanks = ({
 
         <div className="py-1 px-2 flex flex-row items-center gap-1">
           <Text size="sm" className="">
-            Tipo de questão
+            {getQuestionTypeLabel(questionType)}
           </Text>
         </div>
       </section>
@@ -130,6 +153,14 @@ export const ActivityCardQuestionBanks = ({
               />
             </div>
           )}
+
+        {questionType === QUESTION_TYPE.DISSERTATIVA && (
+          <div className="mt-4 px-2 py-4">
+            <Text size="sm" className="text-text-600 italic">
+              Resposta do aluno
+            </Text>
+          </div>
+        )}
       </section>
 
       <section>
