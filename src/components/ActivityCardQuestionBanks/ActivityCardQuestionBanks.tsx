@@ -24,6 +24,7 @@ interface ActivityCardQuestionBanksProps {
   subjectColor?: string;
   isDark?: boolean;
   onAddToActivity?: () => void;
+  assunto?: string;
 }
 
 export const ActivityCardQuestionBanks = ({
@@ -33,6 +34,7 @@ export const ActivityCardQuestionBanks = ({
   subjectColor = '#000000',
   isDark = false,
   onAddToActivity,
+  assunto,
 }: ActivityCardQuestionBanksProps = {}) => {
   // Transform question options into Alternative format for teacher view
   const alternatives = useMemo(() => {
@@ -147,7 +149,7 @@ export const ActivityCardQuestionBanks = ({
           >
             <IconRender iconName={iconName} size={14} color="currentColor" />
           </span>
-          <Text size="sm">Ecologia e a Interação entre Espécies</Text>
+          <Text size="sm">{assunto || 'Assunto não informado'}</Text>
         </div>
 
         <div className="py-1 px-2 flex flex-row items-center gap-1">
@@ -208,8 +210,6 @@ export const ActivityCardQuestionBanks = ({
                 {question.options.map((option, index) => {
                   const isCorrect = correctOptionIds.includes(option.id);
                   const correctAnswer = isCorrect ? 'Verdadeiro' : 'Falso';
-                  // Para questões de verdadeiro ou falso, sempre mostramos "Resposta correta"
-                  // pois estamos exibindo a resposta correta para o professor
                   const variantCorrect = 'correct';
 
                   return (

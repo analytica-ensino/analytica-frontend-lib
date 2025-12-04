@@ -76,6 +76,7 @@ export const AllQuestionTypes: Story = () => {
             iconName="Atom"
             subjectColor="#10B981"
             isDark={isDark}
+            assunto="Biologia - Ecologia"
             onAddToActivity={() => console.log('Adicionar alternativa')}
           />
         </div>
@@ -90,6 +91,7 @@ export const AllQuestionTypes: Story = () => {
             iconName="CheckSquare"
             subjectColor="#14B8A6"
             isDark={isDark}
+            assunto="Matemática - Álgebra"
             onAddToActivity={() => console.log('Adicionar múltipla escolha')}
           />
         </div>
@@ -104,6 +106,7 @@ export const AllQuestionTypes: Story = () => {
             iconName="CheckSquare"
             subjectColor="#6366F1"
             isDark={isDark}
+            assunto="História - Brasil Colônia"
             onAddToActivity={() =>
               console.log('Adicionar múltipla escolha única')
             }
@@ -119,6 +122,7 @@ export const AllQuestionTypes: Story = () => {
             iconName="ArticleNyTimes"
             subjectColor="#F97316"
             isDark={isDark}
+            assunto="Português - Literatura"
             onAddToActivity={() => console.log('Adicionar dissertativa')}
           />
         </div>
@@ -133,6 +137,7 @@ export const AllQuestionTypes: Story = () => {
             iconName="CheckCircle"
             subjectColor="#8B5CF6"
             isDark={isDark}
+            assunto="Ciências - Fotossíntese"
             onAddToActivity={() => console.log('Adicionar verdadeiro ou falso')}
           />
         </div>
@@ -158,6 +163,7 @@ export const Default: Story = () => {
         iconName="BookOpen"
         subjectColor="#3B82F6"
         isDark={isDark}
+        assunto="Geografia - Climatologia"
         onAddToActivity={() => console.log('Adicionar à atividade clicado')}
       />
     </div>
@@ -194,6 +200,7 @@ export const WithAlternativeQuestion: Story = () => {
         iconName="Atom"
         subjectColor="#10B981"
         isDark={isDark}
+        assunto="Biologia - Populações"
         onAddToActivity={() => console.log('Adicionar questão à atividade')}
       />
     </div>
@@ -229,6 +236,7 @@ export const AlternativeQuestionSecondOption: Story = () => {
         iconName="GlobeHemisphereWest"
         subjectColor="#8B5CF6"
         isDark={isDark}
+        assunto="Geografia - Capitais Brasileiras"
         onAddToActivity={() => console.log('Adicionar questão à atividade')}
       />
     </div>
@@ -264,6 +272,7 @@ export const AlternativeQuestionLastOption: Story = () => {
         iconName="Microscope"
         subjectColor="#F59E0B"
         isDark={isDark}
+        assunto="Química - Reações Químicas"
         onAddToActivity={() => console.log('Adicionar questão à atividade')}
       />
     </div>
@@ -299,6 +308,7 @@ export const AlternativeQuestionNoCorrectAnswer: Story = () => {
         iconName="Flask"
         subjectColor="#EF4444"
         isDark={isDark}
+        assunto="Física - Mecânica"
         onAddToActivity={() => console.log('Adicionar questão à atividade')}
       />
     </div>
@@ -333,6 +343,7 @@ export const WrongQuestionType: Story = () => {
         iconName="Palette"
         subjectColor="#EC4899"
         isDark={isDark}
+        assunto="Artes - História da Arte"
         onAddToActivity={() => console.log('Adicionar questão à atividade')}
       />
     </div>
@@ -381,6 +392,7 @@ export const LongQuestionText: Story = () => {
         iconName="MathOperations"
         subjectColor="#06B6D4"
         isDark={isDark}
+        assunto="Matemática - Geometria"
         onAddToActivity={() => console.log('Adicionar questão à atividade')}
       />
     </div>
@@ -418,6 +430,7 @@ export const WithMultipleChoiceQuestion: Story = () => {
         iconName="CheckSquare"
         subjectColor="#14B8A6"
         isDark={isDark}
+        assunto="Matemática - Estatística"
         onAddToActivity={() => console.log('Adicionar questão à atividade')}
       />
     </div>
@@ -453,6 +466,7 @@ export const MultipleChoiceSingleCorrect: Story = () => {
         iconName="CheckSquare"
         subjectColor="#6366F1"
         isDark={isDark}
+        assunto="História - Idade Média"
         onAddToActivity={() => console.log('Adicionar questão à atividade')}
       />
     </div>
