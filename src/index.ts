@@ -365,7 +365,7 @@ export { useInstitutionId } from './hooks/useInstitution';
 export { useAuthStore } from './store/authStore';
 export { useAppStore } from './store/appStore';
 export type { AuthState } from './store/authStore';
-
+export { ActivityCardQuestionBanks } from './components/ActivityCardQuestionBanks/ActivityCardQuestionBanks';
 // Utils
 export {
   cn,

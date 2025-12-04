@@ -96,13 +96,16 @@ export default defineConfig({
       'src/components/ActivityFilters/ActivityFilters.tsx',
     'ActivityDetails/index':
       'src/components/ActivityDetails/ActivityDetails.tsx',
+    'ActivityCardQuestionBanks/index':
+      'src/components/ActivityCardQuestionBanks/ActivityCardQuestionBanks.tsx',
     // Toast utils
     'Toast/Toaster/index': 'src/components/Toast/utils/Toaster.tsx',
     'Toast/ToastStore/index': 'src/components/Toast/utils/ToastStore.ts',
 
     // Support
     'Support/index': 'src/components/Support/index.ts',
-    'Support/TicketModal/index': 'src/components/Support/components/TicketModal.tsx',
+    'Support/TicketModal/index':
+      'src/components/Support/components/TicketModal.tsx',
     'types/support/index': 'src/types/support.ts',
 
     // Styles
