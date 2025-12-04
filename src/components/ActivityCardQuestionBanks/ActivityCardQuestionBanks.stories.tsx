@@ -4,6 +4,101 @@ import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { useTheme } from '@/index';
 
 /**
+ * Showcase principal: todos os tipos de questões
+ */
+export const AllQuestionTypes: Story = () => {
+  const { isDark } = useTheme();
+
+  const alternativeQuestion = {
+    options: [
+      { id: 'opt1', option: '200 rãs' },
+      { id: 'opt2', option: '230 rãs' },
+      { id: 'opt3', option: '463 rãs' },
+      { id: 'opt4', option: '500 rãs' },
+    ],
+    correctOptionIds: ['opt3'],
+  };
+
+  const multipleChoiceQuestion = {
+    options: [
+      { id: 'opt1', option: 'Opção A' },
+      { id: 'opt2', option: 'Opção B' },
+      { id: 'opt3', option: 'Opção C' },
+      { id: 'opt4', option: 'Opção D' },
+    ],
+    correctOptionIds: ['opt1', 'opt3'],
+  };
+
+  const multipleChoiceSingle = {
+    options: [
+      { id: 'opt1', option: 'Alternativa 1' },
+      { id: 'opt2', option: 'Alternativa 2' },
+      { id: 'opt3', option: 'Alternativa 3' },
+      { id: 'opt4', option: 'Alternativa 4' },
+    ],
+    correctOptionIds: ['opt2'],
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
+      <h2 className="font-bold text-3xl text-text-900">
+        Todos os Tipos de Questões
+      </h2>
+      <p className="text-text-700">
+        Exibição de todos os tipos de questões disponíveis no componente
+        ActivityCardQuestionBanks.
+      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+        <div>
+          <h3 className="font-bold text-2xl text-text-900 mb-4">
+            Tipo: Alternativa
+          </h3>
+          <ActivityCardQuestionBanks
+            question={alternativeQuestion}
+            questionType={QUESTION_TYPE.ALTERNATIVA}
+            iconName="Atom"
+            subjectColor="#10B981"
+            isDark={isDark}
+            onAddToActivity={() => console.log('Adicionar alternativa')}
+          />
+        </div>
+
+        <div>
+          <h3 className="font-bold text-2xl text-text-900 mb-4">
+            Tipo: Múltipla Escolha (Múltiplas Respostas)
+          </h3>
+          <ActivityCardQuestionBanks
+            question={multipleChoiceQuestion}
+            questionType={QUESTION_TYPE.MULTIPLA_ESCOLHA}
+            iconName="CheckSquare"
+            subjectColor="#14B8A6"
+            isDark={isDark}
+            onAddToActivity={() => console.log('Adicionar múltipla escolha')}
+          />
+        </div>
+
+        <div>
+          <h3 className="font-bold text-2xl text-text-900 mb-4">
+            Tipo: Múltipla Escolha (Uma Resposta)
+          </h3>
+          <ActivityCardQuestionBanks
+            question={multipleChoiceSingle}
+            questionType={QUESTION_TYPE.MULTIPLA_ESCOLHA}
+            iconName="CheckSquare"
+            subjectColor="#6366F1"
+            isDark={isDark}
+            onAddToActivity={() =>
+              console.log('Adicionar múltipla escolha única')
+            }
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
  * Default card without question data
  */
 export const Default: Story = () => {
@@ -242,6 +337,78 @@ export const LongQuestionText: Story = () => {
         questionType={QUESTION_TYPE.ALTERNATIVA}
         iconName="MathOperations"
         subjectColor="#06B6D4"
+        isDark={isDark}
+        onAddToActivity={() => console.log('Adicionar questão à atividade')}
+      />
+    </div>
+  );
+};
+
+/**
+ * Card with multiple choice question type
+ */
+export const WithMultipleChoiceQuestion: Story = () => {
+  const { isDark } = useTheme();
+  const question = {
+    options: [
+      { id: 'opt1', option: 'Opção A' },
+      { id: 'opt2', option: 'Opção B' },
+      { id: 'opt3', option: 'Opção C' },
+      { id: 'opt4', option: 'Opção D' },
+    ],
+    correctOptionIds: ['opt1', 'opt3'],
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <h2 className="font-bold text-3xl text-text-900">
+        Questão do Tipo Múltipla Escolha
+      </h2>
+      <p className="text-text-700">
+        Exibição de questão do tipo múltipla escolha com as respostas corretas
+        marcadas e badge "Resposta correta". As demais opções aparecem
+        desabilitadas.
+      </p>
+      <ActivityCardQuestionBanks
+        question={question}
+        questionType={QUESTION_TYPE.MULTIPLA_ESCOLHA}
+        iconName="CheckSquare"
+        subjectColor="#14B8A6"
+        isDark={isDark}
+        onAddToActivity={() => console.log('Adicionar questão à atividade')}
+      />
+    </div>
+  );
+};
+
+/**
+ * Card with multiple choice - single correct answer
+ */
+export const MultipleChoiceSingleCorrect: Story = () => {
+  const { isDark } = useTheme();
+  const question = {
+    options: [
+      { id: 'opt1', option: 'Alternativa 1' },
+      { id: 'opt2', option: 'Alternativa 2' },
+      { id: 'opt3', option: 'Alternativa 3' },
+      { id: 'opt4', option: 'Alternativa 4' },
+    ],
+    correctOptionIds: ['opt2'],
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <h2 className="font-bold text-3xl text-text-900">
+        Múltipla Escolha com Uma Resposta Correta
+      </h2>
+      <p className="text-text-700">
+        Exemplo de múltipla escolha com apenas uma resposta correta.
+      </p>
+      <ActivityCardQuestionBanks
+        question={question}
+        questionType={QUESTION_TYPE.MULTIPLA_ESCOLHA}
+        iconName="CheckSquare"
+        subjectColor="#6366F1"
         isDark={isDark}
         onAddToActivity={() => console.log('Adicionar questão à atividade')}
       />

@@ -2,6 +2,7 @@ import { Button, getSubjectColorWithOpacity, IconRender, Text } from '@/index';
 import { Plus } from 'phosphor-react';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
+import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { useMemo } from 'react';
 
 interface QuestionData {
@@ -51,6 +52,28 @@ export const ActivityCardQuestionBanks = ({
     return question.correctOptionIds[0];
   }, [question]);
 
+  // Transform question options into MultipleChoice format for teacher view
+  const multipleChoices = useMemo(() => {
+    if (!question?.options || questionType !== QUESTION_TYPE.MULTIPLA_ESCOLHA)
+      return [];
+
+    const correctOptionIds = question.correctOptionIds || [];
+
+    return question.options.map((option) => {
+      const isCorrect = correctOptionIds.includes(option.id);
+      return {
+        value: option.id,
+        label: option.option,
+        status: isCorrect ? ('correct' as const) : undefined,
+        disabled: !isCorrect,
+      };
+    });
+  }, [question, questionType]);
+
+  const correctOptionIds = useMemo(() => {
+    return question?.correctOptionIds || [];
+  }, [question]);
+
   return (
     <div className="min-h-[500px] w-full flex flex-col gap-2 px-4 py-6">
       <section className="flex flex-row gap-2 text-text-650">
@@ -91,6 +114,19 @@ export const ActivityCardQuestionBanks = ({
                 layout="compact"
                 selectedValue={correctOptionId}
                 name="teacher-question-view"
+              />
+            </div>
+          )}
+
+        {questionType === QUESTION_TYPE.MULTIPLA_ESCOLHA &&
+          question &&
+          multipleChoices.length > 0 && (
+            <div className="mt-4">
+              <MultipleChoiceList
+                choices={multipleChoices}
+                mode="readonly"
+                selectedValues={correctOptionIds}
+                name="teacher-question-view-multiple"
               />
             </div>
           )}
