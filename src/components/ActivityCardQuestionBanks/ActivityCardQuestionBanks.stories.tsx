@@ -39,6 +39,22 @@ export const AllQuestionTypes: Story = () => {
     correctOptionIds: ['opt2'],
   };
 
+  const trueOrFalseQuestion = {
+    options: [
+      { id: 'tf1', option: 'A fotossíntese ocorre apenas durante o dia' },
+      {
+        id: 'tf2',
+        option: 'As plantas produzem oxigênio durante a fotossíntese',
+      },
+      { id: 'tf3', option: 'A clorofila é encontrada apenas nas folhas' },
+      {
+        id: 'tf4',
+        option: 'A respiração celular é o processo inverso da fotossíntese',
+      },
+    ],
+    correctOptionIds: ['tf2', 'tf4'], // Verdadeiro para tf2 e tf4
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
       <h2 className="font-bold text-3xl text-text-900">
@@ -104,6 +120,20 @@ export const AllQuestionTypes: Story = () => {
             subjectColor="#F97316"
             isDark={isDark}
             onAddToActivity={() => console.log('Adicionar dissertativa')}
+          />
+        </div>
+
+        <div>
+          <h3 className="font-bold text-2xl text-text-900 mb-4">
+            Tipo: Verdadeiro ou Falso
+          </h3>
+          <ActivityCardQuestionBanks
+            question={trueOrFalseQuestion}
+            questionType={QUESTION_TYPE.VERDADEIRO_FALSO}
+            iconName="CheckCircle"
+            subjectColor="#8B5CF6"
+            isDark={isDark}
+            onAddToActivity={() => console.log('Adicionar verdadeiro ou falso')}
           />
         </div>
       </div>

@@ -1,9 +1,16 @@
-import { Button, getSubjectColorWithOpacity, IconRender, Text } from '@/index';
-import { Plus } from 'phosphor-react';
+import {
+  Button,
+  getSubjectColorWithOpacity,
+  IconRender,
+  Text,
+  Badge,
+} from '@/index';
+import { Plus, CheckCircle, XCircle } from 'phosphor-react';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { useMemo } from 'react';
+import { cn } from '../../utils/utils';
 
 interface QuestionData {
   options: { id: string; option: string }[];
@@ -73,6 +80,37 @@ export const ActivityCardQuestionBanks = ({
   const correctOptionIds = useMemo(() => {
     return question?.correctOptionIds || [];
   }, [question]);
+
+  // Helper function to get status badge
+  const getStatusBadge = (status: 'correct' | 'incorrect') => {
+    switch (status) {
+      case 'correct':
+        return (
+          <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
+            Resposta correta
+          </Badge>
+        );
+      case 'incorrect':
+        return (
+          <Badge variant="solid" action="error" iconLeft={<XCircle />}>
+            Resposta incorreta
+          </Badge>
+        );
+    }
+  };
+
+  // Helper function to get status styles
+  const getStatusStyles = (status: 'correct' | 'incorrect') => {
+    switch (status) {
+      case 'correct':
+        return 'bg-success-background border-success-300';
+      case 'incorrect':
+        return 'bg-error-background border-error-300';
+    }
+  };
+
+  // Helper function to get letter by index
+  const getLetterByIndex = (index: number) => String.fromCodePoint(97 + index); // 97 = 'a' in ASCII
 
   // Map question type to display name
   const getQuestionTypeLabel = (type?: QUESTION_TYPE): string => {
@@ -161,6 +199,46 @@ export const ActivityCardQuestionBanks = ({
             </Text>
           </div>
         )}
+
+        {questionType === QUESTION_TYPE.VERDADEIRO_FALSO &&
+          question &&
+          question.options.length > 0 && (
+            <div className="mt-4">
+              <div className="flex flex-col gap-3.5">
+                {question.options.map((option, index) => {
+                  const isCorrect = correctOptionIds.includes(option.id);
+                  const correctAnswer = isCorrect ? 'Verdadeiro' : 'Falso';
+                  // Para questões de verdadeiro ou falso, sempre mostramos "Resposta correta"
+                  // pois estamos exibindo a resposta correta para o professor
+                  const variantCorrect = 'correct';
+
+                  return (
+                    <section key={option.id} className="flex flex-col gap-2">
+                      <div
+                        className={cn(
+                          'flex flex-row justify-between items-center gap-2 p-2 rounded-md border',
+                          getStatusStyles(variantCorrect)
+                        )}
+                      >
+                        <Text size="sm" className="text-text-900">
+                          {getLetterByIndex(index)
+                            .concat(') ')
+                            .concat(option.option)}
+                        </Text>
+
+                        <div className="flex flex-row items-center gap-2 flex-shrink-0">
+                          <Text size="sm" className="text-text-700">
+                            Resposta correta: {correctAnswer}
+                          </Text>
+                          {getStatusBadge(variantCorrect)}
+                        </div>
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            </div>
+          )}
       </section>
 
       <section>
