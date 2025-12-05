@@ -441,3 +441,33 @@ export type {
   SubmitSupportAnswerResponse,
   SupportApiClient,
 } from './types/support';
+
+// DatePickerInput Component
+export { DatePickerInput } from './components/DatePickerInput';
+export type { DatePickerInputProps } from './components/DatePickerInput';
+
+// SendActivityModal Component
+export { SendActivityModal } from './components/SendActivityModal';
+export { useSendActivityModal } from './components/SendActivityModal';
+export type {
+  SendActivityModalProps,
+  SendActivityFormData,
+  ActivitySubtype,
+  StudentRecipient,
+  ClassData,
+  SchoolYearData,
+  SchoolData,
+  RecipientHierarchy,
+  StepErrors,
+  StepState,
+  StepConfig,
+} from './components/SendActivityModal';
+export {
+  validateActivityStep,
+  validateRecipientStep,
+  validateDeadlineStep,
+  validateStep,
+  isStepValid,
+  isFormValid,
+  ERROR_MESSAGES,
+} from './components/SendActivityModal';
