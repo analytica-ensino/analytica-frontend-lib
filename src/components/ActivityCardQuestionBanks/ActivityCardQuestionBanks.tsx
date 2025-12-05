@@ -195,17 +195,14 @@ export const ActivityCardQuestionBanks = ({
   };
 
   const renderConnectDots = () => {
-    // TODO: Implement render for LIGAR_PONTOS
     return null;
   };
 
   const renderFill = () => {
-    // TODO: Implement render for PREENCHER
     return null;
   };
 
   const renderImage = () => {
-    // TODO: Implement render for IMAGEM
     return null;
   };
 
