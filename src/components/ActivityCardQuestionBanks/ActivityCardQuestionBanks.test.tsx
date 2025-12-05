@@ -291,7 +291,7 @@ describe('ActivityCardQuestionBanks', () => {
           questionType={QUESTION_TYPE.DISSERTATIVA}
         />
       );
-      expect(screen.getByText('Dissertativa')).toBeInTheDocument();
+      expect(screen.getByText('Discursiva')).toBeInTheDocument();
     });
 
     it('should render correct label for VERDADEIRO_FALSO', () => {
@@ -321,7 +321,7 @@ describe('ActivityCardQuestionBanks', () => {
           questionType={QUESTION_TYPE.PREENCHER}
         />
       );
-      expect(screen.getByText('Preencher')).toBeInTheDocument();
+      expect(screen.getByText('Preencher Lacunas')).toBeInTheDocument();
     });
 
     it('should render correct label for IMAGEM', () => {
