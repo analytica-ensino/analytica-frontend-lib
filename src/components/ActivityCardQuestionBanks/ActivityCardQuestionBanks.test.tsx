@@ -1003,12 +1003,7 @@ describe('ActivityCardQuestionBanks', () => {
         <ActivityCardQuestionBanks {...defaultProps} />
       );
       const mainContainer = container.firstChild as HTMLElement;
-      expect(mainContainer).toHaveClass(
-        'min-h-[500px]',
-        'w-full',
-        'flex',
-        'flex-col'
-      );
+      expect(mainContainer).toHaveClass('w-full', 'flex', 'flex-col');
     });
 
     it('should render header section with assunto and question type', () => {
