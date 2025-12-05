@@ -25,6 +25,7 @@ interface ActivityCardQuestionBanksProps {
   isDark?: boolean;
   onAddToActivity?: () => void;
   assunto?: string;
+  enunciado?: string;
 }
 
 export const ActivityCardQuestionBanks = ({
@@ -35,6 +36,7 @@ export const ActivityCardQuestionBanks = ({
   isDark = false,
   onAddToActivity,
   assunto,
+  enunciado,
 }: ActivityCardQuestionBanksProps = {}) => {
   // Transform question options into Alternative format for teacher view
   const alternatives = useMemo(() => {
@@ -161,10 +163,7 @@ export const ActivityCardQuestionBanks = ({
 
       <section className="flex flex-col gap-1">
         <Text size="md" weight="medium" className="text-text-950 text-md">
-          Um grupo de cientistas está estudando o comportamento de uma população
-          de rãs em um lago. Após várias observações, eles notaram que a
-          quantidade de rãs aumenta em média 15% a cada mês. Qual será a
-          população de rãs após 6 meses, se inicialmente havia 200 rãs no lago?
+          {enunciado || 'Enunciado não informado'}
         </Text>
 
         {questionType === QUESTION_TYPE.ALTERNATIVA &&

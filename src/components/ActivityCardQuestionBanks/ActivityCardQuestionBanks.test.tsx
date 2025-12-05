@@ -1023,12 +1023,36 @@ describe('ActivityCardQuestionBanks', () => {
       expect(screen.getByText('Alternativa')).toBeInTheDocument();
     });
 
-    it('should render question statement section', () => {
+    it('should render default enunciado when not provided', () => {
       render(<ActivityCardQuestionBanks {...defaultProps} />);
-      const statement = screen.getByText(
-        /Um grupo de cientistas está estudando/
-      );
+      const statement = screen.getByText('Enunciado não informado');
       expect(statement).toBeInTheDocument();
+    });
+
+    it('should render custom enunciado when provided', () => {
+      const customEnunciado = 'Qual é a capital do Brasil?';
+      render(
+        <ActivityCardQuestionBanks
+          {...defaultProps}
+          enunciado={customEnunciado}
+        />
+      );
+      const statement = screen.getByText(customEnunciado);
+      expect(statement).toBeInTheDocument();
+    });
+
+    it('should render enunciado with correct styling', () => {
+      const customEnunciado = 'Teste de enunciado';
+      render(
+        <ActivityCardQuestionBanks
+          {...defaultProps}
+          enunciado={customEnunciado}
+        />
+      );
+      const statement = screen.getByText(customEnunciado);
+      expect(statement).toHaveClass('text-text-950', 'text-md');
+      expect(statement).toHaveAttribute('data-weight', 'medium');
+      expect(statement).toHaveAttribute('data-size', 'md');
     });
 
     it('should render button section at the bottom', () => {
