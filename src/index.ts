@@ -191,6 +191,7 @@ export type {
 export type {
   ActivityFiltersData,
   Bank,
+  BankYear,
   KnowledgeArea,
   KnowledgeItem,
   KnowledgeStructureState,
