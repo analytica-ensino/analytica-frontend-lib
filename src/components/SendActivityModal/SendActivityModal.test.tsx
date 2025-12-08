@@ -237,10 +237,6 @@ describe('SendActivityModal', () => {
       expect(screen.getByText('Aluno 2')).toBeInTheDocument();
     });
 
-    it('should show selected count', () => {
-      expect(screen.getByText('0 aluno(s) selecionado(s)')).toBeInTheDocument();
-    });
-
     it('should show validation error when no student selected', () => {
       fireEvent.click(screen.getByText('Próximo'));
 

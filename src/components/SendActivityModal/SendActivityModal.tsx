@@ -327,10 +327,6 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
         </div>
 
         {renderError(store.errors.students)}
-
-        <p className="text-xs text-text-500">
-          {store.selectedStudentIds.size} aluno(s) selecionado(s)
-        </p>
       </div>
     );
   };
@@ -626,11 +622,6 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
         </div>
 
         {renderError(store.errors.students)}
-
-        {/* Selected count */}
-        <p className="text-xs text-text-500">
-          {store.selectedStudentIds.size} aluno(s) selecionado(s)
-        </p>
       </div>
     );
   };
