@@ -196,6 +196,17 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
   );
 
   /**
+   * Check if recipients have a single path (one school, one year, one class)
+   */
+  const hasSinglePath = useCallback(() => {
+    return (
+      recipients.schools.length === 1 &&
+      recipients.schools[0].schoolYears.length === 1 &&
+      recipients.schools[0].schoolYears[0].classes.length === 1
+    );
+  }, [recipients]);
+
+  /**
    * Get all school years from schools with filter selected
    */
   const getAvailableSchoolYears = useCallback(() => {
@@ -249,270 +260,60 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
   );
 
   /**
-   * Render Step 2 - Recipient with flat accordion structure
+   * Render simple recipient list when professor has single school/year/class
    */
-  const renderRecipientStep = () => (
-    <div className="flex flex-col gap-4">
-      <p className="text-sm font-medium text-text-700">
-        Para quem você vai enviar a atividade?
-      </p>
+  const renderSimpleRecipientList = () => {
+    const school = recipients.schools[0];
+    const schoolYear = school.schoolYears[0];
+    const classData = schoolYear.classes[0];
+    const students = classData.students;
 
-      {/* Flat accordion structure */}
-      <div
-        className={cn(
-          'max-h-[300px] overflow-y-auto',
-          'scrollbar-thin scrollbar-thumb-border-300 scrollbar-track-transparent'
-        )}
-      >
-        <AccordionGroup type="multiple" className="flex flex-col">
-          {/* Escola Accordion */}
-          <CardAccordation
-            value="escola"
-            className="border-b border-border-200"
-            triggerClassName="py-3.5 px-6"
-            contentClassName="px-6 pt-3 pb-2"
-            trigger={
-              <CheckBox
-                label="Escola"
-                checked={
-                  recipients.schools.length > 0 &&
-                  recipients.schools.every((school) =>
-                    store.isSchoolFilterSelected(school.id)
-                  )
-                }
-                indeterminate={
-                  recipients.schools.some((school) =>
-                    store.isSchoolFilterSelected(school.id)
-                  ) &&
-                  !recipients.schools.every((school) =>
-                    store.isSchoolFilterSelected(school.id)
-                  )
-                }
-                onChange={(e) => {
-                  e.stopPropagation();
-                  const allSelected = recipients.schools.every((school) =>
-                    store.isSchoolFilterSelected(school.id)
-                  );
-                  recipients.schools.forEach((school) => {
-                    if (allSelected) {
-                      if (store.isSchoolFilterSelected(school.id)) {
-                        store.toggleSchoolFilter(school.id);
-                      }
-                    } else {
-                      if (!store.isSchoolFilterSelected(school.id)) {
-                        store.toggleSchoolFilter(school.id);
-                      }
+    const allSelected =
+      students.length > 0 &&
+      students.every((s) => store.isStudentSelected(s.studentId));
+    const someSelected = students.some((s) =>
+      store.isStudentSelected(s.studentId)
+    );
+
+    return (
+      <div className="flex flex-col gap-4">
+        <p className="text-sm font-medium text-text-700">
+          Para quem você vai enviar a atividade?
+        </p>
+
+        <div className="overflow-hidden">
+          {/* Select all row */}
+          <div className="py-3.5 px-6 border-b border-border-200">
+            <CheckBox
+              label="Todos os alunos"
+              checked={allSelected}
+              indeterminate={someSelected && !allSelected}
+              onChange={() => {
+                students.forEach((student) => {
+                  if (allSelected) {
+                    if (store.isStudentSelected(student.studentId)) {
+                      store.toggleStudent(student);
                     }
-                  });
-                }}
-                size="small"
-              />
-            }
-          >
-            <div className="pl-4 flex flex-col gap-2">
-              {recipients.schools.map((school) => (
-                <CheckBox
-                  key={school.id}
-                  label={school.name}
-                  checked={store.isSchoolFilterSelected(school.id)}
-                  onChange={() => store.toggleSchoolFilter(school.id)}
-                  size="small"
-                />
-              ))}
-            </div>
-          </CardAccordation>
+                  } else {
+                    if (!store.isStudentSelected(student.studentId)) {
+                      store.toggleStudent(student);
+                    }
+                  }
+                });
+              }}
+              size="small"
+            />
+          </div>
 
-          {/* Série Accordion */}
-          <CardAccordation
-            value="serie"
+          {/* Student list */}
+          <div
             className={cn(
-              'border-b border-border-200',
-              !hasSelectedSchools && 'opacity-40'
+              'px-6 py-4 max-h-[200px] overflow-y-auto',
+              'scrollbar-thin scrollbar-thumb-border-300 scrollbar-track-transparent'
             )}
-            triggerClassName="py-3.5 px-6"
-            contentClassName="px-6 pt-3 pb-2"
-            trigger={
-              <CheckBox
-                label="Série"
-                checked={
-                  hasSelectedSchools &&
-                  getAvailableSchoolYears().length > 0 &&
-                  getAvailableSchoolYears().every((sy) =>
-                    store.isSchoolYearFilterSelected(sy.id)
-                  )
-                }
-                indeterminate={
-                  hasSelectedSchools &&
-                  getAvailableSchoolYears().some((sy) =>
-                    store.isSchoolYearFilterSelected(sy.id)
-                  ) &&
-                  !getAvailableSchoolYears().every((sy) =>
-                    store.isSchoolYearFilterSelected(sy.id)
-                  )
-                }
-                onChange={(e) => {
-                  e.stopPropagation();
-                  if (!hasSelectedSchools) return;
-                  const allSelected = getAvailableSchoolYears().every((sy) =>
-                    store.isSchoolYearFilterSelected(sy.id)
-                  );
-                  getAvailableSchoolYears().forEach((schoolYear) => {
-                    if (allSelected) {
-                      if (store.isSchoolYearFilterSelected(schoolYear.id)) {
-                        store.toggleSchoolYearFilter(schoolYear.id);
-                      }
-                    } else {
-                      if (!store.isSchoolYearFilterSelected(schoolYear.id)) {
-                        store.toggleSchoolYearFilter(schoolYear.id);
-                      }
-                    }
-                  });
-                }}
-                size="small"
-                disabled={!hasSelectedSchools}
-              />
-            }
           >
-            <div className="pl-4 flex flex-col gap-2">
-              {getAvailableSchoolYears().map((schoolYear) => (
-                <CheckBox
-                  key={schoolYear.id}
-                  label={schoolYear.name}
-                  checked={store.isSchoolYearFilterSelected(schoolYear.id)}
-                  onChange={() => store.toggleSchoolYearFilter(schoolYear.id)}
-                  size="small"
-                />
-              ))}
-              {getAvailableSchoolYears().length === 0 && (
-                <p className="text-sm text-text-500 italic">
-                  Selecione uma escola primeiro
-                </p>
-              )}
-            </div>
-          </CardAccordation>
-
-          {/* Turma Accordion */}
-          <CardAccordation
-            value="turma"
-            className={cn(
-              'border-b border-border-200',
-              !hasSelectedSchoolYears && 'opacity-40'
-            )}
-            triggerClassName="py-3.5 px-6"
-            contentClassName="px-6 pt-3 pb-2"
-            trigger={
-              <CheckBox
-                label="Turma"
-                checked={
-                  hasSelectedSchoolYears &&
-                  getAvailableClasses().length > 0 &&
-                  getAvailableClasses().every((c) =>
-                    store.isClassFilterSelected(c.id)
-                  )
-                }
-                indeterminate={
-                  hasSelectedSchoolYears &&
-                  getAvailableClasses().some((c) =>
-                    store.isClassFilterSelected(c.id)
-                  ) &&
-                  !getAvailableClasses().every((c) =>
-                    store.isClassFilterSelected(c.id)
-                  )
-                }
-                onChange={(e) => {
-                  e.stopPropagation();
-                  if (!hasSelectedSchoolYears) return;
-                  const allSelected = getAvailableClasses().every((c) =>
-                    store.isClassFilterSelected(c.id)
-                  );
-                  getAvailableClasses().forEach((classData) => {
-                    if (allSelected) {
-                      if (store.isClassFilterSelected(classData.id)) {
-                        store.toggleClassFilter(classData.id);
-                      }
-                    } else {
-                      if (!store.isClassFilterSelected(classData.id)) {
-                        store.toggleClassFilter(classData.id);
-                      }
-                    }
-                  });
-                }}
-                size="small"
-                disabled={!hasSelectedSchoolYears}
-              />
-            }
-          >
-            <div className="pl-4 flex flex-col gap-2">
-              {getAvailableClasses().map((classData) => (
-                <CheckBox
-                  key={classData.id}
-                  label={classData.name}
-                  checked={store.isClassFilterSelected(classData.id)}
-                  onChange={() => store.toggleClassFilter(classData.id)}
-                  size="small"
-                />
-              ))}
-              {getAvailableClasses().length === 0 && (
-                <p className="text-sm text-text-500 italic">
-                  Selecione uma série primeiro
-                </p>
-              )}
-            </div>
-          </CardAccordation>
-
-          {/* Alunos Accordion */}
-          <CardAccordation
-            value="alunos"
-            className={cn(
-              'border-b border-border-200',
-              !hasSelectedClasses && 'opacity-40'
-            )}
-            triggerClassName="py-3.5 px-6"
-            contentClassName="px-6 pt-3 pb-2"
-            trigger={
-              <CheckBox
-                label="Alunos"
-                checked={
-                  hasSelectedClasses &&
-                  getAvailableStudents().length > 0 &&
-                  getAvailableStudents().every((s) =>
-                    store.isStudentSelected(s.studentId)
-                  )
-                }
-                indeterminate={
-                  hasSelectedClasses &&
-                  getAvailableStudents().some((s) =>
-                    store.isStudentSelected(s.studentId)
-                  ) &&
-                  !getAvailableStudents().every((s) =>
-                    store.isStudentSelected(s.studentId)
-                  )
-                }
-                onChange={(e) => {
-                  e.stopPropagation();
-                  if (!hasSelectedClasses) return;
-                  const allSelected = getAvailableStudents().every((s) =>
-                    store.isStudentSelected(s.studentId)
-                  );
-                  getAvailableStudents().forEach((student) => {
-                    if (allSelected) {
-                      if (store.isStudentSelected(student.studentId)) {
-                        store.toggleStudent(student);
-                      }
-                    } else {
-                      if (!store.isStudentSelected(student.studentId)) {
-                        store.toggleStudent(student);
-                      }
-                    }
-                  });
-                }}
-                size="small"
-                disabled={!hasSelectedClasses}
-              />
-            }
-          >
-            <div className="pl-4 flex flex-col gap-2">
-              {getAvailableStudents().map((student) => (
+            <div className="flex flex-col gap-2">
+              {students.map((student) => (
                 <CheckBox
                   key={`${student.studentId}-${student.userInstitutionId}`}
                   label={student.name}
@@ -521,24 +322,318 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
                   size="small"
                 />
               ))}
-              {getAvailableStudents().length === 0 && (
-                <p className="text-sm text-text-500 italic">
-                  Selecione uma turma primeiro
-                </p>
-              )}
             </div>
-          </CardAccordation>
-        </AccordionGroup>
+          </div>
+        </div>
+
+        {renderError(store.errors.students)}
+
+        <p className="text-xs text-text-500">
+          {store.selectedStudentIds.size} aluno(s) selecionado(s)
+        </p>
       </div>
+    );
+  };
 
-      {renderError(store.errors.students)}
+  /**
+   * Render Step 2 - Recipient with flat accordion structure
+   */
+  const renderRecipientStep = () => {
+    // Simple list for single path (one school, one year, one class)
+    if (hasSinglePath()) {
+      return renderSimpleRecipientList();
+    }
 
-      {/* Selected count */}
-      <p className="text-xs text-text-500">
-        {store.selectedStudentIds.size} aluno(s) selecionado(s)
-      </p>
-    </div>
-  );
+    // Complete hierarchy for multiple options
+    return (
+      <div className="flex flex-col gap-4">
+        <p className="text-sm font-medium text-text-700">
+          Para quem você vai enviar a atividade?
+        </p>
+
+        {/* Flat accordion structure */}
+        <div
+          className={cn(
+            'max-h-[300px] overflow-y-auto',
+            'scrollbar-thin scrollbar-thumb-border-300 scrollbar-track-transparent'
+          )}
+        >
+          <AccordionGroup type="multiple" className="flex flex-col">
+            {/* Escola Accordion */}
+            <CardAccordation
+              value="escola"
+              className="border-0 border-b border-border-200 bg-transparent rounded-none"
+              triggerClassName="py-3.5 px-6"
+              contentClassName="px-6 pt-3 pb-2"
+              trigger={
+                <CheckBox
+                  label="Escola"
+                  checked={
+                    recipients.schools.length > 0 &&
+                    recipients.schools.every((school) =>
+                      store.isSchoolFilterSelected(school.id)
+                    )
+                  }
+                  indeterminate={
+                    recipients.schools.some((school) =>
+                      store.isSchoolFilterSelected(school.id)
+                    ) &&
+                    !recipients.schools.every((school) =>
+                      store.isSchoolFilterSelected(school.id)
+                    )
+                  }
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    const allSelected = recipients.schools.every((school) =>
+                      store.isSchoolFilterSelected(school.id)
+                    );
+                    recipients.schools.forEach((school) => {
+                      if (allSelected) {
+                        if (store.isSchoolFilterSelected(school.id)) {
+                          store.toggleSchoolFilter(school.id);
+                        }
+                      } else {
+                        if (!store.isSchoolFilterSelected(school.id)) {
+                          store.toggleSchoolFilter(school.id);
+                        }
+                      }
+                    });
+                  }}
+                  size="small"
+                />
+              }
+            >
+              <div className="pl-4 flex flex-col gap-2">
+                {recipients.schools.map((school) => (
+                  <CheckBox
+                    key={school.id}
+                    label={school.name}
+                    checked={store.isSchoolFilterSelected(school.id)}
+                    onChange={() => store.toggleSchoolFilter(school.id)}
+                    size="small"
+                  />
+                ))}
+              </div>
+            </CardAccordation>
+
+            {/* Série Accordion */}
+            <CardAccordation
+              value="serie"
+              className={cn(
+                'border-0 border-b border-border-200 bg-transparent rounded-none',
+                !hasSelectedSchools && 'opacity-40'
+              )}
+              triggerClassName="py-3.5 px-6"
+              contentClassName="px-6 pt-3 pb-2"
+              trigger={
+                <CheckBox
+                  label="Série"
+                  checked={
+                    hasSelectedSchools &&
+                    getAvailableSchoolYears().length > 0 &&
+                    getAvailableSchoolYears().every((sy) =>
+                      store.isSchoolYearFilterSelected(sy.id)
+                    )
+                  }
+                  indeterminate={
+                    hasSelectedSchools &&
+                    getAvailableSchoolYears().some((sy) =>
+                      store.isSchoolYearFilterSelected(sy.id)
+                    ) &&
+                    !getAvailableSchoolYears().every((sy) =>
+                      store.isSchoolYearFilterSelected(sy.id)
+                    )
+                  }
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    if (!hasSelectedSchools) return;
+                    const allSelected = getAvailableSchoolYears().every((sy) =>
+                      store.isSchoolYearFilterSelected(sy.id)
+                    );
+                    getAvailableSchoolYears().forEach((schoolYear) => {
+                      if (allSelected) {
+                        if (store.isSchoolYearFilterSelected(schoolYear.id)) {
+                          store.toggleSchoolYearFilter(schoolYear.id);
+                        }
+                      } else {
+                        if (!store.isSchoolYearFilterSelected(schoolYear.id)) {
+                          store.toggleSchoolYearFilter(schoolYear.id);
+                        }
+                      }
+                    });
+                  }}
+                  size="small"
+                  disabled={!hasSelectedSchools}
+                />
+              }
+            >
+              <div className="pl-4 flex flex-col gap-2">
+                {getAvailableSchoolYears().map((schoolYear) => (
+                  <CheckBox
+                    key={schoolYear.id}
+                    label={schoolYear.name}
+                    checked={store.isSchoolYearFilterSelected(schoolYear.id)}
+                    onChange={() => store.toggleSchoolYearFilter(schoolYear.id)}
+                    size="small"
+                  />
+                ))}
+                {getAvailableSchoolYears().length === 0 && (
+                  <p className="text-sm text-text-500 italic">
+                    Selecione uma escola primeiro
+                  </p>
+                )}
+              </div>
+            </CardAccordation>
+
+            {/* Turma Accordion */}
+            <CardAccordation
+              value="turma"
+              className={cn(
+                'border-0 border-b border-border-200 bg-transparent rounded-none',
+                !hasSelectedSchoolYears && 'opacity-40'
+              )}
+              triggerClassName="py-3.5 px-6"
+              contentClassName="px-6 pt-3 pb-2"
+              trigger={
+                <CheckBox
+                  label="Turma"
+                  checked={
+                    hasSelectedSchoolYears &&
+                    getAvailableClasses().length > 0 &&
+                    getAvailableClasses().every((c) =>
+                      store.isClassFilterSelected(c.id)
+                    )
+                  }
+                  indeterminate={
+                    hasSelectedSchoolYears &&
+                    getAvailableClasses().some((c) =>
+                      store.isClassFilterSelected(c.id)
+                    ) &&
+                    !getAvailableClasses().every((c) =>
+                      store.isClassFilterSelected(c.id)
+                    )
+                  }
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    if (!hasSelectedSchoolYears) return;
+                    const allSelected = getAvailableClasses().every((c) =>
+                      store.isClassFilterSelected(c.id)
+                    );
+                    getAvailableClasses().forEach((classData) => {
+                      if (allSelected) {
+                        if (store.isClassFilterSelected(classData.id)) {
+                          store.toggleClassFilter(classData.id);
+                        }
+                      } else {
+                        if (!store.isClassFilterSelected(classData.id)) {
+                          store.toggleClassFilter(classData.id);
+                        }
+                      }
+                    });
+                  }}
+                  size="small"
+                  disabled={!hasSelectedSchoolYears}
+                />
+              }
+            >
+              <div className="pl-4 flex flex-col gap-2">
+                {getAvailableClasses().map((classData) => (
+                  <CheckBox
+                    key={classData.id}
+                    label={classData.name}
+                    checked={store.isClassFilterSelected(classData.id)}
+                    onChange={() => store.toggleClassFilter(classData.id)}
+                    size="small"
+                  />
+                ))}
+                {getAvailableClasses().length === 0 && (
+                  <p className="text-sm text-text-500 italic">
+                    Selecione uma série primeiro
+                  </p>
+                )}
+              </div>
+            </CardAccordation>
+
+            {/* Alunos Accordion */}
+            <CardAccordation
+              value="alunos"
+              className={cn(
+                'border-0 border-b border-border-200 bg-transparent rounded-none',
+                !hasSelectedClasses && 'opacity-40'
+              )}
+              triggerClassName="py-3.5 px-6"
+              contentClassName="px-6 pt-3 pb-2"
+              trigger={
+                <CheckBox
+                  label="Alunos"
+                  checked={
+                    hasSelectedClasses &&
+                    getAvailableStudents().length > 0 &&
+                    getAvailableStudents().every((s) =>
+                      store.isStudentSelected(s.studentId)
+                    )
+                  }
+                  indeterminate={
+                    hasSelectedClasses &&
+                    getAvailableStudents().some((s) =>
+                      store.isStudentSelected(s.studentId)
+                    ) &&
+                    !getAvailableStudents().every((s) =>
+                      store.isStudentSelected(s.studentId)
+                    )
+                  }
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    if (!hasSelectedClasses) return;
+                    const allSelected = getAvailableStudents().every((s) =>
+                      store.isStudentSelected(s.studentId)
+                    );
+                    getAvailableStudents().forEach((student) => {
+                      if (allSelected) {
+                        if (store.isStudentSelected(student.studentId)) {
+                          store.toggleStudent(student);
+                        }
+                      } else {
+                        if (!store.isStudentSelected(student.studentId)) {
+                          store.toggleStudent(student);
+                        }
+                      }
+                    });
+                  }}
+                  size="small"
+                  disabled={!hasSelectedClasses}
+                />
+              }
+            >
+              <div className="pl-4 flex flex-col gap-2">
+                {getAvailableStudents().map((student) => (
+                  <CheckBox
+                    key={`${student.studentId}-${student.userInstitutionId}`}
+                    label={student.name}
+                    checked={store.isStudentSelected(student.studentId)}
+                    onChange={() => store.toggleStudent(student)}
+                    size="small"
+                  />
+                ))}
+                {getAvailableStudents().length === 0 && (
+                  <p className="text-sm text-text-500 italic">
+                    Selecione uma turma primeiro
+                  </p>
+                )}
+              </div>
+            </CardAccordation>
+          </AccordionGroup>
+        </div>
+
+        {renderError(store.errors.students)}
+
+        {/* Selected count */}
+        <p className="text-xs text-text-500">
+          {store.selectedStudentIds.size} aluno(s) selecionado(s)
+        </p>
+      </div>
+    );
+  };
 
   /**
    * Render Step 3 - Deadline
@@ -649,7 +744,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
             action="primary"
             onClick={handleSubmit}
             disabled={isLoading}
-            iconRight={<PaperPlaneTilt size={16} />}
+            iconLeft={<PaperPlaneTilt size={16} />}
           >
             {isLoading ? 'Enviando...' : 'Enviar atividade'}
           </Button>

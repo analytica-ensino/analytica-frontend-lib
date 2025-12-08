@@ -315,6 +315,101 @@ export const MultipleSchools: Story = () => {
 };
 
 /**
+ * Lista simples de alunos (professor com uma escola/série/turma)
+ * Quando o professor tem apenas uma escola, série e turma,
+ * exibe lista simples sem accordions.
+ */
+export const SimpleStudentList: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const singlePathRecipients: RecipientHierarchy = {
+    schools: [
+      {
+        id: 'escola-unica',
+        name: 'Colégio São Paulo',
+        schoolYears: [
+          {
+            id: 'serie-unica',
+            name: '9º Ano - Ensino Fundamental',
+            classes: [
+              {
+                id: 'turma-unica',
+                name: '9º Ano A - Manhã',
+                shift: 'Manhã',
+                students: [
+                  {
+                    studentId: 's1',
+                    userInstitutionId: 'ui1',
+                    name: 'Ana Carolina Silva',
+                  },
+                  {
+                    studentId: 's2',
+                    userInstitutionId: 'ui2',
+                    name: 'Bruno Henrique Costa',
+                  },
+                  {
+                    studentId: 's3',
+                    userInstitutionId: 'ui3',
+                    name: 'Carla Mendes Lima',
+                  },
+                  {
+                    studentId: 's4',
+                    userInstitutionId: 'ui4',
+                    name: 'Daniel Ferreira Santos',
+                  },
+                  {
+                    studentId: 's5',
+                    userInstitutionId: 'ui5',
+                    name: 'Elena Rodrigues Alves',
+                  },
+                  {
+                    studentId: 's6',
+                    userInstitutionId: 'ui6',
+                    name: 'Fernando Gomes Pereira',
+                  },
+                  {
+                    studentId: 's7',
+                    userInstitutionId: 'ui7',
+                    name: 'Gabriela Martins Castro',
+                  },
+                  {
+                    studentId: 's8',
+                    userInstitutionId: 'ui8',
+                    name: 'Hugo Nascimento Dias',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <h2 className="font-bold text-2xl text-text-900">
+        Lista Simples de Alunos
+      </h2>
+      <p className="text-text-700">
+        Quando o professor tem apenas uma escola, série e turma, exibe lista
+        simples sem accordions.
+      </p>
+      <Button onClick={() => setIsOpen(true)}>Enviar Atividade</Button>
+      <SendActivityModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        onSubmit={async (data) => {
+          console.log('Submitted:', data);
+          setIsOpen(false);
+        }}
+        recipients={singlePathRecipients}
+      />
+    </div>
+  );
+};
+
+/**
  * Hierarquia completa com escola, séries, turmas e alunos
  * Representa a estrutura do Figma com 4 accordions flat (não aninhados)
  * Demonstra o comportamento de filtragem: selecionar escola -> série -> turma -> alunos
