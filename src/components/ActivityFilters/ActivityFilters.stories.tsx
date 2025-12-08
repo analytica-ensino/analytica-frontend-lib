@@ -10,6 +10,7 @@ import type {
   KnowledgeStructureState,
 } from '../../types/activityFilters';
 import type { CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
+import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 
 // Mock data padrão
 const mockBanks: Bank[] = [
@@ -242,6 +243,12 @@ export const AllActivityFilters: Story = () => {
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={defaultKnowledgeStructure}
           knowledgeCategories={knowledgeCategories}
+          // Question types
+          allowedQuestionTypes={[
+            QUESTION_TYPE.ALTERNATIVA,
+            QUESTION_TYPE.DISSERTATIVA,
+            QUESTION_TYPE.IMAGEM,
+          ]}
           // Handlers
           handleCategoriesChange={handleCategoriesChange}
           selectedKnowledgeSummary={selectedKnowledgeSummary}

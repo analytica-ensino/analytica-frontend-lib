@@ -41,19 +41,24 @@ const questionTypes = [
 interface QuestionTypeFilterProps {
   selectedTypes: QUESTION_TYPE[];
   onToggleType: (type: QUESTION_TYPE) => void;
+  allowedQuestionTypes?: QUESTION_TYPE[];
 }
 
 const QuestionTypeFilter = ({
   selectedTypes,
   onToggleType,
+  allowedQuestionTypes,
 }: QuestionTypeFilterProps) => {
+  // Use allowedQuestionTypes if provided, otherwise use all question types
+  const availableQuestionTypes = allowedQuestionTypes || questionTypes;
+
   return (
     <div>
       <Text size="sm" weight="bold" className="mb-3 block">
         Tipo de questão
       </Text>
       <div className="grid grid-cols-2 gap-2">
-        {questionTypes.map((questionType) => (
+        {availableQuestionTypes.map((questionType) => (
           <Chips
             key={questionType}
             selected={selectedTypes.includes(questionType)}
@@ -361,6 +366,8 @@ export interface ActivityFiltersProps {
   knowledgeAreas?: KnowledgeArea[];
   knowledgeStructure?: KnowledgeStructureState;
   knowledgeCategories?: CategoryConfig[];
+  // Question types
+  allowedQuestionTypes?: QUESTION_TYPE[];
   // Loading states
   loadingBanks?: boolean;
   loadingKnowledge?: boolean;
@@ -406,6 +413,8 @@ export const ActivityFilters = ({
     error: null,
   },
   knowledgeCategories = [],
+  // Question types
+  allowedQuestionTypes,
   // Loading states
   loadingBanks = false,
   loadingKnowledge: _loadingKnowledge = false,
@@ -435,6 +444,44 @@ export const ActivityFilters = ({
     QUESTION_TYPE[]
   >([]);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+
+  const prevAllowedQuestionTypesRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!allowedQuestionTypes || allowedQuestionTypes.length === 0) {
+      prevAllowedQuestionTypesRef.current = null;
+      return;
+    }
+
+    const currentKey = allowedQuestionTypes.slice().sort().join(',');
+    const prevKey = prevAllowedQuestionTypesRef.current;
+
+    if (currentKey === prevKey) {
+      return;
+    }
+
+    prevAllowedQuestionTypesRef.current = currentKey;
+
+    setSelectedQuestionTypes((prev) => {
+      const filtered = prev.filter((type) =>
+        allowedQuestionTypes.includes(type)
+      );
+      if (filtered.length !== prev.length) {
+        return filtered;
+      }
+      const prevSet = new Set(prev);
+      const filteredSet = new Set(filtered);
+      if (prevSet.size !== filteredSet.size) {
+        return filtered;
+      }
+      for (const item of prevSet) {
+        if (!filteredSet.has(item)) {
+          return filtered;
+        }
+      }
+      return prev;
+    });
+  }, [allowedQuestionTypes]);
 
   // Bank categories state
   const [bankCategories, setBankCategories] = useState<CategoryConfig[]>([]);
@@ -574,6 +621,7 @@ export const ActivityFilters = ({
           <QuestionTypeFilter
             selectedTypes={selectedQuestionTypes}
             onToggleType={toggleQuestionType}
+            allowedQuestionTypes={allowedQuestionTypes}
           />
 
           <div>
