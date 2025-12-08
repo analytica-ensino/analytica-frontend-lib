@@ -2640,6 +2640,7 @@ __metadata:
     polished: "npm:^4.3.1"
     postcss: "npm:^8.5.4"
     prettier: "npm:^3.5.3"
+    prop-types: "npm:^15.8.1"
     react: "npm:^19.1.0"
     react-dom: "npm:^19.1.0"
     react-hook-form: "npm:^7.56.4"
