@@ -19,6 +19,10 @@ interface CardAccordationProps extends HTMLAttributes<HTMLDivElement> {
   onToggleExpanded?: (isExpanded: boolean) => void;
   value?: string;
   disabled?: boolean;
+  /** Additional class for the trigger button */
+  triggerClassName?: string;
+  /** Additional class for the content wrapper */
+  contentClassName?: string;
 }
 
 const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
@@ -32,6 +36,8 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
       onToggleExpanded,
       value,
       disabled = false,
+      triggerClassName,
+      contentClassName,
       ...props
     },
     ref
@@ -95,7 +101,8 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
           disabled={disabled}
           className={cn(
             'w-full cursor-pointer not-aria-expanded:rounded-xl aria-expanded:rounded-t-xl flex items-center justify-between gap-3 text-left transition-colors duration-200 focus:outline-none focus:border-2 focus:border-primary-950 focus:ring-inset px-2',
-            disabled && 'cursor-not-allowed text-text-400'
+            disabled && 'cursor-not-allowed text-text-400',
+            triggerClassName
           )}
           aria-expanded={isExpanded}
           aria-controls={contentId}
@@ -127,7 +134,7 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
           data-testid="accordion-content"
           data-value={value}
         >
-          <div className="p-4 pt-0">{children}</div>
+          <div className={cn('p-4 pt-0', contentClassName)}>{children}</div>
         </section>
       </CardBase>
     );

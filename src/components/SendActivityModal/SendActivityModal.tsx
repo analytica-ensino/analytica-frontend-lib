@@ -269,6 +269,8 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
           <CardAccordation
             value="escola"
             className="border-b border-border-200"
+            triggerClassName="py-3.5 px-6"
+            contentClassName="px-6 pt-3 pb-2"
             trigger={
               <CheckBox
                 label="Escola"
@@ -307,7 +309,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
               />
             }
           >
-            <div className="pl-6 flex flex-col gap-2 py-2">
+            <div className="pl-4 flex flex-col gap-2">
               {recipients.schools.map((school) => (
                 <CheckBox
                   key={school.id}
@@ -327,6 +329,8 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
               'border-b border-border-200',
               !hasSelectedSchools && 'opacity-40'
             )}
+            triggerClassName="py-3.5 px-6"
+            contentClassName="px-6 pt-3 pb-2"
             trigger={
               <CheckBox
                 label="Série"
@@ -369,7 +373,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
               />
             }
           >
-            <div className="pl-6 flex flex-col gap-2 py-2">
+            <div className="pl-4 flex flex-col gap-2">
               {getAvailableSchoolYears().map((schoolYear) => (
                 <CheckBox
                   key={schoolYear.id}
@@ -394,6 +398,8 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
               'border-b border-border-200',
               !hasSelectedSchoolYears && 'opacity-40'
             )}
+            triggerClassName="py-3.5 px-6"
+            contentClassName="px-6 pt-3 pb-2"
             trigger={
               <CheckBox
                 label="Turma"
@@ -436,7 +442,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
               />
             }
           >
-            <div className="pl-6 flex flex-col gap-2 py-2">
+            <div className="pl-4 flex flex-col gap-2">
               {getAvailableClasses().map((classData) => (
                 <CheckBox
                   key={classData.id}
@@ -461,6 +467,8 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
               'border-b border-border-200',
               !hasSelectedClasses && 'opacity-40'
             )}
+            triggerClassName="py-3.5 px-6"
+            contentClassName="px-6 pt-3 pb-2"
             trigger={
               <CheckBox
                 label="Alunos"
@@ -503,7 +511,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
               />
             }
           >
-            <div className="pl-6 flex flex-col gap-2 py-2">
+            <div className="pl-4 flex flex-col gap-2">
               {getAvailableStudents().map((student) => (
                 <CheckBox
                   key={`${student.studentId}-${student.userInstitutionId}`}
