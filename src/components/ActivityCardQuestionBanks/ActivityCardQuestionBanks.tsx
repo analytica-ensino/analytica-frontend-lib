@@ -4,7 +4,7 @@ import {
   IconRender,
   Text,
   Badge,
-} from '@/index';
+} from '../../index';
 import { Plus, CheckCircle, XCircle } from 'phosphor-react';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
