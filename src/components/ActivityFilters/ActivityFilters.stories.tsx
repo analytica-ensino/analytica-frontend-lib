@@ -1,23 +1,37 @@
 import type { Story } from '@ladle/react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { ActivityFilters, ActivityFiltersPopover } from './ActivityFilters';
 import type {
   ActivityFiltersData,
   Bank,
+  BankYear,
   KnowledgeArea,
   KnowledgeItem,
   KnowledgeStructureState,
 } from '../../types/activityFilters';
 import type { CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
+import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 
 // Mock data padrão
 const mockBanks: Bank[] = [
-  { examInstitution: 'ENEM', id: 'enem' },
-  { examInstitution: 'FUVEST', id: 'fuvest' },
-  { examInstitution: 'UNICAMP', id: 'unicamp' },
-  { examInstitution: 'VUNESP', id: 'vunesp' },
-  { examInstitution: 'UFPR', id: 'ufpr' },
-  { examInstitution: 'UEL', id: 'uel' },
+  { examInstitution: 'ENEM', id: 'enem', name: 'ENEM' },
+  { examInstitution: 'FUVEST', id: 'fuvest', name: 'FUVEST' },
+  { examInstitution: 'UNICAMP', id: 'unicamp', name: 'UNICAMP' },
+  { examInstitution: 'VUNESP', id: 'vunesp', name: 'VUNESP' },
+  { examInstitution: 'UFPR', id: 'ufpr', name: 'UFPR' },
+  { examInstitution: 'UEL', id: 'uel', name: 'UEL' },
+];
+
+const mockBankYears: BankYear[] = [
+  { id: 'year-2023-enem', name: '2023', bankId: 'enem' },
+  { id: 'year-2022-enem', name: '2022', bankId: 'enem' },
+  { id: 'year-2021-enem', name: '2021', bankId: 'enem' },
+  { id: 'year-2020-enem', name: '2020', bankId: 'enem' },
+  { id: 'year-2023-fuvest', name: '2023', bankId: 'fuvest' },
+  { id: 'year-2022-fuvest', name: '2022', bankId: 'fuvest' },
+  { id: 'year-2021-fuvest', name: '2021', bankId: 'fuvest' },
+  { id: 'year-2023-unicamp', name: '2023', bankId: 'unicamp' },
+  { id: 'year-2022-unicamp', name: '2022', bankId: 'unicamp' },
 ];
 
 const mockKnowledgeAreas: KnowledgeArea[] = [
@@ -138,6 +152,7 @@ export const AllActivityFilters: Story = () => {
   const [filters, setFilters] = useState<ActivityFiltersData>({
     types: [],
     bankIds: [],
+    yearIds: [],
     knowledgeIds: [],
     topicIds: [],
     subtopicIds: [],
@@ -148,60 +163,25 @@ export const AllActivityFilters: Story = () => {
     CategoryConfig[]
   >(defaultKnowledgeCategories);
 
-  const [selectedKnowledgeSummary, setSelectedKnowledgeSummary] = useState({
-    topics: [] as string[],
-    subtopics: [] as string[],
-    contents: [] as string[],
-  });
-
   const handleCategoriesChange = (updatedCategories: CategoryConfig[]) => {
     setKnowledgeCategories(updatedCategories);
-
-    // Update summary
-    const temaCategory = updatedCategories.find((c) => c.key === 'tema');
-    const subtemaCategory = updatedCategories.find((c) => c.key === 'subtema');
-    const assuntoCategory = updatedCategories.find((c) => c.key === 'assunto');
-
-    const selectedTopicIds = temaCategory?.selectedIds || [];
-    const selectedSubtopicIds = subtemaCategory?.selectedIds || [];
-    const selectedContentIds = assuntoCategory?.selectedIds || [];
-
-    // Update summary
-    setSelectedKnowledgeSummary({
-      topics:
-        temaCategory?.itens
-          ?.filter((item) => selectedTopicIds.includes(item.id))
-          .map((item) => item.name) || [],
-      subtopics:
-        subtemaCategory?.itens
-          ?.filter((item) => selectedSubtopicIds.includes(item.id))
-          .map((item) => item.name) || [],
-      contents:
-        assuntoCategory?.itens
-          ?.filter((item) => selectedContentIds.includes(item.id))
-          .map((item) => item.name) || [],
-    });
   };
 
-  const handleFiltersChange = (newFilters: ActivityFiltersData) => {
+  const handleFiltersChange = useCallback((newFilters: ActivityFiltersData) => {
     setFilters(newFilters);
-  };
+  }, []);
 
   const handleClearFilters = () => {
     setFilters({
       types: [],
       bankIds: [],
+      yearIds: [],
       knowledgeIds: [],
       topicIds: [],
       subtopicIds: [],
       contentIds: [],
     });
     setKnowledgeCategories(defaultKnowledgeCategories);
-    setSelectedKnowledgeSummary({
-      topics: [],
-      subtopics: [],
-      contents: [],
-    });
     console.log('Filtros limpos');
   };
 
@@ -223,13 +203,18 @@ export const AllActivityFilters: Story = () => {
           variant="default"
           // Data
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={defaultKnowledgeStructure}
           knowledgeCategories={knowledgeCategories}
+          // Question types
+          allowedQuestionTypes={[
+            QUESTION_TYPE.ALTERNATIVA,
+            QUESTION_TYPE.DISSERTATIVA,
+            QUESTION_TYPE.IMAGEM,
+          ]}
           // Handlers
           handleCategoriesChange={handleCategoriesChange}
-          selectedKnowledgeSummary={selectedKnowledgeSummary}
-          enableSummary={true}
           // Action buttons
           onClearFilters={handleClearFilters}
           onApplyFilters={handleApplyFilters}
@@ -255,6 +240,7 @@ export const AllActivityFiltersPopover: Story = () => {
   const [filters, setFilters] = useState<ActivityFiltersData>({
     types: [],
     bankIds: [],
+    yearIds: [],
     knowledgeIds: [],
     topicIds: [],
     subtopicIds: [],
@@ -265,60 +251,25 @@ export const AllActivityFiltersPopover: Story = () => {
     CategoryConfig[]
   >(defaultKnowledgeCategories);
 
-  const [selectedKnowledgeSummary, setSelectedKnowledgeSummary] = useState({
-    topics: [] as string[],
-    subtopics: [] as string[],
-    contents: [] as string[],
-  });
-
   const handleCategoriesChange = (updatedCategories: CategoryConfig[]) => {
     setKnowledgeCategories(updatedCategories);
-
-    // Update summary
-    const temaCategory = updatedCategories.find((c) => c.key === 'tema');
-    const subtemaCategory = updatedCategories.find((c) => c.key === 'subtema');
-    const assuntoCategory = updatedCategories.find((c) => c.key === 'assunto');
-
-    const selectedTopicIds = temaCategory?.selectedIds || [];
-    const selectedSubtopicIds = subtemaCategory?.selectedIds || [];
-    const selectedContentIds = assuntoCategory?.selectedIds || [];
-
-    // Update summary
-    setSelectedKnowledgeSummary({
-      topics:
-        temaCategory?.itens
-          ?.filter((item) => selectedTopicIds.includes(item.id))
-          .map((item) => item.name) || [],
-      subtopics:
-        subtemaCategory?.itens
-          ?.filter((item) => selectedSubtopicIds.includes(item.id))
-          .map((item) => item.name) || [],
-      contents:
-        assuntoCategory?.itens
-          ?.filter((item) => selectedContentIds.includes(item.id))
-          .map((item) => item.name) || [],
-    });
   };
 
-  const handleFiltersChange = (newFilters: ActivityFiltersData) => {
+  const handleFiltersChange = useCallback((newFilters: ActivityFiltersData) => {
     setFilters(newFilters);
-  };
+  }, []);
 
   const handleClearFilters = () => {
     setFilters({
       types: [],
       bankIds: [],
+      yearIds: [],
       knowledgeIds: [],
       topicIds: [],
       subtopicIds: [],
       contentIds: [],
     });
     setKnowledgeCategories(defaultKnowledgeCategories);
-    setSelectedKnowledgeSummary({
-      topics: [],
-      subtopics: [],
-      contents: [],
-    });
     console.log('Filtros limpos');
   };
 
@@ -348,8 +299,6 @@ export const AllActivityFiltersPopover: Story = () => {
             knowledgeCategories={knowledgeCategories}
             // Handlers
             handleCategoriesChange={handleCategoriesChange}
-            selectedKnowledgeSummary={selectedKnowledgeSummary}
-            enableSummary={true}
             // Action buttons
             onClearFilters={handleClearFilters}
             onApplyFilters={handleApplyFilters}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   Text,
   Chips,
@@ -18,6 +18,7 @@ import { questionTypeLabels } from '../../types/questionTypes';
 import type {
   ActivityFiltersData,
   Bank,
+  BankYear,
   KnowledgeArea,
   KnowledgeStructureState,
 } from '../../types/activityFilters';
@@ -40,19 +41,24 @@ const questionTypes = [
 interface QuestionTypeFilterProps {
   selectedTypes: QUESTION_TYPE[];
   onToggleType: (type: QUESTION_TYPE) => void;
+  allowedQuestionTypes?: QUESTION_TYPE[];
 }
 
 const QuestionTypeFilter = ({
   selectedTypes,
   onToggleType,
+  allowedQuestionTypes,
 }: QuestionTypeFilterProps) => {
+  // Use allowedQuestionTypes if provided, otherwise use all question types
+  const availableQuestionTypes = allowedQuestionTypes || questionTypes;
+
   return (
     <div>
       <Text size="sm" weight="bold" className="mb-3 block">
         Tipo de questão
       </Text>
       <div className="grid grid-cols-2 gap-2">
-        {questionTypes.map((questionType) => (
+        {availableQuestionTypes.map((questionType) => (
           <Chips
             key={questionType}
             selected={selectedTypes.includes(questionType)}
@@ -66,22 +72,24 @@ const QuestionTypeFilter = ({
   );
 };
 
-// BanksFilter Component
-interface BanksFilterProps {
+// BanksAndYearsFilter Component
+interface BanksAndYearsFilterProps {
   banks: Bank[];
-  selectedBanks: string[];
-  onToggleBank: (bankName: string) => void;
+  bankYears: BankYear[];
+  bankCategories: CategoryConfig[];
+  onBankCategoriesChange: (updatedCategories: CategoryConfig[]) => void;
   loading?: boolean;
   error?: string | null;
 }
 
-const BanksFilter = ({
+const BanksAndYearsFilter = ({
   banks,
-  selectedBanks,
-  onToggleBank,
+  bankYears,
+  bankCategories,
+  onBankCategoriesChange,
   loading = false,
   error = null,
-}: BanksFilterProps) => {
+}: BanksAndYearsFilterProps) => {
   if (loading) {
     return (
       <Text size="sm" className="text-text-600">
@@ -98,7 +106,7 @@ const BanksFilter = ({
     );
   }
 
-  if (banks.length === 0) {
+  if (banks.length === 0 && bankYears.length === 0) {
     return (
       <Text size="sm" className="text-text-600">
         Nenhuma banca encontrada
@@ -106,19 +114,18 @@ const BanksFilter = ({
     );
   }
 
-  return (
-    <div className="grid grid-cols-2 gap-2">
-      {banks.map((bank: Bank) => (
-        <Chips
-          key={bank.examInstitution}
-          selected={selectedBanks.includes(bank.examInstitution)}
-          onClick={() => onToggleBank(bank.examInstitution)}
-        >
-          {bank.examInstitution}
-        </Chips>
-      ))}
-    </div>
-  );
+  if (bankCategories.length > 0) {
+    return (
+      <CheckboxGroup
+        categories={bankCategories}
+        onCategoriesChange={onBankCategoriesChange}
+        compactSingleItem={true}
+        showSingleItem={true}
+      />
+    );
+  }
+
+  return null;
 };
 
 // SubjectsFilter Component
@@ -189,96 +196,17 @@ const SubjectsFilter = ({
   );
 };
 
-// KnowledgeSummary Component
-interface KnowledgeSummaryProps {
-  knowledgeStructure: KnowledgeStructureState;
-  selectedKnowledgeSummary: {
-    topics: string[];
-    subtopics: string[];
-    contents: string[];
-  };
-}
-
-const KnowledgeSummary = ({
-  knowledgeStructure,
-  selectedKnowledgeSummary,
-}: KnowledgeSummaryProps) => {
-  return (
-    <div className="mt-4 p-3 bg-background-50 rounded-lg border border-border-200">
-      <Text size="sm" weight="bold" className="mb-2 block">
-        Resumo da seleção
-      </Text>
-      <div className="flex flex-col gap-2">
-        {knowledgeStructure.topics.length === 1 && (
-          <div>
-            <Text size="xs" weight="medium" className="text-text-600">
-              Tema:
-            </Text>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {selectedKnowledgeSummary.topics.map((topic: string) => (
-                <Chips key={topic} selected>
-                  {topic}
-                </Chips>
-              ))}
-            </div>
-          </div>
-        )}
-        {knowledgeStructure.subtopics.length === 1 && (
-          <div>
-            <Text size="xs" weight="medium" className="text-text-600">
-              Subtema:
-            </Text>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {selectedKnowledgeSummary.subtopics.map((subtopic: string) => (
-                <Chips key={subtopic} selected>
-                  {subtopic}
-                </Chips>
-              ))}
-            </div>
-          </div>
-        )}
-        {knowledgeStructure.contents.length === 1 && (
-          <div>
-            <Text size="xs" weight="medium" className="text-text-600">
-              Assunto:
-            </Text>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {selectedKnowledgeSummary.contents.map((content) => (
-                <Chips key={content} selected>
-                  {content}
-                </Chips>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
 // KnowledgeStructureFilter Component
 interface KnowledgeStructureFilterProps {
   knowledgeStructure: KnowledgeStructureState;
   knowledgeCategories: CategoryConfig[];
   handleCategoriesChange?: (updatedCategories: CategoryConfig[]) => void;
-  selectedKnowledgeSummary?: {
-    topics: string[];
-    subtopics: string[];
-    contents: string[];
-  };
-  enableSummary?: boolean;
 }
 
 const KnowledgeStructureFilter = ({
   knowledgeStructure,
   knowledgeCategories,
   handleCategoriesChange,
-  selectedKnowledgeSummary = {
-    topics: [],
-    subtopics: [],
-    contents: [],
-  },
-  enableSummary = false,
 }: KnowledgeStructureFilterProps) => {
   return (
     <div className="mt-4">
@@ -299,6 +227,8 @@ const KnowledgeStructureFilter = ({
         <CheckboxGroup
           categories={knowledgeCategories}
           onCategoriesChange={handleCategoriesChange}
+          compactSingleItem={false}
+          showSingleItem={true}
         />
       )}
       {!knowledgeStructure.loading &&
@@ -308,13 +238,6 @@ const KnowledgeStructureFilter = ({
             Nenhum tema disponível para as matérias selecionadas
           </Text>
         )}
-
-      {enableSummary && (
-        <KnowledgeSummary
-          knowledgeStructure={knowledgeStructure}
-          selectedKnowledgeSummary={selectedKnowledgeSummary}
-        />
-      )}
     </div>
   );
 };
@@ -355,9 +278,12 @@ export interface ActivityFiltersProps {
   variant?: 'default' | 'popover';
   // Data
   banks?: Bank[];
+  bankYears?: BankYear[];
   knowledgeAreas?: KnowledgeArea[];
   knowledgeStructure?: KnowledgeStructureState;
   knowledgeCategories?: CategoryConfig[];
+  // Question types
+  allowedQuestionTypes?: QUESTION_TYPE[];
   // Loading states
   loadingBanks?: boolean;
   loadingKnowledge?: boolean;
@@ -373,12 +299,6 @@ export interface ActivityFiltersProps {
   loadContents?: (subtopicIds: string[]) => void | Promise<void>;
   // Handlers
   handleCategoriesChange?: (updatedCategories: CategoryConfig[]) => void;
-  selectedKnowledgeSummary?: {
-    topics: string[];
-    subtopics: string[];
-    contents: string[];
-  };
-  enableSummary?: boolean;
   // Action buttons
   onClearFilters?: () => void;
   onApplyFilters?: () => void;
@@ -393,6 +313,7 @@ export const ActivityFilters = ({
   variant = 'default',
   // Data
   banks = [],
+  bankYears = [],
   knowledgeAreas = [],
   knowledgeStructure = {
     topics: [],
@@ -402,6 +323,8 @@ export const ActivityFilters = ({
     error: null,
   },
   knowledgeCategories = [],
+  // Question types
+  allowedQuestionTypes,
   // Loading states
   loadingBanks = false,
   loadingKnowledge: _loadingKnowledge = false,
@@ -417,12 +340,6 @@ export const ActivityFilters = ({
   loadContents: _loadContents,
   // Handlers
   handleCategoriesChange,
-  selectedKnowledgeSummary = {
-    topics: [],
-    subtopics: [],
-    contents: [],
-  },
-  enableSummary = false,
   // Action buttons
   onClearFilters,
   onApplyFilters,
@@ -430,8 +347,56 @@ export const ActivityFilters = ({
   const [selectedQuestionTypes, setSelectedQuestionTypes] = useState<
     QUESTION_TYPE[]
   >([]);
-  const [selectedBanks, setSelectedBanks] = useState<string[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+
+  const prevAllowedQuestionTypesRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!allowedQuestionTypes || allowedQuestionTypes.length === 0) {
+      prevAllowedQuestionTypesRef.current = null;
+      return;
+    }
+
+    // Sort using a compare function to preserve original order as much as possible
+    const currentKey = allowedQuestionTypes
+      .slice()
+      .sort((a, b) => {
+        return a === b
+          ? 0
+          : allowedQuestionTypes.indexOf(a) - allowedQuestionTypes.indexOf(b);
+      })
+      .join(',');
+    const prevKey = prevAllowedQuestionTypesRef.current;
+
+    if (currentKey === prevKey) {
+      return;
+    }
+
+    prevAllowedQuestionTypesRef.current = currentKey;
+
+    setSelectedQuestionTypes((prev) => {
+      const filtered = prev.filter((type) =>
+        allowedQuestionTypes.includes(type)
+      );
+      if (filtered.length !== prev.length) {
+        return filtered;
+      }
+      const prevSet = new Set(prev);
+      const filteredSet = new Set(filtered);
+      if (prevSet.size !== filteredSet.size) {
+        return filtered;
+      }
+      for (const item of prevSet) {
+        if (!filteredSet.has(item)) {
+          return filtered;
+        }
+      }
+      return prev;
+    });
+  }, [allowedQuestionTypes]);
+
+  // Bank categories state
+  const [bankCategories, setBankCategories] = useState<CategoryConfig[]>([]);
 
   // Convert single subject to array for compatibility
   const selectedSubjects = useMemo(
@@ -443,13 +408,45 @@ export const ActivityFilters = ({
     setSelectedQuestionTypes((prev) => toggleArrayItem(prev, questionType));
   };
 
-  const toggleBank = (bankName: string) => {
-    setSelectedBanks((prev) => toggleArrayItem(prev, bankName));
-  };
-
   const handleSubjectChange = (subjectId: string) => {
     setSelectedSubject(toggleSingleValue(selectedSubject, subjectId));
   };
+
+  const handleBankCategoriesChange = (updatedCategories: CategoryConfig[]) => {
+    setBankCategories(updatedCategories);
+  };
+
+  // Update bank categories when banks or bankYears change
+  useEffect(() => {
+    setBankCategories((prevCategories) => {
+      const bankCategory: CategoryConfig = {
+        key: 'banca',
+        label: 'Banca',
+        itens: banks.map((bank) => ({
+          id: bank.id,
+          name: bank.name || bank.examInstitution,
+        })),
+        selectedIds:
+          prevCategories.find((c) => c.key === 'banca')?.selectedIds || [],
+      };
+
+      const yearCategory: CategoryConfig = {
+        key: 'ano',
+        label: 'Ano',
+        dependsOn: ['banca'],
+        itens: bankYears.map((year) => ({
+          id: year.id,
+          name: year.name,
+          bankId: year.bankId,
+        })),
+        filteredBy: [{ key: 'banca', internalField: 'bankId' }],
+        selectedIds:
+          prevCategories.find((c) => c.key === 'ano')?.selectedIds || [],
+      };
+
+      return [bankCategory, yearCategory];
+    });
+  }, [banks, bankYears]);
 
   // Load banks and knowledge areas on component mount
   useEffect(() => {
@@ -477,25 +474,41 @@ export const ActivityFilters = ({
     });
   }, [knowledgeCategories]);
 
+  // Extract selected IDs from bank categories
+  const getSelectedBankIds = useCallback(() => {
+    return getSelectedIdsFromCategories(bankCategories, {
+      bankIds: 'banca',
+      yearIds: 'ano',
+    });
+  }, [bankCategories]);
+
+  // Use ref to store onFiltersChange to avoid infinite loops
+  const onFiltersChangeRef = useRef(onFiltersChange);
+  useEffect(() => {
+    onFiltersChangeRef.current = onFiltersChange;
+  }, [onFiltersChange]);
+
   // Notify parent component when filters change
   useEffect(() => {
     const knowledgeIds = getSelectedKnowledgeIds();
+    const bankIds = getSelectedBankIds();
     const filters: ActivityFiltersData = {
       types: selectedQuestionTypes,
-      bankIds: selectedBanks,
+      bankIds: bankIds.bankIds || [],
+      yearIds: bankIds.yearIds || [],
       knowledgeIds: selectedSubjects,
       topicIds: knowledgeIds.topicIds,
       subtopicIds: knowledgeIds.subtopicIds,
       contentIds: knowledgeIds.contentIds,
     };
-    onFiltersChange(filters);
+    onFiltersChangeRef.current(filters);
   }, [
     selectedQuestionTypes,
-    selectedBanks,
     selectedSubjects,
     knowledgeCategories,
+    bankCategories,
     getSelectedKnowledgeIds,
-    onFiltersChange,
+    getSelectedBankIds,
   ]);
 
   const containerClassName =
@@ -520,16 +533,18 @@ export const ActivityFilters = ({
           <QuestionTypeFilter
             selectedTypes={selectedQuestionTypes}
             onToggleType={toggleQuestionType}
+            allowedQuestionTypes={allowedQuestionTypes}
           />
 
           <div>
             <Text size="sm" weight="bold" className="mb-3 block">
               Banca de vestibular
             </Text>
-            <BanksFilter
+            <BanksAndYearsFilter
               banks={banks}
-              selectedBanks={selectedBanks}
-              onToggleBank={toggleBank}
+              bankYears={bankYears}
+              bankCategories={bankCategories}
+              onBankCategoriesChange={handleBankCategoriesChange}
               loading={loadingBanks}
               error={banksError}
             />
@@ -555,8 +570,6 @@ export const ActivityFilters = ({
               knowledgeStructure={knowledgeStructure}
               knowledgeCategories={knowledgeCategories}
               handleCategoriesChange={handleCategoriesChange}
-              selectedKnowledgeSummary={selectedKnowledgeSummary}
-              enableSummary={enableSummary}
             />
           )}
 
