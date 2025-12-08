@@ -1,3 +1,5 @@
+import type { BaseApiClient } from './api';
+
 /**
  * Types for notification system
  */
@@ -196,15 +198,6 @@ export interface NotificationGroup {
 
 /**
  * API client interface for dependency injection
+ * Uses Pick from BaseApiClient to select only the methods needed for notifications
  */
-export interface NotificationApiClient {
-  get: <T>(
-    url: string,
-    config?: { params?: Record<string, unknown> }
-  ) => Promise<{ data: T }>;
-  patch: <T>(
-    url: string,
-    data?: Record<string, unknown>
-  ) => Promise<{ data: T }>;
-  delete: <T>(url: string) => Promise<{ data: T }>;
-}
+export type NotificationApiClient = Pick<BaseApiClient, 'get' | 'patch' | 'delete'>;

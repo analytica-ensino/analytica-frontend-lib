@@ -133,6 +133,16 @@ export type {
   NotificationStore,
 } from './store/notificationStore';
 
+// Knowledge Structure Hook
+export {
+  createUseKnowledgeStructure,
+  createKnowledgeStructureHook,
+} from './hooks/useKnowledgeStructure';
+export type { UseKnowledgeStructureReturn } from './hooks/useKnowledgeStructure';
+
+// API Types
+export type { BaseApiClient } from './types/api';
+
 // Theme Store
 export { useThemeStore } from './store/themeStore';
 export type { ThemeStore, ThemeState, ThemeActions } from './store/themeStore';
