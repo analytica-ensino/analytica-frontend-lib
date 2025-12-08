@@ -93,6 +93,27 @@ export interface SendActivityModalStore {
   /** Check if all students are selected */
   areAllStudentsSelected: (recipients: RecipientHierarchy) => boolean;
 
+  /** Selected school IDs for filtering (independent of student selection) */
+  selectedSchoolIds: Set<string>;
+  /** Selected school year IDs for filtering */
+  selectedSchoolYearIds: Set<string>;
+  /** Selected class IDs for filtering */
+  selectedClassIds: Set<string>;
+
+  /** Toggle school filter selection */
+  toggleSchoolFilter: (schoolId: string) => void;
+  /** Toggle school year filter selection */
+  toggleSchoolYearFilter: (schoolYearId: string) => void;
+  /** Toggle class filter selection */
+  toggleClassFilter: (classId: string) => void;
+
+  /** Check if a school filter is selected */
+  isSchoolFilterSelected: (schoolId: string) => boolean;
+  /** Check if a school year filter is selected */
+  isSchoolYearFilterSelected: (schoolYearId: string) => boolean;
+  /** Check if a class filter is selected */
+  isClassFilterSelected: (classId: string) => boolean;
+
   /** Reset store to initial state */
   reset: () => void;
 }
@@ -105,6 +126,9 @@ const initialState = {
   completedSteps: [] as number[],
   errors: {} as StepErrors,
   selectedStudentIds: new Set<string>(),
+  selectedSchoolIds: new Set<string>(),
+  selectedSchoolYearIds: new Set<string>(),
+  selectedClassIds: new Set<string>(),
 };
 
 /**
@@ -349,10 +373,61 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       );
     },
 
+    toggleSchoolFilter: (schoolId) => {
+      set((state) => {
+        const newSet = new Set(state.selectedSchoolIds);
+        if (newSet.has(schoolId)) {
+          newSet.delete(schoolId);
+        } else {
+          newSet.add(schoolId);
+        }
+        return { selectedSchoolIds: newSet };
+      });
+    },
+
+    toggleSchoolYearFilter: (schoolYearId) => {
+      set((state) => {
+        const newSet = new Set(state.selectedSchoolYearIds);
+        if (newSet.has(schoolYearId)) {
+          newSet.delete(schoolYearId);
+        } else {
+          newSet.add(schoolYearId);
+        }
+        return { selectedSchoolYearIds: newSet };
+      });
+    },
+
+    toggleClassFilter: (classId) => {
+      set((state) => {
+        const newSet = new Set(state.selectedClassIds);
+        if (newSet.has(classId)) {
+          newSet.delete(classId);
+        } else {
+          newSet.add(classId);
+        }
+        return { selectedClassIds: newSet };
+      });
+    },
+
+    isSchoolFilterSelected: (schoolId) => {
+      return get().selectedSchoolIds.has(schoolId);
+    },
+
+    isSchoolYearFilterSelected: (schoolYearId) => {
+      return get().selectedSchoolYearIds.has(schoolYearId);
+    },
+
+    isClassFilterSelected: (classId) => {
+      return get().selectedClassIds.has(classId);
+    },
+
     reset: () => {
       set({
         ...initialState,
         selectedStudentIds: new Set<string>(),
+        selectedSchoolIds: new Set<string>(),
+        selectedSchoolYearIds: new Set<string>(),
+        selectedClassIds: new Set<string>(),
       });
     },
   })
