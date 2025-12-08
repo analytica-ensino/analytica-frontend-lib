@@ -31,7 +31,8 @@ describe('DatePickerInput', () => {
     });
 
     it('should render formatted date when value is provided', () => {
-      const date = new Date('2025-03-20');
+      // Use local date constructor to avoid timezone issues
+      const date = new Date(2025, 2, 20); // March 20, 2025
       render(<DatePickerInput value={date} />);
 
       expect(screen.getByText('20/03/2025')).toBeInTheDocument();
@@ -247,7 +248,8 @@ describe('DatePickerInput', () => {
     });
 
     it('should show selected date in the calendar', () => {
-      const date = new Date('2025-01-20');
+      // Use local date constructor to avoid timezone issues
+      const date = new Date(2025, 0, 20); // January 20, 2025
       render(<DatePickerInput value={date} />);
 
       const button = screen.getByRole('button');
@@ -260,21 +262,24 @@ describe('DatePickerInput', () => {
 
   describe('date formatting', () => {
     it('should format single digit day with leading zero', () => {
-      const date = new Date('2025-01-05');
+      // Use local date constructor to avoid timezone issues
+      const date = new Date(2025, 0, 5); // January 5, 2025
       render(<DatePickerInput value={date} />);
 
       expect(screen.getByText('05/01/2025')).toBeInTheDocument();
     });
 
     it('should format single digit month with leading zero', () => {
-      const date = new Date('2025-03-15');
+      // Use local date constructor to avoid timezone issues
+      const date = new Date(2025, 2, 15); // March 15, 2025
       render(<DatePickerInput value={date} />);
 
       expect(screen.getByText('15/03/2025')).toBeInTheDocument();
     });
 
     it('should format double digit day and month correctly', () => {
-      const date = new Date('2025-12-25');
+      // Use local date constructor to avoid timezone issues
+      const date = new Date(2025, 11, 25); // December 25, 2025
       render(<DatePickerInput value={date} />);
 
       expect(screen.getByText('25/12/2025')).toBeInTheDocument();
