@@ -1,5 +1,8 @@
 import { act, renderHook } from '@testing-library/react';
-import { useSendActivityModalStore } from './useSendActivityModal';
+import {
+  useSendActivityModalStore,
+  useSendActivityModal,
+} from './useSendActivityModal';
 import {
   RecipientHierarchy,
   StudentRecipient,
@@ -442,6 +445,87 @@ describe('useSendActivityModalStore', () => {
     });
   });
 
+  describe('filter selection', () => {
+    it('should toggle school filter', () => {
+      const { result } = renderHook(() => useSendActivityModalStore());
+
+      expect(result.current.isSchoolFilterSelected('school-1')).toBe(false);
+
+      act(() => {
+        result.current.toggleSchoolFilter('school-1');
+      });
+
+      expect(result.current.isSchoolFilterSelected('school-1')).toBe(true);
+      expect(result.current.selectedSchoolIds.has('school-1')).toBe(true);
+
+      act(() => {
+        result.current.toggleSchoolFilter('school-1');
+      });
+
+      expect(result.current.isSchoolFilterSelected('school-1')).toBe(false);
+    });
+
+    it('should toggle school year filter', () => {
+      const { result } = renderHook(() => useSendActivityModalStore());
+
+      expect(result.current.isSchoolYearFilterSelected('year-1')).toBe(false);
+
+      act(() => {
+        result.current.toggleSchoolYearFilter('year-1');
+      });
+
+      expect(result.current.isSchoolYearFilterSelected('year-1')).toBe(true);
+      expect(result.current.selectedSchoolYearIds.has('year-1')).toBe(true);
+
+      act(() => {
+        result.current.toggleSchoolYearFilter('year-1');
+      });
+
+      expect(result.current.isSchoolYearFilterSelected('year-1')).toBe(false);
+    });
+
+    it('should toggle class filter', () => {
+      const { result } = renderHook(() => useSendActivityModalStore());
+
+      expect(result.current.isClassFilterSelected('class-1')).toBe(false);
+
+      act(() => {
+        result.current.toggleClassFilter('class-1');
+      });
+
+      expect(result.current.isClassFilterSelected('class-1')).toBe(true);
+      expect(result.current.selectedClassIds.has('class-1')).toBe(true);
+
+      act(() => {
+        result.current.toggleClassFilter('class-1');
+      });
+
+      expect(result.current.isClassFilterSelected('class-1')).toBe(false);
+    });
+
+    it('should reset filter selections on reset', () => {
+      const { result } = renderHook(() => useSendActivityModalStore());
+
+      act(() => {
+        result.current.toggleSchoolFilter('school-1');
+        result.current.toggleSchoolYearFilter('year-1');
+        result.current.toggleClassFilter('class-1');
+      });
+
+      expect(result.current.selectedSchoolIds.size).toBe(1);
+      expect(result.current.selectedSchoolYearIds.size).toBe(1);
+      expect(result.current.selectedClassIds.size).toBe(1);
+
+      act(() => {
+        result.current.reset();
+      });
+
+      expect(result.current.selectedSchoolIds.size).toBe(0);
+      expect(result.current.selectedSchoolYearIds.size).toBe(0);
+      expect(result.current.selectedClassIds.size).toBe(0);
+    });
+  });
+
   describe('reset', () => {
     it('should reset to initial state', () => {
       const { result } = renderHook(() => useSendActivityModalStore());
@@ -462,6 +546,17 @@ describe('useSendActivityModalStore', () => {
       expect(result.current.errors).toEqual({});
       expect(result.current.selectedStudentIds.size).toBe(0);
       expect(result.current.formData.title).toBeUndefined();
+    });
+  });
+
+  describe('useSendActivityModal hook', () => {
+    it('should return store instance', () => {
+      const { result } = renderHook(() => useSendActivityModal());
+
+      expect(result.current.currentStep).toBe(1);
+      expect(result.current.setFormData).toBeDefined();
+      expect(result.current.toggleStudent).toBeDefined();
+      expect(result.current.reset).toBeDefined();
     });
   });
 });

@@ -189,7 +189,7 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
     toggleStudent: (student) => {
       set((state) => {
         const newSet = new Set(state.selectedStudentIds);
-        const key = `${student.studentId}-${student.userInstitutionId}`;
+        const key = `${student.studentId}:::${student.userInstitutionId}`;
 
         if (newSet.has(key)) {
           newSet.delete(key);
@@ -198,7 +198,7 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
         }
 
         const students = Array.from(newSet).map((k) => {
-          const [studentId, userInstitutionId] = k.split('-');
+          const [studentId, userInstitutionId] = k.split(':::');
           return { studentId, userInstitutionId };
         });
 
@@ -214,21 +214,21 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
         const newSet = new Set(state.selectedStudentIds);
         const classStudents = getStudentsFromClass(classData);
         const allSelected = classStudents.every((s) =>
-          newSet.has(`${s.studentId}-${s.userInstitutionId}`)
+          newSet.has(`${s.studentId}:::${s.userInstitutionId}`)
         );
 
         if (allSelected) {
           classStudents.forEach((s) => {
-            newSet.delete(`${s.studentId}-${s.userInstitutionId}`);
+            newSet.delete(`${s.studentId}:::${s.userInstitutionId}`);
           });
         } else {
           classStudents.forEach((s) => {
-            newSet.add(`${s.studentId}-${s.userInstitutionId}`);
+            newSet.add(`${s.studentId}:::${s.userInstitutionId}`);
           });
         }
 
         const students = Array.from(newSet).map((k) => {
-          const [studentId, userInstitutionId] = k.split('-');
+          const [studentId, userInstitutionId] = k.split(':::');
           return { studentId, userInstitutionId };
         });
 
@@ -244,21 +244,21 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
         const newSet = new Set(state.selectedStudentIds);
         const yearStudents = getStudentsFromSchoolYear(schoolYear);
         const allSelected = yearStudents.every((s) =>
-          newSet.has(`${s.studentId}-${s.userInstitutionId}`)
+          newSet.has(`${s.studentId}:::${s.userInstitutionId}`)
         );
 
         if (allSelected) {
           yearStudents.forEach((s) => {
-            newSet.delete(`${s.studentId}-${s.userInstitutionId}`);
+            newSet.delete(`${s.studentId}:::${s.userInstitutionId}`);
           });
         } else {
           yearStudents.forEach((s) => {
-            newSet.add(`${s.studentId}-${s.userInstitutionId}`);
+            newSet.add(`${s.studentId}:::${s.userInstitutionId}`);
           });
         }
 
         const students = Array.from(newSet).map((k) => {
-          const [studentId, userInstitutionId] = k.split('-');
+          const [studentId, userInstitutionId] = k.split(':::');
           return { studentId, userInstitutionId };
         });
 
@@ -274,21 +274,21 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
         const newSet = new Set(state.selectedStudentIds);
         const schoolStudents = getStudentsFromSchool(school);
         const allSelected = schoolStudents.every((s) =>
-          newSet.has(`${s.studentId}-${s.userInstitutionId}`)
+          newSet.has(`${s.studentId}:::${s.userInstitutionId}`)
         );
 
         if (allSelected) {
           schoolStudents.forEach((s) => {
-            newSet.delete(`${s.studentId}-${s.userInstitutionId}`);
+            newSet.delete(`${s.studentId}:::${s.userInstitutionId}`);
           });
         } else {
           schoolStudents.forEach((s) => {
-            newSet.add(`${s.studentId}-${s.userInstitutionId}`);
+            newSet.add(`${s.studentId}:::${s.userInstitutionId}`);
           });
         }
 
         const students = Array.from(newSet).map((k) => {
-          const [studentId, userInstitutionId] = k.split('-');
+          const [studentId, userInstitutionId] = k.split(':::');
           return { studentId, userInstitutionId };
         });
 
@@ -302,7 +302,7 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
     selectAllStudents: (recipients) => {
       const allStudents = getAllStudents(recipients);
       const newSet = new Set(
-        allStudents.map((s) => `${s.studentId}-${s.userInstitutionId}`)
+        allStudents.map((s) => `${s.studentId}:::${s.userInstitutionId}`)
       );
       const students = allStudents.map((s) => ({
         studentId: s.studentId,
@@ -325,7 +325,7 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
     isStudentSelected: (studentId) => {
       const state = get();
       return Array.from(state.selectedStudentIds).some((k) =>
-        k.startsWith(`${studentId}-`)
+        k.startsWith(`${studentId}:::`)
       );
     },
 
@@ -335,7 +335,9 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       return (
         classStudents.length > 0 &&
         classStudents.every((s) =>
-          state.selectedStudentIds.has(`${s.studentId}-${s.userInstitutionId}`)
+          state.selectedStudentIds.has(
+            `${s.studentId}:::${s.userInstitutionId}`
+          )
         )
       );
     },
@@ -346,7 +348,9 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       return (
         yearStudents.length > 0 &&
         yearStudents.every((s) =>
-          state.selectedStudentIds.has(`${s.studentId}-${s.userInstitutionId}`)
+          state.selectedStudentIds.has(
+            `${s.studentId}:::${s.userInstitutionId}`
+          )
         )
       );
     },
@@ -357,7 +361,9 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       return (
         schoolStudents.length > 0 &&
         schoolStudents.every((s) =>
-          state.selectedStudentIds.has(`${s.studentId}-${s.userInstitutionId}`)
+          state.selectedStudentIds.has(
+            `${s.studentId}:::${s.userInstitutionId}`
+          )
         )
       );
     },
@@ -368,7 +374,9 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       return (
         allStudents.length > 0 &&
         allStudents.every((s) =>
-          state.selectedStudentIds.has(`${s.studentId}-${s.userInstitutionId}`)
+          state.selectedStudentIds.has(
+            `${s.studentId}:::${s.userInstitutionId}`
+          )
         )
       );
     },

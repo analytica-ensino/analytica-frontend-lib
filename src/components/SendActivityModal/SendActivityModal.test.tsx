@@ -3,6 +3,10 @@ import SendActivityModal from './SendActivityModal';
 import { RecipientHierarchy } from './types';
 import { useSendActivityModalStore } from './hooks/useSendActivityModal';
 
+/**
+ * Mock recipients with single path (1 school, 1 year, 1 class)
+ * This triggers the simple list view
+ */
 const mockRecipients: RecipientHierarchy = {
   schools: [
     {
@@ -26,6 +30,60 @@ const mockRecipients: RecipientHierarchy = {
                   studentId: 'student-2',
                   userInstitutionId: 'ui-2',
                   name: 'Aluno 2',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+/**
+ * Mock recipients with multiple schools (triggers hierarchy view)
+ */
+const mockRecipientsMultiple: RecipientHierarchy = {
+  schools: [
+    {
+      id: 'school-1',
+      name: 'Escola Teste',
+      schoolYears: [
+        {
+          id: 'year-1',
+          name: '2025',
+          classes: [
+            {
+              id: 'class-1',
+              name: 'Turma A',
+              students: [
+                {
+                  studentId: 'student-1',
+                  userInstitutionId: 'ui-1',
+                  name: 'Aluno 1',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'school-2',
+      name: 'Escola Secundária',
+      schoolYears: [
+        {
+          id: 'year-2',
+          name: '2025',
+          classes: [
+            {
+              id: 'class-2',
+              name: 'Turma B',
+              students: [
+                {
+                  studentId: 'student-3',
+                  userInstitutionId: 'ui-3',
+                  name: 'Aluno 3',
                 },
               ],
             },
@@ -158,9 +216,9 @@ describe('SendActivityModal', () => {
     });
   });
 
-  describe('step 2 - Recipient', () => {
+  describe('step 2 - Recipient (simple list)', () => {
     beforeEach(() => {
-      // Setup: advance to step 2
+      // Setup: advance to step 2 with single path recipients
       render(<SendActivityModal {...defaultProps} />);
       fireEvent.click(screen.getByText('Tarefa'));
       fireEvent.change(
@@ -170,12 +228,13 @@ describe('SendActivityModal', () => {
       fireEvent.click(screen.getByText('Próximo'));
     });
 
-    it('should render recipient hierarchy', () => {
-      expect(screen.getByText('Escola Teste')).toBeInTheDocument();
-    });
-
     it('should render select all checkbox', () => {
       expect(screen.getByText('Todos os alunos')).toBeInTheDocument();
+    });
+
+    it('should render student names in simple list', () => {
+      expect(screen.getByText('Aluno 1')).toBeInTheDocument();
+      expect(screen.getByText('Aluno 2')).toBeInTheDocument();
     });
 
     it('should show selected count', () => {
@@ -190,6 +249,37 @@ describe('SendActivityModal', () => {
           'Campo obrigatório! Por favor, selecione pelo menos um aluno para continuar.'
         )
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('step 2 - Recipient (hierarchy)', () => {
+    beforeEach(() => {
+      // Setup: advance to step 2 with multiple schools (triggers hierarchy)
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          recipients={mockRecipientsMultiple}
+        />
+      );
+      fireEvent.click(screen.getByText('Tarefa'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da atividade'),
+        { target: { value: 'Test' } }
+      );
+      fireEvent.click(screen.getByText('Próximo'));
+    });
+
+    it('should render hierarchy accordion labels', () => {
+      expect(screen.getByText('Escola')).toBeInTheDocument();
+      expect(screen.getByText('Série')).toBeInTheDocument();
+      expect(screen.getByText('Turma')).toBeInTheDocument();
+      expect(screen.getByText('Alunos')).toBeInTheDocument();
+    });
+
+    it('should render school names inside accordion', () => {
+      // School names are inside the accordion content
+      expect(screen.getByText('Escola Teste')).toBeInTheDocument();
+      expect(screen.getByText('Escola Secundária')).toBeInTheDocument();
     });
   });
 
@@ -222,7 +312,9 @@ describe('SendActivityModal', () => {
     });
 
     it('should show submit button on step 3', () => {
-      expect(screen.getByText('Enviar atividade')).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /Enviar atividade/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -291,7 +383,9 @@ describe('SendActivityModal', () => {
       fireEvent.click(finalDay);
 
       // Submit
-      fireEvent.click(screen.getByText('Enviar atividade'));
+      fireEvent.click(
+        screen.getByRole('button', { name: /Enviar atividade/i })
+      );
 
       await waitFor(() => {
         expect(onSubmit).toHaveBeenCalledWith(
