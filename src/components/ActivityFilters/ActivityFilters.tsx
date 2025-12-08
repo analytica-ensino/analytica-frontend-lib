@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   Text,
   Chips,
@@ -18,6 +18,7 @@ import { questionTypeLabels } from '../../types/questionTypes';
 import type {
   ActivityFiltersData,
   Bank,
+  BankYear,
   KnowledgeArea,
   KnowledgeStructureState,
 } from '../../types/activityFilters';
@@ -66,22 +67,24 @@ const QuestionTypeFilter = ({
   );
 };
 
-// BanksFilter Component
-interface BanksFilterProps {
+// BanksAndYearsFilter Component
+interface BanksAndYearsFilterProps {
   banks: Bank[];
-  selectedBanks: string[];
-  onToggleBank: (bankName: string) => void;
+  bankYears: BankYear[];
+  bankCategories: CategoryConfig[];
+  onBankCategoriesChange: (updatedCategories: CategoryConfig[]) => void;
   loading?: boolean;
   error?: string | null;
 }
 
-const BanksFilter = ({
+const BanksAndYearsFilter = ({
   banks,
-  selectedBanks,
-  onToggleBank,
+  bankYears,
+  bankCategories,
+  onBankCategoriesChange,
   loading = false,
   error = null,
-}: BanksFilterProps) => {
+}: BanksAndYearsFilterProps) => {
   if (loading) {
     return (
       <Text size="sm" className="text-text-600">
@@ -98,7 +101,7 @@ const BanksFilter = ({
     );
   }
 
-  if (banks.length === 0) {
+  if (banks.length === 0 && bankYears.length === 0) {
     return (
       <Text size="sm" className="text-text-600">
         Nenhuma banca encontrada
@@ -106,19 +109,18 @@ const BanksFilter = ({
     );
   }
 
-  return (
-    <div className="grid grid-cols-2 gap-2">
-      {banks.map((bank: Bank) => (
-        <Chips
-          key={bank.examInstitution}
-          selected={selectedBanks.includes(bank.examInstitution)}
-          onClick={() => onToggleBank(bank.examInstitution)}
-        >
-          {bank.examInstitution}
-        </Chips>
-      ))}
-    </div>
-  );
+  if (bankCategories.length > 0) {
+    return (
+      <CheckboxGroup
+        categories={bankCategories}
+        onCategoriesChange={onBankCategoriesChange}
+        compactSingleItem={true}
+        showSingleItem={true}
+      />
+    );
+  }
+
+  return null;
 };
 
 // SubjectsFilter Component
@@ -355,6 +357,7 @@ export interface ActivityFiltersProps {
   variant?: 'default' | 'popover';
   // Data
   banks?: Bank[];
+  bankYears?: BankYear[];
   knowledgeAreas?: KnowledgeArea[];
   knowledgeStructure?: KnowledgeStructureState;
   knowledgeCategories?: CategoryConfig[];
@@ -393,6 +396,7 @@ export const ActivityFilters = ({
   variant = 'default',
   // Data
   banks = [],
+  bankYears = [],
   knowledgeAreas = [],
   knowledgeStructure = {
     topics: [],
@@ -430,8 +434,10 @@ export const ActivityFilters = ({
   const [selectedQuestionTypes, setSelectedQuestionTypes] = useState<
     QUESTION_TYPE[]
   >([]);
-  const [selectedBanks, setSelectedBanks] = useState<string[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+
+  // Bank categories state
+  const [bankCategories, setBankCategories] = useState<CategoryConfig[]>([]);
 
   // Convert single subject to array for compatibility
   const selectedSubjects = useMemo(
@@ -443,13 +449,45 @@ export const ActivityFilters = ({
     setSelectedQuestionTypes((prev) => toggleArrayItem(prev, questionType));
   };
 
-  const toggleBank = (bankName: string) => {
-    setSelectedBanks((prev) => toggleArrayItem(prev, bankName));
-  };
-
   const handleSubjectChange = (subjectId: string) => {
     setSelectedSubject(toggleSingleValue(selectedSubject, subjectId));
   };
+
+  const handleBankCategoriesChange = (updatedCategories: CategoryConfig[]) => {
+    setBankCategories(updatedCategories);
+  };
+
+  // Update bank categories when banks or bankYears change
+  useEffect(() => {
+    setBankCategories((prevCategories) => {
+      const bankCategory: CategoryConfig = {
+        key: 'banca',
+        label: 'Banca',
+        itens: banks.map((bank) => ({
+          id: bank.id,
+          name: bank.name || bank.examInstitution,
+        })),
+        selectedIds:
+          prevCategories.find((c) => c.key === 'banca')?.selectedIds || [],
+      };
+
+      const yearCategory: CategoryConfig = {
+        key: 'ano',
+        label: 'Ano',
+        dependsOn: ['banca'],
+        itens: bankYears.map((year) => ({
+          id: year.id,
+          name: year.name,
+          bankId: year.bankId,
+        })),
+        filteredBy: [{ key: 'banca', internalField: 'bankId' }],
+        selectedIds:
+          prevCategories.find((c) => c.key === 'ano')?.selectedIds || [],
+      };
+
+      return [bankCategory, yearCategory];
+    });
+  }, [banks, bankYears]);
 
   // Load banks and knowledge areas on component mount
   useEffect(() => {
@@ -477,25 +515,41 @@ export const ActivityFilters = ({
     });
   }, [knowledgeCategories]);
 
+  // Extract selected IDs from bank categories
+  const getSelectedBankIds = useCallback(() => {
+    return getSelectedIdsFromCategories(bankCategories, {
+      bankIds: 'banca',
+      yearIds: 'ano',
+    });
+  }, [bankCategories]);
+
+  // Use ref to store onFiltersChange to avoid infinite loops
+  const onFiltersChangeRef = useRef(onFiltersChange);
+  useEffect(() => {
+    onFiltersChangeRef.current = onFiltersChange;
+  }, [onFiltersChange]);
+
   // Notify parent component when filters change
   useEffect(() => {
     const knowledgeIds = getSelectedKnowledgeIds();
+    const bankIds = getSelectedBankIds();
     const filters: ActivityFiltersData = {
       types: selectedQuestionTypes,
-      bankIds: selectedBanks,
+      bankIds: bankIds.bankIds || [],
+      yearIds: bankIds.yearIds || [],
       knowledgeIds: selectedSubjects,
       topicIds: knowledgeIds.topicIds,
       subtopicIds: knowledgeIds.subtopicIds,
       contentIds: knowledgeIds.contentIds,
     };
-    onFiltersChange(filters);
+    onFiltersChangeRef.current(filters);
   }, [
     selectedQuestionTypes,
-    selectedBanks,
     selectedSubjects,
     knowledgeCategories,
+    bankCategories,
     getSelectedKnowledgeIds,
-    onFiltersChange,
+    getSelectedBankIds,
   ]);
 
   const containerClassName =
@@ -526,10 +580,11 @@ export const ActivityFilters = ({
             <Text size="sm" weight="bold" className="mb-3 block">
               Banca de vestibular
             </Text>
-            <BanksFilter
+            <BanksAndYearsFilter
               banks={banks}
-              selectedBanks={selectedBanks}
-              onToggleBank={toggleBank}
+              bankYears={bankYears}
+              bankCategories={bankCategories}
+              onBankCategoriesChange={handleBankCategoriesChange}
               loading={loadingBanks}
               error={banksError}
             />

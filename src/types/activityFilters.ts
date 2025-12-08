@@ -7,6 +7,7 @@ import { QUESTION_TYPE } from '../components/Quiz/useQuizStore';
 export interface ActivityFiltersData {
   types: QUESTION_TYPE[];
   bankIds: string[];
+  yearIds: string[];
   knowledgeIds: string[];
   topicIds: string[];
   subtopicIds: string[];
@@ -18,9 +19,18 @@ export interface ActivityFiltersData {
  */
 export interface Bank {
   examInstitution: string;
-  id?: string;
-  name?: string;
+  id: string;
+  name: string;
   [key: string]: unknown;
+}
+
+/**
+ * Bank Year interface for exam years
+ */
+export interface BankYear {
+  id: string;
+  name: string;
+  bankId: string;
 }
 
 /**

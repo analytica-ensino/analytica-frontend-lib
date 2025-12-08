@@ -5,6 +5,7 @@ import { ActivityFilters, ActivityFiltersPopover } from './ActivityFilters';
 import { QUESTION_TYPE } from '../..';
 import type {
   Bank,
+  BankYear,
   KnowledgeArea,
   KnowledgeItem,
   KnowledgeStructureState,
@@ -249,9 +250,17 @@ jest.mock('../../utils/utils', () => ({
 
 // Mock data
 const mockBanks: Bank[] = [
-  { examInstitution: 'ENEM', id: 'enem' },
-  { examInstitution: 'FUVEST', id: 'fuvest' },
-  { examInstitution: 'UNICAMP', id: 'unicamp' },
+  { examInstitution: 'ENEM', id: 'enem', name: 'ENEM' },
+  { examInstitution: 'FUVEST', id: 'fuvest', name: 'FUVEST' },
+  { examInstitution: 'UNICAMP', id: 'unicamp', name: 'UNICAMP' },
+];
+
+const mockBankYears: BankYear[] = [
+  { id: 'year-2023', name: '2023', bankId: 'enem' },
+  { id: 'year-2022', name: '2022', bankId: 'enem' },
+  { id: 'year-2021', name: '2021', bankId: 'enem' },
+  { id: 'year-2023-fuvest', name: '2023', bankId: 'fuvest' },
+  { id: 'year-2022-fuvest', name: '2022', bankId: 'fuvest' },
 ];
 
 const mockKnowledgeAreas: KnowledgeArea[] = [
@@ -335,6 +344,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -351,6 +361,7 @@ describe('ActivityFilters', () => {
           onFiltersChange={mockOnFiltersChange}
           variant="popover"
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -364,6 +375,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -382,13 +394,14 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
 
-      expect(screen.getByText('ENEM')).toBeInTheDocument();
-      expect(screen.getByText('FUVEST')).toBeInTheDocument();
-      expect(screen.getByText('UNICAMP')).toBeInTheDocument();
+      expect(screen.getByTestId('checkbox-group')).toBeInTheDocument();
+      expect(screen.getByTestId('category-banca')).toBeInTheDocument();
+      expect(screen.getByText('Banca')).toBeInTheDocument();
     });
 
     it('should render knowledge areas when provided', () => {
@@ -396,6 +409,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -411,6 +425,7 @@ describe('ActivityFilters', () => {
           onFiltersChange={mockOnFiltersChange}
           variant="default"
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -425,6 +440,7 @@ describe('ActivityFilters', () => {
           onFiltersChange={mockOnFiltersChange}
           variant="popover"
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -440,6 +456,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -462,6 +479,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -490,6 +508,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -512,24 +531,40 @@ describe('ActivityFilters', () => {
   });
 
   describe('Bank Selection', () => {
-    it('should toggle bank when chip is clicked', () => {
+    it('should render CheckboxGroup for banks and years', () => {
       render(
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
 
-      const enemChip = screen.getByText('ENEM').closest('button');
-      fireEvent.click(enemChip!);
+      expect(screen.getByTestId('checkbox-group')).toBeInTheDocument();
+      expect(screen.getByTestId('category-banca')).toBeInTheDocument();
+      expect(screen.getByTestId('category-ano')).toBeInTheDocument();
+    });
+
+    it('should toggle bank when checkbox is clicked', () => {
+      render(
+        <ActivityFilters
+          onFiltersChange={mockOnFiltersChange}
+          banks={mockBanks}
+          bankYears={mockBankYears}
+          knowledgeAreas={mockKnowledgeAreas}
+        />
+      );
+
+      const enemCheckbox = screen.getByTestId('checkbox-item-enem');
+      fireEvent.click(enemCheckbox);
 
       expect(mockOnFiltersChange).toHaveBeenCalled();
       const lastCall =
         mockOnFiltersChange.mock.calls[
           mockOnFiltersChange.mock.calls.length - 1
         ][0];
-      expect(lastCall.bankIds).toContain('ENEM');
+      expect(lastCall.bankIds).toContain('enem');
     });
 
     it('should allow multiple banks to be selected', () => {
@@ -537,22 +572,109 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
 
-      const enemChip = screen.getByText('ENEM').closest('button');
-      const fuvestChip = screen.getByText('FUVEST').closest('button');
+      const enemCheckbox = screen.getByTestId('checkbox-item-enem');
+      const fuvestCheckbox = screen.getByTestId('checkbox-item-fuvest');
 
-      fireEvent.click(enemChip!);
-      fireEvent.click(fuvestChip!);
+      fireEvent.click(enemCheckbox);
+      fireEvent.click(fuvestCheckbox);
 
       const lastCall =
         mockOnFiltersChange.mock.calls[
           mockOnFiltersChange.mock.calls.length - 1
         ][0];
-      expect(lastCall.bankIds).toContain('ENEM');
-      expect(lastCall.bankIds).toContain('FUVEST');
+      expect(lastCall.bankIds).toContain('enem');
+      expect(lastCall.bankIds).toContain('fuvest');
+    });
+
+    it('should show years when bank is selected', async () => {
+      render(
+        <ActivityFilters
+          onFiltersChange={mockOnFiltersChange}
+          banks={mockBanks}
+          bankYears={mockBankYears}
+          knowledgeAreas={mockKnowledgeAreas}
+        />
+      );
+
+      // Initially, years should not be visible (depends on bank selection)
+      const yearCategory = screen.getByTestId('category-ano');
+      expect(yearCategory).toBeInTheDocument();
+
+      // Select a bank
+      const enemCheckbox = screen.getByTestId('checkbox-item-enem');
+      fireEvent.click(enemCheckbox);
+
+      // Years should now be available
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('checkbox-item-year-2023')
+        ).toBeInTheDocument();
+      });
+    });
+
+    it('should filter years by selected bank', async () => {
+      render(
+        <ActivityFilters
+          onFiltersChange={mockOnFiltersChange}
+          banks={mockBanks}
+          bankYears={mockBankYears}
+          knowledgeAreas={mockKnowledgeAreas}
+        />
+      );
+
+      // Select ENEM bank
+      const enemCheckbox = screen.getByTestId('checkbox-item-enem');
+      fireEvent.click(enemCheckbox);
+
+      await waitFor(() => {
+        // Should show ENEM years
+        expect(
+          screen.getByTestId('checkbox-item-year-2023')
+        ).toBeInTheDocument();
+        expect(
+          screen.getByTestId('checkbox-item-year-2022')
+        ).toBeInTheDocument();
+        expect(
+          screen.getByTestId('checkbox-item-year-2021')
+        ).toBeInTheDocument();
+        // Should not show FUVEST years
+        expect(
+          screen.queryByTestId('checkbox-item-year-2023-fuvest')
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    it('should update yearIds when year is selected', async () => {
+      render(
+        <ActivityFilters
+          onFiltersChange={mockOnFiltersChange}
+          banks={mockBanks}
+          bankYears={mockBankYears}
+          knowledgeAreas={mockKnowledgeAreas}
+        />
+      );
+
+      // Select ENEM bank first
+      const enemCheckbox = screen.getByTestId('checkbox-item-enem');
+      fireEvent.click(enemCheckbox);
+
+      await waitFor(() => {
+        const year2023Checkbox = screen.getByTestId('checkbox-item-year-2023');
+        fireEvent.click(year2023Checkbox);
+      });
+
+      await waitFor(() => {
+        const lastCall =
+          mockOnFiltersChange.mock.calls[
+            mockOnFiltersChange.mock.calls.length - 1
+          ][0];
+        expect(lastCall.yearIds).toContain('year-2023');
+      });
     });
   });
 
@@ -562,6 +684,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -584,6 +707,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -626,6 +750,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -655,6 +780,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={mockKnowledgeStructure}
           knowledgeCategories={mockKnowledgeCategories}
@@ -675,6 +801,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={mockKnowledgeStructure}
           knowledgeCategories={mockKnowledgeCategories}
@@ -692,6 +819,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={mockKnowledgeStructure}
           knowledgeCategories={mockKnowledgeCategories}
@@ -714,6 +842,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={mockKnowledgeStructure}
           knowledgeCategories={mockKnowledgeCategories}
@@ -752,6 +881,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={mockKnowledgeStructure}
           knowledgeCategories={mockKnowledgeCategories}
@@ -803,6 +933,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           loadingKnowledge={true}
           knowledgeStructure={{
@@ -862,6 +993,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={{
             ...mockKnowledgeStructure,
@@ -887,6 +1019,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={[]}
+          bankYears={[]}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -899,6 +1032,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={{
             topics: [],
@@ -931,6 +1065,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           loadBanks={mockLoadBanks}
         />
@@ -946,6 +1081,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           loadKnowledge={mockLoadKnowledge}
         />
@@ -961,6 +1097,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           loadTopics={mockLoadTopics}
         />
@@ -981,6 +1118,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           loadTopics={mockLoadTopics}
         />
@@ -1006,6 +1144,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={{
             topics: [mockTopics[0]], // Only one topic to satisfy condition
@@ -1040,6 +1179,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={mockKnowledgeStructure}
           knowledgeCategories={mockKnowledgeCategories}
@@ -1066,6 +1206,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={{
             topics: mockTopics,
@@ -1101,6 +1242,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={{
             topics: mockTopics,
@@ -1140,6 +1282,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           onClearFilters={mockOnClearFilters}
         />
@@ -1160,6 +1303,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           onApplyFilters={mockOnApplyFilters}
         />
@@ -1180,6 +1324,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           onClearFilters={mockOnClearFilters}
         />
@@ -1198,6 +1343,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           onApplyFilters={mockOnApplyFilters}
         />
@@ -1214,6 +1360,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -1230,6 +1377,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           onClearFilters={mockOnClearFilters}
           onApplyFilters={mockOnApplyFilters}
@@ -1247,6 +1395,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -1255,6 +1404,7 @@ describe('ActivityFilters', () => {
       const firstCall = mockOnFiltersChange.mock.calls[0][0];
       expect(firstCall.types).toEqual([]);
       expect(firstCall.bankIds).toEqual([]);
+      expect(firstCall.yearIds).toEqual([]);
       expect(firstCall.knowledgeIds).toEqual([]);
       expect(firstCall.topicIds).toEqual([]);
       expect(firstCall.subtopicIds).toEqual([]);
@@ -1266,6 +1416,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -1288,21 +1439,22 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
 
       mockOnFiltersChange.mockClear();
 
-      const enemChip = screen.getByText('ENEM').closest('button');
-      fireEvent.click(enemChip!);
+      const enemCheckbox = screen.getByTestId('checkbox-item-enem');
+      fireEvent.click(enemCheckbox);
 
       expect(mockOnFiltersChange).toHaveBeenCalled();
       const lastCall =
         mockOnFiltersChange.mock.calls[
           mockOnFiltersChange.mock.calls.length - 1
         ][0];
-      expect(lastCall.bankIds).toContain('ENEM');
+      expect(lastCall.bankIds).toContain('enem');
     });
 
     it('should call onFiltersChange when subject changes', () => {
@@ -1310,6 +1462,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -1358,6 +1511,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={mockKnowledgeStructure}
           knowledgeCategories={mockKnowledgeCategories}
@@ -1387,6 +1541,7 @@ describe('ActivityFilters', () => {
         <ActivityFiltersPopover
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -1401,6 +1556,7 @@ describe('ActivityFilters', () => {
           onFiltersChange={mockOnFiltersChange}
           triggerLabel="Custom Label"
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -1413,6 +1569,7 @@ describe('ActivityFilters', () => {
         <ActivityFiltersPopover
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -1429,6 +1586,7 @@ describe('ActivityFilters', () => {
         <ActivityFiltersPopover
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           onClearFilters={mockOnClearFilters}
           onApplyFilters={mockOnApplyFilters}
@@ -1444,6 +1602,7 @@ describe('ActivityFilters', () => {
         <ActivityFiltersPopover
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -1457,6 +1616,7 @@ describe('ActivityFilters', () => {
         <ActivityFiltersPopover
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -1515,6 +1675,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -1524,8 +1685,8 @@ describe('ActivityFilters', () => {
       fireEvent.click(alternativaChip!);
 
       // Select bank
-      const enemChip = screen.getByText('ENEM').closest('button');
-      fireEvent.click(enemChip!);
+      const enemCheckbox = screen.getByTestId('checkbox-item-enem');
+      fireEvent.click(enemCheckbox);
 
       // Select subject
       const matematicaRadio = screen.getByTestId(
@@ -1539,7 +1700,7 @@ describe('ActivityFilters', () => {
         ][0];
 
       expect(lastCall.types).toContain(QUESTION_TYPE.ALTERNATIVA);
-      expect(lastCall.bankIds).toContain('ENEM');
+      expect(lastCall.bankIds).toContain('enem');
       expect(lastCall.knowledgeIds).toContain('matematica');
     });
 
@@ -1548,6 +1709,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -1568,6 +1730,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -1579,7 +1742,11 @@ describe('ActivityFilters', () => {
       rerender(
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
-          banks={[...mockBanks, { examInstitution: 'UEL', id: 'uel' }]}
+          banks={[
+            ...mockBanks,
+            { examInstitution: 'UEL', id: 'uel', name: 'UEL' },
+          ]}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
         />
       );
@@ -1599,6 +1766,7 @@ describe('ActivityFilters', () => {
         <ActivityFilters
           onFiltersChange={mockOnFiltersChange}
           banks={mockBanks}
+          bankYears={mockBankYears}
           knowledgeAreas={mockKnowledgeAreas}
           knowledgeStructure={mockKnowledgeStructure}
           knowledgeCategories={mockKnowledgeCategories}
@@ -1619,8 +1787,8 @@ describe('ActivityFilters', () => {
       fireEvent.click(alternativaChip!);
 
       // Select bank
-      const enemChip = screen.getByText('ENEM').closest('button');
-      fireEvent.click(enemChip!);
+      const enemCheckbox = screen.getByTestId('checkbox-item-enem');
+      fireEvent.click(enemCheckbox);
 
       // Select subject
       const matematicaRadio = screen.getByTestId(
