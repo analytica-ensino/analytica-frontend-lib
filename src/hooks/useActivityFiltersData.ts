@@ -4,7 +4,15 @@ import type { CategoryConfig } from '../components/CheckBoxGroup/CheckBoxGroup';
 import type {
   KnowledgeItem,
   KnowledgeStructureState,
+  Bank,
+  BankYear,
+  KnowledgeArea,
 } from '../types/activityFilters';
+import { QUESTION_TYPE } from '../components/Quiz/useQuizStore';
+
+// ============================================================================
+// API Response Types
+// ============================================================================
 
 /**
  * API response format for knowledge endpoints
@@ -15,9 +23,102 @@ interface KnowledgeApiResponse {
 }
 
 /**
- * Return type for the useKnowledgeStructure hook
+ * API response for vestibular banks endpoint
  */
-export interface UseKnowledgeStructureReturn {
+interface VestibularBankItem {
+  questionBankName: string;
+  questionBankYearId: string;
+  year: string;
+  questionsCount: number;
+}
+
+interface VestibularBanksApiResponse {
+  message: string;
+  data: VestibularBankItem[];
+}
+
+/**
+ * API response for knowledge areas (subjects) endpoint
+ */
+interface KnowledgeAreasApiResponse {
+  message: string;
+  data: KnowledgeArea[];
+}
+
+/**
+ * API response for question types endpoint
+ */
+interface QuestionTypesApiResponse {
+  message: string;
+  data: {
+    questionTypes: string[];
+    isFiltered: boolean;
+  };
+}
+
+// ============================================================================
+// Internal State Types
+// ============================================================================
+
+interface VestibularBanksState {
+  banks: Bank[];
+  bankYears: BankYear[];
+  loading: boolean;
+  error: string | null;
+}
+
+interface KnowledgeAreasState {
+  knowledgeAreas: KnowledgeArea[];
+  loading: boolean;
+  error: string | null;
+}
+
+interface QuestionTypesState {
+  questionTypes: QUESTION_TYPE[];
+  loading: boolean;
+  error: string | null;
+}
+
+// ============================================================================
+// Hook Configuration
+// ============================================================================
+
+/**
+ * Configuration options for the useActivityFiltersData hook
+ */
+export interface UseActivityFiltersDataOptions {
+  /**
+   * Selected subjects for loading knowledge structure
+   */
+  selectedSubjects: string[];
+  /**
+   * Institution ID for loading question types (optional)
+   */
+  institutionId?: string | null;
+}
+
+// ============================================================================
+// Return Type
+// ============================================================================
+
+/**
+ * Return type for the useActivityFiltersData hook
+ */
+export interface UseActivityFiltersDataReturn {
+  // Vestibular Banks
+  banks: Bank[];
+  bankYears: BankYear[];
+  loadingBanks: boolean;
+  banksError: string | null;
+  loadBanks: () => Promise<void>;
+
+  // Knowledge Areas (Subjects)
+  knowledgeAreas: KnowledgeArea[];
+  loadingSubjects: boolean;
+  subjectsError: string | null;
+  loadKnowledgeAreas: () => Promise<void>;
+
+  // Knowledge Structure (Topics, Subtopics, Contents)
   knowledgeStructure: KnowledgeStructureState;
   knowledgeCategories: CategoryConfig[];
   handleCategoriesChange: (updatedCategories: CategoryConfig[]) => void;
@@ -30,27 +131,241 @@ export interface UseKnowledgeStructureReturn {
   loadTopics: (subjectIds: string[]) => Promise<void>;
   loadSubtopics: (topicIds: string[]) => Promise<void>;
   loadContents: (subtopicIds: string[]) => Promise<void>;
+
+  // Question Types
+  questionTypes: QUESTION_TYPE[];
+  loadingQuestionTypes: boolean;
+  questionTypesError: string | null;
+  loadQuestionTypes: () => Promise<void>;
 }
 
+// ============================================================================
+// Question Type Mapping
+// ============================================================================
+
 /**
- * Create a knowledge structure hook with API client injection
- * This hook manages topics, subtopics, and contents for filtering
+ * Maps API question type strings to QUESTION_TYPE enum values
+ */
+const mapQuestionTypeToEnum = (type: string): QUESTION_TYPE | null => {
+  const upperType = type.toUpperCase();
+
+  const typeMap: Record<string, QUESTION_TYPE> = {
+    ALTERNATIVA: QUESTION_TYPE.ALTERNATIVA,
+    DISSERTATIVA: QUESTION_TYPE.DISSERTATIVA,
+    MULTIPLA_ESCOLHA: QUESTION_TYPE.MULTIPLA_ESCOLHA,
+    VERDADEIRO_FALSO: QUESTION_TYPE.VERDADEIRO_FALSO,
+    IMAGEM: QUESTION_TYPE.IMAGEM,
+    LIGAR_PONTOS: QUESTION_TYPE.LIGAR_PONTOS,
+    PREENCHER: QUESTION_TYPE.PREENCHER,
+  };
+
+  return typeMap[upperType] || null;
+};
+
+// ============================================================================
+// Main Factory Function
+// ============================================================================
+
+/**
+ * Create an activity filters data hook with API client injection
+ * This hook consolidates all data needed for ActivityFilters component:
+ * - Vestibular banks and years
+ * - Knowledge areas (subjects)
+ * - Knowledge structure (topics, subtopics, contents)
+ * - Question types
  *
- * @param apiClient - API client instance for knowledge structure
- * @returns Hook factory that accepts selectedSubjects
+ * @param apiClient - API client instance
+ * @returns Hook factory that accepts options
  *
  * @example
  * // In your app setup
- * import { createUseKnowledgeStructure } from 'analytica-frontend-lib';
+ * import { createUseActivityFiltersData } from 'analytica-frontend-lib';
  * import api from './services/api';
  *
- * export const useKnowledgeStructure = createUseKnowledgeStructure(api);
+ * export const useActivityFiltersData = createUseActivityFiltersData(api);
  *
  * // Then use in components
- * const { knowledgeStructure, loadTopics } = useKnowledgeStructure(['subject-id']);
+ * const {
+ *   banks,
+ *   knowledgeAreas,
+ *   knowledgeStructure,
+ *   questionTypes,
+ *   loadBanks,
+ *   loadKnowledgeAreas,
+ * } = useActivityFiltersData({
+ *   selectedSubjects: ['subject-id'],
+ *   institutionId: 'institution-id',
+ * });
  */
-export const createUseKnowledgeStructure = (apiClient: BaseApiClient) => {
-  return (selectedSubjects: string[]): UseKnowledgeStructureReturn => {
+export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
+  return (options: UseActivityFiltersDataOptions): UseActivityFiltersDataReturn => {
+    const { selectedSubjects, institutionId } = options;
+
+    // ========================================================================
+    // Vestibular Banks State
+    // ========================================================================
+
+    const [banksState, setBanksState] = useState<VestibularBanksState>({
+      banks: [],
+      bankYears: [],
+      loading: false,
+      error: null,
+    });
+
+    /**
+     * Load vestibular banks from API
+     */
+    const loadBanks = useCallback(async () => {
+      setBanksState((prev) => ({ ...prev, loading: true, error: null }));
+
+      try {
+        const response = await apiClient.get<VestibularBanksApiResponse>(
+          '/questions/exam-institutions'
+        );
+
+        // Group banks by questionBankName and collect unique years
+        const banksMap = new Map<string, Bank & { years: string[]; questionsCount: number }>();
+        const bankYearsArray: BankYear[] = [];
+
+        for (const item of response.data.data) {
+          if (!item.questionBankName) continue;
+
+          const existingBank = banksMap.get(item.questionBankName);
+
+          if (existingBank) {
+            if (!existingBank.years.includes(item.year)) {
+              existingBank.years.push(item.year);
+            }
+            existingBank.questionsCount += item.questionsCount;
+          } else {
+            banksMap.set(item.questionBankName, {
+              id: item.questionBankName,
+              name: item.questionBankName,
+              examInstitution: item.questionBankName,
+              years: [item.year],
+              questionsCount: item.questionsCount,
+            });
+          }
+
+          // Add bank year with format: {questionBankYearId}-{questionBankName}
+          bankYearsArray.push({
+            id: `${item.questionBankYearId}-${item.questionBankName}`,
+            name: item.year,
+            bankId: item.questionBankName,
+          });
+        }
+
+        const banks: Bank[] = Array.from(banksMap.values()).map((bank) => ({
+          id: bank.id,
+          name: bank.name,
+          examInstitution: bank.examInstitution,
+        }));
+
+        setBanksState({
+          banks,
+          bankYears: bankYearsArray,
+          loading: false,
+          error: null,
+        });
+      } catch (error) {
+        console.error('Error loading vestibular banks:', error);
+        setBanksState((prev) => ({
+          ...prev,
+          loading: false,
+          error: 'Erro ao carregar bancas de vestibular',
+        }));
+      }
+    }, [apiClient]);
+
+    // ========================================================================
+    // Knowledge Areas (Subjects) State
+    // ========================================================================
+
+    const [areasState, setAreasState] = useState<KnowledgeAreasState>({
+      knowledgeAreas: [],
+      loading: false,
+      error: null,
+    });
+
+    /**
+     * Load knowledge areas from API
+     */
+    const loadKnowledgeAreas = useCallback(async () => {
+      setAreasState((prev) => ({ ...prev, loading: true, error: null }));
+
+      try {
+        const response = await apiClient.get<KnowledgeAreasApiResponse>(
+          '/knowledge/subjects'
+        );
+
+        setAreasState({
+          knowledgeAreas: response.data.data,
+          loading: false,
+          error: null,
+        });
+      } catch (error) {
+        console.error('Error loading knowledge areas:', error);
+        setAreasState((prev) => ({
+          ...prev,
+          loading: false,
+          error: 'Erro ao carregar áreas de conhecimento',
+        }));
+      }
+    }, [apiClient]);
+
+    // ========================================================================
+    // Question Types State
+    // ========================================================================
+
+    const [questionTypesState, setQuestionTypesState] = useState<QuestionTypesState>({
+      questionTypes: [],
+      loading: false,
+      error: null,
+    });
+
+    /**
+     * Load question types from API
+     */
+    const loadQuestionTypes = useCallback(async () => {
+      if (!institutionId) {
+        setQuestionTypesState((prev) => ({
+          ...prev,
+          loading: false,
+          error: null,
+        }));
+        return;
+      }
+
+      setQuestionTypesState((prev) => ({ ...prev, loading: true, error: null }));
+
+      try {
+        const response = await apiClient.get<QuestionTypesApiResponse>(
+          `/institutions/${institutionId}/question-types`
+        );
+
+        const mappedTypes = response.data.data.questionTypes
+          .map(mapQuestionTypeToEnum)
+          .filter((type): type is QUESTION_TYPE => type !== null);
+
+        setQuestionTypesState({
+          questionTypes: mappedTypes,
+          loading: false,
+          error: null,
+        });
+      } catch (error) {
+        console.error('Error loading question types:', error);
+        setQuestionTypesState((prev) => ({
+          ...prev,
+          loading: false,
+          error: 'Erro ao carregar tipos de questões',
+        }));
+      }
+    }, [apiClient, institutionId]);
+
+    // ========================================================================
+    // Knowledge Structure State (Topics, Subtopics, Contents)
+    // ========================================================================
+
     const [knowledgeStructure, setKnowledgeStructure] =
       useState<KnowledgeStructureState>({
         topics: [],
@@ -249,7 +564,6 @@ export const createUseKnowledgeStructure = (apiClient: BaseApiClient) => {
      */
     const handleCategoriesChange = useCallback(
       (updatedCategories: CategoryConfig[]) => {
-        // Get current selected IDs before updating
         const currentTemaCategory = knowledgeCategories.find(
           (c) => c.key === 'tema'
         );
@@ -443,7 +757,25 @@ export const createUseKnowledgeStructure = (apiClient: BaseApiClient) => {
       );
     }, [knowledgeStructure]);
 
+    // ========================================================================
+    // Return
+    // ========================================================================
+
     return {
+      // Vestibular Banks
+      banks: banksState.banks,
+      bankYears: banksState.bankYears,
+      loadingBanks: banksState.loading,
+      banksError: banksState.error,
+      loadBanks,
+
+      // Knowledge Areas
+      knowledgeAreas: areasState.knowledgeAreas,
+      loadingSubjects: areasState.loading,
+      subjectsError: areasState.error,
+      loadKnowledgeAreas,
+
+      // Knowledge Structure
       knowledgeStructure,
       knowledgeCategories,
       handleCategoriesChange,
@@ -452,28 +784,37 @@ export const createUseKnowledgeStructure = (apiClient: BaseApiClient) => {
       loadTopics,
       loadSubtopics,
       loadContents,
+
+      // Question Types
+      questionTypes: questionTypesState.questionTypes,
+      loadingQuestionTypes: questionTypesState.loading,
+      questionTypesError: questionTypesState.error,
+      loadQuestionTypes,
     };
   };
 };
 
 /**
- * Create a pre-configured knowledge structure hook
+ * Create a pre-configured activity filters data hook
  * This is a convenience function that returns a hook ready to use
  *
- * @param apiClient - API client instance for knowledge structure
- * @returns Pre-configured useKnowledgeStructure hook
+ * @param apiClient - API client instance
+ * @returns Pre-configured useActivityFiltersData hook
  *
  * @example
  * // In your app setup
- * import { createKnowledgeStructureHook } from 'analytica-frontend-lib';
+ * import { createActivityFiltersDataHook } from 'analytica-frontend-lib';
  * import api from './services/api';
  *
- * export const useKnowledgeStructure = createKnowledgeStructureHook(api);
+ * export const useActivityFiltersData = createActivityFiltersDataHook(api);
  *
  * // Then use directly in components
- * const { knowledgeStructure, loadTopics } = useKnowledgeStructure(['subject-id']);
+ * const { banks, knowledgeAreas, loadBanks } = useActivityFiltersData({
+ *   selectedSubjects: [],
+ *   institutionId: 'institution-id',
+ * });
  */
-export const createKnowledgeStructureHook = (apiClient: BaseApiClient) => {
-  return createUseKnowledgeStructure(apiClient);
+export const createActivityFiltersDataHook = (apiClient: BaseApiClient) => {
+  return createUseActivityFiltersData(apiClient);
 };
 

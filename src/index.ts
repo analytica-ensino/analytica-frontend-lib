@@ -133,12 +133,15 @@ export type {
   NotificationStore,
 } from './store/notificationStore';
 
-// Knowledge Structure Hook
+// Activity Filters Data Hook (consolidated hook for all filter data)
 export {
-  createUseKnowledgeStructure,
-  createKnowledgeStructureHook,
-} from './hooks/useKnowledgeStructure';
-export type { UseKnowledgeStructureReturn } from './hooks/useKnowledgeStructure';
+  createUseActivityFiltersData,
+  createActivityFiltersDataHook,
+} from './hooks/useActivityFiltersData';
+export type {
+  UseActivityFiltersDataReturn,
+  UseActivityFiltersDataOptions,
+} from './hooks/useActivityFiltersData';
 
 // API Types
 export type { BaseApiClient } from './types/api';
