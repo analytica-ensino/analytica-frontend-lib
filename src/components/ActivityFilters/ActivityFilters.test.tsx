@@ -1138,142 +1138,6 @@ describe('ActivityFilters', () => {
     });
   });
 
-  describe('Summary', () => {
-    it('should show summary when enableSummary is true', () => {
-      render(
-        <ActivityFilters
-          onFiltersChange={mockOnFiltersChange}
-          banks={mockBanks}
-          bankYears={mockBankYears}
-          knowledgeAreas={mockKnowledgeAreas}
-          knowledgeStructure={{
-            topics: [mockTopics[0]], // Only one topic to satisfy condition
-            subtopics: [],
-            contents: [],
-            loading: false,
-            error: null,
-          }}
-          knowledgeCategories={mockKnowledgeCategories}
-          handleCategoriesChange={jest.fn()}
-          selectedKnowledgeSummary={{
-            topics: ['Álgebra'],
-            subtopics: [],
-            contents: [],
-          }}
-          enableSummary={true}
-        />
-      );
-
-      const matematicaRadio = screen.getByTestId(
-        'activity-filter-radio-matematica'
-      );
-      fireEvent.click(matematicaRadio);
-
-      expect(screen.getByText('Resumo da seleção')).toBeInTheDocument();
-      expect(screen.getByText('Tema:')).toBeInTheDocument();
-      expect(screen.getAllByText('Álgebra').length).toBeGreaterThan(0);
-    });
-
-    it('should not show summary when enableSummary is false', () => {
-      render(
-        <ActivityFilters
-          onFiltersChange={mockOnFiltersChange}
-          banks={mockBanks}
-          bankYears={mockBankYears}
-          knowledgeAreas={mockKnowledgeAreas}
-          knowledgeStructure={mockKnowledgeStructure}
-          knowledgeCategories={mockKnowledgeCategories}
-          handleCategoriesChange={jest.fn()}
-          selectedKnowledgeSummary={{
-            topics: ['Álgebra'],
-            subtopics: [],
-            contents: [],
-          }}
-          enableSummary={false}
-        />
-      );
-
-      const matematicaRadio = screen.getByTestId(
-        'activity-filter-radio-matematica'
-      );
-      fireEvent.click(matematicaRadio);
-
-      expect(screen.queryByText('Resumo da seleção')).not.toBeInTheDocument();
-    });
-
-    it('should show subtopics in summary when available', () => {
-      render(
-        <ActivityFilters
-          onFiltersChange={mockOnFiltersChange}
-          banks={mockBanks}
-          bankYears={mockBankYears}
-          knowledgeAreas={mockKnowledgeAreas}
-          knowledgeStructure={{
-            topics: mockTopics,
-            subtopics: [mockSubtopics[0]], // Only one subtopic to satisfy condition
-            contents: [],
-            loading: false,
-            error: null,
-          }}
-          knowledgeCategories={mockKnowledgeCategories}
-          handleCategoriesChange={jest.fn()}
-          selectedKnowledgeSummary={{
-            topics: ['Álgebra'],
-            subtopics: ['Equações do 1º grau'],
-            contents: [],
-          }}
-          enableSummary={true}
-        />
-      );
-
-      const matematicaRadio = screen.getByTestId(
-        'activity-filter-radio-matematica'
-      );
-      fireEvent.click(matematicaRadio);
-
-      expect(screen.getByText('Subtema:')).toBeInTheDocument();
-      expect(screen.getAllByText('Equações do 1º grau').length).toBeGreaterThan(
-        0
-      );
-    });
-
-    it('should show contents in summary when available', () => {
-      render(
-        <ActivityFilters
-          onFiltersChange={mockOnFiltersChange}
-          banks={mockBanks}
-          bankYears={mockBankYears}
-          knowledgeAreas={mockKnowledgeAreas}
-          knowledgeStructure={{
-            topics: mockTopics,
-            subtopics: mockSubtopics,
-            contents: [mockContents[0]], // Only one content to satisfy condition
-            loading: false,
-            error: null,
-          }}
-          knowledgeCategories={mockKnowledgeCategories}
-          handleCategoriesChange={jest.fn()}
-          selectedKnowledgeSummary={{
-            topics: ['Álgebra'],
-            subtopics: ['Equações do 1º grau'],
-            contents: ['Resolução de equações lineares'],
-          }}
-          enableSummary={true}
-        />
-      );
-
-      const matematicaRadio = screen.getByTestId(
-        'activity-filter-radio-matematica'
-      );
-      fireEvent.click(matematicaRadio);
-
-      expect(screen.getByText('Assunto:')).toBeInTheDocument();
-      expect(
-        screen.getAllByText('Resolução de equações lineares').length
-      ).toBeGreaterThan(0);
-    });
-  });
-
   describe('Action Buttons', () => {
     it('should render clear filters button when onClearFilters is provided', () => {
       const mockOnClearFilters = jest.fn();
@@ -1771,12 +1635,6 @@ describe('ActivityFilters', () => {
           knowledgeStructure={mockKnowledgeStructure}
           knowledgeCategories={mockKnowledgeCategories}
           handleCategoriesChange={mockHandleCategoriesChange}
-          selectedKnowledgeSummary={{
-            topics: ['Álgebra'],
-            subtopics: [],
-            contents: [],
-          }}
-          enableSummary={true}
           onClearFilters={mockOnClearFilters}
           onApplyFilters={mockOnApplyFilters}
         />
@@ -1798,9 +1656,6 @@ describe('ActivityFilters', () => {
 
       // Verify knowledge structure appears
       expect(screen.getByText('Tema, Subtema e Assunto')).toBeInTheDocument();
-
-      // Verify summary appears
-      expect(screen.getByText('Resumo da seleção')).toBeInTheDocument();
 
       // Verify action buttons
       expect(screen.getByText('Limpar filtros')).toBeInTheDocument();

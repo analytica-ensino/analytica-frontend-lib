@@ -163,39 +163,8 @@ export const AllActivityFilters: Story = () => {
     CategoryConfig[]
   >(defaultKnowledgeCategories);
 
-  const [selectedKnowledgeSummary, setSelectedKnowledgeSummary] = useState({
-    topics: [] as string[],
-    subtopics: [] as string[],
-    contents: [] as string[],
-  });
-
   const handleCategoriesChange = (updatedCategories: CategoryConfig[]) => {
     setKnowledgeCategories(updatedCategories);
-
-    // Update summary
-    const temaCategory = updatedCategories.find((c) => c.key === 'tema');
-    const subtemaCategory = updatedCategories.find((c) => c.key === 'subtema');
-    const assuntoCategory = updatedCategories.find((c) => c.key === 'assunto');
-
-    const selectedTopicIds = temaCategory?.selectedIds || [];
-    const selectedSubtopicIds = subtemaCategory?.selectedIds || [];
-    const selectedContentIds = assuntoCategory?.selectedIds || [];
-
-    // Update summary
-    setSelectedKnowledgeSummary({
-      topics:
-        temaCategory?.itens
-          ?.filter((item) => selectedTopicIds.includes(item.id))
-          .map((item) => item.name) || [],
-      subtopics:
-        subtemaCategory?.itens
-          ?.filter((item) => selectedSubtopicIds.includes(item.id))
-          .map((item) => item.name) || [],
-      contents:
-        assuntoCategory?.itens
-          ?.filter((item) => selectedContentIds.includes(item.id))
-          .map((item) => item.name) || [],
-    });
   };
 
   const handleFiltersChange = useCallback((newFilters: ActivityFiltersData) => {
@@ -213,11 +182,6 @@ export const AllActivityFilters: Story = () => {
       contentIds: [],
     });
     setKnowledgeCategories(defaultKnowledgeCategories);
-    setSelectedKnowledgeSummary({
-      topics: [],
-      subtopics: [],
-      contents: [],
-    });
     console.log('Filtros limpos');
   };
 
@@ -251,8 +215,6 @@ export const AllActivityFilters: Story = () => {
           ]}
           // Handlers
           handleCategoriesChange={handleCategoriesChange}
-          selectedKnowledgeSummary={selectedKnowledgeSummary}
-          enableSummary={true}
           // Action buttons
           onClearFilters={handleClearFilters}
           onApplyFilters={handleApplyFilters}
@@ -289,39 +251,8 @@ export const AllActivityFiltersPopover: Story = () => {
     CategoryConfig[]
   >(defaultKnowledgeCategories);
 
-  const [selectedKnowledgeSummary, setSelectedKnowledgeSummary] = useState({
-    topics: [] as string[],
-    subtopics: [] as string[],
-    contents: [] as string[],
-  });
-
   const handleCategoriesChange = (updatedCategories: CategoryConfig[]) => {
     setKnowledgeCategories(updatedCategories);
-
-    // Update summary
-    const temaCategory = updatedCategories.find((c) => c.key === 'tema');
-    const subtemaCategory = updatedCategories.find((c) => c.key === 'subtema');
-    const assuntoCategory = updatedCategories.find((c) => c.key === 'assunto');
-
-    const selectedTopicIds = temaCategory?.selectedIds || [];
-    const selectedSubtopicIds = subtemaCategory?.selectedIds || [];
-    const selectedContentIds = assuntoCategory?.selectedIds || [];
-
-    // Update summary
-    setSelectedKnowledgeSummary({
-      topics:
-        temaCategory?.itens
-          ?.filter((item) => selectedTopicIds.includes(item.id))
-          .map((item) => item.name) || [],
-      subtopics:
-        subtemaCategory?.itens
-          ?.filter((item) => selectedSubtopicIds.includes(item.id))
-          .map((item) => item.name) || [],
-      contents:
-        assuntoCategory?.itens
-          ?.filter((item) => selectedContentIds.includes(item.id))
-          .map((item) => item.name) || [],
-    });
   };
 
   const handleFiltersChange = useCallback((newFilters: ActivityFiltersData) => {
@@ -339,11 +270,6 @@ export const AllActivityFiltersPopover: Story = () => {
       contentIds: [],
     });
     setKnowledgeCategories(defaultKnowledgeCategories);
-    setSelectedKnowledgeSummary({
-      topics: [],
-      subtopics: [],
-      contents: [],
-    });
     console.log('Filtros limpos');
   };
 
@@ -373,8 +299,6 @@ export const AllActivityFiltersPopover: Story = () => {
             knowledgeCategories={knowledgeCategories}
             // Handlers
             handleCategoriesChange={handleCategoriesChange}
-            selectedKnowledgeSummary={selectedKnowledgeSummary}
-            enableSummary={true}
             // Action buttons
             onClearFilters={handleClearFilters}
             onApplyFilters={handleApplyFilters}
