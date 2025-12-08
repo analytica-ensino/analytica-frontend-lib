@@ -20,7 +20,7 @@ jest.mock('dayjs', () => {
   return mockDayjs;
 });
 
-jest.mock('dayjs/locale/pt-br.js', () => ({}));
+jest.mock('dayjs/locale/pt-br', () => ({}));
 
 // Mock @phosphor-icons/react
 jest.mock('@phosphor-icons/react', () => ({

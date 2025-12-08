@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
-import 'dayjs/locale/pt-br.js';
+import 'dayjs/locale/pt-br';
 import Badge from '../../Badge/Badge';
 import Button from '../../Button/Button';
 import Divider from '../../Divider/Divider';
