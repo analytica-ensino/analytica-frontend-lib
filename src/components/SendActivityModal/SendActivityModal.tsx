@@ -276,7 +276,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
     );
 
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col pt-6">
         <p className="text-sm font-medium text-text-700">
           Para quem você vai enviar a atividade?
         </p>
