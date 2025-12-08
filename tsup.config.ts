@@ -119,7 +119,7 @@ export default defineConfig({
     'react',
     'react-dom',
     'dayjs',
-    'dayjs/locale/pt-br',
+    'dayjs/locale/pt-br.js',
     'zod',
     'react-hook-form',
     '@hookform/resolvers/zod',
