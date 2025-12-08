@@ -357,7 +357,15 @@ export const ActivityFilters = ({
       return;
     }
 
-    const currentKey = allowedQuestionTypes.slice().sort().join(',');
+    // Sort using a compare function to preserve original order as much as possible
+    const currentKey = allowedQuestionTypes
+      .slice()
+      .sort((a, b) => {
+        return a === b
+          ? 0
+          : allowedQuestionTypes.indexOf(a) - allowedQuestionTypes.indexOf(b);
+      })
+      .join(',');
     const prevKey = prevAllowedQuestionTypesRef.current;
 
     if (currentKey === prevKey) {
