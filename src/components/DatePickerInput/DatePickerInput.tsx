@@ -79,19 +79,16 @@ const DatePickerInput = ({
   }, [isOpen]);
 
   /**
-   * Handles keyboard navigation
+   * Handles keyboard navigation (Escape to close)
+   * Note: Enter/Space are handled natively by the button element
    */
   const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent) => {
+    (event: React.KeyboardEvent<HTMLButtonElement>) => {
       if (event.key === 'Escape') {
         setIsOpen(false);
-      } else if (event.key === 'Enter' || event.key === ' ') {
-        if (!disabled) {
-          setIsOpen((prev) => !prev);
-        }
       }
     },
-    [disabled]
+    []
   );
 
   /**
