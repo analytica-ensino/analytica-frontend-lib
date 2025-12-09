@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect } from 'react';
 import {
-  CaretLeft,
-  ArrowRight,
-  PaperPlaneTilt,
-  WarningCircle,
+  CaretLeftIcon,
+  ArrowRightIcon,
+  PaperPlaneTiltIcon,
+  WarningCircleIcon,
 } from '@phosphor-icons/react';
 import Modal from '../Modal/Modal';
 import Stepper from '../Stepper/Stepper';
@@ -144,7 +144,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
     if (!error) return null;
     return (
       <p className="flex items-center gap-1 text-sm text-error-600 mt-1">
-        <WarningCircle size={16} />
+        <WarningCircleIcon size={16} />
         {error}
       </p>
     );
@@ -644,7 +644,6 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
         value={store.formData.finalDate}
         onChange={handleFinalDateChange}
         error={store.errors.finalDate}
-        minDate={store.formData.startDate}
         testId="final-date-picker"
       />
 
@@ -717,7 +716,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
             variant="outline"
             action="primary"
             onClick={store.previousStep}
-            iconLeft={<CaretLeft size={16} />}
+            iconLeft={<CaretLeftIcon size={16} />}
             className="w-full sm:w-auto"
           >
             Anterior
@@ -729,7 +728,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
             variant="solid"
             action="primary"
             onClick={() => store.nextStep()}
-            iconRight={<ArrowRight size={16} />}
+            iconRight={<ArrowRightIcon size={16} />}
             className="w-full sm:w-auto"
           >
             Próximo
@@ -740,7 +739,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
             action="primary"
             onClick={handleSubmit}
             disabled={isLoading}
-            iconLeft={<PaperPlaneTilt size={16} />}
+            iconLeft={<PaperPlaneTiltIcon size={16} />}
             className="w-full sm:w-auto"
           >
             {isLoading ? 'Enviando...' : 'Enviar atividade'}

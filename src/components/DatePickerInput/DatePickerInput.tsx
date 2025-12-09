@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { CalendarBlank } from '@phosphor-icons/react';
+import { CalendarBlankIcon } from '@phosphor-icons/react';
 import Calendar from '../Calendar/Calendar';
 import { cn } from '../../utils/utils';
 
@@ -19,10 +19,6 @@ export interface DatePickerInputProps {
   error?: string;
   /** Whether the input is disabled */
   disabled?: boolean;
-  /** Minimum selectable date */
-  minDate?: Date;
-  /** Maximum selectable date */
-  maxDate?: Date;
   /** Additional CSS classes */
   className?: string;
   /** Test ID for testing */
@@ -155,7 +151,7 @@ const DatePickerInput = ({
         >
           {value ? formatDate(value) : placeholder}
         </span>
-        <CalendarBlank
+        <CalendarBlankIcon
           size={20}
           className={cn(
             'flex-shrink-0',
@@ -176,13 +172,13 @@ const DatePickerInput = ({
       )}
 
       {isOpen && !disabled && (
-        <div
+        <dialog
+          open
           className={cn(
             'absolute z-50 mt-1',
             'bg-background rounded-lg shadow-lg border border-border-200',
             'w-[300px]'
           )}
-          role="dialog"
           aria-label="Calendário para seleção de data"
           data-testid={`${testId}-calendar`}
         >
@@ -191,7 +187,7 @@ const DatePickerInput = ({
             selectedDate={value}
             onDateSelect={handleDateSelect}
           />
-        </div>
+        </dialog>
       )}
     </div>
   );
