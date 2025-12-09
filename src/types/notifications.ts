@@ -200,4 +200,7 @@ export interface NotificationGroup {
  * API client interface for dependency injection
  * Uses Pick from BaseApiClient to select only the methods needed for notifications
  */
-export type NotificationApiClient = Pick<BaseApiClient, 'get' | 'patch' | 'delete'>;
+export type NotificationApiClient = Pick<
+  BaseApiClient,
+  'get' | 'patch' | 'delete'
+>;

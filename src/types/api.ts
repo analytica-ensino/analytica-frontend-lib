@@ -18,4 +18,3 @@ export interface BaseApiClient {
   ) => Promise<{ data: T }>;
   delete: <T>(url: string) => Promise<{ data: T }>;
 }
-

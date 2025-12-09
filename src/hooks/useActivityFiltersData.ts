@@ -198,7 +198,9 @@ const mapQuestionTypeToEnum = (type: string): QUESTION_TYPE | null => {
  * });
  */
 export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
-  return (options: UseActivityFiltersDataOptions): UseActivityFiltersDataReturn => {
+  return (
+    options: UseActivityFiltersDataOptions
+  ): UseActivityFiltersDataReturn => {
     const { selectedSubjects, institutionId } = options;
 
     // ========================================================================
@@ -224,7 +226,10 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
         );
 
         // Group banks by questionBankName and collect unique years
-        const banksMap = new Map<string, Bank & { years: string[]; questionsCount: number }>();
+        const banksMap = new Map<
+          string,
+          Bank & { years: string[]; questionsCount: number }
+        >();
         const bankYearsArray: BankYear[] = [];
 
         for (const item of response.data.data) {
@@ -317,11 +322,12 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
     // Question Types State
     // ========================================================================
 
-    const [questionTypesState, setQuestionTypesState] = useState<QuestionTypesState>({
-      questionTypes: [],
-      loading: false,
-      error: null,
-    });
+    const [questionTypesState, setQuestionTypesState] =
+      useState<QuestionTypesState>({
+        questionTypes: [],
+        loading: false,
+        error: null,
+      });
 
     /**
      * Load question types from API
@@ -336,7 +342,11 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
         return;
       }
 
-      setQuestionTypesState((prev) => ({ ...prev, loading: true, error: null }));
+      setQuestionTypesState((prev) => ({
+        ...prev,
+        loading: true,
+        error: null,
+      }));
 
       try {
         const response = await apiClient.get<QuestionTypesApiResponse>(
@@ -817,4 +827,3 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
 export const createActivityFiltersDataHook = (apiClient: BaseApiClient) => {
   return createUseActivityFiltersData(apiClient);
 };
-
