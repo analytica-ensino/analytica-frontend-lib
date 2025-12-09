@@ -587,11 +587,11 @@ describe('useActivityFiltersData', () => {
 
       expect(result.current.knowledgeStructure.loading).toBe(false);
       expect(result.current.knowledgeStructure.error).toBe(
-        'Error loading topics'
+        'Erro ao carregar temas'
       );
       expect(result.current.knowledgeStructure.topics).toEqual([]);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error loading topics:',
+        'Erro ao carregar temas:',
         expect.any(Error)
       );
 
@@ -705,10 +705,10 @@ describe('useActivityFiltersData', () => {
       expect(result.current.knowledgeStructure.loading).toBe(false);
       expect(result.current.knowledgeStructure.subtopics).toEqual([]);
       expect(result.current.knowledgeStructure.error).toBe(
-        'Error loading subtopics'
+        'Erro ao carregar subtemas'
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error loading subtopics:',
+        'Erro ao carregar subtemas:',
         expect.any(Error)
       );
 
@@ -847,10 +847,10 @@ describe('useActivityFiltersData', () => {
       expect(result.current.knowledgeStructure.loading).toBe(false);
       expect(result.current.knowledgeStructure.contents).toEqual([]);
       expect(result.current.knowledgeStructure.error).toBe(
-        'Error loading contents'
+        'Erro ao carregar conteúdos'
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error loading contents:',
+        'Erro ao carregar conteúdos:',
         expect.any(Error)
       );
 

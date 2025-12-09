@@ -464,14 +464,14 @@ const useActivityFiltersDataImpl = (
           error: null,
         }));
       } catch (error) {
-        console.error('Error loading topics:', error);
+        console.error('Erro ao carregar temas:', error);
         setKnowledgeStructure((prev) => ({
           ...prev,
           topics: [],
           subtopics: [],
           contents: [],
           loading: false,
-          error: 'Error loading topics',
+          error: 'Erro ao carregar temas',
         }));
       }
     },
@@ -524,13 +524,13 @@ const useActivityFiltersDataImpl = (
           loading: false,
         }));
       } catch (error) {
-        console.error('Error loading subtopics:', error);
+        console.error('Erro ao carregar subtemas:', error);
         setKnowledgeStructure((prev) => ({
           ...prev,
           subtopics: [],
           contents: [],
           loading: false,
-          error: 'Error loading subtopics',
+          error: 'Erro ao carregar subtemas',
         }));
       }
     },
@@ -573,12 +573,12 @@ const useActivityFiltersDataImpl = (
           loading: false,
         }));
       } catch (error) {
-        console.error('Error loading contents:', error);
+        console.error('Erro ao carregar conteúdos:', error);
         setKnowledgeStructure((prev) => ({
           ...prev,
           contents: [],
           loading: false,
-          error: 'Error loading contents',
+          error: 'Erro ao carregar conteúdos',
         }));
       }
     },
