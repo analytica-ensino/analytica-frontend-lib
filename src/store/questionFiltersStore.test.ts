@@ -39,7 +39,8 @@ describe('questionFiltersStore', () => {
   });
 
   it('should apply draft filters to applied filters', () => {
-    const { setDraftFilters, applyFilters } = useQuestionFiltersStore.getState();
+    const { setDraftFilters, applyFilters } =
+      useQuestionFiltersStore.getState();
 
     setDraftFilters(sampleFilters);
     applyFilters();
@@ -75,4 +76,3 @@ describe('questionFiltersStore', () => {
     expect(state.appliedFilters).toBeNull();
   });
 });
-

@@ -32,10 +32,10 @@ const mockApiClient = {
     if (url === '/knowledge/subjects') {
       return { data: { data: mockKnowledgeAreas } };
     }
-
     // question types: empty when no institutionId
     return { data: { data: { questionTypes: [] } } };
   },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   post: async (url: string, body: any) => {
     if (url === '/knowledge/topics') {
       const subjectIds: string[] = body.subjectIds || [];
@@ -202,6 +202,7 @@ export const AllActivityFilters: Story = () => {
 
       <div className="flex flex-row gap-8">
         <ActivityFilters
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           apiClient={mockApiClient as any}
           onFiltersChange={handleFiltersChange}
           variant="default"
@@ -277,6 +278,7 @@ export const AllActivityFiltersPopover: Story = () => {
       <div className="flex flex-row gap-8 items-start">
         <div className="flex flex-col gap-4">
           <ActivityFiltersPopover
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             apiClient={mockApiClient as any}
             onFiltersChange={handleFiltersChange}
             triggerLabel="Filtro de questões"

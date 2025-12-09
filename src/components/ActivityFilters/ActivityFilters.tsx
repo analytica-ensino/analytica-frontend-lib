@@ -24,7 +24,11 @@ import type {
   KnowledgeArea,
   KnowledgeStructureState,
 } from '../../types/activityFilters';
-import { getSelectedIdsFromCategories, toggleArrayItem, toggleSingleValue } from '../../utils/activityFilters';
+import {
+  getSelectedIdsFromCategories,
+  toggleArrayItem,
+  toggleSingleValue,
+} from '../../utils/activityFilters';
 
 const questionTypesFallback = [
   QUESTION_TYPE.ALTERNATIVA,
@@ -324,9 +328,6 @@ export const ActivityFilters = ({
     questionTypes,
     loadingQuestionTypes,
     questionTypesError,
-    loadTopics,
-    loadSubtopics,
-    loadContents,
   } = useActivityFiltersData({
     selectedSubjects: selectedSubject ? [selectedSubject] : [],
     institutionId,
@@ -446,7 +447,9 @@ export const ActivityFilters = ({
 
   const availableQuestionTypes = useMemo(() => {
     const source =
-      questionTypes && questionTypes.length > 0 ? questionTypes : questionTypesFallback;
+      questionTypes && questionTypes.length > 0
+        ? questionTypes
+        : questionTypesFallback;
 
     if (!allowedQuestionTypes || allowedQuestionTypes.length === 0) {
       return source;
@@ -526,12 +529,20 @@ export const ActivityFilters = ({
             allowedQuestionTypes={availableQuestionTypes}
           />
           {loadingQuestionTypes && (
-            <Text size="sm" className="text-text-600" data-testid="question-types-loading">
+            <Text
+              size="sm"
+              className="text-text-600"
+              data-testid="question-types-loading"
+            >
               Carregando tipos de questão...
             </Text>
           )}
           {questionTypesError && (
-            <Text size="sm" className="text-error-500" data-testid="question-types-error">
+            <Text
+              size="sm"
+              className="text-error-500"
+              data-testid="question-types-error"
+            >
               {questionTypesError}
             </Text>
           )}
@@ -569,7 +580,7 @@ export const ActivityFilters = ({
             <KnowledgeStructureFilter
               knowledgeStructure={knowledgeStructure}
               knowledgeCategories={knowledgeCategories}
-        handleCategoriesChange={handleCategoriesChange}
+              handleCategoriesChange={handleCategoriesChange}
             />
           )}
 

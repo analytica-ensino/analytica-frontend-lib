@@ -4,11 +4,17 @@ jest.mock('../../hooks/useActivityFiltersData', () => {
     createUseActivityFiltersData: () => () => mockUseActivityFiltersDataReturn,
   };
 });
-jest.mock('../../components/NotificationCard/NotificationCard', () => () => null);
+jest.mock(
+  '../../components/NotificationCard/NotificationCard',
+  () => () => null
+);
 jest.mock('../../assets/img/mock-content.png', () => 'mock-content.png');
 jest.mock('../../components/Quiz/Quiz', () => () => null);
 jest.mock('../../components/Quiz/QuizContent', () => ({}));
-jest.mock('../../assets/img/mock-image-question.png', () => 'mock-image-question.png');
+jest.mock(
+  '../../assets/img/mock-image-question.png',
+  () => 'mock-image-question.png'
+);
 jest.mock('../../components/Support/Support', () => () => null);
 jest.mock('../../components/Support', () => ({}));
 jest.mock('../../assets/img/suporthistory.png', () => 'supporthistory.png');
@@ -40,7 +46,12 @@ const baseState = {
   banksError: null,
 
   knowledgeAreas: [
-    { id: 'subject1', name: 'Matemática', icon: 'Calculator', color: '#ff0000' },
+    {
+      id: 'subject1',
+      name: 'Matemática',
+      icon: 'Calculator',
+      color: '#ff0000',
+    },
     { id: 'subject2', name: 'Português', icon: 'Book', color: '#00ff00' },
   ],
   loadingSubjects: false,
@@ -75,9 +86,12 @@ const buildMockReturn = (overrides: Partial<typeof baseState> = {}) => ({
 
 let mockUseActivityFiltersDataReturn = buildMockReturn();
 
-const renderComponent = (props: Partial<React.ComponentProps<typeof ActivityFilters>> = {}) =>
+const renderComponent = (
+  props: Partial<React.ComponentProps<typeof ActivityFilters>> = {}
+) =>
   render(
     <ActivityFilters
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       apiClient={{} as any}
       onFiltersChange={jest.fn()}
       {...props}
@@ -120,13 +134,12 @@ describe('ActivityFilters', () => {
     });
     renderComponent();
 
-    expect(
-      screen.getByTestId('question-types-loading')
-    ).toBeInTheDocument();
+    expect(screen.getByTestId('question-types-loading')).toBeInTheDocument();
   });
 
   it('shows error message for question types', () => {
     mockUseActivityFiltersDataReturn = buildMockReturn({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       questionTypesError: 'Erro ao carregar' as any,
     });
     renderComponent();
@@ -201,4 +214,3 @@ describe('ActivityFilters', () => {
     expect(onApplyFilters).toHaveBeenCalledTimes(1);
   });
 });
-

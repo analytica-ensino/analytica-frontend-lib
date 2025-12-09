@@ -9,8 +9,6 @@ import type {
   KnowledgeArea,
 } from '../types/activityFilters';
 import { QUESTION_TYPE } from '../components/Quiz/useQuizStore';
-import { useTheme } from './useTheme';
-import { useAuthStore } from '@/store/authStore';
 
 // ============================================================================
 // API Response Types
@@ -366,6 +364,7 @@ const useActivityFiltersDataImpl = (
   const loadQuestionTypes = useCallback(async () => {
     if (!institutionId) {
       setQuestionTypesState((prev) => ({
+        ...prev,
         questionTypes: [],
         loading: false,
         error: null,
