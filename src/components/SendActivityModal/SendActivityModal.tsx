@@ -33,6 +33,15 @@ const ACTIVITY_TYPES: Array<{ value: ActivitySubtype; label: string }> = [
 ];
 
 /**
+ * Stepper steps configuration
+ */
+const STEPPER_STEPS = [
+  { id: 'activity', label: 'Atividade', state: 'pending' as const },
+  { id: 'recipient', label: 'Destinatário', state: 'pending' as const },
+  { id: 'deadline', label: 'Prazo', state: 'pending' as const },
+];
+
+/**
  * SendActivityModal component for sending activities to students
  *
  * A multi-step modal with 3 steps:
@@ -123,7 +132,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
    * Handle form submission
    */
   const handleSubmit = useCallback(async () => {
-    const isValid = store.validateCurrentStep();
+    const isValid = store.validateAllSteps();
     if (!isValid) return;
 
     const formData = store.formData as SendActivityFormData;
@@ -269,11 +278,8 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
     const students = classData.students;
 
     const allSelected =
-      students.length > 0 &&
-      students.every((s) => store.isStudentSelected(s.studentId));
-    const someSelected = students.some((s) =>
-      store.isStudentSelected(s.studentId)
-    );
+      students.length > 0 && students.every((s) => store.isStudentSelected(s));
+    const someSelected = students.some((s) => store.isStudentSelected(s));
 
     return (
       <div className="flex flex-col pt-6">
@@ -290,7 +296,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
               indeterminate={someSelected && !allSelected}
               onChange={() => {
                 students.forEach((student) => {
-                  const isSelected = store.isStudentSelected(student.studentId);
+                  const isSelected = store.isStudentSelected(student);
                   if (
                     (allSelected && isSelected) ||
                     (!allSelected && !isSelected)
@@ -315,7 +321,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
                 <CheckBox
                   key={`${student.studentId}-${student.userInstitutionId}`}
                   label={student.name}
-                  checked={store.isStudentSelected(student.studentId)}
+                  checked={store.isStudentSelected(student)}
                   onChange={() => store.toggleStudent(student)}
                   size="small"
                 />
@@ -564,28 +570,26 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
                     hasSelectedClasses &&
                     getAvailableStudents().length > 0 &&
                     getAvailableStudents().every((s) =>
-                      store.isStudentSelected(s.studentId)
+                      store.isStudentSelected(s)
                     )
                   }
                   indeterminate={
                     hasSelectedClasses &&
                     getAvailableStudents().some((s) =>
-                      store.isStudentSelected(s.studentId)
+                      store.isStudentSelected(s)
                     ) &&
                     !getAvailableStudents().every((s) =>
-                      store.isStudentSelected(s.studentId)
+                      store.isStudentSelected(s)
                     )
                   }
                   onChange={(e) => {
                     e.stopPropagation();
                     if (!hasSelectedClasses) return;
                     const allSelected = getAvailableStudents().every((s) =>
-                      store.isStudentSelected(s.studentId)
+                      store.isStudentSelected(s)
                     );
                     getAvailableStudents().forEach((student) => {
-                      const isSelected = store.isStudentSelected(
-                        student.studentId
-                      );
+                      const isSelected = store.isStudentSelected(student);
                       if (
                         (allSelected && isSelected) ||
                         (!allSelected && !isSelected)
@@ -604,7 +608,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
                   <CheckBox
                     key={`${student.studentId}-${student.userInstitutionId}`}
                     label={student.name}
-                    checked={store.isStudentSelected(student.studentId)}
+                    checked={store.isStudentSelected(student)}
                     onChange={() => store.toggleStudent(student)}
                     size="small"
                   />
@@ -749,15 +753,6 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
     </div>
   );
 
-  /**
-   * Stepper steps configuration
-   */
-  const steps = [
-    { id: 'activity', label: 'Atividade', state: 'pending' as const },
-    { id: 'recipient', label: 'Destinatário', state: 'pending' as const },
-    { id: 'deadline', label: 'Prazo', state: 'pending' as const },
-  ];
-
   return (
     <Modal
       isOpen={isOpen}
@@ -768,7 +763,11 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
       contentClassName="flex flex-col gap-4 sm:gap-6 max-h-[70vh] overflow-y-auto"
     >
       {/* Stepper */}
-      <Stepper steps={steps} currentStep={store.currentStep - 1} size="small" />
+      <Stepper
+        steps={STEPPER_STEPS}
+        currentStep={store.currentStep - 1}
+        size="small"
+      />
 
       {/* Step Content */}
       {renderStepContent()}

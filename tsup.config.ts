@@ -109,12 +109,10 @@ export default defineConfig({
     'types/support/index': 'src/types/support.ts',
 
     // DatePickerInput
-    'DatePickerInput/index':
-      'src/components/DatePickerInput/DatePickerInput.tsx',
+    'DatePickerInput/index': 'src/components/DatePickerInput/index.ts',
 
     // SendActivityModal
-    'SendActivityModal/index':
-      'src/components/SendActivityModal/SendActivityModal.tsx',
+    'SendActivityModal/index': 'src/components/SendActivityModal/index.ts',
 
     // Styles
     styles: 'src/styles.css',

@@ -66,6 +66,8 @@ export interface SendActivityModalStore {
   setErrors: (errors: StepErrors) => void;
   /** Validate current step */
   validateCurrentStep: () => boolean;
+  /** Validate all steps */
+  validateAllSteps: () => boolean;
 
   /** Selected student IDs for quick lookup */
   selectedStudentIds: Set<string>;
@@ -83,7 +85,7 @@ export interface SendActivityModalStore {
   clearSelection: () => void;
 
   /** Check if a student is selected */
-  isStudentSelected: (studentId: string) => boolean;
+  isStudentSelected: (student: StudentRecipient) => boolean;
   /** Check if all students in a class are selected */
   isClassSelected: (classData: ClassData) => boolean;
   /** Check if all students in a school year are selected */
@@ -184,6 +186,16 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       const errors = validateStep(state.currentStep, state.formData);
       set({ errors });
       return Object.keys(errors).length === 0;
+    },
+
+    validateAllSteps: () => {
+      const state = get();
+      const errors1 = validateStep(1, state.formData);
+      const errors2 = validateStep(2, state.formData);
+      const errors3 = validateStep(3, state.formData);
+      const allErrors = { ...errors1, ...errors2, ...errors3 };
+      set({ errors: allErrors });
+      return Object.keys(allErrors).length === 0;
     },
 
     toggleStudent: (student) => {
@@ -322,10 +334,10 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       }));
     },
 
-    isStudentSelected: (studentId) => {
+    isStudentSelected: (student) => {
       const state = get();
-      return Array.from(state.selectedStudentIds).some((k) =>
-        k.startsWith(`${studentId}:::`)
+      return state.selectedStudentIds.has(
+        `${student.studentId}:::${student.userInstitutionId}`
       );
     },
 

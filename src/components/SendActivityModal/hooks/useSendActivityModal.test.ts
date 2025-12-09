@@ -345,12 +345,8 @@ describe('useSendActivityModalStore', () => {
         result.current.toggleStudent(mockStudent1);
       });
 
-      expect(result.current.isStudentSelected(mockStudent1.studentId)).toBe(
-        true
-      );
-      expect(result.current.isStudentSelected(mockStudent2.studentId)).toBe(
-        false
-      );
+      expect(result.current.isStudentSelected(mockStudent1)).toBe(true);
+      expect(result.current.isStudentSelected(mockStudent2)).toBe(false);
     });
 
     it('should check if class is selected', () => {
