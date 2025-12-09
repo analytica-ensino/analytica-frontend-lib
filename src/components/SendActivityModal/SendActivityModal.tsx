@@ -283,21 +283,19 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
 
         <div className="overflow-hidden">
           {/* Select all row */}
-          <div className="py-3.5 px-6 border-b border-border-200">
+          <div className="py-3 sm:py-3.5 px-4 sm:px-6 border-b border-border-200">
             <CheckBox
               label="Todos os alunos"
               checked={allSelected}
               indeterminate={someSelected && !allSelected}
               onChange={() => {
                 students.forEach((student) => {
-                  if (allSelected) {
-                    if (store.isStudentSelected(student.studentId)) {
-                      store.toggleStudent(student);
-                    }
-                  } else {
-                    if (!store.isStudentSelected(student.studentId)) {
-                      store.toggleStudent(student);
-                    }
+                  const isSelected = store.isStudentSelected(student.studentId);
+                  if (
+                    (allSelected && isSelected) ||
+                    (!allSelected && !isSelected)
+                  ) {
+                    store.toggleStudent(student);
                   }
                 });
               }}
@@ -308,7 +306,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
           {/* Student list */}
           <div
             className={cn(
-              'px-6 py-4 max-h-[200px] overflow-y-auto',
+              'px-4 sm:px-6 py-3 sm:py-4 max-h-[180px] sm:max-h-[200px] overflow-y-auto',
               'scrollbar-thin scrollbar-thumb-border-300 scrollbar-track-transparent'
             )}
           >
@@ -359,8 +357,8 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
             <CardAccordation
               value="escola"
               className="border-0 border-b border-border-200 bg-transparent rounded-none"
-              triggerClassName="py-3.5 px-6"
-              contentClassName="px-6 pt-3 pb-2"
+              triggerClassName="py-3 sm:py-3.5 px-4 sm:px-6"
+              contentClassName="px-4 sm:px-6 pt-3 pb-2"
               trigger={
                 <CheckBox
                   label="Escola"
@@ -384,14 +382,14 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
                       store.isSchoolFilterSelected(school.id)
                     );
                     recipients.schools.forEach((school) => {
-                      if (allSelected) {
-                        if (store.isSchoolFilterSelected(school.id)) {
-                          store.toggleSchoolFilter(school.id);
-                        }
-                      } else {
-                        if (!store.isSchoolFilterSelected(school.id)) {
-                          store.toggleSchoolFilter(school.id);
-                        }
+                      const isSelected = store.isSchoolFilterSelected(
+                        school.id
+                      );
+                      if (
+                        (allSelected && isSelected) ||
+                        (!allSelected && !isSelected)
+                      ) {
+                        store.toggleSchoolFilter(school.id);
                       }
                     });
                   }}
@@ -419,8 +417,8 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
                 'border-0 border-b border-border-200 bg-transparent rounded-none',
                 !hasSelectedSchools && 'opacity-40'
               )}
-              triggerClassName="py-3.5 px-6"
-              contentClassName="px-6 pt-3 pb-2"
+              triggerClassName="py-3 sm:py-3.5 px-4 sm:px-6"
+              contentClassName="px-4 sm:px-6 pt-3 pb-2"
               trigger={
                 <CheckBox
                   label="Série"
@@ -447,14 +445,14 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
                       store.isSchoolYearFilterSelected(sy.id)
                     );
                     getAvailableSchoolYears().forEach((schoolYear) => {
-                      if (allSelected) {
-                        if (store.isSchoolYearFilterSelected(schoolYear.id)) {
-                          store.toggleSchoolYearFilter(schoolYear.id);
-                        }
-                      } else {
-                        if (!store.isSchoolYearFilterSelected(schoolYear.id)) {
-                          store.toggleSchoolYearFilter(schoolYear.id);
-                        }
+                      const isSelected = store.isSchoolYearFilterSelected(
+                        schoolYear.id
+                      );
+                      if (
+                        (allSelected && isSelected) ||
+                        (!allSelected && !isSelected)
+                      ) {
+                        store.toggleSchoolYearFilter(schoolYear.id);
                       }
                     });
                   }}
@@ -488,8 +486,8 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
                 'border-0 border-b border-border-200 bg-transparent rounded-none',
                 !hasSelectedSchoolYears && 'opacity-40'
               )}
-              triggerClassName="py-3.5 px-6"
-              contentClassName="px-6 pt-3 pb-2"
+              triggerClassName="py-3 sm:py-3.5 px-4 sm:px-6"
+              contentClassName="px-4 sm:px-6 pt-3 pb-2"
               trigger={
                 <CheckBox
                   label="Turma"
@@ -516,14 +514,14 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
                       store.isClassFilterSelected(c.id)
                     );
                     getAvailableClasses().forEach((classData) => {
-                      if (allSelected) {
-                        if (store.isClassFilterSelected(classData.id)) {
-                          store.toggleClassFilter(classData.id);
-                        }
-                      } else {
-                        if (!store.isClassFilterSelected(classData.id)) {
-                          store.toggleClassFilter(classData.id);
-                        }
+                      const isSelected = store.isClassFilterSelected(
+                        classData.id
+                      );
+                      if (
+                        (allSelected && isSelected) ||
+                        (!allSelected && !isSelected)
+                      ) {
+                        store.toggleClassFilter(classData.id);
                       }
                     });
                   }}
@@ -557,8 +555,8 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
                 'border-0 border-b border-border-200 bg-transparent rounded-none',
                 !hasSelectedClasses && 'opacity-40'
               )}
-              triggerClassName="py-3.5 px-6"
-              contentClassName="px-6 pt-3 pb-2"
+              triggerClassName="py-3 sm:py-3.5 px-4 sm:px-6"
+              contentClassName="px-4 sm:px-6 pt-3 pb-2"
               trigger={
                 <CheckBox
                   label="Alunos"
@@ -585,14 +583,14 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
                       store.isStudentSelected(s.studentId)
                     );
                     getAvailableStudents().forEach((student) => {
-                      if (allSelected) {
-                        if (store.isStudentSelected(student.studentId)) {
-                          store.toggleStudent(student);
-                        }
-                      } else {
-                        if (!store.isStudentSelected(student.studentId)) {
-                          store.toggleStudent(student);
-                        }
+                      const isSelected = store.isStudentSelected(
+                        student.studentId
+                      );
+                      if (
+                        (allSelected && isSelected) ||
+                        (!allSelected && !isSelected)
+                      ) {
+                        store.toggleStudent(student);
                       }
                     });
                   }}
@@ -630,7 +628,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
    * Render Step 3 - Deadline
    */
   const renderDeadlineStep = () => (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 sm:gap-6">
       {/* Start Date */}
       <DatePickerInput
         label="Iniciar em*"
@@ -703,18 +701,24 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
    * Render footer buttons
    */
   const renderFooter = () => (
-    <div className="flex items-center justify-between w-full">
-      <Button variant="link" action="primary" onClick={handleCancel}>
+    <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 w-full">
+      <Button
+        variant="link"
+        action="primary"
+        onClick={handleCancel}
+        className="w-full sm:w-auto"
+      >
         Cancelar
       </Button>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col-reverse sm:flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
         {store.currentStep > 1 && (
           <Button
             variant="outline"
             action="primary"
             onClick={store.previousStep}
             iconLeft={<CaretLeft size={16} />}
+            className="w-full sm:w-auto"
           >
             Anterior
           </Button>
@@ -726,6 +730,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
             action="primary"
             onClick={() => store.nextStep()}
             iconRight={<ArrowRight size={16} />}
+            className="w-full sm:w-auto"
           >
             Próximo
           </Button>
@@ -736,6 +741,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
             onClick={handleSubmit}
             disabled={isLoading}
             iconLeft={<PaperPlaneTilt size={16} />}
+            className="w-full sm:w-auto"
           >
             {isLoading ? 'Enviando...' : 'Enviar atividade'}
           </Button>
@@ -760,7 +766,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
       title="Enviar atividade"
       size="md"
       footer={renderFooter()}
-      contentClassName="flex flex-col gap-6"
+      contentClassName="flex flex-col gap-4 sm:gap-6 max-h-[70vh] overflow-y-auto"
     >
       {/* Stepper */}
       <Stepper steps={steps} currentStep={store.currentStep - 1} size="small" />
