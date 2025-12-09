@@ -153,7 +153,6 @@ export type {
   Question as QuestionActivity,
   Pagination,
   QuestionsFilterBody,
-  QuestionsListResponse,
   QuestionOptionActivity,
   KnowledgeMatrixItemActivity,
   QuestionBankYearActivity,
