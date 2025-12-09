@@ -254,7 +254,7 @@ const useActivityFiltersDataImpl = (
         '/questions/exam-institutions'
       );
 
-      // Group banks by questionBankName and collect unique years
+      // Agrupa bancas por questionBankName e coleta anos únicos
       const banksMap = new Map<
         string,
         Bank & { years: string[]; questionsCount: number }
@@ -281,7 +281,7 @@ const useActivityFiltersDataImpl = (
           });
         }
 
-        // Add bank year with format: {questionBankYearId}-{questionBankName}
+        // Adiciona ano da banca com formato: {questionBankYearId}-{questionBankName}
         bankYearsArray.push({
           id: `${item.questionBankYearId}-${item.questionBankName}`,
           name: item.year,
@@ -302,7 +302,7 @@ const useActivityFiltersDataImpl = (
         error: null,
       });
     } catch (error) {
-      console.error('Error loading vestibular banks:', error);
+      console.error('Erro ao carregar bancas de vestibular:', error);
       setBanksState((prev) => ({
         ...prev,
         loading: false,
@@ -338,7 +338,7 @@ const useActivityFiltersDataImpl = (
         error: null,
       });
     } catch (error) {
-      console.error('Error loading knowledge areas:', error);
+      console.error('Erro ao carregar áreas de conhecimento:', error);
       setAreasState((prev) => ({
         ...prev,
         loading: false,
@@ -393,7 +393,7 @@ const useActivityFiltersDataImpl = (
         error: null,
       });
     } catch (error) {
-      console.error('Error loading question types:', error);
+      console.error('Erro ao carregar tipos de questões:', error);
       setQuestionTypesState((prev) => ({
         ...prev,
         loading: false,

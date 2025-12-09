@@ -201,7 +201,7 @@ describe('useActivityFiltersData', () => {
       );
       expect(result.current.banks).toEqual([]);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error loading vestibular banks:',
+        'Erro ao carregar bancas de vestibular:',
         expect.any(Error)
       );
 
@@ -344,7 +344,7 @@ describe('useActivityFiltersData', () => {
       );
       expect(result.current.knowledgeAreas).toEqual([]);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error loading knowledge areas:',
+        'Erro ao carregar áreas de conhecimento:',
         expect.any(Error)
       );
 
@@ -470,7 +470,7 @@ describe('useActivityFiltersData', () => {
       );
       expect(result.current.questionTypes).toEqual([]);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error loading question types:',
+        'Erro ao carregar tipos de questões:',
         expect.any(Error)
       );
 
