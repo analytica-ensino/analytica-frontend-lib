@@ -464,14 +464,14 @@ const useActivityFiltersDataImpl = (
           error: null,
         }));
       } catch (error) {
-        console.error('Erro ao carregar temas:', error);
+        console.error('Error loading topics:', error);
         setKnowledgeStructure((prev) => ({
           ...prev,
           topics: [],
           subtopics: [],
           contents: [],
           loading: false,
-          error: 'Erro ao carregar temas',
+          error: 'Error loading topics',
         }));
       }
     },
@@ -508,18 +508,14 @@ const useActivityFiltersDataImpl = (
           { topicIds }
         );
 
-        const subtopicsMap = new Map<string, KnowledgeItem>();
-        for (const subtopic of response.data.data) {
-          if (!subtopicsMap.has(subtopic.id)) {
-            subtopicsMap.set(subtopic.id, {
-              id: subtopic.id,
-              name: subtopic.name,
-              topicId: topicIds[0],
-            });
-          }
-        }
-
-        const subtopics = Array.from(subtopicsMap.values());
+        // API now returns topicId; keep fallback to first requested id for safety
+        const subtopics = response.data.data.map(
+          (subtopic: KnowledgeItem & { topicId?: string }) => ({
+            id: subtopic.id,
+            name: subtopic.name,
+            topicId: subtopic.topicId || topicIds[0],
+          })
+        );
 
         setKnowledgeStructure((prev) => ({
           ...prev,
@@ -528,12 +524,13 @@ const useActivityFiltersDataImpl = (
           loading: false,
         }));
       } catch (error) {
-        console.error('Erro ao carregar subtemas:', error);
+        console.error('Error loading subtopics:', error);
         setKnowledgeStructure((prev) => ({
           ...prev,
           subtopics: [],
           contents: [],
           loading: false,
+          error: 'Error loading subtopics',
         }));
       }
     },
@@ -561,18 +558,14 @@ const useActivityFiltersDataImpl = (
           { subtopicIds }
         );
 
-        const contentsMap = new Map<string, KnowledgeItem>();
-        for (const content of response.data.data) {
-          if (!contentsMap.has(content.id)) {
-            contentsMap.set(content.id, {
-              id: content.id,
-              name: content.name,
-              subtopicId: subtopicIds[0],
-            });
-          }
-        }
-
-        const contents = Array.from(contentsMap.values());
+        // API now returns subtopicId; keep fallback to first requested id for safety
+        const contents = response.data.data.map(
+          (content: KnowledgeItem & { subtopicId?: string }) => ({
+            id: content.id,
+            name: content.name,
+            subtopicId: content.subtopicId || subtopicIds[0],
+          })
+        );
 
         setKnowledgeStructure((prev) => ({
           ...prev,
@@ -580,11 +573,12 @@ const useActivityFiltersDataImpl = (
           loading: false,
         }));
       } catch (error) {
-        console.error('Erro ao carregar conteúdos:', error);
+        console.error('Error loading contents:', error);
         setKnowledgeStructure((prev) => ({
           ...prev,
           contents: [],
           loading: false,
+          error: 'Error loading contents',
         }));
       }
     },

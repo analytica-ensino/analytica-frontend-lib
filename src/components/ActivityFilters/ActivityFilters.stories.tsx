@@ -133,27 +133,27 @@ const mockTopics: KnowledgeItem[] = [
 ];
 
 const mockSubtopics: KnowledgeItem[] = [
-  { id: 'subtema-1', name: 'Equações do 1º grau', parentId: 'tema-1' },
-  { id: 'subtema-2', name: 'Equações do 2º grau', parentId: 'tema-1' },
-  { id: 'subtema-3', name: 'Triângulos', parentId: 'tema-2' },
-  { id: 'subtema-4', name: 'Círculos', parentId: 'tema-2' },
+  { id: 'subtema-1', name: 'Equações do 1º grau', topicId: 'tema-1' },
+  { id: 'subtema-2', name: 'Equações do 2º grau', topicId: 'tema-1' },
+  { id: 'subtema-3', name: 'Triângulos', topicId: 'tema-2' },
+  { id: 'subtema-4', name: 'Círculos', topicId: 'tema-2' },
 ];
 
 const mockContents: KnowledgeItem[] = [
   {
     id: 'assunto-1',
     name: 'Resolução de equações lineares',
-    parentId: 'subtema-1',
+    subtopicId: 'subtema-1',
   },
   {
     id: 'assunto-2',
     name: 'Sistemas de equações',
-    parentId: 'subtema-1',
+    subtopicId: 'subtema-1',
   },
   {
     id: 'assunto-3',
     name: 'Fórmula de Bhaskara',
-    parentId: 'subtema-2',
+    subtopicId: 'subtema-2',
   },
 ];
 

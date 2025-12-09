@@ -605,8 +605,8 @@ describe('useActivityFiltersData', () => {
         data: {
           message: 'Success',
           data: [
-            { id: 'subtopic-1', name: 'Equações' },
-            { id: 'subtopic-2', name: 'Funções' },
+            { id: 'subtopic-1', name: 'Equações', topicId: 'topic-1' },
+            { id: 'subtopic-2', name: 'Funções', topicId: 'topic-1' },
           ],
         },
       };
@@ -658,9 +658,9 @@ describe('useActivityFiltersData', () => {
         data: {
           message: 'Success',
           data: [
-            { id: 'subtopic-1', name: 'Equações' },
-            { id: 'subtopic-1', name: 'Equações' },
-            { id: 'subtopic-2', name: 'Funções' },
+            { id: 'subtopic-1', name: 'Equações', topicId: 'topic-1' },
+            { id: 'subtopic-1', name: 'Equações', topicId: 'topic-1' },
+            { id: 'subtopic-2', name: 'Funções', topicId: 'topic-1' },
           ],
         },
       };
@@ -678,7 +678,8 @@ describe('useActivityFiltersData', () => {
         await result.current.loadSubtopics(['topic-1']);
       });
 
-      expect(result.current.knowledgeStructure.subtopics).toHaveLength(2);
+      // duplicates are preserved as returned by API (no dedup)
+      expect(result.current.knowledgeStructure.subtopics).toHaveLength(3);
     });
 
     it('should handle error when loading subtopics fails', async () => {
@@ -703,6 +704,9 @@ describe('useActivityFiltersData', () => {
 
       expect(result.current.knowledgeStructure.loading).toBe(false);
       expect(result.current.knowledgeStructure.subtopics).toEqual([]);
+      expect(result.current.knowledgeStructure.error).toBe(
+        'Erro ao carregar subtemas'
+      );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Erro ao carregar subtemas:',
         expect.any(Error)
@@ -718,8 +722,16 @@ describe('useActivityFiltersData', () => {
         data: {
           message: 'Success',
           data: [
-            { id: 'content-1', name: 'Equações de 1º grau' },
-            { id: 'content-2', name: 'Equações de 2º grau' },
+            {
+              id: 'content-1',
+              name: 'Equações de 1º grau',
+              subtopicId: 'subtopic-1',
+            },
+            {
+              id: 'content-2',
+              name: 'Equações de 2º grau',
+              subtopicId: 'subtopic-1',
+            },
           ],
         },
       };
@@ -777,9 +789,21 @@ describe('useActivityFiltersData', () => {
         data: {
           message: 'Success',
           data: [
-            { id: 'content-1', name: 'Equações de 1º grau' },
-            { id: 'content-1', name: 'Equações de 1º grau' },
-            { id: 'content-2', name: 'Equações de 2º grau' },
+            {
+              id: 'content-1',
+              name: 'Equações de 1º grau',
+              subtopicId: 'subtopic-1',
+            },
+            {
+              id: 'content-1',
+              name: 'Equações de 1º grau',
+              subtopicId: 'subtopic-1',
+            },
+            {
+              id: 'content-2',
+              name: 'Equações de 2º grau',
+              subtopicId: 'subtopic-1',
+            },
           ],
         },
       };
@@ -797,7 +821,7 @@ describe('useActivityFiltersData', () => {
         await result.current.loadContents(['subtopic-1']);
       });
 
-      expect(result.current.knowledgeStructure.contents).toHaveLength(2);
+      expect(result.current.knowledgeStructure.contents).toHaveLength(3);
     });
 
     it('should handle error when loading contents fails', async () => {
@@ -822,6 +846,9 @@ describe('useActivityFiltersData', () => {
 
       expect(result.current.knowledgeStructure.loading).toBe(false);
       expect(result.current.knowledgeStructure.contents).toEqual([]);
+      expect(result.current.knowledgeStructure.error).toBe(
+        'Erro ao carregar conteúdos'
+      );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Erro ao carregar conteúdos:',
         expect.any(Error)

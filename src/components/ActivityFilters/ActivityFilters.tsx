@@ -301,10 +301,7 @@ export const ActivityFilters = ({
   onClearFilters,
   onApplyFilters,
 }: ActivityFiltersProps) => {
-  const useActivityFiltersData = useMemo(
-    () => createUseActivityFiltersData(apiClient),
-    [apiClient]
-  );
+  const useActivityFiltersData = createUseActivityFiltersData(apiClient);
 
   const [selectedQuestionTypes, setSelectedQuestionTypes] = useState<
     QUESTION_TYPE[]
