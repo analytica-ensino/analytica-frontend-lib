@@ -143,6 +143,19 @@ export type {
   UseActivityFiltersDataOptions,
 } from './hooks/useActivityFiltersData';
 
+// Questions List Hook
+export {
+  createUseQuestionsList,
+  createQuestionsListHook,
+} from './hooks/useQuestionsList';
+export type { UseQuestionsListReturn } from './hooks/useQuestionsList';
+export type {
+  Question as QuestionListItem,
+  Pagination,
+  QuestionsFilterBody,
+  QuestionsListResponse,
+} from './types/questions';
+
 // API Types
 export type { BaseApiClient } from './types/api';
 
