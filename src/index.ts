@@ -379,6 +379,7 @@ export { useInstitutionId } from './hooks/useInstitution';
 export { useAuthStore } from './store/authStore';
 export { useAppStore } from './store/appStore';
 export { useQuestionFiltersStore } from './store/questionFiltersStore';
+export type { QuestionFiltersState } from './store/questionFiltersStore';
 export type { AuthState } from './store/authStore';
 export { ActivityCardQuestionBanks } from './components/ActivityCardQuestionBanks/ActivityCardQuestionBanks';
 // Utils

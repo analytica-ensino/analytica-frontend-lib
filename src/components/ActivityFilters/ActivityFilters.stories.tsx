@@ -7,10 +7,63 @@ import type {
   BankYear,
   KnowledgeArea,
   KnowledgeItem,
-  KnowledgeStructureState,
 } from '../../types/activityFilters';
-import type { CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
+
+// Mock apiClient used in stories to simulate API responses
+const mockApiClient = {
+  get: async (url: string) => {
+    if (url === '/questions/exam-institutions') {
+      return {
+        data: {
+          data: mockBanks.flatMap((bank, index) => {
+            const years = mockBankYears.filter((y) => y.bankId === bank.id);
+            return years.map((year, yearIdx) => ({
+              questionBankName: bank.examInstitution,
+              questionBankYearId: `${index}-${yearIdx}`,
+              year: year.name,
+              questionsCount: 100,
+            }));
+          }),
+        },
+      };
+    }
+
+    if (url === '/knowledge/subjects') {
+      return { data: { data: mockKnowledgeAreas } };
+    }
+
+    // question types: empty when no institutionId
+    return { data: { data: { questionTypes: [] } } };
+  },
+  post: async (url: string, body: any) => {
+    if (url === '/knowledge/topics') {
+      const subjectIds: string[] = body.subjectIds || [];
+      const filteredTopics = mockTopics.filter(() =>
+        subjectIds.length > 0 ? true : true
+      );
+      return { data: { data: filteredTopics } };
+    }
+
+    if (url === '/knowledge/subtopics') {
+      const topicIds: string[] = body.topicIds || [];
+      const filteredSubtopics = mockSubtopics.filter(() =>
+        topicIds.length > 0 ? true : true
+      );
+      return { data: { data: filteredSubtopics } };
+    }
+
+    if (url === '/knowledge/contents') {
+      const subtopicIds: string[] = body.subtopicIds || [];
+      const filteredContents = mockContents.filter(() =>
+        subtopicIds.length > 0 ? true : true
+      );
+      return { data: { data: filteredContents } };
+    }
+
+    return { data: { data: [] } };
+  },
+};
 
 // Mock data padrão
 const mockBanks: Bank[] = [
@@ -104,47 +157,6 @@ const mockContents: KnowledgeItem[] = [
   },
 ];
 
-const defaultKnowledgeCategories: CategoryConfig[] = [
-  {
-    key: 'tema',
-    label: 'Tema',
-    itens: mockTopics.map((t) => ({ id: t.id, name: t.name })),
-    selectedIds: [],
-  },
-  {
-    key: 'subtema',
-    label: 'Subtema',
-    dependsOn: ['tema'],
-    itens: mockSubtopics.map((st) => ({
-      id: st.id,
-      name: st.name,
-      temaId: (st.parentId as string) || '',
-    })),
-    filteredBy: [{ key: 'tema', internalField: 'temaId' }],
-    selectedIds: [],
-  },
-  {
-    key: 'assunto',
-    label: 'Assunto',
-    dependsOn: ['tema', 'subtema'],
-    itens: mockContents.map((c) => ({
-      id: c.id,
-      name: c.name,
-      subtemaId: (c.parentId as string) || '',
-    })),
-    filteredBy: [{ key: 'subtema', internalField: 'subtemaId' }],
-    selectedIds: [],
-  },
-];
-
-const defaultKnowledgeStructure: KnowledgeStructureState = {
-  topics: mockTopics,
-  subtopics: mockSubtopics,
-  contents: mockContents,
-  loading: false,
-  error: null,
-};
-
 /**
  * Showcase principal: ActivityFilters com dados padrão
  */
@@ -158,14 +170,6 @@ export const AllActivityFilters: Story = () => {
     subtopicIds: [],
     contentIds: [],
   });
-
-  const [knowledgeCategories, setKnowledgeCategories] = useState<
-    CategoryConfig[]
-  >(defaultKnowledgeCategories);
-
-  const handleCategoriesChange = (updatedCategories: CategoryConfig[]) => {
-    setKnowledgeCategories(updatedCategories);
-  };
 
   const handleFiltersChange = useCallback((newFilters: ActivityFiltersData) => {
     setFilters(newFilters);
@@ -181,7 +185,6 @@ export const AllActivityFilters: Story = () => {
       subtopicIds: [],
       contentIds: [],
     });
-    setKnowledgeCategories(defaultKnowledgeCategories);
     console.log('Filtros limpos');
   };
 
@@ -199,22 +202,15 @@ export const AllActivityFilters: Story = () => {
 
       <div className="flex flex-row gap-8">
         <ActivityFilters
+          apiClient={mockApiClient as any}
           onFiltersChange={handleFiltersChange}
           variant="default"
-          // Data
-          banks={mockBanks}
-          bankYears={mockBankYears}
-          knowledgeAreas={mockKnowledgeAreas}
-          knowledgeStructure={defaultKnowledgeStructure}
-          knowledgeCategories={knowledgeCategories}
           // Question types
           allowedQuestionTypes={[
             QUESTION_TYPE.ALTERNATIVA,
             QUESTION_TYPE.DISSERTATIVA,
             QUESTION_TYPE.IMAGEM,
           ]}
-          // Handlers
-          handleCategoriesChange={handleCategoriesChange}
           // Action buttons
           onClearFilters={handleClearFilters}
           onApplyFilters={handleApplyFilters}
@@ -247,14 +243,6 @@ export const AllActivityFiltersPopover: Story = () => {
     contentIds: [],
   });
 
-  const [knowledgeCategories, setKnowledgeCategories] = useState<
-    CategoryConfig[]
-  >(defaultKnowledgeCategories);
-
-  const handleCategoriesChange = (updatedCategories: CategoryConfig[]) => {
-    setKnowledgeCategories(updatedCategories);
-  };
-
   const handleFiltersChange = useCallback((newFilters: ActivityFiltersData) => {
     setFilters(newFilters);
   }, []);
@@ -269,7 +257,6 @@ export const AllActivityFiltersPopover: Story = () => {
       subtopicIds: [],
       contentIds: [],
     });
-    setKnowledgeCategories(defaultKnowledgeCategories);
     console.log('Filtros limpos');
   };
 
@@ -290,15 +277,9 @@ export const AllActivityFiltersPopover: Story = () => {
       <div className="flex flex-row gap-8 items-start">
         <div className="flex flex-col gap-4">
           <ActivityFiltersPopover
+            apiClient={mockApiClient as any}
             onFiltersChange={handleFiltersChange}
             triggerLabel="Filtro de questões"
-            // Data
-            banks={mockBanks}
-            knowledgeAreas={mockKnowledgeAreas}
-            knowledgeStructure={defaultKnowledgeStructure}
-            knowledgeCategories={knowledgeCategories}
-            // Handlers
-            handleCategoriesChange={handleCategoriesChange}
             // Action buttons
             onClearFilters={handleClearFilters}
             onApplyFilters={handleApplyFilters}

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { ActivityFiltersData } from '../types/activityFilters';
 
-interface QuestionFiltersState {
+export interface QuestionFiltersState {
   draftFilters: ActivityFiltersData | null;
   appliedFilters: ActivityFiltersData | null;
   setDraftFilters: (filters: ActivityFiltersData | null) => void;
