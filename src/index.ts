@@ -150,11 +150,16 @@ export {
 } from './hooks/useQuestionsList';
 export type { UseQuestionsListReturn } from './hooks/useQuestionsList';
 export type {
-  Question as QuestionListItem,
+  Question as QuestionActivity,
   Pagination,
   QuestionsFilterBody,
-  QuestionsListResponse,
+  QuestionOptionActivity,
+  KnowledgeMatrixItemActivity,
+  QuestionBankYearActivity,
+  PaginationActivity,
+  QuestionsListResponseActivity,
 } from './types/questions';
+export { DIFFICULTY_LEVEL_ENUM, QUESTION_STATUS_ENUM } from './types/questions';
 
 // API Types
 export type { BaseApiClient } from './types/api';
