@@ -7,6 +7,10 @@ import type {
   Question,
   Pagination,
 } from '../types/questions';
+import {
+  DIFFICULTY_LEVEL_ENUM,
+  QUESTION_STATUS_ENUM,
+} from '../types/questions';
 
 describe('useQuestionsList', () => {
   const mockApiClient: BaseApiClient = {
@@ -17,6 +21,23 @@ describe('useQuestionsList', () => {
   };
 
   const useQuestionsList = createUseQuestionsList(mockApiClient);
+
+  const buildQuestion = (overrides: Partial<Question> = {}): Question => ({
+    id: 'question-id',
+    statement: 'Question statement',
+    description: null,
+    questionType: QUESTION_TYPE.ALTERNATIVA,
+    status: QUESTION_STATUS_ENUM.APROVADO,
+    difficultyLevel: DIFFICULTY_LEVEL_ENUM.FACIL,
+    questionBankYearId: 'year-1',
+    solutionExplanation: null,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    knowledgeMatrix: [],
+    options: [],
+    createdBy: 'user-1',
+    ...overrides,
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -44,16 +65,16 @@ describe('useQuestionsList', () => {
   describe('fetchQuestions', () => {
     it('should fetch questions successfully', async () => {
       const mockQuestions: Question[] = [
-        {
+        buildQuestion({
           id: 'question-1',
           statement: 'What is 2 + 2?',
           questionType: QUESTION_TYPE.ALTERNATIVA,
-        },
-        {
+        }),
+        buildQuestion({
           id: 'question-2',
           statement: 'What is the capital of Brazil?',
           questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
-        },
+        }),
       ];
 
       const mockPagination: Pagination = {
@@ -97,11 +118,11 @@ describe('useQuestionsList', () => {
 
     it('should fetch questions with filters', async () => {
       const mockQuestions: Question[] = [
-        {
+        buildQuestion({
           id: 'question-1',
           statement: 'Test question',
           questionType: QUESTION_TYPE.ALTERNATIVA,
-        },
+        }),
       ];
 
       const mockPagination: Pagination = {
@@ -144,7 +165,10 @@ describe('useQuestionsList', () => {
 
       expect(result.current.questions).toEqual(mockQuestions);
       expect(result.current.currentFilters).toEqual(filters);
-      expect(mockApiClient.post).toHaveBeenCalledWith('/questions/list', filters);
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        '/questions/list',
+        filters
+      );
     });
 
     it('should set loading state during fetch', async () => {
@@ -191,19 +215,19 @@ describe('useQuestionsList', () => {
 
     it('should append questions when append is true', async () => {
       const firstPageQuestions: Question[] = [
-        {
+        buildQuestion({
           id: 'question-1',
           statement: 'Question 1',
           questionType: QUESTION_TYPE.ALTERNATIVA,
-        },
+        }),
       ];
 
       const secondPageQuestions: Question[] = [
-        {
+        buildQuestion({
           id: 'question-2',
           statement: 'Question 2',
           questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
-        },
+        }),
       ];
 
       const firstPageResponse: QuestionsListResponse = {
@@ -335,19 +359,19 @@ describe('useQuestionsList', () => {
 
     it('should clear questions when fetching without append', async () => {
       const firstQuestions: Question[] = [
-        {
+        buildQuestion({
           id: 'question-1',
           statement: 'Question 1',
           questionType: QUESTION_TYPE.ALTERNATIVA,
-        },
+        }),
       ];
 
       const secondQuestions: Question[] = [
-        {
+        buildQuestion({
           id: 'question-2',
           statement: 'Question 2',
           questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
-        },
+        }),
       ];
 
       (mockApiClient.post as jest.Mock)
@@ -397,7 +421,9 @@ describe('useQuestionsList', () => {
       expect(result.current.questions).toEqual(firstQuestions);
 
       await act(async () => {
-        await result.current.fetchQuestions({ types: [QUESTION_TYPE.MULTIPLA_ESCOLHA] });
+        await result.current.fetchQuestions({
+          types: [QUESTION_TYPE.MULTIPLA_ESCOLHA],
+        });
       });
 
       await waitFor(() => {
@@ -412,19 +438,19 @@ describe('useQuestionsList', () => {
   describe('loadMore', () => {
     it('should load more questions when pagination has next page', async () => {
       const firstPageQuestions: Question[] = [
-        {
+        buildQuestion({
           id: 'question-1',
           statement: 'Question 1',
           questionType: QUESTION_TYPE.ALTERNATIVA,
-        },
+        }),
       ];
 
       const secondPageQuestions: Question[] = [
-        {
+        buildQuestion({
           id: 'question-2',
           statement: 'Question 2',
           questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
-        },
+        }),
       ];
 
       const firstPageResponse: QuestionsListResponse = {
@@ -638,11 +664,11 @@ describe('useQuestionsList', () => {
         message: 'Success',
         data: {
           questions: [
-            {
+            buildQuestion({
               id: 'question-1',
               statement: 'Question 1',
               questionType: QUESTION_TYPE.ALTERNATIVA,
-            },
+            }),
           ],
           pagination: {
             page: 1,
@@ -659,11 +685,11 @@ describe('useQuestionsList', () => {
         message: 'Success',
         data: {
           questions: [
-            {
+            buildQuestion({
               id: 'question-2',
               statement: 'Question 2',
               questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
-            },
+            }),
           ],
           pagination: {
             page: 2,
@@ -718,11 +744,11 @@ describe('useQuestionsList', () => {
         message: 'Success',
         data: {
           questions: [
-            {
+            buildQuestion({
               id: 'question-1',
               statement: 'Question 1',
               questionType: QUESTION_TYPE.ALTERNATIVA,
-            },
+            }),
           ],
           pagination: {
             page: 1,
@@ -742,7 +768,9 @@ describe('useQuestionsList', () => {
       const { result } = renderHook(() => useQuestionsList());
 
       await act(async () => {
-        await result.current.fetchQuestions({ types: [QUESTION_TYPE.ALTERNATIVA] });
+        await result.current.fetchQuestions({
+          types: [QUESTION_TYPE.ALTERNATIVA],
+        });
       });
 
       await waitFor(() => {
@@ -801,10 +829,12 @@ describe('useQuestionsList', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Erro ao carregar questões:', mockError);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Erro ao carregar questões:',
+        mockError
+      );
 
       consoleSpy.mockRestore();
     });
   });
 });
-
