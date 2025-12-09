@@ -135,12 +135,7 @@ const useQuestionsListImpl = (
     setState((prev) => {
       const { currentFilters, pagination, loadingMore: isLoadingMore } = prev;
 
-      if (
-        isLoadingMore ||
-        !currentFilters ||
-        !pagination ||
-        !pagination.hasNext
-      ) {
+      if (isLoadingMore || !currentFilters || !pagination?.hasNext) {
         return prev;
       }
 
