@@ -166,467 +166,266 @@ const mapQuestionTypeToEnum = (type: string): QUESTION_TYPE | null => {
 };
 
 // ============================================================================
-// Main Factory Function
+// Helpers
 // ============================================================================
 
-/**
- * Create an activity filters data hook with API client injection
- * This hook consolidates all data needed for ActivityFilters component:
- * - Vestibular banks and years
- * - Knowledge areas (subjects)
- * - Knowledge structure (topics, subtopics, contents)
- * - Question types
- *
- * @param apiClient - API client instance
- * @returns Hook factory that accepts options
- *
- * @example
- * // In your app setup
- * import { createUseActivityFiltersData } from 'analytica-frontend-lib';
- * import api from './services/api';
- *
- * export const useActivityFiltersData = createUseActivityFiltersData(api);
- *
- * // Then use in components
- * const {
- *   banks,
- *   knowledgeAreas,
- *   knowledgeStructure,
- *   questionTypes,
- *   loadBanks,
- *   loadKnowledgeAreas,
- * } = useActivityFiltersData({
- *   selectedSubjects: ['subject-id'],
- *   institutionId: 'institution-id',
- * });
- */
-export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
-  return (
-    options: UseActivityFiltersDataOptions
-  ): UseActivityFiltersDataReturn => {
-    const { selectedSubjects, institutionId } = options;
+const mapSelectedNames = (ids: string[], items: KnowledgeItem[]): string[] => {
+  return ids
+    .map((id: string) => {
+      const item = items.find((t) => t.id === id);
+      return item ? item.name : null;
+    })
+    .filter((name): name is string => name !== null);
+};
 
-    // ========================================================================
-    // Vestibular Banks State
-    // ========================================================================
+// ============================================================================
+// Main Hook Implementation
+// ============================================================================
 
-    const [banksState, setBanksState] = useState<VestibularBanksState>({
-      banks: [],
-      bankYears: [],
-      loading: false,
-      error: null,
-    });
+const useActivityFiltersDataImpl = (
+  apiClient: BaseApiClient,
+  options: UseActivityFiltersDataOptions
+): UseActivityFiltersDataReturn => {
+  const { selectedSubjects, institutionId } = options;
 
-    /**
-     * Load vestibular banks from API
-     */
-    const loadBanks = useCallback(async () => {
-      setBanksState((prev) => ({ ...prev, loading: true, error: null }));
+  // ========================================================================
+  // Vestibular Banks State
+  // ========================================================================
 
-      try {
-        const response = await apiClient.get<VestibularBanksApiResponse>(
-          '/questions/exam-institutions'
-        );
+  const [banksState, setBanksState] = useState<VestibularBanksState>({
+    banks: [],
+    bankYears: [],
+    loading: false,
+    error: null,
+  });
 
-        // Group banks by questionBankName and collect unique years
-        const banksMap = new Map<
-          string,
-          Bank & { years: string[]; questionsCount: number }
-        >();
-        const bankYearsArray: BankYear[] = [];
+  /**
+   * Load vestibular banks from API
+   */
+  const loadBanks = useCallback(async () => {
+    setBanksState((prev) => ({ ...prev, loading: true, error: null }));
 
-        for (const item of response.data.data) {
-          if (!item.questionBankName) continue;
+    try {
+      const response = await apiClient.get<VestibularBanksApiResponse>(
+        '/questions/exam-institutions'
+      );
 
-          const existingBank = banksMap.get(item.questionBankName);
+      // Group banks by questionBankName and collect unique years
+      const banksMap = new Map<
+        string,
+        Bank & { years: string[]; questionsCount: number }
+      >();
+      const bankYearsArray: BankYear[] = [];
 
-          if (existingBank) {
-            if (!existingBank.years.includes(item.year)) {
-              existingBank.years.push(item.year);
-            }
-            existingBank.questionsCount += item.questionsCount;
-          } else {
-            banksMap.set(item.questionBankName, {
-              id: item.questionBankName,
-              name: item.questionBankName,
-              examInstitution: item.questionBankName,
-              years: [item.year],
-              questionsCount: item.questionsCount,
-            });
+      for (const item of response.data.data) {
+        if (!item.questionBankName) continue;
+
+        const existingBank = banksMap.get(item.questionBankName);
+
+        if (existingBank) {
+          if (!existingBank.years.includes(item.year)) {
+            existingBank.years.push(item.year);
           }
-
-          // Add bank year with format: {questionBankYearId}-{questionBankName}
-          bankYearsArray.push({
-            id: `${item.questionBankYearId}-${item.questionBankName}`,
-            name: item.year,
-            bankId: item.questionBankName,
+          existingBank.questionsCount += item.questionsCount;
+        } else {
+          banksMap.set(item.questionBankName, {
+            id: item.questionBankName,
+            name: item.questionBankName,
+            examInstitution: item.questionBankName,
+            years: [item.year],
+            questionsCount: item.questionsCount,
           });
         }
 
-        const banks: Bank[] = Array.from(banksMap.values()).map((bank) => ({
-          id: bank.id,
-          name: bank.name,
-          examInstitution: bank.examInstitution,
-        }));
-
-        setBanksState({
-          banks,
-          bankYears: bankYearsArray,
-          loading: false,
-          error: null,
+        // Add bank year with format: {questionBankYearId}-{questionBankName}
+        bankYearsArray.push({
+          id: `${item.questionBankYearId}-${item.questionBankName}`,
+          name: item.year,
+          bankId: item.questionBankName,
         });
-      } catch (error) {
-        console.error('Error loading vestibular banks:', error);
-        setBanksState((prev) => ({
-          ...prev,
-          loading: false,
-          error: 'Erro ao carregar bancas de vestibular',
-        }));
-      }
-    }, [apiClient]);
-
-    // ========================================================================
-    // Knowledge Areas (Subjects) State
-    // ========================================================================
-
-    const [areasState, setAreasState] = useState<KnowledgeAreasState>({
-      knowledgeAreas: [],
-      loading: false,
-      error: null,
-    });
-
-    /**
-     * Load knowledge areas from API
-     */
-    const loadKnowledgeAreas = useCallback(async () => {
-      setAreasState((prev) => ({ ...prev, loading: true, error: null }));
-
-      try {
-        const response = await apiClient.get<KnowledgeAreasApiResponse>(
-          '/knowledge/subjects'
-        );
-
-        setAreasState({
-          knowledgeAreas: response.data.data,
-          loading: false,
-          error: null,
-        });
-      } catch (error) {
-        console.error('Error loading knowledge areas:', error);
-        setAreasState((prev) => ({
-          ...prev,
-          loading: false,
-          error: 'Erro ao carregar áreas de conhecimento',
-        }));
-      }
-    }, [apiClient]);
-
-    // ========================================================================
-    // Question Types State
-    // ========================================================================
-
-    const [questionTypesState, setQuestionTypesState] =
-      useState<QuestionTypesState>({
-        questionTypes: [],
-        loading: false,
-        error: null,
-      });
-
-    /**
-     * Load question types from API
-     */
-    const loadQuestionTypes = useCallback(async () => {
-      if (!institutionId) {
-        setQuestionTypesState((prev) => ({
-          ...prev,
-          loading: false,
-          error: null,
-        }));
-        return;
       }
 
-      setQuestionTypesState((prev) => ({
-        ...prev,
-        loading: true,
-        error: null,
+      const banks: Bank[] = Array.from(banksMap.values()).map((bank) => ({
+        id: bank.id,
+        name: bank.name,
+        examInstitution: bank.examInstitution,
       }));
 
-      try {
-        const response = await apiClient.get<QuestionTypesApiResponse>(
-          `/institutions/${institutionId}/question-types`
-        );
-
-        const mappedTypes = response.data.data.questionTypes
-          .map(mapQuestionTypeToEnum)
-          .filter((type): type is QUESTION_TYPE => type !== null);
-
-        setQuestionTypesState({
-          questionTypes: mappedTypes,
-          loading: false,
-          error: null,
-        });
-      } catch (error) {
-        console.error('Error loading question types:', error);
-        setQuestionTypesState((prev) => ({
-          ...prev,
-          loading: false,
-          error: 'Erro ao carregar tipos de questões',
-        }));
-      }
-    }, [apiClient, institutionId]);
-
-    // ========================================================================
-    // Knowledge Structure State (Topics, Subtopics, Contents)
-    // ========================================================================
-
-    const [knowledgeStructure, setKnowledgeStructure] =
-      useState<KnowledgeStructureState>({
-        topics: [],
-        subtopics: [],
-        contents: [],
+      setBanksState({
+        banks,
+        bankYears: bankYearsArray,
         loading: false,
         error: null,
       });
+    } catch (error) {
+      console.error('Error loading vestibular banks:', error);
+      setBanksState((prev) => ({
+        ...prev,
+        loading: false,
+        error: 'Erro ao carregar bancas de vestibular',
+      }));
+    }
+  }, [apiClient]);
 
-    const [knowledgeCategories, setKnowledgeCategories] = useState<
-      CategoryConfig[]
-    >([]);
+  // ========================================================================
+  // Knowledge Areas (Subjects) State
+  // ========================================================================
 
-    const previousSubjectsRef = useRef<string[] | null>(null);
+  const [areasState, setAreasState] = useState<KnowledgeAreasState>({
+    knowledgeAreas: [],
+    loading: false,
+    error: null,
+  });
 
-    const areCategoriesSame = useCallback(
-      (prev: CategoryConfig[], current: CategoryConfig[]) => {
-        if (prev.length !== current.length) return false;
+  /**
+   * Load knowledge areas from API
+   */
+  const loadKnowledgeAreas = useCallback(async () => {
+    setAreasState((prev) => ({ ...prev, loading: true, error: null }));
 
-        return current.every((category) => {
-          const prevCategory = prev.find((c) => c.key === category.key);
-          if (!prevCategory) return false;
+    try {
+      const response = await apiClient.get<KnowledgeAreasApiResponse>(
+        '/knowledge/subjects'
+      );
 
-          const prevIds = (prevCategory.itens || []).map(
-            (item: { id: string }) => item.id
-          );
-          const currentIds = (category.itens || []).map(
-            (item: { id: string }) => item.id
-          );
+      setAreasState({
+        knowledgeAreas: response.data.data,
+        loading: false,
+        error: null,
+      });
+    } catch (error) {
+      console.error('Error loading knowledge areas:', error);
+      setAreasState((prev) => ({
+        ...prev,
+        loading: false,
+        error: 'Erro ao carregar áreas de conhecimento',
+      }));
+    }
+  }, [apiClient]);
 
-          if (prevIds.length !== currentIds.length) return false;
-          return currentIds.every((id) => prevIds.includes(id));
-        });
-      },
-      []
-    );
+  // ========================================================================
+  // Question Types State
+  // ========================================================================
 
-    const mergeCategoriesWithSelection = useCallback(
-      (prev: CategoryConfig[], current: CategoryConfig[]) => {
-        return current.map((category) => {
-          const prevCategory = prev.find((c) => c.key === category.key);
-          if (!prevCategory) {
-            return category;
-          }
+  const [questionTypesState, setQuestionTypesState] =
+    useState<QuestionTypesState>({
+      questionTypes: [],
+      loading: false,
+      error: null,
+    });
 
-          const validSelectedIds = (prevCategory.selectedIds || []).filter(
-            (id: string) =>
-              category.itens?.some((item: { id: string }) => item.id === id)
-          );
+  /**
+   * Load question types from API
+   */
+  const loadQuestionTypes = useCallback(async () => {
+    if (!institutionId) {
+      setQuestionTypesState((prev) => ({
+        ...prev,
+        loading: false,
+        error: null,
+      }));
+      return;
+    }
 
-          return {
-            ...category,
-            selectedIds: validSelectedIds,
-          };
-        });
-      },
-      []
-    );
+    setQuestionTypesState((prev) => ({
+      ...prev,
+      loading: true,
+      error: null,
+    }));
 
-    /**
-     * Load topics for given subject IDs
-     */
-    const loadTopics = useCallback(
-      async (subjectIds: string[]) => {
-        if (subjectIds.length === 0) {
-          setKnowledgeStructure({
-            topics: [],
-            subtopics: [],
-            contents: [],
-            loading: false,
-            error: null,
-          });
-          setKnowledgeCategories([]);
-          return;
+    try {
+      const response = await apiClient.get<QuestionTypesApiResponse>(
+        `/institutions/${institutionId}/question-types`
+      );
+
+      const mappedTypes = response.data.data.questionTypes
+        .map(mapQuestionTypeToEnum)
+        .filter((type): type is QUESTION_TYPE => type !== null);
+
+      setQuestionTypesState({
+        questionTypes: mappedTypes,
+        loading: false,
+        error: null,
+      });
+    } catch (error) {
+      console.error('Error loading question types:', error);
+      setQuestionTypesState((prev) => ({
+        ...prev,
+        loading: false,
+        error: 'Erro ao carregar tipos de questões',
+      }));
+    }
+  }, [apiClient, institutionId]);
+
+  // ========================================================================
+  // Knowledge Structure State (Topics, Subtopics, Contents)
+  // ========================================================================
+
+  const [knowledgeStructure, setKnowledgeStructure] =
+    useState<KnowledgeStructureState>({
+      topics: [],
+      subtopics: [],
+      contents: [],
+      loading: false,
+      error: null,
+    });
+
+  const [knowledgeCategories, setKnowledgeCategories] = useState<
+    CategoryConfig[]
+  >([]);
+
+  const previousSubjectsRef = useRef<string[] | null>(null);
+
+  const areCategoriesSame = useCallback(
+    (prev: CategoryConfig[], current: CategoryConfig[]) => {
+      if (prev.length !== current.length) return false;
+
+      return current.every((category) => {
+        const prevCategory = prev.find((c) => c.key === category.key);
+        if (!prevCategory) return false;
+
+        const prevIds = (prevCategory.itens || []).map(
+          (item: { id: string }) => item.id
+        );
+        const currentIds = (category.itens || []).map(
+          (item: { id: string }) => item.id
+        );
+
+        if (prevIds.length !== currentIds.length) return false;
+        return currentIds.every((id) => prevIds.includes(id));
+      });
+    },
+    []
+  );
+
+  const mergeCategoriesWithSelection = useCallback(
+    (prev: CategoryConfig[], current: CategoryConfig[]) => {
+      return current.map((category) => {
+        const prevCategory = prev.find((c) => c.key === category.key);
+        if (!prevCategory) {
+          return category;
         }
 
-        setKnowledgeStructure((prev) => ({
-          ...prev,
-          loading: true,
-          error: null,
-        }));
+        const validSelectedIds = (prevCategory.selectedIds || []).filter(
+          (id: string) =>
+            category.itens?.some((item: { id: string }) => item.id === id)
+        );
 
-        try {
-          const response = await apiClient.post<KnowledgeApiResponse>(
-            '/knowledge/topics',
-            { subjectIds }
-          );
+        return {
+          ...category,
+          selectedIds: validSelectedIds,
+        };
+      });
+    },
+    []
+  );
 
-          const topics: KnowledgeItem[] = response.data.data.map((topic) => ({
-            id: topic.id,
-            name: topic.name,
-          }));
-
-          setKnowledgeStructure((prev) => ({
-            ...prev,
-            topics,
-            subtopics: [],
-            contents: [],
-            loading: false,
-            error: null,
-          }));
-        } catch (error) {
-          console.error('Erro ao carregar temas:', error);
-          setKnowledgeStructure((prev) => ({
-            ...prev,
-            topics: [],
-            subtopics: [],
-            contents: [],
-            loading: false,
-            error: 'Erro ao carregar temas',
-          }));
-        }
-      },
-      [apiClient]
-    );
-
-    /**
-     * Load subtopics for given topic IDs
-     */
-    const loadSubtopics = useCallback(
-      async (topicIds: string[], options: { forceApi?: boolean } = {}) => {
-        const { forceApi = false } = options;
-
-        if (topicIds.length === 0 && !forceApi) {
-          setKnowledgeStructure((prev) => ({
-            ...prev,
-            subtopics: [],
-            contents: [],
-            loading: false,
-            error: null,
-          }));
-          return;
-        }
-
-        setKnowledgeStructure((prev) => ({
-          ...prev,
-          loading: topicIds.length > 0,
-          error: null,
-        }));
-
-        try {
-          const response = await apiClient.post<KnowledgeApiResponse>(
-            '/knowledge/subtopics',
-            { topicIds }
-          );
-
-          const subtopicsMap = new Map<string, KnowledgeItem>();
-          for (const subtopic of response.data.data) {
-            if (!subtopicsMap.has(subtopic.id)) {
-              subtopicsMap.set(subtopic.id, {
-                id: subtopic.id,
-                name: subtopic.name,
-                topicId: topicIds[0],
-              });
-            }
-          }
-
-          const subtopics = Array.from(subtopicsMap.values());
-
-          setKnowledgeStructure((prev) => ({
-            ...prev,
-            subtopics,
-            contents: [],
-            loading: false,
-          }));
-        } catch (error) {
-          console.error('Erro ao carregar subtemas:', error);
-          setKnowledgeStructure((prev) => ({
-            ...prev,
-            subtopics: [],
-            contents: [],
-            loading: false,
-          }));
-        }
-      },
-      [apiClient]
-    );
-
-    /**
-     * Load contents for given subtopic IDs
-     */
-    const loadContents = useCallback(
-      async (subtopicIds: string[]) => {
-        if (subtopicIds.length === 0) {
-          setKnowledgeStructure((prev) => ({
-            ...prev,
-            contents: [],
-          }));
-          return;
-        }
-
-        setKnowledgeStructure((prev) => ({ ...prev, loading: true }));
-
-        try {
-          const response = await apiClient.post<KnowledgeApiResponse>(
-            '/knowledge/contents',
-            { subtopicIds }
-          );
-
-          const contentsMap = new Map<string, KnowledgeItem>();
-          for (const content of response.data.data) {
-            if (!contentsMap.has(content.id)) {
-              contentsMap.set(content.id, {
-                id: content.id,
-                name: content.name,
-                subtopicId: subtopicIds[0],
-              });
-            }
-          }
-
-          const contents = Array.from(contentsMap.values());
-
-          setKnowledgeStructure((prev) => ({
-            ...prev,
-            contents,
-            loading: false,
-          }));
-        } catch (error) {
-          console.error('Erro ao carregar conteúdos:', error);
-          setKnowledgeStructure((prev) => ({
-            ...prev,
-            contents: [],
-            loading: false,
-          }));
-        }
-      },
-      [apiClient]
-    );
-
-    /**
-     * Load topics when subjects change
-     */
-    useEffect(() => {
-      const previousSubjects = previousSubjectsRef.current;
-      const subjectsChanged =
-        !previousSubjects ||
-        previousSubjects.length !== selectedSubjects.length ||
-        selectedSubjects.some((id, index) => id !== previousSubjects[index]);
-
-      if (!subjectsChanged) {
-        return;
-      }
-
-      previousSubjectsRef.current = selectedSubjects;
-
-      if (selectedSubjects.length > 0) {
-        loadTopics(selectedSubjects);
-      } else {
+  /**
+   * Load topics for given subject IDs
+   */
+  const loadTopics = useCallback(
+    async (subjectIds: string[]) => {
+      if (subjectIds.length === 0) {
         setKnowledgeStructure({
           topics: [],
           subtopics: [],
@@ -635,215 +434,398 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
           error: null,
         });
         setKnowledgeCategories([]);
-      }
-    }, [selectedSubjects, loadTopics]);
-
-    /**
-     * Handle CheckboxGroup category changes
-     */
-    const handleCategoriesChange = useCallback(
-      (updatedCategories: CategoryConfig[]) => {
-        const isFirstChange = knowledgeCategories.length === 0;
-
-        const currentTemaCategory = knowledgeCategories.find(
-          (c) => c.key === 'tema'
-        );
-        const currentSubtemaCategory = knowledgeCategories.find(
-          (c) => c.key === 'subtema'
-        );
-        const currentSelectedTopicIds = currentTemaCategory?.selectedIds || [];
-        const currentSelectedSubtopicIds =
-          currentSubtemaCategory?.selectedIds || [];
-
-        const temaCategory = updatedCategories.find((c) => c.key === 'tema');
-        const selectedTopicIds = temaCategory?.selectedIds || [];
-
-        const subtemaCategory = updatedCategories.find(
-          (c) => c.key === 'subtema'
-        );
-        const selectedSubtopicIds = subtemaCategory?.selectedIds || [];
-
-        setKnowledgeCategories(updatedCategories);
-
-        const topicIdsChanged =
-          isFirstChange ||
-          currentSelectedTopicIds.length !== selectedTopicIds.length ||
-          currentSelectedTopicIds.some(
-            (id: string) => !selectedTopicIds.includes(id)
-          ) ||
-          selectedTopicIds.some(
-            (id: string) => !currentSelectedTopicIds.includes(id)
-          );
-
-        if (topicIdsChanged) {
-          loadSubtopics(selectedTopicIds, {
-            forceApi: selectedTopicIds.length === 0,
-          });
-        }
-
-        const subtopicIdsChanged =
-          isFirstChange ||
-          currentSelectedSubtopicIds.length !== selectedSubtopicIds.length ||
-          currentSelectedSubtopicIds.some(
-            (id: string) => !selectedSubtopicIds.includes(id)
-          ) ||
-          selectedSubtopicIds.some(
-            (id: string) => !currentSelectedSubtopicIds.includes(id)
-          );
-
-        if (subtopicIdsChanged) {
-          if (selectedSubtopicIds.length > 0) {
-            loadContents(selectedSubtopicIds);
-          } else {
-            loadContents([]);
-          }
-        }
-      },
-      [knowledgeCategories, loadSubtopics, loadContents]
-    );
-
-    /**
-     * Update knowledge categories when structure changes
-     */
-    useEffect(() => {
-      if (knowledgeStructure.topics.length === 0) {
-        setKnowledgeCategories((prev) => {
-          if (prev.length === 0) {
-            return prev;
-          }
-          return [];
-        });
         return;
       }
 
-      const categories: CategoryConfig[] = [
-        {
-          key: 'tema',
-          label: 'Tema',
-          dependsOn: [],
-          itens: knowledgeStructure.topics,
-          selectedIds: [],
-        },
-        {
-          key: 'subtema',
-          label: 'Subtema',
-          dependsOn: ['tema'],
-          itens: knowledgeStructure.subtopics,
-          filteredBy: [{ key: 'tema', internalField: 'topicId' }],
-          selectedIds: [],
-        },
-        {
-          key: 'assunto',
-          label: 'Assunto',
-          dependsOn: ['subtema'],
-          itens: knowledgeStructure.contents,
-          filteredBy: [{ key: 'subtema', internalField: 'subtopicId' }],
-          selectedIds: [],
-        },
-      ];
+      setKnowledgeStructure((prev) => ({
+        ...prev,
+        loading: true,
+        error: null,
+      }));
 
-      setKnowledgeCategories((prev) => {
-        if (areCategoriesSame(prev, categories)) {
-          return prev;
+      try {
+        const response = await apiClient.post<KnowledgeApiResponse>(
+          '/knowledge/topics',
+          { subjectIds }
+        );
+
+        const topics: KnowledgeItem[] = response.data.data.map((topic) => ({
+          id: topic.id,
+          name: topic.name,
+        }));
+
+        setKnowledgeStructure((prev) => ({
+          ...prev,
+          topics,
+          subtopics: [],
+          contents: [],
+          loading: false,
+          error: null,
+        }));
+      } catch (error) {
+        console.error('Erro ao carregar temas:', error);
+        setKnowledgeStructure((prev) => ({
+          ...prev,
+          topics: [],
+          subtopics: [],
+          contents: [],
+          loading: false,
+          error: 'Erro ao carregar temas',
+        }));
+      }
+    },
+    [apiClient]
+  );
+
+  /**
+   * Load subtopics for given topic IDs
+   */
+  const loadSubtopics = useCallback(
+    async (topicIds: string[], options: { forceApi?: boolean } = {}) => {
+      const { forceApi = false } = options;
+
+      if (topicIds.length === 0 && !forceApi) {
+        setKnowledgeStructure((prev) => ({
+          ...prev,
+          subtopics: [],
+          contents: [],
+          loading: false,
+          error: null,
+        }));
+        return;
+      }
+
+      setKnowledgeStructure((prev) => ({
+        ...prev,
+        loading: topicIds.length > 0,
+        error: null,
+      }));
+
+      try {
+        const response = await apiClient.post<KnowledgeApiResponse>(
+          '/knowledge/subtopics',
+          { topicIds }
+        );
+
+        const subtopicsMap = new Map<string, KnowledgeItem>();
+        for (const subtopic of response.data.data) {
+          if (!subtopicsMap.has(subtopic.id)) {
+            subtopicsMap.set(subtopic.id, {
+              id: subtopic.id,
+              name: subtopic.name,
+              topicId: topicIds[0],
+            });
+          }
         }
 
-        return mergeCategoriesWithSelection(prev, categories);
-      });
-    }, [
-      selectedSubjects,
-      knowledgeStructure.topics,
-      knowledgeStructure.subtopics,
-      knowledgeStructure.contents,
-    ]);
+        const subtopics = Array.from(subtopicsMap.values());
 
-    /**
-     * Get summary of selected knowledge items
-     */
-    const selectedKnowledgeSummary = useMemo(() => {
-      const temaCategory = knowledgeCategories.find((c) => c.key === 'tema');
-      const subtemaCategory = knowledgeCategories.find(
+        setKnowledgeStructure((prev) => ({
+          ...prev,
+          subtopics,
+          contents: [],
+          loading: false,
+        }));
+      } catch (error) {
+        console.error('Erro ao carregar subtemas:', error);
+        setKnowledgeStructure((prev) => ({
+          ...prev,
+          subtopics: [],
+          contents: [],
+          loading: false,
+        }));
+      }
+    },
+    [apiClient]
+  );
+
+  /**
+   * Load contents for given subtopic IDs
+   */
+  const loadContents = useCallback(
+    async (subtopicIds: string[]) => {
+      if (subtopicIds.length === 0) {
+        setKnowledgeStructure((prev) => ({
+          ...prev,
+          contents: [],
+        }));
+        return;
+      }
+
+      setKnowledgeStructure((prev) => ({ ...prev, loading: true }));
+
+      try {
+        const response = await apiClient.post<KnowledgeApiResponse>(
+          '/knowledge/contents',
+          { subtopicIds }
+        );
+
+        const contentsMap = new Map<string, KnowledgeItem>();
+        for (const content of response.data.data) {
+          if (!contentsMap.has(content.id)) {
+            contentsMap.set(content.id, {
+              id: content.id,
+              name: content.name,
+              subtopicId: subtopicIds[0],
+            });
+          }
+        }
+
+        const contents = Array.from(contentsMap.values());
+
+        setKnowledgeStructure((prev) => ({
+          ...prev,
+          contents,
+          loading: false,
+        }));
+      } catch (error) {
+        console.error('Erro ao carregar conteúdos:', error);
+        setKnowledgeStructure((prev) => ({
+          ...prev,
+          contents: [],
+          loading: false,
+        }));
+      }
+    },
+    [apiClient]
+  );
+
+  /**
+   * Load topics when subjects change
+   */
+  useEffect(() => {
+    const previousSubjects = previousSubjectsRef.current;
+    const subjectsChanged =
+      !previousSubjects ||
+      previousSubjects.length !== selectedSubjects.length ||
+      selectedSubjects.some((id, index) => id !== previousSubjects[index]);
+
+    if (!subjectsChanged) return;
+
+    previousSubjectsRef.current = selectedSubjects;
+
+    if (selectedSubjects.length > 0) {
+      loadTopics(selectedSubjects);
+      return;
+    }
+
+    setKnowledgeStructure({
+      topics: [],
+      subtopics: [],
+      contents: [],
+      loading: false,
+      error: null,
+    });
+    setKnowledgeCategories([]);
+  }, [selectedSubjects, loadTopics]);
+
+  /**
+   * Handle CheckboxGroup category changes
+   */
+  const handleCategoriesChange = useCallback(
+    (updatedCategories: CategoryConfig[]) => {
+      const isFirstChange = knowledgeCategories.length === 0;
+      const currentTemaCategory = knowledgeCategories.find(
+        (c) => c.key === 'tema'
+      );
+      const currentSubtemaCategory = knowledgeCategories.find(
         (c) => c.key === 'subtema'
       );
-      const assuntoCategory = knowledgeCategories.find(
-        (c) => c.key === 'assunto'
+      const currentSelectedTopicIds = currentTemaCategory?.selectedIds || [];
+      const currentSelectedSubtopicIds =
+        currentSubtemaCategory?.selectedIds || [];
+
+      const temaCategory = updatedCategories.find((c) => c.key === 'tema');
+      const selectedTopicIds = temaCategory?.selectedIds || [];
+
+      const subtemaCategory = updatedCategories.find(
+        (c) => c.key === 'subtema'
       );
+      const selectedSubtopicIds = subtemaCategory?.selectedIds || [];
 
-      const selectedTopics = (temaCategory?.selectedIds || [])
-        .map((id: string) => {
-          const topic = knowledgeStructure.topics.find((t) => t.id === id);
-          return topic ? topic.name : null;
-        })
-        .filter((name) => name !== null);
+      setKnowledgeCategories(updatedCategories);
 
-      const selectedSubtopics = (subtemaCategory?.selectedIds || [])
-        .map((id: string) => {
-          const subtopic = knowledgeStructure.subtopics.find(
-            (s) => s.id === id
-          );
-          return subtopic ? subtopic.name : null;
-        })
-        .filter((name) => name !== null);
+      const topicIdsChanged =
+        isFirstChange ||
+        currentSelectedTopicIds.length !== selectedTopicIds.length ||
+        currentSelectedTopicIds.some(
+          (id: string) => !selectedTopicIds.includes(id)
+        ) ||
+        selectedTopicIds.some(
+          (id: string) => !currentSelectedTopicIds.includes(id)
+        );
 
-      const selectedContents = (assuntoCategory?.selectedIds || [])
-        .map((id: string) => {
-          const content = knowledgeStructure.contents.find((c) => c.id === id);
-          return content ? content.name : null;
-        })
-        .filter((name) => name !== null);
+      if (topicIdsChanged) {
+        loadSubtopics(selectedTopicIds, {
+          forceApi: selectedTopicIds.length === 0,
+        });
+      }
 
-      return {
-        topics: selectedTopics,
-        subtopics: selectedSubtopics,
-        contents: selectedContents,
-      };
-    }, [knowledgeCategories, knowledgeStructure]);
+      const subtopicIdsChanged =
+        isFirstChange ||
+        currentSelectedSubtopicIds.length !== selectedSubtopicIds.length ||
+        currentSelectedSubtopicIds.some(
+          (id: string) => !selectedSubtopicIds.includes(id)
+        ) ||
+        selectedSubtopicIds.some(
+          (id: string) => !currentSelectedSubtopicIds.includes(id)
+        );
 
-    /**
-     * Check if summary should be enabled (single item scenarios)
-     */
-    const enableSummary = useMemo(() => {
-      return (
-        knowledgeStructure.topics.length === 1 ||
-        knowledgeStructure.subtopics.length === 1 ||
-        knowledgeStructure.contents.length === 1
-      );
-    }, [knowledgeStructure]);
+      if (subtopicIdsChanged) {
+        if (selectedSubtopicIds.length > 0) {
+          loadContents(selectedSubtopicIds);
+        } else {
+          loadContents([]);
+        }
+      }
+    },
+    [knowledgeCategories, loadSubtopics, loadContents]
+  );
 
-    // ========================================================================
-    // Return
-    // ========================================================================
+  /**
+   * Update knowledge categories when structure changes
+   */
+  useEffect(() => {
+    if (knowledgeStructure.topics.length === 0) {
+      setKnowledgeCategories((prev) => {
+        if (prev.length === 0) {
+          return prev;
+        }
+        return [];
+      });
+      return;
+    }
+
+    const categories: CategoryConfig[] = [
+      {
+        key: 'tema',
+        label: 'Tema',
+        dependsOn: [],
+        itens: knowledgeStructure.topics,
+        selectedIds: [],
+      },
+      {
+        key: 'subtema',
+        label: 'Subtema',
+        dependsOn: ['tema'],
+        itens: knowledgeStructure.subtopics,
+        filteredBy: [{ key: 'tema', internalField: 'topicId' }],
+        selectedIds: [],
+      },
+      {
+        key: 'assunto',
+        label: 'Assunto',
+        dependsOn: ['subtema'],
+        itens: knowledgeStructure.contents,
+        filteredBy: [{ key: 'subtema', internalField: 'subtopicId' }],
+        selectedIds: [],
+      },
+    ];
+
+    setKnowledgeCategories((prev) => {
+      if (areCategoriesSame(prev, categories)) {
+        return prev;
+      }
+
+      return mergeCategoriesWithSelection(prev, categories);
+    });
+  }, [
+    selectedSubjects,
+    knowledgeStructure.topics,
+    knowledgeStructure.subtopics,
+    knowledgeStructure.contents,
+  ]);
+
+  /**
+   * Get summary of selected knowledge items
+   */
+  const selectedKnowledgeSummary = useMemo(() => {
+    const temaCategory = knowledgeCategories.find((c) => c.key === 'tema');
+    const subtemaCategory = knowledgeCategories.find(
+      (c) => c.key === 'subtema'
+    );
+    const assuntoCategory = knowledgeCategories.find(
+      (c) => c.key === 'assunto'
+    );
+
+    const selectedTopics = mapSelectedNames(
+      temaCategory?.selectedIds || [],
+      knowledgeStructure.topics
+    );
+
+    const selectedSubtopics = mapSelectedNames(
+      subtemaCategory?.selectedIds || [],
+      knowledgeStructure.subtopics
+    );
+
+    const selectedContents = mapSelectedNames(
+      assuntoCategory?.selectedIds || [],
+      knowledgeStructure.contents
+    );
 
     return {
-      // Vestibular Banks
-      banks: banksState.banks,
-      bankYears: banksState.bankYears,
-      loadingBanks: banksState.loading,
-      banksError: banksState.error,
-      loadBanks,
-
-      // Knowledge Areas
-      knowledgeAreas: areasState.knowledgeAreas,
-      loadingSubjects: areasState.loading,
-      subjectsError: areasState.error,
-      loadKnowledgeAreas,
-
-      // Knowledge Structure
-      knowledgeStructure,
-      knowledgeCategories,
-      handleCategoriesChange,
-      selectedKnowledgeSummary,
-      enableSummary,
-      loadTopics,
-      loadSubtopics,
-      loadContents,
-
-      // Question Types
-      questionTypes: questionTypesState.questionTypes,
-      loadingQuestionTypes: questionTypesState.loading,
-      questionTypesError: questionTypesState.error,
-      loadQuestionTypes,
+      topics: selectedTopics,
+      subtopics: selectedSubtopics,
+      contents: selectedContents,
     };
+  }, [knowledgeCategories, knowledgeStructure]);
+
+  /**
+   * Check if summary should be enabled (single item scenarios)
+   */
+  const enableSummary = useMemo(() => {
+    return (
+      knowledgeStructure.topics.length === 1 ||
+      knowledgeStructure.subtopics.length === 1 ||
+      knowledgeStructure.contents.length === 1
+    );
+  }, [knowledgeStructure]);
+
+  // ========================================================================
+  // Return
+  // ========================================================================
+
+  return {
+    // Vestibular Banks
+    banks: banksState.banks,
+    bankYears: banksState.bankYears,
+    loadingBanks: banksState.loading,
+    banksError: banksState.error,
+    loadBanks,
+
+    // Knowledge Areas
+    knowledgeAreas: areasState.knowledgeAreas,
+    loadingSubjects: areasState.loading,
+    subjectsError: areasState.error,
+    loadKnowledgeAreas,
+
+    // Knowledge Structure
+    knowledgeStructure,
+    knowledgeCategories,
+    handleCategoriesChange,
+    selectedKnowledgeSummary,
+    enableSummary,
+    loadTopics,
+    loadSubtopics,
+    loadContents,
+
+    // Question Types
+    questionTypes: questionTypesState.questionTypes,
+    loadingQuestionTypes: questionTypesState.loading,
+    questionTypesError: questionTypesState.error,
+    loadQuestionTypes,
   };
+};
+
+/**
+ * Create an activity filters data hook with API client injection.
+ * @param apiClient - API client instance
+ */
+export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
+  return (
+    options: UseActivityFiltersDataOptions
+  ): UseActivityFiltersDataReturn =>
+    useActivityFiltersDataImpl(apiClient, options);
 };
 
 /**
