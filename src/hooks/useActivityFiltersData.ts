@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { BaseApiClient } from '../types/api';
 import type { CategoryConfig } from '../components/CheckBoxGroup/CheckBoxGroup';
 import type {
@@ -129,7 +129,10 @@ export interface UseActivityFiltersDataReturn {
   };
   enableSummary: boolean;
   loadTopics: (subjectIds: string[]) => Promise<void>;
-  loadSubtopics: (topicIds: string[]) => Promise<void>;
+  loadSubtopics: (
+    topicIds: string[],
+    options?: { forceApi?: boolean }
+  ) => Promise<void>;
   loadContents: (subtopicIds: string[]) => Promise<void>;
 
   // Question Types
@@ -389,6 +392,8 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
       CategoryConfig[]
     >([]);
 
+    const previousSubjectsRef = useRef<string[] | null>(null);
+
     /**
      * Load topics for given subject IDs
      */
@@ -450,17 +455,28 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
      * Load subtopics for given topic IDs
      */
     const loadSubtopics = useCallback(
-      async (topicIds: string[]) => {
-        if (topicIds.length === 0) {
+      async (
+        topicIds: string[],
+        options: { forceApi?: boolean } = {}
+      ) => {
+        const { forceApi = false } = options;
+
+        if (topicIds.length === 0 && !forceApi) {
           setKnowledgeStructure((prev) => ({
             ...prev,
             subtopics: [],
             contents: [],
+            loading: false,
+            error: null,
           }));
           return;
         }
 
-        setKnowledgeStructure((prev) => ({ ...prev, loading: true }));
+        setKnowledgeStructure((prev) => ({
+          ...prev,
+          loading: topicIds.length > 0,
+          error: null,
+        }));
 
         try {
           const response = await apiClient.post<KnowledgeApiResponse>(
@@ -555,6 +571,20 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
      * Load topics when subjects change
      */
     useEffect(() => {
+      const previousSubjects = previousSubjectsRef.current;
+      const subjectsChanged =
+        !previousSubjects ||
+        previousSubjects.length !== selectedSubjects.length ||
+        selectedSubjects.some(
+          (id, index) => id !== previousSubjects[index]
+        );
+
+      if (!subjectsChanged) {
+        return;
+      }
+
+      previousSubjectsRef.current = selectedSubjects;
+
       if (selectedSubjects.length > 0) {
         loadTopics(selectedSubjects);
       } else {
@@ -574,6 +604,8 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
      */
     const handleCategoriesChange = useCallback(
       (updatedCategories: CategoryConfig[]) => {
+        const isFirstChange = knowledgeCategories.length === 0;
+
         const currentTemaCategory = knowledgeCategories.find(
           (c) => c.key === 'tema'
         );
@@ -584,8 +616,6 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
         const currentSelectedSubtopicIds =
           currentSubtemaCategory?.selectedIds || [];
 
-        setKnowledgeCategories(updatedCategories);
-
         const temaCategory = updatedCategories.find((c) => c.key === 'tema');
         const selectedTopicIds = temaCategory?.selectedIds || [];
 
@@ -594,7 +624,10 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
         );
         const selectedSubtopicIds = subtemaCategory?.selectedIds || [];
 
+        setKnowledgeCategories(updatedCategories);
+
         const topicIdsChanged =
+          isFirstChange ||
           currentSelectedTopicIds.length !== selectedTopicIds.length ||
           currentSelectedTopicIds.some(
             (id: string) => !selectedTopicIds.includes(id)
@@ -604,14 +637,11 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
           );
 
         if (topicIdsChanged) {
-          if (selectedTopicIds.length > 0) {
-            loadSubtopics(selectedTopicIds);
-          } else {
-            loadSubtopics([]);
-          }
+          loadSubtopics(selectedTopicIds, { forceApi: selectedTopicIds.length === 0 });
         }
 
         const subtopicIdsChanged =
+          isFirstChange ||
           currentSelectedSubtopicIds.length !== selectedSubtopicIds.length ||
           currentSelectedSubtopicIds.some(
             (id: string) => !selectedSubtopicIds.includes(id)
@@ -635,11 +665,13 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
      * Update knowledge categories when structure changes
      */
     useEffect(() => {
-      if (
-        selectedSubjects.length === 0 ||
-        knowledgeStructure.topics.length === 0
-      ) {
-        setKnowledgeCategories([]);
+      if (knowledgeStructure.topics.length === 0) {
+        setKnowledgeCategories((prev) => {
+          if (prev.length === 0) {
+            return prev;
+          }
+          return [];
+        });
         return;
       }
 
@@ -670,30 +702,30 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
       ];
 
       setKnowledgeCategories((prev) => {
-        if (prev.length === 0) {
-          return categories;
+        const sameLength = prev.length === categories.length;
+        const sameItems =
+          sameLength &&
+          categories.every((category) => {
+            const prevCategory = prev.find((c) => c.key === category.key);
+            if (!prevCategory) return false;
+            const prevIds = (prevCategory.itens || []).map(
+              (item: { id: string }) => item.id
+            );
+            const currentIds = (category.itens || []).map(
+              (item: { id: string }) => item.id
+            );
+            if (prevIds.length !== currentIds.length) return false;
+            return currentIds.every((id) => prevIds.includes(id));
+          });
+
+        if (sameItems) {
+          return prev;
         }
 
         return categories.map((category) => {
           const prevCategory = prev.find((c) => c.key === category.key);
           if (!prevCategory) {
             return category;
-          }
-
-          const prevItemIds = new Set(
-            (prevCategory.itens || []).map((item: { id: string }) => item.id)
-          );
-          const currentItemIds = new Set(
-            (category.itens || []).map((item: { id: string }) => item.id)
-          );
-          const itemsChanged =
-            prevItemIds.size !== currentItemIds.size ||
-            Array.from(currentItemIds as Set<string>).some(
-              (id: string) => !prevItemIds.has(id)
-            );
-
-          if (!itemsChanged) {
-            return prevCategory;
           }
 
           const validSelectedIds = (prevCategory.selectedIds || []).filter(
