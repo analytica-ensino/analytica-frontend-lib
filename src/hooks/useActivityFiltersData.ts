@@ -394,6 +394,50 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
 
     const previousSubjectsRef = useRef<string[] | null>(null);
 
+    const areCategoriesSame = useCallback(
+      (prev: CategoryConfig[], current: CategoryConfig[]) => {
+        if (prev.length !== current.length) return false;
+
+        return current.every((category) => {
+          const prevCategory = prev.find((c) => c.key === category.key);
+          if (!prevCategory) return false;
+
+          const prevIds = (prevCategory.itens || []).map(
+            (item: { id: string }) => item.id
+          );
+          const currentIds = (category.itens || []).map(
+            (item: { id: string }) => item.id
+          );
+
+          if (prevIds.length !== currentIds.length) return false;
+          return currentIds.every((id) => prevIds.includes(id));
+        });
+      },
+      []
+    );
+
+    const mergeCategoriesWithSelection = useCallback(
+      (prev: CategoryConfig[], current: CategoryConfig[]) => {
+        return current.map((category) => {
+          const prevCategory = prev.find((c) => c.key === category.key);
+          if (!prevCategory) {
+            return category;
+          }
+
+          const validSelectedIds = (prevCategory.selectedIds || []).filter(
+            (id: string) =>
+              category.itens?.some((item: { id: string }) => item.id === id)
+          );
+
+          return {
+            ...category,
+            selectedIds: validSelectedIds,
+          };
+        });
+      },
+      []
+    );
+
     /**
      * Load topics for given subject IDs
      */
@@ -699,42 +743,11 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
       ];
 
       setKnowledgeCategories((prev) => {
-        const sameLength = prev.length === categories.length;
-        const sameItems =
-          sameLength &&
-          categories.every((category) => {
-            const prevCategory = prev.find((c) => c.key === category.key);
-            if (!prevCategory) return false;
-            const prevIds = (prevCategory.itens || []).map(
-              (item: { id: string }) => item.id
-            );
-            const currentIds = (category.itens || []).map(
-              (item: { id: string }) => item.id
-            );
-            if (prevIds.length !== currentIds.length) return false;
-            return currentIds.every((id) => prevIds.includes(id));
-          });
-
-        if (sameItems) {
+        if (areCategoriesSame(prev, categories)) {
           return prev;
         }
 
-        return categories.map((category) => {
-          const prevCategory = prev.find((c) => c.key === category.key);
-          if (!prevCategory) {
-            return category;
-          }
-
-          const validSelectedIds = (prevCategory.selectedIds || []).filter(
-            (id: string) =>
-              category.itens?.some((item: { id: string }) => item.id === id)
-          );
-
-          return {
-            ...category,
-            selectedIds: validSelectedIds,
-          };
-        });
+        return mergeCategoriesWithSelection(prev, categories);
       });
     }, [
       selectedSubjects,
