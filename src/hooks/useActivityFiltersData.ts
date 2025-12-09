@@ -169,6 +169,50 @@ const mapQuestionTypeToEnum = (type: string): QUESTION_TYPE | null => {
 // Helpers
 // ============================================================================
 
+const areCategoriesSame = (
+  prev: CategoryConfig[],
+  current: CategoryConfig[]
+): boolean => {
+  if (prev.length !== current.length) return false;
+
+  return current.every((category) => {
+    const prevCategory = prev.find((c) => c.key === category.key);
+    if (!prevCategory) return false;
+
+    const prevIds = (prevCategory.itens || []).map(
+      (item: { id: string }) => item.id
+    );
+    const currentIds = (category.itens || []).map(
+      (item: { id: string }) => item.id
+    );
+
+    if (prevIds.length !== currentIds.length) return false;
+    return currentIds.every((id) => prevIds.includes(id));
+  });
+};
+
+const mergeCategoriesWithSelection = (
+  prev: CategoryConfig[],
+  current: CategoryConfig[]
+): CategoryConfig[] => {
+  return current.map((category) => {
+    const prevCategory = prev.find((c) => c.key === category.key);
+    if (!prevCategory) {
+      return category;
+    }
+
+    const validSelectedIds = (prevCategory.selectedIds || []).filter(
+      (id: string) =>
+        category.itens?.some((item: { id: string }) => item.id === id)
+    );
+
+    return {
+      ...category,
+      selectedIds: validSelectedIds,
+    };
+  });
+};
+
 const mapSelectedNames = (ids: string[], items: KnowledgeItem[]): string[] => {
   return ids
     .map((id: string) => {
@@ -375,50 +419,6 @@ const useActivityFiltersDataImpl = (
   >([]);
 
   const previousSubjectsRef = useRef<string[] | null>(null);
-
-  const areCategoriesSame = useCallback(
-    (prev: CategoryConfig[], current: CategoryConfig[]) => {
-      if (prev.length !== current.length) return false;
-
-      return current.every((category) => {
-        const prevCategory = prev.find((c) => c.key === category.key);
-        if (!prevCategory) return false;
-
-        const prevIds = (prevCategory.itens || []).map(
-          (item: { id: string }) => item.id
-        );
-        const currentIds = (category.itens || []).map(
-          (item: { id: string }) => item.id
-        );
-
-        if (prevIds.length !== currentIds.length) return false;
-        return currentIds.every((id) => prevIds.includes(id));
-      });
-    },
-    []
-  );
-
-  const mergeCategoriesWithSelection = useCallback(
-    (prev: CategoryConfig[], current: CategoryConfig[]) => {
-      return current.map((category) => {
-        const prevCategory = prev.find((c) => c.key === category.key);
-        if (!prevCategory) {
-          return category;
-        }
-
-        const validSelectedIds = (prevCategory.selectedIds || []).filter(
-          (id: string) =>
-            category.itens?.some((item: { id: string }) => item.id === id)
-        );
-
-        return {
-          ...category,
-          selectedIds: validSelectedIds,
-        };
-      });
-    },
-    []
-  );
 
   /**
    * Load topics for given subject IDs
@@ -722,13 +722,11 @@ const useActivityFiltersDataImpl = (
       },
     ];
 
-    setKnowledgeCategories((prev) => {
-      if (areCategoriesSame(prev, categories)) {
-        return prev;
-      }
-
-      return mergeCategoriesWithSelection(prev, categories);
-    });
+    setKnowledgeCategories((prev) =>
+      areCategoriesSame(prev, categories)
+        ? prev
+        : mergeCategoriesWithSelection(prev, categories)
+    );
   }, [
     selectedSubjects,
     knowledgeStructure.topics,
