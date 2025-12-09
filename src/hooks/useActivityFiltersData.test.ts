@@ -143,8 +143,7 @@ describe('useActivityFiltersData', () => {
     });
 
     it('should set loading state while fetching banks', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let resolvePromise: (value: any) => void;
+      let resolvePromise: (value: unknown) => void;
       const promise = new Promise((resolve) => {
         resolvePromise = resolve;
       });
@@ -287,8 +286,7 @@ describe('useActivityFiltersData', () => {
     });
 
     it('should set loading state while fetching knowledge areas', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let resolvePromise: (value: any) => void;
+      let resolvePromise: (value: unknown) => void;
       const promise = new Promise((resolve) => {
         resolvePromise = resolve;
       });

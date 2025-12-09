@@ -760,7 +760,7 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
           const topic = knowledgeStructure.topics.find((t) => t.id === id);
           return topic ? topic.name : null;
         })
-        .filter((name: string | null) => name !== null) as string[];
+        .filter((name) => name !== null);
 
       const selectedSubtopics = (subtemaCategory?.selectedIds || [])
         .map((id: string) => {
@@ -769,14 +769,14 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
           );
           return subtopic ? subtopic.name : null;
         })
-        .filter((name: string | null) => name !== null) as string[];
+        .filter((name) => name !== null);
 
       const selectedContents = (assuntoCategory?.selectedIds || [])
         .map((id: string) => {
           const content = knowledgeStructure.contents.find((c) => c.id === id);
           return content ? content.name : null;
         })
-        .filter((name: string | null) => name !== null) as string[];
+        .filter((name) => name !== null);
 
       return {
         topics: selectedTopics,
