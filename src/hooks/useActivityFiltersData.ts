@@ -522,6 +522,7 @@ const useActivityFiltersDataImpl = (
           subtopics,
           contents: [],
           loading: false,
+          error: null,
         }));
       } catch (error) {
         console.error('Erro ao carregar subtemas:', error);
@@ -546,11 +547,17 @@ const useActivityFiltersDataImpl = (
         setKnowledgeStructure((prev) => ({
           ...prev,
           contents: [],
+          loading: false,
+          error: null,
         }));
         return;
       }
 
-      setKnowledgeStructure((prev) => ({ ...prev, loading: true }));
+      setKnowledgeStructure((prev) => ({
+        ...prev,
+        loading: true,
+        error: null,
+      }));
 
       try {
         const response = await apiClient.post<KnowledgeApiResponse>(
@@ -571,6 +578,7 @@ const useActivityFiltersDataImpl = (
           ...prev,
           contents,
           loading: false,
+          error: null,
         }));
       } catch (error) {
         console.error('Erro ao carregar conteúdos:', error);
