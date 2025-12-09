@@ -72,17 +72,6 @@ export interface QuestionsFilterBody {
 }
 
 /**
- * Questions list response interface
- */
-export interface QuestionsListResponse {
-  message: string;
-  data: {
-    questions: Question[];
-    pagination: Pagination;
-  };
-}
-
-/**
  * Option interface for questions
  */
 export interface QuestionOptionActivity {
