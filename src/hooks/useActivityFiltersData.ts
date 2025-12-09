@@ -455,10 +455,7 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
      * Load subtopics for given topic IDs
      */
     const loadSubtopics = useCallback(
-      async (
-        topicIds: string[],
-        options: { forceApi?: boolean } = {}
-      ) => {
+      async (topicIds: string[], options: { forceApi?: boolean } = {}) => {
         const { forceApi = false } = options;
 
         if (topicIds.length === 0 && !forceApi) {
@@ -575,9 +572,7 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
       const subjectsChanged =
         !previousSubjects ||
         previousSubjects.length !== selectedSubjects.length ||
-        selectedSubjects.some(
-          (id, index) => id !== previousSubjects[index]
-        );
+        selectedSubjects.some((id, index) => id !== previousSubjects[index]);
 
       if (!subjectsChanged) {
         return;
@@ -637,7 +632,9 @@ export const createUseActivityFiltersData = (apiClient: BaseApiClient) => {
           );
 
         if (topicIdsChanged) {
-          loadSubtopics(selectedTopicIds, { forceApi: selectedTopicIds.length === 0 });
+          loadSubtopics(selectedTopicIds, {
+            forceApi: selectedTopicIds.length === 0,
+          });
         }
 
         const subtopicIdsChanged =
