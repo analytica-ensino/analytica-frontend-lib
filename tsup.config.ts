@@ -73,6 +73,7 @@ export default defineConfig({
       'src/components/BreadcrumbMenu/useUrlParams.ts',
     'BreadcrumbMenu/breadcrumbStore/index':
       'src/components/BreadcrumbMenu/breadcrumbStore.ts',
+    'hooks/useQuestionsList/index': 'src/hooks/useQuestionsList.ts',
     // Individual Auth components
     'ThemeToggle/index': 'src/components/ThemeToggle/ThemeToggle.tsx',
     'Auth/AuthProvider/index': 'src/components/Auth/Auth.tsx',
