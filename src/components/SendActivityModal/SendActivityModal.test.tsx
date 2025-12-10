@@ -509,36 +509,58 @@ describe('SendActivityModal', () => {
       ).toBeInTheDocument();
     });
 
-    it('should update start time when changed', () => {
+    it('should update start time when changed via dropdown', async () => {
+      // Open the start datetime dropdown first
+      const startDateInput = screen.getByTestId('start-datetime-input');
+      fireEvent.click(startDateInput);
+
+      // Wait for dropdown to open and time input to be visible
+      await waitFor(() => {
+        expect(screen.getByTestId('start-time-input')).toBeInTheDocument();
+      });
+
       const startTimeInput = screen.getByTestId('start-time-input');
       fireEvent.change(startTimeInput, { target: { value: '10:30' } });
 
       expect(startTimeInput).toHaveValue('10:30');
     });
 
-    it('should update final time when changed', () => {
+    it('should update final time when changed via dropdown', async () => {
+      // Open the final datetime dropdown first
+      const finalDateInput = screen.getByTestId('final-datetime-input');
+      fireEvent.click(finalDateInput);
+
+      // Wait for dropdown to open and time input to be visible
+      await waitFor(() => {
+        expect(screen.getByTestId('final-time-input')).toBeInTheDocument();
+      });
+
       const finalTimeInput = screen.getByTestId('final-time-input');
       fireEvent.change(finalTimeInput, { target: { value: '18:45' } });
 
       expect(finalTimeInput).toHaveValue('18:45');
     });
 
-    it('should update start date via native input', () => {
-      const startDateInput = screen.getByTestId('start-date-input');
-      fireEvent.change(startDateInput, { target: { value: '2025-01-20' } });
+    it('should update start datetime via native input', () => {
+      const startDateInput = screen.getByTestId('start-datetime-input');
+      fireEvent.change(startDateInput, {
+        target: { value: '2025-01-20T10:30' },
+      });
 
-      expect(startDateInput).toHaveValue('2025-01-20');
+      expect(startDateInput).toHaveValue('2025-01-20T10:30');
     });
 
-    it('should update final date via native input', () => {
-      const finalDateInput = screen.getByTestId('final-date-input');
-      fireEvent.change(finalDateInput, { target: { value: '2025-01-25' } });
+    it('should update final datetime via native input', () => {
+      const finalDateInput = screen.getByTestId('final-datetime-input');
+      fireEvent.change(finalDateInput, {
+        target: { value: '2025-01-25T18:00' },
+      });
 
-      expect(finalDateInput).toHaveValue('2025-01-25');
+      expect(finalDateInput).toHaveValue('2025-01-25T18:00');
     });
 
     it('should open start date calendar dropdown when clicking input', async () => {
-      const startDateInput = screen.getByTestId('start-date-input');
+      const startDateInput = screen.getByTestId('start-datetime-input');
       fireEvent.click(startDateInput);
 
       // Wait for calendar to render
@@ -550,7 +572,7 @@ describe('SendActivityModal', () => {
     });
 
     it('should open final date calendar dropdown when clicking input', async () => {
-      const finalDateInput = screen.getByTestId('final-date-input');
+      const finalDateInput = screen.getByTestId('final-datetime-input');
       fireEvent.click(finalDateInput);
 
       // Wait for calendar to render
@@ -626,12 +648,16 @@ describe('SendActivityModal', () => {
       fireEvent.click(screen.getByText('Todos os alunos'));
       fireEvent.click(screen.getByText('Próximo'));
 
-      // Fill step 3 - select dates using native date/time inputs
-      const startDateInput = screen.getByTestId('start-date-input');
-      const finalDateInput = screen.getByTestId('final-date-input');
+      // Fill step 3 - select dates using datetime-local inputs
+      const startDateInput = screen.getByTestId('start-datetime-input');
+      const finalDateInput = screen.getByTestId('final-datetime-input');
 
-      fireEvent.change(startDateInput, { target: { value: '2025-01-20' } });
-      fireEvent.change(finalDateInput, { target: { value: '2025-01-25' } });
+      fireEvent.change(startDateInput, {
+        target: { value: '2025-01-20T00:00' },
+      });
+      fireEvent.change(finalDateInput, {
+        target: { value: '2025-01-25T23:59' },
+      });
 
       // Submit
       fireEvent.click(

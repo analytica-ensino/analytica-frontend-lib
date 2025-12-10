@@ -121,17 +121,25 @@ const SendActivityModal = ({
   );
 
   /**
-   * Handle start date change
+   * Handle start datetime change (from datetime-local input)
    */
   const handleStartDateChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
-      store.setFormData({ startDate: e.target.value });
+      const value = e.target.value;
+      if (value?.includes('T')) {
+        const [date, time] = value.split('T');
+        store.setFormData({ startDate: date, startTime: time });
+      } else if (value) {
+        store.setFormData({ startDate: value });
+      } else {
+        store.setFormData({ startDate: '', startTime: '00:00' });
+      }
     },
     [store]
   );
 
   /**
-   * Handle start time change
+   * Handle start time change (from time input inside dropdown)
    */
   const handleStartTimeChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -141,17 +149,25 @@ const SendActivityModal = ({
   );
 
   /**
-   * Handle final date change
+   * Handle final datetime change (from datetime-local input)
    */
   const handleFinalDateChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
-      store.setFormData({ finalDate: e.target.value });
+      const value = e.target.value;
+      if (value?.includes('T')) {
+        const [date, time] = value.split('T');
+        store.setFormData({ finalDate: date, finalTime: time });
+      } else if (value) {
+        store.setFormData({ finalDate: value });
+      } else {
+        store.setFormData({ finalDate: '', finalTime: '23:59' });
+      }
     },
     [store]
   );
 
   /**
-   * Handle final time change
+   * Handle final time change (from time input inside dropdown)
    */
   const handleFinalTimeChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -704,22 +720,28 @@ const SendActivityModal = ({
    */
   const renderDeadlineStep = () => (
     <div className="flex flex-col gap-4 sm:gap-6">
-      {/* Start Date and Time */}
+      {/* Date/Time Row - Side by Side */}
       <div className="grid grid-cols-2 gap-2">
+        {/* Start DateTime */}
         <DropdownMenu
           open={isStartCalendarOpen}
           onOpenChange={setIsStartCalendarOpen}
         >
-          <DropdownMenuTrigger>
+          <DropdownMenuTrigger className="w-full">
             <Input
               label="Iniciar em*"
-              type="date"
-              value={store.formData.startDate || ''}
+              type="datetime-local"
+              placeholder="00/00/0000"
+              value={
+                store.formData.startDate
+                  ? `${store.formData.startDate}T${store.formData.startTime || '00:00'}`
+                  : ''
+              }
               onChange={handleStartDateChange}
               variant="rounded"
               errorMessage={store.errors.startDate}
-              data-testid="start-date-input"
-              iconRight={<CalendarBlankIcon size={20} />}
+              data-testid="start-datetime-input"
+              iconRight={<CalendarBlankIcon size={14} />}
               className="[&::-webkit-calendar-picker-indicator]:hidden"
             />
           </DropdownMenuTrigger>
@@ -730,35 +752,39 @@ const SendActivityModal = ({
               onDateSelect={handleStartDateSelect}
               showActivities={false}
             />
+            <div className="p-3 border-t border-border-200">
+              <Input
+                label="Hora"
+                type="time"
+                value={store.formData.startTime || '00:00'}
+                onChange={handleStartTimeChange}
+                variant="rounded"
+                data-testid="start-time-input"
+              />
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Input
-          label="Hora*"
-          type="time"
-          value={store.formData.startTime || '00:00'}
-          onChange={handleStartTimeChange}
-          variant="rounded"
-          data-testid="start-time-input"
-          className="[&::-webkit-calendar-picker-indicator]:hidden"
-        />
-      </div>
 
-      {/* Final Date and Time */}
-      <div className="grid grid-cols-2 gap-2">
+        {/* Final DateTime */}
         <DropdownMenu
           open={isFinalCalendarOpen}
           onOpenChange={setIsFinalCalendarOpen}
         >
-          <DropdownMenuTrigger>
+          <DropdownMenuTrigger className="w-full">
             <Input
               label="Finalizar até*"
-              type="date"
-              value={store.formData.finalDate || ''}
+              type="datetime-local"
+              placeholder="00/00/0000"
+              value={
+                store.formData.finalDate
+                  ? `${store.formData.finalDate}T${store.formData.finalTime || '23:59'}`
+                  : ''
+              }
               onChange={handleFinalDateChange}
               variant="rounded"
               errorMessage={store.errors.finalDate}
-              data-testid="final-date-input"
-              iconRight={<CalendarBlankIcon size={20} />}
+              data-testid="final-datetime-input"
+              iconRight={<CalendarBlankIcon size={14} />}
               className="[&::-webkit-calendar-picker-indicator]:hidden"
             />
           </DropdownMenuTrigger>
@@ -769,17 +795,18 @@ const SendActivityModal = ({
               onDateSelect={handleFinalDateSelect}
               showActivities={false}
             />
+            <div className="p-3 border-t border-border-200">
+              <Input
+                label="Hora"
+                type="time"
+                value={store.formData.finalTime || '23:59'}
+                onChange={handleFinalTimeChange}
+                variant="rounded"
+                data-testid="final-time-input"
+              />
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Input
-          label="Hora*"
-          type="time"
-          value={store.formData.finalTime || '23:59'}
-          onChange={handleFinalTimeChange}
-          variant="rounded"
-          data-testid="final-time-input"
-          className="[&::-webkit-calendar-picker-indicator]:hidden"
-        />
       </div>
 
       {/* Retry Option */}
@@ -897,7 +924,7 @@ const SendActivityModal = ({
       title="Enviar atividade"
       size="md"
       footer={renderFooter()}
-      contentClassName="flex flex-col gap-4 sm:gap-6 max-h-[70vh] overflow-y-auto"
+      contentClassName="flex flex-col gap-6 sm:gap-8 max-h-[70vh] overflow-y-auto"
     >
       {/* Stepper */}
       <Stepper
