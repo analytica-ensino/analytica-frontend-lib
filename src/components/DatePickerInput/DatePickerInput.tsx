@@ -106,6 +106,10 @@ const DatePickerInput = ({
       setInternalDate(value);
       setSelectedHour(value.getHours().toString().padStart(2, '0'));
       setSelectedMinute(value.getMinutes().toString().padStart(2, '0'));
+    } else {
+      setInternalDate(undefined);
+      setSelectedHour('00');
+      setSelectedMinute('00');
     }
   }, [value]);
 

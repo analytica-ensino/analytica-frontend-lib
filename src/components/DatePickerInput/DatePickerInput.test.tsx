@@ -580,5 +580,44 @@ describe('DatePickerInput', () => {
         screen.queryByTestId('date-picker-input-confirm-button')
       ).not.toBeInTheDocument();
     });
+
+    it('should reset internal state when value is cleared', () => {
+      const { rerender } = render(
+        <DatePickerInput value={new Date(2025, 0, 15, 14, 30)} showTime />
+      );
+
+      // Open calendar and verify initial state
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      const hourInput = screen.getByTestId<HTMLInputElement>(
+        'date-picker-input-hour-input'
+      );
+      const minuteInput = screen.getByTestId<HTMLInputElement>(
+        'date-picker-input-minute-input'
+      );
+
+      expect(hourInput.value).toBe('14');
+      expect(minuteInput.value).toBe('30');
+
+      // Close calendar
+      fireEvent.click(button);
+
+      // Clear value (simulate controlled component reset)
+      rerender(<DatePickerInput value={undefined} showTime />);
+
+      // Open calendar again and verify state was reset
+      fireEvent.click(screen.getByRole('button'));
+
+      const hourInput2 = screen.getByTestId<HTMLInputElement>(
+        'date-picker-input-hour-input'
+      );
+      const minuteInput2 = screen.getByTestId<HTMLInputElement>(
+        'date-picker-input-minute-input'
+      );
+
+      expect(hourInput2.value).toBe('00');
+      expect(minuteInput2.value).toBe('00');
+    });
   });
 });
