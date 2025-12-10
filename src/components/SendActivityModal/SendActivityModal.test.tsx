@@ -105,6 +105,10 @@ describe('SendActivityModal', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2025-01-15'));
+    // Store reset is required here because:
+    // 1. Zustand store is a global singleton that persists between tests
+    // 2. Component's useEffect reset only triggers when isOpen changes to false
+    // 3. Between tests, components are unmounted without isOpen transition
     const store = useSendActivityModalStore.getState();
     store.reset();
   });
