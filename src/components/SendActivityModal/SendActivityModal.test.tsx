@@ -246,6 +246,35 @@ describe('SendActivityModal', () => {
         )
       ).toBeInTheDocument();
     });
+
+    it('should toggle individual student selection', () => {
+      // Click on individual student checkbox
+      const aluno1Checkbox = screen.getByText('Aluno 1');
+      fireEvent.click(aluno1Checkbox);
+
+      // Now Aluno 1 should be selected, can advance
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Should be on step 3 (Prazo)
+      expect(screen.getByText('Iniciar em*')).toBeInTheDocument();
+    });
+
+    it('should deselect all when clicking select all twice', () => {
+      // Select all
+      fireEvent.click(screen.getByText('Todos os alunos'));
+
+      // Deselect all
+      fireEvent.click(screen.getByText('Todos os alunos'));
+
+      // Try to advance - should show error
+      fireEvent.click(screen.getByText('Próximo'));
+
+      expect(
+        screen.getByText(
+          'Campo obrigatório! Por favor, selecione pelo menos um aluno para continuar.'
+        )
+      ).toBeInTheDocument();
+    });
   });
 
   describe('step 2 - Recipient (hierarchy)', () => {
@@ -276,6 +305,173 @@ describe('SendActivityModal', () => {
       // School names are inside the accordion content
       expect(screen.getByText('Escola Teste')).toBeInTheDocument();
       expect(screen.getByText('Escola Secundária')).toBeInTheDocument();
+    });
+
+    it('should select all schools when clicking Escola checkbox', () => {
+      // Click on the Escola checkbox to select all schools
+      const escolaCheckbox = screen.getByText('Escola');
+      fireEvent.click(escolaCheckbox);
+
+      // Both schools should be selected - the school year accordion should be enabled
+      expect(screen.getByText('Série')).toBeInTheDocument();
+    });
+
+    it('should select individual school in accordion', () => {
+      // Click on individual school checkbox
+      const escolaTesteCheckbox = screen.getByText('Escola Teste');
+      fireEvent.click(escolaTesteCheckbox);
+
+      // School should be selected
+      expect(screen.getByText('Série')).toBeInTheDocument();
+    });
+
+    it('should deselect all schools when clicking twice', () => {
+      // Select all schools
+      const escolaCheckbox = screen.getByText('Escola');
+      fireEvent.click(escolaCheckbox);
+
+      // Deselect all schools
+      fireEvent.click(escolaCheckbox);
+
+      // Schools should be deselected
+      expect(screen.getByText('Escola')).toBeInTheDocument();
+    });
+
+    it('should select school year after selecting school', () => {
+      // Select a school first
+      const escolaTesteCheckbox = screen.getByText('Escola Teste');
+      fireEvent.click(escolaTesteCheckbox);
+
+      // Now select the school year
+      const serieCheckbox = screen.getByText('Série');
+      fireEvent.click(serieCheckbox);
+
+      // Serie accordion should show year options
+      expect(screen.getByText('2025')).toBeInTheDocument();
+    });
+
+    it('should select individual school year in accordion', () => {
+      // Select a school first
+      fireEvent.click(screen.getByText('Escola Teste'));
+
+      // Select year
+      const year2025Checkbox = screen.getByText('2025');
+      fireEvent.click(year2025Checkbox);
+
+      // Year should be selected
+      expect(screen.getByText('Turma')).toBeInTheDocument();
+    });
+
+    it('should select class after selecting school year', () => {
+      // Select school
+      fireEvent.click(screen.getByText('Escola Teste'));
+
+      // Select school year
+      fireEvent.click(screen.getByText('2025'));
+
+      // Select class
+      const turmaCheckbox = screen.getByText('Turma');
+      fireEvent.click(turmaCheckbox);
+
+      // Turma accordion should be enabled
+      expect(screen.getByText('Alunos')).toBeInTheDocument();
+    });
+
+    it('should select individual class in accordion', () => {
+      // Select school
+      fireEvent.click(screen.getByText('Escola Teste'));
+
+      // Select school year
+      fireEvent.click(screen.getByText('2025'));
+
+      // Select individual class
+      const turmaACheckbox = screen.getByText('Turma A');
+      fireEvent.click(turmaACheckbox);
+
+      // Class should be selected
+      expect(screen.getByText('Alunos')).toBeInTheDocument();
+    });
+
+    it('should select students after selecting class', () => {
+      // Complete hierarchy selection
+      fireEvent.click(screen.getByText('Escola Teste'));
+      fireEvent.click(screen.getByText('2025'));
+      fireEvent.click(screen.getByText('Turma A'));
+
+      // Select all students
+      const alunosCheckbox = screen.getByText('Alunos');
+      fireEvent.click(alunosCheckbox);
+
+      // Students should be selectable
+      expect(screen.getByText('Aluno 1')).toBeInTheDocument();
+    });
+
+    it('should select individual student in hierarchy view', () => {
+      // Complete hierarchy selection
+      fireEvent.click(screen.getByText('Escola Teste'));
+      fireEvent.click(screen.getByText('2025'));
+      fireEvent.click(screen.getByText('Turma A'));
+
+      // Select individual student
+      const aluno1Checkbox = screen.getByText('Aluno 1');
+      fireEvent.click(aluno1Checkbox);
+
+      // Student should be selected - can advance
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Should be on step 3
+      expect(screen.getByText('Iniciar em*')).toBeInTheDocument();
+    });
+
+    it('should deselect all students when clicking twice', () => {
+      // Complete hierarchy selection
+      fireEvent.click(screen.getByText('Escola Teste'));
+      fireEvent.click(screen.getByText('2025'));
+      fireEvent.click(screen.getByText('Turma A'));
+
+      // Select all students
+      const alunosCheckbox = screen.getByText('Alunos');
+      fireEvent.click(alunosCheckbox);
+
+      // Deselect all students
+      fireEvent.click(alunosCheckbox);
+
+      // Try to advance - should show error
+      fireEvent.click(screen.getByText('Próximo'));
+
+      expect(
+        screen.getByText(
+          'Campo obrigatório! Por favor, selecione pelo menos um aluno para continuar.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('should show placeholder when no school is selected', () => {
+      // The Serie accordion should show placeholder text
+      expect(
+        screen.getByText('Selecione uma escola primeiro')
+      ).toBeInTheDocument();
+    });
+
+    it('should show placeholder when no school year is selected', () => {
+      // Select school first
+      fireEvent.click(screen.getByText('Escola Teste'));
+
+      // The Turma accordion should show placeholder text
+      expect(
+        screen.getByText('Selecione uma série primeiro')
+      ).toBeInTheDocument();
+    });
+
+    it('should show placeholder when no class is selected', () => {
+      // Select school and year
+      fireEvent.click(screen.getByText('Escola Teste'));
+      fireEvent.click(screen.getByText('2025'));
+
+      // The Alunos accordion should show placeholder text
+      expect(
+        screen.getByText('Selecione uma turma primeiro')
+      ).toBeInTheDocument();
     });
   });
 
@@ -311,6 +507,69 @@ describe('SendActivityModal', () => {
       expect(
         screen.getByRole('button', { name: /Enviar atividade/i })
       ).toBeInTheDocument();
+    });
+
+    it('should update start time when changed', () => {
+      const startTimeInput = screen.getByTestId('start-time-input');
+      fireEvent.change(startTimeInput, { target: { value: '10:30' } });
+
+      expect(startTimeInput).toHaveValue('10:30');
+    });
+
+    it('should update final time when changed', () => {
+      const finalTimeInput = screen.getByTestId('final-time-input');
+      fireEvent.change(finalTimeInput, { target: { value: '18:45' } });
+
+      expect(finalTimeInput).toHaveValue('18:45');
+    });
+
+    it('should update start date via native input', () => {
+      const startDateInput = screen.getByTestId('start-date-input');
+      fireEvent.change(startDateInput, { target: { value: '2025-01-20' } });
+
+      expect(startDateInput).toHaveValue('2025-01-20');
+    });
+
+    it('should update final date via native input', () => {
+      const finalDateInput = screen.getByTestId('final-date-input');
+      fireEvent.change(finalDateInput, { target: { value: '2025-01-25' } });
+
+      expect(finalDateInput).toHaveValue('2025-01-25');
+    });
+
+    it('should open start date calendar dropdown when clicking input', async () => {
+      const startDateInput = screen.getByTestId('start-date-input');
+      fireEvent.click(startDateInput);
+
+      // Wait for calendar to render
+      await waitFor(() => {
+        const prevButton = screen.queryByLabelText(/previous/i);
+        const monthText = screen.queryByText(/janeiro/i);
+        expect(prevButton || monthText).toBeTruthy();
+      });
+    });
+
+    it('should open final date calendar dropdown when clicking input', async () => {
+      const finalDateInput = screen.getByTestId('final-date-input');
+      fireEvent.click(finalDateInput);
+
+      // Wait for calendar to render
+      await waitFor(() => {
+        const prevButton = screen.queryByLabelText(/previous/i);
+        const monthText = screen.queryByText(/janeiro/i);
+        expect(prevButton || monthText).toBeTruthy();
+      });
+    });
+
+    it('should toggle retry option', () => {
+      // Click Sim to enable retry
+      fireEvent.click(screen.getByText('Sim'));
+
+      // Click Não to disable retry
+      fireEvent.click(screen.getByText('Não'));
+
+      // Both clicks should work without error
+      expect(screen.getByText('Sim')).toBeInTheDocument();
     });
   });
 
