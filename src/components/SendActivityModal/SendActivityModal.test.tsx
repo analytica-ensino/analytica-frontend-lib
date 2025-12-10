@@ -312,57 +312,110 @@ describe('SendActivityModal', () => {
     });
 
     it('should select all schools when clicking Escola checkbox', () => {
-      // Click on the Escola checkbox to select all schools
-      const escolaCheckbox = screen.getByText('Escola');
-      fireEvent.click(escolaCheckbox);
+      // Find the checkbox input for "Escola"
+      const escolaLabel = screen.getByText('Escola');
+      const escolaCheckbox = screen.getByRole('checkbox', { name: 'Escola' });
+
+      // Verify initial unchecked state
+      expect(escolaCheckbox).not.toBeChecked();
+
+      // Click to select all schools
+      fireEvent.click(escolaLabel);
+
+      // Verify checked state
+      expect(escolaCheckbox).toBeChecked();
 
       // Both schools should be selected - the school year accordion should be enabled
       expect(screen.getByText('Série')).toBeInTheDocument();
     });
 
     it('should select individual school in accordion', () => {
-      // Click on individual school checkbox
-      const escolaTesteCheckbox = screen.getByText('Escola Teste');
+      // First expand the Escola accordion to make inner checkboxes visible
+      const escolaAccordionButton = screen.getByRole('button', {
+        name: 'Escola',
+      });
+      fireEvent.click(escolaAccordionButton);
+
+      // Now find the checkbox input for "Escola Teste"
+      const escolaTesteCheckbox = screen.getByRole('checkbox', {
+        name: 'Escola Teste',
+      });
+
+      // Verify initial unchecked state
+      expect(escolaTesteCheckbox).not.toBeChecked();
+
+      // Click to select
       fireEvent.click(escolaTesteCheckbox);
 
-      // School should be selected
+      // Verify checked state
+      expect(escolaTesteCheckbox).toBeChecked();
+
+      // School should be selected - serie accordion should be enabled
       expect(screen.getByText('Série')).toBeInTheDocument();
     });
 
     it('should deselect all schools when clicking twice', () => {
+      // Find the checkbox input for "Escola"
+      const escolaLabel = screen.getByText('Escola');
+      const escolaCheckbox = screen.getByRole('checkbox', { name: 'Escola' });
+
       // Select all schools
-      const escolaCheckbox = screen.getByText('Escola');
-      fireEvent.click(escolaCheckbox);
+      fireEvent.click(escolaLabel);
+      expect(escolaCheckbox).toBeChecked();
 
       // Deselect all schools
-      fireEvent.click(escolaCheckbox);
+      fireEvent.click(escolaLabel);
+      expect(escolaCheckbox).not.toBeChecked();
 
-      // Schools should be deselected
+      // Schools should be deselected - label should still be visible
       expect(screen.getByText('Escola')).toBeInTheDocument();
     });
 
     it('should select school year after selecting school', () => {
-      // Select a school first
-      const escolaTesteCheckbox = screen.getByText('Escola Teste');
+      // Expand Escola accordion and select a school
+      fireEvent.click(screen.getByRole('button', { name: 'Escola' }));
+      const escolaTesteCheckbox = screen.getByRole('checkbox', {
+        name: 'Escola Teste',
+      });
       fireEvent.click(escolaTesteCheckbox);
+      expect(escolaTesteCheckbox).toBeChecked();
 
-      // Now select the school year
-      const serieCheckbox = screen.getByText('Série');
+      // Now select the school year (main Série checkbox)
+      const serieCheckbox = screen.getByRole('checkbox', { name: 'Série' });
       fireEvent.click(serieCheckbox);
+
+      // Verify serie checkbox is checked
+      expect(serieCheckbox).toBeChecked();
 
       // Serie accordion should show year options
       expect(screen.getByText('2025')).toBeInTheDocument();
     });
 
     it('should select individual school year in accordion', () => {
-      // Select a school first
-      fireEvent.click(screen.getByText('Escola Teste'));
+      // Expand Escola accordion and select a school
+      fireEvent.click(screen.getByRole('button', { name: 'Escola' }));
+      const escolaTesteCheckbox = screen.getByRole('checkbox', {
+        name: 'Escola Teste',
+      });
+      fireEvent.click(escolaTesteCheckbox);
+      expect(escolaTesteCheckbox).toBeChecked();
+
+      // Expand Serie accordion to see year options
+      fireEvent.click(screen.getByRole('button', { name: 'Série' }));
+
+      // Find the year checkbox
+      const year2025Checkbox = screen.getByRole('checkbox', { name: '2025' });
+
+      // Verify initial unchecked state
+      expect(year2025Checkbox).not.toBeChecked();
 
       // Select year
-      const year2025Checkbox = screen.getByText('2025');
       fireEvent.click(year2025Checkbox);
 
-      // Year should be selected
+      // Verify checked state
+      expect(year2025Checkbox).toBeChecked();
+
+      // Year should be selected - turma accordion should be enabled
       expect(screen.getByText('Turma')).toBeInTheDocument();
     });
 
@@ -373,26 +426,54 @@ describe('SendActivityModal', () => {
       // Select school year
       fireEvent.click(screen.getByText('2025'));
 
+      // Find the class checkbox
+      const turmaLabel = screen.getByText('Turma');
+      const turmaCheckbox = screen.getByRole('checkbox', { name: 'Turma' });
+
+      // Verify initial unchecked state
+      expect(turmaCheckbox).not.toBeChecked();
+
       // Select class
-      const turmaCheckbox = screen.getByText('Turma');
-      fireEvent.click(turmaCheckbox);
+      fireEvent.click(turmaLabel);
+
+      // Verify checked state
+      expect(turmaCheckbox).toBeChecked();
 
       // Turma accordion should be enabled
       expect(screen.getByText('Alunos')).toBeInTheDocument();
     });
 
     it('should select individual class in accordion', () => {
-      // Select school
-      fireEvent.click(screen.getByText('Escola Teste'));
+      // Expand Escola accordion and select a school
+      fireEvent.click(screen.getByRole('button', { name: 'Escola' }));
+      const escolaTesteCheckbox = screen.getByRole('checkbox', {
+        name: 'Escola Teste',
+      });
+      fireEvent.click(escolaTesteCheckbox);
+      expect(escolaTesteCheckbox).toBeChecked();
 
-      // Select school year
-      fireEvent.click(screen.getByText('2025'));
+      // Expand Serie accordion and select year
+      fireEvent.click(screen.getByRole('button', { name: 'Série' }));
+      const year2025Checkbox = screen.getByRole('checkbox', { name: '2025' });
+      fireEvent.click(year2025Checkbox);
+      expect(year2025Checkbox).toBeChecked();
+
+      // Expand Turma accordion to see class options
+      fireEvent.click(screen.getByRole('button', { name: 'Turma' }));
+
+      // Find the individual class checkbox
+      const turmaACheckbox = screen.getByRole('checkbox', { name: 'Turma A' });
+
+      // Verify initial unchecked state
+      expect(turmaACheckbox).not.toBeChecked();
 
       // Select individual class
-      const turmaACheckbox = screen.getByText('Turma A');
       fireEvent.click(turmaACheckbox);
 
-      // Class should be selected
+      // Verify checked state
+      expect(turmaACheckbox).toBeChecked();
+
+      // Class should be selected - alunos accordion should be enabled
       expect(screen.getByText('Alunos')).toBeInTheDocument();
     });
 
@@ -616,14 +697,33 @@ describe('SendActivityModal', () => {
     });
 
     it('should toggle retry option', () => {
-      // Click Sim to enable retry
-      fireEvent.click(screen.getByText('Sim'));
+      // Find radio buttons by their labels
+      const simLabel = screen.getByText('Sim');
+      const naoLabel = screen.getByText('Não');
 
-      // Click Não to disable retry
-      fireEvent.click(screen.getByText('Não'));
+      // Find the button elements with aria-pressed attribute
+      const simContainer = simLabel.closest('.flex.items-center');
+      const naoContainer = naoLabel.closest('.flex.items-center');
+      const simButton = simContainer?.querySelector('button[aria-pressed]');
+      const naoButton = naoContainer?.querySelector('button[aria-pressed]');
 
-      // Both clicks should work without error
-      expect(screen.getByText('Sim')).toBeInTheDocument();
+      // Verify buttons exist
+      expect(simButton).toBeInTheDocument();
+      expect(naoButton).toBeInTheDocument();
+
+      // Initial state: Não should be selected (canRetry = false by default)
+      expect(naoButton).toHaveAttribute('aria-pressed', 'true');
+      expect(simButton).toHaveAttribute('aria-pressed', 'false');
+
+      // Click Sim button directly to enable retry
+      fireEvent.click(simButton!);
+      expect(simButton).toHaveAttribute('aria-pressed', 'true');
+      expect(naoButton).toHaveAttribute('aria-pressed', 'false');
+
+      // Click Não button directly to disable retry
+      fireEvent.click(naoButton!);
+      expect(naoButton).toHaveAttribute('aria-pressed', 'true');
+      expect(simButton).toHaveAttribute('aria-pressed', 'false');
     });
   });
 

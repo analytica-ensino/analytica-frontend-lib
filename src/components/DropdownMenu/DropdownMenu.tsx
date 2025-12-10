@@ -331,14 +331,24 @@ const DropdownMenuContent = forwardRef<
         let top = rect.bottom + sideOffset;
         let left = rect.left;
 
-        if (align === 'end') {
-          left = rect.right;
-        } else if (align === 'center') {
-          left = rect.left + rect.width / 2;
-        }
+        // Handle horizontal sides (left/right)
+        if (side === 'left') {
+          left = rect.left - sideOffset;
+          top = rect.top;
+        } else if (side === 'right') {
+          left = rect.right + sideOffset;
+          top = rect.top;
+        } else {
+          // Handle vertical sides (top/bottom)
+          if (align === 'end') {
+            left = rect.right;
+          } else if (align === 'center') {
+            left = rect.left + rect.width / 2;
+          }
 
-        if (side === 'top') {
-          top = rect.top - sideOffset;
+          if (side === 'top') {
+            top = rect.top - sideOffset;
+          }
         }
 
         setPortalPosition({ top, left });

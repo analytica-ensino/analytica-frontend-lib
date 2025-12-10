@@ -312,6 +312,26 @@ describe('DropdownMenuContent direction and positioning', () => {
       expect(menu.style.top).toBeDefined();
     });
 
+    it('renders portal with side="left"', () => {
+      render(<TestPortalDropdown side="left" />);
+
+      const menu = screen.getByRole('menu');
+      expect(menu).toHaveClass('fixed');
+      // side="left" positions to the left of the trigger
+      expect(menu.style.top).toBeDefined();
+      expect(menu.style.left).toBeDefined();
+    });
+
+    it('renders portal with side="right"', () => {
+      render(<TestPortalDropdown side="right" />);
+
+      const menu = screen.getByRole('menu');
+      expect(menu).toHaveClass('fixed');
+      // side="right" positions to the right of the trigger
+      expect(menu.style.top).toBeDefined();
+      expect(menu.style.left).toBeDefined();
+    });
+
     it('does not close when clicking inside portal content', async () => {
       render(<TestPortalDropdown />);
 
@@ -487,7 +507,7 @@ describe('DropdownMenuContent direction and positioning', () => {
 
     fireEvent.keyDown(document, { key: 'ArrowUp' });
     const items = screen.getAllByRole('menuitem');
-    expect(items[items.length - 1]).toHaveFocus();
+    expect(items.at(-1)).toHaveFocus();
   });
 
   it('ignores disabled items in navigation', () => {
@@ -1016,8 +1036,8 @@ describe('ProfileMenu component', () => {
 });
 
 describe('ProfileToggleTheme component', () => {
-  // Mock do window.matchMedia
-  Object.defineProperty(window, 'matchMedia', {
+  // Mock do globalThis.matchMedia
+  Object.defineProperty(globalThis, 'matchMedia', {
     writable: true,
     value: jest.fn().mockImplementation((query) => ({
       matches: false,
