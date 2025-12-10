@@ -719,7 +719,7 @@ const SendActivityModal = ({
    * Render Step 3 - Deadline
    */
   const renderDeadlineStep = () => (
-    <div className="flex flex-col gap-4 sm:gap-6">
+    <div className="flex flex-col gap-4 sm:gap-6 pt-6">
       {/* Date/Time Row - Side by Side */}
       <div className="grid grid-cols-2 gap-2">
         {/* Start DateTime */}
@@ -924,7 +924,7 @@ const SendActivityModal = ({
       title="Enviar atividade"
       size="md"
       footer={renderFooter()}
-      contentClassName="flex flex-col gap-6 sm:gap-8 max-h-[70vh] overflow-y-auto"
+      contentClassName="flex flex-col gap-8 sm:gap-10 max-h-[70vh] overflow-y-auto"
     >
       {/* Stepper */}
       <Stepper
