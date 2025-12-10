@@ -361,4 +361,224 @@ describe('DatePickerInput', () => {
       removeEventListenerSpy.mockRestore();
     });
   });
+
+  describe('showTime mode', () => {
+    it('should render with time placeholder when showTime is true', () => {
+      render(<DatePickerInput showTime />);
+
+      expect(screen.getByText('DD/MM/AAAA HH:MM')).toBeInTheDocument();
+    });
+
+    it('should render time selector when calendar is open with showTime', () => {
+      render(<DatePickerInput showTime />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      expect(
+        screen.getByTestId('date-picker-input-time-selector')
+      ).toBeInTheDocument();
+      expect(screen.getByText('Hora:')).toBeInTheDocument();
+    });
+
+    it('should render confirm button when showTime is enabled', () => {
+      render(<DatePickerInput showTime />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      expect(
+        screen.getByTestId('date-picker-input-confirm-button')
+      ).toBeInTheDocument();
+      expect(screen.getByText('Confirmar')).toBeInTheDocument();
+    });
+
+    it('should not close calendar when date is selected with showTime', () => {
+      render(<DatePickerInput showTime />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      const dayButton = screen.getByLabelText('20 de Janeiro');
+      fireEvent.click(dayButton);
+
+      expect(
+        screen.getByTestId('date-picker-input-calendar')
+      ).toBeInTheDocument();
+    });
+
+    it('should call onChange with date and time when confirm is clicked', () => {
+      const onChange = jest.fn();
+      render(<DatePickerInput showTime onChange={onChange} />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      // Select a date
+      const dayButton = screen.getByLabelText('20 de Janeiro');
+      fireEvent.click(dayButton);
+
+      // Set hour
+      const hourInput = screen.getByTestId('date-picker-input-hour-input');
+      fireEvent.change(hourInput, { target: { value: '14' } });
+
+      // Set minute
+      const minuteInput = screen.getByTestId('date-picker-input-minute-input');
+      fireEvent.change(minuteInput, { target: { value: '30' } });
+
+      // Click confirm
+      fireEvent.click(screen.getByTestId('date-picker-input-confirm-button'));
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      const calledDate = onChange.mock.calls[0][0];
+      expect(calledDate.getHours()).toBe(14);
+      expect(calledDate.getMinutes()).toBe(30);
+      expect(calledDate.getDate()).toBe(20);
+    });
+
+    it('should close calendar after clicking confirm', () => {
+      render(<DatePickerInput showTime />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      // Select a date
+      const dayButton = screen.getByLabelText('20 de Janeiro');
+      fireEvent.click(dayButton);
+
+      // Click confirm
+      fireEvent.click(screen.getByTestId('date-picker-input-confirm-button'));
+
+      expect(
+        screen.queryByTestId('date-picker-input-calendar')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should format date with time when showTime is enabled', () => {
+      const date = new Date(2025, 0, 20, 14, 30); // January 20, 2025 14:30
+      render(<DatePickerInput value={date} showTime />);
+
+      expect(screen.getByText('20/01/2025 14:30')).toBeInTheDocument();
+    });
+
+    it('should initialize time inputs with value hours and minutes', () => {
+      const date = new Date(2025, 0, 20, 9, 5); // January 20, 2025 09:05
+      render(<DatePickerInput value={date} showTime />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      const hourInput = screen.getByTestId<HTMLInputElement>(
+        'date-picker-input-hour-input'
+      );
+      const minuteInput = screen.getByTestId<HTMLInputElement>(
+        'date-picker-input-minute-input'
+      );
+
+      // Input type="number" returns numeric values
+      expect(hourInput.value).toBe('09');
+      expect(minuteInput.value).toBe('05');
+    });
+
+    it('should handle hour input boundary values', () => {
+      render(<DatePickerInput showTime />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      const hourInput = screen.getByTestId<HTMLInputElement>(
+        'date-picker-input-hour-input'
+      );
+
+      // Test max boundary (23)
+      fireEvent.change(hourInput, { target: { value: '25' } });
+      expect(hourInput.value).toBe('23');
+
+      // Test negative becomes 00
+      fireEvent.change(hourInput, { target: { value: '-5' } });
+      expect(hourInput.value).toBe('00');
+    });
+
+    it('should handle minute input boundary values', () => {
+      render(<DatePickerInput showTime />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      const minuteInput = screen.getByTestId<HTMLInputElement>(
+        'date-picker-input-minute-input'
+      );
+
+      // Test max boundary (59)
+      fireEvent.change(minuteInput, { target: { value: '65' } });
+      expect(minuteInput.value).toBe('59');
+
+      // Test negative becomes 00
+      fireEvent.change(minuteInput, { target: { value: '-10' } });
+      expect(minuteInput.value).toBe('00');
+    });
+
+    it('should handle non-numeric input gracefully', () => {
+      render(<DatePickerInput showTime />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      const hourInput = screen.getByTestId<HTMLInputElement>(
+        'date-picker-input-hour-input'
+      );
+      fireEvent.change(hourInput, { target: { value: 'abc' } });
+      expect(hourInput.value).toBe('00');
+    });
+
+    it('should sync time state when value prop changes', () => {
+      const { rerender } = render(
+        <DatePickerInput value={new Date(2025, 0, 15, 10, 20)} showTime />
+      );
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      const hourInput = screen.getByTestId<HTMLInputElement>(
+        'date-picker-input-hour-input'
+      );
+      const minuteInput = screen.getByTestId<HTMLInputElement>(
+        'date-picker-input-minute-input'
+      );
+
+      expect(hourInput.value).toBe('10');
+      expect(minuteInput.value).toBe('20');
+
+      // Close and rerender with new value
+      fireEvent.click(button);
+      rerender(
+        <DatePickerInput value={new Date(2025, 0, 20, 16, 45)} showTime />
+      );
+      fireEvent.click(screen.getByRole('button'));
+
+      const hourInput2 = screen.getByTestId<HTMLInputElement>(
+        'date-picker-input-hour-input'
+      );
+      const minuteInput2 = screen.getByTestId<HTMLInputElement>(
+        'date-picker-input-minute-input'
+      );
+
+      expect(hourInput2.value).toBe('16');
+      expect(minuteInput2.value).toBe('45');
+    });
+
+    it('should not render time selector when showTime is false', () => {
+      render(<DatePickerInput />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      expect(
+        screen.queryByTestId('date-picker-input-time-selector')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('date-picker-input-confirm-button')
+      ).not.toBeInTheDocument();
+    });
+  });
 });

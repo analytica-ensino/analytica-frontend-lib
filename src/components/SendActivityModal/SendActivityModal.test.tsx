@@ -367,16 +367,18 @@ describe('SendActivityModal', () => {
       fireEvent.click(screen.getByText('Todos os alunos'));
       fireEvent.click(screen.getByText('Próximo'));
 
-      // Fill step 3 - select dates
+      // Fill step 3 - select dates (with showTime, need to click Confirmar)
       const startDatePicker = screen.getByTestId('start-date-picker');
       fireEvent.click(startDatePicker);
       const startDay = screen.getByLabelText('20 de Janeiro');
       fireEvent.click(startDay);
+      fireEvent.click(screen.getByTestId('start-date-picker-confirm-button'));
 
       const finalDatePicker = screen.getByTestId('final-date-picker');
       fireEvent.click(finalDatePicker);
       const finalDay = screen.getByLabelText('25 de Janeiro');
       fireEvent.click(finalDay);
+      fireEvent.click(screen.getByTestId('final-date-picker-confirm-button'));
 
       // Submit
       fireEvent.click(

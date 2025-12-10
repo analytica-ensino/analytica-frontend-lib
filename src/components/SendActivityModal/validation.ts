@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { SendActivityFormData, StepErrors } from './types';
 
 /**
@@ -18,7 +19,71 @@ export const ERROR_MESSAGES = {
 } as const;
 
 /**
- * Validates the activity step (Step 1)
+ * Zod schema for activity step (Step 1)
+ */
+export const activityStepSchema = z.object({
+  subtype: z.enum(['TAREFA', 'TRABALHO', 'PROVA'], {
+    errorMap: () => ({ message: ERROR_MESSAGES.SUBTYPE_REQUIRED }),
+  }),
+  title: z
+    .string({ required_error: ERROR_MESSAGES.TITLE_REQUIRED })
+    .transform((val) => val.trim())
+    .refine((val) => val.length > 0, {
+      message: ERROR_MESSAGES.TITLE_REQUIRED,
+    }),
+  notification: z.string().optional(),
+});
+
+/**
+ * Zod schema for recipient step (Step 2)
+ */
+export const recipientStepSchema = z.object({
+  students: z
+    .array(
+      z.object({
+        studentId: z.string(),
+        userInstitutionId: z.string(),
+      }),
+      {
+        required_error: ERROR_MESSAGES.STUDENTS_REQUIRED,
+        invalid_type_error: ERROR_MESSAGES.STUDENTS_REQUIRED,
+      }
+    )
+    .min(1, ERROR_MESSAGES.STUDENTS_REQUIRED),
+});
+
+/**
+ * Zod schema for deadline step (Step 3) - base validation
+ */
+const deadlineStepBaseSchema = z.object({
+  startDate: z.date({
+    required_error: ERROR_MESSAGES.START_DATE_REQUIRED,
+    invalid_type_error: ERROR_MESSAGES.START_DATE_REQUIRED,
+  }),
+  finalDate: z.date({
+    required_error: ERROR_MESSAGES.FINAL_DATE_REQUIRED,
+    invalid_type_error: ERROR_MESSAGES.FINAL_DATE_REQUIRED,
+  }),
+  canRetry: z.boolean().default(false),
+});
+
+/**
+ * Zod schema for deadline step with date comparison refinement
+ */
+export const deadlineStepSchema = deadlineStepBaseSchema.refine(
+  (data) => data.finalDate >= data.startDate,
+  { message: ERROR_MESSAGES.FINAL_DATE_INVALID, path: ['finalDate'] }
+);
+
+/**
+ * Type inference from Zod schemas
+ */
+export type ActivityStepData = z.infer<typeof activityStepSchema>;
+export type RecipientStepData = z.infer<typeof recipientStepSchema>;
+export type DeadlineStepData = z.infer<typeof deadlineStepSchema>;
+
+/**
+ * Validates the activity step (Step 1) using Zod
  * @param data - Partial form data
  * @returns StepErrors object with any validation errors
  */
@@ -27,19 +92,26 @@ export function validateActivityStep(
 ): StepErrors {
   const errors: StepErrors = {};
 
-  if (!data.subtype) {
-    errors.subtype = ERROR_MESSAGES.SUBTYPE_REQUIRED;
-  }
+  const result = activityStepSchema.safeParse({
+    subtype: data.subtype,
+    title: data.title,
+    notification: data.notification,
+  });
 
-  if (!data.title?.trim()) {
-    errors.title = ERROR_MESSAGES.TITLE_REQUIRED;
+  if (!result.success) {
+    result.error.issues.forEach((issue) => {
+      const field = issue.path[0] as keyof StepErrors;
+      if (field === 'subtype' || field === 'title') {
+        errors[field] = issue.message;
+      }
+    });
   }
 
   return errors;
 }
 
 /**
- * Validates the recipient step (Step 2)
+ * Validates the recipient step (Step 2) using Zod
  * @param data - Partial form data
  * @returns StepErrors object with any validation errors
  */
@@ -48,15 +120,23 @@ export function validateRecipientStep(
 ): StepErrors {
   const errors: StepErrors = {};
 
-  if (!data.students || data.students.length === 0) {
-    errors.students = ERROR_MESSAGES.STUDENTS_REQUIRED;
+  const result = recipientStepSchema.safeParse({
+    students: data.students,
+  });
+
+  if (!result.success) {
+    result.error.issues.forEach((issue) => {
+      if (issue.path[0] === 'students') {
+        errors.students = issue.message;
+      }
+    });
   }
 
   return errors;
 }
 
 /**
- * Validates the deadline step (Step 3)
+ * Validates the deadline step (Step 3) using Zod
  * @param data - Partial form data
  * @returns StepErrors object with any validation errors
  */
@@ -65,6 +145,7 @@ export function validateDeadlineStep(
 ): StepErrors {
   const errors: StepErrors = {};
 
+  // First validate individual fields
   if (!data.startDate) {
     errors.startDate = ERROR_MESSAGES.START_DATE_REQUIRED;
   }
@@ -73,8 +154,22 @@ export function validateDeadlineStep(
     errors.finalDate = ERROR_MESSAGES.FINAL_DATE_REQUIRED;
   }
 
-  if (data.startDate && data.finalDate && data.finalDate < data.startDate) {
-    errors.finalDate = ERROR_MESSAGES.FINAL_DATE_INVALID;
+  // If both dates exist, validate with the full schema (including refinement)
+  if (data.startDate && data.finalDate) {
+    const result = deadlineStepSchema.safeParse({
+      startDate: data.startDate,
+      finalDate: data.finalDate,
+      canRetry: data.canRetry ?? false,
+    });
+
+    if (!result.success) {
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof StepErrors;
+        if (field === 'startDate' || field === 'finalDate') {
+          errors[field] = issue.message;
+        }
+      });
+    }
   }
 
   return errors;

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, ChangeEvent } from 'react';
 import {
   CaretLeftIcon,
   ArrowRightIcon,
@@ -12,6 +12,7 @@ import Chips from '../Chips/Chips';
 import Input from '../Input/Input';
 import TextArea from '../TextArea/TextArea';
 import CheckBox from '../CheckBox/CheckBox';
+import Text from '../Text/Text';
 import { RadioGroup, RadioGroupItem } from '../Radio/Radio';
 import { CardAccordation, AccordionGroup } from '../Accordation';
 import { DatePickerInput } from '../DatePickerInput';
@@ -20,17 +21,9 @@ import {
   SendActivityModalProps,
   ActivitySubtype,
   SendActivityFormData,
+  ACTIVITY_TYPE_OPTIONS,
 } from './types';
 import { cn } from '../../utils/utils';
-
-/**
- * Activity type options for step 1
- */
-const ACTIVITY_TYPES: Array<{ value: ActivitySubtype; label: string }> = [
-  { value: 'TAREFA', label: 'Tarefa' },
-  { value: 'TRABALHO', label: 'Trabalho' },
-  { value: 'PROVA', label: 'Prova' },
-];
 
 /**
  * Stepper steps configuration
@@ -49,13 +42,13 @@ const STEPPER_STEPS = [
  * 2. Recipient - Select students from hierarchical structure
  * 3. Deadline - Set start/end dates and retry option
  */
-const SendActivityModal: React.FC<SendActivityModalProps> = ({
+const SendActivityModal = ({
   isOpen,
   onClose,
   onSubmit,
   recipients,
   isLoading = false,
-}) => {
+}: SendActivityModalProps) => {
   const store = useSendActivityModalStore();
   const reset = useSendActivityModalStore((state) => state.reset);
 
@@ -82,7 +75,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
    * Handle title change
    */
   const handleTitleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: ChangeEvent<HTMLInputElement>) => {
       store.setFormData({ title: e.target.value });
     },
     [store]
@@ -92,7 +85,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
    * Handle notification message change
    */
   const handleNotificationChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    (e: ChangeEvent<HTMLTextAreaElement>) => {
       store.setFormData({ notification: e.target.value });
     },
     [store]
@@ -152,10 +145,15 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
   const renderError = (error?: string) => {
     if (!error) return null;
     return (
-      <p className="flex items-center gap-1 text-sm text-error-600 mt-1">
+      <Text
+        as="p"
+        size="sm"
+        color="text-error-600"
+        className="flex items-center gap-1 mt-1"
+      >
         <WarningCircleIcon size={16} />
         {error}
-      </p>
+      </Text>
     );
   };
 
@@ -166,11 +164,11 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
     <div className="flex flex-col gap-6">
       {/* Activity Type Selection */}
       <div>
-        <p className="text-sm font-medium text-text-700 mb-3">
+        <Text size="sm" weight="medium" color="text-text-700" className="mb-3">
           Tipo de atividade*
-        </p>
+        </Text>
         <div className="flex flex-wrap gap-2">
-          {ACTIVITY_TYPES.map((type) => (
+          {ACTIVITY_TYPE_OPTIONS.map((type) => (
             <Chips
               key={type.value}
               selected={store.formData.subtype === type.value}
@@ -283,9 +281,9 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
 
     return (
       <div className="flex flex-col pt-6">
-        <p className="text-sm font-medium text-text-700">
+        <Text size="sm" weight="medium" color="text-text-700">
           Para quem você vai enviar a atividade?
-        </p>
+        </Text>
 
         <div className="overflow-hidden">
           {/* Select all row */}
@@ -347,9 +345,9 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
     // Complete hierarchy for multiple options
     return (
       <div className="flex flex-col gap-4">
-        <p className="text-sm font-medium text-text-700">
+        <Text size="sm" weight="medium" color="text-text-700">
           Para quem você vai enviar a atividade?
-        </p>
+        </Text>
 
         {/* Flat accordion structure */}
         <div
@@ -478,9 +476,9 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
                   />
                 ))}
                 {getAvailableSchoolYears().length === 0 && (
-                  <p className="text-sm text-text-500 italic">
+                  <Text size="sm" color="text-text-500" className="italic">
                     Selecione uma escola primeiro
-                  </p>
+                  </Text>
                 )}
               </div>
             </CardAccordation>
@@ -547,9 +545,9 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
                   />
                 ))}
                 {getAvailableClasses().length === 0 && (
-                  <p className="text-sm text-text-500 italic">
+                  <Text size="sm" color="text-text-500" className="italic">
                     Selecione uma série primeiro
-                  </p>
+                  </Text>
                 )}
               </div>
             </CardAccordation>
@@ -614,9 +612,9 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
                   />
                 ))}
                 {getAvailableStudents().length === 0 && (
-                  <p className="text-sm text-text-500 italic">
+                  <Text size="sm" color="text-text-500" className="italic">
                     Selecione uma turma primeiro
-                  </p>
+                  </Text>
                 )}
               </div>
             </CardAccordation>
@@ -639,6 +637,7 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
         value={store.formData.startDate}
         onChange={handleStartDateChange}
         error={store.errors.startDate}
+        showTime
         testId="start-date-picker"
       />
 
@@ -648,14 +647,15 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
         value={store.formData.finalDate}
         onChange={handleFinalDateChange}
         error={store.errors.finalDate}
+        showTime
         testId="final-date-picker"
       />
 
       {/* Retry Option */}
       <div>
-        <p className="text-sm font-medium text-text-700 mb-3">
+        <Text size="sm" weight="medium" color="text-text-700" className="mb-3">
           Permitir refazer?
-        </p>
+        </Text>
         <RadioGroup
           value={store.formData.canRetry ? 'yes' : 'no'}
           onValueChange={handleRetryChange}
@@ -663,21 +663,27 @@ const SendActivityModal: React.FC<SendActivityModalProps> = ({
         >
           <div className="flex items-center gap-2">
             <RadioGroupItem value="yes" />
-            <label
+            <Text
+              as="label"
+              size="sm"
+              color="text-text-700"
+              className="cursor-pointer"
               htmlFor="radio-item-yes"
-              className="text-sm text-text-700 cursor-pointer"
             >
               Sim
-            </label>
+            </Text>
           </div>
           <div className="flex items-center gap-2">
             <RadioGroupItem value="no" />
-            <label
+            <Text
+              as="label"
+              size="sm"
+              color="text-text-700"
+              className="cursor-pointer"
               htmlFor="radio-item-no"
-              className="text-sm text-text-700 cursor-pointer"
             >
               Não
-            </label>
+            </Text>
           </div>
         </RadioGroup>
       </div>

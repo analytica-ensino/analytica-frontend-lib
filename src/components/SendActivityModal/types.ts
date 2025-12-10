@@ -4,6 +4,18 @@
 export type ActivitySubtype = 'TAREFA' | 'TRABALHO' | 'PROVA';
 
 /**
+ * Activity type options for UI selection
+ */
+export const ACTIVITY_TYPE_OPTIONS: ReadonlyArray<{
+  value: ActivitySubtype;
+  label: string;
+}> = [
+  { value: 'TAREFA', label: 'Tarefa' },
+  { value: 'TRABALHO', label: 'Trabalho' },
+  { value: 'PROVA', label: 'Prova' },
+] as const;
+
+/**
  * Student recipient structure matching backend SendActivityToStudentsBody
  */
 export interface StudentRecipient {
