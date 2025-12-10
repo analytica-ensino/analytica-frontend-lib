@@ -4,6 +4,7 @@ import {
   ReactNode,
   ButtonHTMLAttributes,
   useEffect,
+  useLayoutEffect,
   useRef,
   HTMLAttributes,
   MouseEvent,
@@ -13,7 +14,10 @@ import {
   cloneElement,
   ReactElement,
   useState,
+  RefObject,
+  CSSProperties,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { create, StoreApi, useStore } from 'zustand';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
@@ -133,7 +137,7 @@ const DropdownMenu = ({
       if (items.length === 0) return;
 
       const focusedItem = document.activeElement as HTMLElement;
-      const currentIndex = items.findIndex((item) => item === focusedItem);
+      const currentIndex = items.indexOf(focusedItem);
 
       let nextIndex;
       if (event.key === 'ArrowDown') {
@@ -159,9 +163,20 @@ const DropdownMenu = ({
   };
 
   const handleClickOutside = (event: Event) => {
-    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-      setOpen(false);
+    const target = event.target as Node;
+
+    if (menuRef.current?.contains(target)) {
+      return;
     }
+
+    if (
+      target instanceof Element &&
+      target.closest('[data-dropdown-content="true"]')
+    ) {
+      return;
+    }
+
+    setOpen(false);
   };
 
   useEffect(() => {
@@ -194,45 +209,38 @@ const DropdownMenu = ({
 };
 
 // Componentes genéricos do DropdownMenu
-const DropdownMenuTrigger = ({
-  className,
-  children,
-  onClick,
-  store: externalStore,
-  ...props
-}: HTMLAttributes<HTMLDivElement> & {
-  disabled?: boolean;
-  store?: DropdownStoreApi;
-}) => {
+const DropdownMenuTrigger = forwardRef<
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement> & {
+    disabled?: boolean;
+    store?: DropdownStoreApi;
+  }
+>(({ className, children, onClick, store: externalStore, ...props }, ref) => {
   const store = useDropdownStore(externalStore);
 
   const open = useStore(store, (s) => s.open);
   const toggleOpen = () => store.setState({ open: !open });
 
   return (
-    <div
+    <button
+      ref={ref}
+      type="button"
       onClick={(e) => {
         e.stopPropagation();
         toggleOpen();
-        if (onClick) onClick(e);
+        onClick?.(e);
       }}
-      role="button"
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          toggleOpen();
-          if (onClick) onClick(e as unknown as MouseEvent<HTMLDivElement>);
-        }
-      }}
-      tabIndex={0}
       aria-expanded={open}
-      className={cn(className)}
+      className={cn(
+        'appearance-none bg-transparent border-none p-0',
+        className
+      )}
       {...props}
     >
       {children}
-    </div>
+    </button>
   );
-};
+});
 DropdownMenuTrigger.displayName = 'DropdownMenuTrigger';
 
 const ITEM_SIZE_CLASSES = {
@@ -283,6 +291,8 @@ const DropdownMenuContent = forwardRef<
     variant?: 'menu' | 'profile';
     sideOffset?: number;
     store?: DropdownStoreApi;
+    portal?: boolean;
+    triggerRef?: RefObject<HTMLElement | null>;
   }
 >(
   (
@@ -294,6 +304,8 @@ const DropdownMenuContent = forwardRef<
       sideOffset = 4,
       children,
       store: externalStore,
+      portal = false,
+      triggerRef,
       ...props
     },
     ref
@@ -301,6 +313,8 @@ const DropdownMenuContent = forwardRef<
     const store = useDropdownStore(externalStore);
     const open = useStore(store, (s) => s.open);
     const [isVisible, setIsVisible] = useState(open);
+    const [portalPosition, setPortalPosition] = useState({ top: 0, left: 0 });
+    const contentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
       if (open) {
@@ -311,20 +325,64 @@ const DropdownMenuContent = forwardRef<
       }
     }, [open]);
 
+    useLayoutEffect(() => {
+      if (portal && open && triggerRef?.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        let top = rect.bottom + sideOffset;
+        let left = rect.left;
+
+        if (align === 'end') {
+          left = rect.right;
+        } else if (align === 'center') {
+          left = rect.left + rect.width / 2;
+        }
+
+        if (side === 'top') {
+          top = rect.top - sideOffset;
+        }
+
+        setPortalPosition({ top, left });
+      }
+    }, [portal, open, triggerRef, align, side, sideOffset]);
+
     if (!isVisible) return null;
 
     const getPositionClasses = () => {
+      if (portal) {
+        return 'fixed';
+      }
       const vertical = SIDE_CLASSES[side];
       const horizontal = ALIGN_CLASSES[align];
 
       return `absolute ${vertical} ${horizontal}`;
     };
 
+    const getPortalAlignStyle = () => {
+      if (!portal) return {};
+
+      const baseStyle: CSSProperties = {
+        top: portalPosition.top,
+      };
+
+      if (align === 'end') {
+        baseStyle.right = window.innerWidth - portalPosition.left;
+      } else if (align === 'center') {
+        baseStyle.left = portalPosition.left;
+        baseStyle.transform = 'translateX(-50%)';
+      } else {
+        baseStyle.left = portalPosition.left;
+      }
+
+      return baseStyle;
+    };
+
     const variantClasses = MENUCONTENT_VARIANT_CLASSES[variant];
-    return (
+
+    const content = (
       <div
-        ref={ref}
+        ref={portal ? contentRef : ref}
         role="menu"
+        data-dropdown-content="true"
         className={`
         bg-background z-50 min-w-[210px] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md border-border-100
         ${open ? 'animate-in fade-in-0 zoom-in-95' : 'animate-out fade-out-0 zoom-out-95'}
@@ -333,16 +391,26 @@ const DropdownMenuContent = forwardRef<
         ${className}
       `}
         style={{
-          marginTop: side === 'bottom' ? sideOffset : undefined,
-          marginBottom: side === 'top' ? sideOffset : undefined,
-          marginLeft: side === 'right' ? sideOffset : undefined,
-          marginRight: side === 'left' ? sideOffset : undefined,
+          ...(portal
+            ? getPortalAlignStyle()
+            : {
+                marginTop: side === 'bottom' ? sideOffset : undefined,
+                marginBottom: side === 'top' ? sideOffset : undefined,
+                marginLeft: side === 'right' ? sideOffset : undefined,
+                marginRight: side === 'left' ? sideOffset : undefined,
+              }),
         }}
         {...props}
       >
         {children}
       </div>
     );
+
+    if (portal && typeof document !== 'undefined') {
+      return createPortal(content, document.body);
+    }
+
+    return content;
   }
 );
 DropdownMenuContent.displayName = 'DropdownMenuContent';

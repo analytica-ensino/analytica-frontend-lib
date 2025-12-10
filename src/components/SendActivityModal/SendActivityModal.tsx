@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, ChangeEvent } from 'react';
+import { useCallback, useEffect, useState, useRef, ChangeEvent } from 'react';
 import {
   CaretLeftIcon,
   ArrowRightIcon,
@@ -76,6 +76,10 @@ const SendActivityModal = ({
   const [selectedFinalDate, setSelectedFinalDate] = useState<Date | undefined>(
     undefined
   );
+
+  // Refs for dropdown triggers (used for portal positioning)
+  const startTriggerRef = useRef<HTMLButtonElement>(null);
+  const finalTriggerRef = useRef<HTMLButtonElement>(null);
 
   /**
    * Reset store when modal closes
@@ -193,7 +197,6 @@ const SendActivityModal = ({
     (dateObj: Date) => {
       setSelectedStartDate(dateObj);
       store.setFormData({ startDate: formatDateToInput(dateObj) });
-      setIsStartCalendarOpen(false);
     },
     [store]
   );
@@ -205,7 +208,6 @@ const SendActivityModal = ({
     (dateObj: Date) => {
       setSelectedFinalDate(dateObj);
       store.setFormData({ finalDate: formatDateToInput(dateObj) });
-      setIsFinalCalendarOpen(false);
     },
     [store]
   );
@@ -727,7 +729,7 @@ const SendActivityModal = ({
           open={isStartCalendarOpen}
           onOpenChange={setIsStartCalendarOpen}
         >
-          <DropdownMenuTrigger className="w-full">
+          <DropdownMenuTrigger className="w-full" ref={startTriggerRef}>
             <Input
               label="Iniciar em*"
               type="datetime-local"
@@ -745,7 +747,12 @@ const SendActivityModal = ({
               className="[&::-webkit-calendar-picker-indicator]:hidden"
             />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="p-0">
+          <DropdownMenuContent
+            align="start"
+            className="p-0 z-[100]"
+            portal
+            triggerRef={startTriggerRef}
+          >
             <Calendar
               variant="selection"
               selectedDate={selectedStartDate}
@@ -770,7 +777,7 @@ const SendActivityModal = ({
           open={isFinalCalendarOpen}
           onOpenChange={setIsFinalCalendarOpen}
         >
-          <DropdownMenuTrigger className="w-full">
+          <DropdownMenuTrigger className="w-full" ref={finalTriggerRef}>
             <Input
               label="Finalizar até*"
               type="datetime-local"
@@ -788,7 +795,12 @@ const SendActivityModal = ({
               className="[&::-webkit-calendar-picker-indicator]:hidden"
             />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="p-0">
+          <DropdownMenuContent
+            align="start"
+            className="p-0 z-[100]"
+            portal
+            triggerRef={finalTriggerRef}
+          >
             <Calendar
               variant="selection"
               selectedDate={selectedFinalDate}
