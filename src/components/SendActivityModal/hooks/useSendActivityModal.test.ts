@@ -199,8 +199,10 @@ describe('useSendActivityModalStore', () => {
           subtype: 'TAREFA',
           title: 'Test',
           students: [{ studentId: '1', userInstitutionId: '1' }],
-          startDate: new Date(),
-          finalDate: new Date(),
+          startDate: '2025-01-01',
+          startTime: '00:00',
+          finalDate: '2025-01-15',
+          finalTime: '23:59',
         });
         result.current.goToStep(3);
       });

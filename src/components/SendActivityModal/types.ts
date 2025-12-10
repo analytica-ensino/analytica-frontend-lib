@@ -77,10 +77,14 @@ export interface SendActivityFormData {
     studentId: string;
     userInstitutionId: string;
   }>;
-  /** Start date (Step 3) */
-  startDate: Date;
-  /** End date (Step 3) */
-  finalDate: Date;
+  /** Start date in YYYY-MM-DD format (Step 3) */
+  startDate: string;
+  /** Start time in HH:MM format (Step 3) */
+  startTime: string;
+  /** End date in YYYY-MM-DD format (Step 3) */
+  finalDate: string;
+  /** End time in HH:MM format (Step 3) */
+  finalTime: string;
   /** Allow retry flag (Step 3) */
   canRetry: boolean;
 }
@@ -109,7 +113,9 @@ export interface StepErrors {
   title?: string;
   students?: string;
   startDate?: string;
+  startTime?: string;
   finalDate?: string;
+  finalTime?: string;
 }
 
 /**

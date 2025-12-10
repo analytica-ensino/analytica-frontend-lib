@@ -367,18 +367,12 @@ describe('SendActivityModal', () => {
       fireEvent.click(screen.getByText('Todos os alunos'));
       fireEvent.click(screen.getByText('Próximo'));
 
-      // Fill step 3 - select dates (with showTime, need to click Confirmar)
-      const startDatePicker = screen.getByTestId('start-date-picker');
-      fireEvent.click(startDatePicker);
-      const startDay = screen.getByLabelText('20 de Janeiro');
-      fireEvent.click(startDay);
-      fireEvent.click(screen.getByTestId('start-date-picker-confirm-button'));
+      // Fill step 3 - select dates using native date/time inputs
+      const startDateInput = screen.getByTestId('start-date-input');
+      const finalDateInput = screen.getByTestId('final-date-input');
 
-      const finalDatePicker = screen.getByTestId('final-date-picker');
-      fireEvent.click(finalDatePicker);
-      const finalDay = screen.getByLabelText('25 de Janeiro');
-      fireEvent.click(finalDay);
-      fireEvent.click(screen.getByTestId('final-date-picker-confirm-button'));
+      fireEvent.change(startDateInput, { target: { value: '2025-01-20' } });
+      fireEvent.change(finalDateInput, { target: { value: '2025-01-25' } });
 
       // Submit
       fireEvent.click(
@@ -391,8 +385,8 @@ describe('SendActivityModal', () => {
             subtype: 'TAREFA',
             title: 'Test Activity',
             students: expect.any(Array),
-            startDate: expect.any(Date),
-            finalDate: expect.any(Date),
+            startDate: '2025-01-20',
+            finalDate: '2025-01-25',
             canRetry: false,
           })
         );

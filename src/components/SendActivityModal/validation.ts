@@ -53,17 +53,31 @@ export const recipientStepSchema = z.object({
 });
 
 /**
+ * Regex patterns for date and time validation
+ */
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_REGEX = /^\d{2}:\d{2}$/;
+
+/**
  * Zod schema for deadline step (Step 3) - base validation
  */
 const deadlineStepBaseSchema = z.object({
-  startDate: z.date({
-    required_error: ERROR_MESSAGES.START_DATE_REQUIRED,
-    invalid_type_error: ERROR_MESSAGES.START_DATE_REQUIRED,
-  }),
-  finalDate: z.date({
-    required_error: ERROR_MESSAGES.FINAL_DATE_REQUIRED,
-    invalid_type_error: ERROR_MESSAGES.FINAL_DATE_REQUIRED,
-  }),
+  startDate: z
+    .string({
+      required_error: ERROR_MESSAGES.START_DATE_REQUIRED,
+      invalid_type_error: ERROR_MESSAGES.START_DATE_REQUIRED,
+    })
+    .min(1, ERROR_MESSAGES.START_DATE_REQUIRED)
+    .regex(DATE_REGEX, ERROR_MESSAGES.START_DATE_REQUIRED),
+  startTime: z.string().regex(TIME_REGEX).default('00:00'),
+  finalDate: z
+    .string({
+      required_error: ERROR_MESSAGES.FINAL_DATE_REQUIRED,
+      invalid_type_error: ERROR_MESSAGES.FINAL_DATE_REQUIRED,
+    })
+    .min(1, ERROR_MESSAGES.FINAL_DATE_REQUIRED)
+    .regex(DATE_REGEX, ERROR_MESSAGES.FINAL_DATE_REQUIRED),
+  finalTime: z.string().regex(TIME_REGEX).default('23:59'),
   canRetry: z.boolean().default(false),
 });
 
@@ -71,7 +85,11 @@ const deadlineStepBaseSchema = z.object({
  * Zod schema for deadline step with date comparison refinement
  */
 export const deadlineStepSchema = deadlineStepBaseSchema.refine(
-  (data) => data.finalDate >= data.startDate,
+  (data) => {
+    const start = new Date(`${data.startDate}T${data.startTime}`);
+    const end = new Date(`${data.finalDate}T${data.finalTime}`);
+    return end >= start;
+  },
   { message: ERROR_MESSAGES.FINAL_DATE_INVALID, path: ['finalDate'] }
 );
 
@@ -158,7 +176,9 @@ export function validateDeadlineStep(
   if (data.startDate && data.finalDate) {
     const result = deadlineStepSchema.safeParse({
       startDate: data.startDate,
+      startTime: data.startTime ?? '00:00',
       finalDate: data.finalDate,
+      finalTime: data.finalTime ?? '23:59',
       canRetry: data.canRetry ?? false,
     });
 

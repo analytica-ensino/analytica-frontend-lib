@@ -99,7 +99,8 @@ describe('validation', () => {
 
     it('should return error when finalDate is missing', () => {
       const data: Partial<SendActivityFormData> = {
-        startDate: new Date('2025-01-01'),
+        startDate: '2025-01-01',
+        startTime: '00:00',
       };
       const errors = validateDeadlineStep(data);
 
@@ -108,8 +109,10 @@ describe('validation', () => {
 
     it('should return error when finalDate is before startDate', () => {
       const data: Partial<SendActivityFormData> = {
-        startDate: new Date('2025-01-15'),
-        finalDate: new Date('2025-01-10'),
+        startDate: '2025-01-15',
+        startTime: '00:00',
+        finalDate: '2025-01-10',
+        finalTime: '23:59',
       };
       const errors = validateDeadlineStep(data);
 
@@ -117,10 +120,11 @@ describe('validation', () => {
     });
 
     it('should return no errors when dates are valid and finalDate equals startDate', () => {
-      const date = new Date('2025-01-15');
       const data: Partial<SendActivityFormData> = {
-        startDate: date,
-        finalDate: date,
+        startDate: '2025-01-15',
+        startTime: '00:00',
+        finalDate: '2025-01-15',
+        finalTime: '23:59',
       };
       const errors = validateDeadlineStep(data);
 
@@ -129,8 +133,10 @@ describe('validation', () => {
 
     it('should return no errors when finalDate is after startDate', () => {
       const data: Partial<SendActivityFormData> = {
-        startDate: new Date('2025-01-10'),
-        finalDate: new Date('2025-01-15'),
+        startDate: '2025-01-10',
+        startTime: '00:00',
+        finalDate: '2025-01-15',
+        finalTime: '23:59',
       };
       const errors = validateDeadlineStep(data);
 
@@ -211,8 +217,10 @@ describe('validation', () => {
 
     it('should return true for valid step 3', () => {
       const data: Partial<SendActivityFormData> = {
-        startDate: new Date('2025-01-01'),
-        finalDate: new Date('2025-01-15'),
+        startDate: '2025-01-01',
+        startTime: '00:00',
+        finalDate: '2025-01-15',
+        finalTime: '23:59',
       };
       expect(isStepValid(3, data)).toBe(true);
     });
@@ -227,8 +235,10 @@ describe('validation', () => {
     it('should return false when step 1 is invalid', () => {
       const data: Partial<SendActivityFormData> = {
         students: [{ studentId: '1', userInstitutionId: '1' }],
-        startDate: new Date('2025-01-01'),
-        finalDate: new Date('2025-01-15'),
+        startDate: '2025-01-01',
+        startTime: '00:00',
+        finalDate: '2025-01-15',
+        finalTime: '23:59',
       };
       expect(isFormValid(data)).toBe(false);
     });
@@ -238,8 +248,10 @@ describe('validation', () => {
         subtype: 'PROVA',
         title: 'Test',
         students: [],
-        startDate: new Date('2025-01-01'),
-        finalDate: new Date('2025-01-15'),
+        startDate: '2025-01-01',
+        startTime: '00:00',
+        finalDate: '2025-01-15',
+        finalTime: '23:59',
       };
       expect(isFormValid(data)).toBe(false);
     });
@@ -258,8 +270,10 @@ describe('validation', () => {
         subtype: 'PROVA',
         title: 'Test Activity',
         students: [{ studentId: '1', userInstitutionId: '1' }],
-        startDate: new Date('2025-01-01'),
-        finalDate: new Date('2025-01-15'),
+        startDate: '2025-01-01',
+        startTime: '00:00',
+        finalDate: '2025-01-15',
+        finalTime: '23:59',
         canRetry: true,
       };
       expect(isFormValid(data)).toBe(true);

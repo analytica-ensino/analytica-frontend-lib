@@ -123,6 +123,8 @@ export interface SendActivityModalStore {
 const initialState = {
   formData: {
     canRetry: false,
+    startTime: '00:00',
+    finalTime: '23:59',
   } as Partial<SendActivityFormData>,
   currentStep: 1,
   completedSteps: [] as number[],

@@ -108,9 +108,6 @@ export default defineConfig({
       'src/components/Support/components/TicketModal.tsx',
     'types/support/index': 'src/types/support.ts',
 
-    // DatePickerInput
-    'DatePickerInput/index': 'src/components/DatePickerInput/index.ts',
-
     // SendActivityModal
     'SendActivityModal/index': 'src/components/SendActivityModal/index.ts',
 

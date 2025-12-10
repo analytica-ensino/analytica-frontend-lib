@@ -1,10 +1,16 @@
-import { useCallback, useEffect, ChangeEvent } from 'react';
+import { useCallback, useEffect, useState, ChangeEvent } from 'react';
 import {
   CaretLeftIcon,
   ArrowRightIcon,
   PaperPlaneTiltIcon,
   WarningCircleIcon,
+  CalendarBlankIcon,
 } from '@phosphor-icons/react';
+import DropdownMenu, {
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+} from '../DropdownMenu/DropdownMenu';
+import Calendar from '../Calendar/Calendar';
 import Modal from '../Modal/Modal';
 import Stepper from '../Stepper/Stepper';
 import Button from '../Button/Button';
@@ -15,7 +21,6 @@ import CheckBox from '../CheckBox/CheckBox';
 import Text from '../Text/Text';
 import { RadioGroup, RadioGroupItem } from '../Radio/Radio';
 import { CardAccordation, AccordionGroup } from '../Accordation';
-import { DatePickerInput } from '../DatePickerInput';
 import { useSendActivityModalStore } from './hooks/useSendActivityModal';
 import {
   SendActivityModalProps,
@@ -42,6 +47,16 @@ const STEPPER_STEPS = [
  * 2. Recipient - Select students from hierarchical structure
  * 3. Deadline - Set start/end dates and retry option
  */
+/**
+ * Helper to format Date object to YYYY-MM-DD string
+ */
+const formatDateToInput = (dateObj: Date): string => {
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const SendActivityModal = ({
   isOpen,
   onClose,
@@ -52,12 +67,26 @@ const SendActivityModal = ({
   const store = useSendActivityModalStore();
   const reset = useSendActivityModalStore((state) => state.reset);
 
+  // Calendar dropdown state
+  const [isStartCalendarOpen, setIsStartCalendarOpen] = useState(false);
+  const [isFinalCalendarOpen, setIsFinalCalendarOpen] = useState(false);
+  const [selectedStartDate, setSelectedStartDate] = useState<Date | undefined>(
+    undefined
+  );
+  const [selectedFinalDate, setSelectedFinalDate] = useState<Date | undefined>(
+    undefined
+  );
+
   /**
    * Reset store when modal closes
    */
   useEffect(() => {
     if (!isOpen) {
       reset();
+      setIsStartCalendarOpen(false);
+      setIsFinalCalendarOpen(false);
+      setSelectedStartDate(undefined);
+      setSelectedFinalDate(undefined);
     }
   }, [isOpen, reset]);
 
@@ -95,8 +124,18 @@ const SendActivityModal = ({
    * Handle start date change
    */
   const handleStartDateChange = useCallback(
-    (date: Date) => {
-      store.setFormData({ startDate: date });
+    (e: ChangeEvent<HTMLInputElement>) => {
+      store.setFormData({ startDate: e.target.value });
+    },
+    [store]
+  );
+
+  /**
+   * Handle start time change
+   */
+  const handleStartTimeChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      store.setFormData({ startTime: e.target.value });
     },
     [store]
   );
@@ -105,8 +144,18 @@ const SendActivityModal = ({
    * Handle final date change
    */
   const handleFinalDateChange = useCallback(
-    (date: Date) => {
-      store.setFormData({ finalDate: date });
+    (e: ChangeEvent<HTMLInputElement>) => {
+      store.setFormData({ finalDate: e.target.value });
+    },
+    [store]
+  );
+
+  /**
+   * Handle final time change
+   */
+  const handleFinalTimeChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      store.setFormData({ finalTime: e.target.value });
     },
     [store]
   );
@@ -117,6 +166,30 @@ const SendActivityModal = ({
   const handleRetryChange = useCallback(
     (value: string) => {
       store.setFormData({ canRetry: value === 'yes' });
+    },
+    [store]
+  );
+
+  /**
+   * Handle start date selection from calendar
+   */
+  const handleStartDateSelect = useCallback(
+    (dateObj: Date) => {
+      setSelectedStartDate(dateObj);
+      store.setFormData({ startDate: formatDateToInput(dateObj) });
+      setIsStartCalendarOpen(false);
+    },
+    [store]
+  );
+
+  /**
+   * Handle final date selection from calendar
+   */
+  const handleFinalDateSelect = useCallback(
+    (dateObj: Date) => {
+      setSelectedFinalDate(dateObj);
+      store.setFormData({ finalDate: formatDateToInput(dateObj) });
+      setIsFinalCalendarOpen(false);
     },
     [store]
   );
@@ -631,25 +704,83 @@ const SendActivityModal = ({
    */
   const renderDeadlineStep = () => (
     <div className="flex flex-col gap-4 sm:gap-6">
-      {/* Start Date */}
-      <DatePickerInput
-        label="Iniciar em*"
-        value={store.formData.startDate}
-        onChange={handleStartDateChange}
-        error={store.errors.startDate}
-        showTime
-        testId="start-date-picker"
-      />
+      {/* Start Date and Time */}
+      <div className="grid grid-cols-2 gap-2">
+        <DropdownMenu
+          open={isStartCalendarOpen}
+          onOpenChange={setIsStartCalendarOpen}
+        >
+          <DropdownMenuTrigger>
+            <Input
+              label="Iniciar em*"
+              type="date"
+              value={store.formData.startDate || ''}
+              onChange={handleStartDateChange}
+              variant="rounded"
+              errorMessage={store.errors.startDate}
+              data-testid="start-date-input"
+              iconRight={<CalendarBlankIcon size={20} />}
+              className="[&::-webkit-calendar-picker-indicator]:hidden"
+            />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="p-0">
+            <Calendar
+              variant="selection"
+              selectedDate={selectedStartDate}
+              onDateSelect={handleStartDateSelect}
+              showActivities={false}
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Input
+          label="Hora*"
+          type="time"
+          value={store.formData.startTime || '00:00'}
+          onChange={handleStartTimeChange}
+          variant="rounded"
+          data-testid="start-time-input"
+          className="[&::-webkit-calendar-picker-indicator]:hidden"
+        />
+      </div>
 
-      {/* Final Date */}
-      <DatePickerInput
-        label="Finalizar até*"
-        value={store.formData.finalDate}
-        onChange={handleFinalDateChange}
-        error={store.errors.finalDate}
-        showTime
-        testId="final-date-picker"
-      />
+      {/* Final Date and Time */}
+      <div className="grid grid-cols-2 gap-2">
+        <DropdownMenu
+          open={isFinalCalendarOpen}
+          onOpenChange={setIsFinalCalendarOpen}
+        >
+          <DropdownMenuTrigger>
+            <Input
+              label="Finalizar até*"
+              type="date"
+              value={store.formData.finalDate || ''}
+              onChange={handleFinalDateChange}
+              variant="rounded"
+              errorMessage={store.errors.finalDate}
+              data-testid="final-date-input"
+              iconRight={<CalendarBlankIcon size={20} />}
+              className="[&::-webkit-calendar-picker-indicator]:hidden"
+            />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="p-0">
+            <Calendar
+              variant="selection"
+              selectedDate={selectedFinalDate}
+              onDateSelect={handleFinalDateSelect}
+              showActivities={false}
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Input
+          label="Hora*"
+          type="time"
+          value={store.formData.finalTime || '23:59'}
+          onChange={handleFinalTimeChange}
+          variant="rounded"
+          data-testid="final-time-input"
+          className="[&::-webkit-calendar-picker-indicator]:hidden"
+        />
+      </div>
 
       {/* Retry Option */}
       <div>

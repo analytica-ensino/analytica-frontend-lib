@@ -443,10 +443,6 @@ export type {
   SupportApiClient,
 } from './types/support';
 
-// DatePickerInput Component
-export { DatePickerInput } from './components/DatePickerInput';
-export type { DatePickerInputProps } from './components/DatePickerInput';
-
 // SendActivityModal Component
 export { SendActivityModal } from './components/SendActivityModal';
 export { useSendActivityModal } from './components/SendActivityModal';
