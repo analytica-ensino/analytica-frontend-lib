@@ -133,6 +133,37 @@ export type {
   NotificationStore,
 } from './store/notificationStore';
 
+// Activity Filters Data Hook (consolidated hook for all filter data)
+export {
+  createUseActivityFiltersData,
+  createActivityFiltersDataHook,
+} from './hooks/useActivityFiltersData';
+export type {
+  UseActivityFiltersDataReturn,
+  UseActivityFiltersDataOptions,
+} from './hooks/useActivityFiltersData';
+
+// Questions List Hook
+export {
+  createUseQuestionsList,
+  createQuestionsListHook,
+} from './hooks/useQuestionsList';
+export type { UseQuestionsListReturn } from './hooks/useQuestionsList';
+export type {
+  Question as QuestionActivity,
+  Pagination,
+  QuestionsFilterBody,
+  QuestionOptionActivity,
+  KnowledgeMatrixItemActivity,
+  QuestionBankYearActivity,
+  PaginationActivity,
+  QuestionsListResponseActivity,
+} from './types/questions';
+export { DIFFICULTY_LEVEL_ENUM, QUESTION_STATUS_ENUM } from './types/questions';
+
+// API Types
+export type { BaseApiClient } from './types/api';
+
 // Theme Store
 export { useThemeStore } from './store/themeStore';
 export type { ThemeStore, ThemeState, ThemeActions } from './store/themeStore';
@@ -365,6 +396,8 @@ export { useAppContent } from './hooks/useAppContent';
 export { useInstitutionId } from './hooks/useInstitution';
 export { useAuthStore } from './store/authStore';
 export { useAppStore } from './store/appStore';
+export { useQuestionFiltersStore } from './store/questionFiltersStore';
+export type { QuestionFiltersState } from './store/questionFiltersStore';
 export type { AuthState } from './store/authStore';
 export { ActivityCardQuestionBanks } from './components/ActivityCardQuestionBanks/ActivityCardQuestionBanks';
 // Utils

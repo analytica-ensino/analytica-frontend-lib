@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
   QUESTION_TYPE,
 } from '../..';
+import type { BaseApiClient } from '../../types/api';
+import { createUseActivityFiltersData } from '../../hooks/useActivityFiltersData';
 import { questionTypeLabels } from '../../types/questionTypes';
 import type {
   ActivityFiltersData,
@@ -28,7 +30,7 @@ import {
   toggleSingleValue,
 } from '../../utils/activityFilters';
 
-const questionTypes = [
+const questionTypesFallback = [
   QUESTION_TYPE.ALTERNATIVA,
   QUESTION_TYPE.VERDADEIRO_FALSO,
   QUESTION_TYPE.DISSERTATIVA,
@@ -49,8 +51,7 @@ const QuestionTypeFilter = ({
   onToggleType,
   allowedQuestionTypes,
 }: QuestionTypeFilterProps) => {
-  // Use allowedQuestionTypes if provided, otherwise use all question types
-  const availableQuestionTypes = allowedQuestionTypes || questionTypes;
+  const availableQuestionTypes = allowedQuestionTypes || questionTypesFallback;
 
   return (
     <div>
@@ -274,31 +275,12 @@ const FilterActions = ({
 
 // Main ActivityFilters Component
 export interface ActivityFiltersProps {
+  apiClient: BaseApiClient;
   onFiltersChange: (filters: ActivityFiltersData) => void;
   variant?: 'default' | 'popover';
-  // Data
-  banks?: Bank[];
-  bankYears?: BankYear[];
-  knowledgeAreas?: KnowledgeArea[];
-  knowledgeStructure?: KnowledgeStructureState;
-  knowledgeCategories?: CategoryConfig[];
+  institutionId?: string | null;
   // Question types
   allowedQuestionTypes?: QUESTION_TYPE[];
-  // Loading states
-  loadingBanks?: boolean;
-  loadingKnowledge?: boolean;
-  loadingSubjects?: boolean;
-  // Errors
-  banksError?: string | null;
-  subjectsError?: string | null;
-  // Load functions
-  loadBanks?: () => void | Promise<void>;
-  loadKnowledge?: () => void | Promise<void>;
-  loadTopics?: (subjectIds: string[]) => void | Promise<void>;
-  loadSubtopics?: (topicIds: string[]) => void | Promise<void>;
-  loadContents?: (subtopicIds: string[]) => void | Promise<void>;
-  // Handlers
-  handleCategoriesChange?: (updatedCategories: CategoryConfig[]) => void;
   // Action buttons
   onClearFilters?: () => void;
   onApplyFilters?: () => void;
@@ -309,45 +291,44 @@ export interface ActivityFiltersProps {
  * Manages question types, banks, subjects, and knowledge structure selections
  */
 export const ActivityFilters = ({
+  apiClient,
   onFiltersChange,
   variant = 'default',
-  // Data
-  banks = [],
-  bankYears = [],
-  knowledgeAreas = [],
-  knowledgeStructure = {
-    topics: [],
-    subtopics: [],
-    contents: [],
-    loading: false,
-    error: null,
-  },
-  knowledgeCategories = [],
+  institutionId = null,
   // Question types
   allowedQuestionTypes,
-  // Loading states
-  loadingBanks = false,
-  loadingKnowledge: _loadingKnowledge = false,
-  loadingSubjects = false,
-  // Errors
-  banksError = null,
-  subjectsError = null,
-  // Load functions
-  loadBanks,
-  loadKnowledge,
-  loadTopics,
-  loadSubtopics: _loadSubtopics,
-  loadContents: _loadContents,
-  // Handlers
-  handleCategoriesChange,
   // Action buttons
   onClearFilters,
   onApplyFilters,
 }: ActivityFiltersProps) => {
+  const useActivityFiltersData = createUseActivityFiltersData(apiClient);
+
   const [selectedQuestionTypes, setSelectedQuestionTypes] = useState<
     QUESTION_TYPE[]
   >([]);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+
+  const {
+    banks,
+    bankYears,
+    loadingBanks,
+    banksError,
+    knowledgeAreas,
+    loadingSubjects,
+    subjectsError,
+    knowledgeStructure,
+    knowledgeCategories,
+    handleCategoriesChange,
+    loadBanks,
+    loadKnowledgeAreas,
+    loadQuestionTypes,
+    questionTypes,
+    loadingQuestionTypes,
+    questionTypesError,
+  } = useActivityFiltersData({
+    selectedSubjects: selectedSubject ? [selectedSubject] : [],
+    institutionId,
+  });
 
   const prevAllowedQuestionTypesRef = useRef<string | null>(null);
 
@@ -448,22 +429,31 @@ export const ActivityFilters = ({
     });
   }, [banks, bankYears]);
 
-  // Load banks and knowledge areas on component mount
+  // Load banks, knowledge areas and question types on component mount/institution change
   useEffect(() => {
     if (loadBanks) {
       loadBanks();
     }
-    if (loadKnowledge) {
-      loadKnowledge();
+    if (loadKnowledgeAreas) {
+      loadKnowledgeAreas();
     }
-  }, [loadBanks, loadKnowledge]);
+    if (loadQuestionTypes) {
+      loadQuestionTypes();
+    }
+  }, [loadBanks, loadKnowledgeAreas, loadQuestionTypes, institutionId]);
 
-  // Load topics when subject changes
-  useEffect(() => {
-    if (selectedSubject && loadTopics) {
-      loadTopics([selectedSubject]);
+  const availableQuestionTypes = useMemo(() => {
+    const source =
+      questionTypes && questionTypes.length > 0
+        ? questionTypes
+        : questionTypesFallback;
+
+    if (!allowedQuestionTypes || allowedQuestionTypes.length === 0) {
+      return source;
     }
-  }, [selectedSubject, loadTopics]);
+
+    return source.filter((type) => allowedQuestionTypes.includes(type));
+  }, [questionTypes, allowedQuestionTypes]);
 
   // Extract selected IDs from knowledge categories
   const getSelectedKnowledgeIds = useCallback(() => {
@@ -533,8 +523,26 @@ export const ActivityFilters = ({
           <QuestionTypeFilter
             selectedTypes={selectedQuestionTypes}
             onToggleType={toggleQuestionType}
-            allowedQuestionTypes={allowedQuestionTypes}
+            allowedQuestionTypes={availableQuestionTypes}
           />
+          {loadingQuestionTypes && (
+            <Text
+              size="sm"
+              className="text-text-600"
+              data-testid="question-types-loading"
+            >
+              Carregando tipos de questão...
+            </Text>
+          )}
+          {questionTypesError && (
+            <Text
+              size="sm"
+              className="text-error-500"
+              data-testid="question-types-error"
+            >
+              {questionTypesError}
+            </Text>
+          )}
 
           <div>
             <Text size="sm" weight="bold" className="mb-3 block">

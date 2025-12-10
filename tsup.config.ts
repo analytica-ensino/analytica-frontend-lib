@@ -73,6 +73,7 @@ export default defineConfig({
       'src/components/BreadcrumbMenu/useUrlParams.ts',
     'BreadcrumbMenu/breadcrumbStore/index':
       'src/components/BreadcrumbMenu/breadcrumbStore.ts',
+    'hooks/useQuestionsList/index': 'src/hooks/useQuestionsList.ts',
     // Individual Auth components
     'ThemeToggle/index': 'src/components/ThemeToggle/ThemeToggle.tsx',
     'Auth/AuthProvider/index': 'src/components/Auth/Auth.tsx',
@@ -122,12 +123,12 @@ export default defineConfig({
     'react',
     'react-dom',
     'dayjs',
+    'dayjs/locale/pt-br',
     'zod',
     'react-hook-form',
     '@hookform/resolvers/zod',
     '@phosphor-icons/react',
   ],
-  noExternal: ['dayjs/locale/pt-br'],
   target: 'es2022',
   sourcemap: true,
   dts: false, // Use tsc directly for better memory efficiency
