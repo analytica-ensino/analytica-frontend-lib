@@ -559,6 +559,34 @@ describe('SendActivityModal', () => {
       expect(finalDateInput).toHaveValue('2025-01-25T18:00');
     });
 
+    it('should clear start date when input is empty', () => {
+      // First set a value
+      const startDateInput = screen.getByTestId('start-datetime-input');
+      fireEvent.change(startDateInput, {
+        target: { value: '2025-01-20T10:30' },
+      });
+
+      // Then clear it
+      fireEvent.change(startDateInput, { target: { value: '' } });
+
+      // The input should be empty
+      expect(startDateInput).toHaveValue('');
+    });
+
+    it('should clear final date when input is empty', () => {
+      // First set a value
+      const finalDateInput = screen.getByTestId('final-datetime-input');
+      fireEvent.change(finalDateInput, {
+        target: { value: '2025-01-25T18:00' },
+      });
+
+      // Then clear it
+      fireEvent.change(finalDateInput, { target: { value: '' } });
+
+      // The input should be empty
+      expect(finalDateInput).toHaveValue('');
+    });
+
     it('should open start date calendar dropdown when clicking input', async () => {
       const startDateInput = screen.getByTestId('start-datetime-input');
       fireEvent.click(startDateInput);
