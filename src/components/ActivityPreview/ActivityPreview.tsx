@@ -1,8 +1,6 @@
 import { File, DownloadSimple } from 'phosphor-react';
 import { Button, Text } from '../../index';
 import { ActivityCardQuestionPreview } from '../ActivityCardQuestionPreview/ActivityCardQuestionPreview';
-import { AlternativesList, type Alternative } from '../Alternative/Alternative';
-import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { cn } from '../../utils/utils';
 
@@ -15,8 +13,10 @@ type PreviewQuestion = {
   questionType?: QUESTION_TYPE;
   questionTypeLabel?: string;
   enunciado?: string;
-  options?: { id: string; option: string }[];
-  correctOptionIds?: string[];
+  question?: {
+    options: { id: string; option: string }[];
+    correctOptionIds?: string[];
+  };
 };
 
 interface ActivityPreviewProps {
@@ -77,8 +77,7 @@ export const ActivityPreview = ({
             questionType,
             questionTypeLabel,
             enunciado,
-            options = [],
-            correctOptionIds = [],
+            question,
           }) => (
             <ActivityCardQuestionPreview
               key={id}
@@ -90,46 +89,8 @@ export const ActivityPreview = ({
               questionTypeLabel={questionTypeLabel}
               enunciado={enunciado}
               defaultExpanded={false}
-            >
-              {questionType === QUESTION_TYPE.ALTERNATIVA && options.length > 0 && (
-                <div className="mt-3">
-                  <AlternativesList
-                    alternatives={options.map(
-                      (option): Alternative => ({
-                        value: option.id,
-                        label: option.option,
-                        status: correctOptionIds.includes(option.id)
-                          ? ('correct' as const)
-                          : undefined,
-                        disabled: !correctOptionIds.includes(option.id),
-                      })
-                    )}
-                    mode="readonly"
-                    layout="compact"
-                    selectedValue={correctOptionIds[0]}
-                    name={`preview-alternatives-${id}`}
-                  />
-                </div>
-              )}
-
-              {questionType === QUESTION_TYPE.MULTIPLA_ESCOLHA && options.length > 0 && (
-                <div className="mt-3">
-                  <MultipleChoiceList
-                    choices={options.map((option) => ({
-                      value: option.id,
-                      label: option.option,
-                      status: correctOptionIds.includes(option.id)
-                        ? ('correct' as const)
-                        : undefined,
-                      disabled: !correctOptionIds.includes(option.id),
-                    }))}
-                    mode="readonly"
-                    selectedValues={correctOptionIds}
-                    name={`preview-multiple-${id}`}
-                  />
-                </div>
-              )}
-            </ActivityCardQuestionPreview>
+              question={question}
+            />
           )
         )}
       </section>
