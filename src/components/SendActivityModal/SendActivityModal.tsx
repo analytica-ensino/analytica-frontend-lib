@@ -193,9 +193,9 @@ const SendActivityModal = ({
     } catch (error) {
       if (onError) {
         onError(error);
+      } else {
+        console.error('Falha ao enviar atividade:', error);
       }
-      // If onError is not provided, error is silently ignored
-      // to prevent unhandled promise rejections in event handlers
     }
   }, [store, onSubmit, onError]);
 
