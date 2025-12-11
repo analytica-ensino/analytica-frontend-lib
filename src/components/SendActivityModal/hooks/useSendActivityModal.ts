@@ -53,12 +53,12 @@ const initialState = {
 };
 
 /**
- * Helper to extract selected students from the last category (students)
+ * Helper to extract selected students from the students category
  */
 function extractStudentsFromCategories(
   categories: CategoryConfig[]
 ): Array<{ studentId: string; userInstitutionId: string }> {
-  // Find the students category (last one, or one with key 'students' or 'alunos')
+  // Find the students category (first matching by key 'students', 'alunos', or 'student')
   const studentsCategory = categories.find(
     (cat) =>
       cat.key === 'students' || cat.key === 'alunos' || cat.key === 'student'
@@ -92,6 +92,11 @@ function extractStudentsFromCategories(
           typeof rawInstId === 'number'
         ) {
           userInstitutionId = String(rawInstId);
+        }
+
+        // Filter out entries without valid userInstitutionId
+        if (!userInstitutionId) {
+          return null;
         }
 
         return { studentId, userInstitutionId };
