@@ -3,558 +3,445 @@ import {
   useSendActivityModalStore,
   useSendActivityModal,
 } from './useSendActivityModal';
-import {
-  RecipientHierarchy,
-  StudentRecipient,
-  ClassData,
-  SchoolYearData,
-  SchoolData,
-} from '../types';
+import { CategoryConfig } from '../types';
 
-const mockStudent1: StudentRecipient = {
-  studentId: 'student-1',
-  userInstitutionId: 'ui-1',
-  name: 'Student 1',
-};
-
-const mockStudent2: StudentRecipient = {
-  studentId: 'student-2',
-  userInstitutionId: 'ui-2',
-  name: 'Student 2',
-};
-
-const mockStudent3: StudentRecipient = {
-  studentId: 'student-3',
-  userInstitutionId: 'ui-3',
-  name: 'Student 3',
-};
-
-const mockClass1: ClassData = {
-  id: 'class-1',
-  name: 'Class 1',
-  students: [mockStudent1, mockStudent2],
-};
-
-const mockClass2: ClassData = {
-  id: 'class-2',
-  name: 'Class 2',
-  students: [mockStudent3],
-};
-
-const mockSchoolYear: SchoolYearData = {
-  id: 'year-1',
-  name: '2025',
-  classes: [mockClass1, mockClass2],
-};
-
-const mockSchool: SchoolData = {
-  id: 'school-1',
-  name: 'School 1',
-  schoolYears: [mockSchoolYear],
-};
-
-const mockRecipients: RecipientHierarchy = {
-  schools: [mockSchool],
-};
+/**
+ * Mock categories for testing
+ */
+const mockCategories: CategoryConfig[] = [
+  {
+    key: 'escola',
+    label: 'Escola',
+    itens: [{ id: 'school-1', name: 'Escola Teste' }],
+    selectedIds: [],
+  },
+  {
+    key: 'serie',
+    label: 'Série',
+    dependsOn: ['escola'],
+    filteredBy: [{ key: 'escola', internalField: 'schoolId' }],
+    itens: [{ id: 'year-1', name: '2025', schoolId: 'school-1' }],
+    selectedIds: [],
+  },
+  {
+    key: 'turma',
+    label: 'Turma',
+    dependsOn: ['serie'],
+    filteredBy: [{ key: 'serie', internalField: 'yearId' }],
+    itens: [{ id: 'class-1', name: 'Turma A', yearId: 'year-1' }],
+    selectedIds: [],
+  },
+  {
+    key: 'alunos',
+    label: 'Alunos',
+    dependsOn: ['turma'],
+    filteredBy: [{ key: 'turma', internalField: 'classId' }],
+    itens: [
+      {
+        id: 'student-1',
+        name: 'Aluno 1',
+        classId: 'class-1',
+        studentId: 'student-1',
+        userInstitutionId: 'ui-1',
+      },
+      {
+        id: 'student-2',
+        name: 'Aluno 2',
+        classId: 'class-1',
+        studentId: 'student-2',
+        userInstitutionId: 'ui-2',
+      },
+    ],
+    selectedIds: [],
+  },
+];
 
 describe('useSendActivityModalStore', () => {
   beforeEach(() => {
-    const { result } = renderHook(() => useSendActivityModalStore());
-    act(() => {
-      result.current.reset();
-    });
+    // Reset store before each test
+    const store = useSendActivityModalStore.getState();
+    store.reset();
   });
 
   describe('initial state', () => {
-    it('should have correct initial values', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+    it('should have default initial state', () => {
+      const store = useSendActivityModalStore.getState();
 
-      expect(result.current.currentStep).toBe(1);
-      expect(result.current.completedSteps).toEqual([]);
-      expect(result.current.errors).toEqual({});
-      expect(result.current.selectedStudentIds.size).toBe(0);
-      expect(result.current.formData.canRetry).toBe(false);
+      expect(store.currentStep).toBe(1);
+      expect(store.completedSteps).toEqual([]);
+      expect(store.errors).toEqual({});
+      expect(store.categories).toEqual([]);
+      expect(store.formData.canRetry).toBe(false);
+      expect(store.formData.startTime).toBe('00:00');
+      expect(store.formData.finalTime).toBe('23:59');
     });
   });
 
   describe('setFormData', () => {
     it('should update form data', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+      const store = useSendActivityModalStore.getState();
 
       act(() => {
-        result.current.setFormData({ title: 'Test Title' });
+        store.setFormData({ title: 'Test Activity' });
       });
 
-      expect(result.current.formData.title).toBe('Test Title');
+      expect(useSendActivityModalStore.getState().formData.title).toBe(
+        'Test Activity'
+      );
     });
 
     it('should merge with existing form data', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+      const store = useSendActivityModalStore.getState();
 
       act(() => {
-        result.current.setFormData({ title: 'Test Title' });
-        result.current.setFormData({ subtype: 'TAREFA' });
+        store.setFormData({ title: 'Test Activity' });
+        store.setFormData({ subtype: 'TAREFA' });
       });
 
-      expect(result.current.formData.title).toBe('Test Title');
-      expect(result.current.formData.subtype).toBe('TAREFA');
+      const newState = useSendActivityModalStore.getState();
+      expect(newState.formData.title).toBe('Test Activity');
+      expect(newState.formData.subtype).toBe('TAREFA');
     });
   });
 
-  describe('step navigation', () => {
-    it('should go to a specific step', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+  describe('navigation', () => {
+    it('should go to step 2 when goToStep is called with 2', () => {
+      const store = useSendActivityModalStore.getState();
 
       act(() => {
-        result.current.goToStep(2);
+        store.goToStep(2);
       });
 
-      expect(result.current.currentStep).toBe(2);
+      expect(useSendActivityModalStore.getState().currentStep).toBe(2);
     });
 
     it('should not go to invalid step', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+      const store = useSendActivityModalStore.getState();
 
       act(() => {
-        result.current.goToStep(0);
+        store.goToStep(5);
       });
 
-      expect(result.current.currentStep).toBe(1);
-
-      act(() => {
-        result.current.goToStep(4);
-      });
-
-      expect(result.current.currentStep).toBe(1);
+      expect(useSendActivityModalStore.getState().currentStep).toBe(1);
     });
 
-    it('should clear errors when changing step', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+    it('should not go to step below 1', () => {
+      const store = useSendActivityModalStore.getState();
 
       act(() => {
-        result.current.setErrors({ title: 'Error' });
-        result.current.goToStep(2);
+        store.goToStep(0);
       });
 
-      expect(result.current.errors).toEqual({});
+      expect(useSendActivityModalStore.getState().currentStep).toBe(1);
     });
 
     it('should go to previous step', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+      const store = useSendActivityModalStore.getState();
 
       act(() => {
-        result.current.goToStep(3);
-        result.current.previousStep();
+        store.goToStep(2);
+        store.previousStep();
       });
 
-      expect(result.current.currentStep).toBe(2);
+      expect(useSendActivityModalStore.getState().currentStep).toBe(1);
     });
 
     it('should not go below step 1', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+      const store = useSendActivityModalStore.getState();
 
       act(() => {
-        result.current.previousStep();
+        store.previousStep();
       });
 
-      expect(result.current.currentStep).toBe(1);
+      expect(useSendActivityModalStore.getState().currentStep).toBe(1);
+    });
+
+    it('should clear errors when changing step', () => {
+      const store = useSendActivityModalStore.getState();
+
+      act(() => {
+        store.setErrors({ title: 'Error' });
+        store.goToStep(2);
+      });
+
+      expect(useSendActivityModalStore.getState().errors).toEqual({});
+    });
+  });
+
+  describe('validation', () => {
+    it('should return false for invalid step 1 (missing subtype)', () => {
+      const store = useSendActivityModalStore.getState();
+
+      act(() => {
+        store.setFormData({ title: 'Test' });
+      });
+
+      let isValid = false;
+      act(() => {
+        isValid = store.validateCurrentStep();
+      });
+
+      expect(isValid).toBe(false);
+      expect(useSendActivityModalStore.getState().errors.subtype).toBeDefined();
+    });
+
+    it('should return false for invalid step 1 (missing title)', () => {
+      const store = useSendActivityModalStore.getState();
+
+      act(() => {
+        store.setFormData({ subtype: 'TAREFA' });
+      });
+
+      let isValid = false;
+      act(() => {
+        isValid = store.validateCurrentStep();
+      });
+
+      expect(isValid).toBe(false);
+      expect(useSendActivityModalStore.getState().errors.title).toBeDefined();
+    });
+
+    it('should return true for valid step 1', () => {
+      const store = useSendActivityModalStore.getState();
+
+      act(() => {
+        store.setFormData({ subtype: 'TAREFA', title: 'Test Activity' });
+      });
+
+      let isValid = false;
+      act(() => {
+        isValid = store.validateCurrentStep();
+      });
+
+      expect(isValid).toBe(true);
+      expect(useSendActivityModalStore.getState().errors).toEqual({});
+    });
+
+    it('should validate all steps', () => {
+      const store = useSendActivityModalStore.getState();
+
+      let isValid = false;
+      act(() => {
+        isValid = store.validateAllSteps();
+      });
+
+      expect(isValid).toBe(false);
+      expect(useSendActivityModalStore.getState().errors).not.toEqual({});
     });
   });
 
   describe('nextStep', () => {
-    it('should not advance if validation fails', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+    it('should advance to next step when valid', () => {
+      const store = useSendActivityModalStore.getState();
 
       act(() => {
-        const advanced = result.current.nextStep();
-        expect(advanced).toBe(false);
+        store.setFormData({ subtype: 'TAREFA', title: 'Test Activity' });
       });
 
-      expect(result.current.currentStep).toBe(1);
-      expect(result.current.errors.subtype).toBeDefined();
-      expect(result.current.errors.title).toBeDefined();
+      let result = false;
+      act(() => {
+        result = store.nextStep();
+      });
+
+      expect(result).toBe(true);
+      expect(useSendActivityModalStore.getState().currentStep).toBe(2);
+      expect(useSendActivityModalStore.getState().completedSteps).toContain(1);
     });
 
-    it('should advance if validation passes', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+    it('should not advance when invalid', () => {
+      const store = useSendActivityModalStore.getState();
 
+      let result = false;
       act(() => {
-        result.current.setFormData({ subtype: 'TAREFA', title: 'Test' });
+        result = store.nextStep();
       });
 
-      act(() => {
-        const advanced = result.current.nextStep();
-        expect(advanced).toBe(true);
-      });
-
-      expect(result.current.currentStep).toBe(2);
-      expect(result.current.completedSteps).toContain(1);
+      expect(result).toBe(false);
+      expect(useSendActivityModalStore.getState().currentStep).toBe(1);
     });
 
-    it('should not advance past step 3', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+    it('should not advance beyond step 3', () => {
+      const store = useSendActivityModalStore.getState();
 
       act(() => {
-        result.current.setFormData({
+        store.goToStep(3);
+        store.setFormData({
           subtype: 'TAREFA',
           title: 'Test',
-          students: [{ studentId: '1', userInstitutionId: '1' }],
-          startDate: '2025-01-01',
-          startTime: '00:00',
-          finalDate: '2025-01-15',
-          finalTime: '23:59',
+          students: [{ studentId: 's1', userInstitutionId: 'ui1' }],
+          startDate: '2025-01-20',
+          finalDate: '2025-01-25',
         });
-        result.current.goToStep(3);
       });
 
       act(() => {
-        const advanced = result.current.nextStep();
-        expect(advanced).toBe(true);
+        store.nextStep();
       });
 
-      expect(result.current.currentStep).toBe(3);
+      // Should stay on step 3
+      expect(useSendActivityModalStore.getState().currentStep).toBe(3);
+    });
+
+    it('should not duplicate completed steps', () => {
+      const store = useSendActivityModalStore.getState();
+
+      act(() => {
+        store.setFormData({ subtype: 'TAREFA', title: 'Test Activity' });
+      });
+
+      act(() => {
+        store.nextStep();
+        store.previousStep();
+        store.nextStep();
+      });
+
+      const state = useSendActivityModalStore.getState();
+      expect(state.completedSteps.filter((s) => s === 1).length).toBe(1);
     });
   });
 
-  describe('validateCurrentStep', () => {
-    it('should validate step 1', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+  describe('categories', () => {
+    it('should set categories', () => {
+      const store = useSendActivityModalStore.getState();
 
       act(() => {
-        const isValid = result.current.validateCurrentStep();
-        expect(isValid).toBe(false);
+        store.setCategories(mockCategories);
       });
 
-      expect(result.current.errors.subtype).toBeDefined();
-    });
-
-    it('should return true for valid step', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-
-      act(() => {
-        result.current.setFormData({ subtype: 'PROVA', title: 'Test' });
-      });
-
-      act(() => {
-        const isValid = result.current.validateCurrentStep();
-        expect(isValid).toBe(true);
-      });
-
-      expect(result.current.errors).toEqual({});
-    });
-  });
-
-  describe('student selection', () => {
-    it('should toggle a single student', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-
-      act(() => {
-        result.current.toggleStudent(mockStudent1);
-      });
-
-      expect(result.current.selectedStudentIds.size).toBe(1);
-      expect(result.current.formData.students).toHaveLength(1);
-      expect(result.current.formData.students?.[0].studentId).toBe(
-        mockStudent1.studentId
-      );
-
-      act(() => {
-        result.current.toggleStudent(mockStudent1);
-      });
-
-      expect(result.current.selectedStudentIds.size).toBe(0);
-      expect(result.current.formData.students).toHaveLength(0);
-    });
-
-    it('should toggle all students in a class', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-
-      act(() => {
-        result.current.toggleClass(mockClass1);
-      });
-
-      expect(result.current.selectedStudentIds.size).toBe(2);
-      expect(result.current.formData.students).toHaveLength(2);
-
-      act(() => {
-        result.current.toggleClass(mockClass1);
-      });
-
-      expect(result.current.selectedStudentIds.size).toBe(0);
-    });
-
-    it('should toggle all students in a school year', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-
-      act(() => {
-        result.current.toggleSchoolYear(mockSchoolYear);
-      });
-
-      expect(result.current.selectedStudentIds.size).toBe(3);
-
-      act(() => {
-        result.current.toggleSchoolYear(mockSchoolYear);
-      });
-
-      expect(result.current.selectedStudentIds.size).toBe(0);
-    });
-
-    it('should toggle all students in a school', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-
-      act(() => {
-        result.current.toggleSchool(mockSchool);
-      });
-
-      expect(result.current.selectedStudentIds.size).toBe(3);
-
-      act(() => {
-        result.current.toggleSchool(mockSchool);
-      });
-
-      expect(result.current.selectedStudentIds.size).toBe(0);
-    });
-
-    it('should select all students', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-
-      act(() => {
-        result.current.selectAllStudents(mockRecipients);
-      });
-
-      expect(result.current.selectedStudentIds.size).toBe(3);
-      expect(result.current.formData.students).toHaveLength(3);
-    });
-
-    it('should clear all selections', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-
-      act(() => {
-        result.current.selectAllStudents(mockRecipients);
-        result.current.clearSelection();
-      });
-
-      expect(result.current.selectedStudentIds.size).toBe(0);
-      expect(result.current.formData.students).toHaveLength(0);
-    });
-  });
-
-  describe('selection checks', () => {
-    it('should check if student is selected', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-
-      act(() => {
-        result.current.toggleStudent(mockStudent1);
-      });
-
-      expect(result.current.isStudentSelected(mockStudent1)).toBe(true);
-      expect(result.current.isStudentSelected(mockStudent2)).toBe(false);
-    });
-
-    it('should check if class is selected', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-
-      expect(result.current.isClassSelected(mockClass1)).toBe(false);
-
-      act(() => {
-        result.current.toggleClass(mockClass1);
-      });
-
-      expect(result.current.isClassSelected(mockClass1)).toBe(true);
-      expect(result.current.isClassSelected(mockClass2)).toBe(false);
-    });
-
-    it('should check if school year is selected', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-
-      expect(result.current.isSchoolYearSelected(mockSchoolYear)).toBe(false);
-
-      act(() => {
-        result.current.toggleSchoolYear(mockSchoolYear);
-      });
-
-      expect(result.current.isSchoolYearSelected(mockSchoolYear)).toBe(true);
-    });
-
-    it('should check if school is selected', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-
-      expect(result.current.isSchoolSelected(mockSchool)).toBe(false);
-
-      act(() => {
-        result.current.toggleSchool(mockSchool);
-      });
-
-      expect(result.current.isSchoolSelected(mockSchool)).toBe(true);
-    });
-
-    it('should check if all students are selected', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-
-      expect(result.current.areAllStudentsSelected(mockRecipients)).toBe(false);
-
-      act(() => {
-        result.current.selectAllStudents(mockRecipients);
-      });
-
-      expect(result.current.areAllStudentsSelected(mockRecipients)).toBe(true);
-    });
-
-    it('should return false for empty class', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-      const emptyClass: ClassData = {
-        id: 'empty',
-        name: 'Empty',
-        students: [],
-      };
-
-      expect(result.current.isClassSelected(emptyClass)).toBe(false);
-    });
-
-    it('should return false for empty school year', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-      const emptySchoolYear: SchoolYearData = {
-        id: 'empty',
-        name: 'Empty',
-        classes: [],
-      };
-
-      expect(result.current.isSchoolYearSelected(emptySchoolYear)).toBe(false);
-    });
-
-    it('should return false for empty school', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-      const emptySchool: SchoolData = {
-        id: 'empty',
-        name: 'Empty',
-        schoolYears: [],
-      };
-
-      expect(result.current.isSchoolSelected(emptySchool)).toBe(false);
-    });
-
-    it('should return false for empty recipients', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-      const emptyRecipients: RecipientHierarchy = { schools: [] };
-
-      expect(result.current.areAllStudentsSelected(emptyRecipients)).toBe(
-        false
+      expect(useSendActivityModalStore.getState().categories).toEqual(
+        mockCategories
       );
     });
-  });
 
-  describe('filter selection', () => {
-    it('should toggle school filter', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+    it('should extract students from categories with selectedIds', () => {
+      const store = useSendActivityModalStore.getState();
 
-      expect(result.current.isSchoolFilterSelected('school-1')).toBe(false);
-
-      act(() => {
-        result.current.toggleSchoolFilter('school-1');
-      });
-
-      expect(result.current.isSchoolFilterSelected('school-1')).toBe(true);
-      expect(result.current.selectedSchoolIds.has('school-1')).toBe(true);
+      const categoriesWithSelection = [...mockCategories];
+      categoriesWithSelection[3] = {
+        ...categoriesWithSelection[3],
+        selectedIds: ['student-1'],
+      };
 
       act(() => {
-        result.current.toggleSchoolFilter('school-1');
+        store.setCategories(categoriesWithSelection);
       });
 
-      expect(result.current.isSchoolFilterSelected('school-1')).toBe(false);
+      const state = useSendActivityModalStore.getState();
+      expect(state.formData.students).toEqual([
+        { studentId: 'student-1', userInstitutionId: 'ui-1' },
+      ]);
     });
 
-    it('should toggle school year filter', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+    it('should extract multiple students from categories', () => {
+      const store = useSendActivityModalStore.getState();
 
-      expect(result.current.isSchoolYearFilterSelected('year-1')).toBe(false);
-
-      act(() => {
-        result.current.toggleSchoolYearFilter('year-1');
-      });
-
-      expect(result.current.isSchoolYearFilterSelected('year-1')).toBe(true);
-      expect(result.current.selectedSchoolYearIds.has('year-1')).toBe(true);
+      const categoriesWithSelection = [...mockCategories];
+      categoriesWithSelection[3] = {
+        ...categoriesWithSelection[3],
+        selectedIds: ['student-1', 'student-2'],
+      };
 
       act(() => {
-        result.current.toggleSchoolYearFilter('year-1');
+        store.setCategories(categoriesWithSelection);
       });
 
-      expect(result.current.isSchoolYearFilterSelected('year-1')).toBe(false);
+      const state = useSendActivityModalStore.getState();
+      expect(state.formData.students).toHaveLength(2);
     });
 
-    it('should toggle class filter', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
-
-      expect(result.current.isClassFilterSelected('class-1')).toBe(false);
+    it('should handle empty categories', () => {
+      const store = useSendActivityModalStore.getState();
 
       act(() => {
-        result.current.toggleClassFilter('class-1');
+        store.setCategories([]);
       });
 
-      expect(result.current.isClassFilterSelected('class-1')).toBe(true);
-      expect(result.current.selectedClassIds.has('class-1')).toBe(true);
-
-      act(() => {
-        result.current.toggleClassFilter('class-1');
-      });
-
-      expect(result.current.isClassFilterSelected('class-1')).toBe(false);
+      const state = useSendActivityModalStore.getState();
+      expect(state.categories).toEqual([]);
+      expect(state.formData.students).toEqual([]);
     });
 
-    it('should reset filter selections on reset', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+    it('should handle categories without students category', () => {
+      const store = useSendActivityModalStore.getState();
+
+      const categoriesWithoutStudents: CategoryConfig[] = [
+        {
+          key: 'escola',
+          label: 'Escola',
+          itens: [{ id: 'school-1', name: 'Escola Teste' }],
+          selectedIds: ['school-1'],
+        },
+      ];
 
       act(() => {
-        result.current.toggleSchoolFilter('school-1');
-        result.current.toggleSchoolYearFilter('year-1');
-        result.current.toggleClassFilter('class-1');
+        store.setCategories(categoriesWithoutStudents);
       });
 
-      expect(result.current.selectedSchoolIds.size).toBe(1);
-      expect(result.current.selectedSchoolYearIds.size).toBe(1);
-      expect(result.current.selectedClassIds.size).toBe(1);
-
-      act(() => {
-        result.current.reset();
-      });
-
-      expect(result.current.selectedSchoolIds.size).toBe(0);
-      expect(result.current.selectedSchoolYearIds.size).toBe(0);
-      expect(result.current.selectedClassIds.size).toBe(0);
+      const state = useSendActivityModalStore.getState();
+      expect(state.formData.students).toEqual([]);
     });
   });
 
   describe('reset', () => {
     it('should reset to initial state', () => {
-      const { result } = renderHook(() => useSendActivityModalStore());
+      const store = useSendActivityModalStore.getState();
 
       act(() => {
-        result.current.setFormData({ title: 'Test', subtype: 'TAREFA' });
-        result.current.goToStep(2);
-        result.current.toggleStudent(mockStudent1);
-        result.current.setErrors({ title: 'Error' });
+        store.setFormData({ title: 'Test', subtype: 'TAREFA' });
+        store.goToStep(2);
+        store.setCategories(mockCategories);
+        store.reset();
       });
 
-      act(() => {
-        result.current.reset();
-      });
-
-      expect(result.current.currentStep).toBe(1);
-      expect(result.current.completedSteps).toEqual([]);
-      expect(result.current.errors).toEqual({});
-      expect(result.current.selectedStudentIds.size).toBe(0);
-      expect(result.current.formData.title).toBeUndefined();
+      const state = useSendActivityModalStore.getState();
+      expect(state.currentStep).toBe(1);
+      expect(state.formData.title).toBeUndefined();
+      expect(state.categories).toEqual([]);
+      expect(state.completedSteps).toEqual([]);
     });
   });
 
-  describe('useSendActivityModal hook', () => {
-    it('should return store instance', () => {
-      const { result } = renderHook(() => useSendActivityModal());
+  describe('setErrors', () => {
+    it('should set errors', () => {
+      const store = useSendActivityModalStore.getState();
 
-      expect(result.current.currentStep).toBe(1);
-      expect(result.current.setFormData).toBeDefined();
-      expect(result.current.toggleStudent).toBeDefined();
-      expect(result.current.reset).toBeDefined();
+      act(() => {
+        store.setErrors({ title: 'Title is required' });
+      });
+
+      expect(useSendActivityModalStore.getState().errors.title).toBe(
+        'Title is required'
+      );
     });
+  });
+});
+
+describe('useSendActivityModal hook', () => {
+  beforeEach(() => {
+    const store = useSendActivityModalStore.getState();
+    store.reset();
+  });
+
+  it('should return store state and actions', () => {
+    const { result } = renderHook(() => useSendActivityModal());
+
+    expect(result.current.currentStep).toBe(1);
+    expect(result.current.formData).toBeDefined();
+    expect(result.current.setFormData).toBeDefined();
+    expect(result.current.nextStep).toBeDefined();
+    expect(result.current.previousStep).toBeDefined();
+    expect(result.current.goToStep).toBeDefined();
+    expect(result.current.reset).toBeDefined();
+    expect(result.current.setCategories).toBeDefined();
+  });
+
+  it('should update state when actions are called', () => {
+    const { result } = renderHook(() => useSendActivityModal());
+
+    act(() => {
+      result.current.setFormData({ title: 'Test Activity' });
+    });
+
+    expect(result.current.formData.title).toBe('Test Activity');
   });
 });

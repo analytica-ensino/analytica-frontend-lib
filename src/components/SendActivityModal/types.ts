@@ -1,3 +1,8 @@
+import type { CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
+
+// Re-export types from CheckboxGroup for easier imports
+export type { CategoryConfig, Item } from '../CheckBoxGroup/CheckBoxGroup';
+
 /**
  * Activity subtype matching backend SIMULATION_SUBTYPE
  */
@@ -14,53 +19,6 @@ export const ACTIVITY_TYPE_OPTIONS: ReadonlyArray<{
   { value: 'TRABALHO', label: 'Trabalho' },
   { value: 'PROVA', label: 'Prova' },
 ] as const;
-
-/**
- * Student recipient structure matching backend SendActivityToStudentsBody
- */
-export interface StudentRecipient {
-  /** User ID from users table */
-  studentId: string;
-  /** SupUserInstitution ID */
-  userInstitutionId: string;
-  /** Display name */
-  name: string;
-}
-
-/**
- * Class/Turma with students
- */
-export interface ClassData {
-  id: string;
-  name: string;
-  shift?: string;
-  students: StudentRecipient[];
-}
-
-/**
- * SchoolYear/Série with classes
- */
-export interface SchoolYearData {
-  id: string;
-  name: string;
-  classes: ClassData[];
-}
-
-/**
- * School with school years
- */
-export interface SchoolData {
-  id: string;
-  name: string;
-  schoolYears: SchoolYearData[];
-}
-
-/**
- * Props for recipient data hierarchy
- */
-export interface RecipientHierarchy {
-  schools: SchoolData[];
-}
 
 /**
  * Form data structure for sending activity
@@ -99,8 +57,10 @@ export interface SendActivityModalProps {
   onClose: () => void;
   /** Callback when activity is submitted */
   onSubmit: (data: SendActivityFormData) => Promise<void>;
-  /** Recipient hierarchy data */
-  recipients: RecipientHierarchy;
+  /** Recipient categories configuration (same format as CheckboxGroup) */
+  categories: CategoryConfig[];
+  /** Callback when categories change (optional - for controlled state) */
+  onCategoriesChange?: (categories: CategoryConfig[]) => void;
   /** Loading state for submit button */
   isLoading?: boolean;
 }

@@ -1,105 +1,200 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import SendActivityModal from './SendActivityModal';
-import { RecipientHierarchy } from './types';
+import { CategoryConfig, Item } from './types';
 import { useSendActivityModalStore } from './hooks/useSendActivityModal';
 
 /**
- * Mock recipients with single path (1 school, 1 year, 1 class)
- * This triggers the simple list view
+ * Toggle selection for an item in a category
  */
-const mockRecipients: RecipientHierarchy = {
-  schools: [
-    {
-      id: 'school-1',
-      name: 'Escola Teste',
-      schoolYears: [
-        {
-          id: 'year-1',
-          name: '2025',
-          classes: [
-            {
-              id: 'class-1',
-              name: 'Turma A',
-              students: [
-                {
-                  studentId: 'student-1',
-                  userInstitutionId: 'ui-1',
-                  name: 'Aluno 1',
-                },
-                {
-                  studentId: 'student-2',
-                  userInstitutionId: 'ui-2',
-                  name: 'Aluno 2',
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  ],
+const toggleCategoryItem = (
+  categories: CategoryConfig[],
+  categoryKey: string,
+  itemId: string
+): CategoryConfig[] => {
+  return categories.map((cat) => {
+    if (cat.key !== categoryKey) return cat;
+    const isSelected = cat.selectedIds?.includes(itemId);
+    const newSelectedIds = isSelected
+      ? cat.selectedIds?.filter((id) => id !== itemId) || []
+      : [...(cat.selectedIds || []), itemId];
+    return { ...cat, selectedIds: newSelectedIds };
+  });
 };
 
 /**
- * Mock recipients with multiple schools (triggers hierarchy view)
+ * Mock item button component
  */
-const mockRecipientsMultiple: RecipientHierarchy = {
-  schools: [
-    {
-      id: 'school-1',
-      name: 'Escola Teste',
-      schoolYears: [
-        {
-          id: 'year-1',
-          name: '2025',
-          classes: [
-            {
-              id: 'class-1',
-              name: 'Turma A',
-              students: [
-                {
-                  studentId: 'student-1',
-                  userInstitutionId: 'ui-1',
-                  name: 'Aluno 1',
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'school-2',
-      name: 'Escola Secundária',
-      schoolYears: [
-        {
-          id: 'year-2',
-          name: '2025',
-          classes: [
-            {
-              id: 'class-2',
-              name: 'Turma B',
-              students: [
-                {
-                  studentId: 'student-3',
-                  userInstitutionId: 'ui-3',
-                  name: 'Aluno 3',
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
+const MockItemButton = ({
+  item,
+  categoryKey,
+  categories,
+  onCategoriesChange,
+}: {
+  item: Item;
+  categoryKey: string;
+  categories: CategoryConfig[];
+  onCategoriesChange?: (categories: CategoryConfig[]) => void;
+}) => (
+  <button
+    key={item.id}
+    data-testid={`item-${item.id}`}
+    onClick={() => {
+      if (onCategoriesChange) {
+        onCategoriesChange(
+          toggleCategoryItem(categories, categoryKey, item.id)
+        );
+      }
+    }}
+  >
+    {item.name}
+  </button>
+);
+
+// Mock CheckboxGroup to avoid import chain issues with PNG files
+jest.mock('../CheckBoxGroup/CheckBoxGroup', () => ({
+  CheckboxGroup: ({
+    categories,
+    onCategoriesChange,
+  }: {
+    categories: CategoryConfig[];
+    onCategoriesChange?: (categories: CategoryConfig[]) => void;
+  }) => (
+    <div data-testid="checkbox-group-mock">
+      {categories.map((cat) => (
+        <div key={cat.key} data-testid={`category-${cat.key}`}>
+          <span>{cat.label}</span>
+          {cat.itens?.map((item) => (
+            <MockItemButton
+              key={item.id}
+              item={item}
+              categoryKey={cat.key}
+              categories={categories}
+              onCategoriesChange={onCategoriesChange}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  ),
+}));
+
+/**
+ * Mock categories with simple single school/class structure
+ */
+const mockCategories: CategoryConfig[] = [
+  {
+    key: 'escola',
+    label: 'Escola',
+    itens: [{ id: 'school-1', name: 'Escola Teste' }],
+    selectedIds: [],
+  },
+  {
+    key: 'serie',
+    label: 'Série',
+    dependsOn: ['escola'],
+    filteredBy: [{ key: 'escola', internalField: 'schoolId' }],
+    itens: [{ id: 'year-1', name: '2025', schoolId: 'school-1' }],
+    selectedIds: [],
+  },
+  {
+    key: 'turma',
+    label: 'Turma',
+    dependsOn: ['serie'],
+    filteredBy: [{ key: 'serie', internalField: 'yearId' }],
+    itens: [{ id: 'class-1', name: 'Turma A', yearId: 'year-1' }],
+    selectedIds: [],
+  },
+  {
+    key: 'alunos',
+    label: 'Alunos',
+    dependsOn: ['turma'],
+    filteredBy: [{ key: 'turma', internalField: 'classId' }],
+    itens: [
+      {
+        id: 'student-1',
+        name: 'Aluno 1',
+        classId: 'class-1',
+        studentId: 'student-1',
+        userInstitutionId: 'ui-1',
+      },
+      {
+        id: 'student-2',
+        name: 'Aluno 2',
+        classId: 'class-1',
+        studentId: 'student-2',
+        userInstitutionId: 'ui-2',
+      },
+    ],
+    selectedIds: [],
+  },
+];
+
+/**
+ * Mock categories with multiple schools (triggers full hierarchy)
+ */
+const mockCategoriesMultiple: CategoryConfig[] = [
+  {
+    key: 'escola',
+    label: 'Escola',
+    itens: [
+      { id: 'school-1', name: 'Escola Teste' },
+      { id: 'school-2', name: 'Escola Secundária' },
+    ],
+    selectedIds: [],
+  },
+  {
+    key: 'serie',
+    label: 'Série',
+    dependsOn: ['escola'],
+    filteredBy: [{ key: 'escola', internalField: 'schoolId' }],
+    itens: [
+      { id: 'year-1', name: '2025', schoolId: 'school-1' },
+      { id: 'year-2', name: '2025', schoolId: 'school-2' },
+    ],
+    selectedIds: [],
+  },
+  {
+    key: 'turma',
+    label: 'Turma',
+    dependsOn: ['serie'],
+    filteredBy: [{ key: 'serie', internalField: 'yearId' }],
+    itens: [
+      { id: 'class-1', name: 'Turma A', yearId: 'year-1' },
+      { id: 'class-2', name: 'Turma B', yearId: 'year-2' },
+    ],
+    selectedIds: [],
+  },
+  {
+    key: 'alunos',
+    label: 'Alunos',
+    dependsOn: ['turma'],
+    filteredBy: [{ key: 'turma', internalField: 'classId' }],
+    itens: [
+      {
+        id: 'student-1',
+        name: 'Aluno 1',
+        classId: 'class-1',
+        studentId: 'student-1',
+        userInstitutionId: 'ui-1',
+      },
+      {
+        id: 'student-3',
+        name: 'Aluno 3',
+        classId: 'class-2',
+        studentId: 'student-3',
+        userInstitutionId: 'ui-3',
+      },
+    ],
+    selectedIds: [],
+  },
+];
 
 describe('SendActivityModal', () => {
   const defaultProps = {
     isOpen: true,
     onClose: jest.fn(),
     onSubmit: jest.fn().mockResolvedValue(undefined),
-    recipients: mockRecipients,
+    categories: mockCategories,
   };
 
   beforeEach(() => {
@@ -220,9 +315,9 @@ describe('SendActivityModal', () => {
     });
   });
 
-  describe('step 2 - Recipient (simple list)', () => {
+  describe('step 2 - Recipient (CheckboxGroup)', () => {
     beforeEach(() => {
-      // Setup: advance to step 2 with single path recipients
+      // Setup: advance to step 2
       render(<SendActivityModal {...defaultProps} />);
       fireEvent.click(screen.getByText('Tarefa'));
       fireEvent.change(
@@ -232,13 +327,8 @@ describe('SendActivityModal', () => {
       fireEvent.click(screen.getByText('Próximo'));
     });
 
-    it('should render select all checkbox', () => {
-      expect(screen.getByText('Todos os alunos')).toBeInTheDocument();
-    });
-
-    it('should render student names in simple list', () => {
-      expect(screen.getByText('Aluno 1')).toBeInTheDocument();
-      expect(screen.getByText('Aluno 2')).toBeInTheDocument();
+    it('should render CheckboxGroup with categories', () => {
+      expect(screen.getByText('Escola')).toBeInTheDocument();
     });
 
     it('should show validation error when no student selected', () => {
@@ -250,44 +340,15 @@ describe('SendActivityModal', () => {
         )
       ).toBeInTheDocument();
     });
-
-    it('should toggle individual student selection', () => {
-      // Click on individual student checkbox
-      const aluno1Checkbox = screen.getByText('Aluno 1');
-      fireEvent.click(aluno1Checkbox);
-
-      // Now Aluno 1 should be selected, can advance
-      fireEvent.click(screen.getByText('Próximo'));
-
-      // Should be on step 3 (Prazo)
-      expect(screen.getByText('Iniciar em*')).toBeInTheDocument();
-    });
-
-    it('should deselect all when clicking select all twice', () => {
-      // Select all
-      fireEvent.click(screen.getByText('Todos os alunos'));
-
-      // Deselect all
-      fireEvent.click(screen.getByText('Todos os alunos'));
-
-      // Try to advance - should show error
-      fireEvent.click(screen.getByText('Próximo'));
-
-      expect(
-        screen.getByText(
-          'Campo obrigatório! Por favor, selecione pelo menos um aluno para continuar.'
-        )
-      ).toBeInTheDocument();
-    });
   });
 
-  describe('step 2 - Recipient (hierarchy)', () => {
+  describe('step 2 - Recipient (hierarchy with CheckboxGroup)', () => {
     beforeEach(() => {
-      // Setup: advance to step 2 with multiple schools (triggers hierarchy)
+      // Setup: advance to step 2 with multiple schools
       render(
         <SendActivityModal
           {...defaultProps}
-          recipients={mockRecipientsMultiple}
+          categories={mockCategoriesMultiple}
         />
       );
       fireEvent.click(screen.getByText('Tarefa'));
@@ -298,7 +359,7 @@ describe('SendActivityModal', () => {
       fireEvent.click(screen.getByText('Próximo'));
     });
 
-    it('should render hierarchy accordion labels', () => {
+    it('should render hierarchy accordion labels from CheckboxGroup', () => {
       expect(screen.getByText('Escola')).toBeInTheDocument();
       expect(screen.getByText('Série')).toBeInTheDocument();
       expect(screen.getByText('Turma')).toBeInTheDocument();
@@ -311,217 +372,7 @@ describe('SendActivityModal', () => {
       expect(screen.getByText('Escola Secundária')).toBeInTheDocument();
     });
 
-    it('should select all schools when clicking Escola checkbox', () => {
-      // Find the checkbox input for "Escola"
-      const escolaLabel = screen.getByText('Escola');
-      const escolaCheckbox = screen.getByRole('checkbox', { name: 'Escola' });
-
-      // Verify initial unchecked state
-      expect(escolaCheckbox).not.toBeChecked();
-
-      // Click to select all schools
-      fireEvent.click(escolaLabel);
-
-      // Verify checked state
-      expect(escolaCheckbox).toBeChecked();
-
-      // Both schools should be selected - the school year accordion should be enabled
-      expect(screen.getByText('Série')).toBeInTheDocument();
-    });
-
-    it('should select individual school in accordion', () => {
-      // First expand the Escola accordion to make inner checkboxes visible
-      const escolaAccordionButton = screen.getByRole('button', {
-        name: 'Escola',
-      });
-      fireEvent.click(escolaAccordionButton);
-
-      // Now find the checkbox input for "Escola Teste"
-      const escolaTesteCheckbox = screen.getByRole('checkbox', {
-        name: 'Escola Teste',
-      });
-
-      // Verify initial unchecked state
-      expect(escolaTesteCheckbox).not.toBeChecked();
-
-      // Click to select
-      fireEvent.click(escolaTesteCheckbox);
-
-      // Verify checked state
-      expect(escolaTesteCheckbox).toBeChecked();
-
-      // School should be selected - serie accordion should be enabled
-      expect(screen.getByText('Série')).toBeInTheDocument();
-    });
-
-    it('should deselect all schools when clicking twice', () => {
-      // Find the checkbox input for "Escola"
-      const escolaLabel = screen.getByText('Escola');
-      const escolaCheckbox = screen.getByRole('checkbox', { name: 'Escola' });
-
-      // Select all schools
-      fireEvent.click(escolaLabel);
-      expect(escolaCheckbox).toBeChecked();
-
-      // Deselect all schools
-      fireEvent.click(escolaLabel);
-      expect(escolaCheckbox).not.toBeChecked();
-
-      // Schools should be deselected - label should still be visible
-      expect(screen.getByText('Escola')).toBeInTheDocument();
-    });
-
-    it('should select school year after selecting school', () => {
-      // Expand Escola accordion and select a school
-      fireEvent.click(screen.getByRole('button', { name: 'Escola' }));
-      const escolaTesteCheckbox = screen.getByRole('checkbox', {
-        name: 'Escola Teste',
-      });
-      fireEvent.click(escolaTesteCheckbox);
-      expect(escolaTesteCheckbox).toBeChecked();
-
-      // Now select the school year (main Série checkbox)
-      const serieCheckbox = screen.getByRole('checkbox', { name: 'Série' });
-      fireEvent.click(serieCheckbox);
-
-      // Verify serie checkbox is checked
-      expect(serieCheckbox).toBeChecked();
-
-      // Serie accordion should show year options
-      expect(screen.getByText('2025')).toBeInTheDocument();
-    });
-
-    it('should select individual school year in accordion', () => {
-      // Expand Escola accordion and select a school
-      fireEvent.click(screen.getByRole('button', { name: 'Escola' }));
-      const escolaTesteCheckbox = screen.getByRole('checkbox', {
-        name: 'Escola Teste',
-      });
-      fireEvent.click(escolaTesteCheckbox);
-      expect(escolaTesteCheckbox).toBeChecked();
-
-      // Expand Serie accordion to see year options
-      fireEvent.click(screen.getByRole('button', { name: 'Série' }));
-
-      // Find the year checkbox
-      const year2025Checkbox = screen.getByRole('checkbox', { name: '2025' });
-
-      // Verify initial unchecked state
-      expect(year2025Checkbox).not.toBeChecked();
-
-      // Select year
-      fireEvent.click(year2025Checkbox);
-
-      // Verify checked state
-      expect(year2025Checkbox).toBeChecked();
-
-      // Year should be selected - turma accordion should be enabled
-      expect(screen.getByText('Turma')).toBeInTheDocument();
-    });
-
-    it('should select class after selecting school year', () => {
-      // Select school
-      fireEvent.click(screen.getByText('Escola Teste'));
-
-      // Select school year
-      fireEvent.click(screen.getByText('2025'));
-
-      // Find the class checkbox
-      const turmaLabel = screen.getByText('Turma');
-      const turmaCheckbox = screen.getByRole('checkbox', { name: 'Turma' });
-
-      // Verify initial unchecked state
-      expect(turmaCheckbox).not.toBeChecked();
-
-      // Select class
-      fireEvent.click(turmaLabel);
-
-      // Verify checked state
-      expect(turmaCheckbox).toBeChecked();
-
-      // Turma accordion should be enabled
-      expect(screen.getByText('Alunos')).toBeInTheDocument();
-    });
-
-    it('should select individual class in accordion', () => {
-      // Expand Escola accordion and select a school
-      fireEvent.click(screen.getByRole('button', { name: 'Escola' }));
-      const escolaTesteCheckbox = screen.getByRole('checkbox', {
-        name: 'Escola Teste',
-      });
-      fireEvent.click(escolaTesteCheckbox);
-      expect(escolaTesteCheckbox).toBeChecked();
-
-      // Expand Serie accordion and select year
-      fireEvent.click(screen.getByRole('button', { name: 'Série' }));
-      const year2025Checkbox = screen.getByRole('checkbox', { name: '2025' });
-      fireEvent.click(year2025Checkbox);
-      expect(year2025Checkbox).toBeChecked();
-
-      // Expand Turma accordion to see class options
-      fireEvent.click(screen.getByRole('button', { name: 'Turma' }));
-
-      // Find the individual class checkbox
-      const turmaACheckbox = screen.getByRole('checkbox', { name: 'Turma A' });
-
-      // Verify initial unchecked state
-      expect(turmaACheckbox).not.toBeChecked();
-
-      // Select individual class
-      fireEvent.click(turmaACheckbox);
-
-      // Verify checked state
-      expect(turmaACheckbox).toBeChecked();
-
-      // Class should be selected - alunos accordion should be enabled
-      expect(screen.getByText('Alunos')).toBeInTheDocument();
-    });
-
-    it('should select students after selecting class', () => {
-      // Complete hierarchy selection
-      fireEvent.click(screen.getByText('Escola Teste'));
-      fireEvent.click(screen.getByText('2025'));
-      fireEvent.click(screen.getByText('Turma A'));
-
-      // Select all students
-      const alunosCheckbox = screen.getByText('Alunos');
-      fireEvent.click(alunosCheckbox);
-
-      // Students should be selectable
-      expect(screen.getByText('Aluno 1')).toBeInTheDocument();
-    });
-
-    it('should select individual student in hierarchy view', () => {
-      // Complete hierarchy selection
-      fireEvent.click(screen.getByText('Escola Teste'));
-      fireEvent.click(screen.getByText('2025'));
-      fireEvent.click(screen.getByText('Turma A'));
-
-      // Select individual student
-      const aluno1Checkbox = screen.getByText('Aluno 1');
-      fireEvent.click(aluno1Checkbox);
-
-      // Student should be selected - can advance
-      fireEvent.click(screen.getByText('Próximo'));
-
-      // Should be on step 3
-      expect(screen.getByText('Iniciar em*')).toBeInTheDocument();
-    });
-
-    it('should deselect all students when clicking twice', () => {
-      // Complete hierarchy selection
-      fireEvent.click(screen.getByText('Escola Teste'));
-      fireEvent.click(screen.getByText('2025'));
-      fireEvent.click(screen.getByText('Turma A'));
-
-      // Select all students
-      const alunosCheckbox = screen.getByText('Alunos');
-      fireEvent.click(alunosCheckbox);
-
-      // Deselect all students
-      fireEvent.click(alunosCheckbox);
-
-      // Try to advance - should show error
+    it('should show validation error when trying to advance without students', () => {
       fireEvent.click(screen.getByText('Próximo'));
 
       expect(
@@ -530,39 +381,65 @@ describe('SendActivityModal', () => {
         )
       ).toBeInTheDocument();
     });
-
-    it('should show placeholder when no school is selected', () => {
-      // The Serie accordion should show placeholder text
-      expect(
-        screen.getByText('Selecione uma escola primeiro')
-      ).toBeInTheDocument();
-    });
-
-    it('should show placeholder when no school year is selected', () => {
-      // Select school first
-      fireEvent.click(screen.getByText('Escola Teste'));
-
-      // The Turma accordion should show placeholder text
-      expect(
-        screen.getByText('Selecione uma série primeiro')
-      ).toBeInTheDocument();
-    });
-
-    it('should show placeholder when no class is selected', () => {
-      // Select school and year
-      fireEvent.click(screen.getByText('Escola Teste'));
-      fireEvent.click(screen.getByText('2025'));
-
-      // The Alunos accordion should show placeholder text
-      expect(
-        screen.getByText('Selecione uma turma primeiro')
-      ).toBeInTheDocument();
-    });
   });
 
   describe('step 3 - Deadline', () => {
     beforeEach(async () => {
-      render(<SendActivityModal {...defaultProps} />);
+      // Use pre-selected categories to enable step 2 advancement
+      const categoriesWithSelection: CategoryConfig[] = [
+        {
+          key: 'escola',
+          label: 'Escola',
+          itens: [{ id: 'school-1', name: 'Escola Teste' }],
+          selectedIds: ['school-1'],
+        },
+        {
+          key: 'serie',
+          label: 'Série',
+          dependsOn: ['escola'],
+          filteredBy: [{ key: 'escola', internalField: 'schoolId' }],
+          itens: [{ id: 'year-1', name: '2025', schoolId: 'school-1' }],
+          selectedIds: ['year-1'],
+        },
+        {
+          key: 'turma',
+          label: 'Turma',
+          dependsOn: ['serie'],
+          filteredBy: [{ key: 'serie', internalField: 'yearId' }],
+          itens: [{ id: 'class-1', name: 'Turma A', yearId: 'year-1' }],
+          selectedIds: ['class-1'],
+        },
+        {
+          key: 'alunos',
+          label: 'Alunos',
+          dependsOn: ['turma'],
+          filteredBy: [{ key: 'turma', internalField: 'classId' }],
+          itens: [
+            {
+              id: 'student-1',
+              name: 'Aluno 1',
+              classId: 'class-1',
+              studentId: 'student-1',
+              userInstitutionId: 'ui-1',
+            },
+            {
+              id: 'student-2',
+              name: 'Aluno 2',
+              classId: 'class-1',
+              studentId: 'student-2',
+              userInstitutionId: 'ui-2',
+            },
+          ],
+          selectedIds: ['student-1', 'student-2'],
+        },
+      ];
+
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          categories={categoriesWithSelection}
+        />
+      );
 
       // Fill step 1
       fireEvent.click(screen.getByText('Tarefa'));
@@ -572,8 +449,7 @@ describe('SendActivityModal', () => {
       );
       fireEvent.click(screen.getByText('Próximo'));
 
-      // Fill step 2 - select all
-      fireEvent.click(screen.getByText('Todos os alunos'));
+      // Step 2 - students already selected, advance
       fireEvent.click(screen.getByText('Próximo'));
     });
 
@@ -766,7 +642,63 @@ describe('SendActivityModal', () => {
   describe('submit', () => {
     it('should call onSubmit with form data', async () => {
       const onSubmit = jest.fn().mockResolvedValue(undefined);
-      render(<SendActivityModal {...defaultProps} onSubmit={onSubmit} />);
+
+      // Use pre-selected categories
+      const categoriesWithSelection: CategoryConfig[] = [
+        {
+          key: 'escola',
+          label: 'Escola',
+          itens: [{ id: 'school-1', name: 'Escola Teste' }],
+          selectedIds: ['school-1'],
+        },
+        {
+          key: 'serie',
+          label: 'Série',
+          dependsOn: ['escola'],
+          filteredBy: [{ key: 'escola', internalField: 'schoolId' }],
+          itens: [{ id: 'year-1', name: '2025', schoolId: 'school-1' }],
+          selectedIds: ['year-1'],
+        },
+        {
+          key: 'turma',
+          label: 'Turma',
+          dependsOn: ['serie'],
+          filteredBy: [{ key: 'serie', internalField: 'yearId' }],
+          itens: [{ id: 'class-1', name: 'Turma A', yearId: 'year-1' }],
+          selectedIds: ['class-1'],
+        },
+        {
+          key: 'alunos',
+          label: 'Alunos',
+          dependsOn: ['turma'],
+          filteredBy: [{ key: 'turma', internalField: 'classId' }],
+          itens: [
+            {
+              id: 'student-1',
+              name: 'Aluno 1',
+              classId: 'class-1',
+              studentId: 'student-1',
+              userInstitutionId: 'ui-1',
+            },
+            {
+              id: 'student-2',
+              name: 'Aluno 2',
+              classId: 'class-1',
+              studentId: 'student-2',
+              userInstitutionId: 'ui-2',
+            },
+          ],
+          selectedIds: ['student-1', 'student-2'],
+        },
+      ];
+
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          onSubmit={onSubmit}
+          categories={categoriesWithSelection}
+        />
+      );
 
       // Fill step 1
       fireEvent.click(screen.getByText('Tarefa'));
@@ -776,8 +708,7 @@ describe('SendActivityModal', () => {
       );
       fireEvent.click(screen.getByText('Próximo'));
 
-      // Fill step 2
-      fireEvent.click(screen.getByText('Todos os alunos'));
+      // Step 2 - students already selected
       fireEvent.click(screen.getByText('Próximo'));
 
       // Fill step 3 - select dates using datetime-local inputs
@@ -811,7 +742,55 @@ describe('SendActivityModal', () => {
     });
 
     it('should show loading state when isLoading is true', () => {
-      render(<SendActivityModal {...defaultProps} isLoading />);
+      // Use pre-selected categories
+      const categoriesWithSelection: CategoryConfig[] = [
+        {
+          key: 'escola',
+          label: 'Escola',
+          itens: [{ id: 'school-1', name: 'Escola Teste' }],
+          selectedIds: ['school-1'],
+        },
+        {
+          key: 'serie',
+          label: 'Série',
+          dependsOn: ['escola'],
+          filteredBy: [{ key: 'escola', internalField: 'schoolId' }],
+          itens: [{ id: 'year-1', name: '2025', schoolId: 'school-1' }],
+          selectedIds: ['year-1'],
+        },
+        {
+          key: 'turma',
+          label: 'Turma',
+          dependsOn: ['serie'],
+          filteredBy: [{ key: 'serie', internalField: 'yearId' }],
+          itens: [{ id: 'class-1', name: 'Turma A', yearId: 'year-1' }],
+          selectedIds: ['class-1'],
+        },
+        {
+          key: 'alunos',
+          label: 'Alunos',
+          dependsOn: ['turma'],
+          filteredBy: [{ key: 'turma', internalField: 'classId' }],
+          itens: [
+            {
+              id: 'student-1',
+              name: 'Aluno 1',
+              classId: 'class-1',
+              studentId: 'student-1',
+              userInstitutionId: 'ui-1',
+            },
+          ],
+          selectedIds: ['student-1'],
+        },
+      ];
+
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          isLoading
+          categories={categoriesWithSelection}
+        />
+      );
 
       // Navigate to step 3
       fireEvent.click(screen.getByText('Tarefa'));
@@ -820,7 +799,6 @@ describe('SendActivityModal', () => {
         { target: { value: 'Test' } }
       );
       fireEvent.click(screen.getByText('Próximo'));
-      fireEvent.click(screen.getByText('Todos os alunos'));
       fireEvent.click(screen.getByText('Próximo'));
 
       expect(screen.getByText('Enviando...')).toBeInTheDocument();
@@ -849,6 +827,33 @@ describe('SendActivityModal', () => {
         'Digite o título da atividade'
       );
       expect(titleInput).toHaveValue('');
+    });
+  });
+
+  describe('onCategoriesChange callback', () => {
+    it('should call onCategoriesChange when categories are updated', () => {
+      const onCategoriesChange = jest.fn();
+
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          onCategoriesChange={onCategoriesChange}
+        />
+      );
+
+      // Navigate to step 2
+      fireEvent.click(screen.getByText('Tarefa'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da atividade'),
+        { target: { value: 'Test' } }
+      );
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Click on a category item to trigger category change
+      const escolaItem = screen.getByTestId('item-school-1');
+      fireEvent.click(escolaItem);
+
+      expect(onCategoriesChange).toHaveBeenCalled();
     });
   });
 });
