@@ -19,6 +19,7 @@ export const Default: Story = () => {
         isDark={isDark}
         questionType={QUESTION_TYPE.ALTERNATIVA}
         enunciado="Considere uma floresta tropical onde diversas espécies de plantas e animais interagem. Explique como as relações de mutualismo e competição influenciam a estabilidade desse ecossistema ao longo do tempo."
+        position={1}
       />
     </div>
   );

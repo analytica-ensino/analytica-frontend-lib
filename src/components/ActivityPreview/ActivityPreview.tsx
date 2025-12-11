@@ -27,6 +27,10 @@ interface ActivityPreviewProps {
   onRemoveAll?: () => void;
   className?: string;
   onReorder?: (orderedQuestions: PreviewQuestion[]) => void;
+  /**
+   * Emits the current ordered list (with positions) whenever it changes.
+   */
+  onPositionsChange?: (orderedQuestions: PreviewQuestion[]) => void;
   isDark?: boolean;
 }
 
@@ -37,6 +41,7 @@ export const ActivityPreview = ({
   onRemoveAll,
   className,
   onReorder,
+  onPositionsChange,
   isDark = false,
 }: ActivityPreviewProps) => {
   const normalizeWithPositions = useMemo(
@@ -54,8 +59,10 @@ export const ActivityPreview = ({
 
   // Sync when external questions change (e.g., reset from parent)
   useEffect(() => {
-    setOrderedQuestions(normalizeWithPositions(questions));
-  }, [questions, normalizeWithPositions]);
+    const normalized = normalizeWithPositions(questions);
+    setOrderedQuestions(normalized);
+    onPositionsChange?.(normalized);
+  }, [questions, normalizeWithPositions, onPositionsChange]);
 
   const total = orderedQuestions.length;
   const totalLabel =
@@ -73,6 +80,7 @@ export const ActivityPreview = ({
     const normalized = normalizeWithPositions(current);
     setOrderedQuestions(normalized);
     onReorder?.(normalized);
+    onPositionsChange?.(normalized);
   };
 
   return (
@@ -154,6 +162,7 @@ export const ActivityPreview = ({
                 defaultExpanded={false}
                 question={question}
                 value={id}
+              position={position}
               >
               </ActivityCardQuestionPreview>
             </div>

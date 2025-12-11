@@ -27,6 +27,7 @@ interface ActivityCardQuestionPreviewProps {
   value?: string;
   className?: string;
   children?: ReactNode;
+  position?: number;
 }
 
 export const ActivityCardQuestionPreview = ({
@@ -42,6 +43,7 @@ export const ActivityCardQuestionPreview = ({
   value,
   className,
   children,
+  position,
 }: ActivityCardQuestionPreviewProps) => {
   const badgeColor = getSubjectColorWithOpacity(subjectColor, isDark);
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -188,6 +190,7 @@ export const ActivityCardQuestionPreview = ({
   return (
     <div
       className="w-full"
+      data-position={position}
       onClick={() => {
         if (isExpanded) {
           setIsExpanded(false);
@@ -222,6 +225,14 @@ export const ActivityCardQuestionPreview = ({
                 </span>
                 <Text size="sm">{subjectName}</Text>
               </div>
+
+              {typeof position === 'number' && (
+                <div className="py-1 px-2 flex flex-row items-center gap-1">
+                  <Text size="sm" className="text-text-700">
+                    #{position}
+                  </Text>
+                </div>
+              )}
 
               <div className="py-1 px-2 flex flex-row items-center gap-1">
                 <Text size="sm" className="">
@@ -264,6 +275,14 @@ export const ActivityCardQuestionPreview = ({
                 </span>
                 <Text size="sm">{subjectName}</Text>
               </div>
+
+              {typeof position === 'number' && (
+                <div className="py-1 px-2 flex flex-row items-center gap-1">
+                  <Text size="sm" className="text-text-700">
+                    #{position}
+                  </Text>
+                </div>
+              )}
 
               <div className="py-1 px-2 flex flex-row items-center gap-1">
                 <Text size="sm" className="">

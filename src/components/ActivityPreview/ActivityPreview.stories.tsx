@@ -48,6 +48,12 @@ export const Default: Story = () => {
         onDownloadPdf={() => console.log('Baixar pdf')}
         onRemoveAll={() => console.log('Remover tudo')}
         isDark={isDark}
+        onPositionsChange={(ordered) =>
+          console.log(
+            'Posições',
+            ordered.map(({ id, position }) => ({ id, position }))
+          )
+        }
       />
     </div>
   );
@@ -171,6 +177,12 @@ export const AllQuestionTypes: Story = () => {
         onDownloadPdf={() => console.log('Baixar pdf')}
         onRemoveAll={() => console.log('Remover tudo')}
         onReorder={handleReorder}
+        onPositionsChange={(ordered) =>
+          console.log(
+            'Posições',
+            ordered
+          )
+        }
         isDark={isDark}
       />
     </div>
