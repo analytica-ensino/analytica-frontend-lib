@@ -73,9 +73,9 @@ function extractStudentsFromCategories(
       const student = studentsCategory.itens?.find((item) => item.id === id);
       if (student) {
         return {
-          studentId: String(student.studentId || student.id),
+          studentId: String(student.studentId ?? student.id),
           userInstitutionId: String(
-            student.userInstitutionId || student.institutionId || ''
+            student.userInstitutionId ?? student.institutionId ?? ''
           ),
         };
       }
