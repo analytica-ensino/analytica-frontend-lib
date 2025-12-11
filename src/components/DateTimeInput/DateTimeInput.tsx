@@ -94,7 +94,8 @@ const DateTimeInput = ({
     }
 
     if (value) {
-      const dateObj = new Date(value);
+      const dateValue = value.includes('T') ? value : `${value}T12:00:00`;
+      const dateObj = new Date(dateValue);
       if (!Number.isNaN(dateObj.getTime())) {
         setSelectedDate(dateObj);
       }

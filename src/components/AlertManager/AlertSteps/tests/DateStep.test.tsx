@@ -44,7 +44,7 @@ jest.mock('../../../..', () => ({
     timeLabel,
     testId,
   }: MockDateTimeInputProps) => (
-    <div data-testid={testId || 'datetime-input'}>
+    <div data-testid={testId || 'datetime'}>
       <label>{label}</label>
       {timeLabel && <span>{timeLabel}</span>}
       <input

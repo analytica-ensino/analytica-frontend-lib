@@ -328,7 +328,7 @@ const SendActivityModal = ({
           className="flex flex-row gap-6"
         >
           <div className="flex items-center gap-2">
-            <RadioGroupItem value="yes" />
+            <RadioGroupItem value="yes" id="radio-item-yes" />
             <Text
               as="label"
               size="sm"
@@ -340,7 +340,7 @@ const SendActivityModal = ({
             </Text>
           </div>
           <div className="flex items-center gap-2">
-            <RadioGroupItem value="no" />
+            <RadioGroupItem value="no" id="radio-item-no" />
             <Text
               as="label"
               size="sm"
