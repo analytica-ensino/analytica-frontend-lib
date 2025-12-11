@@ -194,10 +194,53 @@ export const ActivityCardQuestionPreview = ({
         }
       }}
       onMouseDown={(event) => {
-        // Avoid focus outline when clicking anywhere on the card
-        event.preventDefault();
+        // Allow drag to start if inside a draggable container; otherwise avoid focus outline
+        const draggableAncestor = (event.target as HTMLElement).closest(
+          '[data-draggable="true"]'
+        );
+        if (!draggableAncestor) {
+          event.preventDefault();
+        }
       }}
     >
+      {/* Hidden drag preview with header + truncated enunciado (closed state) */}
+      <div
+        data-drag-preview="true"
+        className="fixed -left-[9999px] -top-[9999px] pointer-events-none z-[9999] w-[440px]"
+      >
+        <div className="w-full rounded-lg border border-border-200 bg-background">
+          <div className="w-full min-w-0 flex flex-col gap-2 py-2">
+            <div className="flex flex-row gap-2 text-text-650">
+              <div className="py-1 px-2 flex flex-row items-center gap-1">
+                <span
+                  className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-950"
+                  style={{
+                    backgroundColor: badgeColor,
+                  }}
+                >
+                  <IconRender iconName={iconName} size={14} color="currentColor" />
+                </span>
+                <Text size="sm">{subjectName}</Text>
+              </div>
+
+              <div className="py-1 px-2 flex flex-row items-center gap-1">
+                <Text size="sm" className="">
+                  {resolvedQuestionTypeLabel}
+                </Text>
+              </div>
+            </div>
+
+            <Text
+              size="md"
+              weight="medium"
+              className="text-text-950 truncate px-3"
+            >
+              {enunciado}
+            </Text>
+          </div>
+        </div>
+      </div>
+
       <CardAccordation
         className={cn(
           'w-full rounded-lg border border-border-200 bg-background',

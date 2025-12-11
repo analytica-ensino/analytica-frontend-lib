@@ -2,6 +2,7 @@ import type { Story } from '@ladle/react';
 import { ActivityPreview } from './ActivityPreview';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { useTheme } from '@/index';
+import { useState, useCallback } from 'react';
 
 export const Default: Story = () => {
   const { isDark } = useTheme();
@@ -56,7 +57,7 @@ export const Default: Story = () => {
 export const AllQuestionTypes: Story = () => {
   const { isDark } = useTheme();
 
-  const questions = [
+  const initialQuestions = [
     {
       id: 'alt',
       subjectName: 'Biologia - Ecologia',
@@ -165,12 +166,19 @@ export const AllQuestionTypes: Story = () => {
     },
   ];
 
+  const [questions, setQuestions] = useState(initialQuestions);
+
+  const handleReorder = useCallback((ordered) => {
+    setQuestions(ordered);
+  }, []);
+
   return (
     <div className="p-6">
       <ActivityPreview
         questions={questions}
         onDownloadPdf={() => console.log('Baixar pdf')}
         onRemoveAll={() => console.log('Remover tudo')}
+        onReorder={handleReorder}
       />
     </div>
   );
