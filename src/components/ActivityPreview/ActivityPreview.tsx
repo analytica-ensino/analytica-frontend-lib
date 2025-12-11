@@ -10,7 +10,6 @@ type PreviewQuestion = {
   subjectName?: string;
   subjectColor?: string;
   iconName?: string;
-  isDark?: boolean;
   questionType?: QUESTION_TYPE;
   questionTypeLabel?: string;
   enunciado?: string;
@@ -28,6 +27,7 @@ interface ActivityPreviewProps {
   onRemoveAll?: () => void;
   className?: string;
   onReorder?: (orderedQuestions: PreviewQuestion[]) => void;
+  isDark?: boolean;
 }
 
 export const ActivityPreview = ({
@@ -37,6 +37,7 @@ export const ActivityPreview = ({
   onRemoveAll,
   className,
   onReorder,
+  isDark = false,
 }: ActivityPreviewProps) => {
   const normalizeWithPositions = useMemo(
     () => (items: PreviewQuestion[]) =>
@@ -109,7 +110,6 @@ export const ActivityPreview = ({
             subjectName = 'Assunto não informado',
             subjectColor = '#000000',
             iconName = 'BookOpen',
-            isDark = false,
             questionType,
             questionTypeLabel,
             enunciado,
@@ -155,11 +155,6 @@ export const ActivityPreview = ({
                 question={question}
                 value={id}
               >
-                {typeof position === 'number' && (
-                  <Text size="sm" className="text-text-600 mt-2 px-2">
-                    Posição: {position}
-                  </Text>
-                )}
               </ActivityCardQuestionPreview>
             </div>
           )

@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { ActivityPreview } from './ActivityPreview';
+import { ActivityPreview, type PreviewQuestion } from './ActivityPreview';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { useTheme } from '@/index';
 import { useState, useCallback } from 'react';
@@ -13,7 +13,6 @@ export const Default: Story = () => {
       subjectName: 'Ecologia e a Interação entre Espécies',
       subjectColor: '#84cc16',
       iconName: 'BookOpen',
-      isDark,
       questionType: QUESTION_TYPE.ALTERNATIVA,
       enunciado:
         'Um grupo de cientistas está estudando o comportamento de uma população de rãs em um lago. Após várias observações, eles notaram que a quantidade de rãs aumenta em média 15% a cada mês. Qual será a população de rãs após 6 meses, se inicialmente havia 200 rãs no lago?',
@@ -32,7 +31,6 @@ export const Default: Story = () => {
       subjectName: 'Biologia - Genética',
       subjectColor: '#6366f1',
       iconName: 'Dna',
-      isDark,
       questionType: QUESTION_TYPE.DISSERTATIVA,
       enunciado:
         'Explique o princípio da segregação de Mendel e como ele se aplica à formação de gametas.',
@@ -49,6 +47,7 @@ export const Default: Story = () => {
         questions={questions}
         onDownloadPdf={() => console.log('Baixar pdf')}
         onRemoveAll={() => console.log('Remover tudo')}
+        isDark={isDark}
       />
     </div>
   );
@@ -57,13 +56,12 @@ export const Default: Story = () => {
 export const AllQuestionTypes: Story = () => {
   const { isDark } = useTheme();
 
-  const initialQuestions = [
+  const initialQuestions: PreviewQuestion[] = [
     {
       id: 'alt',
       subjectName: 'Biologia - Ecologia',
       subjectColor: '#16a34a',
       iconName: 'Leaf',
-      isDark,
       questionType: QUESTION_TYPE.ALTERNATIVA,
       enunciado: 'Qual é a principal fonte de energia para a fotossíntese?',
       question: {
@@ -81,7 +79,6 @@ export const AllQuestionTypes: Story = () => {
       subjectName: 'História - Idade Média',
       subjectColor: '#6366f1',
       iconName: 'CastleTurret',
-      isDark,
       questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
       enunciado: 'Selecione características do feudalismo:',
       question: {
@@ -99,7 +96,6 @@ export const AllQuestionTypes: Story = () => {
       subjectName: 'Redação',
       subjectColor: '#f97316',
       iconName: 'Article',
-      isDark,
       questionType: QUESTION_TYPE.DISSERTATIVA,
       enunciado:
         'Explique a importância da coesão e coerência em um texto dissertativo-argumentativo.',
@@ -113,7 +109,6 @@ export const AllQuestionTypes: Story = () => {
       subjectName: 'Ciências',
       subjectColor: '#06b6d4',
       iconName: 'CheckCircle',
-      isDark,
       questionType: QUESTION_TYPE.VERDADEIRO_FALSO,
       enunciado: 'Assinale V ou F para as afirmações sobre estados da matéria:',
       question: {
@@ -130,7 +125,6 @@ export const AllQuestionTypes: Story = () => {
       subjectName: 'Geografia',
       subjectColor: '#8b5cf6',
       iconName: 'GlobeHemisphereWest',
-      isDark,
       questionType: QUESTION_TYPE.LIGAR_PONTOS,
       enunciado: 'Associe países às suas capitais.',
       question: {
@@ -143,7 +137,6 @@ export const AllQuestionTypes: Story = () => {
       subjectName: 'Matemática',
       subjectColor: '#14b8a6',
       iconName: 'MathOperations',
-      isDark,
       questionType: QUESTION_TYPE.PREENCHER,
       enunciado: 'Complete: A soma dos ângulos internos de um triângulo é ____.',
       question: {
@@ -156,7 +149,6 @@ export const AllQuestionTypes: Story = () => {
       subjectName: 'Artes',
       subjectColor: '#f43f5e',
       iconName: 'ImageSquare',
-      isDark,
       questionType: QUESTION_TYPE.IMAGEM,
       enunciado: 'Identifique o movimento artístico representado na imagem.',
       question: {
@@ -166,9 +158,9 @@ export const AllQuestionTypes: Story = () => {
     },
   ];
 
-  const [questions, setQuestions] = useState(initialQuestions);
+  const [questions, setQuestions] = useState<PreviewQuestion[]>(initialQuestions);
 
-  const handleReorder = useCallback((ordered) => {
+  const handleReorder = useCallback((ordered: PreviewQuestion[]) => {
     setQuestions(ordered);
   }, []);
 
@@ -179,6 +171,7 @@ export const AllQuestionTypes: Story = () => {
         onDownloadPdf={() => console.log('Baixar pdf')}
         onRemoveAll={() => console.log('Remover tudo')}
         onReorder={handleReorder}
+        isDark={isDark}
       />
     </div>
   );
