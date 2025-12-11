@@ -144,7 +144,8 @@ export const AllQuestionTypes: Story = () => {
       subjectColor: '#14b8a6',
       iconName: 'MathOperations',
       questionType: QUESTION_TYPE.PREENCHER,
-      enunciado: 'Complete: A soma dos ângulos internos de um triângulo é ____.',
+      enunciado:
+        'Complete: A soma dos ângulos internos de um triângulo é ____.',
       question: {
         options: [],
         correctOptionIds: [],
@@ -164,7 +165,8 @@ export const AllQuestionTypes: Story = () => {
     },
   ];
 
-  const [questions, setQuestions] = useState<PreviewQuestion[]>(initialQuestions);
+  const [questions, setQuestions] =
+    useState<PreviewQuestion[]>(initialQuestions);
 
   const handleReorder = useCallback((ordered: PreviewQuestion[]) => {
     setQuestions(ordered);
@@ -177,15 +179,9 @@ export const AllQuestionTypes: Story = () => {
         onDownloadPdf={() => console.log('Baixar pdf')}
         onRemoveAll={() => console.log('Remover tudo')}
         onReorder={handleReorder}
-        onPositionsChange={(ordered) =>
-          console.log(
-            'Posições',
-            ordered
-          )
-        }
+        onPositionsChange={(ordered) => console.log('Posições', ordered)}
         isDark={isDark}
       />
     </div>
   );
 };
-

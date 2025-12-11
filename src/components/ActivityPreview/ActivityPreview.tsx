@@ -162,9 +162,8 @@ export const ActivityPreview = ({
                 defaultExpanded={false}
                 question={question}
                 value={id}
-              position={position}
-              >
-              </ActivityCardQuestionPreview>
+                position={position}
+              ></ActivityCardQuestionPreview>
             </div>
           )
         )}
@@ -178,4 +177,3 @@ export const ActivityPreview = ({
 };
 
 export type { ActivityPreviewProps, PreviewQuestion };
-

@@ -25,7 +25,9 @@ jest.mock('../Accordation/Accordation', () => {
         >
           {trigger}
         </div>
-        {expanded ? <div data-testid="accordation-content">{children}</div> : null}
+        {expanded ? (
+          <div data-testid="accordation-content">{children}</div>
+        ) : null}
       </div>
     ),
   };
@@ -138,9 +140,7 @@ describe('ActivityCardQuestionPreview', () => {
       />
     );
 
-    expect(
-      screen.queryByTestId('accordation-content')
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId('accordation-content')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByTestId('accordation-trigger'));
 
@@ -166,7 +166,9 @@ describe('ActivityCardQuestionPreview', () => {
     );
 
     const list = screen.getByTestId('alternatives-list');
-    const alternatives = JSON.parse(list.getAttribute('data-alternatives') || '[]');
+    const alternatives = JSON.parse(
+      list.getAttribute('data-alternatives') || '[]'
+    );
 
     expect(alternatives).toHaveLength(2);
     expect(alternatives[0]).toMatchObject({
@@ -225,14 +227,14 @@ describe('ActivityCardQuestionPreview', () => {
       />
     );
 
-    expect(screen.getByText('Resposta correta: Verdadeiro')).toBeInTheDocument();
+    expect(
+      screen.getByText('Resposta correta: Verdadeiro')
+    ).toBeInTheDocument();
     expect(screen.getByText('Resposta correta: Falso')).toBeInTheDocument();
-    const badges = screen.getAllByTestId('badge').map((b) =>
-      b.getAttribute('data-action')
-    );
+    const badges = screen
+      .getAllByTestId('badge')
+      .map((b) => b.getAttribute('data-action'));
     expect(badges).toContain('success');
     expect(badges).toContain('error');
   });
 });
-
-

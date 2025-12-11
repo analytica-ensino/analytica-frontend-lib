@@ -65,4 +65,3 @@ export const WithLongStatement: Story = () => {
     </div>
   );
 };
-

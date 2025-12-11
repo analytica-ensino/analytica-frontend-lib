@@ -35,7 +35,10 @@ jest.mock('../../index', () => {
         {children}
       </button>
     ),
-    Text: ({ children, ...rest }: React.HTMLAttributes<HTMLParagraphElement>) => (
+    Text: ({
+      children,
+      ...rest
+    }: React.HTMLAttributes<HTMLParagraphElement>) => (
       <p {...rest}>{children}</p>
     ),
   };
@@ -146,5 +149,3 @@ describe('ActivityPreview', () => {
     ]);
   });
 });
-
-

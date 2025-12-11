@@ -1,6 +1,11 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { CardAccordation } from '../Accordation/Accordation';
-import { IconRender, Text, getSubjectColorWithOpacity, Badge } from '../../index';
+import {
+  IconRender,
+  Text,
+  getSubjectColorWithOpacity,
+  Badge,
+} from '../../index';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { questionTypeLabels } from '../../types/questionTypes';
 import { cn } from '../../utils/utils';
@@ -54,7 +59,8 @@ export const ActivityCardQuestionPreview = ({
     : questionTypeLabel || 'Tipo de questão';
 
   const alternatives = useMemo<Alternative[]>(() => {
-    if (!question?.options || questionType !== QUESTION_TYPE.ALTERNATIVA) return [];
+    if (!question?.options || questionType !== QUESTION_TYPE.ALTERNATIVA)
+      return [];
 
     return question.options.map((option) => {
       const isCorrect = correctOptionIds.includes(option.id);
@@ -68,7 +74,8 @@ export const ActivityCardQuestionPreview = ({
   }, [question, questionType, correctOptionIds]);
 
   const multipleChoices = useMemo(() => {
-    if (!question?.options || questionType !== QUESTION_TYPE.MULTIPLA_ESCOLHA) return [];
+    if (!question?.options || questionType !== QUESTION_TYPE.MULTIPLA_ESCOLHA)
+      return [];
 
     return question.options.map((option) => {
       const isCorrect = correctOptionIds.includes(option.id);
@@ -118,7 +125,6 @@ export const ActivityCardQuestionPreview = ({
           {question.options.map((option, index) => {
             const isCorrect = correctOptionIds.includes(option.id);
             const correctAnswer = isCorrect ? 'Verdadeiro' : 'Falso';
-            const variantCorrect = 'correct';
 
             return (
               <section key={option.id} className="flex flex-col gap-2">
@@ -221,7 +227,11 @@ export const ActivityCardQuestionPreview = ({
                     backgroundColor: badgeColor,
                   }}
                 >
-                  <IconRender iconName={iconName} size={14} color="currentColor" />
+                  <IconRender
+                    iconName={iconName}
+                    size={14}
+                    color="currentColor"
+                  />
                 </span>
                 <Text size="sm">{subjectName}</Text>
               </div>
@@ -271,7 +281,11 @@ export const ActivityCardQuestionPreview = ({
                     backgroundColor: badgeColor,
                   }}
                 >
-                  <IconRender iconName={iconName} size={14} color="currentColor" />
+                  <IconRender
+                    iconName={iconName}
+                    size={14}
+                    color="currentColor"
+                  />
                 </span>
                 <Text size="sm">{subjectName}</Text>
               </div>
@@ -318,4 +332,3 @@ export const ActivityCardQuestionPreview = ({
 };
 
 export type { ActivityCardQuestionPreviewProps };
-
