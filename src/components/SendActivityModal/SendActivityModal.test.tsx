@@ -477,10 +477,10 @@ describe('SendActivityModal', () => {
 
       // Wait for dropdown to open and time input to be visible
       await waitFor(() => {
-        expect(screen.getByTestId('start-time-input')).toBeInTheDocument();
+        expect(screen.getByTestId('start-datetime-time')).toBeInTheDocument();
       });
 
-      const startTimeInput = screen.getByTestId('start-time-input');
+      const startTimeInput = screen.getByTestId('start-datetime-time');
       fireEvent.change(startTimeInput, { target: { value: '10:30' } });
 
       expect(startTimeInput).toHaveValue('10:30');
@@ -493,10 +493,10 @@ describe('SendActivityModal', () => {
 
       // Wait for dropdown to open and time input to be visible
       await waitFor(() => {
-        expect(screen.getByTestId('final-time-input')).toBeInTheDocument();
+        expect(screen.getByTestId('final-datetime-time')).toBeInTheDocument();
       });
 
-      const finalTimeInput = screen.getByTestId('final-time-input');
+      const finalTimeInput = screen.getByTestId('final-datetime-time');
       fireEvent.change(finalTimeInput, { target: { value: '18:45' } });
 
       expect(finalTimeInput).toHaveValue('18:45');

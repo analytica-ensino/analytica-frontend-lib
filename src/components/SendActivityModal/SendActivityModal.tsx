@@ -1,16 +1,10 @@
-import { useCallback, useEffect, useState, useRef, ChangeEvent } from 'react';
+import { useCallback, useEffect, ChangeEvent } from 'react';
 import {
   CaretLeftIcon,
   ArrowRightIcon,
   PaperPlaneTiltIcon,
   WarningCircleIcon,
-  CalendarBlankIcon,
 } from '@phosphor-icons/react';
-import DropdownMenu, {
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-} from '../DropdownMenu/DropdownMenu';
-import Calendar from '../Calendar/Calendar';
 import Modal from '../Modal/Modal';
 import Stepper from '../Stepper/Stepper';
 import Button from '../Button/Button';
@@ -20,6 +14,7 @@ import TextArea from '../TextArea/TextArea';
 import Text from '../Text/Text';
 import { RadioGroup, RadioGroupItem } from '../Radio/Radio';
 import { CheckboxGroup } from '../CheckBoxGroup/CheckBoxGroup';
+import DateTimeInput from '../DateTimeInput/DateTimeInput';
 import { useSendActivityModalStore } from './hooks/useSendActivityModal';
 import {
   SendActivityModalProps,
@@ -47,17 +42,6 @@ const STEPPER_STEPS = [
  * 2. Recipient - Select students from hierarchical structure using CheckboxGroup
  * 3. Deadline - Set start/end dates and retry option
  */
-
-/**
- * Helper to format Date object to YYYY-MM-DD string
- */
-const formatDateToInput = (dateObj: Date): string => {
-  const year = dateObj.getFullYear();
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const day = String(dateObj.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 const SendActivityModal = ({
   isOpen,
   onClose,
@@ -74,20 +58,6 @@ const SendActivityModal = ({
   const storeCategories = useSendActivityModalStore(
     (state) => state.categories
   );
-
-  // Calendar dropdown state
-  const [isStartCalendarOpen, setIsStartCalendarOpen] = useState(false);
-  const [isFinalCalendarOpen, setIsFinalCalendarOpen] = useState(false);
-  const [selectedStartDate, setSelectedStartDate] = useState<Date | undefined>(
-    undefined
-  );
-  const [selectedFinalDate, setSelectedFinalDate] = useState<Date | undefined>(
-    undefined
-  );
-
-  // Refs for dropdown triggers (used for portal positioning)
-  const startTriggerRef = useRef<HTMLButtonElement>(null);
-  const finalTriggerRef = useRef<HTMLButtonElement>(null);
 
   /**
    * Initialize categories when modal opens
@@ -107,10 +77,6 @@ const SendActivityModal = ({
   useEffect(() => {
     if (!isOpen) {
       reset();
-      setIsStartCalendarOpen(false);
-      setIsFinalCalendarOpen(false);
-      setSelectedStartDate(undefined);
-      setSelectedFinalDate(undefined);
     }
   }, [isOpen, reset]);
 
@@ -156,57 +122,41 @@ const SendActivityModal = ({
   );
 
   /**
-   * Handle start datetime change (from datetime-local input)
+   * Handle start date change
    */
   const handleStartDateChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      if (value?.includes('T')) {
-        const [date, time] = value.split('T');
-        store.setFormData({ startDate: date, startTime: time });
-      } else if (value) {
-        store.setFormData({ startDate: value });
-      } else {
-        store.setFormData({ startDate: '', startTime: '00:00' });
-      }
+    (date: string) => {
+      store.setFormData({ startDate: date });
     },
     [store]
   );
 
   /**
-   * Handle start time change (from time input inside dropdown)
+   * Handle start time change
    */
   const handleStartTimeChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      store.setFormData({ startTime: e.target.value });
+    (time: string) => {
+      store.setFormData({ startTime: time });
     },
     [store]
   );
 
   /**
-   * Handle final datetime change (from datetime-local input)
+   * Handle final date change
    */
   const handleFinalDateChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      if (value?.includes('T')) {
-        const [date, time] = value.split('T');
-        store.setFormData({ finalDate: date, finalTime: time });
-      } else if (value) {
-        store.setFormData({ finalDate: value });
-      } else {
-        store.setFormData({ finalDate: '', finalTime: '23:59' });
-      }
+    (date: string) => {
+      store.setFormData({ finalDate: date });
     },
     [store]
   );
 
   /**
-   * Handle final time change (from time input inside dropdown)
+   * Handle final time change
    */
   const handleFinalTimeChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      store.setFormData({ finalTime: e.target.value });
+    (time: string) => {
+      store.setFormData({ finalTime: time });
     },
     [store]
   );
@@ -217,28 +167,6 @@ const SendActivityModal = ({
   const handleRetryChange = useCallback(
     (value: string) => {
       store.setFormData({ canRetry: value === 'yes' });
-    },
-    [store]
-  );
-
-  /**
-   * Handle start date selection from calendar
-   */
-  const handleStartDateSelect = useCallback(
-    (dateObj: Date) => {
-      setSelectedStartDate(dateObj);
-      store.setFormData({ startDate: formatDateToInput(dateObj) });
-    },
-    [store]
-  );
-
-  /**
-   * Handle final date selection from calendar
-   */
-  const handleFinalDateSelect = useCallback(
-    (dateObj: Date) => {
-      setSelectedFinalDate(dateObj);
-      store.setFormData({ finalDate: formatDateToInput(dateObj) });
     },
     [store]
   );
@@ -364,101 +292,29 @@ const SendActivityModal = ({
     <div className="flex flex-col gap-4 sm:gap-6 pt-6">
       {/* Date/Time Row - Side by Side */}
       <div className="grid grid-cols-2 gap-2">
-        {/* Start DateTime */}
-        <DropdownMenu
-          open={isStartCalendarOpen}
-          onOpenChange={setIsStartCalendarOpen}
-        >
-          <DropdownMenuTrigger className="w-full" ref={startTriggerRef}>
-            <Input
-              label="Iniciar em*"
-              type="datetime-local"
-              placeholder="00/00/0000"
-              value={
-                store.formData.startDate
-                  ? `${store.formData.startDate}T${store.formData.startTime || '00:00'}`
-                  : ''
-              }
-              onChange={handleStartDateChange}
-              variant="rounded"
-              errorMessage={store.errors.startDate}
-              data-testid="start-datetime-input"
-              iconRight={<CalendarBlankIcon size={14} />}
-              className="[&::-webkit-calendar-picker-indicator]:hidden"
-            />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            className="p-0 z-[100]"
-            portal
-            triggerRef={startTriggerRef}
-          >
-            <Calendar
-              variant="selection"
-              selectedDate={selectedStartDate}
-              onDateSelect={handleStartDateSelect}
-              showActivities={false}
-            />
-            <div className="p-3 border-t border-border-200">
-              <Input
-                label="Hora"
-                type="time"
-                value={store.formData.startTime || '00:00'}
-                onChange={handleStartTimeChange}
-                variant="rounded"
-                data-testid="start-time-input"
-              />
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <DateTimeInput
+          label="Iniciar em*"
+          date={store.formData.startDate || ''}
+          time={store.formData.startTime || ''}
+          onDateChange={handleStartDateChange}
+          onTimeChange={handleStartTimeChange}
+          errorMessage={store.errors.startDate}
+          defaultTime="00:00"
+          testId="start-datetime"
+          className="w-full"
+        />
 
-        {/* Final DateTime */}
-        <DropdownMenu
-          open={isFinalCalendarOpen}
-          onOpenChange={setIsFinalCalendarOpen}
-        >
-          <DropdownMenuTrigger className="w-full" ref={finalTriggerRef}>
-            <Input
-              label="Finalizar até*"
-              type="datetime-local"
-              placeholder="00/00/0000"
-              value={
-                store.formData.finalDate
-                  ? `${store.formData.finalDate}T${store.formData.finalTime || '23:59'}`
-                  : ''
-              }
-              onChange={handleFinalDateChange}
-              variant="rounded"
-              errorMessage={store.errors.finalDate}
-              data-testid="final-datetime-input"
-              iconRight={<CalendarBlankIcon size={14} />}
-              className="[&::-webkit-calendar-picker-indicator]:hidden"
-            />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            className="p-0 z-[100]"
-            portal
-            triggerRef={finalTriggerRef}
-          >
-            <Calendar
-              variant="selection"
-              selectedDate={selectedFinalDate}
-              onDateSelect={handleFinalDateSelect}
-              showActivities={false}
-            />
-            <div className="p-3 border-t border-border-200">
-              <Input
-                label="Hora"
-                type="time"
-                value={store.formData.finalTime || '23:59'}
-                onChange={handleFinalTimeChange}
-                variant="rounded"
-                data-testid="final-time-input"
-              />
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <DateTimeInput
+          label="Finalizar até*"
+          date={store.formData.finalDate || ''}
+          time={store.formData.finalTime || ''}
+          onDateChange={handleFinalDateChange}
+          onTimeChange={handleFinalTimeChange}
+          errorMessage={store.errors.finalDate}
+          defaultTime="23:59"
+          testId="final-datetime"
+          className="w-full"
+        />
       </div>
 
       {/* Retry Option */}
