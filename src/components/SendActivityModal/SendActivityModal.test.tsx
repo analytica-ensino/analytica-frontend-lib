@@ -803,6 +803,182 @@ describe('SendActivityModal', () => {
 
       expect(screen.getByText('Enviando...')).toBeInTheDocument();
     });
+
+    it('should call onError when submission fails and onError is provided', async () => {
+      const submitError = new Error('Submission failed');
+      const onSubmit = jest.fn().mockRejectedValue(submitError);
+      const onError = jest.fn();
+
+      // Use pre-selected categories
+      const categoriesWithSelection: CategoryConfig[] = [
+        {
+          key: 'escola',
+          label: 'Escola',
+          itens: [{ id: 'school-1', name: 'Escola Teste' }],
+          selectedIds: ['school-1'],
+        },
+        {
+          key: 'serie',
+          label: 'Série',
+          dependsOn: ['escola'],
+          filteredBy: [{ key: 'escola', internalField: 'schoolId' }],
+          itens: [{ id: 'year-1', name: '2025', schoolId: 'school-1' }],
+          selectedIds: ['year-1'],
+        },
+        {
+          key: 'turma',
+          label: 'Turma',
+          dependsOn: ['serie'],
+          filteredBy: [{ key: 'serie', internalField: 'yearId' }],
+          itens: [{ id: 'class-1', name: 'Turma A', yearId: 'year-1' }],
+          selectedIds: ['class-1'],
+        },
+        {
+          key: 'alunos',
+          label: 'Alunos',
+          dependsOn: ['turma'],
+          filteredBy: [{ key: 'turma', internalField: 'classId' }],
+          itens: [
+            {
+              id: 'student-1',
+              name: 'Aluno 1',
+              classId: 'class-1',
+              studentId: 'student-1',
+              userInstitutionId: 'ui-1',
+            },
+          ],
+          selectedIds: ['student-1'],
+        },
+      ];
+
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          onSubmit={onSubmit}
+          onError={onError}
+          categories={categoriesWithSelection}
+        />
+      );
+
+      // Fill step 1
+      fireEvent.click(screen.getByText('Tarefa'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da atividade'),
+        { target: { value: 'Test' } }
+      );
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Step 2 - students already selected
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Fill step 3
+      const startDateInput = screen.getByTestId('start-datetime-input');
+      const finalDateInput = screen.getByTestId('final-datetime-input');
+      fireEvent.change(startDateInput, {
+        target: { value: '2025-01-20T00:00' },
+      });
+      fireEvent.change(finalDateInput, {
+        target: { value: '2025-01-25T23:59' },
+      });
+
+      // Submit
+      fireEvent.click(
+        screen.getByRole('button', { name: /Enviar atividade/i })
+      );
+
+      await waitFor(() => {
+        expect(onError).toHaveBeenCalledWith(submitError);
+      });
+    });
+
+    it('should not call onError when submission succeeds', async () => {
+      const onSubmit = jest.fn().mockResolvedValue(undefined);
+      const onError = jest.fn();
+
+      // Use pre-selected categories
+      const categoriesWithSelection: CategoryConfig[] = [
+        {
+          key: 'escola',
+          label: 'Escola',
+          itens: [{ id: 'school-1', name: 'Escola Teste' }],
+          selectedIds: ['school-1'],
+        },
+        {
+          key: 'serie',
+          label: 'Série',
+          dependsOn: ['escola'],
+          filteredBy: [{ key: 'escola', internalField: 'schoolId' }],
+          itens: [{ id: 'year-1', name: '2025', schoolId: 'school-1' }],
+          selectedIds: ['year-1'],
+        },
+        {
+          key: 'turma',
+          label: 'Turma',
+          dependsOn: ['serie'],
+          filteredBy: [{ key: 'serie', internalField: 'yearId' }],
+          itens: [{ id: 'class-1', name: 'Turma A', yearId: 'year-1' }],
+          selectedIds: ['class-1'],
+        },
+        {
+          key: 'alunos',
+          label: 'Alunos',
+          dependsOn: ['turma'],
+          filteredBy: [{ key: 'turma', internalField: 'classId' }],
+          itens: [
+            {
+              id: 'student-1',
+              name: 'Aluno 1',
+              classId: 'class-1',
+              studentId: 'student-1',
+              userInstitutionId: 'ui-1',
+            },
+          ],
+          selectedIds: ['student-1'],
+        },
+      ];
+
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          onSubmit={onSubmit}
+          onError={onError}
+          categories={categoriesWithSelection}
+        />
+      );
+
+      // Fill step 1
+      fireEvent.click(screen.getByText('Tarefa'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da atividade'),
+        { target: { value: 'Test' } }
+      );
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Step 2 - students already selected
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Fill step 3
+      const startDateInput = screen.getByTestId('start-datetime-input');
+      const finalDateInput = screen.getByTestId('final-datetime-input');
+      fireEvent.change(startDateInput, {
+        target: { value: '2025-01-20T00:00' },
+      });
+      fireEvent.change(finalDateInput, {
+        target: { value: '2025-01-25T23:59' },
+      });
+
+      // Submit
+      fireEvent.click(
+        screen.getByRole('button', { name: /Enviar atividade/i })
+      );
+
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalled();
+      });
+
+      // onError should NOT be called on success
+      expect(onError).not.toHaveBeenCalled();
+    });
   });
 
   describe('reset on close', () => {

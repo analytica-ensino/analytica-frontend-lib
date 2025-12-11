@@ -63,6 +63,8 @@ export interface SendActivityModalProps {
   onCategoriesChange?: (categories: CategoryConfig[]) => void;
   /** Loading state for submit button */
   isLoading?: boolean;
+  /** Callback when submission fails (optional - if not provided, error propagates) */
+  onError?: (error: unknown) => void;
 }
 
 /**

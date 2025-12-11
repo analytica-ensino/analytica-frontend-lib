@@ -49,6 +49,7 @@ const SendActivityModal = ({
   categories: initialCategories,
   onCategoriesChange,
   isLoading = false,
+  onError,
 }: SendActivityModalProps) => {
   const store = useSendActivityModalStore();
   const reset = useSendActivityModalStore((state) => state.reset);
@@ -181,15 +182,22 @@ const SendActivityModal = ({
 
   /**
    * Handle form submission
-   * Note: Errors from onSubmit propagate to the parent component for handling
    */
   const handleSubmit = useCallback(async () => {
     const isValid = store.validateAllSteps();
     if (!isValid) return;
 
-    const formData = store.formData as SendActivityFormData;
-    await onSubmit(formData);
-  }, [store, onSubmit]);
+    try {
+      const formData = store.formData as SendActivityFormData;
+      await onSubmit(formData);
+    } catch (error) {
+      if (onError) {
+        onError(error);
+      } else {
+        throw error;
+      }
+    }
+  }, [store, onSubmit, onError]);
 
   /**
    * Handle cancel button click
