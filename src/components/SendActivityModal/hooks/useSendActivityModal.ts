@@ -72,12 +72,29 @@ function extractStudentsFromCategories(
     .map((id) => {
       const student = studentsCategory.itens?.find((item) => item.id === id);
       if (student) {
-        return {
-          studentId: String(student.studentId ?? student.id),
-          userInstitutionId: String(
-            student.userInstitutionId ?? student.institutionId ?? ''
-          ),
-        };
+        const rawStudentId = student.studentId;
+        const rawUserInstId = student.userInstitutionId;
+        const rawInstId = student.institutionId;
+
+        // Extract studentId with type guard
+        const studentId =
+          typeof rawStudentId === 'string' || typeof rawStudentId === 'number'
+            ? String(rawStudentId)
+            : student.id;
+        let userInstitutionId = '';
+        if (
+          typeof rawUserInstId === 'string' ||
+          typeof rawUserInstId === 'number'
+        ) {
+          userInstitutionId = String(rawUserInstId);
+        } else if (
+          typeof rawInstId === 'string' ||
+          typeof rawInstId === 'number'
+        ) {
+          userInstitutionId = String(rawInstId);
+        }
+
+        return { studentId, userInstitutionId };
       }
       return null;
     })
