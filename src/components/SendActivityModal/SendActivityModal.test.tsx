@@ -856,4 +856,79 @@ describe('SendActivityModal', () => {
       expect(onCategoriesChange).toHaveBeenCalled();
     });
   });
+
+  describe('categories initialization', () => {
+    it('should initialize categories only once per modal session', () => {
+      const onCategoriesChange = jest.fn();
+
+      const { rerender } = render(
+        <SendActivityModal
+          {...defaultProps}
+          onCategoriesChange={onCategoriesChange}
+        />
+      );
+
+      // Navigate to step 2 to see categories
+      fireEvent.click(screen.getByText('Tarefa'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da atividade'),
+        { target: { value: 'Test' } }
+      );
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Select a category item
+      const escolaItem = screen.getByTestId('item-school-1');
+      fireEvent.click(escolaItem);
+
+      const callCount = onCategoriesChange.mock.calls.length;
+
+      // Re-render with same props - should NOT re-initialize categories
+      rerender(
+        <SendActivityModal
+          {...defaultProps}
+          onCategoriesChange={onCategoriesChange}
+        />
+      );
+
+      // Categories should remain the same, no additional initialization calls
+      expect(onCategoriesChange.mock.calls.length).toBe(callCount);
+    });
+
+    it('should re-initialize categories when modal reopens', () => {
+      const { rerender } = render(<SendActivityModal {...defaultProps} />);
+
+      // Navigate to step 2 and select items
+      fireEvent.click(screen.getByText('Tarefa'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da atividade'),
+        { target: { value: 'Test' } }
+      );
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Select a school
+      const escolaItem = screen.getByTestId('item-school-1');
+      fireEvent.click(escolaItem);
+
+      // Close modal
+      rerender(<SendActivityModal {...defaultProps} isOpen={false} />);
+
+      // Reopen modal
+      rerender(<SendActivityModal {...defaultProps} isOpen={true} />);
+
+      // Navigate to step 2 again
+      fireEvent.click(screen.getByText('Tarefa'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da atividade'),
+        { target: { value: 'Test' } }
+      );
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Categories should be fresh (no selections from previous session)
+      const store = useSendActivityModalStore.getState();
+      const alunosCategory = store.categories.find(
+        (cat) => cat.key === 'alunos'
+      );
+      expect(alunosCategory?.selectedIds).toEqual([]);
+    });
+  });
 });

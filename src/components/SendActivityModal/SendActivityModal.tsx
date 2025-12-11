@@ -1,4 +1,4 @@
-import { useCallback, useEffect, ChangeEvent } from 'react';
+import { useCallback, useEffect, useRef, ChangeEvent } from 'react';
 import {
   CaretLeftIcon,
   ArrowRightIcon,
@@ -60,23 +60,31 @@ const SendActivityModal = ({
   );
 
   /**
+   * Track if categories have been initialized for this modal session
+   */
+  const categoriesInitialized = useRef(false);
+
+  /**
    * Initialize categories when modal opens
    */
   useEffect(() => {
-    if (isOpen && initialCategories.length > 0) {
-      // Only initialize if store categories are empty
-      if (storeCategories.length === 0) {
-        setCategories(initialCategories);
-      }
+    if (
+      isOpen &&
+      initialCategories.length > 0 &&
+      !categoriesInitialized.current
+    ) {
+      setCategories(initialCategories);
+      categoriesInitialized.current = true;
     }
-  }, [isOpen, initialCategories, storeCategories.length, setCategories]);
+  }, [isOpen, initialCategories, setCategories]);
 
   /**
-   * Reset store when modal closes
+   * Reset store and initialization flag when modal closes
    */
   useEffect(() => {
     if (!isOpen) {
       reset();
+      categoriesInitialized.current = false;
     }
   }, [isOpen, reset]);
 
@@ -173,6 +181,7 @@ const SendActivityModal = ({
 
   /**
    * Handle form submission
+   * Note: Errors from onSubmit propagate to the parent component for handling
    */
   const handleSubmit = useCallback(async () => {
     const isValid = store.validateAllSteps();
