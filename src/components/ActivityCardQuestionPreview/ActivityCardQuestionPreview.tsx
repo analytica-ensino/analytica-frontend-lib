@@ -247,6 +247,9 @@ export const ActivityCardQuestionPreview = ({
     <div
       className="w-full"
       data-position={position}
+      role="button"
+      tabIndex={0}
+      aria-expanded={isExpanded}
       onClick={() => {
         if (isExpanded) {
           setIsExpanded(false);
@@ -259,6 +262,14 @@ export const ActivityCardQuestionPreview = ({
         );
         if (!draggableAncestor) {
           event.preventDefault();
+        }
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          if (isExpanded) {
+            setIsExpanded(false);
+          }
         }
       }}
     >
