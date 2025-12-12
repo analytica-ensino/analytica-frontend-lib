@@ -137,7 +137,9 @@ export const ActivityPreview = ({
               onDragStart={(e) => {
                 e.dataTransfer.setData('text/plain', id);
                 if (e.currentTarget instanceof HTMLElement) {
-                  const preview = e.currentTarget.querySelector('[data-drag-preview="true"]');
+                  const preview = e.currentTarget.querySelector(
+                    '[data-drag-preview="true"]'
+                  );
                   if (preview) {
                     e.dataTransfer.setDragImage(preview, 8, 8);
                   } else {
@@ -158,7 +160,10 @@ export const ActivityPreview = ({
                   e.preventDefault();
                   const targetId = orderedQuestions[index - 1].id;
                   handleReorder(id, targetId);
-                } else if (e.key === 'ArrowDown' && index < orderedQuestions.length - 1) {
+                } else if (
+                  e.key === 'ArrowDown' &&
+                  index < orderedQuestions.length - 1
+                ) {
                   e.preventDefault();
                   const targetId = orderedQuestions[index + 1].id;
                   handleReorder(id, targetId);

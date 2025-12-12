@@ -1,13 +1,26 @@
 import React from 'react';
-import { render, screen, fireEvent, within, waitFor, createEvent } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  within,
+  waitFor,
+  createEvent,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { ActivityPreview, type ActivityPreviewProps, type PreviewQuestion } from './ActivityPreview';
+import {
+  ActivityPreview,
+  type ActivityPreviewProps,
+  type PreviewQuestion,
+} from './ActivityPreview';
 
 jest.mock('../../assets/img/mock-content.png', () => 'mock-content.png');
-jest.mock('../../assets/img/mock-image-question.png', () => 'mock-image-question.png');
+jest.mock(
+  '../../assets/img/mock-image-question.png',
+  () => 'mock-image-question.png'
+);
 
 jest.mock('../../index', () => {
-  const React = require('react');
   const asComponent =
     (tag: keyof React.JSX.IntrinsicElements) =>
     ({ children, ...props }: { children?: React.ReactNode }) =>
@@ -173,11 +186,7 @@ describe('ActivityPreview', () => {
 
     fireEvent.dragStart(firstCard, { dataTransfer });
 
-    expect(dataTransfer.setDragImage).toHaveBeenCalledWith(
-      preview,
-      8,
-      8
-    );
+    expect(dataTransfer.setDragImage).toHaveBeenCalledWith(preview, 8, 8);
   });
 
   it('prevents default on drag over', () => {
@@ -245,14 +254,24 @@ describe('ActivityPreview', () => {
   it('resets order when questions prop changes and emits positions', async () => {
     const onPositionsChange = jest.fn();
     const { rerender } = render(
-      <ActivityPreview questions={baseQuestions} onPositionsChange={onPositionsChange} />
+      <ActivityPreview
+        questions={baseQuestions}
+        onPositionsChange={onPositionsChange}
+      />
     );
 
     await waitFor(() => expect(onPositionsChange).toHaveBeenCalledTimes(1));
     onPositionsChange.mockClear();
 
-    const newQuestions: PreviewQuestion[] = [{ id: 'q3', enunciado: 'Third question' }];
-    rerender(<ActivityPreview questions={newQuestions} onPositionsChange={onPositionsChange} />);
+    const newQuestions: PreviewQuestion[] = [
+      { id: 'q3', enunciado: 'Third question' },
+    ];
+    rerender(
+      <ActivityPreview
+        questions={newQuestions}
+        onPositionsChange={onPositionsChange}
+      />
+    );
 
     expect(getOrder()).toEqual(['q3']);
     await waitFor(() =>
