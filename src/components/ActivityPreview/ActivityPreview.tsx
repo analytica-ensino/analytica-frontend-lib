@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { File, DownloadSimple } from 'phosphor-react';
 import { Button, Text } from '../../index';
 import { ActivityCardQuestionPreview } from '../ActivityCardQuestionPreview/ActivityCardQuestionPreview';
@@ -44,6 +44,9 @@ export const ActivityPreview = ({
   onPositionsChange,
   isDark = false,
 }: ActivityPreviewProps) => {
+  const onPositionsChangeRef = useRef(onPositionsChange);
+  onPositionsChangeRef.current = onPositionsChange;
+
   const normalizeWithPositions = useMemo(
     () => (items: PreviewQuestion[]) =>
       items.map((item, index) => ({
@@ -61,8 +64,8 @@ export const ActivityPreview = ({
   useEffect(() => {
     const normalized = normalizeWithPositions(questions);
     setOrderedQuestions(normalized);
-    onPositionsChange?.(normalized);
-  }, [questions, normalizeWithPositions, onPositionsChange]);
+    onPositionsChangeRef.current?.(normalized);
+  }, [questions, normalizeWithPositions]);
 
   const total = orderedQuestions.length;
   const totalLabel =
