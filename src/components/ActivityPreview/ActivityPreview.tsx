@@ -113,27 +113,31 @@ export const ActivityPreview = ({
 
       <section className="flex flex-col gap-3">
         {orderedQuestions.map(
-          ({
-            id,
-            subjectName = 'Assunto não informado',
-            subjectColor = '#000000',
-            iconName = 'BookOpen',
-            questionType,
-            questionTypeLabel,
-            enunciado,
-            question,
-            position,
-          }) => (
+          (
+            {
+              id,
+              subjectName = 'Assunto não informado',
+              subjectColor = '#000000',
+              iconName = 'BookOpen',
+              questionType,
+              questionTypeLabel,
+              enunciado,
+              question,
+              position,
+            },
+            index
+          ) => (
             <div
               key={id}
               draggable
               data-draggable="true"
+              role="button"
+              tabIndex={0}
+              aria-label={`Mover questão ${enunciado ?? id}`}
               onDragStart={(e) => {
                 e.dataTransfer.setData('text/plain', id);
                 if (e.currentTarget instanceof HTMLElement) {
-                  const preview = e.currentTarget.querySelector(
-                    '[data-drag-preview="true"]'
-                  ) as HTMLElement | null;
+                  const preview = e.currentTarget.querySelector('[data-drag-preview="true"]');
                   if (preview) {
                     e.dataTransfer.setDragImage(preview, 8, 8);
                   } else {
@@ -148,6 +152,20 @@ export const ActivityPreview = ({
                 e.preventDefault();
                 const fromId = e.dataTransfer.getData('text/plain');
                 handleReorder(fromId, id);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowUp' && index > 0) {
+                  e.preventDefault();
+                  const targetId = orderedQuestions[index - 1].id;
+                  handleReorder(id, targetId);
+                } else if (e.key === 'ArrowDown' && index < orderedQuestions.length - 1) {
+                  e.preventDefault();
+                  const targetId = orderedQuestions[index + 1].id;
+                  handleReorder(id, targetId);
+                } else if (e.key === 'Enter' || e.key === ' ') {
+                  // Keyboard grab/drop noop; prevent scroll on space
+                  e.preventDefault();
+                }
               }}
               className="rounded-lg border border-border-200 bg-background"
             >
