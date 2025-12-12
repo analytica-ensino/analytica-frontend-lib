@@ -131,6 +131,14 @@ describe('ActivityCardQuestionPreview', () => {
     expect(screen.getAllByText('Custom type')[0]).toBeInTheDocument();
   });
 
+  it('uses defaults when subjectName and iconName are missing', () => {
+    render(<ActivityCardQuestionPreview enunciado="Sem assunto" />);
+
+    expect(screen.getAllByText('Assunto não informado')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Book')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Tipo de questão')[0]).toBeInTheDocument();
+  });
+
   it('toggles expansion via trigger', () => {
     render(
       <ActivityCardQuestionPreview
