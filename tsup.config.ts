@@ -97,6 +97,10 @@ export default defineConfig({
       'src/components/ActivityFilters/ActivityFilters.tsx',
     'ActivityDetails/index':
       'src/components/ActivityDetails/ActivityDetails.tsx',
+    'ActivityPreview/index':
+      'src/components/ActivityPreview/ActivityPreview.tsx',
+    'ActivityCardQuestionPreview/index':
+      'src/components/ActivityCardQuestionPreview/ActivityCardQuestionPreview.tsx',
     'ActivityCardQuestionBanks/index':
       'src/components/ActivityCardQuestionBanks/ActivityCardQuestionBanks.tsx',
     // Toast utils
