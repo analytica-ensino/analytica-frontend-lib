@@ -7,9 +7,13 @@ import {
 } from '../../index';
 import { Plus, CheckCircle, XCircle } from 'phosphor-react';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
+import {
+  renderFromMap,
+  type QuestionRendererMap,
+} from '../../utils/questionRenderer';
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
-import { useMemo, type ReactNode } from 'react';
+import { useMemo } from 'react';
 import { cn } from '../../utils/utils';
 import { questionTypeLabels } from '../../types/questionTypes';
 
@@ -207,7 +211,7 @@ export const ActivityCardQuestionBanks = ({
   };
 
   // Map question types to render functions
-  const questionRenderers: Record<QUESTION_TYPE, () => ReactNode> = {
+  const questionRenderers: QuestionRendererMap = {
     [QUESTION_TYPE.ALTERNATIVA]: renderAlternative,
     [QUESTION_TYPE.MULTIPLA_ESCOLHA]: renderMultipleChoice,
     [QUESTION_TYPE.DISSERTATIVA]: renderDissertative,
@@ -215,12 +219,6 @@ export const ActivityCardQuestionBanks = ({
     [QUESTION_TYPE.LIGAR_PONTOS]: renderConnectDots,
     [QUESTION_TYPE.PREENCHER]: renderFill,
     [QUESTION_TYPE.IMAGEM]: renderImage,
-  };
-
-  const renderQuestionContent = () => {
-    if (!questionType) return null;
-    const renderer = questionRenderers[questionType];
-    return renderer ? renderer() : null;
   };
 
   return (
@@ -252,7 +250,7 @@ export const ActivityCardQuestionBanks = ({
           {enunciado || 'Enunciado não informado'}
         </Text>
 
-        {renderQuestionContent()}
+        {renderFromMap(questionRenderers, questionType)}
       </section>
 
       <section>

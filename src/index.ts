@@ -402,6 +402,13 @@ export { useQuestionFiltersStore } from './store/questionFiltersStore';
 export type { QuestionFiltersState } from './store/questionFiltersStore';
 export type { AuthState } from './store/authStore';
 export { ActivityCardQuestionBanks } from './components/ActivityCardQuestionBanks/ActivityCardQuestionBanks';
+export { ActivityCardQuestionPreview } from './components/ActivityCardQuestionPreview/ActivityCardQuestionPreview';
+export type { ActivityCardQuestionPreviewProps } from './components/ActivityCardQuestionPreview/ActivityCardQuestionPreview';
+export { ActivityPreview } from './components/ActivityPreview/ActivityPreview';
+export type {
+  ActivityPreviewProps,
+  PreviewQuestion,
+} from './components/ActivityPreview/ActivityPreview';
 // Utils
 export {
   cn,
