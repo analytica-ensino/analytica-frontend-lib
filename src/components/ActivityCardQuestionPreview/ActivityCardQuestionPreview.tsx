@@ -12,6 +12,7 @@ import { cn } from '../../utils/utils';
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { CheckCircle, XCircle } from 'phosphor-react';
+import { renderFromMap, type QuestionRendererMap } from '../../utils/questionRenderer';
 
 interface ActivityCardQuestionPreviewProps {
   subjectName?: string;
@@ -35,6 +36,48 @@ interface ActivityCardQuestionPreviewProps {
   position?: number;
 }
 
+const QuestionHeader = ({
+  badgeColor,
+  iconName,
+  subjectName,
+  resolvedQuestionTypeLabel,
+  position,
+}: {
+  badgeColor: string;
+  iconName?: string;
+  subjectName?: string;
+  resolvedQuestionTypeLabel?: string;
+  position?: number;
+}) => (
+  <div className="flex flex-row gap-2 text-text-650">
+    <div className="py-1 px-2 flex flex-row items-center gap-1">
+      <span
+        className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-950"
+        style={{
+          backgroundColor: badgeColor,
+        }}
+      >
+        <IconRender iconName={iconName ?? 'Book'} size={14} color="currentColor" />
+      </span>
+      <Text size="sm">{subjectName ?? 'Assunto não informado'}</Text>
+    </div>
+
+    {typeof position === 'number' && (
+      <div className="py-1 px-2 flex flex-row items-center gap-1">
+        <Text size="sm" className="text-text-700">
+          #{position}
+        </Text>
+      </div>
+    )}
+
+    <div className="py-1 px-2 flex flex-row items-center gap-1">
+      <Text size="sm" className="">
+        {resolvedQuestionTypeLabel ?? 'Tipo de questão'}
+      </Text>
+    </div>
+  </div>
+);
+
 export const ActivityCardQuestionPreview = ({
   subjectName = 'Assunto não informado',
   subjectColor = '#000000',
@@ -50,13 +93,18 @@ export const ActivityCardQuestionPreview = ({
   children,
   position,
 }: ActivityCardQuestionPreviewProps) => {
-  const badgeColor = getSubjectColorWithOpacity(subjectColor, isDark);
+  const badgeColor =
+    getSubjectColorWithOpacity(subjectColor, isDark) ?? subjectColor;
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const correctOptionIds = question?.correctOptionIds || [];
 
-  const resolvedQuestionTypeLabel = questionType
-    ? questionTypeLabels[questionType]
-    : questionTypeLabel || 'Tipo de questão';
+  const resolvedQuestionTypeLabel =
+    questionType && questionTypeLabels[questionType]
+      ? questionTypeLabels[questionType]
+      : questionTypeLabel || 'Tipo de questão';
+  const safeSubjectName: string = subjectName ?? 'Assunto não informado';
+  const safeIconName: string = iconName ?? 'Book';
+  const safeResolvedLabel: string = resolvedQuestionTypeLabel ?? 'Tipo de questão';
 
   const alternatives = useMemo<Alternative[]>(() => {
     if (!question?.options || questionType !== QUESTION_TYPE.ALTERNATIVA)
@@ -177,7 +225,7 @@ export const ActivityCardQuestionPreview = ({
   const renderFill = () => null;
   const renderImage = () => null;
 
-  const questionRenderers: Record<QUESTION_TYPE, () => ReactNode> = {
+  const questionRenderers: QuestionRendererMap = {
     [QUESTION_TYPE.ALTERNATIVA]: renderAlternative,
     [QUESTION_TYPE.MULTIPLA_ESCOLHA]: renderMultipleChoice,
     [QUESTION_TYPE.DISSERTATIVA]: renderDissertative,
@@ -185,12 +233,6 @@ export const ActivityCardQuestionPreview = ({
     [QUESTION_TYPE.LIGAR_PONTOS]: renderConnectDots,
     [QUESTION_TYPE.PREENCHER]: renderFill,
     [QUESTION_TYPE.IMAGEM]: renderImage,
-  };
-
-  const renderQuestionContent = () => {
-    if (!questionType) return null;
-    const renderer = questionRenderers[questionType];
-    return renderer ? renderer() : null;
   };
 
   return (
@@ -219,37 +261,13 @@ export const ActivityCardQuestionPreview = ({
       >
         <div className="w-full rounded-lg border border-border-200 bg-background">
           <div className="w-full min-w-0 flex flex-col gap-2 py-2">
-            <div className="flex flex-row gap-2 text-text-650">
-              <div className="py-1 px-2 flex flex-row items-center gap-1">
-                <span
-                  className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-950"
-                  style={{
-                    backgroundColor: badgeColor,
-                  }}
-                >
-                  <IconRender
-                    iconName={iconName}
-                    size={14}
-                    color="currentColor"
-                  />
-                </span>
-                <Text size="sm">{subjectName}</Text>
-              </div>
-
-              {typeof position === 'number' && (
-                <div className="py-1 px-2 flex flex-row items-center gap-1">
-                  <Text size="sm" className="text-text-700">
-                    #{position}
-                  </Text>
-                </div>
-              )}
-
-              <div className="py-1 px-2 flex flex-row items-center gap-1">
-                <Text size="sm" className="">
-                  {resolvedQuestionTypeLabel}
-                </Text>
-              </div>
-            </div>
+            <QuestionHeader
+              badgeColor={badgeColor}
+              iconName={safeIconName}
+              subjectName={safeSubjectName}
+              resolvedQuestionTypeLabel={safeResolvedLabel}
+              position={position}
+            />
 
             <Text
               size="md"
@@ -273,37 +291,13 @@ export const ActivityCardQuestionPreview = ({
         value={value}
         trigger={
           <div className="w-full min-w-0 flex flex-col gap-2 py-2">
-            <div className="flex flex-row gap-2 text-text-650">
-              <div className="py-1 px-2 flex flex-row items-center gap-1">
-                <span
-                  className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-950"
-                  style={{
-                    backgroundColor: badgeColor,
-                  }}
-                >
-                  <IconRender
-                    iconName={iconName}
-                    size={14}
-                    color="currentColor"
-                  />
-                </span>
-                <Text size="sm">{subjectName}</Text>
-              </div>
-
-              {typeof position === 'number' && (
-                <div className="py-1 px-2 flex flex-row items-center gap-1">
-                  <Text size="sm" className="text-text-700">
-                    #{position}
-                  </Text>
-                </div>
-              )}
-
-              <div className="py-1 px-2 flex flex-row items-center gap-1">
-                <Text size="sm" className="">
-                  {resolvedQuestionTypeLabel}
-                </Text>
-              </div>
-            </div>
+            <QuestionHeader
+              badgeColor={badgeColor}
+              iconName={safeIconName}
+              subjectName={safeSubjectName}
+              resolvedQuestionTypeLabel={safeResolvedLabel}
+              position={position}
+            />
 
             {!isExpanded && (
               <Text
@@ -324,7 +318,7 @@ export const ActivityCardQuestionPreview = ({
         >
           {enunciado}
         </Text>
-        {renderQuestionContent()}
+      {renderFromMap(questionRenderers, questionType)}
         {children}
       </CardAccordation>
     </div>
