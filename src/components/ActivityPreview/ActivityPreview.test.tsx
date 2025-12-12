@@ -6,16 +6,22 @@ import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 jest.mock('../ActivityCardQuestionPreview/ActivityCardQuestionPreview', () => ({
   ActivityCardQuestionPreview: ({
     subjectName,
+    subjectColor,
+    iconName,
     position,
     value,
   }: {
     subjectName: string;
+    subjectColor?: string;
+    iconName?: string;
     position?: number;
     value?: string;
   }) => (
     <div
       data-testid="question-card"
       data-subject={subjectName}
+      data-color={subjectColor}
+      data-icon={iconName}
       data-position={position}
       data-value={value}
     >
@@ -147,5 +153,53 @@ describe('ActivityPreview', () => {
       expect.objectContaining({ id: 'q2', position: 1 }),
       expect.objectContaining({ id: 'q1', position: 2 }),
     ]);
+  });
+
+  it('usa rótulo singular quando há uma questão e aplica defaults com ??', () => {
+    render(
+      <ActivityPreview
+        questions={[
+          {
+            id: 'only',
+            enunciado: 'Única',
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByText('1 questão adicionada')).toBeInTheDocument();
+
+    const card = screen.getByTestId('question-card');
+    expect(card).toHaveAttribute('data-position', '1');
+    expect(card).toHaveAttribute('data-subject', 'Assunto não informado');
+    expect(card).toHaveAttribute('data-icon', 'BookOpen');
+    expect(card).toHaveAttribute('data-color', '#000000');
+  });
+
+  it('não reordena quando fromId não é encontrado', () => {
+    const onReorder = jest.fn();
+    const onPositionsChange = jest.fn();
+    const { container } = render(
+      <ActivityPreview
+        questions={buildQuestions()}
+        onReorder={onReorder}
+        onPositionsChange={onPositionsChange}
+      />
+    );
+
+    const draggables = container.querySelectorAll('[data-draggable="true"]');
+    const dataTransfer = {
+      getData: jest.fn(() => 'unknown'),
+      setData: jest.fn(),
+      setDragImage: jest.fn(),
+    } as unknown as DataTransfer;
+
+    fireEvent.drop(draggables[0], {
+      preventDefault: () => {},
+      dataTransfer,
+    });
+
+    expect(onReorder).not.toHaveBeenCalled();
+    expect(onPositionsChange).not.toHaveBeenCalledTimes(2); // only initial call should happen
   });
 });
