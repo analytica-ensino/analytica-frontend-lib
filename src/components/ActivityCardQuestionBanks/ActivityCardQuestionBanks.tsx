@@ -7,10 +7,13 @@ import {
 } from '../../index';
 import { Plus, CheckCircle, XCircle } from 'phosphor-react';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
-import { renderFromMap, type QuestionRendererMap } from '../../utils/questionRenderer';
+import {
+  renderFromMap,
+  type QuestionRendererMap,
+} from '../../utils/questionRenderer';
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
-import { useMemo, type ReactNode } from 'react';
+import { useMemo } from 'react';
 import { cn } from '../../utils/utils';
 import { questionTypeLabels } from '../../types/questionTypes';
 

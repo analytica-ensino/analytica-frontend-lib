@@ -11,5 +11,3 @@ export const renderFromMap = (
   const renderer = renderers[questionType];
   return renderer ? renderer() : null;
 };
-
-

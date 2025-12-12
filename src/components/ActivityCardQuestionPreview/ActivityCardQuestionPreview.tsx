@@ -12,7 +12,10 @@ import { cn } from '../../utils/utils';
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { CheckCircle, XCircle } from 'phosphor-react';
-import { renderFromMap, type QuestionRendererMap } from '../../utils/questionRenderer';
+import {
+  renderFromMap,
+  type QuestionRendererMap,
+} from '../../utils/questionRenderer';
 
 interface ActivityCardQuestionPreviewProps {
   subjectName?: string;
@@ -57,7 +60,11 @@ const QuestionHeader = ({
           backgroundColor: badgeColor,
         }}
       >
-        <IconRender iconName={iconName ?? 'Book'} size={14} color="currentColor" />
+        <IconRender
+          iconName={iconName ?? 'Book'}
+          size={14}
+          color="currentColor"
+        />
       </span>
       <Text size="sm">{subjectName ?? 'Assunto não informado'}</Text>
     </div>
@@ -104,7 +111,8 @@ export const ActivityCardQuestionPreview = ({
       : questionTypeLabel || 'Tipo de questão';
   const safeSubjectName: string = subjectName ?? 'Assunto não informado';
   const safeIconName: string = iconName ?? 'Book';
-  const safeResolvedLabel: string = resolvedQuestionTypeLabel ?? 'Tipo de questão';
+  const safeResolvedLabel: string =
+    resolvedQuestionTypeLabel ?? 'Tipo de questão';
 
   const alternatives = useMemo<Alternative[]>(() => {
     if (!question?.options || questionType !== QUESTION_TYPE.ALTERNATIVA)
@@ -318,7 +326,7 @@ export const ActivityCardQuestionPreview = ({
         >
           {enunciado}
         </Text>
-      {renderFromMap(questionRenderers, questionType)}
+        {renderFromMap(questionRenderers, questionType)}
         {children}
       </CardAccordation>
     </div>
