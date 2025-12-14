@@ -24,7 +24,7 @@ export const QuestionsPdfContent = forwardRef<
   { questions: PreviewQuestion[] }
 >(({ questions }, ref) => {
   const getLetterByIndex = (index: number): string => {
-    return String.fromCodePoint(97 + index); // 97 = 'a' in ASCII
+    return String.fromCodePoint(97 + index);
   };
 
   const renderAlternative = (question: PreviewQuestion) => {
@@ -135,7 +135,6 @@ export const QuestionsPdfContent = forwardRef<
             style={{
               minHeight: '150px',
               flex: 1,
-              borderBottom: '1px solid #ccc',
             }}
           />
         </div>
@@ -331,8 +330,6 @@ const collectRelevantStyles = (): string[] => {
         }
       });
     } catch (error) {
-      // Ignora erros de CORS (esperado para stylesheets cross-origin)
-      // Log em modo debug para ajudar no desenvolvimento
       if (typeof console !== 'undefined' && console.debug) {
         console.debug('Could not access stylesheet (likely CORS):', error);
       }
@@ -428,16 +425,33 @@ const generatePrintHTML = (contentHTML: string, styles: string[]): string => {
 };
 
 /**
- * Sets up the print window onload handler
+ * Sets up the print window onload handler with improved timing and cleanup
  */
 const setupPrintWindowHandler = (printWindow: Window): void => {
   printWindow.onload = () => {
-    setTimeout(() => {
-      printWindow.print();
-      setTimeout(() => {
-        printWindow.close();
-      }, 1000);
-    }, 500);
+    const printAndCleanup = () => {
+      try {
+        printWindow.print();
+      } finally {
+        setTimeout(() => {
+          if (printWindow && !printWindow.closed) {
+            printWindow.close();
+          }
+        }, 1000);
+      }
+    };
+
+    if (printWindow.document.fonts && printWindow.document.fonts.ready) {
+      printWindow.document.fonts.ready
+        .then(() => {
+          setTimeout(printAndCleanup, 100);
+        })
+        .catch(() => {
+          setTimeout(printAndCleanup, 500);
+        });
+    } else {
+      setTimeout(printAndCleanup, 500);
+    }
   };
 };
 
@@ -470,6 +484,7 @@ export const useQuestionsPdfPrint = (
           'Não foi possível abrir a janela de impressão. Verifique se os pop-ups estão bloqueados.'
         );
       }
+      printWindow.opener = null;
 
       const contentHTML = contentRef.current.innerHTML;
       const styles = collectRelevantStyles();

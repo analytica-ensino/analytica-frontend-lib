@@ -23,9 +23,14 @@ const mockPrintWindow = {
     open: jest.fn(),
     write: jest.fn(),
     close: jest.fn(),
+    fonts: {
+      ready: Promise.resolve(),
+    },
   },
   print: jest.fn(),
   close: jest.fn(),
+  opener: null as Window | null,
+  closed: false,
   onload: null as (() => void) | null,
 };
 
@@ -36,6 +41,8 @@ beforeEach(() => {
   globalThis.window.open = mockWindowOpen;
   globalThis.window.print = jest.fn();
   mockPrintWindow.onload = null;
+  mockPrintWindow.opener = null;
+  mockPrintWindow.closed = false;
 
   // Mock document.styleSheets to prevent errors in test environment
   Object.defineProperty(document, 'styleSheets', {
@@ -379,6 +386,8 @@ describe('useQuestionsPdfPrint', () => {
     result.handlePrint();
 
     expect(mockWindowOpen).toHaveBeenCalledWith('', '_blank');
+    // Security: opener should be set to null to prevent reverse-tabnabbing
+    expect(mockPrintWindow.opener).toBeNull();
     expect(mockPrintWindow.document.open).toHaveBeenCalled();
     expect(mockPrintWindow.document.write).toHaveBeenCalled();
     const writtenContent = mockPrintWindow.document.write.mock.calls[0][0];
@@ -606,6 +615,8 @@ describe('QuestionsPdfGenerator', () => {
 
     expect(mockOnPrint).toHaveBeenCalledTimes(1);
     expect(mockWindowOpen).toHaveBeenCalledWith('', '_blank');
+    // Security: opener should be set to null to prevent reverse-tabnabbing
+    expect(mockPrintWindow.opener).toBeNull();
   });
 
   it('works without render prop (backward compatibility)', () => {
