@@ -32,8 +32,8 @@ const mockWindowOpen = jest.fn(() => mockPrintWindow as unknown as Window);
 
 beforeEach(() => {
   jest.clearAllMocks();
-  global.window.open = mockWindowOpen;
-  global.window.print = jest.fn();
+  globalThis.window.open = mockWindowOpen;
+  globalThis.window.print = jest.fn();
   mockPrintWindow.onload = null;
 });
 
@@ -45,7 +45,9 @@ describe('QuestionsPdfContent', () => {
   };
 
   it('renders question with number and enunciado', () => {
-    const { container } = render(<QuestionsPdfContent questions={[baseQuestion]} />);
+    const { container } = render(
+      <QuestionsPdfContent questions={[baseQuestion]} />
+    );
 
     expect(container.textContent).toContain('Questão 1');
     expect(screen.getByTestId('latex-renderer')).toHaveTextContent(
@@ -79,7 +81,9 @@ describe('QuestionsPdfContent', () => {
       },
     };
 
-    const { container } = render(<QuestionsPdfContent questions={[question]} />);
+    const { container } = render(
+      <QuestionsPdfContent questions={[question]} />
+    );
 
     const list = container.querySelector('ol');
     expect(list).toBeInTheDocument();
@@ -105,7 +109,9 @@ describe('QuestionsPdfContent', () => {
       },
     };
 
-    const { container } = render(<QuestionsPdfContent questions={[question]} />);
+    const { container } = render(
+      <QuestionsPdfContent questions={[question]} />
+    );
 
     const checkboxes = container.querySelectorAll('span');
     const checkboxElements = Array.from(checkboxes).filter((el) =>
@@ -124,7 +130,9 @@ describe('QuestionsPdfContent', () => {
       questionType: QUESTION_TYPE.DISSERTATIVA,
     };
 
-    const { container } = render(<QuestionsPdfContent questions={[question]} />);
+    const { container } = render(
+      <QuestionsPdfContent questions={[question]} />
+    );
 
     expect(container.textContent).toContain('R:');
     // Find the div that is a sibling of the R: span (the answer space)
@@ -132,7 +140,7 @@ describe('QuestionsPdfContent', () => {
       (span) => span.textContent === 'R:'
     );
     expect(rLabel).toBeTruthy();
-    
+
     // The answer space should be in the same parent as R:
     const parent = rLabel?.parentElement;
     expect(parent).toBeTruthy();
@@ -152,7 +160,9 @@ describe('QuestionsPdfContent', () => {
       },
     };
 
-    const { container } = render(<QuestionsPdfContent questions={[question]} />);
+    const { container } = render(
+      <QuestionsPdfContent questions={[question]} />
+    );
 
     expect(container.textContent).toContain('a)');
     expect(container.textContent).toContain('b)');
@@ -174,7 +184,9 @@ describe('QuestionsPdfContent', () => {
       },
     };
 
-    const { container } = render(<QuestionsPdfContent questions={[question]} />);
+    const { container } = render(
+      <QuestionsPdfContent questions={[question]} />
+    );
 
     expect(container.querySelector('ol')).not.toBeInTheDocument();
   });
@@ -185,7 +197,9 @@ describe('QuestionsPdfContent', () => {
       questionType: undefined,
     };
 
-    const { container } = render(<QuestionsPdfContent questions={[question]} />);
+    const { container } = render(
+      <QuestionsPdfContent questions={[question]} />
+    );
 
     expect(container.textContent).toContain('Questão 1');
     expect(container.querySelector('ol')).not.toBeInTheDocument();
@@ -281,7 +295,7 @@ describe('useQuestionsPdfPrint', () => {
 
   it('calls onPrintError when contentRef is null', () => {
     const TestComponent = () => {
-      const result = useQuestionsPdfPrint(
+      useQuestionsPdfPrint(
         [{ id: 'q1', enunciado: 'Test' }],
         undefined,
         mockOnPrintError
@@ -368,7 +382,9 @@ describe('QuestionsPdfGenerator', () => {
   });
 
   it('passes questions to QuestionsPdfContent', () => {
-    const { container } = render(<QuestionsPdfGenerator questions={baseQuestions} />);
+    const { container } = render(
+      <QuestionsPdfGenerator questions={baseQuestions} />
+    );
 
     expect(container.textContent).toContain('Questão 1');
     expect(screen.getByTestId('latex-renderer')).toHaveTextContent(
@@ -491,4 +507,3 @@ describe('QuestionsPdfGenerator', () => {
     expect(container.textContent).toContain('( ) V ( ) F'); // V/F
   });
 });
-
