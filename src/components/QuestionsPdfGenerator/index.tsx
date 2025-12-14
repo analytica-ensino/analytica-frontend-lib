@@ -4,4 +4,3 @@ export {
   useQuestionsPdfPrint,
   type QuestionsPdfGeneratorProps,
 } from './QuestionsPdfGenerator';
-
