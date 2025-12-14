@@ -330,8 +330,12 @@ const collectRelevantStyles = (): string[] => {
           styles.push(ruleText);
         }
       });
-    } catch {
-      // Ignora erros de CORS
+    } catch (error) {
+      // Ignora erros de CORS (esperado para stylesheets cross-origin)
+      // Log em modo debug para ajudar no desenvolvimento
+      if (typeof console !== 'undefined' && console.debug) {
+        console.debug('Could not access stylesheet (likely CORS):', error);
+      }
     }
   });
 
@@ -340,6 +344,13 @@ const collectRelevantStyles = (): string[] => {
 
 /**
  * Generates the HTML content for the print window
+ *
+ * Security note: contentHTML is already sanitized via DOMPurify in LatexRenderer
+ * before reaching this function, so it's safe to inject into the template string.
+ *
+ * CSP note: This function loads KaTeX CSS from CDN. Ensure your Content Security Policy
+ * allows: style-src 'self' https://cdn.jsdelivr.net;
+ * Or consider serving KaTeX CSS locally for stricter CSP compliance.
  */
 const generatePrintHTML = (contentHTML: string, styles: string[]): string => {
   return `
@@ -433,6 +444,10 @@ const setupPrintWindowHandler = (printWindow: Window): void => {
 /**
  * Hook to generate PDF from questions using native browser print API
  * Returns the content ref and print handler
+ *
+ * Security: Content is sanitized via DOMPurify in LatexRenderer before rendering.
+ * CSP: Ensure your Content Security Policy allows loading KaTeX CSS from cdn.jsdelivr.net
+ * or serve KaTeX CSS locally for stricter CSP compliance.
  */
 export const useQuestionsPdfPrint = (
   questions: PreviewQuestion[],
