@@ -309,6 +309,122 @@ export const QuestionsPdfContent = forwardRef<
 QuestionsPdfContent.displayName = 'QuestionsPdfContent';
 
 /**
+ * Collects relevant CSS styles from document stylesheets
+ */
+const collectRelevantStyles = (): string[] => {
+  const styles: string[] = [];
+  const styleSheets = Array.from(document.styleSheets);
+
+  styleSheets.forEach((styleSheet) => {
+    try {
+      const cssRules = styleSheet.cssRules || [];
+      Array.from(cssRules).forEach((rule) => {
+        const ruleText = rule.cssText;
+        if (ruleText.includes('katex') || ruleText.includes('questions-pdf')) {
+          styles.push(ruleText);
+        }
+      });
+    } catch {
+      // Ignora erros de CORS
+    }
+  });
+
+  return styles;
+};
+
+/**
+ * Generates the HTML content for the print window
+ */
+const generatePrintHTML = (contentHTML: string, styles: string[]): string => {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Questões</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex.min.css">
+        <style>
+          @page {
+            margin: 20mm;
+            size: A4;
+          }
+          
+          * {
+            box-sizing: border-box;
+          }
+          
+          body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #000;
+          }
+          
+          .questions-pdf-container {
+            position: static !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            z-index: auto !important;
+            left: auto !important;
+            top: auto !important;
+            width: auto !important;
+            min-height: auto !important;
+            padding: 0;
+            margin: 0;
+          }
+          
+          .questions-pdf-container h3 {
+            page-break-after: avoid;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #000;
+          }
+          
+          .questions-pdf-container > div {
+            page-break-inside: avoid;
+          }
+          
+          ol {
+            margin-top: 12px;
+            margin-bottom: 12px;
+            padding-left: 24px;
+          }
+          
+          li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+          }
+          
+          ${styles.join('\n')}
+        </style>
+      </head>
+      <body>
+        <div class="questions-pdf-container">
+          ${contentHTML}
+        </div>
+      </body>
+    </html>
+  `;
+};
+
+/**
+ * Sets up the print window onload handler
+ */
+const setupPrintWindowHandler = (printWindow: Window): void => {
+  printWindow.onload = () => {
+    setTimeout(() => {
+      printWindow.print();
+      setTimeout(() => {
+        printWindow.close();
+      }, 1000);
+    }, 500);
+  };
+};
+
+/**
  * Hook to generate PDF from questions using native browser print API
  * Returns the content ref and print handler
  */
@@ -327,7 +443,6 @@ export const useQuestionsPdfPrint = (
         throw new Error('Elemento de PDF não encontrado no DOM');
       }
 
-      // Cria uma nova janela para impressão
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
         throw new Error(
@@ -335,118 +450,16 @@ export const useQuestionsPdfPrint = (
         );
       }
 
-      // Obtém o HTML completo do elemento, incluindo estilos inline
-      const contentElement = contentRef.current;
-      const contentHTML = contentElement.innerHTML;
+      const contentHTML = contentRef.current.innerHTML;
+      const styles = collectRelevantStyles();
+      const htmlContent = generatePrintHTML(contentHTML, styles);
 
-      // Obtém todos os estilos da página atual (incluindo katex para LaTeX)
-      const styles: string[] = [];
-      Array.from(document.styleSheets).forEach((styleSheet) => {
-        try {
-          Array.from(styleSheet.cssRules || []).forEach((rule) => {
-            if (
-              rule.cssText.includes('katex') ||
-              rule.cssText.includes('questions-pdf')
-            ) {
-              styles.push(rule.cssText);
-            }
-          });
-        } catch {
-          // Ignora erros de CORS
-        }
-      });
-
-      // Escreve o conteúdo na nova janela
       const doc = printWindow.document;
       doc.open();
-
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Questões</title>
-            <meta charset="utf-8">
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex.min.css">
-            <style>
-              @page {
-                margin: 20mm;
-                size: A4;
-              }
-              
-              * {
-                box-sizing: border-box;
-              }
-              
-              body {
-                margin: 0;
-                padding: 0;
-                font-family: Arial, sans-serif;
-                font-size: 14px;
-                line-height: 1.6;
-                color: #000;
-              }
-              
-              .questions-pdf-container {
-                position: static !important;
-                visibility: visible !important;
-                pointer-events: auto !important;
-                z-index: auto !important;
-                left: auto !important;
-                top: auto !important;
-                width: auto !important;
-                min-height: auto !important;
-                padding: 0;
-                margin: 0;
-              }
-              
-              .questions-pdf-container h3 {
-                page-break-after: avoid;
-                font-size: 16px;
-                font-weight: bold;
-                margin-bottom: 12px;
-                color: #000;
-              }
-              
-              .questions-pdf-container > div {
-                page-break-inside: avoid;
-              }
-              
-              ol {
-                margin-top: 12px;
-                margin-bottom: 12px;
-                padding-left: 24px;
-              }
-              
-              li {
-                margin-bottom: 8px;
-                line-height: 1.6;
-              }
-              
-              ${styles.join('\n')}
-            </style>
-          </head>
-          <body>
-            <div class="questions-pdf-container">
-              ${contentHTML}
-            </div>
-          </body>
-        </html>
-      `;
-
       doc.write(htmlContent);
       doc.close();
 
-      // Aguarda o carregamento completo (incluindo LaTeX) e imprime
-      printWindow.onload = () => {
-        // Aguarda um pouco mais para garantir que o LaTeX seja renderizado
-        setTimeout(() => {
-          printWindow.print();
-          // Fecha a janela após um tempo (opcional)
-          setTimeout(() => {
-            printWindow.close();
-          }, 1000);
-        }, 500);
-      };
+      setupPrintWindowHandler(printWindow);
     } catch (error) {
       const errorObj =
         error instanceof Error ? error : new Error(String(error));
