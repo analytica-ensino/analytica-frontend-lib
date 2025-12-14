@@ -409,6 +409,12 @@ export type {
   ActivityPreviewProps,
   PreviewQuestion,
 } from './components/ActivityPreview/ActivityPreview';
+export {
+  QuestionsPdfGenerator,
+  QuestionsPdfContent,
+  useQuestionsPdfPrint,
+} from './components/QuestionsPdfGenerator';
+export type { QuestionsPdfGeneratorProps } from './components/QuestionsPdfGenerator';
 // Utils
 export {
   cn,

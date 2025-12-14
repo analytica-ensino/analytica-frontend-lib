@@ -4,6 +4,10 @@ import { Button, Text } from '../../index';
 import { ActivityCardQuestionPreview } from '../ActivityCardQuestionPreview/ActivityCardQuestionPreview';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { cn } from '../../utils/utils';
+import {
+  useQuestionsPdfPrint,
+  QuestionsPdfContent,
+} from '../QuestionsPdfGenerator';
 
 type PreviewQuestion = {
   id: string;
@@ -71,6 +75,32 @@ export const ActivityPreview = ({
   const totalLabel =
     total === 1 ? '1 questão adicionada' : `${total} questões adicionadas`;
 
+  const { contentRef, handlePrint } = useQuestionsPdfPrint(
+    orderedQuestions,
+    onDownloadPdf
+  );
+
+  const handleDownloadPdf = () => {
+    // Chama o callback opcional antes de imprimir
+    onDownloadPdf?.();
+
+    // Pequeno delay para garantir que o DOM está atualizado
+    // e que o callback foi executado
+    setTimeout(() => {
+      if (!contentRef.current) {
+        console.error('Elemento de PDF não encontrado no DOM');
+        return;
+      }
+
+      // Verifica se handlePrint é uma função antes de chamar
+      if (typeof handlePrint === 'function') {
+        handlePrint();
+      } else {
+        console.error('handlePrint não é uma função:', handlePrint);
+      }
+    }, 100);
+  };
+
   const handleReorder = (fromId: string, toId: string) => {
     if (fromId === toId) return;
     const current = [...orderedQuestions];
@@ -108,7 +138,7 @@ export const ActivityPreview = ({
           size="small"
           variant="outline"
           iconLeft={<DownloadSimple />}
-          onClick={onDownloadPdf}
+          onClick={handleDownloadPdf}
         >
           Baixar pdf
         </Button>
@@ -198,6 +228,8 @@ export const ActivityPreview = ({
       <Button variant="outline" onClick={onRemoveAll}>
         Remover tudo
       </Button>
+
+      <QuestionsPdfContent ref={contentRef} questions={orderedQuestions} />
     </div>
   );
 };
