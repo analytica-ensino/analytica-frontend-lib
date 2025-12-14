@@ -1,0 +1,494 @@
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import {
+  QuestionsPdfContent,
+  useQuestionsPdfPrint,
+  QuestionsPdfGenerator,
+} from './QuestionsPdfGenerator';
+import { QUESTION_TYPE } from '../Quiz/useQuizStore';
+import type { PreviewQuestion } from '../ActivityPreview/ActivityPreview';
+
+// Mock LatexRenderer
+jest.mock('../LatexRenderer/LatexRenderer', () => ({
+  __esModule: true,
+  default: ({ content }: { content: string }) => (
+    <span data-testid="latex-renderer">{content}</span>
+  ),
+}));
+
+// Mock window.open and window.print
+const mockPrintWindow = {
+  document: {
+    write: jest.fn(),
+    close: jest.fn(),
+  },
+  print: jest.fn(),
+  close: jest.fn(),
+  onload: null as (() => void) | null,
+};
+
+const mockWindowOpen = jest.fn(() => mockPrintWindow as unknown as Window);
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  global.window.open = mockWindowOpen;
+  global.window.print = jest.fn();
+  mockPrintWindow.onload = null;
+});
+
+describe('QuestionsPdfContent', () => {
+  const baseQuestion: PreviewQuestion = {
+    id: 'q1',
+    enunciado: 'Qual é a resposta?',
+    questionType: QUESTION_TYPE.ALTERNATIVA,
+  };
+
+  it('renders question with number and enunciado', () => {
+    const { container } = render(<QuestionsPdfContent questions={[baseQuestion]} />);
+
+    expect(container.textContent).toContain('Questão 1');
+    expect(screen.getByTestId('latex-renderer')).toHaveTextContent(
+      'Qual é a resposta?'
+    );
+  });
+
+  it('renders multiple questions with correct numbering', () => {
+    const questions: PreviewQuestion[] = [
+      { ...baseQuestion, id: 'q1' },
+      { ...baseQuestion, id: 'q2', enunciado: 'Segunda questão' },
+    ];
+
+    const { container } = render(<QuestionsPdfContent questions={questions} />);
+
+    expect(container.textContent).toContain('Questão 1');
+    expect(container.textContent).toContain('Questão 2');
+    expect(screen.getAllByTestId('latex-renderer')).toHaveLength(2);
+  });
+
+  it('renders alternative question with ordered list', () => {
+    const question: PreviewQuestion = {
+      ...baseQuestion,
+      questionType: QUESTION_TYPE.ALTERNATIVA,
+      question: {
+        options: [
+          { id: 'a', option: 'Opção A' },
+          { id: 'b', option: 'Opção B' },
+          { id: 'c', option: 'Opção C' },
+        ],
+      },
+    };
+
+    const { container } = render(<QuestionsPdfContent questions={[question]} />);
+
+    const list = container.querySelector('ol');
+    expect(list).toBeInTheDocument();
+    expect(list?.tagName).toBe('OL');
+    expect(list).toHaveAttribute('type', 'a');
+
+    const items = container.querySelectorAll('li');
+    expect(items).toHaveLength(3);
+    expect(items[0]).toHaveTextContent('Opção A');
+    expect(items[1]).toHaveTextContent('Opção B');
+    expect(items[2]).toHaveTextContent('Opção C');
+  });
+
+  it('renders multiple choice question with checkboxes', () => {
+    const question: PreviewQuestion = {
+      ...baseQuestion,
+      questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
+      question: {
+        options: [
+          { id: 'a', option: 'Opção A' },
+          { id: 'b', option: 'Opção B' },
+        ],
+      },
+    };
+
+    const { container } = render(<QuestionsPdfContent questions={[question]} />);
+
+    const checkboxes = container.querySelectorAll('span');
+    const checkboxElements = Array.from(checkboxes).filter((el) =>
+      el.textContent?.includes('☐')
+    );
+    expect(checkboxElements.length).toBeGreaterThan(0);
+
+    expect(container.textContent).toContain('a)');
+    expect(container.textContent).toContain('b)');
+    expect(checkboxElements).toHaveLength(2);
+  });
+
+  it('renders dissertative question with R: label and space', () => {
+    const question: PreviewQuestion = {
+      ...baseQuestion,
+      questionType: QUESTION_TYPE.DISSERTATIVA,
+    };
+
+    const { container } = render(<QuestionsPdfContent questions={[question]} />);
+
+    expect(container.textContent).toContain('R:');
+    // Find the div that is a sibling of the R: span (the answer space)
+    const rLabel = Array.from(container.querySelectorAll('span')).find(
+      (span) => span.textContent === 'R:'
+    );
+    expect(rLabel).toBeTruthy();
+    
+    // The answer space should be in the same parent as R:
+    const parent = rLabel?.parentElement;
+    expect(parent).toBeTruthy();
+    const answerSpace = parent?.querySelector('div[style*="flex: 1"]');
+    expect(answerSpace).toBeTruthy();
+  });
+
+  it('renders true or false question with V/F options', () => {
+    const question: PreviewQuestion = {
+      ...baseQuestion,
+      questionType: QUESTION_TYPE.VERDADEIRO_FALSO,
+      question: {
+        options: [
+          { id: 'a', option: 'Afirmação 1' },
+          { id: 'b', option: 'Afirmação 2' },
+        ],
+      },
+    };
+
+    const { container } = render(<QuestionsPdfContent questions={[question]} />);
+
+    expect(container.textContent).toContain('a)');
+    expect(container.textContent).toContain('b)');
+    const vfElements = container.querySelectorAll('span');
+    const vfTexts = Array.from(vfElements).filter((el) =>
+      el.textContent?.includes('( ) V ( ) F')
+    );
+    expect(vfTexts).toHaveLength(2);
+    expect(container.textContent).toContain('Afirmação 1');
+    expect(container.textContent).toContain('Afirmação 2');
+  });
+
+  it('does not render alternatives when question has no options', () => {
+    const question: PreviewQuestion = {
+      ...baseQuestion,
+      questionType: QUESTION_TYPE.ALTERNATIVA,
+      question: {
+        options: [],
+      },
+    };
+
+    const { container } = render(<QuestionsPdfContent questions={[question]} />);
+
+    expect(container.querySelector('ol')).not.toBeInTheDocument();
+  });
+
+  it('does not render question type content when type is unknown', () => {
+    const question: PreviewQuestion = {
+      ...baseQuestion,
+      questionType: undefined,
+    };
+
+    const { container } = render(<QuestionsPdfContent questions={[question]} />);
+
+    expect(container.textContent).toContain('Questão 1');
+    expect(container.querySelector('ol')).not.toBeInTheDocument();
+    expect(container.textContent).not.toContain('R:');
+  });
+
+  it('applies correct styles to container', () => {
+    const { container } = render(
+      <QuestionsPdfContent questions={[baseQuestion]} />
+    );
+
+    const pdfContainer = container.querySelector('.questions-pdf-container');
+    expect(pdfContainer).toBeInTheDocument();
+    expect(pdfContainer).toHaveStyle({
+      position: 'fixed',
+      visibility: 'hidden',
+    });
+  });
+
+  it('renders empty array of questions', () => {
+    const { container } = render(<QuestionsPdfContent questions={[]} />);
+
+    expect(container.textContent).not.toContain('Questão');
+  });
+});
+
+describe('useQuestionsPdfPrint', () => {
+  const mockOnPrint = jest.fn();
+  const mockOnPrintError = jest.fn();
+
+  const createTestHook = (
+    questions: PreviewQuestion[],
+    onPrint?: () => void,
+    onPrintError?: (error: Error) => void
+  ) => {
+    let result: ReturnType<typeof useQuestionsPdfPrint> | null = null;
+
+    const TestComponent = () => {
+      result = useQuestionsPdfPrint(questions, onPrint, onPrintError);
+      return (
+        <div ref={result.contentRef} data-testid="pdf-content">
+          Content
+        </div>
+      );
+    };
+
+    render(<TestComponent />);
+    return result!;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns contentRef and handlePrint function', () => {
+    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+
+    expect(result).toBeDefined();
+    expect(result.contentRef).toBeDefined();
+    expect(result.handlePrint).toBeDefined();
+    expect(typeof result.handlePrint).toBe('function');
+  });
+
+  it('calls onPrint callback when handlePrint is called', () => {
+    const result = createTestHook(
+      [{ id: 'q1', enunciado: 'Test' }],
+      mockOnPrint
+    );
+
+    result.handlePrint();
+
+    expect(mockOnPrint).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens print window and writes content', () => {
+    const question: PreviewQuestion = {
+      id: 'q1',
+      enunciado: 'Test question',
+      questionType: QUESTION_TYPE.ALTERNATIVA,
+    };
+
+    const result = createTestHook([question]);
+
+    result.handlePrint();
+
+    expect(mockWindowOpen).toHaveBeenCalledWith('', '_blank');
+    expect(mockPrintWindow.document.write).toHaveBeenCalled();
+    const writtenContent = mockPrintWindow.document.write.mock.calls[0][0];
+    expect(writtenContent).toContain('<title>Questões</title>');
+    // The content will be in the HTML structure, check for the container
+    expect(writtenContent).toContain('questions-pdf-container');
+  });
+
+  it('calls onPrintError when contentRef is null', () => {
+    const TestComponent = () => {
+      const result = useQuestionsPdfPrint(
+        [{ id: 'q1', enunciado: 'Test' }],
+        undefined,
+        mockOnPrintError
+      );
+      // Not attaching ref to simulate null ref
+      return <div>Test</div>;
+    };
+
+    render(<TestComponent />);
+
+    const TestComponentWithHook = () => {
+      const result = useQuestionsPdfPrint(
+        [{ id: 'q1', enunciado: 'Test' }],
+        undefined,
+        mockOnPrintError
+      );
+      result.handlePrint();
+      return <div>Test</div>;
+    };
+
+    render(<TestComponentWithHook />);
+
+    expect(mockOnPrintError).toHaveBeenCalled();
+    expect(mockOnPrintError.mock.calls[0][0].message).toContain(
+      'Elemento de PDF não encontrado'
+    );
+  });
+
+  it('calls onPrintError when window.open returns null', () => {
+    mockWindowOpen.mockReturnValueOnce(null as unknown as Window);
+
+    const result = createTestHook(
+      [{ id: 'q1', enunciado: 'Test' }],
+      undefined,
+      mockOnPrintError
+    );
+
+    result.handlePrint();
+
+    expect(mockOnPrintError).toHaveBeenCalled();
+    expect(mockOnPrintError.mock.calls[0][0].message).toContain(
+      'Não foi possível abrir a janela de impressão'
+    );
+  });
+
+  it('includes KaTeX CSS link in print window', () => {
+    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+
+    result.handlePrint();
+
+    const writtenContent = mockPrintWindow.document.write.mock.calls[0][0];
+    expect(writtenContent).toContain('katex.min.css');
+    expect(writtenContent).toContain('cdn.jsdelivr.net');
+  });
+
+  it('closes document after writing', () => {
+    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+
+    result.handlePrint();
+
+    expect(mockPrintWindow.document.close).toHaveBeenCalled();
+  });
+});
+
+describe('QuestionsPdfGenerator', () => {
+  const baseQuestions: PreviewQuestion[] = [
+    {
+      id: 'q1',
+      enunciado: 'Test question',
+      questionType: QUESTION_TYPE.ALTERNATIVA,
+    },
+  ];
+
+  it('renders hidden QuestionsPdfContent', () => {
+    const { container } = render(
+      <QuestionsPdfGenerator questions={baseQuestions} />
+    );
+
+    const hiddenDiv = container.querySelector('div[style*="display: none"]');
+    expect(hiddenDiv).toBeInTheDocument();
+
+    const pdfContent = container.querySelector('.questions-pdf-container');
+    expect(pdfContent).toBeInTheDocument();
+  });
+
+  it('passes questions to QuestionsPdfContent', () => {
+    const { container } = render(<QuestionsPdfGenerator questions={baseQuestions} />);
+
+    expect(container.textContent).toContain('Questão 1');
+    expect(screen.getByTestId('latex-renderer')).toHaveTextContent(
+      'Test question'
+    );
+  });
+
+  it('calls onPrint callback when print is triggered via hook', () => {
+    const mockOnPrint = jest.fn();
+    const TestComponent = () => {
+      const { contentRef, handlePrint } = useQuestionsPdfPrint(
+        baseQuestions,
+        mockOnPrint
+      );
+      return (
+        <>
+          <QuestionsPdfGenerator
+            questions={baseQuestions}
+            onPrint={mockOnPrint}
+          />
+          <button onClick={handlePrint} data-testid="print-button">
+            Print
+          </button>
+          <div ref={contentRef} data-testid="content-ref" />
+        </>
+      );
+    };
+
+    render(<TestComponent />);
+
+    const printButton = screen.getByTestId('print-button');
+    printButton.click();
+
+    expect(mockOnPrint).toHaveBeenCalled();
+  });
+
+  it('calls onPrintError callback on error', () => {
+    const mockOnPrintError = jest.fn();
+    mockWindowOpen.mockReturnValueOnce(null as unknown as Window);
+
+    const TestComponent = () => {
+      const { contentRef, handlePrint } = useQuestionsPdfPrint(
+        baseQuestions,
+        undefined,
+        mockOnPrintError
+      );
+      return (
+        <>
+          <QuestionsPdfGenerator
+            questions={baseQuestions}
+            onPrintError={mockOnPrintError}
+          />
+          <button onClick={handlePrint} data-testid="print-button">
+            Print
+          </button>
+          <div ref={contentRef} data-testid="content-ref" />
+        </>
+      );
+    };
+
+    render(<TestComponent />);
+
+    const printButton = screen.getByTestId('print-button');
+    printButton.click();
+
+    expect(mockOnPrintError).toHaveBeenCalled();
+  });
+
+  it('renders with empty questions array', () => {
+    const { container } = render(<QuestionsPdfGenerator questions={[]} />);
+
+    expect(container.textContent).not.toContain('Questão');
+  });
+
+  it('renders all question types correctly', () => {
+    const allTypesQuestions: PreviewQuestion[] = [
+      {
+        id: 'q1',
+        enunciado: 'Alternativa',
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        question: {
+          options: [{ id: 'a', option: 'Opção A' }],
+        },
+      },
+      {
+        id: 'q2',
+        enunciado: 'Múltipla escolha',
+        questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
+        question: {
+          options: [{ id: 'a', option: 'Opção A' }],
+        },
+      },
+      {
+        id: 'q3',
+        enunciado: 'Dissertativa',
+        questionType: QUESTION_TYPE.DISSERTATIVA,
+      },
+      {
+        id: 'q4',
+        enunciado: 'Verdadeiro ou Falso',
+        questionType: QUESTION_TYPE.VERDADEIRO_FALSO,
+        question: {
+          options: [{ id: 'a', option: 'Afirmação' }],
+        },
+      },
+    ];
+
+    const { container } = render(
+      <QuestionsPdfGenerator questions={allTypesQuestions} />
+    );
+
+    expect(container.textContent).toContain('Questão 1');
+    expect(container.textContent).toContain('Questão 2');
+    expect(container.textContent).toContain('Questão 3');
+    expect(container.textContent).toContain('Questão 4');
+
+    expect(container.querySelector('ol')).toBeInTheDocument(); // Alternativa
+    expect(container.textContent).toContain('☐'); // Múltipla escolha
+    expect(container.textContent).toContain('R:'); // Dissertativa
+    expect(container.textContent).toContain('( ) V ( ) F'); // V/F
+  });
+});
+
