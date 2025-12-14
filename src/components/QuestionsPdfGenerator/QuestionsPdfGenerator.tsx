@@ -1,4 +1,4 @@
-import { forwardRef, useRef, useCallback } from 'react';
+import React, { forwardRef, useRef, useCallback } from 'react';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import LatexRenderer from '../LatexRenderer/LatexRenderer';
 import type { PreviewQuestion } from '../ActivityPreview/ActivityPreview';
@@ -7,6 +7,12 @@ interface QuestionsPdfGeneratorProps {
   questions: PreviewQuestion[];
   onPrint?: () => void;
   onPrintError?: (error: Error) => void;
+  /**
+   * Optional render prop to access the handlePrint function.
+   * If not provided, the component will render the hidden PDF content only.
+   * Consumers can use the hook directly (useQuestionsPdfPrint) for more control.
+   */
+  children?: (handlePrint: () => void) => React.ReactNode;
 }
 
 /**
@@ -342,7 +348,7 @@ const generatePrintHTML = (contentHTML: string, styles: string[]): string => {
       <head>
         <title>Questões</title>
         <meta charset="utf-8">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css">
         <style>
           @page {
             margin: 20mm;
@@ -480,24 +486,44 @@ export const useQuestionsPdfPrint = (
  * Isolated and reusable component for generating PDFs of questions without answers.
  * Formats questions for school printing with specific layouts for each question type.
  *
- * This component renders hidden content and provides a hook to trigger printing.
+ * This component renders hidden content and optionally exposes handlePrint via render prop.
+ * For more control, consumers can use the hook directly (useQuestionsPdfPrint).
  *
  * @param questions - Array of questions to render in PDF
  * @param onPrint - Optional callback when print is triggered
  * @param onPrintError - Optional callback when print error occurs
- * @returns Component with hidden PDF content
+ * @param children - Optional render prop function that receives handlePrint
+ * @returns Component with hidden PDF content and optionally rendered children
+ *
+ * @example
+ * // Without render prop (hidden content only)
+ * <QuestionsPdfGenerator questions={questions} />
+ *
+ * @example
+ * // With render prop (expose handlePrint)
+ * <QuestionsPdfGenerator questions={questions}>
+ *   {(handlePrint) => <button onClick={handlePrint}>Print</button>}
+ * </QuestionsPdfGenerator>
  */
 export const QuestionsPdfGenerator = ({
   questions,
   onPrint,
   onPrintError,
+  children,
 }: QuestionsPdfGeneratorProps) => {
-  const { contentRef } = useQuestionsPdfPrint(questions, onPrint, onPrintError);
+  const { contentRef, handlePrint } = useQuestionsPdfPrint(
+    questions,
+    onPrint,
+    onPrintError
+  );
 
   return (
-    <div style={{ display: 'none' }}>
-      <QuestionsPdfContent ref={contentRef} questions={questions} />
-    </div>
+    <>
+      {children?.(handlePrint)}
+      <div style={{ display: 'none' }}>
+        <QuestionsPdfContent ref={contentRef} questions={questions} />
+      </div>
+    </>
   );
 };
 

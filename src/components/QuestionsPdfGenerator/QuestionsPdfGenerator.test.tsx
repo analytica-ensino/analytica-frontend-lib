@@ -587,6 +587,37 @@ describe('QuestionsPdfGenerator', () => {
     expect(pdfContent).toBeInTheDocument();
   });
 
+  it('exposes handlePrint via render prop', () => {
+    const mockOnPrint = jest.fn();
+    const { getByTestId } = render(
+      <QuestionsPdfGenerator questions={baseQuestions} onPrint={mockOnPrint}>
+        {(handlePrint) => (
+          <button onClick={handlePrint} data-testid="print-button">
+            Print PDF
+          </button>
+        )}
+      </QuestionsPdfGenerator>
+    );
+
+    const printButton = getByTestId('print-button');
+    expect(printButton).toBeInTheDocument();
+
+    printButton.click();
+
+    expect(mockOnPrint).toHaveBeenCalledTimes(1);
+    expect(mockWindowOpen).toHaveBeenCalledWith('', '_blank');
+  });
+
+  it('works without render prop (backward compatibility)', () => {
+    const { container } = render(
+      <QuestionsPdfGenerator questions={baseQuestions} />
+    );
+
+    // Should still render the hidden content
+    const hiddenDiv = container.querySelector('div[style*="display: none"]');
+    expect(hiddenDiv).toBeInTheDocument();
+  });
+
   it('passes questions to QuestionsPdfContent', () => {
     const { container } = render(
       <QuestionsPdfGenerator questions={baseQuestions} />
