@@ -20,6 +20,7 @@ jest.mock('../LatexRenderer/LatexRenderer', () => ({
 // Mock window.open and window.print
 const mockPrintWindow = {
   document: {
+    open: jest.fn(),
     write: jest.fn(),
     close: jest.fn(),
   },
@@ -35,6 +36,13 @@ beforeEach(() => {
   globalThis.window.open = mockWindowOpen;
   globalThis.window.print = jest.fn();
   mockPrintWindow.onload = null;
+
+  // Mock document.styleSheets to prevent errors in test environment
+  Object.defineProperty(document, 'styleSheets', {
+    value: [],
+    writable: true,
+    configurable: true,
+  });
 });
 
 describe('QuestionsPdfContent', () => {
@@ -286,6 +294,7 @@ describe('useQuestionsPdfPrint', () => {
     result.handlePrint();
 
     expect(mockWindowOpen).toHaveBeenCalledWith('', '_blank');
+    expect(mockPrintWindow.document.open).toHaveBeenCalled();
     expect(mockPrintWindow.document.write).toHaveBeenCalled();
     const writtenContent = mockPrintWindow.document.write.mock.calls[0][0];
     expect(writtenContent).toContain('<title>Questões</title>');
@@ -294,18 +303,6 @@ describe('useQuestionsPdfPrint', () => {
   });
 
   it('calls onPrintError when contentRef is null', () => {
-    const TestComponent = () => {
-      useQuestionsPdfPrint(
-        [{ id: 'q1', enunciado: 'Test' }],
-        undefined,
-        mockOnPrintError
-      );
-      // Not attaching ref to simulate null ref
-      return <div>Test</div>;
-    };
-
-    render(<TestComponent />);
-
     const TestComponentWithHook = () => {
       const result = useQuestionsPdfPrint(
         [{ id: 'q1', enunciado: 'Test' }],
@@ -346,6 +343,7 @@ describe('useQuestionsPdfPrint', () => {
 
     result.handlePrint();
 
+    expect(mockPrintWindow.document.write).toHaveBeenCalled();
     const writtenContent = mockPrintWindow.document.write.mock.calls[0][0];
     expect(writtenContent).toContain('katex.min.css');
     expect(writtenContent).toContain('cdn.jsdelivr.net');

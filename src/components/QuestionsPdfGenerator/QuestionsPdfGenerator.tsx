@@ -180,6 +180,29 @@ export const QuestionsPdfContent = forwardRef<
     );
   };
 
+  const renderQuestionTypeContent = (question: PreviewQuestion) => {
+    type RenderFunction = (
+      question: PreviewQuestion
+    ) => ReturnType<typeof renderAlternative> | null;
+
+    const renderMap: Record<QUESTION_TYPE, RenderFunction> = {
+      [QUESTION_TYPE.ALTERNATIVA]: renderAlternative,
+      [QUESTION_TYPE.MULTIPLA_ESCOLHA]: renderMultipleChoice,
+      [QUESTION_TYPE.DISSERTATIVA]: () => renderDissertative(),
+      [QUESTION_TYPE.VERDADEIRO_FALSO]: renderTrueOrFalse,
+      [QUESTION_TYPE.LIGAR_PONTOS]: () => null,
+      [QUESTION_TYPE.PREENCHER]: () => null,
+      [QUESTION_TYPE.IMAGEM]: () => null,
+    };
+
+    if (!question.questionType) {
+      return null;
+    }
+
+    const renderFunction = renderMap[question.questionType];
+    return renderFunction ? renderFunction(question) : null;
+  };
+
   const renderQuestionContent = (question: PreviewQuestion, index: number) => {
     const questionNumber = index + 1;
 
@@ -214,15 +237,7 @@ export const QuestionsPdfContent = forwardRef<
           </div>
         )}
 
-        {question.questionType === QUESTION_TYPE.ALTERNATIVA
-          ? renderAlternative(question)
-          : question.questionType === QUESTION_TYPE.MULTIPLA_ESCOLHA
-            ? renderMultipleChoice(question)
-            : question.questionType === QUESTION_TYPE.DISSERTATIVA
-              ? renderDissertative()
-              : question.questionType === QUESTION_TYPE.VERDADEIRO_FALSO
-                ? renderTrueOrFalse(question)
-                : null}
+        {renderQuestionTypeContent(question)}
       </div>
     );
   };
@@ -342,7 +357,10 @@ export const useQuestionsPdfPrint = (
       });
 
       // Escreve o conteúdo na nova janela
-      printWindow.document.write(`
+      const doc = printWindow.document;
+      doc.open();
+
+      const htmlContent = `
         <!DOCTYPE html>
         <html>
           <head>
@@ -413,9 +431,10 @@ export const useQuestionsPdfPrint = (
             </div>
           </body>
         </html>
-      `);
+      `;
 
-      printWindow.document.close();
+      doc.write(htmlContent);
+      doc.close();
 
       // Aguarda o carregamento completo (incluindo LaTeX) e imprime
       printWindow.onload = () => {
