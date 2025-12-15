@@ -163,6 +163,31 @@ describe('QuestionsPdfContent', () => {
     expect(answerSpace).toBeTruthy();
   });
 
+  it('renders dissertative question without borderBottom', () => {
+    const question: PreviewQuestion = {
+      ...baseQuestion,
+      questionType: QUESTION_TYPE.DISSERTATIVA,
+    };
+
+    const { container } = render(
+      <QuestionsPdfContent questions={[question]} />
+    );
+
+    const rLabel = Array.from(container.querySelectorAll('span')).find(
+      (span) => span.textContent === 'R:'
+    );
+    const parent = rLabel?.parentElement;
+    const answerSpace = parent?.querySelector(
+      'div[style*="flex: 1"]'
+    ) as HTMLElement;
+
+    expect(answerSpace).toBeTruthy();
+    // Verify that borderBottom is not present
+    const style = answerSpace.getAttribute('style') || '';
+    expect(style).not.toContain('borderBottom');
+    expect(style).not.toContain('border-bottom');
+  });
+
   it('renders true or false question with V/F options', () => {
     const question: PreviewQuestion = {
       ...baseQuestion,
@@ -572,6 +597,136 @@ describe('useQuestionsPdfPrint', () => {
     expect(mockPrintWindow.document.open).toHaveBeenCalledTimes(2);
     expect(mockPrintWindow.document.write).toHaveBeenCalledTimes(2);
     expect(mockPrintWindow.document.close).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses fonts.ready API when available', async () => {
+    jest.useFakeTimers();
+
+    const mockFontsReady = Promise.resolve();
+    const printWindowWithFonts = {
+      ...mockPrintWindow,
+      document: {
+        ...mockPrintWindow.document,
+        fonts: {
+          ready: mockFontsReady,
+        },
+      },
+    };
+
+    mockWindowOpen.mockReturnValueOnce(
+      printWindowWithFonts as unknown as Window
+    );
+
+    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+
+    result.handlePrint();
+
+    expect(printWindowWithFonts.document.fonts.ready).toBeDefined();
+    expect(typeof printWindowWithFonts.document.fonts.ready).toBe('object');
+
+    if (printWindowWithFonts.onload) {
+      printWindowWithFonts.onload();
+    }
+
+    await mockFontsReady;
+    jest.advanceTimersByTime(100);
+
+    expect(printWindowWithFonts.print).toHaveBeenCalled();
+
+    jest.useRealTimers();
+  });
+
+  it('falls back to setTimeout when fonts API is not available', () => {
+    jest.useFakeTimers();
+
+    const printWindowWithoutFonts = {
+      ...mockPrintWindow,
+      document: {
+        ...mockPrintWindow.document,
+        fonts: undefined,
+      },
+    };
+
+    mockWindowOpen.mockReturnValueOnce(
+      printWindowWithoutFonts as unknown as Window
+    );
+
+    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+
+    result.handlePrint();
+
+    if (printWindowWithoutFonts.onload) {
+      printWindowWithoutFonts.onload();
+    }
+
+    jest.advanceTimersByTime(500);
+
+    expect(printWindowWithoutFonts.print).toHaveBeenCalled();
+
+    jest.useRealTimers();
+  });
+
+  it('falls back when fonts.ready is undefined', () => {
+    jest.useFakeTimers();
+
+    const printWindowWithPartialFonts = {
+      ...mockPrintWindow,
+      document: {
+        ...mockPrintWindow.document,
+        fonts: {},
+      },
+    };
+
+    mockWindowOpen.mockReturnValueOnce(
+      printWindowWithPartialFonts as unknown as Window
+    );
+
+    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+
+    result.handlePrint();
+
+    if (printWindowWithPartialFonts.onload) {
+      printWindowWithPartialFonts.onload();
+    }
+
+    jest.advanceTimersByTime(500);
+
+    expect(printWindowWithPartialFonts.print).toHaveBeenCalled();
+
+    jest.useRealTimers();
+  });
+
+  it('handles fonts.ready promise rejection', async () => {
+    const mockFontsReadyReject = Promise.reject(
+      new Error('Font loading failed')
+    );
+
+    const printWindowWithFontsError = {
+      ...mockPrintWindow,
+      document: {
+        ...mockPrintWindow.document,
+        fonts: {
+          ready: mockFontsReadyReject,
+        },
+      },
+    };
+
+    mockWindowOpen.mockReturnValueOnce(
+      printWindowWithFontsError as unknown as Window
+    );
+
+    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+
+    result.handlePrint();
+
+    if (printWindowWithFontsError.onload) {
+      printWindowWithFontsError.onload();
+    }
+
+    // Wait for promise rejection to be handled and setTimeout to execute
+    await new Promise((resolve) => setTimeout(resolve, 600));
+
+    expect(printWindowWithFontsError.print).toHaveBeenCalled();
   });
 });
 
