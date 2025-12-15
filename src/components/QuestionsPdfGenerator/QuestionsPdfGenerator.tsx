@@ -441,8 +441,9 @@ const setupPrintWindowHandler = (printWindow: Window): void => {
       }
     };
 
-    if (printWindow.document.fonts?.ready) {
-      printWindow.document.fonts.ready
+    const fonts = printWindow.document.fonts;
+    if (fonts && 'ready' in fonts) {
+      fonts.ready
         .then(() => {
           setTimeout(printAndCleanup, 100);
         })
