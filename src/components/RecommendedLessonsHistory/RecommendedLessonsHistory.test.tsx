@@ -165,45 +165,55 @@ let capturedHeaders:
     }>
   | undefined;
 
-// Mock TableProvider component
-jest.mock('../TableProvider/TableProvider', () => ({
-  TableProvider: ({
-    children,
-    data,
-    headers,
-    emptyState,
-    onRowClick,
-    onParamsChange,
-    searchPlaceholder,
-  }: {
-    children: (props: {
-      controls: ReactNode;
-      table: ReactNode;
-      pagination: ReactNode;
-    }) => ReactNode;
-    data: Array<{
-      id: string;
-      title?: string;
-      school?: string;
-      class?: string;
-      subject?: string;
-      status?: string;
-      completionPercentage?: number;
-    }>;
-    headers?: Array<{
-      key: string;
-      label: string;
-      render?: (value: unknown, row: unknown) => ReactNode;
-    }>;
-    loading?: boolean;
-    emptyState?: { component: ReactNode };
-    onParamsChange?: (params: unknown) => void;
-    onRowClick?: (row: unknown) => void;
-    searchPlaceholder?: string;
-  }) => {
-    // Capture onParamsChange for testing
-    capturedOnParamsChange = onParamsChange;
-    capturedHeaders = headers;
+// Mock TableProvider component - simulates real TableProvider behavior
+// Real TableProvider calls onParamsChange on mount via useEffect
+jest.mock('../TableProvider/TableProvider', () => {
+  const React = require('react');
+  return {
+    TableProvider: ({
+      children,
+      data,
+      headers,
+      emptyState,
+      onRowClick,
+      onParamsChange,
+      searchPlaceholder,
+    }: {
+      children: (props: {
+        controls: ReactNode;
+        table: ReactNode;
+        pagination: ReactNode;
+      }) => ReactNode;
+      data: Array<{
+        id: string;
+        title?: string;
+        school?: string;
+        class?: string;
+        subject?: string;
+        status?: string;
+        completionPercentage?: number;
+      }>;
+      headers?: Array<{
+        key: string;
+        label: string;
+        render?: (value: unknown, row: unknown) => ReactNode;
+      }>;
+      loading?: boolean;
+      emptyState?: { component: ReactNode };
+      onParamsChange?: (params: unknown) => void;
+      onRowClick?: (row: unknown) => void;
+      searchPlaceholder?: string;
+    }) => {
+      // Capture onParamsChange for testing
+      capturedOnParamsChange = onParamsChange;
+      capturedHeaders = headers;
+
+      // Simulate TableProvider calling onParamsChange on mount
+      // This mimics the real behavior where TableProvider's useEffect
+      // calls onParamsChange with initial combinedParams
+      React.useEffect(() => {
+        onParamsChange?.({ page: 1, limit: 10 });
+      }, [onParamsChange]);
 
     if (data.length === 0 && emptyState?.component) {
       return (
@@ -281,7 +291,8 @@ jest.mock('../TableProvider/TableProvider', () => ({
       </div>
     );
   },
-}));
+  };
+});
 
 // Import component after all mocks
 import {
@@ -427,9 +438,11 @@ describe('RecommendedLessonsHistory', () => {
   });
 
   describe('Data Fetching', () => {
-    it('should call fetchGoalsHistory on mount', async () => {
+    it('should call fetchGoalsHistory when TableProvider triggers onParamsChange on mount', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
+      // TableProvider mock calls onParamsChange on mount with initial params
+      // This simulates the real TableProvider's useEffect behavior
       await waitFor(() => {
         expect(mockFetchGoalsHistory).toHaveBeenCalledWith({
           page: 1,

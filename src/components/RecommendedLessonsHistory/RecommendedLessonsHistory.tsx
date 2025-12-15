@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { Plus, CaretRight, Trash, PencilSimple } from 'phosphor-react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -490,6 +490,8 @@ export const RecommendedLessonsHistory = ({
 
   /**
    * Handle table params change
+   * Note: TableProvider calls this on mount with initial params,
+   * so no separate useEffect for initial fetch is needed
    */
   const handleParamsChange = useCallback(
     (params: TableParams) => {
@@ -498,13 +500,6 @@ export const RecommendedLessonsHistory = ({
     },
     [fetchGoals]
   );
-
-  /**
-   * Fetch initial data on mount
-   */
-  useEffect(() => {
-    fetchGoals({ page: 1, limit: 10 });
-  }, [fetchGoals]);
 
   return (
     <div
