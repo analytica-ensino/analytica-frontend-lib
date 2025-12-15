@@ -1964,7 +1964,7 @@ describe('QuizContent', () => {
       render(<QuizImageQuestion />);
 
       const image = screen.getByTestId('quiz-image');
-      expect(image).toHaveAttribute('src', 'mocked-image-2.png');
+      expect(image).toHaveAttribute('src', 'test-file-stub');
       expect(image).toHaveAttribute('alt', 'Question');
       expect(image).toHaveClass('w-full', 'h-auto', 'rounded-md');
     });

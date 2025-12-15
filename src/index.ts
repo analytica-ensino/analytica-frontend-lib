@@ -517,3 +517,45 @@ export {
   isFormValid,
   ERROR_MESSAGES,
 } from './components/SendActivityModal';
+
+// Recommended Lessons / Goals History Component
+export { RecommendedLessonsHistory } from './components/RecommendedLessonsHistory';
+export type { RecommendedLessonsHistoryProps } from './components/RecommendedLessonsHistory';
+
+// Recommended Lessons Hook Factory
+export {
+  createUseRecommendedLessonsHistory,
+  createRecommendedLessonsHistoryHook,
+  determineGoalStatus,
+  transformGoalToTableItem,
+  handleGoalFetchError,
+  goalsHistoryApiResponseSchema,
+} from './hooks/useRecommendedLessons';
+export type {
+  UseRecommendedLessonsHistoryState,
+  UseRecommendedLessonsHistoryReturn,
+} from './hooks/useRecommendedLessons';
+
+// Recommended Lessons Types
+export {
+  GoalApiStatus,
+  GoalDisplayStatus,
+  GoalBadgeActionType,
+  getGoalStatusBadgeAction,
+  GOAL_FILTER_STATUS_OPTIONS,
+  GOAL_STATUS_OPTIONS,
+} from './types/recommendedLessons';
+export type {
+  GoalSubject,
+  GoalCreator,
+  GoalStats,
+  GoalBreakdown,
+  GoalData,
+  GoalHistoryItem,
+  GoalTableItem,
+  GoalsHistoryApiResponse,
+  GoalHistoryFilters,
+  GoalHistoryPagination,
+  GoalFilterOption,
+  GoalUserFilterData,
+} from './types/recommendedLessons';

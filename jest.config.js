@@ -20,6 +20,7 @@ const config = {
     '^@/(.*)$': '<rootDir>/src/$1',
     'katex/dist/katex.min.css': 'identity-obj-proxy',
     [String.raw`\.(css|less|scss|sass)$`]: 'identity-obj-proxy',
+    [String.raw`\.(png|jpg|jpeg|gif|svg|webp)$`]: '<rootDir>/jest.fileMock.js',
   },
   // Coverage configuration
   collectCoverage: true,
