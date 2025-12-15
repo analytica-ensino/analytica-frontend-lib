@@ -369,10 +369,17 @@ const createTableColumns = (
     sortable: true,
     render: (value: unknown) => {
       const status = typeof value === 'string' ? value : '';
+      if (!status) {
+        return (
+          <Text size="sm" color="text-text-500">
+            -
+          </Text>
+        );
+      }
       return (
         <Badge
           variant="solid"
-          action={getGoalStatusBadgeAction(value as GoalDisplayStatus)}
+          action={getGoalStatusBadgeAction(status as GoalDisplayStatus)}
           size="small"
         >
           {status}
