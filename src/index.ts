@@ -409,6 +409,10 @@ export type {
   ActivityPreviewProps,
   PreviewQuestion,
 } from './components/ActivityPreview/ActivityPreview';
+
+// ActivityBuilder Component
+export { ActivityBuilder, ActivityQuestionsList } from './components/ActivityBuilder';
+export type { ActivityBuilderProps } from './components/ActivityBuilder';
 // Utils
 export {
   cn,
@@ -418,7 +422,7 @@ export {
   toggleArrayItem,
   toggleSingleValue,
 } from './utils/utils';
-
+export { convertActivityFiltersToQuestionsFilter } from './utils/activityFiltersConverter';
 // Activity Details Types
 export {
   STUDENT_ACTIVITY_STATUS,
