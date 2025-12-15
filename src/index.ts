@@ -429,11 +429,15 @@ export {
 export {
   STUDENT_ACTIVITY_STATUS,
   ACTIVITY_AVAILABILITY,
+} from './types/activityDetails';
+
+// Activity Details Utils
+export {
   getStatusBadgeConfig,
   formatTimeSpent,
   formatQuestionNumbers,
   formatDateToBrazilian,
-} from './types/activityDetails';
+} from './utils/utils';
 export type {
   StudentActivityStatus,
   ActivityAvailability,
