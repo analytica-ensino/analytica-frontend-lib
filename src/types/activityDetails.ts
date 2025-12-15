@@ -182,3 +182,16 @@ export const formatDateToBrazilian = (dateString: string): string => {
   const year = date.getUTCFullYear();
   return `${day}/${month}/${year}`;
 };
+
+/**
+ * Activity availability status enum
+ * Used to determine if an activity is available based on start/end dates
+ */
+export const ACTIVITY_AVAILABILITY = {
+  DISPONIVEL: 'DISPONIVEL',
+  NAO_INICIADA: 'NAO_INICIADA',
+  EXPIRADA: 'EXPIRADA',
+} as const;
+
+export type ActivityAvailability =
+  (typeof ACTIVITY_AVAILABILITY)[keyof typeof ACTIVITY_AVAILABILITY];
