@@ -428,6 +428,7 @@ export {
 // Activity Details Types
 export {
   STUDENT_ACTIVITY_STATUS,
+  ACTIVITY_AVAILABILITY,
   getStatusBadgeConfig,
   formatTimeSpent,
   formatQuestionNumbers,
@@ -435,6 +436,7 @@ export {
 } from './types/activityDetails';
 export type {
   StudentActivityStatus,
+  ActivityAvailability,
   ActivityStudentData,
   Pagination as ActivityDetailsPagination,
   GeneralStats,
