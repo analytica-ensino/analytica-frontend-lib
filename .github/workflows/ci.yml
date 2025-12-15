@@ -43,16 +43,19 @@ jobs:
   publish:
     name: Publish Package
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: setup
+    needs: [setup, lint, typecheck, test, sonarcloud]
     uses: ./.github/workflows/publish.yml
     with:
       cache-key: ${{ needs.setup.outputs.cache-key }}
     secrets: inherit
+    permissions:
+      contents: read
+      id-token: write
 
   deploy-ladle:
     name: Deploy Ladle
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: setup
+    needs: [setup, lint, typecheck, test, sonarcloud]
     uses: ./.github/workflows/ladle.yml
     with:
       cache-key: ${{ needs.setup.outputs.cache-key }}

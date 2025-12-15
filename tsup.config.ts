@@ -116,6 +116,12 @@ export default defineConfig({
     // SendActivityModal
     'SendActivityModal/index': 'src/components/SendActivityModal/index.ts',
 
+    // RecommendedLessonsHistory
+    'RecommendedLessonsHistory/index':
+      'src/components/RecommendedLessonsHistory/index.ts',
+    'hooks/useRecommendedLessons/index': 'src/hooks/useRecommendedLessons.ts',
+    'types/recommendedLessons/index': 'src/types/recommendedLessons.ts',
+
     // Styles
     styles: 'src/styles.css',
   },

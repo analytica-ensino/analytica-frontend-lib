@@ -2622,7 +2622,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.34.0"
     autoprefixer: "npm:^10.4.21"
     clsx: "npm:^2.1.1"
-    dayjs: "npm:^1.11.13"
+    dayjs: "npm:^1.11.18"
     dompurify: "npm:^3.3.0"
     eslint: "npm:^9.28.0"
     eslint-config-prettier: "npm:^10.1.5"
@@ -2646,6 +2646,7 @@ __metadata:
     react-hook-form: "npm:^7.56.4"
     react-katex: "npm:^3.1.0"
     react-router-dom: "npm:^7.6.2"
+    react-to-print: "npm:^3.2.0"
     sonarqube-scanner: "npm:^4.3.0"
     tailwind-merge: "npm:^3.3.1"
     tailwindcss: "npm:^4.1.8"
@@ -2657,7 +2658,7 @@ __metadata:
   peerDependencies:
     "@hookform/resolvers": ">=3.0.0"
     "@phosphor-icons/react": ">=2.0.0"
-    dayjs: ">=1.11.0"
+    dayjs: ">=1.11.18"
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
     react-hook-form: ">=7.0.0"
@@ -3549,7 +3550,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:^1.11.13":
+"dayjs@npm:^1.11.18":
   version: 1.11.19
   resolution: "dayjs@npm:1.11.19"
   checksum: 10c0/7d8a6074a343f821f81ea284d700bd34ea6c7abbe8d93bce7aba818948957c1b7f56131702e5e890a5622cdfc05dcebe8aed0b8313bdc6838a594d7846b0b000
@@ -8398,6 +8399,15 @@ __metadata:
     react-dom:
       optional: true
   checksum: 10c0/04b02b473a743978ec7b5292484706b87c74d3e8d407dba886204586ba2d7a224a5413f0a7969fb28899b8804f0e6b0fde1c2a4f957901eb8a9a6541a25630f2
+  languageName: node
+  linkType: hard
+
+"react-to-print@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "react-to-print@npm:3.2.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ~19
+  checksum: 10c0/f40375ec592a873edc84293f9238eee2de50970aefc683803143d9eae5a69becd89ad9b0b02f144562cc2c702a5d1f6ef00b064372154c9d88445b11cb187e22
   languageName: node
   linkType: hard
 

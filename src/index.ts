@@ -411,8 +411,17 @@ export type {
 } from './components/ActivityPreview/ActivityPreview';
 
 // ActivityBuilder Component
-export { ActivityBuilder, ActivityQuestionsList } from './components/ActivityBuilder';
+export {
+  ActivityBuilder,
+  ActivityQuestionsList,
+} from './components/ActivityBuilder';
 export type { ActivityBuilderProps } from './components/ActivityBuilder';
+export {
+  QuestionsPdfGenerator,
+  QuestionsPdfContent,
+  useQuestionsPdfPrint,
+} from './components/QuestionsPdfGenerator';
+export type { QuestionsPdfGeneratorProps } from './components/QuestionsPdfGenerator';
 // Utils
 export {
   cn,
@@ -426,13 +435,19 @@ export { convertActivityFiltersToQuestionsFilter } from './utils/activityFilters
 // Activity Details Types
 export {
   STUDENT_ACTIVITY_STATUS,
+  ACTIVITY_AVAILABILITY,
+} from './types/activityDetails';
+
+// Activity Details Utils
+export {
   getStatusBadgeConfig,
   formatTimeSpent,
   formatQuestionNumbers,
   formatDateToBrazilian,
-} from './types/activityDetails';
+} from './utils/utils';
 export type {
   StudentActivityStatus,
+  ActivityAvailability,
   ActivityStudentData,
   Pagination as ActivityDetailsPagination,
   GeneralStats,
@@ -509,3 +524,45 @@ export {
   isFormValid,
   ERROR_MESSAGES,
 } from './components/SendActivityModal';
+
+// Recommended Lessons / Goals History Component
+export { RecommendedLessonsHistory } from './components/RecommendedLessonsHistory';
+export type { RecommendedLessonsHistoryProps } from './components/RecommendedLessonsHistory';
+
+// Recommended Lessons Hook Factory
+export {
+  createUseRecommendedLessonsHistory,
+  createRecommendedLessonsHistoryHook,
+  determineGoalStatus,
+  transformGoalToTableItem,
+  handleGoalFetchError,
+  goalsHistoryApiResponseSchema,
+} from './hooks/useRecommendedLessons';
+export type {
+  UseRecommendedLessonsHistoryState,
+  UseRecommendedLessonsHistoryReturn,
+} from './hooks/useRecommendedLessons';
+
+// Recommended Lessons Types
+export {
+  GoalApiStatus,
+  GoalDisplayStatus,
+  GoalBadgeActionType,
+  getGoalStatusBadgeAction,
+  GOAL_FILTER_STATUS_OPTIONS,
+  GOAL_STATUS_OPTIONS,
+} from './types/recommendedLessons';
+export type {
+  GoalSubject,
+  GoalCreator,
+  GoalStats,
+  GoalBreakdown,
+  GoalData,
+  GoalHistoryItem,
+  GoalTableItem,
+  GoalsHistoryApiResponse,
+  GoalHistoryFilters,
+  GoalHistoryPagination,
+  GoalFilterOption,
+  GoalUserFilterData,
+} from './types/recommendedLessons';
