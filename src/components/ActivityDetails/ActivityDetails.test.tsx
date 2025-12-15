@@ -1,13 +1,13 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { STUDENT_ACTIVITY_STATUS } from '../../types/activityDetails';
 import {
-  STUDENT_ACTIVITY_STATUS,
   getStatusBadgeConfig,
   formatTimeSpent,
   formatQuestionNumbers,
   formatDateToBrazilian,
-} from '../../types/activityDetails';
+} from '../../utils/activityDetailsUtils';
 import { QUESTION_STATUS } from '../../types/studentActivityCorrection';
 import type { ActivityDetailsData } from '../../types/activityDetails';
 import type { StudentActivityCorrectionData } from '../../types/studentActivityCorrection';

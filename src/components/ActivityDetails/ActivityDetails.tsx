@@ -19,15 +19,17 @@ import type { ColumnConfig, TableParams } from '../TableProvider/TableProvider';
 import type { StudentActivityCorrectionData } from '../../types/studentActivityCorrection';
 import {
   STUDENT_ACTIVITY_STATUS,
-  getStatusBadgeConfig,
-  formatTimeSpent,
-  formatQuestionNumbers,
-  formatDateToBrazilian,
   type ActivityDetailsData,
   type ActivityDetailsQueryParams,
   type ActivityStudentTableItem,
   type StudentActivityStatus,
 } from '../../types/activityDetails';
+import {
+  getStatusBadgeConfig,
+  formatTimeSpent,
+  formatQuestionNumbers,
+  formatDateToBrazilian,
+} from '../../utils/activityDetailsUtils';
 
 /**
  * Props for the ActivityDetails component
