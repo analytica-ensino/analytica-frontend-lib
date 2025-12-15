@@ -495,9 +495,43 @@ MultipleClasses.meta = {
 };
 
 /**
+ * Helper to format date as YYYY-MM-DD
+ */
+const formatDate = (date: Date): string => date.toISOString().split('T')[0];
+
+/**
+ * Helper to get relative date from now
+ */
+const getRelativeDate = (daysOffset: number): string => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysOffset);
+  return formatDate(date);
+};
+
+/**
  * All statuses - shows goals with different status states
  */
 export const AllStatuses: Story = () => {
+  // Dynamic dates relative to current date
+  const now = new Date();
+  const activeStartDate = getRelativeDate(-30); // Started 30 days ago
+  const activeFinalDate = getRelativeDate(60); // Ends in 60 days
+  const activeCreatedAt = new Date(
+    now.getTime() - 35 * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  const completedStartDate = getRelativeDate(-90); // Started 90 days ago
+  const completedFinalDate = getRelativeDate(-30); // Ended 30 days ago
+  const completedCreatedAt = new Date(
+    now.getTime() - 95 * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  const overdueStartDate = getRelativeDate(-120); // Started 120 days ago
+  const overdueFinalDate = getRelativeDate(-60); // Ended 60 days ago (overdue)
+  const overdueCreatedAt = new Date(
+    now.getTime() - 125 * 24 * 60 * 60 * 1000
+  ).toISOString();
+
   const allStatusesData: GoalsHistoryApiResponse = {
     message: 'Success',
     data: {
@@ -506,9 +540,9 @@ export const AllStatuses: Story = () => {
           goal: {
             id: '550e8400-e29b-41d4-a716-446655440001',
             title: 'Aula Ativa - Em Andamento',
-            startDate: '2024-06-01',
-            finalDate: '2024-12-31',
-            createdAt: '2024-05-28T10:00:00Z',
+            startDate: activeStartDate,
+            finalDate: activeFinalDate,
+            createdAt: activeCreatedAt,
             progress: 50,
             totalLessons: 8,
           },
@@ -537,9 +571,9 @@ export const AllStatuses: Story = () => {
           goal: {
             id: '550e8400-e29b-41d4-a716-446655440002',
             title: 'Aula Concluída - 100% Completo',
-            startDate: '2024-01-01',
-            finalDate: '2024-03-01',
-            createdAt: '2023-12-20T10:00:00Z',
+            startDate: completedStartDate,
+            finalDate: completedFinalDate,
+            createdAt: completedCreatedAt,
             progress: 100,
             totalLessons: 10,
           },
@@ -568,9 +602,9 @@ export const AllStatuses: Story = () => {
           goal: {
             id: '550e8400-e29b-41d4-a716-446655440003',
             title: 'Aula Vencida - Prazo Expirado',
-            startDate: '2024-01-01',
-            finalDate: '2024-02-01',
-            createdAt: '2023-12-15T10:00:00Z',
+            startDate: overdueStartDate,
+            finalDate: overdueFinalDate,
+            createdAt: overdueCreatedAt,
             progress: 30,
             totalLessons: 12,
           },
