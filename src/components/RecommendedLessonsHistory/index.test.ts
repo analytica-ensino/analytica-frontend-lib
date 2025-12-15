@@ -12,7 +12,10 @@ jest.mock('../TableProvider/TableProvider', () => ({
   TableProvider: () => null,
 }));
 jest.mock('../Badge/Badge', () => ({ __esModule: true, default: () => null }));
-jest.mock('../Button/Button', () => ({ __esModule: true, default: () => null }));
+jest.mock('../Button/Button', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 jest.mock('../EmptyState/EmptyState', () => ({
   __esModule: true,
   default: () => null,

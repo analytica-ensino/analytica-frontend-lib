@@ -351,7 +351,13 @@ WithoutSubjectIcons.meta = {
  */
 export const ManyGoals: Story = () => {
   const generateGoals = (count: number) => {
-    const subjects = ['Matemática', 'Física', 'Química', 'Português', 'Biologia'];
+    const subjects = [
+      'Matemática',
+      'Física',
+      'Química',
+      'Português',
+      'Biologia',
+    ];
     const classes = ['Turma A', 'Turma B', 'Turma C', 'Turma D'];
     const schools = ['Escola Estadual', 'Colégio Municipal', 'Instituto Norte'];
 

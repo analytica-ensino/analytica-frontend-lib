@@ -168,7 +168,7 @@ let capturedHeaders:
 // Mock TableProvider component - simulates real TableProvider behavior
 // Real TableProvider calls onParamsChange on mount via useEffect
 jest.mock('../TableProvider/TableProvider', () => {
-  const React = require('react');
+  const { useEffect: useEffectHook } = jest.requireActual('react');
   return {
     TableProvider: ({
       children,
@@ -211,86 +211,89 @@ jest.mock('../TableProvider/TableProvider', () => {
       // Simulate TableProvider calling onParamsChange on mount
       // This mimics the real behavior where TableProvider's useEffect
       // calls onParamsChange with initial combinedParams
-      React.useEffect(() => {
+      useEffectHook(() => {
         onParamsChange?.({ page: 1, limit: 10 });
       }, [onParamsChange]);
 
-    if (data.length === 0 && emptyState?.component) {
-      return (
-        <div data-testid="table-provider-empty">{emptyState.component}</div>
+      if (data.length === 0 && emptyState?.component) {
+        return (
+          <div data-testid="table-provider-empty">{emptyState.component}</div>
+        );
+      }
+
+      // Find column renderers
+      const actionsColumn = headers?.find((h) => h.key === 'actions');
+      const titleColumn = headers?.find((h) => h.key === 'title');
+      const schoolColumn = headers?.find((h) => h.key === 'school');
+      const subjectColumn = headers?.find((h) => h.key === 'subject');
+      const statusColumn = headers?.find((h) => h.key === 'status');
+      const completionColumn = headers?.find(
+        (h) => h.key === 'completionPercentage'
       );
-    }
+      const navigationColumn = headers?.find((h) => h.key === 'navigation');
 
-    // Find column renderers
-    const actionsColumn = headers?.find((h) => h.key === 'actions');
-    const titleColumn = headers?.find((h) => h.key === 'title');
-    const schoolColumn = headers?.find((h) => h.key === 'school');
-    const subjectColumn = headers?.find((h) => h.key === 'subject');
-    const statusColumn = headers?.find((h) => h.key === 'status');
-    const completionColumn = headers?.find(
-      (h) => h.key === 'completionPercentage'
-    );
-    const navigationColumn = headers?.find((h) => h.key === 'navigation');
-
-    return (
-      <div data-testid="table-provider">
-        {children({
-          controls: (
-            <div data-testid="controls">
-              <input placeholder={searchPlaceholder} />
-            </div>
-          ),
-          table: (
-            <table data-testid="table">
-              <tbody>
-                {data.map((row) => (
-                  <tr
-                    key={row.id}
-                    data-testid={`row-${row.id}`}
-                    onClick={() => onRowClick?.(row)}
-                  >
-                    <td data-testid="title-cell">
-                      {titleColumn?.render
-                        ? titleColumn.render(row.title, row)
-                        : row.title}
-                    </td>
-                    <td data-testid="school-cell">
-                      {schoolColumn?.render
-                        ? schoolColumn.render(row.school, row)
-                        : row.school}
-                    </td>
-                    <td>{row.class}</td>
-                    <td data-testid="subject-cell">
-                      {subjectColumn?.render
-                        ? subjectColumn.render(row.subject, row)
-                        : row.subject}
-                    </td>
-                    <td data-testid="status-cell">
-                      {statusColumn?.render
-                        ? statusColumn.render(row.status, row)
-                        : row.status}
-                    </td>
-                    <td data-testid="completion-cell">
-                      {completionColumn?.render
-                        ? completionColumn.render(row.completionPercentage, row)
-                        : row.completionPercentage}
-                    </td>
-                    <td data-testid="actions-cell">
-                      {actionsColumn?.render?.(null, row)}
-                    </td>
-                    <td data-testid="navigation-cell">
-                      {navigationColumn?.render?.(null, row)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ),
-          pagination: <div data-testid="pagination">Pagination</div>,
-        })}
-      </div>
-    );
-  },
+      return (
+        <div data-testid="table-provider">
+          {children({
+            controls: (
+              <div data-testid="controls">
+                <input placeholder={searchPlaceholder} />
+              </div>
+            ),
+            table: (
+              <table data-testid="table">
+                <tbody>
+                  {data.map((row) => (
+                    <tr
+                      key={row.id}
+                      data-testid={`row-${row.id}`}
+                      onClick={() => onRowClick?.(row)}
+                    >
+                      <td data-testid="title-cell">
+                        {titleColumn?.render
+                          ? titleColumn.render(row.title, row)
+                          : row.title}
+                      </td>
+                      <td data-testid="school-cell">
+                        {schoolColumn?.render
+                          ? schoolColumn.render(row.school, row)
+                          : row.school}
+                      </td>
+                      <td>{row.class}</td>
+                      <td data-testid="subject-cell">
+                        {subjectColumn?.render
+                          ? subjectColumn.render(row.subject, row)
+                          : row.subject}
+                      </td>
+                      <td data-testid="status-cell">
+                        {statusColumn?.render
+                          ? statusColumn.render(row.status, row)
+                          : row.status}
+                      </td>
+                      <td data-testid="completion-cell">
+                        {completionColumn?.render
+                          ? completionColumn.render(
+                              row.completionPercentage,
+                              row
+                            )
+                          : row.completionPercentage}
+                      </td>
+                      <td data-testid="actions-cell">
+                        {actionsColumn?.render?.(null, row)}
+                      </td>
+                      <td data-testid="navigation-cell">
+                        {navigationColumn?.render?.(null, row)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ),
+            pagination: <div data-testid="pagination">Pagination</div>,
+          })}
+        </div>
+      );
+    },
   };
 });
 
@@ -759,7 +762,9 @@ describe('RecommendedLessonsHistory', () => {
       await waitFor(() => {
         const statusCell = screen.getByTestId('status-cell');
         expect(statusCell).toBeInTheDocument();
-        expect(statusCell.querySelector('[data-testid="badge"]')).toBeInTheDocument();
+        expect(
+          statusCell.querySelector('[data-testid="badge"]')
+        ).toBeInTheDocument();
       });
     });
 
