@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Plus, CaretRight, Trash, PencilSimple } from 'phosphor-react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -115,12 +115,12 @@ const buildFiltersFromParams = (params: TableParams): GoalHistoryFilters => {
 
   // Students filter (always multiple)
   if (isNonEmptyArray(params.students)) {
-    filters.studentIds = params.students as string[];
+    filters.studentIds = params.students;
   }
 
   // Subject filter (single selection)
   if (isNonEmptyArray(params.subject)) {
-    filters.subjectId = params.subject[0] as string;
+    filters.subjectId = params.subject[0];
   }
 
   // Start date filter
@@ -454,10 +454,18 @@ export const RecommendedLessonsHistory = ({
 }: RecommendedLessonsHistoryProps) => {
   const [activeTab, setActiveTab] = useState<PageTab>(PageTab.HISTORY);
 
-  // Create hook instance with the provided fetch function
+  // Use ref to keep stable reference of fetchGoalsHistory
+  // This prevents hook recreation if parent doesn't memoize the function
+  const fetchGoalsHistoryRef = useRef(fetchGoalsHistory);
+  fetchGoalsHistoryRef.current = fetchGoalsHistory;
+
+  // Create hook instance with stable fetch function wrapper
   const useGoalsHistory = useMemo(
-    () => createUseRecommendedLessonsHistory(fetchGoalsHistory),
-    [fetchGoalsHistory]
+    () =>
+      createUseRecommendedLessonsHistory((filters) =>
+        fetchGoalsHistoryRef.current(filters)
+      ),
+    []
   );
 
   // Use the hook
