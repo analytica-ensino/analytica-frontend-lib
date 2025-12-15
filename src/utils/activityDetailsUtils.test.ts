@@ -51,6 +51,18 @@ describe('activityDetailsUtils', () => {
         textColor: 'text-red-800',
       });
     });
+
+    it('should return default config for unknown status', () => {
+      const config = getStatusBadgeConfig(
+        'UNKNOWN_STATUS' as typeof STUDENT_ACTIVITY_STATUS.CONCLUIDO
+      );
+
+      expect(config).toEqual({
+        label: 'Desconhecido',
+        bgColor: 'bg-gray-50',
+        textColor: 'text-gray-800',
+      });
+    });
   });
 
   describe('formatTimeSpent', () => {

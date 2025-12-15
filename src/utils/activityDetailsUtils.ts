@@ -17,7 +17,7 @@ import { STUDENT_ACTIVITY_STATUS } from '../types/activityDetails';
 export const getStatusBadgeConfig = (
   status: StudentActivityStatus
 ): StatusBadgeConfig => {
-  const configs: Record<StudentActivityStatus, StatusBadgeConfig> = {
+  const configs: Record<string, StatusBadgeConfig> = {
     [STUDENT_ACTIVITY_STATUS.CONCLUIDO]: {
       label: 'Concluído',
       bgColor: 'bg-green-50',
@@ -38,9 +38,14 @@ export const getStatusBadgeConfig = (
       bgColor: 'bg-red-50',
       textColor: 'text-red-800',
     },
+    default: {
+      label: 'Desconhecido',
+      bgColor: 'bg-gray-50',
+      textColor: 'text-gray-800',
+    },
   };
 
-  return configs[status];
+  return configs[status] ?? configs.default;
 };
 
 /**
