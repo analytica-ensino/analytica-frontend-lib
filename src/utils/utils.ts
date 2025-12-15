@@ -11,6 +11,12 @@ export {
   toggleArrayItem,
   toggleSingleValue,
 } from './activityFilters';
+export {
+  getStatusBadgeConfig,
+  formatTimeSpent,
+  formatQuestionNumbers,
+  formatDateToBrazilian,
+} from './activityDetailsUtils';
 
 /**
  * Retorna a cor hexadecimal com opacidade 0.3 (4d) se não estiver em dark mode.
