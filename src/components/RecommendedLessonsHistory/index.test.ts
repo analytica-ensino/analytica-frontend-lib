@@ -16,6 +16,10 @@ jest.mock('../Button/Button', () => ({
   __esModule: true,
   default: () => null,
 }));
+jest.mock('../IconButton/IconButton', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 jest.mock('../EmptyState/EmptyState', () => ({
   __esModule: true,
   default: () => null,

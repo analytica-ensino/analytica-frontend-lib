@@ -1,7 +1,9 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { Plus, CaretRight, Trash, PencilSimple } from 'phosphor-react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
+import IconButton from '../IconButton/IconButton';
 import Badge from '../Badge/Badge';
 import EmptyState from '../EmptyState/EmptyState';
 import { Menu, MenuItem, MenuContent } from '../Menu/Menu';
@@ -294,7 +296,11 @@ const createTableColumns = (
     className: 'max-w-[200px] truncate',
     render: (value: unknown) => {
       const title = typeof value === 'string' ? value : '';
-      return <span title={title}>{title}</span>;
+      return (
+        <Text size="sm" title={title}>
+          {title}
+        </Text>
+      );
     },
   },
   {
@@ -304,7 +310,11 @@ const createTableColumns = (
     className: 'max-w-[150px] truncate',
     render: (value: unknown) => {
       const school = typeof value === 'string' ? value : '';
-      return <span title={school}>{school}</span>;
+      return (
+        <Text size="sm" title={school}>
+          {school}
+        </Text>
+      );
     },
   },
   {
@@ -323,9 +333,9 @@ const createTableColumns = (
 
       if (!subjectEnum) {
         return (
-          <span title={subjectName} className="truncate">
+          <Text size="sm" className="truncate" title={subjectName}>
             {subjectName}
-          </span>
+          </Text>
         );
       }
 
@@ -341,7 +351,9 @@ const createTableColumns = (
           >
             {subjectInfo.icon}
           </span>
-          <span className="truncate">{subjectName}</span>
+          <Text size="sm" className="truncate">
+            {subjectName}
+          </Text>
         </div>
       );
     },
@@ -389,34 +401,30 @@ const createTableColumns = (
     sortable: false,
     className: 'w-20',
     render: (_value: unknown, row: GoalTableItem) => {
-      const handleDelete = (e: React.MouseEvent) => {
+      const handleDelete = (e: MouseEvent) => {
         e.stopPropagation();
         onDeleteGoal?.(row.id);
       };
 
-      const handleEdit = (e: React.MouseEvent) => {
+      const handleEdit = (e: MouseEvent) => {
         e.stopPropagation();
         onEditGoal?.(row.id);
       };
 
       return (
         <div className="flex justify-center gap-2">
-          <button
-            type="button"
-            className="text-text-600 hover:text-text-900 transition-colors"
+          <IconButton
+            icon={<Trash size={20} />}
+            size="sm"
             title="Excluir"
             onClick={handleDelete}
-          >
-            <Trash size={20} />
-          </button>
-          <button
-            type="button"
-            className="text-text-600 hover:text-text-900 transition-colors"
+          />
+          <IconButton
+            icon={<PencilSimple size={20} />}
+            size="sm"
             title="Editar"
             onClick={handleEdit}
-          >
-            <PencilSimple size={20} />
-          </button>
+          />
         </div>
       );
     },
@@ -514,9 +522,13 @@ export const RecommendedLessonsHistory = ({
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row w-full mb-6 items-start sm:items-center sm:justify-between gap-0 sm:gap-4">
           {/* Page Title */}
-          <h1 className="font-bold leading-[28px] tracking-[0.2px] text-text-950 text-xl lg:text-2xl">
+          <Text
+            as="h1"
+            weight="bold"
+            className="leading-[28px] tracking-[0.2px] text-xl lg:text-2xl"
+          >
             {title}
-          </h1>
+          </Text>
 
           {/* Tabs Menu */}
           <div className="flex-shrink-0 lg:w-auto self-center sm:self-auto">
@@ -618,9 +630,9 @@ export const RecommendedLessonsHistory = ({
                         table,
                         pagination: paginationComponent,
                       } = renderProps as {
-                        controls: React.ReactNode;
-                        table: React.ReactNode;
-                        pagination: React.ReactNode;
+                        controls: ReactNode;
+                        table: ReactNode;
+                        pagination: ReactNode;
                       };
                       return (
                         <div className="space-y-4">

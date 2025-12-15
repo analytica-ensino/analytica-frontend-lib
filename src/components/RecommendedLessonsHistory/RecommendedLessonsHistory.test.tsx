@@ -43,8 +43,23 @@ jest.mock('../../enums/SubjectEnum', () => ({
 // Mock Text component
 jest.mock('../Text/Text', () => ({
   __esModule: true,
-  default: ({ children, color }: { children: ReactNode; color?: string }) => (
-    <span data-testid="text" data-color={color}>
+  default: ({
+    children,
+    color,
+    title,
+    className,
+  }: {
+    children: ReactNode;
+    color?: string;
+    title?: string;
+    className?: string;
+  }) => (
+    <span
+      data-testid="text"
+      data-color={color}
+      title={title}
+      className={className}
+    >
       {children}
     </span>
   ),
@@ -65,6 +80,24 @@ jest.mock('../Button/Button', () => ({
     <button onClick={onClick} data-testid="button">
       {iconLeft}
       {children}
+    </button>
+  ),
+}));
+
+// Mock IconButton component
+jest.mock('../IconButton/IconButton', () => ({
+  __esModule: true,
+  default: ({
+    icon,
+    onClick,
+    title,
+  }: {
+    icon: ReactNode;
+    onClick?: (e: unknown) => void;
+    title?: string;
+  }) => (
+    <button onClick={onClick} data-testid="icon-button" title={title}>
+      {icon}
     </button>
   ),
 }));
