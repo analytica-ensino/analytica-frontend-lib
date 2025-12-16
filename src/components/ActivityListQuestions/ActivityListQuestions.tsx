@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Notebook } from 'phosphor-react';
 import {
   ActivityCardQuestionBanks,
   Button,
+  Input,
+  Modal,
   QUESTION_TYPE,
   Text,
   useTheme,
@@ -52,6 +54,8 @@ export const ActivityListQuestions = ({
   className,
 }: ActivityListQuestionsProps) => {
   const { isDark } = useTheme();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [questionCount, setQuestionCount] = useState<number>(1);
   const appliedFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.appliedFilters
   );
@@ -169,6 +173,31 @@ export const ActivityListQuestions = ({
   };
 
   /**
+   * Handle adding questions automatically
+   */
+  const handleAddAutomatically = () => {
+    if (questionCount <= 0 || !questions.length) return;
+
+    const questionsToAdd = questions.slice(0, questionCount);
+    questionsToAdd.forEach((question) => {
+      if (onAddQuestion) {
+        onAddQuestion(question as Question);
+      }
+    });
+
+    setIsModalOpen(false);
+    setQuestionCount(1);
+  };
+
+  /**
+   * Handle modal close
+   */
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setQuestionCount(1);
+  };
+
+  /**
    * Renders the appropriate content based on loading, error, and questions state
    */
   const renderQuestionsContent = () => {
@@ -267,19 +296,84 @@ export const ActivityListQuestions = ({
         </section>
 
         <section className="flex flex-row justify-between items-center">
-          <Text size="sm" className="text-text-650">
+          <Text size="sm" className="text-text-800">
             {loading
               ? 'Carregando...'
               : `${totalQuestions} ${uniqueQuestion()} total`}
           </Text>
 
-          <Button size="small">Adicionar automaticamente</Button>
+          <Button size="small" onClick={() => setIsModalOpen(true)}>
+            Adicionar automaticamente
+          </Button>
         </section>
       </div>
 
       <div className="flex flex-col gap-3 overflow-auto flex-1 min-h-0">
         {renderQuestionsContent()}
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title="Adicionar automaticamente"
+        size="md"
+        hideCloseButton={true}
+        contentClassName="p-0"
+        footer={
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={handleCloseModal}>
+              Cancelar
+            </Button>
+            <Button
+              variant="solid"
+              onClick={handleAddAutomatically}
+              disabled={
+                questionCount <= 0 ||
+                questions.length === 0 ||
+                questionCount > questions.length
+              }
+            >
+              Adicionar
+            </Button>
+          </div>
+        }
+      >
+        <div className="flex flex-col">
+          <div className="px-6 py-6 flex flex-col gap-4">
+            <Text size="sm" className="text-text-600">
+              Defina a quantidade de questões que você quer que o sistema
+              adicione automaticamente na sua atividade
+            </Text>
+
+            <div className="flex flex-col gap-2">
+              <Input
+                type="number"
+                min={1}
+                max={questions.length || 1}
+                value={questionCount > 0 ? questionCount : ''}
+                onChange={(e) => {
+                  const inputValue = e.target.value;
+                  if (inputValue === '') {
+                    setQuestionCount(0);
+                    return;
+                  }
+                  const numValue = parseInt(inputValue, 10);
+                  if (!isNaN(numValue)) {
+                    const maxQuestions = questions.length || 1;
+                    if (numValue > 0 && numValue <= maxQuestions) {
+                      setQuestionCount(numValue);
+                    } else if (numValue > maxQuestions) {
+                      setQuestionCount(maxQuestions);
+                    }
+                  }
+                }}
+                placeholder="Insira o número"
+                variant="outlined"
+              />
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
