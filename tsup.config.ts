@@ -115,6 +115,13 @@ export default defineConfig({
 
     // SendActivityModal
     'SendActivityModal/index': 'src/components/SendActivityModal/index.ts',
+    'SendActivityModal/types': 'src/components/SendActivityModal/types.ts',
+    'SendActivityModal/validation':
+      'src/components/SendActivityModal/validation.ts',
+    'SendActivityModal/hooks/useSendActivityModal':
+      'src/components/SendActivityModal/hooks/useSendActivityModal.ts',
+    'SendActivityModal/SendActivityModal':
+      'src/components/SendActivityModal/SendActivityModal.tsx',
 
     // RecommendedLessonsHistory
     'RecommendedLessonsHistory/index':
