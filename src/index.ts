@@ -425,6 +425,7 @@ export {
   toggleArrayItem,
   toggleSingleValue,
 } from './utils/utils';
+export { convertActivityFiltersToQuestionsFilter } from './utils/questionFiltersConverter';
 // Activity Details Types
 export {
   STUDENT_ACTIVITY_STATUS,
