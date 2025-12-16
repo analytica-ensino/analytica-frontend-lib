@@ -50,6 +50,7 @@ const SendActivityModal = ({
   onCategoriesChange,
   isLoading = false,
   onError,
+  initialData,
 }: SendActivityModalProps) => {
   const store = useSendActivityModalStore();
   const reset = useSendActivityModalStore((state) => state.reset);
@@ -66,6 +67,11 @@ const SendActivityModal = ({
   const categoriesInitialized = useRef(false);
 
   /**
+   * Track if initial data has been applied for this modal session
+   */
+  const initialDataApplied = useRef(false);
+
+  /**
    * Initialize categories when modal opens
    */
   useEffect(() => {
@@ -80,12 +86,27 @@ const SendActivityModal = ({
   }, [isOpen, initialCategories, setCategories]);
 
   /**
+   * Apply initial data when modal opens
+   */
+  useEffect(() => {
+    if (isOpen && initialData && !initialDataApplied.current) {
+      store.setFormData({
+        title: initialData.title ?? '',
+        subtype: initialData.subtype ?? 'TAREFA',
+        notification: initialData.notification ?? '',
+      });
+      initialDataApplied.current = true;
+    }
+  }, [isOpen, initialData, store]);
+
+  /**
    * Reset store and initialization flag when modal closes
    */
   useEffect(() => {
     if (!isOpen) {
       reset();
       categoriesInitialized.current = false;
+      initialDataApplied.current = false;
     }
   }, [isOpen, reset]);
 
