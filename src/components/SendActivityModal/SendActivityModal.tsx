@@ -18,6 +18,7 @@ import DateTimeInput from '../DateTimeInput/DateTimeInput';
 import { useSendActivityModalStore } from './hooks/useSendActivityModal';
 import {
   SendActivityModalProps,
+  SendActivityModalInitialData,
   ActivitySubtype,
   SendActivityFormData,
   ACTIVITY_TYPE_OPTIONS,
@@ -67,9 +68,11 @@ const SendActivityModal = ({
   const categoriesInitialized = useRef(false);
 
   /**
-   * Track if initial data has been applied for this modal session
+   * Track the previous initialData reference to detect changes
    */
-  const initialDataApplied = useRef(false);
+  const prevInitialDataRef = useRef<SendActivityModalInitialData | undefined>(
+    undefined
+  );
 
   /**
    * Initialize categories when modal opens
@@ -86,16 +89,16 @@ const SendActivityModal = ({
   }, [isOpen, initialCategories, setCategories]);
 
   /**
-   * Apply initial data when modal opens
+   * Apply initial data when modal opens with new data
    */
   useEffect(() => {
-    if (isOpen && initialData && !initialDataApplied.current) {
+    if (isOpen && initialData && prevInitialDataRef.current !== initialData) {
       store.setFormData({
         title: initialData.title ?? '',
         subtype: initialData.subtype ?? 'TAREFA',
         notification: initialData.notification ?? '',
       });
-      initialDataApplied.current = true;
+      prevInitialDataRef.current = initialData;
     }
   }, [isOpen, initialData, store]);
 
@@ -106,7 +109,7 @@ const SendActivityModal = ({
     if (!isOpen) {
       reset();
       categoriesInitialized.current = false;
-      initialDataApplied.current = false;
+      prevInitialDataRef.current = undefined;
     }
   }, [isOpen, reset]);
 
