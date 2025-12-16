@@ -121,7 +121,7 @@ export const ActivityPreview = ({
   return (
     <div
       className={cn(
-        'w-[470px] flex-shrink-0 p-4 rounded-lg bg-background flex flex-col gap-4',
+        'w-full flex-shrink-0 p-4 rounded-lg bg-background flex flex-col gap-4',
         className
       )}
     >

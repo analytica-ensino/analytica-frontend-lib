@@ -14,7 +14,7 @@ import type {
   QuestionFiltersState,
 } from '../..';
 import { CaretLeft, PaperPlaneTilt, Funnel } from 'phosphor-react';
-import { ActivityListQuestions } from './ActivityListQuestions';
+import { ActivityListQuestions } from '../ActivityListQuestions/ActivityListQuestions';
 
 /**
  * CreateActivity page component for creating new activities
@@ -168,7 +168,7 @@ const CreateActivity = ({
       </div>
 
       {/* Main Content with 3 columns */}
-      <div className="grid grid-cols-[400px_1fr_470px] w-full flex-1 overflow-hidden gap-5 min-h-0">
+      <div className="grid grid-cols-[400px_1fr_370px] w-full flex-1 overflow-hidden gap-5 min-h-0">
         {/* First Column - Filters */}
         <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative">
           <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
@@ -200,7 +200,7 @@ const CreateActivity = ({
         />
 
         {/* Third Column - Activity Preview */}
-        <div className="w-[470px] flex-shrink-0 overflow-hidden h-full min-h-0">
+        <div className="w-[370px] flex-shrink-0 overflow-hidden h-full min-h-0">
           <ActivityPreview
             questions={questions}
             onRemoveAll={handleRemoveAll}

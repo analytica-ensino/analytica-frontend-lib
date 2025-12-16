@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { Notebook } from 'phosphor-react';
 import {
   ActivityCardQuestionBanks,
   Button,
@@ -14,7 +15,6 @@ import {
   createUseQuestionsList,
   type QuestionActivity as Question,
 } from '../..';
-import { Notebook } from 'phosphor-react';
 import { convertActivityFiltersToQuestionsFilter } from '../../utils/questionFiltersConverter';
 
 /**
@@ -33,19 +33,24 @@ const mapQuestionTypeToEnum = (type: string): QUESTION_TYPE => {
   return typeMap[type] || QUESTION_TYPE.ALTERNATIVA;
 };
 
+interface ActivityListQuestionsProps {
+  apiClient: BaseApiClient;
+  onAddQuestion?: (question: Question) => void;
+  addedQuestionIds?: string[];
+  className?: string;
+}
+
 /**
  * Component that displays the list of questions from the API
  * Fetches and displays questions based on applied filters
+ * Uses ActivityCardQuestionBanks for displaying questions from the bank
  */
 export const ActivityListQuestions = ({
   apiClient,
   onAddQuestion,
   addedQuestionIds = [],
-}: {
-  apiClient: BaseApiClient;
-  onAddQuestion?: (question: Question) => void;
-  addedQuestionIds?: string[];
-}) => {
+  className,
+}: ActivityListQuestionsProps) => {
   const { isDark } = useTheme();
   const appliedFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.appliedFilters
@@ -250,7 +255,9 @@ export const ActivityListQuestions = ({
   };
 
   return (
-    <div className="w-full flex flex-col p-4 gap-2 overflow-hidden h-full min-h-0">
+    <div
+      className={`w-full flex flex-col p-4 gap-2 overflow-hidden h-full min-h-0 ${className || ''}`}
+    >
       <div className="flex flex-col gap-2 flex-shrink-0">
         <section className="flex flex-row items-center gap-2 text-text-950">
           <Notebook size={24} />
@@ -270,9 +277,11 @@ export const ActivityListQuestions = ({
         </section>
       </div>
 
-      <div className="flex flex-col gap-1 overflow-auto flex-1 min-h-0">
+      <div className="flex flex-col gap-3 overflow-auto flex-1 min-h-0">
         {renderQuestionsContent()}
       </div>
     </div>
   );
 };
+
+export type { ActivityListQuestionsProps };
