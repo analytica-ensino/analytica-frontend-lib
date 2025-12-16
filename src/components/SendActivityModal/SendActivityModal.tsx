@@ -18,6 +18,7 @@ import DateTimeInput from '../DateTimeInput/DateTimeInput';
 import { useSendActivityModalStore } from './hooks/useSendActivityModal';
 import {
   SendActivityModalProps,
+  SendActivityModalInitialData,
   ActivitySubtype,
   SendActivityFormData,
   ACTIVITY_TYPE_OPTIONS,
@@ -50,6 +51,7 @@ const SendActivityModal = ({
   onCategoriesChange,
   isLoading = false,
   onError,
+  initialData,
 }: SendActivityModalProps) => {
   const store = useSendActivityModalStore();
   const reset = useSendActivityModalStore((state) => state.reset);
@@ -66,6 +68,13 @@ const SendActivityModal = ({
   const categoriesInitialized = useRef(false);
 
   /**
+   * Track the previous initialData reference to detect changes
+   */
+  const prevInitialDataRef = useRef<SendActivityModalInitialData | undefined>(
+    undefined
+  );
+
+  /**
    * Initialize categories when modal opens
    */
   useEffect(() => {
@@ -80,12 +89,27 @@ const SendActivityModal = ({
   }, [isOpen, initialCategories, setCategories]);
 
   /**
+   * Apply initial data when modal opens with new data
+   */
+  useEffect(() => {
+    if (isOpen && initialData && prevInitialDataRef.current !== initialData) {
+      store.setFormData({
+        title: initialData.title ?? '',
+        subtype: initialData.subtype ?? 'TAREFA',
+        notification: initialData.notification ?? '',
+      });
+      prevInitialDataRef.current = initialData;
+    }
+  }, [isOpen, initialData, store]);
+
+  /**
    * Reset store and initialization flag when modal closes
    */
   useEffect(() => {
     if (!isOpen) {
       reset();
       categoriesInitialized.current = false;
+      prevInitialDataRef.current = undefined;
     }
   }, [isOpen, reset]);
 

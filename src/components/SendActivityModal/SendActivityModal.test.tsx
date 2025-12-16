@@ -1033,6 +1033,123 @@ describe('SendActivityModal', () => {
     });
   });
 
+  describe('initialData pre-fill', () => {
+    it('should pre-fill title and subtype from initialData', () => {
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          initialData={{
+            title: 'Prova de Matemática',
+            subtype: 'PROVA',
+            notification: 'Nova prova disponível',
+          }}
+        />
+      );
+
+      const titleInput = screen.getByPlaceholderText(
+        'Digite o título da atividade'
+      );
+      expect(titleInput).toHaveValue('Prova de Matemática');
+
+      const provaChip = screen.getByText('Prova');
+      expect(provaChip.closest('button')).toHaveClass('bg-info-background');
+
+      const notificationTextarea = screen.getByPlaceholderText(
+        'Digite uma mensagem para a notificação (opcional)'
+      );
+      expect(notificationTextarea).toHaveValue('Nova prova disponível');
+    });
+
+    it('should use TAREFA as default subtype when not provided in initialData', () => {
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          initialData={{
+            title: 'Atividade Padrão',
+          }}
+        />
+      );
+
+      const tarefaChip = screen.getByText('Tarefa');
+      expect(tarefaChip.closest('button')).toHaveClass('bg-info-background');
+    });
+
+    it('should pre-fill again when modal reopens with different initialData', () => {
+      const { rerender } = render(
+        <SendActivityModal
+          {...defaultProps}
+          initialData={{
+            title: 'Primeira Prova',
+            subtype: 'PROVA',
+          }}
+        />
+      );
+
+      // Verify first initialData
+      expect(
+        screen.getByPlaceholderText('Digite o título da atividade')
+      ).toHaveValue('Primeira Prova');
+
+      // Close modal
+      rerender(<SendActivityModal {...defaultProps} isOpen={false} />);
+
+      // Reopen with different initialData
+      rerender(
+        <SendActivityModal
+          {...defaultProps}
+          isOpen={true}
+          initialData={{
+            title: 'Segunda Tarefa',
+            subtype: 'TAREFA',
+          }}
+        />
+      );
+
+      // Verify new initialData is applied
+      expect(
+        screen.getByPlaceholderText('Digite o título da atividade')
+      ).toHaveValue('Segunda Tarefa');
+      const tarefaChip = screen.getByText('Tarefa');
+      expect(tarefaChip.closest('button')).toHaveClass('bg-info-background');
+    });
+
+    it('should pre-fill when reopening modal with same initialData', () => {
+      const initialData = {
+        title: 'Mesma Prova',
+        subtype: 'PROVA' as const,
+      };
+
+      const { rerender } = render(
+        <SendActivityModal {...defaultProps} initialData={initialData} />
+      );
+
+      // Verify initialData
+      expect(
+        screen.getByPlaceholderText('Digite o título da atividade')
+      ).toHaveValue('Mesma Prova');
+
+      // Close modal
+      rerender(<SendActivityModal {...defaultProps} isOpen={false} />);
+
+      // Reopen with same initialData object (new reference)
+      rerender(
+        <SendActivityModal
+          {...defaultProps}
+          isOpen={true}
+          initialData={{
+            title: 'Mesma Prova',
+            subtype: 'PROVA',
+          }}
+        />
+      );
+
+      // Should still have the pre-filled data
+      expect(
+        screen.getByPlaceholderText('Digite o título da atividade')
+      ).toHaveValue('Mesma Prova');
+    });
+  });
+
   describe('categories initialization', () => {
     it('should initialize categories only once per modal session', () => {
       const onCategoriesChange = jest.fn();

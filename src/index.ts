@@ -507,6 +507,7 @@ export type {
   StepErrors,
   StepState,
   StepConfig,
+  SendActivityModalInitialData,
 } from './components/SendActivityModal';
 export {
   validateActivityStep,
