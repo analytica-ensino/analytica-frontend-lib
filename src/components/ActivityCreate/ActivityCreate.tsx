@@ -1,8 +1,16 @@
-import { useCallback } from 'react';
-import { ActivityFilters, Button, Text, useQuestionFiltersStore } from '../..';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  ActivityFilters,
+  ActivityPreview,
+  Button,
+  Text,
+  useQuestionFiltersStore,
+} from '../..';
 import type {
   ActivityFiltersData,
   BaseApiClient,
+  PreviewQuestion,
+  QuestionActivity as Question,
   QuestionFiltersState,
 } from '../..';
 import { CaretLeft, PaperPlaneTilt, Funnel } from 'phosphor-react';
@@ -16,9 +24,11 @@ import { ActivityListQuestions } from './ActivityListQuestions';
 const CreateActivity = ({
   apiClient,
   institutionId,
+  isDark,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
+  isDark: boolean;
 }) => {
   const applyFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.applyFilters
@@ -42,6 +52,81 @@ const CreateActivity = ({
     applyFilters();
   }, [applyFilters]);
 
+  const [questions, setQuestions] = useState<PreviewQuestion[]>([]);
+
+  /**
+   * Convert Question to PreviewQuestion format
+   */
+  const convertQuestionToPreview = useCallback(
+    (question: Question): PreviewQuestion => {
+      const subjectInfo =
+        question.knowledgeMatrix && question.knowledgeMatrix.length > 0
+          ? {
+              subjectName:
+                question.knowledgeMatrix[0].subject?.name || undefined,
+              subjectColor:
+                question.knowledgeMatrix[0].subject?.color || undefined,
+              iconName: question.knowledgeMatrix[0].subject?.icon || undefined,
+            }
+          : {};
+
+      return {
+        id: question.id,
+        enunciado: question.statement,
+        questionType: question.questionType,
+        question: question.options
+          ? {
+              options: question.options.map(
+                (opt: { id: string; option: string }) => ({
+                  id: opt.id,
+                  option: opt.option,
+                })
+              ),
+              correctOptionIds: [],
+            }
+          : undefined,
+        ...subjectInfo,
+      };
+    },
+    []
+  );
+
+  /**
+   * Handle adding a question to the activity
+   */
+  const handleAddQuestion = useCallback(
+    (question: Question) => {
+      setQuestions((prev) => {
+        // Check if question is already added
+        if (prev.some((q) => q.id === question.id)) {
+          return prev;
+        }
+
+        const previewQuestion = convertQuestionToPreview(question);
+        return [...prev, previewQuestion];
+      });
+    },
+    [convertQuestionToPreview]
+  );
+
+  /**
+   * Handle removing all questions
+   */
+  const handleRemoveAll = useCallback(() => {
+    setQuestions([]);
+  }, []);
+
+  /**
+   * Handle reordering questions
+   */
+  const handleReorder = useCallback((orderedQuestions: PreviewQuestion[]) => {
+    setQuestions(orderedQuestions);
+  }, []);
+
+  const addedQuestionIds = useMemo(
+    () => questions.map((q) => q.id),
+    [questions]
+  );
   return (
     <div
       data-testid="create-activity-page"
@@ -101,11 +186,21 @@ const CreateActivity = ({
         </div>
 
         {/* Second Column - Center, fills remaining space */}
-        <ActivityListQuestions apiClient={apiClient} />
+        <ActivityListQuestions
+          apiClient={apiClient}
+          onAddQuestion={handleAddQuestion}
+          addedQuestionIds={addedQuestionIds}
+        />
 
-        {/* Third Column - 470px */}
-        <div className="w-[470px] bg-yellow-200 flex-shrink-0 p-4">
-          <div>Coluna 3 - 470px</div>
+        {/* Third Column - Activity Preview */}
+        <div className="w-[470px] flex-shrink-0 overflow-hidden h-full min-h-0">
+          <ActivityPreview
+            questions={questions}
+            onRemoveAll={handleRemoveAll}
+            onReorder={handleReorder}
+            isDark={isDark}
+            className="h-full overflow-y-auto"
+          />
         </div>
       </div>
     </div>

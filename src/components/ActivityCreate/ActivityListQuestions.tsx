@@ -12,7 +12,7 @@ import {
   useQuestionFiltersStore,
   type QuestionFiltersState,
   createUseQuestionsList,
-  Question,
+  type QuestionActivity as Question,
 } from '../..';
 import { Notebook } from 'phosphor-react';
 import { convertActivityFiltersToQuestionsFilter } from '../../utils/questionFiltersConverter';
@@ -39,8 +39,12 @@ const mapQuestionTypeToEnum = (type: string): QUESTION_TYPE => {
  */
 export const ActivityListQuestions = ({
   apiClient,
+  onAddQuestion,
+  addedQuestionIds = [],
 }: {
   apiClient: BaseApiClient;
+  onAddQuestion?: (question: Question) => void;
+  addedQuestionIds?: string[];
 }) => {
   const { isDark } = useTheme();
   const appliedFilters = useQuestionFiltersStore(
@@ -193,6 +197,7 @@ export const ActivityListQuestions = ({
         {questions.map((question) => {
           const subjectInfo = getSubjectInfo(question as Question);
           const questionType = mapQuestionTypeToEnum(question.questionType);
+          const isAdded = addedQuestionIds.includes(question.id);
 
           return (
             <ActivityCardQuestionBanks
@@ -212,9 +217,12 @@ export const ActivityListQuestions = ({
               subjectColor={subjectInfo.color}
               isDark={isDark}
               assunto={subjectInfo.assunto}
-              onAddToActivity={() =>
-                console.log('Adicionar questão:', question.id)
-              }
+              enunciado={question.statement}
+              onAddToActivity={() => {
+                if (onAddQuestion && !isAdded) {
+                  onAddQuestion(question as Question);
+                }
+              }}
             />
           );
         })}
