@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   ActivityCardQuestionBanks,
   Button,
@@ -53,7 +53,7 @@ export const ActivityListQuestions = ({
   const useQuestionsList = createUseQuestionsList(apiClient);
 
   const {
-    questions,
+    questions: allQuestions,
     pagination,
     loading,
     loadingMore,
@@ -62,6 +62,13 @@ export const ActivityListQuestions = ({
     loadMore,
     reset,
   } = useQuestionsList();
+
+  // Filter out questions that are already added
+  const questions = useMemo(() => {
+    return allQuestions.filter(
+      (question) => !addedQuestionIds.includes(question.id)
+    );
+  }, [allQuestions, addedQuestionIds]);
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -197,7 +204,6 @@ export const ActivityListQuestions = ({
         {questions.map((question) => {
           const subjectInfo = getSubjectInfo(question as Question);
           const questionType = mapQuestionTypeToEnum(question.questionType);
-          const isAdded = addedQuestionIds.includes(question.id);
 
           return (
             <ActivityCardQuestionBanks
@@ -219,7 +225,7 @@ export const ActivityListQuestions = ({
               assunto={subjectInfo.assunto}
               enunciado={question.statement}
               onAddToActivity={() => {
-                if (onAddQuestion && !isAdded) {
+                if (onAddQuestion) {
                   onAddQuestion(question as Question);
                 }
               }}

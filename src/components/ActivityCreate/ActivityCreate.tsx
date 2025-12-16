@@ -117,6 +117,13 @@ const CreateActivity = ({
   }, []);
 
   /**
+   * Handle removing a single question
+   */
+  const handleRemoveQuestion = useCallback((questionId: string) => {
+    setQuestions((prev) => prev.filter((q) => q.id !== questionId));
+  }, []);
+
+  /**
    * Handle reordering questions
    */
   const handleReorder = useCallback((orderedQuestions: PreviewQuestion[]) => {
@@ -197,6 +204,7 @@ const CreateActivity = ({
           <ActivityPreview
             questions={questions}
             onRemoveAll={handleRemoveAll}
+            onRemoveQuestion={handleRemoveQuestion}
             onReorder={handleReorder}
             isDark={isDark}
             className="h-full overflow-y-auto"
