@@ -6,6 +6,7 @@ import {
   Text,
   useQuestionFiltersStore,
   createUseQuestionsList,
+  SkeletonText,
 } from '../..';
 import type {
   ActivityFiltersData,
@@ -117,7 +118,6 @@ const CreateActivity = ({
           setLoadingInitialQuestions(false);
         });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
 
   /**
@@ -230,14 +230,30 @@ const CreateActivity = ({
 
         {/* Third Column - Activity Preview */}
         <div className="w-[370px] flex-shrink-0 overflow-hidden h-full min-h-0">
-          <ActivityPreview
-            questions={questions}
-            onRemoveAll={handleRemoveAll}
-            onRemoveQuestion={handleRemoveQuestion}
-            onReorder={handleReorder}
-            isDark={isDark}
-            className="h-full overflow-y-auto"
-          />
+          {loadingInitialQuestions ? (
+            <div className="flex flex-col gap-4 p-4">
+              <div className="flex flex-col gap-2">
+                <SkeletonText lines={1} width={200} />
+                <SkeletonText lines={1} width={150} />
+              </div>
+              <div className="flex flex-col gap-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="p-4 border rounded">
+                    <SkeletonText lines={2} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <ActivityPreview
+              questions={questions}
+              onRemoveAll={handleRemoveAll}
+              onRemoveQuestion={handleRemoveQuestion}
+              onReorder={handleReorder}
+              isDark={isDark}
+              className="h-full overflow-y-auto"
+            />
+          )}
         </div>
       </div>
     </div>
