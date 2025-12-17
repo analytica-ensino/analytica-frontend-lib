@@ -125,7 +125,8 @@ export const ActivityListQuestions = ({
    * Fetch questions only when applied filters are set (not on initial load)
    * Only fetches when user clicks "Filtrar" button
    * Resets questions when filters change
-   * Excludes already added questions from results
+   * Note: Already added questions are filtered out in the useMemo, so we don't need
+   * to refetch when addedQuestionIds changes - the visual filtering handles it
    */
   useEffect(() => {
     if (appliedFilters) {
@@ -139,7 +140,7 @@ export const ActivityListQuestions = ({
     } else {
       reset();
     }
-  }, [appliedFilters, fetchQuestions, reset, addedQuestionIds]);
+  }, [appliedFilters, fetchQuestions, reset]);
 
   /**
    * Intersection Observer for infinite scroll

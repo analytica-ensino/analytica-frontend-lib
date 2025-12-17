@@ -1,4 +1,5 @@
 import type { CategoryConfig } from '../components/CheckBoxGroup/CheckBoxGroup';
+import type { ActivityFiltersData } from '../types/activityFilters';
 
 /**
  * Extracts selected IDs from knowledge categories by their keys
@@ -43,4 +44,35 @@ export function toggleSingleValue<T>(
   newValue: T
 ): T | null {
   return currentValue === newValue ? null : newValue;
+}
+
+/**
+ * Compares two ActivityFiltersData objects for deep equality
+ * @param filters1 - First filters object
+ * @param filters2 - Second filters object
+ * @returns true if filters are equal, false otherwise
+ */
+export function areFiltersEqual(
+  filters1: ActivityFiltersData | null,
+  filters2: ActivityFiltersData | null
+): boolean {
+  if (filters1 === filters2) return true;
+  if (!filters1 || !filters2) return false;
+
+  const arraysEqual = (a: string[], b: string[]): boolean => {
+    if (a.length !== b.length) return false;
+    const sortedA = [...a].sort();
+    const sortedB = [...b].sort();
+    return sortedA.every((val, index) => val === sortedB[index]);
+  };
+
+  return (
+    arraysEqual(filters1.types, filters2.types) &&
+    arraysEqual(filters1.bankIds, filters2.bankIds) &&
+    arraysEqual(filters1.yearIds, filters2.yearIds) &&
+    arraysEqual(filters1.knowledgeIds, filters2.knowledgeIds) &&
+    arraysEqual(filters1.topicIds, filters2.topicIds) &&
+    arraysEqual(filters1.subtopicIds, filters2.subtopicIds) &&
+    arraysEqual(filters1.contentIds, filters2.contentIds)
+  );
 }

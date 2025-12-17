@@ -28,6 +28,7 @@ import {
   getSelectedIdsFromCategories,
   toggleArrayItem,
   toggleSingleValue,
+  areFiltersEqual,
 } from '../../utils/activityFilters';
 
 const questionTypesFallback = [
@@ -478,6 +479,9 @@ export const ActivityFilters = ({
     onFiltersChangeRef.current = onFiltersChange;
   }, [onFiltersChange]);
 
+  // Store previous filters to compare and avoid unnecessary updates
+  const prevFiltersRef = useRef<ActivityFiltersData | null>(null);
+
   // Notify parent component when filters change
   useEffect(() => {
     const knowledgeIds = getSelectedKnowledgeIds();
@@ -491,14 +495,20 @@ export const ActivityFilters = ({
       subtopicIds: knowledgeIds.subtopicIds,
       contentIds: knowledgeIds.contentIds,
     };
-    onFiltersChangeRef.current(filters);
+
+    // Only call onFiltersChange if filters actually changed
+    if (!areFiltersEqual(prevFiltersRef.current, filters)) {
+      prevFiltersRef.current = filters;
+      onFiltersChangeRef.current(filters);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selectedQuestionTypes,
     selectedSubjects,
     knowledgeCategories,
     bankCategories,
-    getSelectedKnowledgeIds,
-    getSelectedBankIds,
+    // getSelectedKnowledgeIds and getSelectedBankIds are stable callbacks
+    // that depend on knowledgeCategories and bankCategories, which are already in deps
   ]);
 
   const containerClassName =

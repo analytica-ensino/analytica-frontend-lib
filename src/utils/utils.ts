@@ -10,6 +10,7 @@ export {
   getSelectedIdsFromCategories,
   toggleArrayItem,
   toggleSingleValue,
+  areFiltersEqual,
 } from './activityFilters';
 export {
   getStatusBadgeConfig,

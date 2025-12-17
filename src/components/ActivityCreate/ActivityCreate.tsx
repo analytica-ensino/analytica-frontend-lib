@@ -18,6 +18,7 @@ import type {
 } from '../..';
 import { CaretLeft, PaperPlaneTilt, Funnel } from 'phosphor-react';
 import { ActivityListQuestions } from '../ActivityListQuestions/ActivityListQuestions';
+import { areFiltersEqual } from '../../utils/activityFilters';
 
 /**
  * CreateActivity page component for creating new activities
@@ -70,6 +71,8 @@ const CreateActivity = ({
   const [isSaving, setIsSaving] = useState(false);
   const hasFirstSaveBeenDone = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedFiltersRef = useRef<ActivityFiltersData | null>(null);
+  const lastSavedQuestionsRef = useRef<PreviewQuestion[]>([]);
 
   const useQuestionsList = createUseQuestionsList(apiClient);
   const { fetchQuestionsByIds } = useQuestionsList();
@@ -148,26 +151,40 @@ const CreateActivity = ({
    * Save draft to backend
    */
   const saveDraft = useCallback(async () => {
+    console.log('🔄 Tentando salvar rascunho...', {
+      questionsCount: questions.length,
+      draftId,
+      activityType,
+      hasFirstSaveBeenDone: hasFirstSaveBeenDone.current,
+    });
+
     // Don't save if no questions (first save only happens when questions.length > 0)
     if (questions.length === 0 && !hasFirstSaveBeenDone.current) {
+      console.log(
+        '⏭️ Pulando save: sem questões e primeiro save ainda não feito'
+      );
       return;
     }
 
     // Don't save if no applied filters (need subjectId)
     if (!appliedFilters || appliedFilters.knowledgeIds.length === 0) {
+      console.log('⏭️ Pulando save: sem filtros aplicados');
       return;
     }
 
     // Don't save during initial loading
     if (loadingInitialQuestions) {
+      console.log('⏭️ Pulando save: carregando questões iniciais');
       return;
     }
 
     // Don't save if already saving
     if (isSaving) {
+      console.log('⏭️ Pulando save: já está salvando');
       return;
     }
 
+    console.log('✅ Prosseguindo com o save do rascunho');
     setIsSaving(true);
 
     try {
@@ -202,8 +219,16 @@ const CreateActivity = ({
       }
 
       setLastSavedAt(new Date());
+      // Update refs after successful save
+      lastSavedQuestionsRef.current = questions;
+      lastSavedFiltersRef.current = appliedFilters;
+      console.log('✅ Rascunho salvo com sucesso!', {
+        draftId: draftId || response.data.data.id,
+        questionsCount: questions.length,
+        activityType,
+      });
     } catch (error) {
-      console.error('Erro ao salvar rascunho:', error);
+      console.error('❌ Erro ao salvar rascunho:', error);
     } finally {
       setIsSaving(false);
     }
@@ -293,6 +318,12 @@ const CreateActivity = ({
     }
   }, []); // Only run once on mount
 
+  // Store saveDraft in ref to avoid recreating useEffect when it changes
+  const saveDraftRef = useRef(saveDraft);
+  useEffect(() => {
+    saveDraftRef.current = saveDraft;
+  }, [saveDraft]);
+
   /**
    * Auto-save draft when questions or filters change (with debounce)
    */
@@ -317,9 +348,31 @@ const CreateActivity = ({
       return;
     }
 
+    // Compare if questions actually changed
+    const questionIds = questions
+      .map((q) => q.id)
+      .sort()
+      .join(',');
+    const lastSavedQuestionIds = lastSavedQuestionsRef.current
+      .map((q) => q.id)
+      .sort()
+      .join(',');
+    const questionsChanged = questionIds !== lastSavedQuestionIds;
+
+    // Compare if filters actually changed
+    const filtersChanged = !areFiltersEqual(
+      lastSavedFiltersRef.current,
+      appliedFilters
+    );
+
+    // Only save if something actually changed
+    if (!questionsChanged && !filtersChanged && hasFirstSaveBeenDone.current) {
+      return;
+    }
+
     // Set debounced save
     saveTimeoutRef.current = setTimeout(() => {
-      saveDraft();
+      saveDraftRef.current();
     }, 500);
 
     // Cleanup timeout on unmount or dependency change
@@ -328,13 +381,7 @@ const CreateActivity = ({
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [
-    questions,
-    appliedFilters,
-    activityType,
-    saveDraft,
-    loadingInitialQuestions,
-  ]);
+  }, [questions, appliedFilters, activityType, loadingInitialQuestions]);
 
   /**
    * Save immediately when activityType changes to MODELO
@@ -345,9 +392,9 @@ const CreateActivity = ({
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
-      saveDraft();
+      saveDraftRef.current();
     }
-  }, [activityType, saveDraft]);
+  }, [activityType]);
 
   /**
    * Handle adding a question to the activity
