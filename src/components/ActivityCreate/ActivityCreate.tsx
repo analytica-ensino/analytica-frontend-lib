@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import {
   ActivityFilters,
   ActivityPreview,
@@ -7,6 +7,7 @@ import {
   useQuestionFiltersStore,
   createUseQuestionsList,
   SkeletonText,
+  createUseActivityFiltersData,
 } from '../..';
 import type {
   ActivityFiltersData,
@@ -40,6 +41,9 @@ const CreateActivity = ({
   const draftFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.draftFilters
   );
+  const appliedFilters = useQuestionFiltersStore(
+    (state: QuestionFiltersState) => state.appliedFilters
+  );
 
   const setDraftFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.setDraftFilters
@@ -58,8 +62,170 @@ const CreateActivity = ({
 
   const [questions, setQuestions] = useState<PreviewQuestion[]>([]);
   const [loadingInitialQuestions, setLoadingInitialQuestions] = useState(false);
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [activityType, setActivityType] = useState<'RASCUNHO' | 'MODELO'>(
+    'RASCUNHO'
+  );
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const hasFirstSaveBeenDone = useRef(false);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const useQuestionsList = createUseQuestionsList(apiClient);
   const { fetchQuestionsByIds } = useQuestionsList();
+
+  // Hook para obter dados dos assuntos (knowledge areas)
+  const useActivityFiltersData = createUseActivityFiltersData(apiClient);
+  const { knowledgeAreas, loadKnowledgeAreas } = useActivityFiltersData({
+    selectedSubjects: [],
+    institutionId,
+  });
+
+  /**
+   * Convert ActivityFiltersData to backend format
+   */
+  const convertFiltersToBackendFormat = useCallback(
+    (filters: ActivityFiltersData | null) => {
+      if (!filters) {
+        return {
+          questionTypes: [],
+          questionBanks: [],
+          subjects: [],
+          topics: [],
+          subtopics: [],
+          contents: [],
+        };
+      }
+
+      return {
+        questionTypes: filters.types,
+        questionBanks: filters.bankIds,
+        subjects: filters.knowledgeIds,
+        topics: filters.topicIds,
+        subtopics: filters.subtopicIds,
+        contents: filters.contentIds,
+      };
+    },
+    []
+  );
+
+  /**
+   * Get subject name from subjectId
+   */
+  const getSubjectName = useCallback(
+    (subjectId: string | null): string | null => {
+      if (!subjectId || !knowledgeAreas.length) {
+        return null;
+      }
+      const subject = knowledgeAreas.find((area) => area.id === subjectId);
+      return subject?.name || null;
+    },
+    [knowledgeAreas]
+  );
+
+  /**
+   * Generate activity title
+   */
+  const generateTitle = useCallback(
+    (type: 'RASCUNHO' | 'MODELO', subjectId: string | null): string => {
+      const typeLabel = type === 'RASCUNHO' ? 'Rascunho' : 'Modelo';
+      const subjectName = getSubjectName(subjectId);
+      return subjectName ? `${typeLabel} - ${subjectName}` : typeLabel;
+    },
+    [getSubjectName]
+  );
+
+  /**
+   * Format time for display (HH:mm)
+   */
+  const formatTime = useCallback((date: Date): string => {
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }, []);
+
+  /**
+   * Save draft to backend
+   */
+  const saveDraft = useCallback(async () => {
+    // Don't save if no questions (first save only happens when questions.length > 0)
+    if (questions.length === 0 && !hasFirstSaveBeenDone.current) {
+      return;
+    }
+
+    // Don't save if no applied filters (need subjectId)
+    if (!appliedFilters || appliedFilters.knowledgeIds.length === 0) {
+      return;
+    }
+
+    // Don't save during initial loading
+    if (loadingInitialQuestions) {
+      return;
+    }
+
+    // Don't save if already saving
+    if (isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const subjectId = appliedFilters.knowledgeIds[0];
+      const title = generateTitle(activityType, subjectId);
+      const filters = convertFiltersToBackendFormat(appliedFilters);
+      const questionIds = questions.map((q) => q.id);
+
+      const payload = {
+        type: activityType,
+        title,
+        subjectId,
+        filters,
+        questionIds,
+      };
+
+      let response;
+      if (draftId) {
+        // Update existing draft
+        response = await apiClient.patch<{ data: { id: string } }>(
+          `/activity-drafts/${draftId}`,
+          payload
+        );
+      } else {
+        // Create new draft
+        response = await apiClient.post<{ data: { id: string } }>(
+          '/activity-drafts',
+          payload
+        );
+        setDraftId(response.data.data.id);
+        hasFirstSaveBeenDone.current = true;
+      }
+
+      setLastSavedAt(new Date());
+    } catch (error) {
+      console.error('Erro ao salvar rascunho:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [
+    questions,
+    appliedFilters,
+    activityType,
+    draftId,
+    loadingInitialQuestions,
+    isSaving,
+    apiClient,
+    generateTitle,
+    convertFiltersToBackendFormat,
+  ]);
+
+  /**
+   * Handle save model button click
+   */
+  const handleSaveModel = useCallback(async () => {
+    setActivityType('MODELO');
+    // The save will be triggered by the useEffect that watches activityType
+  }, []);
 
   /**
    * Convert Question to PreviewQuestion format
@@ -99,6 +265,13 @@ const CreateActivity = ({
   );
 
   /**
+   * Load knowledge areas on mount
+   */
+  useEffect(() => {
+    loadKnowledgeAreas();
+  }, [loadKnowledgeAreas]);
+
+  /**
    * Load initial questions by IDs (for drafts or page refresh)
    */
   useEffect(() => {
@@ -119,6 +292,62 @@ const CreateActivity = ({
         });
     }
   }, []); // Only run once on mount
+
+  /**
+   * Auto-save draft when questions or filters change (with debounce)
+   */
+  useEffect(() => {
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Don't save during initial loading
+    if (loadingInitialQuestions) {
+      return;
+    }
+
+    // First save only happens when there's at least one question
+    if (questions.length === 0 && !hasFirstSaveBeenDone.current) {
+      return;
+    }
+
+    // Don't save if no applied filters
+    if (!appliedFilters || appliedFilters.knowledgeIds.length === 0) {
+      return;
+    }
+
+    // Set debounced save
+    saveTimeoutRef.current = setTimeout(() => {
+      saveDraft();
+    }, 500);
+
+    // Cleanup timeout on unmount or dependency change
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [
+    questions,
+    appliedFilters,
+    activityType,
+    saveDraft,
+    loadingInitialQuestions,
+  ]);
+
+  /**
+   * Save immediately when activityType changes to MODELO
+   */
+  useEffect(() => {
+    if (activityType === 'MODELO' && hasFirstSaveBeenDone.current) {
+      // Clear any pending debounced save
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      saveDraft();
+    }
+  }, [activityType, saveDraft]);
 
   /**
    * Handle adding a question to the activity
@@ -181,8 +410,19 @@ const CreateActivity = ({
             </Text>
 
             <div className="flex flex-row gap-4 items-center">
-              <p className="text-sm text-text-600">Rascunho salvo às 12:00</p>
-              <Button size="small">Salvar modelo</Button>
+              {lastSavedAt ? (
+                <p className="text-sm text-text-600">
+                  {activityType === 'RASCUNHO' ? 'Rascunho' : 'Modelo'} salvo às{' '}
+                  {formatTime(lastSavedAt)}
+                </p>
+              ) : (
+                <p className="text-sm text-text-600">
+                  {isSaving ? 'Salvando...' : 'Nenhum rascunho salvo'}
+                </p>
+              )}
+              <Button size="small" onClick={handleSaveModel}>
+                Salvar modelo
+              </Button>
               <Button size="small" iconLeft={<PaperPlaneTilt />}>
                 Enviar atividade
               </Button>
