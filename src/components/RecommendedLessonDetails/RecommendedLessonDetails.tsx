@@ -102,27 +102,27 @@ const DEFAULT_LABELS = {
  */
 const formatDate = (dateString: string | null): string => {
   if (!dateString) return '00/00/0000';
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  } catch {
-    return '00/00/0000';
-  }
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '00/00/0000';
+  return date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 };
 
 /**
  * Transform API student data to display format
+ * @param student - Student data from API
+ * @param deadline - Goal deadline to determine NAO_FINALIZADO status
  */
 const transformStudentForDisplay = (
-  student: GoalDetailStudent
+  student: GoalDetailStudent,
+  deadline?: string | null
 ): DisplayStudent => ({
   id: student.userInstitutionId,
   name: student.name,
-  status: deriveStudentStatus(student.progress, student.completedAt),
+  status: deriveStudentStatus(student.progress, student.completedAt, deadline),
   completionPercentage: student.progress,
   duration: formatDaysToComplete(student.daysToComplete),
 });
@@ -532,8 +532,11 @@ const RecommendedLessonDetails = ({
   // Transform API students to display format
   const displayStudents = useMemo(() => {
     if (!data?.details.students) return [];
-    return data.details.students.map(transformStudentForDisplay);
-  }, [data?.details.students]);
+    const deadline = data?.goal.finalDate;
+    return data.details.students.map((student) =>
+      transformStudentForDisplay(student, deadline)
+    );
+  }, [data?.details.students, data?.goal.finalDate]);
 
   if (loading) {
     return (

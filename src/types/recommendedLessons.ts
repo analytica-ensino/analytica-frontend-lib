@@ -235,15 +235,38 @@ export const getStudentStatusBadgeAction = (
 };
 
 /**
- * Derives student display status from progress and completedAt
+ * Checks if a deadline has passed
+ * @param deadline - ISO date string of the deadline
+ * @returns true if deadline has passed, false otherwise
+ */
+export const isDeadlinePassed = (deadline: string | null): boolean => {
+  if (!deadline) return false;
+  return new Date(deadline) < new Date();
+};
+
+/**
+ * Derives student display status from progress, completedAt, and deadline
+ * @param progress - Student progress percentage (0-100)
+ * @param completedAt - ISO date string when student completed, or null
+ * @param deadline - ISO date string of the goal deadline, or null
+ * @returns The appropriate StudentLessonStatus
  */
 export const deriveStudentStatus = (
   progress: number,
-  completedAt: string | null
+  completedAt: string | null,
+  deadline?: string | null
 ): StudentLessonStatus => {
+  // If completed (either by completedAt or 100% progress), it's CONCLUIDO
   if (completedAt) return StudentLessonStatus.CONCLUIDO;
-  if (progress === 0) return StudentLessonStatus.A_INICIAR;
   if (progress === 100) return StudentLessonStatus.CONCLUIDO;
+
+  // If deadline passed and not completed, it's NAO_FINALIZADO
+  if (isDeadlinePassed(deadline ?? null) && progress < 100) {
+    return StudentLessonStatus.NAO_FINALIZADO;
+  }
+
+  // Otherwise, derive from progress
+  if (progress === 0) return StudentLessonStatus.A_INICIAR;
   if (progress > 0) return StudentLessonStatus.EM_ANDAMENTO;
   return StudentLessonStatus.A_INICIAR;
 };

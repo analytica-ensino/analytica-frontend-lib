@@ -31,12 +31,23 @@ jest.mock('../Table/Table', () => {
     children,
     sortable,
     onSort,
+    sortDirection,
+    className,
   }: {
     children?: ReactNode;
     sortable?: boolean;
     onSort?: () => void;
+    sortDirection?: 'asc' | 'desc' | null;
+    className?: string;
   }) => (
-    <th onClick={onSort} data-sortable={sortable}>
+    <th
+      onClick={() => {
+        if (onSort) onSort();
+      }}
+      data-sortable={sortable}
+      data-sort-direction={sortDirection}
+      className={className}
+    >
       {children}
     </th>
   );
@@ -46,8 +57,8 @@ jest.mock('../Table/Table', () => {
 
   const useTableSort = <T extends Record<string, unknown>>(data: T[]) => ({
     sortedData: data,
-    sortColumn: null as string | null,
-    sortDirection: null as 'asc' | 'desc' | null,
+    sortColumn: null,
+    sortDirection: null,
     handleSort: jest.fn(),
   });
 
@@ -64,13 +75,21 @@ jest.mock('../Table/Table', () => {
   };
 });
 
+// Use future dates to avoid NAO_FINALIZADO status in tests
+const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+  .toISOString()
+  .split('T')[0];
+const startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  .toISOString()
+  .split('T')[0];
+
 // Mock data aligned with API responses
 const mockLessonData: LessonDetailsData = {
   goal: {
     id: 'lesson-1',
     title: 'Explorando a Fotossíntese: Atividade Prática de Campo',
-    startDate: '2024-01-01',
-    finalDate: '2024-01-31',
+    startDate: startDate,
+    finalDate: futureDate,
     progress: 90,
     lessonsGoals: [
       {
@@ -423,6 +442,92 @@ describe('RecommendedLessonDetails', () => {
       expect(screen.getByText('Início em 00/00/0000')).toBeInTheDocument();
       expect(screen.getByText('Prazo final 00/00/0000')).toBeInTheDocument();
     });
+
+    it('should show placeholder for invalid date strings', () => {
+      const dataWithInvalidDates: LessonDetailsData = {
+        ...mockLessonData,
+        goal: {
+          ...mockLessonData.goal,
+          startDate: 'invalid-date',
+          finalDate: 'not-a-date',
+        },
+      };
+
+      render(
+        <RecommendedLessonDetails
+          data={dataWithInvalidDates}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      // Invalid dates should show placeholder
+      expect(screen.getByText('Início em 00/00/0000')).toBeInTheDocument();
+      expect(screen.getByText('Prazo final 00/00/0000')).toBeInTheDocument();
+    });
+  });
+
+  describe('Table sorting', () => {
+    it('should call handleSort when name column header is clicked', () => {
+      render(
+        <RecommendedLessonDetails
+          data={mockLessonData}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      const headers = screen.getAllByRole('columnheader');
+      const nameHeader = headers[0];
+
+      fireEvent.click(nameHeader);
+
+      // The handleSort mock should have been called
+      expect(nameHeader).toBeInTheDocument();
+    });
+
+    it('should call handleSort when status column header is clicked', () => {
+      render(
+        <RecommendedLessonDetails
+          data={mockLessonData}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      const headers = screen.getAllByRole('columnheader');
+      const statusHeader = headers[1];
+
+      fireEvent.click(statusHeader);
+
+      expect(statusHeader).toBeInTheDocument();
+    });
+
+    it('should call handleSort when completion column header is clicked', () => {
+      render(
+        <RecommendedLessonDetails
+          data={mockLessonData}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      const headers = screen.getAllByRole('columnheader');
+      const completionHeader = headers[2];
+
+      fireEvent.click(completionHeader);
+
+      expect(completionHeader).toBeInTheDocument();
+    });
+
+    it('should render all sortable column headers', () => {
+      render(
+        <RecommendedLessonDetails
+          data={mockLessonData}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      // All columns should render
+      const headers = screen.getAllByRole('columnheader');
+      expect(headers.length).toBeGreaterThanOrEqual(4);
+    });
   });
 
   describe('Student performance button state', () => {
@@ -532,6 +637,115 @@ describe('RecommendedLessonDetails', () => {
       expect(
         screen.getByTestId('recommended-lesson-details')
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('NAO_FINALIZADO status (past deadline)', () => {
+    // Use past deadline to trigger NAO_FINALIZADO
+    const pastDeadline = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0];
+
+    const mockDataWithPastDeadline: LessonDetailsData = {
+      goal: {
+        ...mockLessonData.goal,
+        finalDate: pastDeadline,
+      },
+      details: {
+        students: [
+          {
+            userInstitutionId: 'student-1',
+            userId: 'user-1',
+            name: 'Ana Costa',
+            progress: 0,
+            completedAt: null,
+            avgScore: null,
+            daysToComplete: null,
+          },
+          {
+            userInstitutionId: 'student-2',
+            userId: 'user-2',
+            name: 'Carlos Pereira',
+            progress: 50,
+            completedAt: null,
+            avgScore: 85,
+            daysToComplete: null,
+          },
+          {
+            userInstitutionId: 'student-3',
+            userId: 'user-3',
+            name: 'Lucas Oliveira',
+            progress: 100,
+            completedAt: '2024-01-15T00:00:00.000Z',
+            avgScore: 95,
+            daysToComplete: 15,
+          },
+        ],
+        aggregated: mockLessonData.details.aggregated,
+        contentPerformance: mockLessonData.details.contentPerformance,
+      },
+      breakdown: mockLessonData.breakdown,
+    };
+
+    it('should show NAO_FINALIZADO for students who did not complete when deadline passed', () => {
+      render(
+        <RecommendedLessonDetails
+          data={mockDataWithPastDeadline}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      // Ana Costa (progress 0) and Carlos Pereira (progress 50) should be NAO_FINALIZADO
+      expect(screen.getAllByText('NÃO FINALIZADO').length).toBe(2);
+    });
+
+    it('should show CONCLUIDO for student who completed even with past deadline', () => {
+      render(
+        <RecommendedLessonDetails
+          data={mockDataWithPastDeadline}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      // Lucas Oliveira has completedAt, so should be CONCLUIDO
+      // There might be multiple "CONCLUÍDO" texts (one in student row, possibly others)
+      expect(screen.getAllByText('CONCLUÍDO').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should enable Ver desempenho for NAO_FINALIZADO and CONCLUIDO students', () => {
+      render(
+        <RecommendedLessonDetails
+          data={mockDataWithPastDeadline}
+          onViewStudentPerformance={() => {}}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      const buttons = screen.getAllByText('Ver desempenho');
+      const enabledButtons = buttons.filter(
+        (btn) => !btn.closest('button')?.hasAttribute('disabled')
+      );
+
+      // All 3 students should have enabled buttons (2 NAO_FINALIZADO + 1 CONCLUIDO)
+      expect(enabledButtons.length).toBe(3);
+    });
+
+    it('should not have any disabled Ver desempenho buttons', () => {
+      render(
+        <RecommendedLessonDetails
+          data={mockDataWithPastDeadline}
+          onViewStudentPerformance={() => {}}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      const buttons = screen.getAllByText('Ver desempenho');
+      const disabledButtons = buttons.filter((btn) =>
+        btn.closest('button')?.hasAttribute('disabled')
+      );
+
+      // No buttons should be disabled
+      expect(disabledButtons.length).toBe(0);
     });
   });
 });

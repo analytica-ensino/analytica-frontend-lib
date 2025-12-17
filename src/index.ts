@@ -566,6 +566,7 @@ export {
   GOAL_STATUS_OPTIONS,
   StudentLessonStatus,
   getStudentStatusBadgeAction,
+  isDeadlinePassed,
   deriveStudentStatus,
   formatDaysToComplete,
 } from './types/recommendedLessons';

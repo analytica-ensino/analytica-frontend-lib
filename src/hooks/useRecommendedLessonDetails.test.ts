@@ -205,7 +205,8 @@ describe('useRecommendedLessonDetails', () => {
 
   describe('goalDetailsApiResponseSchema', () => {
     it('should validate a valid details API response', () => {
-      const result = goalDetailsApiResponseSchema.safeParse(mockDetailsResponse);
+      const result =
+        goalDetailsApiResponseSchema.safeParse(mockDetailsResponse);
       expect(result.success).toBe(true);
     });
 
@@ -308,7 +309,9 @@ describe('useRecommendedLessonDetails', () => {
 
     it('should return initial loading state', () => {
       const mockClient = createMockApiClient();
-      (mockClient.fetchGoal as jest.Mock).mockReturnValue(new Promise(() => {}));
+      (mockClient.fetchGoal as jest.Mock).mockReturnValue(
+        new Promise(() => {})
+      );
       (mockClient.fetchGoalDetails as jest.Mock).mockReturnValue(
         new Promise(() => {})
       );
@@ -456,10 +459,9 @@ describe('useRecommendedLessonDetails', () => {
       );
 
       const useDetails = createUseRecommendedLessonDetails(mockClient);
-      const { result, rerender } = renderHook(
-        ({ id }) => useDetails(id),
-        { initialProps: { id: LESSON_ID } }
-      );
+      const { result, rerender } = renderHook(({ id }) => useDetails(id), {
+        initialProps: { id: LESSON_ID },
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
