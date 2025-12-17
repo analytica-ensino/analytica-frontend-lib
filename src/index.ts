@@ -523,6 +523,10 @@ export {
 export { RecommendedLessonsHistory } from './components/RecommendedLessonsHistory';
 export type { RecommendedLessonsHistoryProps } from './components/RecommendedLessonsHistory';
 
+// Recommended Lesson Details Component
+export { RecommendedLessonDetails } from './components/RecommendedLessonDetails';
+export type { RecommendedLessonDetailsProps } from './components/RecommendedLessonDetails';
+
 // Recommended Lessons Hook Factory
 export {
   createUseRecommendedLessonsHistory,
@@ -537,6 +541,21 @@ export type {
   UseRecommendedLessonsHistoryReturn,
 } from './hooks/useRecommendedLessons';
 
+// Recommended Lesson Details Hook Factory
+export {
+  createUseRecommendedLessonDetails,
+  createRecommendedLessonDetailsHook,
+  handleLessonDetailsFetchError,
+  goalApiResponseSchema,
+  goalDetailsApiResponseSchema,
+  historyApiResponseSchema,
+} from './hooks/useRecommendedLessonDetails';
+export type {
+  UseRecommendedLessonDetailsState,
+  UseRecommendedLessonDetailsReturn,
+  LessonDetailsApiClient,
+} from './hooks/useRecommendedLessonDetails';
+
 // Recommended Lessons Types
 export {
   GoalApiStatus,
@@ -545,6 +564,11 @@ export {
   getGoalStatusBadgeAction,
   GOAL_FILTER_STATUS_OPTIONS,
   GOAL_STATUS_OPTIONS,
+  StudentLessonStatus,
+  getStudentStatusBadgeAction,
+  isDeadlinePassed,
+  deriveStudentStatus,
+  formatDaysToComplete,
 } from './types/recommendedLessons';
 export type {
   GoalSubject,
@@ -559,4 +583,18 @@ export type {
   GoalHistoryPagination,
   GoalFilterOption,
   GoalUserFilterData,
+  // Lesson Details API Types
+  GoalDetailStudent,
+  GoalDetailAggregated,
+  GoalDetailContentPerformanceItem,
+  GoalDetailContentPerformance,
+  GoalDetailsData,
+  GoalDetailsApiResponse,
+  GoalLessonSubject,
+  GoalLesson,
+  GoalLessonProgress,
+  GoalLessonGoalItem,
+  GoalMetadata,
+  GoalApiResponse,
+  LessonDetailsData,
 } from './types/recommendedLessons';

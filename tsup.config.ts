@@ -129,6 +129,12 @@ export default defineConfig({
     'hooks/useRecommendedLessons/index': 'src/hooks/useRecommendedLessons.ts',
     'types/recommendedLessons/index': 'src/types/recommendedLessons.ts',
 
+    // RecommendedLessonDetails
+    'RecommendedLessonDetails/index':
+      'src/components/RecommendedLessonDetails/index.ts',
+    'hooks/useRecommendedLessonDetails/index':
+      'src/hooks/useRecommendedLessonDetails.ts',
+
     // Styles
     styles: 'src/styles.css',
   },
