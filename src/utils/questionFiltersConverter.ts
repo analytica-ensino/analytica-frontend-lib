@@ -15,10 +15,11 @@ export const convertActivityFiltersToQuestionsFilter = (
     types: filters.types.length > 0 ? filters.types : undefined,
     bankIds: filters.bankIds.length > 0 ? filters.bankIds : undefined,
     yearIds: filters.yearIds.length > 0 ? filters.yearIds : undefined,
-    knowledgeIds: filters.knowledgeIds.length > 0 ? filters.knowledgeIds : undefined,
+    knowledgeIds:
+      filters.knowledgeIds.length > 0 ? filters.knowledgeIds : undefined,
     topicIds: filters.topicIds.length > 0 ? filters.topicIds : undefined,
-    subtopicIds: filters.subtopicIds.length > 0 ? filters.subtopicIds : undefined,
+    subtopicIds:
+      filters.subtopicIds.length > 0 ? filters.subtopicIds : undefined,
     contentIds: filters.contentIds.length > 0 ? filters.contentIds : undefined,
   };
 };
-
