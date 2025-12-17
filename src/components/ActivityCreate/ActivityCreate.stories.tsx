@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import CreateActivity from './ActivityCreate';
+import { CreateActivity } from './ActivityCreate';
 import type { BaseApiClient } from '../../types/api';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import type { Question } from '../../types/questions';

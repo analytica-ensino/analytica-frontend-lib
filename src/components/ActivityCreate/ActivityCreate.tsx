@@ -500,4 +500,4 @@ const CreateActivity = ({
   );
 };
 
-export default CreateActivity;
+export { CreateActivity };
