@@ -172,16 +172,142 @@ const mockApiClient = {
       };
     }
 
+    if (url === '/questions/by-ids') {
+      const mockQuestionsByIds: Question[] = [
+        {
+          id: 'initial-question-1',
+          statement: 'Qual é a fórmula da área de um círculo?',
+          description: null,
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          status: QUESTION_STATUS_ENUM.APROVADO,
+          difficultyLevel: DIFFICULTY_LEVEL_ENUM.MEDIO,
+          questionBankYearId: 'year-1',
+          solutionExplanation: null,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          knowledgeMatrix: [
+            {
+              subject: {
+                id: 'matematica',
+                name: 'Matemática',
+                color: '#0066b8',
+                icon: 'MathOperations',
+              },
+              topic: {
+                id: 'tema-2',
+                name: 'Geometria',
+              },
+            },
+          ],
+          options: [
+            { id: 'opt-1', option: 'πr²' },
+            { id: 'opt-2', option: '2πr' },
+            { id: 'opt-3', option: 'πd' },
+            { id: 'opt-4', option: 'r²' },
+          ],
+        },
+        {
+          id: 'initial-question-2',
+          statement: 'Quem escreveu "Dom Casmurro"?',
+          description: null,
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          status: QUESTION_STATUS_ENUM.APROVADO,
+          difficultyLevel: DIFFICULTY_LEVEL_ENUM.FACIL,
+          questionBankYearId: 'year-1',
+          solutionExplanation: null,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          knowledgeMatrix: [
+            {
+              subject: {
+                id: 'portugues',
+                name: 'Português',
+                color: '#00a651',
+                icon: 'ChatPT',
+              },
+              topic: {
+                id: 'tema-3',
+                name: 'Literatura Brasileira',
+              },
+            },
+          ],
+          options: [
+            { id: 'opt-1', option: 'Machado de Assis' },
+            { id: 'opt-2', option: 'José de Alencar' },
+            { id: 'opt-3', option: 'Clarice Lispector' },
+            { id: 'opt-4', option: 'Carlos Drummond de Andrade' },
+          ],
+        },
+        {
+          id: 'initial-question-3',
+          statement: 'Explique o processo de independência do Brasil em 1822.',
+          description: null,
+          questionType: QUESTION_TYPE.DISSERTATIVA,
+          status: QUESTION_STATUS_ENUM.APROVADO,
+          difficultyLevel: DIFFICULTY_LEVEL_ENUM.DIFICIL,
+          questionBankYearId: 'year-1',
+          solutionExplanation: null,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          knowledgeMatrix: [
+            {
+              subject: {
+                id: 'historia',
+                name: 'História',
+                color: '#6366f1',
+                icon: 'CastleTurret',
+              },
+              topic: {
+                id: 'tema-4',
+                name: 'Brasil Império',
+              },
+            },
+          ],
+          options: [],
+        },
+      ];
+
+      return {
+        data: {
+          message: 'Success',
+          data: {
+            questions: mockQuestionsByIds,
+          },
+        },
+      };
+    }
+
     return { data: { data: [] } };
   },
   patch: async () => ({ data: {} }),
   delete: async () => ({ data: {} }),
 } as BaseApiClient;
 
-export const Default: Story = () => {
+export const WithoutInitialQuestions: Story = () => {
   return (
-    <CreateActivity apiClient={mockApiClient} institutionId="institution-1" />
+    <CreateActivity
+      apiClient={mockApiClient}
+      institutionId="institution-1"
+      isDark={false}
+    />
   );
 };
 
-Default.storyName = 'Default';
+WithoutInitialQuestions.storyName = 'Without Initial Questions';
+
+export const WithInitialQuestions: Story = () => {
+  return (
+    <CreateActivity
+      apiClient={mockApiClient}
+      institutionId="institution-1"
+      isDark={false}
+      initialQuestionIds={[
+        'initial-question-1',
+        'initial-question-2',
+        'initial-question-3',
+      ]}
+    />
+  );
+};
+
+WithInitialQuestions.storyName = 'With Initial Questions';

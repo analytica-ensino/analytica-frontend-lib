@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityFilters,
   ActivityPreview,
   Button,
   Text,
   useQuestionFiltersStore,
+  createUseQuestionsList,
 } from '../..';
 import type {
   ActivityFiltersData,
@@ -25,10 +26,12 @@ const CreateActivity = ({
   apiClient,
   institutionId,
   isDark,
+  initialQuestionIds,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
   isDark: boolean;
+  initialQuestionIds?: string[];
 }) => {
   const applyFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.applyFilters
@@ -53,6 +56,9 @@ const CreateActivity = ({
   }, [applyFilters]);
 
   const [questions, setQuestions] = useState<PreviewQuestion[]>([]);
+  const [loadingInitialQuestions, setLoadingInitialQuestions] = useState(false);
+  const useQuestionsList = createUseQuestionsList(apiClient);
+  const { fetchQuestionsByIds } = useQuestionsList();
 
   /**
    * Convert Question to PreviewQuestion format
@@ -90,6 +96,29 @@ const CreateActivity = ({
     },
     []
   );
+
+  /**
+   * Load initial questions by IDs (for drafts or page refresh)
+   */
+  useEffect(() => {
+    if (initialQuestionIds && initialQuestionIds.length > 0) {
+      setLoadingInitialQuestions(true);
+      fetchQuestionsByIds(initialQuestionIds)
+        .then((loadedQuestions) => {
+          const previewQuestions = loadedQuestions.map((q) =>
+            convertQuestionToPreview(q)
+          );
+          setQuestions(previewQuestions);
+        })
+        .catch((error) => {
+          console.error('Erro ao carregar questões iniciais:', error);
+        })
+        .finally(() => {
+          setLoadingInitialQuestions(false);
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   /**
    * Handle adding a question to the activity

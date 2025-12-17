@@ -68,6 +68,7 @@ export const ActivityListQuestions = ({
     loadingMore,
     error,
     fetchQuestions,
+    fetchRandomQuestions,
     loadMore,
     reset,
   } = useQuestionsList();
@@ -124,16 +125,21 @@ export const ActivityListQuestions = ({
    * Fetch questions only when applied filters are set (not on initial load)
    * Only fetches when user clicks "Filtrar" button
    * Resets questions when filters change
+   * Excludes already added questions from results
    */
   useEffect(() => {
     if (appliedFilters) {
-      const apiFilters =
-        convertActivityFiltersToQuestionsFilter(appliedFilters);
+      const apiFilters = {
+        ...convertActivityFiltersToQuestionsFilter(appliedFilters),
+        ...(addedQuestionIds.length > 0 && {
+          selectedQuestionsIds: addedQuestionIds,
+        }),
+      };
       fetchQuestions(apiFilters, false);
     } else {
       reset();
     }
-  }, [appliedFilters, fetchQuestions, reset]);
+  }, [appliedFilters, fetchQuestions, reset, addedQuestionIds]);
 
   /**
    * Intersection Observer for infinite scroll
@@ -173,20 +179,37 @@ export const ActivityListQuestions = ({
   };
 
   /**
-   * Handle adding questions automatically
+   * Handle adding questions automatically using random search
    */
-  const handleAddAutomatically = () => {
-    if (questionCount <= 0 || !questions.length) return;
+  const handleAddAutomatically = async () => {
+    if (questionCount <= 0) return;
 
-    const questionsToAdd = questions.slice(0, questionCount);
-    questionsToAdd.forEach((question) => {
-      if (onAddQuestion) {
-        onAddQuestion(question as Question);
-      }
-    });
+    try {
+      // Get current filters or empty filters
+      const baseFilters = appliedFilters
+        ? convertActivityFiltersToQuestionsFilter(appliedFilters)
+        : {};
 
-    setIsModalOpen(false);
-    setQuestionCount(1);
+      // Fetch random questions excluding already added ones
+      const randomQuestions = await fetchRandomQuestions(questionCount, {
+        ...baseFilters,
+        ...(addedQuestionIds.length > 0 && {
+          selectedQuestionsIds: addedQuestionIds,
+        }),
+      });
+
+      // Add each question to the activity
+      randomQuestions.forEach((question) => {
+        if (onAddQuestion) {
+          onAddQuestion(question as Question);
+        }
+      });
+
+      setIsModalOpen(false);
+      setQuestionCount(1);
+    } catch (error) {
+      console.error('Erro ao adicionar questões automaticamente:', error);
+    }
   };
 
   /**
@@ -327,11 +350,7 @@ export const ActivityListQuestions = ({
             <Button
               variant="solid"
               onClick={handleAddAutomatically}
-              disabled={
-                questionCount <= 0 ||
-                questions.length === 0 ||
-                questionCount > questions.length
-              }
+              disabled={questionCount <= 0 || !appliedFilters}
             >
               Adicionar
             </Button>
@@ -349,7 +368,6 @@ export const ActivityListQuestions = ({
               <Input
                 type="number"
                 min={1}
-                max={questions.length || 1}
                 value={questionCount > 0 ? questionCount : ''}
                 onChange={(e) => {
                   const inputValue = e.target.value;
@@ -358,13 +376,8 @@ export const ActivityListQuestions = ({
                     return;
                   }
                   const numValue = parseInt(inputValue, 10);
-                  if (!isNaN(numValue)) {
-                    const maxQuestions = questions.length || 1;
-                    if (numValue > 0 && numValue <= maxQuestions) {
-                      setQuestionCount(numValue);
-                    } else if (numValue > maxQuestions) {
-                      setQuestionCount(maxQuestions);
-                    }
+                  if (!isNaN(numValue) && numValue > 0) {
+                    setQuestionCount(numValue);
                   }
                 }}
                 placeholder="Insira o número"
