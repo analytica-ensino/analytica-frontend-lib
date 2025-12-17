@@ -28,7 +28,7 @@ export interface LessonDetailsLabels {
 }
 
 /**
- * Default labels for the component
+ * Default labels for the component (pt-BR)
  */
 export const DEFAULT_LABELS: LessonDetailsLabels = {
   viewLesson: 'Ver aula',

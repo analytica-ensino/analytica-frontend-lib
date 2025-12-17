@@ -439,8 +439,8 @@ describe('RecommendedLessonDetails', () => {
         />
       );
 
-      expect(screen.getByText('Início em 00/00/0000')).toBeInTheDocument();
-      expect(screen.getByText('Prazo final 00/00/0000')).toBeInTheDocument();
+      expect(screen.getByText('Início em -')).toBeInTheDocument();
+      expect(screen.getByText('Prazo final -')).toBeInTheDocument();
     });
 
     it('should show placeholder for invalid date strings', () => {
@@ -461,8 +461,8 @@ describe('RecommendedLessonDetails', () => {
       );
 
       // Invalid dates should show placeholder
-      expect(screen.getByText('Início em 00/00/0000')).toBeInTheDocument();
-      expect(screen.getByText('Prazo final 00/00/0000')).toBeInTheDocument();
+      expect(screen.getByText('Início em -')).toBeInTheDocument();
+      expect(screen.getByText('Prazo final -')).toBeInTheDocument();
     });
   });
 

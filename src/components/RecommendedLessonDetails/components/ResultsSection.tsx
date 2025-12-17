@@ -27,7 +27,7 @@ export const ResultsSection = ({ data, labels }: ResultsSectionProps) => {
       <Text as="h2" size="md" weight="semibold" className="text-text-950">
         {labels.resultsTitle}
       </Text>
-      {/* Container branco com os 3 cards */}
+      {/* White container with the 3 cards */}
       <div className="bg-background rounded-xl border border-border-50 p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Completion percentage card */}

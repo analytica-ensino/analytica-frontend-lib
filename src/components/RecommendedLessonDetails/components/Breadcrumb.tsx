@@ -27,6 +27,7 @@ export const Breadcrumb = ({ items, onItemClick }: BreadcrumbProps) => (
         {index > 0 && <CaretRightIcon size={14} className="text-text-500" />}
         {item.path ? (
           <button
+            type="button"
             onClick={() => onItemClick?.(item.path!)}
             className="text-text-600 hover:text-primary-700 transition-colors"
           >

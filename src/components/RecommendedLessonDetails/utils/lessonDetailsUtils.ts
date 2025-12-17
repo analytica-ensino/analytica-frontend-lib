@@ -11,9 +11,9 @@ import type { DisplayStudent } from '../types';
  * @returns Formatted date string or placeholder
  */
 export const formatDate = (dateString: string | null): string => {
-  if (!dateString) return '00/00/0000';
+  if (!dateString) return '-';
   const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return '00/00/0000';
+  if (Number.isNaN(date.getTime())) return '-';
   return date.toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
