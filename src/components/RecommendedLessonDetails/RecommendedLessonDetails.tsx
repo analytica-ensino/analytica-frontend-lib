@@ -1,10 +1,10 @@
 import { useCallback, useMemo } from 'react';
 import {
-  CaretRight,
-  Trophy,
-  Warning,
-  User,
-  BookBookmark,
+  CaretRightIcon,
+  TrophyIcon,
+  WarningIcon,
+  UserIcon,
+  BookBookmarkIcon,
 } from '@phosphor-icons/react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -103,7 +103,7 @@ const DEFAULT_LABELS = {
 const formatDate = (dateString: string | null): string => {
   if (!dateString) return '00/00/0000';
   const date = new Date(dateString);
-  if (isNaN(date.getTime())) return '00/00/0000';
+  if (Number.isNaN(date.getTime())) return '00/00/0000';
   return date.toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
@@ -139,8 +139,8 @@ const Breadcrumb = ({
 }) => (
   <nav className="flex items-center gap-2 text-sm" aria-label="Breadcrumb">
     {items.map((item, index) => (
-      <span key={index} className="flex items-center gap-2">
-        {index > 0 && <CaretRight size={14} className="text-text-500" />}
+      <span key={item.path ?? item.label} className="flex items-center gap-2">
+        {index > 0 && <CaretRightIcon size={14} className="text-text-500" />}
         {item.path ? (
           <button
             onClick={() => onItemClick?.(item.path!)}
@@ -231,7 +231,7 @@ const LessonHeader = ({
             variant="solid"
             action="primary"
             size="small"
-            iconLeft={<BookBookmark size={16} />}
+            iconLeft={<BookBookmarkIcon size={16} />}
             onClick={onViewLesson}
           >
             {viewLessonLabel}
@@ -277,7 +277,7 @@ const ResultsSection = ({
           {/* Best result topic card */}
           <div className="flex flex-col items-center justify-center rounded-xl p-4 min-h-28 bg-success-200">
             <span className="size-8 rounded-full flex items-center justify-center bg-warning-300 mb-2">
-              <Trophy size={18} weight="fill" className="text-white" />
+              <TrophyIcon size={18} weight="fill" className="text-white" />
             </span>
             <Text
               size="2xs"
@@ -298,7 +298,7 @@ const ResultsSection = ({
           {/* Hardest topic card */}
           <div className="flex flex-col items-center justify-center rounded-xl p-4 min-h-28 bg-error-100">
             <span className="size-8 rounded-full flex items-center justify-center bg-error-300 mb-2">
-              <Warning size={18} weight="fill" className="text-error-700" />
+              <WarningIcon size={18} weight="fill" className="text-error-700" />
             </span>
             <Text
               size="2xs"
@@ -385,7 +385,7 @@ const StudentsTable = ({
               <TableCell>
                 <div className="flex items-center gap-2">
                   <span className="size-8 rounded-full bg-background-100 flex items-center justify-center">
-                    <User size={16} className="text-text-500" />
+                    <UserIcon size={16} className="text-text-500" />
                   </span>
                   <Text size="sm" className="text-text-950">
                     {student.name}
