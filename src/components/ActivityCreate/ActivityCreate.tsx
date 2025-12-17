@@ -437,9 +437,9 @@ const CreateActivity = ({
       </div>
 
       {/* Main Content with 3 columns */}
-      <div className="grid grid-cols-[400px_1fr_370px] w-full flex-1 overflow-hidden gap-5 min-h-0">
+      <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
         {/* First Column - Filters */}
-        <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative">
+        <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0">
           <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
             <ActivityFilters
               apiClient={apiClient}
@@ -462,14 +462,16 @@ const CreateActivity = ({
         </div>
 
         {/* Second Column - Center, fills remaining space */}
-        <ActivityListQuestions
-          apiClient={apiClient}
-          onAddQuestion={handleAddQuestion}
-          addedQuestionIds={addedQuestionIds}
-        />
+        <div className="flex-1 min-w-0 overflow-hidden h-full">
+          <ActivityListQuestions
+            apiClient={apiClient}
+            onAddQuestion={handleAddQuestion}
+            addedQuestionIds={addedQuestionIds}
+          />
+        </div>
 
         {/* Third Column - Activity Preview */}
-        <div className="w-[370px] flex-shrink-0 overflow-hidden h-full min-h-0">
+        <div className="w-[470px] flex-shrink-0 overflow-hidden h-full min-h-0">
           {loadingInitialQuestions ? (
             <div className="flex flex-col gap-4 p-4">
               <div className="flex flex-col gap-2">
