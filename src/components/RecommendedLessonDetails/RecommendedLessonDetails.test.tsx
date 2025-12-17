@@ -4,6 +4,9 @@ import RecommendedLessonDetails from './RecommendedLessonDetails';
 import type { LessonDetailsData } from '../../types/recommendedLessons';
 import { SubjectEnum } from '../../enums/SubjectEnum';
 
+// External mock for handleSort to allow verification in tests
+const mockHandleSort = jest.fn();
+
 // Mock the SubjectInfo to avoid dependency issues
 jest.mock('../SubjectInfo/SubjectInfo', () => ({
   getSubjectInfo: (subject: string) => ({
@@ -59,7 +62,7 @@ jest.mock('../Table/Table', () => {
     sortedData: data,
     sortColumn: null,
     sortDirection: null,
-    handleSort: jest.fn(),
+    handleSort: mockHandleSort,
   });
 
   return {
@@ -345,10 +348,9 @@ describe('RecommendedLessonDetails', () => {
         (btn) => !btn.closest('button')?.hasAttribute('disabled')
       );
 
-      if (enabledButton) {
-        fireEvent.click(enabledButton);
-        expect(mockOnViewPerformance).toHaveBeenCalled();
-      }
+      expect(enabledButton).toBeDefined();
+      fireEvent.click(enabledButton!);
+      expect(mockOnViewPerformance).toHaveBeenCalled();
     });
 
     it('should call onBreadcrumbClick when breadcrumb is clicked', () => {
@@ -467,6 +469,10 @@ describe('RecommendedLessonDetails', () => {
   });
 
   describe('Table sorting', () => {
+    beforeEach(() => {
+      mockHandleSort.mockClear();
+    });
+
     it('should call handleSort when name column header is clicked', () => {
       render(
         <RecommendedLessonDetails
@@ -480,8 +486,7 @@ describe('RecommendedLessonDetails', () => {
 
       fireEvent.click(nameHeader);
 
-      // The handleSort mock should have been called
-      expect(nameHeader).toBeInTheDocument();
+      expect(mockHandleSort).toHaveBeenCalledWith('name');
     });
 
     it('should call handleSort when status column header is clicked', () => {
@@ -497,7 +502,7 @@ describe('RecommendedLessonDetails', () => {
 
       fireEvent.click(statusHeader);
 
-      expect(statusHeader).toBeInTheDocument();
+      expect(mockHandleSort).toHaveBeenCalledWith('status');
     });
 
     it('should call handleSort when completion column header is clicked', () => {
@@ -513,7 +518,7 @@ describe('RecommendedLessonDetails', () => {
 
       fireEvent.click(completionHeader);
 
-      expect(completionHeader).toBeInTheDocument();
+      expect(mockHandleSort).toHaveBeenCalledWith('completionPercentage');
     });
 
     it('should render all sortable column headers', () => {
