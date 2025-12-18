@@ -122,6 +122,27 @@ export function getSubjectName(
 }
 
 /**
+ * Get activity type label using object literal mapping
+ *
+ * @param type - Activity type (ActivityType enum)
+ * @returns Label string for the activity type
+ *
+ * @example
+ * ```ts
+ * const label = getActivityTypeLabel(ActivityType.RASCUNHO);
+ * // Returns: 'Rascunho'
+ * ```
+ */
+export function getActivityTypeLabel(type: ActivityType): string {
+  const activityTypeLabels: Record<ActivityType, string> = {
+    [ActivityType.RASCUNHO]: 'Rascunho',
+    [ActivityType.MODELO]: 'Modelo',
+    [ActivityType.ATIVIDADE]: 'Atividade',
+  };
+  return activityTypeLabels[type];
+}
+
+/**
  * Generate activity title based on type and subject
  *
  * @param type - Activity type (ActivityType enum)
@@ -142,12 +163,7 @@ export function generateTitle(
   subjectId: string | null,
   knowledgeAreas: KnowledgeArea[]
 ): string {
-  const typeLabel =
-    type === ActivityType.RASCUNHO
-      ? 'Rascunho'
-      : type === ActivityType.MODELO
-        ? 'Modelo'
-        : 'Atividade';
+  const typeLabel = getActivityTypeLabel(type);
   const subjectName = getSubjectName(subjectId, knowledgeAreas);
   return subjectName ? `${typeLabel} - ${subjectName}` : typeLabel;
 }

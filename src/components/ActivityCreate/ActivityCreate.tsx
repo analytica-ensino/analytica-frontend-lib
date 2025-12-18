@@ -37,6 +37,7 @@ import {
   formatTime,
   convertQuestionToPreview,
   loadCategoriesData,
+  getActivityTypeLabel,
 } from './ActivityCreate.utils';
 
 /**
@@ -191,6 +192,8 @@ const ActivityCreateHeader = ({
   onSaveModel: () => void;
   onSendActivity: () => void;
 }) => {
+  const activityTypeLabel = getActivityTypeLabel(activityType);
+
   return (
     <div className="w-full h-[80px] flex flex-row items-center justify-between px-6 gap-3 flex-shrink-0">
       <section className="text-text-950">
@@ -206,12 +209,7 @@ const ActivityCreateHeader = ({
           <div className="flex flex-row gap-4 items-center">
             {lastSavedAt ? (
               <Text size="sm">
-                {activityType === ActivityType.RASCUNHO
-                  ? 'Rascunho'
-                  : activityType === ActivityType.MODELO
-                    ? 'Modelo'
-                    : 'Atividade'}{' '}
-                salvo às {formatTime(lastSavedAt)}
+                {activityTypeLabel} salvo às {formatTime(lastSavedAt)}
               </Text>
             ) : (
               <Text size="sm">
@@ -338,7 +336,7 @@ const CreateActivity = ({
   const createDraftPayload = useCallback(() => {
     const subjectId = appliedFilters!.knowledgeIds[0];
     const title = generateTitle(activityType, subjectId, knowledgeAreas);
-    const filters = convertFiltersToBackendFormat(appliedFilters!);
+    const filters = convertFiltersToBackendFormat(appliedFilters);
     const questionIds = questions.map((q) => q.id);
 
     return {
