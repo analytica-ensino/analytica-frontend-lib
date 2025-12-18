@@ -61,8 +61,8 @@ export function areFiltersEqual(
 
   const arraysEqual = (a: string[], b: string[]): boolean => {
     if (a.length !== b.length) return false;
-    const sortedA = [...a].sort();
-    const sortedB = [...b].sort();
+    const sortedA = [...a].sort((x, y) => x.localeCompare(y));
+    const sortedB = [...b].sort((x, y) => x.localeCompare(y));
     return sortedA.every((val, index) => val === sortedB[index]);
   };
 

@@ -507,11 +507,11 @@ const CreateActivity = ({
     // Compare if questions actually changed
     const questionIds = questions
       .map((q) => q.id)
-      .sort()
+      .sort((a, b) => a.localeCompare(b))
       .join(',');
     const lastSavedQuestionIds = lastSavedQuestionsRef.current
       .map((q) => q.id)
-      .sort()
+      .sort((a, b) => a.localeCompare(b))
       .join(',');
     const questionsChanged = questionIds !== lastSavedQuestionIds;
 
