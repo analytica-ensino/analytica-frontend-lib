@@ -9,7 +9,6 @@ import {
   Skeleton,
   SkeletonCard,
   createUseActivityFiltersData,
-  QUESTION_TYPE,
   SendActivityModal,
   CategoryConfig,
   useToastStore,
@@ -25,51 +24,221 @@ import type {
 import { CaretLeft, PaperPlaneTilt, Funnel } from 'phosphor-react';
 import { ActivityListQuestions } from '../ActivityListQuestions/ActivityListQuestions';
 import { areFiltersEqual } from '../../utils/activityFilters';
+import type {
+  ActivityDraftResponse,
+  ActivityData,
+} from './ActivityCreate.types';
+import { ActivityType } from './ActivityCreate.types';
+import {
+  convertFiltersToBackendFormat,
+  convertBackendFiltersToActivityFiltersData,
+  generateTitle,
+  formatTime,
+  convertQuestionToPreview,
+  loadCategoriesData,
+} from './ActivityCreate.utils';
 
 /**
- * Backend filters format (from API)
+ * Loading skeleton component for ActivityCreate page
+ *
+ * @returns Skeleton JSX element
  */
-export interface BackendFiltersFormat {
-  questionTypes?: string[];
-  questionBanks?: string[];
-  subjects?: string[];
-  topics?: string[];
-  subtopics?: string[];
-  contents?: string[];
-}
+const ActivityCreateSkeleton = () => {
+  return (
+    <div
+      data-testid="create-activity-page"
+      className="flex flex-col w-full h-screen overflow-hidden p-5 bg-background"
+    >
+      {/* Header Section Skeleton */}
+      <div className="w-full h-[80px] flex flex-row items-center justify-between px-6 gap-3 flex-shrink-0">
+        <section className="text-text-950">
+          <Skeleton variant="rectangular" width={32} height={32} />
+        </section>
+
+        <section className="flex flex-col gap-0.5 w-full">
+          <div className="flex flex-row items-center justify-between w-full text-text-950">
+            <SkeletonText width={180} height={24} />
+            <div className="flex flex-row gap-4 items-center">
+              <SkeletonText width={150} height={16} />
+              <Skeleton variant="rounded" width={120} height={32} />
+              <Skeleton variant="rounded" width={140} height={32} />
+            </div>
+          </div>
+          <SkeletonText width={400} height={16} />
+        </section>
+      </div>
+
+      {/* Main Content with 3 columns - Skeleton */}
+      <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
+        {/* First Column - Filters Skeleton */}
+        <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0 p-4 bg-background">
+          <SkeletonText width={150} height={20} />
+          <div className="flex flex-col gap-4 mt-4">
+            <div className="flex flex-col gap-3">
+              <SkeletonText width={120} height={16} />
+              <div className="grid grid-cols-2 gap-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton
+                    variant="rounded"
+                    key={i}
+                    width="100%"
+                    height={32}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col gap-3">
+              <SkeletonText width={140} height={16} />
+              <div className="flex flex-col gap-2">
+                {[1, 2].map((i) => (
+                  <Skeleton
+                    variant="rounded"
+                    key={i}
+                    width="100%"
+                    height={40}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col gap-3">
+              <SkeletonText width={80} height={16} />
+              <div className="grid grid-cols-3 gap-3">
+                {[1, 2].map((i) => (
+                  <Skeleton
+                    variant="rounded"
+                    key={i}
+                    width="100%"
+                    height={60}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="mt-auto">
+            <Skeleton variant="rounded" width="100%" height={40} />
+          </div>
+        </div>
+
+        {/* Second Column - Question List Skeleton */}
+        <div className="flex-1 min-w-0 overflow-hidden h-full p-4">
+          <div className="flex flex-col gap-4 h-full">
+            <div className="flex flex-row items-center justify-between">
+              <div className="flex flex-row items-center gap-2">
+                <Skeleton variant="rectangular" width={24} height={24} />
+                <SkeletonText width={150} height={20} />
+              </div>
+              <Skeleton variant="rounded" width={180} height={32} />
+            </div>
+            <div className="flex flex-col gap-3 flex-1 overflow-auto">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <SkeletonCard key={i} lines={3} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Third Column - Activity Preview Skeleton */}
+        <div className="w-[470px] flex-shrink-0 overflow-hidden h-full min-h-0 p-4">
+          <div className="flex flex-col gap-4 h-full">
+            <div className="flex flex-col gap-2">
+              <SkeletonText width={200} height={20} />
+              <SkeletonText width={150} height={16} />
+            </div>
+            <div className="flex flex-col gap-3 flex-1 overflow-auto">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="p-4 border border-border-200 rounded-lg"
+                >
+                  <SkeletonText lines={2} spacing="small" />
+                  <div className="mt-3 flex gap-2">
+                    <Skeleton variant="rounded" width={60} height={24} />
+                    <Skeleton variant="rounded" width={80} height={24} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Skeleton variant="rounded" width="100%" height={36} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /**
- * Activity draft response from backend
+ * Header component for ActivityCreate page
+ * Displays title, save status, and action buttons
+ *
+ * @param props - Component props
+ * @returns Header JSX element
  */
-export interface ActivityDraftResponse {
-  message: string;
-  data: {
-    draft: {
-      id: string;
-      type: 'RASCUNHO' | 'MODELO';
-      title: string;
-      creatorUserInstitutionId: string;
-      subjectId: string;
-      filters: BackendFiltersFormat;
-      createdAt: string;
-      updatedAt: string;
-    };
-    questionsLinked: number;
-  };
-}
+const ActivityCreateHeader = ({
+  activity,
+  activityType,
+  lastSavedAt,
+  isSaving,
+  questionsCount,
+  onSaveModel,
+  onSendActivity,
+}: {
+  activity?: ActivityData;
+  activityType: ActivityType;
+  lastSavedAt: Date | null;
+  isSaving: boolean;
+  questionsCount: number;
+  onSaveModel: () => void;
+  onSendActivity: () => void;
+}) => {
+  return (
+    <div className="w-full h-[80px] flex flex-row items-center justify-between px-6 gap-3 flex-shrink-0">
+      <section className="text-text-950">
+        <CaretLeft size={32} />
+      </section>
 
-/**
- * Activity object interface for creating/editing activities
- */
-export interface ActivityData {
-  id?: string;
-  type: 'RASCUNHO' | 'MODELO';
-  title: string;
-  subjectId: string;
-  filters: BackendFiltersFormat;
-  questionIds: string[];
-  selectedQuestions?: Question[];
-}
+      <section className="flex flex-col gap-0.5 w-full">
+        <div className="flex flex-row items-center justify-between w-full text-text-950">
+          <Text size="lg" weight="bold">
+            {activity ? 'Editar atividade' : 'Criar atividade'}
+          </Text>
+
+          <div className="flex flex-row gap-4 items-center">
+            {lastSavedAt ? (
+              <Text size="sm">
+                {activityType === ActivityType.RASCUNHO
+                  ? 'Rascunho'
+                  : activityType === ActivityType.MODELO
+                    ? 'Modelo'
+                    : 'Atividade'}{' '}
+                salvo às {formatTime(lastSavedAt)}
+              </Text>
+            ) : (
+              <Text size="sm">
+                {isSaving ? 'Salvando...' : 'Nenhum rascunho salvo'}
+              </Text>
+            )}
+            <Button size="small" onClick={onSaveModel}>
+              Salvar modelo
+            </Button>
+            <Button
+              size="small"
+              iconLeft={<PaperPlaneTilt />}
+              onClick={onSendActivity}
+              disabled={questionsCount === 0}
+            >
+              Enviar atividade
+            </Button>
+          </div>
+        </div>
+
+        <Text size="sm">
+          Crie uma atividade customizada adicionando questões manualmente ou
+          automaticamente.
+        </Text>
+      </section>
+    </div>
+  );
+};
 
 /**
  * CreateActivity page component for creating new activities
@@ -123,8 +292,8 @@ const CreateActivity = ({
   const [draftId, setDraftId] = useState<string | null>(
     activity?.id ? activity.id : null
   );
-  const [activityType, setActivityType] = useState<'RASCUNHO' | 'MODELO'>(
-    activity?.type || 'RASCUNHO'
+  const [activityType, setActivityType] = useState<ActivityType>(
+    (activity?.type as ActivityType) || ActivityType.RASCUNHO
   );
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -141,93 +310,6 @@ const CreateActivity = ({
     selectedSubjects: [],
     institutionId,
   });
-
-  /**
-   * Convert ActivityFiltersData to backend format
-   */
-  const convertFiltersToBackendFormat = useCallback(
-    (filters: ActivityFiltersData | null): BackendFiltersFormat => {
-      if (!filters) {
-        return {
-          questionTypes: [],
-          questionBanks: [],
-          subjects: [],
-          topics: [],
-          subtopics: [],
-          contents: [],
-        };
-      }
-
-      return {
-        questionTypes: filters.types,
-        questionBanks: filters.bankIds,
-        subjects: filters.knowledgeIds,
-        topics: filters.topicIds,
-        subtopics: filters.subtopicIds,
-        contents: filters.contentIds,
-      };
-    },
-    []
-  );
-
-  /**
-   * Convert backend filters format to ActivityFiltersData
-   */
-  const convertBackendFiltersToActivityFiltersData = useCallback(
-    (
-      backendFilters: BackendFiltersFormat | null
-    ): ActivityFiltersData | null => {
-      if (!backendFilters) {
-        return null;
-      }
-
-      return {
-        types: (backendFilters.questionTypes || []) as QUESTION_TYPE[],
-        bankIds: backendFilters.questionBanks || [],
-        knowledgeIds: backendFilters.subjects || [],
-        topicIds: backendFilters.topics || [],
-        subtopicIds: backendFilters.subtopics || [],
-        contentIds: backendFilters.contents || [],
-        yearIds: [],
-      };
-    },
-    []
-  );
-
-  /**
-   * Get subject name from subjectId
-   */
-  const getSubjectName = useCallback(
-    (subjectId: string | null): string | null => {
-      if (!subjectId || !knowledgeAreas.length) {
-        return null;
-      }
-      const subject = knowledgeAreas.find((area) => area.id === subjectId);
-      return subject?.name || null;
-    },
-    [knowledgeAreas]
-  );
-
-  /**
-   * Generate activity title
-   */
-  const generateTitle = useCallback(
-    (type: 'RASCUNHO' | 'MODELO', subjectId: string | null): string => {
-      const typeLabel = type === 'RASCUNHO' ? 'Rascunho' : 'Modelo';
-      const subjectName = getSubjectName(subjectId);
-      return subjectName ? `${typeLabel} - ${subjectName}` : typeLabel;
-    },
-    [getSubjectName]
-  );
-
-  /**
-   * Format time for display (HH:mm)
-   */
-  const formatTime = useCallback((date: Date): string => {
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
-  }, []);
 
   /**
    * Save draft to backend
@@ -253,7 +335,7 @@ const CreateActivity = ({
 
     try {
       const subjectId = appliedFilters.knowledgeIds[0];
-      const title = generateTitle(activityType, subjectId);
+      const title = generateTitle(activityType, subjectId, knowledgeAreas);
       const filters = convertFiltersToBackendFormat(appliedFilters);
       const questionIds = questions.map((q) => q.id);
 
@@ -366,55 +448,17 @@ const CreateActivity = ({
     loadingInitialQuestions,
     isSaving,
     apiClient,
-    generateTitle,
-    convertFiltersToBackendFormat,
     onActivityChange,
     addToast,
+    knowledgeAreas,
   ]);
 
   /**
    * Handle save model button click
    */
   const handleSaveModel = useCallback(async () => {
-    setActivityType('MODELO');
+    setActivityType(ActivityType.MODELO);
   }, []);
-
-  /**
-   * Convert Question to PreviewQuestion format
-   */
-  const convertQuestionToPreview = useCallback(
-    (question: Question): PreviewQuestion => {
-      const subjectInfo =
-        question.knowledgeMatrix && question.knowledgeMatrix.length > 0
-          ? {
-              subjectName:
-                question.knowledgeMatrix[0].subject?.name || undefined,
-              subjectColor:
-                question.knowledgeMatrix[0].subject?.color || undefined,
-              iconName: question.knowledgeMatrix[0].subject?.icon || undefined,
-            }
-          : {};
-
-      return {
-        id: question.id,
-        enunciado: question.statement,
-        questionType: question.questionType,
-        question: question.options
-          ? {
-              options: question.options.map(
-                (opt: { id: string; option: string }) => ({
-                  id: opt.id,
-                  option: opt.option,
-                })
-              ),
-              correctOptionIds: [],
-            }
-          : undefined,
-        ...subjectInfo,
-      };
-    },
-    []
-  );
 
   /**
    * Update draftId when activity.id changes
@@ -464,7 +508,7 @@ const CreateActivity = ({
         setLoadingInitialQuestions(false);
       }
     }
-  }, [activity?.selectedQuestions, convertQuestionToPreview, addToast]);
+  }, [activity?.selectedQuestions, addToast]);
 
   /**
    * Initialize filters and applied filters when activity is provided
@@ -542,7 +586,7 @@ const CreateActivity = ({
    * Save immediately when activityType changes to MODELO
    */
   useEffect(() => {
-    if (activityType === 'MODELO' && hasFirstSaveBeenDone.current) {
+    if (activityType === ActivityType.MODELO && hasFirstSaveBeenDone.current) {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
@@ -553,19 +597,16 @@ const CreateActivity = ({
   /**
    * Handle adding a question to the activity
    */
-  const handleAddQuestion = useCallback(
-    (question: Question) => {
-      setQuestions((prev) => {
-        if (prev.some((q) => q.id === question.id)) {
-          return prev;
-        }
+  const handleAddQuestion = useCallback((question: Question) => {
+    setQuestions((prev) => {
+      if (prev.some((q) => q.id === question.id)) {
+        return prev;
+      }
 
-        const previewQuestion = convertQuestionToPreview(question);
-        return [...prev, previewQuestion];
-      });
-    },
-    [convertQuestionToPreview]
-  );
+      const previewQuestion = convertQuestionToPreview(question);
+      return [...prev, previewQuestion];
+    });
+  }, []);
 
   /**
    * Handle removing all questions
@@ -604,149 +645,24 @@ const CreateActivity = ({
   );
 
   /**
-   * Minimal types for categories data - only what we actually use
-   */
-  type School = {
-    id: string;
-    companyName: string;
-  };
-
-  type SchoolYear = {
-    id: string;
-    name: string;
-    schoolId: string;
-  };
-
-  type Class = {
-    id: string;
-    name: string;
-    schoolYearId: string;
-  };
-
-  type Student = {
-    id: string;
-    name: string;
-    classId: string;
-    userInstitutionId: string;
-  };
-
-  /**
    * Load categories data from API and transform to CategoryConfig format
    */
-  const loadCategoriesData = useCallback(async () => {
+  const handleLoadCategoriesData = useCallback(async () => {
     if (categories.length > 0) {
       return;
     }
 
     try {
-      // Fetch all students by paginating through all pages
-      const fetchAllStudents = async (): Promise<Student[]> => {
-        const allStudents: Student[] = [];
-        let currentPage = 1;
-        let totalPages = 1;
-        const limit = 100;
-
-        do {
-          const response = await apiClient.get<{
-            message: string;
-            data: {
-              students: Student[];
-              pagination: {
-                page: number;
-                limit: number;
-                total: number;
-                totalPages: number;
-              };
-            };
-          }>(`/students?page=${currentPage}&limit=${limit}`);
-
-          const { students, pagination } = response.data.data;
-          allStudents.push(...students);
-          totalPages = pagination.totalPages;
-          currentPage++;
-        } while (currentPage <= totalPages);
-
-        return allStudents;
-      };
-
-      const [
-        schoolsResponse,
-        schoolYearsResponse,
-        classesResponse,
-        allStudents,
-      ] = await Promise.all([
-        apiClient.get<{ message: string; data: { schools: School[] } }>(
-          '/school'
-        ),
-        apiClient.get<{
-          message: string;
-          data: { schoolYears: SchoolYear[] };
-        }>('/schoolYear'),
-        apiClient.get<{
-          message: string;
-          data: { classes: Class[] };
-        }>('/classes'),
-        fetchAllStudents(),
-      ]);
-
-      const schools = schoolsResponse.data.data.schools;
-      const schoolYears = schoolYearsResponse.data.data.schoolYears;
-      const classes = classesResponse.data.data.classes;
-      const students = allStudents;
-
-      const transformedCategories: CategoryConfig[] = [
-        {
-          key: 'escola',
-          label: 'Escola',
-          itens: schools.map((s) => ({ id: s.id, name: s.companyName })),
-          selectedIds: [],
-        },
-        {
-          key: 'serie',
-          label: 'Série',
-          dependsOn: ['escola'],
-          filteredBy: [{ key: 'escola', internalField: 'schoolId' }],
-          itens: schoolYears.map((sy) => ({
-            id: sy.id,
-            name: sy.name,
-            schoolId: sy.schoolId,
-          })),
-          selectedIds: [],
-        },
-        {
-          key: 'turma',
-          label: 'Turma',
-          dependsOn: ['serie'],
-          filteredBy: [{ key: 'serie', internalField: 'schoolYearId' }],
-          itens: classes.map((c) => ({
-            id: c.id,
-            name: c.name,
-            schoolYearId: c.schoolYearId,
-          })),
-          selectedIds: [],
-        },
-        {
-          key: 'alunos',
-          label: 'Alunos',
-          dependsOn: ['turma'],
-          filteredBy: [{ key: 'turma', internalField: 'classId' }],
-          itens: students.map((s) => ({
-            id: s.id,
-            name: s.name,
-            classId: s.classId,
-            studentId: s.id,
-            userInstitutionId: s.userInstitutionId,
-          })),
-          selectedIds: [],
-        },
-      ];
-
+      const transformedCategories = await loadCategoriesData(
+        apiClient,
+        categories
+      );
       setCategories(transformedCategories);
     } catch (error) {
       console.error('Erro ao carregar categorias:', error);
       throw error;
     }
-  }, [apiClient, categories.length]);
+  }, [apiClient, categories]);
 
   /**
    * Handle opening the send activity modal
@@ -754,7 +670,7 @@ const CreateActivity = ({
   const handleOpenSendModal = useCallback(async () => {
     try {
       if (categories.length === 0) {
-        await loadCategoriesData();
+        await handleLoadCategoriesData();
       }
       setIsSendModalOpen(true);
     } catch (error) {
@@ -771,7 +687,7 @@ const CreateActivity = ({
         position: 'top-right',
       });
     }
-  }, [questions.length, categories.length, loadCategoriesData, addToast]);
+  }, [questions.length, categories.length, handleLoadCategoriesData, addToast]);
 
   /**
    * Handle sending activity to students
@@ -882,126 +798,7 @@ const CreateActivity = ({
 
   // Render loading skeleton
   if (loading) {
-    return (
-      <div
-        data-testid="create-activity-page"
-        className="flex flex-col w-full h-screen overflow-hidden p-5 bg-background"
-      >
-        {/* Header Section Skeleton */}
-        <div className="w-full h-[80px] flex flex-row items-center justify-between px-6 gap-3 flex-shrink-0">
-          <section className="text-text-950">
-            <Skeleton variant="rectangular" width={32} height={32} />
-          </section>
-
-          <section className="flex flex-col gap-0.5 w-full">
-            <div className="flex flex-row items-center justify-between w-full text-text-950">
-              <SkeletonText width={180} height={24} />
-              <div className="flex flex-row gap-4 items-center">
-                <SkeletonText width={150} height={16} />
-                <Skeleton variant="rounded" width={120} height={32} />
-                <Skeleton variant="rounded" width={140} height={32} />
-              </div>
-            </div>
-            <SkeletonText width={400} height={16} />
-          </section>
-        </div>
-
-        {/* Main Content with 3 columns - Skeleton */}
-        <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
-          {/* First Column - Filters Skeleton */}
-          <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0 p-4 bg-background">
-            <SkeletonText width={150} height={20} />
-            <div className="flex flex-col gap-4 mt-4">
-              <div className="flex flex-col gap-3">
-                <SkeletonText width={120} height={16} />
-                <div className="grid grid-cols-2 gap-2">
-                  {[1, 2, 3, 4].map((i) => (
-                    <Skeleton
-                      variant="rounded"
-                      key={i}
-                      width="100%"
-                      height={32}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-col gap-3">
-                <SkeletonText width={140} height={16} />
-                <div className="flex flex-col gap-2">
-                  {[1, 2].map((i) => (
-                    <Skeleton
-                      variant="rounded"
-                      key={i}
-                      width="100%"
-                      height={40}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-col gap-3">
-                <SkeletonText width={80} height={16} />
-                <div className="grid grid-cols-3 gap-3">
-                  {[1, 2].map((i) => (
-                    <Skeleton
-                      variant="rounded"
-                      key={i}
-                      width="100%"
-                      height={60}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="mt-auto">
-              <Skeleton variant="rounded" width="100%" height={40} />
-            </div>
-          </div>
-
-          {/* Second Column - Question List Skeleton */}
-          <div className="flex-1 min-w-0 overflow-hidden h-full p-4">
-            <div className="flex flex-col gap-4 h-full">
-              <div className="flex flex-row items-center justify-between">
-                <div className="flex flex-row items-center gap-2">
-                  <Skeleton variant="rectangular" width={24} height={24} />
-                  <SkeletonText width={150} height={20} />
-                </div>
-                <Skeleton variant="rounded" width={180} height={32} />
-              </div>
-              <div className="flex flex-col gap-3 flex-1 overflow-auto">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <SkeletonCard key={i} lines={3} />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Third Column - Activity Preview Skeleton */}
-          <div className="w-[470px] flex-shrink-0 overflow-hidden h-full min-h-0 p-4">
-            <div className="flex flex-col gap-4 h-full">
-              <div className="flex flex-col gap-2">
-                <SkeletonText width={200} height={20} />
-                <SkeletonText width={150} height={16} />
-              </div>
-              <div className="flex flex-col gap-3 flex-1 overflow-auto">
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="p-4 border border-border-200 rounded-lg"
-                  >
-                    <SkeletonText lines={2} spacing="small" />
-                    <div className="mt-3 flex gap-2">
-                      <Skeleton variant="rounded" width={60} height={24} />
-                      <Skeleton variant="rounded" width={80} height={24} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Skeleton variant="rounded" width="100%" height={36} />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <ActivityCreateSkeleton />;
   }
 
   return (
@@ -1010,48 +807,15 @@ const CreateActivity = ({
       className="flex flex-col w-full h-screen overflow-hidden p-5 bg-background"
     >
       {/* Header Section */}
-      <div className="w-full h-[80px] flex flex-row items-center justify-between px-6 gap-3 flex-shrink-0">
-        <section className="text-text-950">
-          <CaretLeft size={32} />
-        </section>
-
-        <section className="flex flex-col gap-0.5 w-full">
-          <div className="flex flex-row items-center justify-between w-full text-text-950">
-            <Text size="lg" weight="bold">
-              {activity ? 'Editar atividade' : 'Criar atividade'}
-            </Text>
-
-            <div className="flex flex-row gap-4 items-center">
-              {lastSavedAt ? (
-                <p className="text-sm text-text-600">
-                  {activityType === 'RASCUNHO' ? 'Rascunho' : 'Modelo'} salvo às{' '}
-                  {formatTime(lastSavedAt)}
-                </p>
-              ) : (
-                <p className="text-sm text-text-600">
-                  {isSaving ? 'Salvando...' : 'Nenhum rascunho salvo'}
-                </p>
-              )}
-              <Button size="small" onClick={handleSaveModel}>
-                Salvar modelo
-              </Button>
-              <Button
-                size="small"
-                iconLeft={<PaperPlaneTilt />}
-                onClick={handleOpenSendModal}
-                disabled={questions.length === 0}
-              >
-                Enviar atividade
-              </Button>
-            </div>
-          </div>
-
-          <p className="text-sm text-text-600">
-            Crie uma atividade customizada adicionando questões manualmente ou
-            automaticamente.
-          </p>
-        </section>
-      </div>
+      <ActivityCreateHeader
+        activity={activity}
+        activityType={activityType}
+        lastSavedAt={lastSavedAt}
+        isSaving={isSaving}
+        questionsCount={questions.length}
+        onSaveModel={handleSaveModel}
+        onSendActivity={handleOpenSendModal}
+      />
 
       {/* Main Content with 3 columns */}
       <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
@@ -1125,7 +889,17 @@ const CreateActivity = ({
         isLoading={isSendingActivity}
         onError={(error) => {
           console.error('Erro ao enviar atividade:', error);
-          alert('Erro ao enviar atividade. Por favor, tente novamente.');
+          const errorMessage =
+            error instanceof Error
+              ? error.message
+              : 'Erro ao enviar atividade. Por favor, tente novamente.';
+          addToast({
+            title: 'Erro ao enviar atividade',
+            description: errorMessage,
+            variant: 'solid',
+            action: 'warning',
+            position: 'top-right',
+          });
         }}
       />
     </div>
@@ -1133,3 +907,9 @@ const CreateActivity = ({
 };
 
 export { CreateActivity };
+export { ActivityType } from './ActivityCreate.types';
+export type {
+  BackendFiltersFormat,
+  ActivityDraftResponse,
+  ActivityData,
+} from './ActivityCreate.types';
