@@ -34,8 +34,8 @@ jest.mock('phosphor-react', () => ({
 jest.mock('../ActivityFilters/ActivityFilters', () => ({
   ActivityFilters: ({
     onFiltersChange,
-    apiClient,
-    institutionId,
+    apiClient: _apiClient,
+    institutionId: _institutionId,
   }: {
     onFiltersChange?: (filters: ActivityFiltersData) => void;
     apiClient: BaseApiClient;
@@ -236,7 +236,9 @@ jest.mock('../../hooks/useActivityFiltersData', () => ({
 
 // Mock index.ts exports - must include all components used by ActivityCreate
 jest.mock('../..', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require('react');
+
   const actual = jest.requireActual('../..');
 
   const asComponent =
@@ -312,10 +314,13 @@ jest.mock('../..', () => {
       ALTERNATIVA: 'ALTERNATIVA',
       DISSERTATIVA: 'DISSERTATIVA',
     },
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     ActivityFilters: require('../ActivityFilters/ActivityFilters')
       .ActivityFilters,
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     ActivityPreview: require('../ActivityPreview/ActivityPreview')
       .ActivityPreview,
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     SendActivityModal: require('../SendActivityModal/SendActivityModal')
       .SendActivityModal,
     useQuestionFiltersStore: (selector: (state: unknown) => unknown) => {
@@ -533,16 +538,6 @@ describe('CreateActivity', () => {
       render(<CreateActivity {...defaultProps} />);
 
       fireEvent.click(screen.getByTestId('add-question'));
-
-      const addQuestion2 = () => {
-        const listComponent = screen.getByTestId('activity-list-questions');
-        const button = listComponent.querySelector(
-          '[data-testid="add-question"]'
-        );
-        if (button) {
-          fireEvent.click(button);
-        }
-      };
 
       // Add second question manually by calling the handler
       act(() => {
@@ -1581,6 +1576,7 @@ describe('CreateActivity', () => {
         contentIds: [],
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { areFiltersEqual } = require('../../utils/activityFilters');
       areFiltersEqual.mockReturnValue(true);
 

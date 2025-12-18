@@ -501,7 +501,6 @@ export const ActivityFilters = ({
       prevFiltersRef.current = filters;
       onFiltersChangeRef.current(filters);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selectedQuestionTypes,
     selectedSubjects,
