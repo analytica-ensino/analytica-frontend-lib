@@ -205,15 +205,12 @@ jest.mock('../../utils/activityFilters', () => ({
 // Mock hooks - define these before using in jest.mock
 const mockApplyFilters = jest.fn();
 const mockSetDraftFilters = jest.fn();
-const mockFetchQuestionsByIds = jest.fn();
 const mockLoadKnowledgeAreas = jest.fn();
 
 let mockDraftFilters: ActivityFiltersData | null = null;
 let mockAppliedFilters: ActivityFiltersData | null = null;
 
-const mockUseQuestionsListReturn = {
-  fetchQuestionsByIds: mockFetchQuestionsByIds,
-};
+const mockUseQuestionsListReturn = {};
 
 const mockUseActivityFiltersDataReturn = {
   knowledgeAreas: [
@@ -607,16 +604,7 @@ describe('CreateActivity', () => {
       });
     });
 
-    it('should load questions from activity.questionIds via API', async () => {
-      const questions: QuestionActivity[] = [
-        createMockQuestion({
-          id: 'q1',
-          statement: 'Question 1',
-        }),
-      ];
-
-      mockFetchQuestionsByIds.mockResolvedValue(questions);
-
+    it('should not load questions if activity has no selectedQuestions', () => {
       const activity: ActivityData = {
         id: 'act1',
         type: 'RASCUNHO',
@@ -628,43 +616,8 @@ describe('CreateActivity', () => {
 
       render(<CreateActivity {...defaultProps} activity={activity} />);
 
-      await waitFor(() => {
-        expect(mockFetchQuestionsByIds).toHaveBeenCalledWith(['q1']);
-      });
-
-      await waitFor(() => {
-        expect(screen.getByTestId('question-q1')).toBeInTheDocument();
-      });
-    });
-
-    it('should load questions from initialQuestionIds via API', async () => {
-      const questions: QuestionActivity[] = [
-        createMockQuestion({
-          id: 'q1',
-          statement: 'Question 1',
-        }),
-      ];
-
-      mockFetchQuestionsByIds.mockResolvedValue(questions);
-
-      render(<CreateActivity {...defaultProps} initialQuestionIds={['q1']} />);
-
-      await waitFor(() => {
-        expect(mockFetchQuestionsByIds).toHaveBeenCalledWith(['q1']);
-      });
-    });
-
-    it('should handle error when loading questions fails', async () => {
-      mockFetchQuestionsByIds.mockRejectedValue(new Error('Failed to load'));
-
-      render(<CreateActivity {...defaultProps} initialQuestionIds={['q1']} />);
-
-      await waitFor(() => {
-        expect(mockConsoleError).toHaveBeenCalledWith(
-          'Erro ao carregar questões iniciais:',
-          expect.any(Error)
-        );
-      });
+      // Questions should not be loaded if selectedQuestions is not provided
+      expect(screen.queryByTestId('question-q1')).not.toBeInTheDocument();
     });
   });
 
@@ -903,6 +856,7 @@ describe('CreateActivity', () => {
       };
 
       mockApiClient.post = jest.fn().mockResolvedValue(mockResponse);
+      mockApiClient.patch = jest.fn().mockResolvedValue(mockResponse);
 
       render(<CreateActivity {...defaultProps} />);
 
@@ -927,12 +881,16 @@ describe('CreateActivity', () => {
       });
 
       await waitFor(() => {
-        expect(mockApiClient.patch || mockApiClient.post).toHaveBeenCalledWith(
-          expect.any(String),
+        // After first save, draftId exists, so should use PATCH
+        expect(mockApiClient.patch).toHaveBeenCalled();
+        expect(mockApiClient.patch).toHaveBeenCalledWith(
+          expect.stringContaining('/activity-drafts/'),
           expect.objectContaining({
             type: 'MODELO',
           })
         );
+        // POST should not be called after first save
+        expect(mockApiClient.post).not.toHaveBeenCalled();
       });
     });
 

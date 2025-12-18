@@ -563,16 +563,78 @@ export const WithoutInitialQuestions: Story = () => {
 WithoutInitialQuestions.storyName = 'Without Initial Questions';
 
 export const WithInitialQuestions: Story = () => {
+  const mockQuestions: Question[] = [
+    {
+      id: 'initial-question-1',
+      statement: 'Questão inicial 1: Qual é a capital do Brasil?',
+      description: null,
+      questionType: QUESTION_TYPE.ALTERNATIVA,
+      status: QUESTION_STATUS_ENUM.APROVADO,
+      difficultyLevel: DIFFICULTY_LEVEL_ENUM.MEDIO,
+      questionBankYearId: 'year-1',
+      solutionExplanation: null,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z',
+      options: [
+        { id: 'opt-1', option: 'São Paulo' },
+        { id: 'opt-2', option: 'Rio de Janeiro' },
+        { id: 'opt-3', option: 'Brasília' },
+        { id: 'opt-4', option: 'Belo Horizonte' },
+      ],
+    },
+    {
+      id: 'initial-question-2',
+      statement: 'Questão inicial 2: Qual é o maior planeta do sistema solar?',
+      description: null,
+      questionType: QUESTION_TYPE.ALTERNATIVA,
+      status: QUESTION_STATUS_ENUM.APROVADO,
+      difficultyLevel: DIFFICULTY_LEVEL_ENUM.MEDIO,
+      questionBankYearId: 'year-1',
+      solutionExplanation: null,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z',
+      options: [
+        { id: 'opt-1', option: 'Terra' },
+        { id: 'opt-2', option: 'Júpiter' },
+        { id: 'opt-3', option: 'Saturno' },
+        { id: 'opt-4', option: 'Marte' },
+      ],
+    },
+    {
+      id: 'initial-question-3',
+      statement: 'Questão inicial 3: Quem escreveu Dom Casmurro?',
+      description: null,
+      questionType: QUESTION_TYPE.ALTERNATIVA,
+      status: QUESTION_STATUS_ENUM.APROVADO,
+      difficultyLevel: DIFFICULTY_LEVEL_ENUM.MEDIO,
+      questionBankYearId: 'year-1',
+      solutionExplanation: null,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z',
+      options: [
+        { id: 'opt-1', option: 'Machado de Assis' },
+        { id: 'opt-2', option: 'José de Alencar' },
+        { id: 'opt-3', option: 'Clarice Lispector' },
+        { id: 'opt-4', option: 'Carlos Drummond de Andrade' },
+      ],
+    },
+  ];
+
+  const activity: ActivityData = {
+    type: 'RASCUNHO',
+    title: 'Rascunho com questões iniciais',
+    subjectId: 'matematica',
+    filters: {},
+    questionIds: ['initial-question-1', 'initial-question-2', 'initial-question-3'],
+    selectedQuestions: mockQuestions,
+  };
+
   return (
     <CreateActivity
       apiClient={mockApiClientAllTypes}
       institutionId="institution-1"
       isDark={false}
-      initialQuestionIds={[
-        'initial-question-1',
-        'initial-question-2',
-        'initial-question-3',
-      ]}
+      activity={activity}
     />
   );
 };

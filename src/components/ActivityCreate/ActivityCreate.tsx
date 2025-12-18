@@ -5,7 +5,6 @@ import {
   Button,
   Text,
   useQuestionFiltersStore,
-  createUseQuestionsList,
   SkeletonText,
   Skeleton,
   SkeletonCard,
@@ -62,13 +61,13 @@ export interface ActivityDraftResponse {
  * Activity object interface for creating/editing activities
  */
 export interface ActivityData {
-  id: string;
+  id?: string;
   type: 'RASCUNHO' | 'MODELO';
   title: string;
   subjectId: string;
   filters: BackendFiltersFormat;
   questionIds: string[];
-  selectedQuestions?: Question[]; // Questions loaded from backend (when available)
+  selectedQuestions?: Question[];
 }
 
 /**
@@ -80,7 +79,6 @@ const CreateActivity = ({
   apiClient,
   institutionId,
   isDark,
-  initialQuestionIds,
   activity,
   onActivityChange,
   loading = false,
@@ -88,7 +86,6 @@ const CreateActivity = ({
   apiClient: BaseApiClient;
   institutionId: string;
   isDark: boolean;
-  initialQuestionIds?: string[];
   activity?: ActivityData;
   onActivityChange?: (activity: ActivityData) => void;
   loading?: boolean;
@@ -120,7 +117,9 @@ const CreateActivity = ({
 
   const [questions, setQuestions] = useState<PreviewQuestion[]>([]);
   const [loadingInitialQuestions, setLoadingInitialQuestions] = useState(false);
-  const [draftId, setDraftId] = useState<string | null>(activity?.id || null);
+  const [draftId, setDraftId] = useState<string | null>(
+    activity?.id ? activity.id : null
+  );
   const [activityType, setActivityType] = useState<'RASCUNHO' | 'MODELO'>(
     activity?.type || 'RASCUNHO'
   );
@@ -134,10 +133,6 @@ const CreateActivity = ({
   const lastSavedFiltersRef = useRef<ActivityFiltersData | null>(null);
   const lastSavedQuestionsRef = useRef<PreviewQuestion[]>([]);
 
-  const useQuestionsList = createUseQuestionsList(apiClient);
-  const { fetchQuestionsByIds } = useQuestionsList();
-
-  // Hook para obter dados dos assuntos (knowledge areas)
   const useActivityFiltersData = createUseActivityFiltersData(apiClient);
   const { knowledgeAreas, loadKnowledgeAreas } = useActivityFiltersData({
     selectedSubjects: [],
@@ -190,7 +185,7 @@ const CreateActivity = ({
         topicIds: backendFilters.topics || [],
         subtopicIds: backendFilters.subtopics || [],
         contentIds: backendFilters.contents || [],
-        yearIds: [], // YearIds are not stored in backend filters, only in draft state
+        yearIds: [],
       };
     },
     []
@@ -235,40 +230,22 @@ const CreateActivity = ({
    * Save draft to backend
    */
   const saveDraft = useCallback(async () => {
-    console.log('🔄 Tentando salvar rascunho...', {
-      questionsCount: questions.length,
-      draftId,
-      activityType,
-      hasFirstSaveBeenDone: hasFirstSaveBeenDone.current,
-    });
-
-    // Don't save if no questions (first save only happens when questions.length > 0)
     if (questions.length === 0 && !hasFirstSaveBeenDone.current) {
-      console.log(
-        '⏭️ Pulando save: sem questões e primeiro save ainda não feito'
-      );
       return;
     }
 
-    // Don't save if no applied filters (need subjectId)
     if (!appliedFilters || appliedFilters.knowledgeIds.length === 0) {
-      console.log('⏭️ Pulando save: sem filtros aplicados');
       return;
     }
 
-    // Don't save during initial loading
     if (loadingInitialQuestions) {
-      console.log('⏭️ Pulando save: carregando questões iniciais');
       return;
     }
 
-    // Don't save if already saving
     if (isSaving) {
-      console.log('⏭️ Pulando save: já está salvando');
       return;
     }
 
-    console.log('✅ Prosseguindo com o save do rascunho');
     setIsSaving(true);
 
     try {
@@ -286,42 +263,36 @@ const CreateActivity = ({
       };
 
       let response: { data: ActivityDraftResponse };
-      if (draftId) {
-        // Update existing draft
-        response = await apiClient.patch<ActivityDraftResponse>(
-          `/activity-drafts/${draftId}`,
+      const idToUse = activity?.id || draftId;
+      if (idToUse) {
+        await apiClient.patch<ActivityDraftResponse>(
+          `/activity-drafts/${idToUse}`,
           payload
         );
-      } else {
-        // Create new draft
-        response = await apiClient.post<ActivityDraftResponse>(
-          '/activity-drafts',
-          payload
-        );
-        hasFirstSaveBeenDone.current = true;
+        lastSavedQuestionsRef.current = questions;
+        lastSavedFiltersRef.current = appliedFilters;
+        setLastSavedAt(new Date());
+        return;
       }
 
-      // Extract draft data from response
-      const savedDraft = response.data.data.draft;
+      response = await apiClient.post<ActivityDraftResponse>(
+        '/activity-drafts',
+        payload
+      );
+      hasFirstSaveBeenDone.current = true;
+
+      const savedDraft = response?.data?.data?.draft;
+      if (!savedDraft || !savedDraft.id) {
+        throw new Error('Invalid response: draft data is missing');
+      }
       const savedDraftId = savedDraft.id;
 
-      // Update draftId state if it's a new draft
-      if (!draftId) {
-        setDraftId(savedDraftId);
-      }
+      setDraftId(savedDraftId);
 
       setLastSavedAt(new Date());
-      // Update refs after successful save
       lastSavedQuestionsRef.current = questions;
       lastSavedFiltersRef.current = appliedFilters;
-      console.log('✅ Rascunho salvo com sucesso!', {
-        draftId: savedDraftId,
-        questionsCount: questions.length,
-        activityType,
-        draft: savedDraft,
-      });
 
-      // Notify parent component of activity changes using data from backend response
       if (onActivityChange) {
         const updatedActivity: ActivityData = {
           id: savedDraft.id,
@@ -356,7 +327,6 @@ const CreateActivity = ({
    */
   const handleSaveModel = useCallback(async () => {
     setActivityType('MODELO');
-    // The save will be triggered by the useEffect that watches activityType
   }, []);
 
   /**
@@ -397,6 +367,15 @@ const CreateActivity = ({
   );
 
   /**
+   * Update draftId when activity.id changes
+   */
+  useEffect(() => {
+    if (activity?.id) {
+      setDraftId(activity.id);
+    }
+  }, [activity?.id]);
+
+  /**
    * Load knowledge areas on mount
    */
   useEffect(() => {
@@ -406,49 +385,20 @@ const CreateActivity = ({
   /**
    * Load initial questions
    * If activity has selectedQuestions, use them directly
-   * Otherwise, load from activity.questionIds or initialQuestionIds via API
+   * Questions should come from ListBankQuestions or via activity.selectedQuestions prop
    */
   useEffect(() => {
-    // If activity has selectedQuestions, use them directly (no API call needed)
     if (activity?.selectedQuestions && activity.selectedQuestions.length > 0) {
       setLoadingInitialQuestions(true);
       const previewQuestions = activity.selectedQuestions.map((q) =>
         convertQuestionToPreview(q)
       );
       setQuestions(previewQuestions);
-      hasFirstSaveBeenDone.current = true; // Mark as saved if loading from activity
+      hasFirstSaveBeenDone.current = true;
       lastSavedQuestionsRef.current = previewQuestions;
       setLoadingInitialQuestions(false);
-      return;
     }
-
-    // Otherwise, load questions by IDs via API
-    const questionIdsToLoad = activity?.questionIds || initialQuestionIds;
-    if (questionIdsToLoad && questionIdsToLoad.length > 0) {
-      setLoadingInitialQuestions(true);
-      fetchQuestionsByIds(questionIdsToLoad)
-        .then((loadedQuestions) => {
-          const previewQuestions = loadedQuestions.map((q) =>
-            convertQuestionToPreview(q)
-          );
-          setQuestions(previewQuestions);
-          hasFirstSaveBeenDone.current = true; // Mark as saved if loading from activity
-          lastSavedQuestionsRef.current = previewQuestions;
-        })
-        .catch((error) => {
-          console.error('Erro ao carregar questões iniciais:', error);
-        })
-        .finally(() => {
-          setLoadingInitialQuestions(false);
-        });
-    }
-  }, [
-    activity?.selectedQuestions,
-    activity?.questionIds,
-    initialQuestionIds,
-    fetchQuestionsByIds,
-    convertQuestionToPreview,
-  ]);
+  }, [activity?.selectedQuestions, convertQuestionToPreview]);
 
   /**
    * Initialize filters and applied filters when activity is provided
@@ -459,11 +409,8 @@ const CreateActivity = ({
         activity.filters
       );
       if (activityFiltersData) {
-        // Set draft filters first
         setDraftFilters(activityFiltersData);
-        // Apply filters immediately so the list loads correctly
         applyFilters();
-        // Store in ref to prevent unnecessary saves
         lastSavedFiltersRef.current = activityFiltersData;
       }
     }
@@ -474,7 +421,6 @@ const CreateActivity = ({
     convertBackendFiltersToActivityFiltersData,
   ]);
 
-  // Store saveDraft in ref to avoid recreating useEffect when it changes
   const saveDraftRef = useRef(saveDraft);
   useEffect(() => {
     saveDraftRef.current = saveDraft;
@@ -484,54 +430,41 @@ const CreateActivity = ({
    * Auto-save draft when questions or filters change (with debounce)
    */
   useEffect(() => {
-    // Clear existing timeout
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
 
-    // Don't save during initial loading
     if (loadingInitialQuestions) {
       return;
     }
 
-    // First save only happens when there's at least one question
     if (questions.length === 0 && !hasFirstSaveBeenDone.current) {
       return;
     }
 
-    // Don't save if no applied filters
     if (!appliedFilters || appliedFilters.knowledgeIds.length === 0) {
       return;
     }
 
-    // Compare if questions actually changed
-    const questionIds = questions
-      .map((q) => q.id)
-      .sort((a, b) => a.localeCompare(b))
-      .join(',');
+    const questionIds = questions.map((q) => q.id).join(',');
     const lastSavedQuestionIds = lastSavedQuestionsRef.current
       .map((q) => q.id)
-      .sort((a, b) => a.localeCompare(b))
       .join(',');
     const questionsChanged = questionIds !== lastSavedQuestionIds;
 
-    // Compare if filters actually changed
     const filtersChanged = !areFiltersEqual(
       lastSavedFiltersRef.current,
       appliedFilters
     );
 
-    // Only save if something actually changed
     if (!questionsChanged && !filtersChanged && hasFirstSaveBeenDone.current) {
       return;
     }
 
-    // Set debounced save
     saveTimeoutRef.current = setTimeout(() => {
       saveDraftRef.current();
     }, 500);
 
-    // Cleanup timeout on unmount or dependency change
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
@@ -544,7 +477,6 @@ const CreateActivity = ({
    */
   useEffect(() => {
     if (activityType === 'MODELO' && hasFirstSaveBeenDone.current) {
-      // Clear any pending debounced save
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
@@ -558,7 +490,6 @@ const CreateActivity = ({
   const handleAddQuestion = useCallback(
     (question: Question) => {
       setQuestions((prev) => {
-        // Check if question is already added
         if (prev.some((q) => q.id === question.id)) {
           return prev;
         }
@@ -587,9 +518,25 @@ const CreateActivity = ({
   /**
    * Handle reordering questions
    */
-  const handleReorder = useCallback((orderedQuestions: PreviewQuestion[]) => {
-    setQuestions(orderedQuestions);
-  }, []);
+  const handleReorder = useCallback(
+    (orderedQuestions: PreviewQuestion[]) => {
+      setQuestions(orderedQuestions);
+      if (
+        hasFirstSaveBeenDone.current &&
+        appliedFilters &&
+        appliedFilters.knowledgeIds.length > 0 &&
+        !loadingInitialQuestions &&
+        !isSaving
+      ) {
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+        lastSavedQuestionsRef.current = orderedQuestions;
+        saveDraftRef.current();
+      }
+    },
+    [appliedFilters, loadingInitialQuestions, isSaving]
+  );
 
   /**
    * API response interfaces for categories data
@@ -655,11 +602,10 @@ const CreateActivity = ({
    */
   const loadCategoriesData = useCallback(async () => {
     if (categories.length > 0) {
-      return; // Already loaded
+      return;
     }
 
     try {
-      // Fetch all data in parallel
       const [
         schoolsResponse,
         schoolYearsResponse,
@@ -688,7 +634,6 @@ const CreateActivity = ({
       const classes = classesResponse.data.data.classes;
       const students = studentsResponse.data.data.students;
 
-      // Transform to CategoryConfig format
       const transformedCategories: CategoryConfig[] = [
         {
           key: 'escola',
@@ -747,16 +692,7 @@ const CreateActivity = ({
    * Handle opening the send activity modal
    */
   const handleOpenSendModal = useCallback(async () => {
-    // Validate that there are questions selected
-    if (questions.length === 0) {
-      alert(
-        'Por favor, adicione pelo menos uma questão à atividade antes de enviar.'
-      );
-      return;
-    }
-
     try {
-      // Load categories if not already loaded
       if (categories.length === 0) {
         await loadCategoriesData();
       }
@@ -774,14 +710,12 @@ const CreateActivity = ({
     async (formData: SendActivityFormData) => {
       setIsSendingActivity(true);
       try {
-        // Get subjectId from activity or applied filters
         const subjectId =
           activity?.subjectId || appliedFilters?.knowledgeIds[0];
         if (!subjectId) {
           throw new Error('Subject ID não encontrado');
         }
 
-        // Combine date and time into ISO format
         const startDateTime = new Date(
           `${formData.startDate}T${formData.startTime}`
         ).toISOString();
@@ -789,7 +723,6 @@ const CreateActivity = ({
           `${formData.finalDate}T${formData.finalTime}`
         ).toISOString();
 
-        // Prepare activity payload
         const activityPayload = {
           createdBySys: false,
           title: formData.title,
@@ -804,18 +737,15 @@ const CreateActivity = ({
           canRetry: formData.canRetry,
         };
 
-        // Create activity
         await apiClient.post('/activities', activityPayload);
 
-        // Send to students
         await apiClient.post('/activities/send-to-students', activityPayload);
 
-        // Close modal and show success message
         setIsSendModalOpen(false);
         alert('Atividade enviada com sucesso!');
       } catch (error) {
         console.error('Erro ao enviar atividade:', error);
-        throw error; // Let the modal handle the error display
+        throw error;
       } finally {
         setIsSendingActivity(false);
       }

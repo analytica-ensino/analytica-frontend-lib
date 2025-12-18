@@ -59,7 +59,18 @@ export const ActivityListQuestions = ({
   const appliedFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.appliedFilters
   );
-  const useQuestionsList = createUseQuestionsList(apiClient);
+  const addedQuestionIdsRef = useRef(addedQuestionIds);
+
+  // Update ref when addedQuestionIds changes to capture latest value
+  useEffect(() => {
+    addedQuestionIdsRef.current = addedQuestionIds;
+  }, [addedQuestionIds]);
+
+  // Memoize the hook factory to prevent recreation on every render
+  const useQuestionsList = useMemo(
+    () => createUseQuestionsList(apiClient),
+    [apiClient]
+  );
 
   const {
     questions: allQuestions,
@@ -127,13 +138,14 @@ export const ActivityListQuestions = ({
    * Resets questions when filters change
    * Note: Already added questions are filtered out in the useMemo, so we don't need
    * to refetch when addedQuestionIds changes - the visual filtering handles it
+   * We use a ref to capture the latest addedQuestionIds value without triggering reruns
    */
   useEffect(() => {
     if (appliedFilters) {
       const apiFilters = {
         ...convertActivityFiltersToQuestionsFilter(appliedFilters),
-        ...(addedQuestionIds.length > 0 && {
-          selectedQuestionsIds: addedQuestionIds,
+        ...(addedQuestionIdsRef.current.length > 0 && {
+          selectedQuestionsIds: addedQuestionIdsRef.current,
         }),
       };
       fetchQuestions(apiFilters, false);
