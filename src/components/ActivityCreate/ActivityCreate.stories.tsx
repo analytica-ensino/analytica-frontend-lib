@@ -246,8 +246,10 @@ const createMockApiClient = (
       }
 
       // Handle activity-drafts POST
-      if (url === '/activity-drafts' && onSaveActivity) {
-        onSaveActivity('POST', url, _body);
+      if (url === '/activity-drafts') {
+        if (onSaveActivity) {
+          onSaveActivity('POST', url, _body);
+        }
         const payload = _body as {
           type?: 'RASCUNHO' | 'MODELO';
           title?: string;

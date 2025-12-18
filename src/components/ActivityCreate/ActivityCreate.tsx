@@ -266,10 +266,9 @@ const CreateActivity = ({
       };
 
       let response: { data: ActivityDraftResponse };
-      const idToUse = activity?.id || draftId;
-      if (idToUse) {
+      if (draftId) {
         await apiClient.patch<ActivityDraftResponse>(
-          `/activity-drafts/${idToUse}`,
+          `/activity-drafts/${draftId}`,
           payload
         );
         lastSavedQuestionsRef.current = questions;
@@ -284,9 +283,43 @@ const CreateActivity = ({
       );
       hasFirstSaveBeenDone.current = true;
 
-      const savedDraft = response?.data?.data?.draft;
+      // Validate response structure
+      if (!response?.data) {
+        console.error('❌ Resposta vazia da API ao criar rascunho:', response);
+        throw new Error('Invalid response: empty response from API');
+      }
+
+      // Extract draft from response - handle different possible structures
+      let savedDraft: ActivityDraftResponse['data']['draft'] | undefined;
+
+      if (response.data.data?.draft) {
+        savedDraft = response.data.data.draft;
+      } else if (
+        response.data &&
+        'draft' in response.data &&
+        typeof response.data === 'object'
+      ) {
+        // Handle case where response.data might be the draft directly
+        savedDraft = (
+          response.data as unknown as {
+            draft: ActivityDraftResponse['data']['draft'];
+          }
+        )?.draft;
+      }
+
       if (!savedDraft?.id) {
-        throw new Error('Invalid response: draft data is missing');
+        console.error('❌ Resposta inválida da API ao criar rascunho:', {
+          response,
+          responseData: response?.data,
+          responseDataData: response?.data?.data,
+          responseKeys: response?.data ? Object.keys(response.data) : [],
+          responseDataKeys: response?.data?.data
+            ? Object.keys(response.data.data)
+            : [],
+        });
+        throw new Error(
+          'Invalid response: draft data is missing. Expected structure: response.data.data.draft'
+        );
       }
       const savedDraftId = savedDraft.id;
 
@@ -407,15 +440,31 @@ const CreateActivity = ({
   useEffect(() => {
     if (activity?.selectedQuestions && activity.selectedQuestions.length > 0) {
       setLoadingInitialQuestions(true);
-      const previewQuestions = activity.selectedQuestions.map((q) =>
-        convertQuestionToPreview(q)
-      );
-      setQuestions(previewQuestions);
-      hasFirstSaveBeenDone.current = true;
-      lastSavedQuestionsRef.current = previewQuestions;
-      setLoadingInitialQuestions(false);
+      try {
+        const previewQuestions = activity.selectedQuestions.map((q) =>
+          convertQuestionToPreview(q)
+        );
+        setQuestions(previewQuestions);
+        hasFirstSaveBeenDone.current = true;
+        lastSavedQuestionsRef.current = previewQuestions;
+      } catch (error) {
+        console.error('❌ Erro ao converter questões:', error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Ocorreu um erro ao carregar as questões. Tente novamente.';
+        addToast({
+          title: 'Erro ao carregar questões',
+          description: errorMessage,
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+      } finally {
+        setLoadingInitialQuestions(false);
+      }
     }
-  }, [activity?.selectedQuestions, convertQuestionToPreview]);
+  }, [activity?.selectedQuestions, convertQuestionToPreview, addToast]);
 
   /**
    * Initialize filters and applied filters when activity is provided
@@ -548,7 +597,6 @@ const CreateActivity = ({
         if (saveTimeoutRef.current) {
           clearTimeout(saveTimeoutRef.current);
         }
-        lastSavedQuestionsRef.current = orderedQuestions;
         saveDraftRef.current();
       }
     },
@@ -591,11 +639,41 @@ const CreateActivity = ({
     }
 
     try {
+      // Fetch all students by paginating through all pages
+      const fetchAllStudents = async (): Promise<Student[]> => {
+        const allStudents: Student[] = [];
+        let currentPage = 1;
+        let totalPages = 1;
+        const limit = 100;
+
+        do {
+          const response = await apiClient.get<{
+            message: string;
+            data: {
+              students: Student[];
+              pagination: {
+                page: number;
+                limit: number;
+                total: number;
+                totalPages: number;
+              };
+            };
+          }>(`/students?page=${currentPage}&limit=${limit}`);
+
+          const { students, pagination } = response.data.data;
+          allStudents.push(...students);
+          totalPages = pagination.totalPages;
+          currentPage++;
+        } while (currentPage <= totalPages);
+
+        return allStudents;
+      };
+
       const [
         schoolsResponse,
         schoolYearsResponse,
         classesResponse,
-        studentsResponse,
+        allStudents,
       ] = await Promise.all([
         apiClient.get<{ message: string; data: { schools: School[] } }>(
           '/school'
@@ -608,16 +686,13 @@ const CreateActivity = ({
           message: string;
           data: { classes: Class[] };
         }>('/classes'),
-        apiClient.get<{
-          message: string;
-          data: { students: Student[]; pagination: unknown };
-        }>('/students?page=1&limit=100'),
+        fetchAllStudents(),
       ]);
 
       const schools = schoolsResponse.data.data.schools;
       const schoolYears = schoolYearsResponse.data.data.schoolYears;
       const classes = classesResponse.data.data.classes;
-      const students = studentsResponse.data.data.students;
+      const students = allStudents;
 
       const transformedCategories: CategoryConfig[] = [
         {
@@ -684,9 +759,19 @@ const CreateActivity = ({
       setIsSendModalOpen(true);
     } catch (error) {
       console.error('Erro ao abrir modal de envio:', error);
-      alert('Erro ao carregar dados. Por favor, tente novamente.');
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Erro ao carregar dados. Por favor, tente novamente.';
+      addToast({
+        title: 'Erro ao carregar dados',
+        description: errorMessage,
+        variant: 'solid',
+        action: 'warning',
+        position: 'top-right',
+      });
     }
-  }, [questions.length, categories.length, loadCategoriesData]);
+  }, [questions.length, categories.length, loadCategoriesData, addToast]);
 
   /**
    * Handle sending activity to students
@@ -722,20 +807,72 @@ const CreateActivity = ({
           canRetry: formData.canRetry,
         };
 
-        await apiClient.post('/activities', activityPayload);
+        // First POST: Create activity and capture response
+        const createActivityResponse = await apiClient.post<{
+          message: string;
+          data: {
+            activity: {
+              id: string;
+            };
+          };
+        }>('/activities', activityPayload);
 
-        await apiClient.post('/activities/send-to-students', activityPayload);
+        // Extract activity ID from response
+        const activityId = createActivityResponse?.data?.data?.activity?.id;
+        if (!activityId) {
+          throw new Error('ID da atividade não retornado pela API');
+        }
 
+        // Second POST: Send activity to students with activityId and students
+        const sendToStudentsPayload = {
+          activityId: activityId,
+          students: formData.students,
+        };
+
+        const sendToStudentsResponse = await apiClient.post<{
+          message: string;
+          data: unknown;
+        }>('/activities/send-to-students', sendToStudentsPayload);
+
+        // Validate both responses
+        if (!createActivityResponse?.data) {
+          throw new Error('Resposta inválida ao criar atividade');
+        }
+        if (!sendToStudentsResponse?.data) {
+          throw new Error(
+            'Resposta inválida ao enviar atividade para estudantes'
+          );
+        }
+
+        // Only close modal and show success after both succeed
         setIsSendModalOpen(false);
-        alert('Atividade enviada com sucesso!');
+        addToast({
+          title: 'Atividade enviada com sucesso!',
+          description:
+            'A atividade foi criada e enviada para os estudantes selecionados.',
+          variant: 'solid',
+          action: 'success',
+          position: 'top-right',
+        });
       } catch (error) {
         console.error('Erro ao enviar atividade:', error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Ocorreu um erro ao enviar a atividade. Tente novamente.';
+        addToast({
+          title: 'Erro ao enviar atividade',
+          description: errorMessage,
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
         throw error;
       } finally {
         setIsSendingActivity(false);
       }
     },
-    [activity, appliedFilters, questions, apiClient]
+    [activity, appliedFilters, questions, apiClient, addToast]
   );
 
   const addedQuestionIds = useMemo(

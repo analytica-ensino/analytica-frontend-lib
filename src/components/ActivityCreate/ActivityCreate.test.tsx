@@ -176,6 +176,12 @@ jest.mock('../SendActivityModal/SendActivityModal', () => ({
               subtype: 'HOMEWORK',
               canRetry: false,
               notification: '',
+              students: [
+                {
+                  studentId: 'student-1',
+                  userInstitutionId: 'ui-1',
+                },
+              ],
             })
               .then(() => {})
               .catch((err) => onError?.(err))
@@ -1069,15 +1075,11 @@ describe('CreateActivity', () => {
       });
     });
 
-    it('should show alert when trying to send without questions', () => {
-      const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-
+    it('should disable send button when no questions', () => {
       render(<CreateActivity {...defaultProps} />);
 
       const sendButton = screen.getByText('Enviar atividade');
       expect(sendButton).toBeDisabled();
-
-      alertSpy.mockRestore();
     });
 
     it('should disable send button when no questions', () => {
@@ -1203,7 +1205,6 @@ describe('CreateActivity', () => {
     });
 
     it('should handle error when loading categories fails', async () => {
-      const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
       mockApiClient.get = jest
         .fn()
         .mockRejectedValue(new Error('Failed to load'));
@@ -1215,29 +1216,90 @@ describe('CreateActivity', () => {
       fireEvent.click(screen.getByText('Enviar atividade'));
 
       await waitFor(() => {
-        expect(alertSpy).toHaveBeenCalledWith(
-          'Erro ao carregar dados. Por favor, tente novamente.'
-        );
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Erro ao carregar dados',
+          description: 'Failed to load',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
       });
-
-      alertSpy.mockRestore();
     });
 
     it('should submit activity when form is submitted', async () => {
-      const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-
-      mockApiClient.get = jest.fn().mockResolvedValue({
-        data: {
-          data: {
-            schools: [],
-            schoolYears: [],
-            classes: [],
-            students: [],
-            pagination: {},
-          },
-        },
+      mockApiClient.get = jest.fn().mockImplementation((url: string) => {
+        if (url === '/school') {
+          return Promise.resolve({
+            data: {
+              message: 'Escolas obtidas com sucesso',
+              data: {
+                schools: [],
+              },
+            },
+          });
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve({
+            data: {
+              message: 'Anos letivos obtidos com sucesso',
+              data: {
+                schoolYears: [],
+              },
+            },
+          });
+        }
+        if (url === '/classes') {
+          return Promise.resolve({
+            data: {
+              message: 'Classes obtidas com sucesso',
+              data: {
+                classes: [],
+              },
+            },
+          });
+        }
+        if (url.startsWith('/students')) {
+          return Promise.resolve({
+            data: {
+              message: 'Estudantes obtidos com sucesso',
+              data: {
+                students: [],
+                pagination: {
+                  page: 1,
+                  limit: 100,
+                  total: 0,
+                  totalPages: 1,
+                },
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
       });
-      mockApiClient.post = jest.fn().mockResolvedValue({});
+
+      mockApiClient.post = jest.fn().mockImplementation((url: string) => {
+        if (url === '/activities') {
+          return Promise.resolve({
+            data: {
+              message: 'Activity created successfully',
+              data: {
+                activity: {
+                  id: 'activity-123',
+                },
+              },
+            },
+          });
+        }
+        if (url === '/activities/send-to-students') {
+          return Promise.resolve({
+            data: {
+              message: 'Activity sent to students successfully',
+              data: { success: true },
+            },
+          });
+        }
+        return Promise.resolve({ data: {} });
+      });
 
       render(<CreateActivity {...defaultProps} />);
 
@@ -1261,25 +1323,71 @@ describe('CreateActivity', () => {
         );
         expect(mockApiClient.post).toHaveBeenCalledWith(
           '/activities/send-to-students',
-          expect.any(Object)
+          expect.objectContaining({
+            activityId: 'activity-123',
+            students: expect.any(Array),
+          })
         );
-        expect(alertSpy).toHaveBeenCalledWith('Atividade enviada com sucesso!');
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Atividade enviada com sucesso!',
+          description:
+            'A atividade foi criada e enviada para os estudantes selecionados.',
+          variant: 'solid',
+          action: 'success',
+          position: 'top-right',
+        });
       });
-
-      alertSpy.mockRestore();
     });
 
     it('should handle send error', async () => {
-      mockApiClient.get = jest.fn().mockResolvedValue({
-        data: {
-          data: {
-            schools: [],
-            schoolYears: [],
-            classes: [],
-            students: [],
-            pagination: {},
-          },
-        },
+      mockApiClient.get = jest.fn().mockImplementation((url: string) => {
+        if (url === '/school') {
+          return Promise.resolve({
+            data: {
+              message: 'Escolas obtidas com sucesso',
+              data: {
+                schools: [],
+              },
+            },
+          });
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve({
+            data: {
+              message: 'Anos letivos obtidos com sucesso',
+              data: {
+                schoolYears: [],
+              },
+            },
+          });
+        }
+        if (url === '/classes') {
+          return Promise.resolve({
+            data: {
+              message: 'Classes obtidas com sucesso',
+              data: {
+                classes: [],
+              },
+            },
+          });
+        }
+        if (url.startsWith('/students')) {
+          return Promise.resolve({
+            data: {
+              message: 'Estudantes obtidos com sucesso',
+              data: {
+                students: [],
+                pagination: {
+                  page: 1,
+                  limit: 100,
+                  total: 0,
+                  totalPages: 1,
+                },
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
       });
       mockApiClient.post = jest
         .fn()
@@ -1302,6 +1410,13 @@ describe('CreateActivity', () => {
           'Erro ao enviar atividade:',
           expect.any(Error)
         );
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Erro ao enviar atividade',
+          description: 'Send failed',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
       });
     });
 
@@ -1338,8 +1453,6 @@ describe('CreateActivity', () => {
     });
 
     it('should use subjectId from activity if available', async () => {
-      const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-
       const activity: ActivityData = {
         id: 'act1',
         type: 'RASCUNHO',
@@ -1349,18 +1462,79 @@ describe('CreateActivity', () => {
         questionIds: [],
       };
 
-      mockApiClient.get = jest.fn().mockResolvedValue({
-        data: {
-          data: {
-            schools: [],
-            schoolYears: [],
-            classes: [],
-            students: [],
-            pagination: {},
-          },
-        },
+      mockApiClient.get = jest.fn().mockImplementation((url: string) => {
+        if (url === '/school') {
+          return Promise.resolve({
+            data: {
+              message: 'Escolas obtidas com sucesso',
+              data: {
+                schools: [],
+              },
+            },
+          });
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve({
+            data: {
+              message: 'Anos letivos obtidos com sucesso',
+              data: {
+                schoolYears: [],
+              },
+            },
+          });
+        }
+        if (url === '/classes') {
+          return Promise.resolve({
+            data: {
+              message: 'Classes obtidas com sucesso',
+              data: {
+                classes: [],
+              },
+            },
+          });
+        }
+        if (url.startsWith('/students')) {
+          return Promise.resolve({
+            data: {
+              message: 'Estudantes obtidos com sucesso',
+              data: {
+                students: [],
+                pagination: {
+                  page: 1,
+                  limit: 100,
+                  total: 0,
+                  totalPages: 1,
+                },
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
       });
-      mockApiClient.post = jest.fn().mockResolvedValue({});
+
+      mockApiClient.post = jest.fn().mockImplementation((url: string) => {
+        if (url === '/activities') {
+          return Promise.resolve({
+            data: {
+              message: 'Activity created successfully',
+              data: {
+                activity: {
+                  id: 'activity-123',
+                },
+              },
+            },
+          });
+        }
+        if (url === '/activities/send-to-students') {
+          return Promise.resolve({
+            data: {
+              message: 'Activity sent to students successfully',
+              data: { success: true },
+            },
+          });
+        }
+        return Promise.resolve({ data: {} });
+      });
 
       render(<CreateActivity {...defaultProps} activity={activity} />);
 
@@ -1381,9 +1555,14 @@ describe('CreateActivity', () => {
             subjectId: 'subject2',
           })
         );
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/activities/send-to-students',
+          expect.objectContaining({
+            activityId: 'activity-123',
+            students: expect.any(Array),
+          })
+        );
       });
-
-      alertSpy.mockRestore();
     });
   });
 
