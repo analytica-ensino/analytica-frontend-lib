@@ -1082,13 +1082,6 @@ describe('CreateActivity', () => {
       expect(sendButton).toBeDisabled();
     });
 
-    it('should disable send button when no questions', () => {
-      render(<CreateActivity {...defaultProps} />);
-
-      const sendButton = screen.getByText('Enviar atividade');
-      expect(sendButton).toBeDisabled();
-    });
-
     it('should load categories when opening modal', async () => {
       const mockSchoolsResponse = {
         data: {

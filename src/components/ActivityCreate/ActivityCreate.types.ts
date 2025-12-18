@@ -13,6 +13,14 @@ export enum ActivityType {
 }
 
 /**
+ * Activity status enum
+ * A_VENCER: Activity pending (not yet due)
+ */
+export enum ActivityStatus {
+  A_VENCER = 'A_VENCER',
+}
+
+/**
  * Backend filters format (from API)
  */
 export interface BackendFiltersFormat {
@@ -30,10 +38,10 @@ export interface BackendFiltersFormat {
 export interface ActivityDraftResponse {
   message: string;
   data: {
-      draft: {
-        id: string;
-        type: ActivityType | 'RASCUNHO' | 'MODELO';
-        title: string;
+    draft: {
+      id: string;
+      type: ActivityType;
+      title: string;
       creatorUserInstitutionId: string;
       subjectId: string;
       filters: BackendFiltersFormat;

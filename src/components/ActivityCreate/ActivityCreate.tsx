@@ -29,7 +29,7 @@ import type {
   ActivityData,
   BackendFiltersFormat,
 } from './ActivityCreate.types';
-import { ActivityType } from './ActivityCreate.types';
+import { ActivityType, ActivityStatus } from './ActivityCreate.types';
 import {
   convertFiltersToBackendFormat,
   convertBackendFiltersToActivityFiltersData,
@@ -772,7 +772,7 @@ const CreateActivity = ({
           subtype: formData.subtype,
           difficulty: '',
           notification: formData.notification || '',
-          status: 'A_VENCER' as const,
+          status: ActivityStatus.A_VENCER,
           startDate: startDateTime,
           finalDate: finalDateTime,
           canRetry: formData.canRetry,
@@ -962,7 +962,7 @@ const CreateActivity = ({
 };
 
 export { CreateActivity };
-export { ActivityType } from './ActivityCreate.types';
+export { ActivityType, ActivityStatus } from './ActivityCreate.types';
 export type {
   BackendFiltersFormat,
   ActivityDraftResponse,
