@@ -214,7 +214,7 @@ export const ActivityListQuestions = ({
       // Add each question to the activity
       randomQuestions.forEach((question) => {
         if (onAddQuestion) {
-          onAddQuestion(question as Question);
+          onAddQuestion(question);
         }
       });
 
@@ -272,7 +272,7 @@ export const ActivityListQuestions = ({
     return (
       <>
         {questions.map((question) => {
-          const subjectInfo = getSubjectInfo(question as Question);
+          const subjectInfo = getSubjectInfo(question);
           const questionType = mapQuestionTypeToEnum(question.questionType);
 
           return (
@@ -296,7 +296,7 @@ export const ActivityListQuestions = ({
               enunciado={question.statement}
               onAddToActivity={() => {
                 if (onAddQuestion) {
-                  onAddQuestion(question as Question);
+                  onAddQuestion(question);
                 }
               }}
             />
@@ -388,8 +388,8 @@ export const ActivityListQuestions = ({
                     setQuestionCount(0);
                     return;
                   }
-                  const numValue = parseInt(inputValue, 10);
-                  if (!isNaN(numValue) && numValue > 0) {
+                  const numValue = Number.parseInt(inputValue, 10);
+                  if (!Number.isNaN(numValue) && numValue > 0) {
                     setQuestionCount(numValue);
                   }
                 }}

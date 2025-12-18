@@ -282,7 +282,7 @@ const CreateActivity = ({
       hasFirstSaveBeenDone.current = true;
 
       const savedDraft = response?.data?.data?.draft;
-      if (!savedDraft || !savedDraft.id) {
+      if (!savedDraft?.id) {
         throw new Error('Invalid response: draft data is missing');
       }
       const savedDraftId = savedDraft.id;
