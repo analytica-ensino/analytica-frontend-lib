@@ -151,6 +151,11 @@ export {
   createQuestionsListHook,
 } from './hooks/useQuestionsList';
 export { CreateActivity } from './components/ActivityCreate/ActivityCreate';
+export type {
+  ActivityData,
+  BackendFiltersFormat,
+  ActivityDraftResponse,
+} from './components/ActivityCreate/ActivityCreate';
 export type { UseQuestionsListReturn } from './hooks/useQuestionsList';
 export type {
   Question as QuestionActivity,

@@ -8,6 +8,7 @@ import {
   createUseQuestionsList,
   SkeletonText,
   createUseActivityFiltersData,
+  QUESTION_TYPE,
 } from '../..';
 import type {
   ActivityFiltersData,
@@ -21,6 +22,51 @@ import { ActivityListQuestions } from '../ActivityListQuestions/ActivityListQues
 import { areFiltersEqual } from '../../utils/activityFilters';
 
 /**
+ * Backend filters format (from API)
+ */
+export interface BackendFiltersFormat {
+  questionTypes?: string[];
+  questionBanks?: string[];
+  subjects?: string[];
+  topics?: string[];
+  subtopics?: string[];
+  contents?: string[];
+}
+
+/**
+ * Activity draft response from backend
+ */
+export interface ActivityDraftResponse {
+  message: string;
+  data: {
+    draft: {
+      id: string;
+      type: 'RASCUNHO' | 'MODELO';
+      title: string;
+      creatorUserInstitutionId: string;
+      subjectId: string;
+      filters: BackendFiltersFormat;
+      createdAt: string;
+      updatedAt: string;
+    };
+    questionsLinked: number;
+  };
+}
+
+/**
+ * Activity object interface for creating/editing activities
+ */
+export interface ActivityData {
+  id: string;
+  type: 'RASCUNHO' | 'MODELO';
+  title: string;
+  subjectId: string;
+  filters: BackendFiltersFormat;
+  questionIds: string[];
+  selectedQuestions?: Question[]; // Questions loaded from backend (when available)
+}
+
+/**
  * CreateActivity page component for creating new activities
  * This page does not use the standard Layout (header/sidebar)
  * @returns JSX element representing the create activity page
@@ -30,11 +76,15 @@ const CreateActivity = ({
   institutionId,
   isDark,
   initialQuestionIds,
+  activity,
+  onActivityChange,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
   isDark: boolean;
   initialQuestionIds?: string[];
+  activity?: ActivityData;
+  onActivityChange?: (activity: ActivityData) => void;
 }) => {
   const applyFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.applyFilters
@@ -63,9 +113,9 @@ const CreateActivity = ({
 
   const [questions, setQuestions] = useState<PreviewQuestion[]>([]);
   const [loadingInitialQuestions, setLoadingInitialQuestions] = useState(false);
-  const [draftId, setDraftId] = useState<string | null>(null);
+  const [draftId, setDraftId] = useState<string | null>(activity?.id || null);
   const [activityType, setActivityType] = useState<'RASCUNHO' | 'MODELO'>(
-    'RASCUNHO'
+    activity?.type || 'RASCUNHO'
   );
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -88,7 +138,7 @@ const CreateActivity = ({
    * Convert ActivityFiltersData to backend format
    */
   const convertFiltersToBackendFormat = useCallback(
-    (filters: ActivityFiltersData | null) => {
+    (filters: ActivityFiltersData | null): BackendFiltersFormat => {
       if (!filters) {
         return {
           questionTypes: [],
@@ -107,6 +157,30 @@ const CreateActivity = ({
         topics: filters.topicIds,
         subtopics: filters.subtopicIds,
         contents: filters.contentIds,
+      };
+    },
+    []
+  );
+
+  /**
+   * Convert backend filters format to ActivityFiltersData
+   */
+  const convertBackendFiltersToActivityFiltersData = useCallback(
+    (
+      backendFilters: BackendFiltersFormat | null
+    ): ActivityFiltersData | null => {
+      if (!backendFilters) {
+        return null;
+      }
+
+      return {
+        types: (backendFilters.questionTypes || []) as QUESTION_TYPE[],
+        bankIds: backendFilters.questionBanks || [],
+        knowledgeIds: backendFilters.subjects || [],
+        topicIds: backendFilters.topics || [],
+        subtopicIds: backendFilters.subtopics || [],
+        contentIds: backendFilters.contents || [],
+        yearIds: [], // YearIds are not stored in backend filters, only in draft state
       };
     },
     []
@@ -201,21 +275,29 @@ const CreateActivity = ({
         questionIds,
       };
 
-      let response;
+      let response: { data: ActivityDraftResponse };
       if (draftId) {
         // Update existing draft
-        response = await apiClient.patch<{ data: { id: string } }>(
+        response = await apiClient.patch<ActivityDraftResponse>(
           `/activity-drafts/${draftId}`,
           payload
         );
       } else {
         // Create new draft
-        response = await apiClient.post<{ data: { id: string } }>(
+        response = await apiClient.post<ActivityDraftResponse>(
           '/activity-drafts',
           payload
         );
-        setDraftId(response.data.data.id);
         hasFirstSaveBeenDone.current = true;
+      }
+
+      // Extract draft data from response
+      const savedDraft = response.data.data.draft;
+      const savedDraftId = savedDraft.id;
+
+      // Update draftId state if it's a new draft
+      if (!draftId) {
+        setDraftId(savedDraftId);
       }
 
       setLastSavedAt(new Date());
@@ -223,10 +305,24 @@ const CreateActivity = ({
       lastSavedQuestionsRef.current = questions;
       lastSavedFiltersRef.current = appliedFilters;
       console.log('✅ Rascunho salvo com sucesso!', {
-        draftId: draftId || response.data.data.id,
+        draftId: savedDraftId,
         questionsCount: questions.length,
         activityType,
+        draft: savedDraft,
       });
+
+      // Notify parent component of activity changes using data from backend response
+      if (onActivityChange) {
+        const updatedActivity: ActivityData = {
+          id: savedDraft.id,
+          type: savedDraft.type,
+          title: savedDraft.title,
+          subjectId: savedDraft.subjectId,
+          filters: savedDraft.filters,
+          questionIds: questions.map((q) => q.id),
+        };
+        onActivityChange(updatedActivity);
+      }
     } catch (error) {
       console.error('❌ Erro ao salvar rascunho:', error);
     } finally {
@@ -242,6 +338,7 @@ const CreateActivity = ({
     apiClient,
     generateTitle,
     convertFiltersToBackendFormat,
+    onActivityChange,
   ]);
 
   /**
@@ -297,17 +394,36 @@ const CreateActivity = ({
   }, [loadKnowledgeAreas]);
 
   /**
-   * Load initial questions by IDs (for drafts or page refresh)
+   * Load initial questions
+   * If activity has selectedQuestions, use them directly
+   * Otherwise, load from activity.questionIds or initialQuestionIds via API
    */
   useEffect(() => {
-    if (initialQuestionIds && initialQuestionIds.length > 0) {
+    // If activity has selectedQuestions, use them directly (no API call needed)
+    if (activity?.selectedQuestions && activity.selectedQuestions.length > 0) {
       setLoadingInitialQuestions(true);
-      fetchQuestionsByIds(initialQuestionIds)
+      const previewQuestions = activity.selectedQuestions.map((q) =>
+        convertQuestionToPreview(q)
+      );
+      setQuestions(previewQuestions);
+      hasFirstSaveBeenDone.current = true; // Mark as saved if loading from activity
+      lastSavedQuestionsRef.current = previewQuestions;
+      setLoadingInitialQuestions(false);
+      return;
+    }
+
+    // Otherwise, load questions by IDs via API
+    const questionIdsToLoad = activity?.questionIds || initialQuestionIds;
+    if (questionIdsToLoad && questionIdsToLoad.length > 0) {
+      setLoadingInitialQuestions(true);
+      fetchQuestionsByIds(questionIdsToLoad)
         .then((loadedQuestions) => {
           const previewQuestions = loadedQuestions.map((q) =>
             convertQuestionToPreview(q)
           );
           setQuestions(previewQuestions);
+          hasFirstSaveBeenDone.current = true; // Mark as saved if loading from activity
+          lastSavedQuestionsRef.current = previewQuestions;
         })
         .catch((error) => {
           console.error('Erro ao carregar questões iniciais:', error);
@@ -316,7 +432,37 @@ const CreateActivity = ({
           setLoadingInitialQuestions(false);
         });
     }
-  }, []); // Only run once on mount
+  }, [
+    activity?.selectedQuestions,
+    activity?.questionIds,
+    initialQuestionIds,
+    fetchQuestionsByIds,
+    convertQuestionToPreview,
+  ]);
+
+  /**
+   * Initialize filters and applied filters when activity is provided
+   */
+  useEffect(() => {
+    if (activity?.filters) {
+      const activityFiltersData = convertBackendFiltersToActivityFiltersData(
+        activity.filters
+      );
+      if (activityFiltersData) {
+        // Set draft filters first
+        setDraftFilters(activityFiltersData);
+        // Apply filters immediately so the list loads correctly
+        applyFilters();
+        // Store in ref to prevent unnecessary saves
+        lastSavedFiltersRef.current = activityFiltersData;
+      }
+    }
+  }, [
+    activity?.filters,
+    setDraftFilters,
+    applyFilters,
+    convertBackendFiltersToActivityFiltersData,
+  ]);
 
   // Store saveDraft in ref to avoid recreating useEffect when it changes
   const saveDraftRef = useRef(saveDraft);
@@ -453,7 +599,7 @@ const CreateActivity = ({
         <section className="flex flex-col gap-0.5 w-full">
           <div className="flex flex-row items-center justify-between w-full text-text-950">
             <Text size="lg" weight="bold">
-              Criar atividade
+              {activity ? 'Editar atividade' : 'Criar atividade'}
             </Text>
 
             <div className="flex flex-row gap-4 items-center">
