@@ -556,63 +556,31 @@ const CreateActivity = ({
   );
 
   /**
-   * API response interfaces for categories data
+   * Minimal types for categories data - only what we actually use
    */
-  interface School {
+  type School = {
     id: string;
-    institutionId: string;
-    document: string;
-    stateRegistration: string;
     companyName: string;
-    phone: string;
-    email: string;
-    active: boolean;
-    street: string;
-    streetNumber: string;
-    neighborhood: string;
-    complement: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    trailId: string;
-    createdAt: string;
-    updatedAt: string;
-  }
+  };
 
-  interface SchoolYear {
+  type SchoolYear = {
     id: string;
     name: string;
-    institutionId: string;
     schoolId: string;
-    createdAt: string;
-    updatedAt: string;
-  }
+  };
 
-  interface Class {
+  type Class = {
     id: string;
     name: string;
-    shift: string;
-    institutionId: string;
-    schoolId: string;
     schoolYearId: string;
-    createdAt: string;
-    updatedAt: string;
-  }
+  };
 
-  interface Student {
+  type Student = {
     id: string;
-    email: string;
     name: string;
-    active: boolean;
-    createdAt: string;
-    updatedAt: string;
-    userInstitutionId: string;
-    institutionId: string;
-    schoolId: string;
-    schoolYearId: string;
     classId: string;
-    profileId: string;
-  }
+    userInstitutionId: string;
+  };
 
   /**
    * Load categories data from API and transform to CategoryConfig format
