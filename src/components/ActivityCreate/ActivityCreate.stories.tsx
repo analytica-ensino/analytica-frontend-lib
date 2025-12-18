@@ -9,6 +9,7 @@ import {
   DIFFICULTY_LEVEL_ENUM,
   QUESTION_STATUS_ENUM,
 } from '../../types/questions';
+import { Toaster } from '../..';
 
 // Helper function to create mock API client with custom question types
 const createMockApiClient = (
@@ -625,7 +626,11 @@ export const WithInitialQuestions: Story = () => {
     title: 'Rascunho com questões iniciais',
     subjectId: 'matematica',
     filters: {},
-    questionIds: ['initial-question-1', 'initial-question-2', 'initial-question-3'],
+    questionIds: [
+      'initial-question-1',
+      'initial-question-2',
+      'initial-question-3',
+    ],
     selectedQuestions: mockQuestions,
   };
 
@@ -943,3 +948,40 @@ export const LoadingState: Story = () => {
 };
 
 LoadingState.storyName = 'Loading State (Skeleton)';
+
+export const WithSaveError: Story = () => {
+  const errorApiClient = {
+    ...mockApiClientAllTypes,
+    post: async (url: string, _body: unknown) => {
+      if (url === '/activity-drafts') {
+        throw new Error('Network error: Failed to save draft');
+      }
+      return mockApiClientAllTypes.post(
+        url,
+        _body as Record<string, unknown> | undefined
+      );
+    },
+    patch: async (url: string, _body: unknown) => {
+      if (url.startsWith('/activity-drafts/')) {
+        throw new Error('Server error: Unable to update draft');
+      }
+      return mockApiClientAllTypes.patch(
+        url,
+        _body as Record<string, unknown> | undefined
+      );
+    },
+  } as BaseApiClient;
+
+  return (
+    <>
+      <CreateActivity
+        apiClient={errorApiClient}
+        institutionId="institution-1"
+        isDark={false}
+      />
+      <Toaster />
+    </>
+  );
+};
+
+WithSaveError.storyName = 'With Save Error (Shows Toast)';

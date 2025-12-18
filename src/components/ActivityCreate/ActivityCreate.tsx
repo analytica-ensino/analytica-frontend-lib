@@ -12,6 +12,7 @@ import {
   QUESTION_TYPE,
   SendActivityModal,
   CategoryConfig,
+  useToastStore,
 } from '../..';
 import type {
   ActivityFiltersData,
@@ -103,6 +104,8 @@ const CreateActivity = ({
   const setDraftFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.setDraftFilters
   );
+
+  const addToast = useToastStore((state) => state.addToast);
 
   const handleFiltersChange = useCallback(
     (filters: ActivityFiltersData) => {
@@ -306,6 +309,19 @@ const CreateActivity = ({
       }
     } catch (error) {
       console.error('❌ Erro ao salvar rascunho:', error);
+
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Ocorreu um erro ao salvar o rascunho. Tente novamente.';
+
+      addToast({
+        title: 'Erro ao salvar rascunho',
+        description: errorMessage,
+        variant: 'solid',
+        action: 'warning',
+        position: 'top-right',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -320,6 +336,7 @@ const CreateActivity = ({
     generateTitle,
     convertFiltersToBackendFormat,
     onActivityChange,
+    addToast,
   ]);
 
   /**
