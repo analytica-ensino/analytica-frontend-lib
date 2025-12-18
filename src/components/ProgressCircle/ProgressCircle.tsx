@@ -17,14 +17,14 @@ type ProgressCircleVariant = 'blue' | 'green';
  */
 const SIZE_CLASSES = {
   small: {
-    container: 'w-[90px] h-[90px]', // 90px circle from design specs
+    container: 'w-[107px] h-[107px]', // 107px circle to fit labels like "CONCLUÍDO"
     strokeWidth: 4, // 4px stroke width - matches ProgressBar small (h-1)
     textSize: '2xl', // 24px for percentage (font-size: 24px)
     textWeight: 'medium', // font-weight: 500
-    labelSize: '2xs' as const, // Will be overridden with custom 8px in className
+    labelSize: '2xs' as const, // 10px for status label
     labelWeight: 'bold', // font-weight: 700
     spacing: 'gap-0', // Reduced gap between percentage and label for better spacing
-    contentWidth: 'max-w-[50px]', // Reduced width to fit text inside circle
+    contentWidth: 'max-w-[85px]', // Width to fit labels like "CONCLUÍDO" inside circle
   },
   medium: {
     container: 'w-[152px] h-[152px]', // 151.67px ≈ 152px circle from design specs
@@ -124,11 +124,13 @@ const ProgressCircle = ({
   const variantClasses = VARIANT_CLASSES[variant];
 
   // Calculate SVG dimensions and stroke properties
-  const radius = size === 'small' ? 37 : 64; // Radius calculation based on container size
+  // small: 107px container, radius = (107 - strokeWidth*2) / 2 ≈ 49.5, center = 53.5
+  // medium: 152px container, radius = 64, center = 76
+  const radius = size === 'small' ? 49 : 64;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
-  const center = size === 'small' ? 45 : 76; // Center point of SVG
-  const svgSize = size === 'small' ? 90 : 152; // SVG viewBox size
+  const center = size === 'small' ? 53.5 : 76;
+  const svgSize = size === 'small' ? 107 : 152;
 
   return (
     <div

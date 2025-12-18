@@ -115,12 +115,25 @@ export default defineConfig({
 
     // SendActivityModal
     'SendActivityModal/index': 'src/components/SendActivityModal/index.ts',
+    'SendActivityModal/types': 'src/components/SendActivityModal/types.ts',
+    'SendActivityModal/validation':
+      'src/components/SendActivityModal/validation.ts',
+    'SendActivityModal/hooks/useSendActivityModal':
+      'src/components/SendActivityModal/hooks/useSendActivityModal.ts',
+    'SendActivityModal/SendActivityModal':
+      'src/components/SendActivityModal/SendActivityModal.tsx',
 
     // RecommendedLessonsHistory
     'RecommendedLessonsHistory/index':
       'src/components/RecommendedLessonsHistory/index.ts',
     'hooks/useRecommendedLessons/index': 'src/hooks/useRecommendedLessons.ts',
     'types/recommendedLessons/index': 'src/types/recommendedLessons.ts',
+
+    // RecommendedLessonDetails
+    'RecommendedLessonDetails/index':
+      'src/components/RecommendedLessonDetails/index.ts',
+    'hooks/useRecommendedLessonDetails/index':
+      'src/hooks/useRecommendedLessonDetails.ts',
 
     // Styles
     styles: 'src/styles.css',

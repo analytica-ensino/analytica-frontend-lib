@@ -48,6 +48,18 @@ export interface SendActivityFormData {
 }
 
 /**
+ * Initial data for pre-filling the modal form
+ */
+export interface SendActivityModalInitialData {
+  /** Pre-filled activity title */
+  title?: string;
+  /** Pre-filled activity subtype */
+  subtype?: ActivitySubtype;
+  /** Pre-filled notification message */
+  notification?: string;
+}
+
+/**
  * Modal props
  */
 export interface SendActivityModalProps {
@@ -65,6 +77,8 @@ export interface SendActivityModalProps {
   isLoading?: boolean;
   /** Callback when submission fails (optional - if not provided, error propagates) */
   onError?: (error: unknown) => void;
+  /** Initial data to pre-fill the form */
+  initialData?: SendActivityModalInitialData;
 }
 
 /**
