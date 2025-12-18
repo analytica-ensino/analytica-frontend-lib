@@ -27,6 +27,7 @@ import { areFiltersEqual } from '../../utils/activityFilters';
 import type {
   ActivityDraftResponse,
   ActivityData,
+  BackendFiltersFormat,
 } from './ActivityCreate.types';
 import { ActivityType } from './ActivityCreate.types';
 import {
@@ -312,66 +313,83 @@ const CreateActivity = ({
   });
 
   /**
-   * Save draft to backend
+   * Validate if save conditions are met
+   *
+   * @returns true if save can proceed, false otherwise
    */
-  const saveDraft = useCallback(async () => {
+  const validateSaveConditions = useCallback((): boolean => {
     if (questions.length === 0 && !hasFirstSaveBeenDone.current) {
-      return;
+      return false;
     }
-
     if (!appliedFilters || appliedFilters.knowledgeIds.length === 0) {
-      return;
+      return false;
     }
-
-    if (loadingInitialQuestions) {
-      return;
+    if (loadingInitialQuestions || isSaving) {
+      return false;
     }
+    return true;
+  }, [questions.length, appliedFilters, loadingInitialQuestions, isSaving]);
 
-    if (isSaving) {
-      return;
-    }
+  /**
+   * Create draft payload for API request
+   *
+   * @returns Draft payload object
+   */
+  const createDraftPayload = useCallback(() => {
+    const subjectId = appliedFilters!.knowledgeIds[0];
+    const title = generateTitle(activityType, subjectId, knowledgeAreas);
+    const filters = convertFiltersToBackendFormat(appliedFilters!);
+    const questionIds = questions.map((q) => q.id);
 
-    setIsSaving(true);
+    return {
+      type: activityType,
+      title,
+      subjectId,
+      filters,
+      questionIds,
+    };
+  }, [appliedFilters, activityType, knowledgeAreas, questions]);
 
-    try {
-      const subjectId = appliedFilters.knowledgeIds[0];
-      const title = generateTitle(activityType, subjectId, knowledgeAreas);
-      const filters = convertFiltersToBackendFormat(appliedFilters);
-      const questionIds = questions.map((q) => q.id);
-
-      const payload = {
-        type: activityType,
-        title,
-        subjectId,
-        filters,
-        questionIds,
-      };
-
-      let response: { data: ActivityDraftResponse };
-      if (draftId) {
-        await apiClient.patch<ActivityDraftResponse>(
-          `/activity-drafts/${draftId}`,
-          payload
-        );
-        lastSavedQuestionsRef.current = questions;
-        lastSavedFiltersRef.current = appliedFilters;
-        setLastSavedAt(new Date());
-        return;
-      }
-
-      response = await apiClient.post<ActivityDraftResponse>(
-        '/activity-drafts',
+  /**
+   * Update existing draft via PATCH
+   *
+   * @param payload - Draft payload to send
+   */
+  const updateExistingDraft = useCallback(
+    async (payload: {
+      type: ActivityType;
+      title: string;
+      subjectId: string;
+      filters: BackendFiltersFormat;
+      questionIds: string[];
+    }) => {
+      await apiClient.patch<ActivityDraftResponse>(
+        `/activity-drafts/${draftId}`,
         payload
       );
-      hasFirstSaveBeenDone.current = true;
+      lastSavedQuestionsRef.current = questions;
+      lastSavedFiltersRef.current = appliedFilters!;
+      setLastSavedAt(new Date());
+    },
+    [draftId, apiClient, questions, appliedFilters]
+  );
 
-      // Validate response structure
+  /**
+   * Extract draft from API response
+   *
+   * @param response - API response object
+   * @returns Extracted draft object
+   * @throws Error if draft cannot be extracted
+   */
+  const extractDraftFromResponse = useCallback(
+    (response: {
+      data: ActivityDraftResponse;
+    }): ActivityDraftResponse['data']['draft'] => {
       if (!response?.data) {
         console.error('❌ Resposta vazia da API ao criar rascunho:', response);
         throw new Error('Invalid response: empty response from API');
       }
 
-      // Extract draft from response - handle different possible structures
       let savedDraft: ActivityDraftResponse['data']['draft'] | undefined;
 
       if (response.data.data?.draft) {
@@ -381,7 +399,6 @@ const CreateActivity = ({
         'draft' in response.data &&
         typeof response.data === 'object'
       ) {
-        // Handle case where response.data might be the draft directly
         savedDraft = (
           response.data as unknown as {
             draft: ActivityDraftResponse['data']['draft'];
@@ -403,13 +420,23 @@ const CreateActivity = ({
           'Invalid response: draft data is missing. Expected structure: response.data.data.draft'
         );
       }
-      const savedDraftId = savedDraft.id;
 
-      setDraftId(savedDraftId);
+      return savedDraft;
+    },
+    []
+  );
 
+  /**
+   * Update component state after successful draft save
+   *
+   * @param savedDraft - Saved draft object from API
+   */
+  const updateStateAfterSave = useCallback(
+    (savedDraft: ActivityDraftResponse['data']['draft']) => {
+      setDraftId(savedDraft.id);
       setLastSavedAt(new Date());
       lastSavedQuestionsRef.current = questions;
-      lastSavedFiltersRef.current = appliedFilters;
+      lastSavedFiltersRef.current = appliedFilters!;
 
       if (onActivityChange) {
         const updatedActivity: ActivityData = {
@@ -422,6 +449,36 @@ const CreateActivity = ({
         };
         onActivityChange(updatedActivity);
       }
+    },
+    [questions, appliedFilters, onActivityChange]
+  );
+
+  /**
+   * Save draft to backend
+   */
+  const saveDraft = useCallback(async () => {
+    if (!validateSaveConditions()) {
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const payload = createDraftPayload();
+
+      if (draftId) {
+        await updateExistingDraft(payload);
+        return;
+      }
+
+      const response = await apiClient.post<ActivityDraftResponse>(
+        '/activity-drafts',
+        payload
+      );
+      hasFirstSaveBeenDone.current = true;
+
+      const savedDraft = extractDraftFromResponse(response);
+      updateStateAfterSave(savedDraft);
     } catch (error) {
       console.error('❌ Erro ao salvar rascunho:', error);
 
@@ -441,16 +498,14 @@ const CreateActivity = ({
       setIsSaving(false);
     }
   }, [
-    questions,
-    appliedFilters,
-    activityType,
+    validateSaveConditions,
+    createDraftPayload,
     draftId,
-    loadingInitialQuestions,
-    isSaving,
+    updateExistingDraft,
     apiClient,
-    onActivityChange,
+    extractDraftFromResponse,
+    updateStateAfterSave,
     addToast,
-    knowledgeAreas,
   ]);
 
   /**
