@@ -206,6 +206,7 @@ jest.mock('../../utils/activityFilters', () => ({
 const mockApplyFilters = jest.fn();
 const mockSetDraftFilters = jest.fn();
 const mockLoadKnowledgeAreas = jest.fn();
+const mockAddToast = jest.fn();
 
 let mockDraftFilters: ActivityFiltersData | null = null;
 let mockAppliedFilters: ActivityFiltersData | null = null;
@@ -346,6 +347,14 @@ jest.mock('../..', () => {
       };
       return selector(mockState);
     },
+    useToastStore: (selector: (state: unknown) => unknown) => {
+      const mockState = {
+        toasts: [],
+        addToast: mockAddToast,
+        removeToast: jest.fn(),
+      };
+      return selector(mockState);
+    },
     createUseQuestionsList: () => () => mockUseQuestionsListReturn,
     createUseActivityFiltersData: () => () => mockUseActivityFiltersDataReturn,
   };
@@ -372,6 +381,7 @@ describe('CreateActivity', () => {
     mockAppliedFilters = null;
     mockConsoleLog.mockClear();
     mockConsoleError.mockClear();
+    mockAddToast.mockClear();
   });
 
   afterEach(() => {
@@ -833,6 +843,70 @@ describe('CreateActivity', () => {
           '❌ Erro ao salvar rascunho:',
           expect.any(Error)
         );
+      });
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Erro ao salvar rascunho',
+          description: 'Save failed',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+      });
+    });
+
+    it('should show toast with default message when error has no message', async () => {
+      mockApiClient.post = jest.fn().mockRejectedValue({});
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Erro ao salvar rascunho',
+          description: 'Ocorreu um erro ao salvar o rascunho. Tente novamente.',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+      });
+    });
+
+    it('should show toast error when PATCH fails', async () => {
+      const error = new Error('Server error: Unable to update draft');
+      mockApiClient.patch = jest.fn().mockRejectedValue(error);
+
+      const activity: ActivityData = {
+        id: 'draft1',
+        type: 'RASCUNHO',
+        title: 'Test',
+        subjectId: 'subject1',
+        filters: {},
+        questionIds: [],
+      };
+
+      render(<CreateActivity {...defaultProps} activity={activity} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Erro ao salvar rascunho',
+          description: 'Server error: Unable to update draft',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
       });
     });
 
