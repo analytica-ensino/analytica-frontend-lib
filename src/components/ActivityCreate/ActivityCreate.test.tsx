@@ -16,6 +16,30 @@ import type {
   QuestionActivity,
 } from '../..';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
+import {
+  QUESTION_STATUS_ENUM,
+  DIFFICULTY_LEVEL_ENUM,
+} from '../../types/questions';
+
+// Helper function to create a mock Question with all required fields
+const createMockQuestion = (
+  overrides: Partial<QuestionActivity> = {}
+): QuestionActivity => {
+  return {
+    id: 'q1',
+    statement: 'Test question',
+    description: null,
+    questionType: QUESTION_TYPE.ALTERNATIVA,
+    status: QUESTION_STATUS_ENUM.APROVADO,
+    difficultyLevel: DIFFICULTY_LEVEL_ENUM.MEDIO,
+    questionBankYearId: 'bankYear1',
+    solutionExplanation: null,
+    createdAt: '2025-01-01T00:00:00Z',
+    updatedAt: '2025-01-01T00:00:00Z',
+    options: [],
+    ...overrides,
+  };
+};
 
 // Mock console methods to avoid noise in tests
 const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -110,14 +134,7 @@ jest.mock('../ActivityListQuestions/ActivityListQuestions', () => ({
     <div data-testid="activity-list-questions">
       <button
         data-testid="add-question"
-        onClick={() =>
-          onAddQuestion({
-            id: 'q1',
-            statement: 'Test question',
-            questionType: QUESTION_TYPE.ALTERNATIVA,
-            options: [],
-          } as QuestionActivity)
-        }
+        onClick={() => onAddQuestion(createMockQuestion())}
       >
         Add Question
       </button>
@@ -567,12 +584,10 @@ describe('CreateActivity', () => {
   describe('Loading Initial Questions', () => {
     it('should load questions from activity.selectedQuestions', async () => {
       const questions: QuestionActivity[] = [
-        {
+        createMockQuestion({
           id: 'q1',
           statement: 'Question 1',
-          questionType: QUESTION_TYPE.ALTERNATIVA,
-          options: [],
-        },
+        }),
       ];
 
       const activity: ActivityData = {
@@ -594,12 +609,10 @@ describe('CreateActivity', () => {
 
     it('should load questions from activity.questionIds via API', async () => {
       const questions: QuestionActivity[] = [
-        {
+        createMockQuestion({
           id: 'q1',
           statement: 'Question 1',
-          questionType: QUESTION_TYPE.ALTERNATIVA,
-          options: [],
-        },
+        }),
       ];
 
       mockFetchQuestionsByIds.mockResolvedValue(questions);
@@ -626,12 +639,10 @@ describe('CreateActivity', () => {
 
     it('should load questions from initialQuestionIds via API', async () => {
       const questions: QuestionActivity[] = [
-        {
+        createMockQuestion({
           id: 'q1',
           statement: 'Question 1',
-          questionType: QUESTION_TYPE.ALTERNATIVA,
-          options: [],
-        },
+        }),
       ];
 
       mockFetchQuestionsByIds.mockResolvedValue(questions);
@@ -1004,14 +1015,16 @@ describe('CreateActivity', () => {
       };
 
       mockApiClient.get = jest.fn((url: string) => {
-        if (url === '/school') return Promise.resolve(mockSchoolsResponse);
+        if (url === '/school')
+          return Promise.resolve(mockSchoolsResponse as never);
         if (url === '/schoolYear')
-          return Promise.resolve(mockSchoolYearsResponse);
-        if (url === '/classes') return Promise.resolve(mockClassesResponse);
+          return Promise.resolve(mockSchoolYearsResponse as never);
+        if (url === '/classes')
+          return Promise.resolve(mockClassesResponse as never);
         if (url === '/students?page=1&limit=100')
-          return Promise.resolve(mockStudentsResponse);
+          return Promise.resolve(mockStudentsResponse as never);
         return Promise.reject(new Error('Unknown endpoint'));
-      });
+      }) as typeof mockApiClient.get;
 
       render(<CreateActivity {...defaultProps} />);
 
@@ -1130,14 +1143,16 @@ describe('CreateActivity', () => {
       };
 
       mockApiClient.get = jest.fn((url: string) => {
-        if (url === '/school') return Promise.resolve(mockSchoolsResponse);
+        if (url === '/school')
+          return Promise.resolve(mockSchoolsResponse as never);
         if (url === '/schoolYear')
-          return Promise.resolve(mockSchoolYearsResponse);
-        if (url === '/classes') return Promise.resolve(mockClassesResponse);
+          return Promise.resolve(mockSchoolYearsResponse as never);
+        if (url === '/classes')
+          return Promise.resolve(mockClassesResponse as never);
         if (url === '/students?page=1&limit=100')
-          return Promise.resolve(mockStudentsResponse);
+          return Promise.resolve(mockStudentsResponse as never);
         return Promise.reject(new Error('Unknown endpoint'));
-      });
+      }) as typeof mockApiClient.get;
 
       render(<CreateActivity {...defaultProps} />);
 
@@ -1508,11 +1523,11 @@ describe('CreateActivity', () => {
 
     it('should handle question without options', () => {
       const questions: QuestionActivity[] = [
-        {
+        createMockQuestion({
           id: 'q1',
           statement: 'Question 1',
           questionType: QUESTION_TYPE.DISSERTATIVA,
-        },
+        }),
       ];
 
       const activity: ActivityData = {
@@ -1532,7 +1547,7 @@ describe('CreateActivity', () => {
 
     it('should handle question with knowledgeMatrix', () => {
       const questions: QuestionActivity[] = [
-        {
+        createMockQuestion({
           id: 'q1',
           statement: 'Question 1',
           questionType: QUESTION_TYPE.ALTERNATIVA,
@@ -1547,7 +1562,7 @@ describe('CreateActivity', () => {
               },
             },
           ],
-        },
+        }),
       ];
 
       const activity: ActivityData = {
