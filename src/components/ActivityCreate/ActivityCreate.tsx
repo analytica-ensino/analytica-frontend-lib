@@ -11,6 +11,8 @@ import {
   SkeletonCard,
   createUseActivityFiltersData,
   QUESTION_TYPE,
+  SendActivityModal,
+  CategoryConfig,
 } from '../..';
 import type {
   ActivityFiltersData,
@@ -18,6 +20,7 @@ import type {
   PreviewQuestion,
   QuestionActivity as Question,
   QuestionFiltersState,
+  SendActivityFormData,
 } from '../..';
 import { CaretLeft, PaperPlaneTilt, Funnel } from 'phosphor-react';
 import { ActivityListQuestions } from '../ActivityListQuestions/ActivityListQuestions';
@@ -123,6 +126,9 @@ const CreateActivity = ({
   );
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  const [categories, setCategories] = useState<CategoryConfig[]>([]);
+  const [isSendingActivity, setIsSendingActivity] = useState(false);
   const hasFirstSaveBeenDone = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedFiltersRef = useRef<ActivityFiltersData | null>(null);
@@ -585,6 +591,238 @@ const CreateActivity = ({
     setQuestions(orderedQuestions);
   }, []);
 
+  /**
+   * API response interfaces for categories data
+   */
+  interface School {
+    id: string;
+    institutionId: string;
+    document: string;
+    stateRegistration: string;
+    companyName: string;
+    phone: string;
+    email: string;
+    active: boolean;
+    street: string;
+    streetNumber: string;
+    neighborhood: string;
+    complement: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    trailId: string;
+    createdAt: string;
+    updatedAt: string;
+  }
+
+  interface SchoolYear {
+    id: string;
+    name: string;
+    institutionId: string;
+    schoolId: string;
+    createdAt: string;
+    updatedAt: string;
+  }
+
+  interface Class {
+    id: string;
+    name: string;
+    shift: string;
+    institutionId: string;
+    schoolId: string;
+    schoolYearId: string;
+    createdAt: string;
+    updatedAt: string;
+  }
+
+  interface Student {
+    id: string;
+    email: string;
+    name: string;
+    active: boolean;
+    createdAt: string;
+    updatedAt: string;
+    userInstitutionId: string;
+    institutionId: string;
+    schoolId: string;
+    schoolYearId: string;
+    classId: string;
+    profileId: string;
+  }
+
+  /**
+   * Load categories data from API and transform to CategoryConfig format
+   */
+  const loadCategoriesData = useCallback(async () => {
+    if (categories.length > 0) {
+      return; // Already loaded
+    }
+
+    try {
+      // Fetch all data in parallel
+      const [
+        schoolsResponse,
+        schoolYearsResponse,
+        classesResponse,
+        studentsResponse,
+      ] = await Promise.all([
+        apiClient.get<{ message: string; data: { schools: School[] } }>(
+          '/school'
+        ),
+        apiClient.get<{
+          message: string;
+          data: { schoolYears: SchoolYear[] };
+        }>('/schoolYear'),
+        apiClient.get<{
+          message: string;
+          data: { classes: Class[] };
+        }>('/classes'),
+        apiClient.get<{
+          message: string;
+          data: { students: Student[]; pagination: unknown };
+        }>('/students?page=1&limit=100'),
+      ]);
+
+      const schools = schoolsResponse.data.data.schools;
+      const schoolYears = schoolYearsResponse.data.data.schoolYears;
+      const classes = classesResponse.data.data.classes;
+      const students = studentsResponse.data.data.students;
+
+      // Transform to CategoryConfig format
+      const transformedCategories: CategoryConfig[] = [
+        {
+          key: 'escola',
+          label: 'Escola',
+          itens: schools.map((s) => ({ id: s.id, name: s.companyName })),
+          selectedIds: [],
+        },
+        {
+          key: 'serie',
+          label: 'Série',
+          dependsOn: ['escola'],
+          filteredBy: [{ key: 'escola', internalField: 'schoolId' }],
+          itens: schoolYears.map((sy) => ({
+            id: sy.id,
+            name: sy.name,
+            schoolId: sy.schoolId,
+          })),
+          selectedIds: [],
+        },
+        {
+          key: 'turma',
+          label: 'Turma',
+          dependsOn: ['serie'],
+          filteredBy: [{ key: 'serie', internalField: 'schoolYearId' }],
+          itens: classes.map((c) => ({
+            id: c.id,
+            name: c.name,
+            schoolYearId: c.schoolYearId,
+          })),
+          selectedIds: [],
+        },
+        {
+          key: 'alunos',
+          label: 'Alunos',
+          dependsOn: ['turma'],
+          filteredBy: [{ key: 'turma', internalField: 'classId' }],
+          itens: students.map((s) => ({
+            id: s.id,
+            name: s.name,
+            classId: s.classId,
+            studentId: s.id,
+            userInstitutionId: s.userInstitutionId,
+          })),
+          selectedIds: [],
+        },
+      ];
+
+      setCategories(transformedCategories);
+    } catch (error) {
+      console.error('Erro ao carregar categorias:', error);
+      throw error;
+    }
+  }, [apiClient, categories.length]);
+
+  /**
+   * Handle opening the send activity modal
+   */
+  const handleOpenSendModal = useCallback(async () => {
+    // Validate that there are questions selected
+    if (questions.length === 0) {
+      alert(
+        'Por favor, adicione pelo menos uma questão à atividade antes de enviar.'
+      );
+      return;
+    }
+
+    try {
+      // Load categories if not already loaded
+      if (categories.length === 0) {
+        await loadCategoriesData();
+      }
+      setIsSendModalOpen(true);
+    } catch (error) {
+      console.error('Erro ao abrir modal de envio:', error);
+      alert('Erro ao carregar dados. Por favor, tente novamente.');
+    }
+  }, [questions.length, categories.length, loadCategoriesData]);
+
+  /**
+   * Handle sending activity to students
+   */
+  const handleSendActivity = useCallback(
+    async (formData: SendActivityFormData) => {
+      setIsSendingActivity(true);
+      try {
+        // Get subjectId from activity or applied filters
+        const subjectId =
+          activity?.subjectId || appliedFilters?.knowledgeIds[0];
+        if (!subjectId) {
+          throw new Error('Subject ID não encontrado');
+        }
+
+        // Combine date and time into ISO format
+        const startDateTime = new Date(
+          `${formData.startDate}T${formData.startTime}`
+        ).toISOString();
+        const finalDateTime = new Date(
+          `${formData.finalDate}T${formData.finalTime}`
+        ).toISOString();
+
+        // Prepare activity payload
+        const activityPayload = {
+          createdBySys: false,
+          title: formData.title,
+          subjectId: subjectId,
+          questionIds: questions.map((q) => q.id),
+          subtype: formData.subtype,
+          difficulty: '',
+          notification: formData.notification || '',
+          status: 'A_VENCER' as const,
+          startDate: startDateTime,
+          finalDate: finalDateTime,
+          canRetry: formData.canRetry,
+        };
+
+        // Create activity
+        await apiClient.post('/activities', activityPayload);
+
+        // Send to students
+        await apiClient.post('/activities/send-to-students', activityPayload);
+
+        // Close modal and show success message
+        setIsSendModalOpen(false);
+        alert('Atividade enviada com sucesso!');
+      } catch (error) {
+        console.error('Erro ao enviar atividade:', error);
+        throw error; // Let the modal handle the error display
+      } finally {
+        setIsSendingActivity(false);
+      }
+    },
+    [activity, appliedFilters, questions, apiClient]
+  );
+
   const addedQuestionIds = useMemo(
     () => questions.map((q) => q.id),
     [questions]
@@ -745,7 +983,12 @@ const CreateActivity = ({
               <Button size="small" onClick={handleSaveModel}>
                 Salvar modelo
               </Button>
-              <Button size="small" iconLeft={<PaperPlaneTilt />}>
+              <Button
+                size="small"
+                iconLeft={<PaperPlaneTilt />}
+                onClick={handleOpenSendModal}
+                disabled={questions.length === 0}
+              >
                 Enviar atividade
               </Button>
             </div>
@@ -820,6 +1063,19 @@ const CreateActivity = ({
           )}
         </div>
       </div>
+
+      {/* Send Activity Modal */}
+      <SendActivityModal
+        isOpen={isSendModalOpen}
+        onClose={() => setIsSendModalOpen(false)}
+        onSubmit={handleSendActivity}
+        categories={categories}
+        isLoading={isSendingActivity}
+        onError={(error) => {
+          console.error('Erro ao enviar atividade:', error);
+          alert('Erro ao enviar atividade. Por favor, tente novamente.');
+        }}
+      />
     </div>
   );
 };

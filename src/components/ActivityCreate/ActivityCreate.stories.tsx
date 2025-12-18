@@ -70,10 +70,180 @@ const createMockApiClient = (
         };
       }
 
+      // Mock school endpoint
+      if (url === '/school') {
+        return {
+          data: {
+            message: 'Escolas obtidas com sucesso',
+            data: {
+              schools: [
+                {
+                  id: 'school-1',
+                  institutionId: 'institution-1',
+                  document: '12345678000188',
+                  stateRegistration: '123456789',
+                  companyName: 'Escola BNCC Unificada LTDA',
+                  phone: '(11) 8765-4321',
+                  email: 'escola@institutobncc.edu.br',
+                  active: true,
+                  street: 'Avenida dos Estudantes',
+                  streetNumber: '456',
+                  neighborhood: 'Vila Educação',
+                  complement: 'Prédio Principal',
+                  city: 'São Paulo',
+                  state: 'SP',
+                  zipCode: '01234-890',
+                  trailId: 'trail-1',
+                  createdAt: '2025-12-12T19:16:24.380Z',
+                  updatedAt: '2025-12-12T19:16:24.380Z',
+                },
+              ],
+              pagination: {
+                page: 1,
+                limit: 10,
+                total: 1,
+                totalPages: 1,
+                hasNext: false,
+                hasPrev: false,
+              },
+            },
+          },
+        };
+      }
+
+      // Mock schoolYear endpoint
+      if (url === '/schoolYear') {
+        return {
+          data: {
+            message: 'Anos letivos obtidos com sucesso',
+            data: {
+              schoolYears: [
+                {
+                  id: 'year-1',
+                  name: 'Ensino Fundamental',
+                  institutionId: 'institution-1',
+                  schoolId: 'school-1',
+                  createdAt: '2025-12-12T19:16:25.981Z',
+                  updatedAt: '2025-12-12T19:16:25.981Z',
+                },
+              ],
+              pagination: {
+                page: 1,
+                limit: 10,
+                total: 1,
+                totalPages: 1,
+              },
+            },
+          },
+        };
+      }
+
+      // Mock classes endpoint
+      if (url === '/classes') {
+        return {
+          data: {
+            message: 'Classes obtidas com sucesso',
+            data: {
+              classes: [
+                {
+                  id: 'class-1',
+                  name: 'A',
+                  shift: 'Manhã',
+                  institutionId: 'institution-1',
+                  schoolId: 'school-1',
+                  schoolYearId: 'year-1',
+                  createdAt: '2025-12-12T19:16:28.544Z',
+                  updatedAt: '2025-12-12T19:16:28.544Z',
+                },
+              ],
+              pagination: {
+                page: 1,
+                limit: 10,
+                total: 1,
+                totalPages: 1,
+              },
+            },
+          },
+        };
+      }
+
+      // Mock students endpoint
+      if (url === '/students?page=1&limit=100' || url.startsWith('/students')) {
+        return {
+          data: {
+            message: 'Estudantes obtidos com sucesso',
+            data: {
+              students: [
+                {
+                  id: 'student-1',
+                  email: 'aluno1@exemplo-dev.com.br',
+                  name: 'Aluno Exemplo 1',
+                  active: true,
+                  createdAt: '2025-12-12T19:17:48.702Z',
+                  updatedAt: '2025-12-12T19:17:48.702Z',
+                  userInstitutionId: 'ui-1',
+                  institutionId: 'institution-1',
+                  schoolId: 'school-1',
+                  schoolYearId: 'year-1',
+                  classId: 'class-1',
+                  profileId: 'profile-1',
+                },
+                {
+                  id: 'student-2',
+                  email: 'aluno2@exemplo-dev.com.br',
+                  name: 'Aluno Exemplo 2',
+                  active: true,
+                  createdAt: '2025-12-12T19:17:48.702Z',
+                  updatedAt: '2025-12-12T19:17:48.702Z',
+                  userInstitutionId: 'ui-2',
+                  institutionId: 'institution-1',
+                  schoolId: 'school-1',
+                  schoolYearId: 'year-1',
+                  classId: 'class-1',
+                  profileId: 'profile-1',
+                },
+              ],
+              pagination: {
+                page: 1,
+                limit: 100,
+                total: 2,
+                totalPages: 1,
+              },
+            },
+          },
+        };
+      }
+
       return { data: { data: { questionTypes: [] } } };
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     post: async (url: string, _body: any) => {
+      // Handle /activities POST
+      if (url === '/activities') {
+        if (onSaveActivity) {
+          onSaveActivity('POST', url, _body);
+        }
+        return {
+          data: {
+            message: 'Activity created successfully',
+            data: { id: `activity-${Date.now()}` },
+          },
+        };
+      }
+
+      // Handle /activities/send-to-students POST
+      if (url === '/activities/send-to-students') {
+        if (onSaveActivity) {
+          onSaveActivity('POST', url, _body);
+        }
+        return {
+          data: {
+            message: 'Activity sent to students successfully',
+            data: { success: true },
+          },
+        };
+      }
+
       // Handle activity-drafts POST
       if (url === '/activity-drafts' && onSaveActivity) {
         onSaveActivity('POST', url, _body);
