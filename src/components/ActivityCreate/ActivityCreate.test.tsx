@@ -1,14 +1,27 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { CreateActivity } from './ActivityCreate';
 import type { ActivityData, BackendFiltersFormat } from './ActivityCreate';
-import type { BaseApiClient, ActivityFiltersData, PreviewQuestion, QuestionActivity } from '../..';
+import type {
+  BaseApiClient,
+  ActivityFiltersData,
+  PreviewQuestion,
+  QuestionActivity,
+} from '../..';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 
 // Mock console methods to avoid noise in tests
 const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
-const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+const mockConsoleError = jest
+  .spyOn(console, 'error')
+  .mockImplementation(() => {});
 
 // Mock icons
 jest.mock('phosphor-react', () => ({
@@ -153,7 +166,9 @@ jest.mock('../SendActivityModal/SendActivityModal', () => ({
         >
           Submit
         </button>
-        <div data-testid="modal-loading">{isLoading ? 'Loading' : 'Not Loading'}</div>
+        <div data-testid="modal-loading">
+          {isLoading ? 'Loading' : 'Not Loading'}
+        </div>
         <div data-testid="categories-count">{categories.length}</div>
       </div>
     ) : null,
@@ -185,7 +200,12 @@ const mockUseQuestionsListReturn = {
 
 const mockUseActivityFiltersDataReturn = {
   knowledgeAreas: [
-    { id: 'subject1', name: 'Matemática', icon: 'Calculator', color: '#ff0000' },
+    {
+      id: 'subject1',
+      name: 'Matemática',
+      icon: 'Calculator',
+      color: '#ff0000',
+    },
     { id: 'subject2', name: 'Português', icon: 'Book', color: '#00ff00' },
   ],
   loadKnowledgeAreas: mockLoadKnowledgeAreas,
@@ -218,7 +238,7 @@ jest.mock('../../hooks/useActivityFiltersData', () => ({
 jest.mock('../..', () => {
   const React = require('react');
   const actual = jest.requireActual('../..');
-  
+
   const asComponent =
     (tag: keyof React.JSX.IntrinsicElements) =>
     ({
@@ -292,9 +312,12 @@ jest.mock('../..', () => {
       ALTERNATIVA: 'ALTERNATIVA',
       DISSERTATIVA: 'DISSERTATIVA',
     },
-    ActivityFilters: require('../ActivityFilters/ActivityFilters').ActivityFilters,
-    ActivityPreview: require('../ActivityPreview/ActivityPreview').ActivityPreview,
-    SendActivityModal: require('../SendActivityModal/SendActivityModal').SendActivityModal,
+    ActivityFilters: require('../ActivityFilters/ActivityFilters')
+      .ActivityFilters,
+    ActivityPreview: require('../ActivityPreview/ActivityPreview')
+      .ActivityPreview,
+    SendActivityModal: require('../SendActivityModal/SendActivityModal')
+      .SendActivityModal,
     useQuestionFiltersStore: (selector: (state: unknown) => unknown) => {
       const mockState = {
         draftFilters: mockDraftFilters,
@@ -513,7 +536,9 @@ describe('CreateActivity', () => {
 
       const addQuestion2 = () => {
         const listComponent = screen.getByTestId('activity-list-questions');
-        const button = listComponent.querySelector('[data-testid="add-question"]');
+        const button = listComponent.querySelector(
+          '[data-testid="add-question"]'
+        );
         if (button) {
           fireEvent.click(button);
         }
@@ -522,7 +547,9 @@ describe('CreateActivity', () => {
       // Add second question manually by calling the handler
       act(() => {
         const listComponent = screen.getByTestId('activity-list-questions');
-        const addButton = listComponent.querySelector('[data-testid="add-question"]');
+        const addButton = listComponent.querySelector(
+          '[data-testid="add-question"]'
+        );
         if (addButton) {
           fireEvent.click(addButton);
         }
@@ -614,9 +641,7 @@ describe('CreateActivity', () => {
 
       mockFetchQuestionsByIds.mockResolvedValue(questions);
 
-      render(
-        <CreateActivity {...defaultProps} initialQuestionIds={['q1']} />
-      );
+      render(<CreateActivity {...defaultProps} initialQuestionIds={['q1']} />);
 
       await waitFor(() => {
         expect(mockFetchQuestionsByIds).toHaveBeenCalledWith(['q1']);
@@ -626,9 +651,7 @@ describe('CreateActivity', () => {
     it('should handle error when loading questions fails', async () => {
       mockFetchQuestionsByIds.mockRejectedValue(new Error('Failed to load'));
 
-      render(
-        <CreateActivity {...defaultProps} initialQuestionIds={['q1']} />
-      );
+      render(<CreateActivity {...defaultProps} initialQuestionIds={['q1']} />);
 
       await waitFor(() => {
         expect(mockConsoleError).toHaveBeenCalledWith(
@@ -814,10 +837,7 @@ describe('CreateActivity', () => {
       mockApiClient.post = jest.fn().mockResolvedValue(mockResponse);
 
       render(
-        <CreateActivity
-          {...defaultProps}
-          onActivityChange={onActivityChange}
-        />
+        <CreateActivity {...defaultProps} onActivityChange={onActivityChange} />
       );
 
       fireEvent.click(screen.getByTestId('add-question'));
@@ -837,7 +857,9 @@ describe('CreateActivity', () => {
     });
 
     it('should handle save error gracefully', async () => {
-      mockApiClient.post = jest.fn().mockRejectedValue(new Error('Save failed'));
+      mockApiClient.post = jest
+        .fn()
+        .mockRejectedValue(new Error('Save failed'));
 
       render(<CreateActivity {...defaultProps} />);
 
@@ -988,7 +1010,8 @@ describe('CreateActivity', () => {
 
       mockApiClient.get = jest.fn((url: string) => {
         if (url === '/school') return Promise.resolve(mockSchoolsResponse);
-        if (url === '/schoolYear') return Promise.resolve(mockSchoolYearsResponse);
+        if (url === '/schoolYear')
+          return Promise.resolve(mockSchoolYearsResponse);
         if (url === '/classes') return Promise.resolve(mockClassesResponse);
         if (url === '/students?page=1&limit=100')
           return Promise.resolve(mockStudentsResponse);
@@ -1113,7 +1136,8 @@ describe('CreateActivity', () => {
 
       mockApiClient.get = jest.fn((url: string) => {
         if (url === '/school') return Promise.resolve(mockSchoolsResponse);
-        if (url === '/schoolYear') return Promise.resolve(mockSchoolYearsResponse);
+        if (url === '/schoolYear')
+          return Promise.resolve(mockSchoolYearsResponse);
         if (url === '/classes') return Promise.resolve(mockClassesResponse);
         if (url === '/students?page=1&limit=100')
           return Promise.resolve(mockStudentsResponse);
@@ -1130,13 +1154,17 @@ describe('CreateActivity', () => {
         expect(mockApiClient.get).toHaveBeenCalledWith('/school');
         expect(mockApiClient.get).toHaveBeenCalledWith('/schoolYear');
         expect(mockApiClient.get).toHaveBeenCalledWith('/classes');
-        expect(mockApiClient.get).toHaveBeenCalledWith('/students?page=1&limit=100');
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/students?page=1&limit=100'
+        );
       });
     });
 
     it('should handle error when loading categories fails', async () => {
       const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-      mockApiClient.get = jest.fn().mockRejectedValue(new Error('Failed to load'));
+      mockApiClient.get = jest
+        .fn()
+        .mockRejectedValue(new Error('Failed to load'));
 
       render(<CreateActivity {...defaultProps} />);
 
@@ -1157,7 +1185,15 @@ describe('CreateActivity', () => {
       const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
 
       mockApiClient.get = jest.fn().mockResolvedValue({
-        data: { data: { schools: [], schoolYears: [], classes: [], students: [], pagination: {} } },
+        data: {
+          data: {
+            schools: [],
+            schoolYears: [],
+            classes: [],
+            students: [],
+            pagination: {},
+          },
+        },
       });
       mockApiClient.post = jest.fn().mockResolvedValue({});
 
@@ -1193,9 +1229,19 @@ describe('CreateActivity', () => {
 
     it('should handle send error', async () => {
       mockApiClient.get = jest.fn().mockResolvedValue({
-        data: { data: { schools: [], schoolYears: [], classes: [], students: [], pagination: {} } },
+        data: {
+          data: {
+            schools: [],
+            schoolYears: [],
+            classes: [],
+            students: [],
+            pagination: {},
+          },
+        },
       });
-      mockApiClient.post = jest.fn().mockRejectedValue(new Error('Send failed'));
+      mockApiClient.post = jest
+        .fn()
+        .mockRejectedValue(new Error('Send failed'));
 
       render(<CreateActivity {...defaultProps} />);
 
@@ -1219,7 +1265,15 @@ describe('CreateActivity', () => {
 
     it('should close modal when close button is clicked', async () => {
       mockApiClient.get = jest.fn().mockResolvedValue({
-        data: { data: { schools: [], schoolYears: [], classes: [], students: [], pagination: {} } },
+        data: {
+          data: {
+            schools: [],
+            schoolYears: [],
+            classes: [],
+            students: [],
+            pagination: {},
+          },
+        },
       });
 
       render(<CreateActivity {...defaultProps} />);
@@ -1235,7 +1289,9 @@ describe('CreateActivity', () => {
       fireEvent.click(screen.getByTestId('modal-close'));
 
       await waitFor(() => {
-        expect(screen.queryByTestId('send-activity-modal')).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('send-activity-modal')
+        ).not.toBeInTheDocument();
       });
     });
 
@@ -1252,7 +1308,15 @@ describe('CreateActivity', () => {
       };
 
       mockApiClient.get = jest.fn().mockResolvedValue({
-        data: { data: { schools: [], schoolYears: [], classes: [], students: [], pagination: {} } },
+        data: {
+          data: {
+            schools: [],
+            schoolYears: [],
+            classes: [],
+            students: [],
+            pagination: {},
+          },
+        },
       });
       mockApiClient.post = jest.fn().mockResolvedValue({});
 
@@ -1426,14 +1490,15 @@ describe('CreateActivity', () => {
 
       expect(screen.getByTestId('create-activity-page')).toBeInTheDocument();
 
-      mockUseActivityFiltersDataReturn.knowledgeAreas = originalReturn.knowledgeAreas;
+      mockUseActivityFiltersDataReturn.knowledgeAreas =
+        originalReturn.knowledgeAreas;
     });
 
     it('should handle convertFiltersToBackendFormat with null filters', () => {
       // Test the null case in convertFiltersToBackendFormat
       // This is tested indirectly through the component rendering
       render(<CreateActivity {...defaultProps} />);
-      
+
       expect(screen.getByTestId('create-activity-page')).toBeInTheDocument();
     });
 
@@ -1441,7 +1506,7 @@ describe('CreateActivity', () => {
       // This tests the convertFiltersToBackendFormat with null filters
       // The function is called internally, so we test it indirectly
       render(<CreateActivity {...defaultProps} />);
-      
+
       // The component should render without errors even with null filters
       expect(screen.getByTestId('create-activity-page')).toBeInTheDocument();
     });
@@ -1585,4 +1650,3 @@ describe('CreateActivity', () => {
     });
   });
 });
-
