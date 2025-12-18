@@ -698,3 +698,16 @@ export const WithActivityDebug: Story = () => {
 };
 
 WithActivityDebug.storyName = 'With Activity Debug (Logs)';
+
+export const LoadingState: Story = () => {
+  return (
+    <CreateActivity
+      apiClient={mockApiClientAllTypes}
+      institutionId="institution-1"
+      isDark={false}
+      loading={true}
+    />
+  );
+};
+
+LoadingState.storyName = 'Loading State (Skeleton)';
