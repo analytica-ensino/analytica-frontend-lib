@@ -198,7 +198,7 @@ const mockMathLessonData: LessonDetailsData = {
 };
 
 /**
- * Mock questions for lessons
+ * Mock questions for lessons (Biology - Categorias Taxonômicas)
  */
 const mockQuestions = {
   lesson1: [
@@ -206,55 +206,91 @@ const mockQuestions = {
       id: 'q1',
       title: 'Questão 1',
       statement:
-        'Um carro inicia do repouso e se desloca em linha reta com uma aceleração constante de 2 m/s². Calcule a distância que o carro percorre após 5 segundos.',
+        'Qual é a sequência correta das categorias taxonômicas, da mais ampla para a mais específica?',
       isCorrect: false,
       alternatives: [
-        { id: 'a1', text: '10 metros', isCorrect: false, isSelected: false },
-        { id: 'a2', text: '25 metros', isCorrect: true, isSelected: false },
-        { id: 'a3', text: '50 metros', isCorrect: false, isSelected: true },
-        { id: 'a4', text: '100 metros', isCorrect: false, isSelected: false },
+        {
+          id: 'a1',
+          text: 'Espécie, Gênero, Família, Ordem, Classe, Filo, Reino',
+          isCorrect: false,
+          isSelected: false,
+        },
+        {
+          id: 'a2',
+          text: 'Reino, Filo, Classe, Ordem, Família, Gênero, Espécie',
+          isCorrect: true,
+          isSelected: false,
+        },
+        {
+          id: 'a3',
+          text: 'Reino, Classe, Filo, Ordem, Família, Gênero, Espécie',
+          isCorrect: false,
+          isSelected: true,
+        },
+        {
+          id: 'a4',
+          text: 'Filo, Reino, Classe, Ordem, Família, Gênero, Espécie',
+          isCorrect: false,
+          isSelected: false,
+        },
       ],
     },
     {
       id: 'q2',
       title: 'Questão 2',
       statement:
-        'Qual é a unidade de medida da aceleração no Sistema Internacional?',
+        'Quem é considerado o pai da taxonomia moderna e criou o sistema binomial de nomenclatura?',
       isCorrect: true,
       alternatives: [
-        { id: 'b1', text: 'm/s', isCorrect: false, isSelected: false },
-        { id: 'b2', text: 'm/s²', isCorrect: true, isSelected: true },
-        { id: 'b3', text: 'km/h', isCorrect: false, isSelected: false },
-        { id: 'b4', text: 'N', isCorrect: false, isSelected: false },
+        {
+          id: 'b1',
+          text: 'Charles Darwin',
+          isCorrect: false,
+          isSelected: false,
+        },
+        { id: 'b2', text: 'Carl Linnaeus', isCorrect: true, isSelected: true },
+        {
+          id: 'b3',
+          text: 'Gregor Mendel',
+          isCorrect: false,
+          isSelected: false,
+        },
+        {
+          id: 'b4',
+          text: 'Louis Pasteur',
+          isCorrect: false,
+          isSelected: false,
+        },
       ],
     },
     {
       id: 'q3',
       title: 'Questão 3',
-      statement: 'O que é movimento retilíneo uniforme (MRU)?',
+      statement:
+        'No sistema binomial de nomenclatura, como deve ser escrito o nome científico de uma espécie?',
       isCorrect: false,
       alternatives: [
         {
           id: 'c1',
-          text: 'Movimento com velocidade variável',
+          text: 'Ambas as palavras em maiúsculo',
           isCorrect: false,
           isSelected: true,
         },
         {
           id: 'c2',
-          text: 'Movimento com velocidade constante em linha reta',
+          text: 'Gênero com inicial maiúscula e epíteto específico em minúsculo, ambos em itálico',
           isCorrect: true,
           isSelected: false,
         },
         {
           id: 'c3',
-          text: 'Movimento circular',
+          text: 'Ambas as palavras em minúsculo',
           isCorrect: false,
           isSelected: false,
         },
         {
           id: 'c4',
-          text: 'Movimento com aceleração constante',
+          text: 'Apenas o gênero, sem o epíteto específico',
           isCorrect: false,
           isSelected: false,
         },
@@ -263,13 +299,13 @@ const mockQuestions = {
     {
       id: 'q4',
       title: 'Questão 4',
-      statement: 'Qual a fórmula da velocidade média?',
+      statement: 'Qual categoria taxonômica agrupa espécies semelhantes?',
       isCorrect: true,
       alternatives: [
-        { id: 'd1', text: 'v = d/t', isCorrect: true, isSelected: true },
-        { id: 'd2', text: 'v = d×t', isCorrect: false, isSelected: false },
-        { id: 'd3', text: 'v = t/d', isCorrect: false, isSelected: false },
-        { id: 'd4', text: 'v = d²/t', isCorrect: false, isSelected: false },
+        { id: 'd1', text: 'Gênero', isCorrect: true, isSelected: true },
+        { id: 'd2', text: 'Família', isCorrect: false, isSelected: false },
+        { id: 'd3', text: 'Ordem', isCorrect: false, isSelected: false },
+        { id: 'd4', text: 'Reino', isCorrect: false, isSelected: false },
       ],
     },
   ],
@@ -332,12 +368,10 @@ const mockQuestions = {
 const mockStudentPerformanceData: Record<string, StudentPerformanceData> = {
   'student-1': {
     studentName: 'Ana Costa',
-    note: 7.5,
-    completionTime: '15 dias',
     correctAnswers: 5,
     incorrectAnswers: 3,
-    bestResult: 'Fotossíntese',
-    hardestTopic: 'Respiração Celular',
+    bestResult: 'Sistema Binomial',
+    hardestTopic: 'Hierarquia Taxonômica',
     lessons: [
       {
         id: 'lesson-1',
@@ -355,12 +389,10 @@ const mockStudentPerformanceData: Record<string, StudentPerformanceData> = {
   },
   'student-2': {
     studentName: 'Carlos Pereira',
-    note: 8.5,
-    completionTime: '12 dias',
     correctAnswers: 7,
     incorrectAnswers: 2,
-    bestResult: 'Células Vegetais',
-    hardestTopic: 'Mitose',
+    bestResult: 'Vertebrados',
+    hardestTopic: 'Nomenclatura Científica',
     lessons: [
       {
         id: 'lesson-1',
@@ -379,12 +411,10 @@ const mockStudentPerformanceData: Record<string, StudentPerformanceData> = {
   },
   'student-3': {
     studentName: 'Maria Silva',
-    note: 6.0,
-    completionTime: '20 dias',
     correctAnswers: 6,
     incorrectAnswers: 4,
-    bestResult: 'Ecossistemas',
-    hardestTopic: 'Cadeias Alimentares',
+    bestResult: 'Anfíbios',
+    hardestTopic: 'Categorias Taxonômicas',
     lessons: [
       {
         id: 'lesson-1',
@@ -402,12 +432,10 @@ const mockStudentPerformanceData: Record<string, StudentPerformanceData> = {
   },
   'student-4': {
     studentName: 'Lucas Oliveira',
-    note: 9.0,
-    completionTime: '30 dias',
     correctAnswers: 8,
     incorrectAnswers: 7,
-    bestResult: 'Fotossíntese',
-    hardestTopic: 'Células',
+    bestResult: 'Mamíferos',
+    hardestTopic: 'Sistema de Classificação',
     lessons: [
       {
         id: 'lesson-1',
@@ -427,12 +455,10 @@ const mockStudentPerformanceData: Record<string, StudentPerformanceData> = {
   },
   'student-5': {
     studentName: 'Juliana Santos',
-    note: 9.5,
-    completionTime: '10 dias',
     correctAnswers: 9,
     incorrectAnswers: 1,
-    bestResult: 'Genética',
-    hardestTopic: 'DNA',
+    bestResult: 'Reino Animal',
+    hardestTopic: 'Filogenia',
     lessons: [
       {
         id: 'lesson-1',

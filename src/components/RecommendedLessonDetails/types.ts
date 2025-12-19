@@ -87,8 +87,6 @@ export interface LessonProgress {
  */
 export interface StudentPerformanceData {
   studentName: string;
-  note: number | string | null;
-  completionTime: string | null;
   correctAnswers: number;
   incorrectAnswers: number;
   bestResult: string | null;
@@ -101,8 +99,6 @@ export interface StudentPerformanceData {
  */
 export interface StudentPerformanceLabels {
   title: string;
-  noteLabel: string;
-  completionTimeLabel: string;
   correctAnswersLabel: string;
   incorrectAnswersLabel: string;
   bestResultLabel: string;
@@ -115,8 +111,6 @@ export interface StudentPerformanceLabels {
  */
 export const DEFAULT_PERFORMANCE_LABELS: StudentPerformanceLabels = {
   title: 'Desempenho',
-  noteLabel: 'NOTA',
-  completionTimeLabel: 'TEMPO DE CONCLUSÃO',
   correctAnswersLabel: 'N° DE QUESTÕES CORRETAS',
   incorrectAnswersLabel: 'N° DE QUESTÕES INCORRETAS',
   bestResultLabel: 'MELHOR RESULTADO',

@@ -1,11 +1,11 @@
 import { useMemo, type ReactNode } from 'react';
 import {
-  LightbulbFilament as LightbulbFilamentIcon,
-  WarningCircle as WarningCircleIcon,
-  User as UserIcon,
-  CheckCircle,
-  XCircle,
-} from 'phosphor-react';
+  LightbulbFilamentIcon,
+  WarningCircleIcon,
+  UserIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+} from '@phosphor-icons/react';
 import Modal from '../../Modal/Modal';
 import Text from '../../Text/Text';
 import Badge from '../../Badge/Badge';
@@ -162,7 +162,7 @@ const QuestionAccordionItem = ({
           size="small"
           action={question.isCorrect ? 'success' : 'error'}
           variant="solid"
-          iconLeft={question.isCorrect ? <CheckCircle /> : <XCircle />}
+          iconLeft={question.isCorrect ? <CheckCircleIcon /> : <XCircleIcon />}
         >
           {question.isCorrect ? 'Correta' : 'Incorreta'}
         </Badge>
