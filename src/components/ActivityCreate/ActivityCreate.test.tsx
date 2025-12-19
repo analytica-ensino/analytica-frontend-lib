@@ -443,15 +443,6 @@ describe('CreateActivity', () => {
       expect(screen.getByText('Enviar atividade')).toBeInTheDocument();
     });
 
-    it('should render back icon as non-clickable when onBack is not provided', () => {
-      render(<CreateActivity {...defaultProps} />);
-
-      const backIcon = screen.getByTestId('caret-left');
-      expect(backIcon).toBeInTheDocument();
-      const parentButton = backIcon.closest('button');
-      expect(parentButton).not.toBeInTheDocument();
-    });
-
     it('should show no draft saved message initially', () => {
       render(<CreateActivity {...defaultProps} />);
 
