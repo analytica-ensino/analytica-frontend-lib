@@ -120,13 +120,29 @@ const PerformanceCard = ({
 };
 
 /**
+ * Determine the status of an alternative based on correctness and selection
+ */
+const getAlternativeStatus = (
+  isCorrect: boolean,
+  isSelected: boolean
+): 'correct' | 'incorrect' | undefined => {
+  if (isCorrect) {
+    return 'correct';
+  }
+  if (isSelected) {
+    return 'incorrect';
+  }
+  return undefined;
+};
+
+/**
  * Convert question alternatives to AlternativesList format
  */
 const mapAlternatives = (question: LessonQuestion): Alternative[] => {
   return question.alternatives.map((alt) => ({
     value: alt.id,
     label: alt.text,
-    status: alt.isCorrect ? 'correct' : undefined,
+    status: getAlternativeStatus(alt.isCorrect, alt.isSelected),
   }));
 };
 
