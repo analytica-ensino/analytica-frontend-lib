@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import type { MutableRefObject } from 'react';
 import {
   Text,
   Chips,
@@ -42,7 +41,12 @@ const questionTypesFallback = [
   QUESTION_TYPE.PREENCHER,
 ];
 
-// Helper function to check if item has valid bankId
+/**
+ * Type guard to check if an item has a valid bankId
+ * @param item - The item to validate
+ * @param bankIds - Array of valid bank IDs to check against
+ * @returns True if item has valid id and bankId that matches bankIds
+ */
 const isValidBankYearItem = (
   item: unknown,
   bankIds: string[]
@@ -55,7 +59,13 @@ const isValidBankYearItem = (
   );
 };
 
-// Helper function to derive yearIds from bankIds
+/**
+ * Derives year IDs from bank IDs when explicit year IDs are not provided
+ * @param yearItens - Array of year items to filter
+ * @param bankIds - Array of bank IDs to filter by
+ * @param explicitYearIds - Explicitly provided year IDs (takes precedence)
+ * @returns Array of year IDs
+ */
 const deriveYearIdsFromBankIds = (
   yearItens: unknown[],
   bankIds: string[],
@@ -69,7 +79,12 @@ const deriveYearIdsFromBankIds = (
     .map((item) => item.id);
 };
 
-// Helper function to check if bank matches exist
+/**
+ * Checks if bank matches exist in the provided categories
+ * @param bankIds - Array of bank IDs to check
+ * @param bankCategories - Array of category configurations
+ * @returns True if bankIds is empty or matches are found
+ */
 const hasBankMatches = (
   bankIds: string[],
   bankCategories: CategoryConfig[]
@@ -84,7 +99,12 @@ const hasBankMatches = (
   );
 };
 
-// Helper function to check if year matches exist
+/**
+ * Checks if year matches exist in the provided categories
+ * @param derivedYearIds - Array of year IDs to check
+ * @param bankCategories - Array of category configurations
+ * @returns True if derivedYearIds is empty or matches are found
+ */
 const hasYearMatches = (
   derivedYearIds: string[],
   bankCategories: CategoryConfig[]
@@ -99,7 +119,12 @@ const hasYearMatches = (
   );
 };
 
-// Helper function to update bank category with selectedIds
+/**
+ * Updates a bank category with selected IDs based on provided bank IDs
+ * @param category - The category configuration to update
+ * @param bankIds - Array of bank IDs to select
+ * @returns Updated category with selectedIds
+ */
 const updateBankCategory = (
   category: CategoryConfig,
   bankIds: string[]
@@ -111,7 +136,12 @@ const updateBankCategory = (
   return { ...category, selectedIds };
 };
 
-// Helper function to update year category with selectedIds
+/**
+ * Updates a year category with selected IDs based on provided year IDs
+ * @param category - The category configuration to update
+ * @param derivedYearIds - Array of year IDs to select
+ * @returns Updated category with selectedIds
+ */
 const updateYearCategory = (
   category: CategoryConfig,
   derivedYearIds: string[]
@@ -123,7 +153,13 @@ const updateYearCategory = (
   return { ...category, selectedIds };
 };
 
-// Helper function to update bank categories with initial filters
+/**
+ * Updates bank categories with initial filter selections
+ * @param prevCategories - Previous category configurations
+ * @param bankIds - Array of bank IDs to select
+ * @param derivedYearIds - Array of year IDs to select
+ * @returns Updated array of category configurations
+ */
 const updateBankCategoriesWithInitialFilters = (
   prevCategories: CategoryConfig[],
   bankIds: string[],
@@ -140,7 +176,12 @@ const updateBankCategoriesWithInitialFilters = (
   });
 };
 
-// Helper function to get selectedIds for a knowledge category
+/**
+ * Gets selected IDs for a knowledge category based on filter IDs
+ * @param category - The category configuration
+ * @param filterIds - Array of IDs to filter by
+ * @returns Array of selected item IDs
+ */
 const getSelectedIdsForKnowledgeCategory = (
   category: CategoryConfig,
   filterIds: string[]
@@ -150,11 +191,17 @@ const getSelectedIdsForKnowledgeCategory = (
     .map((item) => item.id);
 };
 
-// Helper function to update knowledge category with topic filters
+/**
+ * Updates a knowledge category with topic filter selections
+ * @param category - The category configuration to update
+ * @param topicIds - Array of topic IDs to select
+ * @param hasAppliedTopicsRef - Ref to track if topics have been applied
+ * @returns Object with updated category and changed flag
+ */
 const updateTopicCategory = (
   category: CategoryConfig,
   topicIds: string[],
-  hasAppliedTopicsRef: MutableRefObject<boolean>
+  hasAppliedTopicsRef: { current: boolean }
 ): { category: CategoryConfig; changed: boolean } => {
   const selectedIds = getSelectedIdsForKnowledgeCategory(category, topicIds);
   if (selectedIds.length > 0) {
@@ -164,11 +211,17 @@ const updateTopicCategory = (
   return { category, changed: false };
 };
 
-// Helper function to update knowledge category with subtopic filters
+/**
+ * Updates a knowledge category with subtopic filter selections
+ * @param category - The category configuration to update
+ * @param subtopicIds - Array of subtopic IDs to select
+ * @param hasAppliedSubtopicsRef - Ref to track if subtopics have been applied
+ * @returns Object with updated category and changed flag
+ */
 const updateSubtopicCategory = (
   category: CategoryConfig,
   subtopicIds: string[],
-  hasAppliedSubtopicsRef: MutableRefObject<boolean>
+  hasAppliedSubtopicsRef: { current: boolean }
 ): { category: CategoryConfig; changed: boolean } => {
   const selectedIds = getSelectedIdsForKnowledgeCategory(category, subtopicIds);
   if (selectedIds.length > 0) {
@@ -178,11 +231,17 @@ const updateSubtopicCategory = (
   return { category, changed: false };
 };
 
-// Helper function to update knowledge category with content filters
+/**
+ * Updates a knowledge category with content filter selections
+ * @param category - The category configuration to update
+ * @param contentIds - Array of content IDs to select
+ * @param hasAppliedContentsRef - Ref to track if contents have been applied
+ * @returns Object with updated category and changed flag
+ */
 const updateContentCategory = (
   category: CategoryConfig,
   contentIds: string[],
-  hasAppliedContentsRef: MutableRefObject<boolean>
+  hasAppliedContentsRef: { current: boolean }
 ): { category: CategoryConfig; changed: boolean } => {
   const selectedIds = getSelectedIdsForKnowledgeCategory(category, contentIds);
   if (selectedIds.length > 0) {
@@ -198,6 +257,11 @@ interface QuestionTypeFilterProps {
   allowedQuestionTypes?: QUESTION_TYPE[];
 }
 
+/**
+ * QuestionTypeFilter component for selecting question types
+ * @param props - Component props
+ * @returns JSX element
+ */
 const QuestionTypeFilter = ({
   selectedTypes,
   onToggleType,
@@ -225,7 +289,6 @@ const QuestionTypeFilter = ({
   );
 };
 
-// BanksAndYearsFilter Component
 interface BanksAndYearsFilterProps {
   banks: Bank[];
   bankYears: BankYear[];
@@ -235,6 +298,11 @@ interface BanksAndYearsFilterProps {
   error?: string | null;
 }
 
+/**
+ * BanksAndYearsFilter component for selecting banks and years
+ * @param props - Component props
+ * @returns JSX element
+ */
 const BanksAndYearsFilter = ({
   banks,
   bankYears,
@@ -281,7 +349,6 @@ const BanksAndYearsFilter = ({
   return null;
 };
 
-// SubjectsFilter Component
 interface SubjectsFilterProps {
   knowledgeAreas: KnowledgeArea[];
   selectedSubject: string | null;
@@ -290,6 +357,11 @@ interface SubjectsFilterProps {
   error?: string | null;
 }
 
+/**
+ * SubjectsFilter component for selecting subjects/knowledge areas
+ * @param props - Component props
+ * @returns JSX element
+ */
 const SubjectsFilter = ({
   knowledgeAreas,
   selectedSubject,
@@ -349,13 +421,17 @@ const SubjectsFilter = ({
   );
 };
 
-// KnowledgeStructureFilter Component
 interface KnowledgeStructureFilterProps {
   knowledgeStructure: KnowledgeStructureState;
   knowledgeCategories: CategoryConfig[];
   handleCategoriesChange?: (updatedCategories: CategoryConfig[]) => void;
 }
 
+/**
+ * KnowledgeStructureFilter component for selecting topics, subtopics, and contents
+ * @param props - Component props
+ * @returns JSX element
+ */
 const KnowledgeStructureFilter = ({
   knowledgeStructure,
   knowledgeCategories,
@@ -395,12 +471,16 @@ const KnowledgeStructureFilter = ({
   );
 };
 
-// FilterActions Component
 interface FilterActionsProps {
   onClearFilters?: () => void;
   onApplyFilters?: () => void;
 }
 
+/**
+ * FilterActions component for clear and apply filter buttons
+ * @param props - Component props
+ * @returns JSX element or null if no actions provided
+ */
 const FilterActions = ({
   onClearFilters,
   onApplyFilters,
@@ -425,16 +505,13 @@ const FilterActions = ({
   );
 };
 
-// Main ActivityFilters Component
 export interface ActivityFiltersProps {
   apiClient: BaseApiClient;
   onFiltersChange: (filters: ActivityFiltersData) => void;
   variant?: 'default' | 'popover';
   institutionId?: string | null;
   initialFilters?: ActivityFiltersData | null;
-  // Question types
   allowedQuestionTypes?: QUESTION_TYPE[];
-  // Action buttons
   onClearFilters?: () => void;
   onApplyFilters?: () => void;
 }
@@ -449,9 +526,7 @@ export const ActivityFilters = ({
   variant = 'default',
   institutionId = null,
   initialFilters = null,
-  // Question types
   allowedQuestionTypes,
-  // Action buttons
   onClearFilters,
   onApplyFilters,
 }: ActivityFiltersProps) => {
@@ -504,7 +579,6 @@ export const ActivityFilters = ({
       return;
     }
 
-    // Sort using a compare function to preserve original order as much as possible
     const currentKey = allowedQuestionTypes
       .slice()
       .sort((a, b) => {
@@ -542,10 +616,8 @@ export const ActivityFilters = ({
     });
   }, [allowedQuestionTypes]);
 
-  // Bank categories state
   const [bankCategories, setBankCategories] = useState<CategoryConfig[]>([]);
 
-  // Convert single subject to array for compatibility
   const selectedSubjects = useMemo(
     () => (selectedSubject ? [selectedSubject] : []),
     [selectedSubject]
@@ -563,7 +635,6 @@ export const ActivityFilters = ({
     setBankCategories(updatedCategories);
   };
 
-  // Update bank categories when banks or bankYears change
   useEffect(() => {
     setBankCategories((prevCategories) => {
       const bankCategory: CategoryConfig = {
@@ -787,7 +858,6 @@ export const ActivityFilters = ({
     }
   }, [initialFilters, knowledgeCategories, handleCategoriesChange]);
 
-  // Load banks, knowledge areas and question types on component mount/institution change
   useEffect(() => {
     if (loadBanks) {
       loadBanks();
@@ -813,7 +883,6 @@ export const ActivityFilters = ({
     return source.filter((type) => allowedQuestionTypes.includes(type));
   }, [questionTypes, allowedQuestionTypes]);
 
-  // Extract selected IDs from knowledge categories
   const getSelectedKnowledgeIds = useCallback(() => {
     return getSelectedIdsFromCategories(knowledgeCategories, {
       topicIds: 'tema',
@@ -822,7 +891,6 @@ export const ActivityFilters = ({
     });
   }, [knowledgeCategories]);
 
-  // Extract selected IDs from bank categories
   const getSelectedBankIds = useCallback(() => {
     return getSelectedIdsFromCategories(bankCategories, {
       bankIds: 'banca',
@@ -830,16 +898,13 @@ export const ActivityFilters = ({
     });
   }, [bankCategories]);
 
-  // Use ref to store onFiltersChange to avoid infinite loops
   const onFiltersChangeRef = useRef(onFiltersChange);
   useEffect(() => {
     onFiltersChangeRef.current = onFiltersChange;
   }, [onFiltersChange]);
 
-  // Store previous filters to compare and avoid unnecessary updates
   const prevFiltersRef = useRef<ActivityFiltersData | null>(null);
 
-  // Notify parent component when filters change
   useEffect(() => {
     const knowledgeIds = getSelectedKnowledgeIds();
     const bankIds = getSelectedBankIds();
@@ -853,7 +918,6 @@ export const ActivityFilters = ({
       contentIds: knowledgeIds.contentIds,
     };
 
-    // Only call onFiltersChange if filters actually changed
     if (!areFiltersEqual(prevFiltersRef.current, filters)) {
       prevFiltersRef.current = filters;
       onFiltersChangeRef.current(filters);
