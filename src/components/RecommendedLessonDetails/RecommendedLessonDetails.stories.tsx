@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import type { Story } from '@ladle/react';
 import RecommendedLessonDetails from './RecommendedLessonDetails';
 import type { RecommendedLessonDetailsProps } from './RecommendedLessonDetails';
 import type { LessonDetailsData } from '../../types/recommendedLessons';
 import { SubjectEnum } from '../../enums/SubjectEnum';
+import { StudentPerformanceModal } from './components';
+import type { StudentPerformanceData } from './types';
 
 /**
  * Mock lesson details data aligned with API responses
@@ -191,6 +194,260 @@ const mockMathLessonData: LessonDetailsData = {
     schoolName: 'Colégio Municipal Centro',
     studentCount: 25,
     completedCount: 15,
+  },
+};
+
+/**
+ * Mock questions for lessons
+ */
+const mockQuestions = {
+  lesson1: [
+    {
+      id: 'q1',
+      title: 'Questão 1',
+      statement:
+        'Um carro inicia do repouso e se desloca em linha reta com uma aceleração constante de 2 m/s². Calcule a distância que o carro percorre após 5 segundos.',
+      isCorrect: false,
+      alternatives: [
+        { id: 'a1', text: '10 metros', isCorrect: false, isSelected: false },
+        { id: 'a2', text: '25 metros', isCorrect: true, isSelected: false },
+        { id: 'a3', text: '50 metros', isCorrect: false, isSelected: true },
+        { id: 'a4', text: '100 metros', isCorrect: false, isSelected: false },
+      ],
+    },
+    {
+      id: 'q2',
+      title: 'Questão 2',
+      statement:
+        'Qual é a unidade de medida da aceleração no Sistema Internacional?',
+      isCorrect: true,
+      alternatives: [
+        { id: 'b1', text: 'm/s', isCorrect: false, isSelected: false },
+        { id: 'b2', text: 'm/s²', isCorrect: true, isSelected: true },
+        { id: 'b3', text: 'km/h', isCorrect: false, isSelected: false },
+        { id: 'b4', text: 'N', isCorrect: false, isSelected: false },
+      ],
+    },
+    {
+      id: 'q3',
+      title: 'Questão 3',
+      statement: 'O que é movimento retilíneo uniforme (MRU)?',
+      isCorrect: false,
+      alternatives: [
+        {
+          id: 'c1',
+          text: 'Movimento com velocidade variável',
+          isCorrect: false,
+          isSelected: true,
+        },
+        {
+          id: 'c2',
+          text: 'Movimento com velocidade constante em linha reta',
+          isCorrect: true,
+          isSelected: false,
+        },
+        {
+          id: 'c3',
+          text: 'Movimento circular',
+          isCorrect: false,
+          isSelected: false,
+        },
+        {
+          id: 'c4',
+          text: 'Movimento com aceleração constante',
+          isCorrect: false,
+          isSelected: false,
+        },
+      ],
+    },
+    {
+      id: 'q4',
+      title: 'Questão 4',
+      statement: 'Qual a fórmula da velocidade média?',
+      isCorrect: true,
+      alternatives: [
+        { id: 'd1', text: 'v = d/t', isCorrect: true, isSelected: true },
+        { id: 'd2', text: 'v = d×t', isCorrect: false, isSelected: false },
+        { id: 'd3', text: 'v = t/d', isCorrect: false, isSelected: false },
+        { id: 'd4', text: 'v = d²/t', isCorrect: false, isSelected: false },
+      ],
+    },
+  ],
+  lesson2: [
+    {
+      id: 'q5',
+      title: 'Questão 1',
+      statement: 'Qual é a classificação dos mamíferos?',
+      isCorrect: true,
+      alternatives: [
+        { id: 'e1', text: 'Vertebrados', isCorrect: true, isSelected: true },
+        {
+          id: 'e2',
+          text: 'Invertebrados',
+          isCorrect: false,
+          isSelected: false,
+        },
+        { id: 'e3', text: 'Artrópodes', isCorrect: false, isSelected: false },
+        { id: 'e4', text: 'Moluscos', isCorrect: false, isSelected: false },
+      ],
+    },
+    {
+      id: 'q6',
+      title: 'Questão 2',
+      statement: 'Qual característica define os anfíbios?',
+      isCorrect: false,
+      alternatives: [
+        {
+          id: 'f1',
+          text: 'Vivem apenas na água',
+          isCorrect: false,
+          isSelected: true,
+        },
+        {
+          id: 'f2',
+          text: 'Vivem apenas na terra',
+          isCorrect: false,
+          isSelected: false,
+        },
+        {
+          id: 'f3',
+          text: 'Vivem parte da vida na água e parte na terra',
+          isCorrect: true,
+          isSelected: false,
+        },
+        {
+          id: 'f4',
+          text: 'São todos venenosos',
+          isCorrect: false,
+          isSelected: false,
+        },
+      ],
+    },
+  ],
+};
+
+/**
+ * Mock student performance data for the modal
+ */
+const mockStudentPerformanceData: Record<string, StudentPerformanceData> = {
+  'student-1': {
+    studentName: 'Ana Costa',
+    note: 7.5,
+    completionTime: '15 dias',
+    correctAnswers: 5,
+    incorrectAnswers: 3,
+    bestResult: 'Fotossíntese',
+    hardestTopic: 'Respiração Celular',
+    lessons: [
+      {
+        id: 'lesson-1',
+        title: 'Categorias Taxonômicas',
+        progress: 50,
+        questions: mockQuestions.lesson1.slice(0, 2),
+      },
+      {
+        id: 'lesson-2',
+        title: 'Reino Animal',
+        progress: 30,
+        questions: mockQuestions.lesson2,
+      },
+    ],
+  },
+  'student-2': {
+    studentName: 'Carlos Pereira',
+    note: 8.5,
+    completionTime: '12 dias',
+    correctAnswers: 7,
+    incorrectAnswers: 2,
+    bestResult: 'Células Vegetais',
+    hardestTopic: 'Mitose',
+    lessons: [
+      {
+        id: 'lesson-1',
+        title: 'Categorias Taxonômicas',
+        progress: 80,
+        questions: mockQuestions.lesson1,
+      },
+      {
+        id: 'lesson-2',
+        title: 'Reino Animal',
+        progress: 90,
+        questions: mockQuestions.lesson2,
+      },
+      { id: 'lesson-3', title: 'Reino Vegetal', progress: 70, questions: [] },
+    ],
+  },
+  'student-3': {
+    studentName: 'Maria Silva',
+    note: 6.0,
+    completionTime: '20 dias',
+    correctAnswers: 6,
+    incorrectAnswers: 4,
+    bestResult: 'Ecossistemas',
+    hardestTopic: 'Cadeias Alimentares',
+    lessons: [
+      {
+        id: 'lesson-1',
+        title: 'Categorias Taxonômicas',
+        progress: 50,
+        questions: mockQuestions.lesson1.slice(0, 2),
+      },
+      {
+        id: 'lesson-2',
+        title: 'Reino Animal',
+        progress: 50,
+        questions: mockQuestions.lesson2,
+      },
+    ],
+  },
+  'student-4': {
+    studentName: 'Lucas Oliveira',
+    note: 9.0,
+    completionTime: '30 dias',
+    correctAnswers: 8,
+    incorrectAnswers: 7,
+    bestResult: 'Fotossíntese',
+    hardestTopic: 'Células',
+    lessons: [
+      {
+        id: 'lesson-1',
+        title: 'Categorias Taxonômicas',
+        progress: 50,
+        questions: mockQuestions.lesson1,
+      },
+      {
+        id: 'lesson-2',
+        title: 'Reino Animal',
+        progress: 50,
+        questions: mockQuestions.lesson2,
+      },
+      { id: 'lesson-3', title: 'Reino Vegetal', progress: 50, questions: [] },
+      { id: 'lesson-4', title: 'Reino Fungi', progress: 50, questions: [] },
+    ],
+  },
+  'student-5': {
+    studentName: 'Juliana Santos',
+    note: 9.5,
+    completionTime: '10 dias',
+    correctAnswers: 9,
+    incorrectAnswers: 1,
+    bestResult: 'Genética',
+    hardestTopic: 'DNA',
+    lessons: [
+      {
+        id: 'lesson-1',
+        title: 'Categorias Taxonômicas',
+        progress: 100,
+        questions: mockQuestions.lesson1,
+      },
+      {
+        id: 'lesson-2',
+        title: 'Reino Animal',
+        progress: 90,
+        questions: mockQuestions.lesson2,
+      },
+      { id: 'lesson-3', title: 'Reino Vegetal', progress: 85, questions: [] },
+    ],
   },
 };
 
@@ -618,4 +875,84 @@ export const PhysicsLesson: Story = () => {
 };
 PhysicsLesson.meta = {
   name: 'Physics Lesson',
+};
+
+/**
+ * Interactive with Performance Modal - shows the component with working performance modal
+ */
+export const WithPerformanceModal: Story = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] =
+    useState<StudentPerformanceData | null>(null);
+
+  const handleViewPerformance = (studentId: string) => {
+    const studentData = mockStudentPerformanceData[studentId];
+    if (studentData) {
+      setSelectedStudent(studentData);
+      setIsModalOpen(true);
+    }
+  };
+
+  return (
+    <>
+      <RecommendedLessonDetails
+        data={mockLessonData}
+        onViewLesson={() => console.log('View lesson clicked')}
+        onViewStudentPerformance={handleViewPerformance}
+        onBreadcrumbClick={(path) => console.log('Breadcrumb clicked:', path)}
+        mapSubjectNameToEnum={mapSubjectNameToEnum}
+      />
+      <StudentPerformanceModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        data={selectedStudent}
+      />
+    </>
+  );
+};
+WithPerformanceModal.meta = {
+  name: 'With Performance Modal',
+};
+
+/**
+ * Performance Modal Only - shows just the modal component
+ */
+export const PerformanceModalOnly: Story = () => {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <div>
+      <button
+        onClick={() => setIsOpen(true)}
+        className="px-4 py-2 bg-primary-700 text-white rounded-lg"
+      >
+        Abrir Modal
+      </button>
+      <StudentPerformanceModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        data={mockStudentPerformanceData['student-4']}
+      />
+    </div>
+  );
+};
+PerformanceModalOnly.meta = {
+  name: 'Performance Modal Only',
+};
+
+/**
+ * Performance Modal Loading - shows modal in loading state
+ */
+export const PerformanceModalLoading: Story = () => {
+  return (
+    <StudentPerformanceModal
+      isOpen={true}
+      onClose={() => {}}
+      data={null}
+      loading={true}
+    />
+  );
+};
+PerformanceModalLoading.meta = {
+  name: 'Performance Modal Loading',
 };

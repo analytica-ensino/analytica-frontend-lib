@@ -524,8 +524,21 @@ export { RecommendedLessonsHistory } from './components/RecommendedLessonsHistor
 export type { RecommendedLessonsHistoryProps } from './components/RecommendedLessonsHistory';
 
 // Recommended Lesson Details Component
-export { RecommendedLessonDetails } from './components/RecommendedLessonDetails';
-export type { RecommendedLessonDetailsProps } from './components/RecommendedLessonDetails';
+export {
+  RecommendedLessonDetails,
+  StudentPerformanceModal,
+} from './components/RecommendedLessonDetails';
+export type {
+  RecommendedLessonDetailsProps,
+  StudentPerformanceModalProps,
+  StudentPerformanceData,
+  StudentPerformanceLabels,
+  LessonProgress,
+  LessonQuestion,
+  QuestionAlternative,
+  LessonDetailsLabels,
+  DisplayStudent,
+} from './components/RecommendedLessonDetails';
 
 // Recommended Lessons Hook Factory
 export {
