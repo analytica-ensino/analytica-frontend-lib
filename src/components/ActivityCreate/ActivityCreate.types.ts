@@ -68,7 +68,7 @@ export interface ActivityDraftResponse {
  */
 export interface ActivityData {
   id?: string;
-  type: ActivityType | 'RASCUNHO' | 'MODELO';
+  type: ActivityType;
   title: string;
   subjectId: string;
   filters: BackendFiltersFormat;

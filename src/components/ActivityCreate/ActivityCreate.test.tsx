@@ -9,6 +9,7 @@ import {
 import '@testing-library/jest-dom';
 import { CreateActivity } from './ActivityCreate';
 import type { ActivityData, BackendFiltersFormat } from './ActivityCreate';
+import { ActivityType } from './ActivityCreate.types';
 import type {
   BaseApiClient,
   ActivityFiltersData,
@@ -421,7 +422,7 @@ describe('CreateActivity', () => {
     it('should render edit title when activity is provided', () => {
       const activity: ActivityData = {
         id: 'act1',
-        type: 'RASCUNHO',
+        type: ActivityType.RASCUNHO,
         title: 'Test Activity',
         subjectId: 'subject1',
         filters: {},
@@ -440,6 +441,25 @@ describe('CreateActivity', () => {
       expect(screen.getByText('Criar atividade')).toBeInTheDocument();
       expect(screen.getByText('Salvar modelo')).toBeInTheDocument();
       expect(screen.getByText('Enviar atividade')).toBeInTheDocument();
+    });
+
+    it('should call onBack when back button is clicked', () => {
+      const onBack = jest.fn();
+      render(<CreateActivity {...defaultProps} onBack={onBack} />);
+
+      const backButton = screen.getByLabelText('Voltar');
+      fireEvent.click(backButton);
+
+      expect(onBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('should render back icon as non-clickable when onBack is not provided', () => {
+      render(<CreateActivity {...defaultProps} />);
+
+      const backIcon = screen.getByTestId('caret-left');
+      expect(backIcon).toBeInTheDocument();
+      const parentButton = backIcon.closest('button');
+      expect(parentButton).not.toBeInTheDocument();
     });
 
     it('should show no draft saved message initially', () => {
@@ -510,7 +530,7 @@ describe('CreateActivity', () => {
     it('should initialize filters from activity', () => {
       const activity: ActivityData = {
         id: 'act1',
-        type: 'RASCUNHO',
+        type: ActivityType.RASCUNHO,
         title: 'Test',
         subjectId: 'subject1',
         filters: {
@@ -582,7 +602,7 @@ describe('CreateActivity', () => {
     it('should prefer activity filters over preFilters when both are provided', () => {
       const activity: ActivityData = {
         id: 'act2',
-        type: 'RASCUNHO',
+        type: ActivityType.RASCUNHO,
         title: 'Activity priority',
         subjectId: 'activity-subject',
         filters: {
@@ -696,7 +716,7 @@ describe('CreateActivity', () => {
 
       const activity: ActivityData = {
         id: 'act1',
-        type: 'RASCUNHO',
+        type: ActivityType.RASCUNHO,
         title: 'Test',
         subjectId: 'subject1',
         filters: {},
@@ -714,7 +734,7 @@ describe('CreateActivity', () => {
     it('should not load questions if activity has no selectedQuestions', () => {
       const activity: ActivityData = {
         id: 'act1',
-        type: 'RASCUNHO',
+        type: ActivityType.RASCUNHO,
         title: 'Test',
         subjectId: 'subject1',
         filters: {},
@@ -747,7 +767,7 @@ describe('CreateActivity', () => {
           data: {
             draft: {
               id: 'draft1',
-              type: 'RASCUNHO',
+              type: ActivityType.RASCUNHO,
               title: 'Rascunho - Matemática',
               creatorUserInstitutionId: 'user1',
               subjectId: 'subject1',
@@ -775,7 +795,7 @@ describe('CreateActivity', () => {
         expect(mockApiClient.post).toHaveBeenCalledWith(
           '/activity-drafts',
           expect.objectContaining({
-            type: 'RASCUNHO',
+            type: ActivityType.RASCUNHO,
             subjectId: 'subject1',
           })
         );
@@ -788,7 +808,7 @@ describe('CreateActivity', () => {
           data: {
             draft: {
               id: 'draft1',
-              type: 'RASCUNHO',
+              type: ActivityType.RASCUNHO,
               title: 'Rascunho - Matemática',
               creatorUserInstitutionId: 'user1',
               subjectId: 'subject1',
@@ -805,7 +825,7 @@ describe('CreateActivity', () => {
 
       const activity: ActivityData = {
         id: 'draft1',
-        type: 'RASCUNHO',
+        type: ActivityType.RASCUNHO,
         title: 'Test',
         subjectId: 'subject1',
         filters: {},
@@ -893,7 +913,7 @@ describe('CreateActivity', () => {
 
       const activity: ActivityData = {
         id: 'draft-reorder',
-        type: 'RASCUNHO',
+        type: ActivityType.RASCUNHO,
         title: 'Test',
         subjectId: 'subject1',
         filters: {},
@@ -909,7 +929,7 @@ describe('CreateActivity', () => {
           data: {
             draft: {
               id: 'draft-reorder',
-              type: 'RASCUNHO',
+              type: ActivityType.RASCUNHO,
               title: 'Test',
               subjectId: 'subject1',
               filters: {},
@@ -944,7 +964,7 @@ describe('CreateActivity', () => {
           data: {
             draft: {
               id: 'draft1',
-              type: 'RASCUNHO',
+              type: ActivityType.RASCUNHO,
               title: 'Rascunho - Matemática',
               creatorUserInstitutionId: 'user1',
               subjectId: 'subject1',
@@ -973,7 +993,7 @@ describe('CreateActivity', () => {
         expect(onActivityChange).toHaveBeenCalledWith(
           expect.objectContaining({
             id: 'draft1',
-            type: 'RASCUNHO',
+            type: ActivityType.RASCUNHO,
           })
         );
       });
@@ -1038,7 +1058,7 @@ describe('CreateActivity', () => {
 
       const activity: ActivityData = {
         id: 'draft1',
-        type: 'RASCUNHO',
+        type: ActivityType.RASCUNHO,
         title: 'Test',
         subjectId: 'subject1',
         filters: {},
@@ -1070,7 +1090,7 @@ describe('CreateActivity', () => {
           data: {
             draft: {
               id: 'draft1',
-              type: 'MODELO',
+              type: ActivityType.MODELO,
               title: 'Modelo - Matemática',
               creatorUserInstitutionId: 'user1',
               subjectId: 'subject1',
@@ -1114,7 +1134,7 @@ describe('CreateActivity', () => {
         expect(mockApiClient.patch).toHaveBeenCalledWith(
           expect.stringContaining('/activity-drafts/'),
           expect.objectContaining({
-            type: 'MODELO',
+            type: ActivityType.MODELO,
           })
         );
         // POST should not be called after first save
@@ -1136,7 +1156,7 @@ describe('CreateActivity', () => {
           data: {
             draft: {
               id: 'draft1',
-              type: 'RASCUNHO',
+              type: ActivityType.RASCUNHO,
               title: 'Rascunho - Matemática',
               creatorUserInstitutionId: 'user1',
               subjectId: 'subject1',
@@ -1784,7 +1804,7 @@ describe('CreateActivity', () => {
     it('should use subjectId from activity if available', async () => {
       const activity: ActivityData = {
         id: 'act1',
-        type: 'RASCUNHO',
+        type: ActivityType.RASCUNHO,
         title: 'Test',
         subjectId: 'subject2',
         filters: {},
@@ -1906,7 +1926,7 @@ describe('CreateActivity', () => {
     it('should convert backend filters to ActivityFiltersData correctly', () => {
       const activity: ActivityData = {
         id: 'act1',
-        type: 'RASCUNHO',
+        type: ActivityType.RASCUNHO,
         title: 'Test',
         subjectId: 'subject1',
         filters: {
@@ -1945,7 +1965,7 @@ describe('CreateActivity', () => {
           data: {
             draft: {
               id: 'draft1',
-              type: 'RASCUNHO',
+              type: ActivityType.RASCUNHO,
               title: 'Rascunho - Matemática',
               creatorUserInstitutionId: 'user1',
               subjectId: 'subject1',
@@ -1994,7 +2014,7 @@ describe('CreateActivity', () => {
           data: {
             draft: {
               id: 'draft1',
-              type: 'RASCUNHO',
+              type: ActivityType.RASCUNHO,
               title: 'Rascunho - Matemática',
               creatorUserInstitutionId: 'user1',
               subjectId: 'subject1',
@@ -2072,7 +2092,7 @@ describe('CreateActivity', () => {
 
       const activity: ActivityData = {
         id: 'act1',
-        type: 'RASCUNHO',
+        type: ActivityType.RASCUNHO,
         title: 'Test',
         subjectId: 'subject1',
         filters: {},
@@ -2107,7 +2127,7 @@ describe('CreateActivity', () => {
 
       const activity: ActivityData = {
         id: 'act1',
-        type: 'RASCUNHO',
+        type: ActivityType.RASCUNHO,
         title: 'Test',
         subjectId: 'subject1',
         filters: {},
@@ -2165,7 +2185,7 @@ describe('CreateActivity', () => {
     it('should handle null backend filters', () => {
       const activity: ActivityData = {
         id: 'act1',
-        type: 'RASCUNHO',
+        type: ActivityType.RASCUNHO,
         title: 'Test',
         subjectId: 'subject1',
         filters: null as unknown as BackendFiltersFormat,
@@ -2188,7 +2208,7 @@ describe('CreateActivity', () => {
     it('should initialize with activity type when provided', () => {
       const activity: ActivityData = {
         id: 'act1',
-        type: 'MODELO',
+        type: ActivityType.MODELO,
         title: 'Test',
         subjectId: 'subject1',
         filters: {},

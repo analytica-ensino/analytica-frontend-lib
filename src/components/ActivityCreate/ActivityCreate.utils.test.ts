@@ -205,6 +205,60 @@ describe('ActivityCreate.utils', () => {
         yearIds: [],
       });
     });
+
+    it('should filter out invalid question types', () => {
+      const backendFilters: BackendFiltersFormat = {
+        questionTypes: [
+          QUESTION_TYPE.ALTERNATIVA,
+          'INVALID_TYPE' as QUESTION_TYPE,
+          QUESTION_TYPE.DISSERTATIVA,
+          'ANOTHER_INVALID' as QUESTION_TYPE,
+        ],
+        questionBanks: [],
+        subjects: [],
+        topics: [],
+        subtopics: [],
+        contents: [],
+      };
+
+      const result = convertBackendFiltersToActivityFiltersData(backendFilters);
+
+      expect(result).toEqual({
+        types: [QUESTION_TYPE.ALTERNATIVA, QUESTION_TYPE.DISSERTATIVA],
+        bankIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+        yearIds: [],
+      });
+    });
+
+    it('should return empty types array when all question types are invalid', () => {
+      const backendFilters: BackendFiltersFormat = {
+        questionTypes: [
+          'INVALID_TYPE_1' as QUESTION_TYPE,
+          'INVALID_TYPE_2' as QUESTION_TYPE,
+        ],
+        questionBanks: [],
+        subjects: [],
+        topics: [],
+        subtopics: [],
+        contents: [],
+      };
+
+      const result = convertBackendFiltersToActivityFiltersData(backendFilters);
+
+      expect(result).toEqual({
+        types: [],
+        bankIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+        yearIds: [],
+      });
+    });
   });
 
   describe('getSubjectName', () => {

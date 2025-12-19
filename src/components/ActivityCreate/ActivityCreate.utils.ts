@@ -16,6 +16,20 @@ import type { BaseApiClient } from '../../types/api';
 import type { CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
 
 /**
+ * Set of valid QUESTION_TYPE enum values for runtime validation
+ */
+const VALID_QUESTION_TYPES = new Set(Object.values(QUESTION_TYPE));
+
+/**
+ * Type guard to validate if a string is a valid QUESTION_TYPE
+ * @param type - String to validate
+ * @returns True if type is a valid QUESTION_TYPE enum value
+ */
+const isValidQuestionType = (type: string): type is QUESTION_TYPE => {
+  return VALID_QUESTION_TYPES.has(type as QUESTION_TYPE);
+};
+
+/**
  * Knowledge area interface for subject lookup
  */
 export interface KnowledgeArea {
@@ -85,7 +99,7 @@ export function convertBackendFiltersToActivityFiltersData(
   }
 
   return {
-    types: (backendFilters.questionTypes || []) as QUESTION_TYPE[],
+    types: (backendFilters.questionTypes || []).filter(isValidQuestionType),
     bankIds: backendFilters.questionBanks || [],
     knowledgeIds: backendFilters.subjects || [],
     topicIds: backendFilters.topics || [],

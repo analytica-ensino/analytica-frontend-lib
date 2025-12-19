@@ -184,6 +184,7 @@ const ActivityCreateHeader = ({
   questionsCount,
   onSaveModel,
   onSendActivity,
+  onBack,
 }: {
   activity?: ActivityData;
   activityType: ActivityType;
@@ -192,14 +193,26 @@ const ActivityCreateHeader = ({
   questionsCount: number;
   onSaveModel: () => void;
   onSendActivity: () => void;
+  onBack?: () => void;
 }) => {
   const activityTypeLabel = getActivityTypeLabel(activityType);
 
   return (
     <div className="w-full h-[80px] flex flex-row items-center justify-between px-6 gap-3 flex-shrink-0">
-      <section className="text-text-950">
-        <CaretLeft size={32} />
-      </section>
+      {onBack ? (
+        <button
+          onClick={onBack}
+          className="text-text-950 hover:text-text-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded transition-colors"
+          aria-label="Voltar"
+          type="button"
+        >
+          <CaretLeft size={32} />
+        </button>
+      ) : (
+        <section className="text-text-950">
+          <CaretLeft size={32} />
+        </section>
+      )}
 
       <section className="flex flex-col gap-0.5 w-full">
         <div className="flex flex-row items-center justify-between w-full text-text-950">
@@ -253,6 +266,7 @@ const CreateActivity = ({
   onActivityChange,
   loading = false,
   preFilters,
+  onBack,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -261,6 +275,7 @@ const CreateActivity = ({
   onActivityChange?: (activity: ActivityData) => void;
   loading?: boolean;
   preFilters?: ActivityPreFiltersInput | null;
+  onBack?: () => void;
 }) => {
   const applyFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.applyFilters
@@ -897,6 +912,7 @@ const CreateActivity = ({
         questionsCount={questions.length}
         onSaveModel={handleSaveModel}
         onSendActivity={handleOpenSendModal}
+        onBack={onBack}
       />
 
       {/* Main Content with 3 columns */}

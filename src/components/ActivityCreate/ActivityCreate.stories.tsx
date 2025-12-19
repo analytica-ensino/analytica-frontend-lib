@@ -5,6 +5,7 @@ import type { BaseApiClient } from '../../types/api';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import type { Question } from '../../types/questions';
 import type { ActivityData } from './ActivityCreate';
+import { ActivityType } from './ActivityCreate.types';
 import {
   DIFFICULTY_LEVEL_ENUM,
   QUESTION_STATUS_ENUM,
@@ -648,7 +649,7 @@ export const WithInitialQuestions: Story = () => {
   ];
 
   const activity: ActivityData = {
-    type: 'RASCUNHO',
+    type: ActivityType.RASCUNHO,
     title: 'Rascunho com questões iniciais',
     subjectId: 'matematica',
     filters: {},
@@ -675,7 +676,7 @@ WithInitialQuestions.storyName = 'With Initial Questions';
 export const WithActivity: Story = () => {
   const mockActivity: ActivityData = {
     id: 'activity-123',
-    type: 'RASCUNHO',
+    type: ActivityType.RASCUNHO,
     title: 'Rascunho - Matemática',
     subjectId: 'matematica',
     filters: {
@@ -774,7 +775,7 @@ WithActivity.storyName = 'With Activity (Edit Mode)';
 export const WithActivityDebug: Story = () => {
   const initialActivity: ActivityData = {
     id: 'activity-123',
-    type: 'RASCUNHO',
+    type: ActivityType.RASCUNHO,
     title: 'Rascunho - Matemática',
     subjectId: 'matematica',
     filters: {
@@ -1011,3 +1012,20 @@ export const WithSaveError: Story = () => {
 };
 
 WithSaveError.storyName = 'With Save Error (Shows Toast)';
+
+export const WithBackNavigation: Story = () => {
+  const handleBack = () => {
+    alert('Navigating back...');
+  };
+
+  return (
+    <CreateActivity
+      apiClient={mockApiClientAllTypes}
+      institutionId="institution-1"
+      isDark={false}
+      onBack={handleBack}
+    />
+  );
+};
+
+WithBackNavigation.storyName = 'With Back Navigation';
