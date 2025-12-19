@@ -94,7 +94,17 @@ export interface ActivitiesHistoryProps {
   mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /** User data for populating filter options */
   userFilterData?: ActivityUserFilterData;
-  /** Map of subject IDs to names for models display */
+  /**
+   * Map of subject IDs to names for models display.
+   * IMPORTANT: This Map should be memoized with useMemo in the parent component
+   * to avoid unnecessary re-fetches when the MODELS tab is active.
+   * @example
+   * const subjectsMap = useMemo(() => {
+   *   const map = new Map();
+   *   subjects.forEach(s => map.set(s.id, s.name));
+   *   return map;
+   * }, [subjects]);
+   */
   subjectsMap?: Map<string, string>;
 }
 
@@ -236,18 +246,6 @@ const createActivityFiltersConfig = (
 const createModelsFiltersConfig = (
   userData: ActivityUserFilterData | undefined
 ): FilterConfig[] => [
-  {
-    key: 'status',
-    label: 'STATUS',
-    categories: [
-      {
-        key: 'status',
-        label: 'Status da Atividade',
-        selectedIds: [],
-        itens: ACTIVITY_FILTER_STATUS_OPTIONS,
-      },
-    ],
-  },
   {
     key: 'content',
     label: 'CONTEÚDO',
