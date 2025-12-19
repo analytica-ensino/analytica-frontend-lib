@@ -150,6 +150,12 @@ export {
   createUseQuestionsList,
   createQuestionsListHook,
 } from './hooks/useQuestionsList';
+export { CreateActivity } from './components/ActivityCreate/ActivityCreate';
+export type {
+  ActivityData,
+  BackendFiltersFormat,
+  ActivityDraftResponse,
+} from './components/ActivityCreate/ActivityCreate';
 export type { UseQuestionsListReturn } from './hooks/useQuestionsList';
 export type {
   Question as QuestionActivity,
@@ -409,6 +415,7 @@ export type {
   ActivityPreviewProps,
   PreviewQuestion,
 } from './components/ActivityPreview/ActivityPreview';
+
 export {
   QuestionsPdfGenerator,
   QuestionsPdfContent,
@@ -424,7 +431,11 @@ export {
   toggleArrayItem,
   toggleSingleValue,
 } from './utils/utils';
-
+export { convertActivityFiltersToQuestionsFilter } from './utils/questionFiltersConverter';
+export {
+  mapQuestionTypeToEnum,
+  mapQuestionTypeToEnumRequired,
+} from './utils/questionTypeUtils';
 // Activity Details Types
 export {
   STUDENT_ACTIVITY_STATUS,

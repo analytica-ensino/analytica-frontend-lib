@@ -10,7 +10,12 @@ export {
   getSelectedIdsFromCategories,
   toggleArrayItem,
   toggleSingleValue,
+  areFiltersEqual,
 } from './activityFilters';
+export {
+  mapQuestionTypeToEnum,
+  mapQuestionTypeToEnumRequired,
+} from './questionTypeUtils';
 export {
   getStatusBadgeConfig,
   formatTimeSpent,
