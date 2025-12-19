@@ -33,6 +33,17 @@ export interface BackendFiltersFormat {
 }
 
 /**
+ * Input accepted by preFilters prop
+ * Supports receiving either the filters object directly or wrapped inside a
+ * `filters` property.
+ */
+export type ActivityPreFiltersInput =
+  | BackendFiltersFormat
+  | {
+      filters?: BackendFiltersFormat | null;
+    };
+
+/**
  * Activity draft response from backend
  */
 export interface ActivityDraftResponse {

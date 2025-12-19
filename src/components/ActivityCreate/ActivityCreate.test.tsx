@@ -60,12 +60,17 @@ jest.mock('../ActivityFilters/ActivityFilters', () => ({
     onFiltersChange,
     apiClient: _apiClient,
     institutionId: _institutionId,
+    initialFilters,
   }: {
     onFiltersChange?: (filters: ActivityFiltersData) => void;
     apiClient: BaseApiClient;
     institutionId: string;
+    initialFilters?: ActivityFiltersData | null;
   }) => (
-    <div data-testid="activity-filters">
+    <div
+      data-testid="activity-filters"
+      data-initial-filters={JSON.stringify(initialFilters || {})}
+    >
       <button
         data-testid="trigger-filters-change"
         onClick={() =>
@@ -520,6 +525,92 @@ describe('CreateActivity', () => {
       expect(mockSetDraftFilters).toHaveBeenCalled();
       expect(mockApplyFilters).toHaveBeenCalled();
     });
+
+    it('should initialize filters from preFilters when creating a new activity', () => {
+      const preFilters: BackendFiltersFormat = {
+        questionTypes: [QUESTION_TYPE.ALTERNATIVA],
+        subjects: ['subject1'],
+        topics: ['topic-1'],
+      };
+
+      render(
+        <CreateActivity
+          {...defaultProps}
+          preFilters={{ filters: preFilters }}
+        />
+      );
+
+      expect(mockSetDraftFilters).toHaveBeenCalledWith(
+        expect.objectContaining({
+          types: [QUESTION_TYPE.ALTERNATIVA],
+          knowledgeIds: ['subject1'],
+          topicIds: ['topic-1'],
+        })
+      );
+      expect(mockApplyFilters).toHaveBeenCalled();
+      expect(
+        screen
+          .getByTestId('activity-filters')
+          .getAttribute('data-initial-filters')
+      ).toContain('subject1');
+    });
+
+    it('should accept direct backend preFilters format', () => {
+      const preFilters: BackendFiltersFormat = {
+        questionTypes: [QUESTION_TYPE.DISSERTATIVA],
+        subjects: ['subject1'],
+        topics: ['topic-1'],
+      };
+
+      render(<CreateActivity {...defaultProps} preFilters={preFilters} />);
+
+      expect(mockSetDraftFilters).toHaveBeenCalledWith(
+        expect.objectContaining({
+          types: [QUESTION_TYPE.DISSERTATIVA],
+          knowledgeIds: ['subject1'],
+          topicIds: ['topic-1'],
+        })
+      );
+      expect(mockApplyFilters).toHaveBeenCalled();
+      expect(
+        screen
+          .getByTestId('activity-filters')
+          .getAttribute('data-initial-filters')
+      ).toContain('topic-1');
+    });
+
+    it('should prefer activity filters over preFilters when both are provided', () => {
+      const activity: ActivityData = {
+        id: 'act2',
+        type: 'RASCUNHO',
+        title: 'Activity priority',
+        subjectId: 'activity-subject',
+        filters: {
+          questionTypes: [QUESTION_TYPE.DISSERTATIVA],
+          subjects: ['activity-subject'],
+        },
+        questionIds: [],
+      };
+
+      const preFilters: BackendFiltersFormat = {
+        questionTypes: [QUESTION_TYPE.ALTERNATIVA],
+        subjects: ['prefilter-subject'],
+      };
+
+      render(
+        <CreateActivity
+          {...defaultProps}
+          activity={activity}
+          preFilters={preFilters}
+        />
+      );
+
+      expect(mockSetDraftFilters).toHaveBeenCalledWith(
+        expect.objectContaining({
+          knowledgeIds: ['activity-subject'],
+        })
+      );
+    });
   });
 
   describe('Questions Management', () => {
@@ -786,6 +877,63 @@ describe('CreateActivity', () => {
 
       await waitFor(() => {
         expect(mockApiClient.post).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('should save immediately when reordering after first save', async () => {
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        knowledgeIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      const activity: ActivityData = {
+        id: 'draft-reorder',
+        type: 'RASCUNHO',
+        title: 'Test',
+        subjectId: 'subject1',
+        filters: {},
+        questionIds: [],
+        selectedQuestions: [
+          createMockQuestion({ id: 'q1' }),
+          createMockQuestion({ id: 'q2' }),
+        ],
+      };
+
+      mockApiClient.patch = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              id: 'draft-reorder',
+              type: 'RASCUNHO',
+              title: 'Test',
+              subjectId: 'subject1',
+              filters: {},
+            },
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} activity={activity} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('question-q1')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('reorder'));
+
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith(
+          '/activity-drafts/draft-reorder',
+          expect.objectContaining({
+            subjectId: 'subject1',
+            questionIds: ['q2', 'q1'],
+          })
+        );
       });
     });
 
@@ -1217,6 +1365,194 @@ describe('CreateActivity', () => {
           position: 'top-right',
         });
       });
+    });
+
+    it('should not re-fetch categories when already loaded', async () => {
+      const mockSchoolsResponse = {
+        data: {
+          data: { schools: [] },
+        },
+      };
+      const mockSchoolYearsResponse = {
+        data: {
+          data: { schoolYears: [] },
+        },
+      };
+      const mockClassesResponse = {
+        data: {
+          data: { classes: [] },
+        },
+      };
+      const mockStudentsResponse = {
+        data: {
+          data: { students: [], pagination: {} },
+        },
+      };
+
+      mockApiClient.get = jest.fn((url: string) => {
+        if (url === '/school') {
+          return Promise.resolve(mockSchoolsResponse as never);
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve(mockSchoolYearsResponse as never);
+        }
+        if (url === '/classes') {
+          return Promise.resolve(mockClassesResponse as never);
+        }
+        if (url === '/students?page=1&limit=100') {
+          return Promise.resolve(mockStudentsResponse as never);
+        }
+        return Promise.reject(new Error('Unknown endpoint'));
+      }) as typeof mockApiClient.get;
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+      fireEvent.click(screen.getByText('Enviar atividade'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('modal-close'));
+
+      fireEvent.click(screen.getByText('Enviar atividade'));
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledTimes(4);
+      });
+    });
+
+    it('should show error when subjectId is missing on send', async () => {
+      mockAppliedFilters = null;
+      mockApiClient.get = jest.fn().mockImplementation((url: string) => {
+        if (url === '/school') {
+          return Promise.resolve({
+            data: {
+              data: { schools: [] },
+            },
+          });
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve({
+            data: {
+              data: { schoolYears: [] },
+            },
+          });
+        }
+        if (url === '/classes') {
+          return Promise.resolve({
+            data: {
+              data: { classes: [] },
+            },
+          });
+        }
+        if (url === '/students?page=1&limit=100') {
+          return Promise.resolve({
+            data: {
+              data: { students: [], pagination: {} },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+      mockApiClient.post = jest.fn();
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+      fireEvent.click(screen.getByText('Enviar atividade'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('modal-submit'));
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Erro ao enviar atividade',
+          description: 'Subject ID não encontrado',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+      });
+
+      expect(mockApiClient.post).not.toHaveBeenCalled();
+    });
+
+    it('should handle missing activity id response', async () => {
+      mockApiClient.get = jest.fn().mockImplementation((url: string) => {
+        if (url === '/school') {
+          return Promise.resolve({
+            data: {
+              data: { schools: [] },
+            },
+          });
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve({
+            data: {
+              data: { schoolYears: [] },
+            },
+          });
+        }
+        if (url === '/classes') {
+          return Promise.resolve({
+            data: {
+              data: { classes: [] },
+            },
+          });
+        }
+        if (url === '/students?page=1&limit=100') {
+          return Promise.resolve({
+            data: {
+              data: { students: [], pagination: {} },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+      mockApiClient.post = jest.fn().mockImplementation((url: string) => {
+        if (url === '/activities') {
+          return Promise.resolve({
+            data: {
+              data: {
+                activity: {},
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: {} });
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+      fireEvent.click(screen.getByText('Enviar atividade'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('modal-submit'));
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Erro ao enviar atividade',
+          description: 'ID da atividade não retornado pela API',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+      });
+
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        '/activities',
+        expect.any(Object)
+      );
+      expect(mockApiClient.post).toHaveBeenCalledTimes(1);
     });
 
     it('should submit activity when form is submitted', async () => {

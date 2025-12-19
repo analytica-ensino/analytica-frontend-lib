@@ -565,6 +565,30 @@ export const WithoutInitialQuestions: Story = () => {
 
 WithoutInitialQuestions.storyName = 'Without Initial Questions';
 
+export const WithPreFilters: Story = () => {
+  const preFilters = {
+    filters: {
+      questionTypes: ['ALTERNATIVA'],
+      questionBanks: ['ENEM', 'FUVEST'],
+      subjects: ['matematica'],
+      topics: ['tema-1'],
+      subtopics: ['subtema-1'],
+      contents: ['assunto-1'],
+    },
+  };
+
+  return (
+    <CreateActivity
+      apiClient={mockApiClientAllTypes}
+      institutionId="institution-1"
+      isDark={false}
+      preFilters={preFilters}
+    />
+  );
+};
+
+WithPreFilters.storyName = 'With preFilters (pre-selected filters)';
+
 export const WithInitialQuestions: Story = () => {
   const mockQuestions: Question[] = [
     {

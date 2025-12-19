@@ -28,6 +28,7 @@ import type {
   ActivityDraftResponse,
   ActivityData,
   BackendFiltersFormat,
+  ActivityPreFiltersInput,
 } from './ActivityCreate.types';
 import { ActivityType, ActivityStatus } from './ActivityCreate.types';
 import {
@@ -251,6 +252,7 @@ const CreateActivity = ({
   activity,
   onActivityChange,
   loading = false,
+  preFilters,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -258,6 +260,7 @@ const CreateActivity = ({
   activity?: ActivityData;
   onActivityChange?: (activity: ActivityData) => void;
   loading?: boolean;
+  preFilters?: ActivityPreFiltersInput | null;
 }) => {
   const applyFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.applyFilters
@@ -303,12 +306,41 @@ const CreateActivity = ({
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedFiltersRef = useRef<ActivityFiltersData | null>(null);
   const lastSavedQuestionsRef = useRef<PreviewQuestion[]>([]);
+  const hasAppliedInitialFiltersRef = useRef(false);
 
   const useActivityFiltersData = createUseActivityFiltersData(apiClient);
   const { knowledgeAreas, loadKnowledgeAreas } = useActivityFiltersData({
     selectedSubjects: [],
     institutionId,
   });
+
+  const resolvedPreFilters = useMemo(() => {
+    if (!preFilters) {
+      return null;
+    }
+    if (
+      typeof preFilters === 'object' &&
+      preFilters !== null &&
+      'filters' in preFilters
+    ) {
+      return (preFilters as { filters?: BackendFiltersFormat | null }).filters;
+    }
+    return preFilters as BackendFiltersFormat;
+  }, [preFilters]);
+
+  const initialFiltersData = useMemo(() => {
+    if (activity?.filters) {
+      return convertBackendFiltersToActivityFiltersData(activity.filters);
+    }
+    if (resolvedPreFilters) {
+      return convertBackendFiltersToActivityFiltersData(resolvedPreFilters);
+    }
+    return null;
+  }, [activity?.filters, resolvedPreFilters]);
+
+  useEffect(() => {
+    hasAppliedInitialFiltersRef.current = false;
+  }, [activity?.id, activity?.filters, resolvedPreFilters]);
 
   /**
    * Validate if save conditions are met
@@ -564,25 +596,22 @@ const CreateActivity = ({
   }, [activity?.selectedQuestions, addToast]);
 
   /**
-   * Initialize filters and applied filters when activity is provided
+   * Initialize filters from activity (edit mode) or preFilters (create mode)
    */
   useEffect(() => {
-    if (activity?.filters) {
-      const activityFiltersData = convertBackendFiltersToActivityFiltersData(
-        activity.filters
-      );
-      if (activityFiltersData) {
-        setDraftFilters(activityFiltersData);
-        applyFilters();
-        lastSavedFiltersRef.current = activityFiltersData;
-      }
+    if (hasAppliedInitialFiltersRef.current) {
+      return;
     }
-  }, [
-    activity?.filters,
-    setDraftFilters,
-    applyFilters,
-    convertBackendFiltersToActivityFiltersData,
-  ]);
+
+    if (!initialFiltersData) {
+      return;
+    }
+
+    setDraftFilters(initialFiltersData);
+    applyFilters();
+    lastSavedFiltersRef.current = initialFiltersData;
+    hasAppliedInitialFiltersRef.current = true;
+  }, [initialFiltersData, setDraftFilters, applyFilters]);
 
   const saveDraftRef = useRef(saveDraft);
   useEffect(() => {
@@ -880,6 +909,7 @@ const CreateActivity = ({
               institutionId={institutionId}
               variant={'default'}
               onFiltersChange={handleFiltersChange}
+              initialFilters={initialFiltersData || undefined}
             />
           </div>
           <div className="flex-shrink-0">
@@ -965,4 +995,5 @@ export type {
   BackendFiltersFormat,
   ActivityDraftResponse,
   ActivityData,
+  ActivityPreFiltersInput,
 } from './ActivityCreate.types';

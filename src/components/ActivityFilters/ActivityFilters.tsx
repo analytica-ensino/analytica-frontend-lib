@@ -280,6 +280,7 @@ export interface ActivityFiltersProps {
   onFiltersChange: (filters: ActivityFiltersData) => void;
   variant?: 'default' | 'popover';
   institutionId?: string | null;
+  initialFilters?: ActivityFiltersData | null;
   // Question types
   allowedQuestionTypes?: QUESTION_TYPE[];
   // Action buttons
@@ -296,6 +297,7 @@ export const ActivityFilters = ({
   onFiltersChange,
   variant = 'default',
   institutionId = null,
+  initialFilters = null,
   // Question types
   allowedQuestionTypes,
   // Action buttons
@@ -323,6 +325,9 @@ export const ActivityFilters = ({
     loadBanks,
     loadKnowledgeAreas,
     loadQuestionTypes,
+    loadTopics,
+    loadSubtopics,
+    loadContents,
     questionTypes,
     loadingQuestionTypes,
     questionTypesError,
@@ -332,6 +337,15 @@ export const ActivityFilters = ({
   });
 
   const prevAllowedQuestionTypesRef = useRef<string | null>(null);
+  const hasAppliedBasicInitialFiltersRef = useRef(false);
+  const hasAppliedBankInitialFiltersRef = useRef(false);
+  const hasAppliedKnowledgeInitialFiltersRef = useRef(false);
+  const hasRequestedTopicsRef = useRef(false);
+  const hasRequestedSubtopicsRef = useRef(false);
+  const hasRequestedContentsRef = useRef(false);
+  const hasAppliedTopicsRef = useRef(false);
+  const hasAppliedSubtopicsRef = useRef(false);
+  const hasAppliedContentsRef = useRef(false);
 
   useEffect(() => {
     if (!allowedQuestionTypes || allowedQuestionTypes.length === 0) {
@@ -429,6 +443,229 @@ export const ActivityFilters = ({
       return [bankCategory, yearCategory];
     });
   }, [banks, bankYears]);
+
+  useEffect(() => {
+    hasAppliedBasicInitialFiltersRef.current = false;
+    hasAppliedBankInitialFiltersRef.current = false;
+    hasAppliedKnowledgeInitialFiltersRef.current = false;
+    hasRequestedTopicsRef.current = false;
+    hasRequestedSubtopicsRef.current = false;
+    hasRequestedContentsRef.current = false;
+    hasAppliedTopicsRef.current = false;
+    hasAppliedSubtopicsRef.current = false;
+    hasAppliedContentsRef.current = false;
+  }, [initialFilters]);
+
+  useEffect(() => {
+    if (!initialFilters || hasAppliedBasicInitialFiltersRef.current) {
+      return;
+    }
+
+    if (initialFilters.types && initialFilters.types.length > 0) {
+      setSelectedQuestionTypes(initialFilters.types);
+    }
+
+    if (initialFilters.knowledgeIds && initialFilters.knowledgeIds.length > 0) {
+      setSelectedSubject(initialFilters.knowledgeIds[0]);
+    }
+
+    hasAppliedBasicInitialFiltersRef.current = true;
+  }, [initialFilters]);
+
+  useEffect(() => {
+    if (!initialFilters || hasAppliedBankInitialFiltersRef.current) {
+      return;
+    }
+
+    const bankIds = initialFilters.bankIds || [];
+    const yearIds = initialFilters.yearIds || [];
+
+    if (bankIds.length === 0 && yearIds.length === 0) {
+      hasAppliedBankInitialFiltersRef.current = true;
+      return;
+    }
+
+    if (bankCategories.length === 0) {
+      return;
+    }
+
+    const yearCategory = bankCategories.find(
+      (category) => category.key === 'ano'
+    );
+    const yearItens = Array.isArray(yearCategory?.itens)
+      ? yearCategory!.itens
+      : [];
+
+    const derivedYearIds =
+      yearIds.length > 0
+        ? yearIds
+        : yearItens
+            .filter(
+              (item) =>
+                item &&
+                typeof item.id === 'string' &&
+                // bankId pode não existir em todos os itens, por isso a verificação
+                typeof (item as { bankId?: unknown }).bankId === 'string' &&
+                bankIds.includes((item as { bankId?: string }).bankId as string)
+            )
+            .map((item) => item.id);
+
+    const hasBankMatches =
+      bankIds.length === 0 ||
+      bankCategories.some(
+        (category) =>
+          category.key === 'banca' &&
+          (category.itens ?? []).some((item) => bankIds.includes(item.id))
+      );
+    const hasYearMatches =
+      derivedYearIds.length === 0 ||
+      bankCategories.some(
+        (category) =>
+          category.key === 'ano' &&
+          (category.itens ?? []).some((item) =>
+            derivedYearIds.includes(item.id)
+          )
+      );
+
+    if (!hasBankMatches || !hasYearMatches) {
+      return;
+    }
+
+    setBankCategories((prevCategories) =>
+      prevCategories.map((category) => {
+        if (category.key === 'banca') {
+          const itens = category.itens ?? [];
+          const selectedIds = itens
+            .filter((item) => bankIds.includes(item.id))
+            .map((item) => item.id);
+          return { ...category, selectedIds };
+        }
+        if (category.key === 'ano') {
+          const itens = category.itens ?? [];
+          const selectedIds = itens
+            .filter((item) => derivedYearIds.includes(item.id))
+            .map((item) => item.id);
+          return { ...category, selectedIds };
+        }
+        return category;
+      })
+    );
+
+    hasAppliedBankInitialFiltersRef.current = true;
+  }, [initialFilters, bankCategories]);
+
+  useEffect(() => {
+    if (!initialFilters) {
+      return;
+    }
+
+    const subjectIds = initialFilters.knowledgeIds || [];
+    const topicIds = initialFilters.topicIds || [];
+    const subtopicIds = initialFilters.subtopicIds || [];
+
+    if (subjectIds.length > 0 && !hasRequestedTopicsRef.current) {
+      if (loadTopics) {
+        loadTopics(subjectIds);
+      }
+      hasRequestedTopicsRef.current = true;
+    }
+
+    if (topicIds.length > 0 && !hasRequestedSubtopicsRef.current) {
+      if (loadSubtopics) {
+        loadSubtopics(topicIds);
+      }
+      hasRequestedSubtopicsRef.current = true;
+    }
+
+    if (subtopicIds.length > 0 && !hasRequestedContentsRef.current) {
+      if (loadContents) {
+        loadContents(subtopicIds);
+      }
+      hasRequestedContentsRef.current = true;
+    }
+  }, [initialFilters, loadTopics, loadSubtopics, loadContents]);
+
+  useEffect(() => {
+    if (!initialFilters || hasAppliedKnowledgeInitialFiltersRef.current) {
+      return;
+    }
+
+    const topicIds = initialFilters.topicIds || [];
+    const subtopicIds = initialFilters.subtopicIds || [];
+    const contentIds = initialFilters.contentIds || [];
+
+    const hasKnowledgeSelections =
+      topicIds.length > 0 || subtopicIds.length > 0 || contentIds.length > 0;
+
+    if (!hasKnowledgeSelections) {
+      hasAppliedKnowledgeInitialFiltersRef.current = true;
+      return;
+    }
+
+    if (knowledgeCategories.length === 0 || !handleCategoriesChange) {
+      return;
+    }
+
+    let changed = false;
+
+    const updatedCategories = knowledgeCategories.map((category) => {
+      if (
+        category.key === 'tema' &&
+        topicIds.length > 0 &&
+        !hasAppliedTopicsRef.current
+      ) {
+        const selectedIds = (category.itens || [])
+          .filter((item) => topicIds.includes(item.id))
+          .map((item) => item.id);
+        if (selectedIds.length > 0) {
+          changed = true;
+          hasAppliedTopicsRef.current = true;
+          return { ...category, selectedIds };
+        }
+      }
+      if (
+        category.key === 'subtema' &&
+        subtopicIds.length > 0 &&
+        !hasAppliedSubtopicsRef.current
+      ) {
+        const selectedIds = (category.itens || [])
+          .filter((item) => subtopicIds.includes(item.id))
+          .map((item) => item.id);
+        if (selectedIds.length > 0) {
+          changed = true;
+          hasAppliedSubtopicsRef.current = true;
+          return { ...category, selectedIds };
+        }
+      }
+      if (
+        category.key === 'assunto' &&
+        contentIds.length > 0 &&
+        !hasAppliedContentsRef.current
+      ) {
+        const selectedIds = (category.itens || [])
+          .filter((item) => contentIds.includes(item.id))
+          .map((item) => item.id);
+        if (selectedIds.length > 0) {
+          changed = true;
+          hasAppliedContentsRef.current = true;
+          return { ...category, selectedIds };
+        }
+      }
+      return category;
+    });
+
+    if (changed) {
+      handleCategoriesChange(updatedCategories);
+    }
+
+    if (
+      (topicIds.length === 0 || hasAppliedTopicsRef.current) &&
+      (subtopicIds.length === 0 || hasAppliedSubtopicsRef.current) &&
+      (contentIds.length === 0 || hasAppliedContentsRef.current)
+    ) {
+      hasAppliedKnowledgeInitialFiltersRef.current = true;
+    }
+  }, [initialFilters, knowledgeCategories, handleCategoriesChange]);
 
   // Load banks, knowledge areas and question types on component mount/institution change
   useEffect(() => {

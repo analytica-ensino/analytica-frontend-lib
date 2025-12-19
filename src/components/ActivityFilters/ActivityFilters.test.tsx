@@ -20,7 +20,7 @@ jest.mock('../../components/Support', () => ({}));
 jest.mock('../../assets/img/suporthistory.png', () => 'supporthistory.png');
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ActivityFilters } from './ActivityFilters';
 import { QUESTION_TYPE } from '../../components/Quiz/useQuizStore';
 
@@ -58,13 +58,50 @@ const baseState = {
   subjectsError: null,
 
   knowledgeStructure: {
-    topics: [],
-    subtopics: [],
-    contents: [],
+    topics: [
+      { id: 'topic-1', name: 'Topic 1' },
+      { id: 'topic-2', name: 'Topic 2' },
+    ],
+    subtopics: [
+      { id: 'sub-1', name: 'Sub 1' },
+      { id: 'sub-2', name: 'Sub 2' },
+    ],
+    contents: [
+      { id: 'content-1', name: 'Content 1' },
+      { id: 'content-2', name: 'Content 2' },
+    ],
     loading: false,
     error: null,
   },
-  knowledgeCategories: [],
+  knowledgeCategories: [
+    {
+      key: 'tema',
+      label: 'Tema',
+      itens: [
+        { id: 'topic-1', name: 'Topic 1' },
+        { id: 'topic-2', name: 'Topic 2' },
+      ],
+      selectedIds: [],
+    },
+    {
+      key: 'subtema',
+      label: 'Subtema',
+      itens: [
+        { id: 'sub-1', name: 'Sub 1', topicId: 'topic-1' },
+        { id: 'sub-2', name: 'Sub 2', topicId: 'topic-2' },
+      ],
+      selectedIds: [],
+    },
+    {
+      key: 'assunto',
+      label: 'Assunto',
+      itens: [
+        { id: 'content-1', name: 'Content 1', subtopicId: 'sub-1' },
+        { id: 'content-2', name: 'Content 2', subtopicId: 'sub-2' },
+      ],
+      selectedIds: [],
+    },
+  ],
   handleCategoriesChange: mockHandleCategoriesChange,
 
   questionTypes: [QUESTION_TYPE.ALTERNATIVA, QUESTION_TYPE.DISSERTATIVA],
@@ -174,6 +211,40 @@ describe('ActivityFilters', () => {
       topicIds: [],
       subtopicIds: [],
       contentIds: [],
+    });
+  });
+
+  it('applies initialFilters and triggers dependent loads', async () => {
+    const onFiltersChange = jest.fn();
+    const initialFilters = {
+      types: [QUESTION_TYPE.ALTERNATIVA],
+      bankIds: ['bank2'],
+      yearIds: ['year3'],
+      knowledgeIds: ['subject1'],
+      topicIds: ['topic-2'],
+      subtopicIds: ['sub-2'],
+      contentIds: ['content-2'],
+    };
+
+    renderComponent({ onFiltersChange, initialFilters });
+
+    await waitFor(() => {
+      expect(mockLoadTopics).toHaveBeenCalledWith(['subject1']);
+      expect(mockLoadSubtopics).toHaveBeenCalledWith(['topic-2']);
+      expect(mockLoadContents).toHaveBeenCalledWith(['sub-2']);
+    });
+
+    expect(mockHandleCategoriesChange).toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(onFiltersChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          types: [QUESTION_TYPE.ALTERNATIVA],
+          bankIds: ['bank2'],
+          yearIds: ['year3'],
+          knowledgeIds: ['subject1'],
+        })
+      );
     });
   });
 
