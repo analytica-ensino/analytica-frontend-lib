@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import type { MutableRefObject } from 'react';
 import {
   Text,
   Chips,
@@ -40,6 +41,156 @@ const questionTypesFallback = [
   QUESTION_TYPE.LIGAR_PONTOS,
   QUESTION_TYPE.PREENCHER,
 ];
+
+// Helper function to check if item has valid bankId
+const isValidBankYearItem = (
+  item: unknown,
+  bankIds: string[]
+): item is { id: string; bankId: string } => {
+  return (
+    !!item &&
+    typeof (item as { id?: unknown }).id === 'string' &&
+    typeof (item as { bankId?: unknown }).bankId === 'string' &&
+    bankIds.includes((item as { bankId: string }).bankId)
+  );
+};
+
+// Helper function to derive yearIds from bankIds
+const deriveYearIdsFromBankIds = (
+  yearItens: unknown[],
+  bankIds: string[],
+  explicitYearIds: string[]
+): string[] => {
+  if (explicitYearIds.length > 0) {
+    return explicitYearIds;
+  }
+  return yearItens
+    .filter((item) => isValidBankYearItem(item, bankIds))
+    .map((item) => item.id);
+};
+
+// Helper function to check if bank matches exist
+const hasBankMatches = (
+  bankIds: string[],
+  bankCategories: CategoryConfig[]
+): boolean => {
+  if (bankIds.length === 0) {
+    return true;
+  }
+  return bankCategories.some(
+    (category) =>
+      category.key === 'banca' &&
+      (category.itens ?? []).some((item) => bankIds.includes(item.id))
+  );
+};
+
+// Helper function to check if year matches exist
+const hasYearMatches = (
+  derivedYearIds: string[],
+  bankCategories: CategoryConfig[]
+): boolean => {
+  if (derivedYearIds.length === 0) {
+    return true;
+  }
+  return bankCategories.some(
+    (category) =>
+      category.key === 'ano' &&
+      (category.itens ?? []).some((item) => derivedYearIds.includes(item.id))
+  );
+};
+
+// Helper function to update bank category with selectedIds
+const updateBankCategory = (
+  category: CategoryConfig,
+  bankIds: string[]
+): CategoryConfig => {
+  const itens = category.itens ?? [];
+  const selectedIds = itens
+    .filter((item) => bankIds.includes(item.id))
+    .map((item) => item.id);
+  return { ...category, selectedIds };
+};
+
+// Helper function to update year category with selectedIds
+const updateYearCategory = (
+  category: CategoryConfig,
+  derivedYearIds: string[]
+): CategoryConfig => {
+  const itens = category.itens ?? [];
+  const selectedIds = itens
+    .filter((item) => derivedYearIds.includes(item.id))
+    .map((item) => item.id);
+  return { ...category, selectedIds };
+};
+
+// Helper function to update bank categories with initial filters
+const updateBankCategoriesWithInitialFilters = (
+  prevCategories: CategoryConfig[],
+  bankIds: string[],
+  derivedYearIds: string[]
+): CategoryConfig[] => {
+  return prevCategories.map((category) => {
+    if (category.key === 'banca') {
+      return updateBankCategory(category, bankIds);
+    }
+    if (category.key === 'ano') {
+      return updateYearCategory(category, derivedYearIds);
+    }
+    return category;
+  });
+};
+
+// Helper function to get selectedIds for a knowledge category
+const getSelectedIdsForKnowledgeCategory = (
+  category: CategoryConfig,
+  filterIds: string[]
+): string[] => {
+  return (category.itens || [])
+    .filter((item) => filterIds.includes(item.id))
+    .map((item) => item.id);
+};
+
+// Helper function to update knowledge category with topic filters
+const updateTopicCategory = (
+  category: CategoryConfig,
+  topicIds: string[],
+  hasAppliedTopicsRef: MutableRefObject<boolean>
+): { category: CategoryConfig; changed: boolean } => {
+  const selectedIds = getSelectedIdsForKnowledgeCategory(category, topicIds);
+  if (selectedIds.length > 0) {
+    hasAppliedTopicsRef.current = true;
+    return { category: { ...category, selectedIds }, changed: true };
+  }
+  return { category, changed: false };
+};
+
+// Helper function to update knowledge category with subtopic filters
+const updateSubtopicCategory = (
+  category: CategoryConfig,
+  subtopicIds: string[],
+  hasAppliedSubtopicsRef: MutableRefObject<boolean>
+): { category: CategoryConfig; changed: boolean } => {
+  const selectedIds = getSelectedIdsForKnowledgeCategory(category, subtopicIds);
+  if (selectedIds.length > 0) {
+    hasAppliedSubtopicsRef.current = true;
+    return { category: { ...category, selectedIds }, changed: true };
+  }
+  return { category, changed: false };
+};
+
+// Helper function to update knowledge category with content filters
+const updateContentCategory = (
+  category: CategoryConfig,
+  contentIds: string[],
+  hasAppliedContentsRef: MutableRefObject<boolean>
+): { category: CategoryConfig; changed: boolean } => {
+  const selectedIds = getSelectedIdsForKnowledgeCategory(category, contentIds);
+  if (selectedIds.length > 0) {
+    hasAppliedContentsRef.current = true;
+    return { category: { ...category, selectedIds }, changed: true };
+  }
+  return { category, changed: false };
+};
 
 interface QuestionTypeFilterProps {
   selectedTypes: QUESTION_TYPE[];
@@ -493,62 +644,28 @@ export const ActivityFilters = ({
       (category) => category.key === 'ano'
     );
     const yearItens = Array.isArray(yearCategory?.itens)
-      ? yearCategory!.itens
+      ? yearCategory.itens
       : [];
 
-    const derivedYearIds =
-      yearIds.length > 0
-        ? yearIds
-        : yearItens
-            .filter(
-              (item) =>
-                item &&
-                typeof item.id === 'string' &&
-                // bankId pode não existir em todos os itens, por isso a verificação
-                typeof (item as { bankId?: unknown }).bankId === 'string' &&
-                bankIds.includes((item as { bankId?: string }).bankId as string)
-            )
-            .map((item) => item.id);
+    const derivedYearIds = deriveYearIdsFromBankIds(
+      yearItens,
+      bankIds,
+      yearIds
+    );
 
-    const hasBankMatches =
-      bankIds.length === 0 ||
-      bankCategories.some(
-        (category) =>
-          category.key === 'banca' &&
-          (category.itens ?? []).some((item) => bankIds.includes(item.id))
-      );
-    const hasYearMatches =
-      derivedYearIds.length === 0 ||
-      bankCategories.some(
-        (category) =>
-          category.key === 'ano' &&
-          (category.itens ?? []).some((item) =>
-            derivedYearIds.includes(item.id)
-          )
-      );
-
-    if (!hasBankMatches || !hasYearMatches) {
+    if (
+      !hasBankMatches(bankIds, bankCategories) ||
+      !hasYearMatches(derivedYearIds, bankCategories)
+    ) {
       return;
     }
 
     setBankCategories((prevCategories) =>
-      prevCategories.map((category) => {
-        if (category.key === 'banca') {
-          const itens = category.itens ?? [];
-          const selectedIds = itens
-            .filter((item) => bankIds.includes(item.id))
-            .map((item) => item.id);
-          return { ...category, selectedIds };
-        }
-        if (category.key === 'ano') {
-          const itens = category.itens ?? [];
-          const selectedIds = itens
-            .filter((item) => derivedYearIds.includes(item.id))
-            .map((item) => item.id);
-          return { ...category, selectedIds };
-        }
-        return category;
-      })
+      updateBankCategoriesWithInitialFilters(
+        prevCategories,
+        bankIds,
+        derivedYearIds
+      )
     );
 
     hasAppliedBankInitialFiltersRef.current = true;
@@ -614,42 +731,45 @@ export const ActivityFilters = ({
         topicIds.length > 0 &&
         !hasAppliedTopicsRef.current
       ) {
-        const selectedIds = (category.itens || [])
-          .filter((item) => topicIds.includes(item.id))
-          .map((item) => item.id);
-        if (selectedIds.length > 0) {
+        const result = updateTopicCategory(
+          category,
+          topicIds,
+          hasAppliedTopicsRef
+        );
+        if (result.changed) {
           changed = true;
-          hasAppliedTopicsRef.current = true;
-          return { ...category, selectedIds };
         }
+        return result.category;
       }
       if (
         category.key === 'subtema' &&
         subtopicIds.length > 0 &&
         !hasAppliedSubtopicsRef.current
       ) {
-        const selectedIds = (category.itens || [])
-          .filter((item) => subtopicIds.includes(item.id))
-          .map((item) => item.id);
-        if (selectedIds.length > 0) {
+        const result = updateSubtopicCategory(
+          category,
+          subtopicIds,
+          hasAppliedSubtopicsRef
+        );
+        if (result.changed) {
           changed = true;
-          hasAppliedSubtopicsRef.current = true;
-          return { ...category, selectedIds };
         }
+        return result.category;
       }
       if (
         category.key === 'assunto' &&
         contentIds.length > 0 &&
         !hasAppliedContentsRef.current
       ) {
-        const selectedIds = (category.itens || [])
-          .filter((item) => contentIds.includes(item.id))
-          .map((item) => item.id);
-        if (selectedIds.length > 0) {
+        const result = updateContentCategory(
+          category,
+          contentIds,
+          hasAppliedContentsRef
+        );
+        if (result.changed) {
           changed = true;
-          hasAppliedContentsRef.current = true;
-          return { ...category, selectedIds };
         }
+        return result.category;
       }
       return category;
     });
@@ -743,8 +863,8 @@ export const ActivityFilters = ({
     selectedSubjects,
     knowledgeCategories,
     bankCategories,
-    // getSelectedKnowledgeIds and getSelectedBankIds are stable callbacks
-    // that depend on knowledgeCategories and bankCategories, which are already in deps
+    getSelectedKnowledgeIds,
+    getSelectedBankIds,
   ]);
 
   const containerClassName =
