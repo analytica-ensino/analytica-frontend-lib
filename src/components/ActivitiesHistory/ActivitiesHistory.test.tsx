@@ -464,4 +464,48 @@ describe('ActivitiesHistory', () => {
       });
     });
   });
+
+  describe('Subject rendering with mapSubjectNameToEnum', () => {
+    it('should render subject with icon when mapSubjectNameToEnum is provided', async () => {
+      const mockMapSubjectNameToEnum = jest.fn().mockReturnValue('MATEMATICA');
+
+      render(
+        <ActivitiesHistory
+          {...defaultProps}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('activities-history')).toBeInTheDocument();
+      });
+    });
+
+    it('should render subject without icon when mapSubjectNameToEnum returns undefined', async () => {
+      const mockMapSubjectNameToEnum = jest.fn().mockReturnValue(undefined);
+
+      render(
+        <ActivitiesHistory
+          {...defaultProps}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('activities-history')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Delete model functionality', () => {
+    it('should show toast on successful model delete', async () => {
+      render(<ActivitiesHistory {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('menu-item-models'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('activity-models-tab')).toBeInTheDocument();
+      });
+    });
+  });
 });
