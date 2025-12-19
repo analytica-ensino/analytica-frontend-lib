@@ -705,55 +705,6 @@ export const ActivityFilters = ({
   }, [initialFilters]);
 
   useEffect(() => {
-    if (!initialFilters || hasAppliedBankInitialFiltersRef.current) {
-      return;
-    }
-
-    const bankIds = initialFilters.bankIds || [];
-    const yearIds = initialFilters.yearIds || [];
-
-    if (bankIds.length === 0 && yearIds.length === 0) {
-      hasAppliedBankInitialFiltersRef.current = true;
-      return;
-    }
-
-    const currentBankCategories = bankCategoriesRef.current;
-    if (currentBankCategories.length === 0) {
-      return;
-    }
-
-    const yearCategory = currentBankCategories.find(
-      (category) => category.key === 'ano'
-    );
-    const yearItens = Array.isArray(yearCategory?.itens)
-      ? yearCategory.itens
-      : [];
-
-    const derivedYearIds = deriveYearIdsFromBankIds(
-      yearItens,
-      bankIds,
-      yearIds
-    );
-
-    if (
-      !hasBankMatches(bankIds, currentBankCategories) ||
-      !hasYearMatches(derivedYearIds, currentBankCategories)
-    ) {
-      return;
-    }
-
-    setBankCategories((prevCategories) =>
-      updateBankCategoriesWithInitialFilters(
-        prevCategories,
-        bankIds,
-        derivedYearIds
-      )
-    );
-
-    hasAppliedBankInitialFiltersRef.current = true;
-  }, [initialFilters]);
-
-  useEffect(() => {
     if (
       !initialFilters ||
       hasAppliedBankInitialFiltersRef.current ||
@@ -800,7 +751,7 @@ export const ActivityFilters = ({
     );
 
     hasAppliedBankInitialFiltersRef.current = true;
-  }, [bankCategories]);
+  }, [initialFilters, bankCategories]);
 
   useEffect(() => {
     if (!initialFilters) {
@@ -832,92 +783,6 @@ export const ActivityFilters = ({
       hasRequestedContentsRef.current = true;
     }
   }, [initialFilters, loadTopics, loadSubtopics, loadContents]);
-
-  useEffect(() => {
-    if (!initialFilters || hasAppliedKnowledgeInitialFiltersRef.current) {
-      return;
-    }
-
-    const topicIds = initialFilters.topicIds || [];
-    const subtopicIds = initialFilters.subtopicIds || [];
-    const contentIds = initialFilters.contentIds || [];
-
-    const hasKnowledgeSelections =
-      topicIds.length > 0 || subtopicIds.length > 0 || contentIds.length > 0;
-
-    if (!hasKnowledgeSelections) {
-      hasAppliedKnowledgeInitialFiltersRef.current = true;
-      return;
-    }
-
-    const currentKnowledgeCategories = knowledgeCategoriesRef.current;
-    if (currentKnowledgeCategories.length === 0 || !handleCategoriesChange) {
-      return;
-    }
-
-    let changed = false;
-
-    const updatedCategories = currentKnowledgeCategories.map((category) => {
-      if (
-        category.key === 'tema' &&
-        topicIds.length > 0 &&
-        !hasAppliedTopicsRef.current
-      ) {
-        const result = updateTopicCategory(
-          category,
-          topicIds,
-          hasAppliedTopicsRef
-        );
-        if (result.changed) {
-          changed = true;
-        }
-        return result.category;
-      }
-      if (
-        category.key === 'subtema' &&
-        subtopicIds.length > 0 &&
-        !hasAppliedSubtopicsRef.current
-      ) {
-        const result = updateSubtopicCategory(
-          category,
-          subtopicIds,
-          hasAppliedSubtopicsRef
-        );
-        if (result.changed) {
-          changed = true;
-        }
-        return result.category;
-      }
-      if (
-        category.key === 'assunto' &&
-        contentIds.length > 0 &&
-        !hasAppliedContentsRef.current
-      ) {
-        const result = updateContentCategory(
-          category,
-          contentIds,
-          hasAppliedContentsRef
-        );
-        if (result.changed) {
-          changed = true;
-        }
-        return result.category;
-      }
-      return category;
-    });
-
-    if (changed) {
-      handleCategoriesChange(updatedCategories);
-    }
-
-    if (
-      (topicIds.length === 0 || hasAppliedTopicsRef.current) &&
-      (subtopicIds.length === 0 || hasAppliedSubtopicsRef.current) &&
-      (contentIds.length === 0 || hasAppliedContentsRef.current)
-    ) {
-      hasAppliedKnowledgeInitialFiltersRef.current = true;
-    }
-  }, [initialFilters, handleCategoriesChange]);
 
   useEffect(() => {
     if (
@@ -1004,7 +869,7 @@ export const ActivityFilters = ({
     ) {
       hasAppliedKnowledgeInitialFiltersRef.current = true;
     }
-  }, [knowledgeCategories, initialFilters, handleCategoriesChange]);
+  }, [initialFilters, knowledgeCategories, handleCategoriesChange]);
 
   useEffect(() => {
     if (loadBanks) {
