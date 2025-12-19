@@ -258,7 +258,11 @@ export const ActivityCardQuestionBanks = ({
           size="small"
           iconLeft={<Plus />}
           className="w-full"
-          onClick={onAddToActivity}
+          onClick={() => {
+            if (onAddToActivity) {
+              onAddToActivity();
+            }
+          }}
         >
           Adicionar à atividade
         </Button>
