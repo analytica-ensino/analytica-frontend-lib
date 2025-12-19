@@ -62,14 +62,14 @@ describe('ProgressCircle', () => {
       const { container } = render(<ProgressCircle value={50} />);
       const wrapper = container.firstChild as HTMLElement;
 
-      expect(wrapper).toHaveClass('w-[90px]', 'h-[90px]');
+      expect(wrapper).toHaveClass('w-[107px]', 'h-[107px]');
     });
 
     it('applies small size classes explicitly', () => {
       const { container } = render(<ProgressCircle size="small" value={50} />);
       const wrapper = container.firstChild as HTMLElement;
 
-      expect(wrapper).toHaveClass('w-[90px]', 'h-[90px]');
+      expect(wrapper).toHaveClass('w-[107px]', 'h-[107px]');
     });
 
     it('applies medium size classes', () => {
@@ -83,9 +83,9 @@ describe('ProgressCircle', () => {
       const { container } = render(<ProgressCircle size="small" value={50} />);
       const svg = container.querySelector('svg');
 
-      expect(svg).toHaveAttribute('width', '90');
-      expect(svg).toHaveAttribute('height', '90');
-      expect(svg).toHaveAttribute('viewBox', '0 0 90 90');
+      expect(svg).toHaveAttribute('width', '107');
+      expect(svg).toHaveAttribute('height', '107');
+      expect(svg).toHaveAttribute('viewBox', '0 0 107 107');
     });
 
     it('uses correct SVG dimensions for medium size', () => {
@@ -257,16 +257,16 @@ describe('ProgressCircle', () => {
     it('calculates correct stroke properties for small size', () => {
       const { container } = render(<ProgressCircle size="small" value={50} />);
       const progressCircle = container.querySelectorAll('circle')[1];
-      const radius = 37;
+      const radius = 49;
       const circumference = 2 * Math.PI * radius;
 
       expect(progressCircle).toHaveAttribute(
         'stroke-dasharray',
         circumference.toString()
       );
-      expect(progressCircle).toHaveAttribute('r', '37');
-      expect(progressCircle).toHaveAttribute('cx', '45');
-      expect(progressCircle).toHaveAttribute('cy', '45');
+      expect(progressCircle).toHaveAttribute('r', '49');
+      expect(progressCircle).toHaveAttribute('cx', '53.5');
+      expect(progressCircle).toHaveAttribute('cy', '53.5');
     });
 
     it('calculates correct stroke properties for medium size', () => {
@@ -287,7 +287,7 @@ describe('ProgressCircle', () => {
     it('calculates correct stroke-dashoffset for progress', () => {
       const { container } = render(<ProgressCircle value={25} />);
       const progressCircle = container.querySelectorAll('circle')[1];
-      const radius = 37;
+      const radius = 49;
       const circumference = 2 * Math.PI * radius;
       const expectedOffset = circumference - (25 / 100) * circumference;
 
@@ -484,7 +484,7 @@ describe('ProgressCircle', () => {
           );
 
           const wrapper = container.firstChild as HTMLElement;
-          const sizeClass = size === 'small' ? 'w-[90px]' : 'w-[152px]';
+          const sizeClass = size === 'small' ? 'w-[107px]' : 'w-[152px]';
 
           expect(wrapper).toHaveClass(sizeClass);
           expect(screen.getByText('50%')).toBeInTheDocument();
