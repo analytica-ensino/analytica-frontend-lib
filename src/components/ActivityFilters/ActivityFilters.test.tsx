@@ -284,4 +284,270 @@ describe('ActivityFilters', () => {
     expect(onClearFilters).toHaveBeenCalledTimes(1);
     expect(onApplyFilters).toHaveBeenCalledTimes(1);
   });
+
+  describe('Initial bank and year filters', () => {
+    it('should skip bank filters when both bankIds and yearIds are empty', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenCalled();
+      });
+
+      const lastCall =
+        onFiltersChange.mock.calls[onFiltersChange.mock.calls.length - 1][0];
+      expect(lastCall.bankIds).toEqual([]);
+      expect(lastCall.yearIds).toEqual([]);
+    });
+
+    it('should wait for bankCategories before applying bank filters', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      mockUseActivityFiltersDataReturn = buildMockReturn({
+        banks: [],
+        bankYears: [],
+      });
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenCalled();
+      });
+
+      const lastCall =
+        onFiltersChange.mock.calls[onFiltersChange.mock.calls.length - 1][0];
+      expect(lastCall.bankIds).toEqual([]);
+    });
+
+    it('should apply bank filters when bankIds are provided and categories are loaded', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank1'],
+          })
+        );
+      });
+    });
+
+    it('should apply year filters when yearIds are provided', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: ['year1'],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            yearIds: ['year1'],
+          })
+        );
+      });
+    });
+
+    it('should apply both bank and year filters when both are provided', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1', 'bank2'],
+        yearIds: ['year1', 'year2'],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank1', 'bank2'],
+            yearIds: ['year1', 'year2'],
+          })
+        );
+      });
+    });
+
+    it('should derive yearIds from bankIds when only bankIds are provided', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank2'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank2'],
+            yearIds: expect.arrayContaining(['year2', 'year3']),
+          })
+        );
+      });
+    });
+
+    it('should not apply filters when bankIds do not match any available banks', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['non-existent-bank'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenCalled();
+      });
+
+      const lastCall =
+        onFiltersChange.mock.calls[onFiltersChange.mock.calls.length - 1][0];
+      expect(lastCall.bankIds).toEqual([]);
+    });
+
+    it('should not apply filters when yearIds do not match any available years', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1'],
+        yearIds: ['non-existent-year'],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenCalled();
+      });
+
+      const lastCall =
+        onFiltersChange.mock.calls[onFiltersChange.mock.calls.length - 1][0];
+      expect(lastCall.yearIds).toEqual([]);
+    });
+
+    it('should handle derived yearIds when bankIds match but yearIds are empty', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank1'],
+            yearIds: ['year1'],
+          })
+        );
+      });
+    });
+
+    it('should handle multiple banks with derived yearIds', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1', 'bank2'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank1', 'bank2'],
+            yearIds: expect.arrayContaining(['year1', 'year2', 'year3']),
+          })
+        );
+      });
+    });
+
+    it('should prefer explicit yearIds over derived ones', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank2'],
+        yearIds: ['year2'],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank2'],
+            yearIds: ['year2'],
+          })
+        );
+      });
+    });
+  });
 });
