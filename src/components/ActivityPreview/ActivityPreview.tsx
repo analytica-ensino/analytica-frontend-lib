@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { File, DownloadSimple } from 'phosphor-react';
-import { Button, Text } from '../../index';
+import { File, DownloadSimple, Trash } from 'phosphor-react';
+import { Button, IconButton, Text } from '../../index';
 import { ActivityCardQuestionPreview } from '../ActivityCardQuestionPreview/ActivityCardQuestionPreview';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { cn } from '../../utils/utils';
@@ -29,6 +29,7 @@ interface ActivityPreviewProps {
   questions?: PreviewQuestion[];
   onDownloadPdf?: () => void;
   onRemoveAll?: () => void;
+  onRemoveQuestion?: (questionId: string) => void;
   className?: string;
   onReorder?: (orderedQuestions: PreviewQuestion[]) => void;
   /**
@@ -43,6 +44,7 @@ export const ActivityPreview = ({
   questions = [],
   onDownloadPdf,
   onRemoveAll,
+  onRemoveQuestion,
   className,
   onReorder,
   onPositionsChange,
@@ -119,7 +121,7 @@ export const ActivityPreview = ({
   return (
     <div
       className={cn(
-        'w-[470px] flex-shrink-0 p-4 rounded-lg bg-background flex flex-col gap-4',
+        'w-full flex-shrink-0 p-4 rounded-lg bg-background flex flex-col gap-4',
         className
       )}
     >
@@ -205,8 +207,21 @@ export const ActivityPreview = ({
                   e.preventDefault();
                 }
               }}
-              className="rounded-lg border border-border-200 bg-background"
+              className="rounded-lg border border-border-200 bg-background relative group"
             >
+              {onRemoveQuestion && (
+                <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <IconButton
+                    size="sm"
+                    icon={<Trash size={16} />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemoveQuestion(id);
+                    }}
+                    aria-label={`Remover questão ${position ?? index + 1}`}
+                  />
+                </div>
+              )}
               <ActivityCardQuestionPreview
                 subjectName={subjectName}
                 subjectColor={subjectColor}

@@ -68,6 +68,8 @@ export interface QuestionsFilterBody {
   contentIds?: string[];
   page?: number;
   pageSize?: number;
+  selectedQuestionsIds?: string[];
+  randomQuestions?: number;
   [key: string]: unknown;
 }
 
@@ -151,6 +153,23 @@ export interface QuestionsListResponseActivity {
   message?: string;
   data: {
     questions: Question[];
-    pagination: PaginationActivity;
+    pagination?: PaginationActivity;
+  };
+}
+
+/**
+ * Questions by IDs request body interface
+ */
+export interface QuestionsByIdsBody {
+  questionsIds: string[];
+}
+
+/**
+ * Questions by IDs response interface
+ */
+export interface QuestionsByIdsResponse {
+  message?: string;
+  data: {
+    questions: Question[];
   };
 }

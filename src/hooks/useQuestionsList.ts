@@ -2,9 +2,12 @@ import { useState, useCallback } from 'react';
 import type { BaseApiClient } from '../types/api';
 import type {
   QuestionsFilterBody,
-  QuestionsListResponse,
+  QuestionsListResponseActivity,
+  QuestionsByIdsBody,
+  QuestionsByIdsResponse,
   Question,
   Pagination,
+  PaginationActivity,
 } from '../types/questions';
 
 // ============================================================================
@@ -35,6 +38,11 @@ export interface UseQuestionsListReturn extends UseQuestionsListState {
     filters?: Partial<QuestionsFilterBody>,
     append?: boolean
   ) => Promise<void>;
+  fetchRandomQuestions: (
+    count: number,
+    filters?: Partial<QuestionsFilterBody>
+  ) => Promise<Question[]>;
+  fetchQuestionsByIds: (questionIds: string[]) => Promise<Question[]>;
   loadMore: () => Promise<void>;
   reset: () => void;
 }
@@ -87,6 +95,23 @@ const useQuestionsListImpl = (
   );
 
   /**
+   * Convert PaginationActivity to Pagination format
+   */
+  const convertPagination = (
+    pagination: PaginationActivity | undefined
+  ): Pagination | null => {
+    if (!pagination) return null;
+    return {
+      page: pagination.page,
+      pageSize: pagination.limit,
+      total: pagination.total,
+      totalPages: pagination.totalPages,
+      hasNext: pagination.hasNext,
+      hasPrevious: pagination.hasPrev,
+    };
+  };
+
+  /**
    * Fetch questions from API with filters
    * @param filters - Filters to apply
    * @param append - If true, appends results to existing questions; if false, replaces them
@@ -104,7 +129,7 @@ const useQuestionsListImpl = (
           ...filters,
         };
 
-        const response = await apiClient.post<QuestionsListResponse>(
+        const response = await apiClient.post<QuestionsListResponseActivity>(
           '/questions/list',
           validatedFilters
         );
@@ -115,7 +140,7 @@ const useQuestionsListImpl = (
           questions: append
             ? [...prev.questions, ...response.data.data.questions]
             : response.data.data.questions,
-          pagination: response.data.data.pagination,
+          pagination: convertPagination(response.data.data.pagination),
           error: null,
           currentFilters: validatedFilters,
         }));
@@ -129,6 +154,63 @@ const useQuestionsListImpl = (
       }
     },
     [apiClient, updateState, handleError]
+  );
+
+  /**
+   * Fetch random questions from API
+   * @param count - Number of random questions to fetch
+   * @param filters - Optional filters to apply
+   * @returns Promise with array of questions
+   */
+  const fetchRandomQuestions = useCallback(
+    async (
+      count: number,
+      filters?: Partial<QuestionsFilterBody>
+    ): Promise<Question[]> => {
+      try {
+        const validatedFilters: QuestionsFilterBody = {
+          ...filters,
+          randomQuestions: count,
+        };
+
+        const response = await apiClient.post<QuestionsListResponseActivity>(
+          '/questions/list',
+          validatedFilters
+        );
+
+        return response.data.data.questions;
+      } catch (error) {
+        handleError(error);
+        return [];
+      }
+    },
+    [apiClient, handleError]
+  );
+
+  /**
+   * Fetch questions by their IDs
+   * @param questionIds - Array of question IDs to fetch
+   * @returns Promise with array of questions
+   */
+  const fetchQuestionsByIds = useCallback(
+    async (questionIds: string[]): Promise<Question[]> => {
+      try {
+        const body: QuestionsByIdsBody & Record<string, unknown> = {
+          questionsIds: questionIds,
+        };
+
+        const response = await apiClient.post<QuestionsByIdsResponse>(
+          '/questions/by-ids',
+          body
+        );
+
+        return response.data.data.questions;
+      } catch (error) {
+        handleError(error);
+        return [];
+      }
+    },
+    [apiClient, handleError]
   );
 
   const loadMore = useCallback(async () => {
@@ -172,6 +254,8 @@ const useQuestionsListImpl = (
   return {
     ...state,
     fetchQuestions,
+    fetchRandomQuestions,
+    fetchQuestionsByIds,
     loadMore,
     reset,
   };

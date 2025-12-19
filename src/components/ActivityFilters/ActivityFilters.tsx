@@ -28,6 +28,7 @@ import {
   getSelectedIdsFromCategories,
   toggleArrayItem,
   toggleSingleValue,
+  areFiltersEqual,
 } from '../../utils/activityFilters';
 
 const questionTypesFallback = [
@@ -40,12 +41,227 @@ const questionTypesFallback = [
   QUESTION_TYPE.PREENCHER,
 ];
 
+/**
+ * Type guard to check if an item has a valid bankId
+ * @param item - The item to validate
+ * @param bankIds - Array of valid bank IDs to check against
+ * @returns True if item has valid id and bankId that matches bankIds
+ */
+const isValidBankYearItem = (
+  item: unknown,
+  bankIds: string[]
+): item is { id: string; bankId: string } => {
+  return (
+    !!item &&
+    typeof (item as { id?: unknown }).id === 'string' &&
+    typeof (item as { bankId?: unknown }).bankId === 'string' &&
+    bankIds.includes((item as { bankId: string }).bankId)
+  );
+};
+
+/**
+ * Derives year IDs from bank IDs when explicit year IDs are not provided
+ * @param yearItens - Array of year items to filter
+ * @param bankIds - Array of bank IDs to filter by
+ * @param explicitYearIds - Explicitly provided year IDs (takes precedence)
+ * @returns Array of year IDs
+ */
+const deriveYearIdsFromBankIds = (
+  yearItens: unknown[],
+  bankIds: string[],
+  explicitYearIds: string[]
+): string[] => {
+  if (explicitYearIds.length > 0) {
+    return explicitYearIds;
+  }
+  return yearItens
+    .filter((item) => isValidBankYearItem(item, bankIds))
+    .map((item) => item.id);
+};
+
+/**
+ * Checks if bank matches exist in the provided categories
+ * @param bankIds - Array of bank IDs to check
+ * @param bankCategories - Array of category configurations
+ * @returns True if bankIds is empty or matches are found
+ */
+const hasBankMatches = (
+  bankIds: string[],
+  bankCategories: CategoryConfig[]
+): boolean => {
+  if (bankIds.length === 0) {
+    return true;
+  }
+  return bankCategories.some(
+    (category) =>
+      category.key === 'banca' &&
+      (category.itens ?? []).some((item) => bankIds.includes(item.id))
+  );
+};
+
+/**
+ * Checks if year matches exist in the provided categories
+ * @param derivedYearIds - Array of year IDs to check
+ * @param bankCategories - Array of category configurations
+ * @returns True if derivedYearIds is empty or matches are found
+ */
+const hasYearMatches = (
+  derivedYearIds: string[],
+  bankCategories: CategoryConfig[]
+): boolean => {
+  if (derivedYearIds.length === 0) {
+    return true;
+  }
+  return bankCategories.some(
+    (category) =>
+      category.key === 'ano' &&
+      (category.itens ?? []).some((item) => derivedYearIds.includes(item.id))
+  );
+};
+
+/**
+ * Updates a bank category with selected IDs based on provided bank IDs
+ * @param category - The category configuration to update
+ * @param bankIds - Array of bank IDs to select
+ * @returns Updated category with selectedIds
+ */
+const updateBankCategory = (
+  category: CategoryConfig,
+  bankIds: string[]
+): CategoryConfig => {
+  const itens = category.itens ?? [];
+  const selectedIds = itens
+    .filter((item) => bankIds.includes(item.id))
+    .map((item) => item.id);
+  return { ...category, selectedIds };
+};
+
+/**
+ * Updates a year category with selected IDs based on provided year IDs
+ * @param category - The category configuration to update
+ * @param derivedYearIds - Array of year IDs to select
+ * @returns Updated category with selectedIds
+ */
+const updateYearCategory = (
+  category: CategoryConfig,
+  derivedYearIds: string[]
+): CategoryConfig => {
+  const itens = category.itens ?? [];
+  const selectedIds = itens
+    .filter((item) => derivedYearIds.includes(item.id))
+    .map((item) => item.id);
+  return { ...category, selectedIds };
+};
+
+/**
+ * Updates bank categories with initial filter selections
+ * @param prevCategories - Previous category configurations
+ * @param bankIds - Array of bank IDs to select
+ * @param derivedYearIds - Array of year IDs to select
+ * @returns Updated array of category configurations
+ */
+const updateBankCategoriesWithInitialFilters = (
+  prevCategories: CategoryConfig[],
+  bankIds: string[],
+  derivedYearIds: string[]
+): CategoryConfig[] => {
+  return prevCategories.map((category) => {
+    if (category.key === 'banca') {
+      return updateBankCategory(category, bankIds);
+    }
+    if (category.key === 'ano') {
+      return updateYearCategory(category, derivedYearIds);
+    }
+    return category;
+  });
+};
+
+/**
+ * Gets selected IDs for a knowledge category based on filter IDs
+ * @param category - The category configuration
+ * @param filterIds - Array of IDs to filter by
+ * @returns Array of selected item IDs
+ */
+const getSelectedIdsForKnowledgeCategory = (
+  category: CategoryConfig,
+  filterIds: string[]
+): string[] => {
+  return (category.itens || [])
+    .filter((item) => filterIds.includes(item.id))
+    .map((item) => item.id);
+};
+
+/**
+ * Updates a knowledge category with topic filter selections
+ * @param category - The category configuration to update
+ * @param topicIds - Array of topic IDs to select
+ * @param hasAppliedTopicsRef - Ref to track if topics have been applied
+ * @returns Object with updated category and changed flag
+ */
+const updateTopicCategory = (
+  category: CategoryConfig,
+  topicIds: string[],
+  hasAppliedTopicsRef: { current: boolean }
+): { category: CategoryConfig; changed: boolean } => {
+  const selectedIds = getSelectedIdsForKnowledgeCategory(category, topicIds);
+  if (selectedIds.length > 0) {
+    hasAppliedTopicsRef.current = true;
+    return { category: { ...category, selectedIds }, changed: true };
+  }
+  return { category, changed: false };
+};
+
+/**
+ * Updates a knowledge category with subtopic filter selections
+ * @param category - The category configuration to update
+ * @param subtopicIds - Array of subtopic IDs to select
+ * @param hasAppliedSubtopicsRef - Ref to track if subtopics have been applied
+ * @returns Object with updated category and changed flag
+ */
+const updateSubtopicCategory = (
+  category: CategoryConfig,
+  subtopicIds: string[],
+  hasAppliedSubtopicsRef: { current: boolean }
+): { category: CategoryConfig; changed: boolean } => {
+  const selectedIds = getSelectedIdsForKnowledgeCategory(category, subtopicIds);
+  if (selectedIds.length > 0) {
+    hasAppliedSubtopicsRef.current = true;
+    return { category: { ...category, selectedIds }, changed: true };
+  }
+  return { category, changed: false };
+};
+
+/**
+ * Updates a knowledge category with content filter selections
+ * @param category - The category configuration to update
+ * @param contentIds - Array of content IDs to select
+ * @param hasAppliedContentsRef - Ref to track if contents have been applied
+ * @returns Object with updated category and changed flag
+ */
+const updateContentCategory = (
+  category: CategoryConfig,
+  contentIds: string[],
+  hasAppliedContentsRef: { current: boolean }
+): { category: CategoryConfig; changed: boolean } => {
+  const selectedIds = getSelectedIdsForKnowledgeCategory(category, contentIds);
+  if (selectedIds.length > 0) {
+    hasAppliedContentsRef.current = true;
+    return { category: { ...category, selectedIds }, changed: true };
+  }
+  return { category, changed: false };
+};
+
 interface QuestionTypeFilterProps {
   selectedTypes: QUESTION_TYPE[];
   onToggleType: (type: QUESTION_TYPE) => void;
   allowedQuestionTypes?: QUESTION_TYPE[];
 }
 
+/**
+ * QuestionTypeFilter component for selecting question types
+ * @param props - Component props
+ * @returns JSX element
+ */
 const QuestionTypeFilter = ({
   selectedTypes,
   onToggleType,
@@ -73,7 +289,6 @@ const QuestionTypeFilter = ({
   );
 };
 
-// BanksAndYearsFilter Component
 interface BanksAndYearsFilterProps {
   banks: Bank[];
   bankYears: BankYear[];
@@ -83,6 +298,11 @@ interface BanksAndYearsFilterProps {
   error?: string | null;
 }
 
+/**
+ * BanksAndYearsFilter component for selecting banks and years
+ * @param props - Component props
+ * @returns JSX element
+ */
 const BanksAndYearsFilter = ({
   banks,
   bankYears,
@@ -129,7 +349,6 @@ const BanksAndYearsFilter = ({
   return null;
 };
 
-// SubjectsFilter Component
 interface SubjectsFilterProps {
   knowledgeAreas: KnowledgeArea[];
   selectedSubject: string | null;
@@ -138,6 +357,11 @@ interface SubjectsFilterProps {
   error?: string | null;
 }
 
+/**
+ * SubjectsFilter component for selecting subjects/knowledge areas
+ * @param props - Component props
+ * @returns JSX element
+ */
 const SubjectsFilter = ({
   knowledgeAreas,
   selectedSubject,
@@ -197,13 +421,17 @@ const SubjectsFilter = ({
   );
 };
 
-// KnowledgeStructureFilter Component
 interface KnowledgeStructureFilterProps {
   knowledgeStructure: KnowledgeStructureState;
   knowledgeCategories: CategoryConfig[];
   handleCategoriesChange?: (updatedCategories: CategoryConfig[]) => void;
 }
 
+/**
+ * KnowledgeStructureFilter component for selecting topics, subtopics, and contents
+ * @param props - Component props
+ * @returns JSX element
+ */
 const KnowledgeStructureFilter = ({
   knowledgeStructure,
   knowledgeCategories,
@@ -243,12 +471,16 @@ const KnowledgeStructureFilter = ({
   );
 };
 
-// FilterActions Component
 interface FilterActionsProps {
   onClearFilters?: () => void;
   onApplyFilters?: () => void;
 }
 
+/**
+ * FilterActions component for clear and apply filter buttons
+ * @param props - Component props
+ * @returns JSX element or null if no actions provided
+ */
 const FilterActions = ({
   onClearFilters,
   onApplyFilters,
@@ -273,15 +505,13 @@ const FilterActions = ({
   );
 };
 
-// Main ActivityFilters Component
 export interface ActivityFiltersProps {
   apiClient: BaseApiClient;
   onFiltersChange: (filters: ActivityFiltersData) => void;
   variant?: 'default' | 'popover';
   institutionId?: string | null;
-  // Question types
+  initialFilters?: ActivityFiltersData | null;
   allowedQuestionTypes?: QUESTION_TYPE[];
-  // Action buttons
   onClearFilters?: () => void;
   onApplyFilters?: () => void;
 }
@@ -295,9 +525,8 @@ export const ActivityFilters = ({
   onFiltersChange,
   variant = 'default',
   institutionId = null,
-  // Question types
+  initialFilters = null,
   allowedQuestionTypes,
-  // Action buttons
   onClearFilters,
   onApplyFilters,
 }: ActivityFiltersProps) => {
@@ -322,6 +551,9 @@ export const ActivityFilters = ({
     loadBanks,
     loadKnowledgeAreas,
     loadQuestionTypes,
+    loadTopics,
+    loadSubtopics,
+    loadContents,
     questionTypes,
     loadingQuestionTypes,
     questionTypesError,
@@ -331,6 +563,17 @@ export const ActivityFilters = ({
   });
 
   const prevAllowedQuestionTypesRef = useRef<string | null>(null);
+  const hasAppliedBasicInitialFiltersRef = useRef(false);
+  const hasAppliedBankInitialFiltersRef = useRef(false);
+  const hasAppliedKnowledgeInitialFiltersRef = useRef(false);
+  const hasRequestedTopicsRef = useRef(false);
+  const hasRequestedSubtopicsRef = useRef(false);
+  const hasRequestedContentsRef = useRef(false);
+  const hasAppliedTopicsRef = useRef(false);
+  const hasAppliedSubtopicsRef = useRef(false);
+  const hasAppliedContentsRef = useRef(false);
+  const bankCategoriesRef = useRef<CategoryConfig[]>([]);
+  const knowledgeCategoriesRef = useRef<CategoryConfig[]>([]);
 
   useEffect(() => {
     if (!allowedQuestionTypes || allowedQuestionTypes.length === 0) {
@@ -338,7 +581,6 @@ export const ActivityFilters = ({
       return;
     }
 
-    // Sort using a compare function to preserve original order as much as possible
     const currentKey = allowedQuestionTypes
       .slice()
       .sort((a, b) => {
@@ -376,10 +618,12 @@ export const ActivityFilters = ({
     });
   }, [allowedQuestionTypes]);
 
-  // Bank categories state
   const [bankCategories, setBankCategories] = useState<CategoryConfig[]>([]);
 
-  // Convert single subject to array for compatibility
+  useEffect(() => {
+    bankCategoriesRef.current = bankCategories;
+  }, [bankCategories]);
+
   const selectedSubjects = useMemo(
     () => (selectedSubject ? [selectedSubject] : []),
     [selectedSubject]
@@ -397,7 +641,6 @@ export const ActivityFilters = ({
     setBankCategories(updatedCategories);
   };
 
-  // Update bank categories when banks or bankYears change
   useEffect(() => {
     setBankCategories((prevCategories) => {
       const bankCategory: CategoryConfig = {
@@ -429,7 +672,205 @@ export const ActivityFilters = ({
     });
   }, [banks, bankYears]);
 
-  // Load banks, knowledge areas and question types on component mount/institution change
+  useEffect(() => {
+    knowledgeCategoriesRef.current = knowledgeCategories;
+  }, [knowledgeCategories]);
+
+  useEffect(() => {
+    hasAppliedBasicInitialFiltersRef.current = false;
+    hasAppliedBankInitialFiltersRef.current = false;
+    hasAppliedKnowledgeInitialFiltersRef.current = false;
+    hasRequestedTopicsRef.current = false;
+    hasRequestedSubtopicsRef.current = false;
+    hasRequestedContentsRef.current = false;
+    hasAppliedTopicsRef.current = false;
+    hasAppliedSubtopicsRef.current = false;
+    hasAppliedContentsRef.current = false;
+  }, [initialFilters]);
+
+  useEffect(() => {
+    if (!initialFilters || hasAppliedBasicInitialFiltersRef.current) {
+      return;
+    }
+
+    if (initialFilters.types && initialFilters.types.length > 0) {
+      setSelectedQuestionTypes(initialFilters.types);
+    }
+
+    if (initialFilters.knowledgeIds && initialFilters.knowledgeIds.length > 0) {
+      setSelectedSubject(initialFilters.knowledgeIds[0]);
+    }
+
+    hasAppliedBasicInitialFiltersRef.current = true;
+  }, [initialFilters]);
+
+  useEffect(() => {
+    if (
+      !initialFilters ||
+      hasAppliedBankInitialFiltersRef.current ||
+      bankCategoriesRef.current.length === 0
+    ) {
+      return;
+    }
+
+    const bankIds = initialFilters.bankIds || [];
+    const yearIds = initialFilters.yearIds || [];
+
+    if (bankIds.length === 0 && yearIds.length === 0) {
+      hasAppliedBankInitialFiltersRef.current = true;
+      return;
+    }
+
+    const currentBankCategories = bankCategoriesRef.current;
+    const yearCategory = currentBankCategories.find(
+      (category) => category.key === 'ano'
+    );
+    const yearItens = Array.isArray(yearCategory?.itens)
+      ? yearCategory.itens
+      : [];
+
+    const derivedYearIds = deriveYearIdsFromBankIds(
+      yearItens,
+      bankIds,
+      yearIds
+    );
+
+    if (
+      !hasBankMatches(bankIds, currentBankCategories) ||
+      !hasYearMatches(derivedYearIds, currentBankCategories)
+    ) {
+      return;
+    }
+
+    setBankCategories((prevCategories) =>
+      updateBankCategoriesWithInitialFilters(
+        prevCategories,
+        bankIds,
+        derivedYearIds
+      )
+    );
+
+    hasAppliedBankInitialFiltersRef.current = true;
+  }, [initialFilters, bankCategories]);
+
+  useEffect(() => {
+    if (!initialFilters) {
+      return;
+    }
+
+    const subjectIds = initialFilters.knowledgeIds || [];
+    const topicIds = initialFilters.topicIds || [];
+    const subtopicIds = initialFilters.subtopicIds || [];
+
+    if (subjectIds.length > 0 && !hasRequestedTopicsRef.current) {
+      if (loadTopics) {
+        loadTopics(subjectIds);
+      }
+      hasRequestedTopicsRef.current = true;
+    }
+
+    if (topicIds.length > 0 && !hasRequestedSubtopicsRef.current) {
+      if (loadSubtopics) {
+        loadSubtopics(topicIds);
+      }
+      hasRequestedSubtopicsRef.current = true;
+    }
+
+    if (subtopicIds.length > 0 && !hasRequestedContentsRef.current) {
+      if (loadContents) {
+        loadContents(subtopicIds);
+      }
+      hasRequestedContentsRef.current = true;
+    }
+  }, [initialFilters, loadTopics, loadSubtopics, loadContents]);
+
+  useEffect(() => {
+    if (
+      !initialFilters ||
+      hasAppliedKnowledgeInitialFiltersRef.current ||
+      knowledgeCategoriesRef.current.length === 0 ||
+      !handleCategoriesChange
+    ) {
+      return;
+    }
+
+    const topicIds = initialFilters.topicIds || [];
+    const subtopicIds = initialFilters.subtopicIds || [];
+    const contentIds = initialFilters.contentIds || [];
+
+    const hasKnowledgeSelections =
+      topicIds.length > 0 || subtopicIds.length > 0 || contentIds.length > 0;
+
+    if (!hasKnowledgeSelections) {
+      hasAppliedKnowledgeInitialFiltersRef.current = true;
+      return;
+    }
+
+    const currentKnowledgeCategories = knowledgeCategoriesRef.current;
+    let changed = false;
+
+    const updatedCategories = currentKnowledgeCategories.map((category) => {
+      if (
+        category.key === 'tema' &&
+        topicIds.length > 0 &&
+        !hasAppliedTopicsRef.current
+      ) {
+        const result = updateTopicCategory(
+          category,
+          topicIds,
+          hasAppliedTopicsRef
+        );
+        if (result.changed) {
+          changed = true;
+        }
+        return result.category;
+      }
+      if (
+        category.key === 'subtema' &&
+        subtopicIds.length > 0 &&
+        !hasAppliedSubtopicsRef.current
+      ) {
+        const result = updateSubtopicCategory(
+          category,
+          subtopicIds,
+          hasAppliedSubtopicsRef
+        );
+        if (result.changed) {
+          changed = true;
+        }
+        return result.category;
+      }
+      if (
+        category.key === 'assunto' &&
+        contentIds.length > 0 &&
+        !hasAppliedContentsRef.current
+      ) {
+        const result = updateContentCategory(
+          category,
+          contentIds,
+          hasAppliedContentsRef
+        );
+        if (result.changed) {
+          changed = true;
+        }
+        return result.category;
+      }
+      return category;
+    });
+
+    if (changed) {
+      handleCategoriesChange(updatedCategories);
+    }
+
+    if (
+      (topicIds.length === 0 || hasAppliedTopicsRef.current) &&
+      (subtopicIds.length === 0 || hasAppliedSubtopicsRef.current) &&
+      (contentIds.length === 0 || hasAppliedContentsRef.current)
+    ) {
+      hasAppliedKnowledgeInitialFiltersRef.current = true;
+    }
+  }, [initialFilters, knowledgeCategories, handleCategoriesChange]);
+
   useEffect(() => {
     if (loadBanks) {
       loadBanks();
@@ -455,7 +896,6 @@ export const ActivityFilters = ({
     return source.filter((type) => allowedQuestionTypes.includes(type));
   }, [questionTypes, allowedQuestionTypes]);
 
-  // Extract selected IDs from knowledge categories
   const getSelectedKnowledgeIds = useCallback(() => {
     return getSelectedIdsFromCategories(knowledgeCategories, {
       topicIds: 'tema',
@@ -464,7 +904,6 @@ export const ActivityFilters = ({
     });
   }, [knowledgeCategories]);
 
-  // Extract selected IDs from bank categories
   const getSelectedBankIds = useCallback(() => {
     return getSelectedIdsFromCategories(bankCategories, {
       bankIds: 'banca',
@@ -472,13 +911,13 @@ export const ActivityFilters = ({
     });
   }, [bankCategories]);
 
-  // Use ref to store onFiltersChange to avoid infinite loops
   const onFiltersChangeRef = useRef(onFiltersChange);
   useEffect(() => {
     onFiltersChangeRef.current = onFiltersChange;
   }, [onFiltersChange]);
 
-  // Notify parent component when filters change
+  const prevFiltersRef = useRef<ActivityFiltersData | null>(null);
+
   useEffect(() => {
     const knowledgeIds = getSelectedKnowledgeIds();
     const bankIds = getSelectedBankIds();
@@ -491,7 +930,11 @@ export const ActivityFilters = ({
       subtopicIds: knowledgeIds.subtopicIds,
       contentIds: knowledgeIds.contentIds,
     };
-    onFiltersChangeRef.current(filters);
+
+    if (!areFiltersEqual(prevFiltersRef.current, filters)) {
+      prevFiltersRef.current = filters;
+      onFiltersChangeRef.current(filters);
+    }
   }, [
     selectedQuestionTypes,
     selectedSubjects,

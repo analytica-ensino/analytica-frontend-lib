@@ -20,7 +20,7 @@ jest.mock('../../components/Support', () => ({}));
 jest.mock('../../assets/img/suporthistory.png', () => 'supporthistory.png');
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ActivityFilters } from './ActivityFilters';
 import { QUESTION_TYPE } from '../../components/Quiz/useQuizStore';
 
@@ -58,13 +58,50 @@ const baseState = {
   subjectsError: null,
 
   knowledgeStructure: {
-    topics: [],
-    subtopics: [],
-    contents: [],
+    topics: [
+      { id: 'topic-1', name: 'Topic 1' },
+      { id: 'topic-2', name: 'Topic 2' },
+    ],
+    subtopics: [
+      { id: 'sub-1', name: 'Sub 1' },
+      { id: 'sub-2', name: 'Sub 2' },
+    ],
+    contents: [
+      { id: 'content-1', name: 'Content 1' },
+      { id: 'content-2', name: 'Content 2' },
+    ],
     loading: false,
     error: null,
   },
-  knowledgeCategories: [],
+  knowledgeCategories: [
+    {
+      key: 'tema',
+      label: 'Tema',
+      itens: [
+        { id: 'topic-1', name: 'Topic 1' },
+        { id: 'topic-2', name: 'Topic 2' },
+      ],
+      selectedIds: [],
+    },
+    {
+      key: 'subtema',
+      label: 'Subtema',
+      itens: [
+        { id: 'sub-1', name: 'Sub 1', topicId: 'topic-1' },
+        { id: 'sub-2', name: 'Sub 2', topicId: 'topic-2' },
+      ],
+      selectedIds: [],
+    },
+    {
+      key: 'assunto',
+      label: 'Assunto',
+      itens: [
+        { id: 'content-1', name: 'Content 1', subtopicId: 'sub-1' },
+        { id: 'content-2', name: 'Content 2', subtopicId: 'sub-2' },
+      ],
+      selectedIds: [],
+    },
+  ],
   handleCategoriesChange: mockHandleCategoriesChange,
 
   questionTypes: [QUESTION_TYPE.ALTERNATIVA, QUESTION_TYPE.DISSERTATIVA],
@@ -177,6 +214,40 @@ describe('ActivityFilters', () => {
     });
   });
 
+  it('applies initialFilters and triggers dependent loads', async () => {
+    const onFiltersChange = jest.fn();
+    const initialFilters = {
+      types: [QUESTION_TYPE.ALTERNATIVA],
+      bankIds: ['bank2'],
+      yearIds: ['year3'],
+      knowledgeIds: ['subject1'],
+      topicIds: ['topic-2'],
+      subtopicIds: ['sub-2'],
+      contentIds: ['content-2'],
+    };
+
+    renderComponent({ onFiltersChange, initialFilters });
+
+    await waitFor(() => {
+      expect(mockLoadTopics).toHaveBeenCalledWith(['subject1']);
+      expect(mockLoadSubtopics).toHaveBeenCalledWith(['topic-2']);
+      expect(mockLoadContents).toHaveBeenCalledWith(['sub-2']);
+    });
+
+    expect(mockHandleCategoriesChange).toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(onFiltersChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          types: [QUESTION_TYPE.ALTERNATIVA],
+          bankIds: ['bank2'],
+          yearIds: ['year3'],
+          knowledgeIds: ['subject1'],
+        })
+      );
+    });
+  });
+
   it('uses fallback question types when hook returns empty', () => {
     mockUseActivityFiltersDataReturn = buildMockReturn({
       questionTypes: [],
@@ -212,5 +283,542 @@ describe('ActivityFilters', () => {
 
     expect(onClearFilters).toHaveBeenCalledTimes(1);
     expect(onApplyFilters).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Initial bank and year filters', () => {
+    it('should skip bank filters when both bankIds and yearIds are empty', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenCalled();
+      });
+
+      const lastCall =
+        onFiltersChange.mock.calls[onFiltersChange.mock.calls.length - 1][0];
+      expect(lastCall.bankIds).toEqual([]);
+      expect(lastCall.yearIds).toEqual([]);
+    });
+
+    it('should wait for bankCategories before applying bank filters', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      mockUseActivityFiltersDataReturn = buildMockReturn({
+        banks: [],
+        bankYears: [],
+      });
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenCalled();
+      });
+
+      const lastCall =
+        onFiltersChange.mock.calls[onFiltersChange.mock.calls.length - 1][0];
+      expect(lastCall.bankIds).toEqual([]);
+    });
+
+    it('should apply bank filters when bankIds are provided and categories are loaded', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank1'],
+          })
+        );
+      });
+    });
+
+    it('should apply year filters when yearIds are provided', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: ['year1'],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            yearIds: ['year1'],
+          })
+        );
+      });
+    });
+
+    it('should apply both bank and year filters when both are provided', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1', 'bank2'],
+        yearIds: ['year1', 'year2'],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank1', 'bank2'],
+            yearIds: ['year1', 'year2'],
+          })
+        );
+      });
+    });
+
+    it('should derive yearIds from bankIds when only bankIds are provided', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank2'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank2'],
+            yearIds: expect.arrayContaining(['year2', 'year3']),
+          })
+        );
+      });
+    });
+
+    it('should not apply filters when bankIds do not match any available banks', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['non-existent-bank'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenCalled();
+      });
+
+      const lastCall =
+        onFiltersChange.mock.calls[onFiltersChange.mock.calls.length - 1][0];
+      expect(lastCall.bankIds).toEqual([]);
+    });
+
+    it('should not apply filters when yearIds do not match any available years', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1'],
+        yearIds: ['non-existent-year'],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenCalled();
+      });
+
+      const lastCall =
+        onFiltersChange.mock.calls[onFiltersChange.mock.calls.length - 1][0];
+      expect(lastCall.yearIds).toEqual([]);
+    });
+
+    it('should handle derived yearIds when bankIds match but yearIds are empty', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank1'],
+            yearIds: ['year1'],
+          })
+        );
+      });
+    });
+
+    it('should handle multiple banks with derived yearIds', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1', 'bank2'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank1', 'bank2'],
+            yearIds: expect.arrayContaining(['year1', 'year2', 'year3']),
+          })
+        );
+      });
+    });
+
+    it('should prefer explicit yearIds over derived ones', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank2'],
+        yearIds: ['year2'],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank2'],
+            yearIds: ['year2'],
+          })
+        );
+      });
+    });
+  });
+
+  describe('Performance optimization - effects execution', () => {
+    it('should not re-apply bank initial filters when bankCategories change due to user interaction', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      const { rerender } = renderComponent({
+        onFiltersChange,
+        initialFilters,
+      });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenCalled();
+      });
+
+      const initialCallCount = onFiltersChange.mock.calls.length;
+
+      mockUseActivityFiltersDataReturn = buildMockReturn({
+        banks: [
+          { id: 'bank1', name: 'Banca 1', examInstitution: 'Banca 1' },
+          { id: 'bank2', name: 'Banca 2', examInstitution: 'Banca 2' },
+          { id: 'bank3', name: 'Banca 3', examInstitution: 'Banca 3' },
+        ],
+      });
+
+      rerender(
+        <ActivityFilters
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          apiClient={{} as any}
+          onFiltersChange={onFiltersChange}
+          initialFilters={initialFilters}
+        />
+      );
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenCalled();
+      });
+
+      const finalCallCount = onFiltersChange.mock.calls.length;
+      const callsAfterRerender = finalCallCount - initialCallCount;
+
+      expect(callsAfterRerender).toBeLessThanOrEqual(2);
+    });
+
+    it('should apply bank initial filters when categories become available after initialFilters is set', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      mockUseActivityFiltersDataReturn = buildMockReturn({
+        banks: [],
+        bankYears: [],
+      });
+
+      const { rerender } = renderComponent({
+        onFiltersChange,
+        initialFilters,
+      });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenCalled();
+      });
+
+      const lastCallBeforeBanks =
+        onFiltersChange.mock.calls[onFiltersChange.mock.calls.length - 1][0];
+      expect(lastCallBeforeBanks.bankIds).toEqual([]);
+
+      mockUseActivityFiltersDataReturn = buildMockReturn({
+        banks: [{ id: 'bank1', name: 'Banca 1', examInstitution: 'Banca 1' }],
+        bankYears: [{ id: 'year1', name: '2023', bankId: 'bank1' }],
+      });
+
+      rerender(
+        <ActivityFilters
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          apiClient={{} as any}
+          onFiltersChange={onFiltersChange}
+          initialFilters={initialFilters}
+        />
+      );
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank1'],
+          })
+        );
+      });
+    });
+
+    it('should apply knowledge initial filters when categories become available after initialFilters is set', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        knowledgeIds: ['subject1'],
+        topicIds: ['topic-1'],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      mockUseActivityFiltersDataReturn = buildMockReturn({
+        knowledgeCategories: [],
+      });
+
+      const { rerender } = renderComponent({
+        onFiltersChange,
+        initialFilters,
+      });
+
+      await waitFor(() => {
+        expect(mockLoadTopics).toHaveBeenCalledWith(['subject1']);
+      });
+
+      expect(mockHandleCategoriesChange).not.toHaveBeenCalled();
+
+      mockUseActivityFiltersDataReturn = {
+        ...buildMockReturn(),
+        knowledgeCategories: [
+          {
+            key: 'tema',
+            label: 'Tema',
+            itens: [
+              { id: 'topic-1', name: 'Topic 1' },
+              { id: 'topic-2', name: 'Topic 2' },
+            ],
+            selectedIds: [],
+          },
+        ],
+      };
+
+      rerender(
+        <ActivityFilters
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          apiClient={{} as any}
+          onFiltersChange={onFiltersChange}
+          initialFilters={initialFilters}
+        />
+      );
+
+      await waitFor(() => {
+        expect(mockHandleCategoriesChange).toHaveBeenCalled();
+      });
+    });
+
+    it('should only execute bank initial filters effect when initialFilters changes', async () => {
+      const onFiltersChange = jest.fn();
+      let initialFilters = {
+        types: [],
+        bankIds: ['bank1'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      const { rerender } = renderComponent({
+        onFiltersChange,
+        initialFilters,
+      });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenCalled();
+      });
+
+      const firstCallCount = onFiltersChange.mock.calls.length;
+
+      initialFilters = {
+        types: [],
+        bankIds: ['bank2'],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      rerender(
+        <ActivityFilters
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          apiClient={{} as any}
+          onFiltersChange={onFiltersChange}
+          initialFilters={initialFilters}
+        />
+      );
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank2'],
+          })
+        );
+      });
+
+      const secondCallCount = onFiltersChange.mock.calls.length;
+      expect(secondCallCount).toBeGreaterThan(firstCallCount);
+    });
+
+    it('should not re-execute knowledge initial filters effect when only knowledgeCategories change', async () => {
+      const onFiltersChange = jest.fn();
+      const initialFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        knowledgeIds: ['subject1'],
+        topicIds: ['topic-1'],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      const { rerender } = renderComponent({
+        onFiltersChange,
+        initialFilters,
+      });
+
+      await waitFor(() => {
+        expect(mockHandleCategoriesChange).toHaveBeenCalled();
+      });
+
+      const initialCallCount = mockHandleCategoriesChange.mock.calls.length;
+
+      mockUseActivityFiltersDataReturn = {
+        ...buildMockReturn(),
+        knowledgeCategories: [
+          {
+            key: 'tema',
+            label: 'Tema',
+            itens: [
+              { id: 'topic-1', name: 'Topic 1' },
+              { id: 'topic-2', name: 'Topic 2' },
+              { id: 'topic-3', name: 'Topic 3' },
+            ],
+            selectedIds: ['topic-1'],
+          },
+        ],
+      } as typeof mockUseActivityFiltersDataReturn;
+
+      rerender(
+        <ActivityFilters
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          apiClient={{} as any}
+          onFiltersChange={onFiltersChange}
+          initialFilters={initialFilters}
+        />
+      );
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenCalled();
+      });
+
+      const finalCallCount = mockHandleCategoriesChange.mock.calls.length;
+      expect(finalCallCount).toBeLessThanOrEqual(initialCallCount + 1);
+    });
   });
 });

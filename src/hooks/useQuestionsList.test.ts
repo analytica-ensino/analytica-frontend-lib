@@ -1,11 +1,16 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { createUseQuestionsList } from './useQuestionsList';
+import {
+  createUseQuestionsList,
+  createQuestionsListHook,
+} from './useQuestionsList';
 import type { BaseApiClient } from '../types/api';
 import { QUESTION_TYPE } from '../components/Quiz/useQuizStore';
 import type {
-  QuestionsListResponse,
+  QuestionsListResponseActivity,
+  QuestionsByIdsResponse,
   Question,
   Pagination,
+  PaginationActivity,
 } from '../types/questions';
 import {
   DIFFICULTY_LEVEL_ENUM,
@@ -77,21 +82,30 @@ describe('useQuestionsList', () => {
         }),
       ];
 
-      const mockPagination: Pagination = {
+      const mockPaginationActivity: PaginationActivity = {
+        page: 1,
+        limit: 10,
+        total: 2,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      };
+
+      const mockResponse: QuestionsListResponseActivity = {
+        message: 'Success',
+        data: {
+          questions: mockQuestions,
+          pagination: mockPaginationActivity,
+        },
+      };
+
+      const expectedPagination: Pagination = {
         page: 1,
         pageSize: 10,
         total: 2,
         totalPages: 1,
         hasNext: false,
         hasPrevious: false,
-      };
-
-      const mockResponse: QuestionsListResponse = {
-        message: 'Success',
-        data: {
-          questions: mockQuestions,
-          pagination: mockPagination,
-        },
       };
 
       (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
@@ -109,7 +123,7 @@ describe('useQuestionsList', () => {
       });
 
       expect(result.current.questions).toEqual(mockQuestions);
-      expect(result.current.pagination).toEqual(mockPagination);
+      expect(result.current.pagination).toEqual(expectedPagination);
       expect(result.current.error).toBe(null);
       expect(result.current.loading).toBe(false);
       expect(result.current.loadingMore).toBe(false);
@@ -125,20 +139,20 @@ describe('useQuestionsList', () => {
         }),
       ];
 
-      const mockPagination: Pagination = {
+      const mockPaginationActivity: PaginationActivity = {
         page: 1,
-        pageSize: 10,
+        limit: 10,
         total: 1,
         totalPages: 1,
         hasNext: false,
-        hasPrevious: false,
+        hasPrev: false,
       };
 
-      const mockResponse: QuestionsListResponse = {
+      const mockResponse: QuestionsListResponseActivity = {
         message: 'Success',
         data: {
           questions: mockQuestions,
-          pagination: mockPagination,
+          pagination: mockPaginationActivity,
         },
       };
 
@@ -188,17 +202,17 @@ describe('useQuestionsList', () => {
       expect(result.current.loading).toBe(true);
       expect(result.current.questions).toEqual([]);
 
-      const mockResponse: QuestionsListResponse = {
+      const mockResponse: QuestionsListResponseActivity = {
         message: 'Success',
         data: {
           questions: [],
           pagination: {
             page: 1,
-            pageSize: 10,
+            limit: 10,
             total: 0,
             totalPages: 0,
             hasNext: false,
-            hasPrevious: false,
+            hasPrev: false,
           },
         },
       };
@@ -230,32 +244,32 @@ describe('useQuestionsList', () => {
         }),
       ];
 
-      const firstPageResponse: QuestionsListResponse = {
+      const firstPageResponse: QuestionsListResponseActivity = {
         message: 'Success',
         data: {
           questions: firstPageQuestions,
           pagination: {
             page: 1,
-            pageSize: 1,
+            limit: 1,
             total: 2,
             totalPages: 2,
             hasNext: true,
-            hasPrevious: false,
+            hasPrev: false,
           },
         },
       };
 
-      const secondPageResponse: QuestionsListResponse = {
+      const secondPageResponse: QuestionsListResponseActivity = {
         message: 'Success',
         data: {
           questions: secondPageQuestions,
           pagination: {
             page: 2,
-            pageSize: 1,
+            limit: 1,
             total: 2,
             totalPages: 2,
             hasNext: false,
-            hasPrevious: true,
+            hasPrev: true,
           },
         },
       };
@@ -382,11 +396,11 @@ describe('useQuestionsList', () => {
               questions: firstQuestions,
               pagination: {
                 page: 1,
-                pageSize: 10,
+                limit: 10,
                 total: 1,
                 totalPages: 1,
                 hasNext: false,
-                hasPrevious: false,
+                hasPrev: false,
               },
             },
           },
@@ -398,11 +412,11 @@ describe('useQuestionsList', () => {
               questions: secondQuestions,
               pagination: {
                 page: 1,
-                pageSize: 10,
+                limit: 10,
                 total: 1,
                 totalPages: 1,
                 hasNext: false,
-                hasPrevious: false,
+                hasPrev: false,
               },
             },
           },
@@ -453,32 +467,32 @@ describe('useQuestionsList', () => {
         }),
       ];
 
-      const firstPageResponse: QuestionsListResponse = {
+      const firstPageResponse: QuestionsListResponseActivity = {
         message: 'Success',
         data: {
           questions: firstPageQuestions,
           pagination: {
             page: 1,
-            pageSize: 1,
+            limit: 1,
             total: 2,
             totalPages: 2,
             hasNext: true,
-            hasPrevious: false,
+            hasPrev: false,
           },
         },
       };
 
-      const secondPageResponse: QuestionsListResponse = {
+      const secondPageResponse: QuestionsListResponseActivity = {
         message: 'Success',
         data: {
           questions: secondPageQuestions,
           pagination: {
             page: 2,
-            pageSize: 1,
+            limit: 1,
             total: 2,
             totalPages: 2,
             hasNext: false,
-            hasPrevious: true,
+            hasPrev: true,
           },
         },
       };
@@ -519,17 +533,17 @@ describe('useQuestionsList', () => {
     });
 
     it('should not load more if already loading', async () => {
-      const mockResponse: QuestionsListResponse = {
+      const mockResponse: QuestionsListResponseActivity = {
         message: 'Success',
         data: {
           questions: [],
           pagination: {
             page: 1,
-            pageSize: 10,
+            limit: 10,
             total: 0,
             totalPages: 0,
             hasNext: true,
-            hasPrevious: false,
+            hasPrev: false,
           },
         },
       };
@@ -582,17 +596,17 @@ describe('useQuestionsList', () => {
     });
 
     it('should not load more if no current filters', async () => {
-      const mockResponse: QuestionsListResponse = {
+      const mockResponse: QuestionsListResponseActivity = {
         message: 'Success',
         data: {
           questions: [],
           pagination: {
             page: 1,
-            pageSize: 10,
+            limit: 10,
             total: 0,
             totalPages: 0,
             hasNext: false,
-            hasPrevious: false,
+            hasPrev: false,
           },
         },
       };
@@ -623,17 +637,17 @@ describe('useQuestionsList', () => {
     });
 
     it('should not load more if hasNext is false', async () => {
-      const mockResponse: QuestionsListResponse = {
+      const mockResponse: QuestionsListResponseActivity = {
         message: 'Success',
         data: {
           questions: [],
           pagination: {
             page: 1,
-            pageSize: 10,
+            limit: 10,
             total: 0,
             totalPages: 1,
             hasNext: false,
-            hasPrevious: false,
+            hasPrev: false,
           },
         },
       };
@@ -660,7 +674,7 @@ describe('useQuestionsList', () => {
     });
 
     it('should set loadingMore state during load more', async () => {
-      const firstPageResponse: QuestionsListResponse = {
+      const firstPageResponse: QuestionsListResponseActivity = {
         message: 'Success',
         data: {
           questions: [
@@ -672,16 +686,16 @@ describe('useQuestionsList', () => {
           ],
           pagination: {
             page: 1,
-            pageSize: 1,
+            limit: 1,
             total: 2,
             totalPages: 2,
             hasNext: true,
-            hasPrevious: false,
+            hasPrev: false,
           },
         },
       };
 
-      const secondPageResponse: QuestionsListResponse = {
+      const secondPageResponse: QuestionsListResponseActivity = {
         message: 'Success',
         data: {
           questions: [
@@ -693,11 +707,11 @@ describe('useQuestionsList', () => {
           ],
           pagination: {
             page: 2,
-            pageSize: 1,
+            limit: 1,
             total: 2,
             totalPages: 2,
             hasNext: false,
-            hasPrevious: true,
+            hasPrev: true,
           },
         },
       };
@@ -740,7 +754,7 @@ describe('useQuestionsList', () => {
 
   describe('reset', () => {
     it('should reset all state to initial values', async () => {
-      const mockResponse: QuestionsListResponse = {
+      const mockResponse: QuestionsListResponseActivity = {
         message: 'Success',
         data: {
           questions: [
@@ -752,11 +766,11 @@ describe('useQuestionsList', () => {
           ],
           pagination: {
             page: 1,
-            pageSize: 10,
+            limit: 10,
             total: 1,
             totalPages: 1,
             hasNext: false,
-            hasPrevious: false,
+            hasPrev: false,
           },
         },
       };
@@ -835,6 +849,286 @@ describe('useQuestionsList', () => {
       );
 
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('fetchRandomQuestions', () => {
+    it('should fetch random questions successfully', async () => {
+      const mockQuestions: Question[] = [
+        buildQuestion({
+          id: 'question-1',
+          statement: 'Random question 1',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+        }),
+        buildQuestion({
+          id: 'question-2',
+          statement: 'Random question 2',
+          questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
+        }),
+      ];
+
+      const mockResponse: QuestionsListResponseActivity = {
+        message: 'Success',
+        data: {
+          questions: mockQuestions,
+          pagination: {
+            page: 1,
+            limit: 10,
+            total: 2,
+            totalPages: 1,
+            hasNext: false,
+            hasPrev: false,
+          },
+        },
+      };
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
+        data: mockResponse,
+      });
+
+      const { result } = renderHook(() => useQuestionsList());
+
+      let fetchedQuestions: Question[] = [];
+      await act(async () => {
+        fetchedQuestions = await result.current.fetchRandomQuestions(2, {
+          types: [QUESTION_TYPE.ALTERNATIVA],
+        });
+      });
+
+      expect(fetchedQuestions).toEqual(mockQuestions);
+      expect(mockApiClient.post).toHaveBeenCalledWith('/questions/list', {
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        randomQuestions: 2,
+      });
+    });
+
+    it('should handle error when fetching random questions', async () => {
+      const mockError = new Error('Failed to fetch random questions');
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      (mockApiClient.post as jest.Mock).mockRejectedValueOnce(mockError);
+
+      const { result } = renderHook(() => useQuestionsList());
+
+      let fetchedQuestions: Question[] = [];
+      await act(async () => {
+        fetchedQuestions = await result.current.fetchRandomQuestions(2);
+      });
+
+      expect(fetchedQuestions).toEqual([]);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Erro ao carregar questões:',
+        mockError
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should fetch random questions without filters', async () => {
+      const mockQuestions: Question[] = [
+        buildQuestion({
+          id: 'question-1',
+          statement: 'Random question',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+        }),
+      ];
+
+      const mockResponse: QuestionsListResponseActivity = {
+        message: 'Success',
+        data: {
+          questions: mockQuestions,
+        },
+      };
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
+        data: mockResponse,
+      });
+
+      const { result } = renderHook(() => useQuestionsList());
+
+      let fetchedQuestions: Question[] = [];
+      await act(async () => {
+        fetchedQuestions = await result.current.fetchRandomQuestions(1);
+      });
+
+      expect(fetchedQuestions).toEqual(mockQuestions);
+      expect(mockApiClient.post).toHaveBeenCalledWith('/questions/list', {
+        randomQuestions: 1,
+      });
+    });
+  });
+
+  describe('fetchQuestionsByIds', () => {
+    it('should fetch questions by IDs successfully', async () => {
+      const mockQuestions: Question[] = [
+        buildQuestion({
+          id: 'question-1',
+          statement: 'Question 1',
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+        }),
+        buildQuestion({
+          id: 'question-2',
+          statement: 'Question 2',
+          questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
+        }),
+      ];
+
+      const mockResponse: QuestionsByIdsResponse = {
+        message: 'Success',
+        data: {
+          questions: mockQuestions,
+        },
+      };
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
+        data: mockResponse,
+      });
+
+      const { result } = renderHook(() => useQuestionsList());
+
+      let fetchedQuestions: Question[] = [];
+      await act(async () => {
+        fetchedQuestions = await result.current.fetchQuestionsByIds([
+          'question-1',
+          'question-2',
+        ]);
+      });
+
+      expect(fetchedQuestions).toEqual(mockQuestions);
+      expect(mockApiClient.post).toHaveBeenCalledWith('/questions/by-ids', {
+        questionsIds: ['question-1', 'question-2'],
+      });
+    });
+
+    it('should handle error when fetching questions by IDs', async () => {
+      const mockError = new Error('Failed to fetch questions by IDs');
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      (mockApiClient.post as jest.Mock).mockRejectedValueOnce(mockError);
+
+      const { result } = renderHook(() => useQuestionsList());
+
+      let fetchedQuestions: Question[] = [];
+      await act(async () => {
+        fetchedQuestions = await result.current.fetchQuestionsByIds([
+          'question-1',
+        ]);
+      });
+
+      expect(fetchedQuestions).toEqual([]);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Erro ao carregar questões:',
+        mockError
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should fetch questions by IDs with empty array', async () => {
+      const mockResponse: QuestionsByIdsResponse = {
+        message: 'Success',
+        data: {
+          questions: [],
+        },
+      };
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
+        data: mockResponse,
+      });
+
+      const { result } = renderHook(() => useQuestionsList());
+
+      let fetchedQuestions: Question[] = [];
+      await act(async () => {
+        fetchedQuestions = await result.current.fetchQuestionsByIds([]);
+      });
+
+      expect(fetchedQuestions).toEqual([]);
+      expect(mockApiClient.post).toHaveBeenCalledWith('/questions/by-ids', {
+        questionsIds: [],
+      });
+    });
+  });
+
+  describe('loadMore error handling', () => {
+    it('should handle error when loadMore fails', async () => {
+      const firstPageResponse: QuestionsListResponseActivity = {
+        message: 'Success',
+        data: {
+          questions: [
+            buildQuestion({
+              id: 'question-1',
+              statement: 'Question 1',
+              questionType: QUESTION_TYPE.ALTERNATIVA,
+            }),
+          ],
+          pagination: {
+            page: 1,
+            limit: 1,
+            total: 2,
+            totalPages: 2,
+            hasNext: true,
+            hasPrev: false,
+          },
+        },
+      };
+
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const mockError = new Error('Failed to load more');
+
+      (mockApiClient.post as jest.Mock)
+        .mockResolvedValueOnce({ data: firstPageResponse })
+        .mockRejectedValueOnce(mockError);
+
+      const { result } = renderHook(() => useQuestionsList());
+
+      await act(async () => {
+        await result.current.fetchQuestions({ page: 1 });
+      });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.pagination?.hasNext).toBe(true);
+
+      act(() => {
+        result.current.loadMore();
+      });
+
+      await waitFor(() => {
+        expect(result.current.loadingMore).toBe(false);
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Erro ao carregar questões:',
+        mockError
+      );
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('createQuestionsListHook', () => {
+    it('should create a hook using createQuestionsListHook', () => {
+      const useQuestionsListFromHook = createQuestionsListHook(mockApiClient);
+
+      const { result } = renderHook(() => useQuestionsListFromHook());
+
+      expect(result.current).toMatchObject({
+        questions: [],
+        pagination: null,
+        loading: false,
+        loadingMore: false,
+        error: null,
+        currentFilters: null,
+      });
+
+      expect(result.current.fetchQuestions).toBeInstanceOf(Function);
+      expect(result.current.fetchRandomQuestions).toBeInstanceOf(Function);
+      expect(result.current.fetchQuestionsByIds).toBeInstanceOf(Function);
+      expect(result.current.loadMore).toBeInstanceOf(Function);
+      expect(result.current.reset).toBeInstanceOf(Function);
     });
   });
 });

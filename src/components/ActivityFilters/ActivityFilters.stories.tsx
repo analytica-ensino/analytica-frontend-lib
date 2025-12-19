@@ -300,3 +300,68 @@ export const AllActivityFiltersPopover: Story = () => {
     </div>
   );
 };
+
+/**
+ * Showcase: ActivityFilters com preseleção via initialFilters
+ */
+export const WithPreFilters: Story = () => {
+  const [filters, setFilters] = useState<ActivityFiltersData>({
+    types: [],
+    bankIds: [],
+    yearIds: [],
+    knowledgeIds: [],
+    topicIds: [],
+    subtopicIds: [],
+    contentIds: [],
+  });
+
+  const initialFilters: ActivityFiltersData = {
+    types: [QUESTION_TYPE.ALTERNATIVA],
+    bankIds: ['enem', 'fuvest'],
+    yearIds: ['year-2023-enem'],
+    knowledgeIds: ['matematica'],
+    topicIds: ['tema-1'],
+    subtopicIds: ['subtema-1'],
+    contentIds: ['assunto-1'],
+  };
+
+  const handleFiltersChange = useCallback((newFilters: ActivityFiltersData) => {
+    setFilters(newFilters);
+  }, []);
+
+  const handleApplyFilters = () => {
+    console.log('Aplicando filtros (preFilters):', filters);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <h2 className="font-bold text-3xl text-text-900">
+        Activity Filters com preFilters
+      </h2>
+      <p className="text-text-700">
+        Demonstra a pré-seleção de banca, ano, matéria, tema, subtema e assunto
+        usando a prop initialFilters (preFilters).
+      </p>
+
+      <div className="flex flex-row gap-8">
+        <ActivityFilters
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          apiClient={mockApiClient as any}
+          onFiltersChange={handleFiltersChange}
+          variant="default"
+          initialFilters={initialFilters}
+          onApplyFilters={handleApplyFilters}
+        />
+
+        <div className="flex-1 p-4 bg-background-50 rounded-lg">
+          <h3 className="font-bold text-xl text-text-900 mb-4">
+            Filtros Selecionados
+          </h3>
+          <pre className="text-sm text-text-700 overflow-auto">
+            {JSON.stringify(filters, null, 2)}
+          </pre>
+        </div>
+      </div>
+    </div>
+  );
+};
