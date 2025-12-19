@@ -16,9 +16,10 @@ import { TableProvider } from '../TableProvider/TableProvider';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Toaster, { useToast } from '../Toast/utils/Toaster';
-import { getSubjectInfo } from '../SubjectInfo/SubjectInfo';
-import { cn } from '../../utils/utils';
 import { SubjectEnum } from '../../enums/SubjectEnum';
+import { renderSubjectCell } from './utils/renderSubjectCell';
+import { renderTruncatedText } from './utils/renderTruncatedText';
+import { ErrorDisplay } from './components/ErrorDisplay';
 import type { ColumnConfig, TableParams } from '../TableProvider/TableProvider';
 import type { FilterConfig } from '../Filter';
 import {
@@ -281,28 +282,14 @@ const createHistoryTableColumns = (
     label: 'Título',
     sortable: true,
     className: 'max-w-[200px] truncate',
-    render: (value: unknown) => {
-      const title = typeof value === 'string' ? value : '';
-      return (
-        <Text size="sm" title={title}>
-          {title}
-        </Text>
-      );
-    },
+    render: renderTruncatedText,
   },
   {
     key: 'school',
     label: 'Escola',
     sortable: true,
     className: 'max-w-[150px] truncate',
-    render: (value: unknown) => {
-      const school = typeof value === 'string' ? value : '';
-      return (
-        <Text size="sm" title={school}>
-          {school}
-        </Text>
-      );
-    },
+    render: renderTruncatedText,
   },
   {
     key: 'year',
@@ -316,33 +303,7 @@ const createHistoryTableColumns = (
     className: 'max-w-[140px]',
     render: (value: unknown) => {
       const subjectName = typeof value === 'string' ? value : '';
-      const subjectEnum = mapSubjectNameToEnum?.(subjectName);
-
-      if (!subjectEnum) {
-        return (
-          <Text size="sm" className="truncate" title={subjectName}>
-            {subjectName}
-          </Text>
-        );
-      }
-
-      const subjectInfo = getSubjectInfo(subjectEnum);
-
-      return (
-        <div className="flex items-center gap-2" title={subjectName}>
-          <span
-            className={cn(
-              'w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0',
-              subjectInfo.colorClass
-            )}
-          >
-            {subjectInfo.icon}
-          </span>
-          <Text size="sm" className="truncate">
-            {subjectName}
-          </Text>
-        </div>
-      );
+      return renderSubjectCell(subjectName, mapSubjectNameToEnum, false);
     },
   },
   {
@@ -438,42 +399,7 @@ const createModelsTableColumns = (
     className: 'max-w-[160px]',
     render: (value: unknown) => {
       const subjectName = typeof value === 'string' ? value : '';
-
-      if (!subjectName) {
-        return (
-          <Text size="sm" color="text-text-400">
-            -
-          </Text>
-        );
-      }
-
-      const subjectEnum = mapSubjectNameToEnum?.(subjectName);
-
-      if (!subjectEnum) {
-        return (
-          <Text size="sm" className="truncate" title={subjectName}>
-            {subjectName}
-          </Text>
-        );
-      }
-
-      const subjectInfo = getSubjectInfo(subjectEnum);
-
-      return (
-        <div className="flex items-center gap-2" title={subjectName}>
-          <span
-            className={cn(
-              'w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0',
-              subjectInfo.colorClass
-            )}
-          >
-            {subjectInfo.icon}
-          </span>
-          <Text size="sm" className="truncate">
-            {subjectName}
-          </Text>
-        </div>
-      );
+      return renderSubjectCell(subjectName, mapSubjectNameToEnum, true);
     },
   },
   {
@@ -568,6 +494,10 @@ export const ActivitiesHistory = ({
   const deleteActivityModelRef = useRef(deleteActivityModel);
   deleteActivityModelRef.current = deleteActivityModel;
 
+  // Keep stable reference to subjectsMap to avoid unnecessary re-fetches
+  const subjectsMapRef = useRef(subjectsMap);
+  subjectsMapRef.current = subjectsMap;
+
   // Create hook instances with stable fetch function wrappers
   const useActivitiesHistory = useMemo(
     () =>
@@ -653,9 +583,9 @@ export const ActivitiesHistory = ({
   const handleModelsParamsChange = useCallback(
     (params: TableParams) => {
       const filters = buildModelsFiltersFromParams(params);
-      fetchModels(filters, subjectsMap);
+      fetchModels(filters, subjectsMapRef.current);
     },
-    [fetchModels, subjectsMap]
+    [fetchModels]
   );
 
   /**
@@ -663,9 +593,9 @@ export const ActivitiesHistory = ({
    */
   useEffect(() => {
     if (activeTab === PageTab.MODELS) {
-      fetchModels({ page: 1, limit: 10 }, subjectsMap);
+      fetchModels({ page: 1, limit: 10 }, subjectsMapRef.current);
     }
-  }, [activeTab, fetchModels, subjectsMap]);
+  }, [activeTab, fetchModels]);
 
   /**
    * Handle confirm delete
@@ -675,14 +605,14 @@ export const ActivitiesHistory = ({
       const success = await deleteModel(modelToDelete.id);
       if (success) {
         addToast({ title: 'Modelo deletado com sucesso', action: 'success' });
-        fetchModels({ page: 1, limit: 10 }, subjectsMap);
+        fetchModels({ page: 1, limit: 10 }, subjectsMapRef.current);
       } else {
         addToast({ title: 'Erro ao deletar modelo', action: 'warning' });
       }
     }
     setDeleteDialogOpen(false);
     setModelToDelete(null);
-  }, [modelToDelete, deleteModel, fetchModels, addToast, subjectsMap]);
+  }, [modelToDelete, deleteModel, fetchModels, addToast]);
 
   /**
    * Handle cancel delete
@@ -761,11 +691,7 @@ export const ActivitiesHistory = ({
             <>
               {/* Error State */}
               {error ? (
-                <div className="flex items-center justify-center bg-background rounded-xl w-full min-h-[705px]">
-                  <Text size="lg" color="text-error-500">
-                    {error}
-                  </Text>
-                </div>
+                <ErrorDisplay error={error} />
               ) : (
                 <div className="w-full">
                   <TableProvider
@@ -858,11 +784,7 @@ export const ActivitiesHistory = ({
             <>
               <Toaster />
               {modelsError ? (
-                <div className="flex items-center justify-center bg-background rounded-xl w-full min-h-[705px]">
-                  <Text size="lg" color="text-error-500">
-                    {modelsError}
-                  </Text>
-                </div>
+                <ErrorDisplay error={modelsError} />
               ) : (
                 <div className="w-full" data-testid="activity-models-tab">
                   <TableProvider
