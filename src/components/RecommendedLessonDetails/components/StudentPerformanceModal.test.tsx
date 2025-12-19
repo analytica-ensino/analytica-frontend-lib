@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { StudentPerformanceModal } from './StudentPerformanceModal';
 import type { StudentPerformanceData, LessonProgress } from '../types';
 
-// Mock data for tests
+// Mock data for tests (Biology - Categorias Taxonômicas)
 const mockLessonWithQuestions: LessonProgress = {
   id: 'lesson-1',
   title: 'Categorias Taxonômicas',
@@ -11,29 +11,45 @@ const mockLessonWithQuestions: LessonProgress = {
     {
       id: 'q1',
       title: 'Questão 1',
-      statement: 'Qual é a unidade de medida da aceleração?',
+      statement:
+        'Qual é a sequência correta das categorias taxonômicas, da mais ampla para a mais específica?',
       isCorrect: true,
       alternatives: [
-        { id: 'a1', text: 'm/s', isCorrect: false, isSelected: false },
-        { id: 'a2', text: 'm/s²', isCorrect: true, isSelected: true },
-        { id: 'a3', text: 'km/h', isCorrect: false, isSelected: false },
+        {
+          id: 'a1',
+          text: 'Espécie, Gênero, Família, Ordem',
+          isCorrect: false,
+          isSelected: false,
+        },
+        {
+          id: 'a2',
+          text: 'Reino, Filo, Classe, Ordem, Família, Gênero, Espécie',
+          isCorrect: true,
+          isSelected: true,
+        },
+        {
+          id: 'a3',
+          text: 'Filo, Reino, Classe, Ordem',
+          isCorrect: false,
+          isSelected: false,
+        },
       ],
     },
     {
       id: 'q2',
       title: 'Questão 2',
-      statement: 'O que é MRU?',
+      statement: 'Qual categoria taxonômica agrupa espécies semelhantes?',
       isCorrect: false,
       alternatives: [
         {
           id: 'b1',
-          text: 'Movimento com velocidade variável',
+          text: 'Família',
           isCorrect: false,
           isSelected: true,
         },
         {
           id: 'b2',
-          text: 'Movimento com velocidade constante',
+          text: 'Gênero',
           isCorrect: true,
           isSelected: false,
         },
@@ -53,8 +69,8 @@ const mockStudentData: StudentPerformanceData = {
   studentName: 'Lucas Oliveira',
   correctAnswers: 8,
   incorrectAnswers: 2,
-  bestResult: 'Fotossíntese',
-  hardestTopic: 'Células',
+  bestResult: 'Sistema Binomial',
+  hardestTopic: 'Hierarquia Taxonômica',
   lessons: [mockLessonWithQuestions, mockLessonWithoutQuestions],
 };
 
@@ -112,12 +128,12 @@ describe('StudentPerformanceModal', () => {
 
     it('renders best result topic', () => {
       render(<StudentPerformanceModal {...defaultProps} />);
-      expect(screen.getByText('Fotossíntese')).toBeInTheDocument();
+      expect(screen.getByText('Sistema Binomial')).toBeInTheDocument();
     });
 
     it('renders hardest topic', () => {
       render(<StudentPerformanceModal {...defaultProps} />);
-      expect(screen.getByText('Células')).toBeInTheDocument();
+      expect(screen.getByText('Hierarquia Taxonômica')).toBeInTheDocument();
     });
 
     it('renders lessons section title', () => {
@@ -272,7 +288,9 @@ describe('StudentPerformanceModal', () => {
 
       // Statement should be visible
       expect(
-        screen.getByText('Qual é a unidade de medida da aceleração?')
+        screen.getByText(
+          'Qual é a sequência correta das categorias taxonômicas, da mais ampla para a mais específica?'
+        )
       ).toBeInTheDocument();
     });
 

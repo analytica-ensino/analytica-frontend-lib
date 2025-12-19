@@ -260,6 +260,113 @@ const LessonAccordionItem = ({ lesson }: { lesson: LessonProgress }) => (
  * />
  * ```
  */
+/**
+ * Loading skeleton for the modal content
+ */
+const LoadingSkeleton = () => (
+  <div className="flex flex-col gap-4 animate-pulse">
+    <div className="h-6 bg-background-200 rounded w-48" />
+    <div className="grid grid-cols-2 gap-3">
+      <div className="h-44 bg-background-200 rounded-xl" />
+      <div className="h-44 bg-background-200 rounded-xl" />
+    </div>
+  </div>
+);
+
+/**
+ * Performance content when data is available
+ */
+const PerformanceContent = ({
+  data,
+  labels,
+}: {
+  data: StudentPerformanceData;
+  labels: StudentPerformanceLabels;
+}) => (
+  <div className="flex flex-col gap-5">
+    {/* Student name with icon */}
+    <div className="flex items-center gap-2">
+      <Text
+        as="span"
+        className="size-8 rounded-full bg-background-100 flex items-center justify-center"
+      >
+        <UserIcon size={16} className="text-text-500" />
+      </Text>
+      <Text size="md" weight="medium" className="text-text-950">
+        {data.studentName}
+      </Text>
+    </div>
+
+    {/* Two performance cards in a row */}
+    <div className="grid grid-cols-2 gap-3">
+      {/* Correct answers card */}
+      <PerformanceCard
+        icon={
+          <LightbulbFilamentIcon
+            size={18}
+            weight="fill"
+            className="text-white"
+          />
+        }
+        label={labels.correctAnswersLabel}
+        value={data.correctAnswers}
+        secondaryLabel={labels.bestResultLabel}
+        secondaryValue={data.bestResult}
+        variant="success"
+      />
+
+      {/* Incorrect answers card */}
+      <PerformanceCard
+        icon={
+          <WarningCircleIcon
+            size={18}
+            weight="fill"
+            className="text-error-700"
+          />
+        }
+        label={labels.incorrectAnswersLabel}
+        value={data.incorrectAnswers}
+        secondaryLabel={labels.hardestTopicLabel}
+        secondaryValue={data.hardestTopic}
+        variant="error"
+      />
+    </div>
+
+    {/* Lessons section */}
+    {data.lessons.length > 0 && (
+      <div className="flex flex-col gap-3">
+        <Text size="md" weight="semibold" className="text-text-950">
+          {labels.lessonsTitle}
+        </Text>
+        <div className="flex flex-col gap-2">
+          {data.lessons.map((lesson) => (
+            <LessonAccordionItem key={lesson.id} lesson={lesson} />
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+);
+
+/**
+ * Renders the modal content based on loading and data state
+ */
+const renderModalContent = (
+  loading: boolean,
+  data: StudentPerformanceData | null,
+  labels: StudentPerformanceLabels
+): ReactNode => {
+  if (loading) {
+    return <LoadingSkeleton />;
+  }
+
+  if (data) {
+    return <PerformanceContent data={data} labels={labels} />;
+  }
+
+  return null;
+};
+
 export const StudentPerformanceModal = ({
   isOpen,
   onClose,
@@ -284,79 +391,7 @@ export const StudentPerformanceModal = ({
       size="lg"
       contentClassName="max-h-[70vh] overflow-y-auto"
     >
-      {loading ? (
-        <div className="flex flex-col gap-4 animate-pulse">
-          <div className="h-6 bg-background-200 rounded w-48" />
-          <div className="grid grid-cols-2 gap-3">
-            <div className="h-44 bg-background-200 rounded-xl" />
-            <div className="h-44 bg-background-200 rounded-xl" />
-          </div>
-        </div>
-      ) : data ? (
-        <div className="flex flex-col gap-5">
-          {/* Student name with icon */}
-          <div className="flex items-center gap-2">
-            <Text
-              as="span"
-              className="size-8 rounded-full bg-background-100 flex items-center justify-center"
-            >
-              <UserIcon size={16} className="text-text-500" />
-            </Text>
-            <Text size="md" weight="medium" className="text-text-950">
-              {data.studentName}
-            </Text>
-          </div>
-
-          {/* Two performance cards in a row */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Correct answers card */}
-            <PerformanceCard
-              icon={
-                <LightbulbFilamentIcon
-                  size={18}
-                  weight="fill"
-                  className="text-white"
-                />
-              }
-              label={labels.correctAnswersLabel}
-              value={data.correctAnswers}
-              secondaryLabel={labels.bestResultLabel}
-              secondaryValue={data.bestResult}
-              variant="success"
-            />
-
-            {/* Incorrect answers card */}
-            <PerformanceCard
-              icon={
-                <WarningCircleIcon
-                  size={18}
-                  weight="fill"
-                  className="text-error-700"
-                />
-              }
-              label={labels.incorrectAnswersLabel}
-              value={data.incorrectAnswers}
-              secondaryLabel={labels.hardestTopicLabel}
-              secondaryValue={data.hardestTopic}
-              variant="error"
-            />
-          </div>
-
-          {/* Lessons section */}
-          {data.lessons.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <Text size="md" weight="semibold" className="text-text-950">
-                {labels.lessonsTitle}
-              </Text>
-              <div className="flex flex-col gap-2">
-                {data.lessons.map((lesson) => (
-                  <LessonAccordionItem key={lesson.id} lesson={lesson} />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      ) : null}
+      {renderModalContent(loading, data, labels)}
     </Modal>
   );
 };
