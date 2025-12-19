@@ -200,14 +200,15 @@ const ActivityCreateHeader = ({
   return (
     <div className="w-full h-[80px] flex flex-row items-center justify-between px-6 gap-3 flex-shrink-0">
       {onBack ? (
-        <button
+        <Button
           onClick={onBack}
-          className="text-text-950 hover:text-text-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded transition-colors"
           aria-label="Voltar"
           type="button"
+          variant="link"
+          data-testid="back-button"
         >
           <CaretLeft size={32} />
-        </button>
+        </Button>
       ) : (
         <section className="text-text-950">
           <CaretLeft size={32} />

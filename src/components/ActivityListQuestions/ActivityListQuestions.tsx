@@ -5,7 +5,6 @@ import {
   Button,
   Input,
   Modal,
-  QUESTION_TYPE,
   Text,
   useTheme,
   SkeletonText,
@@ -18,22 +17,7 @@ import {
   type QuestionActivity as Question,
 } from '../..';
 import { convertActivityFiltersToQuestionsFilter } from '../../utils/questionFiltersConverter';
-
-/**
- * Maps API question type string to QUESTION_TYPE enum
- */
-const mapQuestionTypeToEnum = (type: string): QUESTION_TYPE => {
-  const typeMap: Record<string, QUESTION_TYPE> = {
-    ALTERNATIVA: QUESTION_TYPE.ALTERNATIVA,
-    DISSERTATIVA: QUESTION_TYPE.DISSERTATIVA,
-    MULTIPLA_ESCOLHA: QUESTION_TYPE.MULTIPLA_ESCOLHA,
-    VERDADEIRO_FALSO: QUESTION_TYPE.VERDADEIRO_FALSO,
-    IMAGEM: QUESTION_TYPE.IMAGEM,
-    LIGAR_PONTOS: QUESTION_TYPE.LIGAR_PONTOS,
-    PREENCHER: QUESTION_TYPE.PREENCHER,
-  };
-  return typeMap[type] || QUESTION_TYPE.ALTERNATIVA;
-};
+import { mapQuestionTypeToEnumRequired } from '../../utils/questionTypeUtils';
 
 interface ActivityListQuestionsProps {
   apiClient: BaseApiClient;
@@ -273,7 +257,9 @@ export const ActivityListQuestions = ({
       <>
         {questions.map((question) => {
           const subjectInfo = getSubjectInfo(question);
-          const questionType = mapQuestionTypeToEnum(question.questionType);
+          const questionType = mapQuestionTypeToEnumRequired(
+            question.questionType
+          );
 
           return (
             <ActivityCardQuestionBanks

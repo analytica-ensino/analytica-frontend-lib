@@ -9,6 +9,7 @@ import type {
   KnowledgeArea,
 } from '../types/activityFilters';
 import { QUESTION_TYPE } from '../components/Quiz/useQuizStore';
+import { mapQuestionTypeToEnum } from '../utils/questionTypeUtils';
 
 // ============================================================================
 // API Response Types
@@ -145,25 +146,6 @@ export interface UseActivityFiltersDataReturn {
 // ============================================================================
 // Question Type Mapping
 // ============================================================================
-
-/**
- * Maps API question type strings to QUESTION_TYPE enum values
- */
-const mapQuestionTypeToEnum = (type: string): QUESTION_TYPE | null => {
-  const upperType = type.toUpperCase();
-
-  const typeMap: Record<string, QUESTION_TYPE> = {
-    ALTERNATIVA: QUESTION_TYPE.ALTERNATIVA,
-    DISSERTATIVA: QUESTION_TYPE.DISSERTATIVA,
-    MULTIPLA_ESCOLHA: QUESTION_TYPE.MULTIPLA_ESCOLHA,
-    VERDADEIRO_FALSO: QUESTION_TYPE.VERDADEIRO_FALSO,
-    IMAGEM: QUESTION_TYPE.IMAGEM,
-    LIGAR_PONTOS: QUESTION_TYPE.LIGAR_PONTOS,
-    PREENCHER: QUESTION_TYPE.PREENCHER,
-  };
-
-  return typeMap[upperType] || null;
-};
 
 // ============================================================================
 // Helpers
@@ -384,7 +366,7 @@ const useActivityFiltersDataImpl = (
       );
 
       const mappedTypes = response.data.data.questionTypes
-        .map(mapQuestionTypeToEnum)
+        .map((type) => mapQuestionTypeToEnum(type))
         .filter((type): type is QUESTION_TYPE => type !== null);
 
       setQuestionTypesState({

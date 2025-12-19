@@ -13,6 +13,10 @@ export {
   areFiltersEqual,
 } from './activityFilters';
 export {
+  mapQuestionTypeToEnum,
+  mapQuestionTypeToEnumRequired,
+} from './questionTypeUtils';
+export {
   getStatusBadgeConfig,
   formatTimeSpent,
   formatQuestionNumbers,

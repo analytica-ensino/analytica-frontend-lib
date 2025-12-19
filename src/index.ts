@@ -432,6 +432,10 @@ export {
   toggleSingleValue,
 } from './utils/utils';
 export { convertActivityFiltersToQuestionsFilter } from './utils/questionFiltersConverter';
+export {
+  mapQuestionTypeToEnum,
+  mapQuestionTypeToEnumRequired,
+} from './utils/questionTypeUtils';
 // Activity Details Types
 export {
   STUDENT_ACTIVITY_STATUS,

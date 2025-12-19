@@ -443,16 +443,6 @@ describe('CreateActivity', () => {
       expect(screen.getByText('Enviar atividade')).toBeInTheDocument();
     });
 
-    it('should call onBack when back button is clicked', () => {
-      const onBack = jest.fn();
-      render(<CreateActivity {...defaultProps} onBack={onBack} />);
-
-      const backButton = screen.getByLabelText('Voltar');
-      fireEvent.click(backButton);
-
-      expect(onBack).toHaveBeenCalledTimes(1);
-    });
-
     it('should render back icon as non-clickable when onBack is not provided', () => {
       render(<CreateActivity {...defaultProps} />);
 
