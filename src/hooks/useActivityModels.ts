@@ -9,6 +9,7 @@ import type {
   ActivityModelFilters,
   ActivityPagination,
 } from '../types/activitiesHistory';
+import { createFetchErrorHandler } from '../utils/hookErrorHandler';
 
 /**
  * Zod schema for activity draft filters
@@ -105,18 +106,12 @@ export const transformModelToTableItem = (
 
 /**
  * Handle errors during model fetch
- * @param error - Error object
- * @returns Error message for UI display
+ * Uses the generic error handler factory to reduce code duplication
  */
-export const handleModelFetchError = (error: unknown): string => {
-  if (error instanceof z.ZodError) {
-    console.error('Erro ao validar dados de modelos de atividades:', error);
-    return 'Erro ao validar dados de modelos de atividades';
-  }
-
-  console.error('Erro ao carregar modelos de atividades:', error);
-  return 'Erro ao carregar modelos de atividades';
-};
+export const handleModelFetchError = createFetchErrorHandler(
+  'Erro ao validar dados de modelos de atividades',
+  'Erro ao carregar modelos de atividades'
+);
 
 /**
  * Factory function to create useActivityModels hook

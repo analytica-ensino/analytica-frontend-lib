@@ -12,6 +12,7 @@ import type {
   ActivityHistoryFilters,
   ActivityPagination,
 } from '../types/activitiesHistory';
+import { createFetchErrorHandler } from '../utils/hookErrorHandler';
 
 /**
  * Zod schema for activity history API response validation
@@ -100,18 +101,12 @@ export const transformActivityToTableItem = (
 
 /**
  * Handle errors during activity fetch
- * @param error - Error object
- * @returns Error message for UI display
+ * Uses the generic error handler factory to reduce code duplication
  */
-export const handleActivityFetchError = (error: unknown): string => {
-  if (error instanceof z.ZodError) {
-    console.error('Erro ao validar dados de histórico de atividades:', error);
-    return 'Erro ao validar dados de histórico de atividades';
-  }
-
-  console.error('Erro ao carregar histórico de atividades:', error);
-  return 'Erro ao carregar histórico de atividades';
-};
+export const handleActivityFetchError = createFetchErrorHandler(
+  'Erro ao validar dados de histórico de atividades',
+  'Erro ao carregar histórico de atividades'
+);
 
 /**
  * Factory function to create useActivitiesHistory hook
