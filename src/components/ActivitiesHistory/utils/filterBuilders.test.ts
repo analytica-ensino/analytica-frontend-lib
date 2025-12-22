@@ -1,5 +1,6 @@
 import {
   isNonEmptyArray,
+  isValidApiStatus,
   buildHistoryFiltersFromParams,
   buildModelsFiltersFromParams,
 } from './filterBuilders';
@@ -23,6 +24,21 @@ describe('filterBuilders', () => {
       expect(isNonEmptyArray(null)).toBe(false);
       expect(isNonEmptyArray(undefined)).toBe(false);
       expect(isNonEmptyArray({})).toBe(false);
+    });
+  });
+
+  describe('isValidApiStatus', () => {
+    it('should return true for valid GenericApiStatus values', () => {
+      expect(isValidApiStatus(GenericApiStatus.A_VENCER)).toBe(true);
+      expect(isValidApiStatus(GenericApiStatus.VENCIDA)).toBe(true);
+      expect(isValidApiStatus(GenericApiStatus.CONCLUIDA)).toBe(true);
+    });
+
+    it('should return false for invalid status values', () => {
+      expect(isValidApiStatus('INVALID_STATUS')).toBe(false);
+      expect(isValidApiStatus('pending')).toBe(false);
+      expect(isValidApiStatus('')).toBe(false);
+      expect(isValidApiStatus('a_vencer')).toBe(false);
     });
   });
 
@@ -122,6 +138,18 @@ describe('filterBuilders', () => {
       const result = buildHistoryFiltersFromParams(params);
 
       expect(result).toEqual({ page: 1, limit: 10 });
+    });
+
+    it('should ignore invalid status values', () => {
+      const params: TableParams = {
+        page: 1,
+        limit: 10,
+        status: ['INVALID_STATUS'],
+      };
+      const result = buildHistoryFiltersFromParams(params);
+
+      expect(result).toEqual({ page: 1, limit: 10 });
+      expect(result.status).toBeUndefined();
     });
 
     it('should use only the first value when multiple values are provided', () => {

@@ -14,6 +14,14 @@ export const isNonEmptyArray = (param: unknown): param is string[] =>
   Array.isArray(param) && param.length > 0;
 
 /**
+ * Check if a value is a valid GenericApiStatus enum value
+ * @param value - Value to validate
+ * @returns True if value is a valid GenericApiStatus
+ */
+export const isValidApiStatus = (value: string): value is GenericApiStatus =>
+  Object.values(GenericApiStatus).includes(value as GenericApiStatus);
+
+/**
  * Build activity history filters from table params
  * @param params - Table parameters from TableProvider
  * @returns Activity history filters for API call
@@ -30,9 +38,9 @@ export const buildHistoryFiltersFromParams = (
     filters.search = params.search;
   }
 
-  // Status filter (single selection)
-  if (isNonEmptyArray(params.status)) {
-    filters.status = params.status[0] as GenericApiStatus;
+  // Status filter (single selection) - with runtime validation
+  if (isNonEmptyArray(params.status) && isValidApiStatus(params.status[0])) {
+    filters.status = params.status[0];
   }
 
   // School filter
