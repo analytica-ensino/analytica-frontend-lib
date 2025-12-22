@@ -3,32 +3,30 @@
  * Based on /recommended-class/history endpoint
  */
 
+import {
+  GenericApiStatus,
+  GenericDisplayStatus,
+  BadgeActionType,
+  getStatusBadgeAction,
+} from './common';
+
 /**
  * Goal status from backend API
+ * Re-exported from common for backward compatibility
  */
-export enum GoalApiStatus {
-  A_VENCER = 'A_VENCER',
-  VENCIDA = 'VENCIDA',
-  CONCLUIDA = 'CONCLUIDA',
-}
+export { GenericApiStatus as GoalApiStatus };
 
 /**
  * Goal status for display in UI (Badge component)
+ * Re-exported from common for backward compatibility
  */
-export enum GoalDisplayStatus {
-  ATIVA = 'ATIVA',
-  VENCIDA = 'VENCIDA',
-  CONCLUIDA = 'CONCLUÍDA',
-}
+export { GenericDisplayStatus as GoalDisplayStatus };
 
 /**
  * Badge action types for goal status visualization
+ * Re-exported from common for backward compatibility
  */
-export enum GoalBadgeActionType {
-  SUCCESS = 'success',
-  WARNING = 'warning',
-  ERROR = 'error',
-}
+export { BadgeActionType as GoalBadgeActionType };
 
 /**
  * Subject info from API response
@@ -103,7 +101,7 @@ export interface GoalTableItem extends Record<string, unknown> {
   year: string;
   subject: string;
   class: string;
-  status: GoalDisplayStatus;
+  status: GenericDisplayStatus;
   completionPercentage: number;
 }
 
@@ -124,7 +122,7 @@ export interface GoalsHistoryApiResponse {
 export interface GoalHistoryFilters {
   page?: number;
   limit?: number;
-  status?: GoalApiStatus;
+  status?: GenericApiStatus;
   search?: string;
   startDate?: string;
   finalDate?: string;
@@ -174,31 +172,24 @@ export interface GoalUserFilterData {
  * @returns Badge action type for styling
  */
 export const getGoalStatusBadgeAction = (
-  status: GoalDisplayStatus
-): GoalBadgeActionType => {
-  const actionMap: Record<GoalDisplayStatus, GoalBadgeActionType> = {
-    [GoalDisplayStatus.CONCLUIDA]: GoalBadgeActionType.SUCCESS,
-    [GoalDisplayStatus.ATIVA]: GoalBadgeActionType.WARNING,
-    [GoalDisplayStatus.VENCIDA]: GoalBadgeActionType.ERROR,
-  };
-  return actionMap[status] ?? GoalBadgeActionType.WARNING;
-};
+  status: GenericDisplayStatus
+): BadgeActionType => getStatusBadgeAction(status);
 
 /**
  * Goal status options for filter (Vencida and Ativa)
  */
 export const GOAL_FILTER_STATUS_OPTIONS: GoalFilterOption[] = [
-  { id: GoalApiStatus.VENCIDA, name: 'Vencida' },
-  { id: GoalApiStatus.A_VENCER, name: 'Ativa' },
+  { id: GenericApiStatus.VENCIDA, name: 'Vencida' },
+  { id: GenericApiStatus.A_VENCER, name: 'Ativa' },
 ];
 
 /**
  * All goal status options
  */
 export const GOAL_STATUS_OPTIONS: GoalFilterOption[] = [
-  { id: GoalApiStatus.A_VENCER, name: 'A Vencer' },
-  { id: GoalApiStatus.VENCIDA, name: 'Vencida' },
-  { id: GoalApiStatus.CONCLUIDA, name: 'Concluída' },
+  { id: GenericApiStatus.A_VENCER, name: 'A Vencer' },
+  { id: GenericApiStatus.VENCIDA, name: 'Vencida' },
+  { id: GenericApiStatus.CONCLUIDA, name: 'Concluída' },
 ];
 
 // ============================================

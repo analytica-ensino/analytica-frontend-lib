@@ -4,32 +4,31 @@
  * Based on /activities/history and /activity-drafts endpoints
  */
 
+import {
+  GenericApiStatus,
+  GenericDisplayStatus,
+  BadgeActionType,
+  getStatusBadgeAction,
+  mapApiStatusToDisplay,
+} from './common';
+
 /**
  * Activity status from backend API /activities/history
+ * Re-exported from common for backward compatibility
  */
-export enum ActivityApiStatus {
-  A_VENCER = 'A_VENCER',
-  VENCIDA = 'VENCIDA',
-  CONCLUIDA = 'CONCLUIDA',
-}
+export { GenericApiStatus as ActivityApiStatus };
 
 /**
  * Activity status for display in UI (Badge component)
+ * Re-exported from common for backward compatibility
  */
-export enum ActivityDisplayStatus {
-  ATIVA = 'ATIVA',
-  VENCIDA = 'VENCIDA',
-  CONCLUIDA = 'CONCLUÍDA',
-}
+export { GenericDisplayStatus as ActivityDisplayStatus };
 
 /**
  * Badge action types for activity status visualization
+ * Re-exported from common for backward compatibility
  */
-export enum ActivityBadgeActionType {
-  SUCCESS = 'success',
-  WARNING = 'warning',
-  ERROR = 'error',
-}
+export { BadgeActionType as ActivityBadgeActionType };
 
 /**
  * Activity draft type enum (matches backend ACTIVITY_DRAFT_TYPE)
@@ -47,7 +46,7 @@ export interface ActivityHistoryResponse {
   title: string;
   startDate: string | null;
   finalDate: string | null;
-  status: ActivityApiStatus;
+  status: GenericApiStatus;
   completionPercentage: number;
   subjectId: string;
   schoolId?: string;
@@ -69,7 +68,7 @@ export interface ActivityTableItem extends Record<string, unknown> {
   year: string;
   subject: string;
   class: string;
-  status: ActivityDisplayStatus;
+  status: GenericDisplayStatus;
   completionPercentage: number;
 }
 
@@ -100,7 +99,7 @@ export interface ActivitiesHistoryApiResponse {
 export interface ActivityHistoryFilters {
   page?: number;
   limit?: number;
-  status?: ActivityApiStatus;
+  status?: GenericApiStatus;
   search?: string;
   startDate?: string;
   finalDate?: string;
@@ -195,23 +194,16 @@ export interface ActivityUserFilterData {
  * @returns Badge action type for styling
  */
 export const getActivityStatusBadgeAction = (
-  status: ActivityDisplayStatus
-): ActivityBadgeActionType => {
-  const actionMap: Record<ActivityDisplayStatus, ActivityBadgeActionType> = {
-    [ActivityDisplayStatus.CONCLUIDA]: ActivityBadgeActionType.SUCCESS,
-    [ActivityDisplayStatus.ATIVA]: ActivityBadgeActionType.WARNING,
-    [ActivityDisplayStatus.VENCIDA]: ActivityBadgeActionType.ERROR,
-  };
-  return actionMap[status] ?? ActivityBadgeActionType.WARNING;
-};
+  status: GenericDisplayStatus
+): BadgeActionType => getStatusBadgeAction(status);
 
 /**
  * Activity status options for filter
  */
 export const ACTIVITY_FILTER_STATUS_OPTIONS: ActivityFilterOption[] = [
-  { id: ActivityApiStatus.A_VENCER, name: 'A Vencer' },
-  { id: ActivityApiStatus.VENCIDA, name: 'Vencida' },
-  { id: ActivityApiStatus.CONCLUIDA, name: 'Concluída' },
+  { id: GenericApiStatus.A_VENCER, name: 'A Vencer' },
+  { id: GenericApiStatus.VENCIDA, name: 'Vencida' },
+  { id: GenericApiStatus.CONCLUIDA, name: 'Concluída' },
 ];
 
 /**
@@ -220,12 +212,5 @@ export const ACTIVITY_FILTER_STATUS_OPTIONS: ActivityFilterOption[] = [
  * @returns Formatted status for UI display
  */
 export const mapActivityStatusToDisplay = (
-  apiStatus: ActivityApiStatus
-): ActivityDisplayStatus => {
-  const statusMap: Record<ActivityApiStatus, ActivityDisplayStatus> = {
-    [ActivityApiStatus.A_VENCER]: ActivityDisplayStatus.ATIVA,
-    [ActivityApiStatus.VENCIDA]: ActivityDisplayStatus.VENCIDA,
-    [ActivityApiStatus.CONCLUIDA]: ActivityDisplayStatus.CONCLUIDA,
-  };
-  return statusMap[apiStatus];
-};
+  apiStatus: GenericApiStatus
+): GenericDisplayStatus => mapApiStatusToDisplay(apiStatus);

@@ -507,5 +507,131 @@ describe('ActivitiesHistory', () => {
         expect(screen.getByTestId('activity-models-tab')).toBeInTheDocument();
       });
     });
+
+    it('should open delete dialog when delete button is clicked', async () => {
+      render(<ActivitiesHistory {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('menu-item-models'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('activity-models-tab')).toBeInTheDocument();
+      });
+
+      const deleteButton = screen.getByLabelText('Deletar modelo');
+      fireEvent.click(deleteButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Deletar modelo')).toBeInTheDocument();
+        expect(
+          screen.getByText(/Tem certeza que deseja deletar o modelo/)
+        ).toBeInTheDocument();
+      });
+    });
+
+    it('should close dialog when cancel is clicked', async () => {
+      render(<ActivitiesHistory {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('menu-item-models'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('activity-models-tab')).toBeInTheDocument();
+      });
+
+      // Wait for models to load
+      await waitFor(() => {
+        expect(screen.getByText('Test Model')).toBeInTheDocument();
+      });
+
+      const deleteButton = screen.getByLabelText('Deletar modelo');
+      fireEvent.click(deleteButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Deletar modelo')).toBeInTheDocument();
+      });
+
+      const cancelButton = screen.getByText('Cancelar');
+      fireEvent.click(cancelButton);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText(/Tem certeza que deseja deletar o modelo/)
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    it('should delete model when confirmed', async () => {
+      mockDeleteActivityModel.mockResolvedValue(undefined);
+
+      render(<ActivitiesHistory {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('menu-item-models'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('activity-models-tab')).toBeInTheDocument();
+      });
+
+      // Wait for models to load
+      await waitFor(() => {
+        expect(screen.getByText('Test Model')).toBeInTheDocument();
+      });
+
+      const deleteButton = screen.getByLabelText('Deletar modelo');
+      fireEvent.click(deleteButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Deletar modelo')).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByRole('button', { name: 'Deletar' });
+      fireEvent.click(confirmButton);
+
+      await waitFor(() => {
+        expect(mockDeleteActivityModel).toHaveBeenCalledWith(
+          '123e4567-e89b-12d3-a456-426614174002'
+        );
+      });
+
+      // Toast is called via mocked hook
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalled();
+      });
+    });
+
+    it('should call delete function when delete is confirmed on fail', async () => {
+      render(<ActivitiesHistory {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('menu-item-models'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('activity-models-tab')).toBeInTheDocument();
+      });
+
+      // Wait for models to load
+      await waitFor(() => {
+        expect(screen.getByText('Test Model')).toBeInTheDocument();
+      });
+
+      // Set up mock to reject AFTER models are loaded
+      mockDeleteActivityModel.mockRejectedValue(new Error('Delete failed'));
+
+      const deleteButton = screen.getByLabelText('Deletar modelo');
+      fireEvent.click(deleteButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Tem certeza que deseja deletar o modelo/)
+        ).toBeInTheDocument();
+      });
+
+      const confirmButtons = screen.getAllByRole('button', { name: 'Deletar' });
+      const confirmButton = confirmButtons[confirmButtons.length - 1];
+      fireEvent.click(confirmButton);
+
+      await waitFor(() => {
+        expect(mockDeleteActivityModel).toHaveBeenCalledWith(
+          '123e4567-e89b-12d3-a456-426614174002'
+        );
+      });
+    });
   });
 });
