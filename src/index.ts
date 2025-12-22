@@ -622,3 +622,60 @@ export type {
   GoalApiResponse,
   LessonDetailsData,
 } from './types/recommendedLessons';
+
+// Activities History Component
+export { ActivitiesHistory } from './components/ActivitiesHistory';
+export type { ActivitiesHistoryProps } from './components/ActivitiesHistory';
+
+// Activities History Hook Factory
+export {
+  createUseActivitiesHistory,
+  createActivitiesHistoryHook,
+  transformActivityToTableItem,
+  handleActivityFetchError,
+  activitiesHistoryApiResponseSchema,
+  DEFAULT_ACTIVITIES_PAGINATION,
+} from './hooks/useActivitiesHistory';
+export type {
+  UseActivitiesHistoryState,
+  UseActivitiesHistoryReturn,
+} from './hooks/useActivitiesHistory';
+
+// Activity Models Hook Factory
+export {
+  createUseActivityModels,
+  createActivityModelsHook,
+  transformModelToTableItem,
+  handleModelFetchError,
+  activityModelsApiResponseSchema,
+  DEFAULT_MODELS_PAGINATION,
+} from './hooks/useActivityModels';
+export type {
+  UseActivityModelsState,
+  UseActivityModelsReturn,
+} from './hooks/useActivityModels';
+
+// Activities History Types
+export {
+  ActivityApiStatus,
+  ActivityDisplayStatus,
+  ActivityBadgeActionType,
+  ActivityDraftType,
+  getActivityStatusBadgeAction,
+  mapActivityStatusToDisplay,
+  ACTIVITY_FILTER_STATUS_OPTIONS,
+} from './types/activitiesHistory';
+export type {
+  ActivityHistoryResponse,
+  ActivityTableItem,
+  ActivityPagination,
+  ActivitiesHistoryApiResponse,
+  ActivityHistoryFilters,
+  ActivityDraftFilters,
+  ActivityModelResponse,
+  ActivityModelTableItem,
+  ActivityModelsApiResponse,
+  ActivityModelFilters,
+  ActivityFilterOption,
+  ActivityUserFilterData,
+} from './types/activitiesHistory';

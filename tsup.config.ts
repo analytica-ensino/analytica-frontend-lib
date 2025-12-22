@@ -129,11 +129,11 @@ export default defineConfig({
     'hooks/useRecommendedLessons/index': 'src/hooks/useRecommendedLessons.ts',
     'types/recommendedLessons/index': 'src/types/recommendedLessons.ts',
 
-    // RecommendedLessonDetails
-    'RecommendedLessonDetails/index':
-      'src/components/RecommendedLessonDetails/index.ts',
-    'hooks/useRecommendedLessonDetails/index':
-      'src/hooks/useRecommendedLessonDetails.ts',
+    // ActivitiesHistory
+    'ActivitiesHistory/index': 'src/components/ActivitiesHistory/index.ts',
+    'hooks/useActivitiesHistory/index': 'src/hooks/useActivitiesHistory.ts',
+    'hooks/useActivityModels/index': 'src/hooks/useActivityModels.ts',
+    'types/activitiesHistory/index': 'src/types/activitiesHistory.ts',
 
     // Styles
     styles: 'src/styles.css',
