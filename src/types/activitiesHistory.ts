@@ -16,19 +16,19 @@ import {
  * Activity status from backend API /activities/history
  * Re-exported from common for backward compatibility
  */
-export { GenericApiStatus as ActivityApiStatus };
+export { GenericApiStatus as ActivityApiStatus } from './common';
 
 /**
  * Activity status for display in UI (Badge component)
  * Re-exported from common for backward compatibility
  */
-export { GenericDisplayStatus as ActivityDisplayStatus };
+export { GenericDisplayStatus as ActivityDisplayStatus } from './common';
 
 /**
  * Badge action types for activity status visualization
  * Re-exported from common for backward compatibility
  */
-export { BadgeActionType as ActivityBadgeActionType };
+export { BadgeActionType as ActivityBadgeActionType } from './common';
 
 /**
  * Activity draft type enum (matches backend ACTIVITY_DRAFT_TYPE)

@@ -14,19 +14,19 @@ import {
  * Goal status from backend API
  * Re-exported from common for backward compatibility
  */
-export { GenericApiStatus as GoalApiStatus };
+export { GenericApiStatus as GoalApiStatus } from './common';
 
 /**
  * Goal status for display in UI (Badge component)
  * Re-exported from common for backward compatibility
  */
-export { GenericDisplayStatus as GoalDisplayStatus };
+export { GenericDisplayStatus as GoalDisplayStatus } from './common';
 
 /**
  * Badge action types for goal status visualization
  * Re-exported from common for backward compatibility
  */
-export { BadgeActionType as GoalBadgeActionType };
+export { BadgeActionType as GoalBadgeActionType } from './common';
 
 /**
  * Subject info from API response
