@@ -379,7 +379,7 @@ export const ActivityDetails = ({
    * Get subject info for icon display
    */
   const subjectEnum =
-    data?.activity.subjectName && mapSubjectNameToEnum
+    data?.activity?.subjectName && mapSubjectNameToEnum
       ? mapSubjectNameToEnum(data.activity.subjectName)
       : null;
   const subjectInfo: SubjectData | null = subjectEnum
@@ -457,75 +457,77 @@ export const ActivityDetails = ({
           </button>
           <CaretRight size={16} className="text-text-500" />
           <Text className="text-text-950 text-sm font-bold">
-            {data.activity.title}
+            {data.activity?.title || 'Atividade'}
           </Text>
         </div>
 
         {/* Activity header card */}
-        <div className="bg-background rounded-xl p-4 flex flex-col gap-2">
-          <div className="flex justify-between items-start">
-            <div className="flex flex-col gap-2">
-              <Text className="text-2xl font-bold text-text-950">
-                {data.activity.title}
-              </Text>
-              <div className="flex items-center gap-2 flex-wrap">
-                <Text className="text-sm text-text-500">
-                  Início{' '}
-                  {data.activity.startDate
-                    ? formatDateToBrazilian(data.activity.startDate)
-                    : '00/00/0000'}
+        {data.activity && (
+          <div className="bg-background rounded-xl p-4 flex flex-col gap-2">
+            <div className="flex justify-between items-start">
+              <div className="flex flex-col gap-2">
+                <Text className="text-2xl font-bold text-text-950">
+                  {data.activity.title}
                 </Text>
-                <span className="w-1 h-1 rounded-full bg-text-500" />
-                <Text className="text-sm text-text-500">
-                  Prazo final{' '}
-                  {data.activity.finalDate
-                    ? formatDateToBrazilian(data.activity.finalDate)
-                    : '00/00/0000'}
-                </Text>
-                <span className="w-1 h-1 rounded-full bg-text-500" />
-                <Text className="text-sm text-text-500">
-                  {data.activity.schoolName}
-                </Text>
-                <span className="w-1 h-1 rounded-full bg-text-500" />
-                <Text className="text-sm text-text-500">
-                  {data.activity.year}
-                </Text>
-                <span className="w-1 h-1 rounded-full bg-text-500" />
-                {subjectInfo ? (
-                  <div className="flex items-center gap-1">
-                    <span
-                      className={cn(
-                        'w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0',
-                        subjectInfo.colorClass
-                      )}
-                    >
-                      {subjectInfo.icon}
-                    </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Text className="text-sm text-text-500">
+                    Início{' '}
+                    {data.activity.startDate
+                      ? formatDateToBrazilian(data.activity.startDate)
+                      : '00/00/0000'}
+                  </Text>
+                  <span className="w-1 h-1 rounded-full bg-text-500" />
+                  <Text className="text-sm text-text-500">
+                    Prazo final{' '}
+                    {data.activity.finalDate
+                      ? formatDateToBrazilian(data.activity.finalDate)
+                      : '00/00/0000'}
+                  </Text>
+                  <span className="w-1 h-1 rounded-full bg-text-500" />
+                  <Text className="text-sm text-text-500">
+                    {data.activity.schoolName}
+                  </Text>
+                  <span className="w-1 h-1 rounded-full bg-text-500" />
+                  <Text className="text-sm text-text-500">
+                    {data.activity.year}
+                  </Text>
+                  <span className="w-1 h-1 rounded-full bg-text-500" />
+                  {subjectInfo ? (
+                    <div className="flex items-center gap-1">
+                      <span
+                        className={cn(
+                          'w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0',
+                          subjectInfo.colorClass
+                        )}
+                      >
+                        {subjectInfo.icon}
+                      </span>
+                      <Text className="text-sm text-text-500">
+                        {data.activity.subjectName}
+                      </Text>
+                    </div>
+                  ) : (
                     <Text className="text-sm text-text-500">
                       {data.activity.subjectName}
                     </Text>
-                  </div>
-                ) : (
+                  )}
+                  <span className="w-1 h-1 rounded-full bg-text-500" />
                   <Text className="text-sm text-text-500">
-                    {data.activity.subjectName}
+                    {data.activity.className}
                   </Text>
-                )}
-                <span className="w-1 h-1 rounded-full bg-text-500" />
-                <Text className="text-sm text-text-500">
-                  {data.activity.className}
-                </Text>
+                </div>
               </div>
+              <Button
+                size="small"
+                onClick={handleViewActivity}
+                className="bg-primary-950 text-text gap-2"
+              >
+                <File size={16} />
+                Ver atividade
+              </Button>
             </div>
-            <Button
-              size="small"
-              onClick={handleViewActivity}
-              className="bg-primary-950 text-text gap-2"
-            >
-              <File size={16} />
-              Ver atividade
-            </Button>
           </div>
-        </div>
+        )}
 
         {/* Statistics cards */}
         <div

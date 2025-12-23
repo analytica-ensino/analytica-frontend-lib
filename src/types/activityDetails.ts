@@ -36,6 +36,8 @@ export interface Pagination {
   page: number;
   limit: number;
   totalPages: number;
+  hasNext?: boolean;
+  hasPrev?: boolean;
 }
 
 /**
@@ -73,7 +75,7 @@ export interface ActivityMetadata {
  * Activity details data interface
  */
 export interface ActivityDetailsData {
-  activity: ActivityMetadata;
+  activity?: ActivityMetadata;
   students: ActivityStudentData[];
   pagination: Pagination;
   generalStats: GeneralStats;
