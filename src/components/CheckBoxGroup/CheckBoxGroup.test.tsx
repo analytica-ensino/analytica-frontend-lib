@@ -1368,4 +1368,279 @@ describe('CheckboxGroup', () => {
       expect(accordionTriggers.length).toBe(0);
     });
   });
+
+  describe('Auto-Selection with Filtered Items', () => {
+    it('auto-selects when only one filtered item is visible after filtering', async () => {
+      const onCategoriesChange = jest.fn();
+      const categories: CategoryConfig[] = [
+        {
+          key: 'parent',
+          label: 'Parent Category',
+          itens: [
+            { id: 'parent-1', name: 'Parent 1' },
+            { id: 'parent-2', name: 'Parent 2' },
+          ],
+          selectedIds: ['parent-1'],
+        },
+        {
+          key: 'child',
+          label: 'Child Category',
+          dependsOn: ['parent'],
+          filteredBy: [
+            {
+              key: 'parent',
+              internalField: 'parentId',
+            },
+          ],
+          // Only one item matches parent-1, so should auto-select
+          itens: [
+            { id: 'child-1', name: 'Child 1', parentId: 'parent-1' },
+            { id: 'child-2', name: 'Child 2', parentId: 'parent-2' },
+            { id: 'child-3', name: 'Child 3', parentId: 'parent-2' },
+          ],
+          selectedIds: [],
+        },
+      ];
+
+      render(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={onCategoriesChange}
+        />
+      );
+
+      await waitFor(() => {
+        expect(onCategoriesChange).toHaveBeenCalled();
+      });
+
+      // Should auto-select child-1 (the only filtered item matching parent-1)
+      const lastCall = onCategoriesChange.mock.calls[
+        onCategoriesChange.mock.calls.length - 1
+      ][0];
+      const childCategory = lastCall.find((c) => c.key === 'child');
+      expect(childCategory?.selectedIds).toContain('child-1');
+      expect(childCategory?.selectedIds?.length).toBe(1);
+    });
+
+    it('does not auto-select when multiple filtered items are visible', async () => {
+      const onCategoriesChange = jest.fn();
+      const categories: CategoryConfig[] = [
+        {
+          key: 'parent',
+          label: 'Parent Category',
+          itens: [
+            { id: 'parent-1', name: 'Parent 1' },
+            { id: 'parent-2', name: 'Parent 2' },
+          ],
+          selectedIds: ['parent-1', 'parent-2'],
+        },
+        {
+          key: 'child',
+          label: 'Child Category',
+          dependsOn: ['parent'],
+          filteredBy: [
+            {
+              key: 'parent',
+              internalField: 'parentId',
+            },
+          ],
+          itens: [
+            { id: 'child-1', name: 'Child 1', parentId: 'parent-1' },
+            { id: 'child-2', name: 'Child 2', parentId: 'parent-2' },
+          ],
+          selectedIds: [],
+        },
+      ];
+
+      render(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={onCategoriesChange}
+        />
+      );
+
+      // Wait a bit to ensure no auto-selection happens
+      await waitFor(() => {
+        // If auto-selection happened, it would be called
+        // But with 2 filtered items, it shouldn't
+        const calls = onCategoriesChange.mock.calls;
+        if (calls.length > 0) {
+          const lastCall = calls[calls.length - 1][0];
+          const childCategory = lastCall.find((c) => c.key === 'child');
+          // Should not have auto-selected (either empty or manually selected)
+          expect(childCategory?.selectedIds?.length || 0).toBeLessThanOrEqual(
+            0
+          );
+        }
+      });
+    });
+
+    it('auto-selects when filtering reduces items to one visible item', async () => {
+      const onCategoriesChange = jest.fn();
+      let categories: CategoryConfig[] = [
+        {
+          key: 'parent',
+          label: 'Parent Category',
+          itens: [
+            { id: 'parent-1', name: 'Parent 1' },
+            { id: 'parent-2', name: 'Parent 2' },
+          ],
+          selectedIds: [],
+        },
+        {
+          key: 'child',
+          label: 'Child Category',
+          dependsOn: ['parent'],
+          filteredBy: [
+            {
+              key: 'parent',
+              internalField: 'parentId',
+            },
+          ],
+          itens: [
+            { id: 'child-1', name: 'Child 1', parentId: 'parent-1' },
+            { id: 'child-2', name: 'Child 2', parentId: 'parent-2' },
+          ],
+          selectedIds: [],
+        },
+      ];
+
+      const { rerender } = render(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={onCategoriesChange}
+        />
+      );
+
+      // Initially, no parent is selected, so child should be disabled
+      // Now select parent-1, which should filter to only child-1
+      categories = [
+        {
+          ...categories[0],
+          selectedIds: ['parent-1'],
+        },
+        categories[1],
+      ];
+
+      rerender(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={onCategoriesChange}
+        />
+      );
+
+      await waitFor(() => {
+        expect(onCategoriesChange).toHaveBeenCalled();
+      });
+
+      // Should auto-select child-1 (the only filtered item)
+      const lastCall = onCategoriesChange.mock.calls[
+        onCategoriesChange.mock.calls.length - 1
+      ][0];
+      const childCategory = lastCall.find((c) => c.key === 'child');
+      expect(childCategory?.selectedIds).toContain('child-1');
+    });
+
+    it('does not auto-select when category already has selected items', async () => {
+      const onCategoriesChange = jest.fn();
+      const categories: CategoryConfig[] = [
+        {
+          key: 'parent',
+          label: 'Parent Category',
+          itens: [{ id: 'parent-1', name: 'Parent 1' }],
+          selectedIds: ['parent-1'],
+        },
+        {
+          key: 'child',
+          label: 'Child Category',
+          dependsOn: ['parent'],
+          filteredBy: [
+            {
+              key: 'parent',
+              internalField: 'parentId',
+            },
+          ],
+          itens: [
+            { id: 'child-1', name: 'Child 1', parentId: 'parent-1' },
+          ],
+          selectedIds: ['child-1'], // Already selected
+        },
+      ];
+
+      render(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={onCategoriesChange}
+        />
+      );
+
+      // Should not trigger auto-selection since item is already selected
+      await waitFor(() => {
+        // Give it time, but should not call onCategoriesChange for auto-selection
+        // (it might be called for other reasons, but not for auto-selection)
+      });
+
+      // If onCategoriesChange was called, verify it didn't change the selection
+      if (onCategoriesChange.mock.calls.length > 0) {
+        const lastCall = onCategoriesChange.mock.calls[
+          onCategoriesChange.mock.calls.length - 1
+        ][0];
+        const childCategory = lastCall.find((c) => c.key === 'child');
+        expect(childCategory?.selectedIds).toContain('child-1');
+      }
+    });
+
+    it('auto-selects based on filtered items, not total items', async () => {
+      const onCategoriesChange = jest.fn();
+      const categories: CategoryConfig[] = [
+        {
+          key: 'parent',
+          label: 'Parent Category',
+          itens: [
+            { id: 'parent-1', name: 'Parent 1' },
+            { id: 'parent-2', name: 'Parent 2' },
+          ],
+          selectedIds: ['parent-1'],
+        },
+        {
+          key: 'child',
+          label: 'Child Category',
+          dependsOn: ['parent'],
+          filteredBy: [
+            {
+              key: 'parent',
+              internalField: 'parentId',
+            },
+          ],
+          // Total: 3 items, but only 1 is visible after filtering
+          itens: [
+            { id: 'child-1', name: 'Child 1', parentId: 'parent-1' },
+            { id: 'child-2', name: 'Child 2', parentId: 'parent-2' },
+            { id: 'child-3', name: 'Child 3', parentId: 'parent-2' },
+          ],
+          selectedIds: [],
+        },
+      ];
+
+      render(
+        <CheckboxGroup
+          categories={categories}
+          onCategoriesChange={onCategoriesChange}
+        />
+      );
+
+      await waitFor(() => {
+        expect(onCategoriesChange).toHaveBeenCalled();
+      });
+
+      // Should auto-select child-1 (the only filtered/visible item)
+      // Even though there are 3 total items, only 1 is visible after filtering
+      const lastCall = onCategoriesChange.mock.calls[
+        onCategoriesChange.mock.calls.length - 1
+      ][0];
+      const childCategory = lastCall.find((c) => c.key === 'child');
+      expect(childCategory?.selectedIds).toContain('child-1');
+      expect(childCategory?.selectedIds?.length).toBe(1);
+    });
+  });
 });

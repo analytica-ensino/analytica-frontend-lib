@@ -106,14 +106,19 @@ export const CheckboxGroup = ({
       }
 
       // Filter items based on selected parent IDs
-      const filteredItems = (category.itens || []).filter((item) => {
-        return filters.every((filter) => {
-          const parentCat = categories.find((c) => c.key === filter.key);
-          const parentSelectedIds = parentCat?.selectedIds || [];
-          const itemFieldValue = item[filter.internalField];
-          return parentSelectedIds.includes(String(itemFieldValue));
-        });
-      });
+      const isItemMatchingFilter = (
+        item: Item,
+        filter: { key: string; internalField: string }
+      ): boolean => {
+        const parentCat = categories.find((c) => c.key === filter.key);
+        const parentSelectedIds = parentCat?.selectedIds || [];
+        const itemFieldValue = item[filter.internalField];
+        return parentSelectedIds.includes(String(itemFieldValue));
+      };
+
+      const filteredItems = (category.itens || []).filter((item) =>
+        filters.every((filter) => isItemMatchingFilter(item, filter))
+      );
 
       return filteredItems;
     };
@@ -346,6 +351,59 @@ export const CheckboxGroup = ({
 
   const getFormattedItems = (categoryKey: string) => {
     return formattedItemsMap[categoryKey] || [{ itens: [] }];
+  };
+
+  // Helper function to get badge text for category
+  const getBadgeText = (category: CategoryConfig): string => {
+    const visibleIds = getFormattedItems(category.key)
+      .flatMap((group) => group.itens || [])
+      .map((i) => i.id);
+    const selectedVisibleCount = visibleIds.filter((id) =>
+      category.selectedIds?.includes(id)
+    ).length;
+    const totalVisible = visibleIds.length;
+    return `${selectedVisibleCount} de ${totalVisible} ${
+      selectedVisibleCount === 1 ? 'selecionado' : 'selecionados'
+    }`;
+  };
+
+  // Helper function to check if category is enabled
+  const isCategoryEnabled = (category: CategoryConfig): boolean => {
+    if (!category.dependsOn || category.dependsOn.length === 0) {
+      return true;
+    }
+    return category.dependsOn.every((depKey) => {
+      const depCat = categories.find((c) => c.key === depKey);
+      return depCat?.selectedIds && depCat.selectedIds.length > 0;
+    });
+  };
+
+  // Helper function to handle accordion value change
+  const handleAccordionValueChange = (value: string | string[] | undefined) => {
+    if (typeof value !== 'string') {
+      if (!value) {
+        setOpenAccordion('');
+      }
+      return;
+    }
+
+    if (!value) {
+      setOpenAccordion('');
+      return;
+    }
+
+    // Prevent opening disabled categories
+    const category = categories.find((c) => c.key === value);
+    if (!category) {
+      return;
+    }
+
+    const isEnabled = isCategoryEnabled(category);
+    if (!isEnabled) {
+      return; // Don't allow opening disabled accordions
+    }
+
+    setOpenAccordion(value);
   };
 
   const getDependentCategories = (categoryKey: string): string[] => {
@@ -627,18 +685,7 @@ export const CheckboxGroup = ({
       </div>
       {(openAccordion === category.key || isEnabled) && (
         <Badge variant="solid" action="info">
-          {(() => {
-            const visibleIds = getFormattedItems(category.key)
-              .flatMap((group) => group.itens || [])
-              .map((i) => i.id);
-            const selectedVisibleCount = visibleIds.filter((id) =>
-              category.selectedIds?.includes(id)
-            ).length;
-            const totalVisible = visibleIds.length;
-            return `${selectedVisibleCount} de ${totalVisible} ${
-              selectedVisibleCount === 1 ? 'selecionado' : 'selecionados'
-            }`;
-          })()}
+          {getBadgeText(category)}
         </Badge>
       )}
     </div>
@@ -672,13 +719,8 @@ export const CheckboxGroup = ({
 
   // Helper component to render category accordion
   const renderCategoryAccordion = (category: CategoryConfig) => {
-    // Check if category is enabled based on dependencies (inline to avoid stale closure)
-    const isEnabled =
-      !category.dependsOn ||
-      category.dependsOn.every((depKey) => {
-        const depCat = categories.find((c) => c.key === depKey);
-        return depCat?.selectedIds && depCat.selectedIds.length > 0;
-      });
+    // Check if category is enabled based on dependencies
+    const isEnabled = isCategoryEnabled(category);
     const hasOnlyOneItem = category.itens?.length === 1;
 
     if (hasOnlyOneItem && !compactSingleItem && !showSingleItem) {
@@ -741,12 +783,7 @@ export const CheckboxGroup = ({
     if (!category) return;
 
     // Check if the open category is now disabled
-    const isEnabled =
-      !category.dependsOn ||
-      category.dependsOn.every((depKey) => {
-        const depCat = categories.find((c) => c.key === depKey);
-        return depCat?.selectedIds && depCat.selectedIds.length > 0;
-      });
+    const isEnabled = isCategoryEnabled(category);
 
     // If category is disabled, close it
     if (!isEnabled) {
@@ -762,25 +799,7 @@ export const CheckboxGroup = ({
       type="single"
       collapsible
       value={openAccordion}
-      onValueChange={(value) => {
-        if (typeof value === 'string') {
-          // Prevent opening disabled categories
-          if (value) {
-            const category = categories.find((c) => c.key === value);
-            const isEnabled =
-              !category?.dependsOn ||
-              category.dependsOn.every((depKey) => {
-                const depCat = categories.find((c) => c.key === depKey);
-                return depCat?.selectedIds && depCat.selectedIds.length > 0;
-              });
-
-            if (!isEnabled) {
-              return; // Don't allow opening disabled accordions
-            }
-          }
-          setOpenAccordion(value);
-        }
-      }}
+      onValueChange={handleAccordionValueChange}
     >
       {categories.map(renderCategoryAccordion)}
     </AccordionGroup>
