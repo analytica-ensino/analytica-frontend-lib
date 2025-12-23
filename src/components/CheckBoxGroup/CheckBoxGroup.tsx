@@ -11,9 +11,9 @@ import {
 import {
   areSelectedIdsEqual,
   isCategoryEnabled as isCategoryEnabledHelper,
-  isItemMatchingFilter,
   getBadgeText as getBadgeTextHelper,
   handleAccordionValueChange as handleAccordionValueChangeHelper,
+  calculateFormattedItemsForAutoSelection,
 } from './CheckBoxGroup.helpers';
 
 export type Item = {
@@ -60,61 +60,12 @@ export const CheckboxGroup = ({
 
   // Auto-seleciona categorias com apenas um item (considerando itens filtrados)
   const categoriesWithAutoSelection = useMemo(() => {
-    // Helper function to calculate filtered items for a category
-    const calculateFormattedItemsForAutoSelection = (
-      category: CategoryConfig
-    ) => {
-      if (!category?.dependsOn || category.dependsOn.length === 0) {
-        return category?.itens || [];
-      }
-
-      // Check if category is enabled based on dependencies
-      const isEnabled = category.dependsOn.every((depKey) => {
-        const depCat = categories.find((c) => c.key === depKey);
-        return depCat?.selectedIds && depCat.selectedIds.length > 0;
-      });
-
-      // If category is disabled, return empty items array
-      if (!isEnabled) {
-        return [];
-      }
-
-      const filters =
-        (category.filteredBy as {
-          key: string;
-          internalField: string;
-          label?: string;
-        }[]) || [];
-
-      if (filters.length === 0) {
-        return category?.itens || [];
-      }
-
-      const selectedIdsArr = filters.map((f) => {
-        const parentCat = categories.find((c) => c.key === f.key);
-        if (!parentCat?.selectedIds?.length) {
-          return [];
-        }
-        return parentCat.selectedIds;
-      });
-
-      if (selectedIdsArr.some((arr) => arr.length === 0)) {
-        return [];
-      }
-
-      // Filter items based on selected parent IDs
-      const filteredItems = (category.itens || []).filter((item) =>
-        filters.every((filter) =>
-          isItemMatchingFilter(item, filter, categories)
-        )
-      );
-
-      return filteredItems;
-    };
-
     return categories.map((category) => {
       // Get filtered/visible items for this category
-      const filteredItems = calculateFormattedItemsForAutoSelection(category);
+      const filteredItems = calculateFormattedItemsForAutoSelection(
+        category,
+        categories
+      );
 
       // Se tem apenas um item filtrado/visível e nenhum está selecionado, auto-seleciona
       if (

@@ -100,3 +100,53 @@ export const handleAccordionValueChange = (
   return value;
 };
 
+/**
+ * Helper function to calculate filtered items for auto-selection
+ * This function determines which items are visible/filtered for a category
+ */
+export const calculateFormattedItemsForAutoSelection = (
+  category: CategoryConfig,
+  allCategories: CategoryConfig[]
+): Item[] => {
+  if (!category?.dependsOn || category.dependsOn.length === 0) {
+    return category?.itens || [];
+  }
+
+  // Check if category is enabled based on dependencies
+  const isEnabled = isCategoryEnabled(category, allCategories);
+
+  // If category is disabled, return empty items array
+  if (!isEnabled) {
+    return [];
+  }
+
+  const filters =
+    (category.filteredBy as {
+      key: string;
+      internalField: string;
+      label?: string;
+    }[]) || [];
+
+  if (filters.length === 0) {
+    return category?.itens || [];
+  }
+
+  const selectedIdsArr = filters.map((f) => {
+    const parentCat = allCategories.find((c) => c.key === f.key);
+    if (!parentCat?.selectedIds?.length) {
+      return [];
+    }
+    return parentCat.selectedIds;
+  });
+
+  if (selectedIdsArr.some((arr) => arr.length === 0)) {
+    return [];
+  }
+
+  // Filter items based on selected parent IDs
+  const filteredItems = (category.itens || []).filter((item) =>
+    filters.every((filter) => isItemMatchingFilter(item, filter, allCategories))
+  );
+
+  return filteredItems;
+};

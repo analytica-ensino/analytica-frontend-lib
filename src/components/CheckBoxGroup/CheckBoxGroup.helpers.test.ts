@@ -4,6 +4,7 @@ import {
   isItemMatchingFilter,
   getBadgeText,
   handleAccordionValueChange,
+  calculateFormattedItemsForAutoSelection,
 } from './CheckBoxGroup.helpers';
 import type { CategoryConfig, Item } from './CheckBoxGroup';
 
@@ -261,9 +262,7 @@ describe('CheckBoxGroup Helpers', () => {
         },
       ];
 
-      expect(getBadgeText(category, formattedItems)).toBe(
-        '1 de 2 selecionado'
-      );
+      expect(getBadgeText(category, formattedItems)).toBe('1 de 2 selecionado');
     });
 
     it('returns correct text for multiple selections', () => {
@@ -306,9 +305,7 @@ describe('CheckBoxGroup Helpers', () => {
         },
       ];
 
-      expect(getBadgeText(category, formattedItems)).toBe(
-        '1 de 2 selecionado'
-      );
+      expect(getBadgeText(category, formattedItems)).toBe('1 de 2 selecionado');
     });
 
     it('handles empty formatted items', () => {
@@ -349,7 +346,11 @@ describe('CheckBoxGroup Helpers', () => {
 
     it('returns empty string for empty string value', () => {
       const categories: CategoryConfig[] = [];
-      const result = handleAccordionValueChange('', categories, mockIsCategoryEnabled);
+      const result = handleAccordionValueChange(
+        '',
+        categories,
+        mockIsCategoryEnabled
+      );
 
       expect(result).toBe('');
       expect(mockIsCategoryEnabled).not.toHaveBeenCalled();
@@ -444,5 +445,202 @@ describe('CheckBoxGroup Helpers', () => {
       expect(mockIsCategoryEnabled).toHaveBeenCalledWith(category);
     });
   });
-});
 
+  describe('calculateFormattedItemsForAutoSelection', () => {
+    it('returns all items when category has no dependencies', () => {
+      const category: CategoryConfig = {
+        key: 'cat1',
+        label: 'Category 1',
+        itens: [
+          { id: 'item-1', name: 'Item 1' },
+          { id: 'item-2', name: 'Item 2' },
+        ],
+      };
+      const allCategories: CategoryConfig[] = [category];
+
+      const result = calculateFormattedItemsForAutoSelection(
+        category,
+        allCategories
+      );
+
+      expect(result).toEqual([
+        { id: 'item-1', name: 'Item 1' },
+        { id: 'item-2', name: 'Item 2' },
+      ]);
+    });
+
+    it('returns empty array when category is disabled', () => {
+      const parent: CategoryConfig = {
+        key: 'parent',
+        label: 'Parent',
+        itens: [],
+        selectedIds: [],
+      };
+      const child: CategoryConfig = {
+        key: 'child',
+        label: 'Child',
+        dependsOn: ['parent'],
+        itens: [
+          { id: 'item-1', name: 'Item 1' },
+          { id: 'item-2', name: 'Item 2' },
+        ],
+      };
+      const allCategories: CategoryConfig[] = [parent, child];
+
+      const result = calculateFormattedItemsForAutoSelection(
+        child,
+        allCategories
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns all items when category is enabled and has no filters', () => {
+      const parent: CategoryConfig = {
+        key: 'parent',
+        label: 'Parent',
+        itens: [],
+        selectedIds: ['parent-1'],
+      };
+      const child: CategoryConfig = {
+        key: 'child',
+        label: 'Child',
+        dependsOn: ['parent'],
+        itens: [
+          { id: 'item-1', name: 'Item 1' },
+          { id: 'item-2', name: 'Item 2' },
+        ],
+      };
+      const allCategories: CategoryConfig[] = [parent, child];
+
+      const result = calculateFormattedItemsForAutoSelection(
+        child,
+        allCategories
+      );
+
+      expect(result).toEqual([
+        { id: 'item-1', name: 'Item 1' },
+        { id: 'item-2', name: 'Item 2' },
+      ]);
+    });
+
+    it('returns filtered items when filters are applied', () => {
+      const parent: CategoryConfig = {
+        key: 'parent',
+        label: 'Parent',
+        itens: [
+          { id: 'parent-1', name: 'Parent 1' },
+          { id: 'parent-2', name: 'Parent 2' },
+        ],
+        selectedIds: ['parent-1'],
+      };
+      const child: CategoryConfig = {
+        key: 'child',
+        label: 'Child',
+        dependsOn: ['parent'],
+        filteredBy: [
+          {
+            key: 'parent',
+            internalField: 'parentId',
+          },
+        ],
+        itens: [
+          { id: 'item-1', name: 'Item 1', parentId: 'parent-1' },
+          { id: 'item-2', name: 'Item 2', parentId: 'parent-2' },
+          { id: 'item-3', name: 'Item 3', parentId: 'parent-1' },
+        ],
+      };
+      const allCategories: CategoryConfig[] = [parent, child];
+
+      const result = calculateFormattedItemsForAutoSelection(
+        child,
+        allCategories
+      );
+
+      expect(result).toEqual([
+        { id: 'item-1', name: 'Item 1', parentId: 'parent-1' },
+        { id: 'item-3', name: 'Item 3', parentId: 'parent-1' },
+      ]);
+    });
+
+    it('returns empty array when no items match filters', () => {
+      const parent: CategoryConfig = {
+        key: 'parent',
+        label: 'Parent',
+        itens: [
+          { id: 'parent-1', name: 'Parent 1' },
+          { id: 'parent-2', name: 'Parent 2' },
+        ],
+        selectedIds: ['parent-2'],
+      };
+      const child: CategoryConfig = {
+        key: 'child',
+        label: 'Child',
+        dependsOn: ['parent'],
+        filteredBy: [
+          {
+            key: 'parent',
+            internalField: 'parentId',
+          },
+        ],
+        itens: [
+          { id: 'item-1', name: 'Item 1', parentId: 'parent-1' },
+          { id: 'item-2', name: 'Item 2', parentId: 'parent-1' },
+        ],
+      };
+      const allCategories: CategoryConfig[] = [parent, child];
+
+      const result = calculateFormattedItemsForAutoSelection(
+        child,
+        allCategories
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when parent category has no selected IDs', () => {
+      const parent: CategoryConfig = {
+        key: 'parent',
+        label: 'Parent',
+        itens: [{ id: 'parent-1', name: 'Parent 1' }],
+        selectedIds: [],
+      };
+      const child: CategoryConfig = {
+        key: 'child',
+        label: 'Child',
+        dependsOn: ['parent'],
+        filteredBy: [
+          {
+            key: 'parent',
+            internalField: 'parentId',
+          },
+        ],
+        itens: [{ id: 'item-1', name: 'Item 1', parentId: 'parent-1' }],
+      };
+      const allCategories: CategoryConfig[] = [parent, child];
+
+      const result = calculateFormattedItemsForAutoSelection(
+        child,
+        allCategories
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('handles category with no items', () => {
+      const category: CategoryConfig = {
+        key: 'cat1',
+        label: 'Category 1',
+        itens: [],
+      };
+      const allCategories: CategoryConfig[] = [category];
+
+      const result = calculateFormattedItemsForAutoSelection(
+        category,
+        allCategories
+      );
+
+      expect(result).toEqual([]);
+    });
+  });
+});
