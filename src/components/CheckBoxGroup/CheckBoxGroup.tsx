@@ -8,6 +8,13 @@ import {
   Text,
   Divider,
 } from '../../';
+import {
+  areSelectedIdsEqual,
+  isCategoryEnabled as isCategoryEnabledHelper,
+  isItemMatchingFilter,
+  getBadgeText as getBadgeTextHelper,
+  handleAccordionValueChange as handleAccordionValueChangeHelper,
+} from './CheckBoxGroup.helpers';
 
 export type Item = {
   id: string;
@@ -49,17 +56,7 @@ export const CheckboxGroup = ({
     onCategoriesChangeRef.current = onCategoriesChange;
   }, [onCategoriesChange]);
 
-  // Helper function to efficiently compare selectedIds arrays
-  const areSelectedIdsEqual = (ids1?: string[], ids2?: string[]): boolean => {
-    if (ids1 === ids2) return true;
-    if (!ids1 || !ids2) return ids1 === ids2;
-    if (ids1.length !== ids2.length) return false;
-
-    for (let i = 0; i < ids1.length; i++) {
-      if (ids1[i] !== ids2[i]) return false;
-    }
-    return true;
-  };
+  // Use helper function for comparing selectedIds arrays
 
   // Auto-seleciona categorias com apenas um item (considerando itens filtrados)
   const categoriesWithAutoSelection = useMemo(() => {
@@ -106,18 +103,10 @@ export const CheckboxGroup = ({
       }
 
       // Filter items based on selected parent IDs
-      const isItemMatchingFilter = (
-        item: Item,
-        filter: { key: string; internalField: string }
-      ): boolean => {
-        const parentCat = categories.find((c) => c.key === filter.key);
-        const parentSelectedIds = parentCat?.selectedIds || [];
-        const itemFieldValue = item[filter.internalField];
-        return parentSelectedIds.includes(String(itemFieldValue));
-      };
-
       const filteredItems = (category.itens || []).filter((item) =>
-        filters.every((filter) => isItemMatchingFilter(item, filter))
+        filters.every((filter) =>
+          isItemMatchingFilter(item, filter, categories)
+        )
       );
 
       return filteredItems;
@@ -355,55 +344,25 @@ export const CheckboxGroup = ({
 
   // Helper function to get badge text for category
   const getBadgeText = (category: CategoryConfig): string => {
-    const visibleIds = getFormattedItems(category.key)
-      .flatMap((group) => group.itens || [])
-      .map((i) => i.id);
-    const selectedVisibleCount = visibleIds.filter((id) =>
-      category.selectedIds?.includes(id)
-    ).length;
-    const totalVisible = visibleIds.length;
-    return `${selectedVisibleCount} de ${totalVisible} ${
-      selectedVisibleCount === 1 ? 'selecionado' : 'selecionados'
-    }`;
+    const formattedItems = getFormattedItems(category.key);
+    return getBadgeTextHelper(category, formattedItems);
   };
 
   // Helper function to check if category is enabled
   const isCategoryEnabled = (category: CategoryConfig): boolean => {
-    if (!category.dependsOn || category.dependsOn.length === 0) {
-      return true;
-    }
-    return category.dependsOn.every((depKey) => {
-      const depCat = categories.find((c) => c.key === depKey);
-      return depCat?.selectedIds && depCat.selectedIds.length > 0;
-    });
+    return isCategoryEnabledHelper(category, categories);
   };
 
   // Helper function to handle accordion value change
   const handleAccordionValueChange = (value: string | string[] | undefined) => {
-    if (typeof value !== 'string') {
-      if (!value) {
-        setOpenAccordion('');
-      }
-      return;
+    const newValue = handleAccordionValueChangeHelper(
+      value,
+      categories,
+      isCategoryEnabled
+    );
+    if (newValue !== null) {
+      setOpenAccordion(newValue);
     }
-
-    if (!value) {
-      setOpenAccordion('');
-      return;
-    }
-
-    // Prevent opening disabled categories
-    const category = categories.find((c) => c.key === value);
-    if (!category) {
-      return;
-    }
-
-    const isEnabled = isCategoryEnabled(category);
-    if (!isEnabled) {
-      return; // Don't allow opening disabled accordions
-    }
-
-    setOpenAccordion(value);
   };
 
   const getDependentCategories = (categoryKey: string): string[] => {
