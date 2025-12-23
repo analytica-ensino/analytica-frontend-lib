@@ -38,6 +38,15 @@ jest.mock('../SubjectInfo/SubjectInfo', () => ({
   }),
 }));
 
+// Suppress console.error for expected errors in tests
+const originalConsoleError = console.error;
+beforeAll(() => {
+  console.error = jest.fn();
+});
+afterAll(() => {
+  console.error = originalConsoleError;
+});
+
 describe('ActivitiesHistory', () => {
   const mockFetchActivitiesHistory = jest.fn<
     Promise<ActivitiesHistoryApiResponse>,

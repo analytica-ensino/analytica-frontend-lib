@@ -556,7 +556,7 @@ describe('Chat Component', () => {
 
       const buttons = screen.getAllByRole('button');
       const sendButton = buttons.find(
-        (btn) => btn.disabled && btn.querySelector('svg')
+        (btn) => (btn as HTMLButtonElement).disabled && btn.querySelector('svg')
       );
       expect(sendButton).toBeDisabled();
     });

@@ -5,7 +5,7 @@ import type { WSServerMessage } from '../types/chat';
 
 // Mock WebSocket
 class MockWebSocket {
-  static readonly instances: MockWebSocket[] = [];
+  static instances: MockWebSocket[] = [];
   static lastInstance: MockWebSocket | null = null;
 
   url: string;
@@ -78,14 +78,14 @@ describe('useChat', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     MockWebSocket.reset();
-    (globalThis as unknown as { WebSocket: typeof MockWebSocket }).WebSocket =
-      MockWebSocket as unknown as typeof WebSocket;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).WebSocket = MockWebSocket;
   });
 
   afterEach(() => {
     jest.useRealTimers();
-    (globalThis as unknown as { WebSocket: typeof WebSocket }).WebSocket =
-      originalWebSocket;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).WebSocket = originalWebSocket;
   });
 
   describe('Connection', () => {
