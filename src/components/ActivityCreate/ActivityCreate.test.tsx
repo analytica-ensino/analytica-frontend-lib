@@ -48,6 +48,18 @@ const mockConsoleError = jest
   .spyOn(console, 'error')
   .mockImplementation(() => {});
 
+// Mock react-router-dom
+const mockNavigate = jest.fn();
+const mockParams: { type?: string; id?: string } = {
+  type: undefined,
+  id: undefined,
+};
+
+jest.mock('react-router-dom', () => ({
+  useParams: () => mockParams,
+  useNavigate: () => mockNavigate,
+}));
+
 // Mock icons
 jest.mock('phosphor-react', () => ({
   CaretLeft: () => <span data-testid="caret-left">←</span>,
@@ -394,6 +406,9 @@ describe('CreateActivity', () => {
     mockConsoleLog.mockClear();
     mockConsoleError.mockClear();
     mockAddToast.mockClear();
+    mockNavigate.mockClear();
+    mockParams.type = undefined;
+    mockParams.id = undefined;
   });
 
   afterEach(() => {
@@ -402,8 +417,32 @@ describe('CreateActivity', () => {
   });
 
   describe('Rendering', () => {
-    it('should render loading skeleton when loading prop is true', () => {
-      render(<CreateActivity {...defaultProps} loading={true} />);
+    it('should render loading skeleton when loading state is true', async () => {
+      mockParams.id = 'draft-123';
+      mockApiClient.get = jest.fn(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  data: {
+                    data: {
+                      id: 'draft-123',
+                      type: ActivityType.RASCUNHO,
+                      title: 'Test',
+                      subjectId: 'subject1',
+                      filters: {},
+                      questionIds: [],
+                    },
+                  },
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                } as any),
+              100
+            )
+          )
+      ) as typeof mockApiClient.get;
+
+      render(<CreateActivity {...defaultProps} />);
 
       expect(screen.getByTestId('create-activity-page')).toBeInTheDocument();
       expect(screen.getAllByTestId('skeleton').length).toBeGreaterThan(0);
@@ -419,8 +458,10 @@ describe('CreateActivity', () => {
       expect(screen.getByTestId('activity-list-questions')).toBeInTheDocument();
     });
 
-    it('should render edit title when activity is provided', () => {
-      const activity: ActivityData = {
+    it('should render edit title when activity id is in URL params', async () => {
+      mockParams.id = 'act1';
+      mockParams.type = 'rascunho';
+      const mockActivity: ActivityData = {
         id: 'act1',
         type: ActivityType.RASCUNHO,
         title: 'Test Activity',
@@ -429,9 +470,15 @@ describe('CreateActivity', () => {
         questionIds: [],
       };
 
-      render(<CreateActivity {...defaultProps} activity={activity} />);
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: { data: mockActivity },
+      });
 
-      expect(screen.getByText('Editar atividade')).toBeInTheDocument();
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Editar atividade')).toBeInTheDocument();
+      });
     });
 
     it('should render header with correct elements', () => {
@@ -449,8 +496,10 @@ describe('CreateActivity', () => {
       expect(screen.getByText('Nenhum rascunho salvo')).toBeInTheDocument();
     });
 
-    it('should show last saved time when activity has updatedAt', () => {
-      const activity: ActivityData = {
+    it('should show last saved time when activity has updatedAt', async () => {
+      mockParams.id = 'act1';
+      mockParams.type = 'rascunho';
+      const mockActivity: ActivityData = {
         id: 'act1',
         type: ActivityType.RASCUNHO,
         title: 'Test Activity',
@@ -460,12 +509,18 @@ describe('CreateActivity', () => {
         updatedAt: '2025-01-15T14:30:00.000Z',
       };
 
-      render(<CreateActivity {...defaultProps} activity={activity} />);
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: { data: mockActivity },
+      });
 
-      expect(
-        screen.queryByText('Nenhum rascunho salvo')
-      ).not.toBeInTheDocument();
-      expect(screen.getByText(/Rascunho salvo às/)).toBeInTheDocument();
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText('Nenhum rascunho salvo')
+        ).not.toBeInTheDocument();
+        expect(screen.getByText(/Rascunho salvo às/)).toBeInTheDocument();
+      });
     });
 
     it('should render activity preview with loading state', () => {
@@ -527,8 +582,10 @@ describe('CreateActivity', () => {
       expect(filterButton).toBeDisabled();
     });
 
-    it('should initialize filters from activity', () => {
-      const activity: ActivityData = {
+    it('should initialize filters from activity when id is in URL', async () => {
+      mockParams.id = 'act1';
+      mockParams.type = 'rascunho';
+      const mockActivity: ActivityData = {
         id: 'act1',
         type: ActivityType.RASCUNHO,
         title: 'Test',
@@ -540,96 +597,50 @@ describe('CreateActivity', () => {
         questionIds: [],
       };
 
-      render(<CreateActivity {...defaultProps} activity={activity} />);
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: { data: mockActivity },
+      });
 
-      expect(mockSetDraftFilters).toHaveBeenCalled();
-      expect(mockApplyFilters).toHaveBeenCalled();
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(mockSetDraftFilters).toHaveBeenCalled();
+        expect(mockApplyFilters).toHaveBeenCalled();
+      });
     });
 
-    it('should initialize filters from preFilters when creating a new activity', () => {
-      const preFilters: BackendFiltersFormat = {
-        questionTypes: [QUESTION_TYPE.ALTERNATIVA],
-        subjects: ['subject1'],
-        topics: ['topic-1'],
-      };
-
-      render(
-        <CreateActivity
-          {...defaultProps}
-          preFilters={{ filters: preFilters }}
-        />
-      );
-
-      expect(mockSetDraftFilters).toHaveBeenCalledWith(
-        expect.objectContaining({
-          types: [QUESTION_TYPE.ALTERNATIVA],
-          knowledgeIds: ['subject1'],
-          topicIds: ['topic-1'],
-        })
-      );
-      expect(mockApplyFilters).toHaveBeenCalled();
-      expect(
-        screen
-          .getByTestId('activity-filters')
-          .getAttribute('data-initial-filters')
-      ).toContain('subject1');
-    });
-
-    it('should accept direct backend preFilters format', () => {
-      const preFilters: BackendFiltersFormat = {
-        questionTypes: [QUESTION_TYPE.DISSERTATIVA],
-        subjects: ['subject1'],
-        topics: ['topic-1'],
-      };
-
-      render(<CreateActivity {...defaultProps} preFilters={preFilters} />);
-
-      expect(mockSetDraftFilters).toHaveBeenCalledWith(
-        expect.objectContaining({
-          types: [QUESTION_TYPE.DISSERTATIVA],
-          knowledgeIds: ['subject1'],
-          topicIds: ['topic-1'],
-        })
-      );
-      expect(mockApplyFilters).toHaveBeenCalled();
-      expect(
-        screen
-          .getByTestId('activity-filters')
-          .getAttribute('data-initial-filters')
-      ).toContain('topic-1');
-    });
-
-    it('should prefer activity filters over preFilters when both are provided', () => {
-      const activity: ActivityData = {
-        id: 'act2',
+    it('should initialize filters from activity when id is in URL params', async () => {
+      mockParams.id = 'act1';
+      mockParams.type = 'rascunho';
+      const mockActivity: ActivityData = {
+        id: 'act1',
         type: ActivityType.RASCUNHO,
-        title: 'Activity priority',
-        subjectId: 'activity-subject',
+        title: 'Test',
+        subjectId: 'subject1',
         filters: {
-          questionTypes: [QUESTION_TYPE.DISSERTATIVA],
-          subjects: ['activity-subject'],
+          questionTypes: [QUESTION_TYPE.ALTERNATIVA],
+          subjects: ['subject1'],
+          topics: ['topic-1'],
         },
         questionIds: [],
       };
 
-      const preFilters: BackendFiltersFormat = {
-        questionTypes: [QUESTION_TYPE.ALTERNATIVA],
-        subjects: ['prefilter-subject'],
-      };
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: { data: mockActivity },
+      });
 
-      render(
-        <CreateActivity
-          {...defaultProps}
-          activity={activity}
-          preFilters={preFilters}
-        />
-      );
+      render(<CreateActivity {...defaultProps} />);
 
-      expect(mockSetDraftFilters).toHaveBeenCalledWith(
-        expect.objectContaining({
-          knowledgeIds: ['activity-subject'],
-        })
-      );
+      await waitFor(() => {
+        expect(mockSetDraftFilters).toHaveBeenCalledWith(
+          expect.objectContaining({
+            types: [QUESTION_TYPE.ALTERNATIVA],
+            knowledgeIds: ['subject1'],
+            topicIds: ['topic-1'],
+          })
+        );
+        expect(mockApplyFilters).toHaveBeenCalled();
+      });
     });
   });
 
@@ -706,7 +717,9 @@ describe('CreateActivity', () => {
   });
 
   describe('Loading Initial Questions', () => {
-    it('should load questions from activity.selectedQuestions', async () => {
+    it('should load questions from activity.selectedQuestions when id is in URL', async () => {
+      mockParams.id = 'act1';
+      mockParams.type = 'rascunho';
       const questions: QuestionActivity[] = [
         createMockQuestion({
           id: 'q1',
@@ -714,7 +727,7 @@ describe('CreateActivity', () => {
         }),
       ];
 
-      const activity: ActivityData = {
+      const mockActivity: ActivityData = {
         id: 'act1',
         type: ActivityType.RASCUNHO,
         title: 'Test',
@@ -724,15 +737,21 @@ describe('CreateActivity', () => {
         selectedQuestions: questions,
       };
 
-      render(<CreateActivity {...defaultProps} activity={activity} />);
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: { data: mockActivity },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
 
       await waitFor(() => {
         expect(screen.getByTestId('question-q1')).toBeInTheDocument();
       });
     });
 
-    it('should not load questions if activity has no selectedQuestions', () => {
-      const activity: ActivityData = {
+    it('should not load questions if activity has no selectedQuestions', async () => {
+      mockParams.id = 'act1';
+      mockParams.type = 'rascunho';
+      const mockActivity: ActivityData = {
         id: 'act1',
         type: ActivityType.RASCUNHO,
         title: 'Test',
@@ -741,10 +760,16 @@ describe('CreateActivity', () => {
         questionIds: ['q1'],
       };
 
-      render(<CreateActivity {...defaultProps} activity={activity} />);
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: { data: mockActivity },
+      });
 
-      // Questions should not be loaded if selectedQuestions is not provided
-      expect(screen.queryByTestId('question-q1')).not.toBeInTheDocument();
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        // Questions should not be loaded if selectedQuestions is not provided
+        expect(screen.queryByTestId('question-q1')).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -802,7 +827,9 @@ describe('CreateActivity', () => {
       });
     });
 
-    it('should update existing draft when draftId exists', async () => {
+    it('should update existing draft when draftId exists in URL', async () => {
+      mockParams.id = 'draft1';
+      mockParams.type = 'rascunho';
       const mockResponse = {
         data: {
           data: {
@@ -821,18 +848,26 @@ describe('CreateActivity', () => {
         },
       };
 
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            id: 'draft1',
+            type: ActivityType.RASCUNHO,
+            title: 'Test',
+            subjectId: 'subject1',
+            filters: {},
+            questionIds: [],
+          },
+        },
+      });
       mockApiClient.patch = jest.fn().mockResolvedValue(mockResponse);
 
-      const activity: ActivityData = {
-        id: 'draft1',
-        type: ActivityType.RASCUNHO,
-        title: 'Test',
-        subjectId: 'subject1',
-        filters: {},
-        questionIds: [],
-      };
+      render(<CreateActivity {...defaultProps} />);
 
-      render(<CreateActivity {...defaultProps} activity={activity} />);
+      // Wait for loading to finish
+      await waitFor(() => {
+        expect(screen.queryByTestId('skeleton')).not.toBeInTheDocument();
+      });
 
       fireEvent.click(screen.getByTestId('add-question'));
 
@@ -901,6 +936,8 @@ describe('CreateActivity', () => {
     });
 
     it('should save immediately when reordering after first save', async () => {
+      mockParams.id = 'draft-reorder';
+      mockParams.type = 'rascunho';
       mockAppliedFilters = {
         types: [],
         bankIds: [],
@@ -911,7 +948,7 @@ describe('CreateActivity', () => {
         contentIds: [],
       };
 
-      const activity: ActivityData = {
+      const mockActivity: ActivityData = {
         id: 'draft-reorder',
         type: ActivityType.RASCUNHO,
         title: 'Test',
@@ -924,6 +961,9 @@ describe('CreateActivity', () => {
         ],
       };
 
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: { data: mockActivity },
+      });
       mockApiClient.patch = jest.fn().mockResolvedValue({
         data: {
           data: {
@@ -938,7 +978,12 @@ describe('CreateActivity', () => {
         },
       });
 
-      render(<CreateActivity {...defaultProps} activity={activity} />);
+      render(<CreateActivity {...defaultProps} />);
+
+      // Wait for loading to finish
+      await waitFor(() => {
+        expect(screen.queryByTestId('skeleton')).not.toBeInTheDocument();
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('question-q1')).toBeInTheDocument();
@@ -957,8 +1002,7 @@ describe('CreateActivity', () => {
       });
     });
 
-    it('should call onActivityChange after successful save', async () => {
-      const onActivityChange = jest.fn();
+    it('should update URL after creating new draft', async () => {
       const mockResponse = {
         data: {
           data: {
@@ -979,9 +1023,7 @@ describe('CreateActivity', () => {
 
       mockApiClient.post = jest.fn().mockResolvedValue(mockResponse);
 
-      render(
-        <CreateActivity {...defaultProps} onActivityChange={onActivityChange} />
-      );
+      render(<CreateActivity {...defaultProps} />);
 
       fireEvent.click(screen.getByTestId('add-question'));
 
@@ -990,11 +1032,9 @@ describe('CreateActivity', () => {
       });
 
       await waitFor(() => {
-        expect(onActivityChange).toHaveBeenCalledWith(
-          expect.objectContaining({
-            id: 'draft1',
-            type: ActivityType.RASCUNHO,
-          })
+        expect(mockNavigate).toHaveBeenCalledWith(
+          '/criar-atividade/rascunho/draft1',
+          { replace: true }
         );
       });
     });
@@ -1053,10 +1093,10 @@ describe('CreateActivity', () => {
     });
 
     it('should show toast error when PATCH fails', async () => {
+      mockParams.id = 'draft1';
+      mockParams.type = 'rascunho';
       const error = new Error('Server error: Unable to update draft');
-      mockApiClient.patch = jest.fn().mockRejectedValue(error);
-
-      const activity: ActivityData = {
+      const mockActivity: ActivityData = {
         id: 'draft1',
         type: ActivityType.RASCUNHO,
         title: 'Test',
@@ -1065,7 +1105,17 @@ describe('CreateActivity', () => {
         questionIds: [],
       };
 
-      render(<CreateActivity {...defaultProps} activity={activity} />);
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: { data: mockActivity },
+      });
+      mockApiClient.patch = jest.fn().mockRejectedValue(error);
+
+      render(<CreateActivity {...defaultProps} />);
+
+      // Wait for loading to finish
+      await waitFor(() => {
+        expect(screen.queryByTestId('skeleton')).not.toBeInTheDocument();
+      });
 
       fireEvent.click(screen.getByTestId('add-question'));
 
@@ -1814,7 +1864,9 @@ describe('CreateActivity', () => {
     });
 
     it('should use subjectId from activity if available', async () => {
-      const activity: ActivityData = {
+      mockParams.id = 'act1';
+      mockParams.type = 'rascunho';
+      const mockActivity: ActivityData = {
         id: 'act1',
         type: ActivityType.RASCUNHO,
         title: 'Test',
@@ -1824,6 +1876,11 @@ describe('CreateActivity', () => {
       };
 
       mockApiClient.get = jest.fn().mockImplementation((url: string) => {
+        if (url === `/activity-drafts/${mockParams.id}`) {
+          return Promise.resolve({
+            data: { data: mockActivity },
+          });
+        }
         if (url === '/school') {
           return Promise.resolve({
             data: {
@@ -1909,7 +1966,12 @@ describe('CreateActivity', () => {
         return Promise.resolve({ data: {} });
       });
 
-      render(<CreateActivity {...defaultProps} activity={activity} />);
+      render(<CreateActivity {...defaultProps} />);
+
+      // Wait for loading to finish
+      await waitFor(() => {
+        expect(screen.queryByTestId('skeleton')).not.toBeInTheDocument();
+      });
 
       fireEvent.click(screen.getByTestId('add-question'));
 
@@ -2264,8 +2326,10 @@ describe('CreateActivity', () => {
     });
 
     it('should call onSaveModel callback when model is saved successfully via PATCH with existing activity', async () => {
+      mockParams.id = 'draft-456';
+      mockParams.type = 'rascunho';
       const onSaveModel = jest.fn();
-      const activity: ActivityData = {
+      const mockActivity: ActivityData = {
         id: 'draft-456',
         type: ActivityType.RASCUNHO,
         title: 'Test Activity',
@@ -2273,6 +2337,15 @@ describe('CreateActivity', () => {
         filters: {},
         questionIds: [],
       };
+
+      mockApiClient.get = jest.fn().mockImplementation((url: string) => {
+        if (url === `/activity-drafts/${mockParams.id}`) {
+          return Promise.resolve({
+            data: { data: mockActivity },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
 
       mockApiClient.post = jest.fn().mockImplementation((url: string) => {
         if (url === '/activity-drafts') {
@@ -2322,13 +2395,12 @@ describe('CreateActivity', () => {
         return Promise.resolve({ data: {} });
       });
 
-      render(
-        <CreateActivity
-          {...defaultProps}
-          activity={activity}
-          onSaveModel={onSaveModel}
-        />
-      );
+      render(<CreateActivity {...defaultProps} onSaveModel={onSaveModel} />);
+
+      // Wait for loading to finish
+      await waitFor(() => {
+        expect(screen.queryByTestId('skeleton')).not.toBeInTheDocument();
+      });
 
       fireEvent.click(screen.getByTestId('add-question'));
 
@@ -2418,8 +2490,10 @@ describe('CreateActivity', () => {
       expect(screen.getByTestId('create-activity-page')).toBeInTheDocument();
     });
 
-    it('should convert backend filters to ActivityFiltersData correctly', () => {
-      const activity: ActivityData = {
+    it('should convert backend filters to ActivityFiltersData correctly', async () => {
+      mockParams.id = 'act1';
+      mockParams.type = 'rascunho';
+      const mockActivity: ActivityData = {
         id: 'act1',
         type: ActivityType.RASCUNHO,
         title: 'Test',
@@ -2432,9 +2506,15 @@ describe('CreateActivity', () => {
         questionIds: [],
       };
 
-      render(<CreateActivity {...defaultProps} activity={activity} />);
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: { data: mockActivity },
+      });
 
-      expect(mockSetDraftFilters).toHaveBeenCalled();
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(mockSetDraftFilters).toHaveBeenCalled();
+      });
     });
 
     it('should get subject name from knowledgeAreas', () => {
@@ -2576,7 +2656,9 @@ describe('CreateActivity', () => {
       expect(screen.getByTestId('create-activity-page')).toBeInTheDocument();
     });
 
-    it('should handle question without options', () => {
+    it('should handle question without options', async () => {
+      mockParams.id = 'act1';
+      mockParams.type = 'rascunho';
       const questions: QuestionActivity[] = [
         createMockQuestion({
           id: 'q1',
@@ -2585,7 +2667,7 @@ describe('CreateActivity', () => {
         }),
       ];
 
-      const activity: ActivityData = {
+      const mockActivity: ActivityData = {
         id: 'act1',
         type: ActivityType.RASCUNHO,
         title: 'Test',
@@ -2595,12 +2677,20 @@ describe('CreateActivity', () => {
         selectedQuestions: questions,
       };
 
-      render(<CreateActivity {...defaultProps} activity={activity} />);
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: { data: mockActivity },
+      });
 
-      expect(screen.getByTestId('question-q1')).toBeInTheDocument();
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('question-q1')).toBeInTheDocument();
+      });
     });
 
-    it('should handle question with knowledgeMatrix', () => {
+    it('should handle question with knowledgeMatrix', async () => {
+      mockParams.id = 'act1';
+      mockParams.type = 'rascunho';
       const questions: QuestionActivity[] = [
         createMockQuestion({
           id: 'q1',
@@ -2620,7 +2710,7 @@ describe('CreateActivity', () => {
         }),
       ];
 
-      const activity: ActivityData = {
+      const mockActivity: ActivityData = {
         id: 'act1',
         type: ActivityType.RASCUNHO,
         title: 'Test',
@@ -2630,9 +2720,15 @@ describe('CreateActivity', () => {
         selectedQuestions: questions,
       };
 
-      render(<CreateActivity {...defaultProps} activity={activity} />);
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: { data: mockActivity },
+      });
 
-      expect(screen.getByTestId('question-q1')).toBeInTheDocument();
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('question-q1')).toBeInTheDocument();
+      });
     });
 
     it('should not save if filters have not changed', async () => {
@@ -2677,8 +2773,10 @@ describe('CreateActivity', () => {
       });
     });
 
-    it('should handle null backend filters', () => {
-      const activity: ActivityData = {
+    it('should handle null backend filters', async () => {
+      mockParams.id = 'act1';
+      mockParams.type = 'rascunho';
+      const mockActivity: ActivityData = {
         id: 'act1',
         type: ActivityType.RASCUNHO,
         title: 'Test',
@@ -2687,9 +2785,15 @@ describe('CreateActivity', () => {
         questionIds: [],
       };
 
-      render(<CreateActivity {...defaultProps} activity={activity} />);
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: { data: mockActivity },
+      });
 
-      expect(screen.getByTestId('create-activity-page')).toBeInTheDocument();
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('create-activity-page')).toBeInTheDocument();
+      });
     });
   });
 
@@ -2700,8 +2804,10 @@ describe('CreateActivity', () => {
       expect(screen.getByText('Salvar modelo')).toBeInTheDocument();
     });
 
-    it('should initialize with activity type when provided', () => {
-      const activity: ActivityData = {
+    it('should initialize with activity type from URL params', async () => {
+      mockParams.id = 'act1';
+      mockParams.type = 'modelo';
+      const mockActivity: ActivityData = {
         id: 'act1',
         type: ActivityType.MODELO,
         title: 'Test',
@@ -2710,9 +2816,15 @@ describe('CreateActivity', () => {
         questionIds: [],
       };
 
-      render(<CreateActivity {...defaultProps} activity={activity} />);
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: { data: mockActivity },
+      });
 
-      expect(screen.getByTestId('create-activity-page')).toBeInTheDocument();
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('create-activity-page')).toBeInTheDocument();
+      });
     });
   });
 });

@@ -8,6 +8,8 @@ import {
   convertQuestionToPreview,
   fetchAllStudents,
   loadCategoriesData,
+  getTypeFromUrl,
+  getTypeFromUrlString,
   type KnowledgeArea,
 } from './ActivityCreate.utils';
 import { ActivityType } from './ActivityCreate.types';
@@ -1043,6 +1045,61 @@ describe('ActivityCreate.utils', () => {
       expect(mockApiClient.get).toHaveBeenCalledWith(
         '/students?page=1&limit=100'
       );
+    });
+  });
+
+  describe('getTypeFromUrl', () => {
+    it('should return "rascunho" for RASCUNHO type', () => {
+      const result = getTypeFromUrl(ActivityType.RASCUNHO);
+      expect(result).toBe('rascunho');
+    });
+
+    it('should return "modelo" for MODELO type', () => {
+      const result = getTypeFromUrl(ActivityType.MODELO);
+      expect(result).toBe('modelo');
+    });
+
+    it('should return "rascunho" as default for unknown type', () => {
+      const result = getTypeFromUrl(ActivityType.ATIVIDADE);
+      expect(result).toBe('rascunho');
+    });
+
+    it('should handle all ActivityType enum values', () => {
+      expect(getTypeFromUrl(ActivityType.RASCUNHO)).toBe('rascunho');
+      expect(getTypeFromUrl(ActivityType.MODELO)).toBe('modelo');
+      expect(getTypeFromUrl(ActivityType.ATIVIDADE)).toBe('rascunho');
+    });
+  });
+
+  describe('getTypeFromUrlString', () => {
+    it('should return RASCUNHO for "rascunho" string', () => {
+      const result = getTypeFromUrlString('rascunho');
+      expect(result).toBe(ActivityType.RASCUNHO);
+    });
+
+    it('should return MODELO for "modelo" string', () => {
+      const result = getTypeFromUrlString('modelo');
+      expect(result).toBe(ActivityType.MODELO);
+    });
+
+    it('should return RASCUNHO as default for undefined', () => {
+      const result = getTypeFromUrlString(undefined);
+      expect(result).toBe(ActivityType.RASCUNHO);
+    });
+
+    it('should return RASCUNHO as default for unknown string', () => {
+      const result = getTypeFromUrlString('unknown');
+      expect(result).toBe(ActivityType.RASCUNHO);
+    });
+
+    it('should return RASCUNHO for empty string', () => {
+      const result = getTypeFromUrlString('');
+      expect(result).toBe(ActivityType.RASCUNHO);
+    });
+
+    it('should handle all valid URL type strings', () => {
+      expect(getTypeFromUrlString('rascunho')).toBe(ActivityType.RASCUNHO);
+      expect(getTypeFromUrlString('modelo')).toBe(ActivityType.MODELO);
     });
   });
 });
