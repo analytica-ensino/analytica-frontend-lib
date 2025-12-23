@@ -690,3 +690,38 @@ export type {
   ActivityFilterOption,
   ActivityUserFilterData,
 } from './types/activitiesHistory';
+
+// Chat Hooks
+export { useChat, createUseChat, WS_STATES } from './hooks/useChat';
+export type { UseChatOptions, UseChatReturn } from './hooks/useChat';
+export { useChatRooms, createUseChatRooms } from './hooks/useChatRooms';
+export type {
+  UseChatRoomsOptions,
+  UseChatRoomsReturn,
+} from './hooks/useChatRooms';
+
+// Chat Types
+export { CHAT_MESSAGE_TYPES, PROFILE_ROLES } from './types/chat';
+export type {
+  ChatMessageType,
+  ChatUser,
+  AvailableUsers,
+  ChatRoom,
+  ChatRoomWithDetails,
+  ChatMessage,
+  ChatParticipant,
+  WSUserInfo,
+  WSClientMessageType,
+  WSServerMessageType,
+  WSClientMessage,
+  WSServerMessage,
+  ChatApiClient,
+  AvailableUsersResponse,
+  CreateRoomResponse,
+  GetRoomsResponse,
+  GetRoomDetailsResponse,
+} from './types/chat';
+
+// Chat Component
+export { Chat } from './components/Chat';
+export type { ChatProps } from './components/Chat';
