@@ -11,6 +11,7 @@ jest.mock('react-router-dom', () => ({
 const mockSetTokens = jest.fn();
 const mockSetSessionInfo = jest.fn();
 const mockSetSelectedProfile = jest.fn();
+const mockSetUser = jest.fn();
 const mockUseAuthStore = jest.fn();
 
 jest.mock('../store/authStore', () => ({
@@ -67,6 +68,7 @@ describe('useAppContent', () => {
       setTokens: mockSetTokens,
       setSessionInfo: mockSetSessionInfo,
       setSelectedProfile: mockSetSelectedProfile,
+      setUser: mockSetUser,
     });
 
     mockUseApiConfig.mockReturnValue(mockApiConfig);
@@ -113,6 +115,7 @@ describe('useAppContent', () => {
         setTokens: mockSetTokens,
         setSessionInfo: mockSetSessionInfo,
         setSelectedProfile: expect.any(Function),
+        setUser: mockSetUser,
         api: mockApiConfig,
         endpoint: '/auth/session-info',
         clearParamsFromURL: expect.any(Function),
@@ -121,6 +124,13 @@ describe('useAppContent', () => {
         onError: expect.any(Function),
       })
     );
+  });
+
+  it('should pass setUser to useUrlAuthentication config', () => {
+    renderHook(() => useAppContent(defaultConfig));
+
+    const urlAuthConfig = mockUseUrlAuthentication.mock.calls[0][0];
+    expect(urlAuthConfig.setUser).toBe(mockSetUser);
   });
 
   it('should use default endpoint when not provided', () => {
