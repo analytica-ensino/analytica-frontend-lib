@@ -50,7 +50,10 @@ const mockConsoleError = jest
 
 // Mock react-router-dom
 const mockNavigate = jest.fn();
-const mockParams = { type: undefined, id: undefined };
+const mockParams: { type?: string; id?: string } = {
+  type: undefined,
+  id: undefined,
+};
 
 jest.mock('react-router-dom', () => ({
   useParams: () => mockParams,
@@ -432,7 +435,8 @@ describe('CreateActivity', () => {
                       questionIds: [],
                     },
                   },
-                }),
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                } as any),
               100
             )
           )
