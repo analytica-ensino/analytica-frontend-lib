@@ -40,8 +40,7 @@ interface UseAppContentConfig {
  */
 export function useAppContent(config: UseAppContentConfig) {
   const navigate = useNavigate();
-  const { setTokens, setSessionInfo, setSelectedProfile, setUser } =
-    useAuthStore();
+  const { setTokens, setSessionInfo, setSelectedProfile } = useAuthStore();
 
   const {
     api,
@@ -104,7 +103,6 @@ export function useAppContent(config: UseAppContentConfig) {
       setTokens,
       setSessionInfo,
       setSelectedProfile: handleSetSelectedProfile,
-      setUser,
       api: apiConfig,
       endpoint,
       clearParamsFromURL: handleClearParamsFromURL,
@@ -116,7 +114,6 @@ export function useAppContent(config: UseAppContentConfig) {
       setTokens,
       setSessionInfo,
       handleSetSelectedProfile,
-      setUser,
       apiConfig,
       endpoint,
       handleClearParamsFromURL,

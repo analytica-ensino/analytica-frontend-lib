@@ -121,6 +121,8 @@ export function useChat({
     null
   );
   const isManualDisconnectRef = useRef(false);
+  const isConnectingRef = useRef(false);
+  const connectRef = useRef<() => void>(() => {});
 
   /**
    * Send a WebSocket message
@@ -246,6 +248,11 @@ export function useChat({
    * Connect to WebSocket
    */
   const connect = useCallback(() => {
+    // Prevent multiple simultaneous connection attempts
+    if (isConnectingRef.current) {
+      return;
+    }
+
     // Build WebSocket URL with query params
     const url = new URL(wsUrl);
     url.searchParams.set('roomId', roomId);
@@ -257,10 +264,12 @@ export function useChat({
     }
 
     // Create new WebSocket connection
+    isConnectingRef.current = true;
     const ws = new WebSocket(url.toString());
     wsRef.current = ws;
 
     ws.onopen = () => {
+      isConnectingRef.current = false;
       setIsConnected(true);
       setError(null);
       reconnectAttemptsRef.current = 0;
@@ -270,12 +279,14 @@ export function useChat({
     ws.onmessage = handleMessage;
 
     ws.onerror = () => {
+      isConnectingRef.current = false;
       const error = new Error('Erro na conexão WebSocket');
       setError(error);
       onError?.(error);
     };
 
     ws.onclose = (event) => {
+      isConnectingRef.current = false;
       setIsConnected(false);
       onDisconnect?.();
 
@@ -307,28 +318,56 @@ export function useChat({
     maxReconnectAttempts,
   ]);
 
+  // Keep connect ref updated
+  connectRef.current = connect;
+
   /**
    * Reconnect to WebSocket
    */
   const reconnect = useCallback(() => {
     isManualDisconnectRef.current = false;
     reconnectAttemptsRef.current = 0;
-    connect();
-  }, [connect]);
+    connectRef.current();
+  }, []);
 
   // Connect on mount, disconnect on unmount
+  // Only connect when roomId is provided
   useEffect(() => {
+    if (!roomId) {
+      return;
+    }
+
+    // Clear any pending reconnect
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+
     isManualDisconnectRef.current = false;
-    connect();
+    isConnectingRef.current = false;
+    reconnectAttemptsRef.current = 0;
+
+    // Close existing connection before opening new one
+    if (wsRef.current) {
+      wsRef.current.close(1000, 'Room changed');
+      wsRef.current = null;
+    }
+
+    // Small delay to ensure previous connection is closed
+    const timeoutId = setTimeout(() => {
+      connectRef.current();
+    }, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       isManualDisconnectRef.current = true;
+      isConnectingRef.current = false;
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
       wsRef.current?.close(1000, 'Component unmounted');
     };
-  }, [connect]);
+  }, [roomId]);
 
   return {
     isConnected,

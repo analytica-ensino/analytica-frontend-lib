@@ -162,6 +162,31 @@ describe('Chat Component', () => {
     mockUseChatRooms.mockReturnValue(defaultChatRoomsHookReturn);
   });
 
+  describe('Loading State', () => {
+    it('should show loading state when userId is empty', () => {
+      render(<Chat {...defaultProps} userId="" />);
+      expect(screen.getByText('Carregando...')).toBeInTheDocument();
+      expect(screen.queryByText('Conversas')).not.toBeInTheDocument();
+    });
+
+    it('should show loading state when token is empty', () => {
+      render(<Chat {...defaultProps} token="" />);
+      expect(screen.getByText('Carregando...')).toBeInTheDocument();
+      expect(screen.queryByText('Conversas')).not.toBeInTheDocument();
+    });
+
+    it('should show loading state when both userId and token are empty', () => {
+      render(<Chat {...defaultProps} userId="" token="" />);
+      expect(screen.getByText('Carregando...')).toBeInTheDocument();
+    });
+
+    it('should render chat content when userId and token are provided', () => {
+      render(<Chat {...defaultProps} />);
+      expect(screen.queryByText('Carregando...')).not.toBeInTheDocument();
+      expect(screen.getByText('Conversas')).toBeInTheDocument();
+    });
+  });
+
   describe('Rendering', () => {
     it('should render the chat component with default props', () => {
       render(<Chat {...defaultProps} />);

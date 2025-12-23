@@ -81,8 +81,10 @@ export function useChatRooms({
     setError(null);
 
     try {
-      const response = await apiClient.get<GetRoomsResponse>('/chat/rooms');
-      setRooms(response.data.rooms);
+      const response = await apiClient.get<{ data: GetRoomsResponse }>(
+        '/chat/rooms'
+      );
+      setRooms(response.data.data.rooms);
     } catch (err) {
       const error =
         err instanceof Error ? err : new Error('Erro ao carregar salas');
@@ -101,10 +103,10 @@ export function useChatRooms({
     setError(null);
 
     try {
-      const response = await apiClient.get<AvailableUsersResponse>(
+      const response = await apiClient.get<{ data: AvailableUsersResponse }>(
         '/chat/available-users'
       );
-      setAvailableUsers(response.data.users);
+      setAvailableUsers(response.data.data.users);
     } catch (err) {
       const error =
         err instanceof Error ? err : new Error('Erro ao carregar usuários');
@@ -124,7 +126,7 @@ export function useChatRooms({
       setError(null);
 
       try {
-        const response = await apiClient.post<CreateRoomResponse>(
+        const response = await apiClient.post<{ data: CreateRoomResponse }>(
           '/chat/rooms',
           {
             participantIds,
@@ -134,7 +136,7 @@ export function useChatRooms({
         // Refresh rooms list after creating
         await fetchRooms();
 
-        return response.data.room;
+        return response.data.data.room;
       } catch (err) {
         const error =
           err instanceof Error ? err : new Error('Erro ao criar sala');

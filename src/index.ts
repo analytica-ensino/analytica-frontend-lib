@@ -712,5 +712,13 @@ export type {
 } from './types/chat';
 
 // Chat Component
-export { Chat } from './components/Chat';
+export { Chat, ChatLoading } from './components/Chat';
 export type { ChatProps } from './components/Chat';
+
+// Chat Utils
+export {
+  getChatWsUrl,
+  getChatUserInfo,
+  isChatUserInfoValid,
+} from './utils/chatUtils';
+export type { ChatUserInfo } from './utils/chatUtils';

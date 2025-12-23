@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   PaperPlaneTiltIcon,
   XIcon,
@@ -15,6 +15,7 @@ import { useChat } from '../../hooks/useChat';
 import { useChatRooms } from '../../hooks/useChatRooms';
 import {
   PROFILE_ROLES,
+  CHAT_MESSAGE_TYPES,
   type ChatApiClient,
   type ChatRoomWithDetails,
   type ChatMessage,
@@ -43,6 +44,12 @@ export interface ChatProps {
   userRole: PROFILE_ROLES;
   /** Additional CSS classes */
   className?: string;
+  /** Initial room ID to open (from URL) */
+  initialRoomId?: string;
+  /** Callback when room changes (for URL navigation) */
+  onRoomChange?: (roomId: string) => void;
+  /** Callback when returning to room list */
+  onBackToList?: () => void;
 }
 
 /**
@@ -265,7 +272,27 @@ const UserSelector = ({
  * />
  * ```
  */
-export function Chat({
+export function Chat(props: Readonly<ChatProps>) {
+  const { userId, token } = props;
+
+  // Show loading state if user info is not available
+  if (!userId || !token) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Text size="sm" className="text-text-500">
+          Carregando...
+        </Text>
+      </div>
+    );
+  }
+
+  return <ChatContent {...props} />;
+}
+
+/**
+ * Internal Chat content component (rendered when user info is available)
+ */
+function ChatContent({
   apiClient,
   wsUrl,
   token,
@@ -274,6 +301,9 @@ export function Chat({
   userPhoto,
   userRole,
   className,
+  initialRoomId,
+  onRoomChange,
+  onBackToList,
 }: Readonly<ChatProps>) {
   const [view, setView] = useState<ChatView>('list');
   const [selectedRoom, setSelectedRoom] = useState<ChatRoomWithDetails | null>(
@@ -284,6 +314,7 @@ export function Chat({
   );
   const [messageInput, setMessageInput] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const hasHandledInitialRoomRef = useRef(false);
 
   // Hooks for REST operations
   const {
@@ -323,11 +354,46 @@ export function Chat({
     fetchRooms();
   }, [fetchRooms]);
 
+  // Handle initial room from URL
+  useEffect(() => {
+    // Only handle initial room once
+    if (hasHandledInitialRoomRef.current) {
+      return;
+    }
+
+    // Wait for rooms to load before trying to find the initial room
+    if (!initialRoomId || roomsLoading) {
+      return;
+    }
+
+    // Only proceed if rooms have been loaded (not initial empty state)
+    if (rooms?.length > 0) {
+      const room = rooms.find((r) => r.id === initialRoomId);
+      if (room) {
+        hasHandledInitialRoomRef.current = true;
+        setSelectedRoom(room);
+        setView('room');
+      } else {
+        // Room not found in user's rooms, redirect to list
+        hasHandledInitialRoomRef.current = true;
+        onBackToList?.();
+      }
+    } else if (rooms !== undefined && !roomsLoading) {
+      // Rooms loaded but empty, or room not found
+      hasHandledInitialRoomRef.current = true;
+      onBackToList?.();
+    }
+  }, [initialRoomId, rooms, roomsLoading, onBackToList]);
+
   // Handle room selection
-  const handleSelectRoom = useCallback((room: ChatRoomWithDetails) => {
-    setSelectedRoom(room);
-    setView('room');
-  }, []);
+  const handleSelectRoom = useCallback(
+    (room: ChatRoomWithDetails) => {
+      setSelectedRoom(room);
+      setView('room');
+      onRoomChange?.(room.id);
+    },
+    [onRoomChange]
+  );
 
   // Handle create room
   const handleOpenCreateModal = useCallback(async () => {
@@ -355,10 +421,10 @@ export function Chat({
     if (room) {
       setShowCreateModal(false);
       setSelectedUserIds(new Set());
-      // Refresh rooms and select the new one
-      await fetchRooms();
+      // Navigate to the new room
+      onRoomChange?.(room.id);
     }
-  }, [selectedUserIds, createRoom, fetchRooms]);
+  }, [selectedUserIds, createRoom, onRoomChange]);
 
   // Handle send message
   const handleSendMessage = useCallback(() => {
@@ -371,7 +437,8 @@ export function Chat({
   const handleBackToList = useCallback(() => {
     setSelectedRoom(null);
     setView('list');
-  }, []);
+    onBackToList?.();
+  }, [onBackToList]);
 
   // Render messages content
   const renderMessagesContent = () => {
@@ -390,7 +457,12 @@ export function Chat({
       );
     }
 
-    if (messages.length === 0) {
+    // Filter out system messages (user joined/left notifications)
+    const userMessages = messages?.filter(
+      (message) => message.messageType !== CHAT_MESSAGE_TYPES.SYSTEM
+    );
+
+    if (!userMessages?.length) {
       return (
         <div className="flex items-center justify-center h-full">
           <Text size="sm" className="text-text-500">
@@ -400,7 +472,7 @@ export function Chat({
       );
     }
 
-    return messages.map((message) => (
+    return userMessages.map((message) => (
       <MessageBubble
         key={message.id}
         message={message}
@@ -470,13 +542,13 @@ export function Chat({
             ))}
           </div>
         )}
-        {!roomsError && !roomsLoading && rooms.length === 0 && (
+        {!roomsError && !roomsLoading && !rooms?.length && (
           <EmptyState
             title="Nenhuma conversa"
             description="Comece uma nova conversa clicando no botao acima"
           />
         )}
-        {!roomsError && !roomsLoading && rooms.length > 0 && (
+        {!roomsError && !roomsLoading && !!rooms?.length && (
           <div className="space-y-1">
             {rooms.map((room) => (
               <RoomItem
@@ -549,10 +621,10 @@ export function Chat({
         {/* Participants sidebar */}
         <div className="w-64 border-l border-background-200 p-4 hidden lg:block">
           <Text size="sm" weight="semibold" className="text-text-900 mb-3">
-            Participantes ({participants.length})
+            Participantes ({participants?.length ?? 0})
           </Text>
           <div className="space-y-1">
-            {participants.map((participant) => (
+            {participants?.map((participant) => (
               <ParticipantItem
                 key={participant.userInstitutionId}
                 participant={participant}
@@ -595,12 +667,12 @@ export function Chat({
               ))}
             </div>
           )}
-          {!roomsLoading && availableUsers.length === 0 && (
+          {!roomsLoading && !availableUsers?.length && (
             <Text size="sm" className="text-text-500 text-center py-4">
               Nenhum usuario disponivel para chat
             </Text>
           )}
-          {!roomsLoading && availableUsers.length > 0 && (
+          {!roomsLoading && !!availableUsers?.length && (
             <UserSelector
               users={availableUsers}
               selectedIds={selectedUserIds}
