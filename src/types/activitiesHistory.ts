@@ -48,7 +48,7 @@ export interface ActivityHistoryResponse {
   finalDate: string | null;
   status: GenericApiStatus;
   completionPercentage: number;
-  subjectId: string | null;
+  subjectId?: string | null;
   schoolId?: string;
   schoolName?: string;
   year?: string;
