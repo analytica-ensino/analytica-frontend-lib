@@ -1414,10 +1414,13 @@ describe('CheckboxGroup', () => {
       });
 
       // Should auto-select child-1 (the only filtered item matching parent-1)
-      const lastCall = onCategoriesChange.mock.calls[
-        onCategoriesChange.mock.calls.length - 1
-      ][0];
-      const childCategory = lastCall.find((c) => c.key === 'child');
+      const lastCall =
+        onCategoriesChange.mock.calls[
+          onCategoriesChange.mock.calls.length - 1
+        ][0];
+      const childCategory = lastCall.find(
+        (c: CategoryConfig) => c.key === 'child'
+      );
       expect(childCategory?.selectedIds).toContain('child-1');
       expect(childCategory?.selectedIds?.length).toBe(1);
     });
@@ -1466,7 +1469,9 @@ describe('CheckboxGroup', () => {
         const calls = onCategoriesChange.mock.calls;
         if (calls.length > 0) {
           const lastCall = calls[calls.length - 1][0];
-          const childCategory = lastCall.find((c) => c.key === 'child');
+          const childCategory = lastCall.find(
+            (c: CategoryConfig) => c.key === 'child'
+          );
           // Should not have auto-selected (either empty or manually selected)
           expect(childCategory?.selectedIds?.length || 0).toBeLessThanOrEqual(
             0
@@ -1534,10 +1539,13 @@ describe('CheckboxGroup', () => {
       });
 
       // Should auto-select child-1 (the only filtered item)
-      const lastCall = onCategoriesChange.mock.calls[
-        onCategoriesChange.mock.calls.length - 1
-      ][0];
-      const childCategory = lastCall.find((c) => c.key === 'child');
+      const lastCall =
+        onCategoriesChange.mock.calls[
+          onCategoriesChange.mock.calls.length - 1
+        ][0];
+      const childCategory = lastCall.find(
+        (c: CategoryConfig) => c.key === 'child'
+      );
       expect(childCategory?.selectedIds).toContain('child-1');
     });
 
@@ -1560,9 +1568,7 @@ describe('CheckboxGroup', () => {
               internalField: 'parentId',
             },
           ],
-          itens: [
-            { id: 'child-1', name: 'Child 1', parentId: 'parent-1' },
-          ],
+          itens: [{ id: 'child-1', name: 'Child 1', parentId: 'parent-1' }],
           selectedIds: ['child-1'], // Already selected
         },
       ];
@@ -1582,10 +1588,13 @@ describe('CheckboxGroup', () => {
 
       // If onCategoriesChange was called, verify it didn't change the selection
       if (onCategoriesChange.mock.calls.length > 0) {
-        const lastCall = onCategoriesChange.mock.calls[
-          onCategoriesChange.mock.calls.length - 1
-        ][0];
-        const childCategory = lastCall.find((c) => c.key === 'child');
+        const lastCall =
+          onCategoriesChange.mock.calls[
+            onCategoriesChange.mock.calls.length - 1
+          ][0];
+        const childCategory = lastCall.find(
+          (c: CategoryConfig) => c.key === 'child'
+        );
         expect(childCategory?.selectedIds).toContain('child-1');
       }
     });
@@ -1635,10 +1644,13 @@ describe('CheckboxGroup', () => {
 
       // Should auto-select child-1 (the only filtered/visible item)
       // Even though there are 3 total items, only 1 is visible after filtering
-      const lastCall = onCategoriesChange.mock.calls[
-        onCategoriesChange.mock.calls.length - 1
-      ][0];
-      const childCategory = lastCall.find((c) => c.key === 'child');
+      const lastCall =
+        onCategoriesChange.mock.calls[
+          onCategoriesChange.mock.calls.length - 1
+        ][0];
+      const childCategory = lastCall.find(
+        (c: CategoryConfig) => c.key === 'child'
+      );
       expect(childCategory?.selectedIds).toContain('child-1');
       expect(childCategory?.selectedIds?.length).toBe(1);
     });
