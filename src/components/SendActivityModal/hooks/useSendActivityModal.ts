@@ -158,15 +158,29 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
 
     validateCurrentStep: () => {
       const state = get();
-      const errors = validateStep(state.currentStep, state.formData);
-      set({ errors });
+      // For step 2, extract students from categories to ensure auto-selection is considered
+      let formDataToValidate = state.formData;
+      let updatedFormData = state.formData;
+      if (state.currentStep === 2 && state.categories.length > 0) {
+        const students = extractStudentsFromCategories(state.categories);
+        formDataToValidate = { ...state.formData, students };
+        updatedFormData = formDataToValidate;
+      }
+      const errors = validateStep(state.currentStep, formDataToValidate);
+      set({ formData: updatedFormData, errors });
       return Object.keys(errors).length === 0;
     },
 
     validateAllSteps: () => {
       const state = get();
+      // Extract students from categories for step 2 validation
+      let formDataForStep2 = state.formData;
+      if (state.categories.length > 0) {
+        const students = extractStudentsFromCategories(state.categories);
+        formDataForStep2 = { ...state.formData, students };
+      }
       const errors1 = validateStep(1, state.formData);
-      const errors2 = validateStep(2, state.formData);
+      const errors2 = validateStep(2, formDataForStep2);
       const errors3 = validateStep(3, state.formData);
       const allErrors = { ...errors1, ...errors2, ...errors3 };
       set({ errors: allErrors });

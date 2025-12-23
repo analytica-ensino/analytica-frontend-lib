@@ -26,6 +26,8 @@ import type {
   ActivityData,
   BackendFiltersFormat,
   ActivityPreFiltersInput,
+  ActivityCreatePayload,
+  ActivityCreateResponse,
 } from './ActivityCreate.types';
 import { ActivityType, ActivityStatus } from './ActivityCreate.types';
 import {
@@ -52,6 +54,8 @@ const CreateActivity = ({
   loading = false,
   preFilters,
   onBack,
+  onCreateActivity,
+  onSaveModel,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -61,6 +65,11 @@ const CreateActivity = ({
   loading?: boolean;
   preFilters?: ActivityPreFiltersInput | null;
   onBack?: () => void;
+  onCreateActivity?: (
+    activityId: string,
+    activityData: ActivityCreatePayload
+  ) => void;
+  onSaveModel?: (response: ActivityDraftResponse) => void;
 }) => {
   const applyFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.applyFilters
@@ -97,7 +106,9 @@ const CreateActivity = ({
   const [activityType, setActivityType] = useState<ActivityType>(
     (activity?.type as ActivityType) || ActivityType.RASCUNHO
   );
-  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(
+    activity?.updatedAt ? new Date(activity.updatedAt) : null
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
@@ -193,15 +204,28 @@ const CreateActivity = ({
       filters: BackendFiltersFormat;
       questionIds: string[];
     }) => {
-      await apiClient.patch<ActivityDraftResponse>(
+      const response = await apiClient.patch<ActivityDraftResponse>(
         `/activity-drafts/${draftId}`,
         payload
       );
       lastSavedQuestionsRef.current = questions;
       lastSavedFiltersRef.current = appliedFilters!;
-      setLastSavedAt(new Date());
+      // Use updatedAt from response if available, otherwise use current time
+      const savedDraft = response?.data?.data?.draft;
+      setLastSavedAt(
+        savedDraft?.updatedAt ? new Date(savedDraft.updatedAt) : new Date()
+      );
+
+      // Call onSaveModel callback if type is MODELO and callback is provided
+      if (
+        payload.type === ActivityType.MODELO &&
+        onSaveModel &&
+        response?.data
+      ) {
+        onSaveModel(response.data);
+      }
     },
-    [draftId, apiClient, questions, appliedFilters]
+    [draftId, apiClient, questions, appliedFilters, onSaveModel]
   );
 
   /**
@@ -260,13 +284,29 @@ const CreateActivity = ({
    * Update component state after successful draft save
    *
    * @param savedDraft - Saved draft object from API
+   * @param fullResponse - Full API response (optional, for onSaveModel callback)
    */
   const updateStateAfterSave = useCallback(
-    (savedDraft: ActivityDraftResponse['data']['draft']) => {
+    (
+      savedDraft: ActivityDraftResponse['data']['draft'],
+      fullResponse?: ActivityDraftResponse
+    ) => {
       setDraftId(savedDraft.id);
-      setLastSavedAt(new Date());
+      // Use updatedAt from savedDraft if available, otherwise use current time
+      setLastSavedAt(
+        savedDraft.updatedAt ? new Date(savedDraft.updatedAt) : new Date()
+      );
       lastSavedQuestionsRef.current = questions;
       lastSavedFiltersRef.current = appliedFilters!;
+
+      // Call onSaveModel callback if type is MODELO and callback is provided
+      if (
+        savedDraft.type === ActivityType.MODELO &&
+        onSaveModel &&
+        fullResponse
+      ) {
+        onSaveModel(fullResponse);
+      }
 
       if (onActivityChange) {
         const updatedActivity: ActivityData = {
@@ -276,11 +316,12 @@ const CreateActivity = ({
           subjectId: savedDraft.subjectId,
           filters: savedDraft.filters,
           questionIds: questions.map((q) => q.id),
+          updatedAt: savedDraft.updatedAt,
         };
         onActivityChange(updatedActivity);
       }
     },
-    [questions, appliedFilters, onActivityChange]
+    [questions, appliedFilters, onActivityChange, onSaveModel]
   );
 
   /**
@@ -308,7 +349,7 @@ const CreateActivity = ({
       hasFirstSaveBeenDone.current = true;
 
       const savedDraft = extractDraftFromResponse(response);
-      updateStateAfterSave(savedDraft);
+      updateStateAfterSave(savedDraft, response?.data);
     } catch (error) {
       console.error('❌ Erro ao salvar rascunho:', error);
 
@@ -346,13 +387,16 @@ const CreateActivity = ({
   }, []);
 
   /**
-   * Update draftId when activity.id changes
+   * Update draftId and lastSavedAt when activity changes
    */
   useEffect(() => {
     if (activity?.id) {
       setDraftId(activity.id);
     }
-  }, [activity?.id]);
+    if (activity?.updatedAt) {
+      setLastSavedAt(new Date(activity.updatedAt));
+    }
+  }, [activity?.id, activity?.updatedAt]);
 
   /**
    * Load knowledge areas on mount
@@ -617,19 +661,21 @@ const CreateActivity = ({
         };
 
         // First POST: Create activity and capture response
-        const createActivityResponse = await apiClient.post<{
-          message: string;
-          data: {
-            activity: {
-              id: string;
-            };
-          };
-        }>('/activities', activityPayload);
+        const createActivityResponse =
+          await apiClient.post<ActivityCreateResponse>(
+            '/activities',
+            activityPayload
+          );
 
         // Extract activity ID from response
-        const activityId = createActivityResponse?.data?.data?.activity?.id;
+        const activityId = createActivityResponse?.data?.data?.id;
         if (!activityId) {
           throw new Error('ID da atividade não retornado pela API');
+        }
+
+        // Call onCreateActivity callback if provided
+        if (onCreateActivity) {
+          onCreateActivity(activityId, activityPayload);
         }
 
         // Second POST: Send activity to students with activityId and students
@@ -808,4 +854,10 @@ export type {
   ActivityDraftResponse,
   ActivityData,
   ActivityPreFiltersInput,
+  ActivityCreatePayload,
+  ActivityCreateResponse,
+  School,
+  SchoolYear,
+  Class,
+  Student,
 } from './ActivityCreate.types';
