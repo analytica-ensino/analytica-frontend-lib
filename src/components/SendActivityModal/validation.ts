@@ -139,7 +139,7 @@ export function validateRecipientStep(
   const errors: StepErrors = {};
 
   const result = recipientStepSchema.safeParse({
-    students: data.students,
+    students: data.students ?? [],
   });
 
   if (!result.success) {
