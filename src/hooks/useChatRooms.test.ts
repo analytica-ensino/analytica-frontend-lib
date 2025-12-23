@@ -107,7 +107,7 @@ describe('useChatRooms', () => {
   describe('fetchRooms', () => {
     it('should fetch rooms successfully', async () => {
       (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: { rooms: [mockRoom, mockRoom2] },
+        data: { data: { rooms: [mockRoom, mockRoom2] } },
       });
 
       const { result } = renderHook(() =>
@@ -143,7 +143,7 @@ describe('useChatRooms', () => {
       expect(result.current.loading).toBe(true);
 
       await act(async () => {
-        resolvePromise!({ data: { rooms: [] } });
+        resolvePromise!({ data: { data: { rooms: [] } } });
         await promise;
       });
 
@@ -210,7 +210,7 @@ describe('useChatRooms', () => {
 
       // Second call succeeds
       (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
-        data: { rooms: [] },
+        data: { data: { rooms: [] } },
       });
 
       await act(async () => {
@@ -226,7 +226,7 @@ describe('useChatRooms', () => {
   describe('fetchAvailableUsers', () => {
     it('should fetch available users successfully', async () => {
       (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: { users: mockAvailableUsers },
+        data: { data: { users: mockAvailableUsers } },
       });
 
       const { result } = renderHook(() =>
@@ -262,7 +262,7 @@ describe('useChatRooms', () => {
       expect(result.current.loading).toBe(true);
 
       await act(async () => {
-        resolvePromise!({ data: { users: [] } });
+        resolvePromise!({ data: { data: { users: [] } } });
         await promise;
       });
 
@@ -314,14 +314,16 @@ describe('useChatRooms', () => {
     it('should create a room successfully', async () => {
       (mockApiClient.post as jest.Mock).mockResolvedValue({
         data: {
-          room: mockCreatedRoom,
-          participants: [],
+          data: {
+            room: mockCreatedRoom,
+            participants: [],
+          },
         },
       });
 
       // Mock fetchRooms to return updated list
       (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: { rooms: [mockRoom] },
+        data: { data: { rooms: [mockRoom] } },
       });
 
       const { result } = renderHook(() =>
@@ -344,13 +346,15 @@ describe('useChatRooms', () => {
     it('should refresh rooms after creating a room', async () => {
       (mockApiClient.post as jest.Mock).mockResolvedValue({
         data: {
-          room: mockCreatedRoom,
-          participants: [],
+          data: {
+            room: mockCreatedRoom,
+            participants: [],
+          },
         },
       });
 
       (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: { rooms: [mockRoom, mockRoom2] },
+        data: { data: { rooms: [mockRoom, mockRoom2] } },
       });
 
       const { result } = renderHook(() =>
@@ -373,7 +377,7 @@ describe('useChatRooms', () => {
 
       (mockApiClient.post as jest.Mock).mockReturnValue(promise);
       (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: { rooms: [] },
+        data: { data: { rooms: [] } },
       });
 
       const { result } = renderHook(() =>
@@ -388,7 +392,7 @@ describe('useChatRooms', () => {
 
       await act(async () => {
         resolvePromise!({
-          data: { room: mockCreatedRoom, participants: [] },
+          data: { data: { room: mockCreatedRoom, participants: [] } },
         });
         await promise;
       });
@@ -462,10 +466,10 @@ describe('useChatRooms', () => {
 
       // Second call succeeds
       (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
-        data: { room: mockCreatedRoom, participants: [] },
+        data: { data: { room: mockCreatedRoom, participants: [] } },
       });
       (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
-        data: { rooms: [] },
+        data: { data: { rooms: [] } },
       });
 
       await act(async () => {
@@ -521,7 +525,7 @@ describe('useChatRooms', () => {
       const useConfiguredChatRooms = createUseChatRooms(mockApiClient);
 
       (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: { rooms: [mockRoom] },
+        data: { data: { rooms: [mockRoom] } },
       });
 
       const { result } = renderHook(() => useConfiguredChatRooms());
@@ -538,8 +542,10 @@ describe('useChatRooms', () => {
   describe('Concurrent Operations', () => {
     it('should handle multiple fetch operations', async () => {
       (mockApiClient.get as jest.Mock)
-        .mockResolvedValueOnce({ data: { rooms: [mockRoom] } })
-        .mockResolvedValueOnce({ data: { users: mockAvailableUsers } });
+        .mockResolvedValueOnce({ data: { data: { rooms: [mockRoom] } } })
+        .mockResolvedValueOnce({
+          data: { data: { users: mockAvailableUsers } },
+        });
 
       const { result } = renderHook(() =>
         useChatRooms({ apiClient: mockApiClient })
@@ -558,7 +564,7 @@ describe('useChatRooms', () => {
 
     it('should handle rapid sequential calls', async () => {
       (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: { rooms: [mockRoom] },
+        data: { data: { rooms: [mockRoom] } },
       });
 
       const { result } = renderHook(() =>
@@ -578,8 +584,10 @@ describe('useChatRooms', () => {
   describe('State Persistence', () => {
     it('should maintain rooms state across multiple fetches', async () => {
       (mockApiClient.get as jest.Mock)
-        .mockResolvedValueOnce({ data: { rooms: [mockRoom] } })
-        .mockResolvedValueOnce({ data: { rooms: [mockRoom, mockRoom2] } });
+        .mockResolvedValueOnce({ data: { data: { rooms: [mockRoom] } } })
+        .mockResolvedValueOnce({
+          data: { data: { rooms: [mockRoom, mockRoom2] } },
+        });
 
       const { result } = renderHook(() =>
         useChatRooms({ apiClient: mockApiClient })
@@ -600,8 +608,10 @@ describe('useChatRooms', () => {
 
     it('should maintain available users state independently of rooms', async () => {
       (mockApiClient.get as jest.Mock)
-        .mockResolvedValueOnce({ data: { rooms: [mockRoom] } })
-        .mockResolvedValueOnce({ data: { users: mockAvailableUsers } });
+        .mockResolvedValueOnce({ data: { data: { rooms: [mockRoom] } } })
+        .mockResolvedValueOnce({
+          data: { data: { users: mockAvailableUsers } },
+        });
 
       const { result } = renderHook(() =>
         useChatRooms({ apiClient: mockApiClient })
@@ -626,7 +636,7 @@ describe('useChatRooms', () => {
   describe('Edge Cases', () => {
     it('should handle empty rooms response', async () => {
       (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: { rooms: [] },
+        data: { data: { rooms: [] } },
       });
 
       const { result } = renderHook(() =>
@@ -642,7 +652,7 @@ describe('useChatRooms', () => {
 
     it('should handle empty users response', async () => {
       (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: { users: [] },
+        data: { data: { users: [] } },
       });
 
       const { result } = renderHook(() =>
@@ -658,10 +668,10 @@ describe('useChatRooms', () => {
 
     it('should handle creating room with single participant', async () => {
       (mockApiClient.post as jest.Mock).mockResolvedValue({
-        data: { room: mockCreatedRoom, participants: [] },
+        data: { data: { room: mockCreatedRoom, participants: [] } },
       });
       (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: { rooms: [] },
+        data: { data: { rooms: [] } },
       });
 
       const { result } = renderHook(() =>
@@ -679,10 +689,10 @@ describe('useChatRooms', () => {
 
     it('should handle creating room with many participants', async () => {
       (mockApiClient.post as jest.Mock).mockResolvedValue({
-        data: { room: mockCreatedRoom, participants: [] },
+        data: { data: { room: mockCreatedRoom, participants: [] } },
       });
       (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: { rooms: [] },
+        data: { data: { rooms: [] } },
       });
 
       const manyParticipants = Array.from(
