@@ -61,17 +61,75 @@ export const CheckboxGroup = ({
     return true;
   };
 
-  // Auto-seleciona categorias com apenas um item
+  // Auto-seleciona categorias com apenas um item (considerando itens filtrados)
   const categoriesWithAutoSelection = useMemo(() => {
+    // Helper function to calculate filtered items for a category
+    const calculateFormattedItemsForAutoSelection = (
+      category: CategoryConfig
+    ) => {
+      if (!category?.dependsOn || category.dependsOn.length === 0) {
+        return category?.itens || [];
+      }
+
+      // Check if category is enabled based on dependencies
+      const isEnabled = category.dependsOn.every((depKey) => {
+        const depCat = categories.find((c) => c.key === depKey);
+        return depCat?.selectedIds && depCat.selectedIds.length > 0;
+      });
+
+      // If category is disabled, return empty items array
+      if (!isEnabled) {
+        return [];
+      }
+
+      const filters =
+        (category.filteredBy as {
+          key: string;
+          internalField: string;
+          label?: string;
+        }[]) || [];
+
+      if (filters.length === 0) {
+        return category?.itens || [];
+      }
+
+      const selectedIdsArr = filters.map((f) => {
+        const parentCat = categories.find((c) => c.key === f.key);
+        if (!parentCat?.selectedIds?.length) {
+          return [];
+        }
+        return parentCat.selectedIds;
+      });
+
+      if (selectedIdsArr.some((arr) => arr.length === 0)) {
+        return [];
+      }
+
+      // Filter items based on selected parent IDs
+      const filteredItems = (category.itens || []).filter((item) => {
+        return filters.every((filter) => {
+          const parentCat = categories.find((c) => c.key === filter.key);
+          const parentSelectedIds = parentCat?.selectedIds || [];
+          const itemFieldValue = item[filter.internalField];
+          return parentSelectedIds.includes(String(itemFieldValue));
+        });
+      });
+
+      return filteredItems;
+    };
+
     return categories.map((category) => {
-      // Se tem apenas um item e nenhum está selecionado, auto-seleciona
+      // Get filtered/visible items for this category
+      const filteredItems = calculateFormattedItemsForAutoSelection(category);
+
+      // Se tem apenas um item filtrado/visível e nenhum está selecionado, auto-seleciona
       if (
-        category.itens?.length === 1 &&
+        filteredItems.length === 1 &&
         (!category.selectedIds || category.selectedIds.length === 0)
       ) {
         return {
           ...category,
-          selectedIds: [category.itens[0].id],
+          selectedIds: [filteredItems[0].id],
         };
       }
       return category;

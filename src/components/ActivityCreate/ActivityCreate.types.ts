@@ -74,6 +74,7 @@ export interface ActivityData {
   filters: BackendFiltersFormat;
   questionIds: string[];
   selectedQuestions?: Question[];
+  updatedAt?: string;
 }
 
 /**
@@ -110,4 +111,45 @@ export interface Student {
   name: string;
   classId: string;
   userInstitutionId: string;
+}
+
+/**
+ * Activity creation payload sent to API
+ */
+export interface ActivityCreatePayload {
+  createdBySys: boolean;
+  title: string;
+  subjectId: string;
+  questionIds: string[];
+  subtype: string;
+  difficulty: string;
+  notification: string;
+  status: ActivityStatus;
+  startDate: string;
+  finalDate: string;
+  canRetry: boolean;
+}
+
+/**
+ * Activity creation response from API
+ */
+export interface ActivityCreateResponse {
+  message: string;
+  data: {
+    id: string;
+    creatorUserId: string;
+    createdBySys: boolean;
+    title: string;
+    type: string;
+    subtype: string;
+    difficulty: string;
+    notification: string;
+    status: string;
+    startDate: string;
+    finalDate: string;
+    canRetry: boolean;
+    subjectId: string;
+    createdAt: string;
+    updatedAt: string;
+  };
 }

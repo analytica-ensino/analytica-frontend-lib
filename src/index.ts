@@ -151,10 +151,21 @@ export {
   createQuestionsListHook,
 } from './hooks/useQuestionsList';
 export { CreateActivity } from './components/ActivityCreate/ActivityCreate';
+export {
+  ActivityType,
+  ActivityStatus,
+} from './components/ActivityCreate/ActivityCreate';
 export type {
   ActivityData,
   BackendFiltersFormat,
   ActivityDraftResponse,
+  ActivityPreFiltersInput,
+  ActivityCreatePayload,
+  ActivityCreateResponse,
+  School,
+  SchoolYear,
+  Class,
+  Student,
 } from './components/ActivityCreate/ActivityCreate';
 export type { UseQuestionsListReturn } from './hooks/useQuestionsList';
 export type {

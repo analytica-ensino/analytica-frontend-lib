@@ -449,6 +449,25 @@ describe('CreateActivity', () => {
       expect(screen.getByText('Nenhum rascunho salvo')).toBeInTheDocument();
     });
 
+    it('should show last saved time when activity has updatedAt', () => {
+      const activity: ActivityData = {
+        id: 'act1',
+        type: ActivityType.RASCUNHO,
+        title: 'Test Activity',
+        subjectId: 'subject1',
+        filters: {},
+        questionIds: [],
+        updatedAt: '2025-01-15T14:30:00.000Z',
+      };
+
+      render(<CreateActivity {...defaultProps} activity={activity} />);
+
+      expect(
+        screen.queryByText('Nenhum rascunho salvo')
+      ).not.toBeInTheDocument();
+      expect(screen.getByText(/Rascunho salvo às/)).toBeInTheDocument();
+    });
+
     it('should render activity preview with loading state', () => {
       mockAppliedFilters = {
         types: [],
@@ -1613,9 +1632,21 @@ describe('CreateActivity', () => {
             data: {
               message: 'Activity created successfully',
               data: {
-                activity: {
-                  id: 'activity-123',
-                },
+                id: 'activity-123',
+                creatorUserId: 'user-123',
+                createdBySys: false,
+                title: 'Test Activity',
+                type: 'ATIVIDADE',
+                subtype: 'TAREFA',
+                difficulty: '',
+                notification: '',
+                status: 'A_VENCER',
+                startDate: '2025-01-01T00:00:00.000Z',
+                finalDate: '2025-01-02T00:00:00.000Z',
+                canRetry: false,
+                subjectId: 'subject1',
+                createdAt: '2025-01-01T00:00:00.000Z',
+                updatedAt: '2025-01-01T00:00:00.000Z',
               },
             },
           });
@@ -1848,9 +1879,21 @@ describe('CreateActivity', () => {
             data: {
               message: 'Activity created successfully',
               data: {
-                activity: {
-                  id: 'activity-123',
-                },
+                id: 'activity-123',
+                creatorUserId: 'user-123',
+                createdBySys: false,
+                title: 'Test Activity',
+                type: 'ATIVIDADE',
+                subtype: 'TAREFA',
+                difficulty: '',
+                notification: '',
+                status: 'A_VENCER',
+                startDate: '2025-01-01T00:00:00.000Z',
+                finalDate: '2025-01-02T00:00:00.000Z',
+                canRetry: false,
+                subjectId: 'subject2',
+                createdAt: '2025-01-01T00:00:00.000Z',
+                updatedAt: '2025-01-01T00:00:00.000Z',
               },
             },
           });
@@ -1893,6 +1936,477 @@ describe('CreateActivity', () => {
           })
         );
       });
+    });
+
+    it('should call onCreateActivity callback when activity is created successfully', async () => {
+      const onCreateActivity = jest.fn();
+
+      mockApiClient.get = jest.fn().mockImplementation((url: string) => {
+        if (url === '/school') {
+          return Promise.resolve({
+            data: {
+              message: 'Escolas obtidas com sucesso',
+              data: {
+                schools: [],
+              },
+            },
+          });
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve({
+            data: {
+              message: 'Anos letivos obtidos com sucesso',
+              data: {
+                schoolYears: [],
+              },
+            },
+          });
+        }
+        if (url === '/classes') {
+          return Promise.resolve({
+            data: {
+              message: 'Classes obtidas com sucesso',
+              data: {
+                classes: [],
+              },
+            },
+          });
+        }
+        if (url.startsWith('/students')) {
+          return Promise.resolve({
+            data: {
+              message: 'Estudantes obtidos com sucesso',
+              data: {
+                students: [],
+                pagination: {
+                  page: 1,
+                  limit: 100,
+                  total: 0,
+                  totalPages: 1,
+                },
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      mockApiClient.post = jest.fn().mockImplementation((url: string) => {
+        if (url === '/activities') {
+          return Promise.resolve({
+            data: {
+              message: 'Activity created successfully',
+              data: {
+                id: 'activity-456',
+                creatorUserId: 'user-456',
+                createdBySys: false,
+                title: 'Test Activity',
+                type: 'ATIVIDADE',
+                subtype: 'PROVA',
+                difficulty: '',
+                notification: '',
+                status: 'A_VENCER',
+                startDate: '2025-01-01T00:00:00.000Z',
+                finalDate: '2025-01-02T00:00:00.000Z',
+                canRetry: false,
+                subjectId: 'subject1',
+                createdAt: '2025-01-01T00:00:00.000Z',
+                updatedAt: '2025-01-01T00:00:00.000Z',
+              },
+            },
+          });
+        }
+        if (url === '/activities/send-to-students') {
+          return Promise.resolve({
+            data: {
+              message: 'Activity sent to students successfully',
+              data: { success: true },
+            },
+          });
+        }
+        return Promise.resolve({ data: {} });
+      });
+
+      render(
+        <CreateActivity {...defaultProps} onCreateActivity={onCreateActivity} />
+      );
+
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      fireEvent.click(screen.getByText('Enviar atividade'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('modal-submit'));
+
+      await waitFor(() => {
+        expect(onCreateActivity).toHaveBeenCalledTimes(1);
+        expect(onCreateActivity).toHaveBeenCalledWith(
+          'activity-456',
+          expect.objectContaining({
+            title: expect.any(String),
+            subjectId: 'subject1',
+            questionIds: ['q1'],
+            subtype: expect.any(String),
+            createdBySys: false,
+            difficulty: '',
+            notification: expect.any(String),
+            status: 'A_VENCER',
+            startDate: expect.any(String),
+            finalDate: expect.any(String),
+            canRetry: expect.any(Boolean),
+          })
+        );
+      });
+    });
+
+    it('should not call onCreateActivity if not provided', async () => {
+      mockApiClient.get = jest.fn().mockImplementation((url: string) => {
+        if (url === '/school') {
+          return Promise.resolve({
+            data: {
+              message: 'Escolas obtidas com sucesso',
+              data: {
+                schools: [],
+              },
+            },
+          });
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve({
+            data: {
+              message: 'Anos letivos obtidos com sucesso',
+              data: {
+                schoolYears: [],
+              },
+            },
+          });
+        }
+        if (url === '/classes') {
+          return Promise.resolve({
+            data: {
+              message: 'Classes obtidas com sucesso',
+              data: {
+                classes: [],
+              },
+            },
+          });
+        }
+        if (url.startsWith('/students')) {
+          return Promise.resolve({
+            data: {
+              message: 'Estudantes obtidos com sucesso',
+              data: {
+                students: [],
+                pagination: {
+                  page: 1,
+                  limit: 100,
+                  total: 0,
+                  totalPages: 1,
+                },
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      mockApiClient.post = jest.fn().mockImplementation((url: string) => {
+        if (url === '/activities') {
+          return Promise.resolve({
+            data: {
+              message: 'Activity created successfully',
+              data: {
+                id: 'activity-789',
+                creatorUserId: 'user-789',
+                createdBySys: false,
+                title: 'Test Activity',
+                type: 'ATIVIDADE',
+                subtype: 'TAREFA',
+                difficulty: '',
+                notification: '',
+                status: 'A_VENCER',
+                startDate: '2025-01-01T00:00:00.000Z',
+                finalDate: '2025-01-02T00:00:00.000Z',
+                canRetry: false,
+                subjectId: 'subject1',
+                createdAt: '2025-01-01T00:00:00.000Z',
+                updatedAt: '2025-01-01T00:00:00.000Z',
+              },
+            },
+          });
+        }
+        if (url === '/activities/send-to-students') {
+          return Promise.resolve({
+            data: {
+              message: 'Activity sent to students successfully',
+              data: { success: true },
+            },
+          });
+        }
+        return Promise.resolve({ data: {} });
+      });
+
+      const onCreateActivity = jest.fn();
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      fireEvent.click(screen.getByText('Enviar atividade'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('modal-submit'));
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/activities',
+          expect.any(Object)
+        );
+      });
+
+      expect(onCreateActivity).not.toHaveBeenCalled();
+    });
+
+    it('should call onSaveModel callback when model is saved successfully via PATCH', async () => {
+      const onSaveModel = jest.fn();
+
+      mockApiClient.post = jest.fn().mockImplementation((url: string) => {
+        if (url === '/activity-drafts') {
+          return Promise.resolve({
+            data: {
+              message: 'Draft created successfully',
+              data: {
+                draft: {
+                  id: 'draft-123',
+                  type: ActivityType.RASCUNHO,
+                  title: 'Rascunho - Matemática',
+                  creatorUserInstitutionId: 'user-123',
+                  subjectId: 'subject1',
+                  filters: {},
+                  createdAt: '2025-01-01T00:00:00.000Z',
+                  updatedAt: '2025-01-01T00:00:00.000Z',
+                },
+                questionsLinked: 1,
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: {} });
+      });
+
+      mockApiClient.patch = jest.fn().mockImplementation((url: string) => {
+        if (url === '/activity-drafts/draft-123') {
+          return Promise.resolve({
+            data: {
+              message: 'Draft updated successfully',
+              data: {
+                draft: {
+                  id: 'draft-123',
+                  type: ActivityType.MODELO,
+                  title: 'Modelo - Matemática',
+                  creatorUserInstitutionId: 'user-123',
+                  subjectId: 'subject1',
+                  filters: {},
+                  createdAt: '2025-01-01T00:00:00.000Z',
+                  updatedAt: '2025-01-15T14:30:00.000Z',
+                },
+                questionsLinked: 1,
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: {} });
+      });
+
+      render(<CreateActivity {...defaultProps} onSaveModel={onSaveModel} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalled();
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      jest.clearAllMocks();
+
+      // Click save model button - this will trigger PATCH with MODELO type
+      fireEvent.click(screen.getByText('Salvar modelo'));
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalled();
+        expect(onSaveModel).toHaveBeenCalledTimes(1);
+        expect(onSaveModel).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: 'Draft updated successfully',
+            data: expect.objectContaining({
+              draft: expect.objectContaining({
+                id: 'draft-123',
+                type: ActivityType.MODELO,
+              }),
+              questionsLinked: 1,
+            }),
+          })
+        );
+      });
+    });
+
+    it('should call onSaveModel callback when model is saved successfully via PATCH with existing activity', async () => {
+      const onSaveModel = jest.fn();
+      const activity: ActivityData = {
+        id: 'draft-456',
+        type: ActivityType.RASCUNHO,
+        title: 'Test Activity',
+        subjectId: 'subject1',
+        filters: {},
+        questionIds: [],
+      };
+
+      mockApiClient.post = jest.fn().mockImplementation((url: string) => {
+        if (url === '/activity-drafts') {
+          return Promise.resolve({
+            data: {
+              message: 'Draft created successfully',
+              data: {
+                draft: {
+                  id: 'draft-456',
+                  type: ActivityType.RASCUNHO,
+                  title: 'Test Activity',
+                  creatorUserInstitutionId: 'user-456',
+                  subjectId: 'subject1',
+                  filters: {},
+                  createdAt: '2025-01-01T00:00:00.000Z',
+                  updatedAt: '2025-01-01T00:00:00.000Z',
+                },
+                questionsLinked: 1,
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: {} });
+      });
+
+      mockApiClient.patch = jest.fn().mockImplementation((url: string) => {
+        if (url === '/activity-drafts/draft-456') {
+          return Promise.resolve({
+            data: {
+              message: 'Draft updated successfully',
+              data: {
+                draft: {
+                  id: 'draft-456',
+                  type: ActivityType.MODELO,
+                  title: 'Modelo - Matemática',
+                  creatorUserInstitutionId: 'user-456',
+                  subjectId: 'subject1',
+                  filters: {},
+                  createdAt: '2025-01-01T00:00:00.000Z',
+                  updatedAt: '2025-01-15T14:30:00.000Z',
+                },
+                questionsLinked: 2,
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: {} });
+      });
+
+      render(
+        <CreateActivity
+          {...defaultProps}
+          activity={activity}
+          onSaveModel={onSaveModel}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      // When activity already has id, it may use PATCH instead of POST
+      // Wait a bit for any save operations
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      jest.clearAllMocks();
+
+      // Click save model button - this will trigger PATCH with MODELO type
+      fireEvent.click(screen.getByText('Salvar modelo'));
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalled();
+        expect(onSaveModel).toHaveBeenCalledTimes(1);
+        expect(onSaveModel).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: 'Draft updated successfully',
+            data: expect.objectContaining({
+              draft: expect.objectContaining({
+                id: 'draft-456',
+                type: ActivityType.MODELO,
+              }),
+              questionsLinked: 2,
+            }),
+          })
+        );
+      });
+    });
+
+    it('should not call onSaveModel if not provided', async () => {
+      const onSaveModel = jest.fn();
+
+      mockApiClient.post = jest.fn().mockImplementation((url: string) => {
+        if (url === '/activity-drafts') {
+          return Promise.resolve({
+            data: {
+              message: 'Draft created successfully',
+              data: {
+                draft: {
+                  id: 'model-789',
+                  type: ActivityType.MODELO,
+                  title: 'Modelo - Matemática',
+                  creatorUserInstitutionId: 'user-789',
+                  subjectId: 'subject1',
+                  filters: {},
+                  createdAt: '2025-01-01T00:00:00.000Z',
+                  updatedAt: '2025-01-01T00:00:00.000Z',
+                },
+                questionsLinked: 1,
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: {} });
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalled();
+      });
+
+      fireEvent.click(screen.getByText('Salvar modelo'));
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalled();
+      });
+
+      expect(onSaveModel).not.toHaveBeenCalled();
     });
   });
 
