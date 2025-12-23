@@ -25,7 +25,7 @@ const activityHistoryResponseSchema = z.object({
   finalDate: z.string().nullable(),
   status: z.nativeEnum(ActivityApiStatus),
   completionPercentage: z.number().min(0).max(100),
-  subjectId: z.string().uuid().nullable(),
+  subjectId: z.string().uuid().optional().nullable(),
   schoolId: z.string().optional(),
   schoolName: z.string().optional(),
   year: z.string().optional(),

@@ -268,6 +268,65 @@ describe('useActivitiesHistory', () => {
       expect(result.success).toBe(true);
     });
 
+    it('should validate response with undefined subjectId', () => {
+      const responseWithUndefinedSubjectId = {
+        message: 'Success',
+        data: {
+          activities: [
+            {
+              id: '123e4567-e89b-12d3-a456-426614174000',
+              title: 'Test Activity',
+              startDate: null,
+              finalDate: null,
+              status: ActivityApiStatus.A_VENCER,
+              completionPercentage: 0,
+            },
+          ],
+          pagination: {
+            total: 1,
+            page: 1,
+            limit: 10,
+            totalPages: 1,
+          },
+        },
+      };
+
+      const result = activitiesHistoryApiResponseSchema.safeParse(
+        responseWithUndefinedSubjectId
+      );
+      expect(result.success).toBe(true);
+    });
+
+    it('should validate response with null subjectId', () => {
+      const responseWithNullSubjectId = {
+        message: 'Success',
+        data: {
+          activities: [
+            {
+              id: '123e4567-e89b-12d3-a456-426614174000',
+              title: 'Test Activity',
+              startDate: null,
+              finalDate: null,
+              status: ActivityApiStatus.A_VENCER,
+              completionPercentage: 0,
+              subjectId: null,
+            },
+          ],
+          pagination: {
+            total: 1,
+            page: 1,
+            limit: 10,
+            totalPages: 1,
+          },
+        },
+      };
+
+      const result = activitiesHistoryApiResponseSchema.safeParse(
+        responseWithNullSubjectId
+      );
+      expect(result.success).toBe(true);
+    });
+
     it('should reject invalid activity id format', () => {
       const invalidResponse = {
         message: 'Success',
