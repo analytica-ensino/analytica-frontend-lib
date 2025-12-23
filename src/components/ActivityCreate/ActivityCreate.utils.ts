@@ -201,6 +201,52 @@ export function formatTime(date: Date): string {
 }
 
 /**
+ * Converte ActivityType para o formato usado na URL
+ *
+ * @param type - ActivityType enum value
+ * @returns String representation for URL (rascunho or modelo)
+ *
+ * @example
+ * ```ts
+ * const urlType = getTypeFromUrl(ActivityType.RASCUNHO);
+ * // Returns: 'rascunho'
+ * ```
+ */
+export function getTypeFromUrl(type: ActivityType): string {
+  switch (type) {
+    case ActivityType.RASCUNHO:
+      return 'rascunho';
+    case ActivityType.MODELO:
+      return 'modelo';
+    default:
+      return 'rascunho';
+  }
+}
+
+/**
+ * Converte string da URL para ActivityType
+ *
+ * @param type - String from URL (rascunho or modelo)
+ * @returns ActivityType enum value
+ *
+ * @example
+ * ```ts
+ * const activityType = getTypeFromUrlString('rascunho');
+ * // Returns: ActivityType.RASCUNHO
+ * ```
+ */
+export function getTypeFromUrlString(type: string | undefined): ActivityType {
+  switch (type) {
+    case 'rascunho':
+      return ActivityType.RASCUNHO;
+    case 'modelo':
+      return ActivityType.MODELO;
+    default:
+      return ActivityType.RASCUNHO;
+  }
+}
+
+/**
  * Convert Question to PreviewQuestion format
  *
  * @param question - Question object to convert

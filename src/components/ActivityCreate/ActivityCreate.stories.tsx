@@ -1,11 +1,9 @@
 import type { Story } from '@ladle/react';
-import { useState } from 'react';
+import { BrowserRouter } from 'react-router-dom';
 import { CreateActivity } from './ActivityCreate';
 import type { BaseApiClient } from '../../types/api';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import type { Question } from '../../types/questions';
-import type { ActivityData } from './ActivityCreate';
-import { ActivityType } from './ActivityCreate.types';
 import {
   DIFFICULTY_LEVEL_ENUM,
   QUESTION_STATUS_ENUM,
@@ -556,143 +554,57 @@ const mockApiClientAllTypes = createMockApiClient([
 
 export const WithoutInitialQuestions: Story = () => {
   return (
-    <CreateActivity
-      apiClient={mockApiClientThreeTypes}
-      institutionId="institution-1"
-      isDark={false}
-    />
+    <BrowserRouter>
+      <CreateActivity
+        apiClient={mockApiClientThreeTypes}
+        institutionId="institution-1"
+        isDark={false}
+      />
+    </BrowserRouter>
   );
 };
 
 WithoutInitialQuestions.storyName = 'Without Initial Questions';
 
 export const WithPreFilters: Story = () => {
-  const preFilters = {
-    filters: {
-      questionTypes: ['ALTERNATIVA'],
-      questionBanks: ['ENEM', 'FUVEST'],
-      subjects: ['matematica'],
-      topics: ['tema-1'],
-      subtopics: ['subtema-1'],
-      contents: ['assunto-1'],
-    },
-  };
-
   return (
-    <CreateActivity
-      apiClient={mockApiClientAllTypes}
-      institutionId="institution-1"
-      isDark={false}
-      preFilters={preFilters}
-    />
+    <BrowserRouter>
+      <CreateActivity
+        apiClient={mockApiClientAllTypes}
+        institutionId="institution-1"
+        isDark={false}
+      />
+    </BrowserRouter>
   );
 };
 
 WithPreFilters.storyName = 'With preFilters (pre-selected filters)';
 
 export const WithInitialQuestions: Story = () => {
-  const mockQuestions: Question[] = [
-    {
-      id: 'initial-question-1',
-      statement: 'Questão inicial 1: Qual é a capital do Brasil?',
-      description: null,
-      questionType: QUESTION_TYPE.ALTERNATIVA,
-      status: QUESTION_STATUS_ENUM.APROVADO,
-      difficultyLevel: DIFFICULTY_LEVEL_ENUM.MEDIO,
-      questionBankYearId: 'year-1',
-      solutionExplanation: null,
-      createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z',
-      options: [
-        { id: 'opt-1', option: 'São Paulo' },
-        { id: 'opt-2', option: 'Rio de Janeiro' },
-        { id: 'opt-3', option: 'Brasília' },
-        { id: 'opt-4', option: 'Belo Horizonte' },
-      ],
-    },
-    {
-      id: 'initial-question-2',
-      statement: 'Questão inicial 2: Qual é o maior planeta do sistema solar?',
-      description: null,
-      questionType: QUESTION_TYPE.ALTERNATIVA,
-      status: QUESTION_STATUS_ENUM.APROVADO,
-      difficultyLevel: DIFFICULTY_LEVEL_ENUM.MEDIO,
-      questionBankYearId: 'year-1',
-      solutionExplanation: null,
-      createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z',
-      options: [
-        { id: 'opt-1', option: 'Terra' },
-        { id: 'opt-2', option: 'Júpiter' },
-        { id: 'opt-3', option: 'Saturno' },
-        { id: 'opt-4', option: 'Marte' },
-      ],
-    },
-    {
-      id: 'initial-question-3',
-      statement: 'Questão inicial 3: Quem escreveu Dom Casmurro?',
-      description: null,
-      questionType: QUESTION_TYPE.ALTERNATIVA,
-      status: QUESTION_STATUS_ENUM.APROVADO,
-      difficultyLevel: DIFFICULTY_LEVEL_ENUM.MEDIO,
-      questionBankYearId: 'year-1',
-      solutionExplanation: null,
-      createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z',
-      options: [
-        { id: 'opt-1', option: 'Machado de Assis' },
-        { id: 'opt-2', option: 'José de Alencar' },
-        { id: 'opt-3', option: 'Clarice Lispector' },
-        { id: 'opt-4', option: 'Carlos Drummond de Andrade' },
-      ],
-    },
-  ];
-
-  const activity: ActivityData = {
-    type: ActivityType.RASCUNHO,
-    title: 'Rascunho com questões iniciais',
-    subjectId: 'matematica',
-    filters: {},
-    questionIds: [
-      'initial-question-1',
-      'initial-question-2',
-      'initial-question-3',
-    ],
-    selectedQuestions: mockQuestions,
-  };
-
   return (
-    <CreateActivity
-      apiClient={mockApiClientAllTypes}
-      institutionId="institution-1"
-      isDark={false}
-      activity={activity}
-    />
+    <BrowserRouter>
+      <CreateActivity
+        apiClient={mockApiClientAllTypes}
+        institutionId="institution-1"
+        isDark={false}
+      />
+    </BrowserRouter>
   );
 };
 
 WithInitialQuestions.storyName = 'With Initial Questions';
 
 export const WithActivity: Story = () => {
-  const mockActivity: ActivityData = {
-    id: 'activity-123',
-    type: ActivityType.RASCUNHO,
-    title: 'Rascunho - Matemática',
-    subjectId: 'matematica',
-    filters: {
-      questionTypes: ['ALTERNATIVA', 'DISSERTATIVA'],
-      questionBanks: [],
-      subjects: ['matematica'],
-      topics: ['tema-1'],
-      subtopics: [],
-      contents: [],
-    },
-    questionIds: [
-      'initial-question-1',
-      'initial-question-2',
-      'initial-question-3',
-    ],
-    selectedQuestions: [
+  return (
+    <BrowserRouter>
+      <CreateActivity
+        apiClient={mockApiClientAllTypes}
+        institutionId="institution-1"
+        isDark={false}
+      />
+    </BrowserRouter>
+  );
+};
       {
         id: 'initial-question-1',
         statement: 'Qual é a fórmula da área de um círculo?',
@@ -773,191 +685,54 @@ export const WithActivity: Story = () => {
 WithActivity.storyName = 'With Activity (Edit Mode)';
 
 export const WithActivityDebug: Story = () => {
-  const initialActivity: ActivityData = {
-    id: 'activity-123',
-    type: ActivityType.RASCUNHO,
-    title: 'Rascunho - Matemática',
-    subjectId: 'matematica',
-    filters: {
-      questionTypes: ['ALTERNATIVA', 'DISSERTATIVA'],
-      questionBanks: [],
-      subjects: ['matematica'],
-      topics: ['tema-1'],
-      subtopics: [],
-      contents: [],
-    },
-    questionIds: [
-      'initial-question-1',
-      'initial-question-2',
-      'initial-question-3',
-    ],
-    selectedQuestions: [
-      {
-        id: 'initial-question-1',
-        statement: 'Qual é a fórmula da área de um círculo?',
-        description: null,
-        questionType: QUESTION_TYPE.ALTERNATIVA,
-        status: QUESTION_STATUS_ENUM.APROVADO,
-        difficultyLevel: DIFFICULTY_LEVEL_ENUM.MEDIO,
-        questionBankYearId: 'year-1',
-        solutionExplanation: null,
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z',
-        knowledgeMatrix: [
-          {
-            subject: {
-              id: 'matematica',
-              name: 'Matemática',
-              color: '#0066b8',
-              icon: 'MathOperations',
-            },
-            topic: {
-              id: 'tema-2',
-              name: 'Geometria',
-            },
-          },
-        ],
-        options: [
-          { id: 'opt-1', option: 'πr²' },
-          { id: 'opt-2', option: '2πr' },
-          { id: 'opt-3', option: 'πd' },
-          { id: 'opt-4', option: 'r²' },
-        ],
-      },
-      {
-        id: 'initial-question-2',
-        statement: 'Quem escreveu "Dom Casmurro"?',
-        description: null,
-        questionType: QUESTION_TYPE.ALTERNATIVA,
-        status: QUESTION_STATUS_ENUM.APROVADO,
-        difficultyLevel: DIFFICULTY_LEVEL_ENUM.FACIL,
-        questionBankYearId: 'year-1',
-        solutionExplanation: null,
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z',
-        knowledgeMatrix: [
-          {
-            subject: {
-              id: 'portugues',
-              name: 'Português',
-              color: '#00a651',
-              icon: 'ChatPT',
-            },
-            topic: {
-              id: 'tema-3',
-              name: 'Literatura Brasileira',
-            },
-          },
-        ],
-        options: [
-          { id: 'opt-1', option: 'Machado de Assis' },
-          { id: 'opt-2', option: 'José de Alencar' },
-          { id: 'opt-3', option: 'Clarice Lispector' },
-          { id: 'opt-4', option: 'Carlos Drummond de Andrade' },
-        ],
-      },
-    ],
-  };
-
-  const [currentActivity, setCurrentActivity] =
-    useState<ActivityData>(initialActivity);
-
-  const handleActivityChange = (updatedActivity: ActivityData) => {
-    console.log('🔄 Activity atualizado via onActivityChange:');
-    console.log(updatedActivity);
-    setCurrentActivity(updatedActivity);
-  };
-
-  const handleSaveActivity = (
-    method: string,
-    url: string,
-    payload: unknown
-  ) => {
-    console.log('🔄 Envio do Activity para o Backend:');
-    console.log('Method:', method);
-    console.log('URL:', url);
-    console.log('Payload:', payload);
-  };
-
-  const handleLogCurrentActivity = () => {
-    console.log('📋 Activity Atual:');
-    console.log(currentActivity);
-  };
-
-  const mockApiClient = createMockApiClient(
-    [
-      'ALTERNATIVA',
-      'DISSERTATIVA',
-      'MULTIPLA_ESCOLHA',
-      'VERDADEIRO_FALSO',
-      'LIGAR_PONTOS',
-      'PREENCHER',
-      'IMAGEM',
-    ],
-    handleSaveActivity
-  );
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <div
-        style={{
-          padding: '16px',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '8px',
-          border: '1px solid #ddd',
-        }}
-      >
-        <h3
+    <BrowserRouter>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div
           style={{
-            margin: '0 0 12px 0',
-            fontSize: '16px',
-            fontWeight: 'bold',
+            padding: '16px',
+            backgroundColor: '#f5f5f5',
+            borderRadius: '8px',
+            border: '1px solid #ddd',
           }}
         >
-          Debug Panel
-        </h3>
-        <button
-          onClick={handleLogCurrentActivity}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#0066b8',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px',
-          }}
-        >
-          Log Activity Atual
-        </button>
-        {currentActivity && (
-          <div
+          <h3
             style={{
-              marginTop: '12px',
-              padding: '12px',
-              backgroundColor: 'white',
-              borderRadius: '4px',
-              fontSize: '12px',
-              fontFamily: 'monospace',
-              maxHeight: '200px',
-              overflow: 'auto',
+              margin: '0 0 12px 0',
+              fontSize: '16px',
+              fontWeight: 'bold',
             }}
           >
-            <strong>Activity Atual:</strong>
-            <pre style={{ margin: '8px 0 0 0', whiteSpace: 'pre-wrap' }}>
-              {JSON.stringify(currentActivity, null, 2)}
-            </pre>
-          </div>
-        )}
+            Debug Panel
+          </h3>
+          <p style={{ fontSize: '12px', color: '#666' }}>
+            O componente agora gerencia seu próprio estado interno. Use o
+            console do navegador para ver os logs de salvamento.
+          </p>
+        </div>
+        <CreateActivity
+          apiClient={createMockApiClient(
+            [
+              'ALTERNATIVA',
+              'DISSERTATIVA',
+              'MULTIPLA_ESCOLHA',
+              'VERDADEIRO_FALSO',
+              'LIGAR_PONTOS',
+              'PREENCHER',
+              'IMAGEM',
+            ],
+            (method: string, url: string, payload: unknown) => {
+              console.log('🔄 Envio do Activity para o Backend:');
+              console.log('Method:', method);
+              console.log('URL:', url);
+              console.log('Payload:', payload);
+            }
+          )}
+          institutionId="institution-1"
+          isDark={false}
+        />
       </div>
-      <CreateActivity
-        apiClient={mockApiClient}
-        institutionId="institution-1"
-        isDark={false}
-        activity={currentActivity}
-        onActivityChange={handleActivityChange}
-      />
-    </div>
+    </BrowserRouter>
   );
 };
 
@@ -965,12 +740,13 @@ WithActivityDebug.storyName = 'With Activity Debug (Logs)';
 
 export const LoadingState: Story = () => {
   return (
-    <CreateActivity
-      apiClient={mockApiClientAllTypes}
-      institutionId="institution-1"
-      isDark={false}
-      loading={true}
-    />
+    <BrowserRouter>
+      <CreateActivity
+        apiClient={mockApiClientAllTypes}
+        institutionId="institution-1"
+        isDark={false}
+      />
+    </BrowserRouter>
   );
 };
 
@@ -1000,14 +776,16 @@ export const WithSaveError: Story = () => {
   } as BaseApiClient;
 
   return (
-    <>
-      <CreateActivity
-        apiClient={errorApiClient}
-        institutionId="institution-1"
-        isDark={false}
-      />
-      <Toaster />
-    </>
+    <BrowserRouter>
+      <>
+        <CreateActivity
+          apiClient={errorApiClient}
+          institutionId="institution-1"
+          isDark={false}
+        />
+        <Toaster />
+      </>
+    </BrowserRouter>
   );
 };
 
@@ -1019,12 +797,14 @@ export const WithBackNavigation: Story = () => {
   };
 
   return (
-    <CreateActivity
-      apiClient={mockApiClientAllTypes}
-      institutionId="institution-1"
-      isDark={false}
-      onBack={handleBack}
-    />
+    <BrowserRouter>
+      <CreateActivity
+        apiClient={mockApiClientAllTypes}
+        institutionId="institution-1"
+        isDark={false}
+        onBack={handleBack}
+      />
+    </BrowserRouter>
   );
 };
 

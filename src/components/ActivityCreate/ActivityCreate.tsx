@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   ActivityFilters,
   ActivityPreview,
@@ -36,6 +37,8 @@ import {
   generateTitle,
   convertQuestionToPreview,
   loadCategoriesData,
+  getTypeFromUrl,
+  getTypeFromUrlString,
 } from './ActivityCreate.utils';
 import { ActivityCreateSkeleton } from './components/ActivityCreateSkeleton';
 import { ActivityCreateHeader } from './components/ActivityCreateHeader';
@@ -49,10 +52,6 @@ const CreateActivity = ({
   apiClient,
   institutionId,
   isDark,
-  activity,
-  onActivityChange,
-  loading = false,
-  preFilters,
   onBack,
   onCreateActivity,
   onSaveModel,
@@ -60,10 +59,6 @@ const CreateActivity = ({
   apiClient: BaseApiClient;
   institutionId: string;
   isDark: boolean;
-  activity?: ActivityData;
-  onActivityChange?: (activity: ActivityData) => void;
-  loading?: boolean;
-  preFilters?: ActivityPreFiltersInput | null;
   onBack?: () => void;
   onCreateActivity?: (
     activityId: string,
@@ -71,6 +66,8 @@ const CreateActivity = ({
   ) => void;
   onSaveModel?: (response: ActivityDraftResponse) => void;
 }) => {
+  const params = useParams<{ type?: string; id?: string }>();
+  const navigate = useNavigate();
   const applyFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.applyFilters
   );
@@ -87,6 +84,30 @@ const CreateActivity = ({
 
   const addToast = useToastStore((state) => state.addToast);
 
+  // Estados internos
+  const [activity, setActivity] = useState<ActivityData | null>(null);
+  const [preFilters, setPreFilters] = useState<ActivityPreFiltersInput | null>(
+    null
+  );
+  const [loading, setLoading] = useState(false);
+  const [questions, setQuestions] = useState<PreviewQuestion[]>([]);
+  const [loadingInitialQuestions, setLoadingInitialQuestions] = useState(false);
+  const [draftId, setDraftId] = useState<string | null>(params.id || null);
+  const [activityType, setActivityType] = useState<ActivityType>(
+    getTypeFromUrlString(params.type)
+  );
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  const [categories, setCategories] = useState<CategoryConfig[]>([]);
+  const [isSendingActivity, setIsSendingActivity] = useState(false);
+  const hasFirstSaveBeenDone = useRef(false);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedFiltersRef = useRef<ActivityFiltersData | null>(null);
+  const lastSavedQuestionsRef = useRef<PreviewQuestion[]>([]);
+  const hasAppliedInitialFiltersRef = useRef(false);
+  const lastFetchedActivityIdRef = useRef<string | null>(null);
+
   const handleFiltersChange = useCallback(
     (filters: ActivityFiltersData) => {
       setDraftFilters(filters);
@@ -97,27 +118,6 @@ const CreateActivity = ({
   const handleApplyFilters = useCallback(() => {
     applyFilters();
   }, [applyFilters]);
-
-  const [questions, setQuestions] = useState<PreviewQuestion[]>([]);
-  const [loadingInitialQuestions, setLoadingInitialQuestions] = useState(false);
-  const [draftId, setDraftId] = useState<string | null>(
-    activity?.id ? activity.id : null
-  );
-  const [activityType, setActivityType] = useState<ActivityType>(
-    (activity?.type as ActivityType) || ActivityType.RASCUNHO
-  );
-  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(
-    activity?.updatedAt ? new Date(activity.updatedAt) : null
-  );
-  const [isSaving, setIsSaving] = useState(false);
-  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
-  const [categories, setCategories] = useState<CategoryConfig[]>([]);
-  const [isSendingActivity, setIsSendingActivity] = useState(false);
-  const hasFirstSaveBeenDone = useRef(false);
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastSavedFiltersRef = useRef<ActivityFiltersData | null>(null);
-  const lastSavedQuestionsRef = useRef<PreviewQuestion[]>([]);
-  const hasAppliedInitialFiltersRef = useRef(false);
 
   const useActivityFiltersData = createUseActivityFiltersData(apiClient);
   const { knowledgeAreas, loadKnowledgeAreas } = useActivityFiltersData({
@@ -152,6 +152,76 @@ const CreateActivity = ({
   useEffect(() => {
     hasAppliedInitialFiltersRef.current = false;
   }, [activity?.id, activity?.filters, resolvedPreFilters]);
+
+  /**
+   * Busca o rascunho/modelo da atividade quando há um id na URL
+   * Só faz a busca se o id mudou para um diferente do que está sendo trabalhado
+   */
+  useEffect(() => {
+    const fetchActivityDraft = async () => {
+      // Só busca se há um id e ele é diferente do último buscado
+      // Remove a dependência de activity?.id para evitar refetch quando atualizamos activity via PATCH
+      if (params.id && params.id !== lastFetchedActivityIdRef.current) {
+        setLoading(true);
+        try {
+          const response = await apiClient.get<
+            { data: ActivityData } | ActivityData
+          >(`/activity-drafts/${params.id}`);
+          const activityData =
+            'data' in response.data ? response.data.data : response.data;
+
+          setActivity(activityData);
+          setPreFilters(activityData.filters);
+          setDraftId(activityData.id || null);
+          setActivityType(activityData.type);
+          if (activityData.updatedAt) {
+            setLastSavedAt(new Date(activityData.updatedAt));
+          }
+          lastFetchedActivityIdRef.current = params.id;
+        } catch (error) {
+          console.error('Erro ao buscar rascunho da atividade:', error);
+          addToast({
+            title: 'Erro ao carregar atividade',
+            description:
+              error instanceof Error
+                ? error.message
+                : 'Ocorreu um erro ao carregar a atividade. Tente novamente.',
+            variant: 'solid',
+            action: 'warning',
+            position: 'top-right',
+          });
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchActivityDraft();
+  }, [params.id, apiClient, addToast]);
+
+  /**
+   * Monitora activity.id e activity.type e atualiza a URL quando necessário
+   * Se activity.id ou activity.type mudarem, atualiza a URL para refletir o tipo correto
+   */
+  useEffect(() => {
+    if (activity?.id && activity?.type) {
+      const urlType = getTypeFromUrl(activity.type);
+      const currentUrlType = params.type;
+      const currentUrlId = params.id;
+
+      // Atualiza a URL se o tipo ou id mudaram
+      if (
+        !currentUrlType ||
+        !currentUrlId ||
+        currentUrlId !== activity.id ||
+        currentUrlType !== urlType
+      ) {
+        navigate(`/criar-atividade/${urlType}/${activity.id}`, {
+          replace: true,
+        });
+      }
+    }
+  }, [activity?.id, activity?.type, params.type, params.id, navigate]);
 
   /**
    * Validate if save conditions are met
@@ -215,6 +285,40 @@ const CreateActivity = ({
       setLastSavedAt(
         savedDraft?.updatedAt ? new Date(savedDraft.updatedAt) : new Date()
       );
+
+      // Atualiza o estado interno da atividade apenas com campos que mudaram
+      // Não atualizamos filters para evitar disparar novas buscas desnecessárias
+      if (savedDraft) {
+        setActivity((prevActivity) => {
+          if (!prevActivity || prevActivity.id !== savedDraft.id) {
+            // Se não há atividade anterior ou o ID mudou, atualiza tudo
+            return {
+              id: savedDraft.id,
+              type: savedDraft.type,
+              title: savedDraft.title,
+              subjectId: savedDraft.subjectId,
+              filters: savedDraft.filters,
+              questionIds: questions.map((q) => q.id),
+              updatedAt: savedDraft.updatedAt,
+            };
+          }
+          // Se é a mesma atividade, só atualiza campos que podem ter mudado
+          // Mantém filters do estado anterior para evitar refetch
+          return {
+            ...prevActivity,
+            type: savedDraft.type,
+            title: savedDraft.title,
+            subjectId: savedDraft.subjectId,
+            questionIds: questions.map((q) => q.id),
+            updatedAt: savedDraft.updatedAt,
+          };
+        });
+        setActivityType(savedDraft.type);
+        // Atualiza o ref para evitar refetch desnecessário
+        if (savedDraft.id) {
+          lastFetchedActivityIdRef.current = savedDraft.id;
+        }
+      }
 
       // Call onSaveModel callback if type is MODELO and callback is provided
       if (
@@ -285,11 +389,13 @@ const CreateActivity = ({
    *
    * @param savedDraft - Saved draft object from API
    * @param fullResponse - Full API response (optional, for onSaveModel callback)
+   * @param wasNewDraft - Whether this was a new draft creation (to update URL)
    */
   const updateStateAfterSave = useCallback(
     (
       savedDraft: ActivityDraftResponse['data']['draft'],
-      fullResponse?: ActivityDraftResponse
+      fullResponse?: ActivityDraftResponse,
+      wasNewDraft = false
     ) => {
       setDraftId(savedDraft.id);
       // Use updatedAt from savedDraft if available, otherwise use current time
@@ -299,6 +405,28 @@ const CreateActivity = ({
       lastSavedQuestionsRef.current = questions;
       lastSavedFiltersRef.current = appliedFilters!;
 
+      // Atualiza o estado interno da atividade
+      const updatedActivity: ActivityData = {
+        id: savedDraft.id,
+        type: savedDraft.type,
+        title: savedDraft.title,
+        subjectId: savedDraft.subjectId,
+        filters: savedDraft.filters,
+        questionIds: questions.map((q) => q.id),
+        updatedAt: savedDraft.updatedAt,
+      };
+      setActivity(updatedActivity);
+      setActivityType(savedDraft.type);
+      lastFetchedActivityIdRef.current = savedDraft.id;
+
+      // Se foi um novo rascunho, atualiza a URL
+      if (wasNewDraft && savedDraft.id) {
+        const urlType = getTypeFromUrl(savedDraft.type);
+        navigate(`/criar-atividade/${urlType}/${savedDraft.id}`, {
+          replace: true,
+        });
+      }
+
       // Call onSaveModel callback if type is MODELO and callback is provided
       if (
         savedDraft.type === ActivityType.MODELO &&
@@ -307,21 +435,8 @@ const CreateActivity = ({
       ) {
         onSaveModel(fullResponse);
       }
-
-      if (onActivityChange) {
-        const updatedActivity: ActivityData = {
-          id: savedDraft.id,
-          type: savedDraft.type,
-          title: savedDraft.title,
-          subjectId: savedDraft.subjectId,
-          filters: savedDraft.filters,
-          questionIds: questions.map((q) => q.id),
-          updatedAt: savedDraft.updatedAt,
-        };
-        onActivityChange(updatedActivity);
-      }
     },
-    [questions, appliedFilters, onActivityChange, onSaveModel]
+    [questions, appliedFilters, onSaveModel, navigate]
   );
 
   /**
@@ -349,7 +464,7 @@ const CreateActivity = ({
       hasFirstSaveBeenDone.current = true;
 
       const savedDraft = extractDraftFromResponse(response);
-      updateStateAfterSave(savedDraft, response?.data);
+      updateStateAfterSave(savedDraft, response?.data, true);
     } catch (error) {
       console.error('❌ Erro ao salvar rascunho:', error);
 
@@ -385,18 +500,6 @@ const CreateActivity = ({
   const handleSaveModel = useCallback(async () => {
     setActivityType(ActivityType.MODELO);
   }, []);
-
-  /**
-   * Update draftId and lastSavedAt when activity changes
-   */
-  useEffect(() => {
-    if (activity?.id) {
-      setDraftId(activity.id);
-    }
-    if (activity?.updatedAt) {
-      setLastSavedAt(new Date(activity.updatedAt));
-    }
-  }, [activity?.id, activity?.updatedAt]);
 
   /**
    * Load knowledge areas on mount
@@ -747,7 +850,7 @@ const CreateActivity = ({
     >
       {/* Header Section */}
       <ActivityCreateHeader
-        activity={activity}
+        activity={activity || undefined}
         activityType={activityType}
         lastSavedAt={lastSavedAt}
         isSaving={isSaving}
