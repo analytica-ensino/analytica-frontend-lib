@@ -140,22 +140,24 @@ export const getSchoolYearOptionsFromUserData = (
 export const getClassOptionsFromUserData = (
   userData: UserFilterSourceData | null | undefined
 ): ActivityFilterOption[] => {
-  if (!userData?.userInstitutions) {
+  if (!userData) {
     return [];
   }
 
   const classesMap = new Map<string, ActivityFilterOption>();
 
-  for (const userInst of userData.userInstitutions) {
-    if (userInst.class?.id && userInst.class?.name) {
-      classesMap.set(userInst.class.id, {
-        id: userInst.class.id,
-        name: userInst.class.name,
-      });
+  if (userData.userInstitutions) {
+    for (const userInst of userData.userInstitutions) {
+      if (userInst.class?.id && userInst.class?.name) {
+        classesMap.set(userInst.class.id, {
+          id: userInst.class.id,
+          name: userInst.class.name,
+        });
+      }
     }
   }
 
-  if (userData?.subTeacherTopicClasses) {
+  if (userData.subTeacherTopicClasses) {
     for (const subTeacher of userData.subTeacherTopicClasses) {
       if (subTeacher.class?.id && subTeacher.class?.name) {
         classesMap.set(subTeacher.class.id, {

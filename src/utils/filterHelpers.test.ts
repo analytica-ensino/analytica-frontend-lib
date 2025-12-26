@@ -438,6 +438,20 @@ describe('filterHelpers', () => {
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe('Turma A');
     });
+
+    it('should extract classes from subTeacherTopicClasses when userInstitutions is undefined', () => {
+      const userData: UserFilterSourceData = {
+        subTeacherTopicClasses: [
+          { class: { id: 'class-1', name: 'Turma A' } },
+          { class: { id: 'class-2', name: 'Turma B' } },
+        ],
+      };
+
+      const result = getClassOptionsFromUserData(userData);
+      expect(result).toHaveLength(2);
+      expect(result[0].name).toBe('Turma A');
+      expect(result[1].name).toBe('Turma B');
+    });
   });
 
   describe('buildUserFilterData', () => {
