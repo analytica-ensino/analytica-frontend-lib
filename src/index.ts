@@ -691,6 +691,26 @@ export type {
   ActivityUserFilterData,
 } from './types/activitiesHistory';
 
+// Subject Mappers
+export {
+  mapSubjectNameToEnum,
+  mapSubjectEnumToName,
+} from './utils/subjectMappers';
+
+// Filter Helpers (robust version with deduplication)
+export {
+  getSchoolOptionsFromUserData,
+  getSubjectOptionsFromUserData,
+  getSchoolYearOptionsFromUserData,
+  getClassOptionsFromUserData,
+  buildUserFilterData,
+} from './utils/filterHelpers';
+export type {
+  UserInstitutionData,
+  SubTeacherTopicClassData,
+  UserFilterSourceData,
+} from './utils/filterHelpers';
+
 // Chat Hooks
 export { useChat, createUseChat, WS_STATES } from './hooks/useChat';
 export type { UseChatOptions, UseChatReturn } from './hooks/useChat';
