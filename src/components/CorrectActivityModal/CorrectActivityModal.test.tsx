@@ -287,7 +287,11 @@ describe('CorrectActivityModal', () => {
 
       expect(screen.getByText('Nova observação')).toBeInTheDocument();
       expect(screen.getByText('Editar')).toBeInTheDocument();
-      expect(onObservationSubmit).toHaveBeenCalledWith('Nova observação', []);
+      expect(onObservationSubmit).toHaveBeenCalledWith(
+        'student-123',
+        'Nova observação',
+        []
+      );
     });
 
     it('deve permitir editar observação salva', () => {

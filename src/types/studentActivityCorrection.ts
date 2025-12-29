@@ -48,7 +48,10 @@ export interface StudentActivityCorrectionData {
   incorrectCount: number;
   blankCount: number;
   questions: StudentQuestion[];
+  /** Teacher observation text */
   observation?: string;
+  /** URL of attached file */
+  attachment?: string;
 }
 
 /**

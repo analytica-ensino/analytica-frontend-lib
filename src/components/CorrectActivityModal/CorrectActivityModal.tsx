@@ -35,7 +35,11 @@ export interface CorrectActivityModalProps {
   /** Whether the modal is in view-only mode */
   isViewOnly?: boolean;
   /** Callback when observation is submitted with optional files */
-  onObservationSubmit?: (observation: string, files: File[]) => void;
+  onObservationSubmit?: (
+    studentId: string,
+    observation: string,
+    files: File[]
+  ) => void;
 }
 
 /**
@@ -154,21 +158,33 @@ const CorrectActivityModal = ({
   const [savedObservation, setSavedObservation] = useState('');
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [savedFiles, setSavedFiles] = useState<AttachedFile[]>([]);
+  const [existingAttachment, setExistingAttachment] = useState<string | null>(
+    null
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /**
    * Reset state when modal opens or student changes
+   * Load existing observation and attachment if available
    */
   useEffect(() => {
     if (isOpen) {
       setObservation('');
       setIsObservationExpanded(false);
-      setIsObservationSaved(false);
-      setSavedObservation('');
       setAttachedFiles([]);
       setSavedFiles([]);
+      setExistingAttachment(data?.attachment ?? null);
+
+      // Load existing observation/attachment if available
+      if (data?.observation || data?.attachment) {
+        setIsObservationSaved(true);
+        setSavedObservation(data.observation || '');
+      } else {
+        setIsObservationSaved(false);
+        setSavedObservation('');
+      }
     }
-  }, [isOpen, data?.studentId]);
+  }, [isOpen, data?.studentId, data?.observation, data?.attachment]);
 
   /**
    * Handle opening observation section
@@ -205,10 +221,15 @@ const CorrectActivityModal = ({
       setSavedFiles([...attachedFiles]);
       setIsObservationSaved(true);
       setIsObservationExpanded(false);
-      onObservationSubmit?.(
-        observation,
-        attachedFiles.map((f) => f.file)
-      );
+
+      // Pass studentId explicitly from data prop to avoid stale closure issues
+      if (data?.studentId) {
+        onObservationSubmit?.(
+          data.studentId,
+          observation,
+          attachedFiles.map((f) => f.file)
+        );
+      }
     }
   };
 
@@ -229,10 +250,23 @@ const CorrectActivityModal = ({
 
   /**
    * Render observation section based on current state
+   * Allows observations in all activity statuses (not just pending correction)
    * @returns JSX element for observation section
    */
   const renderObservationSection = () => {
-    if (isViewOnly) return null;
+    /**
+     * Get file name from URL
+     * @param url - File URL
+     * @returns File name extracted from URL
+     */
+    const getFileNameFromUrl = (url: string): string => {
+      try {
+        const urlPath = new URL(url).pathname;
+        return urlPath.split('/').pop() || 'Anexo';
+      } catch {
+        return 'Anexo';
+      }
+    };
 
     // State: Saved
     if (isObservationSaved) {
@@ -241,6 +275,7 @@ const CorrectActivityModal = ({
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <Text className="text-sm font-bold text-text-950">Observação</Text>
             <div className="flex items-center gap-3">
+              {/* Show newly attached file */}
               {savedFiles.length > 0 && (
                 <div className="flex items-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px]">
                   <Paperclip
@@ -251,6 +286,23 @@ const CorrectActivityModal = ({
                     {savedFiles[0].file.name}
                   </span>
                 </div>
+              )}
+              {/* Show existing attachment from server (URL) */}
+              {savedFiles.length === 0 && existingAttachment && (
+                <a
+                  href={existingAttachment}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px] hover:bg-secondary-600 transition-colors"
+                >
+                  <Paperclip
+                    size={18}
+                    className="text-text-800 flex-shrink-0"
+                  />
+                  <span className="text-base font-medium text-text-800 truncate">
+                    {getFileNameFromUrl(existingAttachment)}
+                  </span>
+                </a>
               )}
               <Button
                 type="button"

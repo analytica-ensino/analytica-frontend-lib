@@ -298,23 +298,21 @@ export const ActivityDetails = ({
 
   /**
    * Handle observation submit
+   * @param studentId - Student ID from modal (passed explicitly to avoid stale closure)
+   * @param observation - Observation text
+   * @param files - Attached files
    */
   const handleObservationSubmit = useCallback(
-    async (observation: string, files: File[]) => {
-      if (!activityId || !correctionData?.studentId) return;
+    async (studentId: string, observation: string, files: File[]) => {
+      if (!activityId || !studentId) return;
       try {
-        await submitObservation(
-          activityId,
-          correctionData.studentId,
-          observation,
-          files
-        );
+        await submitObservation(activityId, studentId, observation, files);
         setIsModalOpen(false);
       } catch (err) {
         console.error('Failed to submit observation:', err);
       }
     },
-    [activityId, correctionData?.studentId, submitObservation]
+    [activityId, submitObservation]
   );
 
   /**
