@@ -24,7 +24,7 @@ const activityHistoryResponseSchema = z.object({
   startDate: z.string().nullable(),
   finalDate: z.string().nullable(),
   status: z.nativeEnum(ActivityApiStatus),
-  completionPercentage: z.number().min(0).max(100),
+  completionPercentage: z.number().min(0).max(100).optional().default(0),
   subjectId: z.string().uuid().optional().nullable(),
   schoolId: z.string().optional(),
   schoolName: z.string().optional(),
@@ -36,7 +36,19 @@ const activityHistoryResponseSchema = z.object({
 export const activitiesHistoryApiResponseSchema = z.object({
   message: z.string(),
   data: z.object({
-    activities: z.array(activityHistoryResponseSchema),
+    activities: z.array(z.unknown()).transform((items) =>
+      items
+        .map((item) => activityHistoryResponseSchema.safeParse(item))
+        .filter(
+          (
+            result
+          ): result is {
+            success: true;
+            data: z.infer<typeof activityHistoryResponseSchema>;
+          } => result.success
+        )
+        .map((result) => result.data)
+    ),
     pagination: z.object({
       total: z.number(),
       page: z.number(),

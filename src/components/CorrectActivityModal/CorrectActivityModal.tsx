@@ -225,7 +225,7 @@ const CorrectActivityModal = ({
   if (!data) return null;
 
   const title = isViewOnly ? 'Detalhes da atividade' : 'Corrigir atividade';
-  const formattedScore = data.score === null ? '-' : data.score.toFixed(1);
+  const formattedScore = data.score == null ? '-' : data.score.toFixed(1);
 
   /**
    * Render observation section based on current state
@@ -374,11 +374,11 @@ const CorrectActivityModal = ({
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
             <Text className="text-lg font-semibold text-primary-700">
-              {data.studentName.charAt(0).toUpperCase()}
+              {data.studentName?.charAt(0).toUpperCase() || '-'}
             </Text>
           </div>
           <Text className="text-lg font-medium text-text-950">
-            {data.studentName}
+            {data.studentName || 'Aluno'}
           </Text>
         </div>
 
@@ -404,7 +404,7 @@ const CorrectActivityModal = ({
         <div className="space-y-2">
           <Text className="text-sm font-bold text-text-950">Respostas</Text>
           <AccordionGroup type="multiple" className="space-y-2">
-            {data.questions.map((question) => {
+            {data.questions?.map((question) => {
               const badgeConfig = getQuestionStatusBadgeConfig(question.status);
 
               return (
