@@ -678,6 +678,7 @@ export const ActivityDetails = ({
 
       {/* Correct Activity Modal */}
       <CorrectActivityModal
+        key={correctionData?.studentId || 'modal'}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         data={correctionData}
