@@ -70,11 +70,6 @@ jest.mock('../TableProvider/TableProvider', () => ({
       label: string;
       render?: (value: unknown, row: unknown) => ReactNode;
     }[];
-    loading?: boolean;
-    variant?: string;
-    enableTableSort?: boolean;
-    enablePagination?: boolean;
-    paginationConfig?: unknown;
     emptyState?: { component: ReactNode };
     onParamsChange?: (params: { page?: number; limit?: number }) => void;
   }) => {
@@ -105,8 +100,8 @@ jest.mock('../TableProvider/TableProvider', () => ({
                     timeSpent: number;
                     score: number | null;
                   }[]
-                ).map((item, idx) => (
-                  <tr key={idx}>
+                ).map((item) => (
+                  <tr key={item.studentId}>
                     <td>
                       {studentNameColumn?.render
                         ? studentNameColumn.render(item.studentName, item)
@@ -266,7 +261,7 @@ const mockActivityData: ActivityDetailsData = {
 const mockCorrectionData: StudentActivityCorrectionData = {
   studentId: 'student-2',
   studentName: 'Maria Santos',
-  score: 7.0,
+  score: 7,
   correctCount: 3,
   incorrectCount: 1,
   blankCount: 1,
@@ -279,6 +274,11 @@ const mockCorrectionData: StudentActivityCorrectionData = {
     },
   ],
 };
+
+/**
+ * Helper to create a pending promise that never resolves
+ */
+const createPendingPromise = <T,>(): Promise<T> => new Promise<T>(() => {});
 
 describe('ActivityDetails', () => {
   const mockFetchActivityDetails = jest.fn();
@@ -308,7 +308,7 @@ describe('ActivityDetails', () => {
 
   describe('Loading State', () => {
     it('should render loading skeleton initially', () => {
-      mockFetchActivityDetails.mockImplementation(() => new Promise(() => {}));
+      mockFetchActivityDetails.mockReturnValue(createPendingPromise());
 
       render(<ActivityDetails {...defaultProps} />);
 
@@ -317,7 +317,7 @@ describe('ActivityDetails', () => {
     });
 
     it('should render multiple skeleton rounded elements', () => {
-      mockFetchActivityDetails.mockImplementation(() => new Promise(() => {}));
+      mockFetchActivityDetails.mockReturnValue(createPendingPromise());
 
       render(<ActivityDetails {...defaultProps} />);
 
@@ -475,7 +475,8 @@ describe('ActivityDetails', () => {
       await waitFor(() => {
         expect(mockFetchStudentCorrection).toHaveBeenCalledWith(
           'activity-123',
-          'student-2'
+          'student-2',
+          'Maria Santos'
         );
       });
     });

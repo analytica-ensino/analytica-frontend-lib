@@ -45,7 +45,8 @@ export interface ActivityDetailsProps {
   /** Function to fetch student correction data */
   fetchStudentCorrection: (
     activityId: string,
-    studentId: string
+    studentId: string,
+    studentName: string
   ) => Promise<StudentActivityCorrectionData>;
   /** Function to submit observation */
   submitObservation: (
@@ -269,7 +270,11 @@ export const ActivityDetails = ({
 
       setCorrectionError(null);
       try {
-        const correction = await fetchStudentCorrection(activityId, studentId);
+        const correction = await fetchStudentCorrection(
+          activityId,
+          studentId,
+          student.studentName || 'Aluno'
+        );
         setCorrectionData(correction);
         setIsModalOpen(true);
       } catch (err) {
