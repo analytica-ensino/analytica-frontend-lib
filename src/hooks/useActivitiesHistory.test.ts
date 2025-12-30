@@ -327,7 +327,7 @@ describe('useActivitiesHistory', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should reject invalid activity id format', () => {
+    it('should filter out activities with invalid id format', () => {
       const invalidResponse = {
         message: 'Success',
         data: {
@@ -353,7 +353,10 @@ describe('useActivitiesHistory', () => {
 
       const result =
         activitiesHistoryApiResponseSchema.safeParse(invalidResponse);
-      expect(result.success).toBe(false);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.data.activities).toHaveLength(0);
+      }
     });
 
     it('should reject missing required fields', () => {
@@ -370,7 +373,7 @@ describe('useActivitiesHistory', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject invalid status value', () => {
+    it('should filter out activities with invalid status value', () => {
       const invalidStatus = {
         message: 'Success',
         data: {
@@ -396,10 +399,13 @@ describe('useActivitiesHistory', () => {
 
       const result =
         activitiesHistoryApiResponseSchema.safeParse(invalidStatus);
-      expect(result.success).toBe(false);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.data.activities).toHaveLength(0);
+      }
     });
 
-    it('should reject completion percentage out of range', () => {
+    it('should filter out activities with completion percentage out of range', () => {
       const outOfRange = {
         message: 'Success',
         data: {
@@ -424,7 +430,10 @@ describe('useActivitiesHistory', () => {
       };
 
       const result = activitiesHistoryApiResponseSchema.safeParse(outOfRange);
-      expect(result.success).toBe(false);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.data.activities).toHaveLength(0);
+      }
     });
   });
 

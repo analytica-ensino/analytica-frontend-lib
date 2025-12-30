@@ -127,7 +127,12 @@ const ModalWrapper = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleObservationSubmit = (observation: string, files: File[]) => {
+  const handleObservationSubmit = (
+    studentId: string,
+    observation: string,
+    files: File[]
+  ) => {
+    console.log('Student ID:', studentId);
     console.log('Observação enviada:', observation);
     console.log('Arquivos:', files);
   };
