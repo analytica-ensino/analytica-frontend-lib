@@ -216,7 +216,7 @@ const CorrectActivityModal = ({
    * Handle saving observation
    */
   const handleSaveObservation = () => {
-    if (observation.trim() || attachedFiles.length > 0) {
+    if (observation.trim() || attachedFiles.length > 0 || existingAttachment) {
       setSavedObservation(observation);
       setSavedFiles([...attachedFiles]);
       setIsObservationSaved(true);
@@ -261,11 +261,78 @@ const CorrectActivityModal = ({
      */
     const getFileNameFromUrl = (url: string): string => {
       try {
-        const urlPath = new URL(url).pathname;
+        const urlObj = new URL(url);
+        const urlPath = urlObj.pathname;
         return urlPath.split('/').pop() || 'Anexo';
       } catch {
         return 'Anexo';
       }
+    };
+
+    /**
+     * Render attachment input section for expanded state
+     * @returns JSX element for attachment input
+     */
+    const renderAttachmentInput = () => {
+      if (attachedFiles.length > 0) {
+        return (
+          <div className="flex items-center justify-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px]">
+            <Paperclip size={18} className="text-text-800 flex-shrink-0" />
+            <span className="text-base font-medium text-text-800 truncate">
+              {attachedFiles[0].file.name}
+            </span>
+            <button
+              type="button"
+              onClick={() => handleFileRemove(attachedFiles[0].id)}
+              className="text-text-700 hover:text-text-800 flex-shrink-0"
+              aria-label={`Remover ${attachedFiles[0].file.name}`}
+            >
+              <X size={18} />
+            </button>
+          </div>
+        );
+      }
+
+      if (existingAttachment) {
+        return (
+          <div className="flex items-center gap-2">
+            <a
+              href={existingAttachment}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px] hover:bg-secondary-600 transition-colors"
+            >
+              <Paperclip size={18} className="text-text-800 flex-shrink-0" />
+              <span className="text-base font-medium text-text-800 truncate">
+                {getFileNameFromUrl(existingAttachment)}
+              </span>
+            </a>
+            <Button
+              type="button"
+              variant="outline"
+              size="small"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2"
+            >
+              <Paperclip size={18} />
+              Trocar
+            </Button>
+          </div>
+        );
+      }
+
+      return (
+        <Button
+          type="button"
+          variant="outline"
+          size="small"
+          onClick={() => fileInputRef.current?.click()}
+          className="flex items-center gap-2"
+        >
+          <Paperclip size={18} />
+          Anexar
+        </Button>
+      );
     };
 
     // State: Saved
@@ -354,38 +421,16 @@ const CorrectActivityModal = ({
           />
           {/* Buttons row: File indicator or Anexar button left, Salvar right */}
           <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
-            {attachedFiles.length > 0 ? (
-              <div className="flex items-center justify-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px]">
-                <Paperclip size={18} className="text-text-800 flex-shrink-0" />
-                <span className="text-base font-medium text-text-800 truncate">
-                  {attachedFiles[0].file.name}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleFileRemove(attachedFiles[0].id)}
-                  className="text-text-700 hover:text-text-800 flex-shrink-0"
-                  aria-label={`Remover ${attachedFiles[0].file.name}`}
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            ) : (
-              <Button
-                type="button"
-                variant="outline"
-                size="small"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2"
-              >
-                <Paperclip size={18} />
-                Anexar
-              </Button>
-            )}
+            {renderAttachmentInput()}
             <Button
               type="button"
               size="small"
               onClick={handleSaveObservation}
-              disabled={!observation.trim() && attachedFiles.length === 0}
+              disabled={
+                !observation.trim() &&
+                attachedFiles.length === 0 &&
+                !existingAttachment
+              }
             >
               Salvar
             </Button>

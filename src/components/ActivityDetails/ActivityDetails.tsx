@@ -307,7 +307,6 @@ export const ActivityDetails = ({
       if (!activityId || !studentId) return;
       try {
         await submitObservation(activityId, studentId, observation, files);
-        setIsModalOpen(false);
       } catch (err) {
         console.error('Failed to submit observation:', err);
       }
