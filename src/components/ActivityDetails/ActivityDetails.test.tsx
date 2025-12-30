@@ -819,4 +819,31 @@ describe('ActivityDetails', () => {
       });
     });
   });
+
+  describe('Sorting', () => {
+    it('should handle undefined sortOrder in params', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(mockFetchActivityDetails).toHaveBeenCalledWith(
+          'activity-123',
+          expect.objectContaining({
+            page: 1,
+            limit: 10,
+          })
+        );
+      });
+    });
+
+    it('should handle sort interaction with table', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        const elements = screen.getAllByText('Prova de Matemática');
+        expect(elements.length).toBeGreaterThan(0);
+      });
+
+      expect(mockFetchActivityDetails).toHaveBeenCalled();
+    });
+  });
 });

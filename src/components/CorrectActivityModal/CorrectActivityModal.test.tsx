@@ -883,4 +883,93 @@ describe('CorrectActivityModal', () => {
       expect(screen.getByText('Editar')).toBeInTheDocument();
     });
   });
+
+  describe('Existing attachment scenarios', () => {
+    it('deve retornar "Anexo" quando URL é inválida no existingAttachment', () => {
+      const dataWithInvalidAttachment = {
+        ...mockData,
+        observation: 'Obs existente',
+        attachment: 'invalid-url-without-protocol',
+      };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithInvalidAttachment}
+          isViewOnly={false}
+        />
+      );
+      expect(screen.getByText('Anexo')).toBeInTheDocument();
+    });
+
+    it('deve exibir existingAttachment com link e botão Trocar ao editar', () => {
+      const dataWithAttachment = {
+        ...mockData,
+        observation: 'Observação existente',
+        attachment: 'https://example.com/files/documento.pdf',
+      };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithAttachment}
+          isViewOnly={false}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Editar'));
+
+      expect(screen.getByText('documento.pdf')).toBeInTheDocument();
+      expect(screen.getByText('Trocar')).toBeInTheDocument();
+    });
+
+    it('deve abrir seletor de arquivo ao clicar em Trocar', () => {
+      const dataWithAttachment = {
+        ...mockData,
+        observation: 'Obs',
+        attachment: 'https://example.com/file.pdf',
+      };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithAttachment}
+          isViewOnly={false}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Editar'));
+
+      const fileInput = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      const clickSpy = jest.spyOn(fileInput, 'click');
+
+      fireEvent.click(screen.getByText('Trocar'));
+
+      expect(clickSpy).toHaveBeenCalled();
+    });
+
+    it('deve habilitar Salvar quando há apenas existingAttachment sem novo texto', () => {
+      const dataWithAttachment = {
+        ...mockData,
+        observation: 'Obs antiga',
+        attachment: 'https://example.com/file.pdf',
+      };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithAttachment}
+          isViewOnly={false}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Editar'));
+
+      const textarea = screen.getByPlaceholderText(
+        'Escreva uma observação para o estudante'
+      );
+      fireEvent.change(textarea, { target: { value: '' } });
+
+      const salvarButton = screen.getByText('Salvar');
+      expect(salvarButton).not.toBeDisabled();
+    });
+  });
 });
