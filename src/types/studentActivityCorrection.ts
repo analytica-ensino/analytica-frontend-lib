@@ -5,6 +5,7 @@ export const QUESTION_STATUS = {
   CORRETA: 'CORRETA',
   INCORRETA: 'INCORRETA',
   EM_BRANCO: 'EM_BRANCO',
+  /** Reserved for future use - pending teacher evaluation for essay questions */
   PENDENTE: 'PENDENTE',
 } as const;
 

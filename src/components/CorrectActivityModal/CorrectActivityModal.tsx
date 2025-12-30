@@ -217,19 +217,22 @@ const CorrectActivityModal = ({
    */
   const handleSaveObservation = () => {
     if (observation.trim() || attachedFiles.length > 0 || existingAttachment) {
+      // Validate studentId before saving to prevent silent no-op
+      if (!data?.studentId) {
+        return;
+      }
+
       setSavedObservation(observation);
       setSavedFiles([...attachedFiles]);
       setIsObservationSaved(true);
       setIsObservationExpanded(false);
 
       // Pass studentId explicitly from data prop to avoid stale closure issues
-      if (data?.studentId) {
-        onObservationSubmit?.(
-          data.studentId,
-          observation,
-          attachedFiles.map((f) => f.file)
-        );
-      }
+      onObservationSubmit?.(
+        data.studentId,
+        observation,
+        attachedFiles.map((f) => f.file)
+      );
     }
   };
 
