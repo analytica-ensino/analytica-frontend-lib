@@ -165,19 +165,26 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
   default: ({
     isOpen,
     onClose,
+    data,
     onObservationSubmit,
   }: {
     isOpen: boolean;
     onClose: () => void;
-    data?: unknown;
+    data?: { studentId?: string };
     isViewOnly?: boolean;
-    onObservationSubmit?: (observation: string, files: File[]) => void;
+    onObservationSubmit?: (
+      studentId: string,
+      observation: string,
+      files: File[]
+    ) => void;
   }) =>
     isOpen ? (
       <div data-testid="correct-activity-modal">
         <button onClick={onClose}>Fechar</button>
         <button
-          onClick={() => onObservationSubmit?.('Test observation', [])}
+          onClick={() =>
+            onObservationSubmit?.(data?.studentId || '', 'Test observation', [])
+          }
           data-testid="submit-observation"
         >
           Enviar observação
