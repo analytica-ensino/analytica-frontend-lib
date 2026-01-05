@@ -4,6 +4,10 @@
 // CSS import
 import './styles.css';
 
+// Layout Components
+export { PageContainer } from './components/PageContainer';
+export type { PageContainerProps } from './components/PageContainer';
+
 // Basic Components
 export { default as Text } from './components/Text/Text';
 export { default as Button } from './components/Button/Button';
