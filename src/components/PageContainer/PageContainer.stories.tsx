@@ -40,7 +40,9 @@ export const AllPageContainers: Story = () => (
     </div>
 
     {/* PageContainer com className customizada */}
-    <h3 className="font-bold text-2xl text-text-900">Com className customizada</h3>
+    <h3 className="font-bold text-2xl text-text-900">
+      Com className customizada
+    </h3>
     <div className="w-full border border-border-200 rounded-lg">
       <PageContainer className="bg-primary-50">
         <div className="bg-background-100 p-4 rounded-lg">
@@ -58,7 +60,9 @@ export const Default: Story = () => (
   <div className="w-full border border-border-200 rounded-lg">
     <PageContainer>
       <div className="bg-background-100 p-4 rounded-lg">
-        <h1 className="text-text-900 font-bold text-xl mb-2">Título da Página</h1>
+        <h1 className="text-text-900 font-bold text-xl mb-2">
+          Título da Página
+        </h1>
         <p className="text-text-700">
           Este é um exemplo de conteúdo dentro do PageContainer.
         </p>
