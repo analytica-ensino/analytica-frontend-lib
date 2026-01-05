@@ -5,8 +5,8 @@
 import './styles.css';
 
 // Layout Components
-export { PageContainer } from './components/PageContainer';
-export type { PageContainerProps } from './components/PageContainer';
+export { PageContainer } from './components/PageContainer/PageContainer';
+export type { PageContainerProps } from './components/PageContainer/PageContainer';
 
 // Basic Components
 export { default as Text } from './components/Text/Text';
