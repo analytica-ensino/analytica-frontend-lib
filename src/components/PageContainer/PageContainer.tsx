@@ -13,11 +13,11 @@ export function PageContainer({
   return (
     <div
       className={cn(
-        'flex flex-col w-full h-full relative justify-center items-center pb-5',
+        'flex flex-col w-full h-full justify-center items-center pb-5',
         className
       )}
     >
-      <div className="flex flex-col w-full h-full max-w-[1000px] z-10 lg:px-0 px-4">
+      <div className="flex flex-col w-full max-w-[1000px] lg:px-0 px-4">
         {children}
       </div>
     </div>

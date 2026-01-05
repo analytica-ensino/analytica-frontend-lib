@@ -24,7 +24,6 @@ describe('PageContainer', () => {
     expect(outerDiv).toHaveClass('flex-col');
     expect(outerDiv).toHaveClass('w-full');
     expect(outerDiv).toHaveClass('h-full');
-    expect(outerDiv).toHaveClass('relative');
     expect(outerDiv).toHaveClass('justify-center');
     expect(outerDiv).toHaveClass('items-center');
     expect(outerDiv).toHaveClass('pb-5');
@@ -40,9 +39,7 @@ describe('PageContainer', () => {
     expect(innerDiv).toHaveClass('flex');
     expect(innerDiv).toHaveClass('flex-col');
     expect(innerDiv).toHaveClass('w-full');
-    expect(innerDiv).toHaveClass('h-full');
     expect(innerDiv).toHaveClass('max-w-[1000px]');
-    expect(innerDiv).toHaveClass('z-10');
     expect(innerDiv).toHaveClass('lg:px-0');
     expect(innerDiv).toHaveClass('px-4');
   });
