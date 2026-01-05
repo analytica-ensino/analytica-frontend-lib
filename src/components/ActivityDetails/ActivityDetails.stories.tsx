@@ -167,11 +167,7 @@ const defaultProps: ActivityDetailsProps = {
     await new Promise((resolve) => setTimeout(resolve, 500));
     return mockActivityData;
   },
-  fetchStudentCorrection: async (
-    _activityId: string,
-    _studentId: string,
-    _studentName: string
-  ) => {
+  fetchStudentCorrection: async () => {
     await new Promise((resolve) => setTimeout(resolve, 300));
     return mockCorrectionData;
   },
