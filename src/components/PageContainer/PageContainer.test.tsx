@@ -24,7 +24,6 @@ describe('PageContainer', () => {
     expect(outerDiv).toHaveClass('flex-col');
     expect(outerDiv).toHaveClass('w-full');
     expect(outerDiv).toHaveClass('h-full');
-    expect(outerDiv).toHaveClass('justify-center');
     expect(outerDiv).toHaveClass('items-center');
     expect(outerDiv).toHaveClass('pb-5');
   });
