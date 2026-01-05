@@ -5,6 +5,8 @@ export const QUESTION_STATUS = {
   CORRETA: 'CORRETA',
   INCORRETA: 'INCORRETA',
   EM_BRANCO: 'EM_BRANCO',
+  /** Reserved for future use - pending teacher evaluation for essay questions */
+  PENDENTE: 'PENDENTE',
 } as const;
 
 export type QuestionStatus =
@@ -47,7 +49,10 @@ export interface StudentActivityCorrectionData {
   incorrectCount: number;
   blankCount: number;
   questions: StudentQuestion[];
+  /** Teacher observation text */
   observation?: string;
+  /** URL of attached file */
+  attachment?: string;
 }
 
 /**
@@ -74,6 +79,11 @@ export const getQuestionStatusBadgeConfig = (status: QuestionStatus) => {
       label: 'Em branco',
       bgColor: 'bg-gray-100',
       textColor: 'text-gray-600',
+    },
+    [QUESTION_STATUS.PENDENTE]: {
+      label: 'Pendente',
+      bgColor: 'bg-warning-background',
+      textColor: 'text-warning-800',
     },
   };
 

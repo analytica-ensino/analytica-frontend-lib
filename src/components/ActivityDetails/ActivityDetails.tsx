@@ -45,7 +45,8 @@ export interface ActivityDetailsProps {
   /** Function to fetch student correction data */
   fetchStudentCorrection: (
     activityId: string,
-    studentId: string
+    studentId: string,
+    studentName: string
   ) => Promise<StudentActivityCorrectionData>;
   /** Function to submit observation */
   submitObservation: (
@@ -269,7 +270,11 @@ export const ActivityDetails = ({
 
       setCorrectionError(null);
       try {
-        const correction = await fetchStudentCorrection(activityId, studentId);
+        const correction = await fetchStudentCorrection(
+          activityId,
+          studentId,
+          student.studentName || 'Aluno'
+        );
         setCorrectionData(correction);
         setIsModalOpen(true);
       } catch (err) {
@@ -293,23 +298,20 @@ export const ActivityDetails = ({
 
   /**
    * Handle observation submit
+   * @param studentId - Student ID from modal (passed explicitly to avoid stale closure)
+   * @param observation - Observation text
+   * @param files - Attached files
    */
   const handleObservationSubmit = useCallback(
-    async (observation: string, files: File[]) => {
-      if (!activityId || !correctionData?.studentId) return;
+    async (studentId: string, observation: string, files: File[]) => {
+      if (!activityId || !studentId) return;
       try {
-        await submitObservation(
-          activityId,
-          correctionData.studentId,
-          observation,
-          files
-        );
-        setIsModalOpen(false);
+        await submitObservation(activityId, studentId, observation, files);
       } catch (err) {
         console.error('Failed to submit observation:', err);
       }
     },
-    [activityId, correctionData?.studentId, submitObservation]
+    [activityId, submitObservation]
   );
 
   /**

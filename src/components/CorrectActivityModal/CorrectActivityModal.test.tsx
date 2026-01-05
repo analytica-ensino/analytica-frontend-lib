@@ -172,11 +172,25 @@ describe('CorrectActivityModal', () => {
   });
 
   describe('Seção de observação - Estado fechado', () => {
-    it('deve exibir seção de observação com botão "Incluir" quando isViewOnly é false', () => {
-      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+    it('deve exibir seção de observação com botão "Incluir" quando isViewOnly é false e sem observação existente', () => {
+      const dataWithoutObservation = { ...mockData, observation: undefined };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithoutObservation}
+          isViewOnly={false}
+        />
+      );
 
       expect(screen.getByText('Observação')).toBeInTheDocument();
       expect(screen.getByText('Incluir')).toBeInTheDocument();
+    });
+
+    it('deve exibir seção de observação com botão "Editar" quando existe observação', () => {
+      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+
+      expect(screen.getByText('Observação')).toBeInTheDocument();
+      expect(screen.getByText('Editar')).toBeInTheDocument();
     });
 
     it('não deve exibir a seção de observação quando isViewOnly é true', () => {
@@ -196,7 +210,14 @@ describe('CorrectActivityModal', () => {
 
   describe('Seção de observação - Estado expandido', () => {
     it('deve expandir ao clicar em "Incluir"', () => {
-      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+      const dataWithoutObservation = { ...mockData, observation: undefined };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithoutObservation}
+          isViewOnly={false}
+        />
+      );
 
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
@@ -208,15 +229,18 @@ describe('CorrectActivityModal', () => {
     });
 
     it('deve exibir observação anterior quando expandido e existe', () => {
+      // Start with existing observation, click Editar to enter expanded state
       render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
 
-      const incluirButton = screen.getByText('Incluir');
-      fireEvent.click(incluirButton);
+      const editarButton = screen.getByText('Editar');
+      fireEvent.click(editarButton);
 
       expect(screen.getByText('Observação anterior:')).toBeInTheDocument();
-      expect(
-        screen.getByText('Observação anterior do professor')
-      ).toBeInTheDocument();
+      // The observation appears both in the textarea and in the "Observação anterior:" section
+      const observationElements = screen.getAllByText(
+        'Observação anterior do professor'
+      );
+      expect(observationElements.length).toBeGreaterThanOrEqual(1);
     });
 
     it('não deve exibir observação anterior quando não existe', () => {
@@ -238,7 +262,14 @@ describe('CorrectActivityModal', () => {
     });
 
     it('deve desabilitar botão "Salvar" quando textarea está vazio', () => {
-      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+      const dataWithoutObservation = { ...mockData, observation: undefined };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithoutObservation}
+          isViewOnly={false}
+        />
+      );
 
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
@@ -248,7 +279,14 @@ describe('CorrectActivityModal', () => {
     });
 
     it('deve habilitar botão "Salvar" quando textarea tem texto', () => {
-      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+      const dataWithoutObservation = { ...mockData, observation: undefined };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithoutObservation}
+          isViewOnly={false}
+        />
+      );
 
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
@@ -266,9 +304,11 @@ describe('CorrectActivityModal', () => {
   describe('Seção de observação - Estado salvo', () => {
     it('deve salvar e exibir observação após clicar em "Salvar"', () => {
       const onObservationSubmit = jest.fn();
+      const dataWithoutObservation = { ...mockData, observation: undefined };
       render(
         <CorrectActivityModal
           {...defaultProps}
+          data={dataWithoutObservation}
           isViewOnly={false}
           onObservationSubmit={onObservationSubmit}
         />
@@ -287,11 +327,22 @@ describe('CorrectActivityModal', () => {
 
       expect(screen.getByText('Nova observação')).toBeInTheDocument();
       expect(screen.getByText('Editar')).toBeInTheDocument();
-      expect(onObservationSubmit).toHaveBeenCalledWith('Nova observação', []);
+      expect(onObservationSubmit).toHaveBeenCalledWith(
+        'student-123',
+        'Nova observação',
+        []
+      );
     });
 
     it('deve permitir editar observação salva', () => {
-      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+      const dataWithoutObservation = { ...mockData, observation: undefined };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithoutObservation}
+          isViewOnly={false}
+        />
+      );
 
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
@@ -315,9 +366,11 @@ describe('CorrectActivityModal', () => {
 
     it('não deve chamar onObservationSubmit quando textarea está vazio', () => {
       const onObservationSubmit = jest.fn();
+      const dataWithoutObservation = { ...mockData, observation: undefined };
       render(
         <CorrectActivityModal
           {...defaultProps}
+          data={dataWithoutObservation}
           isViewOnly={false}
           onObservationSubmit={onObservationSubmit}
         />
@@ -334,9 +387,11 @@ describe('CorrectActivityModal', () => {
 
     it('não deve chamar onObservationSubmit quando textarea contém apenas espaços', () => {
       const onObservationSubmit = jest.fn();
+      const dataWithoutObservation = { ...mockData, observation: undefined };
       render(
         <CorrectActivityModal
           {...defaultProps}
+          data={dataWithoutObservation}
           isViewOnly={false}
           onObservationSubmit={onObservationSubmit}
         />
@@ -646,9 +701,11 @@ describe('CorrectActivityModal', () => {
     });
 
     it('deve funcionar sem callback onObservationSubmit', () => {
+      const dataWithoutObservation = { ...mockData, observation: undefined };
       render(
         <CorrectActivityModal
           {...defaultProps}
+          data={dataWithoutObservation}
           isViewOnly={false}
           onObservationSubmit={undefined}
         />
@@ -667,7 +724,14 @@ describe('CorrectActivityModal', () => {
     });
 
     it('deve permitir anexar arquivos na observação', () => {
-      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+      const dataWithoutObservation = { ...mockData, observation: undefined };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithoutObservation}
+          isViewOnly={false}
+        />
+      );
 
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
@@ -689,7 +753,14 @@ describe('CorrectActivityModal', () => {
     });
 
     it('deve permitir remover arquivo anexado', () => {
-      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+      const dataWithoutObservation = { ...mockData, observation: undefined };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithoutObservation}
+          isViewOnly={false}
+        />
+      );
 
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
@@ -712,7 +783,14 @@ describe('CorrectActivityModal', () => {
     });
 
     it('deve habilitar Salvar quando arquivo é anexado sem texto', () => {
-      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+      const dataWithoutObservation = { ...mockData, observation: undefined };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithoutObservation}
+          isViewOnly={false}
+        />
+      );
 
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
@@ -732,9 +810,11 @@ describe('CorrectActivityModal', () => {
 
     it('deve chamar onObservationSubmit com arquivos', () => {
       const onObservationSubmit = jest.fn();
+      const dataWithoutObservation = { ...mockData, observation: undefined };
       render(
         <CorrectActivityModal
           {...defaultProps}
+          data={dataWithoutObservation}
           isViewOnly={false}
           onObservationSubmit={onObservationSubmit}
         />
@@ -763,13 +843,21 @@ describe('CorrectActivityModal', () => {
       fireEvent.click(salvarButton);
 
       expect(onObservationSubmit).toHaveBeenCalledWith(
+        'student-123',
         'Observação com arquivo',
         [file]
       );
     });
 
     it('deve exibir arquivos salvos no estado salvo', () => {
-      render(<CorrectActivityModal {...defaultProps} isViewOnly={false} />);
+      const dataWithoutObservation = { ...mockData, observation: undefined };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithoutObservation}
+          isViewOnly={false}
+        />
+      );
 
       const incluirButton = screen.getByText('Incluir');
       fireEvent.click(incluirButton);
@@ -793,6 +881,95 @@ describe('CorrectActivityModal', () => {
 
       expect(screen.getByText('arquivo-salvo.pdf')).toBeInTheDocument();
       expect(screen.getByText('Editar')).toBeInTheDocument();
+    });
+  });
+
+  describe('Existing attachment scenarios', () => {
+    it('deve retornar "Anexo" quando URL é inválida no existingAttachment', () => {
+      const dataWithInvalidAttachment = {
+        ...mockData,
+        observation: 'Obs existente',
+        attachment: 'invalid-url-without-protocol',
+      };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithInvalidAttachment}
+          isViewOnly={false}
+        />
+      );
+      expect(screen.getByText('Anexo')).toBeInTheDocument();
+    });
+
+    it('deve exibir existingAttachment com link e botão Trocar ao editar', () => {
+      const dataWithAttachment = {
+        ...mockData,
+        observation: 'Observação existente',
+        attachment: 'https://example.com/files/documento.pdf',
+      };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithAttachment}
+          isViewOnly={false}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Editar'));
+
+      expect(screen.getByText('documento.pdf')).toBeInTheDocument();
+      expect(screen.getByText('Trocar')).toBeInTheDocument();
+    });
+
+    it('deve abrir seletor de arquivo ao clicar em Trocar', () => {
+      const dataWithAttachment = {
+        ...mockData,
+        observation: 'Obs',
+        attachment: 'https://example.com/file.pdf',
+      };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithAttachment}
+          isViewOnly={false}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Editar'));
+
+      const fileInput = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      const clickSpy = jest.spyOn(fileInput, 'click');
+
+      fireEvent.click(screen.getByText('Trocar'));
+
+      expect(clickSpy).toHaveBeenCalled();
+    });
+
+    it('deve habilitar Salvar quando há apenas existingAttachment sem novo texto', () => {
+      const dataWithAttachment = {
+        ...mockData,
+        observation: 'Obs antiga',
+        attachment: 'https://example.com/file.pdf',
+      };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithAttachment}
+          isViewOnly={false}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Editar'));
+
+      const textarea = screen.getByPlaceholderText(
+        'Escreva uma observação para o estudante'
+      );
+      fireEvent.change(textarea, { target: { value: '' } });
+
+      const salvarButton = screen.getByText('Salvar');
+      expect(salvarButton).not.toBeDisabled();
     });
   });
 });
