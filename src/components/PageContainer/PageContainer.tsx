@@ -13,7 +13,7 @@ export function PageContainer({
   return (
     <div
       className={cn(
-        'flex flex-col w-full h-full items-center pb-5 relative',
+        'flex flex-col w-full min-h-full items-center pb-5 relative',
         className
       )}
     >
