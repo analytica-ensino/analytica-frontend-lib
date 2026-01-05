@@ -412,8 +412,8 @@ const Support = ({
   const emptyImage = emptyStateImage || SupportImage;
 
   return (
-    <div className="flex flex-col w-full h-full relative justify-start items-center mb-5 overflow-y-auto">
-      <div className="flex flex-col w-full h-full max-w-[992px] z-10 lg:px-0 px-4">
+    <div className="flex flex-col w-full h-full overflow-y-auto">
+      <div className="flex flex-col w-full h-full">
         {/* Header */}
         <div className="space-y-4">
           <div className="flex w-full mb-4 flex-row items-center justify-between not-lg:gap-4 lg:gap-6">

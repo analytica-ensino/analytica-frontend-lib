@@ -2,6 +2,7 @@ import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import Support from './Support';
 import { TicketModal } from './components/TicketModal';
+import { PageContainer } from '../PageContainer/PageContainer';
 import {
   SupportApiClient,
   SupportStatus,
@@ -113,6 +114,7 @@ const sampleAnswers = [
 
 /**
  * Showcase principal: Componente Support completo
+ * IMPORTANTE: Support deve ser envolvido por PageContainer para layout correto
  */
 export const AllSupport: Story = () => {
   return (
@@ -121,13 +123,18 @@ export const AllSupport: Story = () => {
       <p className="text-text-700">
         Componente completo de suporte com criação de tickets e histórico.
       </p>
+      <p className="text-sm text-warning-600">
+        ⚠️ Support deve ser envolvido por PageContainer para layout correto.
+      </p>
 
-      <div className="border rounded-lg p-4 bg-surface-50">
-        <Support
-          apiClient={createMockApiClient(sampleTickets, sampleAnswers)}
-          userId="user-123"
-          title="Suporte"
-        />
+      <div className="border rounded-lg bg-surface-50 h-[600px]">
+        <PageContainer>
+          <Support
+            apiClient={createMockApiClient(sampleTickets, sampleAnswers)}
+            userId="user-123"
+            title="Suporte"
+          />
+        </PageContainer>
       </div>
     </div>
   );
@@ -146,12 +153,14 @@ export const EmptySupport: Story = () => {
         Quando o usuário não possui nenhum ticket de suporte.
       </p>
 
-      <div className="border rounded-lg p-4 bg-surface-50">
-        <Support
-          apiClient={createMockApiClient([])}
-          userId="user-123"
-          title="Suporte"
-        />
+      <div className="border rounded-lg bg-surface-50 h-[600px]">
+        <PageContainer>
+          <Support
+            apiClient={createMockApiClient([])}
+            userId="user-123"
+            title="Suporte"
+          />
+        </PageContainer>
       </div>
     </div>
   );
@@ -185,12 +194,14 @@ export const SupportWithPagination: Story = () => {
         Quando há mais de 10 tickets, a paginação é exibida.
       </p>
 
-      <div className="border rounded-lg p-4 bg-surface-50">
-        <Support
-          apiClient={createMockApiClient(manyTickets)}
-          userId="user-123"
-          title="Suporte"
-        />
+      <div className="border rounded-lg bg-surface-50 h-[600px]">
+        <PageContainer>
+          <Support
+            apiClient={createMockApiClient(manyTickets)}
+            userId="user-123"
+            title="Suporte"
+          />
+        </PageContainer>
       </div>
     </div>
   );
@@ -207,12 +218,14 @@ export const SupportCustomTitle: Story = () => {
       </h2>
       <p className="text-text-700">O título pode ser customizado via prop.</p>
 
-      <div className="border rounded-lg p-4 bg-surface-50">
-        <Support
-          apiClient={createMockApiClient(sampleTickets)}
-          userId="user-123"
-          title="Central de Ajuda"
-        />
+      <div className="border rounded-lg bg-surface-50 h-[600px]">
+        <PageContainer>
+          <Support
+            apiClient={createMockApiClient(sampleTickets)}
+            userId="user-123"
+            title="Central de Ajuda"
+          />
+        </PageContainer>
       </div>
     </div>
   );
