@@ -27,7 +27,7 @@ describe('PageContainer', () => {
     expect(outerDiv).toHaveClass('relative');
     expect(outerDiv).toHaveClass('justify-center');
     expect(outerDiv).toHaveClass('items-center');
-    expect(outerDiv).toHaveClass('mb-5');
+    expect(outerDiv).toHaveClass('pb-5');
   });
 
   it('applies default classes to inner container', () => {
