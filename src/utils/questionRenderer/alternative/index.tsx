@@ -17,14 +17,13 @@ export const renderQuestionAlternative = ({
     const isCorrectOption =
       result?.options?.find((op) => op.id === option.id)?.isCorrect || false;
 
-    const isSelected = result?.selectedOptions.some(
-      (selectedOption) => selectedOption.optionId === option.id
-    );
+    const isSelected =
+      result?.selectedOptions?.some(
+        (selectedOption) => selectedOption.optionId === option.id
+      ) || false;
 
-    // Only show correct/incorrect status if answer is not pending evaluation
     const shouldShowCorrectAnswers =
-      result?.answerStatus !== ANSWER_STATUS.PENDENTE_AVALIACAO &&
-      result?.answerStatus !== ANSWER_STATUS.NAO_RESPONDIDO;
+      result?.answerStatus !== ANSWER_STATUS.PENDENTE_AVALIACAO;
 
     let status: Status;
     if (shouldShowCorrectAnswers) {
@@ -65,7 +64,7 @@ export const renderQuestionAlternative = ({
         name={`question-${question.id}`}
         layout="compact"
         alternatives={alternatives}
-        selectedValue={result?.selectedOptions[0]?.optionId || ''}
+        selectedValue={result?.selectedOptions?.[0]?.optionId || ''}
       />
     </div>
   );
