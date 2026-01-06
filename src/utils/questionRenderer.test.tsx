@@ -129,6 +129,7 @@ describe('questionRenderer', () => {
         [QUESTION_TYPE.LIGAR_PONTOS]: () => 'ligar',
         [QUESTION_TYPE.PREENCHER]: () => 'fill',
         [QUESTION_TYPE.IMAGEM]: () => 'img',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
       // Remove one renderer
@@ -141,7 +142,7 @@ describe('questionRenderer', () => {
   });
 
   describe('renderQuestionAlternative', () => {
-    it('deve renderizar alternativas corretamente', () => {
+    it('should render alternatives correctly', () => {
       const question = createQuestion(
         'q1',
         'Qual é a capital do Brasil?',
@@ -171,7 +172,7 @@ describe('questionRenderer', () => {
       expect(container).toBeInTheDocument();
     });
 
-    it('deve exibir mensagem quando não há alternativas', () => {
+    it('should display message when there are no alternatives', () => {
       const question = createQuestion(
         'q1',
         'Questão sem alternativas',
@@ -179,14 +180,20 @@ describe('questionRenderer', () => {
         [],
         []
       );
-      const result = createQuestionResult('a1', 'q1', ANSWER_STATUS.NAO_RESPONDIDO);
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.NAO_RESPONDIDO
+      );
 
-      render(renderQuestionAlternative({ question, result, paddingBottom: '' }));
+      render(
+        renderQuestionAlternative({ question, result, paddingBottom: '' })
+      );
 
       expect(screen.getByText('Não há Alternativas')).toBeInTheDocument();
     });
 
-    it('deve mostrar status neutro quando resposta está pendente', () => {
+    it('should show neutral status when answer is pending', () => {
       const question = createQuestion(
         'q1',
         'Questão',
@@ -210,7 +217,7 @@ describe('questionRenderer', () => {
       expect(container).toBeInTheDocument();
     });
 
-    it('deve mostrar alternativa correta quando resposta está correta', () => {
+    it('should show correct alternative when answer is correct', () => {
       const question = createQuestion(
         'q1',
         'Questão',
@@ -240,7 +247,7 @@ describe('questionRenderer', () => {
       expect(container).toBeInTheDocument();
     });
 
-    it('deve mostrar alternativa incorreta quando aluno selecionou errado', () => {
+    it('should show incorrect alternative when student selected wrong', () => {
       const question = createQuestion(
         'q1',
         'Questão',
@@ -270,21 +277,29 @@ describe('questionRenderer', () => {
       expect(container).toBeInTheDocument();
     });
 
-    it('deve lidar com options undefined', () => {
-      const question = {
-        ...createQuestion('q1', 'Questão', QUESTION_TYPE.ALTERNATIVA),
-        options: undefined,
-      };
-      const result = createQuestionResult('a1', 'q1', ANSWER_STATUS.NAO_RESPONDIDO);
-
-      render(renderQuestionAlternative({ question, result, paddingBottom: '' }));
+    it('should handle empty options', () => {
+      const question = createQuestion(
+        'q1',
+        'Questão',
+        QUESTION_TYPE.ALTERNATIVA,
+        [],
+        []
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.NAO_RESPONDIDO
+      );
+      render(
+        renderQuestionAlternative({ question, result, paddingBottom: '' })
+      );
 
       expect(screen.getByText('Não há Alternativas')).toBeInTheDocument();
     });
   });
 
   describe('renderQuestionMultipleChoice', () => {
-    it('deve renderizar múltiplas escolhas corretamente', () => {
+    it('should render multiple choice correctly', () => {
       const question = createQuestion(
         'q1',
         'Selecione todas as capitais',
@@ -314,7 +329,7 @@ describe('questionRenderer', () => {
       expect(container).toBeInTheDocument();
     });
 
-    it('deve exibir mensagem quando não há escolhas', () => {
+    it('should display message when there are no choices', () => {
       const question = createQuestion(
         'q1',
         'Questão sem escolhas',
@@ -322,14 +337,20 @@ describe('questionRenderer', () => {
         [],
         []
       );
-      const result = createQuestionResult('a1', 'q1', ANSWER_STATUS.NAO_RESPONDIDO);
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.NAO_RESPONDIDO
+      );
 
-      render(renderQuestionMultipleChoice({ question, result, paddingBottom: '' }));
+      render(
+        renderQuestionMultipleChoice({ question, result, paddingBottom: '' })
+      );
 
       expect(screen.getByText('Não há Escolhas Múltiplas')).toBeInTheDocument();
     });
 
-    it('deve mostrar múltiplas seleções', () => {
+    it('should show multiple selections', () => {
       const question = createQuestion(
         'q1',
         'Selecione todas',
@@ -361,7 +382,7 @@ describe('questionRenderer', () => {
       expect(container).toBeInTheDocument();
     });
 
-    it('deve mostrar status neutro quando resposta está pendente', () => {
+    it('should show neutral status when answer is pending', () => {
       const question = createQuestion(
         'q1',
         'Questão',
@@ -385,7 +406,7 @@ describe('questionRenderer', () => {
       expect(container).toBeInTheDocument();
     });
 
-    it('deve lidar com selectedOptions vazio', () => {
+    it('should handle empty selectedOptions', () => {
       const question = createQuestion(
         'q1',
         'Questão',
@@ -409,7 +430,7 @@ describe('questionRenderer', () => {
       expect(container).toBeInTheDocument();
     });
 
-    it('deve mostrar status incorreto quando aluno selecionou opção errada', () => {
+    it('should show incorrect status when student selected wrong option', () => {
       const question = createQuestion(
         'q1',
         'Selecione todas',
@@ -441,7 +462,7 @@ describe('questionRenderer', () => {
   });
 
   describe('renderQuestionTrueOrFalse', () => {
-    it('deve renderizar questão verdadeiro ou falso', () => {
+    it('should render true or false question', () => {
       const question = createQuestion(
         'q1',
         'Marque V ou F',
@@ -472,7 +493,7 @@ describe('questionRenderer', () => {
       expect(screen.getByText(/a\) O Brasil é um país/)).toBeInTheDocument();
     });
 
-    it('deve mostrar resposta selecionada e correta', () => {
+    it('should show selected and correct answer', () => {
       const question = createQuestion(
         'q1',
         'Marque V ou F',
@@ -489,12 +510,14 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'O Brasil é um país', isCorrect: true }]
       );
 
-      render(renderQuestionTrueOrFalse({ question, result, paddingBottom: '' }));
+      render(
+        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
+      );
 
       expect(screen.getByText(/Resposta selecionada: V/)).toBeInTheDocument();
     });
 
-    it('deve mostrar resposta incorreta quando aluno errou', () => {
+    it('should show incorrect answer when student was wrong', () => {
       const question = createQuestion(
         'q1',
         'Marque V ou F',
@@ -511,13 +534,15 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'O Brasil é um país', isCorrect: true }]
       );
 
-      render(renderQuestionTrueOrFalse({ question, result, paddingBottom: '' }));
+      render(
+        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
+      );
 
       expect(screen.getByText(/Resposta selecionada: F/)).toBeInTheDocument();
       expect(screen.getByText(/Resposta correta: V/)).toBeInTheDocument();
     });
 
-    it('deve mostrar status quando statement é falso e aluno não selecionou', () => {
+    it('should show status when statement is false and student did not select', () => {
       const question = createQuestion(
         'q1',
         'Marque V ou F',
@@ -534,12 +559,14 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'A Lua é feita de queijo', isCorrect: false }]
       );
 
-      render(renderQuestionTrueOrFalse({ question, result, paddingBottom: '' }));
+      render(
+        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
+      );
 
       expect(screen.getByText(/Resposta selecionada: F/)).toBeInTheDocument();
     });
 
-    it('não deve mostrar status quando resposta está pendente', () => {
+    it('should not show status when answer is pending', () => {
       const question = createQuestion(
         'q1',
         'Marque V ou F',
@@ -556,12 +583,16 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'O Brasil é um país', isCorrect: true }]
       );
 
-      render(renderQuestionTrueOrFalse({ question, result, paddingBottom: '' }));
+      render(
+        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
+      );
 
-      expect(screen.queryByText(/Resposta selecionada:/)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Resposta selecionada:/)
+      ).not.toBeInTheDocument();
     });
 
-    it('não deve mostrar status quando não respondeu', () => {
+    it('should not show status when not answered', () => {
       const question = createQuestion(
         'q1',
         'Marque V ou F',
@@ -578,12 +609,16 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'O Brasil é um país', isCorrect: true }]
       );
 
-      render(renderQuestionTrueOrFalse({ question, result, paddingBottom: '' }));
+      render(
+        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
+      );
 
-      expect(screen.queryByText(/Resposta selecionada:/)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Resposta selecionada:/)
+      ).not.toBeInTheDocument();
     });
 
-    it('deve usar fallback quando option.id não existe', () => {
+    it('should use fallback when option.id does not exist', () => {
       const question = createQuestion(
         'q1',
         'Marque V ou F',
@@ -607,7 +642,7 @@ describe('questionRenderer', () => {
       expect(container).toBeInTheDocument();
     });
 
-    it('deve testar getStatusStyles com variantCorrect undefined', () => {
+    it('should test getStatusStyles with variantCorrect undefined', () => {
       // getStatusStyles é testado quando shouldShowStatus é false
       // Nesse caso, getStatusStyles recebe string vazia que não corresponde a nenhum case
       const question = createQuestion(
@@ -636,7 +671,7 @@ describe('questionRenderer', () => {
       expect(container).toBeInTheDocument();
     });
 
-    it('deve mostrar múltiplas opções com diferentes status', () => {
+    it('should show multiple options with different statuses', () => {
       const question = createQuestion(
         'q1',
         'Marque V ou F',
@@ -661,16 +696,20 @@ describe('questionRenderer', () => {
         ]
       );
 
-      render(renderQuestionTrueOrFalse({ question, result, paddingBottom: '' }));
+      render(
+        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
+      );
 
       expect(screen.getByText(/a\) O Brasil é um país/)).toBeInTheDocument();
-      expect(screen.getByText(/b\) A Lua é feita de queijo/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/b\) A Lua é feita de queijo/)
+      ).toBeInTheDocument();
       expect(screen.getByText(/c\) A água é líquida/)).toBeInTheDocument();
     });
   });
 
   describe('renderQuestionDissertative', () => {
-    it('deve renderizar resposta do aluno', () => {
+    it('should render student answer', () => {
       const question = createQuestion(
         'q1',
         'Explique o ciclo da água',
@@ -685,13 +724,15 @@ describe('questionRenderer', () => {
         'A água evapora e condensa'
       );
 
-      render(renderQuestionDissertative({ question, result, paddingBottom: '' }));
+      render(
+        renderQuestionDissertative({ question, result, paddingBottom: '' })
+      );
 
       expect(screen.getByText('Resposta do aluno')).toBeInTheDocument();
       expect(screen.getByText('A água evapora e condensa')).toBeInTheDocument();
     });
 
-    it('deve exibir "Nenhuma resposta fornecida" quando não há resposta', () => {
+    it('should display "Nenhuma resposta fornecida" when there is no answer', () => {
       const question = createQuestion(
         'q1',
         'Explique o ciclo da água',
@@ -706,12 +747,16 @@ describe('questionRenderer', () => {
         null
       );
 
-      render(renderQuestionDissertative({ question, result, paddingBottom: '' }));
+      render(
+        renderQuestionDissertative({ question, result, paddingBottom: '' })
+      );
 
-      expect(screen.getByText('Nenhuma resposta fornecida')).toBeInTheDocument();
+      expect(
+        screen.getByText('Nenhuma resposta fornecida')
+      ).toBeInTheDocument();
     });
 
-    it('deve exibir observação do professor quando resposta está incorreta', () => {
+    it('should display teacher feedback when answer is incorrect', () => {
       const question = createQuestion(
         'q1',
         'Explique o ciclo da água',
@@ -729,13 +774,17 @@ describe('questionRenderer', () => {
         'Você precisa explicar melhor o processo'
       );
 
-      render(renderQuestionDissertative({ question, result, paddingBottom: '' }));
+      render(
+        renderQuestionDissertative({ question, result, paddingBottom: '' })
+      );
 
       expect(screen.getByText('Observação do professor:')).toBeInTheDocument();
-      expect(screen.getByText('Você precisa explicar melhor o processo')).toBeInTheDocument();
+      expect(
+        screen.getByText('Você precisa explicar melhor o processo')
+      ).toBeInTheDocument();
     });
 
-    it('não deve exibir observação quando resposta está correta', () => {
+    it('should not display feedback when answer is correct', () => {
       const question = createQuestion(
         'q1',
         'Explique o ciclo da água',
@@ -753,14 +802,16 @@ describe('questionRenderer', () => {
         'Boa resposta'
       );
 
-      render(renderQuestionDissertative({ question, result, paddingBottom: '' }));
+      render(
+        renderQuestionDissertative({ question, result, paddingBottom: '' })
+      );
 
       expect(
         screen.queryByText('Observação do professor:')
       ).not.toBeInTheDocument();
     });
 
-    it('não deve exibir observação quando teacherFeedback está vazio', () => {
+    it('should not display feedback when teacherFeedback is empty', () => {
       const question = createQuestion(
         'q1',
         'Explique o ciclo da água',
@@ -778,14 +829,16 @@ describe('questionRenderer', () => {
         null
       );
 
-      render(renderQuestionDissertative({ question, result, paddingBottom: '' }));
+      render(
+        renderQuestionDissertative({ question, result, paddingBottom: '' })
+      );
 
       expect(
         screen.queryByText('Observação do professor:')
       ).not.toBeInTheDocument();
     });
 
-    it('deve lidar com resposta vazia', () => {
+    it('should handle empty answer', () => {
       const question = createQuestion(
         'q1',
         'Explique o ciclo da água',
@@ -793,16 +846,25 @@ describe('questionRenderer', () => {
         [],
         []
       );
-      const result = createQuestionResult('a1', 'q1', ANSWER_STATUS.NAO_RESPONDIDO, '');
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.NAO_RESPONDIDO,
+        ''
+      );
 
-      render(renderQuestionDissertative({ question, result, paddingBottom: '' }));
+      render(
+        renderQuestionDissertative({ question, result, paddingBottom: '' })
+      );
 
-      expect(screen.getByText('Nenhuma resposta fornecida')).toBeInTheDocument();
+      expect(
+        screen.getByText('Nenhuma resposta fornecida')
+      ).toBeInTheDocument();
     });
   });
 
   describe('renderQuestionFill', () => {
-    it('deve renderizar questão de preencher lacunas', () => {
+    it('should render fill in the blanks question', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está localizado na {{continente}}.',
@@ -826,7 +888,8 @@ describe('questionRenderer', () => {
       );
 
       // Wrapper component para permitir uso de hooks
-      const Wrapper = () => renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () =>
+        renderQuestionFill({ question, result, paddingBottom: '' });
       const { container } = render(<Wrapper />);
 
       expect(container).toBeInTheDocument();
@@ -834,7 +897,7 @@ describe('questionRenderer', () => {
       expect(screen.getByText('Gabarito:')).toBeInTheDocument();
     });
 
-    it('deve exibir [Não respondido] quando não há resposta para placeholder', () => {
+    it('should display [Não respondido] when there is no answer for placeholder', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está localizado na {{continente}}.',
@@ -850,7 +913,8 @@ describe('questionRenderer', () => {
       );
 
       // Wrapper component para permitir uso de hooks
-      const Wrapper = () => renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () =>
+        renderQuestionFill({ question, result, paddingBottom: '' });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
@@ -858,7 +922,7 @@ describe('questionRenderer', () => {
       expect(container.textContent).toContain('Não respondido');
     });
 
-    it('deve exibir resposta correta em verde', () => {
+    it('should display correct answer in green', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está na {{continente}} e fala {{idioma}}.',
@@ -892,14 +956,15 @@ describe('questionRenderer', () => {
         ]
       );
 
-      const Wrapper = () => renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () =>
+        renderQuestionFill({ question, result, paddingBottom: '' });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
       expect(screen.getByText('Gabarito:')).toBeInTheDocument();
     });
 
-    it('deve exibir resposta incorreta em vermelho', () => {
+    it('should display incorrect answer in red', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está na {{continente}}.',
@@ -922,13 +987,14 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'América', isCorrect: true }]
       );
 
-      const Wrapper = () => renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () =>
+        renderQuestionFill({ question, result, paddingBottom: '' });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
     });
 
-    it('deve usar fallback quando não há option correta', () => {
+    it('should use fallback when there is no correct option', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está na {{continente}}.',
@@ -936,15 +1002,21 @@ describe('questionRenderer', () => {
         [],
         []
       );
-      const result = createQuestionResult('a1', 'q1', ANSWER_STATUS.NAO_RESPONDIDO, null);
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.NAO_RESPONDIDO,
+        null
+      );
 
-      const Wrapper = () => renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () =>
+        renderQuestionFill({ question, result, paddingBottom: '' });
       render(<Wrapper />);
 
       expect(screen.getByText('Gabarito:')).toBeInTheDocument();
     });
 
-    it('deve usar option no mesmo índice quando não há option correta', () => {
+    it('should use option at same index when there is no correct option', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está na {{continente}}.',
@@ -961,13 +1033,14 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'América', isCorrect: false }]
       );
 
-      const Wrapper = () => renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () =>
+        renderQuestionFill({ question, result, paddingBottom: '' });
       render(<Wrapper />);
 
       expect(screen.getByText('Gabarito:')).toBeInTheDocument();
     });
 
-    it('deve lidar com múltiplos placeholders', () => {
+    it('should handle multiple placeholders', () => {
       const question = createQuestion(
         'q1',
         'O {{pais}} está na {{continente}} e fala {{idioma}}.',
@@ -1004,13 +1077,14 @@ describe('questionRenderer', () => {
         ]
       );
 
-      const Wrapper = () => renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () =>
+        renderQuestionFill({ question, result, paddingBottom: '' });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
     });
 
-    it('deve lidar com texto antes e depois dos placeholders', () => {
+    it('should handle text before and after placeholders', () => {
       const question = createQuestion(
         'q1',
         'Texto antes {{placeholder}} texto depois.',
@@ -1033,13 +1107,14 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'resposta', isCorrect: true }]
       );
 
-      const Wrapper = () => renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () =>
+        renderQuestionFill({ question, result, paddingBottom: '' });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
     });
 
-    it('deve lidar com erro ao fazer parse do JSON', () => {
+    it('should handle error when parsing JSON', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está na {{continente}}.',
@@ -1054,13 +1129,14 @@ describe('questionRenderer', () => {
         'invalid json'
       );
 
-      const Wrapper = () => renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () =>
+        renderQuestionFill({ question, result, paddingBottom: '' });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
     });
 
-    it('deve lidar com answer não sendo objeto', () => {
+    it('should handle answer not being an object', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está na {{continente}}.',
@@ -1075,13 +1151,14 @@ describe('questionRenderer', () => {
         'string simples'
       );
 
-      const Wrapper = () => renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () =>
+        renderQuestionFill({ question, result, paddingBottom: '' });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
     });
 
-    it('deve lidar com answer sendo objeto diretamente', () => {
+    it('should handle answer being an object directly', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está na {{continente}}.',
@@ -1099,12 +1176,14 @@ describe('questionRenderer', () => {
             isCorrect: true,
             correctAnswer: 'América',
           },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
         [],
         [{ id: 'opt1', option: 'América', isCorrect: true }]
       );
 
-      const Wrapper = () => renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () =>
+        renderQuestionFill({ question, result, paddingBottom: '' });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
@@ -1112,7 +1191,7 @@ describe('questionRenderer', () => {
   });
 
   describe('renderQuestionImage', () => {
-    it('deve renderizar questão de imagem', () => {
+    it('should render image question', () => {
       const question = createQuestion(
         'q1',
         'Clique na imagem onde está o Brasil',
@@ -1135,7 +1214,7 @@ describe('questionRenderer', () => {
       expect(screen.getByText('Área correta')).toBeInTheDocument();
     });
 
-    it('deve exibir legenda de resposta correta quando há resposta do usuário', () => {
+    it('should display correct answer legend when there is user answer', () => {
       const question = createQuestion(
         'q1',
         'Clique na imagem',
@@ -1156,7 +1235,7 @@ describe('questionRenderer', () => {
       expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
     });
 
-    it('deve exibir apenas área correta quando não há resposta do usuário', () => {
+    it('should display only correct area when there is no user answer', () => {
       const question = createQuestion(
         'q1',
         'Clique na imagem',
@@ -1178,7 +1257,7 @@ describe('questionRenderer', () => {
       expect(screen.queryByText('Resposta incorreta')).not.toBeInTheDocument();
     });
 
-    it('deve calcular corretamente quando resposta está dentro do raio', () => {
+    it('should calculate correctly when answer is within radius', () => {
       const question = createQuestion(
         'q1',
         'Clique na imagem',
@@ -1199,7 +1278,7 @@ describe('questionRenderer', () => {
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
 
-    it('deve calcular corretamente quando resposta está fora do raio', () => {
+    it('should calculate correctly when answer is outside radius', () => {
       const question = createQuestion(
         'q1',
         'Clique na imagem',
@@ -1220,7 +1299,7 @@ describe('questionRenderer', () => {
       expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
     });
 
-    it('deve lidar com erro ao fazer parse do JSON', () => {
+    it('should handle error when parsing JSON', () => {
       const question = createQuestion(
         'q1',
         'Clique na imagem',
@@ -1241,7 +1320,7 @@ describe('questionRenderer', () => {
       expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
     });
 
-    it('deve lidar com answer sendo objeto diretamente', () => {
+    it('should handle answer being an object directly', () => {
       const question = createQuestion(
         'q1',
         'Clique na imagem',
@@ -1253,6 +1332,7 @@ describe('questionRenderer', () => {
         'a1',
         'q1',
         ANSWER_STATUS.RESPOSTA_CORRETA,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         { x: 0.48, y: 0.45 } as any
       );
 
@@ -1261,7 +1341,7 @@ describe('questionRenderer', () => {
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
 
-    it('deve lidar com answer sem propriedades x e y', () => {
+    it('should handle answer without x and y properties', () => {
       const question = createQuestion(
         'q1',
         'Clique na imagem',
@@ -1282,7 +1362,7 @@ describe('questionRenderer', () => {
       expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
     });
 
-    it('deve exibir círculo verde quando resposta está correta', () => {
+    it('should display green circle when answer is correct', () => {
       const question = createQuestion(
         'q1',
         'Clique na imagem',
@@ -1306,7 +1386,7 @@ describe('questionRenderer', () => {
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
 
-    it('deve exibir círculo vermelho quando resposta está incorreta', () => {
+    it('should display red circle when answer is incorrect', () => {
       const question = createQuestion(
         'q1',
         'Clique na imagem',
@@ -1331,26 +1411,31 @@ describe('questionRenderer', () => {
   });
 
   describe('renderQuestionConnectDots', () => {
-    it('deve renderizar mensagem de não implementado', () => {
+    it('should render not implemented message', () => {
       render(renderQuestionConnectDots({ paddingBottom: '' }));
 
-      expect(screen.getByText('Tipo de questão: Ligar Pontos')).toBeInTheDocument();
+      expect(
+        screen.getByText('Tipo de questão: Ligar Pontos')
+      ).toBeInTheDocument();
       expect(
         screen.getByText('Tipo de questão: Ligar Pontos (não implementado)')
       ).toBeInTheDocument();
     });
 
-    it('deve renderizar com paddingBottom customizado', () => {
+    it('should render with custom paddingBottom', () => {
       render(renderQuestionConnectDots({ paddingBottom: 'pb-10' }));
 
-      expect(screen.getByText('Tipo de questão: Ligar Pontos')).toBeInTheDocument();
+      expect(
+        screen.getByText('Tipo de questão: Ligar Pontos')
+      ).toBeInTheDocument();
     });
 
-    it('deve renderizar sem paddingBottom', () => {
+    it('should render without paddingBottom', () => {
       render(renderQuestionConnectDots({}));
 
-      expect(screen.getByText('Tipo de questão: Ligar Pontos')).toBeInTheDocument();
+      expect(
+        screen.getByText('Tipo de questão: Ligar Pontos')
+      ).toBeInTheDocument();
     });
   });
 });
-
