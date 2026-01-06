@@ -368,16 +368,16 @@ export const renderQuestionDissertative = ({
 };
 
 /**
- * Render fill in the blanks question
- * Shows text with student answers highlighted (green if correct, red if wrong)
- * Also shows a "gabarito" section with correct answers
- * Returns content without wrapper (for accordion use)
+ * Internal component for fill in the blanks question
+ * Uses useId hook to generate unique IDs
  */
-export const renderQuestionFill = ({
+const FillQuestionContent = ({
   question,
   result,
-  paddingBottom: _paddingBottom,
-}: QuestionRendererProps): ReactNode => {
+}: {
+  question: Question;
+  result?: QuestionResult['answers'][number];
+}) => {
   // Extract text from statement - it should contain {{placeholders}}
   const text = question.statement || '';
   const baseId = useId();
@@ -540,6 +540,20 @@ export const renderQuestionFill = ({
       </div>
     </div>
   );
+};
+
+/**
+ * Render fill in the blanks question
+ * Shows text with student answers highlighted (green if correct, red if wrong)
+ * Also shows a "gabarito" section with correct answers
+ * Returns content without wrapper (for accordion use)
+ */
+export const renderQuestionFill = ({
+  question,
+  result,
+  paddingBottom: _paddingBottom,
+}: QuestionRendererProps): ReactNode => {
+  return <FillQuestionContent question={question} result={result} />;
 };
 
 /**
