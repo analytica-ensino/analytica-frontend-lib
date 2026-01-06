@@ -18,7 +18,7 @@ import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
-import { RadioGroup, RadioGroupItem } from '../Radio/Radio';
+import Radio from '../Radio/Radio';
 import TextArea from '../TextArea/TextArea';
 import { CardAccordation, AccordionGroup } from '../Accordation';
 import { generateFileId } from '../FileAttachment/FileAttachment';
@@ -532,44 +532,42 @@ const CorrectActivityModal = ({
           <Text className="text-sm font-semibold text-text-950">
             Resposta está correta?
           </Text>
-          <RadioGroup
-            value={radioValue}
-            onValueChange={(value) => {
-              updateEssayCorrection(
-                questionData.questionNumber,
-                'isCorrect',
-                value === 'true'
-              );
-            }}
-            name={`isCorrect-${questionData.questionNumber}`}
-          >
-            <div className="flex gap-4">
-              <div className="flex items-center gap-2">
-                <RadioGroupItem
-                  value="true"
-                  id={`correct-yes-${questionData.questionNumber}`}
-                />
-                <label
-                  htmlFor={`correct-yes-${questionData.questionNumber}`}
-                  className="text-sm text-text-700 cursor-pointer"
-                >
-                  Sim
-                </label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem
-                  value="false"
-                  id={`correct-no-${questionData.questionNumber}`}
-                />
-                <label
-                  htmlFor={`correct-no-${questionData.questionNumber}`}
-                  className="text-sm text-text-700 cursor-pointer"
-                >
-                  Não
-                </label>
-              </div>
-            </div>
-          </RadioGroup>
+          <div className="flex gap-4">
+            <Radio
+              name={`isCorrect-${questionData.questionNumber}`}
+              value="true"
+              id={`correct-yes-${questionData.questionNumber}`}
+              label="Sim"
+              size="medium"
+              checked={radioValue === 'true'}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  updateEssayCorrection(
+                    questionData.questionNumber,
+                    'isCorrect',
+                    true
+                  );
+                }
+              }}
+            />
+            <Radio
+              name={`isCorrect-${questionData.questionNumber}`}
+              value="false"
+              id={`correct-no-${questionData.questionNumber}`}
+              label="Não"
+              size="medium"
+              checked={radioValue === 'false'}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  updateEssayCorrection(
+                    questionData.questionNumber,
+                    'isCorrect',
+                    false
+                  );
+                }
+              }}
+            />
+          </div>
         </div>
 
         {/* Teacher feedback textarea */}
