@@ -1,8 +1,5 @@
-import type {
-  Question,
-  QuestionResult,
-  ANSWER_STATUS,
-} from '../components/Quiz/useQuizStore';
+import type { Question, QuestionResult } from '../components/Quiz/useQuizStore';
+import { ANSWER_STATUS } from '../components/Quiz/useQuizStore';
 
 /**
  * Question status enum for student activity correction
@@ -21,12 +18,12 @@ export type QuestionStatus =
 
 /**
  * Returns whether the answer is correct, incorrect, or null based on the answer status.
- * @param {string} answerStatus - Answer status (e.g., 'RESPOSTA_CORRETA', 'RESPOSTA_INCORRETA')
- * @returns {boolean | null} Returns true for correct, false for incorrect, or null if undefined.
+ * @param answerStatus - Answer status from ANSWER_STATUS enum
+ * @returns Returns true for correct, false for incorrect, or null if undefined.
  */
-const getIsCorrect = (answerStatus: string): boolean | null => {
-  if (answerStatus === 'RESPOSTA_CORRETA') return true;
-  if (answerStatus === 'RESPOSTA_INCORRETA') return false;
+const getIsCorrect = (answerStatus: ANSWER_STATUS): boolean | null => {
+  if (answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA) return true;
+  if (answerStatus === ANSWER_STATUS.RESPOSTA_INCORRETA) return false;
   return null;
 };
 
@@ -39,13 +36,13 @@ export const mapAnswerStatusToQuestionStatus = (
   answerStatus: ANSWER_STATUS
 ): QuestionStatus => {
   switch (answerStatus) {
-    case 'RESPOSTA_CORRETA':
+    case ANSWER_STATUS.RESPOSTA_CORRETA:
       return QUESTION_STATUS.CORRETA;
-    case 'RESPOSTA_INCORRETA':
+    case ANSWER_STATUS.RESPOSTA_INCORRETA:
       return QUESTION_STATUS.INCORRETA;
-    case 'NAO_RESPONDIDO':
+    case ANSWER_STATUS.NAO_RESPONDIDO:
       return QUESTION_STATUS.EM_BRANCO;
-    case 'PENDENTE_AVALIACAO':
+    case ANSWER_STATUS.PENDENTE_AVALIACAO:
       return QUESTION_STATUS.PENDENTE;
     default:
       return QUESTION_STATUS.EM_BRANCO;
