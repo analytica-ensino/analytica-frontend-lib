@@ -127,7 +127,7 @@ export const convertApiResponseToCorrectionData = (
   return {
     studentId,
     studentName,
-    score: statistics.score || null,
+    score: statistics.score ?? null,
     correctCount,
     incorrectCount,
     blankCount,
