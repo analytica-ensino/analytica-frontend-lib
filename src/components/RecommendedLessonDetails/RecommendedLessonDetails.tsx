@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import type { LessonDetailsData } from '../../types/recommendedLessons';
@@ -9,18 +9,22 @@ import {
   LoadingSkeleton,
   ResultsSection,
   StudentsTable,
+  StudentPerformanceModal,
 } from './components';
 import { transformStudentForDisplay } from './utils/lessonDetailsUtils';
 import {
   DEFAULT_LABELS,
   type BreadcrumbItem,
   type LessonDetailsLabels,
+  type StudentPerformanceData,
 } from './types';
 
 /**
  * Props for RecommendedLessonDetails component
  */
 export interface RecommendedLessonDetailsProps {
+  /** Goal ID for fetching student performance */
+  goalId?: string;
   /** Lesson data to display (from API responses) */
   data: LessonDetailsData | null;
   /** Loading state */
@@ -29,8 +33,15 @@ export interface RecommendedLessonDetailsProps {
   error?: string | null;
   /** Callback when "Ver aula" button is clicked */
   onViewLesson?: () => void;
-  /** Callback when "Ver desempenho" button is clicked for a student */
-  onViewStudentPerformance?: (studentId: string) => void;
+  /**
+   * Function to fetch student performance data.
+   * When provided, the component manages the performance modal internally.
+   * Must be memoized (using useCallback) to prevent re-fetches on every render.
+   */
+  fetchStudentPerformance?: (
+    goalId: string,
+    studentId: string
+  ) => Promise<StudentPerformanceData>;
   /** Callback for breadcrumb navigation */
   onBreadcrumbClick?: (path: string) => void;
   /** Function to map subject name to SubjectEnum */
@@ -67,11 +78,12 @@ export interface RecommendedLessonDetailsProps {
  * ```
  */
 const RecommendedLessonDetails = ({
+  goalId,
   data,
   loading = false,
   error = null,
   onViewLesson,
-  onViewStudentPerformance,
+  fetchStudentPerformance,
   onBreadcrumbClick,
   mapSubjectNameToEnum,
   breadcrumbs,
@@ -82,6 +94,51 @@ const RecommendedLessonDetails = ({
     () => ({ ...DEFAULT_LABELS, ...customLabels }),
     [customLabels]
   );
+
+  // Student performance modal state
+  const [performanceModalOpen, setPerformanceModalOpen] = useState(false);
+  const [performanceData, setPerformanceData] =
+    useState<StudentPerformanceData | null>(null);
+  const [performanceLoading, setPerformanceLoading] = useState(false);
+  const [performanceError, setPerformanceError] = useState<string | null>(null);
+
+  /**
+   * Handle view student performance action
+   */
+  const handleViewStudentPerformance = useCallback(
+    async (studentId: string) => {
+      if (!fetchStudentPerformance || !goalId) return;
+
+      setPerformanceModalOpen(true);
+      setPerformanceLoading(true);
+      setPerformanceData(null);
+      setPerformanceError(null);
+
+      try {
+        const result = await fetchStudentPerformance(goalId, studentId);
+        setPerformanceData(result);
+      } catch (err) {
+        console.error('Error fetching student performance:', err);
+        setPerformanceError(
+          err instanceof Error
+            ? err.message
+            : 'Erro ao carregar desempenho do aluno'
+        );
+      } finally {
+        setPerformanceLoading(false);
+      }
+    },
+    [fetchStudentPerformance, goalId]
+  );
+
+  /**
+   * Handle close performance modal
+   */
+  const handleClosePerformanceModal = useCallback(() => {
+    setPerformanceModalOpen(false);
+    setPerformanceData(null);
+    setPerformanceError(null);
+  }, []);
 
   const defaultBreadcrumbs: BreadcrumbItem[] = useMemo(
     () => [
@@ -134,31 +191,46 @@ const RecommendedLessonDetails = ({
   }
 
   return (
-    <div
-      className={cn('flex flex-col gap-6', className)}
-      data-testid="recommended-lesson-details"
-    >
-      {/* Breadcrumb */}
-      <Breadcrumb items={breadcrumbItems} onItemClick={onBreadcrumbClick} />
+    <>
+      <div
+        className={cn('flex flex-col gap-6', className)}
+        data-testid="recommended-lesson-details"
+      >
+        {/* Breadcrumb */}
+        <Breadcrumb items={breadcrumbItems} onItemClick={onBreadcrumbClick} />
 
-      {/* Header with metadata */}
-      <LessonHeader
-        data={data}
-        onViewLesson={onViewLesson}
-        mapSubjectNameToEnum={mapSubjectNameToEnum}
-        viewLessonLabel={labels.viewLesson}
-      />
+        {/* Header with metadata */}
+        <LessonHeader
+          data={data}
+          onViewLesson={onViewLesson}
+          mapSubjectNameToEnum={mapSubjectNameToEnum}
+          viewLessonLabel={labels.viewLesson}
+        />
 
-      {/* Results section */}
-      <ResultsSection data={data} labels={labels} />
+        {/* Results section */}
+        <ResultsSection data={data} labels={labels} />
 
-      {/* Students table */}
-      <StudentsTable
-        students={displayStudents}
-        onViewPerformance={onViewStudentPerformance}
-        labels={labels}
-      />
-    </div>
+        {/* Students table */}
+        <StudentsTable
+          students={displayStudents}
+          onViewPerformance={
+            fetchStudentPerformance ? handleViewStudentPerformance : undefined
+          }
+          labels={labels}
+        />
+      </div>
+
+      {/* Student Performance Modal */}
+      {fetchStudentPerformance && (
+        <StudentPerformanceModal
+          isOpen={performanceModalOpen}
+          onClose={handleClosePerformanceModal}
+          data={performanceData}
+          loading={performanceLoading}
+          error={performanceError}
+        />
+      )}
+    </>
   );
 };
 

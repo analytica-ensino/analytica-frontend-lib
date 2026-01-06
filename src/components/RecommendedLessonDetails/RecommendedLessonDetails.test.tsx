@@ -330,13 +330,21 @@ describe('RecommendedLessonDetails', () => {
       expect(mockOnViewLesson).toHaveBeenCalledTimes(1);
     });
 
-    it('should call onViewStudentPerformance when Ver desempenho is clicked for eligible student', () => {
-      const mockOnViewPerformance = jest.fn();
+    it('should call fetchStudentPerformance when Ver desempenho is clicked for eligible student', async () => {
+      const mockFetchStudentPerformance = jest.fn().mockResolvedValue({
+        studentName: 'Lucas Oliveira',
+        correctAnswers: 8,
+        incorrectAnswers: 2,
+        bestResult: 'Fotossíntese',
+        hardestTopic: 'Células',
+        lessons: [],
+      });
 
       render(
         <RecommendedLessonDetails
+          goalId="lesson-1"
           data={mockLessonData}
-          onViewStudentPerformance={mockOnViewPerformance}
+          fetchStudentPerformance={mockFetchStudentPerformance}
           mapSubjectNameToEnum={mockMapSubjectNameToEnum}
         />
       );
@@ -350,7 +358,68 @@ describe('RecommendedLessonDetails', () => {
 
       expect(enabledButton).toBeDefined();
       fireEvent.click(enabledButton!);
-      expect(mockOnViewPerformance).toHaveBeenCalled();
+      expect(mockFetchStudentPerformance).toHaveBeenCalledWith(
+        'lesson-1',
+        'student-4'
+      );
+    });
+
+    it('should show error in modal when fetchStudentPerformance fails', async () => {
+      const mockFetchStudentPerformance = jest
+        .fn()
+        .mockRejectedValue(new Error('Network error'));
+
+      render(
+        <RecommendedLessonDetails
+          goalId="lesson-1"
+          data={mockLessonData}
+          fetchStudentPerformance={mockFetchStudentPerformance}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      // Find and click the enabled "Ver desempenho" button
+      const viewPerformanceButtons = screen.getAllByText('Ver desempenho');
+      const enabledButton = viewPerformanceButtons.find(
+        (btn) => !btn.closest('button')?.hasAttribute('disabled')
+      );
+
+      expect(enabledButton).toBeDefined();
+      fireEvent.click(enabledButton!);
+
+      // Wait for the error to be displayed
+      const errorMessage = await screen.findByText('Network error');
+      expect(errorMessage).toBeInTheDocument();
+    });
+
+    it('should show default error message when fetchStudentPerformance fails with non-Error', async () => {
+      const mockFetchStudentPerformance = jest
+        .fn()
+        .mockRejectedValue('Something went wrong');
+
+      render(
+        <RecommendedLessonDetails
+          goalId="lesson-1"
+          data={mockLessonData}
+          fetchStudentPerformance={mockFetchStudentPerformance}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      // Find and click the enabled "Ver desempenho" button
+      const viewPerformanceButtons = screen.getAllByText('Ver desempenho');
+      const enabledButton = viewPerformanceButtons.find(
+        (btn) => !btn.closest('button')?.hasAttribute('disabled')
+      );
+
+      expect(enabledButton).toBeDefined();
+      fireEvent.click(enabledButton!);
+
+      // Wait for the default error message to be displayed
+      const errorMessage = await screen.findByText(
+        'Erro ao carregar desempenho do aluno'
+      );
+      expect(errorMessage).toBeInTheDocument();
     });
 
     it('should call onBreadcrumbClick when breadcrumb is clicked', () => {
@@ -536,11 +605,21 @@ describe('RecommendedLessonDetails', () => {
   });
 
   describe('Student performance button state', () => {
+    const mockFetchStudentPerformance = jest.fn().mockResolvedValue({
+      studentName: 'Test',
+      correctAnswers: 0,
+      incorrectAnswers: 0,
+      bestResult: null,
+      hardestTopic: null,
+      lessons: [],
+    });
+
     it('should disable Ver desempenho for A_INICIAR and EM_ANDAMENTO students', () => {
       render(
         <RecommendedLessonDetails
+          goalId="lesson-1"
           data={mockLessonData}
-          onViewStudentPerformance={() => {}}
+          fetchStudentPerformance={mockFetchStudentPerformance}
           mapSubjectNameToEnum={mockMapSubjectNameToEnum}
         />
       );
@@ -557,8 +636,9 @@ describe('RecommendedLessonDetails', () => {
     it('should enable Ver desempenho for CONCLUIDO students', () => {
       render(
         <RecommendedLessonDetails
+          goalId="lesson-1"
           data={mockLessonData}
-          onViewStudentPerformance={() => {}}
+          fetchStudentPerformance={mockFetchStudentPerformance}
           mapSubjectNameToEnum={mockMapSubjectNameToEnum}
         />
       );
@@ -718,10 +798,20 @@ describe('RecommendedLessonDetails', () => {
     });
 
     it('should enable Ver desempenho for NAO_FINALIZADO and CONCLUIDO students', () => {
+      const mockFetchStudentPerformance = jest.fn().mockResolvedValue({
+        studentName: 'Test',
+        correctAnswers: 0,
+        incorrectAnswers: 0,
+        bestResult: null,
+        hardestTopic: null,
+        lessons: [],
+      });
+
       render(
         <RecommendedLessonDetails
+          goalId="lesson-1"
           data={mockDataWithPastDeadline}
-          onViewStudentPerformance={() => {}}
+          fetchStudentPerformance={mockFetchStudentPerformance}
           mapSubjectNameToEnum={mockMapSubjectNameToEnum}
         />
       );
@@ -736,10 +826,20 @@ describe('RecommendedLessonDetails', () => {
     });
 
     it('should not have any disabled Ver desempenho buttons', () => {
+      const mockFetchStudentPerformance = jest.fn().mockResolvedValue({
+        studentName: 'Test',
+        correctAnswers: 0,
+        incorrectAnswers: 0,
+        bestResult: null,
+        hardestTopic: null,
+        lessons: [],
+      });
+
       render(
         <RecommendedLessonDetails
+          goalId="lesson-1"
           data={mockDataWithPastDeadline}
-          onViewStudentPerformance={() => {}}
+          fetchStudentPerformance={mockFetchStudentPerformance}
           mapSubjectNameToEnum={mockMapSubjectNameToEnum}
         />
       );

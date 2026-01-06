@@ -35,6 +35,8 @@ export interface StudentPerformanceModalProps {
   data: StudentPerformanceData | null;
   /** Loading state */
   loading?: boolean;
+  /** Error message */
+  error?: string | null;
   /** Custom labels */
   labels?: Partial<StudentPerformanceLabels>;
 }
@@ -290,6 +292,23 @@ const LoadingSkeleton = () => (
 );
 
 /**
+ * Error state component
+ */
+const ErrorContent = ({ message }: { message: string }) => (
+  <div className="flex flex-col items-center justify-center py-8 gap-3">
+    <Text
+      as="span"
+      className="size-12 rounded-full bg-error-100 flex items-center justify-center"
+    >
+      <WarningCircleIcon size={24} className="text-error-700" />
+    </Text>
+    <Text size="md" className="text-error-700 text-center">
+      {message}
+    </Text>
+  </div>
+);
+
+/**
  * Performance content when data is available
  */
 const PerformanceContent = ({
@@ -365,15 +384,20 @@ const PerformanceContent = ({
 );
 
 /**
- * Renders the modal content based on loading and data state
+ * Renders the modal content based on loading, error, and data state
  */
 const renderModalContent = (
   loading: boolean,
+  error: string | null | undefined,
   data: StudentPerformanceData | null,
   labels: StudentPerformanceLabels
 ): ReactNode => {
   if (loading) {
     return <LoadingSkeleton />;
+  }
+
+  if (error) {
+    return <ErrorContent message={error} />;
   }
 
   if (data) {
@@ -388,6 +412,7 @@ export const StudentPerformanceModal = ({
   onClose,
   data,
   loading = false,
+  error = null,
   labels: customLabels,
 }: StudentPerformanceModalProps) => {
   const labels = useMemo(
@@ -395,7 +420,7 @@ export const StudentPerformanceModal = ({
     [customLabels]
   );
 
-  if (!data && !loading) {
+  if (!data && !loading && !error) {
     return null;
   }
 
@@ -407,7 +432,7 @@ export const StudentPerformanceModal = ({
       size="lg"
       contentClassName="max-h-[70vh] overflow-y-auto"
     >
-      {renderModalContent(loading, data, labels)}
+      {renderModalContent(loading, error, data, labels)}
     </Modal>
   );
 };
