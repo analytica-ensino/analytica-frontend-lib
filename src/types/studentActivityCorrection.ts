@@ -20,6 +20,17 @@ export type QuestionStatus =
   (typeof QUESTION_STATUS)[keyof typeof QUESTION_STATUS];
 
 /**
+ * Returns whether the answer is correct, incorrect, or null based on the answer status.
+ * @param {string} answerStatus - Answer status (e.g., 'RESPOSTA_CORRETA', 'RESPOSTA_INCORRETA')
+ * @returns {boolean | null} Returns true for correct, false for incorrect, or null if undefined.
+ */
+const getIsCorrect = (answerStatus: string): boolean | null => {
+  if (answerStatus === 'RESPOSTA_CORRETA') return true;
+  if (answerStatus === 'RESPOSTA_INCORRETA') return false;
+  return null;
+};
+
+/**
  * Map ANSWER_STATUS from Quiz to QUESTION_STATUS for correction modal
  * @param answerStatus - Answer status from QuestionResult
  * @returns QuestionStatus for UI display
@@ -242,13 +253,6 @@ export const convertApiResponseToCorrectionData = (
         answer.options?.filter((opt) => opt.isCorrect).map((opt) => opt.id) ||
         [],
     };
-
-    // Desacoplando a lógica para determinar isCorrect de forma separada
-    function getIsCorrect(answerStatus: string): boolean | null {
-      if (answerStatus === 'RESPOSTA_CORRETA') return true;
-      if (answerStatus === 'RESPOSTA_INCORRETA') return false;
-      return null;
-    }
 
     // Build correction data for essay questions
     const correction: EssayQuestionCorrection | undefined =
