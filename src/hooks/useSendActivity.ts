@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback, useMemo, useRef } from 'react';
+import dayjs from 'dayjs';
 import type { CategoryConfig } from '../components/CheckBoxGroup/CheckBoxGroup';
 import type {
   SendActivityFormData,
@@ -69,12 +70,13 @@ function transformToCategoryConfig(
 
 /**
  * Convert date and time to ISO datetime string
+ * Uses dayjs for proper timezone conversion
  * @param date - Date string in YYYY-MM-DD format
  * @param time - Time string in HH:MM format
- * @returns ISO datetime string
+ * @returns ISO datetime string in UTC
  */
 function toISODateTime(date: string, time: string): string {
-  return `${date}T${time}:00.000Z`;
+  return dayjs(`${date}T${time}`).toISOString();
 }
 
 /**

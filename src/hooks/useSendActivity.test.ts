@@ -8,6 +8,16 @@ import type {
 import type { SendActivityFormData } from '../components/SendActivityModal/types';
 
 /**
+ * Mock dayjs to return predictable ISO strings in tests
+ * This ensures consistent behavior regardless of local timezone
+ */
+jest.mock('dayjs', () => {
+  return (input: string) => ({
+    toISOString: () => `${input}:00.000Z`,
+  });
+});
+
+/**
  * Mock categories data
  */
 const mockCategoriesData: SendActivityCategoriesData = {
