@@ -1,4 +1,6 @@
-import { ReactNode, useId } from 'react';
+import type { ReactNode } from 'react';
+import { QUESTION_TYPE } from '../components/Quiz/useQuizStore';
+import { useId } from 'react';
 import {
   Question,
   QuestionResult,
@@ -10,6 +12,17 @@ import Badge from '../components/Badge/Badge';
 import { CheckCircle, XCircle } from 'phosphor-react';
 import { cn } from './utils';
 import ImageQuestion from '../assets/img/mock-image-question.png';
+
+export type QuestionRendererMap = Record<QUESTION_TYPE, () => ReactNode>;
+
+export const renderFromMap = (
+  renderers: QuestionRendererMap,
+  questionType?: QUESTION_TYPE
+) => {
+  if (!questionType) return null;
+  const renderer = renderers[questionType];
+  return renderer ? renderer() : null;
+};
 
 enum Status {
   CORRECT = 'correct',

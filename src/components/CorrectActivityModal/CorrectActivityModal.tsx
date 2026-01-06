@@ -39,7 +39,7 @@ import {
   renderQuestionFill,
   renderQuestionImage,
   renderQuestionConnectDots,
-} from '../../utils/questionRenderers';
+} from '../../utils/questionRenderer';
 
 /**
  * Props for the CorrectActivityModal component
