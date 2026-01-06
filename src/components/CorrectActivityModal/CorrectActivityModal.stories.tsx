@@ -5,6 +5,8 @@ import Button from '../Button/Button';
 import {
   type StudentActivityCorrectionData,
   type SaveQuestionCorrectionPayload,
+  type QuestionsAnswersByStudentResponse,
+  convertApiResponseToCorrectionData,
 } from '../../types/studentActivityCorrection';
 import {
   QUESTION_TYPE,
@@ -1018,4 +1020,498 @@ export const PerfectScore: Story = () => {
   };
 
   return <ModalWrapper data={perfectScoreData} buttonLabel="Nota 10" />;
+};
+
+/**
+ * Helper function to create API response mock data
+ */
+const createApiResponseMock = (
+  answers: QuestionResult['answers'],
+  statistics: QuestionResult['statistics']
+): QuestionsAnswersByStudentResponse => {
+  return {
+    data: {
+      answers,
+      statistics,
+    },
+  };
+};
+
+/**
+ * Story using new API structure with MULTIPLA_ESCOLHA questions
+ * Based on the new API response format
+ */
+export const WithNewApiStructureMultipleChoice: Story = () => {
+  const apiResponse: QuestionsAnswersByStudentResponse = createApiResponseMock(
+    [
+      {
+        id: '019b5890-55bf-7f4a-b939-798c9a59d804',
+        questionId: '019b588f-769f-704e-9ce0-e0ced7a5597f',
+        answer: null,
+        selectedOptions: [],
+        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+        statement: 'Qual é a derivada da função f(x) = x³ + 2x² - 5x + 1?',
+        questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
+        difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+        solutionExplanation:
+          "Aplicando as regras de derivação: f'(x) = 3x² + 4x - 5",
+        correctOption: 'Opção incorreta: null',
+        createdAt: '2025-12-25T23:50:09.203Z',
+        updatedAt: '2025-12-25T23:50:09.203Z',
+        knowledgeMatrix: [
+          {
+            areaKnowledge: {
+              id: '019b588e-55ba-72bc-886e-c798aee8e151',
+              name: 'Matemática e suas Tecnologias',
+            },
+            subject: {
+              id: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+              name: 'Matemática',
+              color: '#ff0000',
+              icon: 'math',
+            },
+            topic: {
+              id: '019b588e-5c4b-7e1f-a85f-1c78a8218f3a',
+              name: 'Números e Operações',
+            },
+            subtopic: {
+              id: '019b588e-5e7d-7bff-8966-8ac59395f124',
+              name: 'Conjuntos Numéricos',
+            },
+            content: {
+              id: '019b588e-60ad-7c90-b3a5-36f51aed6794',
+              name: 'Números Reais',
+            },
+          },
+        ],
+        teacherFeedback: null,
+        attachment: null,
+        score: null,
+        gradedAt: null,
+        gradedBy: null,
+        options: [
+          {
+            id: '019b588f-79ed-7d83-9e25-abbf05a7c166',
+            option: "f'(x) = 3x² + 4x - 5",
+            isCorrect: true,
+          },
+          {
+            id: '019b588f-7b07-7d13-bea0-de450f2fb1c4',
+            option: "f'(x) = x³ + 2x² - 5x",
+            isCorrect: false,
+          },
+          {
+            id: '019b588f-7c21-75db-bece-baaa5cff2e00',
+            option: "f'(x) = 3x² + 2x - 5",
+            isCorrect: false,
+          },
+          {
+            id: '019b588f-7d38-7cbd-a610-f9298289c571',
+            option: "f'(x) = x² + 4x - 5",
+            isCorrect: false,
+          },
+        ],
+      },
+      {
+        id: '019b5890-57f5-7e60-88f6-7e8103369007',
+        questionId: '019b588f-819b-704b-9f76-b24799520198',
+        answer: null,
+        selectedOptions: [],
+        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+        statement: 'Qual é o valor de log₂(32)?',
+        questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
+        difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+        solutionExplanation: 'log₂(32) = log₂(2⁵) = 5',
+        correctOption: 'Opção incorreta: null',
+        createdAt: '2025-12-25T23:50:09.203Z',
+        updatedAt: '2025-12-25T23:50:09.203Z',
+        knowledgeMatrix: [
+          {
+            areaKnowledge: {
+              id: '019b588e-55ba-72bc-886e-c798aee8e151',
+              name: 'Matemática e suas Tecnologias',
+            },
+            subject: {
+              id: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+              name: 'Matemática',
+              color: '#ff0000',
+              icon: 'math',
+            },
+            topic: {
+              id: '019b588e-5c4b-7e1f-a85f-1c78a8218f3a',
+              name: 'Números e Operações',
+            },
+            subtopic: {
+              id: '019b588e-5e7d-7bff-8966-8ac59395f124',
+              name: 'Conjuntos Numéricos',
+            },
+            content: {
+              id: '019b588e-60ad-7c90-b3a5-36f51aed6794',
+              name: 'Números Reais',
+            },
+          },
+        ],
+        teacherFeedback: null,
+        attachment: null,
+        score: null,
+        gradedAt: null,
+        gradedBy: null,
+        options: [
+          {
+            id: '019b588f-84e5-7c83-b3aa-2b62bbefdbc6',
+            option: '5',
+            isCorrect: true,
+          },
+          {
+            id: '019b588f-85fa-7a59-a59a-ba6bfd742a21',
+            option: '4',
+            isCorrect: false,
+          },
+          {
+            id: '019b588f-8710-716c-8906-1560dbf82683',
+            option: '6',
+            isCorrect: false,
+          },
+          {
+            id: '019b588f-882c-7e8c-a61f-f6d62a198b30',
+            option: '3',
+            isCorrect: false,
+          },
+        ],
+      },
+    ],
+    {
+      totalAnswered: 3,
+      correctAnswers: 0,
+      incorrectAnswers: 0,
+      pendingAnswers: 3,
+      score: 0,
+      timeSpent: 75,
+    }
+  );
+
+  const correctionData = convertApiResponseToCorrectionData(
+    apiResponse,
+    'student-api-1',
+    'Aluno API Teste'
+  );
+
+  return (
+    <ModalWrapper
+      data={correctionData}
+      buttonLabel="Nova Estrutura API - Múltipla Escolha"
+    />
+  );
+};
+
+/**
+ * Story using new API structure with ALTERNATIVA questions and selected options
+ */
+export const WithNewApiStructureAlternatives: Story = () => {
+  const apiResponse: QuestionsAnswersByStudentResponse = createApiResponseMock(
+    [
+      {
+        id: '019b919b-692a-7be4-8530-085af1233f80',
+        questionId: '019b588f-d31a-7995-8868-34276e784db5',
+        answer: null,
+        selectedOptions: [
+          {
+            optionId: '019b588f-d676-790f-996e-99e342bb1890',
+          },
+        ],
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+        statement: 'Qual é o resultado de (2³)²?',
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+        solutionExplanation: '(2³)² = 2⁶ = 64',
+        correctOption: 'Verificação baseada na opção selecionada',
+        createdAt: '2026-01-06T01:40:39.966Z',
+        updatedAt: '2026-01-06T04:40:49.791Z',
+        knowledgeMatrix: [
+          {
+            areaKnowledge: {
+              id: '019b588e-55ba-72bc-886e-c798aee8e151',
+              name: 'Matemática e suas Tecnologias',
+            },
+            subject: {
+              id: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+              name: 'Matemática',
+              color: '#ff0000',
+              icon: 'math',
+            },
+            topic: {
+              id: '019b588e-5c4b-7e1f-a85f-1c78a8218f3a',
+              name: 'Números e Operações',
+            },
+            subtopic: {
+              id: '019b588e-5e7d-7bff-8966-8ac59395f124',
+              name: 'Conjuntos Numéricos',
+            },
+            content: {
+              id: '019b588e-60ad-7c90-b3a5-36f51aed6794',
+              name: 'Números Reais',
+            },
+          },
+        ],
+        teacherFeedback: null,
+        attachment: null,
+        score: null,
+        gradedAt: null,
+        gradedBy: null,
+        options: [
+          {
+            id: '019b588f-d676-790f-996e-99e342bb1890',
+            option: '64',
+            isCorrect: true,
+          },
+          {
+            id: '019b588f-d790-7d34-9dd3-fb1136db7e23',
+            option: '32',
+            isCorrect: false,
+          },
+          {
+            id: '019b588f-d8aa-7ef7-9633-76c49ee5ed23',
+            option: '16',
+            isCorrect: false,
+          },
+          {
+            id: '019b588f-d9c3-74a8-8b27-6c3016497dd1',
+            option: '128',
+            isCorrect: false,
+          },
+          {
+            id: '019b588f-dade-72e7-9dc3-1d13c6f5eefe',
+            option: '8',
+            isCorrect: false,
+          },
+        ],
+      },
+      {
+        id: '019b919b-692a-7be4-8530-085bb77f0cc2',
+        questionId: '019b588f-c6e9-7685-8681-75a23b6925ab',
+        answer: null,
+        selectedOptions: [
+          {
+            optionId: '019b588f-cb5e-7f8e-82c2-744a87fb0307',
+          },
+        ],
+        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+        statement: 'Qual é a raiz quadrada de 144?',
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+        solutionExplanation: '√144 = 12',
+        correctOption: 'Verificação baseada na opção selecionada',
+        createdAt: '2026-01-06T01:40:39.966Z',
+        updatedAt: '2026-01-06T04:40:49.797Z',
+        knowledgeMatrix: [
+          {
+            areaKnowledge: {
+              id: '019b588e-55ba-72bc-886e-c798aee8e151',
+              name: 'Matemática e suas Tecnologias',
+            },
+            subject: {
+              id: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+              name: 'Matemática',
+              color: '#ff0000',
+              icon: 'math',
+            },
+            topic: {
+              id: '019b588e-5c4b-7e1f-a85f-1c78a8218f3a',
+              name: 'Números e Operações',
+            },
+            subtopic: {
+              id: '019b588e-5e7d-7bff-8966-8ac59395f124',
+              name: 'Conjuntos Numéricos',
+            },
+            content: {
+              id: '019b588e-60ad-7c90-b3a5-36f51aed6794',
+              name: 'Números Reais',
+            },
+          },
+        ],
+        teacherFeedback: null,
+        attachment: null,
+        score: null,
+        gradedAt: null,
+        gradedBy: null,
+        options: [
+          {
+            id: '019b588f-ca43-70cd-adc9-85e47a28da92',
+            option: '12',
+            isCorrect: true,
+          },
+          {
+            id: '019b588f-cb5e-7f8e-82c2-744a87fb0307',
+            option: '14',
+            isCorrect: false,
+          },
+          {
+            id: '019b588f-cc83-7cb5-b50f-d0f698e9a201',
+            option: '10',
+            isCorrect: false,
+          },
+          {
+            id: '019b588f-cd9e-718a-9b3e-483429b20217',
+            option: '16',
+            isCorrect: false,
+          },
+          {
+            id: '019b588f-ceb8-79ef-9cd8-9c3ed36d2ed7',
+            option: '8',
+            isCorrect: false,
+          },
+        ],
+      },
+    ],
+    {
+      totalAnswered: 5,
+      correctAnswers: 1,
+      incorrectAnswers: 4,
+      pendingAnswers: 0,
+      score: 20,
+      timeSpent: 0,
+    }
+  );
+
+  const correctionData = convertApiResponseToCorrectionData(
+    apiResponse,
+    'student-api-2',
+    'Aluno API Alternativas'
+  );
+
+  return (
+    <ModalWrapper
+      data={correctionData}
+      buttonLabel="Nova Estrutura API - Alternativas"
+    />
+  );
+};
+
+/**
+ * Story using new API structure with DISSERTATIVA questions
+ */
+export const WithNewApiStructureDissertative: Story = () => {
+  const apiResponse: QuestionsAnswersByStudentResponse = createApiResponseMock(
+    [
+      {
+        id: '019b919b-692a-7be4-8530-085af1233f80',
+        questionId: '019b588f-d31a-7995-8868-34276e784db5',
+        answer:
+          'A fotossíntese é o processo pelo qual as plantas convertem luz solar, água e dióxido de carbono em glicose e oxigênio.',
+        selectedOptions: [],
+        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+        statement:
+          'Explique o processo de fotossíntese e sua importância para os seres vivos.',
+        questionType: QUESTION_TYPE.DISSERTATIVA,
+        difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+        solutionExplanation:
+          'A fotossíntese é fundamental para a vida na Terra, pois produz oxigênio e serve como base da cadeia alimentar.',
+        correctOption: '',
+        createdAt: '2026-01-06T01:40:39.966Z',
+        updatedAt: '2026-01-06T04:40:49.791Z',
+        knowledgeMatrix: [
+          {
+            areaKnowledge: {
+              id: '019b588e-55ba-72bc-886e-c798aee8e151',
+              name: 'Ciências da Natureza',
+            },
+            subject: {
+              id: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+              name: 'Biologia',
+              color: '#00ff00',
+              icon: 'biology',
+            },
+            topic: {
+              id: '019b588e-5c4b-7e1f-a85f-1c78a8218f3a',
+              name: 'Fisiologia Vegetal',
+            },
+            subtopic: {
+              id: '019b588e-5e7d-7bff-8966-8ac59395f124',
+              name: 'Fotossíntese',
+            },
+            content: {
+              id: '019b588e-60ad-7c90-b3a5-36f51aed6794',
+              name: 'Processo Fotossintético',
+            },
+          },
+        ],
+        teacherFeedback: null,
+        attachment: null,
+        score: null,
+        gradedAt: null,
+        gradedBy: null,
+        options: [],
+      },
+      {
+        id: '019b919b-692a-7be4-8530-085bb77f0cc2',
+        questionId: '019b588f-c6e9-7685-8681-75a23b6925ab',
+        answer:
+          'A Revolução Industrial trouxe mudanças tecnológicas significativas.',
+        selectedOptions: [],
+        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+        statement:
+          'Analise o impacto da Revolução Industrial na sociedade moderna.',
+        questionType: QUESTION_TYPE.DISSERTATIVA,
+        difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+        solutionExplanation:
+          'A Revolução Industrial transformou a sociedade, economia e modo de vida das pessoas.',
+        correctOption: '',
+        createdAt: '2026-01-06T01:40:39.966Z',
+        updatedAt: '2026-01-06T04:40:49.797Z',
+        knowledgeMatrix: [
+          {
+            areaKnowledge: {
+              id: '019b588e-55ba-72bc-886e-c798aee8e151',
+              name: 'Ciências Humanas',
+            },
+            subject: {
+              id: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+              name: 'História',
+              color: '#0000ff',
+              icon: 'history',
+            },
+            topic: {
+              id: '019b588e-5c4b-7e1f-a85f-1c78a8218f3a',
+              name: 'História Moderna',
+            },
+            subtopic: {
+              id: '019b588e-5e7d-7bff-8966-8ac59395f124',
+              name: 'Revolução Industrial',
+            },
+            content: {
+              id: '019b588e-60ad-7c90-b3a5-36f51aed6794',
+              name: 'Impactos Sociais',
+            },
+          },
+        ],
+        teacherFeedback: null,
+        attachment: null,
+        score: null,
+        gradedAt: null,
+        gradedBy: null,
+        options: [],
+      },
+    ],
+    {
+      totalAnswered: 2,
+      correctAnswers: 0,
+      incorrectAnswers: 0,
+      pendingAnswers: 2,
+      score: 0,
+      timeSpent: 120,
+    }
+  );
+
+  const correctionData = convertApiResponseToCorrectionData(
+    apiResponse,
+    'student-api-3',
+    'Aluno API Dissertativas'
+  );
+
+  return (
+    <ModalWrapper
+      data={correctionData}
+      buttonLabel="Nova Estrutura API - Dissertativas"
+    />
+  );
 };

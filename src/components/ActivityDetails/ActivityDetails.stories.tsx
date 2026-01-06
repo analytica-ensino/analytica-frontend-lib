@@ -6,6 +6,7 @@ import type { ActivityDetailsData } from '../../types/activityDetails';
 import type {
   StudentActivityCorrectionData,
   SaveQuestionCorrectionPayload,
+  QuestionsAnswersByStudentResponse,
 } from '../../types/studentActivityCorrection';
 import {
   QUESTION_TYPE,
@@ -319,9 +320,33 @@ const defaultProps: ActivityDetailsProps = {
     await new Promise((resolve) => setTimeout(resolve, 500));
     return mockActivityData;
   },
-  fetchStudentCorrection: async () => {
+  fetchStudentCorrection: async (
+    _activityId: string,
+    _studentId: string,
+    _studentName: string
+  ): Promise<QuestionsAnswersByStudentResponse> => {
     await new Promise((resolve) => setTimeout(resolve, 300));
-    return mockCorrectionData;
+    // Convert mockCorrectionData to API format for demonstration
+    // In real usage, this would come directly from the API
+    const apiResponse: QuestionsAnswersByStudentResponse = {
+      data: {
+        answers: mockCorrectionData.questions.map((q) => q.result),
+        statistics: {
+          totalAnswered:
+            mockCorrectionData.correctCount +
+            mockCorrectionData.incorrectCount +
+            mockCorrectionData.blankCount,
+          correctAnswers: mockCorrectionData.correctCount,
+          incorrectAnswers: mockCorrectionData.incorrectCount,
+          pendingAnswers: mockCorrectionData.questions.filter(
+            (q) => q.result.answerStatus === 'PENDENTE_AVALIACAO'
+          ).length,
+          score: mockCorrectionData.score || 0,
+          timeSpent: 0,
+        },
+      },
+    };
+    return apiResponse;
   },
   submitObservation: async () => {
     await new Promise((resolve) => setTimeout(resolve, 200));

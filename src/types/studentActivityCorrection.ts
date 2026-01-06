@@ -166,3 +166,118 @@ export const getQuestionStatusFromData = (
 ): QuestionStatus => {
   return mapAnswerStatusToQuestionStatus(questionData.result.answerStatus);
 };
+
+/**
+ * API response structure for fetchQuestionsAnswersByStudent
+ * Returns student answers and statistics for an activity
+ */
+export interface QuestionsAnswersByStudentResponse {
+  data: QuestionResult;
+}
+
+/**
+ * Convert QuestionResult from API to StudentActivityCorrectionData
+ * This function transforms the API response into the format expected by CorrectActivityModal
+ * @param apiResponse - API response with answers and statistics
+ * @param studentId - Student ID
+ * @param studentName - Student name
+ * @param observation - Optional teacher observation
+ * @param attachment - Optional attachment URL
+ * @returns StudentActivityCorrectionData formatted for the modal
+ */
+export const convertApiResponseToCorrectionData = (
+  apiResponse: QuestionsAnswersByStudentResponse,
+  studentId: string,
+  studentName: string,
+  observation?: string,
+  attachment?: string
+): StudentActivityCorrectionData => {
+  const { answers, statistics } = apiResponse.data;
+
+  // Calculate counts from statistics
+  const correctCount = statistics.correctAnswers;
+  const incorrectCount = statistics.incorrectAnswers;
+  const blankCount =
+    statistics.totalAnswered -
+    correctCount -
+    incorrectCount -
+    statistics.pendingAnswers;
+
+  // Convert answers to CorrectionQuestionData format
+  const questions: CorrectionQuestionData[] = answers.map((answer, index) => {
+    // Build Question object from answer data
+    const question: Question = {
+      id: answer.questionId,
+      statement: answer.statement,
+      questionType: answer.questionType,
+      difficultyLevel: answer.difficultyLevel,
+      description: '',
+      examBoard: null,
+      examYear: null,
+      solutionExplanation: answer.solutionExplanation || null,
+      answer: null,
+      answerStatus: answer.answerStatus,
+      options: answer.options || [],
+      knowledgeMatrix: answer.knowledgeMatrix.map((km) => ({
+        areaKnowledge: km.areaKnowledge || {
+          id: '',
+          name: '',
+        },
+        subject: km.subject || {
+          id: '',
+          name: '',
+          color: '',
+          icon: '',
+        },
+        topic: km.topic || {
+          id: '',
+          name: '',
+        },
+        subtopic: km.subtopic || {
+          id: '',
+          name: '',
+        },
+        content: km.content || {
+          id: '',
+          name: '',
+        },
+      })),
+      correctOptionIds:
+        answer.options?.filter((opt) => opt.isCorrect).map((opt) => opt.id) ||
+        [],
+    };
+
+    // Build correction data for essay questions
+    const correction: EssayQuestionCorrection | undefined =
+      answer.questionType === 'DISSERTATIVA'
+        ? {
+            isCorrect:
+              answer.answerStatus === 'RESPOSTA_CORRETA'
+                ? true
+                : answer.answerStatus === 'RESPOSTA_INCORRETA'
+                  ? false
+                  : null,
+            teacherFeedback: answer.teacherFeedback || '',
+          }
+        : undefined;
+
+    return {
+      question,
+      result: answer,
+      questionNumber: index + 1,
+      correction,
+    };
+  });
+
+  return {
+    studentId,
+    studentName,
+    score: statistics.score || null,
+    correctCount,
+    incorrectCount,
+    blankCount,
+    questions,
+    observation,
+    attachment,
+  };
+};

@@ -19,7 +19,9 @@ import type { ColumnConfig, TableParams } from '../TableProvider/TableProvider';
 import type {
   StudentActivityCorrectionData,
   SaveQuestionCorrectionPayload,
+  QuestionsAnswersByStudentResponse,
 } from '../../types/studentActivityCorrection';
+import { convertApiResponseToCorrectionData } from '../../types/studentActivityCorrection';
 import {
   STUDENT_ACTIVITY_STATUS,
   type ActivityDetailsData,
@@ -45,12 +47,12 @@ export interface ActivityDetailsProps {
     id: string,
     params?: ActivityDetailsQueryParams
   ) => Promise<ActivityDetailsData>;
-  /** Function to fetch student correction data */
+  /** Function to fetch student correction data from API (fetchQuestionsAnswersByStudent) */
   fetchStudentCorrection: (
     activityId: string,
     studentId: string,
     studentName: string
-  ) => Promise<StudentActivityCorrectionData>;
+  ) => Promise<QuestionsAnswersByStudentResponse>;
   /** Function to submit observation */
   submitObservation: (
     activityId: string,
@@ -280,8 +282,14 @@ export const ActivityDetails = ({
 
       setCorrectionError(null);
       try {
-        const correction = await fetchStudentCorrection(
+        const apiResponse = await fetchStudentCorrection(
           activityId,
+          studentId,
+          student.studentName || 'Aluno'
+        );
+        // Convert API response to StudentActivityCorrectionData format
+        const correction = convertApiResponseToCorrectionData(
+          apiResponse,
           studentId,
           student.studentName || 'Aluno'
         );
