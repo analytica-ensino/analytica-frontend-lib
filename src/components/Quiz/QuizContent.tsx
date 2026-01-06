@@ -49,6 +49,8 @@ export const getStatusStyles = (variantCorrect?: string) => {
       return 'bg-success-background border-success-300';
     case 'incorrect':
       return 'bg-error-background border-error-300';
+    default:
+      return '';
   }
 };
 

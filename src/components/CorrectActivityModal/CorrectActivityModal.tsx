@@ -516,12 +516,14 @@ const CorrectActivityModal = ({
       isSaving: false,
     };
 
-    const radioValue =
-      correction.isCorrect === null
-        ? undefined
-        : correction.isCorrect
-          ? 'true'
-          : 'false';
+    let radioValue;
+    if (correction.isCorrect === null) {
+      radioValue = undefined;
+    } else if (correction.isCorrect) {
+      radioValue = 'true';
+    } else {
+      radioValue = 'false';
+    }
 
     return (
       <>

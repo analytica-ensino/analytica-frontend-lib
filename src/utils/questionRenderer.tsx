@@ -12,6 +12,7 @@ import Badge from '../components/Badge/Badge';
 import { CheckCircle, XCircle } from 'phosphor-react';
 import { cn } from './utils';
 import ImageQuestion from '../assets/img/mock-image-question.png';
+import { getStatusStyles } from '../components/Quiz/QuizContent';
 
 export type QuestionRendererMap = Record<QUESTION_TYPE, () => ReactNode>;
 
@@ -234,20 +235,6 @@ const getStatusBadge = (status?: 'correct' | 'incorrect') => {
 };
 
 /**
- * Get status styles for background
- */
-const getStatusStyles = (variantCorrect?: string) => {
-  switch (variantCorrect) {
-    case 'correct':
-      return 'bg-success-background border-success-300';
-    case 'incorrect':
-      return 'bg-error-background border-error-300';
-    default:
-      return '';
-  }
-};
-
-/**
  * Render true or false question
  * Each option has a statement, and student marks V or F for each
  * Returns content without wrapper (for accordion use)
@@ -411,17 +398,11 @@ const FillQuestionContent = ({
     placeholders.push(match[1]);
   }
 
-  // Build correct answers from options - each placeholder should map to a correct option
-  // For fill questions, options might contain the correct answers for each placeholder
+  // Build correct answers from studentAnswers - use the already-parsed correctAnswer field
   const correctAnswers: Record<string, string> = {};
-  placeholders.forEach((placeholder, index) => {
-    // Try to find correct answer from options
-    // Options might be indexed or have a specific structure
-    const correctOption = result?.options?.find((op) => op.isCorrect);
+  placeholders.forEach((placeholder) => {
     correctAnswers[placeholder] =
-      correctOption?.option ??
-      result?.options?.[index]?.option ??
-      `[${placeholder}]`;
+      studentAnswers[placeholder]?.correctAnswer || `[${placeholder}]`;
   });
 
   /**
@@ -637,6 +618,51 @@ export const renderQuestionImage = ({
       : 'bg-indicator-error/70 border-white';
   };
 
+  // Calculate position descriptions for accessibility
+  const getPositionDescription = (x: number, y: number): string => {
+    const xPercent = Math.round(x * 100);
+    const yPercent = Math.round(y * 100);
+    return `${xPercent}% da esquerda, ${yPercent}% do topo`;
+  };
+
+  const getSpatialRelationship = (): string => {
+    if (!userPositionRelative) {
+      return `Área correta localizada em ${getPositionDescription(
+        correctPositionRelative.x,
+        correctPositionRelative.y
+      )}. Nenhuma resposta do aluno fornecida.`;
+    }
+
+    const deltaX = userPositionRelative.x - correctPositionRelative.x;
+    const deltaY = userPositionRelative.y - correctPositionRelative.y;
+    const distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+    const distancePercent = Math.round(distance * 100);
+
+    let direction = '';
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      direction = deltaX > 0 ? 'à direita' : 'à esquerda';
+    } else {
+      direction = deltaY > 0 ? 'abaixo' : 'acima';
+    }
+
+    const correctPos = getPositionDescription(
+      correctPositionRelative.x,
+      correctPositionRelative.y
+    );
+    const userPos = getPositionDescription(
+      userPositionRelative.x,
+      userPositionRelative.y
+    );
+
+    return `Área correta localizada em ${correctPos}. Resposta do aluno em ${userPos}. A resposta do aluno está ${distancePercent}% de distância ${direction} da área correta. ${isCorrect ? 'A resposta está dentro da área de tolerância e é considerada correta.' : 'A resposta está fora da área de tolerância e é considerada incorreta.'}`;
+  };
+
+  const correctPositionDescription = getPositionDescription(
+    correctPositionRelative.x,
+    correctPositionRelative.y
+  );
+  const imageAltText = `Questão de imagem com área correta localizada em ${correctPositionDescription}`;
+
   return (
     <div className="pt-2 space-y-4">
       {/* Legend */}
@@ -667,14 +693,19 @@ export const renderQuestionImage = ({
 
       {/* Image container */}
       <div className="relative w-full">
+        {/* Hidden text summary for screen readers */}
+        <div className="sr-only">{getSpatialRelationship()}</div>
+
         <img
           src={ImageQuestion}
-          alt="Question"
+          alt={imageAltText}
           className="w-full h-auto rounded-md"
         />
 
         {/* Correct answer circle */}
         <div
+          role="img"
+          aria-label={`Área correta marcada em ${correctPositionDescription}`}
           className="absolute rounded-full bg-indicator-primary/70 border-4 border-[#F8CC2E] pointer-events-none"
           style={{
             minWidth: '50px',
@@ -684,11 +715,21 @@ export const renderQuestionImage = ({
             left: `calc(${correctPositionRelative.x * 100}% - 7.5%)`,
             top: `calc(${correctPositionRelative.y * 100}% - 15%)`,
           }}
-        />
+        >
+          <span className="sr-only">
+            Círculo amarelo indicando a área correta da resposta, posicionado em{' '}
+            {correctPositionDescription}
+          </span>
+        </div>
 
         {/* User's answer circle */}
         {userPositionRelative && (
           <div
+            role="img"
+            aria-label={`Resposta do aluno marcada em ${getPositionDescription(
+              userPositionRelative.x,
+              userPositionRelative.y
+            )}, ${isCorrect ? 'correta' : 'incorreta'}`}
             className={`absolute rounded-full border-4 pointer-events-none ${getUserCircleColorClasses()}`}
             style={{
               minWidth: '30px',
@@ -698,7 +739,31 @@ export const renderQuestionImage = ({
               left: `calc(${userPositionRelative.x * 100}% - 2.5%)`,
               top: `calc(${userPositionRelative.y * 100}% - 2.5%)`,
             }}
-          />
+          >
+            <span className="sr-only">
+              Círculo {isCorrect ? 'verde' : 'vermelho'} indicando a resposta do
+              aluno, posicionado em{' '}
+              {getPositionDescription(
+                userPositionRelative.x,
+                userPositionRelative.y
+              )}
+              . A resposta está{' '}
+              {Math.round(
+                Math.sqrt(
+                  Math.pow(
+                    userPositionRelative.x - correctPositionRelative.x,
+                    2
+                  ) +
+                    Math.pow(
+                      userPositionRelative.y - correctPositionRelative.y,
+                      2
+                    )
+                ) * 100
+              )}
+              % de distância da área correta e é considerada{' '}
+              {isCorrect ? 'correta' : 'incorreta'}.
+            </span>
+          </div>
         )}
       </div>
     </div>
