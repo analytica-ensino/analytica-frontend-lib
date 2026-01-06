@@ -327,16 +327,16 @@ describe('QuizContent', () => {
       expect(styles).toBe('bg-error-background border-error-300');
     });
 
-    it('should return undefined for invalid status', () => {
+    it('should return empty string for invalid status', () => {
       const styles = getStatusStyles('invalid');
 
-      expect(styles).toBeUndefined();
+      expect(styles).toBe('');
     });
 
-    it('should return undefined for undefined status', () => {
+    it('should return empty string for undefined status', () => {
       const styles = getStatusStyles(undefined);
 
-      expect(styles).toBeUndefined();
+      expect(styles).toBe('');
     });
   });
 

@@ -1,4 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  type ReactNode,
+} from 'react';
 import {
   PencilSimple,
   Paperclip,
@@ -12,15 +18,28 @@ import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
-import { AlternativesList } from '../Alternative/Alternative';
+import Radio from '../Radio/Radio';
+import TextArea from '../TextArea/TextArea';
 import { CardAccordation, AccordionGroup } from '../Accordation';
 import { generateFileId } from '../FileAttachment/FileAttachment';
 import type { AttachedFile } from '../FileAttachment/FileAttachment';
 import { cn } from '../../utils/utils';
+import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import {
   type StudentActivityCorrectionData,
+  type SaveQuestionCorrectionPayload,
   getQuestionStatusBadgeConfig,
-} from '../../types/studentActivityCorrection';
+  getQuestionStatusFromData,
+} from '../../utils/studentActivityCorrection';
+import {
+  renderQuestionAlternative,
+  renderQuestionMultipleChoice,
+  renderQuestionTrueOrFalse,
+  renderQuestionDissertative,
+  renderQuestionFill,
+  renderQuestionImage,
+  renderQuestionConnectDots,
+} from '../../utils/questionRenderer/index';
 
 /**
  * Props for the CorrectActivityModal component
@@ -40,6 +59,11 @@ export interface CorrectActivityModalProps {
     observation: string,
     files: File[]
   ) => void;
+  /** Callback when question correction is saved (for essay questions) */
+  onQuestionCorrectionSubmit?: (
+    studentId: string,
+    payload: SaveQuestionCorrectionPayload
+  ) => Promise<void>;
 }
 
 /**
@@ -151,6 +175,7 @@ const CorrectActivityModal = ({
   data,
   isViewOnly = false,
   onObservationSubmit,
+  onQuestionCorrectionSubmit,
 }: CorrectActivityModalProps) => {
   const [observation, setObservation] = useState('');
   const [isObservationExpanded, setIsObservationExpanded] = useState(false);
@@ -162,6 +187,18 @@ const CorrectActivityModal = ({
     null
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // State for essay question corrections
+  const [essayCorrections, setEssayCorrections] = useState<
+    Record<
+      number,
+      {
+        isCorrect: boolean | null;
+        teacherFeedback: string;
+        isSaving: boolean;
+      }
+    >
+  >({});
 
   /**
    * Reset state when modal opens or student changes
@@ -183,8 +220,34 @@ const CorrectActivityModal = ({
         setIsObservationSaved(false);
         setSavedObservation('');
       }
+
+      // Initialize essay corrections from data
+      const initialCorrections: Record<
+        number,
+        {
+          isCorrect: boolean | null;
+          teacherFeedback: string;
+          isSaving: boolean;
+        }
+      > = {};
+      data?.questions?.forEach((questionData) => {
+        if (questionData.question.questionType === QUESTION_TYPE.DISSERTATIVA) {
+          initialCorrections[questionData.questionNumber] = {
+            isCorrect: questionData.correction?.isCorrect ?? null,
+            teacherFeedback: questionData.correction?.teacherFeedback || '',
+            isSaving: false,
+          };
+        }
+      });
+      setEssayCorrections(initialCorrections);
     }
-  }, [isOpen, data?.studentId, data?.observation, data?.attachment]);
+  }, [
+    isOpen,
+    data?.studentId,
+    data?.observation,
+    data?.attachment,
+    data?.questions,
+  ]);
 
   /**
    * Handle opening observation section
@@ -244,6 +307,292 @@ const CorrectActivityModal = ({
     setAttachedFiles([...savedFiles]);
     setIsObservationSaved(false);
     setIsObservationExpanded(true);
+  };
+
+  /**
+   * Handle saving essay question correction
+   */
+  const handleSaveEssayCorrection = useCallback(
+    async (questionNumber: number) => {
+      if (!data?.studentId || !onQuestionCorrectionSubmit) return;
+
+      const correction = essayCorrections[questionNumber];
+      if (correction?.isCorrect == null) {
+        return;
+      }
+
+      setEssayCorrections((prev) => ({
+        ...prev,
+        [questionNumber]: { ...prev[questionNumber], isSaving: true },
+      }));
+
+      try {
+        // Find the question data to get questionId
+        const questionData = data?.questions.find(
+          (q) => q.questionNumber === questionNumber
+        );
+        if (!questionData) {
+          console.error('Questão não encontrada:', questionNumber);
+          return;
+        }
+
+        await onQuestionCorrectionSubmit(data.studentId, {
+          questionId: questionData.question.id,
+          questionNumber,
+          isCorrect: correction.isCorrect,
+          teacherFeedback: correction.teacherFeedback,
+        });
+      } catch (error) {
+        console.error('Erro ao salvar correção da questão:', error);
+      } finally {
+        setEssayCorrections((prev) => ({
+          ...prev,
+          [questionNumber]: { ...prev[questionNumber], isSaving: false },
+        }));
+      }
+    },
+    [
+      data?.studentId,
+      data?.questions,
+      essayCorrections,
+      onQuestionCorrectionSubmit,
+    ]
+  );
+
+  /**
+   * Update essay correction state
+   */
+  const updateEssayCorrection = useCallback(
+    (
+      questionNumber: number,
+      field: 'isCorrect' | 'teacherFeedback',
+      value: boolean | string
+    ) => {
+      setEssayCorrections((prev) => ({
+        ...prev,
+        [questionNumber]: {
+          ...prev[questionNumber],
+          [field]: value,
+        },
+      }));
+    },
+    []
+  );
+
+  /**
+   * Get accordion title based on question type
+   */
+  const getAccordionTitle = (questionType: QUESTION_TYPE): string => {
+    switch (questionType) {
+      case QUESTION_TYPE.ALTERNATIVA:
+      case QUESTION_TYPE.MULTIPLA_ESCOLHA:
+      case QUESTION_TYPE.VERDADEIRO_FALSO:
+        return 'Alternativas';
+      case QUESTION_TYPE.DISSERTATIVA:
+        return 'Resposta';
+      case QUESTION_TYPE.PREENCHER:
+        return 'Preencher Lacunas';
+      case QUESTION_TYPE.IMAGEM:
+        return 'Imagem';
+      case QUESTION_TYPE.LIGAR_PONTOS:
+        return 'Ligar Pontos';
+      default:
+        return 'Resposta';
+    }
+  };
+
+  /**
+   * Render question content using Quiz format renderers with accordion
+   */
+  const renderQuestionContent = (
+    questionData: StudentActivityCorrectionData['questions'][number]
+  ) => {
+    const { question, result } = questionData;
+    const questionType = question.questionType;
+    const accordionTitle = getAccordionTitle(questionType);
+
+    let content: ReactNode;
+
+    switch (questionType) {
+      case QUESTION_TYPE.ALTERNATIVA:
+        content = renderQuestionAlternative({
+          question,
+          result,
+        });
+        break;
+      case QUESTION_TYPE.MULTIPLA_ESCOLHA:
+        content = renderQuestionMultipleChoice({
+          question,
+          result,
+        });
+        break;
+      case QUESTION_TYPE.VERDADEIRO_FALSO:
+        content = renderQuestionTrueOrFalse({
+          question,
+          result,
+        });
+        break;
+      case QUESTION_TYPE.DISSERTATIVA:
+        // Combine student answer with correction fields inside accordion
+        content = (
+          <>
+            {renderQuestionDissertative({
+              result,
+            })}
+            {/* Correction fields for essay questions */}
+            {!isViewOnly && (
+              <div className="space-y-4 border-t border-border-100 pt-4 mt-4">
+                {renderEssayCorrectionFields(questionData)}
+              </div>
+            )}
+          </>
+        );
+        break;
+      case QUESTION_TYPE.PREENCHER:
+        content = renderQuestionFill({
+          question,
+          result,
+        });
+        break;
+      case QUESTION_TYPE.IMAGEM:
+        content = renderQuestionImage({
+          result,
+        });
+        break;
+      case QUESTION_TYPE.LIGAR_PONTOS:
+        content = renderQuestionConnectDots({ paddingBottom: '' });
+        break;
+      default:
+        // Fallback: try to render based on options presence
+        if (question.options && question.options.length > 0) {
+          content = renderQuestionAlternative({
+            question,
+            result,
+          });
+        } else {
+          content = renderQuestionDissertative({
+            result,
+          });
+        }
+    }
+
+    return (
+      <CardAccordation
+        value={`accordion-${questionData.questionNumber}`}
+        className="border border-border-100 rounded-lg"
+        trigger={
+          <div className="py-3 pr-2 w-full">
+            <Text className="text-sm font-bold text-text-950">
+              {accordionTitle}
+            </Text>
+          </div>
+        }
+      >
+        {content}
+      </CardAccordation>
+    );
+  };
+
+  /**
+   * Render essay correction fields (radio group, textarea, save button)
+   */
+  const renderEssayCorrectionFields = (
+    questionData: StudentActivityCorrectionData['questions'][number]
+  ) => {
+    const correction = essayCorrections[questionData.questionNumber] || {
+      isCorrect: null,
+      teacherFeedback: '',
+      isSaving: false,
+    };
+
+    let radioValue;
+    if (correction.isCorrect === null) {
+      radioValue = undefined;
+    } else if (correction.isCorrect) {
+      radioValue = 'true';
+    } else {
+      radioValue = 'false';
+    }
+
+    return (
+      <>
+        {/* Is correct radio group */}
+        <div className="space-y-2">
+          <Text className="text-sm font-semibold text-text-950">
+            Resposta está correta?
+          </Text>
+          <div className="flex gap-4">
+            <Radio
+              name={`isCorrect-${questionData.questionNumber}`}
+              value="true"
+              id={`correct-yes-${questionData.questionNumber}`}
+              label="Sim"
+              size="medium"
+              checked={radioValue === 'true'}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  updateEssayCorrection(
+                    questionData.questionNumber,
+                    'isCorrect',
+                    true
+                  );
+                }
+              }}
+            />
+            <Radio
+              name={`isCorrect-${questionData.questionNumber}`}
+              value="false"
+              id={`correct-no-${questionData.questionNumber}`}
+              label="Não"
+              size="medium"
+              checked={radioValue === 'false'}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  updateEssayCorrection(
+                    questionData.questionNumber,
+                    'isCorrect',
+                    false
+                  );
+                }
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Teacher feedback textarea */}
+        <div className="space-y-2">
+          <Text className="text-sm font-semibold text-text-950">
+            Incluir observação
+          </Text>
+          <TextArea
+            value={correction.teacherFeedback}
+            onChange={(e) => {
+              updateEssayCorrection(
+                questionData.questionNumber,
+                'teacherFeedback',
+                e.target.value
+              );
+            }}
+            placeholder="Escreva uma observação sobre a resposta do aluno"
+            rows={4}
+            size="medium"
+          />
+        </div>
+
+        {/* Save button */}
+        <Button
+          size="small"
+          onClick={() => handleSaveEssayCorrection(questionData.questionNumber)}
+          disabled={
+            correction.isCorrect === null ||
+            correction.isSaving ||
+            !onQuestionCorrectionSubmit
+          }
+        >
+          {correction.isSaving ? 'Salvando...' : 'Salvar'}
+        </Button>
+      </>
+    );
   };
 
   if (!data) return null;
@@ -504,18 +853,19 @@ const CorrectActivityModal = ({
         <div className="space-y-2">
           <Text className="text-sm font-bold text-text-950">Respostas</Text>
           <AccordionGroup type="multiple" className="space-y-2">
-            {data.questions?.map((question) => {
-              const badgeConfig = getQuestionStatusBadgeConfig(question.status);
+            {data.questions?.map((questionData) => {
+              const status = getQuestionStatusFromData(questionData);
+              const badgeConfig = getQuestionStatusBadgeConfig(status);
 
               return (
                 <CardAccordation
-                  key={question.questionNumber}
-                  value={`question-${question.questionNumber}`}
+                  key={questionData.questionNumber}
+                  value={`question-${questionData.questionNumber}`}
                   className="bg-background rounded-xl"
                   trigger={
                     <div className="flex items-center justify-between w-full py-3 pr-2">
                       <Text className="text-base font-bold text-text-950">
-                        Questão {question.questionNumber}
+                        Questão {questionData.questionNumber}
                       </Text>
                       <Badge
                         className={cn(
@@ -530,65 +880,20 @@ const CorrectActivityModal = ({
                   }
                 >
                   <div className="space-y-4 pt-2">
-                    {/* Question text */}
-                    {question.questionText && (
-                      <div className="text-sm text-text-700">
-                        {question.questionText}
-                      </div>
+                    {/* Question statement */}
+                    {questionData.question.statement && (
+                      <Text
+                        size="sm"
+                        weight="normal"
+                        color="text-text-700"
+                        className="whitespace-pre-wrap"
+                      >
+                        {questionData.question.statement}
+                      </Text>
                     )}
 
-                    {/* Alternatives sub-accordion */}
-                    {question.alternatives &&
-                      question.alternatives.length > 0 && (
-                        <CardAccordation
-                          value={`alternatives-${question.questionNumber}`}
-                          className="border border-border-100 rounded-lg"
-                          trigger={
-                            <div className="py-3 pr-2 w-full">
-                              <Text className="text-sm font-bold text-text-950">
-                                Alternativas
-                              </Text>
-                            </div>
-                          }
-                        >
-                          <div className="pt-2">
-                            <AlternativesList
-                              mode="readonly"
-                              selectedValue={question.studentAnswer}
-                              alternatives={question.alternatives.map(
-                                (alt) => ({
-                                  value: alt.value,
-                                  label: alt.label,
-                                  status: alt.isCorrect ? 'correct' : undefined,
-                                })
-                              )}
-                            />
-                          </div>
-                        </CardAccordation>
-                      )}
-
-                    {/* Fallback for essay questions */}
-                    {(!question.alternatives ||
-                      question.alternatives.length === 0) && (
-                      <>
-                        <div className="flex gap-2">
-                          <Text className="text-xs text-text-500">
-                            Resposta do aluno:
-                          </Text>
-                          <Text className="text-xs text-text-700">
-                            {question.studentAnswer || 'Não respondeu'}
-                          </Text>
-                        </div>
-                        <div className="flex gap-2">
-                          <Text className="text-xs text-text-500">
-                            Resposta correta:
-                          </Text>
-                          <Text className="text-xs text-success-700">
-                            {question.correctAnswer || '-'}
-                          </Text>
-                        </div>
-                      </>
-                    )}
+                    {/* Question content based on type */}
+                    {renderQuestionContent(questionData)}
                   </div>
                 </CardAccordation>
               );
