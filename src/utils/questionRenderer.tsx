@@ -14,7 +14,11 @@ import { cn } from './utils';
 import ImageQuestion from '../assets/img/mock-image-question.png';
 import { getStatusStyles } from '../components/Quiz/QuizContent';
 import Text from '@/components/Text/Text';
-import { getStatusBadge } from './questionRenderer.utils';
+import { getStatusBadge, QuestionContainer } from './questionRenderer.utils';
+import {
+  Status,
+  type QuestionRendererProps,
+} from '../types/questionRenderer.types';
 
 export type QuestionRendererMap = Record<QUESTION_TYPE, () => ReactNode>;
 
@@ -27,20 +31,6 @@ export const renderFromMap = (
   return renderer ? renderer() : null;
 };
 
-enum Status {
-  CORRECT = 'correct',
-  INCORRECT = 'incorrect',
-  NEUTRAL = 'neutral',
-}
-
-/**
- * Props for question renderers
- */
-export interface QuestionRendererProps {
-  question: Question;
-  result: QuestionResult['answers'][number];
-}
-
 /**
  * Subtitle component for question sections
  */
@@ -50,28 +40,6 @@ const QuestionSubTitle = ({ subTitle }: { subTitle: string }) => {
       <Text size="md" weight="bold" color="text-text-950">
         {subTitle}
       </Text>
-    </div>
-  );
-};
-
-/**
- * Container component for question content
- */
-const QuestionContainer = ({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) => {
-  return (
-    <div
-      className={cn(
-        'bg-background rounded-t-xl px-4 pt-4 pb-[80px] h-auto flex flex-col gap-4 mb-auto',
-        className
-      )}
-    >
-      {children}
     </div>
   );
 };
