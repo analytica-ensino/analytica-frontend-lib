@@ -8,9 +8,18 @@ import {
   formatQuestionNumbers,
   formatDateToBrazilian,
 } from '../../utils/activityDetailsUtils';
-import { QUESTION_STATUS } from '../../types/studentActivityCorrection';
 import type { ActivityDetailsData } from '../../types/activityDetails';
-import type { StudentActivityCorrectionData } from '../../types/studentActivityCorrection';
+import type {
+  StudentActivityCorrectionData,
+  QuestionsAnswersByStudentResponse,
+} from '../../types/studentActivityCorrection';
+import {
+  QUESTION_TYPE,
+  QUESTION_DIFFICULTY,
+  ANSWER_STATUS,
+  type Question,
+  type QuestionResult,
+} from '../Quiz/useQuizStore';
 
 // Mock para imagens PNG
 jest.mock('../../assets/img/mock-content.png', () => 'test-file-stub');
@@ -263,6 +272,85 @@ const mockActivityData: ActivityDetailsData = {
 };
 
 /**
+ * Helper function to create a Question in Quiz format
+ */
+const createQuestion = (
+  id: string,
+  statement: string,
+  questionType: QUESTION_TYPE,
+  options?: Array<{ id: string; option: string }>,
+  correctOptionIds?: string[]
+): Question => {
+  return {
+    id,
+    statement,
+    questionType,
+    difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+    description: '',
+    examBoard: null,
+    examYear: null,
+    solutionExplanation: null,
+    answer: null,
+    answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+    options: options || [],
+    knowledgeMatrix: [
+      {
+        areaKnowledge: { id: 'area1', name: 'Área de Conhecimento' },
+        subject: {
+          id: 'subject1',
+          name: 'Matemática',
+          color: '#FF6B6B',
+          icon: 'Calculator',
+        },
+        topic: { id: 'topic1', name: 'Tópico' },
+        subtopic: { id: 'subtopic1', name: 'Subtópico' },
+        content: { id: 'content1', name: 'Conteúdo' },
+      },
+    ],
+    correctOptionIds: correctOptionIds || [],
+  };
+};
+
+/**
+ * Helper function to create a QuestionResult answer in Quiz format
+ */
+const createQuestionResult = (
+  id: string,
+  questionId: string,
+  answerStatus: ANSWER_STATUS,
+  answer: string | null = null,
+  selectedOptions: Array<{ optionId: string }> = [],
+  options?: Array<{ id: string; option: string; isCorrect: boolean }>,
+  teacherFeedback: string | null = null,
+  statement: string = '',
+  questionType: QUESTION_TYPE = QUESTION_TYPE.ALTERNATIVA,
+  difficultyLevel: QUESTION_DIFFICULTY = QUESTION_DIFFICULTY.MEDIO,
+  solutionExplanation: string | null = null
+): QuestionResult['answers'][number] => {
+  return {
+    id,
+    questionId,
+    answer,
+    selectedOptions,
+    answerStatus,
+    statement,
+    questionType,
+    difficultyLevel,
+    solutionExplanation,
+    correctOption: '',
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    options: options || [],
+    knowledgeMatrix: [],
+    teacherFeedback,
+    attachment: null,
+    score: null,
+    gradedAt: null,
+    gradedBy: null,
+  };
+};
+
+/**
  * Mock correction data
  */
 const mockCorrectionData: StudentActivityCorrectionData = {
@@ -274,10 +362,31 @@ const mockCorrectionData: StudentActivityCorrectionData = {
   blankCount: 1,
   questions: [
     {
+      question: createQuestion(
+        'q1',
+        'Questão 1',
+        QUESTION_TYPE.ALTERNATIVA,
+        [
+          { id: 'opt1', option: 'Opção A' },
+          { id: 'opt2', option: 'Opção B' },
+        ],
+        ['opt1']
+      ),
+      result: createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        null,
+        [{ optionId: 'opt1' }],
+        [
+          { id: 'opt1', option: 'Opção A', isCorrect: true },
+          { id: 'opt2', option: 'Opção B', isCorrect: false },
+        ],
+        null,
+        'Questão 1',
+        QUESTION_TYPE.ALTERNATIVA
+      ),
       questionNumber: 1,
-      status: QUESTION_STATUS.CORRETA,
-      studentAnswer: 'A',
-      correctAnswer: 'A',
     },
   ],
 };
@@ -308,7 +417,26 @@ describe('ActivityDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetchActivityDetails.mockResolvedValue(mockActivityData);
-    mockFetchStudentCorrection.mockResolvedValue(mockCorrectionData);
+    // Convert mockCorrectionData to API format
+    const apiResponse: QuestionsAnswersByStudentResponse = {
+      data: {
+        answers: mockCorrectionData.questions.map((q) => q.result),
+        statistics: {
+          totalAnswered:
+            mockCorrectionData.correctCount +
+            mockCorrectionData.incorrectCount +
+            mockCorrectionData.blankCount,
+          correctAnswers: mockCorrectionData.correctCount,
+          incorrectAnswers: mockCorrectionData.incorrectCount,
+          pendingAnswers: mockCorrectionData.questions.filter(
+            (q) => q.result.answerStatus === 'PENDENTE_AVALIACAO'
+          ).length,
+          score: mockCorrectionData.score || 0,
+          timeSpent: 0,
+        },
+      },
+    };
+    mockFetchStudentCorrection.mockResolvedValue(apiResponse);
     mockSubmitObservation.mockResolvedValue(undefined);
     mockMapSubjectNameToEnum.mockReturnValue('MATEMATICA');
   });
