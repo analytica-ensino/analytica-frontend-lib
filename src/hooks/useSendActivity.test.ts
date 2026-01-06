@@ -1,4 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
+import dayjs from 'dayjs';
 import { useSendActivity } from './useSendActivity';
 import type {
   UseSendActivityConfig,
@@ -8,13 +9,15 @@ import type {
 import type { SendActivityFormData } from '../components/SendActivityModal/types';
 
 /**
- * Use real dayjs for actual timezone conversion
- * This ensures the toISODateTime function is properly tested
+ * Helper function to compute expected ISO datetime using real dayjs
+ * This mirrors the toISODateTime function in useSendActivity
+ * @param date - Date string in YYYY-MM-DD format
+ * @param time - Time string in HH:MM format
+ * @returns ISO datetime string
  */
-jest.mock('dayjs', () => {
-  const actualDayjs = jest.requireActual('dayjs');
-  return actualDayjs;
-});
+function expectedISODateTime(date: string, time: string): string {
+  return dayjs(`${date}T${time}`).toISOString();
+}
 
 /**
  * Mock categories data
@@ -337,16 +340,15 @@ describe('useSendActivity', () => {
       });
 
       expect(config.fetchQuestionIds).toHaveBeenCalledWith('model-123');
-      // Use regex to validate ISO format without timezone dependency
-      const isoDatePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+      // Verify exact UTC conversion using dayjs (same timezone as the hook)
       expect(config.createActivity).toHaveBeenCalledWith({
         title: 'New Activity',
         subjectId: 'subject-1',
         questionIds: ['q1', 'q2', 'q3'],
         subtype: 'TAREFA',
         notification: 'true',
-        startDate: expect.stringMatching(isoDatePattern),
-        finalDate: expect.stringMatching(isoDatePattern),
+        startDate: expectedISODateTime('2025-01-15', '08:00'),
+        finalDate: expectedISODateTime('2025-01-20', '23:59'),
         canRetry: false,
       });
       expect(config.sendToStudents).toHaveBeenCalledWith(
@@ -521,12 +523,11 @@ describe('useSendActivity', () => {
         await result.current.handleSubmit(formData);
       });
 
-      // Validate ISO format - actual time depends on local timezone conversion
-      const isoDatePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+      // Verify exact UTC conversion using dayjs (same timezone as the hook)
       expect(config.createActivity).toHaveBeenCalledWith(
         expect.objectContaining({
-          startDate: expect.stringMatching(isoDatePattern),
-          finalDate: expect.stringMatching(isoDatePattern),
+          startDate: expectedISODateTime('2025-03-15', '14:30'),
+          finalDate: expectedISODateTime('2025-03-20', '18:45'),
         })
       );
     });
