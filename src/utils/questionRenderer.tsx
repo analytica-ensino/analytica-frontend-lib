@@ -321,24 +321,26 @@ export const renderQuestionDissertative = ({
   return (
     <div className="pt-2 space-y-4">
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-text-950">Resposta do aluno</p>
+        <Text size="sm" weight="normal" color="text-text-950">
+          Resposta do aluno
+        </Text>
         <div className="p-3 bg-background-50 rounded-lg border border-border-100">
-          <p className="text-sm text-text-700 whitespace-pre-wrap">
+          <Text size="sm" weight="normal" color="text-text-700">
             {localAnswer || 'Nenhuma resposta fornecida'}
-          </p>
+          </Text>
         </div>
       </div>
 
       {result?.answerStatus === ANSWER_STATUS.RESPOSTA_INCORRETA &&
         result?.teacherFeedback && (
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-text-500">
+            <Text size="xs" weight="normal" color="text-text-500">
               Observação do professor:
-            </p>
+            </Text>
             <div className="p-3 bg-background-50 rounded-lg border border-border-100">
-              <p className="text-sm text-text-700 whitespace-pre-wrap">
+              <Text size="sm" weight="normal" color="text-text-700">
                 {result.teacherFeedback}
-              </p>
+              </Text>
             </div>
           </div>
         )}
@@ -425,12 +427,15 @@ const FillQuestionContent = ({
     const correctAnswer = correctAnswers[selectId] || `[${selectId}]`;
     return {
       element: (
-        <span
+        <Text
           key={`${baseId}-gabarito-${selectId}`}
-          className="inline-flex mb-2.5 text-success-600 font-semibold text-md border-b-2 border-success-600"
+          size="md"
+          weight="semibold"
+          color="text-success-600"
+          className="inline-flex mb-2.5 border-b-2 border-success-600"
         >
           {correctAnswer}
-        </span>
+        </Text>
       ),
       id: `${baseId}-gabarito-${++elementCounter.current}`,
     };
@@ -447,12 +452,15 @@ const FillQuestionContent = ({
     if (!studentAnswer) {
       return {
         element: (
-          <span
+          <Text
             key={`${baseId}-no-answer-${selectId}`}
-            className="inline-flex mb-2.5 text-text-400 text-md border-b-2 border-text-300"
+            size="md"
+            weight="normal"
+            color="text-text-400"
+            className="inline-flex mb-2.5 border-b-2 border-text-300"
           >
             [Não respondido]
-          </span>
+          </Text>
         ),
         id: `${baseId}-no-answer-${++elementCounter.current}`,
       };
@@ -522,24 +530,40 @@ const FillQuestionContent = ({
   return (
     <div className="pt-2 space-y-4">
       <div className="space-y-2">
-        <p className="text-xs font-semibold text-text-500">
+        <Text size="xs" weight="normal" color="text-text-500">
           Resposta do aluno:
-        </p>
+        </Text>
         <div className="p-3 bg-background-50 rounded-lg border border-border-100">
-          <div className="text-lg text-text-900 leading-8">
+          <div className="leading-8">
             {renderTextWithAnswers(false).map((element) => (
-              <span key={element.id}>{element.element}</span>
+              <Text
+                key={element.id}
+                size="md"
+                weight="normal"
+                color="text-text-900"
+              >
+                {element.element}
+              </Text>
             ))}
           </div>
         </div>
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs font-semibold text-text-500">Gabarito:</p>
+        <Text size="xs" weight="normal" color="text-text-500">
+          Gabarito:
+        </Text>
         <div className="p-3 bg-background-50 rounded-lg border border-border-100">
-          <div className="text-lg text-text-900 leading-8">
+          <div className="leading-8">
             {renderTextWithAnswers(true).map((element) => (
-              <span key={element.id}>{element.element}</span>
+              <Text
+                key={element.id}
+                size="md"
+                weight="normal"
+                color="text-text-900"
+              >
+                {element.element}
+              </Text>
             ))}
           </div>
         </div>
@@ -660,23 +684,23 @@ export const renderQuestionImage = ({
       <div className="flex items-center gap-4 text-xs">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-indicator-primary/70 border border-[#F8CC2E]"></div>
-          <span className="text-text-600 font-medium text-sm">
+          <Text size="sm" weight="normal" color="text-text-600">
             Área correta
-          </span>
+          </Text>
         </div>
         {userPositionRelative && (
           <>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-success-600/70 border border-white"></div>
-              <span className="text-text-600 font-medium text-sm">
+              <Text size="sm" weight="normal" color="text-text-600">
                 Resposta correta
-              </span>
+              </Text>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-indicator-error/70 border border-white"></div>
-              <span className="text-text-600 font-medium text-sm">
+              <Text size="sm" weight="normal" color="text-text-600">
                 Resposta incorreta
-              </span>
+              </Text>
             </div>
           </>
         )}
@@ -707,10 +731,15 @@ export const renderQuestionImage = ({
             top: `calc(${correctPositionRelative.y * 100}% - 15%)`,
           }}
         >
-          <span className="sr-only">
+          <Text
+            size="sm"
+            weight="normal"
+            color="text-text-600"
+            className="sr-only"
+          >
             Círculo amarelo indicando a área correta da resposta, posicionado em{' '}
             {correctPositionDescription}
-          </span>
+          </Text>
         </div>
 
         {/* User's answer circle */}
@@ -731,7 +760,12 @@ export const renderQuestionImage = ({
               top: `calc(${userPositionRelative.y * 100}% - 2.5%)`,
             }}
           >
-            <span className="sr-only">
+            <Text
+              size="sm"
+              weight="normal"
+              color="text-text-600"
+              className="sr-only"
+            >
               Círculo {isCorrect ? 'verde' : 'vermelho'} indicando a resposta do
               aluno, posicionado em{' '}
               {getPositionDescription(
@@ -753,7 +787,7 @@ export const renderQuestionImage = ({
               )}
               % de distância da área correta e é considerada{' '}
               {isCorrect ? 'correta' : 'incorreta'}.
-            </span>
+            </Text>
           </div>
         )}
       </div>
@@ -774,9 +808,9 @@ export const renderQuestionConnectDots = ({
       <QuestionSubTitle subTitle="Tipo de questão: Ligar Pontos" />
       <QuestionContainer className={cn('', paddingBottom)}>
         <div className="space-y-4">
-          <p className="text-text-600 text-md">
+          <Text size="md" weight="normal" color="text-text-600">
             Tipo de questão: Ligar Pontos (não implementado)
-          </p>
+          </Text>
         </div>
       </QuestionContainer>
     </>
