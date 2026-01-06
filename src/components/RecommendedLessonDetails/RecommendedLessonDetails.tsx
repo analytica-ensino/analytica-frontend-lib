@@ -100,6 +100,7 @@ const RecommendedLessonDetails = ({
   const [performanceData, setPerformanceData] =
     useState<StudentPerformanceData | null>(null);
   const [performanceLoading, setPerformanceLoading] = useState(false);
+  const [performanceError, setPerformanceError] = useState<string | null>(null);
 
   /**
    * Handle view student performance action
@@ -111,13 +112,18 @@ const RecommendedLessonDetails = ({
       setPerformanceModalOpen(true);
       setPerformanceLoading(true);
       setPerformanceData(null);
+      setPerformanceError(null);
 
       try {
         const result = await fetchStudentPerformance(goalId, studentId);
         setPerformanceData(result);
       } catch (err) {
         console.error('Error fetching student performance:', err);
-        setPerformanceModalOpen(false);
+        setPerformanceError(
+          err instanceof Error
+            ? err.message
+            : 'Erro ao carregar desempenho do aluno'
+        );
       } finally {
         setPerformanceLoading(false);
       }
@@ -131,6 +137,7 @@ const RecommendedLessonDetails = ({
   const handleClosePerformanceModal = useCallback(() => {
     setPerformanceModalOpen(false);
     setPerformanceData(null);
+    setPerformanceError(null);
   }, []);
 
   const defaultBreadcrumbs: BreadcrumbItem[] = useMemo(
@@ -220,6 +227,7 @@ const RecommendedLessonDetails = ({
           onClose={handleClosePerformanceModal}
           data={performanceData}
           loading={performanceLoading}
+          error={performanceError}
         />
       )}
     </>

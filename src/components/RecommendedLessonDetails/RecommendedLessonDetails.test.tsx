@@ -364,6 +364,64 @@ describe('RecommendedLessonDetails', () => {
       );
     });
 
+    it('should show error in modal when fetchStudentPerformance fails', async () => {
+      const mockFetchStudentPerformance = jest
+        .fn()
+        .mockRejectedValue(new Error('Network error'));
+
+      render(
+        <RecommendedLessonDetails
+          goalId="lesson-1"
+          data={mockLessonData}
+          fetchStudentPerformance={mockFetchStudentPerformance}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      // Find and click the enabled "Ver desempenho" button
+      const viewPerformanceButtons = screen.getAllByText('Ver desempenho');
+      const enabledButton = viewPerformanceButtons.find(
+        (btn) => !btn.closest('button')?.hasAttribute('disabled')
+      );
+
+      expect(enabledButton).toBeDefined();
+      fireEvent.click(enabledButton!);
+
+      // Wait for the error to be displayed
+      const errorMessage = await screen.findByText('Network error');
+      expect(errorMessage).toBeInTheDocument();
+    });
+
+    it('should show default error message when fetchStudentPerformance fails with non-Error', async () => {
+      const mockFetchStudentPerformance = jest
+        .fn()
+        .mockRejectedValue('Something went wrong');
+
+      render(
+        <RecommendedLessonDetails
+          goalId="lesson-1"
+          data={mockLessonData}
+          fetchStudentPerformance={mockFetchStudentPerformance}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      // Find and click the enabled "Ver desempenho" button
+      const viewPerformanceButtons = screen.getAllByText('Ver desempenho');
+      const enabledButton = viewPerformanceButtons.find(
+        (btn) => !btn.closest('button')?.hasAttribute('disabled')
+      );
+
+      expect(enabledButton).toBeDefined();
+      fireEvent.click(enabledButton!);
+
+      // Wait for the default error message to be displayed
+      const errorMessage = await screen.findByText(
+        'Erro ao carregar desempenho do aluno'
+      );
+      expect(errorMessage).toBeInTheDocument();
+    });
+
     it('should call onBreadcrumbClick when breadcrumb is clicked', () => {
       const mockOnBreadcrumbClick = jest.fn();
 

@@ -177,6 +177,48 @@ describe('StudentPerformanceModal', () => {
     });
   });
 
+  describe('Error State', () => {
+    it('renders error message when error is provided', () => {
+      render(
+        <StudentPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={null}
+          error="Erro ao carregar desempenho do aluno"
+        />
+      );
+      expect(
+        screen.getByText('Erro ao carregar desempenho do aluno')
+      ).toBeInTheDocument();
+    });
+
+    it('renders modal with error state even when data is null', () => {
+      render(
+        <StudentPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={null}
+          error="Network error"
+        />
+      );
+      expect(screen.getByText('Desempenho')).toBeInTheDocument();
+      expect(screen.getByText('Network error')).toBeInTheDocument();
+    });
+
+    it('does not render when data, loading, and error are all null/false', () => {
+      const { container } = render(
+        <StudentPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={null}
+          loading={false}
+          error={null}
+        />
+      );
+      expect(container.firstChild).toBeNull();
+    });
+  });
+
   describe('Null Values Handling', () => {
     it('renders dash for null bestResult', () => {
       render(
