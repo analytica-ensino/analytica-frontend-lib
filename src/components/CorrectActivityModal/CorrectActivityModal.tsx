@@ -317,7 +317,7 @@ const CorrectActivityModal = ({
       if (!data?.studentId || !onQuestionCorrectionSubmit) return;
 
       const correction = essayCorrections[questionNumber];
-      if (!correction || correction.isCorrect === null) {
+      if (correction?.isCorrect == null) {
         return;
       }
 
@@ -516,6 +516,13 @@ const CorrectActivityModal = ({
       isSaving: false,
     };
 
+    const radioValue =
+      correction.isCorrect === null
+        ? undefined
+        : correction.isCorrect
+          ? 'true'
+          : 'false';
+
     return (
       <>
         {/* Is correct radio group */}
@@ -524,13 +531,7 @@ const CorrectActivityModal = ({
             Resposta está correta?
           </Text>
           <RadioGroup
-            value={
-              correction.isCorrect === null
-                ? undefined
-                : correction.isCorrect
-                  ? 'true'
-                  : 'false'
-            }
+            value={radioValue}
             onValueChange={(value) => {
               updateEssayCorrection(
                 questionData.questionNumber,

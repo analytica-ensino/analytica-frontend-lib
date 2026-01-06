@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
-import { QUESTION_TYPE } from '../components/Quiz/useQuizStore';
-import { useId } from 'react';
 import {
+  QUESTION_TYPE,
   Question,
   QuestionResult,
   ANSWER_STATUS,
 } from '../components/Quiz/useQuizStore';
+import { useId } from 'react';
 import { AlternativesList } from '../components/Alternative/Alternative';
 import { MultipleChoiceList } from '../components/MultipleChoice/MultipleChoice';
 import Badge from '../components/Badge/Badge';
@@ -82,8 +82,6 @@ export const renderQuestionAlternative = ({
   paddingBottom: _paddingBottom,
 }: QuestionRendererProps): ReactNode => {
   const alternatives = question.options?.map((option) => {
-    let status: Status = Status.NEUTRAL;
-
     const isCorrectOption =
       result?.options?.find((op) => op.id === option.id)?.isCorrect || false;
 
@@ -96,6 +94,7 @@ export const renderQuestionAlternative = ({
       result?.answerStatus !== ANSWER_STATUS.PENDENTE_AVALIACAO &&
       result?.answerStatus !== ANSWER_STATUS.NAO_RESPONDIDO;
 
+    let status: Status;
     if (shouldShowCorrectAnswers) {
       if (isCorrectOption) {
         status = Status.CORRECT;
@@ -152,8 +151,6 @@ export const renderQuestionMultipleChoice = ({
   paddingBottom: _paddingBottom,
 }: QuestionRendererProps): ReactNode => {
   const choices = question.options?.map((option) => {
-    let status: Status = Status.NEUTRAL;
-
     const isCorrectOption =
       result?.options?.find((op) => op.id === option.id)?.isCorrect || false;
 
@@ -166,6 +163,7 @@ export const renderQuestionMultipleChoice = ({
       result?.answerStatus !== ANSWER_STATUS.PENDENTE_AVALIACAO &&
       result?.answerStatus !== ANSWER_STATUS.NAO_RESPONDIDO;
 
+    let status: Status;
     if (shouldShowCorrectAnswers) {
       if (isCorrectOption) {
         status = Status.CORRECT;
@@ -182,7 +180,7 @@ export const renderQuestionMultipleChoice = ({
     return {
       label: option.option,
       value: option.id,
-      status: status,
+      status,
     };
   });
 
@@ -420,14 +418,10 @@ const FillQuestionContent = ({
     // Try to find correct answer from options
     // Options might be indexed or have a specific structure
     const correctOption = result?.options?.find((op) => op.isCorrect);
-    if (correctOption) {
-      correctAnswers[placeholder] = correctOption.option;
-    } else if (result?.options && result.options[index]) {
-      // Fallback: use option at same index
-      correctAnswers[placeholder] = result.options[index].option;
-    } else {
-      correctAnswers[placeholder] = `[${placeholder}]`; // Final fallback
-    }
+    correctAnswers[placeholder] =
+      correctOption?.option ??
+      result?.options?.[index]?.option ??
+      `[${placeholder}]`;
   });
 
   const renderTextWithAnswers = (isGabarito = false) => {

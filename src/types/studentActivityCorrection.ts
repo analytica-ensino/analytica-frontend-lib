@@ -243,16 +243,18 @@ export const convertApiResponseToCorrectionData = (
         [],
     };
 
+    // Desacoplando a lógica para determinar isCorrect de forma separada
+    function getIsCorrect(answerStatus: string): boolean | null {
+      if (answerStatus === 'RESPOSTA_CORRETA') return true;
+      if (answerStatus === 'RESPOSTA_INCORRETA') return false;
+      return null;
+    }
+
     // Build correction data for essay questions
     const correction: EssayQuestionCorrection | undefined =
       answer.questionType === 'DISSERTATIVA'
         ? {
-            isCorrect:
-              answer.answerStatus === 'RESPOSTA_CORRETA'
-                ? true
-                : answer.answerStatus === 'RESPOSTA_INCORRETA'
-                  ? false
-                  : null,
+            isCorrect: getIsCorrect(answer.answerStatus),
             teacherFeedback: answer.teacherFeedback || '',
           }
         : undefined;
