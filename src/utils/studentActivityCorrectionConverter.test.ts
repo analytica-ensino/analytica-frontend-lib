@@ -3,7 +3,6 @@ import {
   QUESTION_TYPE,
   QUESTION_DIFFICULTY,
 } from '../components/Quiz/useQuizStore';
-import { QUESTION_STATUS } from '../types/studentActivityCorrection.constants';
 import type { QuestionsAnswersByStudentResponse } from '../types/studentActivityCorrection.types';
 import { convertApiResponseToCorrectionData } from './studentActivityCorrectionConverter';
 
@@ -39,7 +38,9 @@ describe('studentActivityCorrectionConverter', () => {
 
   const createMockApiResponse = (
     answers: QuestionsAnswersByStudentResponse['data']['answers'],
-    statistics?: Partial<QuestionsAnswersByStudentResponse['data']['statistics']>
+    statistics?: Partial<
+      QuestionsAnswersByStudentResponse['data']['statistics']
+    >
   ): QuestionsAnswersByStudentResponse => {
     return {
       data: {
@@ -261,7 +262,7 @@ describe('studentActivityCorrectionConverter', () => {
     it('should handle null score', () => {
       const answer = createMockAnswer();
       const apiResponse = createMockApiResponse([answer], {
-        score: null as any,
+        score: null as unknown as number,
       });
 
       const result = convertApiResponseToCorrectionData(
@@ -380,4 +381,3 @@ describe('studentActivityCorrectionConverter', () => {
     });
   });
 });
-

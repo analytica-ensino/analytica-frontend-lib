@@ -1,4 +1,8 @@
-import { ANSWER_STATUS } from '../components/Quiz/useQuizStore';
+import {
+  ANSWER_STATUS,
+  QUESTION_DIFFICULTY,
+  QUESTION_TYPE,
+} from '../components/Quiz/useQuizStore';
 import { QUESTION_STATUS } from '../types/studentActivityCorrection.constants';
 import type { CorrectionQuestionData } from '../types/studentActivityCorrection.types';
 import {
@@ -116,8 +120,8 @@ describe('studentActivityCorrectionUtils', () => {
         question: {
           id: 'q1',
           statement: 'Test question',
-          questionType: 'ALTERNATIVA' as any,
-          difficultyLevel: 'MEDIO' as any,
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: '',
           examBoard: null,
           examYear: null,
@@ -135,8 +139,8 @@ describe('studentActivityCorrectionUtils', () => {
           selectedOptions: [],
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           statement: 'Test question',
-          questionType: 'ALTERNATIVA' as any,
-          difficultyLevel: 'MEDIO' as any,
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           solutionExplanation: null,
           correctOption: '',
           createdAt: '2024-01-01T00:00:00Z',
@@ -161,8 +165,8 @@ describe('studentActivityCorrectionUtils', () => {
         question: {
           id: 'q1',
           statement: 'Test question',
-          questionType: 'ALTERNATIVA' as any,
-          difficultyLevel: 'MEDIO' as any,
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: '',
           examBoard: null,
           examYear: null,
@@ -180,8 +184,8 @@ describe('studentActivityCorrectionUtils', () => {
           selectedOptions: [],
           answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
           statement: 'Test question',
-          questionType: 'ALTERNATIVA' as any,
-          difficultyLevel: 'MEDIO' as any,
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           solutionExplanation: null,
           correctOption: '',
           createdAt: '2024-01-01T00:00:00Z',
@@ -206,8 +210,8 @@ describe('studentActivityCorrectionUtils', () => {
         question: {
           id: 'q1',
           statement: 'Test question',
-          questionType: 'ALTERNATIVA' as any,
-          difficultyLevel: 'MEDIO' as any,
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: '',
           examBoard: null,
           examYear: null,
@@ -225,8 +229,8 @@ describe('studentActivityCorrectionUtils', () => {
           selectedOptions: [],
           answerStatus: ANSWER_STATUS.NAO_RESPONDIDO,
           statement: 'Test question',
-          questionType: 'ALTERNATIVA' as any,
-          difficultyLevel: 'MEDIO' as any,
+          questionType: QUESTION_TYPE.ALTERNATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           solutionExplanation: null,
           correctOption: '',
           createdAt: '2024-01-01T00:00:00Z',
@@ -251,8 +255,8 @@ describe('studentActivityCorrectionUtils', () => {
         question: {
           id: 'q1',
           statement: 'Test question',
-          questionType: 'DISSERTATIVA' as any,
-          difficultyLevel: 'MEDIO' as any,
+          questionType: QUESTION_TYPE.DISSERTATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: '',
           examBoard: null,
           examYear: null,
@@ -270,8 +274,8 @@ describe('studentActivityCorrectionUtils', () => {
           selectedOptions: [],
           answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
           statement: 'Test question',
-          questionType: 'DISSERTATIVA' as any,
-          difficultyLevel: 'MEDIO' as any,
+          questionType: QUESTION_TYPE.DISSERTATIVA,
+          difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           solutionExplanation: null,
           correctOption: '',
           createdAt: '2024-01-01T00:00:00Z',
@@ -292,4 +296,3 @@ describe('studentActivityCorrectionUtils', () => {
     });
   });
 });
-
