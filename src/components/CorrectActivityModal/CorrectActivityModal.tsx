@@ -351,7 +351,12 @@ const CorrectActivityModal = ({
         }));
       }
     },
-    [data?.studentId, essayCorrections, onQuestionCorrectionSubmit]
+    [
+      data?.studentId,
+      data?.questions,
+      essayCorrections,
+      onQuestionCorrectionSubmit,
+    ]
   );
 
   /**
