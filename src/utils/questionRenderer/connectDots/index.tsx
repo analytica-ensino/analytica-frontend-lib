@@ -10,7 +10,7 @@ export const renderQuestionConnectDots = ({
   paddingBottom,
 }: {
   paddingBottom?: string;
-}): ReactNode => {
+} = {}): ReactNode => {
   return (
     <>
       <QuestionSubTitle subTitle="Tipo de questão: Ligar Pontos" />

@@ -32,7 +32,6 @@ export { renderQuestionConnectDots } from './connectDots';
 
 /**
  * Map question types to their render functions
- * Different renderers have different prop requirements, so we use a flexible type
  */
 const questionRendererMap = {
   [QUESTION_TYPE.ALTERNATIVA]: renderQuestionAlternative,
@@ -42,15 +41,7 @@ const questionRendererMap = {
   [QUESTION_TYPE.PREENCHER]: renderQuestionFill,
   [QUESTION_TYPE.IMAGEM]: renderQuestionImage,
   [QUESTION_TYPE.LIGAR_PONTOS]: renderQuestionConnectDots,
-} as Record<
-  QUESTION_TYPE,
-  (
-    props:
-      | QuestionRendererProps
-      | Omit<QuestionRendererProps, 'question'>
-      | { paddingBottom?: string }
-  ) => ReactNode
->;
+};
 
 /**
  * Render question based on question type
@@ -69,15 +60,22 @@ export const renderQuestion = (props: QuestionRendererProps): ReactNode => {
     return renderQuestionDissertative({ result: props.result });
   }
 
-  // Some renderers don't need the question prop
-  if (
-    question.questionType === QUESTION_TYPE.DISSERTATIVA ||
-    question.questionType === QUESTION_TYPE.IMAGEM
-  ) {
-    return renderer({ result: props.result });
+  // Handle renderers with different prop requirements
+  switch (question.questionType) {
+    case QUESTION_TYPE.DISSERTATIVA:
+      return renderQuestionDissertative({ result: props.result });
+    case QUESTION_TYPE.IMAGEM:
+      return renderQuestionImage({ result: props.result });
+    case QUESTION_TYPE.LIGAR_PONTOS:
+      return renderQuestionConnectDots({ paddingBottom: '' });
+    case QUESTION_TYPE.ALTERNATIVA:
+    case QUESTION_TYPE.MULTIPLA_ESCOLHA:
+    case QUESTION_TYPE.VERDADEIRO_FALSO:
+    case QUESTION_TYPE.PREENCHER:
+      return renderer(props);
+    default:
+      return null;
   }
-
-  return renderer(props);
 };
 
 /**

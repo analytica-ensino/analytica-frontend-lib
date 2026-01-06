@@ -65,7 +65,6 @@ export const renderQuestionAlternative = ({
         name={`question-${question.id}`}
         layout="compact"
         alternatives={alternatives}
-        value={result?.selectedOptions[0]?.optionId || ''}
         selectedValue={result?.selectedOptions[0]?.optionId || ''}
       />
     </div>
