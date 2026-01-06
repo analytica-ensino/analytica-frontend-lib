@@ -139,7 +139,11 @@ const createQuestionResult = (
   answer: string | null = null,
   selectedOptions: Array<{ optionId: string }> = [],
   options?: Array<{ id: string; option: string; isCorrect: boolean }>,
-  teacherFeedback: string | null = null
+  teacherFeedback: string | null = null,
+  statement: string = '',
+  questionType: QUESTION_TYPE = QUESTION_TYPE.ALTERNATIVA,
+  difficultyLevel: QUESTION_DIFFICULTY = QUESTION_DIFFICULTY.MEDIO,
+  solutionExplanation: string | null = null
 ): QuestionResult['answers'][number] => {
   return {
     id,
@@ -147,10 +151,10 @@ const createQuestionResult = (
     answer,
     selectedOptions,
     answerStatus,
-    statement: '',
-    questionType: QUESTION_TYPE.ALTERNATIVA,
-    difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
-    solutionExplanation: null,
+    statement,
+    questionType,
+    difficultyLevel,
+    solutionExplanation,
     correctOption: '',
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z',
@@ -199,7 +203,10 @@ const mockCorrectionData: StudentActivityCorrectionData = {
           { id: 'opt2', option: 'São Paulo', isCorrect: false },
           { id: 'opt3', option: 'Rio de Janeiro', isCorrect: false },
           { id: 'opt4', option: 'Salvador', isCorrect: false },
-        ]
+        ],
+        null,
+        'Qual é a capital do Brasil?',
+        QUESTION_TYPE.ALTERNATIVA
       ),
       questionNumber: 1,
     },
@@ -227,7 +234,10 @@ const mockCorrectionData: StudentActivityCorrectionData = {
           { id: 'opt2', option: 'Marte', isCorrect: false },
           { id: 'opt3', option: 'Júpiter', isCorrect: true },
           { id: 'opt4', option: 'Saturno', isCorrect: false },
-        ]
+        ],
+        null,
+        'Qual o maior planeta do sistema solar?',
+        QUESTION_TYPE.ALTERNATIVA
       ),
       questionNumber: 2,
     },
@@ -255,7 +265,10 @@ const mockCorrectionData: StudentActivityCorrectionData = {
           { id: 'opt2', option: '4', isCorrect: false },
           { id: 'opt3', option: '7', isCorrect: true },
           { id: 'opt4', option: '9', isCorrect: false },
-        ]
+        ],
+        null,
+        'Quais são os números primos? (Selecione todas as opções corretas)',
+        QUESTION_TYPE.MULTIPLA_ESCOLHA
       ),
       questionNumber: 3,
     },
@@ -272,7 +285,9 @@ const mockCorrectionData: StudentActivityCorrectionData = {
         'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia. É importante porque produz oxigênio.',
         [],
         [],
-        null
+        null,
+        'Explique o processo de fotossíntese e sua importância.',
+        QUESTION_TYPE.DISSERTATIVA
       ),
       questionNumber: 4,
       correction: {
@@ -304,7 +319,10 @@ const mockCorrectionData: StudentActivityCorrectionData = {
             isCorrect: true,
           },
           { id: 'opt2', option: 'O sol é uma estrela.', isCorrect: true },
-        ]
+        ],
+        null,
+        'Marque Verdadeiro ou Falso:',
+        QUESTION_TYPE.VERDADEIRO_FALSO
       ),
       questionNumber: 5,
     },

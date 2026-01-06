@@ -218,26 +218,26 @@ export const convertApiResponseToCorrectionData = (
       answer: null,
       answerStatus: answer.answerStatus,
       options: answer.options || [],
-      knowledgeMatrix: answer.knowledgeMatrix.map((km) => ({
-        areaKnowledge: km.areaKnowledge || {
+      knowledgeMatrix: answer.knowledgeMatrix.map((matrix) => ({
+        areaKnowledge: matrix.areaKnowledge || {
           id: '',
           name: '',
         },
-        subject: km.subject || {
+        subject: matrix.subject || {
           id: '',
           name: '',
           color: '',
           icon: '',
         },
-        topic: km.topic || {
+        topic: matrix.topic || {
           id: '',
           name: '',
         },
-        subtopic: km.subtopic || {
+        subtopic: matrix.subtopic || {
           id: '',
           name: '',
         },
-        content: km.content || {
+        content: matrix.content || {
           id: '',
           name: '',
         },
