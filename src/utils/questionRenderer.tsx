@@ -13,6 +13,7 @@ import { CheckCircle, XCircle } from 'phosphor-react';
 import { cn } from './utils';
 import ImageQuestion from '../assets/img/mock-image-question.png';
 import { getStatusStyles } from '../components/Quiz/QuizContent';
+import Text from '@/components/Text/Text';
 
 export type QuestionRendererMap = Record<QUESTION_TYPE, () => ReactNode>;
 
@@ -132,9 +133,6 @@ export const renderQuestionAlternative = ({
         alternatives={alternatives}
         value={result?.selectedOptions[0]?.optionId || ''}
         selectedValue={result?.selectedOptions[0]?.optionId || ''}
-        onValueChange={() => {
-          // Readonly mode, no action needed
-        }}
       />
     </div>
   );
@@ -185,7 +183,9 @@ export const renderQuestionMultipleChoice = ({
   if (!choices || choices.length === 0) {
     return (
       <div>
-        <p>Não há Escolhas Múltiplas</p>
+        <Text size="sm" weight="normal">
+          Não há Escolhas Múltiplas
+        </Text>
       </div>
     );
   }
@@ -278,9 +278,9 @@ export const renderQuestionTrueOrFalse = ({
                   shouldShowStatus ? getStatusStyles(variantCorrect) : ''
                 )}
               >
-                <p className="text-text-900 text-sm">
+                <Text size="sm" weight="normal" color="text-text-900">
                   {getLetterByIndex(index).concat(') ').concat(option.option)}
-                </p>
+                </Text>
 
                 {shouldShowStatus && (
                   <div className="flex-shrink-0">
@@ -291,13 +291,13 @@ export const renderQuestionTrueOrFalse = ({
 
               {shouldShowStatus && (
                 <span className="flex flex-row gap-2 items-center">
-                  <p className="text-text-800 text-2xs">
+                  <Text size="2xs" weight="normal" color="text-text-800">
                     Resposta selecionada: {studentAnswer}
-                  </p>
+                  </Text>
                   {!isStudentCorrect && (
-                    <p className="text-text-800 text-2xs">
+                    <Text size="2xs" weight="normal" color="text-text-800">
                       Resposta correta: {correctAnswer}
-                    </p>
+                    </Text>
                   )}
                 </span>
               )}
@@ -314,9 +314,8 @@ export const renderQuestionTrueOrFalse = ({
  * Returns content without wrapper (for accordion use)
  */
 export const renderQuestionDissertative = ({
-  question: _question,
   result,
-}: QuestionRendererProps): ReactNode => {
+}: Omit<QuestionRendererProps, 'question'>): ReactNode => {
   const localAnswer = result?.answer || '';
 
   return (
@@ -567,9 +566,8 @@ export const renderQuestionFill = ({
  * Shows image with clickable area, correct answer circle, and user's answer circle
  */
 export const renderQuestionImage = ({
-  question: _question,
   result,
-}: QuestionRendererProps): ReactNode => {
+}: Omit<QuestionRendererProps, 'question'>): ReactNode => {
   // Extract position data from result or question
   // Assuming correct position is stored in question metadata or result
   const correctPositionRelative = { x: 0.48, y: 0.45 }; // Default, should come from question data

@@ -692,13 +692,6 @@ describe('questionRenderer', () => {
 
   describe('renderQuestionDissertative', () => {
     it('should render student answer', () => {
-      const question = createQuestion(
-        'q1',
-        'Explique o ciclo da água',
-        QUESTION_TYPE.DISSERTATIVA,
-        [],
-        []
-      );
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -706,20 +699,13 @@ describe('questionRenderer', () => {
         'A água evapora e condensa'
       );
 
-      render(renderQuestionDissertative({ question, result }));
+      render(renderQuestionDissertative({ result }));
 
       expect(screen.getByText('Resposta do aluno')).toBeInTheDocument();
       expect(screen.getByText('A água evapora e condensa')).toBeInTheDocument();
     });
 
     it('should display "Nenhuma resposta fornecida" when there is no answer', () => {
-      const question = createQuestion(
-        'q1',
-        'Explique o ciclo da água',
-        QUESTION_TYPE.DISSERTATIVA,
-        [],
-        []
-      );
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -727,7 +713,7 @@ describe('questionRenderer', () => {
         null
       );
 
-      render(renderQuestionDissertative({ question, result }));
+      render(renderQuestionDissertative({ result }));
 
       expect(
         screen.getByText('Nenhuma resposta fornecida')
@@ -735,13 +721,6 @@ describe('questionRenderer', () => {
     });
 
     it('should display teacher feedback when answer is incorrect', () => {
-      const question = createQuestion(
-        'q1',
-        'Explique o ciclo da água',
-        QUESTION_TYPE.DISSERTATIVA,
-        [],
-        []
-      );
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -752,7 +731,7 @@ describe('questionRenderer', () => {
         'Você precisa explicar melhor o processo'
       );
 
-      render(renderQuestionDissertative({ question, result }));
+      render(renderQuestionDissertative({ result }));
 
       expect(screen.getByText('Observação do professor:')).toBeInTheDocument();
       expect(
@@ -761,13 +740,6 @@ describe('questionRenderer', () => {
     });
 
     it('should not display feedback when answer is correct', () => {
-      const question = createQuestion(
-        'q1',
-        'Explique o ciclo da água',
-        QUESTION_TYPE.DISSERTATIVA,
-        [],
-        []
-      );
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -778,7 +750,7 @@ describe('questionRenderer', () => {
         'Boa resposta'
       );
 
-      render(renderQuestionDissertative({ question, result }));
+      render(renderQuestionDissertative({ result }));
 
       expect(
         screen.queryByText('Observação do professor:')
@@ -786,13 +758,6 @@ describe('questionRenderer', () => {
     });
 
     it('should not display feedback when teacherFeedback is empty', () => {
-      const question = createQuestion(
-        'q1',
-        'Explique o ciclo da água',
-        QUESTION_TYPE.DISSERTATIVA,
-        [],
-        []
-      );
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -803,7 +768,7 @@ describe('questionRenderer', () => {
         null
       );
 
-      render(renderQuestionDissertative({ question, result }));
+      render(renderQuestionDissertative({ result }));
 
       expect(
         screen.queryByText('Observação do professor:')
@@ -811,13 +776,6 @@ describe('questionRenderer', () => {
     });
 
     it('should handle empty answer', () => {
-      const question = createQuestion(
-        'q1',
-        'Explique o ciclo da água',
-        QUESTION_TYPE.DISSERTATIVA,
-        [],
-        []
-      );
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -825,7 +783,7 @@ describe('questionRenderer', () => {
         ''
       );
 
-      render(renderQuestionDissertative({ question, result }));
+      render(renderQuestionDissertative({ result }));
 
       expect(
         screen.getByText('Nenhuma resposta fornecida')
@@ -1151,13 +1109,6 @@ describe('questionRenderer', () => {
 
   describe('renderQuestionImage', () => {
     it('should render image question', () => {
-      const question = createQuestion(
-        'q1',
-        'Clique na imagem onde está o Brasil',
-        QUESTION_TYPE.IMAGEM,
-        [],
-        []
-      );
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -1165,20 +1116,13 @@ describe('questionRenderer', () => {
         JSON.stringify({ x: 0.48, y: 0.45 })
       );
 
-      const { container } = render(renderQuestionImage({ question, result }));
+      const { container } = render(renderQuestionImage({ result }));
 
       expect(container).toBeInTheDocument();
       expect(screen.getByText('Área correta')).toBeInTheDocument();
     });
 
     it('should display correct answer legend when there is user answer', () => {
-      const question = createQuestion(
-        'q1',
-        'Clique na imagem',
-        QUESTION_TYPE.IMAGEM,
-        [],
-        []
-      );
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -1186,20 +1130,13 @@ describe('questionRenderer', () => {
         JSON.stringify({ x: 0.48, y: 0.45 })
       );
 
-      render(renderQuestionImage({ question, result }));
+      render(renderQuestionImage({ result }));
 
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
       expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
     });
 
     it('should display only correct area when there is no user answer', () => {
-      const question = createQuestion(
-        'q1',
-        'Clique na imagem',
-        QUESTION_TYPE.IMAGEM,
-        [],
-        []
-      );
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -1207,7 +1144,7 @@ describe('questionRenderer', () => {
         null
       );
 
-      render(renderQuestionImage({ question, result }));
+      render(renderQuestionImage({ result }));
 
       expect(screen.getByText('Área correta')).toBeInTheDocument();
       expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
@@ -1215,13 +1152,6 @@ describe('questionRenderer', () => {
     });
 
     it('should calculate correctly when answer is within radius', () => {
-      const question = createQuestion(
-        'q1',
-        'Clique na imagem',
-        QUESTION_TYPE.IMAGEM,
-        [],
-        []
-      );
       // Posição muito próxima da correta (dentro do raio de 0.1)
       const result = createQuestionResult(
         'a1',
@@ -1230,19 +1160,12 @@ describe('questionRenderer', () => {
         JSON.stringify({ x: 0.49, y: 0.46 })
       );
 
-      render(renderQuestionImage({ question, result }));
+      render(renderQuestionImage({ result }));
 
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
 
     it('should calculate correctly when answer is outside radius', () => {
-      const question = createQuestion(
-        'q1',
-        'Clique na imagem',
-        QUESTION_TYPE.IMAGEM,
-        [],
-        []
-      );
       // Posição muito distante da correta (fora do raio de 0.1)
       const result = createQuestionResult(
         'a1',
@@ -1251,19 +1174,12 @@ describe('questionRenderer', () => {
         JSON.stringify({ x: 0.8, y: 0.8 })
       );
 
-      render(renderQuestionImage({ question, result }));
+      render(renderQuestionImage({ result }));
 
       expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
     });
 
     it('should handle error when parsing JSON', () => {
-      const question = createQuestion(
-        'q1',
-        'Clique na imagem',
-        QUESTION_TYPE.IMAGEM,
-        [],
-        []
-      );
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -1271,20 +1187,13 @@ describe('questionRenderer', () => {
         'invalid json'
       );
 
-      render(renderQuestionImage({ question, result }));
+      render(renderQuestionImage({ result }));
 
       expect(screen.getByText('Área correta')).toBeInTheDocument();
       expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
     });
 
     it('should handle answer being an object directly', () => {
-      const question = createQuestion(
-        'q1',
-        'Clique na imagem',
-        QUESTION_TYPE.IMAGEM,
-        [],
-        []
-      );
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -1293,19 +1202,12 @@ describe('questionRenderer', () => {
         { x: 0.48, y: 0.45 } as any
       );
 
-      render(renderQuestionImage({ question, result }));
+      render(renderQuestionImage({ result }));
 
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
 
     it('should handle answer without x and y properties', () => {
-      const question = createQuestion(
-        'q1',
-        'Clique na imagem',
-        QUESTION_TYPE.IMAGEM,
-        [],
-        []
-      );
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -1313,20 +1215,13 @@ describe('questionRenderer', () => {
         JSON.stringify({ invalid: 'data' })
       );
 
-      render(renderQuestionImage({ question, result }));
+      render(renderQuestionImage({ result }));
 
       expect(screen.getByText('Área correta')).toBeInTheDocument();
       expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
     });
 
     it('should display green circle when answer is correct', () => {
-      const question = createQuestion(
-        'q1',
-        'Clique na imagem',
-        QUESTION_TYPE.IMAGEM,
-        [],
-        []
-      );
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -1334,7 +1229,7 @@ describe('questionRenderer', () => {
         JSON.stringify({ x: 0.48, y: 0.45 })
       );
 
-      const { container } = render(renderQuestionImage({ question, result }));
+      const { container } = render(renderQuestionImage({ result }));
 
       // Verifica que o componente foi renderizado
       expect(container).toBeInTheDocument();
@@ -1342,13 +1237,6 @@ describe('questionRenderer', () => {
     });
 
     it('should display red circle when answer is incorrect', () => {
-      const question = createQuestion(
-        'q1',
-        'Clique na imagem',
-        QUESTION_TYPE.IMAGEM,
-        [],
-        []
-      );
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -1356,7 +1244,7 @@ describe('questionRenderer', () => {
         JSON.stringify({ x: 0.8, y: 0.8 })
       );
 
-      const { container } = render(renderQuestionImage({ question, result }));
+      const { container } = render(renderQuestionImage({ result }));
 
       expect(container).toBeInTheDocument();
       expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
@@ -1365,7 +1253,7 @@ describe('questionRenderer', () => {
 
   describe('renderQuestionConnectDots', () => {
     it('should render not implemented message', () => {
-      render(renderQuestionConnectDots({ paddingBottom: '' }));
+      render(renderQuestionConnectDots({}));
 
       expect(
         screen.getByText('Tipo de questão: Ligar Pontos')

@@ -437,7 +437,6 @@ const CorrectActivityModal = ({
         content = (
           <>
             {renderQuestionDissertative({
-              question,
               result,
             })}
             {/* Correction fields for essay questions */}
@@ -457,7 +456,6 @@ const CorrectActivityModal = ({
         break;
       case QUESTION_TYPE.IMAGEM:
         content = renderQuestionImage({
-          question,
           result,
         });
         break;
@@ -473,7 +471,6 @@ const CorrectActivityModal = ({
           });
         } else {
           content = renderQuestionDissertative({
-            question,
             result,
           });
         }
