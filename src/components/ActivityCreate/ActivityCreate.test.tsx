@@ -55,8 +55,21 @@ const mockParams: { type?: string; id?: string } = {
   id: undefined,
 };
 
+const mockSetSearchParams = jest.fn();
+
 jest.mock('react-router-dom', () => ({
-  useParams: () => mockParams,
+  useSearchParams: () => {
+    // Create a new searchParams object each time useSearchParams is called
+    // so it always reads the current values from mockParams
+    const searchParams = {
+      get: (key: string): string | null => {
+        if (key === 'type') return mockParams.type || null;
+        if (key === 'id') return mockParams.id || null;
+        return null;
+      },
+    };
+    return [searchParams, mockSetSearchParams];
+  },
   useNavigate: () => mockNavigate,
 }));
 
@@ -1032,11 +1045,14 @@ describe('CreateActivity', () => {
       });
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          '/criar-atividade/rascunho/draft1',
-          { replace: true }
-        );
+        expect(mockNavigate).toHaveBeenCalled();
       });
+
+      // Verify it was called with the correct URL (may be called multiple times)
+      expect(mockNavigate).toHaveBeenCalledWith(
+        '/criar-atividade?type=rascunho&id=draft1',
+        { replace: true }
+      );
     });
 
     it('should handle save error gracefully', async () => {
