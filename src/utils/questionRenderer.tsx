@@ -14,6 +14,7 @@ import { cn } from './utils';
 import ImageQuestion from '../assets/img/mock-image-question.png';
 import { getStatusStyles } from '../components/Quiz/QuizContent';
 import Text from '@/components/Text/Text';
+import { getStatusBadge } from './questionRenderer.utils';
 
 export type QuestionRendererMap = Record<QUESTION_TYPE, () => ReactNode>;
 
@@ -46,7 +47,9 @@ export interface QuestionRendererProps {
 const QuestionSubTitle = ({ subTitle }: { subTitle: string }) => {
   return (
     <div className="px-4 pb-2 pt-6">
-      <p className="font-bold text-lg text-text-950">{subTitle}</p>
+      <Text size="md" weight="bold" color="text-text-950">
+        {subTitle}
+      </Text>
     </div>
   );
 };
@@ -118,7 +121,9 @@ export const renderQuestionAlternative = ({
   if (!alternatives || alternatives.length === 0) {
     return (
       <div>
-        <p>Não há Alternativas</p>
+        <Text size="sm" weight="normal">
+          Não há Alternativas
+        </Text>
       </div>
     );
   }
@@ -201,34 +206,9 @@ export const renderQuestionMultipleChoice = ({
         name={`question-${question.id}`}
         choices={choices}
         selectedValues={selectedValues}
-        onHandleSelectedValues={() => {
-          // Readonly mode, no action needed
-        }}
       />
     </div>
   );
-};
-
-/**
- * Get status badge component
- */
-const getStatusBadge = (status?: 'correct' | 'incorrect') => {
-  switch (status) {
-    case 'correct':
-      return (
-        <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
-          Resposta correta
-        </Badge>
-      );
-    case 'incorrect':
-      return (
-        <Badge variant="solid" action="error" iconLeft={<XCircle />}>
-          Resposta incorreta
-        </Badge>
-      );
-    default:
-      return null;
-  }
 };
 
 /**
@@ -382,8 +362,8 @@ const FillQuestionContent = ({
         Object.assign(studentAnswers, parsed);
       }
     }
-  } catch {
-    // If parsing fails, use empty object
+  } catch (error) {
+    console.error('Error parsing answer:', error);
   }
 
   // Extract placeholders from text
@@ -615,7 +595,7 @@ export const renderQuestionImage = ({
       }
     }
   } catch {
-    // If parsing fails, no user position
+    userPositionRelative = null;
   }
 
   // Determine if answer is correct (within radius)

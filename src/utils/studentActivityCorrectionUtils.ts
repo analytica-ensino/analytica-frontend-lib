@@ -1,3 +1,4 @@
+import { StatusBadgeConfig } from '@/types/activityDetails';
 import { ANSWER_STATUS } from '../components/Quiz/useQuizStore';
 import {
   QUESTION_STATUS,
@@ -44,10 +45,7 @@ export const mapAnswerStatusToQuestionStatus = (
  * @returns Badge configuration with label and colors
  */
 export const getQuestionStatusBadgeConfig = (status: QuestionStatus) => {
-  const configs: Record<
-    QuestionStatus,
-    { label: string; bgColor: string; textColor: string }
-  > = {
+  const configs: Partial<Record<QuestionStatus, StatusBadgeConfig>> = {
     [QUESTION_STATUS.CORRETA]: {
       label: 'Correta',
       bgColor: 'bg-success-background',
@@ -70,7 +68,13 @@ export const getQuestionStatusBadgeConfig = (status: QuestionStatus) => {
     },
   };
 
-  return configs[status];
+  const defaultConfig = {
+    label: 'Sem categoria',
+    bgColor: 'bg-gray-100',
+    textColor: 'text-gray-600',
+  };
+
+  return configs[status] ?? defaultConfig;
 };
 
 /**

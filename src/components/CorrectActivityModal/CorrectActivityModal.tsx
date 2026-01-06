@@ -882,9 +882,14 @@ const CorrectActivityModal = ({
                   <div className="space-y-4 pt-2">
                     {/* Question statement */}
                     {questionData.question.statement && (
-                      <div className="text-sm text-text-700 whitespace-pre-wrap">
+                      <Text
+                        size="sm"
+                        weight="normal"
+                        color="text-text-700"
+                        className="whitespace-pre-wrap"
+                      >
                         {questionData.question.statement}
-                      </div>
+                      </Text>
                     )}
 
                     {/* Question content based on type */}
