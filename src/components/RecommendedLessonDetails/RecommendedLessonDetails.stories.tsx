@@ -494,13 +494,35 @@ const mapSubjectNameToEnum = (subjectName: string): SubjectEnum | null => {
 };
 
 /**
+ * Mock fetch function for student performance
+ */
+const mockFetchStudentPerformance = async (
+  goalId: string,
+  studentId: string
+): Promise<StudentPerformanceData> => {
+  console.log('Fetching student performance:', { goalId, studentId });
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return (
+    mockStudentPerformanceData[studentId] || {
+      studentName: 'Aluno',
+      correctAnswers: 0,
+      incorrectAnswers: 0,
+      bestResult: null,
+      hardestTopic: null,
+      lessons: [],
+    }
+  );
+};
+
+/**
  * Default props for stories
  */
 const defaultProps: RecommendedLessonDetailsProps = {
+  goalId: 'lesson-1',
   data: mockLessonData,
   onViewLesson: () => console.log('View lesson clicked'),
-  onViewStudentPerformance: (id) =>
-    console.log('View student performance:', id),
+  fetchStudentPerformance: mockFetchStudentPerformance,
   onBreadcrumbClick: (path) => console.log('Breadcrumb clicked:', path),
   mapSubjectNameToEnum,
 };
@@ -801,7 +823,7 @@ WithoutViewLesson.meta = {
 export const WithoutStudentPerformance: Story = () => (
   <RecommendedLessonDetails
     {...defaultProps}
-    onViewStudentPerformance={undefined}
+    fetchStudentPerformance={undefined}
   />
 );
 WithoutStudentPerformance.meta = {
@@ -905,35 +927,18 @@ PhysicsLesson.meta = {
 
 /**
  * Interactive with Performance Modal - shows the component with working performance modal
+ * The modal is now managed internally by the component
  */
 export const WithPerformanceModal: Story = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedStudent, setSelectedStudent] =
-    useState<StudentPerformanceData | null>(null);
-
-  const handleViewPerformance = (studentId: string) => {
-    const studentData = mockStudentPerformanceData[studentId];
-    if (studentData) {
-      setSelectedStudent(studentData);
-      setIsModalOpen(true);
-    }
-  };
-
   return (
-    <>
-      <RecommendedLessonDetails
-        data={mockLessonData}
-        onViewLesson={() => console.log('View lesson clicked')}
-        onViewStudentPerformance={handleViewPerformance}
-        onBreadcrumbClick={(path) => console.log('Breadcrumb clicked:', path)}
-        mapSubjectNameToEnum={mapSubjectNameToEnum}
-      />
-      <StudentPerformanceModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        data={selectedStudent}
-      />
-    </>
+    <RecommendedLessonDetails
+      goalId="lesson-1"
+      data={mockLessonData}
+      onViewLesson={() => console.log('View lesson clicked')}
+      fetchStudentPerformance={mockFetchStudentPerformance}
+      onBreadcrumbClick={(path) => console.log('Breadcrumb clicked:', path)}
+      mapSubjectNameToEnum={mapSubjectNameToEnum}
+    />
   );
 };
 WithPerformanceModal.meta = {
