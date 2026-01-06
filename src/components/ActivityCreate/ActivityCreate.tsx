@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   ActivityFilters,
   ActivityPreview,
@@ -66,8 +66,11 @@ const CreateActivity = ({
   ) => void;
   onSaveModel?: (response: ActivityDraftResponse) => void;
 }) => {
-  const params = useParams<{ type?: string; id?: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  const typeParam = searchParams.get('type') || undefined;
+  const idParam = searchParams.get('id') || undefined;
   const applyFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.applyFilters
   );
@@ -92,9 +95,9 @@ const CreateActivity = ({
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState<PreviewQuestion[]>([]);
   const [loadingInitialQuestions, setLoadingInitialQuestions] = useState(false);
-  const [draftId, setDraftId] = useState<string | null>(params.id || null);
+  const [draftId, setDraftId] = useState<string | null>(idParam ?? null);
   const [activityType, setActivityType] = useState<ActivityType>(
-    getTypeFromUrlString(params.type)
+    getTypeFromUrlString(typeParam)
   );
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -161,12 +164,12 @@ const CreateActivity = ({
     const fetchActivityDraft = async () => {
       // Só busca se há um id e ele é diferente do último buscado
       // Remove a dependência de activity?.id para evitar refetch quando atualizamos activity via PATCH
-      if (params.id && params.id !== lastFetchedActivityIdRef.current) {
+      if (idParam && idParam !== lastFetchedActivityIdRef.current) {
         setLoading(true);
         try {
           const response = await apiClient.get<
             { data: ActivityData } | ActivityData
-          >(`/activity-drafts/${params.id}`);
+          >(`/activity-drafts/${idParam}`);
           const activityData =
             'data' in response.data ? response.data.data : response.data;
 
@@ -177,7 +180,7 @@ const CreateActivity = ({
           if (activityData.updatedAt) {
             setLastSavedAt(new Date(activityData.updatedAt));
           }
-          lastFetchedActivityIdRef.current = params.id;
+          lastFetchedActivityIdRef.current = idParam;
         } catch (error) {
           console.error('Erro ao buscar rascunho da atividade:', error);
           addToast({
@@ -197,7 +200,7 @@ const CreateActivity = ({
     };
 
     fetchActivityDraft();
-  }, [params.id, apiClient, addToast]);
+  }, [idParam, apiClient, addToast]);
 
   /**
    * Monitora activity.id e activity.type e atualiza a URL quando necessário
@@ -206,8 +209,8 @@ const CreateActivity = ({
   useEffect(() => {
     if (activity?.id && activity?.type) {
       const urlType = getTypeFromUrl(activity.type);
-      const currentUrlType = params.type;
-      const currentUrlId = params.id;
+      const currentUrlType = typeParam;
+      const currentUrlId = idParam;
 
       // Atualiza a URL se o tipo ou id mudaram
       if (
@@ -216,12 +219,12 @@ const CreateActivity = ({
         currentUrlId !== activity.id ||
         currentUrlType !== urlType
       ) {
-        navigate(`/criar-atividade/${urlType}/${activity.id}`, {
+        navigate(`/criar-atividade?type=${urlType}&id=${activity.id}`, {
           replace: true,
         });
       }
     }
-  }, [activity?.id, activity?.type, params.type, params.id, navigate]);
+  }, [activity?.id, activity?.type, typeParam, idParam, navigate]);
 
   /**
    * Validate if save conditions are met
@@ -422,7 +425,7 @@ const CreateActivity = ({
       // Se foi um novo rascunho, atualiza a URL
       if (wasNewDraft && savedDraft.id) {
         const urlType = getTypeFromUrl(savedDraft.type);
-        navigate(`/criar-atividade/${urlType}/${savedDraft.id}`, {
+        navigate(`/criar-atividade?type=${urlType}&id=${savedDraft.id}`, {
           replace: true,
         });
       }
