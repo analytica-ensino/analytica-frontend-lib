@@ -424,84 +424,121 @@ const FillQuestionContent = ({
       `[${placeholder}]`;
   });
 
+  /**
+   * Add text element to elements array
+   */
+  const addTextElement = (
+    elements: Array<{ element: string | ReactNode; id: string }>,
+    textContent: string,
+    elementCounter: { current: number }
+  ) => {
+    if (textContent) {
+      elements.push({
+        element: textContent,
+        id: `${baseId}-text-${++elementCounter.current}`,
+      });
+    }
+  };
+
+  /**
+   * Render placeholder for gabarito (correct answer)
+   */
+  const renderGabaritoPlaceholder = (
+    selectId: string,
+    elementCounter: { current: number }
+  ): { element: ReactNode; id: string } => {
+    const correctAnswer = correctAnswers[selectId] || `[${selectId}]`;
+    return {
+      element: (
+        <span
+          key={`${baseId}-gabarito-${selectId}`}
+          className="inline-flex mb-2.5 text-success-600 font-semibold text-md border-b-2 border-success-600"
+        >
+          {correctAnswer}
+        </span>
+      ),
+      id: `${baseId}-gabarito-${++elementCounter.current}`,
+    };
+  };
+
+  /**
+   * Render placeholder for student answer
+   */
+  const renderStudentPlaceholder = (
+    selectId: string,
+    elementCounter: { current: number }
+  ): { element: ReactNode; id: string } => {
+    const studentAnswer = studentAnswers[selectId];
+    if (!studentAnswer) {
+      return {
+        element: (
+          <span
+            key={`${baseId}-no-answer-${selectId}`}
+            className="inline-flex mb-2.5 text-text-400 text-md border-b-2 border-text-300"
+          >
+            [Não respondido]
+          </span>
+        ),
+        id: `${baseId}-no-answer-${++elementCounter.current}`,
+      };
+    }
+
+    const isCorrect = studentAnswer.isCorrect;
+    const colorClass = isCorrect
+      ? 'text-success-600 border-success-600'
+      : 'text-error-600 border-error-600';
+
+    return {
+      element: (
+        <Badge
+          key={`${baseId}-answer-${selectId}`}
+          variant="solid"
+          action={isCorrect ? 'success' : 'error'}
+          iconRight={isCorrect ? <CheckCircle /> : <XCircle />}
+          size="large"
+          className={`py-3 w-[180px] justify-between mb-2.5 ${colorClass}`}
+        >
+          <span className="text-text-900">{studentAnswer.answer}</span>
+        </Badge>
+      ),
+      id: `${baseId}-answer-${++elementCounter.current}`,
+    };
+  };
+
+  /**
+   * Render text with answers or gabarito
+   */
   const renderTextWithAnswers = (isGabarito = false) => {
     const elements: Array<{ element: string | ReactNode; id: string }> = [];
     let lastIndex = 0;
-    let elementCounter = 0;
+    const elementCounter = { current: 0 };
 
     regex.lastIndex = 0; // Reset regex
     while ((match = regex.exec(text)) !== null) {
       const [fullMatch, selectId] = match;
       const startIndex = match.index;
 
+      // Add text before placeholder
       if (startIndex > lastIndex) {
-        elements.push({
-          element: text.slice(lastIndex, startIndex),
-          id: `${baseId}-text-${++elementCounter}`,
-        });
+        addTextElement(
+          elements,
+          text.slice(lastIndex, startIndex),
+          elementCounter
+        );
       }
 
-      if (isGabarito) {
-        // Show correct answer in green with underline
-        const correctAnswer = correctAnswers[selectId] || `[${selectId}]`;
-        elements.push({
-          element: (
-            <span
-              key={`${baseId}-gabarito-${selectId}`}
-              className="inline-flex mb-2.5 text-success-600 font-semibold text-md border-b-2 border-success-600"
-            >
-              {correctAnswer}
-            </span>
-          ),
-          id: `${baseId}-gabarito-${++elementCounter}`,
-        });
-      } else {
-        // Show student answer with color based on correctness
-        const studentAnswer = studentAnswers[selectId];
-        if (studentAnswer) {
-          const isCorrect = studentAnswer.isCorrect;
-          const colorClass = isCorrect
-            ? 'text-success-600 border-success-600'
-            : 'text-error-600 border-error-600';
-          elements.push({
-            element: (
-              <Badge
-                key={`${baseId}-answer-${selectId}`}
-                variant="solid"
-                action={isCorrect ? 'success' : 'error'}
-                iconRight={isCorrect ? <CheckCircle /> : <XCircle />}
-                size="large"
-                className={`py-3 w-[180px] justify-between mb-2.5 ${colorClass}`}
-              >
-                <span className="text-text-900">{studentAnswer.answer}</span>
-              </Badge>
-            ),
-            id: `${baseId}-answer-${++elementCounter}`,
-          });
-        } else {
-          // No answer provided
-          elements.push({
-            element: (
-              <span
-                key={`${baseId}-no-answer-${selectId}`}
-                className="inline-flex mb-2.5 text-text-400 text-md border-b-2 border-text-300"
-              >
-                [Não respondido]
-              </span>
-            ),
-            id: `${baseId}-no-answer-${++elementCounter}`,
-          });
-        }
-      }
+      // Add placeholder element
+      const placeholderElement = isGabarito
+        ? renderGabaritoPlaceholder(selectId, elementCounter)
+        : renderStudentPlaceholder(selectId, elementCounter);
+      elements.push(placeholderElement);
 
       lastIndex = match.index + fullMatch.length;
     }
 
+    // Add remaining text after last placeholder
     if (lastIndex < text.length) {
-      elements.push({
-        element: text.slice(lastIndex),
-        id: `${baseId}-text-${++elementCounter}`,
-      });
+      addTextElement(elements, text.slice(lastIndex), elementCounter);
     }
 
     return elements;
