@@ -2,15 +2,15 @@ import {
   ANSWER_STATUS,
   QUESTION_DIFFICULTY,
   QUESTION_TYPE,
-} from '../components/Quiz/useQuizStore';
-import { QUESTION_STATUS } from '../types/studentActivityCorrection.constants';
-import type { CorrectionQuestionData } from '../types/studentActivityCorrection.types';
+} from '../../components/Quiz/useQuizStore';
+import { QUESTION_STATUS } from './constants';
+import type { CorrectionQuestionData } from './types';
 import {
   getIsCorrect,
   mapAnswerStatusToQuestionStatus,
   getQuestionStatusBadgeConfig,
   getQuestionStatusFromData,
-} from './studentActivityCorrectionUtils';
+} from './utils';
 
 describe('studentActivityCorrectionUtils', () => {
   describe('getIsCorrect', () => {

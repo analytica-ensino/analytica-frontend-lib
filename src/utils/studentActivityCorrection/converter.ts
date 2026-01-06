@@ -1,12 +1,12 @@
-import type { Question } from '../components/Quiz/useQuizStore';
-import { QUESTION_TYPE } from '../components/Quiz/useQuizStore';
+import type { Question } from '../../components/Quiz/useQuizStore';
+import { QUESTION_TYPE } from '../../components/Quiz/useQuizStore';
 import type {
   QuestionsAnswersByStudentResponse,
   StudentActivityCorrectionData,
   CorrectionQuestionData,
   EssayQuestionCorrection,
-} from '../types/studentActivityCorrection.types';
-import { getIsCorrect } from './studentActivityCorrectionUtils';
+} from './types';
+import { getIsCorrect } from './utils';
 
 /**
  * Build Question object from answer data

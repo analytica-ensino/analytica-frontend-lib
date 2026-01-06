@@ -1,5 +1,8 @@
-import type { Question, QuestionResult } from '../components/Quiz/useQuizStore';
-import type { QuestionStatus } from './studentActivityCorrection.constants';
+import type {
+  Question,
+  QuestionResult,
+} from '../../components/Quiz/useQuizStore';
+import type { QuestionStatus } from './constants';
 
 /**
  * Correction data for essay questions (dissertativas)

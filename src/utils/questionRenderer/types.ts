@@ -1,4 +1,7 @@
-import type { Question, QuestionResult } from '../components/Quiz/useQuizStore';
+import type {
+  Question,
+  QuestionResult,
+} from '../../components/Quiz/useQuizStore';
 
 export enum Status {
   CORRECT = 'correct',

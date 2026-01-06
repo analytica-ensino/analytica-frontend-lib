@@ -10,7 +10,7 @@ import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import {
   renderFromMap,
   type QuestionRendererMap,
-} from '../../utils/questionRenderer';
+} from '../../utils/questionRenderer/index';
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { useMemo } from 'react';

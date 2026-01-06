@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import CorrectActivityModal from './CorrectActivityModal';
-import type { StudentActivityCorrectionData } from '../../types/studentActivityCorrection';
+import type { StudentActivityCorrectionData } from '../../utils/studentActivityCorrection';
 import {
   QUESTION_TYPE,
   QUESTION_DIFFICULTY,

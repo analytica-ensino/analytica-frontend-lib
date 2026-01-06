@@ -70,12 +70,12 @@ export type { CorrectActivityModalProps } from './components/CorrectActivityModa
 export {
   QUESTION_STATUS as CORRECTION_QUESTION_STATUS,
   getQuestionStatusBadgeConfig,
-} from './types/studentActivityCorrection';
+} from './utils/studentActivityCorrection';
 export type {
   QuestionStatus as CorrectionQuestionStatus,
   StudentQuestion,
   StudentActivityCorrectionData,
-} from './types/studentActivityCorrection';
+} from './utils/studentActivityCorrection';
 
 // FileAttachment Component
 export { default as FileAttachment } from './components/FileAttachment/FileAttachment';

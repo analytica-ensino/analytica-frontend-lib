@@ -15,7 +15,7 @@ import { CheckCircle, XCircle } from 'phosphor-react';
 import {
   renderFromMap,
   type QuestionRendererMap,
-} from '../../utils/questionRenderer';
+} from '../../utils/questionRenderer/index';
 
 interface ActivityCardQuestionPreviewProps {
   subjectName?: string;

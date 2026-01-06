@@ -1,10 +1,7 @@
 import { StatusBadgeConfig } from '@/types/activityDetails';
-import { ANSWER_STATUS } from '../components/Quiz/useQuizStore';
-import {
-  QUESTION_STATUS,
-  type QuestionStatus,
-} from '../types/studentActivityCorrection.constants';
-import type { CorrectionQuestionData } from '../types/studentActivityCorrection.types';
+import { ANSWER_STATUS } from '../../components/Quiz/useQuizStore';
+import { QUESTION_STATUS, type QuestionStatus } from './constants';
+import type { CorrectionQuestionData } from './types';
 
 /**
  * Returns whether the answer is correct, incorrect, or null based on the answer status.

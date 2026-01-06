@@ -7,7 +7,7 @@ import type {
   StudentActivityCorrectionData,
   SaveQuestionCorrectionPayload,
   QuestionsAnswersByStudentResponse,
-} from '../../types/studentActivityCorrection';
+} from '../../utils/studentActivityCorrection';
 import {
   QUESTION_TYPE,
   QUESTION_DIFFICULTY,

@@ -10,14 +10,14 @@ import {
   renderQuestionFill,
   renderQuestionImage,
   renderQuestionConnectDots,
-} from './questionRenderer';
+} from './index';
 import {
   QUESTION_TYPE,
   QUESTION_DIFFICULTY,
   ANSWER_STATUS,
   type Question,
   type QuestionResult,
-} from '../components/Quiz/useQuizStore';
+} from '../../components/Quiz/useQuizStore';
 
 /**
  * Helper function to create a Question

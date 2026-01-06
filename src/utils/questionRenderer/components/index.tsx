@@ -1,9 +1,9 @@
 import { useId, type ReactNode } from 'react';
-import Badge from '../components/Badge/Badge';
+import Badge from '../../../components/Badge/Badge';
 import { CheckCircle, XCircle } from 'phosphor-react';
-import { cn } from './utils';
+import { cn } from '../../utils';
 import Text from '@/components/Text/Text';
-import { QuestionRendererProps } from '@/types/questionRenderer.types';
+import type { QuestionRendererProps } from '../types';
 
 /**
  * Get status badge component

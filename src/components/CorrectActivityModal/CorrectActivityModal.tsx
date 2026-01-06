@@ -30,7 +30,7 @@ import {
   type SaveQuestionCorrectionPayload,
   getQuestionStatusBadgeConfig,
   getQuestionStatusFromData,
-} from '../../types/studentActivityCorrection';
+} from '../../utils/studentActivityCorrection';
 import {
   renderQuestionAlternative,
   renderQuestionMultipleChoice,
@@ -39,7 +39,7 @@ import {
   renderQuestionFill,
   renderQuestionImage,
   renderQuestionConnectDots,
-} from '../../utils/questionRenderer';
+} from '../../utils/questionRenderer/index';
 
 /**
  * Props for the CorrectActivityModal component

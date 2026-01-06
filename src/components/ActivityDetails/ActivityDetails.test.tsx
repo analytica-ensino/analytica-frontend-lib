@@ -12,7 +12,7 @@ import type { ActivityDetailsData } from '../../types/activityDetails';
 import type {
   StudentActivityCorrectionData,
   QuestionsAnswersByStudentResponse,
-} from '../../types/studentActivityCorrection';
+} from '../../utils/studentActivityCorrection';
 import {
   QUESTION_TYPE,
   QUESTION_DIFFICULTY,

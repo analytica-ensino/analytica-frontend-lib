@@ -20,8 +20,8 @@ import type {
   StudentActivityCorrectionData,
   SaveQuestionCorrectionPayload,
   QuestionsAnswersByStudentResponse,
-} from '../../types/studentActivityCorrection';
-import { convertApiResponseToCorrectionData } from '../../types/studentActivityCorrection';
+} from '../../utils/studentActivityCorrection';
+import { convertApiResponseToCorrectionData } from '../../utils/studentActivityCorrection';
 import {
   STUDENT_ACTIVITY_STATUS,
   type ActivityDetailsData,

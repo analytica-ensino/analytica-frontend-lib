@@ -2,9 +2,9 @@ import {
   ANSWER_STATUS,
   QUESTION_TYPE,
   QUESTION_DIFFICULTY,
-} from '../components/Quiz/useQuizStore';
-import type { QuestionsAnswersByStudentResponse } from '../types/studentActivityCorrection.types';
-import { convertApiResponseToCorrectionData } from './studentActivityCorrectionConverter';
+} from '../../components/Quiz/useQuizStore';
+import type { QuestionsAnswersByStudentResponse } from './types';
+import { convertApiResponseToCorrectionData } from './converter';
 
 describe('studentActivityCorrectionConverter', () => {
   const createMockAnswer = (
