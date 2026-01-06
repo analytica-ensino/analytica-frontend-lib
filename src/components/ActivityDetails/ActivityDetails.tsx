@@ -16,7 +16,10 @@ import { useMobile } from '../../hooks/useMobile';
 import { cn } from '../../utils/utils';
 import { SubjectEnum } from '../../enums/SubjectEnum';
 import type { ColumnConfig, TableParams } from '../TableProvider/TableProvider';
-import type { StudentActivityCorrectionData } from '../../types/studentActivityCorrection';
+import type {
+  StudentActivityCorrectionData,
+  SaveQuestionCorrectionPayload,
+} from '../../types/studentActivityCorrection';
 import {
   STUDENT_ACTIVITY_STATUS,
   type ActivityDetailsData,
@@ -54,6 +57,12 @@ export interface ActivityDetailsProps {
     studentId: string,
     observation: string,
     files: File[]
+  ) => Promise<void>;
+  /** Function to submit question correction (for essay questions) */
+  submitQuestionCorrection?: (
+    activityId: string,
+    studentId: string,
+    payload: SaveQuestionCorrectionPayload
   ) => Promise<void>;
   /** Callback when back button is clicked */
   onBack?: () => void;
@@ -195,6 +204,7 @@ export const ActivityDetails = ({
   fetchActivityDetails,
   fetchStudentCorrection,
   submitObservation,
+  submitQuestionCorrection,
   onBack,
   onViewActivity,
   emptyStateImage,
@@ -312,6 +322,24 @@ export const ActivityDetails = ({
       }
     },
     [activityId, submitObservation]
+  );
+
+  /**
+   * Handle question correction submit
+   * @param studentId - Student ID from modal
+   * @param payload - Question correction payload
+   */
+  const handleQuestionCorrectionSubmit = useCallback(
+    async (studentId: string, payload: SaveQuestionCorrectionPayload) => {
+      if (!activityId || !studentId || !submitQuestionCorrection) return;
+      try {
+        await submitQuestionCorrection(activityId, studentId, payload);
+      } catch (err) {
+        console.error('Failed to submit question correction:', err);
+        throw err;
+      }
+    },
+    [activityId, submitQuestionCorrection]
   );
 
   /**
@@ -682,6 +710,7 @@ export const ActivityDetails = ({
         data={correctionData}
         isViewOnly={isViewOnlyModal}
         onObservationSubmit={handleObservationSubmit}
+        onQuestionCorrectionSubmit={handleQuestionCorrectionSubmit}
       />
     </div>
   );

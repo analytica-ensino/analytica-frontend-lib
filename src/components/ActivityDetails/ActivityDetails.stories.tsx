@@ -3,8 +3,17 @@ import { ActivityDetails } from './ActivityDetails';
 import type { ActivityDetailsProps } from './ActivityDetails';
 import { STUDENT_ACTIVITY_STATUS } from '../../types/activityDetails';
 import type { ActivityDetailsData } from '../../types/activityDetails';
-import { QUESTION_STATUS } from '../../types/studentActivityCorrection';
-import type { StudentActivityCorrectionData } from '../../types/studentActivityCorrection';
+import type {
+  StudentActivityCorrectionData,
+  SaveQuestionCorrectionPayload,
+} from '../../types/studentActivityCorrection';
+import {
+  QUESTION_TYPE,
+  QUESTION_DIFFICULTY,
+  ANSWER_STATUS,
+  type Question,
+  type QuestionResult,
+} from '../Quiz/useQuizStore';
 
 /**
  * Mock activity details data
@@ -80,80 +89,223 @@ const mockActivityData: ActivityDetailsData = {
 };
 
 /**
- * Mock correction data with alternatives
+ * Helper function to create a Question in Quiz format
+ */
+const createQuestion = (
+  id: string,
+  statement: string,
+  questionType: QUESTION_TYPE,
+  options?: Array<{ id: string; option: string }>,
+  correctOptionIds?: string[]
+): Question => {
+  return {
+    id,
+    statement,
+    questionType,
+    difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+    description: '',
+    examBoard: null,
+    examYear: null,
+    solutionExplanation: null,
+    answer: null,
+    answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+    options: options || [],
+    knowledgeMatrix: [
+      {
+        areaKnowledge: { id: 'area1', name: 'Área de Conhecimento' },
+        subject: {
+          id: 'subject1',
+          name: 'Matemática',
+          color: '#FF6B6B',
+          icon: 'Calculator',
+        },
+        topic: { id: 'topic1', name: 'Tópico' },
+        subtopic: { id: 'subtopic1', name: 'Subtópico' },
+        content: { id: 'content1', name: 'Conteúdo' },
+      },
+    ],
+    correctOptionIds: correctOptionIds || [],
+  };
+};
+
+/**
+ * Helper function to create a QuestionResult answer in Quiz format
+ */
+const createQuestionResult = (
+  id: string,
+  questionId: string,
+  answerStatus: ANSWER_STATUS,
+  answer: string | null = null,
+  selectedOptions: Array<{ optionId: string }> = [],
+  options?: Array<{ id: string; option: string; isCorrect: boolean }>,
+  teacherFeedback: string | null = null
+): QuestionResult['answers'][number] => {
+  return {
+    id,
+    questionId,
+    answer,
+    selectedOptions,
+    answerStatus,
+    statement: '',
+    questionType: QUESTION_TYPE.ALTERNATIVA,
+    difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+    solutionExplanation: null,
+    correctOption: '',
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    options: options || [],
+    knowledgeMatrix: [],
+    teacherFeedback,
+    attachment: null,
+    score: null,
+    gradedAt: null,
+    gradedBy: null,
+  };
+};
+
+/**
+ * Mock correction data with mixed question types
  */
 const mockCorrectionData: StudentActivityCorrectionData = {
   studentId: 'student-2',
   studentName: 'Maria Santos',
-  score: 7,
+  score: 7.5,
   correctCount: 3,
   incorrectCount: 1,
   blankCount: 1,
   questions: [
     {
+      question: createQuestion(
+        'q1',
+        'Qual é a capital do Brasil?',
+        QUESTION_TYPE.ALTERNATIVA,
+        [
+          { id: 'opt1', option: 'Brasília' },
+          { id: 'opt2', option: 'São Paulo' },
+          { id: 'opt3', option: 'Rio de Janeiro' },
+          { id: 'opt4', option: 'Salvador' },
+        ],
+        ['opt1']
+      ),
+      result: createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        null,
+        [{ optionId: 'opt1' }],
+        [
+          { id: 'opt1', option: 'Brasília', isCorrect: true },
+          { id: 'opt2', option: 'São Paulo', isCorrect: false },
+          { id: 'opt3', option: 'Rio de Janeiro', isCorrect: false },
+          { id: 'opt4', option: 'Salvador', isCorrect: false },
+        ]
+      ),
       questionNumber: 1,
-      status: QUESTION_STATUS.CORRETA,
-      studentAnswer: 'A',
-      correctAnswer: 'A',
-      questionText: 'Qual é a capital do Brasil?',
-      alternatives: [
-        { value: 'A', label: 'Brasília', isCorrect: true },
-        { value: 'B', label: 'São Paulo', isCorrect: false },
-        { value: 'C', label: 'Rio de Janeiro', isCorrect: false },
-        { value: 'D', label: 'Salvador', isCorrect: false },
-      ],
     },
     {
+      question: createQuestion(
+        'q2',
+        'Qual o maior planeta do sistema solar?',
+        QUESTION_TYPE.ALTERNATIVA,
+        [
+          { id: 'opt1', option: 'Terra' },
+          { id: 'opt2', option: 'Marte' },
+          { id: 'opt3', option: 'Júpiter' },
+          { id: 'opt4', option: 'Saturno' },
+        ],
+        ['opt3']
+      ),
+      result: createQuestionResult(
+        'a2',
+        'q2',
+        ANSWER_STATUS.RESPOSTA_INCORRETA,
+        null,
+        [{ optionId: 'opt2' }],
+        [
+          { id: 'opt1', option: 'Terra', isCorrect: false },
+          { id: 'opt2', option: 'Marte', isCorrect: false },
+          { id: 'opt3', option: 'Júpiter', isCorrect: true },
+          { id: 'opt4', option: 'Saturno', isCorrect: false },
+        ]
+      ),
       questionNumber: 2,
-      status: QUESTION_STATUS.INCORRETA,
-      studentAnswer: 'B',
-      correctAnswer: 'C',
-      questionText: 'Qual o maior planeta do sistema solar?',
-      alternatives: [
-        { value: 'A', label: 'Terra', isCorrect: false },
-        { value: 'B', label: 'Marte', isCorrect: false },
-        { value: 'C', label: 'Júpiter', isCorrect: true },
-        { value: 'D', label: 'Saturno', isCorrect: false },
-      ],
     },
     {
+      question: createQuestion(
+        'q3',
+        'Quais são os números primos? (Selecione todas as opções corretas)',
+        QUESTION_TYPE.MULTIPLA_ESCOLHA,
+        [
+          { id: 'opt1', option: '2' },
+          { id: 'opt2', option: '4' },
+          { id: 'opt3', option: '7' },
+          { id: 'opt4', option: '9' },
+        ],
+        ['opt1', 'opt3']
+      ),
+      result: createQuestionResult(
+        'a3',
+        'q3',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        null,
+        [{ optionId: 'opt1' }, { optionId: 'opt3' }],
+        [
+          { id: 'opt1', option: '2', isCorrect: true },
+          { id: 'opt2', option: '4', isCorrect: false },
+          { id: 'opt3', option: '7', isCorrect: true },
+          { id: 'opt4', option: '9', isCorrect: false },
+        ]
+      ),
       questionNumber: 3,
-      status: QUESTION_STATUS.CORRETA,
-      studentAnswer: 'D',
-      correctAnswer: 'D',
-      questionText: 'Qual elemento químico é representado pelo símbolo "O"?',
-      alternatives: [
-        { value: 'A', label: 'Ouro', isCorrect: false },
-        { value: 'B', label: 'Osmio', isCorrect: false },
-        { value: 'C', label: 'Óganesson', isCorrect: false },
-        { value: 'D', label: 'Oxigênio', isCorrect: true },
-      ],
     },
     {
+      question: createQuestion(
+        'q4',
+        'Explique o processo de fotossíntese e sua importância.',
+        QUESTION_TYPE.DISSERTATIVA
+      ),
+      result: createQuestionResult(
+        'a4',
+        'q4',
+        ANSWER_STATUS.PENDENTE_AVALIACAO,
+        'A fotossíntese é o processo pelo qual as plantas convertem luz solar em energia. É importante porque produz oxigênio.',
+        [],
+        [],
+        null
+      ),
       questionNumber: 4,
-      status: QUESTION_STATUS.CORRETA,
-      studentAnswer: 'A',
-      correctAnswer: 'A',
-      questionText: 'Qual é o resultado de 2 + 2?',
-      alternatives: [
-        { value: 'A', label: '4', isCorrect: true },
-        { value: 'B', label: '5', isCorrect: false },
-        { value: 'C', label: '22', isCorrect: false },
-        { value: 'D', label: '3', isCorrect: false },
-      ],
+      correction: {
+        isCorrect: null,
+        teacherFeedback: '',
+      },
     },
     {
+      question: createQuestion(
+        'q5',
+        'Marque Verdadeiro ou Falso:',
+        QUESTION_TYPE.VERDADEIRO_FALSO,
+        [
+          { id: 'opt1', option: 'A água ferve a 100°C ao nível do mar.' },
+          { id: 'opt2', option: 'O sol é uma estrela.' },
+        ],
+        ['opt1', 'opt2']
+      ),
+      result: createQuestionResult(
+        'a5',
+        'q5',
+        ANSWER_STATUS.NAO_RESPONDIDO,
+        null,
+        [],
+        [
+          {
+            id: 'opt1',
+            option: 'A água ferve a 100°C ao nível do mar.',
+            isCorrect: true,
+          },
+          { id: 'opt2', option: 'O sol é uma estrela.', isCorrect: true },
+        ]
+      ),
       questionNumber: 5,
-      status: QUESTION_STATUS.EM_BRANCO,
-      studentAnswer: undefined,
-      correctAnswer: 'B',
-      questionText: 'Qual é a fórmula da água?',
-      alternatives: [
-        { value: 'A', label: 'CO2', isCorrect: false },
-        { value: 'B', label: 'H2O', isCorrect: true },
-        { value: 'C', label: 'NaCl', isCorrect: false },
-        { value: 'D', label: 'O2', isCorrect: false },
-      ],
     },
   ],
 };
@@ -173,6 +325,15 @@ const defaultProps: ActivityDetailsProps = {
   },
   submitObservation: async () => {
     await new Promise((resolve) => setTimeout(resolve, 200));
+  },
+  submitQuestionCorrection: async (
+    activityId: string,
+    studentId: string,
+    payload: SaveQuestionCorrectionPayload
+  ) => {
+    console.log('Salvando correção:', { activityId, studentId, payload });
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    console.log('Correção salva com sucesso!');
   },
   onBack: () => console.log('Navigate back clicked'),
   onViewActivity: () => console.log('View activity clicked'),

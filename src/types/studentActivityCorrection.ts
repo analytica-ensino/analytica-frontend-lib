@@ -1,5 +1,12 @@
+import type {
+  Question,
+  QuestionResult,
+  ANSWER_STATUS,
+} from '../components/Quiz/useQuizStore';
+
 /**
  * Question status enum for student activity correction
+ * Maps from ANSWER_STATUS to a simpler status for UI display
  */
 export const QUESTION_STATUS = {
   CORRETA: 'CORRETA',
@@ -13,33 +20,76 @@ export type QuestionStatus =
   (typeof QUESTION_STATUS)[keyof typeof QUESTION_STATUS];
 
 /**
- * Represents an alternative for a question
+ * Map ANSWER_STATUS from Quiz to QUESTION_STATUS for correction modal
+ * @param answerStatus - Answer status from QuestionResult
+ * @returns QuestionStatus for UI display
  */
-export interface QuestionAlternative {
-  /** Alternative value (e.g., "A", "B", "C") */
-  value: string;
-  /** Alternative text content */
-  label: string;
-  /** Whether this is the correct answer */
-  isCorrect: boolean;
+export const mapAnswerStatusToQuestionStatus = (
+  answerStatus: ANSWER_STATUS
+): QuestionStatus => {
+  switch (answerStatus) {
+    case 'RESPOSTA_CORRETA':
+      return QUESTION_STATUS.CORRETA;
+    case 'RESPOSTA_INCORRETA':
+      return QUESTION_STATUS.INCORRETA;
+    case 'NAO_RESPONDIDO':
+      return QUESTION_STATUS.EM_BRANCO;
+    case 'PENDENTE_AVALIACAO':
+      return QUESTION_STATUS.PENDENTE;
+    default:
+      return QUESTION_STATUS.EM_BRANCO;
+  }
+};
+
+/**
+ * Correction data for essay questions (dissertativas)
+ * Used for teacher evaluation of essay answers
+ */
+export interface EssayQuestionCorrection {
+  /** Whether the answer is correct (true/false/null for not evaluated) */
+  isCorrect: boolean | null;
+  /** Teacher observation/feedback */
+  teacherFeedback: string;
 }
 
 /**
- * Student question data interface
+ * Combined question data for correction modal
+ * Combines Question (from Quiz format) with QuestionResult answer data
+ */
+export interface CorrectionQuestionData {
+  /** Question data in Quiz format */
+  question: Question;
+  /** Student answer data from QuestionResult */
+  result: QuestionResult['answers'][number];
+  /** Question number in the activity (1-indexed) */
+  questionNumber: number;
+  /** Correction data for essay questions (only for DISSERTATIVA type) */
+  correction?: EssayQuestionCorrection;
+}
+
+/**
+ * Legacy interface for backward compatibility
+ * @deprecated Use CorrectionQuestionData instead
  */
 export interface StudentQuestion {
   questionNumber: number;
   status: QuestionStatus;
   studentAnswer?: string;
   correctAnswer?: string;
-  /** Question text content */
   questionText?: string;
-  /** List of alternatives (for multiple choice questions) */
-  alternatives?: QuestionAlternative[];
+  questionType?: string;
+  alternatives?: Array<{
+    value: string;
+    label: string;
+    isCorrect: boolean;
+  }>;
+  isCorrect?: boolean | null;
+  teacherFeedback?: string;
 }
 
 /**
  * Student activity correction data interface
+ * Uses Quiz format (Question + QuestionResult) for questions
  */
 export interface StudentActivityCorrectionData {
   studentId: string;
@@ -48,11 +98,26 @@ export interface StudentActivityCorrectionData {
   correctCount: number;
   incorrectCount: number;
   blankCount: number;
-  questions: StudentQuestion[];
-  /** Teacher observation text */
+  /** Questions with their answers in Quiz format */
+  questions: CorrectionQuestionData[];
+  /** Teacher observation text (general observation for the activity) */
   observation?: string;
   /** URL of attached file */
   attachment?: string;
+}
+
+/**
+ * Payload for saving question correction (for essay questions)
+ */
+export interface SaveQuestionCorrectionPayload {
+  /** Question ID from Question interface */
+  questionId: string;
+  /** Question number in the activity (for reference) */
+  questionNumber: number;
+  /** Whether the answer is correct */
+  isCorrect: boolean;
+  /** Teacher observation/feedback */
+  teacherFeedback?: string;
 }
 
 /**
@@ -88,4 +153,16 @@ export const getQuestionStatusBadgeConfig = (status: QuestionStatus) => {
   };
 
   return configs[status];
+};
+
+/**
+ * Get question status from CorrectionQuestionData
+ * Maps the result's answerStatus to QuestionStatus
+ * @param questionData - Correction question data
+ * @returns QuestionStatus for UI display
+ */
+export const getQuestionStatusFromData = (
+  questionData: CorrectionQuestionData
+): QuestionStatus => {
+  return mapAnswerStatusToQuestionStatus(questionData.result.answerStatus);
 };
