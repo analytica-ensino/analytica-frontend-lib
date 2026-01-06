@@ -135,6 +135,13 @@ export default defineConfig({
     'hooks/useActivityModels/index': 'src/hooks/useActivityModels.ts',
     'types/activitiesHistory/index': 'src/types/activitiesHistory.ts',
 
+    // Activities types
+    'types/activities/index': 'src/types/activities.ts',
+
+    // SendActivity hook and types
+    'types/sendActivity/index': 'src/types/sendActivity.ts',
+    'hooks/useSendActivity/index': 'src/hooks/useSendActivity.ts',
+
     // Styles
     styles: 'src/styles.css',
   },

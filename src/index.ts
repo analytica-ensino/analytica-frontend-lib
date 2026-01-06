@@ -757,3 +757,28 @@ export {
   isChatUserInfoValid,
 } from './utils/chatUtils';
 export type { ChatUserInfo } from './utils/chatUtils';
+
+// General Activity Types (calendar, activity list)
+export {
+  ActivityStatus as GeneralActivityStatus,
+  ActivityFilter,
+  CalendarActivityStatus,
+} from './types/activities';
+export type {
+  Activity,
+  CalendarActivity,
+  ActivityResponse,
+  CalendarActivitiesResponse,
+} from './types/activities';
+
+// Send Activity Hook (with API injection pattern)
+export { useSendActivity } from './hooks/useSendActivity';
+export type {
+  UseSendActivityConfig,
+  UseSendActivityReturn,
+  SendActivityCategoriesData,
+  CreateActivityPayload,
+  StudentPayload,
+  ActivityModelItem,
+  RecipientItem as SendActivityRecipientItem,
+} from './types/sendActivity';
