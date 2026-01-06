@@ -166,7 +166,7 @@ describe('questionRenderer', () => {
       );
 
       const { container } = render(
-        renderQuestionAlternative({ question, result, paddingBottom: '' })
+        renderQuestionAlternative({ question, result })
       );
 
       expect(container).toBeInTheDocument();
@@ -186,9 +186,7 @@ describe('questionRenderer', () => {
         ANSWER_STATUS.NAO_RESPONDIDO
       );
 
-      render(
-        renderQuestionAlternative({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionAlternative({ question, result }));
 
       expect(screen.getByText('Não há Alternativas')).toBeInTheDocument();
     });
@@ -211,7 +209,7 @@ describe('questionRenderer', () => {
       );
 
       const { container } = render(
-        renderQuestionAlternative({ question, result, paddingBottom: '' })
+        renderQuestionAlternative({ question, result })
       );
 
       expect(container).toBeInTheDocument();
@@ -241,7 +239,7 @@ describe('questionRenderer', () => {
       );
 
       const { container } = render(
-        renderQuestionAlternative({ question, result, paddingBottom: '' })
+        renderQuestionAlternative({ question, result })
       );
 
       expect(container).toBeInTheDocument();
@@ -271,7 +269,7 @@ describe('questionRenderer', () => {
       );
 
       const { container } = render(
-        renderQuestionAlternative({ question, result, paddingBottom: '' })
+        renderQuestionAlternative({ question, result })
       );
 
       expect(container).toBeInTheDocument();
@@ -290,9 +288,7 @@ describe('questionRenderer', () => {
         'q1',
         ANSWER_STATUS.NAO_RESPONDIDO
       );
-      render(
-        renderQuestionAlternative({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionAlternative({ question, result }));
 
       expect(screen.getByText('Não há Alternativas')).toBeInTheDocument();
     });
@@ -323,7 +319,7 @@ describe('questionRenderer', () => {
       );
 
       const { container } = render(
-        renderQuestionMultipleChoice({ question, result, paddingBottom: '' })
+        renderQuestionMultipleChoice({ question, result })
       );
 
       expect(container).toBeInTheDocument();
@@ -343,9 +339,7 @@ describe('questionRenderer', () => {
         ANSWER_STATUS.NAO_RESPONDIDO
       );
 
-      render(
-        renderQuestionMultipleChoice({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionMultipleChoice({ question, result }));
 
       expect(screen.getByText('Não há Escolhas Múltiplas')).toBeInTheDocument();
     });
@@ -376,7 +370,7 @@ describe('questionRenderer', () => {
       );
 
       const { container } = render(
-        renderQuestionMultipleChoice({ question, result, paddingBottom: '' })
+        renderQuestionMultipleChoice({ question, result })
       );
 
       expect(container).toBeInTheDocument();
@@ -400,7 +394,7 @@ describe('questionRenderer', () => {
       );
 
       const { container } = render(
-        renderQuestionMultipleChoice({ question, result, paddingBottom: '' })
+        renderQuestionMultipleChoice({ question, result })
       );
 
       expect(container).toBeInTheDocument();
@@ -424,7 +418,7 @@ describe('questionRenderer', () => {
       );
 
       const { container } = render(
-        renderQuestionMultipleChoice({ question, result, paddingBottom: '' })
+        renderQuestionMultipleChoice({ question, result })
       );
 
       expect(container).toBeInTheDocument();
@@ -454,7 +448,7 @@ describe('questionRenderer', () => {
       );
 
       const { container } = render(
-        renderQuestionMultipleChoice({ question, result, paddingBottom: '' })
+        renderQuestionMultipleChoice({ question, result })
       );
 
       expect(container).toBeInTheDocument();
@@ -486,7 +480,7 @@ describe('questionRenderer', () => {
       );
 
       const { container } = render(
-        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
+        renderQuestionTrueOrFalse({ question, result })
       );
 
       expect(container).toBeInTheDocument();
@@ -510,9 +504,7 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'O Brasil é um país', isCorrect: true }]
       );
 
-      render(
-        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionTrueOrFalse({ question, result }));
 
       expect(screen.getByText(/Resposta selecionada: V/)).toBeInTheDocument();
     });
@@ -534,9 +526,7 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'O Brasil é um país', isCorrect: true }]
       );
 
-      render(
-        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionTrueOrFalse({ question, result }));
 
       expect(screen.getByText(/Resposta selecionada: F/)).toBeInTheDocument();
       expect(screen.getByText(/Resposta correta: V/)).toBeInTheDocument();
@@ -559,9 +549,7 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'A Lua é feita de queijo', isCorrect: false }]
       );
 
-      render(
-        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionTrueOrFalse({ question, result }));
 
       expect(screen.getByText(/Resposta selecionada: F/)).toBeInTheDocument();
     });
@@ -583,9 +571,7 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'O Brasil é um país', isCorrect: true }]
       );
 
-      render(
-        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionTrueOrFalse({ question, result }));
 
       expect(
         screen.queryByText(/Resposta selecionada:/)
@@ -609,9 +595,7 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'O Brasil é um país', isCorrect: true }]
       );
 
-      render(
-        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionTrueOrFalse({ question, result }));
 
       expect(
         screen.queryByText(/Resposta selecionada:/)
@@ -636,7 +620,7 @@ describe('questionRenderer', () => {
       );
 
       const { container } = render(
-        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
+        renderQuestionTrueOrFalse({ question, result })
       );
 
       expect(container).toBeInTheDocument();
@@ -665,7 +649,7 @@ describe('questionRenderer', () => {
       // Mas quando shouldShowStatus é true e variantCorrect é uma string vazia ou undefined,
       // o default case é testado
       const { container } = render(
-        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
+        renderQuestionTrueOrFalse({ question, result })
       );
 
       expect(container).toBeInTheDocument();
@@ -696,9 +680,7 @@ describe('questionRenderer', () => {
         ]
       );
 
-      render(
-        renderQuestionTrueOrFalse({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionTrueOrFalse({ question, result }));
 
       expect(screen.getByText(/a\) O Brasil é um país/)).toBeInTheDocument();
       expect(
@@ -724,9 +706,7 @@ describe('questionRenderer', () => {
         'A água evapora e condensa'
       );
 
-      render(
-        renderQuestionDissertative({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionDissertative({ question, result }));
 
       expect(screen.getByText('Resposta do aluno')).toBeInTheDocument();
       expect(screen.getByText('A água evapora e condensa')).toBeInTheDocument();
@@ -747,9 +727,7 @@ describe('questionRenderer', () => {
         null
       );
 
-      render(
-        renderQuestionDissertative({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionDissertative({ question, result }));
 
       expect(
         screen.getByText('Nenhuma resposta fornecida')
@@ -774,9 +752,7 @@ describe('questionRenderer', () => {
         'Você precisa explicar melhor o processo'
       );
 
-      render(
-        renderQuestionDissertative({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionDissertative({ question, result }));
 
       expect(screen.getByText('Observação do professor:')).toBeInTheDocument();
       expect(
@@ -802,9 +778,7 @@ describe('questionRenderer', () => {
         'Boa resposta'
       );
 
-      render(
-        renderQuestionDissertative({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionDissertative({ question, result }));
 
       expect(
         screen.queryByText('Observação do professor:')
@@ -829,9 +803,7 @@ describe('questionRenderer', () => {
         null
       );
 
-      render(
-        renderQuestionDissertative({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionDissertative({ question, result }));
 
       expect(
         screen.queryByText('Observação do professor:')
@@ -853,9 +825,7 @@ describe('questionRenderer', () => {
         ''
       );
 
-      render(
-        renderQuestionDissertative({ question, result, paddingBottom: '' })
-      );
+      render(renderQuestionDissertative({ question, result }));
 
       expect(
         screen.getByText('Nenhuma resposta fornecida')
@@ -888,8 +858,7 @@ describe('questionRenderer', () => {
       );
 
       // Wrapper component para permitir uso de hooks
-      const Wrapper = () =>
-        renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () => renderQuestionFill({ question, result });
       const { container } = render(<Wrapper />);
 
       expect(container).toBeInTheDocument();
@@ -913,8 +882,7 @@ describe('questionRenderer', () => {
       );
 
       // Wrapper component para permitir uso de hooks
-      const Wrapper = () =>
-        renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () => renderQuestionFill({ question, result });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
@@ -956,8 +924,7 @@ describe('questionRenderer', () => {
         ]
       );
 
-      const Wrapper = () =>
-        renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () => renderQuestionFill({ question, result });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
@@ -987,8 +954,7 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'América', isCorrect: true }]
       );
 
-      const Wrapper = () =>
-        renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () => renderQuestionFill({ question, result });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
@@ -1009,8 +975,7 @@ describe('questionRenderer', () => {
         null
       );
 
-      const Wrapper = () =>
-        renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () => renderQuestionFill({ question, result });
       render(<Wrapper />);
 
       expect(screen.getByText('Gabarito:')).toBeInTheDocument();
@@ -1033,8 +998,7 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'América', isCorrect: false }]
       );
 
-      const Wrapper = () =>
-        renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () => renderQuestionFill({ question, result });
       render(<Wrapper />);
 
       expect(screen.getByText('Gabarito:')).toBeInTheDocument();
@@ -1077,8 +1041,7 @@ describe('questionRenderer', () => {
         ]
       );
 
-      const Wrapper = () =>
-        renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () => renderQuestionFill({ question, result });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
@@ -1107,8 +1070,7 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'resposta', isCorrect: true }]
       );
 
-      const Wrapper = () =>
-        renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () => renderQuestionFill({ question, result });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
@@ -1129,8 +1091,7 @@ describe('questionRenderer', () => {
         'invalid json'
       );
 
-      const Wrapper = () =>
-        renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () => renderQuestionFill({ question, result });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
@@ -1151,8 +1112,7 @@ describe('questionRenderer', () => {
         'string simples'
       );
 
-      const Wrapper = () =>
-        renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () => renderQuestionFill({ question, result });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
@@ -1182,8 +1142,7 @@ describe('questionRenderer', () => {
         [{ id: 'opt1', option: 'América', isCorrect: true }]
       );
 
-      const Wrapper = () =>
-        renderQuestionFill({ question, result, paddingBottom: '' });
+      const Wrapper = () => renderQuestionFill({ question, result });
       render(<Wrapper />);
 
       expect(screen.getByText('Resposta do aluno:')).toBeInTheDocument();
@@ -1206,9 +1165,7 @@ describe('questionRenderer', () => {
         JSON.stringify({ x: 0.48, y: 0.45 })
       );
 
-      const { container } = render(
-        renderQuestionImage({ question, result, paddingBottom: '' })
-      );
+      const { container } = render(renderQuestionImage({ question, result }));
 
       expect(container).toBeInTheDocument();
       expect(screen.getByText('Área correta')).toBeInTheDocument();
@@ -1229,7 +1186,7 @@ describe('questionRenderer', () => {
         JSON.stringify({ x: 0.48, y: 0.45 })
       );
 
-      render(renderQuestionImage({ question, result, paddingBottom: '' }));
+      render(renderQuestionImage({ question, result }));
 
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
       expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
@@ -1250,7 +1207,7 @@ describe('questionRenderer', () => {
         null
       );
 
-      render(renderQuestionImage({ question, result, paddingBottom: '' }));
+      render(renderQuestionImage({ question, result }));
 
       expect(screen.getByText('Área correta')).toBeInTheDocument();
       expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
@@ -1273,7 +1230,7 @@ describe('questionRenderer', () => {
         JSON.stringify({ x: 0.49, y: 0.46 })
       );
 
-      render(renderQuestionImage({ question, result, paddingBottom: '' }));
+      render(renderQuestionImage({ question, result }));
 
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
@@ -1294,7 +1251,7 @@ describe('questionRenderer', () => {
         JSON.stringify({ x: 0.8, y: 0.8 })
       );
 
-      render(renderQuestionImage({ question, result, paddingBottom: '' }));
+      render(renderQuestionImage({ question, result }));
 
       expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
     });
@@ -1314,7 +1271,7 @@ describe('questionRenderer', () => {
         'invalid json'
       );
 
-      render(renderQuestionImage({ question, result, paddingBottom: '' }));
+      render(renderQuestionImage({ question, result }));
 
       expect(screen.getByText('Área correta')).toBeInTheDocument();
       expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
@@ -1336,7 +1293,7 @@ describe('questionRenderer', () => {
         { x: 0.48, y: 0.45 } as any
       );
 
-      render(renderQuestionImage({ question, result, paddingBottom: '' }));
+      render(renderQuestionImage({ question, result }));
 
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
@@ -1356,7 +1313,7 @@ describe('questionRenderer', () => {
         JSON.stringify({ invalid: 'data' })
       );
 
-      render(renderQuestionImage({ question, result, paddingBottom: '' }));
+      render(renderQuestionImage({ question, result }));
 
       expect(screen.getByText('Área correta')).toBeInTheDocument();
       expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
@@ -1377,9 +1334,7 @@ describe('questionRenderer', () => {
         JSON.stringify({ x: 0.48, y: 0.45 })
       );
 
-      const { container } = render(
-        renderQuestionImage({ question, result, paddingBottom: '' })
-      );
+      const { container } = render(renderQuestionImage({ question, result }));
 
       // Verifica que o componente foi renderizado
       expect(container).toBeInTheDocument();
@@ -1401,9 +1356,7 @@ describe('questionRenderer', () => {
         JSON.stringify({ x: 0.8, y: 0.8 })
       );
 
-      const { container } = render(
-        renderQuestionImage({ question, result, paddingBottom: '' })
-      );
+      const { container } = render(renderQuestionImage({ question, result }));
 
       expect(container).toBeInTheDocument();
       expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();

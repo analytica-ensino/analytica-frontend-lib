@@ -418,21 +418,18 @@ const CorrectActivityModal = ({
         content = renderQuestionAlternative({
           question,
           result,
-          paddingBottom: '',
         });
         break;
       case QUESTION_TYPE.MULTIPLA_ESCOLHA:
         content = renderQuestionMultipleChoice({
           question,
           result,
-          paddingBottom: '',
         });
         break;
       case QUESTION_TYPE.VERDADEIRO_FALSO:
         content = renderQuestionTrueOrFalse({
           question,
           result,
-          paddingBottom: '',
         });
         break;
       case QUESTION_TYPE.DISSERTATIVA:
@@ -442,7 +439,6 @@ const CorrectActivityModal = ({
             {renderQuestionDissertative({
               question,
               result,
-              paddingBottom: '',
             })}
             {/* Correction fields for essay questions */}
             {!isViewOnly && (
@@ -457,14 +453,12 @@ const CorrectActivityModal = ({
         content = renderQuestionFill({
           question,
           result,
-          paddingBottom: '',
         });
         break;
       case QUESTION_TYPE.IMAGEM:
         content = renderQuestionImage({
           question,
           result,
-          paddingBottom: '',
         });
         break;
       case QUESTION_TYPE.LIGAR_PONTOS:
@@ -476,13 +470,11 @@ const CorrectActivityModal = ({
           content = renderQuestionAlternative({
             question,
             result,
-            paddingBottom: '',
           });
         } else {
           content = renderQuestionDissertative({
             question,
             result,
-            paddingBottom: '',
           });
         }
     }

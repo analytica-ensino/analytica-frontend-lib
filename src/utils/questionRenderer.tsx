@@ -37,7 +37,6 @@ enum Status {
 export interface QuestionRendererProps {
   question: Question;
   result: QuestionResult['answers'][number];
-  paddingBottom?: string;
 }
 
 /**
@@ -80,7 +79,6 @@ const QuestionContainer = ({
 export const renderQuestionAlternative = ({
   question,
   result,
-  paddingBottom: _paddingBottom,
 }: QuestionRendererProps): ReactNode => {
   const alternatives = question.options?.map((option) => {
     const isCorrectOption =
@@ -149,7 +147,6 @@ export const renderQuestionAlternative = ({
 export const renderQuestionMultipleChoice = ({
   question,
   result,
-  paddingBottom: _paddingBottom,
 }: QuestionRendererProps): ReactNode => {
   const choices = question.options?.map((option) => {
     const isCorrectOption =
@@ -242,7 +239,6 @@ const getStatusBadge = (status?: 'correct' | 'incorrect') => {
 export const renderQuestionTrueOrFalse = ({
   question,
   result,
-  paddingBottom: _paddingBottom,
 }: QuestionRendererProps): ReactNode => {
   const options = question.options || [];
   const getLetterByIndex = (index: number) => String.fromCodePoint(97 + index); // 97 = 'a' in ASCII
@@ -320,7 +316,6 @@ export const renderQuestionTrueOrFalse = ({
 export const renderQuestionDissertative = ({
   question: _question,
   result,
-  paddingBottom: _paddingBottom,
 }: QuestionRendererProps): ReactNode => {
   const localAnswer = result?.answer || '';
 
@@ -563,7 +558,6 @@ const FillQuestionContent = ({
 export const renderQuestionFill = ({
   question,
   result,
-  paddingBottom: _paddingBottom,
 }: QuestionRendererProps): ReactNode => {
   return <FillQuestionContent question={question} result={result} />;
 };
@@ -575,7 +569,6 @@ export const renderQuestionFill = ({
 export const renderQuestionImage = ({
   question: _question,
   result,
-  paddingBottom: _paddingBottom,
 }: QuestionRendererProps): ReactNode => {
   // Extract position data from result or question
   // Assuming correct position is stored in question metadata or result

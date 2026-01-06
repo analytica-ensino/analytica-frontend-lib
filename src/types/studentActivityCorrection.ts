@@ -1,5 +1,5 @@
 import type { Question, QuestionResult } from '../components/Quiz/useQuizStore';
-import { ANSWER_STATUS } from '../components/Quiz/useQuizStore';
+import { ANSWER_STATUS, QUESTION_TYPE } from '../components/Quiz/useQuizStore';
 
 /**
  * Question status enum for student activity correction
@@ -253,7 +253,7 @@ export const convertApiResponseToCorrectionData = (
 
     // Build correction data for essay questions
     const correction: EssayQuestionCorrection | undefined =
-      answer.questionType === 'DISSERTATIVA'
+      answer.questionType === QUESTION_TYPE.DISSERTATIVA
         ? {
             isCorrect: getIsCorrect(answer.answerStatus),
             teacherFeedback: answer.teacherFeedback || '',
