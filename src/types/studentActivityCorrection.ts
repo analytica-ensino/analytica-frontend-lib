@@ -197,11 +197,7 @@ export const convertApiResponseToCorrectionData = (
   // Calculate counts from statistics
   const correctCount = statistics.correctAnswers;
   const incorrectCount = statistics.incorrectAnswers;
-  const blankCount =
-    statistics.totalAnswered -
-    correctCount -
-    incorrectCount -
-    statistics.pendingAnswers;
+  const blankCount = statistics.totalAnswered - correctCount - incorrectCount;
 
   // Convert answers to CorrectionQuestionData format
   const questions: CorrectionQuestionData[] = answers.map((answer, index) => {
