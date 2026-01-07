@@ -340,8 +340,7 @@ const defaultProps: ActivityDetailsProps = {
   },
   fetchStudentCorrection: async (
     _activityId: string,
-    _studentId: string,
-    _studentName: string
+    _studentId: string
   ): Promise<QuestionsAnswersByStudentResponse> => {
     await new Promise((resolve) => setTimeout(resolve, 300));
     // Convert mockCorrectionData to API format for demonstration
