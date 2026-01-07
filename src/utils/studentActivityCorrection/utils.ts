@@ -82,7 +82,9 @@ export const getQuestionStatusBadgeConfig = (status: QuestionStatus) => {
  * @param questionData - Correction question data
  * @returns true if can auto-validate, false otherwise
  */
-const canAutoValidate = (questionData: CorrectionQuestionData): boolean => {
+export const canAutoValidate = (
+  questionData: CorrectionQuestionData
+): boolean => {
   const { result } = questionData;
 
   // Only auto-validate for types that have options with isCorrect
@@ -99,11 +101,62 @@ const canAutoValidate = (questionData: CorrectionQuestionData): boolean => {
   // Check if options have isCorrect defined
   return (
     result.options !== undefined &&
-    result.options.length > 0 &&
     result.options.some(
       (op) => op.isCorrect !== undefined && op.isCorrect !== null
     )
   );
+};
+
+type Option = {
+  id: string;
+  option: string;
+  isCorrect: boolean;
+};
+
+/**
+ * Validate alternativa (single choice) question
+ * Must select exactly one correct option
+ */
+const validateAlternativa = (
+  selected: Set<string>,
+  options: Option[]
+): ANSWER_STATUS => {
+  if (selected.size !== 1) return ANSWER_STATUS.RESPOSTA_INCORRETA;
+
+  const [selectedId] = selected;
+  return options.find((o) => o.id === selectedId)?.isCorrect
+    ? ANSWER_STATUS.RESPOSTA_CORRETA
+    : ANSWER_STATUS.RESPOSTA_INCORRETA;
+};
+
+/**
+ * Validate multipla escolha (multiple choice) question
+ * Each option must match its correct state: selected if correct, not selected if incorrect
+ */
+const validateMultiplaEscolha = (
+  selected: Set<string>,
+  options: Option[]
+): ANSWER_STATUS => {
+  const allMatch = options.every((op) => selected.has(op.id) === op.isCorrect);
+
+  return allMatch
+    ? ANSWER_STATUS.RESPOSTA_CORRETA
+    : ANSWER_STATUS.RESPOSTA_INCORRETA;
+};
+
+/**
+ * Validate verdadeiro/falso (true/false) question
+ * Each statement is evaluated individually: if statement is true, must be selected;
+ * if statement is false, must not be selected
+ */
+const validateVerdadeiroFalso = validateMultiplaEscolha;
+
+const validators: Partial<
+  Record<QUESTION_TYPE, (s: Set<string>, o: Option[]) => ANSWER_STATUS>
+> = {
+  [QUESTION_TYPE.ALTERNATIVA]: validateAlternativa,
+  [QUESTION_TYPE.MULTIPLA_ESCOLHA]: validateMultiplaEscolha,
+  [QUESTION_TYPE.VERDADEIRO_FALSO]: validateVerdadeiroFalso,
 };
 
 /**
@@ -111,58 +164,23 @@ const canAutoValidate = (questionData: CorrectionQuestionData): boolean => {
  * @param questionData - Correction question data
  * @returns ANSWER_STATUS if can determine, null otherwise
  */
-const autoValidateQuestion = (
+export const autoValidateQuestion = (
   questionData: CorrectionQuestionData
 ): ANSWER_STATUS | null => {
   const { result } = questionData;
 
-  if (!canAutoValidate(questionData) || !result.options) {
-    return null;
-  }
+  if (!canAutoValidate(questionData) || !result.options) return null;
 
-  const selectedOptionIds = new Set(
-    result.selectedOptions?.map((so) => so.optionId) || []
+  const selected = new Set(
+    result.selectedOptions?.map((o) => o.optionId) ?? []
   );
 
-  // Get correct option IDs
-  const correctOptionIds = new Set(
-    result.options.filter((op) => op.isCorrect).map((op) => op.id)
-  );
+  if (selected.size === 0) return ANSWER_STATUS.NAO_RESPONDIDO;
 
-  // Check if question was answered
-  if (selectedOptionIds.size === 0) {
-    return ANSWER_STATUS.NAO_RESPONDIDO;
-  }
+  const validator = validators[result.questionType];
+  if (!validator) return null;
 
-  // Validate based on question type
-  if (result.questionType === QUESTION_TYPE.ALTERNATIVA) {
-    // Single choice: must select exactly one correct option
-    if (selectedOptionIds.size === 1) {
-      const selectedId = Array.from(selectedOptionIds)[0];
-      return correctOptionIds.has(selectedId)
-        ? ANSWER_STATUS.RESPOSTA_CORRETA
-        : ANSWER_STATUS.RESPOSTA_INCORRETA;
-    }
-  } else if (
-    result.questionType === QUESTION_TYPE.MULTIPLA_ESCOLHA ||
-    result.questionType === QUESTION_TYPE.VERDADEIRO_FALSO
-  ) {
-    // Multiple choice or true/false: must select all correct and no incorrect
-    const hasOnlyCorrect = Array.from(selectedOptionIds).every((id) =>
-      correctOptionIds.has(id)
-    );
-    const hasAllCorrect = Array.from(correctOptionIds).every((id) =>
-      selectedOptionIds.has(id)
-    );
-
-    if (hasOnlyCorrect && hasAllCorrect) {
-      return ANSWER_STATUS.RESPOSTA_CORRETA;
-    } else if (selectedOptionIds.size > 0) {
-      return ANSWER_STATUS.RESPOSTA_INCORRETA;
-    }
-  }
-
-  return null;
+  return validator(selected, result.options);
 };
 
 /**
