@@ -50,8 +50,7 @@ export interface ActivityDetailsProps {
   /** Function to fetch student correction data from API (fetchQuestionsAnswersByStudent) */
   fetchStudentCorrection: (
     activityId: string,
-    studentId: string,
-    studentName: string
+    studentId: string
   ) => Promise<QuestionsAnswersByStudentResponse>;
   /** Function to submit observation */
   submitObservation: (
@@ -282,11 +281,7 @@ export const ActivityDetails = ({
 
       setCorrectionError(null);
       try {
-        const apiResponse = await fetchStudentCorrection(
-          activityId,
-          studentId,
-          student.studentName || 'Aluno'
-        );
+        const apiResponse = await fetchStudentCorrection(activityId, studentId);
         // Convert API response to StudentActivityCorrectionData format
         const correction = convertApiResponseToCorrectionData(
           apiResponse,

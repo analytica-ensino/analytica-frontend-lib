@@ -610,8 +610,7 @@ describe('ActivityDetails', () => {
       await waitFor(() => {
         expect(mockFetchStudentCorrection).toHaveBeenCalledWith(
           'activity-123',
-          'student-2',
-          'Maria Santos'
+          'student-2'
         );
       });
     });
