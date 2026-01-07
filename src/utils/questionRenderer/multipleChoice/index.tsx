@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { ANSWER_STATUS } from '../../../components/Quiz/useQuizStore';
 import { MultipleChoiceList } from '../../../components/MultipleChoice/MultipleChoice';
-import Text from '@/components/Text/Text';
+import Text from '../../../components/Text/Text';
 import type { QuestionRendererProps } from '../types';
 import { Status } from '../types';
 
@@ -13,6 +13,11 @@ export const renderQuestionMultipleChoice = ({
   question,
   result,
 }: QuestionRendererProps): ReactNode => {
+  // Check if options have isCorrect defined (can auto-validate even if pending)
+  const hasAutoValidation = result?.options?.some(
+    (op) => op.isCorrect !== undefined && op.isCorrect !== null
+  );
+
   const choices = question.options?.map((option) => {
     const isCorrectOption =
       result?.options?.find((op) => op.id === option.id)?.isCorrect || false;
@@ -21,10 +26,11 @@ export const renderQuestionMultipleChoice = ({
       (op) => op.optionId === option.id
     );
 
-    // Only show correct/incorrect status if answer is not pending evaluation
+    // Show correct/incorrect status if not pending/blank, OR if we can auto-validate (has isCorrect)
     const shouldShowCorrectAnswers =
-      result?.answerStatus !== ANSWER_STATUS.PENDENTE_AVALIACAO &&
-      result?.answerStatus !== ANSWER_STATUS.NAO_RESPONDIDO;
+      (result?.answerStatus !== ANSWER_STATUS.PENDENTE_AVALIACAO &&
+        result?.answerStatus !== ANSWER_STATUS.NAO_RESPONDIDO) ||
+      hasAutoValidation;
 
     let status: Status;
     if (shouldShowCorrectAnswers) {
@@ -36,7 +42,7 @@ export const renderQuestionMultipleChoice = ({
         status = Status.NEUTRAL;
       }
     } else {
-      // When pending evaluation, show all options as neutral
+      // When pending evaluation and no auto-validation, show all options as neutral
       status = Status.NEUTRAL;
     }
 

@@ -1,5 +1,8 @@
 import { StatusBadgeConfig } from '@/types/activityDetails';
-import { ANSWER_STATUS } from '../../components/Quiz/useQuizStore';
+import {
+  ANSWER_STATUS,
+  QUESTION_TYPE,
+} from '../../components/Quiz/useQuizStore';
 import { QUESTION_STATUS, type QuestionStatus } from './constants';
 import type { CorrectionQuestionData } from './types';
 
@@ -75,13 +78,115 @@ export const getQuestionStatusBadgeConfig = (status: QuestionStatus) => {
 };
 
 /**
+ * Check if question can be auto-validated based on options
+ * @param questionData - Correction question data
+ * @returns true if can auto-validate, false otherwise
+ */
+const canAutoValidate = (questionData: CorrectionQuestionData): boolean => {
+  const { result } = questionData;
+
+  // Only auto-validate for types that have options with isCorrect
+  const autoValidatableTypes = [
+    QUESTION_TYPE.ALTERNATIVA,
+    QUESTION_TYPE.MULTIPLA_ESCOLHA,
+    QUESTION_TYPE.VERDADEIRO_FALSO,
+  ];
+
+  if (!autoValidatableTypes.includes(result.questionType)) {
+    return false;
+  }
+
+  // Check if options have isCorrect defined
+  return (
+    result.options !== undefined &&
+    result.options.length > 0 &&
+    result.options.some(
+      (op) => op.isCorrect !== undefined && op.isCorrect !== null
+    )
+  );
+};
+
+/**
+ * Auto-validate question based on selected options vs correct options
+ * @param questionData - Correction question data
+ * @returns ANSWER_STATUS if can determine, null otherwise
+ */
+const autoValidateQuestion = (
+  questionData: CorrectionQuestionData
+): ANSWER_STATUS | null => {
+  const { result } = questionData;
+
+  if (!canAutoValidate(questionData) || !result.options) {
+    return null;
+  }
+
+  const selectedOptionIds = new Set(
+    result.selectedOptions?.map((so) => so.optionId) || []
+  );
+
+  // Get correct option IDs
+  const correctOptionIds = new Set(
+    result.options.filter((op) => op.isCorrect).map((op) => op.id)
+  );
+
+  // Check if question was answered
+  if (selectedOptionIds.size === 0) {
+    return ANSWER_STATUS.NAO_RESPONDIDO;
+  }
+
+  // Validate based on question type
+  if (result.questionType === QUESTION_TYPE.ALTERNATIVA) {
+    // Single choice: must select exactly one correct option
+    if (selectedOptionIds.size === 1) {
+      const selectedId = Array.from(selectedOptionIds)[0];
+      return correctOptionIds.has(selectedId)
+        ? ANSWER_STATUS.RESPOSTA_CORRETA
+        : ANSWER_STATUS.RESPOSTA_INCORRETA;
+    }
+  } else if (
+    result.questionType === QUESTION_TYPE.MULTIPLA_ESCOLHA ||
+    result.questionType === QUESTION_TYPE.VERDADEIRO_FALSO
+  ) {
+    // Multiple choice or true/false: must select all correct and no incorrect
+    const hasOnlyCorrect = Array.from(selectedOptionIds).every((id) =>
+      correctOptionIds.has(id)
+    );
+    const hasAllCorrect = Array.from(correctOptionIds).every((id) =>
+      selectedOptionIds.has(id)
+    );
+
+    if (hasOnlyCorrect && hasAllCorrect) {
+      return ANSWER_STATUS.RESPOSTA_CORRETA;
+    } else if (selectedOptionIds.size > 0) {
+      return ANSWER_STATUS.RESPOSTA_INCORRETA;
+    }
+  }
+
+  return null;
+};
+
+/**
  * Get question status from CorrectionQuestionData
  * Maps the result's answerStatus to QuestionStatus
+ * If status is PENDENTE_AVALIACAO but can auto-validate, calculates status automatically
  * @param questionData - Correction question data
  * @returns QuestionStatus for UI display
  */
 export const getQuestionStatusFromData = (
   questionData: CorrectionQuestionData
 ): QuestionStatus => {
-  return mapAnswerStatusToQuestionStatus(questionData.result.answerStatus);
+  const { result } = questionData;
+
+  // If pending evaluation, try to auto-validate
+  if (
+    result.answerStatus === ANSWER_STATUS.PENDENTE_AVALIACAO &&
+    canAutoValidate(questionData)
+  ) {
+    const autoValidatedStatus = autoValidateQuestion(questionData);
+    if (autoValidatedStatus !== null) {
+      return mapAnswerStatusToQuestionStatus(autoValidatedStatus);
+    }
+  }
+
+  return mapAnswerStatusToQuestionStatus(result.answerStatus);
 };

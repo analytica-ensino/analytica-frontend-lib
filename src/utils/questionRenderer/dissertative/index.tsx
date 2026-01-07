@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { ANSWER_STATUS } from '../../../components/Quiz/useQuizStore';
-import Text from '@/components/Text/Text';
+import Text from '../../../components/Text/Text';
 import type { QuestionRendererProps } from '../types';
 
 /**

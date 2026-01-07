@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '../../../utils/utils';
-import Text from '@/components/Text/Text';
+import Text from '../../../components/Text/Text';
 import { QuestionSubTitle, QuestionContainer } from '../components';
 
 /**

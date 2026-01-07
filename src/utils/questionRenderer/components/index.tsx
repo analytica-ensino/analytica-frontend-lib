@@ -2,7 +2,7 @@ import { useId, type ReactNode } from 'react';
 import Badge from '../../../components/Badge/Badge';
 import { CheckCircle, XCircle } from 'phosphor-react';
 import { cn } from '../../utils';
-import Text from '@/components/Text/Text';
+import Text from '../../../components/Text/Text';
 import type { QuestionRendererProps } from '../types';
 
 /**

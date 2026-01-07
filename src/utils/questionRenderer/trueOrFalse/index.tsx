@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { ANSWER_STATUS } from '../../../components/Quiz/useQuizStore';
 import { getStatusStyles } from '../../../components/Quiz/QuizContent';
-import Text from '@/components/Text/Text';
+import Text from '../../../components/Text/Text';
 import { cn } from '../../../utils/utils';
 import type { QuestionRendererProps } from '../types';
 import { getStatusBadge } from '../components';

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { ANSWER_STATUS } from '../../../components/Quiz/useQuizStore';
 import { AlternativesList } from '../../../components/Alternative/Alternative';
-import Text from '@/components/Text/Text';
+import Text from '../../../components/Text/Text';
 import type { QuestionRendererProps } from '../types';
 import { Status } from '../types';
 
@@ -13,6 +13,11 @@ export const renderQuestionAlternative = ({
   question,
   result,
 }: QuestionRendererProps): ReactNode => {
+  // Check if options have isCorrect defined (can auto-validate even if pending)
+  const hasAutoValidation = result?.options?.some(
+    (op) => op.isCorrect !== undefined && op.isCorrect !== null
+  );
+
   const alternatives = question.options?.map((option) => {
     const isCorrectOption =
       result?.options?.find((op) => op.id === option.id)?.isCorrect || false;
@@ -22,8 +27,10 @@ export const renderQuestionAlternative = ({
         (selectedOption) => selectedOption.optionId === option.id
       ) || false;
 
+    // Show correct answers if not pending, OR if we can auto-validate (has isCorrect)
     const shouldShowCorrectAnswers =
-      result?.answerStatus !== ANSWER_STATUS.PENDENTE_AVALIACAO;
+      result?.answerStatus !== ANSWER_STATUS.PENDENTE_AVALIACAO ||
+      hasAutoValidation;
 
     let status: Status;
     if (shouldShowCorrectAnswers) {
@@ -35,7 +42,7 @@ export const renderQuestionAlternative = ({
         status = Status.NEUTRAL;
       }
     } else {
-      // When pending evaluation, show all options as neutral
+      // When pending evaluation and no auto-validation, show all options as neutral
       status = Status.NEUTRAL;
     }
 
