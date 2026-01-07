@@ -574,7 +574,7 @@ describe('studentActivityCorrectionUtils', () => {
       expect(canAutoValidate(questionData)).toBe(false);
     });
 
-    it('should return false when options is undefined', () => {
+    it('should return true for ALTERNATIVA type even when options is undefined', () => {
       const questionData: CorrectionQuestionData = {
         question: {
           id: 'q1',
@@ -615,10 +615,10 @@ describe('studentActivityCorrectionUtils', () => {
         questionNumber: 1,
       };
 
-      expect(canAutoValidate(questionData)).toBe(false);
+      expect(canAutoValidate(questionData)).toBe(true);
     });
 
-    it('should return false when options is empty', () => {
+    it('should return true for ALTERNATIVA type even when options is empty', () => {
       const questionData: CorrectionQuestionData = {
         question: {
           id: 'q1',
@@ -659,10 +659,10 @@ describe('studentActivityCorrectionUtils', () => {
         questionNumber: 1,
       };
 
-      expect(canAutoValidate(questionData)).toBe(false);
+      expect(canAutoValidate(questionData)).toBe(true);
     });
 
-    it('should return false when no option has isCorrect defined', () => {
+    it('should return true for ALTERNATIVA type even when no option has isCorrect defined', () => {
       const questionData: CorrectionQuestionData = {
         question: {
           id: 'q1',
@@ -708,7 +708,7 @@ describe('studentActivityCorrectionUtils', () => {
         questionNumber: 1,
       };
 
-      expect(canAutoValidate(questionData)).toBe(false);
+      expect(canAutoValidate(questionData)).toBe(true);
     });
   });
 

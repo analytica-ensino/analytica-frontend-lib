@@ -79,6 +79,7 @@ export const getQuestionStatusBadgeConfig = (status: QuestionStatus) => {
 
 /**
  * Check if question can be auto-validated based on options
+ * All question types can be auto-validated except DISSERTATIVA (essay questions)
  * @param questionData - Correction question data
  * @returns true if can auto-validate, false otherwise
  */
@@ -87,19 +88,12 @@ export const canAutoValidate = (
 ): boolean => {
   const { result } = questionData;
 
-  // Only auto-validate for types that have options with isCorrect
-  const autoValidatableTypes = [
-    QUESTION_TYPE.ALTERNATIVA,
-    QUESTION_TYPE.MULTIPLA_ESCOLHA,
-    QUESTION_TYPE.VERDADEIRO_FALSO,
-  ];
-
-  if (!autoValidatableTypes.includes(result.questionType)) {
+  // Only dissertative questions require manual evaluation
+  if (result.questionType === QUESTION_TYPE.DISSERTATIVA) {
     return false;
   }
 
-  // Check if options have isCorrect defined
-  return result.options?.some((op) => op.isCorrect != null) ?? false;
+  return true;
 };
 
 type Option = {
