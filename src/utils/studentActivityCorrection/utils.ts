@@ -1,5 +1,8 @@
 import { StatusBadgeConfig } from '@/types/activityDetails';
-import { ANSWER_STATUS } from '../../components/Quiz/useQuizStore';
+import {
+  ANSWER_STATUS,
+  QUESTION_TYPE,
+} from '../../components/Quiz/useQuizStore';
 import { QUESTION_STATUS, type QuestionStatus } from './constants';
 import type { CorrectionQuestionData } from './types';
 
@@ -75,13 +78,137 @@ export const getQuestionStatusBadgeConfig = (status: QuestionStatus) => {
 };
 
 /**
+ * Check if question can be auto-validated based on options
+ * All question types can be auto-validated except DISSERTATIVA (essay questions)
+ * @param questionData - Correction question data
+ * @returns true if can auto-validate, false otherwise
+ */
+export const canAutoValidate = (
+  questionData: CorrectionQuestionData
+): boolean => {
+  const { result } = questionData;
+
+  // Only dissertative questions require manual evaluation
+  if (result.questionType === QUESTION_TYPE.DISSERTATIVA) {
+    return false;
+  }
+
+  return true;
+};
+
+type Option = {
+  id: string;
+  option: string;
+  isCorrect: boolean;
+};
+
+/**
+ * Type predicate to check if an option has isCorrect defined
+ */
+const hasIsCorrect = (op: {
+  id: string;
+  option: string;
+  isCorrect?: boolean | null;
+}): op is Option => {
+  return op.isCorrect != null;
+};
+
+/**
+ * Validate alternativa (single choice) question
+ * Must select exactly one correct option
+ */
+const validateAlternativa = (
+  selected: Set<string>,
+  options: Option[]
+): ANSWER_STATUS => {
+  if (selected.size !== 1) return ANSWER_STATUS.RESPOSTA_INCORRETA;
+
+  const [selectedId] = selected;
+  return options.find((o) => o.id === selectedId)?.isCorrect
+    ? ANSWER_STATUS.RESPOSTA_CORRETA
+    : ANSWER_STATUS.RESPOSTA_INCORRETA;
+};
+
+/**
+ * Validate multipla escolha (multiple choice) question
+ * Each option must match its correct state: selected if correct, not selected if incorrect
+ */
+const validateMultiplaEscolha = (
+  selected: Set<string>,
+  options: Option[]
+): ANSWER_STATUS => {
+  const allMatch = options.every((op) => selected.has(op.id) === op.isCorrect);
+
+  return allMatch
+    ? ANSWER_STATUS.RESPOSTA_CORRETA
+    : ANSWER_STATUS.RESPOSTA_INCORRETA;
+};
+
+/**
+ * Validate verdadeiro/falso (true/false) question
+ * Each statement is evaluated individually: if statement is true, must be selected;
+ * if statement is false, must not be selected
+ */
+const validateVerdadeiroFalso = validateMultiplaEscolha;
+
+const validators: Partial<
+  Record<QUESTION_TYPE, (s: Set<string>, o: Option[]) => ANSWER_STATUS>
+> = {
+  [QUESTION_TYPE.ALTERNATIVA]: validateAlternativa,
+  [QUESTION_TYPE.MULTIPLA_ESCOLHA]: validateMultiplaEscolha,
+  [QUESTION_TYPE.VERDADEIRO_FALSO]: validateVerdadeiroFalso,
+};
+
+/**
+ * Auto-validate question based on selected options vs correct options
+ * @param questionData - Correction question data
+ * @returns ANSWER_STATUS if can determine, null otherwise
+ */
+export const autoValidateQuestion = (
+  questionData: CorrectionQuestionData
+): ANSWER_STATUS | null => {
+  const { result } = questionData;
+
+  if (!canAutoValidate(questionData) || !result.options) return null;
+
+  // Filter options to only include those with isCorrect defined
+  const validOptions = result.options.filter(hasIsCorrect);
+  if (validOptions.length === 0) return null;
+
+  const selected = new Set(
+    result.selectedOptions?.map((o) => o.optionId) ?? []
+  );
+
+  if (selected.size === 0) return ANSWER_STATUS.NAO_RESPONDIDO;
+
+  const validator = validators[result.questionType];
+  if (!validator) return null;
+
+  return validator(selected, validOptions);
+};
+
+/**
  * Get question status from CorrectionQuestionData
  * Maps the result's answerStatus to QuestionStatus
+ * If status is PENDENTE_AVALIACAO but can auto-validate, calculates status automatically
  * @param questionData - Correction question data
  * @returns QuestionStatus for UI display
  */
 export const getQuestionStatusFromData = (
   questionData: CorrectionQuestionData
 ): QuestionStatus => {
-  return mapAnswerStatusToQuestionStatus(questionData.result.answerStatus);
+  const { result } = questionData;
+
+  // If pending evaluation, try to auto-validate
+  if (
+    result.answerStatus === ANSWER_STATUS.PENDENTE_AVALIACAO &&
+    canAutoValidate(questionData)
+  ) {
+    const autoValidatedStatus = autoValidateQuestion(questionData);
+    if (autoValidatedStatus !== null) {
+      return mapAnswerStatusToQuestionStatus(autoValidatedStatus);
+    }
+  }
+
+  return mapAnswerStatusToQuestionStatus(result.answerStatus);
 };

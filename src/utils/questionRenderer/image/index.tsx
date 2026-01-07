@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import ImageQuestion from '../../../assets/img/mock-image-question.png';
-import Text from '@/components/Text/Text';
+import Text from '../../../components/Text/Text';
 import type { QuestionRendererProps } from '../types';
 
 /**
