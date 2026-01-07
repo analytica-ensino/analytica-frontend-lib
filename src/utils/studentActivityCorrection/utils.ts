@@ -109,6 +109,17 @@ type Option = {
 };
 
 /**
+ * Type predicate to check if an option has isCorrect defined
+ */
+const hasIsCorrect = (op: {
+  id: string;
+  option: string;
+  isCorrect?: boolean | null;
+}): op is Option => {
+  return op.isCorrect != null;
+};
+
+/**
  * Validate alternativa (single choice) question
  * Must select exactly one correct option
  */
@@ -166,6 +177,10 @@ export const autoValidateQuestion = (
 
   if (!canAutoValidate(questionData) || !result.options) return null;
 
+  // Filter options to only include those with isCorrect defined
+  const validOptions = result.options.filter(hasIsCorrect);
+  if (validOptions.length === 0) return null;
+
   const selected = new Set(
     result.selectedOptions?.map((o) => o.optionId) ?? []
   );
@@ -175,7 +190,7 @@ export const autoValidateQuestion = (
   const validator = validators[result.questionType];
   if (!validator) return null;
 
-  return validator(selected, result.options);
+  return validator(selected, validOptions);
 };
 
 /**
