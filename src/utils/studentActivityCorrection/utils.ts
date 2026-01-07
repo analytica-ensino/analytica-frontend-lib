@@ -99,12 +99,7 @@ export const canAutoValidate = (
   }
 
   // Check if options have isCorrect defined
-  return (
-    result.options !== undefined &&
-    result.options.some(
-      (op) => op.isCorrect !== undefined && op.isCorrect !== null
-    )
-  );
+  return result.options?.some((op) => op.isCorrect != null) ?? false;
 };
 
 type Option = {
