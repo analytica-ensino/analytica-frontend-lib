@@ -235,7 +235,7 @@ const CreateActivity = ({
     if (questions.length === 0 && !hasFirstSaveBeenDone.current) {
       return false;
     }
-    if (!appliedFilters || appliedFilters.subjectIds.length === 0) {
+    if (!appliedFilters || !appliedFilters.subjectIds || appliedFilters.subjectIds.length === 0) {
       return false;
     }
     if (loadingInitialQuestions || isSaving) {
@@ -250,7 +250,10 @@ const CreateActivity = ({
    * @returns Draft payload object
    */
   const createDraftPayload = useCallback(() => {
-    const subjectId = appliedFilters!.subjectIds[0];
+    const subjectId = appliedFilters?.subjectIds?.[0];
+    if (!subjectId) {
+      throw new Error('Subject ID não encontrado');
+    }
     const title = generateTitle(activityType, subjectId, knowledgeAreas);
     const filters = convertFiltersToBackendFormat(appliedFilters);
     const questionIds = questions.map((q) => q.id);
@@ -584,7 +587,7 @@ const CreateActivity = ({
       return;
     }
 
-    if (!appliedFilters || appliedFilters.subjectIds.length === 0) {
+    if (!appliedFilters || !appliedFilters.subjectIds || appliedFilters.subjectIds.length === 0) {
       return;
     }
 
@@ -674,6 +677,7 @@ const CreateActivity = ({
       if (
         hasFirstSaveBeenDone.current &&
         appliedFilters &&
+        appliedFilters.subjectIds &&
         appliedFilters.subjectIds.length > 0 &&
         !loadingInitialQuestions &&
         !isSaving
