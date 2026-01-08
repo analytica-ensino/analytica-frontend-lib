@@ -413,3 +413,75 @@ export interface LessonDetailsData {
   /** Optional breakdown info from /recommended-class/history */
   breakdown?: GoalBreakdown;
 }
+
+// ============================================
+// Goal Draft/Model Types
+// Based on /recommended-class/drafts endpoint
+// ============================================
+
+/**
+ * Goal draft type enum - matches backend GOAL_DRAFT_TYPE
+ */
+export enum GoalDraftType {
+  MODELO = 'MODELO',
+  RASCUNHO = 'RASCUNHO',
+}
+
+/**
+ * Goal model response from backend API /recommended-class/drafts
+ */
+export interface GoalModelResponse {
+  id: string;
+  type: GoalDraftType;
+  title: string;
+  description: string | null;
+  creatorUserInstitutionId: string;
+  subjectId: string | null;
+  startDate: string | null;
+  finalDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Goal model table item for display in models table
+ */
+export interface GoalModelTableItem extends Record<string, unknown> {
+  id: string;
+  title: string;
+  savedAt: string;
+  subject: string;
+  subjectId: string | null;
+}
+
+/**
+ * Goal models API complete response from /recommended-class/drafts
+ */
+export interface GoalModelsApiResponse {
+  message: string;
+  data: {
+    drafts: GoalModelResponse[];
+    total: number;
+  };
+}
+
+/**
+ * Goal model filters for API query parameters
+ */
+export interface GoalModelFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  subjectId?: string;
+  type?: GoalDraftType;
+}
+
+/**
+ * Pagination info for goal models
+ */
+export interface GoalModelPagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}

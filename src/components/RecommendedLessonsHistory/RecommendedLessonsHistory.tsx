@@ -1,5 +1,5 @@
 import type { MouseEvent, ReactNode } from 'react';
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Plus, CaretRight, Trash, PencilSimple } from 'phosphor-react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -24,16 +24,20 @@ import {
   type GoalsHistoryApiResponse,
   type GoalUserFilterData,
   type GoalFilterOption,
+  type GoalModelFilters,
+  type GoalModelsApiResponse,
+  type GoalModelTableItem,
 } from '../../types/recommendedLessons';
 import {
   createUseRecommendedLessonsHistory,
   type UseRecommendedLessonsHistoryReturn,
 } from '../../hooks/useRecommendedLessons';
+import { GoalModelsTab } from './tabs/ModelsTab';
 
 /**
- * Enum for page tabs
+ * Enum for page tabs - exported for external routing control
  */
-enum PageTab {
+export enum GoalPageTab {
   HISTORY = 'history',
   DRAFTS = 'drafts',
   MODELS = 'models',
@@ -69,6 +73,34 @@ export interface RecommendedLessonsHistoryProps {
   createButtonText?: string;
   /** Search placeholder */
   searchPlaceholder?: string;
+  /** Function to fetch goal models from API (optional - for Models tab) */
+  fetchGoalModels?: (
+    filters?: GoalModelFilters
+  ) => Promise<GoalModelsApiResponse>;
+  /** Function to delete a goal model (optional - for Models tab) */
+  deleteGoalModel?: (id: string) => Promise<void>;
+  /** Callback when create model button is clicked (optional - for Models tab) */
+  onCreateModel?: () => void;
+  /** Callback when send lesson button is clicked on a model (optional - for Models tab) */
+  onSendLesson?: (model: GoalModelTableItem) => void;
+  /** Callback when edit model button is clicked (optional - for Models tab) */
+  onEditModel?: (model: GoalModelTableItem) => void;
+  /**
+   * Map of subject IDs to names for models display.
+   * IMPORTANT: This Map should be memoized with useMemo in the parent component
+   * to avoid unnecessary re-fetches.
+   */
+  subjectsMap?: Map<string, string>;
+  /**
+   * Default tab to display. When provided with onTabChange, enables controlled mode
+   * for URL routing.
+   */
+  defaultTab?: GoalPageTab;
+  /**
+   * Callback when tab changes. When provided, enables controlled mode for URL routing.
+   * Use this to navigate to different routes when tabs change.
+   */
+  onTabChange?: (tab: GoalPageTab) => void;
 }
 
 /**
@@ -466,8 +498,37 @@ export const RecommendedLessonsHistory = ({
   title = 'Histórico de aulas recomendadas',
   createButtonText = 'Criar aula',
   searchPlaceholder = 'Buscar aula',
+  fetchGoalModels,
+  deleteGoalModel,
+  onCreateModel,
+  onSendLesson,
+  onEditModel,
+  subjectsMap,
+  defaultTab,
+  onTabChange,
 }: RecommendedLessonsHistoryProps) => {
-  const [activeTab, setActiveTab] = useState<PageTab>(PageTab.HISTORY);
+  const [activeTab, setActiveTab] = useState<GoalPageTab>(
+    defaultTab ?? GoalPageTab.HISTORY
+  );
+
+  // Sync with external defaultTab prop when it changes (for URL routing)
+  useEffect(() => {
+    if (defaultTab !== undefined) {
+      setActiveTab(defaultTab);
+    }
+  }, [defaultTab]);
+
+  /**
+   * Handle tab change - calls onTabChange callback if provided for URL routing
+   */
+  const handleTabChange = useCallback(
+    (value: string) => {
+      const newTab = value as GoalPageTab;
+      setActiveTab(newTab);
+      onTabChange?.(newTab);
+    },
+    [onTabChange]
+  );
 
   // Use ref to keep stable reference of fetchGoalsHistory
   // This prevents hook recreation if parent doesn't memoize the function
@@ -540,9 +601,9 @@ export const RecommendedLessonsHistory = ({
           {/* Tabs Menu */}
           <div className="flex-shrink-0 lg:w-auto self-center sm:self-auto">
             <Menu
-              defaultValue={PageTab.HISTORY}
+              defaultValue={GoalPageTab.HISTORY}
               value={activeTab}
-              onValueChange={(value: string) => setActiveTab(value as PageTab)}
+              onValueChange={handleTabChange}
               variant="menu2"
               className="bg-transparent shadow-none px-0"
             >
@@ -552,7 +613,7 @@ export const RecommendedLessonsHistory = ({
               >
                 <MenuItem
                   variant="menu2"
-                  value={PageTab.HISTORY}
+                  value={GoalPageTab.HISTORY}
                   data-testid="menu-item-history"
                   className="whitespace-nowrap flex-1 lg:flex-none"
                 >
@@ -560,7 +621,7 @@ export const RecommendedLessonsHistory = ({
                 </MenuItem>
                 <MenuItem
                   variant="menu2"
-                  value={PageTab.DRAFTS}
+                  value={GoalPageTab.DRAFTS}
                   data-testid="menu-item-drafts"
                   className="whitespace-nowrap flex-1 lg:flex-none"
                 >
@@ -568,7 +629,7 @@ export const RecommendedLessonsHistory = ({
                 </MenuItem>
                 <MenuItem
                   variant="menu2"
-                  value={PageTab.MODELS}
+                  value={GoalPageTab.MODELS}
                   data-testid="menu-item-models"
                   className="whitespace-nowrap flex-1 lg:flex-none"
                 >
@@ -581,7 +642,7 @@ export const RecommendedLessonsHistory = ({
 
         {/* Content Area */}
         <div className="flex flex-col items-center w-full min-h-0 flex-1">
-          {activeTab === PageTab.HISTORY && (
+          {activeTab === GoalPageTab.HISTORY && (
             <>
               {/* Error State */}
               {error ? (
@@ -670,7 +731,7 @@ export const RecommendedLessonsHistory = ({
             </>
           )}
 
-          {activeTab === PageTab.DRAFTS && (
+          {activeTab === GoalPageTab.DRAFTS && (
             <div className="flex items-center justify-center bg-background rounded-xl w-full min-h-[705px]">
               <Text size="lg" color="text-text-600">
                 Rascunhos em desenvolvimento
@@ -678,13 +739,27 @@ export const RecommendedLessonsHistory = ({
             </div>
           )}
 
-          {activeTab === PageTab.MODELS && (
-            <div className="flex items-center justify-center bg-background rounded-xl w-full min-h-[705px]">
-              <Text size="lg" color="text-text-600">
-                Modelos em desenvolvimento
-              </Text>
-            </div>
-          )}
+          {activeTab === GoalPageTab.MODELS &&
+            (fetchGoalModels && deleteGoalModel && onCreateModel ? (
+              <GoalModelsTab
+                fetchGoalModels={fetchGoalModels}
+                deleteGoalModel={deleteGoalModel}
+                onCreateModel={onCreateModel}
+                onSendLesson={onSendLesson}
+                onEditModel={onEditModel}
+                emptyStateImage={emptyStateImage}
+                noSearchImage={noSearchImage}
+                mapSubjectNameToEnum={mapSubjectNameToEnum}
+                userFilterData={userFilterData}
+                subjectsMap={subjectsMap}
+              />
+            ) : (
+              <div className="flex items-center justify-center bg-background rounded-xl w-full min-h-[705px]">
+                <Text size="lg" color="text-text-600">
+                  Modelos em desenvolvimento
+                </Text>
+              </div>
+            ))}
         </div>
       </div>
     </div>
