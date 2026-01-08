@@ -45,7 +45,7 @@ export const isChatUserInfoValid = (userInfo: ChatUserInfo): boolean => {
  */
 export const getChatWsUrl = (apiUrl: string): string => {
   const baseUrl = apiUrl;
-  return baseUrl.replace(/^http/, 'ws') + '/chat/ws';
+  return baseUrl.replace(/^http/, 'ws');
 };
 
 /**
