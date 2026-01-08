@@ -63,6 +63,21 @@ export interface UseActivityDetailsReturn {
 }
 
 /**
+ * Build query parameters for API request
+ */
+const buildQueryParams = (
+  params?: ActivityDetailsQueryParams
+): Record<string, unknown> => {
+  const paramsObj: Record<string, unknown> = {};
+  if (params?.page) paramsObj.page = params.page;
+  if (params?.limit) paramsObj.limit = params.limit;
+  if (params?.sortBy) paramsObj.sortBy = params.sortBy;
+  if (params?.sortOrder) paramsObj.sortOrder = params.sortOrder;
+  if (params?.status) paramsObj.status = params.status;
+  return paramsObj;
+};
+
+/**
  * Hook for managing activity details API calls
  * Provides functions to fetch activity details, student corrections, and submit observations/corrections
  *
@@ -85,21 +100,6 @@ export interface UseActivityDetailsReturn {
 export const useActivityDetails = (
   apiClient: BaseApiClient
 ): UseActivityDetailsReturn => {
-  /**
-   * Build query parameters for API request
-   */
-  const buildQueryParams = (
-    params?: ActivityDetailsQueryParams
-  ): Record<string, unknown> => {
-    const paramsObj: Record<string, unknown> = {};
-    if (params?.page) paramsObj.page = params.page;
-    if (params?.limit) paramsObj.limit = params.limit;
-    if (params?.sortBy) paramsObj.sortBy = params.sortBy;
-    if (params?.sortOrder) paramsObj.sortOrder = params.sortOrder;
-    if (params?.status) paramsObj.status = params.status;
-    return paramsObj;
-  };
-
   /**
    * Fetch activity details from API
    * @param id - Activity ID
