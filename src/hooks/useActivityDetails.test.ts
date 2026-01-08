@@ -33,6 +33,7 @@ describe('useActivityDetails', () => {
   const mockActivityMetadata: ActivityMetadata = {
     id: 'activity-123',
     title: 'Prova de Matemática',
+    type: 'ATIVIDADE',
     startDate: '2024-01-15',
     finalDate: '2024-01-20',
     schoolName: 'Escola Teste',
