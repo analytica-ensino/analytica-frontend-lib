@@ -394,7 +394,7 @@ describe('useActivityDetails', () => {
             'activity-123',
             'student-1',
             'Great work!',
-            [mockFile]
+            mockFile
           );
         } catch (error) {
           caughtError = error as Error;
@@ -427,7 +427,7 @@ describe('useActivityDetails', () => {
             'activity-123',
             'student-1',
             'Great work!',
-            [mockFile]
+            mockFile
           );
         } catch (error) {
           caughtError = error as Error;
@@ -463,7 +463,7 @@ describe('useActivityDetails', () => {
             'activity-123',
             'student-1',
             'Great work!',
-            [mockFile]
+            mockFile
           );
         } catch (error) {
           caughtError = error as Error;

@@ -75,7 +75,7 @@ export interface QuestionStats {
 export interface ActivityMetadata {
   id: string;
   title: string;
-  type: string;
+  type?: string;
   startDate: string | null;
   finalDate: string | null;
   schoolName: string;

@@ -364,11 +364,8 @@ const createMockApiClient = (): BaseApiClient => ({
       const response: QuizResponse = {
         message: 'Success',
         data: {
-          id: activity.id,
-          title: activity.title,
+          ...activity,
           type: 'QUIZ',
-          startDate: activity.startDate,
-          finalDate: activity.finalDate,
         },
       };
       return { data: response as T };
