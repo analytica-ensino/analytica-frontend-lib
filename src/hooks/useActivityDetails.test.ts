@@ -438,6 +438,85 @@ describe('useActivityDetails', () => {
       expect((caughtError as unknown as Error).message).toBe(errorMessage);
     });
 
+    it('should handle file upload response not ok', async () => {
+      const mockFile = new File(['test content'], 'test.pdf', {
+        type: 'application/pdf',
+      });
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
+        data: mockPresignedUrlResponse,
+      });
+
+      // eslint-disable-next-line no-undef
+      global.fetch = jest.fn().mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+      } as Response);
+
+      const { result } = renderHook(() => useActivityDetails(mockApiClient));
+
+      let caughtError: Error | null = null;
+      await act(async () => {
+        try {
+          await result.current.submitObservation(
+            'activity-123',
+            'student-1',
+            'Great work!',
+            [mockFile]
+          );
+        } catch (error) {
+          caughtError = error as Error;
+        }
+      });
+
+      expect(caughtError).toBeInstanceOf(Error);
+      expect((caughtError as unknown as Error).message).toBe(
+        'Falha ao fazer upload do arquivo'
+      );
+    });
+
+    it('should normalize URL construction correctly', async () => {
+      const mockFile = new File(['test content'], 'test.pdf', {
+        type: 'application/pdf',
+      });
+
+      const presignedResponseWithTrailingSlash = {
+        data: {
+          url: 'https://s3.amazonaws.com/bucket/',
+          fields: {
+            key: '/file-key-123',
+          },
+        },
+      };
+
+      (mockApiClient.post as jest.Mock)
+        .mockResolvedValueOnce({ data: presignedResponseWithTrailingSlash })
+        .mockResolvedValueOnce({});
+
+      // eslint-disable-next-line no-undef
+      global.fetch = jest.fn().mockResolvedValueOnce({
+        ok: true,
+      } as Response);
+
+      const { result } = renderHook(() => useActivityDetails(mockApiClient));
+
+      await result.current.submitObservation(
+        'activity-123',
+        'student-1',
+        'Great work!',
+        [mockFile]
+      );
+
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        '/activities/activity-123/students/student-1/feedback/observation',
+        {
+          observation: 'Great work!',
+          attachmentUrl: 'https://s3.amazonaws.com/bucket/file-key-123',
+        }
+      );
+    });
+
     it('should handle observation submission failure', async () => {
       const errorMessage = 'Failed to submit observation';
       const mockError = new Error(errorMessage);

@@ -185,9 +185,18 @@ export const useActivityDetails = (
         await fetch(url, {
           method: 'POST',
           body: formData,
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error('Falha ao fazer upload do arquivo');
+          }
         });
 
-        attachmentUrl = `${url}${fields.key}`;
+        // Ensure proper URL construction
+        const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+        const key = fields.key.startsWith('/')
+          ? fields.key.slice(1)
+          : fields.key;
+        attachmentUrl = `${baseUrl}/${key}`;
       }
 
       await apiClient.post(
