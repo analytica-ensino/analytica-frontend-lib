@@ -2,12 +2,17 @@ import type { Story } from '@ladle/react';
 import { ActivityDetails } from './ActivityDetails';
 import type { ActivityDetailsProps } from './ActivityDetails';
 import { STUDENT_ACTIVITY_STATUS } from '../../types/activityDetails';
-import type { ActivityDetailsData } from '../../types/activityDetails';
+import type {
+  ActivityDetailsData,
+  ActivityDetailsApiResponse,
+  QuizResponse,
+  PresignedUrlResponse,
+} from '../../types/activityDetails';
 import type {
   StudentActivityCorrectionData,
-  SaveQuestionCorrectionPayload,
   QuestionsAnswersByStudentResponse,
 } from '../../utils/studentActivityCorrection';
+import type { BaseApiClient } from '../../types/api';
 import {
   QUESTION_TYPE,
   QUESTION_DIFFICULTY,
@@ -330,53 +335,117 @@ const mockCorrectionData: StudentActivityCorrectionData = {
 };
 
 /**
+ * Create mock API client for stories
+ */
+const createMockApiClient = (): BaseApiClient => ({
+  get: async <T,>(
+    url: string,
+    _config?: { params?: Record<string, unknown> }
+  ) => {
+    // Handle activity details endpoint
+    if (url === '/activities/activity-123/details') {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const response: ActivityDetailsApiResponse = {
+        message: 'Success',
+        data: {
+          students: mockActivityData.students,
+          pagination: mockActivityData.pagination,
+          generalStats: mockActivityData.generalStats,
+          questionStats: mockActivityData.questionStats,
+        },
+      };
+      return { data: response as T };
+    }
+
+    // Handle quiz endpoint
+    if (url === '/activities/activity-123/quiz') {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      const activity = mockActivityData.activity!;
+      const response: QuizResponse = {
+        message: 'Success',
+        data: {
+          id: activity.id,
+          title: activity.title,
+          type: 'QUIZ',
+          startDate: activity.startDate,
+          finalDate: activity.finalDate,
+        },
+      };
+      return { data: response as T };
+    }
+
+    // Handle student correction endpoint
+    if (url.includes('/questions/activity/') && url.includes('/user/')) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const apiResponse: QuestionsAnswersByStudentResponse = {
+        data: {
+          answers: mockCorrectionData.questions.map((q) => q.result),
+          statistics: {
+            totalAnswered:
+              mockCorrectionData.correctCount +
+              mockCorrectionData.incorrectCount +
+              mockCorrectionData.blankCount,
+            correctAnswers: mockCorrectionData.correctCount,
+            incorrectAnswers: mockCorrectionData.incorrectCount,
+            pendingAnswers: mockCorrectionData.questions.filter(
+              (q) => q.result.answerStatus === 'PENDENTE_AVALIACAO'
+            ).length,
+            score: mockCorrectionData.score || 0,
+            timeSpent: 0,
+          },
+        },
+      };
+      return { data: apiResponse as T };
+    }
+
+    throw new Error(`Unknown endpoint: ${url}`);
+  },
+  post: async <T,>(url: string, body?: Record<string, unknown>) => {
+    // Handle presigned URL endpoint
+    if (url === '/user/get-pre-signed-url') {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      const response: PresignedUrlResponse = {
+        data: {
+          url: 'https://mock-s3-url.com/',
+          fields: {
+            key: 'mock-key',
+            'Content-Type': 'application/pdf',
+          },
+        },
+      };
+      return { data: response as T };
+    }
+
+    // Handle observation submission
+    if (url.includes('/feedback/observation')) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      console.log('Observation submitted:', body);
+      return { data: { message: 'Success' } as T };
+    }
+
+    // Handle question correction submission
+    if (url.includes('/questions/correction')) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      console.log('Question correction submitted:', body);
+      return { data: { message: 'Success' } as T };
+    }
+
+    throw new Error(`Unknown endpoint: ${url}`);
+  },
+  patch: async () => {
+    throw new Error('PATCH not implemented in mock');
+  },
+  delete: async () => {
+    throw new Error('DELETE not implemented in mock');
+  },
+});
+
+/**
  * Default props for stories
  */
 const defaultProps: ActivityDetailsProps = {
   activityId: 'activity-123',
-  fetchActivityDetails: async () => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return mockActivityData;
-  },
-  fetchStudentCorrection: async (
-    _activityId: string,
-    _studentId: string
-  ): Promise<QuestionsAnswersByStudentResponse> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    // Convert mockCorrectionData to API format for demonstration
-    // In real usage, this would come directly from the API
-    const apiResponse: QuestionsAnswersByStudentResponse = {
-      data: {
-        answers: mockCorrectionData.questions.map((q) => q.result),
-        statistics: {
-          totalAnswered:
-            mockCorrectionData.correctCount +
-            mockCorrectionData.incorrectCount +
-            mockCorrectionData.blankCount,
-          correctAnswers: mockCorrectionData.correctCount,
-          incorrectAnswers: mockCorrectionData.incorrectCount,
-          pendingAnswers: mockCorrectionData.questions.filter(
-            (q) => q.result.answerStatus === 'PENDENTE_AVALIACAO'
-          ).length,
-          score: mockCorrectionData.score || 0,
-          timeSpent: 0,
-        },
-      },
-    };
-    return apiResponse;
-  },
-  submitObservation: async () => {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-  },
-  submitQuestionCorrection: async (
-    activityId: string,
-    studentId: string,
-    payload: SaveQuestionCorrectionPayload
-  ) => {
-    console.log('Salvando correção:', { activityId, studentId, payload });
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log('Correção salva com sucesso!');
-  },
+  apiClient: createMockApiClient(),
   onBack: () => console.log('Navigate back clicked'),
   onViewActivity: () => console.log('View activity clicked'),
 };
@@ -389,69 +458,107 @@ export const Default: Story = () => <ActivityDetails {...defaultProps} />;
 /**
  * Loading state story
  */
-export const Loading: Story = () => (
-  <ActivityDetails
-    {...defaultProps}
-    fetchActivityDetails={() => new Promise(() => {})}
-  />
-);
+export const Loading: Story = () => {
+  const loadingApiClient: BaseApiClient = {
+    ...createMockApiClient(),
+    get: () => new Promise(() => {}), // Never resolves
+  };
+
+  return <ActivityDetails {...defaultProps} apiClient={loadingApiClient} />;
+};
 
 /**
  * Error state story
  */
-export const ErrorState: Story = () => (
-  <ActivityDetails
-    {...defaultProps}
-    fetchActivityDetails={() =>
-      Promise.reject<ActivityDetailsData>(new Error('Erro ao carregar dados'))
-    }
-  />
-);
+export const ErrorState: Story = () => {
+  const errorApiClient: BaseApiClient = {
+    ...createMockApiClient(),
+    get: () => Promise.reject(new Error('Erro ao carregar dados')),
+  };
+
+  return <ActivityDetails {...defaultProps} apiClient={errorApiClient} />;
+};
 
 /**
  * Empty students story
  */
-export const EmptyStudents: Story = () => (
-  <ActivityDetails
-    {...defaultProps}
-    fetchActivityDetails={async () => ({
-      ...mockActivityData,
-      students: [],
-    })}
-  />
-);
+export const EmptyStudents: Story = () => {
+  const emptyApiClient: BaseApiClient = {
+    ...createMockApiClient(),
+    get: async <T,>(url: string) => {
+      if (url === '/activities/activity-123/details') {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const response: ActivityDetailsApiResponse = {
+          message: 'Success',
+          data: {
+            ...mockActivityData,
+            students: [],
+          },
+        };
+        return { data: response as T };
+      }
+      return createMockApiClient().get<T>(url);
+    },
+  };
+
+  return <ActivityDetails {...defaultProps} apiClient={emptyApiClient} />;
+};
 
 /**
  * High completion rate story
  */
-export const HighCompletionRate: Story = () => (
-  <ActivityDetails
-    {...defaultProps}
-    fetchActivityDetails={async () => ({
-      ...mockActivityData,
-      generalStats: {
-        averageScore: 9.2,
-        completionPercentage: 95,
-      },
-    })}
-  />
-);
+export const HighCompletionRate: Story = () => {
+  const highRateApiClient: BaseApiClient = {
+    ...createMockApiClient(),
+    get: async <T,>(url: string) => {
+      if (url === '/activities/activity-123/details') {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const response: ActivityDetailsApiResponse = {
+          message: 'Success',
+          data: {
+            ...mockActivityData,
+            generalStats: {
+              averageScore: 9.2,
+              completionPercentage: 95,
+            },
+          },
+        };
+        return { data: response as T };
+      }
+      return createMockApiClient().get<T>(url);
+    },
+  };
+
+  return <ActivityDetails {...defaultProps} apiClient={highRateApiClient} />;
+};
 
 /**
  * Low completion rate story
  */
-export const LowCompletionRate: Story = () => (
-  <ActivityDetails
-    {...defaultProps}
-    fetchActivityDetails={async () => ({
-      ...mockActivityData,
-      generalStats: {
-        averageScore: 5.5,
-        completionPercentage: 25,
-      },
-    })}
-  />
-);
+export const LowCompletionRate: Story = () => {
+  const lowRateApiClient: BaseApiClient = {
+    ...createMockApiClient(),
+    get: async <T,>(url: string) => {
+      if (url === '/activities/activity-123/details') {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const response: ActivityDetailsApiResponse = {
+          message: 'Success',
+          data: {
+            ...mockActivityData,
+            generalStats: {
+              averageScore: 5.5,
+              completionPercentage: 25,
+            },
+          },
+        };
+        return { data: response as T };
+      }
+      return createMockApiClient().get<T>(url);
+    },
+  };
+
+  return <ActivityDetails {...defaultProps} apiClient={lowRateApiClient} />;
+};
 
 /**
  * Many students story
@@ -466,19 +573,31 @@ export const ManyStudents: Story = () => {
     status: Object.values(STUDENT_ACTIVITY_STATUS)[i % 4],
   }));
 
+  const manyStudentsApiClient: BaseApiClient = {
+    ...createMockApiClient(),
+    get: async <T,>(url: string) => {
+      if (url === '/activities/activity-123/details') {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const response: ActivityDetailsApiResponse = {
+          message: 'Success',
+          data: {
+            ...mockActivityData,
+            students: manyStudents,
+            pagination: {
+              total: 20,
+              page: 1,
+              limit: 10,
+              totalPages: 2,
+            },
+          },
+        };
+        return { data: response as T };
+      }
+      return createMockApiClient().get<T>(url);
+    },
+  };
+
   return (
-    <ActivityDetails
-      {...defaultProps}
-      fetchActivityDetails={async () => ({
-        ...mockActivityData,
-        students: manyStudents,
-        pagination: {
-          total: 20,
-          page: 1,
-          limit: 10,
-          totalPages: 2,
-        },
-      })}
-    />
+    <ActivityDetails {...defaultProps} apiClient={manyStudentsApiClient} />
   );
 };

@@ -51,18 +51,6 @@ describe('activityDetailsUtils', () => {
         textColor: 'text-red-800',
       });
     });
-
-    it('should return default config for unknown status', () => {
-      const config = getStatusBadgeConfig(
-        'UNKNOWN_STATUS' as typeof STUDENT_ACTIVITY_STATUS.CONCLUIDO
-      );
-
-      expect(config).toEqual({
-        label: 'Desconhecido',
-        bgColor: 'bg-gray-50',
-        textColor: 'text-gray-800',
-      });
-    });
   });
 
   describe('formatTimeSpent', () => {
@@ -92,6 +80,11 @@ describe('activityDetailsUtils', () => {
 
     it('should pad single digit values with zero', () => {
       expect(formatTimeSpent(3661)).toBe('01:01:01');
+    });
+
+    it('should handle negative values correctly', () => {
+      expect(formatTimeSpent(-90)).toBe('00:01:30');
+      expect(formatTimeSpent(-3665)).toBe('01:01:05');
     });
   });
 

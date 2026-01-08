@@ -12,12 +12,12 @@ import { STUDENT_ACTIVITY_STATUS } from '../types/activityDetails';
 /**
  * Get status badge configuration
  * @param status - Student activity status
- * @returns Status badge configuration object
+ * @returns Status badge configuration with label and colors
  */
 export const getStatusBadgeConfig = (
   status: StudentActivityStatus
 ): StatusBadgeConfig => {
-  const configs: Record<string, StatusBadgeConfig> = {
+  const configs: Record<StudentActivityStatus, StatusBadgeConfig> = {
     [STUDENT_ACTIVITY_STATUS.CONCLUIDO]: {
       label: 'Concluído',
       bgColor: 'bg-green-50',
@@ -38,36 +38,33 @@ export const getStatusBadgeConfig = (
       bgColor: 'bg-red-50',
       textColor: 'text-red-800',
     },
-    default: {
-      label: 'Desconhecido',
-      bgColor: 'bg-gray-50',
-      textColor: 'text-gray-800',
-    },
   };
 
-  return configs[status] ?? configs.default;
+  return configs[status];
 };
 
 /**
  * Format time spent in seconds to HH:MM:SS
  * @param seconds - Time in seconds
- * @returns Formatted time string
+ * @returns Formatted time string in HH:MM:SS format
  */
 export const formatTimeSpent = (seconds: number): string => {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
+  const totalSeconds = Math.floor(Math.abs(seconds));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
 
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 };
 
 /**
  * Format question numbers to display
- * @param numbers - Array of question numbers (0-indexed)
- * @returns Formatted string of question numbers
+ * @param numbers - Array of zero-based question indices
+ * @returns Formatted string with question numbers (1-indexed, padded)
  */
 export const formatQuestionNumbers = (numbers: number[]): string => {
   if (numbers.length === 0) return '-';
+
   return numbers.map((n) => String(n + 1).padStart(2, '0')).join(', ');
 };
 
