@@ -47,7 +47,7 @@ export interface KnowledgeArea {
  * ```ts
  * const backendFilters = convertFiltersToBackendFormat({
  *   types: ['ALTERNATIVA'],
- *   knowledgeIds: ['math'],
+ *   subjectIds: ['math'],
  *   // ...
  * });
  * ```
@@ -69,7 +69,7 @@ export function convertFiltersToBackendFormat(
   return {
     questionTypes: filters.types,
     questionBanks: filters.bankIds,
-    subjects: filters.knowledgeIds,
+    subjects: filters.subjectIds,
     topics: filters.topicIds,
     subtopics: filters.subtopicIds,
     contents: filters.contentIds,
@@ -101,7 +101,7 @@ export function convertBackendFiltersToActivityFiltersData(
   return {
     types: (backendFilters.questionTypes || []).filter(isValidQuestionType),
     bankIds: backendFilters.questionBanks || [],
-    knowledgeIds: backendFilters.subjects || [],
+    subjectIds: backendFilters.subjects || [],
     topicIds: backendFilters.topics || [],
     subtopicIds: backendFilters.subtopics || [],
     contentIds: backendFilters.contents || [],

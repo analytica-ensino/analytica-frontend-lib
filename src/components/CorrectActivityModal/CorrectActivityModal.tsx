@@ -338,7 +338,6 @@ const CorrectActivityModal = ({
 
         await onQuestionCorrectionSubmit(data.studentId, {
           questionId: questionData.question.id,
-          questionNumber,
           isCorrect: correction.isCorrect,
           teacherFeedback: correction.teacherFeedback,
         });
@@ -433,14 +432,12 @@ const CorrectActivityModal = ({
         });
         break;
       case QUESTION_TYPE.DISSERTATIVA:
-        // Combine student answer with correction fields inside accordion
         content = (
           <>
             {renderQuestionDissertative({
               result,
             })}
-            {/* Correction fields for essay questions */}
-            {!isViewOnly && (
+            {onQuestionCorrectionSubmit && (
               <div className="space-y-4 border-t border-border-100 pt-4 mt-4">
                 {renderEssayCorrectionFields(questionData)}
               </div>

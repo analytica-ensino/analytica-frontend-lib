@@ -697,8 +697,8 @@ export const ActivityFilters = ({
       setSelectedQuestionTypes(initialFilters.types);
     }
 
-    if (initialFilters.knowledgeIds && initialFilters.knowledgeIds.length > 0) {
-      setSelectedSubject(initialFilters.knowledgeIds[0]);
+    if (initialFilters.subjectIds && initialFilters.subjectIds.length > 0) {
+      setSelectedSubject(initialFilters.subjectIds[0]);
     }
 
     hasAppliedBasicInitialFiltersRef.current = true;
@@ -758,7 +758,7 @@ export const ActivityFilters = ({
       return;
     }
 
-    const subjectIds = initialFilters.knowledgeIds || [];
+    const subjectIds = initialFilters.subjectIds || [];
     const topicIds = initialFilters.topicIds || [];
     const subtopicIds = initialFilters.subtopicIds || [];
 
@@ -925,7 +925,7 @@ export const ActivityFilters = ({
       types: selectedQuestionTypes,
       bankIds: bankIds.bankIds || [],
       yearIds: bankIds.yearIds || [],
-      knowledgeIds: selectedSubjects,
+      subjectIds: selectedSubjects,
       topicIds: knowledgeIds.topicIds,
       subtopicIds: knowledgeIds.subtopicIds,
       contentIds: knowledgeIds.contentIds,

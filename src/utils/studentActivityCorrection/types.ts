@@ -75,8 +75,6 @@ export interface StudentActivityCorrectionData {
 export interface SaveQuestionCorrectionPayload {
   /** Question ID from Question interface */
   questionId: string;
-  /** Question number in the activity (for reference) */
-  questionNumber: number;
   /** Whether the answer is correct */
   isCorrect: boolean;
   /** Teacher observation/feedback */
