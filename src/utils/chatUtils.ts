@@ -32,20 +32,25 @@ export const isChatUserInfoValid = (userInfo: ChatUserInfo): boolean => {
 
 /**
  * Get WebSocket URL from API URL
- * Converts https:// to wss:// and http:// to ws://
+ * Converts https:// to wss://, http:// to ws://, and replaces bff domain with chat domain
  *
- * @param apiUrl - The API URL (defaults to VITE_API_URL or http://localhost:3000)
- * @returns WebSocket URL for chat
+ * @param apiUrl - The API URL (e.g., 'https://bff-hml.analiticaensino.com.br')
+ * @returns WebSocket URL for chat (e.g., 'wss://bff-hml-chat.analiticaensino.com.br')
  *
  * @example
  * ```ts
- * const wsUrl = getChatWsUrl('https://api.example.com');
- * // Returns: 'wss://api.example.com/chat/ws'
+ * const wsUrl = getChatWsUrl('https://bff-hml.analiticaensino.com.br');
+ * // Returns: 'wss://bff-hml-chat.analiticaensino.com.br'
+ *
+ * const wsUrl = getChatWsUrl('https://bff.analiticaensino.com.br');
+ * // Returns: 'wss://bff-chat.analiticaensino.com.br'
  * ```
  */
 export const getChatWsUrl = (apiUrl: string): string => {
-  const baseUrl = apiUrl;
-  return baseUrl.replace(/^http/, 'ws');
+  return apiUrl
+    .replace(/^https?/, 'wss')
+    .replace(/bff-hml\./, 'bff-hml-chat.')
+    .replace(/bff\./, 'bff-chat.');
 };
 
 /**

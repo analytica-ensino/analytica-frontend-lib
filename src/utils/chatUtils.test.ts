@@ -81,8 +81,8 @@ describe('chatUtils', () => {
       );
     });
 
-    it('should convert http to ws', () => {
-      expect(getChatWsUrl('http://localhost:3000')).toBe('ws://localhost:3000');
+    it('should convert http to wss', () => {
+      expect(getChatWsUrl('http://localhost:3000')).toBe('wss://localhost:3000');
     });
 
     it('should handle URLs with paths', () => {
@@ -97,15 +97,15 @@ describe('chatUtils', () => {
       );
     });
 
-    it('should handle production URLs', () => {
-      expect(getChatWsUrl('https://chat.analytica.com')).toBe(
-        'wss://chat.analytica.com'
+    it('should convert bff-hml to bff-hml-chat domain', () => {
+      expect(getChatWsUrl('https://bff-hml.analiticaensino.com.br')).toBe(
+        'wss://bff-hml-chat.analiticaensino.com.br'
       );
     });
 
-    it('should handle staging/hmg URLs', () => {
-      expect(getChatWsUrl('https://chat-hmg.analytica.com')).toBe(
-        'wss://chat-hmg.analytica.com'
+    it('should convert bff to bff-chat domain (production)', () => {
+      expect(getChatWsUrl('https://bff.analiticaensino.com.br')).toBe(
+        'wss://bff-chat.analiticaensino.com.br'
       );
     });
 
@@ -118,6 +118,12 @@ describe('chatUtils', () => {
     it('should handle URLs with trailing slash', () => {
       expect(getChatWsUrl('https://api.example.com/')).toBe(
         'wss://api.example.com/'
+      );
+    });
+
+    it('should not affect non-bff domains', () => {
+      expect(getChatWsUrl('https://other.example.com')).toBe(
+        'wss://other.example.com'
       );
     });
   });
