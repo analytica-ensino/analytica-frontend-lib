@@ -897,7 +897,7 @@ describe('ActivityDetails', () => {
           'activity-123',
           'student-2',
           'Test observation',
-          []
+          null
         );
       });
     });

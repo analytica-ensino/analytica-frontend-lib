@@ -75,6 +75,7 @@ export interface QuestionStats {
 export interface ActivityMetadata {
   id: string;
   title: string;
+  type: string;
   startDate: string | null;
   finalDate: string | null;
   schoolName: string;
@@ -141,22 +142,11 @@ export type ActivityAvailability =
   (typeof ACTIVITY_AVAILABILITY)[keyof typeof ACTIVITY_AVAILABILITY];
 
 /**
- * Quiz response data
- */
-export interface QuizResponseData {
-  id: string;
-  title: string;
-  type: string;
-  startDate: string | null;
-  finalDate: string | null;
-}
-
-/**
  * Quiz API response
  */
 export interface QuizResponse {
   message: string;
-  data: QuizResponseData;
+  data: ActivityMetadata;
 }
 
 /**

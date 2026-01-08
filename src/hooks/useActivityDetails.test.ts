@@ -313,7 +313,7 @@ describe('useActivityDetails', () => {
         'activity-123',
         'student-1',
         'Great work!',
-        []
+        null
       );
 
       expect(mockApiClient.post).toHaveBeenCalledWith(
@@ -346,7 +346,7 @@ describe('useActivityDetails', () => {
         'activity-123',
         'student-1',
         'Great work!',
-        [mockFile]
+        mockFile
       );
 
       expect(mockApiClient.post).toHaveBeenCalledWith(
@@ -505,7 +505,7 @@ describe('useActivityDetails', () => {
         'activity-123',
         'student-1',
         'Great work!',
-        [mockFile]
+        mockFile
       );
 
       expect(mockApiClient.post).toHaveBeenCalledWith(
@@ -531,7 +531,7 @@ describe('useActivityDetails', () => {
             'activity-123',
             'student-1',
             'Great work!',
-            []
+            null
           );
         } catch (error) {
           caughtError = error as Error;

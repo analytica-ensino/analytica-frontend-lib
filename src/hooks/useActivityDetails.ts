@@ -41,13 +41,13 @@ export interface UseActivityDetailsReturn {
    * @param actId - Activity ID
    * @param studentId - Student ID
    * @param observation - Observation text
-   * @param files - Attached files
+   * @param file - Attached file (optional)
    */
   submitObservation: (
     actId: string,
     studentId: string,
     observation: string,
-    files: File[]
+    file: File | null
   ) => Promise<void>;
   /**
    * Submit question correction for student activity
@@ -123,7 +123,7 @@ export const useActivityDetails = (
       return {
         ...detailsResponse.data.data,
         activity: quizResponse?.data?.data,
-      } as ActivityDetailsData;
+      };
     },
     [apiClient]
   );
@@ -152,19 +152,18 @@ export const useActivityDetails = (
    * @param actId - Activity ID
    * @param studentId - Student ID
    * @param observation - Observation text
-   * @param files - Attached files
+   * @param file - Attached file (optional)
    */
   const submitObservation = useCallback(
     async (
       actId: string,
       studentId: string,
       observation: string,
-      files: File[]
+      file: File | null
     ): Promise<void> => {
       let attachmentUrl: string | null = null;
 
-      if (files.length > 0) {
-        const file = files[0];
+      if (file) {
         const presignedRes = await apiClient.post<PresignedUrlResponse>(
           '/user/get-pre-signed-url',
           {
