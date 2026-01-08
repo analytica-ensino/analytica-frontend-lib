@@ -1,4 +1,4 @@
-import type { HTMLAttributes, InputHTMLAttributes } from 'react';
+import type { HTMLAttributes, InputHTMLAttributes, ReactNode } from 'react';
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TableProvider } from './TableProvider';
@@ -1125,7 +1125,9 @@ describe('TableProvider', () => {
       );
 
       expect(screen.getByTestId('action-button')).toBeInTheDocument();
-      expect(screen.queryByPlaceholderText('Buscar...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText('Buscar...')
+      ).not.toBeInTheDocument();
     });
 
     it('should include headerContent in render props when children is provided', () => {
@@ -1143,11 +1145,23 @@ describe('TableProvider', () => {
       );
 
       expect(renderSpy).toHaveBeenCalled();
-      const { controls } = renderSpy.mock.calls[0][0];
+      expect(renderSpy.mock.calls.length).toBeGreaterThan(0);
+      const calls = renderSpy.mock.calls;
+      // TypeScript doesn't infer that calls[0] exists even after length check
+      // Use type assertion after runtime checks
+      const firstCall = calls[0] as unknown as
+        | [{ controls: ReactNode; table: ReactNode; pagination: ReactNode }]
+        | undefined;
+      expect(firstCall).toBeDefined();
+
+      const callArgs = firstCall![0];
+      const { controls } = callArgs;
 
       // Verify that headerSection is passed in controls when headerContent is provided
       const { container } = render(<>{controls}</>);
-      expect(container.querySelector('[data-testid="render-button"]')).toBeInTheDocument();
+      expect(
+        container.querySelector('[data-testid="render-button"]')
+      ).toBeInTheDocument();
     });
 
     it('should include both headerContent and search controls in render props', () => {
@@ -1166,15 +1180,29 @@ describe('TableProvider', () => {
       );
 
       expect(renderSpy).toHaveBeenCalled();
-      const { controls } = renderSpy.mock.calls[0][0];
+      expect(renderSpy.mock.calls.length).toBeGreaterThan(0);
+      const calls = renderSpy.mock.calls;
+      // TypeScript doesn't infer that calls[0] exists even after length check
+      // Use type assertion after runtime checks
+      const firstCall = calls[0] as unknown as
+        | [{ controls: ReactNode; table: ReactNode; pagination: ReactNode }]
+        | undefined;
+      expect(firstCall).toBeDefined();
+
+      const callArgs = firstCall![0];
+      const { controls } = callArgs;
 
       const { container } = render(<>{controls}</>);
-      expect(container.querySelector('[data-testid="create-button"]')).toBeInTheDocument();
+      expect(
+        container.querySelector('[data-testid="create-button"]')
+      ).toBeInTheDocument();
       expect(container.querySelector('input[type="text"]')).toBeInTheDocument();
     });
 
     it('should render headerContent with filters when both are enabled', () => {
-      const headerContent = <button data-testid="filter-header">Filter Header</button>;
+      const headerContent = (
+        <button data-testid="filter-header">Filter Header</button>
+      );
 
       render(
         <TableProvider
@@ -1227,7 +1255,12 @@ describe('TableProvider', () => {
       );
 
       const wrapper = container.firstChild;
-      expect(wrapper).toHaveClass('bg-background', 'rounded-xl', 'p-6', 'space-y-4');
+      expect(wrapper).toHaveClass(
+        'bg-background',
+        'rounded-xl',
+        'p-6',
+        'space-y-4'
+      );
     });
 
     it('should use default className when containerClassName is not provided', () => {

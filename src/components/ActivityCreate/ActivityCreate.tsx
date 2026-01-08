@@ -235,7 +235,11 @@ const CreateActivity = ({
     if (questions.length === 0 && !hasFirstSaveBeenDone.current) {
       return false;
     }
-    if (!appliedFilters || !appliedFilters.subjectIds || appliedFilters.subjectIds.length === 0) {
+    if (
+      !appliedFilters ||
+      !appliedFilters.subjectIds ||
+      appliedFilters.subjectIds.length === 0
+    ) {
       return false;
     }
     if (loadingInitialQuestions || isSaving) {
@@ -587,7 +591,11 @@ const CreateActivity = ({
       return;
     }
 
-    if (!appliedFilters || !appliedFilters.subjectIds || appliedFilters.subjectIds.length === 0) {
+    if (
+      !appliedFilters ||
+      !appliedFilters.subjectIds ||
+      appliedFilters.subjectIds.length === 0
+    ) {
       return;
     }
 
@@ -743,8 +751,7 @@ const CreateActivity = ({
     async (formData: SendActivityFormData) => {
       setIsSendingActivity(true);
       try {
-        const subjectId =
-          activity?.subjectId || appliedFilters?.subjectIds[0];
+        const subjectId = activity?.subjectId || appliedFilters?.subjectIds[0];
         if (!subjectId) {
           throw new Error('Subject ID não encontrado');
         }

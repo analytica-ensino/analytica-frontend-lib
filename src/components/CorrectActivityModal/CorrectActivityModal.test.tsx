@@ -1478,9 +1478,7 @@ describe('CorrectActivityModal', () => {
       expect(
         screen.queryByText('Resposta está correta?')
       ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText('Incluir observação')
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Incluir observação')).not.toBeInTheDocument();
       expect(screen.queryByText('Salvar')).not.toBeInTheDocument();
     });
 
