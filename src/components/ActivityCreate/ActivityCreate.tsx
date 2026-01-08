@@ -744,7 +744,8 @@ const CreateActivity = ({
     async (formData: SendActivityFormData) => {
       setIsSendingActivity(true);
       try {
-        const subjectId = activity?.subjectId || appliedFilters?.subjectIds[0];
+        const subjectId =
+          activity?.subjectId || appliedFilters?.subjectIds?.[0];
         if (!subjectId) {
           throw new Error('Subject ID não encontrado');
         }
