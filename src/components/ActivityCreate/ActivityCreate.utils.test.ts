@@ -30,7 +30,7 @@ describe('ActivityCreate.utils', () => {
       const filters: ActivityFiltersData = {
         types: [QUESTION_TYPE.ALTERNATIVA, QUESTION_TYPE.DISSERTATIVA],
         bankIds: ['bank1', 'bank2'],
-        knowledgeIds: ['knowledge1', 'knowledge2'],
+        subjectIds: ['knowledge1', 'knowledge2'],
         topicIds: ['topic1', 'topic2'],
         subtopicIds: ['subtopic1', 'subtopic2'],
         contentIds: ['content1', 'content2'],
@@ -66,7 +66,7 @@ describe('ActivityCreate.utils', () => {
       const filters: ActivityFiltersData = {
         types: [],
         bankIds: [],
-        knowledgeIds: [],
+        subjectIds: [],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],
@@ -89,7 +89,7 @@ describe('ActivityCreate.utils', () => {
       const filters: ActivityFiltersData = {
         types: [QUESTION_TYPE.ALTERNATIVA],
         bankIds: [],
-        knowledgeIds: ['knowledge1'],
+        subjectIds: ['knowledge1'],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],
@@ -125,7 +125,7 @@ describe('ActivityCreate.utils', () => {
       expect(result).toEqual({
         types: [QUESTION_TYPE.ALTERNATIVA, QUESTION_TYPE.DISSERTATIVA],
         bankIds: ['bank1', 'bank2'],
-        knowledgeIds: ['knowledge1', 'knowledge2'],
+        subjectIds: ['knowledge1', 'knowledge2'],
         topicIds: ['topic1', 'topic2'],
         subtopicIds: ['subtopic1', 'subtopic2'],
         contentIds: ['content1', 'content2'],
@@ -154,7 +154,7 @@ describe('ActivityCreate.utils', () => {
       expect(result).toEqual({
         types: [],
         bankIds: [],
-        knowledgeIds: [],
+        subjectIds: [],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],
@@ -177,7 +177,7 @@ describe('ActivityCreate.utils', () => {
       expect(result).toEqual({
         types: [],
         bankIds: [],
-        knowledgeIds: [],
+        subjectIds: [],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],
@@ -200,7 +200,7 @@ describe('ActivityCreate.utils', () => {
       expect(result).toEqual({
         types: [QUESTION_TYPE.ALTERNATIVA],
         bankIds: [],
-        knowledgeIds: ['knowledge1'],
+        subjectIds: ['knowledge1'],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],
@@ -228,7 +228,7 @@ describe('ActivityCreate.utils', () => {
       expect(result).toEqual({
         types: [QUESTION_TYPE.ALTERNATIVA, QUESTION_TYPE.DISSERTATIVA],
         bankIds: [],
-        knowledgeIds: [],
+        subjectIds: [],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],
@@ -254,7 +254,7 @@ describe('ActivityCreate.utils', () => {
       expect(result).toEqual({
         types: [],
         bankIds: [],
-        knowledgeIds: [],
+        subjectIds: [],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],

@@ -19,13 +19,11 @@ import type { ColumnConfig, TableParams } from '../TableProvider/TableProvider';
 import type {
   StudentActivityCorrectionData,
   SaveQuestionCorrectionPayload,
-  QuestionsAnswersByStudentResponse,
 } from '../../utils/studentActivityCorrection';
 import { convertApiResponseToCorrectionData } from '../../utils/studentActivityCorrection';
 import {
   STUDENT_ACTIVITY_STATUS,
   type ActivityDetailsData,
-  type ActivityDetailsQueryParams,
   type ActivityStudentTableItem,
   type StudentActivityStatus,
 } from '../../types/activityDetails';
@@ -35,6 +33,8 @@ import {
   formatQuestionNumbers,
   formatDateToBrazilian,
 } from '../../utils/activityDetailsUtils';
+import type { BaseApiClient } from '../../types/api';
+import { useActivityDetails } from '../../hooks/useActivityDetails';
 
 /**
  * Props for the ActivityDetails component
@@ -42,29 +42,8 @@ import {
 export interface ActivityDetailsProps {
   /** Activity ID to display details for */
   activityId: string;
-  /** Function to fetch activity details. Must be memoized (using useCallback) to prevent re-fetches on every render. */
-  fetchActivityDetails: (
-    id: string,
-    params?: ActivityDetailsQueryParams
-  ) => Promise<ActivityDetailsData>;
-  /** Function to fetch student correction data from API (fetchQuestionsAnswersByStudent) */
-  fetchStudentCorrection: (
-    activityId: string,
-    studentId: string
-  ) => Promise<QuestionsAnswersByStudentResponse>;
-  /** Function to submit observation */
-  submitObservation: (
-    activityId: string,
-    studentId: string,
-    observation: string,
-    files: File[]
-  ) => Promise<void>;
-  /** Function to submit question correction (for essay questions) */
-  submitQuestionCorrection?: (
-    activityId: string,
-    studentId: string,
-    payload: SaveQuestionCorrectionPayload
-  ) => Promise<void>;
+  /** API client instance for making requests */
+  apiClient: BaseApiClient;
   /** Callback when back button is clicked */
   onBack?: () => void;
   /** Callback when view activity button is clicked */
@@ -202,10 +181,7 @@ const createTableColumns = (
  */
 export const ActivityDetails = ({
   activityId,
-  fetchActivityDetails,
-  fetchStudentCorrection,
-  submitObservation,
-  submitQuestionCorrection,
+  apiClient,
   onBack,
   onViewActivity,
   emptyStateImage,
@@ -236,6 +212,14 @@ export const ActivityDetails = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewOnlyModal, setIsViewOnlyModal] = useState(false);
   const [correctionError, setCorrectionError] = useState<string | null>(null);
+
+  // Use activity details hook
+  const {
+    fetchActivityDetails,
+    fetchStudentCorrection,
+    submitObservation,
+    submitQuestionCorrection,
+  } = useActivityDetails(apiClient);
 
   /**
    * Fetch activity details when params change
@@ -313,13 +297,14 @@ export const ActivityDetails = ({
    * Handle observation submit
    * @param studentId - Student ID from modal (passed explicitly to avoid stale closure)
    * @param observation - Observation text
-   * @param files - Attached files
+   * @param files - Attached files (only first file is used)
    */
   const handleObservationSubmit = useCallback(
     async (studentId: string, observation: string, files: File[]) => {
       if (!activityId || !studentId) return;
       try {
-        await submitObservation(activityId, studentId, observation, files);
+        const file = files.length > 0 ? files[0] : null;
+        await submitObservation(activityId, studentId, observation, file);
       } catch (err) {
         console.error('Failed to submit observation:', err);
       }
@@ -334,7 +319,7 @@ export const ActivityDetails = ({
    */
   const handleQuestionCorrectionSubmit = useCallback(
     async (studentId: string, payload: SaveQuestionCorrectionPayload) => {
-      if (!activityId || !studentId || !submitQuestionCorrection) return;
+      if (!activityId || !studentId) return;
       try {
         await submitQuestionCorrection(activityId, studentId, payload);
       } catch (err) {

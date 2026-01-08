@@ -104,7 +104,7 @@ jest.mock('../ActivityFilters/ActivityFilters', () => ({
             types: [QUESTION_TYPE.ALTERNATIVA],
             bankIds: ['bank1'],
             yearIds: [],
-            knowledgeIds: ['subject1'],
+            subjectIds: ['subject1'],
             topicIds: [],
             subtopicIds: [],
             contentIds: [],
@@ -541,7 +541,7 @@ describe('CreateActivity', () => {
         types: [],
         bankIds: [],
         yearIds: [],
-        knowledgeIds: ['subject1'],
+        subjectIds: ['subject1'],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],
@@ -562,7 +562,7 @@ describe('CreateActivity', () => {
       expect(mockSetDraftFilters).toHaveBeenCalledWith(
         expect.objectContaining({
           types: [QUESTION_TYPE.ALTERNATIVA],
-          knowledgeIds: ['subject1'],
+          subjectIds: ['subject1'],
         })
       );
     });
@@ -572,7 +572,7 @@ describe('CreateActivity', () => {
         types: [],
         bankIds: [],
         yearIds: [],
-        knowledgeIds: ['subject1'],
+        subjectIds: ['subject1'],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],
@@ -648,7 +648,7 @@ describe('CreateActivity', () => {
         expect(mockSetDraftFilters).toHaveBeenCalledWith(
           expect.objectContaining({
             types: [QUESTION_TYPE.ALTERNATIVA],
-            knowledgeIds: ['subject1'],
+            subjectIds: ['subject1'],
             topicIds: ['topic-1'],
           })
         );
@@ -792,7 +792,7 @@ describe('CreateActivity', () => {
         types: [],
         bankIds: [],
         yearIds: [],
-        knowledgeIds: ['subject1'],
+        subjectIds: ['subject1'],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],
@@ -955,7 +955,7 @@ describe('CreateActivity', () => {
         types: [],
         bankIds: [],
         yearIds: [],
-        knowledgeIds: ['subject1'],
+        subjectIds: ['subject1'],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],
@@ -1257,7 +1257,7 @@ describe('CreateActivity', () => {
         types: [],
         bankIds: [],
         yearIds: [],
-        knowledgeIds: ['subject1'],
+        subjectIds: ['subject1'],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],
@@ -2545,7 +2545,7 @@ describe('CreateActivity', () => {
         types: [],
         bankIds: [],
         yearIds: [],
-        knowledgeIds: ['subject1'],
+        subjectIds: ['subject1'],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],
@@ -2594,7 +2594,7 @@ describe('CreateActivity', () => {
         types: [],
         bankIds: [],
         yearIds: [],
-        knowledgeIds: ['subject1'],
+        subjectIds: ['subject1'],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],
@@ -2752,7 +2752,7 @@ describe('CreateActivity', () => {
         types: [],
         bankIds: [],
         yearIds: [],
-        knowledgeIds: ['subject1'],
+        subjectIds: ['subject1'],
         topicIds: [],
         subtopicIds: [],
         contentIds: [],

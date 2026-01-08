@@ -455,6 +455,7 @@ export {
 export {
   STUDENT_ACTIVITY_STATUS,
   ACTIVITY_AVAILABILITY,
+  studentActivityStatusSchema,
 } from './types/activityDetails';
 
 // Activity Details Utils
@@ -481,6 +482,8 @@ export type {
 // Activity Details Component
 export { ActivityDetails } from './components/ActivityDetails/ActivityDetails';
 export type { ActivityDetailsProps } from './components/ActivityDetails/ActivityDetails';
+export { useActivityDetails } from './hooks/useActivityDetails';
+export type { UseActivityDetailsReturn } from './hooks/useActivityDetails';
 
 // Support Components
 export {

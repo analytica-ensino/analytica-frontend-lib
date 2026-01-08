@@ -12,14 +12,11 @@ export const convertActivityFiltersToQuestionsFilter = (
   filters: ActivityFiltersData
 ): QuestionsFilterBody => {
   return {
-    types: filters.types.length > 0 ? filters.types : undefined,
-    bankIds: filters.bankIds.length > 0 ? filters.bankIds : undefined,
-    yearIds: filters.yearIds.length > 0 ? filters.yearIds : undefined,
-    knowledgeIds:
-      filters.knowledgeIds.length > 0 ? filters.knowledgeIds : undefined,
-    topicIds: filters.topicIds.length > 0 ? filters.topicIds : undefined,
-    subtopicIds:
-      filters.subtopicIds.length > 0 ? filters.subtopicIds : undefined,
-    contentIds: filters.contentIds.length > 0 ? filters.contentIds : undefined,
+    questionType: filters.types,
+    questionBankYearId: filters.yearIds.map((yearId) => yearId.split('-')[0]),
+    subjectId: filters.subjectIds,
+    topicId: filters.topicIds,
+    subtopicId: filters.subtopicIds,
+    contentId: filters.contentIds,
   };
 };

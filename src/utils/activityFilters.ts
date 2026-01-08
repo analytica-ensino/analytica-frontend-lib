@@ -82,7 +82,7 @@ export function areFiltersEqual(
     arraysEqual(filters1.types, filters2.types) &&
     arraysEqual(filters1.bankIds, filters2.bankIds) &&
     arraysEqual(filters1.yearIds, filters2.yearIds) &&
-    arraysEqual(filters1.knowledgeIds, filters2.knowledgeIds) &&
+    arraysEqual(filters1.subjectIds, filters2.subjectIds) &&
     arraysEqual(filters1.topicIds, filters2.topicIds) &&
     arraysEqual(filters1.subtopicIds, filters2.subtopicIds) &&
     arraysEqual(filters1.contentIds, filters2.contentIds)
