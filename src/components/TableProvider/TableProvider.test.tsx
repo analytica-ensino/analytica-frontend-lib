@@ -1,8 +1,11 @@
 import type { HTMLAttributes, InputHTMLAttributes, ReactNode } from 'react';
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { TableProvider } from './TableProvider';
-import type { ColumnConfig } from './TableProvider';
+import {
+  TableProvider,
+  type ColumnConfig,
+  type TableComponents,
+} from './TableProvider';
 import type { FilterConfig } from '../Filter/useTableFilter';
 
 // Mock para imagens PNG
@@ -1132,7 +1135,7 @@ describe('TableProvider', () => {
 
     it('should include headerContent in render props when children is provided', () => {
       const headerContent = <button data-testid="render-button">Render</button>;
-      const renderSpy = jest.fn(() => null);
+      const renderSpy = jest.fn<ReactNode, [TableComponents]>(() => null);
 
       render(
         <TableProvider
@@ -1145,16 +1148,11 @@ describe('TableProvider', () => {
       );
 
       expect(renderSpy).toHaveBeenCalled();
-      expect(renderSpy.mock.calls.length).toBeGreaterThan(0);
-      const calls = renderSpy.mock.calls;
-      // TypeScript doesn't infer that calls[0] exists even after length check
-      // Use type assertion after runtime checks
-      const firstCall = calls[0] as unknown as
-        | [{ controls: ReactNode; table: ReactNode; pagination: ReactNode }]
-        | undefined;
-      expect(firstCall).toBeDefined();
-
-      const callArgs = firstCall![0];
+      const callArgs = renderSpy.mock.calls[0]?.[0];
+      expect(callArgs).toBeDefined();
+      if (!callArgs) {
+        throw new Error('renderSpy was not called with arguments');
+      }
       const { controls } = callArgs;
 
       // Verify that headerSection is passed in controls when headerContent is provided
@@ -1166,7 +1164,7 @@ describe('TableProvider', () => {
 
     it('should include both headerContent and search controls in render props', () => {
       const headerContent = <button data-testid="create-button">Criar</button>;
-      const renderSpy = jest.fn(() => null);
+      const renderSpy = jest.fn<ReactNode, [TableComponents]>(() => null);
 
       render(
         <TableProvider
@@ -1180,16 +1178,11 @@ describe('TableProvider', () => {
       );
 
       expect(renderSpy).toHaveBeenCalled();
-      expect(renderSpy.mock.calls.length).toBeGreaterThan(0);
-      const calls = renderSpy.mock.calls;
-      // TypeScript doesn't infer that calls[0] exists even after length check
-      // Use type assertion after runtime checks
-      const firstCall = calls[0] as unknown as
-        | [{ controls: ReactNode; table: ReactNode; pagination: ReactNode }]
-        | undefined;
-      expect(firstCall).toBeDefined();
-
-      const callArgs = firstCall![0];
+      const callArgs = renderSpy.mock.calls[0]?.[0];
+      expect(callArgs).toBeDefined();
+      if (!callArgs) {
+        throw new Error('renderSpy was not called with arguments');
+      }
       const { controls } = callArgs;
 
       const { container } = render(<>{controls}</>);

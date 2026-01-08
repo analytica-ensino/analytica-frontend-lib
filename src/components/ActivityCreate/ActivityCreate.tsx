@@ -235,11 +235,7 @@ const CreateActivity = ({
     if (questions.length === 0 && !hasFirstSaveBeenDone.current) {
       return false;
     }
-    if (
-      !appliedFilters ||
-      !appliedFilters.subjectIds ||
-      appliedFilters.subjectIds.length === 0
-    ) {
+    if (!appliedFilters?.subjectIds?.length) {
       return false;
     }
     if (loadingInitialQuestions || isSaving) {
@@ -591,11 +587,7 @@ const CreateActivity = ({
       return;
     }
 
-    if (
-      !appliedFilters ||
-      !appliedFilters.subjectIds ||
-      appliedFilters.subjectIds.length === 0
-    ) {
+    if (!appliedFilters) {
       return;
     }
 
@@ -682,11 +674,12 @@ const CreateActivity = ({
   const handleReorder = useCallback(
     (orderedQuestions: PreviewQuestion[]) => {
       setQuestions(orderedQuestions);
+      const hasSubjectIds =
+        Array.isArray(appliedFilters?.subjectIds) &&
+        appliedFilters.subjectIds.length > 0;
       if (
         hasFirstSaveBeenDone.current &&
-        appliedFilters &&
-        appliedFilters.subjectIds &&
-        appliedFilters.subjectIds.length > 0 &&
+        hasSubjectIds &&
         !loadingInitialQuestions &&
         !isSaving
       ) {
