@@ -82,7 +82,9 @@ describe('chatUtils', () => {
     });
 
     it('should convert http to wss', () => {
-      expect(getChatWsUrl('http://localhost:3000')).toBe('wss://localhost:3000');
+      expect(getChatWsUrl('http://localhost:3000')).toBe(
+        'wss://localhost:3000'
+      );
     });
 
     it('should handle URLs with paths', () => {
