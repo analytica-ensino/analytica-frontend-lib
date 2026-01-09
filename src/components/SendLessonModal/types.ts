@@ -23,16 +23,6 @@ export interface SendLessonFormData {
 }
 
 /**
- * Lesson info for display in modal
- */
-export interface LessonInfo {
-  /** Lesson ID */
-  id: string;
-  /** Lesson title */
-  title: string;
-}
-
-/**
  * Modal props
  */
 export interface SendLessonModalProps {
@@ -52,8 +42,6 @@ export interface SendLessonModalProps {
   onError?: (error: unknown) => void;
   /** Modal title for display */
   modalTitle?: string;
-  /** Lessons in the model */
-  modelLessons?: LessonInfo[];
 }
 
 /**

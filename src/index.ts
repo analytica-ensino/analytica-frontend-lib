@@ -554,7 +554,6 @@ export { useSendLessonModal } from './components/SendLessonModal';
 export type {
   SendLessonModalProps,
   SendLessonFormData,
-  LessonInfo,
   StepErrors as SendLessonStepErrors,
   StepState as SendLessonStepState,
   StepConfig as SendLessonStepConfig,
