@@ -611,6 +611,7 @@ export {
   isDeadlinePassed,
   deriveStudentStatus,
   formatDaysToComplete,
+  GOAL_ACTIVITY_STATUS,
 } from './types/recommendedLessons';
 export type {
   GoalSubject,
@@ -639,6 +640,11 @@ export type {
   GoalMetadata,
   GoalApiResponse,
   LessonDetailsData,
+  // Goal Activity Types
+  GoalActivityStatus,
+  GoalActivity,
+  GoalSupUsersActivities,
+  GoalActivitiesGoals,
 } from './types/recommendedLessons';
 
 // Activities History Component
