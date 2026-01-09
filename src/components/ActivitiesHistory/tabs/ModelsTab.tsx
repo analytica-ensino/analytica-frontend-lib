@@ -1,20 +1,12 @@
-import type { ReactNode } from 'react';
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Plus } from 'phosphor-react';
-import Button from '../../Button/Button';
-import EmptyState from '../../EmptyState/EmptyState';
-import { TableProvider } from '../../TableProvider/TableProvider';
-import { AlertDialog } from '../../AlertDialog/AlertDialog';
-import Toaster, { useToast } from '../../Toast/utils/Toaster';
-import { ErrorDisplay } from '../components/ErrorDisplay';
-import { createModelsTableColumns } from '../config/modelsTableColumns';
+import {
+  ModelsTabBase,
+  createModelsTableColumnsBase,
+  type ModelsTabConfig,
+  type ModelsColumnsConfig,
+} from '../../shared/ModelsTabBase';
 import { createModelsFiltersConfig } from '../config/modelsFiltersConfig';
 import { buildModelsFiltersFromParams } from '../utils/filterBuilders';
-import {
-  createUseActivityModels,
-  type UseActivityModelsReturn,
-} from '../../../hooks/useActivityModels';
-import type { TableParams } from '../../TableProvider/TableProvider';
+import { createUseActivityModels } from '../../../hooks/useActivityModels';
 import type {
   ActivityModelTableItem,
   ActivityModelFilters,
@@ -22,6 +14,29 @@ import type {
   ActivityUserFilterData,
 } from '../../../types/activitiesHistory';
 import type { SubjectEnum } from '../../../enums/SubjectEnum';
+
+/**
+ * Configuration for activity models tab
+ */
+const ACTIVITY_MODELS_CONFIG: ModelsTabConfig = {
+  entityName: 'atividade',
+  entityNamePlural: 'atividades',
+  testId: 'activity-models-tab',
+  emptyStateTitle: 'Crie modelos para agilizar suas atividades',
+  emptyStateDescription:
+    'Salve modelos de atividades para reutilizar e enviar rapidamente para suas turmas!',
+  searchPlaceholder: 'Buscar modelo',
+};
+
+/**
+ * Configuration for activity models table columns
+ */
+const ACTIVITY_COLUMNS_CONFIG: ModelsColumnsConfig = {
+  sendButtonLabel: 'Enviar atividade',
+  sendButtonAriaLabel: 'Enviar atividade',
+  deleteButtonAriaLabel: 'Deletar modelo',
+  editButtonAriaLabel: 'Editar modelo',
+};
 
 /**
  * Props for the ModelsTab component
@@ -57,7 +72,8 @@ export interface ModelsTabProps {
 
 /**
  * ModelsTab component
- * Independent component for displaying activity models with filters and pagination
+ * Displays activity models with filters, pagination, and CRUD actions.
+ * Uses the shared ModelsTabBase component for common functionality.
  */
 export const ModelsTab = ({
   fetchActivityModels,
@@ -70,203 +86,37 @@ export const ModelsTab = ({
   mapSubjectNameToEnum,
   userFilterData,
   subjectsMap,
-}: ModelsTabProps) => {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [modelToDelete, setModelToDelete] =
-    useState<ActivityModelTableItem | null>(null);
-
-  // Toast hook
-  const { addToast } = useToast();
-
-  // Use refs to keep stable references
-  const fetchActivityModelsRef = useRef(fetchActivityModels);
-  fetchActivityModelsRef.current = fetchActivityModels;
-
-  const deleteActivityModelRef = useRef(deleteActivityModel);
-  deleteActivityModelRef.current = deleteActivityModel;
-
-  // Keep stable reference to subjectsMap to avoid unnecessary re-fetches
-  const subjectsMapRef = useRef(subjectsMap);
-  subjectsMapRef.current = subjectsMap;
-
-  // Create hook instance with stable fetch function wrappers
-  const useActivityModels = useMemo(
-    () =>
-      createUseActivityModels(
-        (filters) => fetchActivityModelsRef.current(filters),
-        (id) => deleteActivityModelRef.current(id)
-      ),
-    []
-  );
-
-  // Use the hook
-  const {
-    models,
-    loading: modelsLoading,
-    error: modelsError,
-    pagination: modelsPagination,
-    fetchModels,
-    deleteModel,
-  }: UseActivityModelsReturn = useActivityModels();
-
-  // Create filter configuration
-  const modelsFilterConfigs = useMemo(
-    () => createModelsFiltersConfig(userFilterData),
-    [userFilterData]
-  );
-
-  const handleDeleteClick = useCallback((model: ActivityModelTableItem) => {
-    setModelToDelete(model);
-    setDeleteDialogOpen(true);
-  }, []);
-
-  const modelsTableColumns = useMemo(
-    () =>
-      createModelsTableColumns(
-        mapSubjectNameToEnum,
-        onSendActivity,
-        onEditModel,
-        handleDeleteClick
-      ),
-    [mapSubjectNameToEnum, onSendActivity, onEditModel, handleDeleteClick]
-  );
-
-  /**
-   * Handle table params change
-   */
-  const handleParamsChange = useCallback(
-    (params: TableParams) => {
-      const filters = buildModelsFiltersFromParams(params);
-      fetchModels(filters, subjectsMapRef.current);
-    },
-    [fetchModels]
-  );
-
-  /**
-   * Fetch models on mount
-   */
-  useEffect(() => {
-    fetchModels({ page: 1, limit: 10 }, subjectsMapRef.current);
-  }, [fetchModels]);
-
-  /**
-   * Handle confirm delete
-   */
-  const handleConfirmDelete = useCallback(async () => {
-    if (modelToDelete) {
-      const success = await deleteModel(modelToDelete.id);
-      if (success) {
-        addToast({ title: 'Modelo deletado com sucesso', action: 'success' });
-        fetchModels({ page: 1, limit: 10 }, subjectsMapRef.current);
-      } else {
-        addToast({ title: 'Erro ao deletar modelo', action: 'warning' });
-      }
+}: ModelsTabProps) => (
+  <ModelsTabBase<
+    ActivityModelTableItem,
+    ActivityModelFilters,
+    ActivityModelsApiResponse,
+    ActivityUserFilterData
+  >
+    fetchModels={fetchActivityModels}
+    deleteModel={deleteActivityModel}
+    onCreateModel={onCreateModel}
+    onSend={onSendActivity}
+    onEditModel={onEditModel}
+    emptyStateImage={emptyStateImage}
+    noSearchImage={noSearchImage}
+    mapSubjectNameToEnum={mapSubjectNameToEnum}
+    userFilterData={userFilterData}
+    subjectsMap={subjectsMap}
+    config={ACTIVITY_MODELS_CONFIG}
+    createTableColumns={(mapSubject, send, edit, del) =>
+      createModelsTableColumnsBase(
+        mapSubject,
+        send,
+        edit,
+        del,
+        ACTIVITY_COLUMNS_CONFIG
+      )
     }
-    setDeleteDialogOpen(false);
-    setModelToDelete(null);
-  }, [modelToDelete, deleteModel, fetchModels, addToast]);
-
-  /**
-   * Handle cancel delete
-   */
-  const handleCancelDelete = useCallback(() => {
-    setDeleteDialogOpen(false);
-    setModelToDelete(null);
-  }, []);
-
-  return (
-    <>
-      <Toaster />
-      {modelsError ? (
-        <ErrorDisplay error={modelsError} />
-      ) : (
-        <div className="w-full" data-testid="activity-models-tab">
-          <TableProvider
-            data={models}
-            headers={modelsTableColumns}
-            loading={modelsLoading}
-            variant="borderless"
-            enableSearch
-            enableFilters
-            enableTableSort
-            enablePagination
-            initialFilters={modelsFilterConfigs}
-            paginationConfig={{
-              itemLabel: 'modelos',
-              itemsPerPageOptions: [10, 20, 50, 100],
-              defaultItemsPerPage: 10,
-              totalItems: modelsPagination.total,
-              totalPages: modelsPagination.totalPages,
-            }}
-            searchPlaceholder="Buscar modelo"
-            noSearchResultState={{
-              image: noSearchImage,
-            }}
-            emptyState={{
-              component: (
-                <EmptyState
-                  image={emptyStateImage}
-                  title="Crie modelos para agilizar suas atividades"
-                  description="Salve modelos de atividades para reutilizar e enviar rapidamente para suas turmas!"
-                  buttonText="Criar modelo"
-                  buttonIcon={<Plus size={18} />}
-                  buttonVariant="outline"
-                  buttonAction="primary"
-                  onButtonClick={onCreateModel}
-                />
-              ),
-            }}
-            onParamsChange={handleParamsChange}
-          >
-            {(renderProps: unknown) => {
-              const {
-                controls,
-                table,
-                pagination: paginationComponent,
-              } = renderProps as {
-                controls: ReactNode;
-                table: ReactNode;
-                pagination: ReactNode;
-              };
-              return (
-                <div className="space-y-4">
-                  {/* Header row: Button on left, Controls on right */}
-                  <div className="flex items-center justify-between gap-4">
-                    <Button
-                      variant="solid"
-                      action="primary"
-                      size="medium"
-                      onClick={onCreateModel}
-                      iconLeft={<Plus size={18} weight="bold" />}
-                    >
-                      Criar modelo
-                    </Button>
-                    {controls}
-                  </div>
-                  {/* Table and pagination */}
-                  <div className="bg-background rounded-xl p-6 space-y-4">
-                    {table}
-                    {paginationComponent}
-                  </div>
-                </div>
-              );
-            }}
-          </TableProvider>
-        </div>
-      )}
-
-      <AlertDialog
-        isOpen={deleteDialogOpen}
-        onChangeOpen={setDeleteDialogOpen}
-        title="Deletar modelo"
-        description={`Tem certeza que deseja deletar o modelo "${modelToDelete?.title}"? Esta ação não pode ser desfeita.`}
-        submitButtonLabel="Deletar"
-        cancelButtonLabel="Cancelar"
-        onSubmit={handleConfirmDelete}
-        onCancel={handleCancelDelete}
-      />
-    </>
-  );
-};
+    createFiltersConfig={createModelsFiltersConfig}
+    buildFiltersFromParams={buildModelsFiltersFromParams}
+    createUseModels={createUseActivityModels}
+  />
+);
 
 export default ModelsTab;

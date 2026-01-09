@@ -53,4 +53,13 @@ describe('RecommendedLessonsHistory index exports', () => {
     expect(indexModule.default).toBeDefined();
     expect(indexModule.default).toBe(indexModule.RecommendedLessonsHistory);
   });
+
+  it('should export GoalPageTab enum from index', async () => {
+    const indexModule = await import('./index');
+
+    expect(indexModule.GoalPageTab).toBeDefined();
+    expect(indexModule.GoalPageTab.HISTORY).toBe('history');
+    expect(indexModule.GoalPageTab.DRAFTS).toBe('drafts');
+    expect(indexModule.GoalPageTab.MODELS).toBe('models');
+  });
 });

@@ -1,18 +1,18 @@
 import { create } from 'zustand';
-import { SendActivityFormData, StepErrors, CategoryConfig } from '../types';
+import { SendLessonFormData, StepErrors, CategoryConfig } from '../types';
 import { validateStep } from '../validation';
 import { extractStudentsFromCategories } from '../../../utils/extractStudentsFromCategories';
 
 /**
- * Store interface for SendActivityModal
+ * Store interface for SendLessonModal
  */
-export interface SendActivityModalStore {
+export interface SendLessonModalStore {
   /** Form data */
-  formData: Partial<SendActivityFormData>;
+  formData: Partial<SendLessonFormData>;
   /** Set form data */
-  setFormData: (data: Partial<SendActivityFormData>) => void;
+  setFormData: (data: Partial<SendLessonFormData>) => void;
 
-  /** Current step (1, 2, or 3) */
+  /** Current step (1 or 2) */
   currentStep: number;
   /** Completed steps */
   completedSteps: number[];
@@ -43,10 +43,9 @@ export interface SendActivityModalStore {
 
 const initialState = {
   formData: {
-    canRetry: false,
     startTime: '00:00',
     finalTime: '23:59',
-  } as Partial<SendActivityFormData>,
+  } as Partial<SendLessonFormData>,
   currentStep: 1,
   completedSteps: [] as number[],
   errors: {} as StepErrors,
@@ -54,9 +53,9 @@ const initialState = {
 };
 
 /**
- * Creates the SendActivityModal store
+ * Creates the SendLessonModal store
  */
-export const useSendActivityModalStore = create<SendActivityModalStore>(
+export const useSendLessonModalStore = create<SendLessonModalStore>(
   (set, get) => ({
     ...initialState,
 
@@ -67,7 +66,7 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
     },
 
     goToStep: (step) => {
-      if (step >= 1 && step <= 3) {
+      if (step >= 1 && step <= 2) {
         set({ currentStep: step, errors: {} });
       }
     },
@@ -76,7 +75,7 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       const state = get();
       const isValid = state.validateCurrentStep();
 
-      if (isValid && state.currentStep < 3) {
+      if (isValid && state.currentStep < 2) {
         set((prev) => ({
           currentStep: prev.currentStep + 1,
           completedSteps: prev.completedSteps.includes(prev.currentStep)
@@ -103,10 +102,10 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
 
     validateCurrentStep: () => {
       const state = get();
-      // For step 2, extract students from categories to ensure auto-selection is considered
+      // For step 1, extract students from categories
       let formDataToValidate = state.formData;
       let updatedFormData = state.formData;
-      if (state.currentStep === 2 && state.categories.length > 0) {
+      if (state.currentStep === 1 && state.categories.length > 0) {
         const students = extractStudentsFromCategories(state.categories);
         formDataToValidate = { ...state.formData, students };
         updatedFormData = formDataToValidate;
@@ -118,16 +117,15 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
 
     validateAllSteps: () => {
       const state = get();
-      // Extract students from categories for step 2 validation
-      let formDataForStep2 = state.formData;
+      // Extract students from categories for step 1 validation
+      let formDataForStep1 = state.formData;
       if (state.categories.length > 0) {
         const students = extractStudentsFromCategories(state.categories);
-        formDataForStep2 = { ...state.formData, students };
+        formDataForStep1 = { ...state.formData, students };
       }
-      const errors1 = validateStep(1, state.formData);
-      const errors2 = validateStep(2, formDataForStep2);
-      const errors3 = validateStep(3, state.formData);
-      const allErrors = { ...errors1, ...errors2, ...errors3 };
+      const errors1 = validateStep(1, formDataForStep1);
+      const errors2 = validateStep(2, state.formData);
+      const allErrors = { ...errors1, ...errors2 };
       set({ errors: allErrors });
       return Object.keys(allErrors).length === 0;
     },
@@ -151,8 +149,8 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
 );
 
 /**
- * Hook to use the SendActivityModal store
+ * Hook to use the SendLessonModal store
  */
-export function useSendActivityModal() {
-  return useSendActivityModalStore();
+export function useSendLessonModal() {
+  return useSendLessonModalStore();
 }

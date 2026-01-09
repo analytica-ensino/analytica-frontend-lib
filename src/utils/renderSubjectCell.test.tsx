@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import { renderSubjectCell } from './renderSubjectCell';
-import { SubjectEnum } from '../../../enums/SubjectEnum';
+import { SubjectEnum } from '../enums/SubjectEnum';
 
 // Mock SubjectInfo
-jest.mock('../../SubjectInfo/SubjectInfo', () => ({
+jest.mock('../components/SubjectInfo/SubjectInfo', () => ({
   getSubjectInfo: () => ({
     colorClass: 'bg-blue-100',
     icon: <span data-testid="subject-icon">M</span>,
