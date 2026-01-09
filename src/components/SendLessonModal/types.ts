@@ -50,8 +50,8 @@ export interface SendLessonModalProps {
   isLoading?: boolean;
   /** Callback when submission fails (optional - if not provided, error propagates) */
   onError?: (error: unknown) => void;
-  /** Model title for display */
-  modelTitle?: string;
+  /** Modal title for display */
+  modalTitle?: string;
   /** Lessons in the model */
   modelLessons?: LessonInfo[];
 }

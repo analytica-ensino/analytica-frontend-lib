@@ -155,9 +155,9 @@ describe('SendLessonModal', () => {
       expect(screen.getByText('Enviar aula')).toBeInTheDocument();
     });
 
-    it('should render modal with model title', () => {
+    it('should render modal with custom title', () => {
       render(
-        <SendLessonModal {...defaultProps} modelTitle="Aula de Matemática" />
+        <SendLessonModal {...defaultProps} modalTitle="Aula de Matemática" />
       );
 
       expect(

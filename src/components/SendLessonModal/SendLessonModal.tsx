@@ -44,7 +44,7 @@ const SendLessonModal = ({
   onCategoriesChange,
   isLoading = false,
   onError,
-  modelTitle,
+  modalTitle: modalTitleProp,
 }: SendLessonModalProps) => {
   const store = useSendLessonModalStore();
   const reset = useSendLessonModalStore((state) => state.reset);
@@ -183,7 +183,9 @@ const SendLessonModal = ({
     />
   );
 
-  const modalTitle = modelTitle ? `Enviar aula: ${modelTitle}` : 'Enviar aula';
+  const modalTitle = modalTitleProp
+    ? `Enviar aula: ${modalTitleProp}`
+    : 'Enviar aula';
 
   return (
     <Modal

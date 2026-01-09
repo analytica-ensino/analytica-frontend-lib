@@ -121,7 +121,7 @@ export function createSendModalStore<
         Object.assign(allErrors, stepErrors);
       }
 
-      set({ errors: allErrors });
+      set({ formData: formDataForRecipient, errors: allErrors });
       return Object.keys(allErrors).length === 0;
     },
 

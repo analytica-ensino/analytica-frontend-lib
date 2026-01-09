@@ -29,6 +29,7 @@ export const SendModalError: React.FC<SendModalErrorProps> = ({
       color="text-error-600"
       className="flex items-center gap-1 mt-1"
       data-testid={testId}
+      aria-live="polite"
     >
       <WarningCircleIcon size={16} />
       {error}

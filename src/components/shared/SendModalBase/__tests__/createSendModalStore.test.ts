@@ -426,6 +426,36 @@ describe('createSendModalStore', () => {
         })
       );
     });
+
+    it('should persist students to formData after validation', () => {
+      const useStore = createTestStore(() => ({}));
+      const { result } = renderHook(() => useStore());
+
+      // Initially formData.students should be undefined
+      expect(result.current.formData.students).toBeUndefined();
+
+      // Set categories with selected students
+      act(() => {
+        result.current.setCategories(mockCategories);
+      });
+
+      // Reset formData to simulate a fresh state before validateAllSteps
+      act(() => {
+        result.current.setFormData({ students: undefined });
+      });
+
+      // Call validateAllSteps
+      act(() => {
+        result.current.validateAllSteps();
+      });
+
+      // formData.students should be persisted with extracted students
+      expect(result.current.formData.students).toHaveLength(1);
+      expect(result.current.formData.students?.[0]).toEqual({
+        studentId: 'student-1',
+        userInstitutionId: 'ui-1',
+      });
+    });
   });
 
   describe('setCategories', () => {
