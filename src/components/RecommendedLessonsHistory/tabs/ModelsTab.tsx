@@ -1,20 +1,12 @@
-import type { ReactNode } from 'react';
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Plus } from 'phosphor-react';
-import Button from '../../Button/Button';
-import EmptyState from '../../EmptyState/EmptyState';
-import { TableProvider } from '../../TableProvider/TableProvider';
-import { AlertDialog } from '../../AlertDialog/AlertDialog';
-import Toaster, { useToast } from '../../Toast/utils/Toaster';
-import { ErrorDisplay } from '../components/ErrorDisplay';
-import { createGoalModelsTableColumns } from '../config/modelsTableColumns';
+import {
+  ModelsTabBase,
+  createModelsTableColumnsBase,
+  type ModelsTabConfig,
+  type ModelsColumnsConfig,
+} from '../../shared/ModelsTabBase';
 import { createGoalModelsFiltersConfig } from '../config/modelsFiltersConfig';
 import { buildGoalModelsFiltersFromParams } from '../utils/filterBuilders';
-import {
-  createUseGoalModels,
-  type UseGoalModelsReturn,
-} from '../../../hooks/useGoalModels';
-import type { TableParams } from '../../TableProvider/TableProvider';
+import { createUseGoalModels } from '../../../hooks/useGoalModels';
 import type {
   GoalModelTableItem,
   GoalModelFilters,
@@ -24,7 +16,30 @@ import type {
 import type { SubjectEnum } from '../../../enums/SubjectEnum';
 
 /**
- * Props for the ModelsTab component
+ * Configuration for goal models tab
+ */
+const GOAL_MODELS_CONFIG: ModelsTabConfig = {
+  entityName: 'aula',
+  entityNamePlural: 'aulas',
+  testId: 'goal-models-tab',
+  emptyStateTitle: 'Crie modelos para agilizar suas aulas',
+  emptyStateDescription:
+    'Salve modelos de aulas recomendadas para reutilizar e enviar rapidamente para suas turmas!',
+  searchPlaceholder: 'Buscar modelo',
+};
+
+/**
+ * Configuration for goal models table columns
+ */
+const GOAL_COLUMNS_CONFIG: ModelsColumnsConfig = {
+  sendButtonLabel: 'Enviar aula',
+  sendButtonAriaLabel: 'Enviar aula',
+  deleteButtonAriaLabel: 'Deletar modelo',
+  editButtonAriaLabel: 'Editar modelo',
+};
+
+/**
+ * Props for the GoalModelsTab component
  */
 export interface GoalModelsTabProps {
   /** Function to fetch goal models from API */
@@ -56,8 +71,9 @@ export interface GoalModelsTabProps {
 }
 
 /**
- * ModelsTab component
- * Independent component for displaying goal models with filters and pagination
+ * GoalModelsTab component
+ * Displays goal models with filters, pagination, and CRUD actions.
+ * Uses the shared ModelsTabBase component for common functionality.
  */
 export const GoalModelsTab = ({
   fetchGoalModels,
@@ -70,204 +86,37 @@ export const GoalModelsTab = ({
   mapSubjectNameToEnum,
   userFilterData,
   subjectsMap,
-}: GoalModelsTabProps) => {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [modelToDelete, setModelToDelete] = useState<GoalModelTableItem | null>(
-    null
-  );
-
-  // Toast hook
-  const { addToast } = useToast();
-
-  // Use refs to keep stable references
-  const fetchGoalModelsRef = useRef(fetchGoalModels);
-  fetchGoalModelsRef.current = fetchGoalModels;
-
-  const deleteGoalModelRef = useRef(deleteGoalModel);
-  deleteGoalModelRef.current = deleteGoalModel;
-
-  // Keep stable reference to subjectsMap to avoid unnecessary re-fetches
-  const subjectsMapRef = useRef(subjectsMap);
-  subjectsMapRef.current = subjectsMap;
-
-  // Create hook instance with stable fetch function wrappers
-  const useGoalModels = useMemo(
-    () =>
-      createUseGoalModels(
-        (filters) => fetchGoalModelsRef.current(filters),
-        (id) => deleteGoalModelRef.current(id)
-      ),
-    []
-  );
-
-  // Use the hook
-  const {
-    models,
-    loading: modelsLoading,
-    error: modelsError,
-    pagination: modelsPagination,
-    fetchModels,
-    deleteModel,
-  }: UseGoalModelsReturn = useGoalModels();
-
-  // Create filter configuration
-  const modelsFilterConfigs = useMemo(
-    () => createGoalModelsFiltersConfig(userFilterData),
-    [userFilterData]
-  );
-
-  const handleDeleteClick = useCallback((model: GoalModelTableItem) => {
-    setModelToDelete(model);
-    setDeleteDialogOpen(true);
-  }, []);
-
-  const modelsTableColumns = useMemo(
-    () =>
-      createGoalModelsTableColumns(
-        mapSubjectNameToEnum,
-        onSendLesson,
-        onEditModel,
-        handleDeleteClick
-      ),
-    [mapSubjectNameToEnum, onSendLesson, onEditModel, handleDeleteClick]
-  );
-
-  /**
-   * Handle table params change
-   */
-  const handleParamsChange = useCallback(
-    (params: TableParams) => {
-      const filters = buildGoalModelsFiltersFromParams(params);
-      fetchModels(filters, subjectsMapRef.current);
-    },
-    [fetchModels]
-  );
-
-  /**
-   * Fetch models on mount
-   */
-  useEffect(() => {
-    fetchModels({ page: 1, limit: 10 }, subjectsMapRef.current);
-  }, [fetchModels]);
-
-  /**
-   * Handle confirm delete
-   */
-  const handleConfirmDelete = useCallback(async () => {
-    if (modelToDelete) {
-      const success = await deleteModel(modelToDelete.id);
-      if (success) {
-        addToast({ title: 'Modelo deletado com sucesso', action: 'success' });
-        fetchModels({ page: 1, limit: 10 }, subjectsMapRef.current);
-      } else {
-        addToast({ title: 'Erro ao deletar modelo', action: 'warning' });
-      }
+}: GoalModelsTabProps) => (
+  <ModelsTabBase<
+    GoalModelTableItem,
+    GoalModelFilters,
+    GoalModelsApiResponse,
+    GoalUserFilterData
+  >
+    fetchModels={fetchGoalModels}
+    deleteModel={deleteGoalModel}
+    onCreateModel={onCreateModel}
+    onSend={onSendLesson}
+    onEditModel={onEditModel}
+    emptyStateImage={emptyStateImage}
+    noSearchImage={noSearchImage}
+    mapSubjectNameToEnum={mapSubjectNameToEnum}
+    userFilterData={userFilterData}
+    subjectsMap={subjectsMap}
+    config={GOAL_MODELS_CONFIG}
+    createTableColumns={(mapSubject, send, edit, del) =>
+      createModelsTableColumnsBase(
+        mapSubject,
+        send,
+        edit,
+        del,
+        GOAL_COLUMNS_CONFIG
+      )
     }
-    setDeleteDialogOpen(false);
-    setModelToDelete(null);
-  }, [modelToDelete, deleteModel, fetchModels, addToast]);
-
-  /**
-   * Handle cancel delete
-   */
-  const handleCancelDelete = useCallback(() => {
-    setDeleteDialogOpen(false);
-    setModelToDelete(null);
-  }, []);
-
-  return (
-    <>
-      <Toaster />
-      {modelsError ? (
-        <ErrorDisplay error={modelsError} />
-      ) : (
-        <div className="w-full" data-testid="goal-models-tab">
-          <TableProvider
-            data={models}
-            headers={modelsTableColumns}
-            loading={modelsLoading}
-            variant="borderless"
-            enableSearch
-            enableFilters
-            enableTableSort
-            enablePagination
-            initialFilters={modelsFilterConfigs}
-            paginationConfig={{
-              itemLabel: 'modelos',
-              itemsPerPageOptions: [10, 20, 50, 100],
-              defaultItemsPerPage: 10,
-              totalItems: modelsPagination.total,
-              totalPages: modelsPagination.totalPages,
-            }}
-            searchPlaceholder="Buscar modelo"
-            noSearchResultState={{
-              image: noSearchImage,
-            }}
-            emptyState={{
-              component: (
-                <EmptyState
-                  image={emptyStateImage}
-                  title="Crie modelos para agilizar suas aulas"
-                  description="Salve modelos de aulas recomendadas para reutilizar e enviar rapidamente para suas turmas!"
-                  buttonText="Criar modelo"
-                  buttonIcon={<Plus size={18} />}
-                  buttonVariant="outline"
-                  buttonAction="primary"
-                  onButtonClick={onCreateModel}
-                />
-              ),
-            }}
-            onParamsChange={handleParamsChange}
-          >
-            {(renderProps: unknown) => {
-              const {
-                controls,
-                table,
-                pagination: paginationComponent,
-              } = renderProps as {
-                controls: ReactNode;
-                table: ReactNode;
-                pagination: ReactNode;
-              };
-              return (
-                <div className="space-y-4">
-                  {/* Header row: Button on left, Controls on right */}
-                  <div className="flex items-center justify-between gap-4">
-                    <Button
-                      variant="solid"
-                      action="primary"
-                      size="medium"
-                      onClick={onCreateModel}
-                      iconLeft={<Plus size={18} weight="bold" />}
-                    >
-                      Criar modelo
-                    </Button>
-                    {controls}
-                  </div>
-                  {/* Table and pagination */}
-                  <div className="bg-background rounded-xl p-6 space-y-4">
-                    {table}
-                    {paginationComponent}
-                  </div>
-                </div>
-              );
-            }}
-          </TableProvider>
-        </div>
-      )}
-
-      <AlertDialog
-        isOpen={deleteDialogOpen}
-        onChangeOpen={setDeleteDialogOpen}
-        title="Deletar modelo"
-        description={`Tem certeza que deseja deletar o modelo "${modelToDelete?.title}"? Esta ação não pode ser desfeita.`}
-        submitButtonLabel="Deletar"
-        cancelButtonLabel="Cancelar"
-        onSubmit={handleConfirmDelete}
-        onCancel={handleCancelDelete}
-      />
-    </>
-  );
-};
+    createFiltersConfig={createGoalModelsFiltersConfig}
+    buildFiltersFromParams={buildGoalModelsFiltersFromParams}
+    createUseModels={createUseGoalModels}
+  />
+);
 
 export default GoalModelsTab;

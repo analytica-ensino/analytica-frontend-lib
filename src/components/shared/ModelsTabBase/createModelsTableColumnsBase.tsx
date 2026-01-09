@@ -5,23 +5,51 @@ import Button from '../../Button/Button';
 import IconButton from '../../IconButton/IconButton';
 import { renderSubjectCell } from '../../../utils/renderSubjectCell';
 import type { ColumnConfig } from '../../TableProvider/TableProvider';
-import type { GoalModelTableItem } from '../../../types/recommendedLessons';
 import type { SubjectEnum } from '../../../enums/SubjectEnum';
 
 /**
- * Create table columns configuration for goal models
+ * Base model item interface - all model types must extend this.
+ * Includes index signature for TableProvider compatibility.
+ */
+export interface BaseModelItem {
+  id: string;
+  title: string;
+  subject?: string;
+  savedAt?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Configuration for model columns labels and accessibility
+ */
+export interface ModelsColumnsConfig {
+  /** Send button label (e.g., "Enviar aula", "Enviar atividade") */
+  sendButtonLabel: string;
+  /** Send button aria-label */
+  sendButtonAriaLabel: string;
+  /** Delete button aria-label */
+  deleteButtonAriaLabel: string;
+  /** Edit button aria-label */
+  editButtonAriaLabel: string;
+}
+
+/**
+ * Creates base table columns configuration for models.
+ * Can be used by both GoalModels and ActivityModels with type-safe generics.
  * @param mapSubjectNameToEnum - Optional function to map subject names to enum values
- * @param onSendLesson - Callback when send lesson button is clicked
- * @param onEditModel - Callback when edit button is clicked
- * @param onDeleteModel - Callback when delete button is clicked
+ * @param onSend - Callback when send button is clicked
+ * @param onEdit - Callback when edit button is clicked
+ * @param onDelete - Callback when delete button is clicked
+ * @param config - Configuration for labels and accessibility
  * @returns Array of column configurations for the models table
  */
-export const createGoalModelsTableColumns = (
+export const createModelsTableColumnsBase = <T extends BaseModelItem>(
   mapSubjectNameToEnum: ((name: string) => SubjectEnum | null) | undefined,
-  onSendLesson: ((model: GoalModelTableItem) => void) | undefined,
-  onEditModel: ((model: GoalModelTableItem) => void) | undefined,
-  onDeleteModel: (model: GoalModelTableItem) => void
-): ColumnConfig<GoalModelTableItem>[] => [
+  onSend: ((model: T) => void) | undefined,
+  onEdit: ((model: T) => void) | undefined,
+  onDelete: (model: T) => void,
+  config: ModelsColumnsConfig
+): ColumnConfig<T>[] => [
   {
     key: 'title',
     label: 'Título',
@@ -57,49 +85,49 @@ export const createGoalModelsTableColumns = (
     label: '',
     sortable: false,
     className: 'w-[220px]',
-    render: (_value: unknown, row: GoalModelTableItem) => {
+    render: (_value: unknown, row: T) => {
       const handleSend = (e: MouseEvent) => {
         e.stopPropagation();
-        onSendLesson?.(row);
+        onSend?.(row);
       };
 
       const handleEdit = (e: MouseEvent) => {
         e.stopPropagation();
-        onEditModel?.(row);
+        onEdit?.(row);
       };
 
       const handleDelete = (e: MouseEvent) => {
         e.stopPropagation();
-        onDeleteModel(row);
+        onDelete(row);
       };
 
       return (
         <div className="flex items-center gap-2 justify-end">
-          {onSendLesson && (
+          {onSend && (
             <Button
               variant="outline"
               action="primary"
               size="small"
               iconLeft={<PaperPlaneTilt size={16} />}
               onClick={handleSend}
-              aria-label="Enviar aula"
+              aria-label={config.sendButtonAriaLabel}
             >
-              Enviar aula
+              {config.sendButtonLabel}
             </Button>
           )}
           <IconButton
             icon={<Trash size={20} />}
             size="md"
             onClick={handleDelete}
-            aria-label="Deletar modelo"
+            aria-label={config.deleteButtonAriaLabel}
             className="text-text-600 hover:text-error-500 hover:bg-transparent"
           />
-          {onEditModel && (
+          {onEdit && (
             <IconButton
               icon={<PencilSimple size={20} />}
               size="md"
               onClick={handleEdit}
-              aria-label="Editar modelo"
+              aria-label={config.editButtonAriaLabel}
               className="text-text-600 hover:text-primary-700 hover:bg-transparent"
             />
           )}
