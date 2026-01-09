@@ -85,6 +85,10 @@ const CreateActivity = ({
     (state: QuestionFiltersState) => state.setDraftFilters
   );
 
+  const clearFilters = useQuestionFiltersStore(
+    (state: QuestionFiltersState) => state.clearFilters
+  );
+
   const addToast = useToastStore((state) => state.addToast);
 
   // Estados internos
@@ -121,6 +125,19 @@ const CreateActivity = ({
   const handleApplyFilters = useCallback(() => {
     applyFilters();
   }, [applyFilters]);
+
+  /**
+   * Handle back button click - resets everything before calling onBack
+   */
+  const handleBack = useCallback(() => {
+    // Clear filters from store
+    clearFilters();
+
+    // Call original onBack if provided
+    if (onBack) {
+      onBack();
+    }
+  }, [clearFilters, onBack]);
 
   const useActivityFiltersData = createUseActivityFiltersData(apiClient);
   const { knowledgeAreas, loadKnowledgeAreas } = useActivityFiltersData({
@@ -865,7 +882,7 @@ const CreateActivity = ({
         questionsCount={questions.length}
         onSaveModel={handleSaveModel}
         onSendActivity={handleOpenSendModal}
-        onBack={onBack}
+        onBack={handleBack}
       />
 
       {/* Main Content with 3 columns */}
