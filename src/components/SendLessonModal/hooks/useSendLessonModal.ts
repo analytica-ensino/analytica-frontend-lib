@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { SendLessonFormData, StepErrors, CategoryConfig } from '../types';
 import { validateStep } from '../validation';
+import { extractStudentsFromCategories } from '../../../utils/extractStudentsFromCategories';
 
 /**
  * Store interface for SendLessonModal
@@ -50,62 +51,6 @@ const initialState = {
   errors: {} as StepErrors,
   categories: [] as CategoryConfig[],
 };
-
-/**
- * Helper to extract selected students from the students category
- */
-function extractStudentsFromCategories(
-  categories: CategoryConfig[]
-): Array<{ studentId: string; userInstitutionId: string }> {
-  // Find the students category (first matching by key 'students', 'alunos', or 'student')
-  const studentsCategory = categories.find(
-    (cat) =>
-      cat.key === 'students' || cat.key === 'alunos' || cat.key === 'student'
-  );
-
-  if (!studentsCategory?.selectedIds || !studentsCategory.itens) {
-    return [];
-  }
-
-  return studentsCategory.selectedIds
-    .map((id) => {
-      const student = studentsCategory.itens?.find((item) => item.id === id);
-      if (student) {
-        const rawStudentId = student.studentId;
-        const rawUserInstId = student.userInstitutionId;
-        const rawInstId = student.institutionId;
-
-        // Extract studentId with type guard
-        const studentId =
-          typeof rawStudentId === 'string' || typeof rawStudentId === 'number'
-            ? String(rawStudentId)
-            : student.id;
-        let userInstitutionId = '';
-        if (
-          typeof rawUserInstId === 'string' ||
-          typeof rawUserInstId === 'number'
-        ) {
-          userInstitutionId = String(rawUserInstId);
-        } else if (
-          typeof rawInstId === 'string' ||
-          typeof rawInstId === 'number'
-        ) {
-          userInstitutionId = String(rawInstId);
-        }
-
-        // Filter out entries without valid userInstitutionId
-        if (!userInstitutionId) {
-          return null;
-        }
-
-        return { studentId, userInstitutionId };
-      }
-      return null;
-    })
-    .filter(
-      (s): s is { studentId: string; userInstitutionId: string } => s !== null
-    );
-}
 
 /**
  * Creates the SendLessonModal store

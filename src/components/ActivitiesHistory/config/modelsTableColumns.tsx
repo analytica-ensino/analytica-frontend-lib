@@ -3,7 +3,7 @@ import { Trash, PencilSimple, PaperPlaneTilt } from 'phosphor-react';
 import Text from '../../Text/Text';
 import Button from '../../Button/Button';
 import IconButton from '../../IconButton/IconButton';
-import { renderSubjectCell } from '../utils';
+import { renderSubjectCell } from '../../../utils/renderSubjectCell';
 import type { ColumnConfig } from '../../TableProvider/TableProvider';
 import type { ActivityModelTableItem } from '../../../types/activitiesHistory';
 import type { SubjectEnum } from '../../../enums/SubjectEnum';

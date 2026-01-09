@@ -3,8 +3,7 @@ import { Trash, PencilSimple, PaperPlaneTilt } from 'phosphor-react';
 import Text from '../../Text/Text';
 import Button from '../../Button/Button';
 import IconButton from '../../IconButton/IconButton';
-import { getSubjectInfo } from '../../SubjectInfo/SubjectInfo';
-import { cn } from '../../../utils/utils';
+import { renderSubjectCell } from '../../../utils/renderSubjectCell';
 import type { ColumnConfig } from '../../TableProvider/TableProvider';
 import type { GoalModelTableItem } from '../../../types/recommendedLessons';
 import type { SubjectEnum } from '../../../enums/SubjectEnum';
@@ -50,39 +49,7 @@ export const createGoalModelsTableColumns = (
     className: 'max-w-[160px]',
     render: (value: unknown) => {
       const subjectName = typeof value === 'string' ? value : '';
-      if (!subjectName) {
-        return (
-          <Text size="sm" color="text-text-500">
-            -
-          </Text>
-        );
-      }
-
-      const subjectEnum = mapSubjectNameToEnum?.(subjectName);
-      if (!subjectEnum) {
-        return (
-          <Text size="sm" className="truncate" title={subjectName}>
-            {subjectName}
-          </Text>
-        );
-      }
-
-      const subjectInfo = getSubjectInfo(subjectEnum);
-      return (
-        <div className="flex items-center gap-2" title={subjectName}>
-          <span
-            className={cn(
-              'w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0',
-              subjectInfo.colorClass
-            )}
-          >
-            {subjectInfo.icon}
-          </span>
-          <Text size="sm" className="truncate">
-            {subjectName}
-          </Text>
-        </div>
-      );
+      return renderSubjectCell(subjectName, mapSubjectNameToEnum, true);
     },
   },
   {
