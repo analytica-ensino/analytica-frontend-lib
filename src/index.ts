@@ -746,6 +746,9 @@ export {
   mapSubjectEnumToName,
 } from './utils/subjectMappers';
 
+// Subject Cell Renderer
+export { renderSubjectCell } from './utils/renderSubjectCell';
+
 // Filter Helpers (robust version with deduplication)
 export {
   getSchoolOptionsFromUserData,
