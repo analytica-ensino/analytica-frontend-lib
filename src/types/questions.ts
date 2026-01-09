@@ -59,13 +59,12 @@ export interface Pagination {
  * Questions filter body interface
  */
 export interface QuestionsFilterBody {
-  types?: QUESTION_TYPE[];
-  bankIds?: string[];
-  yearIds?: string[];
-  knowledgeIds?: string[];
-  topicIds?: string[];
-  subtopicIds?: string[];
-  contentIds?: string[];
+  questionType?: QUESTION_TYPE[];
+  questionBankYearId?: string[];
+  subjectId?: string[];
+  topicId?: string[];
+  subtopicId?: string[];
+  contentId?: string[];
   page?: number;
   pageSize?: number;
   selectedQuestionsIds?: string[];

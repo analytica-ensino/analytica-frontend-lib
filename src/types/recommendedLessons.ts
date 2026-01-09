@@ -333,6 +333,54 @@ export interface GoalDetailsApiResponse {
 }
 
 // ============================================
+// Goal Activity Types - /goals/{id} activities
+// ============================================
+
+/**
+ * Activity status for goal activities
+ * Used in activitiesGoals array from /goals/{id} endpoint
+ */
+export const GOAL_ACTIVITY_STATUS = {
+  PENDENTE: 'PENDENTE',
+  CONCLUIDA: 'CONCLUIDA',
+  EXPIRADA: 'EXPIRADA',
+} as const;
+
+export type GoalActivityStatus =
+  (typeof GOAL_ACTIVITY_STATUS)[keyof typeof GOAL_ACTIVITY_STATUS];
+
+/**
+ * Activity details within a goal
+ */
+export interface GoalActivity {
+  id: string;
+  title: string;
+  status: GoalActivityStatus;
+}
+
+/**
+ * User activities within a goal
+ */
+export interface GoalSupUsersActivities {
+  id: string;
+  activity: GoalActivity;
+  userInstitutionId: string;
+  answeredAt: string | null;
+  timeSpent: number;
+  score: number | null;
+  lastInteraction: string;
+}
+
+/**
+ * Activities associated with a goal
+ */
+export interface GoalActivitiesGoals {
+  goalId: string;
+  supUsersActivitiesId: string;
+  supUsersActivities: GoalSupUsersActivities;
+}
+
+// ============================================
 // API Response Types - /goals/{id}
 // ============================================
 
@@ -387,6 +435,7 @@ export interface GoalMetadata {
   finalDate: string;
   progress: number;
   lessonsGoals: GoalLessonGoalItem[];
+  activitiesGoals?: GoalActivitiesGoals[];
 }
 
 /**

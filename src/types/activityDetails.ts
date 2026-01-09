@@ -3,6 +3,8 @@
  * Types and helper functions for activity details components
  */
 
+import { z } from 'zod';
+
 /**
  * Student activity status enum
  */
@@ -15,6 +17,16 @@ export const STUDENT_ACTIVITY_STATUS = {
 
 export type StudentActivityStatus =
   (typeof STUDENT_ACTIVITY_STATUS)[keyof typeof STUDENT_ACTIVITY_STATUS];
+
+/**
+ * Zod schema for student activity status
+ */
+export const studentActivityStatusSchema = z.enum([
+  STUDENT_ACTIVITY_STATUS.CONCLUIDO,
+  STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO,
+  STUDENT_ACTIVITY_STATUS.AGUARDANDO_RESPOSTA,
+  STUDENT_ACTIVITY_STATUS.NAO_ENTREGUE,
+]);
 
 /**
  * Student data interface
@@ -63,6 +75,7 @@ export interface QuestionStats {
 export interface ActivityMetadata {
   id: string;
   title: string;
+  type?: string;
   startDate: string | null;
   finalDate: string | null;
   schoolName: string;
@@ -127,3 +140,29 @@ export const ACTIVITY_AVAILABILITY = {
 
 export type ActivityAvailability =
   (typeof ACTIVITY_AVAILABILITY)[keyof typeof ACTIVITY_AVAILABILITY];
+
+/**
+ * Quiz API response
+ */
+export interface QuizResponse {
+  message: string;
+  data: ActivityMetadata;
+}
+
+/**
+ * Activity details API response (without activity)
+ */
+export interface ActivityDetailsApiResponse {
+  message: string;
+  data: Omit<ActivityDetailsData, 'activity'>;
+}
+
+/**
+ * Presigned URL response
+ */
+export interface PresignedUrlResponse {
+  data: {
+    url: string;
+    fields: Record<string, string>;
+  };
+}

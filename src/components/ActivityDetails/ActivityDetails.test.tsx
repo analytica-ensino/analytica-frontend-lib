@@ -202,9 +202,16 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
     ) : null,
 }));
 
+// Mock useActivityDetails hook
+jest.mock('../../hooks/useActivityDetails', () => ({
+  useActivityDetails: jest.fn(),
+}));
+
 // Import after mocks
 import { ActivityDetails } from './ActivityDetails';
 import type { ActivityDetailsProps } from './ActivityDetails';
+import { useActivityDetails } from '../../hooks/useActivityDetails';
+import type { BaseApiClient } from '../../types/api';
 
 /**
  * Mock activity details data
@@ -400,15 +407,20 @@ describe('ActivityDetails', () => {
   const mockFetchActivityDetails = jest.fn();
   const mockFetchStudentCorrection = jest.fn();
   const mockSubmitObservation = jest.fn();
+  const mockSubmitQuestionCorrection = jest.fn();
   const mockOnBack = jest.fn();
   const mockOnViewActivity = jest.fn();
   const mockMapSubjectNameToEnum = jest.fn();
+  const mockApiClient: BaseApiClient = {
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  };
 
   const defaultProps: ActivityDetailsProps = {
     activityId: 'activity-123',
-    fetchActivityDetails: mockFetchActivityDetails,
-    fetchStudentCorrection: mockFetchStudentCorrection,
-    submitObservation: mockSubmitObservation,
+    apiClient: mockApiClient,
     onBack: mockOnBack,
     onViewActivity: mockOnViewActivity,
     mapSubjectNameToEnum: mockMapSubjectNameToEnum,
@@ -438,7 +450,16 @@ describe('ActivityDetails', () => {
     };
     mockFetchStudentCorrection.mockResolvedValue(apiResponse);
     mockSubmitObservation.mockResolvedValue(undefined);
+    mockSubmitQuestionCorrection.mockResolvedValue(undefined);
     mockMapSubjectNameToEnum.mockReturnValue('MATEMATICA');
+
+    // Mock useActivityDetails hook
+    (useActivityDetails as jest.Mock).mockReturnValue({
+      fetchActivityDetails: mockFetchActivityDetails,
+      fetchStudentCorrection: mockFetchStudentCorrection,
+      submitObservation: mockSubmitObservation,
+      submitQuestionCorrection: mockSubmitQuestionCorrection,
+    });
   });
 
   describe('Loading State', () => {
@@ -876,7 +897,7 @@ describe('ActivityDetails', () => {
           'activity-123',
           'student-2',
           'Test observation',
-          []
+          null
         );
       });
     });

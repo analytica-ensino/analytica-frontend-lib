@@ -235,7 +235,7 @@ const CreateActivity = ({
     if (questions.length === 0 && !hasFirstSaveBeenDone.current) {
       return false;
     }
-    if (!appliedFilters || appliedFilters.knowledgeIds.length === 0) {
+    if (!appliedFilters?.subjectIds?.length) {
       return false;
     }
     if (loadingInitialQuestions || isSaving) {
@@ -250,7 +250,10 @@ const CreateActivity = ({
    * @returns Draft payload object
    */
   const createDraftPayload = useCallback(() => {
-    const subjectId = appliedFilters!.knowledgeIds[0];
+    const subjectId = appliedFilters?.subjectIds?.[0];
+    if (!subjectId) {
+      throw new Error('Subject ID não encontrado');
+    }
     const title = generateTitle(activityType, subjectId, knowledgeAreas);
     const filters = convertFiltersToBackendFormat(appliedFilters);
     const questionIds = questions.map((q) => q.id);
@@ -584,7 +587,7 @@ const CreateActivity = ({
       return;
     }
 
-    if (!appliedFilters || appliedFilters.knowledgeIds.length === 0) {
+    if (!appliedFilters) {
       return;
     }
 
@@ -671,10 +674,12 @@ const CreateActivity = ({
   const handleReorder = useCallback(
     (orderedQuestions: PreviewQuestion[]) => {
       setQuestions(orderedQuestions);
+      const hasSubjectIds =
+        Array.isArray(appliedFilters?.subjectIds) &&
+        appliedFilters.subjectIds.length > 0;
       if (
         hasFirstSaveBeenDone.current &&
-        appliedFilters &&
-        appliedFilters.knowledgeIds.length > 0 &&
+        hasSubjectIds &&
         !loadingInitialQuestions &&
         !isSaving
       ) {
@@ -740,7 +745,7 @@ const CreateActivity = ({
       setIsSendingActivity(true);
       try {
         const subjectId =
-          activity?.subjectId || appliedFilters?.knowledgeIds[0];
+          activity?.subjectId || appliedFilters?.subjectIds?.[0];
         if (!subjectId) {
           throw new Error('Subject ID não encontrado');
         }

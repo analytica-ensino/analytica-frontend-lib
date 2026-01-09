@@ -1264,11 +1264,13 @@ describe('CorrectActivityModal', () => {
     };
 
     it('should display correction fields for essay question', () => {
+      const onQuestionCorrectionSubmit = jest.fn();
       render(
         <CorrectActivityModal
           {...defaultProps}
           data={essayQuestionData}
           isViewOnly={false}
+          onQuestionCorrectionSubmit={onQuestionCorrectionSubmit}
         />
       );
 
@@ -1286,11 +1288,13 @@ describe('CorrectActivityModal', () => {
     });
 
     it('should allow selecting if answer is correct', () => {
+      const onQuestionCorrectionSubmit = jest.fn();
       render(
         <CorrectActivityModal
           {...defaultProps}
           data={essayQuestionData}
           isViewOnly={false}
+          onQuestionCorrectionSubmit={onQuestionCorrectionSubmit}
         />
       );
 
@@ -1305,11 +1309,13 @@ describe('CorrectActivityModal', () => {
     });
 
     it('should allow selecting if answer is incorrect', () => {
+      const onQuestionCorrectionSubmit = jest.fn();
       render(
         <CorrectActivityModal
           {...defaultProps}
           data={essayQuestionData}
           isViewOnly={false}
+          onQuestionCorrectionSubmit={onQuestionCorrectionSubmit}
         />
       );
 
@@ -1324,11 +1330,13 @@ describe('CorrectActivityModal', () => {
     });
 
     it('should allow writing teacher feedback', () => {
+      const onQuestionCorrectionSubmit = jest.fn();
       render(
         <CorrectActivityModal
           {...defaultProps}
           data={essayQuestionData}
           isViewOnly={false}
+          onQuestionCorrectionSubmit={onQuestionCorrectionSubmit}
         />
       );
 
@@ -1347,11 +1355,13 @@ describe('CorrectActivityModal', () => {
     });
 
     it('should disable Save button when isCorrect is null', () => {
+      const onQuestionCorrectionSubmit = jest.fn();
       render(
         <CorrectActivityModal
           {...defaultProps}
           data={essayQuestionData}
           isViewOnly={false}
+          onQuestionCorrectionSubmit={onQuestionCorrectionSubmit}
         />
       );
 
@@ -1417,7 +1427,6 @@ describe('CorrectActivityModal', () => {
 
       expect(onQuestionCorrectionSubmit).toHaveBeenCalledWith('student-123', {
         questionId: 'q1',
-        questionNumber: 1,
         isCorrect: true,
         teacherFeedback: 'Boa resposta',
       });
@@ -1451,7 +1460,7 @@ describe('CorrectActivityModal', () => {
       expect(screen.getByText('Salvando...')).toBeInTheDocument();
     });
 
-    it('should not call onQuestionCorrectionSubmit when there is no callback', () => {
+    it('should not display correction fields when there is no callback', () => {
       render(
         <CorrectActivityModal
           {...defaultProps}
@@ -1465,11 +1474,12 @@ describe('CorrectActivityModal', () => {
       const questao1Button = questao1Buttons[0].closest('button');
       fireEvent.click(questao1Button!);
 
-      const simRadio = screen.getByLabelText('Sim');
-      fireEvent.click(simRadio);
-
-      const salvarButton = screen.getByText('Salvar');
-      expect(salvarButton).toBeDisabled();
+      // Correction fields should not be displayed when callback is not provided
+      expect(
+        screen.queryByText('Resposta está correta?')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Incluir observação')).not.toBeInTheDocument();
+      expect(screen.queryByText('Salvar')).not.toBeInTheDocument();
     });
 
     it('should handle error when saving correction', async () => {

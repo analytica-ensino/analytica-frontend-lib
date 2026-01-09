@@ -170,6 +170,17 @@ export interface TableProviderProps<T = Record<string, unknown>> {
   readonly onRowClick?: (row: T, index: number) => void;
 
   /**
+   * Content to display in the header area (e.g., action buttons)
+   * Rendered above the search/filter controls
+   */
+  readonly headerContent?: ReactNode;
+
+  /**
+   * Additional CSS classes for the container wrapper
+   */
+  readonly containerClassName?: string;
+
+  /**
    * Render prop for custom layout control
    * When provided, gives full control over component positioning
    * @param components - Table components (controls, table, pagination)
@@ -237,6 +248,8 @@ export function TableProvider<T extends Record<string, unknown>>({
   rowKey,
   onParamsChange,
   onRowClick,
+  headerContent,
+  containerClassName,
   children,
 }: TableProviderProps<T>) {
   // Search state
@@ -444,6 +457,17 @@ export function TableProvider<T extends Record<string, unknown>>({
     </div>
   );
 
+  // Header with content and controls
+  const headerSection = (headerContent || controls) && (
+    <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      {/* Header Content (e.g., action buttons) */}
+      {headerContent && <div>{headerContent}</div>}
+
+      {/* Controls (search and filters) */}
+      {controls && <div className="flex-1 md:flex-none">{controls}</div>}
+    </div>
+  );
+
   const table = (
     <div className="w-full overflow-x-auto">
       <Table
@@ -588,7 +612,11 @@ export function TableProvider<T extends Record<string, unknown>>({
   if (children) {
     return (
       <>
-        {children({ controls, table, pagination })}
+        {children({
+          controls: headerSection || controls || null,
+          table,
+          pagination,
+        })}
         {/* Filter Modal */}
         {enableFilters && (
           <FilterModal
@@ -605,9 +633,10 @@ export function TableProvider<T extends Record<string, unknown>>({
   }
 
   // Default layout (backward compatible)
+  const wrapperClassName = containerClassName || 'w-full space-y-4';
   return (
-    <div className="w-full space-y-4">
-      {controls}
+    <div className={wrapperClassName}>
+      {headerSection}
       {table}
       {pagination}
 

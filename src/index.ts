@@ -455,6 +455,7 @@ export {
 export {
   STUDENT_ACTIVITY_STATUS,
   ACTIVITY_AVAILABILITY,
+  studentActivityStatusSchema,
 } from './types/activityDetails';
 
 // Activity Details Utils
@@ -481,6 +482,8 @@ export type {
 // Activity Details Component
 export { ActivityDetails } from './components/ActivityDetails/ActivityDetails';
 export type { ActivityDetailsProps } from './components/ActivityDetails/ActivityDetails';
+export { useActivityDetails } from './hooks/useActivityDetails';
+export type { UseActivityDetailsReturn } from './hooks/useActivityDetails';
 
 // Support Components
 export {
@@ -624,6 +627,7 @@ export {
   deriveStudentStatus,
   formatDaysToComplete,
   GoalDraftType,
+  GOAL_ACTIVITY_STATUS,
 } from './types/recommendedLessons';
 export type {
   GoalSubject,
@@ -658,6 +662,11 @@ export type {
   GoalModelsApiResponse,
   GoalModelFilters,
   GoalModelPagination,
+  // Goal Activity Types
+  GoalActivityStatus,
+  GoalActivity,
+  GoalSupUsersActivities,
+  GoalActivitiesGoals,
 } from './types/recommendedLessons';
 
 // Goal Models Hook Factory

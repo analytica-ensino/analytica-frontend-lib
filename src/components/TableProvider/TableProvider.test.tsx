@@ -1,8 +1,11 @@
-import type { HTMLAttributes, InputHTMLAttributes } from 'react';
+import type { HTMLAttributes, InputHTMLAttributes, ReactNode } from 'react';
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { TableProvider } from './TableProvider';
-import type { ColumnConfig } from './TableProvider';
+import {
+  TableProvider,
+  type ColumnConfig,
+  type TableComponents,
+} from './TableProvider';
 import type { FilterConfig } from '../Filter/useTableFilter';
 
 // Mock para imagens PNG
@@ -1052,6 +1055,251 @@ describe('TableProvider', () => {
       );
 
       expect(screen.getByText(/Página 1 de 5/)).toBeInTheDocument();
+    });
+  });
+
+  // ======================
+  // GROUP 13: Header Content
+  // ======================
+  describe('Header Content', () => {
+    it('should render headerContent when provided', () => {
+      const headerContent = <button data-testid="create-button">Criar</button>;
+
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          headerContent={headerContent}
+        />
+      );
+
+      expect(screen.getByTestId('create-button')).toBeInTheDocument();
+      expect(screen.getByText('Criar')).toBeInTheDocument();
+    });
+
+    it('should render headerContent above table in default layout', () => {
+      const headerContent = <button data-testid="header-button">Action</button>;
+      const { container } = render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          headerContent={headerContent}
+        />
+      );
+
+      const headerButton = screen.getByTestId('header-button');
+      const table = container.querySelector('table');
+
+      expect(headerButton).toBeInTheDocument();
+      expect(table).toBeInTheDocument();
+
+      // Verify headerContent appears before table in DOM
+      const headerSection = headerButton.closest('div');
+      expect(headerSection).toBeInTheDocument();
+    });
+
+    it('should render headerContent alongside controls when both are provided', () => {
+      const headerContent = <button data-testid="create-button">Criar</button>;
+
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableSearch
+          headerContent={headerContent}
+        />
+      );
+
+      expect(screen.getByTestId('create-button')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Buscar...')).toBeInTheDocument();
+    });
+
+    it('should render headerContent when only headerContent is provided (no controls)', () => {
+      const headerContent = <button data-testid="action-button">Ação</button>;
+
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          headerContent={headerContent}
+          enableSearch={false}
+          enableFilters={false}
+        />
+      );
+
+      expect(screen.getByTestId('action-button')).toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText('Buscar...')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should include headerContent in render props when children is provided', () => {
+      const headerContent = <button data-testid="render-button">Render</button>;
+      const renderSpy = jest.fn<ReactNode, [TableComponents]>(() => null);
+
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          headerContent={headerContent}
+        >
+          {renderSpy}
+        </TableProvider>
+      );
+
+      expect(renderSpy).toHaveBeenCalled();
+      const callArgs = renderSpy.mock.calls[0]?.[0];
+      expect(callArgs).toBeDefined();
+      if (!callArgs) {
+        throw new Error('renderSpy was not called with arguments');
+      }
+      const { controls } = callArgs;
+
+      // Verify that headerSection is passed in controls when headerContent is provided
+      const { container } = render(<>{controls}</>);
+      expect(
+        container.querySelector('[data-testid="render-button"]')
+      ).toBeInTheDocument();
+    });
+
+    it('should include both headerContent and search controls in render props', () => {
+      const headerContent = <button data-testid="create-button">Criar</button>;
+      const renderSpy = jest.fn<ReactNode, [TableComponents]>(() => null);
+
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableSearch
+          headerContent={headerContent}
+        >
+          {renderSpy}
+        </TableProvider>
+      );
+
+      expect(renderSpy).toHaveBeenCalled();
+      const callArgs = renderSpy.mock.calls[0]?.[0];
+      expect(callArgs).toBeDefined();
+      if (!callArgs) {
+        throw new Error('renderSpy was not called with arguments');
+      }
+      const { controls } = callArgs;
+
+      const { container } = render(<>{controls}</>);
+      expect(
+        container.querySelector('[data-testid="create-button"]')
+      ).toBeInTheDocument();
+      expect(container.querySelector('input[type="text"]')).toBeInTheDocument();
+    });
+
+    it('should render headerContent with filters when both are enabled', () => {
+      const headerContent = (
+        <button data-testid="filter-header">Filter Header</button>
+      );
+
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableFilters
+          initialFilters={testFilters}
+          headerContent={headerContent}
+        />
+      );
+
+      expect(screen.getByTestId('filter-header')).toBeInTheDocument();
+      expect(screen.getByText('Filtros')).toBeInTheDocument();
+    });
+
+    it('should handle complex headerContent with multiple elements', () => {
+      const headerContent = (
+        <div data-testid="header-wrapper">
+          <button data-testid="button-1">Button 1</button>
+          <button data-testid="button-2">Button 2</button>
+        </div>
+      );
+
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          headerContent={headerContent}
+        />
+      );
+
+      expect(screen.getByTestId('header-wrapper')).toBeInTheDocument();
+      expect(screen.getByTestId('button-1')).toBeInTheDocument();
+      expect(screen.getByTestId('button-2')).toBeInTheDocument();
+    });
+  });
+
+  // ======================
+  // GROUP 14: Container ClassName
+  // ======================
+  describe('Container ClassName', () => {
+    it('should apply custom containerClassName when provided', () => {
+      const customClassName = 'bg-background rounded-xl p-6 space-y-4';
+      const { container } = render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          containerClassName={customClassName}
+        />
+      );
+
+      const wrapper = container.firstChild;
+      expect(wrapper).toHaveClass(
+        'bg-background',
+        'rounded-xl',
+        'p-6',
+        'space-y-4'
+      );
+    });
+
+    it('should use default className when containerClassName is not provided', () => {
+      const { container } = render(
+        <TableProvider data={testData} headers={testHeaders} />
+      );
+
+      const wrapper = container.firstChild;
+      expect(wrapper).toHaveClass('w-full', 'space-y-4');
+      expect(wrapper).not.toHaveClass('bg-background');
+    });
+
+    it('should apply containerClassName with headerContent', () => {
+      const customClassName = 'custom-container-class';
+      const headerContent = <button data-testid="header-btn">Header</button>;
+      const { container } = render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          containerClassName={customClassName}
+          headerContent={headerContent}
+        />
+      );
+
+      const wrapper = container.firstChild;
+      expect(wrapper).toHaveClass('custom-container-class');
+      expect(screen.getByTestId('header-btn')).toBeInTheDocument();
+    });
+
+    it('should apply containerClassName with all features enabled', () => {
+      const customClassName = 'full-features-container';
+      const { container } = render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableSearch
+          enableFilters
+          enablePagination
+          containerClassName={customClassName}
+        />
+      );
+
+      const wrapper = container.firstChild;
+      expect(wrapper).toHaveClass('full-features-container');
+      expect(screen.getByPlaceholderText('Buscar...')).toBeInTheDocument();
+      expect(screen.getByText('Filtros')).toBeInTheDocument();
     });
   });
 });

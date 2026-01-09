@@ -8,7 +8,7 @@ export interface ActivityFiltersData {
   types: QUESTION_TYPE[];
   bankIds: string[];
   yearIds: string[];
-  knowledgeIds: string[];
+  subjectIds: string[];
   topicIds: string[];
   subtopicIds: string[];
   contentIds: string[];

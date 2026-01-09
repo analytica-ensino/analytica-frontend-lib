@@ -72,15 +72,15 @@ export interface StudentActivityCorrectionData {
 /**
  * Payload for saving question correction (for essay questions)
  */
-export interface SaveQuestionCorrectionPayload {
+export interface SaveQuestionCorrectionPayload extends Record<string, unknown> {
   /** Question ID from Question interface */
   questionId: string;
-  /** Question number in the activity (for reference) */
-  questionNumber: number;
   /** Whether the answer is correct */
-  isCorrect: boolean;
+  isCorrect?: boolean | null;
+  /** Score for the question */
+  score?: number | null;
   /** Teacher observation/feedback */
-  teacherFeedback?: string;
+  teacherFeedback?: string | null;
 }
 
 /**

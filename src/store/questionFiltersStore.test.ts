@@ -6,7 +6,7 @@ const sampleFilters: ActivityFiltersData = {
   types: [QUESTION_TYPE.ALTERNATIVA],
   bankIds: ['bank-1'],
   yearIds: ['year-1'],
-  knowledgeIds: ['knowledge-1'],
+  subjectIds: ['subject-1'],
   topicIds: ['topic-1'],
   subtopicIds: ['subtopic-1'],
   contentIds: ['content-1'],
