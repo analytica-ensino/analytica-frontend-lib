@@ -479,6 +479,72 @@ export const ActivityDetails = ({
   );
 
   /**
+   * Try to fetch questions from quiz endpoint
+   */
+  const tryFetchQuizResponse = useCallback(async () => {
+    try {
+      const response = await apiClient.get<{
+        data: { questions?: Question[]; questionIds?: string[] };
+      }>(`/activities/${activityId}/quiz`);
+      return { response, error: undefined };
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      return { response: undefined, error };
+    }
+  }, [activityId, apiClient]);
+
+  /**
+   * Try to fetch questions from activity endpoint
+   */
+  const tryFetchActivityResponse = useCallback(async () => {
+    try {
+      const response = await apiClient.get<{
+        data: { questions?: Question[]; questionIds?: string[] };
+      }>(`/activities/${activityId}`);
+      return { response, error: undefined };
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      return { response: undefined, error };
+    }
+  }, [activityId, apiClient]);
+
+  /**
+   * Fetch questions from both endpoints (quiz and activity)
+   * Returns questions array or throws error if both fail
+   */
+  const fetchQuestionsFromEndpoints = useCallback(async (): Promise<
+    Question[]
+  > => {
+    // Try quiz endpoint first
+    const { response: quizResponse, error: quizError } =
+      await tryFetchQuizResponse();
+    let questions = await extractQuestionsFromResponse(quizResponse);
+
+    // If quiz endpoint didn't return questions, try activity endpoint
+    if (questions.length === 0) {
+      const { response: activityResponse, error: activityError } =
+        await tryFetchActivityResponse();
+
+      // If both endpoints failed, throw error
+      if (!quizResponse && !activityResponse) {
+        const errorMessage =
+          quizError?.message ||
+          activityError?.message ||
+          'Erro ao buscar questões da atividade. Tente novamente.';
+        throw new Error(errorMessage);
+      }
+
+      questions = await extractQuestionsFromResponse(activityResponse);
+    }
+
+    return questions;
+  }, [
+    tryFetchQuizResponse,
+    tryFetchActivityResponse,
+    extractQuestionsFromResponse,
+  ]);
+
+  /**
    * Handle fetch error and show toast notification
    */
   const handleQuestionsFetchError = useCallback(
@@ -507,61 +573,7 @@ export const ActivityDetails = ({
     setIsLoadingQuestions(true);
     setActivityQuestionsError(null);
     try {
-      // Try to fetch quiz which might contain questions
-      let quizResponse:
-        | Awaited<
-            ReturnType<
-              typeof apiClient.get<{
-                data: { questions?: Question[]; questionIds?: string[] };
-              }>
-            >
-          >
-        | undefined;
-      let quizError: Error | undefined;
-
-      try {
-        quizResponse = await apiClient.get<{
-          data: { questions?: Question[]; questionIds?: string[] };
-        }>(`/activities/${activityId}/quiz`);
-      } catch (err) {
-        quizError = err instanceof Error ? err : new Error(String(err));
-      }
-
-      let questions = await extractQuestionsFromResponse(quizResponse);
-
-      // If quiz response didn't have questions, try activity endpoint
-      if (questions.length === 0) {
-        let activityResponse:
-          | Awaited<
-              ReturnType<
-                typeof apiClient.get<{
-                  data: { questions?: Question[]; questionIds?: string[] };
-                }>
-              >
-            >
-          | undefined;
-        let activityError: Error | undefined;
-
-        try {
-          activityResponse = await apiClient.get<{
-            data: { questions?: Question[]; questionIds?: string[] };
-          }>(`/activities/${activityId}`);
-        } catch (err) {
-          activityError = err instanceof Error ? err : new Error(String(err));
-        }
-
-        // If both requests failed, surface the error
-        if (!quizResponse && !activityResponse) {
-          const errorMessage =
-            quizError?.message ||
-            activityError?.message ||
-            'Erro ao buscar questões da atividade. Tente novamente.';
-          handleQuestionsFetchError(errorMessage);
-          return false;
-        }
-
-        questions = await extractQuestionsFromResponse(activityResponse);
-      }
+      const questions = await fetchQuestionsFromEndpoints();
 
       // Convert questions to PreviewQuestion format
       const previewQuestions = questions.map((q) =>
@@ -592,13 +604,7 @@ export const ActivityDetails = ({
     } finally {
       setIsLoadingQuestions(false);
     }
-  }, [
-    activityId,
-    apiClient,
-    extractQuestionsFromResponse,
-    handleQuestionsFetchError,
-    addToast,
-  ]);
+  }, [fetchQuestionsFromEndpoints, handleQuestionsFetchError, addToast]);
 
   /**
    * Handle download PDF button click
