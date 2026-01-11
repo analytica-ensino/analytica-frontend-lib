@@ -1,5 +1,12 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Medal, Star, File, CaretRight, WarningCircle } from 'phosphor-react';
+import {
+  Medal,
+  Star,
+  File,
+  CaretRight,
+  WarningCircle,
+  DownloadSimple,
+} from 'phosphor-react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
@@ -35,6 +42,14 @@ import {
 } from '../../utils/activityDetailsUtils';
 import type { BaseApiClient } from '../../types/api';
 import { useActivityDetails } from '../../hooks/useActivityDetails';
+import {
+  useQuestionsPdfPrint,
+  QuestionsPdfContent,
+} from '../QuestionsPdfGenerator';
+import type { PreviewQuestion } from '../ActivityPreview/ActivityPreview';
+import { convertQuestionToPreview } from '../ActivityCreate/ActivityCreate.utils';
+import type { Question } from '../../types/questions';
+import { createUseQuestionsList } from '../../hooks/useQuestionsList';
 
 /**
  * Props for the ActivityDetails component
@@ -46,8 +61,6 @@ export interface ActivityDetailsProps {
   apiClient: BaseApiClient;
   /** Callback when back button is clicked */
   onBack?: () => void;
-  /** Callback when view activity button is clicked */
-  onViewActivity?: () => void;
   /** Image for empty state */
   emptyStateImage?: string;
   /** Function to map subject name to SubjectEnum */
@@ -183,7 +196,6 @@ export const ActivityDetails = ({
   activityId,
   apiClient,
   onBack,
-  onViewActivity,
   emptyStateImage,
   mapSubjectNameToEnum,
 }: ActivityDetailsProps) => {
@@ -213,6 +225,12 @@ export const ActivityDetails = ({
   const [isViewOnlyModal, setIsViewOnlyModal] = useState(false);
   const [correctionError, setCorrectionError] = useState<string | null>(null);
 
+  // PDF download state
+  const [activityQuestions, setActivityQuestions] = useState<PreviewQuestion[]>(
+    []
+  );
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+
   // Use activity details hook
   const {
     fetchActivityDetails,
@@ -220,6 +238,13 @@ export const ActivityDetails = ({
     submitObservation,
     submitQuestionCorrection,
   } = useActivityDetails(apiClient);
+
+  // Use questions list hook for fetching questions by IDs
+  const useQuestionsList = useMemo(
+    () => createUseQuestionsList(apiClient),
+    [apiClient]
+  );
+  const { fetchQuestionsByIds } = useQuestionsList();
 
   /**
    * Fetch activity details when params change
@@ -376,13 +401,120 @@ export const ActivityDetails = ({
   };
 
   /**
-   * Handle view activity button click
+   * Normalize questions with positions
    */
-  const handleViewActivity = () => {
-    if (onViewActivity) {
-      onViewActivity();
+  const normalizeWithPositions = useMemo(
+    () => (items: PreviewQuestion[]) =>
+      items.map((item, index) => ({
+        ...item,
+        position: index + 1,
+      })),
+    []
+  );
+
+  const orderedQuestions = useMemo(
+    () => normalizeWithPositions(activityQuestions),
+    [activityQuestions, normalizeWithPositions]
+  );
+
+  /**
+   * Use PDF print hook
+   */
+  const { contentRef, handlePrint } = useQuestionsPdfPrint(orderedQuestions);
+
+  /**
+   * Fetch activity questions for PDF download
+   */
+  const fetchActivityQuestions = useCallback(async () => {
+    if (!activityId) return;
+
+    setIsLoadingQuestions(true);
+    try {
+      // Try to fetch quiz which might contain questions
+      const quizResponse = await apiClient
+        .get<{
+          data: { questions?: Question[]; questionIds?: string[] };
+        }>(`/activities/${activityId}/quiz`)
+        .catch(() => null);
+
+      let questions: Question[] = [];
+
+      // Check if quiz response has questions directly
+      if (quizResponse?.data?.data?.questions) {
+        questions = quizResponse.data.data.questions;
+      }
+      // Or check if it has questionIds and fetch them
+      else if (quizResponse?.data?.data?.questionIds) {
+        questions = await fetchQuestionsByIds(
+          quizResponse.data.data.questionIds
+        );
+      }
+      // Try to fetch from activity details endpoint
+      else {
+        // Try alternative endpoint structure
+        const activityResponse = await apiClient
+          .get<{
+            data: { questions?: Question[]; questionIds?: string[] };
+          }>(`/activities/${activityId}`)
+          .catch(() => null);
+
+        if (activityResponse?.data?.data?.questions) {
+          questions = activityResponse.data.data.questions;
+        } else if (activityResponse?.data?.data?.questionIds) {
+          questions = await fetchQuestionsByIds(
+            activityResponse.data.data.questionIds
+          );
+        }
+      }
+
+      // Convert questions to PreviewQuestion format
+      const previewQuestions = questions.map((q) =>
+        convertQuestionToPreview(q)
+      );
+      setActivityQuestions(previewQuestions);
+    } catch (err) {
+      console.error('Erro ao buscar questões da atividade:', err);
+      setActivityQuestions([]);
+    } finally {
+      setIsLoadingQuestions(false);
     }
-  };
+  }, [activityId, apiClient, fetchQuestionsByIds]);
+
+  /**
+   * Handle download PDF button click
+   */
+  const handleDownloadPdf = useCallback(async () => {
+    // If questions are not loaded yet, fetch them first
+    if (activityQuestions.length === 0) {
+      await fetchActivityQuestions();
+      // Wait for state update and DOM rendering
+      setTimeout(() => {
+        if (
+          contentRef.current &&
+          handlePrint &&
+          typeof handlePrint === 'function'
+        ) {
+          handlePrint();
+        }
+      }, 500);
+    } else {
+      // Questions already loaded, print immediately
+      setTimeout(() => {
+        if (
+          contentRef.current &&
+          handlePrint &&
+          typeof handlePrint === 'function'
+        ) {
+          handlePrint();
+        }
+      }, 100);
+    }
+  }, [
+    activityQuestions.length,
+    fetchActivityQuestions,
+    handlePrint,
+    contentRef,
+  ]);
 
   /**
    * Handle back navigation
@@ -537,11 +669,12 @@ export const ActivityDetails = ({
               </div>
               <Button
                 size="small"
-                onClick={handleViewActivity}
+                onClick={handleDownloadPdf}
+                disabled={isLoadingQuestions}
+                iconLeft={<DownloadSimple size={16} />}
                 className="bg-primary-950 text-text gap-2"
               >
-                <File size={16} />
-                Ver atividade
+                {isLoadingQuestions ? 'Carregando...' : 'Baixar Atividade'}
               </Button>
             </div>
           </div>
@@ -700,6 +833,9 @@ export const ActivityDetails = ({
         onObservationSubmit={handleObservationSubmit}
         onQuestionCorrectionSubmit={handleQuestionCorrectionSubmit}
       />
+
+      {/* Hidden PDF content for printing */}
+      <QuestionsPdfContent ref={contentRef} questions={orderedQuestions} />
     </div>
   );
 };
