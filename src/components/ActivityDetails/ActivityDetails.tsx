@@ -190,6 +190,15 @@ const createTableColumns = (
 ];
 
 /**
+ * Normalize questions with positions
+ */
+const normalizeWithPositions = (items: PreviewQuestion[]) =>
+  items.map((item, index) => ({
+    ...item,
+    position: index + 1,
+  }));
+
+/**
  * ActivityDetails component
  * Displays detailed information about an activity including statistics and student progress
  */
@@ -416,21 +425,9 @@ export const ActivityDetails = ({
     }
   };
 
-  /**
-   * Normalize questions with positions
-   */
-  const normalizeWithPositions = useMemo(
-    () => (items: PreviewQuestion[]) =>
-      items.map((item, index) => ({
-        ...item,
-        position: index + 1,
-      })),
-    []
-  );
-
   const orderedQuestions = useMemo(
     () => normalizeWithPositions(activityQuestions),
-    [activityQuestions, normalizeWithPositions]
+    [activityQuestions]
   );
 
   /**

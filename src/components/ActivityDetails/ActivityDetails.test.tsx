@@ -1344,5 +1344,170 @@ describe('ActivityDetails', () => {
         });
       });
     });
+
+    it('should not set shouldPrint when fetchActivityQuestions returns false (no questions)', async () => {
+      // Mock API to return empty questions array
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: [],
+          },
+        },
+      });
+
+      mockFetchQuestionsByIds.mockResolvedValue([]);
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      // Wait for fetch to complete
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalled();
+      });
+
+      // Should not call handlePrint because shouldPrint should be false
+      await waitFor(
+        () => {
+          expect(mockHandlePrint).not.toHaveBeenCalled();
+        },
+        { timeout: 1000 }
+      );
+    });
+
+    it('should set shouldPrint to false when questions are already loaded but empty', async () => {
+      // First, load questions (even if empty)
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: [],
+          },
+        },
+      });
+
+      mockFetchQuestionsByIds.mockResolvedValue([]);
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+
+      // First click to load (empty) questions
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalled();
+      });
+
+      // Second click - questions are already loaded but empty
+      fireEvent.click(downloadButton);
+
+      // Should not call handlePrint
+      await waitFor(
+        () => {
+          expect(mockHandlePrint).not.toHaveBeenCalled();
+        },
+        { timeout: 1000 }
+      );
+    });
+
+    it('should not set shouldPrint when fetchActivityQuestions returns false due to error', async () => {
+      // Mock fetchQuestionsByIds to throw an error (this will trigger the catch block)
+      mockFetchQuestionsByIds.mockRejectedValueOnce(
+        new Error('Failed to fetch questions')
+      );
+
+      // Mock API to return questionIds that will trigger fetchQuestionsByIds
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questionIds: ['q1'],
+          },
+        },
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      // Wait for error handling
+      await waitFor(() => {
+        expect(mockFetchQuestionsByIds).toHaveBeenCalled();
+      });
+
+      // Should not call handlePrint because shouldPrint should be false
+      await waitFor(
+        () => {
+          expect(mockHandlePrint).not.toHaveBeenCalled();
+        },
+        { timeout: 1000 }
+      );
+
+      // Should show error toast
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Erro ao carregar questões',
+            variant: 'solid',
+            action: 'warning',
+          })
+        );
+      });
+    });
+
+    it('should call handlePrint when questions are successfully loaded and shouldPrint is true', async () => {
+      const mockQuestions = [
+        createQuestion('q1', 'Questão 1', QUESTION_TYPE.ALTERNATIVA, [
+          { id: 'opt1', option: 'Opção A' },
+          { id: 'opt2', option: 'Opção B' },
+        ]),
+      ];
+
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: mockQuestions,
+          },
+        },
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      // Wait for questions to be loaded
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalled();
+      });
+
+      // handlePrint should eventually be called when questions are loaded and shouldPrint is true
+      await waitFor(
+        () => {
+          expect(mockHandlePrint).toHaveBeenCalled();
+        },
+        { timeout: 2000 }
+      );
+
+      // Verify that handlePrint was called (meaning shouldPrint was true and conditions were met)
+      expect(mockHandlePrint).toHaveBeenCalled();
+    });
   });
 });
