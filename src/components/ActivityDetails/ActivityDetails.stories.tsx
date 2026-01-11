@@ -444,7 +444,6 @@ const defaultProps: ActivityDetailsProps = {
   activityId: 'activity-123',
   apiClient: createMockApiClient(),
   onBack: () => console.log('Navigate back clicked'),
-  onViewActivity: () => console.log('View activity clicked'),
 };
 
 /**
