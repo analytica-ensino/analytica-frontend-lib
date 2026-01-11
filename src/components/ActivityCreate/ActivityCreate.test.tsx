@@ -115,7 +115,110 @@ jest.mock('../ActivityFilters/ActivityFilters', () => ({
       </button>
     </div>
   ),
+  ActivityFiltersPopover: ({
+    onFiltersChange,
+    onApplyFilters,
+    onClearFilters,
+    apiClient: _apiClient,
+    institutionId: _institutionId,
+    triggerLabel,
+  }: {
+    onFiltersChange?: (filters: ActivityFiltersData) => void;
+    onApplyFilters?: () => void;
+    onClearFilters?: () => void;
+    apiClient: BaseApiClient;
+    institutionId: string;
+    initialFilters?: ActivityFiltersData | null;
+    triggerLabel?: string;
+  }) => (
+    <div data-testid="activity-filters-popover">
+      <button data-testid="filters-popover-trigger">{triggerLabel}</button>
+      <button
+        data-testid="trigger-filters-change-popover"
+        onClick={() =>
+          onFiltersChange?.({
+            types: [QUESTION_TYPE.ALTERNATIVA],
+            bankIds: ['bank1'],
+            yearIds: [],
+            subjectIds: ['subject1'],
+            topicIds: [],
+            subtopicIds: [],
+            contentIds: [],
+          })
+        }
+      >
+        Change Filters
+      </button>
+      {onApplyFilters && (
+        <button data-testid="apply-filters-popover" onClick={onApplyFilters}>
+          Apply Filters
+        </button>
+      )}
+      {onClearFilters && (
+        <button data-testid="clear-filters-popover" onClick={onClearFilters}>
+          Clear Filters
+        </button>
+      )}
+    </div>
+  ),
 }));
+
+jest.mock('../Menu/Menu', () => {
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      defaultValue,
+      value,
+      variant,
+    }: {
+      children: React.ReactNode;
+      defaultValue: string;
+      value?: string;
+      onValueChange?: (value: string) => void;
+      variant?: string;
+    }) => (
+      <div
+        data-testid="menu"
+        data-variant={variant}
+        data-value={value || defaultValue}
+        data-default-value={defaultValue}
+      >
+        {children}
+      </div>
+    ),
+    MenuContent: ({
+      children,
+      variant,
+    }: {
+      children: React.ReactNode;
+      variant?: string;
+    }) => (
+      <ul data-testid="menu-content" data-variant={variant}>
+        {children}
+      </ul>
+    ),
+    MenuItem: ({
+      children,
+      value,
+      variant,
+      onClick,
+    }: {
+      children: React.ReactNode;
+      value: string;
+      variant?: string;
+      onClick?: () => void;
+    }) => (
+      <li
+        data-testid={`menu-item-${value}`}
+        data-variant={variant}
+        onClick={onClick}
+      >
+        {children}
+      </li>
+    ),
+  };
+});
 
 jest.mock('../ActivityPreview/ActivityPreview', () => ({
   ActivityPreview: ({
@@ -461,6 +564,9 @@ jest.mock('../..', () => {
     ActivityFilters: require('../ActivityFilters/ActivityFilters')
       .ActivityFilters,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
+    ActivityFiltersPopover: require('../ActivityFilters/ActivityFilters')
+      .ActivityFiltersPopover,
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     ActivityPreview: require('../ActivityPreview/ActivityPreview')
       .ActivityPreview,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -490,6 +596,24 @@ jest.mock('../..', () => {
 });
 
 describe('CreateActivity', () => {
+  // Mock window.innerWidth for responsive tests
+  const originalInnerWidth = window.innerWidth;
+  beforeAll(() => {
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: 1400, // Default to desktop size
+    });
+  });
+
+  afterAll(() => {
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: originalInnerWidth,
+    });
+  });
+
   const mockApiClient: BaseApiClient = {
     get: jest.fn(),
     post: jest.fn(),

@@ -36,6 +36,8 @@ jest.mock('../../hooks/useTheme', () => ({
 // Mock useQuestionFiltersStore
 const mockAppliedFilters = jest.fn<unknown, []>(() => null);
 const mockSetAppliedFilters = jest.fn();
+const mockSetCachedQuestions = jest.fn();
+const mockClearCachedQuestions = jest.fn();
 
 jest.mock('../../store/questionFiltersStore', () => ({
   useQuestionFiltersStore: (selector: (state: unknown) => unknown) => {
@@ -44,6 +46,11 @@ jest.mock('../../store/questionFiltersStore', () => ({
       draftFilters: null,
       applyFilters: mockSetAppliedFilters,
       clearFilters: jest.fn(),
+      cachedQuestions: [],
+      cachedPagination: null,
+      cachedFilters: null,
+      setCachedQuestions: mockSetCachedQuestions,
+      clearCachedQuestions: mockClearCachedQuestions,
     };
     return selector(mockState);
   },
@@ -74,6 +81,15 @@ jest.mock('../../hooks/useQuestionsList', () => ({
 // Mock convertActivityFiltersToQuestionsFilter
 jest.mock('../../utils/questionFiltersConverter', () => ({
   convertActivityFiltersToQuestionsFilter: (filters: unknown) => filters,
+}));
+
+// Mock areFiltersEqual
+jest.mock('../../utils/activityFilters', () => ({
+  areFiltersEqual: jest.fn((a, b) => {
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    return JSON.stringify(a) === JSON.stringify(b);
+  }),
 }));
 
 // Mock ActivityCardQuestionBanks
@@ -322,6 +338,8 @@ describe('ActivityListQuestions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAppliedFilters.mockReturnValue(null);
+    mockSetCachedQuestions.mockClear();
+    mockClearCachedQuestions.mockClear();
     Object.assign(mockUseQuestionsListReturn, {
       questions: [],
       pagination: null,
