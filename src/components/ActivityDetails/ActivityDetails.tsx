@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   Medal,
   Star,
@@ -248,11 +248,19 @@ export const ActivityDetails = ({
   } = useActivityDetails(apiClient);
 
   // Use questions list hook for fetching questions by IDs
-  const useQuestionsList = useMemo(
-    () => createUseQuestionsList(apiClient),
-    [apiClient]
-  );
-  const { fetchQuestionsByIds } = useQuestionsList();
+  // Store hook factory in ref to preserve identity across renders
+  const hookFactoryRef = useRef<ReturnType<
+    typeof createUseQuestionsList
+  > | null>(null);
+  const apiClientRef = useRef<BaseApiClient | null>(null);
+
+  // Create hook factory only when apiClient changes
+  if (apiClientRef.current !== apiClient || !hookFactoryRef.current) {
+    hookFactoryRef.current = createUseQuestionsList(apiClient);
+    apiClientRef.current = apiClient;
+  }
+
+  const { fetchQuestionsByIds } = hookFactoryRef.current();
 
   /**
    * Fetch activity details when params change
@@ -432,9 +440,10 @@ export const ActivityDetails = ({
 
   /**
    * Fetch activity questions for PDF download
+   * @returns Promise that resolves to true if questions were successfully loaded (non-empty), false otherwise
    */
-  const fetchActivityQuestions = useCallback(async () => {
-    if (!activityId) return;
+  const fetchActivityQuestions = useCallback(async (): Promise<boolean> => {
+    if (!activityId) return false;
 
     setIsLoadingQuestions(true);
     setActivityQuestionsError(null);
@@ -483,6 +492,20 @@ export const ActivityDetails = ({
       setActivityQuestions(previewQuestions);
       // Clear error on success
       setActivityQuestionsError(null);
+
+      // Notify user if no questions were found
+      if (previewQuestions.length === 0) {
+        addToast({
+          title: 'Nenhuma questão encontrada',
+          description: 'Esta atividade não possui questões para download.',
+          variant: 'solid',
+          action: 'info',
+          position: 'top-right',
+        });
+      }
+
+      // Return true if we have questions, false otherwise
+      return previewQuestions.length > 0;
     } catch (err) {
       const errorMessage =
         err instanceof Error
@@ -499,6 +522,7 @@ export const ActivityDetails = ({
         action: 'warning',
         position: 'top-right',
       });
+      return false;
     } finally {
       setIsLoadingQuestions(false);
     }
@@ -508,14 +532,23 @@ export const ActivityDetails = ({
    * Handle download PDF button click
    */
   const handleDownloadPdf = useCallback(async () => {
-    // If questions are not loaded yet, fetch them first
-    if (activityQuestions.length === 0) {
-      await fetchActivityQuestions();
-      // Set flag to trigger print after questions are loaded and DOM is updated
-      setShouldPrint(true);
-    } else {
-      // Questions already loaded, set flag to print immediately
-      setShouldPrint(true);
+    try {
+      // If questions are not loaded yet, fetch them first
+      if (activityQuestions.length === 0) {
+        const success = await fetchActivityQuestions();
+        // Only set print flag if fetch succeeded and returned questions
+        setShouldPrint(success);
+      } else {
+        // Questions already loaded, verify they're not empty before printing
+        if (activityQuestions.length > 0) {
+          setShouldPrint(true);
+        } else {
+          setShouldPrint(false);
+        }
+      }
+    } catch {
+      // Error already handled in fetchActivityQuestions, ensure print flag is false
+      setShouldPrint(false);
     }
   }, [activityQuestions.length, fetchActivityQuestions]);
 
@@ -524,16 +557,30 @@ export const ActivityDetails = ({
    * Waits for contentRef to be ready and questions to be loaded
    */
   useEffect(() => {
+    if (!shouldPrint) {
+      return;
+    }
+
+    // Guard against empty activityQuestions - reset flag if empty
+    if (activityQuestions.length === 0) {
+      setShouldPrint(false);
+      return;
+    }
+
+    // Check if all conditions are met for printing
     if (
-      shouldPrint &&
       contentRef.current &&
       handlePrint &&
-      typeof handlePrint === 'function' &&
-      activityQuestions.length > 0
+      typeof handlePrint === 'function'
     ) {
       handlePrint();
       setShouldPrint(false);
+      return;
     }
+
+    // If conditions aren't met but shouldPrint is true, reset it to prevent getting stuck
+    // This handles cases where contentRef or handlePrint aren't ready yet
+    setShouldPrint(false);
   }, [shouldPrint, activityQuestions.length, contentRef, handlePrint]);
 
   /**
@@ -869,7 +916,9 @@ export const ActivityDetails = ({
       />
 
       {/* Hidden PDF content for printing */}
-      <QuestionsPdfContent ref={contentRef} questions={orderedQuestions} />
+      <div style={{ display: 'none' }}>
+        <QuestionsPdfContent ref={contentRef} questions={orderedQuestions} />
+      </div>
     </div>
   );
 };

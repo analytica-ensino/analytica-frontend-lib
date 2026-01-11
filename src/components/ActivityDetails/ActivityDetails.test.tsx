@@ -268,6 +268,18 @@ jest.mock('../../hooks/useQuestionsList', () => ({
   createUseQuestionsList: jest.fn(() => mockUseQuestionsList),
 }));
 
+// Mock useToastStore
+const mockAddToast = jest.fn();
+jest.mock('../Toast/utils/ToastStore', () => ({
+  __esModule: true,
+  default: jest.fn((selector) => {
+    if (selector && typeof selector === 'function') {
+      return selector({ addToast: mockAddToast });
+    }
+    return { addToast: mockAddToast };
+  }),
+}));
+
 // Import after mocks
 import { ActivityDetails } from './ActivityDetails';
 import type { ActivityDetailsProps } from './ActivityDetails';
@@ -1036,6 +1048,7 @@ describe('ActivityDetails', () => {
       mockHandlePrint.mockClear();
       mockFetchQuestionsByIds.mockClear();
       mockConvertQuestionToPreview.mockClear();
+      mockAddToast.mockClear();
       (useQuestionsPdfPrint as jest.Mock).mockReturnValue({
         contentRef: mockContentRef,
         handlePrint: mockHandlePrint,
@@ -1297,6 +1310,38 @@ describe('ActivityDetails', () => {
         expect(mockApiClient.get).toHaveBeenCalledWith(
           '/activities/activity-123'
         );
+      });
+    });
+
+    it('should show toast notification when no questions are found', async () => {
+      // Mock API to return empty questions array
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: [],
+          },
+        },
+      });
+
+      mockFetchQuestionsByIds.mockResolvedValue([]);
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Nenhuma questão encontrada',
+          description: 'Esta atividade não possui questões para download.',
+          variant: 'solid',
+          action: 'info',
+          position: 'top-right',
+        });
       });
     });
   });
