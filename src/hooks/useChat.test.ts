@@ -133,6 +133,19 @@ describe('useChat', () => {
       expect(onConnect).toHaveBeenCalled();
     });
 
+    it('should send getInitialData request when connection opens', () => {
+      renderHook(() => useChat(defaultOptions));
+      triggerConnect();
+
+      act(() => {
+        MockWebSocket.lastInstance?.simulateOpen();
+      });
+
+      expect(MockWebSocket.lastInstance?.send).toHaveBeenCalledWith(
+        JSON.stringify({ type: 'getInitialData' })
+      );
+    });
+
     it('should set isConnected to false when connection closes', () => {
       const { result } = renderHook(() => useChat(defaultOptions));
       triggerConnect();
@@ -621,6 +634,9 @@ describe('useChat', () => {
         MockWebSocket.lastInstance?.simulateOpen();
       });
 
+      // Clear mock calls from getInitialData sent on open
+      MockWebSocket.lastInstance?.send.mockClear();
+
       act(() => {
         result.current.sendMessage('Hello, world!');
       });
@@ -641,6 +657,9 @@ describe('useChat', () => {
         MockWebSocket.lastInstance?.simulateOpen();
       });
 
+      // Clear mock calls from getInitialData sent on open
+      MockWebSocket.lastInstance?.send.mockClear();
+
       act(() => {
         result.current.sendMessage('   ');
       });
@@ -655,6 +674,9 @@ describe('useChat', () => {
       act(() => {
         MockWebSocket.lastInstance?.simulateOpen();
       });
+
+      // Clear mock calls from getInitialData sent on open
+      MockWebSocket.lastInstance?.send.mockClear();
 
       act(() => {
         result.current.sendMessage('  Hello  ');
@@ -690,6 +712,9 @@ describe('useChat', () => {
       act(() => {
         MockWebSocket.lastInstance?.simulateOpen();
       });
+
+      // Clear mock calls from getInitialData sent on open
+      MockWebSocket.lastInstance?.send.mockClear();
 
       act(() => {
         result.current.leave();
