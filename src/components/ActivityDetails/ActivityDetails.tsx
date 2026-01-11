@@ -1,5 +1,11 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Medal, Star, File, CaretRight, WarningCircle } from 'phosphor-react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import {
+  Medal,
+  Star,
+  CaretRight,
+  WarningCircle,
+  DownloadSimple,
+} from 'phosphor-react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
@@ -35,6 +41,15 @@ import {
 } from '../../utils/activityDetailsUtils';
 import type { BaseApiClient } from '../../types/api';
 import { useActivityDetails } from '../../hooks/useActivityDetails';
+import {
+  useQuestionsPdfPrint,
+  QuestionsPdfContent,
+} from '../QuestionsPdfGenerator';
+import type { PreviewQuestion } from '../ActivityPreview/ActivityPreview';
+import { convertQuestionToPreview } from '../ActivityCreate/ActivityCreate.utils';
+import type { Question } from '../../types/questions';
+import { createUseQuestionsList } from '../../hooks/useQuestionsList';
+import useToastStore from '../Toast/utils/ToastStore';
 
 /**
  * Props for the ActivityDetails component
@@ -46,8 +61,6 @@ export interface ActivityDetailsProps {
   apiClient: BaseApiClient;
   /** Callback when back button is clicked */
   onBack?: () => void;
-  /** Callback when view activity button is clicked */
-  onViewActivity?: () => void;
   /** Image for empty state */
   emptyStateImage?: string;
   /** Function to map subject name to SubjectEnum */
@@ -176,6 +189,15 @@ const createTableColumns = (
 ];
 
 /**
+ * Normalize questions with positions
+ */
+const normalizeWithPositions = (items: PreviewQuestion[]) =>
+  items.map((item, index) => ({
+    ...item,
+    position: index + 1,
+  }));
+
+/**
  * ActivityDetails component
  * Displays detailed information about an activity including statistics and student progress
  */
@@ -183,7 +205,6 @@ export const ActivityDetails = ({
   activityId,
   apiClient,
   onBack,
-  onViewActivity,
   emptyStateImage,
   mapSubjectNameToEnum,
 }: ActivityDetailsProps) => {
@@ -213,6 +234,19 @@ export const ActivityDetails = ({
   const [isViewOnlyModal, setIsViewOnlyModal] = useState(false);
   const [correctionError, setCorrectionError] = useState<string | null>(null);
 
+  // PDF download state
+  const [activityQuestions, setActivityQuestions] = useState<PreviewQuestion[]>(
+    []
+  );
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+  const [shouldPrint, setShouldPrint] = useState(false);
+  const [activityQuestionsError, setActivityQuestionsError] = useState<
+    string | null
+  >(null);
+
+  // Toast store for notifications
+  const addToast = useToastStore((state) => state.addToast);
+
   // Use activity details hook
   const {
     fetchActivityDetails,
@@ -220,6 +254,32 @@ export const ActivityDetails = ({
     submitObservation,
     submitQuestionCorrection,
   } = useActivityDetails(apiClient);
+
+  // Use questions list hook for fetching questions by IDs
+  // Store hook factory in ref to preserve identity across renders
+  const hookFactoryRef = useRef<ReturnType<
+    typeof createUseQuestionsList
+  > | null>(null);
+  const apiClientRef = useRef<BaseApiClient | null>(null);
+
+  // Create hook factory only when apiClient changes
+  if (apiClientRef.current !== apiClient || !hookFactoryRef.current) {
+    hookFactoryRef.current = createUseQuestionsList(apiClient);
+    apiClientRef.current = apiClient;
+  }
+
+  const { fetchQuestionsByIds } = hookFactoryRef.current();
+
+  /**
+   * Reset PDF/question state when activityId changes
+   * Prevents printing stale data when navigating between activities
+   */
+  useEffect(() => {
+    setActivityQuestions([]);
+    setIsLoadingQuestions(false);
+    setShouldPrint(false);
+    setActivityQuestionsError(null);
+  }, [activityId]);
 
   /**
    * Fetch activity details when params change
@@ -375,14 +435,228 @@ export const ActivityDetails = ({
     }
   };
 
+  const orderedQuestions = useMemo(
+    () => normalizeWithPositions(activityQuestions),
+    [activityQuestions]
+  );
+
   /**
-   * Handle view activity button click
+   * Use PDF print hook
    */
-  const handleViewActivity = () => {
-    if (onViewActivity) {
-      onViewActivity();
+  const { contentRef, handlePrint } = useQuestionsPdfPrint(orderedQuestions);
+
+  /**
+   * Extract questions from API response
+   * Handles both direct questions array and questionIds array
+   */
+  const extractQuestionsFromResponse = useCallback(
+    async (
+      response:
+        | Awaited<
+            ReturnType<
+              typeof apiClient.get<{
+                data: { questions?: Question[]; questionIds?: string[] };
+              }>
+            >
+          >
+        | undefined
+    ): Promise<Question[]> => {
+      if (!response?.data?.data) {
+        return [];
+      }
+
+      if (response.data.data.questions) {
+        return response.data.data.questions;
+      }
+
+      if (response.data.data.questionIds) {
+        return await fetchQuestionsByIds(response.data.data.questionIds);
+      }
+
+      return [];
+    },
+    [fetchQuestionsByIds]
+  );
+
+  /**
+   * Try to fetch questions from quiz endpoint
+   */
+  const tryFetchQuizResponse = useCallback(async () => {
+    try {
+      const response = await apiClient.get<{
+        data: { questions?: Question[]; questionIds?: string[] };
+      }>(`/activities/${activityId}/quiz`);
+      return { response, error: undefined };
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      return { response: undefined, error };
     }
-  };
+  }, [activityId, apiClient]);
+
+  /**
+   * Try to fetch questions from activity endpoint
+   */
+  const tryFetchActivityResponse = useCallback(async () => {
+    try {
+      const response = await apiClient.get<{
+        data: { questions?: Question[]; questionIds?: string[] };
+      }>(`/activities/${activityId}`);
+      return { response, error: undefined };
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      return { response: undefined, error };
+    }
+  }, [activityId, apiClient]);
+
+  /**
+   * Fetch questions from both endpoints (quiz and activity)
+   * Returns questions array or throws error if both fail
+   */
+  const fetchQuestionsFromEndpoints = useCallback(async (): Promise<
+    Question[]
+  > => {
+    // Try quiz endpoint first
+    const { response: quizResponse, error: quizError } =
+      await tryFetchQuizResponse();
+    let questions = await extractQuestionsFromResponse(quizResponse);
+
+    // If quiz endpoint didn't return questions, try activity endpoint
+    if (questions.length === 0) {
+      const { response: activityResponse, error: activityError } =
+        await tryFetchActivityResponse();
+
+      // If both endpoints failed, throw error
+      if (!quizResponse && !activityResponse) {
+        const errorMessage =
+          quizError?.message ||
+          activityError?.message ||
+          'Erro ao buscar questões da atividade. Tente novamente.';
+        throw new Error(errorMessage);
+      }
+
+      questions = await extractQuestionsFromResponse(activityResponse);
+    }
+
+    return questions;
+  }, [
+    tryFetchQuizResponse,
+    tryFetchActivityResponse,
+    extractQuestionsFromResponse,
+  ]);
+
+  /**
+   * Handle fetch error and show toast notification
+   */
+  const handleQuestionsFetchError = useCallback(
+    (errorMessage: string) => {
+      console.error('Erro ao buscar questões da atividade:', errorMessage);
+      setActivityQuestions([]);
+      setActivityQuestionsError(errorMessage);
+      addToast({
+        title: 'Erro ao carregar questões',
+        description: errorMessage,
+        variant: 'solid',
+        action: 'warning',
+        position: 'top-right',
+      });
+    },
+    [addToast]
+  );
+
+  /**
+   * Fetch activity questions for PDF download
+   * @returns Promise that resolves to true if questions were successfully loaded (non-empty), false otherwise
+   */
+  const fetchActivityQuestions = useCallback(async (): Promise<boolean> => {
+    if (!activityId) return false;
+
+    setIsLoadingQuestions(true);
+    setActivityQuestionsError(null);
+    try {
+      const questions = await fetchQuestionsFromEndpoints();
+
+      // Convert questions to PreviewQuestion format
+      const previewQuestions = questions.map((q) =>
+        convertQuestionToPreview(q)
+      );
+      setActivityQuestions(previewQuestions);
+      setActivityQuestionsError(null);
+
+      // Notify user if no questions were found
+      if (previewQuestions.length === 0) {
+        addToast({
+          title: 'Nenhuma questão encontrada',
+          description: 'Esta atividade não possui questões para download.',
+          variant: 'solid',
+          action: 'info',
+          position: 'top-right',
+        });
+      }
+
+      return previewQuestions.length > 0;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Erro ao buscar questões da atividade. Tente novamente.';
+      handleQuestionsFetchError(errorMessage);
+      return false;
+    } finally {
+      setIsLoadingQuestions(false);
+    }
+  }, [fetchQuestionsFromEndpoints, handleQuestionsFetchError, addToast]);
+
+  /**
+   * Handle download PDF button click
+   */
+  const handleDownloadPdf = useCallback(async () => {
+    try {
+      // If questions are not loaded yet, fetch them first
+      if (activityQuestions.length === 0) {
+        const success = await fetchActivityQuestions();
+        // Only set print flag if fetch succeeded and returned questions
+        setShouldPrint(success);
+      } else if (activityQuestions.length > 0) {
+        setShouldPrint(true);
+      } else {
+        setShouldPrint(false);
+      }
+    } catch {
+      // Error already handled in fetchActivityQuestions, ensure print flag is false
+      setShouldPrint(false);
+    }
+  }, [activityQuestions.length, fetchActivityQuestions]);
+
+  /**
+   * Effect to handle PDF printing when shouldPrint flag is set
+   * Waits for contentRef to be ready and questions to be loaded
+   */
+  useEffect(() => {
+    if (!shouldPrint) {
+      return;
+    }
+
+    // Guard against empty activityQuestions - reset flag if empty
+    if (activityQuestions.length === 0) {
+      setShouldPrint(false);
+      return;
+    }
+
+    // Check if all conditions are met for printing
+    if (
+      contentRef.current &&
+      handlePrint &&
+      typeof handlePrint === 'function'
+    ) {
+      handlePrint();
+      setShouldPrint(false);
+      return;
+    }
+
+    // If conditions aren't met but shouldPrint is true, reset it to prevent getting stuck
+    // This handles cases where contentRef or handlePrint aren't ready yet
+    setShouldPrint(false);
+  }, [shouldPrint, activityQuestions.length, contentRef, handlePrint]);
 
   /**
    * Handle back navigation
@@ -535,14 +809,29 @@ export const ActivityDetails = ({
                   </Text>
                 </div>
               </div>
-              <Button
-                size="small"
-                onClick={handleViewActivity}
-                className="bg-primary-950 text-text gap-2"
-              >
-                <File size={16} />
-                Ver atividade
-              </Button>
+              <div className="flex flex-col items-end gap-2">
+                <Button
+                  size="small"
+                  onClick={handleDownloadPdf}
+                  disabled={isLoadingQuestions}
+                  iconLeft={<DownloadSimple size={16} />}
+                  className="bg-primary-950 text-text gap-2"
+                >
+                  {isLoadingQuestions ? 'Carregando...' : 'Baixar Atividade'}
+                </Button>
+                {activityQuestionsError && (
+                  <div className="flex items-center gap-2 max-w-[300px]">
+                    <WarningCircle
+                      size={16}
+                      className="text-error-600 shrink-0"
+                      weight="fill"
+                    />
+                    <Text className="text-error-700 text-xs">
+                      {activityQuestionsError}
+                    </Text>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -700,6 +989,11 @@ export const ActivityDetails = ({
         onObservationSubmit={handleObservationSubmit}
         onQuestionCorrectionSubmit={handleQuestionCorrectionSubmit}
       />
+
+      {/* Hidden PDF content for printing */}
+      <div style={{ display: 'none' }}>
+        <QuestionsPdfContent ref={contentRef} questions={orderedQuestions} />
+      </div>
     </div>
   );
 };
