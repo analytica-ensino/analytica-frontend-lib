@@ -50,6 +50,7 @@ import type { PreviewQuestion } from '../ActivityPreview/ActivityPreview';
 import { convertQuestionToPreview } from '../ActivityCreate/ActivityCreate.utils';
 import type { Question } from '../../types/questions';
 import { createUseQuestionsList } from '../../hooks/useQuestionsList';
+import useToastStore from '../Toast/utils/ToastStore';
 
 /**
  * Props for the ActivityDetails component
@@ -230,6 +231,13 @@ export const ActivityDetails = ({
     []
   );
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+  const [shouldPrint, setShouldPrint] = useState(false);
+  const [activityQuestionsError, setActivityQuestionsError] = useState<
+    string | null
+  >(null);
+
+  // Toast store for notifications
+  const addToast = useToastStore((state) => state.addToast);
 
   // Use activity details hook
   const {
@@ -429,6 +437,7 @@ export const ActivityDetails = ({
     if (!activityId) return;
 
     setIsLoadingQuestions(true);
+    setActivityQuestionsError(null);
     try {
       // Try to fetch quiz which might contain questions
       const quizResponse = await apiClient
@@ -472,13 +481,28 @@ export const ActivityDetails = ({
         convertQuestionToPreview(q)
       );
       setActivityQuestions(previewQuestions);
+      // Clear error on success
+      setActivityQuestionsError(null);
     } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Erro ao buscar questões da atividade. Tente novamente.';
       console.error('Erro ao buscar questões da atividade:', err);
       setActivityQuestions([]);
+      setActivityQuestionsError(errorMessage);
+      // Show toast notification
+      addToast({
+        title: 'Erro ao carregar questões',
+        description: errorMessage,
+        variant: 'solid',
+        action: 'warning',
+        position: 'top-right',
+      });
     } finally {
       setIsLoadingQuestions(false);
     }
-  }, [activityId, apiClient, fetchQuestionsByIds]);
+  }, [activityId, apiClient, fetchQuestionsByIds, addToast]);
 
   /**
    * Handle download PDF button click
@@ -487,34 +511,30 @@ export const ActivityDetails = ({
     // If questions are not loaded yet, fetch them first
     if (activityQuestions.length === 0) {
       await fetchActivityQuestions();
-      // Wait for state update and DOM rendering
-      setTimeout(() => {
-        if (
-          contentRef.current &&
-          handlePrint &&
-          typeof handlePrint === 'function'
-        ) {
-          handlePrint();
-        }
-      }, 500);
+      // Set flag to trigger print after questions are loaded and DOM is updated
+      setShouldPrint(true);
     } else {
-      // Questions already loaded, print immediately
-      setTimeout(() => {
-        if (
-          contentRef.current &&
-          handlePrint &&
-          typeof handlePrint === 'function'
-        ) {
-          handlePrint();
-        }
-      }, 100);
+      // Questions already loaded, set flag to print immediately
+      setShouldPrint(true);
     }
-  }, [
-    activityQuestions.length,
-    fetchActivityQuestions,
-    handlePrint,
-    contentRef,
-  ]);
+  }, [activityQuestions.length, fetchActivityQuestions]);
+
+  /**
+   * Effect to handle PDF printing when shouldPrint flag is set
+   * Waits for contentRef to be ready and questions to be loaded
+   */
+  useEffect(() => {
+    if (
+      shouldPrint &&
+      contentRef.current &&
+      handlePrint &&
+      typeof handlePrint === 'function' &&
+      activityQuestions.length > 0
+    ) {
+      handlePrint();
+      setShouldPrint(false);
+    }
+  }, [shouldPrint, activityQuestions.length, contentRef, handlePrint]);
 
   /**
    * Handle back navigation
@@ -667,15 +687,29 @@ export const ActivityDetails = ({
                   </Text>
                 </div>
               </div>
-              <Button
-                size="small"
-                onClick={handleDownloadPdf}
-                disabled={isLoadingQuestions}
-                iconLeft={<DownloadSimple size={16} />}
-                className="bg-primary-950 text-text gap-2"
-              >
-                {isLoadingQuestions ? 'Carregando...' : 'Baixar Atividade'}
-              </Button>
+              <div className="flex flex-col items-end gap-2">
+                <Button
+                  size="small"
+                  onClick={handleDownloadPdf}
+                  disabled={isLoadingQuestions}
+                  iconLeft={<DownloadSimple size={16} />}
+                  className="bg-primary-950 text-text gap-2"
+                >
+                  {isLoadingQuestions ? 'Carregando...' : 'Baixar Atividade'}
+                </Button>
+                {activityQuestionsError && (
+                  <div className="flex items-center gap-2 max-w-[300px]">
+                    <WarningCircle
+                      size={16}
+                      className="text-error-600 shrink-0"
+                      weight="fill"
+                    />
+                    <Text className="text-error-700 text-xs">
+                      {activityQuestionsError}
+                    </Text>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
