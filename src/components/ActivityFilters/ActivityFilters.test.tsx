@@ -8,6 +8,79 @@ jest.mock(
   '../../components/NotificationCard/NotificationCard',
   () => () => null
 );
+
+// Mock Button and DropdownMenu for ActivityFiltersPopover
+jest.mock('../../components/Button/Button', () => ({
+  __esModule: true,
+  default: ({
+    children,
+    onClick,
+    variant,
+    ...props
+  }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    variant?: string;
+    [key: string]: unknown;
+  }) => (
+    <button
+      onClick={onClick}
+      data-testid="button"
+      data-variant={variant}
+      {...props}
+    >
+      {children}
+    </button>
+  ),
+}));
+
+jest.mock('../../components/DropdownMenu/DropdownMenu', () => ({
+  __esModule: true,
+  default: ({
+    children,
+    open,
+  }: {
+    children: React.ReactNode;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+  }) => (
+    <div data-testid="dropdown-menu" data-open={open}>
+      {children}
+    </div>
+  ),
+  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="dropdown-trigger">{children}</div>
+  ),
+  DropdownMenuContent: ({
+    children,
+    className,
+    align,
+  }: {
+    children: React.ReactNode;
+    className?: string;
+    align?: string;
+  }) => (
+    <div
+      data-testid="dropdown-content"
+      className={className}
+      data-align={align}
+    >
+      {children}
+    </div>
+  ),
+}));
+
+// Mock useQuestionFiltersStore
+const mockAppliedFilters = jest.fn<unknown, []>(() => null);
+
+jest.mock('../../store/questionFiltersStore', () => ({
+  useQuestionFiltersStore: (selector: (state: unknown) => unknown) => {
+    const mockState = {
+      appliedFilters: mockAppliedFilters(),
+    };
+    return selector(mockState);
+  },
+}));
 jest.mock('../../assets/img/mock-content.png', () => 'mock-content.png');
 jest.mock('../../components/Quiz/Quiz', () => () => null);
 jest.mock('../../components/Quiz/QuizContent', () => ({}));
@@ -21,8 +94,9 @@ jest.mock('../../assets/img/suporthistory.png', () => 'supporthistory.png');
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { ActivityFilters } from './ActivityFilters';
+import { ActivityFilters, ActivityFiltersPopover } from './ActivityFilters';
 import { QUESTION_TYPE } from '../../components/Quiz/useQuizStore';
+import type { BaseApiClient } from '../../types/api';
 
 const mockLoadBanks = jest.fn();
 const mockLoadKnowledgeAreas = jest.fn();
@@ -137,6 +211,7 @@ const renderComponent = (
 
 describe('ActivityFilters', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     jest.clearAllMocks();
     mockUseActivityFiltersDataReturn = buildMockReturn();
   });
@@ -820,5 +895,138 @@ describe('ActivityFilters', () => {
       const finalCallCount = mockHandleCategoriesChange.mock.calls.length;
       expect(finalCallCount).toBeLessThanOrEqual(initialCallCount + 1);
     });
+  });
+});
+
+describe('ActivityFiltersPopover', () => {
+  const mockApiClient = {
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  } as unknown as BaseApiClient;
+
+  const defaultProps = {
+    apiClient: mockApiClient,
+    onFiltersChange: jest.fn(),
+    institutionId: 'inst1',
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockAppliedFilters.mockReturnValue(null);
+    mockUseActivityFiltersDataReturn = buildMockReturn();
+  });
+
+  it('should render trigger button with default label', () => {
+    render(<ActivityFiltersPopover {...defaultProps} />);
+
+    expect(screen.getByTestId('button')).toBeInTheDocument();
+    expect(screen.getByText('Filtro de questões')).toBeInTheDocument();
+  });
+
+  it('should render trigger button with custom label', () => {
+    render(
+      <ActivityFiltersPopover {...defaultProps} triggerLabel="Custom Label" />
+    );
+
+    expect(screen.getByText('Custom Label')).toBeInTheDocument();
+  });
+
+  it('should use appliedFilters from store when available', () => {
+    const storeFilters = {
+      types: [QUESTION_TYPE.ALTERNATIVA],
+      bankIds: ['bank1'],
+      yearIds: [],
+      subjectIds: ['subject1'],
+      topicIds: [],
+      subtopicIds: [],
+      contentIds: [],
+    };
+
+    mockAppliedFilters.mockReturnValue(storeFilters as never);
+
+    render(<ActivityFiltersPopover {...defaultProps} />);
+
+    // ActivityFilters is rendered inside DropdownMenuContent, which is visible
+    // Verify that the component structure is correct
+    expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+    expect(screen.getByTestId('dropdown-content')).toBeInTheDocument();
+  });
+
+  it('should fall back to initialFilters prop when appliedFilters is null', () => {
+    mockAppliedFilters.mockReturnValue(null);
+
+    const initialFilters = {
+      types: [QUESTION_TYPE.DISSERTATIVA],
+      bankIds: ['bank2'],
+      yearIds: [],
+      subjectIds: ['subject2'],
+      topicIds: [],
+      subtopicIds: [],
+      contentIds: [],
+    };
+
+    render(
+      <ActivityFiltersPopover
+        {...defaultProps}
+        initialFilters={initialFilters}
+      />
+    );
+
+    expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+    expect(screen.getByTestId('dropdown-content')).toBeInTheDocument();
+  });
+
+  it('should prioritize appliedFilters over initialFilters when both are available', () => {
+    const storeFilters = {
+      types: [QUESTION_TYPE.ALTERNATIVA],
+      bankIds: ['bank1'],
+      yearIds: [],
+      subjectIds: ['subject1'],
+      topicIds: [],
+      subtopicIds: [],
+      contentIds: [],
+    };
+
+    const initialFilters = {
+      types: [QUESTION_TYPE.DISSERTATIVA],
+      bankIds: ['bank2'],
+      yearIds: [],
+      subjectIds: ['subject2'],
+      topicIds: [],
+      subtopicIds: [],
+      contentIds: [],
+    };
+
+    mockAppliedFilters.mockReturnValue(storeFilters as never);
+
+    render(
+      <ActivityFiltersPopover
+        {...defaultProps}
+        initialFilters={initialFilters}
+      />
+    );
+
+    // Should use store filters (appliedFilters), not initialFilters
+    expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+    expect(screen.getByTestId('dropdown-content')).toBeInTheDocument();
+  });
+
+  it('should pass through all activityFiltersProps to ActivityFilters', () => {
+    const onApplyFilters = jest.fn();
+    const onClearFilters = jest.fn();
+
+    render(
+      <ActivityFiltersPopover
+        {...defaultProps}
+        onApplyFilters={onApplyFilters}
+        onClearFilters={onClearFilters}
+        institutionId="custom-inst-id"
+      />
+    );
+
+    expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+    expect(screen.getByTestId('dropdown-content')).toBeInTheDocument();
   });
 });

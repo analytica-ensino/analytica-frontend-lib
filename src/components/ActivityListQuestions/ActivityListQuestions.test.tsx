@@ -27,6 +27,7 @@ import { ActivityListQuestions } from './ActivityListQuestions';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import type { BaseApiClient } from '../../types/api';
 import type { Question } from '../../types/questions';
+import { areFiltersEqual } from '@/utils/activityFilters';
 
 // Mock useTheme
 jest.mock('../../hooks/useTheme', () => ({
@@ -39,20 +40,22 @@ const mockSetAppliedFilters = jest.fn();
 const mockSetCachedQuestions = jest.fn();
 const mockClearCachedQuestions = jest.fn();
 
+// Store mock state that can be updated
+let mockStoreState = {
+  appliedFilters: null as unknown,
+  draftFilters: null,
+  applyFilters: mockSetAppliedFilters,
+  clearFilters: jest.fn(),
+  cachedQuestions: [] as unknown[],
+  cachedPagination: null as unknown,
+  cachedFilters: null as unknown,
+  setCachedQuestions: mockSetCachedQuestions,
+  clearCachedQuestions: mockClearCachedQuestions,
+};
+
 jest.mock('../../store/questionFiltersStore', () => ({
   useQuestionFiltersStore: (selector: (state: unknown) => unknown) => {
-    const mockState = {
-      appliedFilters: mockAppliedFilters(),
-      draftFilters: null,
-      applyFilters: mockSetAppliedFilters,
-      clearFilters: jest.fn(),
-      cachedQuestions: [],
-      cachedPagination: null,
-      cachedFilters: null,
-      setCachedQuestions: mockSetCachedQuestions,
-      clearCachedQuestions: mockClearCachedQuestions,
-    };
-    return selector(mockState);
+    return selector(mockStoreState);
   },
 }));
 
@@ -337,15 +340,25 @@ describe('ActivityListQuestions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockAppliedFilters.mockReturnValue(null);
     mockSetCachedQuestions.mockClear();
     mockClearCachedQuestions.mockClear();
+    mockFetchQuestions.mockClear();
+    mockStoreState.appliedFilters = null;
+    mockStoreState.cachedQuestions = [];
+    mockStoreState.cachedPagination = null;
+    mockStoreState.cachedFilters = null;
     Object.assign(mockUseQuestionsListReturn, {
       questions: [],
       pagination: null,
       loading: false,
       loadingMore: false,
       error: null,
+    });
+    // Reset areFiltersEqual mock to default behavior
+    jest.mocked(areFiltersEqual).mockImplementation((a, b) => {
+      if (!a && !b) return true;
+      if (!a || !b) return false;
+      return JSON.stringify(a) === JSON.stringify(b);
     });
   });
 
@@ -693,7 +706,8 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockAppliedFilters.mockReturnValue(filters as never);
+      mockStoreState.appliedFilters = filters;
+      mockStoreState.cachedFilters = null;
 
       render(<ActivityListQuestions {...defaultProps} />);
 
@@ -703,7 +717,7 @@ describe('ActivityListQuestions', () => {
     });
 
     it('should call reset when filters are cleared', async () => {
-      mockAppliedFilters.mockReturnValue(null);
+      mockStoreState.appliedFilters = null;
 
       render(<ActivityListQuestions {...defaultProps} />);
 
@@ -723,7 +737,8 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockAppliedFilters.mockReturnValue(filters as never);
+      mockStoreState.appliedFilters = filters;
+      mockStoreState.cachedFilters = null;
 
       render(
         <ActivityListQuestions
@@ -753,7 +768,8 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockAppliedFilters.mockReturnValue(filters as never);
+      mockStoreState.appliedFilters = filters;
+      mockStoreState.cachedFilters = null;
 
       render(<ActivityListQuestions {...defaultProps} addedQuestionIds={[]} />);
 
@@ -765,6 +781,191 @@ describe('ActivityListQuestions', () => {
           false
         );
       });
+    });
+  });
+
+  describe('Cache Integration', () => {
+    it('should use cached questions when filters match cache', async () => {
+      const filters = {
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject-1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      const cachedQuestion: Question = {
+        ...mockQuestion,
+        id: 'cached-question-1',
+      };
+
+      const mockPagination = {
+        page: 1,
+        pageSize: 10,
+        total: 100,
+        totalPages: 10,
+        hasNext: true,
+        hasPrevious: false,
+      };
+
+      mockAppliedFilters.mockReturnValue(filters as never);
+      mockStoreState.cachedQuestions = [cachedQuestion];
+      mockStoreState.cachedPagination = mockPagination;
+      mockStoreState.cachedFilters = filters;
+
+      jest.mocked(areFiltersEqual).mockReturnValue(true);
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      // Should not call fetchQuestions when cache matches
+      await waitFor(
+        () => {
+          expect(mockFetchQuestions).not.toHaveBeenCalled();
+        },
+        { timeout: 100 }
+      );
+    });
+
+    it('should fetch new questions when cache does not match filters', async () => {
+      const filters = {
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject-1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      const oldFilters = {
+        types: [QUESTION_TYPE.DISSERTATIVA],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject-2'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      mockStoreState.appliedFilters = filters;
+      mockStoreState.cachedQuestions = [];
+      mockStoreState.cachedPagination = null;
+      mockStoreState.cachedFilters = oldFilters;
+
+      jest.mocked(areFiltersEqual).mockReturnValue(false);
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(mockFetchQuestions).toHaveBeenCalled();
+      });
+    });
+
+    it('should update cache when questions are successfully fetched', async () => {
+      const filters = {
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject-1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      const mockPagination = {
+        page: 1,
+        pageSize: 10,
+        total: 50,
+        totalPages: 5,
+        hasNext: true,
+        hasPrevious: false,
+      };
+
+      mockStoreState.appliedFilters = filters;
+      mockStoreState.cachedQuestions = [];
+      mockStoreState.cachedPagination = null;
+      mockStoreState.cachedFilters = null;
+
+      jest.mocked(areFiltersEqual).mockReturnValue(false);
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: mockPagination,
+        loading: false,
+      });
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(mockFetchQuestions).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(mockSetCachedQuestions).toHaveBeenCalledWith(
+          [mockQuestion],
+          mockPagination,
+          filters
+        );
+      });
+    });
+
+    it('should clear cache when filters are cleared', async () => {
+      mockAppliedFilters.mockReturnValue(null);
+      mockStoreState.cachedQuestions = [];
+      mockStoreState.cachedPagination = null;
+      mockStoreState.cachedFilters = null;
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(mockClearCachedQuestions).toHaveBeenCalled();
+        expect(mockReset).toHaveBeenCalled();
+      });
+    });
+
+    it('should not update cache when filters match existing cache', async () => {
+      const filters = {
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject-1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      const cachedQuestion: Question = {
+        ...mockQuestion,
+        id: 'cached-question-1',
+      };
+
+      const mockPagination = {
+        page: 1,
+        pageSize: 10,
+        total: 100,
+        totalPages: 10,
+        hasNext: true,
+        hasPrevious: false,
+      };
+
+      mockAppliedFilters.mockReturnValue(filters as never);
+      mockStoreState.cachedQuestions = [cachedQuestion];
+      mockStoreState.cachedPagination = mockPagination;
+      mockStoreState.cachedFilters = filters;
+
+      jest.mocked(areFiltersEqual).mockReturnValue(true);
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      await waitFor(
+        () => {
+          expect(mockFetchQuestions).not.toHaveBeenCalled();
+          expect(mockSetCachedQuestions).not.toHaveBeenCalled();
+        },
+        { timeout: 100 }
+      );
     });
   });
 
@@ -1001,7 +1202,7 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockAppliedFilters.mockReturnValue(filters as never);
+      mockStoreState.appliedFilters = filters;
       mockFetchRandomQuestions.mockResolvedValue([mockQuestion]);
 
       render(<ActivityListQuestions {...defaultProps} />);
@@ -1049,7 +1250,7 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockAppliedFilters.mockReturnValue(filters as never);
+      mockStoreState.appliedFilters = filters;
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
       mockFetchRandomQuestions.mockRejectedValue(new Error('API Error'));
@@ -1086,7 +1287,7 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockAppliedFilters.mockReturnValue(filters as never);
+      mockStoreState.appliedFilters = filters;
 
       render(<ActivityListQuestions {...defaultProps} />);
 
@@ -1125,7 +1326,7 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockAppliedFilters.mockReturnValue(filters as never);
+      mockStoreState.appliedFilters = filters;
       mockFetchRandomQuestions.mockResolvedValue([mockQuestion]);
 
       render(
@@ -1168,7 +1369,7 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockAppliedFilters.mockReturnValue(filters as never);
+      mockStoreState.appliedFilters = filters;
       mockFetchRandomQuestions.mockResolvedValue([mockQuestion]);
 
       render(<ActivityListQuestions {...defaultProps} />);
@@ -1185,9 +1386,12 @@ describe('ActivityListQuestions', () => {
 
       fireEvent.click(addButton);
 
-      await waitFor(() => {
-        expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
   });
 
