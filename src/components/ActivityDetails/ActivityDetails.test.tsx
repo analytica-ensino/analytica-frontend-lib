@@ -743,6 +743,62 @@ describe('ActivityDetails', () => {
         });
       });
     });
+
+    it('should reset PDF/question state when activityId changes', async () => {
+      const mockQuestions = [
+        createQuestion('q1', 'Questão 1', QUESTION_TYPE.ALTERNATIVA, [
+          { id: 'opt1', option: 'Opção A' },
+          { id: 'opt2', option: 'Opção B' },
+        ]),
+      ];
+
+      // Mock API to return questions for first activity
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: mockQuestions,
+          },
+        },
+      });
+
+      const { rerender } = render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      // Load questions for first activity
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/activities/activity-123/quiz'
+        );
+      });
+
+      // Change activityId
+      rerender(<ActivityDetails {...defaultProps} activityId="activity-456" />);
+
+      // PDF/question state should be reset (questions cleared, loading false, error null, shouldPrint false)
+      // This is verified by checking that if we try to download again, it will fetch for the new activity
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: [],
+          },
+        },
+      });
+
+      // Click download button again - should fetch for new activity
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/activities/activity-456/quiz'
+        );
+      });
+    });
   });
 
   describe('Empty States', () => {
@@ -1238,6 +1294,17 @@ describe('ActivityDetails', () => {
         },
         { timeout: 2000 }
       );
+
+      // Should show error toast when both endpoints fail
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Erro ao carregar questões',
+            variant: 'solid',
+            action: 'warning',
+          })
+        );
+      });
 
       // Button should still be enabled after error (not in loading state)
       await waitFor(

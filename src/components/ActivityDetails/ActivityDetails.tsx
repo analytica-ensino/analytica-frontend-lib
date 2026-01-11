@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   Medal,
   Star,
-  File,
   CaretRight,
   WarningCircle,
   DownloadSimple,
@@ -272,6 +271,17 @@ export const ActivityDetails = ({
   const { fetchQuestionsByIds } = hookFactoryRef.current();
 
   /**
+   * Reset PDF/question state when activityId changes
+   * Prevents printing stale data when navigating between activities
+   */
+  useEffect(() => {
+    setActivityQuestions([]);
+    setIsLoadingQuestions(false);
+    setShouldPrint(false);
+    setActivityQuestionsError(null);
+  }, [activityId]);
+
+  /**
    * Fetch activity details when params change
    */
   useEffect(() => {
@@ -446,11 +456,24 @@ export const ActivityDetails = ({
     setActivityQuestionsError(null);
     try {
       // Try to fetch quiz which might contain questions
-      const quizResponse = await apiClient
-        .get<{
+      let quizResponse:
+        | Awaited<
+            ReturnType<
+              typeof apiClient.get<{
+                data: { questions?: Question[]; questionIds?: string[] };
+              }>
+            >
+          >
+        | undefined;
+      let quizError: Error | undefined;
+
+      try {
+        quizResponse = await apiClient.get<{
           data: { questions?: Question[]; questionIds?: string[] };
-        }>(`/activities/${activityId}/quiz`)
-        .catch(() => null);
+        }>(`/activities/${activityId}/quiz`);
+      } catch (err) {
+        quizError = err instanceof Error ? err : new Error(String(err));
+      }
 
       let questions: Question[] = [];
 
@@ -467,11 +490,47 @@ export const ActivityDetails = ({
       // Try to fetch from activity details endpoint
       else {
         // Try alternative endpoint structure
-        const activityResponse = await apiClient
-          .get<{
+        let activityResponse:
+          | Awaited<
+              ReturnType<
+                typeof apiClient.get<{
+                  data: { questions?: Question[]; questionIds?: string[] };
+                }>
+              >
+            >
+          | undefined;
+        let activityError: Error | undefined;
+
+        try {
+          activityResponse = await apiClient.get<{
             data: { questions?: Question[]; questionIds?: string[] };
-          }>(`/activities/${activityId}`)
-          .catch(() => null);
+          }>(`/activities/${activityId}`);
+        } catch (err) {
+          activityError = err instanceof Error ? err : new Error(String(err));
+        }
+
+        // If both requests failed, surface the error
+        if (!quizResponse && !activityResponse) {
+          const errorMessage =
+            quizError?.message ||
+            activityError?.message ||
+            'Erro ao buscar questões da atividade. Tente novamente.';
+          console.error('Erro ao buscar questões da atividade:', {
+            quizError,
+            activityError,
+          });
+          setActivityQuestions([]);
+          setActivityQuestionsError(errorMessage);
+          // Show toast notification
+          addToast({
+            title: 'Erro ao carregar questões',
+            description: errorMessage,
+            variant: 'solid',
+            action: 'warning',
+            position: 'top-right',
+          });
+          return false;
+        }
 
         if (activityResponse?.data?.data?.questions) {
           questions = activityResponse.data.data.questions;
