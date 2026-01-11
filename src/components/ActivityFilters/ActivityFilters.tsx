@@ -16,6 +16,7 @@ import {
 } from '../..';
 import type { BaseApiClient } from '../../types/api';
 import { createUseActivityFiltersData } from '../../hooks/useActivityFiltersData';
+import { useQuestionFiltersStore } from '../../store/questionFiltersStore';
 import { questionTypeLabels } from '../../types/questionTypes';
 import type {
   ActivityFiltersData,
@@ -1050,6 +1051,13 @@ export const ActivityFiltersPopover = ({
   ...activityFiltersProps
 }: ActivityFiltersPopoverProps) => {
   const [open, setOpen] = useState(false);
+  const appliedFilters = useQuestionFiltersStore(
+    (state) => state.appliedFilters
+  );
+
+  // Use appliedFilters from store if available, otherwise fall back to initialFilters
+  const effectiveInitialFilters =
+    appliedFilters || activityFiltersProps.initialFilters || undefined;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -1064,6 +1072,7 @@ export const ActivityFiltersPopover = ({
           onFiltersChange={onFiltersChange}
           variant="popover"
           {...activityFiltersProps}
+          initialFilters={effectiveInitialFilters}
         />
       </DropdownMenuContent>
     </DropdownMenu>
