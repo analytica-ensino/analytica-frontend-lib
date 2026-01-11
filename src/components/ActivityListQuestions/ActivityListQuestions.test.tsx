@@ -55,7 +55,10 @@ let mockStoreState = {
 
 jest.mock('../../store/questionFiltersStore', () => ({
   useQuestionFiltersStore: (selector: (state: unknown) => unknown) => {
-    return selector(mockStoreState);
+    return selector({
+      ...mockStoreState,
+      appliedFilters: mockAppliedFilters(),
+    });
   },
 }));
 
@@ -340,10 +343,10 @@ describe('ActivityListQuestions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAppliedFilters.mockReturnValue(null);
     mockSetCachedQuestions.mockClear();
     mockClearCachedQuestions.mockClear();
     mockFetchQuestions.mockClear();
-    mockStoreState.appliedFilters = null;
     mockStoreState.cachedQuestions = [];
     mockStoreState.cachedPagination = null;
     mockStoreState.cachedFilters = null;
@@ -706,7 +709,7 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockStoreState.appliedFilters = filters;
+      mockAppliedFilters.mockReturnValue(filters);
       mockStoreState.cachedFilters = null;
 
       render(<ActivityListQuestions {...defaultProps} />);
@@ -717,7 +720,7 @@ describe('ActivityListQuestions', () => {
     });
 
     it('should call reset when filters are cleared', async () => {
-      mockStoreState.appliedFilters = null;
+      mockAppliedFilters.mockReturnValue(null);
 
       render(<ActivityListQuestions {...defaultProps} />);
 
@@ -737,7 +740,7 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockStoreState.appliedFilters = filters;
+      mockAppliedFilters.mockReturnValue(filters);
       mockStoreState.cachedFilters = null;
 
       render(
@@ -768,7 +771,7 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockStoreState.appliedFilters = filters;
+      mockAppliedFilters.mockReturnValue(filters);
       mockStoreState.cachedFilters = null;
 
       render(<ActivityListQuestions {...defaultProps} addedQuestionIds={[]} />);
@@ -810,7 +813,7 @@ describe('ActivityListQuestions', () => {
         hasPrevious: false,
       };
 
-      mockAppliedFilters.mockReturnValue(filters as never);
+      mockAppliedFilters.mockReturnValue(filters);
       mockStoreState.cachedQuestions = [cachedQuestion];
       mockStoreState.cachedPagination = mockPagination;
       mockStoreState.cachedFilters = filters;
@@ -849,7 +852,7 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockStoreState.appliedFilters = filters;
+      mockAppliedFilters.mockReturnValue(filters);
       mockStoreState.cachedQuestions = [];
       mockStoreState.cachedPagination = null;
       mockStoreState.cachedFilters = oldFilters;
@@ -883,7 +886,7 @@ describe('ActivityListQuestions', () => {
         hasPrevious: false,
       };
 
-      mockStoreState.appliedFilters = filters;
+      mockAppliedFilters.mockReturnValue(filters);
       mockStoreState.cachedQuestions = [];
       mockStoreState.cachedPagination = null;
       mockStoreState.cachedFilters = null;
@@ -950,7 +953,7 @@ describe('ActivityListQuestions', () => {
         hasPrevious: false,
       };
 
-      mockAppliedFilters.mockReturnValue(filters as never);
+      mockAppliedFilters.mockReturnValue(filters);
       mockStoreState.cachedQuestions = [cachedQuestion];
       mockStoreState.cachedPagination = mockPagination;
       mockStoreState.cachedFilters = filters;
@@ -1202,7 +1205,7 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockStoreState.appliedFilters = filters;
+      mockAppliedFilters.mockReturnValue(filters);
       mockFetchRandomQuestions.mockResolvedValue([mockQuestion]);
 
       render(<ActivityListQuestions {...defaultProps} />);
@@ -1250,7 +1253,7 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockStoreState.appliedFilters = filters;
+      mockAppliedFilters.mockReturnValue(filters);
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
       mockFetchRandomQuestions.mockRejectedValue(new Error('API Error'));
@@ -1287,7 +1290,7 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockStoreState.appliedFilters = filters;
+      mockAppliedFilters.mockReturnValue(filters);
 
       render(<ActivityListQuestions {...defaultProps} />);
 
@@ -1326,7 +1329,7 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockStoreState.appliedFilters = filters;
+      mockAppliedFilters.mockReturnValue(filters);
       mockFetchRandomQuestions.mockResolvedValue([mockQuestion]);
 
       render(
@@ -1369,7 +1372,7 @@ describe('ActivityListQuestions', () => {
         contentIds: [],
       };
 
-      mockStoreState.appliedFilters = filters;
+      mockAppliedFilters.mockReturnValue(filters);
       mockFetchRandomQuestions.mockResolvedValue([mockQuestion]);
 
       render(<ActivityListQuestions {...defaultProps} />);

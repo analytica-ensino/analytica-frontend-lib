@@ -212,7 +212,6 @@ const renderComponent = (
 describe('ActivityFilters', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.clearAllMocks();
     mockUseActivityFiltersDataReturn = buildMockReturn();
   });
 
