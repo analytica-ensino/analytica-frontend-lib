@@ -446,6 +446,58 @@ export const ActivityDetails = ({
   const { contentRef, handlePrint } = useQuestionsPdfPrint(orderedQuestions);
 
   /**
+   * Extract questions from API response
+   * Handles both direct questions array and questionIds array
+   */
+  const extractQuestionsFromResponse = useCallback(
+    async (
+      response:
+        | Awaited<
+            ReturnType<
+              typeof apiClient.get<{
+                data: { questions?: Question[]; questionIds?: string[] };
+              }>
+            >
+          >
+        | undefined
+    ): Promise<Question[]> => {
+      if (!response?.data?.data) {
+        return [];
+      }
+
+      if (response.data.data.questions) {
+        return response.data.data.questions;
+      }
+
+      if (response.data.data.questionIds) {
+        return await fetchQuestionsByIds(response.data.data.questionIds);
+      }
+
+      return [];
+    },
+    [fetchQuestionsByIds]
+  );
+
+  /**
+   * Handle fetch error and show toast notification
+   */
+  const handleQuestionsFetchError = useCallback(
+    (errorMessage: string) => {
+      console.error('Erro ao buscar questões da atividade:', errorMessage);
+      setActivityQuestions([]);
+      setActivityQuestionsError(errorMessage);
+      addToast({
+        title: 'Erro ao carregar questões',
+        description: errorMessage,
+        variant: 'solid',
+        action: 'warning',
+        position: 'top-right',
+      });
+    },
+    [addToast]
+  );
+
+  /**
    * Fetch activity questions for PDF download
    * @returns Promise that resolves to true if questions were successfully loaded (non-empty), false otherwise
    */
@@ -475,21 +527,10 @@ export const ActivityDetails = ({
         quizError = err instanceof Error ? err : new Error(String(err));
       }
 
-      let questions: Question[] = [];
+      let questions = await extractQuestionsFromResponse(quizResponse);
 
-      // Check if quiz response has questions directly
-      if (quizResponse?.data?.data?.questions) {
-        questions = quizResponse.data.data.questions;
-      }
-      // Or check if it has questionIds and fetch them
-      else if (quizResponse?.data?.data?.questionIds) {
-        questions = await fetchQuestionsByIds(
-          quizResponse.data.data.questionIds
-        );
-      }
-      // Try to fetch from activity details endpoint
-      else {
-        // Try alternative endpoint structure
+      // If quiz response didn't have questions, try activity endpoint
+      if (questions.length === 0) {
         let activityResponse:
           | Awaited<
               ReturnType<
@@ -515,30 +556,11 @@ export const ActivityDetails = ({
             quizError?.message ||
             activityError?.message ||
             'Erro ao buscar questões da atividade. Tente novamente.';
-          console.error('Erro ao buscar questões da atividade:', {
-            quizError,
-            activityError,
-          });
-          setActivityQuestions([]);
-          setActivityQuestionsError(errorMessage);
-          // Show toast notification
-          addToast({
-            title: 'Erro ao carregar questões',
-            description: errorMessage,
-            variant: 'solid',
-            action: 'warning',
-            position: 'top-right',
-          });
+          handleQuestionsFetchError(errorMessage);
           return false;
         }
 
-        if (activityResponse?.data?.data?.questions) {
-          questions = activityResponse.data.data.questions;
-        } else if (activityResponse?.data?.data?.questionIds) {
-          questions = await fetchQuestionsByIds(
-            activityResponse.data.data.questionIds
-          );
-        }
+        questions = await extractQuestionsFromResponse(activityResponse);
       }
 
       // Convert questions to PreviewQuestion format
@@ -546,7 +568,6 @@ export const ActivityDetails = ({
         convertQuestionToPreview(q)
       );
       setActivityQuestions(previewQuestions);
-      // Clear error on success
       setActivityQuestionsError(null);
 
       // Notify user if no questions were found
@@ -560,29 +581,24 @@ export const ActivityDetails = ({
         });
       }
 
-      // Return true if we have questions, false otherwise
       return previewQuestions.length > 0;
     } catch (err) {
       const errorMessage =
         err instanceof Error
           ? err.message
           : 'Erro ao buscar questões da atividade. Tente novamente.';
-      console.error('Erro ao buscar questões da atividade:', err);
-      setActivityQuestions([]);
-      setActivityQuestionsError(errorMessage);
-      // Show toast notification
-      addToast({
-        title: 'Erro ao carregar questões',
-        description: errorMessage,
-        variant: 'solid',
-        action: 'warning',
-        position: 'top-right',
-      });
+      handleQuestionsFetchError(errorMessage);
       return false;
     } finally {
       setIsLoadingQuestions(false);
     }
-  }, [activityId, apiClient, fetchQuestionsByIds, addToast]);
+  }, [
+    activityId,
+    apiClient,
+    extractQuestionsFromResponse,
+    handleQuestionsFetchError,
+    addToast,
+  ]);
 
   /**
    * Handle download PDF button click
@@ -594,13 +610,10 @@ export const ActivityDetails = ({
         const success = await fetchActivityQuestions();
         // Only set print flag if fetch succeeded and returned questions
         setShouldPrint(success);
+      } else if (activityQuestions.length > 0) {
+        setShouldPrint(true);
       } else {
-        // Questions already loaded, verify they're not empty before printing
-        if (activityQuestions.length > 0) {
-          setShouldPrint(true);
-        } else {
-          setShouldPrint(false);
-        }
+        setShouldPrint(false);
       }
     } catch {
       // Error already handled in fetchActivityQuestions, ensure print flag is false
