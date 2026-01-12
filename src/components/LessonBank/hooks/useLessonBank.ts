@@ -230,11 +230,11 @@ export const useLessonBank = (
   const filtersKey = useMemo(() => {
     if (!filters) return '';
     return JSON.stringify({
-      subjectId: filters.subjectId?.sort() || [],
-      topicIds: filters.topicIds?.sort() || [],
-      subtopicIds: filters.subtopicIds?.sort() || [],
-      contentIds: filters.contentIds?.sort() || [],
-      selectedIds: filters.selectedIds?.sort() || [],
+      subjectId: filters.subjectId || [],
+      topicIds: filters.topicIds || [],
+      subtopicIds: filters.subtopicIds || [],
+      contentIds: filters.contentIds || [],
+      selectedIds: filters.selectedIds || [],
     });
   }, [filters]);
 

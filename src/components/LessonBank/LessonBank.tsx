@@ -11,8 +11,8 @@ import {
   Whiteboard,
 } from '../..';
 import type { Lesson } from '../../types/lessons';
-import { Video } from '@phosphor-icons/react';
 import { useLessonBank, type LessonFilters } from './hooks/useLessonBank';
+import Video from '@/assets/icons/subjects/Video';
 
 interface LessonBankProps {
   apiClient: BaseApiClient;
@@ -135,7 +135,7 @@ export const LessonBank = ({
                 size="small"
                 onClick={() => handleWatch(lesson)}
                 className="flex-1"
-                iconLeft={<Video />}
+                iconLeft={<Video size={16} color="currentColor" />}
               >
                 Assistir
               </Button>

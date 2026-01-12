@@ -289,10 +289,6 @@ Object.defineProperty(window, 'localStorage', {
   }) as unknown as typeof IntersectionObserver;
 
 describe('LessonBank', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   const mockLessons: Lesson[] = [
     {
       id: 'lesson-1',

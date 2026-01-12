@@ -76,7 +76,7 @@ type ButtonProps = {
  * @param children - The content to display inside the button
  * @param size - The size variant (extra-small, small, medium, large, extra-large)
  * @param variant - The visual style variant (solid, outline, link)
- * @param action - The action type (primary, positive, negative)
+ * @param action - The action type (primary, secondary, positive, negative)
  * @param className - Additional CSS classes
  * @param props - All other standard button HTML attributes
  * @returns A styled button element
