@@ -6,9 +6,9 @@ export interface InitialFiltersLoaderParams {
     topicIds?: string[];
     subtopicIds?: string[];
   } | null;
-  loadTopics?: (subjectIds: string[]) => void;
-  loadSubtopics?: (topicIds: string[]) => void;
-  loadContents?: (subtopicIds: string[]) => void;
+  loadTopics?: (subjectIds: string[]) => void | Promise<void>;
+  loadSubtopics?: (topicIds: string[]) => void | Promise<void>;
+  loadContents?: (subtopicIds: string[]) => void | Promise<void>;
 }
 
 /**
