@@ -138,16 +138,34 @@ const createMockApiClient = (
         const page = (body?.page as number) || 1;
         const limit = (body?.limit as number) || 20;
 
+        // Filter lessons based on provided filters (mock implementation)
+        let filteredLessons = lessons;
+        const filters = body?.filters as
+          | {
+              subjectId?: string[];
+              topicIds?: string[];
+              subtopicIds?: string[];
+              contentIds?: string[];
+            }
+          | undefined;
+
+        // In a real implementation, this would filter based on lesson metadata
+        // For stories, we just return all lessons regardless of filters
+        if (filters) {
+          // Mock: return filtered lessons (in real app, this would be done by backend)
+          filteredLessons = lessons;
+        }
+
         const startIndex = (page - 1) * limit;
         const endIndex = startIndex + limit;
-        const paginatedLessons = lessons.slice(startIndex, endIndex);
+        const paginatedLessons = filteredLessons.slice(startIndex, endIndex);
 
         const pagination: LessonsPagination = {
           page,
           limit,
-          total: lessons.length,
-          totalPages: Math.ceil(lessons.length / limit),
-          hasNext: hasNext || endIndex < lessons.length,
+          total: filteredLessons.length,
+          totalPages: Math.ceil(filteredLessons.length / limit),
+          hasNext: hasNext || endIndex < filteredLessons.length,
           hasPrev: page > 1,
         };
 
@@ -550,4 +568,45 @@ export const WithVideoPlayerAndPodcast: Story = () => {
 };
 WithVideoPlayerAndPodcast.meta = {
   name: 'With VideoPlayer and Podcast',
+};
+
+/**
+ * With Filters - shows the component with lesson filters applied
+ */
+export const WithFilters: Story = () => {
+  return (
+    <div style={{ height: '600px', width: '100%' }}>
+      <LessonBank
+        apiClient={createMockApiClient()}
+        filters={{
+          subjectId: ['matematica', 'biologia'],
+          topicIds: ['algebra', 'biologia-celular'],
+          subtopicIds: ['equacoes', 'fotossintese'],
+          contentIds: ['equacoes-primeiro-grau', 'fotossintese-processo'],
+        }}
+      />
+    </div>
+  );
+};
+WithFilters.meta = {
+  name: 'With Filters',
+};
+
+/**
+ * With Subject Filter Only - shows filtering by subject only
+ */
+export const WithSubjectFilter: Story = () => {
+  return (
+    <div style={{ height: '600px', width: '100%' }}>
+      <LessonBank
+        apiClient={createMockApiClient()}
+        filters={{
+          subjectId: ['matematica'],
+        }}
+      />
+    </div>
+  );
+};
+WithSubjectFilter.meta = {
+  name: 'With Subject Filter Only',
 };

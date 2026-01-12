@@ -19,6 +19,13 @@ import type {
 } from '../../types/lessons';
 import { Video } from '@phosphor-icons/react';
 
+interface LessonFilters {
+  subjectId?: string[];
+  topicIds?: string[];
+  subtopicIds?: string[];
+  contentIds?: string[];
+}
+
 interface LessonBankProps {
   apiClient: BaseApiClient;
   onAddLesson?: (lesson: Lesson) => void;
@@ -30,6 +37,7 @@ interface LessonBankProps {
   onVideoTimeUpdate?: (lessonId: string, time: number) => void;
   onVideoComplete?: (lessonId: string) => void;
   onPodcastEnded?: (lessonId: string) => void | Promise<void>;
+  filters?: LessonFilters;
 }
 
 /**
@@ -47,6 +55,7 @@ export const LessonBank = ({
   onVideoTimeUpdate,
   onVideoComplete,
   onPodcastEnded,
+  filters,
 }: LessonBankProps) => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [pagination, setPagination] = useState<LessonsPagination | null>(null);
@@ -60,6 +69,14 @@ export const LessonBank = ({
   const hasMarkedPodcast = useRef(false);
   const firstBoardImageRef = useRef<HTMLDivElement>(null);
   const lastBoardImageRef = useRef<HTMLDivElement>(null);
+  const filtersRef = useRef(filters);
+  const apiClientRef = useRef(apiClient);
+
+  // Update refs when props change
+  useEffect(() => {
+    filtersRef.current = filters;
+    apiClientRef.current = apiClient;
+  }, [filters, apiClient]);
 
   /**
    * Fetch lessons from API
@@ -74,13 +91,46 @@ export const LessonBank = ({
       }
 
       try {
-        const page = append ? (pagination ? pagination.page + 1 : 1) : 1;
-        const response = await apiClient.post<LessonsListResponse>(
-          '/lessons/list',
-          {
-            page,
-            limit: 20,
+        const currentPagination = pagination;
+        const page =
+          append && currentPagination ? currentPagination.page + 1 : 1;
+        const requestBody: Record<string, unknown> = {
+          page,
+          limit: 20,
+        };
+
+        // Add filters object if any filter is provided
+        const currentFilters = filtersRef.current;
+        if (currentFilters) {
+          const filtersBody: Record<string, unknown> = {};
+          if (currentFilters.subjectId && currentFilters.subjectId.length > 0) {
+            filtersBody.subjectId = currentFilters.subjectId;
           }
+          if (currentFilters.topicIds && currentFilters.topicIds.length > 0) {
+            filtersBody.topicIds = currentFilters.topicIds;
+          }
+          if (
+            currentFilters.subtopicIds &&
+            currentFilters.subtopicIds.length > 0
+          ) {
+            filtersBody.subtopicIds = currentFilters.subtopicIds;
+          }
+          if (
+            currentFilters.contentIds &&
+            currentFilters.contentIds.length > 0
+          ) {
+            filtersBody.contentIds = currentFilters.contentIds;
+          }
+
+          // Only add filters object if it has any properties
+          if (Object.keys(filtersBody).length > 0) {
+            requestBody.filters = filtersBody;
+          }
+        }
+
+        const response = await apiClientRef.current.post<LessonsListResponse>(
+          '/lessons/list',
+          requestBody
         );
 
         if (append) {
@@ -113,11 +163,75 @@ export const LessonBank = ({
   }, [pagination, loading, loadingMore, fetchLessons]);
 
   /**
-   * Fetch lessons on mount
+   * Create a stable key from filters to detect changes
+   */
+  const filtersKey = useMemo(() => {
+    if (!filters) return '';
+    return JSON.stringify({
+      subjectId: filters.subjectId?.sort() || [],
+      topicIds: filters.topicIds?.sort() || [],
+      subtopicIds: filters.subtopicIds?.sort() || [],
+      contentIds: filters.contentIds?.sort() || [],
+    });
+  }, [filters]);
+
+  /**
+   * Reset pagination and fetch lessons when filters change
+   * Only runs when filters actually change, not when other props change
    */
   useEffect(() => {
-    fetchLessons();
-  }, []);
+    setPagination(null);
+    setLessons([]);
+    const loadLessons = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const requestBody: Record<string, unknown> = {
+          page: 1,
+          limit: 20,
+        };
+
+        // Add filters object if any filter is provided
+        if (filters) {
+          const filtersBody: Record<string, unknown> = {};
+          if (filters.subjectId && filters.subjectId.length > 0) {
+            filtersBody.subjectId = filters.subjectId;
+          }
+          if (filters.topicIds && filters.topicIds.length > 0) {
+            filtersBody.topicIds = filters.topicIds;
+          }
+          if (filters.subtopicIds && filters.subtopicIds.length > 0) {
+            filtersBody.subtopicIds = filters.subtopicIds;
+          }
+          if (filters.contentIds && filters.contentIds.length > 0) {
+            filtersBody.contentIds = filters.contentIds;
+          }
+
+          // Only add filters object if it has any properties
+          if (Object.keys(filtersBody).length > 0) {
+            requestBody.filters = filtersBody;
+          }
+        }
+
+        const response = await apiClientRef.current.post<LessonsListResponse>(
+          '/lessons/list',
+          requestBody
+        );
+
+        setLessons(response.data.data.lessons);
+        setPagination(response.data.data.pagination);
+        setLoading(false);
+        setError(null);
+      } catch (err) {
+        console.error('Erro ao carregar aulas:', err);
+        setError('Erro ao carregar aulas');
+        setLoading(false);
+      }
+    };
+
+    loadLessons();
+  }, [filtersKey]);
 
   /**
    * Intersection Observer for infinite scroll
@@ -588,4 +702,4 @@ export const LessonBank = ({
   );
 };
 
-export type { LessonBankProps };
+export type { LessonBankProps, LessonFilters };
