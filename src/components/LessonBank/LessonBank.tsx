@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Book, Plus } from 'phosphor-react';
 import {
   Button,
@@ -11,21 +10,9 @@ import {
   CardAudio,
   Whiteboard,
 } from '../..';
-import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
-import type {
-  Lesson,
-  LessonsListResponse,
-  LessonsPagination,
-} from '../../types/lessons';
+import type { Lesson } from '../../types/lessons';
 import { Video } from '@phosphor-icons/react';
-
-interface LessonFilters {
-  subjectId?: string[];
-  topicIds?: string[];
-  subtopicIds?: string[];
-  contentIds?: string[];
-  selectedIds?: string[];
-}
+import { useLessonBank, type LessonFilters } from './hooks/useLessonBank';
 
 interface LessonBankProps {
   apiClient: BaseApiClient;
@@ -58,422 +45,41 @@ export const LessonBank = ({
   onPodcastEnded,
   filters,
 }: LessonBankProps) => {
-  const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [pagination, setPagination] = useState<LessonsPagination | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
-  const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
-
-  const observerTarget = useRef<HTMLDivElement>(null);
-  const hasMarkedPodcast = useRef(false);
-  const firstBoardImageRef = useRef<HTMLDivElement>(null);
-  const lastBoardImageRef = useRef<HTMLDivElement>(null);
-  const filtersRef = useRef(filters);
-  const apiClientRef = useRef(apiClient);
-
-  // Update refs when props change
-  useEffect(() => {
-    filtersRef.current = filters;
-    apiClientRef.current = apiClient;
-  }, [filters, apiClient]);
-
-  /**
-   * Fetch lessons from API
-   */
-  const fetchLessons = useCallback(
-    async (append = false) => {
-      if (append) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
-        setError(null);
-      }
-
-      try {
-        const currentPagination = pagination;
-        const page =
-          append && currentPagination ? currentPagination.page + 1 : 1;
-        const requestBody: Record<string, unknown> = {
-          page,
-          limit: 20,
-        };
-
-        // Add filters object if any filter is provided
-        const currentFilters = filtersRef.current;
-        if (currentFilters) {
-          const filtersBody: Record<string, unknown> = {};
-          if (currentFilters.subjectId && currentFilters.subjectId.length > 0) {
-            filtersBody.subjectId = currentFilters.subjectId;
-          }
-          if (currentFilters.topicIds && currentFilters.topicIds.length > 0) {
-            filtersBody.topicIds = currentFilters.topicIds;
-          }
-          if (
-            currentFilters.subtopicIds &&
-            currentFilters.subtopicIds.length > 0
-          ) {
-            filtersBody.subtopicIds = currentFilters.subtopicIds;
-          }
-          if (
-            currentFilters.contentIds &&
-            currentFilters.contentIds.length > 0
-          ) {
-            filtersBody.contentIds = currentFilters.contentIds;
-          }
-          if (
-            currentFilters.selectedIds &&
-            currentFilters.selectedIds.length > 0
-          ) {
-            filtersBody.selectedIds = currentFilters.selectedIds;
-          }
-
-          // Only add filters object if it has any properties
-          if (Object.keys(filtersBody).length > 0) {
-            requestBody.filters = filtersBody;
-          }
-        }
-
-        const response = await apiClientRef.current.post<LessonsListResponse>(
-          '/lessons/list',
-          requestBody
-        );
-
-        if (append) {
-          setLessons((prev) => [...prev, ...response.data.data.lessons]);
-        } else {
-          setLessons(response.data.data.lessons);
-        }
-
-        setPagination(response.data.data.pagination);
-        setLoading(false);
-        setLoadingMore(false);
-        setError(null);
-      } catch (err) {
-        console.error('Erro ao carregar aulas:', err);
-        setError('Erro ao carregar aulas');
-        setLoading(false);
-        setLoadingMore(false);
-      }
-    },
-    [apiClient, pagination]
-  );
-
-  /**
-   * Load more lessons (for infinite scroll)
-   */
-  const loadMore = useCallback(async () => {
-    if (pagination?.hasNext && !loading && !loadingMore) {
-      await fetchLessons(true);
-    }
-  }, [pagination, loading, loadingMore, fetchLessons]);
-
-  /**
-   * Create a stable key from filters to detect changes
-   */
-  const filtersKey = useMemo(() => {
-    if (!filters) return '';
-    return JSON.stringify({
-      subjectId: filters.subjectId?.sort() || [],
-      topicIds: filters.topicIds?.sort() || [],
-      subtopicIds: filters.subtopicIds?.sort() || [],
-      contentIds: filters.contentIds?.sort() || [],
-      selectedIds: filters.selectedIds?.sort() || [],
-    });
-  }, [filters]);
-
-  /**
-   * Reset pagination and fetch lessons when filters change
-   * Only runs when filters actually change, not when other props change
-   */
-  useEffect(() => {
-    setPagination(null);
-    setLessons([]);
-    const loadLessons = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const requestBody: Record<string, unknown> = {
-          page: 1,
-          limit: 20,
-        };
-
-        // Add filters object if any filter is provided
-        if (filters) {
-          const filtersBody: Record<string, unknown> = {};
-          if (filters.subjectId && filters.subjectId.length > 0) {
-            filtersBody.subjectId = filters.subjectId;
-          }
-          if (filters.topicIds && filters.topicIds.length > 0) {
-            filtersBody.topicIds = filters.topicIds;
-          }
-          if (filters.subtopicIds && filters.subtopicIds.length > 0) {
-            filtersBody.subtopicIds = filters.subtopicIds;
-          }
-          if (filters.contentIds && filters.contentIds.length > 0) {
-            filtersBody.contentIds = filters.contentIds;
-          }
-          if (filters.selectedIds && filters.selectedIds.length > 0) {
-            filtersBody.selectedIds = filters.selectedIds;
-          }
-
-          // Only add filters object if it has any properties
-          if (Object.keys(filtersBody).length > 0) {
-            requestBody.filters = filtersBody;
-          }
-        }
-
-        const response = await apiClientRef.current.post<LessonsListResponse>(
-          '/lessons/list',
-          requestBody
-        );
-
-        setLessons(response.data.data.lessons);
-        setPagination(response.data.data.pagination);
-        setLoading(false);
-        setError(null);
-      } catch (err) {
-        console.error('Erro ao carregar aulas:', err);
-        setError('Erro ao carregar aulas');
-        setLoading(false);
-      }
-    };
-
-    loadLessons();
-  }, [filtersKey]);
-
-  /**
-   * Intersection Observer for infinite scroll
-   * Loads more lessons when user scrolls to the bottom
-   */
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (
-          entries[0].isIntersecting &&
-          !loading &&
-          !loadingMore &&
-          pagination?.hasNext
-        ) {
-          loadMore();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      observer.observe(currentTarget);
-    }
-
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
-      }
-    };
-  }, [loading, loadingMore, pagination, loadMore]);
-
-  const totalLessons = pagination?.total || 0;
-
-  const uniqueLesson = () => {
-    return totalLessons === 1 ? 'aula' : 'aulas';
-  };
-
-  /**
-   * Handle watch button click
-   */
-  const handleWatch = (lesson: Lesson) => {
-    setSelectedLesson(lesson);
-    setIsWatchModalOpen(true);
-  };
-
-  /**
-   * Handle add to lesson button click (from card)
-   */
-  const handleAddToLesson = (lesson: Lesson) => {
-    if (onAddLesson) {
-      onAddLesson(lesson);
-    }
-  };
-
-  /**
-   * Handle add to lesson from modal
-   */
-  const handleAddToLessonFromModal = () => {
-    if (selectedLesson && onAddLesson) {
-      onAddLesson(selectedLesson);
-    }
-    setIsWatchModalOpen(false);
-    setSelectedLesson(null);
-  };
-
-  /**
-   * Handle modal close
-   */
-  const handleCloseModal = () => {
-    setIsWatchModalOpen(false);
-    setSelectedLesson(null);
-  };
-
-  /**
-   * Get video data from lesson
-   */
-  const getVideoData = (lesson: Lesson | null) => {
-    if (!lesson) {
-      return {
-        src: '',
-        poster: undefined,
-        subtitles: undefined,
-      };
-    }
-
-    return {
-      src: (lesson as Lesson & { videoSrc?: string }).videoSrc || '',
-      poster: (lesson as Lesson & { videoPoster?: string }).videoPoster,
-      subtitles: (lesson as Lesson & { videoSubtitles?: string })
-        .videoSubtitles,
-    };
-  };
-
-  /**
-   * Get podcast data from lesson
-   */
-  const getPodcastData = (lesson: Lesson | null) => {
-    if (!lesson) {
-      return {
-        src: '',
-        title: '',
-      };
-    }
-
-    return {
-      src: (lesson as Lesson & { podcastSrc?: string }).podcastSrc || '',
-      title: (lesson as Lesson & { podcastTitle?: string }).podcastTitle || '',
-    };
-  };
-
-  /**
-   * Get board images from lesson
-   */
-  const getBoardImages = (lesson: Lesson | null): WhiteboardImage[] => {
-    if (!lesson) {
-      return [];
-    }
-
-    const boardImages = (
-      lesson as Lesson & {
-        boardImages?: WhiteboardImage[];
-      }
-    ).boardImages;
-
-    return boardImages || [];
-  };
-
-  /**
-   * Get ref for board image (only first and last)
-   */
-  const getBoardImageRef = useCallback((index: number, total: number) => {
-    if (index === 0) {
-      return firstBoardImageRef;
-    }
-    if (index === total - 1) {
-      return lastBoardImageRef;
-    }
-    return null;
-  }, []);
-
-  /**
-   * Get initial timestamp for video
-   */
-  const getInitialTimestampValue = useCallback(
-    (id: string): number => {
-      if (getInitialTimestamp) {
-        return getInitialTimestamp(id);
-      }
-      // Try to get from localStorage as fallback
-      const saved = localStorage.getItem(`lesson-${id}`);
-      if (saved) {
-        const parsed = Number.parseFloat(saved);
-        if (Number.isFinite(parsed) && parsed >= 0) {
-          return parsed;
-        }
-      }
-      return 0;
-    },
-    [getInitialTimestamp]
-  );
-
-  /**
-   * Handle video time update
-   */
-  const handleVideoTimeUpdate = useCallback(
-    (seconds: number) => {
-      if (!selectedLesson) return;
-
-      const currentLessonId = isFromTrailRoute
-        ? lessonId || ''
-        : selectedLesson.id;
-
-      if (onVideoTimeUpdate) {
-        onVideoTimeUpdate(currentLessonId, seconds);
-      }
-    },
-    [selectedLesson, isFromTrailRoute, lessonId, onVideoTimeUpdate]
-  );
-
-  /**
-   * Handle video complete callback
-   */
-  const handleVideoCompleteCallback = useCallback(() => {
-    if (!selectedLesson) return;
-
-    const currentLessonId = isFromTrailRoute
-      ? lessonId || ''
-      : selectedLesson.id;
-
-    if (onVideoComplete) {
-      onVideoComplete(currentLessonId);
-    }
-  }, [selectedLesson, isFromTrailRoute, lessonId, onVideoComplete]);
-
-  /**
-   * Handle podcast ended callback
-   */
-  const handlePodcastEnded = useCallback(async () => {
-    if (!selectedLesson) return;
-
-    const currentLessonId = isFromTrailRoute
-      ? lessonId || ''
-      : selectedLesson.id;
-
-    if (onPodcastEnded && !hasMarkedPodcast.current) {
-      hasMarkedPodcast.current = true;
-
-      try {
-        await onPodcastEnded(currentLessonId);
-      } catch (error) {
-        // Revert flag if callback failed
-        hasMarkedPodcast.current = false;
-        console.error('Error in podcast ended callback:', error);
-      }
-    }
-  }, [selectedLesson, isFromTrailRoute, lessonId, onPodcastEnded]);
-
-  /**
-   * Reset podcast flag when lesson changes
-   */
-  useEffect(() => {
-    hasMarkedPodcast.current = false;
-  }, [selectedLesson?.id]);
-
-  /**
-   * Filter out lessons that are already added
-   */
-  const filteredLessons = useMemo(() => {
-    return lessons.filter((lesson) => !addedLessonIds.includes(lesson.id));
-  }, [lessons, addedLessonIds]);
+  const {
+    loading,
+    loadingMore,
+    error,
+    selectedLesson,
+    isWatchModalOpen,
+    filteredLessons,
+    totalLessons,
+    pagination,
+    observerTarget,
+    handleWatch,
+    handleAddToLesson,
+    handleAddToLessonFromModal,
+    handleCloseModal,
+    getVideoData,
+    getPodcastData,
+    getBoardImages,
+    getBoardImageRef,
+    getInitialTimestampValue,
+    handleVideoTimeUpdate,
+    handleVideoCompleteCallback,
+    handlePodcastEnded,
+    uniqueLesson,
+  } = useLessonBank({
+    apiClient,
+    filters,
+    addedLessonIds,
+    onAddLesson,
+    isFromTrailRoute,
+    lessonId,
+    getInitialTimestamp,
+    onVideoTimeUpdate,
+    onVideoComplete,
+    onPodcastEnded,
+  });
 
   /**
    * Renders the appropriate content based on loading, error, and lessons state
@@ -713,4 +319,5 @@ export const LessonBank = ({
   );
 };
 
-export type { LessonBankProps, LessonFilters };
+export type { LessonBankProps };
+export type { LessonFilters } from './hooks/useLessonBank';

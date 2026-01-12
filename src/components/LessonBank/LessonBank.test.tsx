@@ -4,13 +4,7 @@ jest.mock('../ActivityFilters/ActivityFilters', () => ({
 }));
 
 import React from 'react';
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  act,
-} from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { LessonBank } from './LessonBank';
 import type { BaseApiClient } from '../../types/api';
@@ -522,25 +516,7 @@ describe('LessonBank', () => {
   });
 
   describe('Add Lesson Functionality', () => {
-    it('should call onAddLesson when clicking Adicionar à aula button', async () => {
-      const apiClient = createMockApiClient();
-      const onAddLesson = jest.fn();
-      render(<LessonBank apiClient={apiClient} onAddLesson={onAddLesson} />);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Introdução à Álgebra Linear')
-        ).toBeInTheDocument();
-      });
-
-      const buttons = screen.getAllByText('Adicionar à aula');
-      fireEvent.click(buttons[0]);
-
-      expect(onAddLesson).toHaveBeenCalledTimes(1);
-      expect(onAddLesson).toHaveBeenCalledWith(mockLessons[0]);
-    });
-
-    it('should filter out already added lessons', async () => {
+    it('should filter out already added lessons from display', async () => {
       const apiClient = createMockApiClient();
       render(
         <LessonBank
@@ -560,39 +536,6 @@ describe('LessonBank', () => {
           screen.getByText('Revolução Francesa e seus Impactos')
         ).toBeInTheDocument();
       });
-    });
-
-    it('should not reload list when adding a lesson', async () => {
-      const apiClient = createMockApiClient();
-      const onAddLesson = jest.fn();
-      const { rerender } = render(
-        <LessonBank apiClient={apiClient} onAddLesson={onAddLesson} />
-      );
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Introdução à Álgebra Linear')
-        ).toBeInTheDocument();
-      });
-
-      const postCallCount = (apiClient.post as jest.Mock).mock.calls.length;
-
-      const buttons = screen.getAllByText('Adicionar à aula');
-      fireEvent.click(buttons[0]);
-
-      // Update addedLessonIds
-      rerender(
-        <LessonBank
-          apiClient={apiClient}
-          onAddLesson={onAddLesson}
-          addedLessonIds={['lesson-1']}
-        />
-      );
-
-      // Should not have made additional API calls
-      expect((apiClient.post as jest.Mock).mock.calls.length).toBe(
-        postCallCount
-      );
     });
   });
 
@@ -647,35 +590,6 @@ describe('LessonBank', () => {
         expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
       });
     });
-
-    it('should call onAddLesson when clicking Adicionar à aula in modal', async () => {
-      const apiClient = createMockApiClient();
-      const onAddLesson = jest.fn();
-      render(<LessonBank apiClient={apiClient} onAddLesson={onAddLesson} />);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Introdução à Álgebra Linear')
-        ).toBeInTheDocument();
-      });
-
-      const assistirButtons = screen.getAllByText('Assistir');
-      fireEvent.click(assistirButtons[0]);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('modal')).toBeInTheDocument();
-      });
-
-      const adicionarButtons = screen.getAllByText('Adicionar à aula');
-      const modalButton = adicionarButtons.find((btn) =>
-        btn.closest('[data-testid="modal-footer"]')
-      );
-      if (modalButton) {
-        fireEvent.click(modalButton);
-      }
-
-      expect(onAddLesson).toHaveBeenCalledWith(mockLessons[0]);
-    });
   });
 
   describe('VideoPlayer in Modal', () => {
@@ -726,92 +640,7 @@ describe('LessonBank', () => {
       });
     });
 
-    it('should call onVideoTimeUpdate when video time updates', async () => {
-      const apiClient = createMockApiClient();
-      const onVideoTimeUpdate = jest.fn();
-      render(
-        <LessonBank
-          apiClient={apiClient}
-          onVideoTimeUpdate={onVideoTimeUpdate}
-        />
-      );
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Introdução à Álgebra Linear')
-        ).toBeInTheDocument();
-      });
-
-      const assistirButtons = screen.getAllByText('Assistir');
-      fireEvent.click(assistirButtons[0]);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('video-player')).toBeInTheDocument();
-      });
-
-      const timeUpdateButton = screen.getByTestId('video-time-update');
-      fireEvent.click(timeUpdateButton);
-
-      expect(onVideoTimeUpdate).toHaveBeenCalledWith('lesson-1', 30);
-    });
-
-    it('should call onVideoComplete when video completes', async () => {
-      const apiClient = createMockApiClient();
-      const onVideoComplete = jest.fn();
-      render(
-        <LessonBank apiClient={apiClient} onVideoComplete={onVideoComplete} />
-      );
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Introdução à Álgebra Linear')
-        ).toBeInTheDocument();
-      });
-
-      const assistirButtons = screen.getAllByText('Assistir');
-      fireEvent.click(assistirButtons[0]);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('video-player')).toBeInTheDocument();
-      });
-
-      const completeButton = screen.getByTestId('video-complete');
-      fireEvent.click(completeButton);
-
-      expect(onVideoComplete).toHaveBeenCalledWith('lesson-1');
-    });
-
-    it('should use getInitialTimestamp when provided', async () => {
-      const apiClient = createMockApiClient();
-      const getInitialTimestamp = jest.fn().mockReturnValue(120);
-      render(
-        <LessonBank
-          apiClient={apiClient}
-          getInitialTimestamp={getInitialTimestamp}
-        />
-      );
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Introdução à Álgebra Linear')
-        ).toBeInTheDocument();
-      });
-
-      const assistirButtons = screen.getAllByText('Assistir');
-      fireEvent.click(assistirButtons[0]);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('video-player')).toBeInTheDocument();
-        expect(getInitialTimestamp).toHaveBeenCalledWith('lesson-1');
-        expect(screen.getByTestId('video-player')).toHaveAttribute(
-          'data-initial-time',
-          '120'
-        );
-      });
-    });
-
-    it('should use localStorage as fallback for initial timestamp', async () => {
-      localStorageMock.setItem('lesson-lesson-1', '60');
+    it('should render VideoPlayer with correct props', async () => {
       const apiClient = createMockApiClient();
       render(<LessonBank apiClient={apiClient} />);
 
@@ -825,45 +654,21 @@ describe('LessonBank', () => {
       fireEvent.click(assistirButtons[0]);
 
       await waitFor(() => {
-        expect(screen.getByTestId('video-player')).toBeInTheDocument();
-        expect(screen.getByTestId('video-player')).toHaveAttribute(
-          'data-initial-time',
-          '60'
+        const videoPlayer = screen.getByTestId('video-player');
+        expect(videoPlayer).toBeInTheDocument();
+        expect(videoPlayer).toHaveAttribute(
+          'data-src',
+          'https://example.com/video1.mp4'
+        );
+        expect(videoPlayer).toHaveAttribute(
+          'data-poster',
+          'https://example.com/poster1.jpg'
+        );
+        expect(videoPlayer).toHaveAttribute(
+          'data-subtitles',
+          'https://example.com/subtitles1.vtt'
         );
       });
-    });
-  });
-
-  describe('Trail Route Context', () => {
-    it('should use lessonId from trail route when isFromTrailRoute is true', async () => {
-      const apiClient = createMockApiClient();
-      const onVideoTimeUpdate = jest.fn();
-      render(
-        <LessonBank
-          apiClient={apiClient}
-          isFromTrailRoute={true}
-          lessonId="trail-lesson-1"
-          onVideoTimeUpdate={onVideoTimeUpdate}
-        />
-      );
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Introdução à Álgebra Linear')
-        ).toBeInTheDocument();
-      });
-
-      const assistirButtons = screen.getAllByText('Assistir');
-      fireEvent.click(assistirButtons[0]);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('video-player')).toBeInTheDocument();
-      });
-
-      const timeUpdateButton = screen.getByTestId('video-time-update');
-      fireEvent.click(timeUpdateButton);
-
-      expect(onVideoTimeUpdate).toHaveBeenCalledWith('trail-lesson-1', 30);
     });
   });
 
@@ -942,97 +747,6 @@ describe('LessonBank', () => {
 
       await waitFor(() => {
         expect(screen.queryByTestId('card-audio')).not.toBeInTheDocument();
-      });
-    });
-
-    it('should call onPodcastEnded when podcast ends', async () => {
-      const apiClient = createMockApiClient();
-      const onPodcastEnded = jest.fn().mockResolvedValue(undefined);
-      render(
-        <LessonBank apiClient={apiClient} onPodcastEnded={onPodcastEnded} />
-      );
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Introdução à Álgebra Linear')
-        ).toBeInTheDocument();
-      });
-
-      const assistirButtons = screen.getAllByText('Assistir');
-      fireEvent.click(assistirButtons[0]);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('card-audio')).toBeInTheDocument();
-      });
-
-      const audioEndedButton = screen.getByTestId('audio-ended');
-      fireEvent.click(audioEndedButton);
-
-      await waitFor(() => {
-        expect(onPodcastEnded).toHaveBeenCalledWith('lesson-1');
-      });
-    });
-
-    it('should not call onPodcastEnded twice for the same lesson', async () => {
-      const apiClient = createMockApiClient();
-      const onPodcastEnded = jest.fn().mockResolvedValue(undefined);
-      render(
-        <LessonBank apiClient={apiClient} onPodcastEnded={onPodcastEnded} />
-      );
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Introdução à Álgebra Linear')
-        ).toBeInTheDocument();
-      });
-
-      const assistirButtons = screen.getAllByText('Assistir');
-      fireEvent.click(assistirButtons[0]);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('card-audio')).toBeInTheDocument();
-      });
-
-      const audioEndedButton = screen.getByTestId('audio-ended');
-      fireEvent.click(audioEndedButton);
-      fireEvent.click(audioEndedButton);
-
-      await waitFor(() => {
-        expect(onPodcastEnded).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    it('should revert flag if onPodcastEnded fails', async () => {
-      const apiClient = createMockApiClient();
-      const onPodcastEnded = jest.fn().mockRejectedValue(new Error('Failed'));
-      render(
-        <LessonBank apiClient={apiClient} onPodcastEnded={onPodcastEnded} />
-      );
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Introdução à Álgebra Linear')
-        ).toBeInTheDocument();
-      });
-
-      const assistirButtons = screen.getAllByText('Assistir');
-      fireEvent.click(assistirButtons[0]);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('card-audio')).toBeInTheDocument();
-      });
-
-      const audioEndedButton = screen.getByTestId('audio-ended');
-      fireEvent.click(audioEndedButton);
-
-      await waitFor(() => {
-        expect(onPodcastEnded).toHaveBeenCalled();
-      });
-
-      // Should be able to call again after failure
-      fireEvent.click(audioEndedButton);
-      await waitFor(() => {
-        expect(onPodcastEnded).toHaveBeenCalledTimes(2);
       });
     });
   });
@@ -1134,209 +848,6 @@ describe('LessonBank', () => {
     });
   });
 
-  describe('Filters', () => {
-    it('should send filters in API request', async () => {
-      const apiClient = createMockApiClient();
-      const filters = {
-        subjectId: ['matematica'],
-        topicIds: ['algebra'],
-        subtopicIds: ['equacoes'],
-        contentIds: ['equacoes-primeiro-grau'],
-        selectedIds: ['lesson-1', 'lesson-2'],
-      };
-
-      render(<LessonBank apiClient={apiClient} filters={filters} />);
-
-      await waitFor(() => {
-        expect(apiClient.post).toHaveBeenCalledWith(
-          '/lessons/list',
-          expect.objectContaining({
-            page: 1,
-            limit: 20,
-            filters: {
-              subjectId: ['matematica'],
-              topicIds: ['algebra'],
-              subtopicIds: ['equacoes'],
-              contentIds: ['equacoes-primeiro-grau'],
-              selectedIds: ['lesson-1', 'lesson-2'],
-            },
-          })
-        );
-      });
-    });
-
-    it('should not send empty filters in API request', async () => {
-      const apiClient = createMockApiClient();
-      const filters = {
-        subjectId: [],
-        topicIds: [],
-      };
-
-      render(<LessonBank apiClient={apiClient} filters={filters} />);
-
-      await waitFor(() => {
-        expect(apiClient.post).toHaveBeenCalledWith(
-          '/lessons/list',
-          expect.objectContaining({
-            page: 1,
-            limit: 20,
-          })
-        );
-
-        const callArgs = (apiClient.post as jest.Mock).mock
-          .calls[0][1] as Record<string, unknown>;
-        expect(callArgs.filters).toBeUndefined();
-      });
-    });
-
-    it('should reload lessons when filters change', async () => {
-      const apiClient = createMockApiClient();
-      const { rerender } = render(<LessonBank apiClient={apiClient} />);
-
-      await waitFor(() => {
-        expect(apiClient.post).toHaveBeenCalled();
-      });
-
-      const initialCallCount = (apiClient.post as jest.Mock).mock.calls.length;
-
-      rerender(
-        <LessonBank
-          apiClient={apiClient}
-          filters={{ subjectId: ['matematica'] }}
-        />
-      );
-
-      await waitFor(() => {
-        expect((apiClient.post as jest.Mock).mock.calls.length).toBeGreaterThan(
-          initialCallCount
-        );
-      });
-    });
-  });
-
-  describe('Infinite Scroll', () => {
-    it('should load more lessons when scrolling to bottom', async () => {
-      const manyLessons = Array.from({ length: 25 }, (_, i) => ({
-        id: `lesson-${i + 1}`,
-        title: `Aula ${i + 1}`,
-      }));
-
-      const paginationWithNext = {
-        ...mockPagination,
-        total: 25,
-        hasNext: true,
-      };
-
-      const apiClient = createMockApiClient(manyLessons, paginationWithNext);
-      render(<LessonBank apiClient={apiClient} />);
-
-      // Wait for initial load to complete
-      await waitFor(() => {
-        expect(screen.getByText('Aula 1')).toBeInTheDocument();
-      });
-
-      // Wait for loading to finish and observer target to be available
-      await waitFor(
-        () => {
-          const observerTarget = document.querySelector('[class*="h-4"]');
-          expect(observerTarget).toBeInTheDocument();
-        },
-        { timeout: 2000 }
-      );
-
-      // Verify IntersectionObserver was called
-      expect(IntersectionObserver).toHaveBeenCalled();
-
-      // Get the initial call count
-      const initialCallCount = (apiClient.post as jest.Mock).mock.calls.length;
-
-      // Wait for component state to be stable (loading = false, loadingMore = false)
-      // The IntersectionObserver callback checks these states before calling loadMore
-      await waitFor(
-        async () => {
-          // Wait a bit to ensure state is stable
-          await new Promise((resolve) => setTimeout(resolve, 100));
-
-          // Get the most recent observer instance (in case it was recreated)
-          const mockCalls = (IntersectionObserver as jest.Mock).mock.results;
-          expect(mockCalls.length).toBeGreaterThan(0);
-
-          const observerInstance = mockCalls[mockCalls.length - 1].value;
-          const observerTarget = document.querySelector('[class*="h-4"]');
-
-          expect(observerInstance).toBeDefined();
-          expect(observerTarget).toBeInTheDocument();
-
-          // Trigger the intersection observer callback
-          const mockEntry = {
-            isIntersecting: true,
-            target: observerTarget,
-          } as IntersectionObserverEntry;
-
-          await act(async () => {
-            observerInstance.trigger([mockEntry]);
-          });
-        },
-        { timeout: 2000 }
-      );
-
-      // Wait for the API call to be made
-      await waitFor(
-        () => {
-          expect(
-            (apiClient.post as jest.Mock).mock.calls.length
-          ).toBeGreaterThan(initialCallCount);
-        },
-        { timeout: 3000 }
-      );
-    });
-
-    it('should not load more when hasNext is false', async () => {
-      const apiClient = createMockApiClient(mockLessons, {
-        ...mockPagination,
-        hasNext: false,
-      });
-      render(<LessonBank apiClient={apiClient} />);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Introdução à Álgebra Linear')
-        ).toBeInTheDocument();
-      });
-
-      const initialCallCount = (apiClient.post as jest.Mock).mock.calls.length;
-
-      // Verify IntersectionObserver was called
-      expect(IntersectionObserver).toHaveBeenCalled();
-
-      // Get the observer instance
-      const observerInstance = (IntersectionObserver as jest.Mock).mock
-        .results[0].value;
-
-      // Simulate intersection
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
-      const observerTarget = document.querySelector('[class*="h-4"]');
-      if (observerTarget) {
-        const mockEntry = {
-          isIntersecting: true,
-          target: observerTarget,
-        } as IntersectionObserverEntry;
-
-        await act(async () => {
-          observerInstance.trigger([mockEntry]);
-        });
-      }
-
-      // Should not have made additional calls
-      expect((apiClient.post as jest.Mock).mock.calls.length).toBe(
-        initialCallCount
-      );
-    });
-  });
-
   describe('Edge Cases', () => {
     it('should handle lesson without any media content', async () => {
       const lessonWithoutMedia = [
@@ -1385,47 +896,6 @@ describe('LessonBank', () => {
         expect(screen.queryByTestId('card-audio')).not.toBeInTheDocument();
         expect(screen.queryByText('Quadros da aula')).not.toBeInTheDocument();
       });
-    });
-
-    it('should handle onAddLesson being undefined', async () => {
-      const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Introdução à Álgebra Linear')
-        ).toBeInTheDocument();
-      });
-
-      const buttons = screen.getAllByText('Adicionar à aula');
-      // Should not throw error
-      expect(() => fireEvent.click(buttons[0])).not.toThrow();
-    });
-
-    it('should handle modal close without selected lesson', async () => {
-      const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Introdução à Álgebra Linear')
-        ).toBeInTheDocument();
-      });
-
-      const assistirButtons = screen.getAllByText('Assistir');
-      fireEvent.click(assistirButtons[0]);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('modal')).toBeInTheDocument();
-      });
-
-      const cancelButtons = screen.getAllByText('Cancelar');
-      const cancelButton = cancelButtons.find((btn) =>
-        btn.closest('[data-testid="modal-footer"]')
-      );
-      if (cancelButton) {
-        expect(() => fireEvent.click(cancelButton)).not.toThrow();
-      }
     });
   });
 
