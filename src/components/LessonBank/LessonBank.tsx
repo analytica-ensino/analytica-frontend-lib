@@ -249,9 +249,9 @@ export const LessonBank = ({
                         if (podcastData.src) {
                           return (
                             <div className="w-full">
-                              <p className="text-text-950 font-bold text-md pb-2">
+                              <Text size="md" weight="bold" className="pb-2">
                                 {podcastData.title}
-                              </p>
+                              </Text>
                               <CardAudio
                                 src={podcastData.src}
                                 title={podcastData.title}
@@ -267,9 +267,9 @@ export const LessonBank = ({
                         if (boardImages.length > 0) {
                           return (
                             <div className="w-full">
-                              <p className="text-text-950 font-bold text-md pb-2">
+                              <Text size="md" weight="bold" className="pb-2">
                                 Quadros da aula
-                              </p>
+                              </Text>
                               <div className="flex flex-wrap gap-4">
                                 {boardImages.map((image, index) => (
                                   <div
