@@ -1,3 +1,71 @@
+// Helper types and functions extracted to reduce function nesting depth (SonarLint S2004)
+type CategoryItem = { id: string; name: string };
+type Category = {
+  key: string;
+  label: string;
+  itens: CategoryItem[];
+  selectedIds: string[];
+};
+
+const toggleCategorySelection = (
+  categories: Category[],
+  categoryKey: string,
+  itemId: string
+): Category[] => {
+  return categories.map((c) =>
+    c.key === categoryKey
+      ? {
+          ...c,
+          selectedIds: c.selectedIds.includes(itemId)
+            ? c.selectedIds.filter((id) => id !== itemId)
+            : [...c.selectedIds, itemId],
+        }
+      : c
+  );
+};
+
+/**
+ * Creates a change handler for category checkbox
+ * Extracted to reduce nesting depth in mock components
+ */
+const createCategoryChangeHandler = (
+  categories: Category[],
+  categoryKey: string,
+  itemId: string,
+  onCategoriesChange: (updated: Category[]) => void
+) => {
+  return () =>
+    onCategoriesChange(
+      toggleCategorySelection(categories, categoryKey, itemId)
+    );
+};
+
+/**
+ * Renders category items for mock checkbox group
+ * Extracted to reduce nesting depth in mock components
+ */
+const renderCategoryItems = (
+  category: Category,
+  categories: Category[],
+  onCategoriesChange: (updated: Category[]) => void
+) => {
+  return category.itens.map((item) => (
+    <label key={item.id}>
+      <input
+        type="checkbox"
+        checked={category.selectedIds.includes(item.id)}
+        onChange={createCategoryChangeHandler(
+          categories,
+          category.key,
+          item.id,
+          onCategoriesChange
+        )}
+      />
+      {item.name}
+    </label>
+  ));
+};
+
 // Mocks need to be defined before importing the component (barrel imports).
 jest.mock('../../index', () => ({
   ...jest.requireActual('../../index'),
@@ -80,28 +148,11 @@ jest.mock('../../components/ActivityFilters/components', () => ({
           {knowledgeCategories.map((category) => (
             <div key={category.key}>
               <h4>{category.label}</h4>
-              {category.itens.map((item) => (
-                <label key={item.id}>
-                  <input
-                    type="checkbox"
-                    checked={category.selectedIds.includes(item.id)}
-                    onChange={() => {
-                      const updated = knowledgeCategories.map((c) =>
-                        c.key === category.key
-                          ? {
-                              ...c,
-                              selectedIds: c.selectedIds.includes(item.id)
-                                ? c.selectedIds.filter((id) => id !== item.id)
-                                : [...c.selectedIds, item.id],
-                            }
-                          : c
-                      );
-                      handleCategoriesChange(updated);
-                    }}
-                  />
-                  {item.name}
-                </label>
-              ))}
+              {renderCategoryItems(
+                category,
+                knowledgeCategories,
+                handleCategoriesChange
+              )}
             </div>
           ))}
         </div>
@@ -145,28 +196,7 @@ jest.mock('../../components/CheckBoxGroup/CheckBoxGroup', () => ({
       {categories.map((category) => (
         <div key={category.key}>
           <h4>{category.label}</h4>
-          {category.itens.map((item) => (
-            <label key={item.id}>
-              <input
-                type="checkbox"
-                checked={category.selectedIds.includes(item.id)}
-                onChange={() => {
-                  const updated = categories.map((c) =>
-                    c.key === category.key
-                      ? {
-                          ...c,
-                          selectedIds: c.selectedIds.includes(item.id)
-                            ? c.selectedIds.filter((id) => id !== item.id)
-                            : [...c.selectedIds, item.id],
-                        }
-                      : c
-                  );
-                  onCategoriesChange(updated);
-                }}
-              />
-              {item.name}
-            </label>
-          ))}
+          {renderCategoryItems(category, categories, onCategoriesChange)}
         </div>
       ))}
     </div>
@@ -348,9 +378,9 @@ describe('LessonFilters', () => {
     const mathRadio = screen.getByLabelText(/Matemática/i);
     fireEvent.click(mathRadio);
 
-      await waitFor(() => {
-        expect(screen.getByText('Tema, Subtema e Assunto')).toBeInTheDocument();
-      });
+    await waitFor(() => {
+      expect(screen.getByText('Tema, Subtema e Assunto')).toBeInTheDocument();
+    });
   });
 
   it('calls onFiltersChange when subject is selected', async () => {
@@ -567,9 +597,9 @@ describe('LessonFilters', () => {
     const mathRadio = screen.getByLabelText(/Matemática/i);
     fireEvent.click(mathRadio);
 
-      await waitFor(() => {
-        expect(screen.getByText('Tema, Subtema e Assunto')).toBeInTheDocument();
-      });
+    await waitFor(() => {
+      expect(screen.getByText('Tema, Subtema e Assunto')).toBeInTheDocument();
+    });
 
     const updatedCategories = [
       {

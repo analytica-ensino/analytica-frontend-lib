@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import { SubjectEnum } from '../../../enums/SubjectEnum';
-import { getSubjectInfo } from '../../SubjectInfo/SubjectInfo';
-import Text from '../../Text/Text';
-import { cn } from '../../../utils/utils';
+import { SubjectEnum } from '../enums/SubjectEnum';
+import { getSubjectInfo } from '../components/SubjectInfo/SubjectInfo';
+import Text from '../components/Text/Text';
+import { cn } from './utils';
 
 /**
  * Render a subject cell with optional icon based on subject enum mapping

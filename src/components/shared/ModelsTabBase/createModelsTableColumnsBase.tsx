@@ -3,25 +3,53 @@ import { Trash, PencilSimple, PaperPlaneTilt } from 'phosphor-react';
 import Text from '../../Text/Text';
 import Button from '../../Button/Button';
 import IconButton from '../../IconButton/IconButton';
-import { renderSubjectCell } from '../utils';
+import { renderSubjectCell } from '../../../utils/renderSubjectCell';
 import type { ColumnConfig } from '../../TableProvider/TableProvider';
-import type { ActivityModelTableItem } from '../../../types/activitiesHistory';
 import type { SubjectEnum } from '../../../enums/SubjectEnum';
 
 /**
- * Create table columns configuration for activity models
+ * Base model item interface - all model types must extend this.
+ * Includes index signature for TableProvider compatibility.
+ */
+export interface BaseModelItem {
+  id: string;
+  title: string;
+  subject?: string;
+  savedAt?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Configuration for model columns labels and accessibility
+ */
+export interface ModelsColumnsConfig {
+  /** Send button label (e.g., "Enviar aula", "Enviar atividade") */
+  sendButtonLabel: string;
+  /** Send button aria-label */
+  sendButtonAriaLabel: string;
+  /** Delete button aria-label */
+  deleteButtonAriaLabel: string;
+  /** Edit button aria-label */
+  editButtonAriaLabel: string;
+}
+
+/**
+ * Creates base table columns configuration for models.
+ * Can be used by both GoalModels and ActivityModels with type-safe generics.
  * @param mapSubjectNameToEnum - Optional function to map subject names to enum values
- * @param onSendActivity - Callback when send activity button is clicked
- * @param onEditModel - Callback when edit button is clicked
- * @param onDeleteModel - Callback when delete button is clicked
+ * @param onSend - Callback when send button is clicked
+ * @param onEdit - Callback when edit button is clicked
+ * @param onDelete - Callback when delete button is clicked
+ * @param config - Configuration for labels and accessibility
  * @returns Array of column configurations for the models table
  */
-export const createModelsTableColumns = (
+export const createModelsTableColumnsBase = <T extends BaseModelItem>(
   mapSubjectNameToEnum: ((name: string) => SubjectEnum | null) | undefined,
-  onSendActivity: ((model: ActivityModelTableItem) => void) | undefined,
-  onEditModel: ((model: ActivityModelTableItem) => void) | undefined,
-  onDeleteModel: (model: ActivityModelTableItem) => void
-): ColumnConfig<ActivityModelTableItem>[] => [
+  onSend: ((model: T) => void) | undefined,
+  onEdit: ((model: T) => void) | undefined,
+  onDelete: (model: T) => void,
+  config: ModelsColumnsConfig
+): ColumnConfig<T>[] => [
   {
     key: 'title',
     label: 'Título',
@@ -57,49 +85,49 @@ export const createModelsTableColumns = (
     label: '',
     sortable: false,
     className: 'w-[220px]',
-    render: (_value: unknown, row: ActivityModelTableItem) => {
+    render: (_value: unknown, row: T) => {
       const handleSend = (e: MouseEvent) => {
         e.stopPropagation();
-        onSendActivity?.(row);
+        onSend?.(row);
       };
 
       const handleEdit = (e: MouseEvent) => {
         e.stopPropagation();
-        onEditModel?.(row);
+        onEdit?.(row);
       };
 
       const handleDelete = (e: MouseEvent) => {
         e.stopPropagation();
-        onDeleteModel(row);
+        onDelete(row);
       };
 
       return (
         <div className="flex items-center gap-2 justify-end">
-          {onSendActivity && (
+          {onSend && (
             <Button
               variant="outline"
               action="primary"
               size="small"
               iconLeft={<PaperPlaneTilt size={16} />}
               onClick={handleSend}
-              aria-label="Enviar atividade"
+              aria-label={config.sendButtonAriaLabel}
             >
-              Enviar atividade
+              {config.sendButtonLabel}
             </Button>
           )}
           <IconButton
             icon={<Trash size={20} />}
             size="md"
             onClick={handleDelete}
-            aria-label="Deletar modelo"
+            aria-label={config.deleteButtonAriaLabel}
             className="text-text-600 hover:text-error-500 hover:bg-transparent"
           />
-          {onEditModel && (
+          {onEdit && (
             <IconButton
               icon={<PencilSimple size={20} />}
               size="md"
               onClick={handleEdit}
-              aria-label="Editar modelo"
+              aria-label={config.editButtonAriaLabel}
               className="text-text-600 hover:text-primary-700 hover:bg-transparent"
             />
           )}

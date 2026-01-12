@@ -1,8 +1,132 @@
 import type { Story } from '@ladle/react';
-import { RecommendedLessonsHistory } from './RecommendedLessonsHistory';
+import {
+  RecommendedLessonsHistory,
+  GoalPageTab,
+} from './RecommendedLessonsHistory';
 import type { RecommendedLessonsHistoryProps } from './RecommendedLessonsHistory';
-import type { GoalsHistoryApiResponse } from '../../types/recommendedLessons';
+import type {
+  GoalsHistoryApiResponse,
+  GoalModelsApiResponse,
+} from '../../types/recommendedLessons';
+import { GoalDraftType } from '../../types/recommendedLessons';
 import { SubjectEnum } from '../../enums/SubjectEnum';
+
+/**
+ * Mock UUIDs for models data
+ */
+const MOCK_UUIDS = {
+  models: {
+    model1: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+    model2: '00000000-0000-0000-0000-000000000001',
+    model3: '00000000-0000-0000-0000-000000000002',
+    model4: '00000000-0000-0000-0000-000000000003',
+    model5: '00000000-0000-0000-0000-000000000004',
+  },
+  subjects: {
+    math: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    physics: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+    chemistry: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+    portuguese: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
+    biology: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+  },
+  users: {
+    creator: '11111111-1111-1111-1111-111111111111',
+  },
+};
+
+/**
+ * Mock subjects map for models
+ */
+const mockSubjectsMap = new Map<string, string>([
+  [MOCK_UUIDS.subjects.math, 'Matemática'],
+  [MOCK_UUIDS.subjects.physics, 'Física'],
+  [MOCK_UUIDS.subjects.chemistry, 'Química'],
+  [MOCK_UUIDS.subjects.portuguese, 'Português'],
+  [MOCK_UUIDS.subjects.biology, 'Biologia'],
+]);
+
+/**
+ * Mock goal models data
+ */
+const mockGoalModelsResponse: GoalModelsApiResponse = {
+  message: 'Success',
+  data: {
+    drafts: [
+      {
+        id: MOCK_UUIDS.models.model1,
+        type: GoalDraftType.MODELO,
+        title: 'Modelo de Aula - Álgebra Linear',
+        description: 'Modelo para aulas de álgebra com foco em matrizes',
+        creatorUserInstitutionId: MOCK_UUIDS.users.creator,
+        subjectId: MOCK_UUIDS.subjects.math,
+        startDate: null,
+        finalDate: null,
+        createdAt: '2024-10-15T10:00:00Z',
+        updatedAt: '2024-11-01T14:30:00Z',
+      },
+      {
+        id: MOCK_UUIDS.models.model2,
+        type: GoalDraftType.MODELO,
+        title: 'Modelo de Aula - Mecânica Clássica',
+        description: 'Modelo para aulas de física sobre leis de Newton',
+        creatorUserInstitutionId: MOCK_UUIDS.users.creator,
+        subjectId: MOCK_UUIDS.subjects.physics,
+        startDate: null,
+        finalDate: null,
+        createdAt: '2024-09-20T08:00:00Z',
+        updatedAt: '2024-10-05T16:45:00Z',
+      },
+      {
+        id: MOCK_UUIDS.models.model3,
+        type: GoalDraftType.MODELO,
+        title: 'Modelo de Aula - Química Orgânica',
+        description: 'Modelo para aulas de química sobre hidrocarbonetos',
+        creatorUserInstitutionId: MOCK_UUIDS.users.creator,
+        subjectId: MOCK_UUIDS.subjects.chemistry,
+        startDate: null,
+        finalDate: null,
+        createdAt: '2024-08-01T09:30:00Z',
+        updatedAt: '2024-08-15T11:00:00Z',
+      },
+      {
+        id: MOCK_UUIDS.models.model4,
+        type: GoalDraftType.MODELO,
+        title: 'Modelo de Aula - Literatura Brasileira',
+        description: 'Modelo para aulas de português sobre modernismo',
+        creatorUserInstitutionId: MOCK_UUIDS.users.creator,
+        subjectId: MOCK_UUIDS.subjects.portuguese,
+        startDate: null,
+        finalDate: null,
+        createdAt: '2024-07-10T14:00:00Z',
+        updatedAt: '2024-07-20T10:30:00Z',
+      },
+      {
+        id: MOCK_UUIDS.models.model5,
+        type: GoalDraftType.MODELO,
+        title: 'Modelo de Aula - Biologia Celular',
+        description: 'Modelo para aulas de biologia sobre mitose e meiose',
+        creatorUserInstitutionId: MOCK_UUIDS.users.creator,
+        subjectId: MOCK_UUIDS.subjects.biology,
+        startDate: null,
+        finalDate: null,
+        createdAt: '2024-06-05T11:00:00Z',
+        updatedAt: '2024-06-15T09:00:00Z',
+      },
+    ],
+    total: 5,
+  },
+};
+
+/**
+ * Empty models response
+ */
+const emptyModelsResponse: GoalModelsApiResponse = {
+  message: 'Success',
+  data: {
+    drafts: [],
+    total: 0,
+  },
+};
 
 /**
  * Mock goals history data
@@ -262,6 +386,18 @@ const defaultProps: RecommendedLessonsHistoryProps = {
   onEditGoal: (id) => console.log('Edit goal:', id),
   mapSubjectNameToEnum,
   userFilterData: mockUserFilterData,
+  // Model props - enables Models tab in all stories
+  fetchGoalModels: async () => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    return mockGoalModelsResponse;
+  },
+  deleteGoalModel: async (id) => {
+    console.log('Delete model:', id);
+  },
+  onCreateModel: () => console.log('Create model clicked'),
+  onSendLesson: (model) => console.log('Send lesson:', model),
+  onEditModel: (model) => console.log('Edit model:', model),
+  subjectsMap: mockSubjectsMap,
 };
 
 /**
@@ -646,4 +782,66 @@ export const AllStatuses: Story = () => {
 };
 AllStatuses.meta = {
   name: 'All Status Types',
+};
+
+/**
+ * Props for Models tab stories - starts on Models tab
+ */
+const modelsProps: RecommendedLessonsHistoryProps = {
+  ...defaultProps,
+  defaultTab: GoalPageTab.MODELS,
+};
+
+/**
+ * Models tab - shows the component with models data
+ */
+export const ModelsTab: Story = () => (
+  <RecommendedLessonsHistory {...modelsProps} />
+);
+ModelsTab.meta = {
+  name: 'Models Tab',
+};
+
+/**
+ * Models tab empty - shows the models tab with no data
+ */
+export const ModelsEmpty: Story = () => (
+  <RecommendedLessonsHistory
+    {...modelsProps}
+    fetchGoalModels={async () => {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return emptyModelsResponse;
+    }}
+  />
+);
+ModelsEmpty.meta = {
+  name: 'Models Tab Empty',
+};
+
+/**
+ * Models tab loading - shows the models tab in loading state
+ */
+export const ModelsLoading: Story = () => (
+  <RecommendedLessonsHistory
+    {...modelsProps}
+    fetchGoalModels={() => new Promise(() => {})}
+  />
+);
+ModelsLoading.meta = {
+  name: 'Models Tab Loading',
+};
+
+/**
+ * Models tab error - shows the models tab with error state
+ */
+export const ModelsError: Story = () => (
+  <RecommendedLessonsHistory
+    {...modelsProps}
+    fetchGoalModels={() =>
+      Promise.reject(new Error('Erro ao carregar modelos'))
+    }
+  />
+);
+ModelsError.meta = {
+  name: 'Models Tab Error',
 };

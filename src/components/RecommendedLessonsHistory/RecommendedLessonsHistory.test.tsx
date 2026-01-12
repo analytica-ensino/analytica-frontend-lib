@@ -231,7 +231,6 @@ jest.mock('../TableProvider/TableProvider', () => {
         label: string;
         render?: (value: unknown, row: unknown) => ReactNode;
       }>;
-      loading?: boolean;
       emptyState?: { component: ReactNode };
       onParamsChange?: (params: unknown) => void;
       onRowClick?: (row: unknown) => void;
@@ -333,6 +332,7 @@ jest.mock('../TableProvider/TableProvider', () => {
 // Import component after all mocks
 import {
   RecommendedLessonsHistory,
+  GoalPageTab,
   type RecommendedLessonsHistoryProps,
 } from './RecommendedLessonsHistory';
 
@@ -1276,6 +1276,159 @@ describe('RecommendedLessonsHistory', () => {
       );
 
       expect(mockOnRowClick).toHaveBeenCalled();
+    });
+  });
+
+  describe('Controlled Tab Mode (defaultTab and onTabChange)', () => {
+    it('should use defaultTab when provided', async () => {
+      render(
+        <RecommendedLessonsHistory
+          {...defaultProps}
+          defaultTab={GoalPageTab.DRAFTS}
+        />
+      );
+
+      await waitFor(() => {
+        // The drafts tab content should be visible
+        expect(
+          screen.getByText('Rascunhos em desenvolvimento')
+        ).toBeInTheDocument();
+      });
+    });
+
+    it('should use HISTORY tab when defaultTab is not provided', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        // History tab should show the table
+        expect(screen.getByTestId('table-provider')).toBeInTheDocument();
+      });
+    });
+
+    it('should call onTabChange when tab changes', async () => {
+      const mockOnTabChange = jest.fn();
+
+      render(
+        <RecommendedLessonsHistory
+          {...defaultProps}
+          onTabChange={mockOnTabChange}
+        />
+      );
+
+      await waitFor(() => {
+        expect(capturedMenuOnValueChange).toBeDefined();
+      });
+
+      // Simulate tab change via menu
+      capturedMenuOnValueChange?.('drafts');
+
+      expect(mockOnTabChange).toHaveBeenCalledWith(GoalPageTab.DRAFTS);
+    });
+
+    it('should call onTabChange with models tab', async () => {
+      const mockOnTabChange = jest.fn();
+
+      render(
+        <RecommendedLessonsHistory
+          {...defaultProps}
+          onTabChange={mockOnTabChange}
+        />
+      );
+
+      await waitFor(() => {
+        expect(capturedMenuOnValueChange).toBeDefined();
+      });
+
+      capturedMenuOnValueChange?.('models');
+
+      expect(mockOnTabChange).toHaveBeenCalledWith(GoalPageTab.MODELS);
+    });
+
+    it('should call onTabChange with history tab', async () => {
+      const mockOnTabChange = jest.fn();
+
+      render(
+        <RecommendedLessonsHistory
+          {...defaultProps}
+          defaultTab={GoalPageTab.DRAFTS}
+          onTabChange={mockOnTabChange}
+        />
+      );
+
+      await waitFor(() => {
+        expect(capturedMenuOnValueChange).toBeDefined();
+      });
+
+      capturedMenuOnValueChange?.('history');
+
+      expect(mockOnTabChange).toHaveBeenCalledWith(GoalPageTab.HISTORY);
+    });
+
+    it('should sync with defaultTab prop changes', async () => {
+      const { rerender } = render(
+        <RecommendedLessonsHistory
+          {...defaultProps}
+          defaultTab={GoalPageTab.HISTORY}
+        />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('table-provider')).toBeInTheDocument();
+      });
+
+      // Change defaultTab to DRAFTS
+      rerender(
+        <RecommendedLessonsHistory
+          {...defaultProps}
+          defaultTab={GoalPageTab.DRAFTS}
+        />
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Rascunhos em desenvolvimento')
+        ).toBeInTheDocument();
+      });
+    });
+
+    it('should work without onTabChange callback', async () => {
+      render(
+        <RecommendedLessonsHistory
+          {...defaultProps}
+          defaultTab={GoalPageTab.HISTORY}
+        />
+      );
+
+      await waitFor(() => {
+        expect(capturedMenuOnValueChange).toBeDefined();
+      });
+
+      // Should not throw when changing tabs without onTabChange
+      expect(() => {
+        capturedMenuOnValueChange?.('drafts');
+      }).not.toThrow();
+    });
+
+    it('should not render models tab content without required props', async () => {
+      render(
+        <RecommendedLessonsHistory
+          {...defaultProps}
+          defaultTab={GoalPageTab.MODELS}
+        />
+      );
+
+      await waitFor(() => {
+        // Models tab without required props (fetchGoalModels, deleteGoalModel, onCreateModel) renders nothing
+        expect(screen.queryByTestId('goal-models-tab')).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('GoalPageTab enum', () => {
+    it('should export GoalPageTab enum with correct values', () => {
+      expect(GoalPageTab.HISTORY).toBe('history');
+      expect(GoalPageTab.DRAFTS).toBe('drafts');
+      expect(GoalPageTab.MODELS).toBe('models');
     });
   });
 });

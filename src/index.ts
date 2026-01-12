@@ -550,8 +550,22 @@ export {
   ERROR_MESSAGES,
 } from './components/SendActivityModal';
 
+// SendLessonModal Component
+export { SendLessonModal } from './components/SendLessonModal';
+export { useSendLessonModal } from './components/SendLessonModal';
+export type {
+  SendLessonModalProps,
+  SendLessonFormData,
+  StepErrors as SendLessonStepErrors,
+  StepState as SendLessonStepState,
+  StepConfig as SendLessonStepConfig,
+} from './components/SendLessonModal';
+
 // Recommended Lessons / Goals History Component
-export { RecommendedLessonsHistory } from './components/RecommendedLessonsHistory';
+export {
+  RecommendedLessonsHistory,
+  GoalPageTab,
+} from './components/RecommendedLessonsHistory';
 export type { RecommendedLessonsHistoryProps } from './components/RecommendedLessonsHistory';
 
 // Recommended Lesson Details Component
@@ -613,6 +627,7 @@ export {
   isDeadlinePassed,
   deriveStudentStatus,
   formatDaysToComplete,
+  GoalDraftType,
   GOAL_ACTIVITY_STATUS,
 } from './types/recommendedLessons';
 export type {
@@ -642,6 +657,12 @@ export type {
   GoalMetadata,
   GoalApiResponse,
   LessonDetailsData,
+  // Goal Models Types
+  GoalModelResponse,
+  GoalModelTableItem,
+  GoalModelsApiResponse,
+  GoalModelFilters,
+  GoalModelPagination,
   // Goal Activity Types
   GoalActivityStatus,
   GoalActivity,
@@ -649,14 +670,19 @@ export type {
   GoalActivitiesGoals,
 } from './types/recommendedLessons';
 
-// Lesson Bank Component
-export { LessonBank } from './components/LessonBank/LessonBank';
-export type { LessonBankProps } from './components/LessonBank/LessonBank';
+// Goal Models Hook Factory
+export {
+  createUseGoalModels,
+  createGoalModelsHook,
+  transformGoalModelToTableItem,
+  handleGoalModelFetchError,
+  goalModelsApiResponseSchema,
+  DEFAULT_GOAL_MODELS_PAGINATION,
+} from './hooks/useGoalModels';
 export type {
-  Lesson,
-  LessonsListResponse,
-  LessonsPagination,
-} from './types/lessons';
+  UseGoalModelsState,
+  UseGoalModelsReturn,
+} from './hooks/useGoalModels';
 
 // Activities History Component
 export { ActivitiesHistory } from './components/ActivitiesHistory';
@@ -720,6 +746,9 @@ export {
   mapSubjectNameToEnum,
   mapSubjectEnumToName,
 } from './utils/subjectMappers';
+
+// Subject Cell Renderer
+export { renderSubjectCell } from './utils/renderSubjectCell';
 
 // Filter Helpers (robust version with deduplication)
 export {
