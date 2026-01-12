@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 import { cn } from '../../../../utils/utils';
 import Text from '../../../Text/Text';
 import { CheckboxGroup } from '../../../CheckBoxGroup/CheckBoxGroup';
@@ -25,7 +25,7 @@ export interface RecipientStepProps {
  * Recipient selection step component for SendModal
  * Displays a CheckboxGroup for selecting recipients (students/classes)
  */
-export const RecipientStep: React.FC<RecipientStepProps> = ({
+export const RecipientStep: FC<RecipientStepProps> = ({
   categories,
   onCategoriesChange,
   entityNameWithArticle,

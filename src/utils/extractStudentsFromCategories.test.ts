@@ -37,7 +37,7 @@ describe('extractStudentsFromCategories', () => {
     ]);
   });
 
-  it('should find category with key "alunos"', () => {
+  it('should not find category with key "alunos" (only "students" is valid)', () => {
     const categories: CategoryConfig[] = [
       {
         key: 'alunos',
@@ -54,12 +54,10 @@ describe('extractStudentsFromCategories', () => {
       },
     ];
     const result = extractStudentsFromCategories(categories);
-    expect(result).toEqual([
-      { studentId: 'student-1', userInstitutionId: 'ui-1' },
-    ]);
+    expect(result).toEqual([]);
   });
 
-  it('should find category with key "student"', () => {
+  it('should not find category with key "student" (only "students" is valid)', () => {
     const categories: CategoryConfig[] = [
       {
         key: 'student',
@@ -76,9 +74,7 @@ describe('extractStudentsFromCategories', () => {
       },
     ];
     const result = extractStudentsFromCategories(categories);
-    expect(result).toEqual([
-      { studentId: 'student-1', userInstitutionId: 'ui-1' },
-    ]);
+    expect(result).toEqual([]);
   });
 
   it('should return empty array when selectedIds is undefined', () => {
@@ -303,7 +299,7 @@ describe('extractStudentsFromCategories', () => {
     ]);
   });
 
-  it('should prioritize first matching category key', () => {
+  it('should only use "students" key and ignore other category keys', () => {
     const categories: CategoryConfig[] = [
       {
         key: 'students',
@@ -333,6 +329,7 @@ describe('extractStudentsFromCategories', () => {
       },
     ];
     const result = extractStudentsFromCategories(categories);
+    // Only "students" category is used, "alunos" is ignored
     expect(result).toEqual([
       { studentId: 'student-1', userInstitutionId: 'ui-1' },
     ]);

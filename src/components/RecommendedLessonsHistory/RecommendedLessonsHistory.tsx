@@ -740,7 +740,9 @@ export const RecommendedLessonsHistory = ({
           )}
 
           {activeTab === GoalPageTab.MODELS &&
-            (fetchGoalModels && deleteGoalModel && onCreateModel ? (
+            fetchGoalModels &&
+            deleteGoalModel &&
+            onCreateModel && (
               <GoalModelsTab
                 fetchGoalModels={fetchGoalModels}
                 deleteGoalModel={deleteGoalModel}
@@ -753,13 +755,7 @@ export const RecommendedLessonsHistory = ({
                 userFilterData={userFilterData}
                 subjectsMap={subjectsMap}
               />
-            ) : (
-              <div className="flex items-center justify-center bg-background rounded-xl w-full min-h-[705px]">
-                <Text size="lg" color="text-text-600">
-                  Modelos em desenvolvimento
-                </Text>
-              </div>
-            ))}
+            )}
         </div>
       </div>
     </div>

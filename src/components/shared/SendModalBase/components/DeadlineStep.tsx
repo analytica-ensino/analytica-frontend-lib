@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC, ReactNode } from 'react';
 import DateTimeInput from '../../../DateTimeInput/DateTimeInput';
 import type { DateTimeChangeHandler, BaseDateTimeErrors } from '../types';
 
@@ -27,7 +27,7 @@ export interface DeadlineStepProps {
   /** Optional test ID prefix */
   testIdPrefix?: string;
   /** Optional additional content to render after date/time inputs */
-  children?: React.ReactNode;
+  children?: ReactNode;
 }
 
 /**
@@ -35,7 +35,7 @@ export interface DeadlineStepProps {
  * Displays date/time inputs for start and end dates
  * Can render additional content via children prop (e.g., retry option)
  */
-export const DeadlineStep: React.FC<DeadlineStepProps> = ({
+export const DeadlineStep: FC<DeadlineStepProps> = ({
   startDate,
   startTime,
   finalDate,

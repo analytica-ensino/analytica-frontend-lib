@@ -10,18 +10,14 @@ export interface ExtractedStudent {
 
 /**
  * Extract selected students from the students category
- * Looks for categories with key 'students', 'alunos', or 'student'
  * @param categories - Array of category configurations from CheckBoxGroup
  * @returns Array of extracted student data with studentId and userInstitutionId
  */
 export function extractStudentsFromCategories(
   categories: CategoryConfig[]
 ): ExtractedStudent[] {
-  // Find the students category (first matching by key 'students', 'alunos', or 'student')
-  const studentsCategory = categories.find(
-    (cat) =>
-      cat.key === 'students' || cat.key === 'alunos' || cat.key === 'student'
-  );
+  // Find the students category
+  const studentsCategory = categories.find((cat) => cat.key === 'students');
 
   if (!studentsCategory?.selectedIds || !studentsCategory.itens) {
     return [];

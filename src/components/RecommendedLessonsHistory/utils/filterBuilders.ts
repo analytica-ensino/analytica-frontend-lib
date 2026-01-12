@@ -2,14 +2,6 @@ import type { TableParams } from '../../TableProvider/TableProvider';
 import type { GoalModelFilters } from '../../../types/recommendedLessons';
 
 /**
- * Check if param is a non-empty array
- * @param param - Parameter to check
- * @returns True if param is a non-empty string array
- */
-const isNonEmptyArray = (param: unknown): param is string[] =>
-  Array.isArray(param) && param.length > 0;
-
-/**
  * Build goal models filters from table params
  * Converts TableProvider parameters to API filter format
  * @param params - Table parameters from TableProvider
@@ -28,7 +20,7 @@ export const buildGoalModelsFiltersFromParams = (
   }
 
   // Subject filter (single selection)
-  if (isNonEmptyArray(params.subject)) {
+  if (Array.isArray(params.subject) && params.subject.length > 0) {
     filters.subjectId = params.subject[0];
   }
 

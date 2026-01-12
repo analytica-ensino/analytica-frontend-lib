@@ -231,7 +231,6 @@ jest.mock('../TableProvider/TableProvider', () => {
         label: string;
         render?: (value: unknown, row: unknown) => ReactNode;
       }>;
-      loading?: boolean;
       emptyState?: { component: ReactNode };
       onParamsChange?: (params: unknown) => void;
       onRowClick?: (row: unknown) => void;
@@ -1410,7 +1409,7 @@ describe('RecommendedLessonsHistory', () => {
       }).not.toThrow();
     });
 
-    it('should render models tab when defaultTab is MODELS', async () => {
+    it('should not render models tab content without required props', async () => {
       render(
         <RecommendedLessonsHistory
           {...defaultProps}
@@ -1419,10 +1418,8 @@ describe('RecommendedLessonsHistory', () => {
       );
 
       await waitFor(() => {
-        // Models tab without required props shows placeholder
-        expect(
-          screen.getByText('Modelos em desenvolvimento')
-        ).toBeInTheDocument();
+        // Models tab without required props (fetchGoalModels, deleteGoalModel, onCreateModel) renders nothing
+        expect(screen.queryByTestId('goal-models-tab')).not.toBeInTheDocument();
       });
     });
   });
