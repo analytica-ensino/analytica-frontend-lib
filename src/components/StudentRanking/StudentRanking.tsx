@@ -95,15 +95,17 @@ const StudentCard = ({ student, variant }: StudentCardProps) => {
       )}
     >
       {/* Position badge */}
-      <span
+      <Text
+        size="xs"
+        weight="bold"
         aria-label={`Posição ${student.position}`}
         className={cn(
-          'w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-text',
+          'w-5 h-5 rounded-full flex items-center justify-center text-text',
           BADGE_BACKGROUND_CLASSES[variant]
         )}
       >
         {student.position}
-      </span>
+      </Text>
 
       {/* Student name */}
       <Text
@@ -115,16 +117,18 @@ const StudentCard = ({ student, variant }: StudentCardProps) => {
       </Text>
 
       {/* Percentage badge */}
-      <span
+      <Text
+        size="xs"
+        weight="bold"
         aria-label={`Desempenho ${student.percentage}%`}
         className={cn(
-          'flex flex-row items-center h-[22px] px-2 gap-1 rounded text-xs font-bold text-text',
+          'flex flex-row items-center h-[22px] px-2 gap-1 rounded text-text',
           PERCENTAGE_BADGE_CLASSES[variant]
         )}
       >
         <TrendIcon size={16} weight="bold" aria-hidden="true" />
         {student.percentage}%
-      </span>
+      </Text>
     </div>
   );
 };
