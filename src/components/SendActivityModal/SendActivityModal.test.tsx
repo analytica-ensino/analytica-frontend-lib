@@ -105,7 +105,7 @@ const mockCategories: CategoryConfig[] = [
     selectedIds: [],
   },
   {
-    key: 'alunos',
+    key: 'students',
     label: 'Alunos',
     dependsOn: ['turma'],
     filteredBy: [{ key: 'turma', internalField: 'classId' }],
@@ -165,7 +165,7 @@ const mockCategoriesMultiple: CategoryConfig[] = [
     selectedIds: [],
   },
   {
-    key: 'alunos',
+    key: 'students',
     label: 'Alunos',
     dependsOn: ['turma'],
     filteredBy: [{ key: 'turma', internalField: 'classId' }],
@@ -410,7 +410,7 @@ describe('SendActivityModal', () => {
           selectedIds: ['class-1'],
         },
         {
-          key: 'alunos',
+          key: 'students',
           label: 'Alunos',
           dependsOn: ['turma'],
           filteredBy: [{ key: 'turma', internalField: 'classId' }],
@@ -668,7 +668,7 @@ describe('SendActivityModal', () => {
           selectedIds: ['class-1'],
         },
         {
-          key: 'alunos',
+          key: 'students',
           label: 'Alunos',
           dependsOn: ['turma'],
           filteredBy: [{ key: 'turma', internalField: 'classId' }],
@@ -767,7 +767,7 @@ describe('SendActivityModal', () => {
           selectedIds: ['class-1'],
         },
         {
-          key: 'alunos',
+          key: 'students',
           label: 'Alunos',
           dependsOn: ['turma'],
           filteredBy: [{ key: 'turma', internalField: 'classId' }],
@@ -834,7 +834,7 @@ describe('SendActivityModal', () => {
           selectedIds: ['class-1'],
         },
         {
-          key: 'alunos',
+          key: 'students',
           label: 'Alunos',
           dependsOn: ['turma'],
           filteredBy: [{ key: 'turma', internalField: 'classId' }],
@@ -920,7 +920,7 @@ describe('SendActivityModal', () => {
           selectedIds: ['class-1'],
         },
         {
-          key: 'alunos',
+          key: 'students',
           label: 'Alunos',
           dependsOn: ['turma'],
           filteredBy: [{ key: 'turma', internalField: 'classId' }],
@@ -1218,10 +1218,10 @@ describe('SendActivityModal', () => {
 
       // Categories should be fresh (no selections from previous session)
       const store = useSendActivityModalStore.getState();
-      const alunosCategory = store.categories.find(
-        (cat) => cat.key === 'alunos'
+      const studentsCategory = store.categories.find(
+        (cat) => cat.key === 'students'
       );
-      expect(alunosCategory?.selectedIds).toEqual([]);
+      expect(studentsCategory?.selectedIds).toEqual([]);
     });
   });
 });

@@ -514,7 +514,7 @@ describe('useSendLessonModalStore', () => {
       ]);
     });
 
-    it('should handle categories with alunos key', () => {
+    it('should not extract students from categories with alunos key (only "students" is valid)', () => {
       const store = useSendLessonModalStore.getState();
 
       const categoriesWithAlunosKey: CategoryConfig[] = [
@@ -538,12 +538,10 @@ describe('useSendLessonModalStore', () => {
       });
 
       const state = useSendLessonModalStore.getState();
-      expect(state.formData.students).toEqual([
-        { studentId: 'student-1', userInstitutionId: 'ui-1' },
-      ]);
+      expect(state.formData.students).toEqual([]);
     });
 
-    it('should handle categories with student key (singular)', () => {
+    it('should not extract students from categories with student key (only "students" is valid)', () => {
       const store = useSendLessonModalStore.getState();
 
       const categoriesWithStudentKey: CategoryConfig[] = [
@@ -567,9 +565,7 @@ describe('useSendLessonModalStore', () => {
       });
 
       const state = useSendLessonModalStore.getState();
-      expect(state.formData.students).toEqual([
-        { studentId: 'student-1', userInstitutionId: 'ui-1' },
-      ]);
+      expect(state.formData.students).toEqual([]);
     });
 
     it('should handle numeric studentId values', () => {
