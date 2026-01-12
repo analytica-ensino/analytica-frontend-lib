@@ -11,6 +11,7 @@ import {
   Whiteboard,
 } from '../..';
 import type { Lesson } from '../../types/lessons';
+import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
 import { useLessonBank, type LessonFilters } from './hooks/useLessonBank';
 import Video from '@/assets/icons/subjects/Video';
 
@@ -80,6 +81,103 @@ export const LessonBank = ({
     onVideoComplete,
     onPodcastEnded,
   });
+
+  /**
+   * Renders podcast section if available
+   */
+  const PodcastSection = ({ lesson }: { lesson: Lesson }) => {
+    const podcastData = getPodcastData(lesson);
+    if (!podcastData.src) {
+      return null;
+    }
+    return (
+      <div className="w-full">
+        <Text size="md" weight="bold" className="pb-2">
+          {podcastData.title}
+        </Text>
+        <CardAudio
+          src={podcastData.src}
+          title={podcastData.title}
+          onEnded={handlePodcastEnded}
+        />
+      </div>
+    );
+  };
+
+  /**
+   * Renders board images section if available
+   */
+  const BoardImagesSection = ({ lesson }: { lesson: Lesson }) => {
+    const boardImages: WhiteboardImage[] = getBoardImages(lesson);
+    if (boardImages.length === 0) {
+      return null;
+    }
+    return (
+      <div className="w-full">
+        <Text size="md" weight="bold" className="pb-2">
+          Quadros da aula
+        </Text>
+        <div className="flex flex-wrap gap-4">
+          {boardImages.map((image: WhiteboardImage, index: number) => (
+            <div
+              key={image.id || `board-image-${index}`}
+              ref={getBoardImageRef(index, boardImages.length)}
+              className="flex flex-row rounded-xl bg-background-50"
+            >
+              <Whiteboard
+                images={[image]}
+                showDownload={true}
+                imagesPerRow={2}
+                className="gap-4 w-full items-center border-border-50"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  /**
+   * Renders video section with player, podcast, and board images
+   */
+  const VideoSection = ({ lesson }: { lesson: Lesson }) => {
+    const videoData = getVideoData(lesson);
+    if (!videoData.src) {
+      return (
+        <div className="px-6 py-6 flex flex-col gap-4">
+          <Text size="md" className="text-text-600">
+            Vídeo não disponível para esta aula.
+          </Text>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <VideoPlayer
+          src={videoData.src}
+          poster={videoData.poster || undefined}
+          subtitles={videoData.subtitles || undefined}
+          onTimeUpdate={handleVideoTimeUpdate}
+          onVideoComplete={handleVideoCompleteCallback}
+          initialTime={getInitialTimestampValue(lesson.id)}
+          className="w-full h-full object-cover rounded-b-xl"
+          autoSave={true}
+          storageKey={`lesson-${lesson.id}`}
+        />
+        <div className="flex flex-col gap-4">
+          <Alert
+            action="info"
+            variant="solid"
+            description="Cada aula inclui questionários automáticos para o aluno praticar o conteúdo."
+            className="w-full"
+          />
+          <PodcastSection lesson={lesson} />
+          <BoardImagesSection lesson={lesson} />
+        </div>
+      </>
+    );
+  };
 
   /**
    * Renders the appropriate content based on loading, error, and lessons state
@@ -213,99 +311,7 @@ export const LessonBank = ({
       >
         <div className="flex flex-col gap-4">
           {selectedLesson ? (
-            (() => {
-              const videoData = getVideoData(selectedLesson);
-              if (videoData.src) {
-                return (
-                  <>
-                    <VideoPlayer
-                      src={videoData.src}
-                      poster={videoData.poster || undefined}
-                      subtitles={videoData.subtitles || undefined}
-                      onTimeUpdate={handleVideoTimeUpdate}
-                      onVideoComplete={handleVideoCompleteCallback}
-                      initialTime={getInitialTimestampValue(
-                        isFromTrailRoute
-                          ? lessonId || ''
-                          : selectedLesson?.id || ''
-                      )}
-                      className="w-full h-full object-cover rounded-b-xl"
-                      autoSave={true}
-                      storageKey={`lesson-${
-                        isFromTrailRoute
-                          ? lessonId || 'unknown'
-                          : selectedLesson?.id || 'unknown'
-                      }`}
-                    />
-                    <div className="flex flex-col gap-4">
-                      <Alert
-                        action="info"
-                        variant="solid"
-                        description="Cada aula inclui questionários automáticos para o aluno praticar o conteúdo."
-                        className="w-full"
-                      />
-                      {(() => {
-                        const podcastData = getPodcastData(selectedLesson);
-                        if (podcastData.src) {
-                          return (
-                            <div className="w-full">
-                              <Text size="md" weight="bold" className="pb-2">
-                                {podcastData.title}
-                              </Text>
-                              <CardAudio
-                                src={podcastData.src}
-                                title={podcastData.title}
-                                onEnded={handlePodcastEnded}
-                              />
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
-                      {(() => {
-                        const boardImages = getBoardImages(selectedLesson);
-                        if (boardImages.length > 0) {
-                          return (
-                            <div className="w-full">
-                              <Text size="md" weight="bold" className="pb-2">
-                                Quadros da aula
-                              </Text>
-                              <div className="flex flex-wrap gap-4">
-                                {boardImages.map((image, index) => (
-                                  <div
-                                    key={image.id ?? index}
-                                    ref={getBoardImageRef(
-                                      index,
-                                      boardImages.length
-                                    )}
-                                    className="flex flex-row rounded-xl bg-background-50"
-                                  >
-                                    <Whiteboard
-                                      images={[image]}
-                                      showDownload={true}
-                                      imagesPerRow={2}
-                                      className="gap-4 w-full items-center border-border-50"
-                                    />
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
-                    </div>
-                  </>
-                );
-              }
-              return (
-                <div className="px-6 py-6 flex flex-col gap-4">
-                  <Text size="md" className="text-text-600">
-                    Vídeo não disponível para esta aula.
-                  </Text>
-                </div>
-              );
-            })()
+            <VideoSection lesson={selectedLesson} />
           ) : (
             <div className="px-6 py-6 flex flex-col gap-4">
               <Text size="md" className="text-text-600">
