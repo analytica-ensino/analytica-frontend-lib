@@ -142,8 +142,8 @@ const VideoSection = ({
     <>
       <VideoPlayer
         src={videoData.src}
-        poster={videoData.poster || undefined}
-        subtitles={videoData.subtitles || undefined}
+        poster={videoData.poster}
+        subtitles={videoData.subtitles}
         onTimeUpdate={handleVideoTimeUpdate}
         onVideoComplete={handleVideoCompleteCallback}
         initialTime={getInitialTimestampValue(lesson.id)}
@@ -304,7 +304,7 @@ export const LessonBank = ({
                 size="small"
                 onClick={() => handleAddToLesson(lesson)}
                 className="flex-1"
-                iconLeft={<Plus />}
+                iconLeft={<Plus size={16} />}
               >
                 Adicionar à aula
               </Button>
