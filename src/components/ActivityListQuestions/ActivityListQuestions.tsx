@@ -18,6 +18,7 @@ import {
 } from '../..';
 import { convertActivityFiltersToQuestionsFilter } from '../../utils/questionFiltersConverter';
 import { mapQuestionTypeToEnumRequired } from '../../utils/questionTypeUtils';
+import { areFiltersEqual } from '../../utils/activityFilters';
 
 interface ActivityListQuestionsProps {
   apiClient: BaseApiClient;
@@ -42,6 +43,21 @@ export const ActivityListQuestions = ({
   const [questionCount, setQuestionCount] = useState<number>(1);
   const appliedFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.appliedFilters
+  );
+  const cachedQuestions = useQuestionFiltersStore(
+    (state: QuestionFiltersState) => state.cachedQuestions
+  );
+  const cachedPagination = useQuestionFiltersStore(
+    (state: QuestionFiltersState) => state.cachedPagination
+  );
+  const cachedFilters = useQuestionFiltersStore(
+    (state: QuestionFiltersState) => state.cachedFilters
+  );
+  const setCachedQuestions = useQuestionFiltersStore(
+    (state: QuestionFiltersState) => state.setCachedQuestions
+  );
+  const clearCachedQuestions = useQuestionFiltersStore(
+    (state: QuestionFiltersState) => state.clearCachedQuestions
   );
   const addedQuestionIdsRef = useRef(addedQuestionIds);
 
@@ -68,12 +84,31 @@ export const ActivityListQuestions = ({
     reset,
   } = useQuestionsList();
 
+  /**
+   * Check if cached questions match current filters using areFiltersEqual
+   */
+  const filtersMatchCache = useMemo(() => {
+    if (!appliedFilters || !cachedFilters) return false;
+    if (cachedQuestions.length === 0) return false;
+    return areFiltersEqual(appliedFilters, cachedFilters);
+  }, [appliedFilters, cachedFilters, cachedQuestions]);
+
+  // Use cached questions if filters match, otherwise use hook's questions
   // Filter out questions that are already added
   const questions = useMemo(() => {
-    return allQuestions.filter(
+    const sourceQuestions =
+      filtersMatchCache && cachedQuestions.length > 0
+        ? cachedQuestions
+        : allQuestions;
+
+    return sourceQuestions.filter(
       (question) => !addedQuestionIds.includes(question.id)
     );
-  }, [allQuestions, addedQuestionIds]);
+  }, [allQuestions, cachedQuestions, filtersMatchCache, addedQuestionIds]);
+
+  // Use cached pagination if filters match, otherwise use hook's pagination
+  const effectivePagination =
+    filtersMatchCache && cachedPagination ? cachedPagination : pagination;
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -117,15 +152,19 @@ export const ActivityListQuestions = ({
   };
 
   /**
-   * Fetch questions only when applied filters are set (not on initial load)
-   * Only fetches when user clicks "Filtrar" button
-   * Resets questions when filters change
-   * Note: Already added questions are filtered out in the useMemo, so we don't need
-   * to refetch when addedQuestionIds changes - the visual filtering handles it
-   * We use a ref to capture the latest addedQuestionIds value without triggering reruns
+   * Initialize from cache if available and filters match
+   * Only fetch if cache is invalid or filters changed
    */
   useEffect(() => {
     if (appliedFilters) {
+      // Check if we have valid cached data
+      if (filtersMatchCache && cachedQuestions.length > 0) {
+        // Skip fetch - use cached data
+        // The hook will maintain its own state, but we prevent unnecessary API calls
+        return;
+      }
+
+      // Fetch new data if cache is invalid or filters changed
       const apiFilters = {
         ...convertActivityFiltersToQuestionsFilter(appliedFilters),
         ...(addedQuestionIdsRef.current.length > 0 && {
@@ -135,8 +174,35 @@ export const ActivityListQuestions = ({
       fetchQuestions(apiFilters, false);
     } else {
       reset();
+      clearCachedQuestions();
     }
-  }, [appliedFilters, fetchQuestions, reset]);
+  }, [
+    appliedFilters,
+    fetchQuestions,
+    reset,
+    filtersMatchCache,
+    clearCachedQuestions,
+  ]);
+
+  /**
+   * Update cache when questions are successfully fetched
+   */
+  useEffect(() => {
+    if (
+      appliedFilters &&
+      allQuestions.length > 0 &&
+      pagination &&
+      !filtersMatchCache
+    ) {
+      setCachedQuestions(allQuestions, pagination, appliedFilters);
+    }
+  }, [
+    allQuestions,
+    pagination,
+    appliedFilters,
+    filtersMatchCache,
+    setCachedQuestions,
+  ]);
 
   /**
    * Intersection Observer for infinite scroll
@@ -149,7 +215,8 @@ export const ActivityListQuestions = ({
           entries[0].isIntersecting &&
           !loading &&
           !loadingMore &&
-          pagination?.hasNext
+          effectivePagination?.hasNext &&
+          !filtersMatchCache
         ) {
           loadMore();
         }
@@ -169,7 +236,7 @@ export const ActivityListQuestions = ({
     };
   }, [loading, loadingMore, pagination, loadMore]);
 
-  const totalQuestions = pagination?.total || 0;
+  const totalQuestions = effectivePagination?.total || 0;
 
   const uniqueQuestion = () => {
     return totalQuestions === 1 ? 'questão' : 'questões';
@@ -288,7 +355,7 @@ export const ActivityListQuestions = ({
             />
           );
         })}
-        {pagination?.hasNext && (
+        {effectivePagination?.hasNext && (
           <div ref={observerTarget} className="h-4 w-full">
             {loadingMore && (
               <div className="flex flex-col gap-2 py-4">

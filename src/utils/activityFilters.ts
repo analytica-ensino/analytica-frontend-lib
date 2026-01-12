@@ -1,5 +1,6 @@
 import type { CategoryConfig } from '../components/CheckBoxGroup/CheckBoxGroup';
 import type { ActivityFiltersData } from '../types/activityFilters';
+import { arraysEqual } from './arraysEqual';
 
 /**
  * Extracts selected IDs from knowledge categories by their keys
@@ -44,31 +45,6 @@ export function toggleSingleValue<T>(
   newValue: T
 ): T | null {
   return currentValue === newValue ? null : newValue;
-}
-
-/**
- * Compares two arrays for equality (order-independent)
- * @param a - First array
- * @param b - Second array
- * @param comparator - Optional comparator function. If not provided, uses string conversion and localeCompare
- * @returns true if arrays contain the same elements, false otherwise
- */
-function arraysEqual<T>(
-  a: T[],
-  b: T[],
-  comparator?: (x: T, y: T) => number
-): boolean {
-  if (a.length !== b.length) return false;
-
-  if (comparator) {
-    const sortedA = [...a].sort(comparator);
-    const sortedB = [...b].sort(comparator);
-    return sortedA.every((val, index) => val === sortedB[index]);
-  }
-
-  const sortedA = [...a].sort((x, y) => String(x).localeCompare(String(y)));
-  const sortedB = [...b].sort((x, y) => String(x).localeCompare(String(y)));
-  return sortedA.every((val, index) => val === sortedB[index]);
 }
 
 export function areFiltersEqual(

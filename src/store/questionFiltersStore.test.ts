@@ -18,6 +18,9 @@ describe('questionFiltersStore', () => {
     useQuestionFiltersStore.setState({
       draftFilters: null,
       appliedFilters: null,
+      cachedQuestions: [],
+      cachedPagination: null,
+      cachedFilters: null,
     });
   });
 
@@ -53,6 +56,9 @@ describe('questionFiltersStore', () => {
     useQuestionFiltersStore.setState({
       draftFilters: sampleFilters,
       appliedFilters: sampleFilters,
+      cachedQuestions: [],
+      cachedPagination: null,
+      cachedFilters: sampleFilters,
     });
 
     const { clearFilters } = useQuestionFiltersStore.getState();
@@ -61,6 +67,9 @@ describe('questionFiltersStore', () => {
     const state = useQuestionFiltersStore.getState();
     expect(state.draftFilters).toBeNull();
     expect(state.appliedFilters).toBeNull();
+    expect(state.cachedQuestions).toEqual([]);
+    expect(state.cachedPagination).toBeNull();
+    expect(state.cachedFilters).toBeNull();
   });
 
   it('should reset applied filters when applying empty draft', () => {
@@ -74,5 +83,49 @@ describe('questionFiltersStore', () => {
 
     const state = useQuestionFiltersStore.getState();
     expect(state.appliedFilters).toBeNull();
+  });
+
+  it('should set cached questions with pagination and filters', () => {
+    const mockPagination = {
+      page: 1,
+      pageSize: 10,
+      total: 100,
+      totalPages: 10,
+      hasNext: true,
+      hasPrevious: false,
+    };
+
+    const { setCachedQuestions } = useQuestionFiltersStore.getState();
+    setCachedQuestions([], mockPagination, sampleFilters);
+
+    const state = useQuestionFiltersStore.getState();
+    expect(state.cachedQuestions).toEqual([]);
+    expect(state.cachedPagination).toEqual(mockPagination);
+    expect(state.cachedFilters).toEqual(sampleFilters);
+  });
+
+  it('should clear cached questions', () => {
+    const mockPagination = {
+      page: 1,
+      pageSize: 10,
+      total: 100,
+      totalPages: 10,
+      hasNext: true,
+      hasPrevious: false,
+    };
+
+    useQuestionFiltersStore.setState({
+      cachedQuestions: [],
+      cachedPagination: mockPagination,
+      cachedFilters: sampleFilters,
+    });
+
+    const { clearCachedQuestions } = useQuestionFiltersStore.getState();
+    clearCachedQuestions();
+
+    const state = useQuestionFiltersStore.getState();
+    expect(state.cachedQuestions).toEqual([]);
+    expect(state.cachedPagination).toBeNull();
+    expect(state.cachedFilters).toBeNull();
   });
 });

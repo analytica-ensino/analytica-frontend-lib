@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   ActivityFilters,
+  ActivityFiltersPopover,
   ActivityPreview,
   Button,
   SkeletonText,
@@ -11,6 +12,7 @@ import {
   CategoryConfig,
   useToastStore,
 } from '../..';
+import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import type {
   ActivityFiltersData,
   BaseApiClient,
@@ -85,7 +87,28 @@ const CreateActivity = ({
     (state: QuestionFiltersState) => state.setDraftFilters
   );
 
+  const clearFilters = useQuestionFiltersStore(
+    (state: QuestionFiltersState) => state.clearFilters
+  );
+
   const addToast = useToastStore((state) => state.addToast);
+
+  // Responsive state for screen width <= 1200px
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const [selectedView, setSelectedView] = useState<'questions' | 'preview'>(
+    'questions'
+  );
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsSmallScreen(window.innerWidth <= 1200);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   // Estados internos
   const [activity, setActivity] = useState<ActivityData | null>(null);
@@ -121,6 +144,19 @@ const CreateActivity = ({
   const handleApplyFilters = useCallback(() => {
     applyFilters();
   }, [applyFilters]);
+
+  /**
+   * Handle back button click - resets everything before calling onBack
+   */
+  const handleBack = useCallback(() => {
+    // Clear filters from store
+    clearFilters();
+
+    // Call original onBack if provided
+    if (onBack) {
+      onBack();
+    }
+  }, [clearFilters, onBack]);
 
   const useActivityFiltersData = createUseActivityFiltersData(apiClient);
   const { knowledgeAreas, loadKnowledgeAreas } = useActivityFiltersData({
@@ -865,72 +901,148 @@ const CreateActivity = ({
         questionsCount={questions.length}
         onSaveModel={handleSaveModel}
         onSendActivity={handleOpenSendModal}
-        onBack={onBack}
+        onBack={handleBack}
       />
 
-      {/* Main Content with 3 columns */}
-      <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
-        {/* First Column - Filters */}
-        <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0">
-          <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
-            <ActivityFilters
+      {/* Main Content */}
+      {isSmallScreen ? (
+        /* Small Screen Layout (<= 1200px) */
+        <div className="flex flex-col w-full flex-1 overflow-hidden gap-5 min-h-0">
+          {/* Filters and Menu Row */}
+          <div className="flex flex-row items-center justify-between gap-4 flex-shrink-0">
+            <ActivityFiltersPopover
               apiClient={apiClient}
               institutionId={institutionId}
-              variant={'default'}
               onFiltersChange={handleFiltersChange}
               initialFilters={initialFiltersData || undefined}
+              triggerLabel="Filtro de questões"
+              onApplyFilters={handleApplyFilters}
+              onClearFilters={clearFilters}
             />
-          </div>
-          <div className="flex-shrink-0">
-            <Button
-              size="medium"
-              iconLeft={<Funnel />}
-              onClick={handleApplyFilters}
-              disabled={!draftFilters}
-              className="w-full"
-            >
-              Filtrar
-            </Button>
-          </div>
-        </div>
-
-        {/* Second Column - Center, fills remaining space */}
-        <div className="flex-1 min-w-0 overflow-hidden h-full">
-          <ActivityListQuestions
-            apiClient={apiClient}
-            onAddQuestion={handleAddQuestion}
-            addedQuestionIds={addedQuestionIds}
-          />
-        </div>
-
-        {/* Third Column - Activity Preview */}
-        <div className="w-[470px] flex-shrink-0 overflow-hidden h-full min-h-0">
-          {loadingInitialQuestions ? (
-            <div className="flex flex-col gap-4 p-4">
-              <div className="flex flex-col gap-2">
-                <SkeletonText lines={1} width={200} />
-                <SkeletonText lines={1} width={150} />
-              </div>
-              <div className="flex flex-col gap-2">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="p-4 border rounded">
-                    <SkeletonText lines={2} />
-                  </div>
-                ))}
-              </div>
+            <div className="flex-shrink-0">
+              <Menu
+                defaultValue="questions"
+                value={selectedView}
+                onValueChange={(value) =>
+                  setSelectedView(value as 'questions' | 'preview')
+                }
+                variant="breadcrumb"
+              >
+                <MenuContent variant="breadcrumb">
+                  <MenuItem value="questions" variant="breadcrumb">
+                    Banco de questões
+                  </MenuItem>
+                  <MenuItem value="preview" variant="breadcrumb">
+                    Prévia da atividade
+                  </MenuItem>
+                </MenuContent>
+              </Menu>
             </div>
-          ) : (
-            <ActivityPreview
-              questions={questions}
-              onRemoveAll={handleRemoveAll}
-              onRemoveQuestion={handleRemoveQuestion}
-              onReorder={handleReorder}
-              isDark={isDark}
-              className="h-full overflow-y-auto"
-            />
-          )}
+          </div>
+
+          {/* Content Area - Single Column */}
+          <div className="flex-1 min-w-0 overflow-hidden h-full">
+            {selectedView === 'questions' ? (
+              <ActivityListQuestions
+                apiClient={apiClient}
+                onAddQuestion={handleAddQuestion}
+                addedQuestionIds={addedQuestionIds}
+              />
+            ) : (
+              <div className="w-full h-full overflow-hidden min-h-0">
+                {loadingInitialQuestions ? (
+                  <div className="flex flex-col gap-4 p-4">
+                    <div className="flex flex-col gap-2">
+                      <SkeletonText lines={1} width={200} />
+                      <SkeletonText lines={1} width={150} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="p-4 border rounded">
+                          <SkeletonText lines={2} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <ActivityPreview
+                    questions={questions}
+                    onRemoveAll={handleRemoveAll}
+                    onRemoveQuestion={handleRemoveQuestion}
+                    onReorder={handleReorder}
+                    isDark={isDark}
+                    className="h-full overflow-y-auto"
+                  />
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        /* Desktop Layout (> 1200px) - 3 columns */
+        <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
+          {/* First Column - Filters */}
+          <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0">
+            <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
+              <ActivityFilters
+                apiClient={apiClient}
+                institutionId={institutionId}
+                variant={'default'}
+                onFiltersChange={handleFiltersChange}
+                initialFilters={initialFiltersData || undefined}
+              />
+            </div>
+            <div className="flex-shrink-0">
+              <Button
+                size="medium"
+                iconLeft={<Funnel />}
+                onClick={handleApplyFilters}
+                disabled={!draftFilters}
+                className="w-full"
+              >
+                Filtrar
+              </Button>
+            </div>
+          </div>
+
+          {/* Second Column - Center, fills remaining space */}
+          <div className="flex-1 min-w-0 overflow-hidden h-full">
+            <ActivityListQuestions
+              apiClient={apiClient}
+              onAddQuestion={handleAddQuestion}
+              addedQuestionIds={addedQuestionIds}
+            />
+          </div>
+
+          {/* Third Column - Activity Preview */}
+          <div className="w-[400px] flex-shrink-0 overflow-hidden h-full min-h-0">
+            {loadingInitialQuestions ? (
+              <div className="flex flex-col gap-4 p-4">
+                <div className="flex flex-col gap-2">
+                  <SkeletonText lines={1} width={200} />
+                  <SkeletonText lines={1} width={150} />
+                </div>
+                <div className="flex flex-col gap-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="p-4 border rounded">
+                      <SkeletonText lines={2} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <ActivityPreview
+                questions={questions}
+                onRemoveAll={handleRemoveAll}
+                onRemoveQuestion={handleRemoveQuestion}
+                onReorder={handleReorder}
+                isDark={isDark}
+                className="h-full overflow-y-auto"
+              />
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Send Activity Modal */}
       <SendActivityModal

@@ -13,7 +13,7 @@ export const convertActivityFiltersToQuestionsFilter = (
 ): QuestionsFilterBody => {
   return {
     questionType: filters.types,
-    questionBankYearId: filters.yearIds.map((yearId) => yearId.split('-')[0]),
+    questionBankYearId: filters.yearIds.map((yearId) => yearId.slice(0, 36)),
     subjectId: filters.subjectIds,
     topicId: filters.topicIds,
     subtopicId: filters.subtopicIds,
