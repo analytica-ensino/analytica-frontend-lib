@@ -61,4 +61,4 @@ import 'analytica-frontend-lib/styles.css';
 ## Ladle
 
 Link público:
-https://landle.nyc3.cdn.digitaloceanspaces.com/index.html
+https://analytica-ensino.github.io/analytica-frontend-lib/

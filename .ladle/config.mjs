@@ -4,7 +4,7 @@
 export default {
   stories: 'src/**/*.stories.{js,jsx,ts,tsx}',
   defaultStory: '',
-  base: './',
+  base: '/analytica-frontend-lib/',
   addons: {
     a11y: {
       enabled: true,

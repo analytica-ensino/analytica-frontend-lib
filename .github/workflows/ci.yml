@@ -55,8 +55,11 @@ jobs:
   deploy-ladle:
     name: Deploy Ladle
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [setup, lint, typecheck, test, sonarcloud]
+    needs: [setup]
     uses: ./.github/workflows/ladle.yml
     with:
       cache-key: ${{ needs.setup.outputs.cache-key }}
-    secrets: inherit
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
