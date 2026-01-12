@@ -167,9 +167,15 @@ const YAxis = ({
   <div
     className="flex flex-col justify-between items-end pr-3"
     style={{ height: chartHeight }}
+    aria-hidden="true"
   >
-    {ticks.map((tick) => (
-      <Text key={tick} size="xs" weight="medium" className="text-text-500">
+    {ticks.map((tick, index) => (
+      <Text
+        key={`${tick}-${index}`}
+        size="xs"
+        weight="medium"
+        className="text-text-500"
+      >
         {tick}
       </Text>
     ))}
@@ -276,7 +282,11 @@ export const QuestionsData = ({
       </div>
 
       {/* Chart */}
-      <div className="flex flex-row">
+      <div
+        className="flex flex-row"
+        role="img"
+        aria-label={`Gráfico de barras mostrando ${data.total} questões respondidas, ${data.corretas} corretas, ${data.incorretas} incorretas${showEmBranco && data.emBranco !== undefined ? `, ${data.emBranco} em branco` : ''}`}
+      >
         {/* Y-Axis */}
         <YAxis ticks={yAxisTicks} chartHeight={chartHeight} />
 
