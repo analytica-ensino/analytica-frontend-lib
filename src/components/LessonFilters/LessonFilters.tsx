@@ -1,182 +1,22 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Text from '../Text/Text';
-import Button from '../Button/Button';
-import Radio from '../Radio/Radio';
-import IconRender from '../IconRender/IconRender';
-import { useTheme } from '../../hooks/useTheme';
-import {
-  CheckboxGroup,
-  type CategoryConfig,
-} from '../CheckBoxGroup/CheckBoxGroup';
-import { getSubjectColorWithOpacity } from '../../utils/utils';
 import type { BaseApiClient } from '../../types/api';
 import { createUseActivityFiltersData } from '../../hooks/useActivityFiltersData';
-import type {
-  KnowledgeArea,
-  KnowledgeStructureState,
-} from '../../types/activityFilters';
 import type { LessonFiltersData } from '../../types/lessonFilters';
 import {
   getSelectedIdsFromCategories,
   toggleSingleValue,
 } from '../../utils/activityFilters';
 import { areLessonFiltersEqual } from '../../utils/lessonFilters';
-
-interface SubjectsFilterProps {
-  knowledgeAreas: KnowledgeArea[];
-  selectedSubject: string | null;
-  onSubjectChange: (subjectId: string) => void;
-  loading?: boolean;
-  error?: string | null;
-}
-
-/**
- * SubjectsFilter component for selecting subjects/knowledge areas
- * @param props - Component props
- * @returns JSX element
- */
-const SubjectsFilter = ({
-  knowledgeAreas,
-  selectedSubject,
-  onSubjectChange,
-  loading = false,
-  error = null,
-}: SubjectsFilterProps) => {
-  const { isDark } = useTheme();
-
-  if (loading) {
-    return (
-      <Text size="sm" className="text-text-600">
-        Carregando matérias...
-      </Text>
-    );
-  }
-
-  if (error) {
-    return (
-      <Text size="sm" className="text-text-600">
-        {error}
-      </Text>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-3 gap-3">
-      {knowledgeAreas.map((area: KnowledgeArea) => (
-        <Radio
-          key={area.id}
-          value={area.id}
-          checked={selectedSubject === area.id}
-          onChange={() => onSubjectChange(area.id)}
-          label={
-            <div className="flex items-center gap-2 w-full min-w-0">
-              <span
-                className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-950"
-                style={{
-                  backgroundColor: getSubjectColorWithOpacity(
-                    area.color,
-                    isDark
-                  ),
-                }}
-              >
-                <IconRender
-                  iconName={area.icon || 'BookOpen'}
-                  size={14}
-                  color="currentColor"
-                />
-              </span>
-              <span className="truncate flex-1">{area.name}</span>
-            </div>
-          }
-        />
-      ))}
-    </div>
-  );
-};
-
-interface KnowledgeStructureFilterProps {
-  knowledgeStructure: KnowledgeStructureState;
-  knowledgeCategories: CategoryConfig[];
-  handleCategoriesChange?: (updatedCategories: CategoryConfig[]) => void;
-}
-
-/**
- * KnowledgeStructureFilter component for selecting topics, subtopics, and contents
- * @param props - Component props
- * @returns JSX element
- */
-const KnowledgeStructureFilter = ({
-  knowledgeStructure,
-  knowledgeCategories,
-  handleCategoriesChange,
-}: KnowledgeStructureFilterProps) => {
-  return (
-    <div className="mt-4">
-      <Text size="sm" weight="bold" className="mb-3 block">
-        Tema, Subtema e Assunto
-      </Text>
-      {knowledgeStructure.loading && (
-        <Text size="sm" className="text-text-600 mb-3">
-          Carregando estrutura de conhecimento...
-        </Text>
-      )}
-      {knowledgeStructure.error && (
-        <Text size="sm" className="mb-3 text-error-500">
-          {knowledgeStructure.error}
-        </Text>
-      )}
-      {knowledgeCategories.length > 0 && handleCategoriesChange && (
-        <CheckboxGroup
-          categories={knowledgeCategories}
-          onCategoriesChange={handleCategoriesChange}
-          compactSingleItem={false}
-          showSingleItem={true}
-        />
-      )}
-      {!knowledgeStructure.loading &&
-        knowledgeCategories.length === 0 &&
-        knowledgeStructure.topics.length === 0 && (
-          <Text size="sm" className="text-text-600">
-            Nenhum tema disponível para as matérias selecionadas
-          </Text>
-        )}
-    </div>
-  );
-};
-
-interface FilterActionsProps {
-  onClearFilters?: () => void;
-  onApplyFilters?: () => void;
-}
-
-/**
- * FilterActions component for clear and apply filter buttons
- * @param props - Component props
- * @returns JSX element or null if no actions provided
- */
-const FilterActions = ({
-  onClearFilters,
-  onApplyFilters,
-}: FilterActionsProps) => {
-  if (!onClearFilters && !onApplyFilters) {
-    return null;
-  }
-
-  return (
-    <div className="grid grid-cols-2 gap-2 justify-end mt-4 px-4 pt-4 border-t border-border-200">
-      {onClearFilters && (
-        <Button variant="link" onClick={onClearFilters} size="small">
-          Limpar filtros
-        </Button>
-      )}
-      {onApplyFilters && (
-        <Button variant="outline" onClick={onApplyFilters} size="small">
-          Filtrar
-        </Button>
-      )}
-    </div>
-  );
-};
+import {
+  SubjectsFilter,
+  KnowledgeStructureFilter,
+  FilterActions,
+} from '../ActivityFilters/components';
+import {
+  useInitialFiltersLoader,
+  useKnowledgeStructureInitialFilters,
+} from '../ActivityFilters/utils';
 
 export interface LessonFiltersProps {
   apiClient: BaseApiClient;
@@ -222,28 +62,24 @@ export const LessonFilters = ({
   });
 
   const hasAppliedBasicInitialFiltersRef = useRef(false);
-  const hasAppliedKnowledgeInitialFiltersRef = useRef(false);
-  const hasRequestedTopicsRef = useRef(false);
-  const hasRequestedSubtopicsRef = useRef(false);
-  const hasRequestedContentsRef = useRef(false);
-  const hasAppliedTopicsRef = useRef(false);
-  const hasAppliedSubtopicsRef = useRef(false);
-  const hasAppliedContentsRef = useRef(false);
-  const knowledgeCategoriesRef = useRef<CategoryConfig[]>([]);
 
-  useEffect(() => {
-    knowledgeCategoriesRef.current = knowledgeCategories;
-  }, [knowledgeCategories]);
+  // Use shared hook for loading topics/subtopics/contents
+  useInitialFiltersLoader({
+    initialFilters,
+    loadTopics,
+    loadSubtopics,
+    loadContents,
+  });
+
+  // Use shared hook for knowledge structure initial filters
+  useKnowledgeStructureInitialFilters({
+    initialFilters,
+    knowledgeCategories,
+    handleCategoriesChange,
+  });
 
   useEffect(() => {
     hasAppliedBasicInitialFiltersRef.current = false;
-    hasAppliedKnowledgeInitialFiltersRef.current = false;
-    hasRequestedTopicsRef.current = false;
-    hasRequestedSubtopicsRef.current = false;
-    hasRequestedContentsRef.current = false;
-    hasAppliedTopicsRef.current = false;
-    hasAppliedSubtopicsRef.current = false;
-    hasAppliedContentsRef.current = false;
   }, [initialFilters]);
 
   useEffect(() => {
@@ -257,124 +93,6 @@ export const LessonFilters = ({
 
     hasAppliedBasicInitialFiltersRef.current = true;
   }, [initialFilters]);
-
-  useEffect(() => {
-    if (!initialFilters) {
-      return;
-    }
-
-    const subjectIds = initialFilters.subjectIds || [];
-    const topicIds = initialFilters.topicIds || [];
-    const subtopicIds = initialFilters.subtopicIds || [];
-
-    if (subjectIds.length > 0 && !hasRequestedTopicsRef.current) {
-      if (loadTopics) {
-        loadTopics(subjectIds);
-      }
-      hasRequestedTopicsRef.current = true;
-    }
-
-    if (topicIds.length > 0 && !hasRequestedSubtopicsRef.current) {
-      if (loadSubtopics) {
-        loadSubtopics(topicIds);
-      }
-      hasRequestedSubtopicsRef.current = true;
-    }
-
-    if (subtopicIds.length > 0 && !hasRequestedContentsRef.current) {
-      if (loadContents) {
-        loadContents(subtopicIds);
-      }
-      hasRequestedContentsRef.current = true;
-    }
-  }, [initialFilters, loadTopics, loadSubtopics, loadContents]);
-
-  useEffect(() => {
-    if (
-      !initialFilters ||
-      hasAppliedKnowledgeInitialFiltersRef.current ||
-      knowledgeCategoriesRef.current.length === 0 ||
-      !handleCategoriesChange
-    ) {
-      return;
-    }
-
-    const topicIds = initialFilters.topicIds || [];
-    const subtopicIds = initialFilters.subtopicIds || [];
-    const contentIds = initialFilters.contentIds || [];
-
-    const hasKnowledgeSelections =
-      topicIds.length > 0 || subtopicIds.length > 0 || contentIds.length > 0;
-
-    if (!hasKnowledgeSelections) {
-      hasAppliedKnowledgeInitialFiltersRef.current = true;
-      return;
-    }
-
-    const currentKnowledgeCategories = knowledgeCategoriesRef.current;
-    let changed = false;
-
-    const updatedCategories = currentKnowledgeCategories.map((category) => {
-      if (
-        category.key === 'tema' &&
-        topicIds.length > 0 &&
-        !hasAppliedTopicsRef.current
-      ) {
-        const selectedIds = (category.itens || [])
-          .filter((item) => topicIds.includes(item.id))
-          .map((item) => item.id);
-        if (selectedIds.length > 0) {
-          hasAppliedTopicsRef.current = true;
-          changed = true;
-          return { ...category, selectedIds };
-        }
-        return category;
-      }
-      if (
-        category.key === 'subtema' &&
-        subtopicIds.length > 0 &&
-        !hasAppliedSubtopicsRef.current
-      ) {
-        const selectedIds = (category.itens || [])
-          .filter((item) => subtopicIds.includes(item.id))
-          .map((item) => item.id);
-        if (selectedIds.length > 0) {
-          hasAppliedSubtopicsRef.current = true;
-          changed = true;
-          return { ...category, selectedIds };
-        }
-        return category;
-      }
-      if (
-        category.key === 'assunto' &&
-        contentIds.length > 0 &&
-        !hasAppliedContentsRef.current
-      ) {
-        const selectedIds = (category.itens || [])
-          .filter((item) => contentIds.includes(item.id))
-          .map((item) => item.id);
-        if (selectedIds.length > 0) {
-          hasAppliedContentsRef.current = true;
-          changed = true;
-          return { ...category, selectedIds };
-        }
-        return category;
-      }
-      return category;
-    });
-
-    if (changed) {
-      handleCategoriesChange(updatedCategories);
-    }
-
-    if (
-      (topicIds.length === 0 || hasAppliedTopicsRef.current) &&
-      (subtopicIds.length === 0 || hasAppliedSubtopicsRef.current) &&
-      (contentIds.length === 0 || hasAppliedContentsRef.current)
-    ) {
-      hasAppliedKnowledgeInitialFiltersRef.current = true;
-    }
-  }, [initialFilters, knowledgeCategories, handleCategoriesChange]);
 
   useEffect(() => {
     if (loadKnowledgeAreas) {

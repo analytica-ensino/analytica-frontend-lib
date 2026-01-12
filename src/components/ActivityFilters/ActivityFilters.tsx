@@ -2,10 +2,6 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   Text,
   Chips,
-  Radio,
-  IconRender,
-  getSubjectColorWithOpacity,
-  useTheme,
   CheckboxGroup,
   type CategoryConfig,
   Button,
@@ -22,8 +18,6 @@ import type {
   ActivityFiltersData,
   Bank,
   BankYear,
-  KnowledgeArea,
-  KnowledgeStructureState,
 } from '../../types/activityFilters';
 import {
   getSelectedIdsFromCategories,
@@ -31,6 +25,15 @@ import {
   toggleSingleValue,
   areFiltersEqual,
 } from '../../utils/activityFilters';
+import {
+  SubjectsFilter,
+  KnowledgeStructureFilter,
+  FilterActions,
+} from './components';
+import {
+  useInitialFiltersLoader,
+  useKnowledgeStructureInitialFilters,
+} from './utils';
 
 const questionTypesFallback = [
   QUESTION_TYPE.ALTERNATIVA,
@@ -176,82 +179,6 @@ const updateBankCategoriesWithInitialFilters = (
     return category;
   });
 };
-
-/**
- * Gets selected IDs for a knowledge category based on filter IDs
- * @param category - The category configuration
- * @param filterIds - Array of IDs to filter by
- * @returns Array of selected item IDs
- */
-const getSelectedIdsForKnowledgeCategory = (
-  category: CategoryConfig,
-  filterIds: string[]
-): string[] => {
-  return (category.itens || [])
-    .filter((item) => filterIds.includes(item.id))
-    .map((item) => item.id);
-};
-
-/**
- * Updates a knowledge category with topic filter selections
- * @param category - The category configuration to update
- * @param topicIds - Array of topic IDs to select
- * @param hasAppliedTopicsRef - Ref to track if topics have been applied
- * @returns Object with updated category and changed flag
- */
-const updateTopicCategory = (
-  category: CategoryConfig,
-  topicIds: string[],
-  hasAppliedTopicsRef: { current: boolean }
-): { category: CategoryConfig; changed: boolean } => {
-  const selectedIds = getSelectedIdsForKnowledgeCategory(category, topicIds);
-  if (selectedIds.length > 0) {
-    hasAppliedTopicsRef.current = true;
-    return { category: { ...category, selectedIds }, changed: true };
-  }
-  return { category, changed: false };
-};
-
-/**
- * Updates a knowledge category with subtopic filter selections
- * @param category - The category configuration to update
- * @param subtopicIds - Array of subtopic IDs to select
- * @param hasAppliedSubtopicsRef - Ref to track if subtopics have been applied
- * @returns Object with updated category and changed flag
- */
-const updateSubtopicCategory = (
-  category: CategoryConfig,
-  subtopicIds: string[],
-  hasAppliedSubtopicsRef: { current: boolean }
-): { category: CategoryConfig; changed: boolean } => {
-  const selectedIds = getSelectedIdsForKnowledgeCategory(category, subtopicIds);
-  if (selectedIds.length > 0) {
-    hasAppliedSubtopicsRef.current = true;
-    return { category: { ...category, selectedIds }, changed: true };
-  }
-  return { category, changed: false };
-};
-
-/**
- * Updates a knowledge category with content filter selections
- * @param category - The category configuration to update
- * @param contentIds - Array of content IDs to select
- * @param hasAppliedContentsRef - Ref to track if contents have been applied
- * @returns Object with updated category and changed flag
- */
-const updateContentCategory = (
-  category: CategoryConfig,
-  contentIds: string[],
-  hasAppliedContentsRef: { current: boolean }
-): { category: CategoryConfig; changed: boolean } => {
-  const selectedIds = getSelectedIdsForKnowledgeCategory(category, contentIds);
-  if (selectedIds.length > 0) {
-    hasAppliedContentsRef.current = true;
-    return { category: { ...category, selectedIds }, changed: true };
-  }
-  return { category, changed: false };
-};
-
 interface QuestionTypeFilterProps {
   selectedTypes: QUESTION_TYPE[];
   onToggleType: (type: QUESTION_TYPE) => void;
@@ -349,163 +276,6 @@ const BanksAndYearsFilter = ({
 
   return null;
 };
-
-interface SubjectsFilterProps {
-  knowledgeAreas: KnowledgeArea[];
-  selectedSubject: string | null;
-  onSubjectChange: (subjectId: string) => void;
-  loading?: boolean;
-  error?: string | null;
-}
-
-/**
- * SubjectsFilter component for selecting subjects/knowledge areas
- * @param props - Component props
- * @returns JSX element
- */
-const SubjectsFilter = ({
-  knowledgeAreas,
-  selectedSubject,
-  onSubjectChange,
-  loading = false,
-  error = null,
-}: SubjectsFilterProps) => {
-  const { isDark } = useTheme();
-
-  if (loading) {
-    return (
-      <Text size="sm" className="text-text-600">
-        Carregando matérias...
-      </Text>
-    );
-  }
-
-  if (error) {
-    return (
-      <Text size="sm" className="text-text-600">
-        {error}
-      </Text>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-3 gap-3">
-      {knowledgeAreas.map((area: KnowledgeArea) => (
-        <Radio
-          key={area.id}
-          value={area.id}
-          checked={selectedSubject === area.id}
-          onChange={() => onSubjectChange(area.id)}
-          label={
-            <div className="flex items-center gap-2 w-full min-w-0">
-              <span
-                className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-950"
-                style={{
-                  backgroundColor: getSubjectColorWithOpacity(
-                    area.color,
-                    isDark
-                  ),
-                }}
-              >
-                <IconRender
-                  iconName={area.icon || 'BookOpen'}
-                  size={14}
-                  color="currentColor"
-                />
-              </span>
-              <span className="truncate flex-1">{area.name}</span>
-            </div>
-          }
-        />
-      ))}
-    </div>
-  );
-};
-
-interface KnowledgeStructureFilterProps {
-  knowledgeStructure: KnowledgeStructureState;
-  knowledgeCategories: CategoryConfig[];
-  handleCategoriesChange?: (updatedCategories: CategoryConfig[]) => void;
-}
-
-/**
- * KnowledgeStructureFilter component for selecting topics, subtopics, and contents
- * @param props - Component props
- * @returns JSX element
- */
-const KnowledgeStructureFilter = ({
-  knowledgeStructure,
-  knowledgeCategories,
-  handleCategoriesChange,
-}: KnowledgeStructureFilterProps) => {
-  return (
-    <div className="mt-4">
-      <Text size="sm" weight="bold" className="mb-3 block">
-        Tema, Subtema e Assunto
-      </Text>
-      {knowledgeStructure.loading && (
-        <Text size="sm" className="text-text-600 mb-3">
-          Carregando estrutura de conhecimento...
-        </Text>
-      )}
-      {knowledgeStructure.error && (
-        <Text size="sm" className="mb-3 text-error-500">
-          {knowledgeStructure.error}
-        </Text>
-      )}
-      {knowledgeCategories.length > 0 && handleCategoriesChange && (
-        <CheckboxGroup
-          categories={knowledgeCategories}
-          onCategoriesChange={handleCategoriesChange}
-          compactSingleItem={false}
-          showSingleItem={true}
-        />
-      )}
-      {!knowledgeStructure.loading &&
-        knowledgeCategories.length === 0 &&
-        knowledgeStructure.topics.length === 0 && (
-          <Text size="sm" className="text-text-600">
-            Nenhum tema disponível para as matérias selecionadas
-          </Text>
-        )}
-    </div>
-  );
-};
-
-interface FilterActionsProps {
-  onClearFilters?: () => void;
-  onApplyFilters?: () => void;
-}
-
-/**
- * FilterActions component for clear and apply filter buttons
- * @param props - Component props
- * @returns JSX element or null if no actions provided
- */
-const FilterActions = ({
-  onClearFilters,
-  onApplyFilters,
-}: FilterActionsProps) => {
-  if (!onClearFilters && !onApplyFilters) {
-    return null;
-  }
-
-  return (
-    <div className="grid grid-cols-2 gap-2 justify-end mt-4 px-4 pt-4 border-t border-border-200">
-      {onClearFilters && (
-        <Button variant="link" onClick={onClearFilters} size="small">
-          Limpar filtros
-        </Button>
-      )}
-      {onApplyFilters && (
-        <Button variant="outline" onClick={onApplyFilters} size="small">
-          Filtrar
-        </Button>
-      )}
-    </div>
-  );
-};
-
 export interface ActivityFiltersProps {
   apiClient: BaseApiClient;
   onFiltersChange: (filters: ActivityFiltersData) => void;
@@ -566,15 +336,22 @@ export const ActivityFilters = ({
   const prevAllowedQuestionTypesRef = useRef<string | null>(null);
   const hasAppliedBasicInitialFiltersRef = useRef(false);
   const hasAppliedBankInitialFiltersRef = useRef(false);
-  const hasAppliedKnowledgeInitialFiltersRef = useRef(false);
-  const hasRequestedTopicsRef = useRef(false);
-  const hasRequestedSubtopicsRef = useRef(false);
-  const hasRequestedContentsRef = useRef(false);
-  const hasAppliedTopicsRef = useRef(false);
-  const hasAppliedSubtopicsRef = useRef(false);
-  const hasAppliedContentsRef = useRef(false);
   const bankCategoriesRef = useRef<CategoryConfig[]>([]);
-  const knowledgeCategoriesRef = useRef<CategoryConfig[]>([]);
+
+  // Use shared hook for loading topics/subtopics/contents
+  useInitialFiltersLoader({
+    initialFilters,
+    loadTopics,
+    loadSubtopics,
+    loadContents,
+  });
+
+  // Use shared hook for knowledge structure initial filters
+  useKnowledgeStructureInitialFilters({
+    initialFilters,
+    knowledgeCategories,
+    handleCategoriesChange,
+  });
 
   useEffect(() => {
     if (!allowedQuestionTypes || allowedQuestionTypes.length === 0) {
@@ -674,19 +451,8 @@ export const ActivityFilters = ({
   }, [banks, bankYears]);
 
   useEffect(() => {
-    knowledgeCategoriesRef.current = knowledgeCategories;
-  }, [knowledgeCategories]);
-
-  useEffect(() => {
     hasAppliedBasicInitialFiltersRef.current = false;
     hasAppliedBankInitialFiltersRef.current = false;
-    hasAppliedKnowledgeInitialFiltersRef.current = false;
-    hasRequestedTopicsRef.current = false;
-    hasRequestedSubtopicsRef.current = false;
-    hasRequestedContentsRef.current = false;
-    hasAppliedTopicsRef.current = false;
-    hasAppliedSubtopicsRef.current = false;
-    hasAppliedContentsRef.current = false;
   }, [initialFilters]);
 
   useEffect(() => {
@@ -753,124 +519,6 @@ export const ActivityFilters = ({
 
     hasAppliedBankInitialFiltersRef.current = true;
   }, [initialFilters, bankCategories]);
-
-  useEffect(() => {
-    if (!initialFilters) {
-      return;
-    }
-
-    const subjectIds = initialFilters.subjectIds || [];
-    const topicIds = initialFilters.topicIds || [];
-    const subtopicIds = initialFilters.subtopicIds || [];
-
-    if (subjectIds.length > 0 && !hasRequestedTopicsRef.current) {
-      if (loadTopics) {
-        loadTopics(subjectIds);
-      }
-      hasRequestedTopicsRef.current = true;
-    }
-
-    if (topicIds.length > 0 && !hasRequestedSubtopicsRef.current) {
-      if (loadSubtopics) {
-        loadSubtopics(topicIds);
-      }
-      hasRequestedSubtopicsRef.current = true;
-    }
-
-    if (subtopicIds.length > 0 && !hasRequestedContentsRef.current) {
-      if (loadContents) {
-        loadContents(subtopicIds);
-      }
-      hasRequestedContentsRef.current = true;
-    }
-  }, [initialFilters, loadTopics, loadSubtopics, loadContents]);
-
-  useEffect(() => {
-    if (
-      !initialFilters ||
-      hasAppliedKnowledgeInitialFiltersRef.current ||
-      knowledgeCategoriesRef.current.length === 0 ||
-      !handleCategoriesChange
-    ) {
-      return;
-    }
-
-    const topicIds = initialFilters.topicIds || [];
-    const subtopicIds = initialFilters.subtopicIds || [];
-    const contentIds = initialFilters.contentIds || [];
-
-    const hasKnowledgeSelections =
-      topicIds.length > 0 || subtopicIds.length > 0 || contentIds.length > 0;
-
-    if (!hasKnowledgeSelections) {
-      hasAppliedKnowledgeInitialFiltersRef.current = true;
-      return;
-    }
-
-    const currentKnowledgeCategories = knowledgeCategoriesRef.current;
-    let changed = false;
-
-    const updatedCategories = currentKnowledgeCategories.map((category) => {
-      if (
-        category.key === 'tema' &&
-        topicIds.length > 0 &&
-        !hasAppliedTopicsRef.current
-      ) {
-        const result = updateTopicCategory(
-          category,
-          topicIds,
-          hasAppliedTopicsRef
-        );
-        if (result.changed) {
-          changed = true;
-        }
-        return result.category;
-      }
-      if (
-        category.key === 'subtema' &&
-        subtopicIds.length > 0 &&
-        !hasAppliedSubtopicsRef.current
-      ) {
-        const result = updateSubtopicCategory(
-          category,
-          subtopicIds,
-          hasAppliedSubtopicsRef
-        );
-        if (result.changed) {
-          changed = true;
-        }
-        return result.category;
-      }
-      if (
-        category.key === 'assunto' &&
-        contentIds.length > 0 &&
-        !hasAppliedContentsRef.current
-      ) {
-        const result = updateContentCategory(
-          category,
-          contentIds,
-          hasAppliedContentsRef
-        );
-        if (result.changed) {
-          changed = true;
-        }
-        return result.category;
-      }
-      return category;
-    });
-
-    if (changed) {
-      handleCategoriesChange(updatedCategories);
-    }
-
-    if (
-      (topicIds.length === 0 || hasAppliedTopicsRef.current) &&
-      (subtopicIds.length === 0 || hasAppliedSubtopicsRef.current) &&
-      (contentIds.length === 0 || hasAppliedContentsRef.current)
-    ) {
-      hasAppliedKnowledgeInitialFiltersRef.current = true;
-    }
-  }, [initialFilters, knowledgeCategories, handleCategoriesChange]);
 
   useEffect(() => {
     if (loadBanks) {

@@ -1,9 +1,133 @@
 // Mocks need to be defined before importing the component (barrel imports).
+jest.mock('../../index', () => ({
+  ...jest.requireActual('../../index'),
+  QUESTION_TYPE: {
+    ALTERNATIVA: 'ALTERNATIVA',
+    VERDADEIRO_FALSO: 'VERDADEIRO_FALSO',
+    DISSERTATIVA: 'DISSERTATIVA',
+    IMAGEM: 'IMAGEM',
+    MULTIPLA_ESCOLHA: 'MULTIPLA_ESCOLHA',
+    LIGAR_PONTOS: 'LIGAR_PONTOS',
+    PREENCHER: 'PREENCHER',
+  },
+}));
 jest.mock('../../hooks/useActivityFiltersData', () => {
   return {
     createUseActivityFiltersData: () => () => mockUseActivityFiltersDataReturn,
   };
 });
+jest.mock('../../components/ActivityFilters/utils', () => ({
+  useInitialFiltersLoader: jest.fn(() => ({})),
+  useKnowledgeStructureInitialFilters: jest.fn(() => ({})),
+}));
+jest.mock('../../components/ActivityFilters/components', () => ({
+  SubjectsFilter: ({
+    knowledgeAreas,
+    selectedSubject,
+    onSubjectChange,
+    loading,
+    error,
+  }: {
+    knowledgeAreas: Array<{ id: string; name: string }>;
+    selectedSubject: string | null;
+    onSubjectChange: (id: string) => void;
+    loading?: boolean;
+    error?: string | null;
+  }) => (
+    <div data-testid="subjects-filter">
+      {loading && <div>Carregando matérias...</div>}
+      {error && <div>{error}</div>}
+      {knowledgeAreas.map((area) => (
+        <label key={area.id}>
+          <input
+            type="radio"
+            checked={selectedSubject === area.id}
+            onChange={() => onSubjectChange(area.id)}
+          />
+          {area.name}
+        </label>
+      ))}
+    </div>
+  ),
+  KnowledgeStructureFilter: ({
+    knowledgeStructure,
+    knowledgeCategories,
+    handleCategoriesChange,
+  }: {
+    knowledgeStructure: {
+      loading: boolean;
+      error: string | null;
+      topics: Array<{ id: string }>;
+    };
+    knowledgeCategories: Array<{
+      key: string;
+      label: string;
+      itens: Array<{ id: string; name: string }>;
+      selectedIds: string[];
+    }>;
+    handleCategoriesChange?: (
+      updatedCategories: typeof knowledgeCategories
+    ) => void;
+  }) => (
+    <div data-testid="knowledge-structure-filter">
+      <div>Tema, Subtema e Assunto</div>
+      {knowledgeStructure.loading && (
+        <div>Carregando estrutura de conhecimento...</div>
+      )}
+      {knowledgeStructure.error && <div>{knowledgeStructure.error}</div>}
+      {knowledgeCategories.length > 0 && handleCategoriesChange && (
+        <div data-testid="checkbox-group">
+          {knowledgeCategories.map((category) => (
+            <div key={category.key}>
+              <h4>{category.label}</h4>
+              {category.itens.map((item) => (
+                <label key={item.id}>
+                  <input
+                    type="checkbox"
+                    checked={category.selectedIds.includes(item.id)}
+                    onChange={() => {
+                      const updated = knowledgeCategories.map((c) =>
+                        c.key === category.key
+                          ? {
+                              ...c,
+                              selectedIds: c.selectedIds.includes(item.id)
+                                ? c.selectedIds.filter((id) => id !== item.id)
+                                : [...c.selectedIds, item.id],
+                            }
+                          : c
+                      );
+                      handleCategoriesChange(updated);
+                    }}
+                  />
+                  {item.name}
+                </label>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+      {!knowledgeStructure.loading &&
+        knowledgeCategories.length === 0 &&
+        knowledgeStructure.topics.length === 0 && (
+          <div>Nenhum tema disponível para as matérias selecionadas</div>
+        )}
+    </div>
+  ),
+  FilterActions: ({
+    onClearFilters,
+    onApplyFilters,
+  }: {
+    onClearFilters?: () => void;
+    onApplyFilters?: () => void;
+  }) => (
+    <div data-testid="filter-actions">
+      {onClearFilters && (
+        <button onClick={onClearFilters}>Limpar filtros</button>
+      )}
+      {onApplyFilters && <button onClick={onApplyFilters}>Filtrar</button>}
+    </div>
+  ),
+}));
 jest.mock('../../components/CheckBoxGroup/CheckBoxGroup', () => ({
   CheckboxGroup: ({
     categories,
@@ -383,9 +507,9 @@ describe('LessonFilters', () => {
 
     renderComponent({ initialFilters });
 
-    expect(mockLoadTopics).toHaveBeenCalledWith(['subject1']);
-    expect(mockLoadSubtopics).toHaveBeenCalledWith(['topic-1']);
-    expect(mockLoadContents).toHaveBeenCalledWith(['sub-1']);
+    // Initial filters are now handled by shared hooks (useInitialFiltersLoader and useKnowledgeStructureInitialFilters)
+    // The component should still render with the initial subject selected
+    expect(screen.getByLabelText(/Matemática/i)).toBeChecked();
   });
 
   it('renders popover variant', () => {
