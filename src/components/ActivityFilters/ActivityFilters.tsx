@@ -696,6 +696,7 @@ export interface ActivityFiltersPopoverProps
 export const ActivityFiltersPopover = ({
   onFiltersChange,
   triggerLabel = 'Filtro de questões',
+  initialFilters,
   ...activityFiltersProps
 }: ActivityFiltersPopoverProps) => {
   const [open, setOpen] = useState(false);
@@ -704,8 +705,7 @@ export const ActivityFiltersPopover = ({
   );
 
   // Use appliedFilters from store if available, otherwise fall back to initialFilters
-  const effectiveInitialFilters =
-    appliedFilters ?? activityFiltersProps.initialFilters ?? undefined;
+  const effectiveInitialFilters = appliedFilters ?? initialFilters ?? undefined;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>

@@ -434,7 +434,7 @@ describe('LessonFilters', () => {
     expect(screen.getByText('Erro ao carregar matérias')).toBeInTheDocument();
   });
 
-  it('renders loading state for knowledge structure', () => {
+  it('renders loading state for knowledge structure', async () => {
     mockUseActivityFiltersDataReturn = buildMockReturn({
       knowledgeStructure: {
         topics: [],
@@ -451,7 +451,7 @@ describe('LessonFilters', () => {
     const mathRadio = screen.getByLabelText(/Matemática/i);
     fireEvent.click(mathRadio);
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(
         screen.getByText('Carregando estrutura de conhecimento...')
       ).toBeInTheDocument();
