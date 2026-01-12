@@ -424,6 +424,8 @@ export type { QuestionFiltersState } from './store/questionFiltersStore';
 export type { AuthState } from './store/authStore';
 export { ActivityCardQuestionBanks } from './components/ActivityCardQuestionBanks/ActivityCardQuestionBanks';
 export { ActivityCardQuestionPreview } from './components/ActivityCardQuestionPreview/ActivityCardQuestionPreview';
+export { ActivityListQuestions } from './components/ActivityListQuestions/ActivityListQuestions';
+export type { ActivityListQuestionsProps } from './components/ActivityListQuestions/ActivityListQuestions';
 export type { ActivityCardQuestionPreviewProps } from './components/ActivityCardQuestionPreview/ActivityCardQuestionPreview';
 export { ActivityPreview } from './components/ActivityPreview/ActivityPreview';
 export type {
@@ -646,6 +648,15 @@ export type {
   GoalSupUsersActivities,
   GoalActivitiesGoals,
 } from './types/recommendedLessons';
+
+// Lesson Bank Component
+export { LessonBank } from './components/LessonBank/LessonBank';
+export type { LessonBankProps } from './components/LessonBank/LessonBank';
+export type {
+  Lesson,
+  LessonsListResponse,
+  LessonsPagination,
+} from './types/lessons';
 
 // Activities History Component
 export { ActivitiesHistory } from './components/ActivitiesHistory';
