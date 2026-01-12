@@ -43,6 +43,7 @@ export default defineConfig({
     'FileAttachment/index': 'src/components/FileAttachment/FileAttachment.tsx',
     'Card/index': 'src/components/Card/Card.tsx',
     'StatisticsCard/index': 'src/components/StatisticsCard/StatisticsCard.tsx',
+    'StudentRanking/index': 'src/components/StudentRanking/StudentRanking.tsx',
     'Calendar/index': 'src/components/Calendar/Calendar.tsx',
     'Stepper/index': 'src/components/Stepper/Stepper.tsx',
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
