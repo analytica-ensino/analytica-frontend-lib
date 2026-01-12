@@ -115,7 +115,110 @@ jest.mock('../ActivityFilters/ActivityFilters', () => ({
       </button>
     </div>
   ),
+  ActivityFiltersPopover: ({
+    onFiltersChange,
+    onApplyFilters,
+    onClearFilters,
+    apiClient: _apiClient,
+    institutionId: _institutionId,
+    triggerLabel,
+  }: {
+    onFiltersChange?: (filters: ActivityFiltersData) => void;
+    onApplyFilters?: () => void;
+    onClearFilters?: () => void;
+    apiClient: BaseApiClient;
+    institutionId: string;
+    initialFilters?: ActivityFiltersData | null;
+    triggerLabel?: string;
+  }) => (
+    <div data-testid="activity-filters-popover">
+      <button data-testid="filters-popover-trigger">{triggerLabel}</button>
+      <button
+        data-testid="trigger-filters-change-popover"
+        onClick={() =>
+          onFiltersChange?.({
+            types: [QUESTION_TYPE.ALTERNATIVA],
+            bankIds: ['bank1'],
+            yearIds: [],
+            subjectIds: ['subject1'],
+            topicIds: [],
+            subtopicIds: [],
+            contentIds: [],
+          })
+        }
+      >
+        Change Filters
+      </button>
+      {onApplyFilters && (
+        <button data-testid="apply-filters-popover" onClick={onApplyFilters}>
+          Apply Filters
+        </button>
+      )}
+      {onClearFilters && (
+        <button data-testid="clear-filters-popover" onClick={onClearFilters}>
+          Clear Filters
+        </button>
+      )}
+    </div>
+  ),
 }));
+
+jest.mock('../Menu/Menu', () => {
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      defaultValue,
+      value,
+      variant,
+    }: {
+      children: React.ReactNode;
+      defaultValue: string;
+      value?: string;
+      onValueChange?: (value: string) => void;
+      variant?: string;
+    }) => (
+      <div
+        data-testid="menu"
+        data-variant={variant}
+        data-value={value || defaultValue}
+        data-default-value={defaultValue}
+      >
+        {children}
+      </div>
+    ),
+    MenuContent: ({
+      children,
+      variant,
+    }: {
+      children: React.ReactNode;
+      variant?: string;
+    }) => (
+      <ul data-testid="menu-content" data-variant={variant}>
+        {children}
+      </ul>
+    ),
+    MenuItem: ({
+      children,
+      value,
+      variant,
+      onClick,
+    }: {
+      children: React.ReactNode;
+      value: string;
+      variant?: string;
+      onClick?: () => void;
+    }) => (
+      <li
+        data-testid={`menu-item-${value}`}
+        data-variant={variant}
+        onClick={onClick}
+      >
+        {children}
+      </li>
+    ),
+  };
+});
 
 jest.mock('../ActivityPreview/ActivityPreview', () => ({
   ActivityPreview: ({
@@ -173,6 +276,95 @@ jest.mock('../ActivityListQuestions/ActivityListQuestions', () => ({
     </div>
   ),
 }));
+
+jest.mock('./components/ActivityCreateHeader', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require('react');
+  return {
+    ActivityCreateHeader: ({
+      activity,
+      activityType,
+      lastSavedAt,
+      isSaving,
+      questionsCount,
+      onBack,
+      onSaveModel,
+      onSendActivity,
+    }: {
+      activity?: unknown;
+      activityType: string;
+      lastSavedAt: Date | null;
+      isSaving: boolean;
+      questionsCount: number;
+      onBack?: () => void;
+      onSaveModel?: () => void;
+      onSendActivity?: () => void;
+    }) => {
+      // Helper functions to match utils behavior
+      const getActivityTypeLabel = (type: string): string => {
+        const typeMap: Record<string, string> = {
+          RASCUNHO: 'Rascunho',
+          MODELO: 'Modelo',
+          ATIVIDADE: 'Atividade',
+        };
+        return typeMap[type] || type;
+      };
+
+      const formatTime = (date: Date): string => {
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+      };
+
+      const activityTypeLabel = getActivityTypeLabel(activityType);
+      const formattedTime = lastSavedAt ? formatTime(lastSavedAt) : '';
+      const saveStatusText = lastSavedAt
+        ? `${activityTypeLabel} salvo às ${formattedTime}`
+        : isSaving
+          ? 'Salvando...'
+          : 'Nenhum rascunho salvo';
+
+      return React.createElement(
+        'div',
+        { 'data-testid': 'activity-create-header' },
+        React.createElement(
+          'button',
+          {
+            'data-testid': 'back-button',
+            onClick: onBack,
+          },
+          React.createElement('span', { 'data-testid': 'caret-left' }, '←')
+        ),
+        React.createElement(
+          'span',
+          {},
+          activity ? 'Editar atividade' : 'Criar atividade'
+        ),
+        React.createElement('span', {}, saveStatusText),
+        React.createElement(
+          'button',
+          {
+            onClick: onSaveModel,
+          },
+          'Salvar modelo'
+        ),
+        React.createElement(
+          'button',
+          {
+            onClick: onSendActivity,
+            disabled: questionsCount === 0,
+          },
+          'Enviar atividade'
+        ),
+        React.createElement(
+          'span',
+          {},
+          'Crie uma atividade customizada adicionando questões manualmente ou automaticamente.'
+        )
+      );
+    },
+  };
+});
 
 jest.mock('../SendActivityModal/SendActivityModal', () => ({
   SendActivityModal: ({
@@ -242,6 +434,7 @@ jest.mock('../../utils/activityFilters', () => ({
 // Mock hooks - define these before using in jest.mock
 const mockApplyFilters = jest.fn();
 const mockSetDraftFilters = jest.fn();
+const mockClearFilters = jest.fn();
 const mockLoadKnowledgeAreas = jest.fn();
 const mockAddToast = jest.fn();
 
@@ -271,6 +464,7 @@ jest.mock('../../store/questionFiltersStore', () => ({
       appliedFilters: mockAppliedFilters,
       applyFilters: mockApplyFilters,
       setDraftFilters: mockSetDraftFilters,
+      clearFilters: mockClearFilters,
     };
     return selector(mockState);
   },
@@ -370,6 +564,9 @@ jest.mock('../..', () => {
     ActivityFilters: require('../ActivityFilters/ActivityFilters')
       .ActivityFilters,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
+    ActivityFiltersPopover: require('../ActivityFilters/ActivityFilters')
+      .ActivityFiltersPopover,
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     ActivityPreview: require('../ActivityPreview/ActivityPreview')
       .ActivityPreview,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -381,6 +578,7 @@ jest.mock('../..', () => {
         appliedFilters: mockAppliedFilters,
         applyFilters: mockApplyFilters,
         setDraftFilters: mockSetDraftFilters,
+        clearFilters: mockClearFilters,
       };
       return selector(mockState);
     },
@@ -398,6 +596,24 @@ jest.mock('../..', () => {
 });
 
 describe('CreateActivity', () => {
+  // Mock window.innerWidth for responsive tests
+  const originalInnerWidth = window.innerWidth;
+  beforeAll(() => {
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: 1400, // Default to desktop size
+    });
+  });
+
+  afterAll(() => {
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: originalInnerWidth,
+    });
+  });
+
   const mockApiClient: BaseApiClient = {
     get: jest.fn(),
     post: jest.fn(),
@@ -420,6 +636,7 @@ describe('CreateActivity', () => {
     mockConsoleError.mockClear();
     mockAddToast.mockClear();
     mockNavigate.mockClear();
+    mockClearFilters.mockClear();
     mockParams.type = undefined;
     mockParams.id = undefined;
   });
@@ -2841,6 +3058,73 @@ describe('CreateActivity', () => {
       await waitFor(() => {
         expect(screen.getByTestId('create-activity-page')).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('Back Navigation', () => {
+    it('should call clearFilters when back button is clicked', async () => {
+      const mockOnBack = jest.fn();
+      render(<CreateActivity {...defaultProps} onBack={mockOnBack} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('back-button')).toBeInTheDocument();
+      });
+
+      const backButton = screen.getByTestId('back-button');
+      fireEvent.click(backButton);
+
+      expect(mockClearFilters).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call onBack callback after clearing filters', async () => {
+      const mockOnBack = jest.fn();
+      render(<CreateActivity {...defaultProps} onBack={mockOnBack} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('back-button')).toBeInTheDocument();
+      });
+
+      const backButton = screen.getByTestId('back-button');
+      fireEvent.click(backButton);
+
+      expect(mockClearFilters).toHaveBeenCalledTimes(1);
+      expect(mockOnBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call clearFilters even when onBack is not provided', async () => {
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('back-button')).toBeInTheDocument();
+      });
+
+      const backButton = screen.getByTestId('back-button');
+      fireEvent.click(backButton);
+
+      expect(mockClearFilters).toHaveBeenCalledTimes(1);
+    });
+
+    it('should clear filters before calling onBack', async () => {
+      const mockOnBack = jest.fn();
+      render(<CreateActivity {...defaultProps} onBack={mockOnBack} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('back-button')).toBeInTheDocument();
+      });
+
+      const backButton = screen.getByTestId('back-button');
+      fireEvent.click(backButton);
+
+      // Verify clearFilters was called before onBack
+      expect(mockClearFilters).toHaveBeenCalled();
+      expect(mockOnBack).toHaveBeenCalled();
+
+      // Get the order of calls
+      const clearFiltersCallOrder =
+        mockClearFilters.mock.invocationCallOrder[0];
+      const onBackCallOrder = mockOnBack.mock.invocationCallOrder[0];
+
+      expect(clearFiltersCallOrder).toBeLessThan(onBackCallOrder);
     });
   });
 });
