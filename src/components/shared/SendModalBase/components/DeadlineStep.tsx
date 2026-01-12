@@ -61,7 +61,10 @@ export const DeadlineStep: FC<DeadlineStepProps> = ({
           time={startTime}
           onDateChange={onStartDateChange}
           onTimeChange={onStartTimeChange}
-          errorMessage={errors.startDate}
+          errorMessage={
+            [errors.startDate, errors.startTime].filter(Boolean).join(' ') ||
+            undefined
+          }
           defaultTime="00:00"
           testId={
             testIdPrefix ? `${testIdPrefix}-start-datetime` : 'start-datetime'
@@ -75,7 +78,10 @@ export const DeadlineStep: FC<DeadlineStepProps> = ({
           time={finalTime}
           onDateChange={onFinalDateChange}
           onTimeChange={onFinalTimeChange}
-          errorMessage={errors.finalDate}
+          errorMessage={
+            [errors.finalDate, errors.finalTime].filter(Boolean).join(' ') ||
+            undefined
+          }
           defaultTime="23:59"
           testId={
             testIdPrefix ? `${testIdPrefix}-final-datetime` : 'final-datetime'

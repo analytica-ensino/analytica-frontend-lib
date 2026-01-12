@@ -86,6 +86,33 @@ describe('DeadlineStep', () => {
     );
   });
 
+  it('should render start time error when provided', () => {
+    render(
+      <DeadlineStep
+        {...defaultProps}
+        errors={{ startTime: 'Hora de início é obrigatória' }}
+      />
+    );
+    expect(screen.getByTestId('start-datetime-error')).toHaveTextContent(
+      'Hora de início é obrigatória'
+    );
+  });
+
+  it('should combine start date and time errors', () => {
+    render(
+      <DeadlineStep
+        {...defaultProps}
+        errors={{
+          startDate: 'Data inválida',
+          startTime: 'Hora inválida',
+        }}
+      />
+    );
+    expect(screen.getByTestId('start-datetime-error')).toHaveTextContent(
+      'Data inválida Hora inválida'
+    );
+  });
+
   it('should render final date error when provided', () => {
     render(
       <DeadlineStep
@@ -95,6 +122,33 @@ describe('DeadlineStep', () => {
     );
     expect(screen.getByTestId('final-datetime-error')).toHaveTextContent(
       'Data final deve ser posterior'
+    );
+  });
+
+  it('should render final time error when provided', () => {
+    render(
+      <DeadlineStep
+        {...defaultProps}
+        errors={{ finalTime: 'Hora final é obrigatória' }}
+      />
+    );
+    expect(screen.getByTestId('final-datetime-error')).toHaveTextContent(
+      'Hora final é obrigatória'
+    );
+  });
+
+  it('should combine final date and time errors', () => {
+    render(
+      <DeadlineStep
+        {...defaultProps}
+        errors={{
+          finalDate: 'Data inválida',
+          finalTime: 'Hora inválida',
+        }}
+      />
+    );
+    expect(screen.getByTestId('final-datetime-error')).toHaveTextContent(
+      'Data inválida Hora inválida'
     );
   });
 
