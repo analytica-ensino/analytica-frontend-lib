@@ -216,6 +216,13 @@ export const QuestionsData = ({
   const yAxisTicks = calculateYAxisTicks(chartMaxValue);
   const adjustedMaxValue = yAxisTicks[0]; // Use the nice max for calculations
 
+  // Build accessible chart description
+  const blankSuffix =
+    showEmBranco && data.emBranco !== undefined
+      ? `, ${data.emBranco} em branco`
+      : '';
+  const chartDescription = `Gráfico de barras mostrando ${data.total} questões respondidas, ${data.corretas} corretas, ${data.incorretas} incorretas${blankSuffix}`;
+
   // Build bar items configuration
   const barItems: BarItemConfig[] = [
     {
@@ -282,11 +289,7 @@ export const QuestionsData = ({
       </div>
 
       {/* Chart */}
-      <div
-        className="flex flex-row"
-        role="img"
-        aria-label={`Gráfico de barras mostrando ${data.total} questões respondidas, ${data.corretas} corretas, ${data.incorretas} incorretas${showEmBranco && data.emBranco !== undefined ? `, ${data.emBranco} em branco` : ''}`}
-      >
+      <div className="flex flex-row" aria-label={chartDescription}>
         {/* Y-Axis */}
         <YAxis ticks={yAxisTicks} chartHeight={chartHeight} />
 
