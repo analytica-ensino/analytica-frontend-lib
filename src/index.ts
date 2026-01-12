@@ -305,6 +305,11 @@ export type {
   StudentRankingVariant,
   RankingCardProps,
 } from './components/StudentRanking/StudentRanking';
+export { QuestionsData } from './components/QuestionsData/QuestionsData';
+export type {
+  QuestionsDataProps,
+  QuestionsDataItem,
+} from './components/QuestionsData/QuestionsData';
 
 // Skeleton Components
 export {
