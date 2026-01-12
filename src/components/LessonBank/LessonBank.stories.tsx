@@ -146,6 +146,7 @@ const createMockApiClient = (
               topicIds?: string[];
               subtopicIds?: string[];
               contentIds?: string[];
+              selectedIds?: string[];
             }
           | undefined;
 
@@ -583,6 +584,7 @@ export const WithFilters: Story = () => {
           topicIds: ['algebra', 'biologia-celular'],
           subtopicIds: ['equacoes', 'fotossintese'],
           contentIds: ['equacoes-primeiro-grau', 'fotossintese-processo'],
+          selectedIds: ['lesson-1', 'lesson-2'],
         }}
       />
     </div>

@@ -29,4 +29,3 @@ export interface LessonsListResponse {
     pagination: LessonsPagination;
   };
 }
-

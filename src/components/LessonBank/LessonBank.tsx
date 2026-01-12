@@ -24,6 +24,7 @@ interface LessonFilters {
   topicIds?: string[];
   subtopicIds?: string[];
   contentIds?: string[];
+  selectedIds?: string[];
 }
 
 interface LessonBankProps {
@@ -121,6 +122,12 @@ export const LessonBank = ({
           ) {
             filtersBody.contentIds = currentFilters.contentIds;
           }
+          if (
+            currentFilters.selectedIds &&
+            currentFilters.selectedIds.length > 0
+          ) {
+            filtersBody.selectedIds = currentFilters.selectedIds;
+          }
 
           // Only add filters object if it has any properties
           if (Object.keys(filtersBody).length > 0) {
@@ -172,6 +179,7 @@ export const LessonBank = ({
       topicIds: filters.topicIds?.sort() || [],
       subtopicIds: filters.subtopicIds?.sort() || [],
       contentIds: filters.contentIds?.sort() || [],
+      selectedIds: filters.selectedIds?.sort() || [],
     });
   }, [filters]);
 
@@ -206,6 +214,9 @@ export const LessonBank = ({
           }
           if (filters.contentIds && filters.contentIds.length > 0) {
             filtersBody.contentIds = filters.contentIds;
+          }
+          if (filters.selectedIds && filters.selectedIds.length > 0) {
+            filtersBody.selectedIds = filters.selectedIds;
           }
 
           // Only add filters object if it has any properties
