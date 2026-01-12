@@ -8,6 +8,8 @@ const VARIANT_ACTION_CLASSES = {
   solid: {
     primary:
       'bg-primary-950 text-text border border-primary-950 hover:bg-primary-800 hover:border-primary-800 focus-visible:outline-none focus-visible:bg-primary-950 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:bg-primary-700 active:border-primary-700 disabled:bg-primary-500 disabled:border-primary-500 disabled:opacity-40 disabled:cursor-not-allowed',
+    secondary:
+      'bg-text-950 text-text border border-text-800 hover:bg-text-800 hover:border-text-950 focus-visible:outline-none focus-visible:bg-text-900 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:bg-text-700 active:border-text-700 disabled:bg-text-500 disabled:border-text-500 disabled:opacity-40 disabled:cursor-not-allowed',
     positive:
       'bg-success-500 text-text border border-success-500 hover:bg-success-600 hover:border-success-600 focus-visible:outline-none focus-visible:bg-success-500 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:bg-success-700 active:border-success-700 disabled:bg-success-500 disabled:border-success-500 disabled:opacity-40 disabled:cursor-not-allowed',
     negative:
@@ -16,6 +18,8 @@ const VARIANT_ACTION_CLASSES = {
   outline: {
     primary:
       'bg-transparent text-primary-950 border border-primary-950 hover:bg-background-50 hover:text-primary-400 hover:border-primary-400 focus-visible:border-0 focus-visible:outline-none focus-visible:text-primary-600 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:text-primary-700 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed',
+    secondary:
+      'bg-transparent text-text-950 border border-text-800 hover:bg-background-50 hover:text-text-700 hover:border-text-700 focus-visible:border-0 focus-visible:outline-none focus-visible:text-text-900 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:text-text-700 active:border-text-700 disabled:opacity-40 disabled:cursor-not-allowed',
     positive:
       'bg-transparent text-success-500 border border-success-300 hover:bg-background-50 hover:text-success-400 hover:border-success-400 focus-visible:border-0 focus-visible:outline-none focus-visible:text-success-600 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:text-success-700 active:border-success-700 disabled:opacity-40 disabled:cursor-not-allowed',
     negative:
@@ -24,6 +28,8 @@ const VARIANT_ACTION_CLASSES = {
   link: {
     primary:
       'bg-transparent text-primary-950 hover:text-primary-400 focus-visible:outline-none focus-visible:text-primary-600 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed',
+    secondary:
+      'bg-transparent text-text-950 hover:text-text-800 focus-visible:outline-none focus-visible:text-text-900 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:text-text-700 disabled:opacity-40 disabled:cursor-not-allowed',
     positive:
       'bg-transparent text-success-500 hover:text-success-400 focus-visible:outline-none focus-visible:text-success-600 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-indicator-info active:text-success-700 disabled:opacity-40 disabled:cursor-not-allowed',
     negative:
@@ -57,7 +63,7 @@ type ButtonProps = {
   /** Visual variant of the button */
   variant?: 'solid' | 'outline' | 'link';
   /** Action type of the button */
-  action?: 'primary' | 'positive' | 'negative';
+  action?: 'primary' | 'secondary' | 'positive' | 'negative';
   /** Additional CSS classes to apply */
   className?: string;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
