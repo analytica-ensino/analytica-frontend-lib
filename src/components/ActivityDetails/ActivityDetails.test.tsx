@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ReactNode } from 'react';
+import type { HTMLAttributes, ReactNode, Ref } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { STUDENT_ACTIVITY_STATUS } from '../../types/activityDetails';
@@ -207,11 +207,87 @@ jest.mock('../../hooks/useActivityDetails', () => ({
   useActivityDetails: jest.fn(),
 }));
 
+// Mock QuestionsPdfGenerator
+const mockHandlePrint = jest.fn();
+const mockContentRef = { current: document.createElement('div') };
+
+jest.mock('../QuestionsPdfGenerator/QuestionsPdfGenerator', () => ({
+  useQuestionsPdfPrint: jest.fn(() => ({
+    contentRef: mockContentRef,
+    handlePrint: mockHandlePrint,
+  })),
+  QuestionsPdfContent: jest.fn(
+    ({ ref }: { ref: Ref<HTMLDivElement>; questions: unknown[] }) => (
+      <div ref={ref} data-testid="questions-pdf-content" />
+    )
+  ),
+}));
+
+// Mock ActivityCreate utils
+const mockConvertQuestionToPreview = jest.fn((question: Question) => ({
+  id: question.id,
+  enunciado: question.statement,
+  questionType: question.questionType,
+  question: question.options
+    ? {
+        options: question.options.map(
+          (opt: { id: string; option: string }) => ({
+            id: opt.id,
+            option: opt.option,
+          })
+        ),
+        correctOptionIds: [],
+      }
+    : undefined,
+  subjectName: question.knowledgeMatrix?.[0]?.subject?.name,
+  subjectColor: question.knowledgeMatrix?.[0]?.subject?.color,
+  iconName: question.knowledgeMatrix?.[0]?.subject?.icon,
+}));
+
+jest.mock('../ActivityCreate/ActivityCreate.utils', () => ({
+  convertQuestionToPreview: mockConvertQuestionToPreview,
+}));
+
+// Mock useQuestionsList hook
+const mockFetchQuestionsByIds = jest.fn();
+
+const mockUseQuestionsList = jest.fn(() => ({
+  questions: [],
+  pagination: null,
+  loading: false,
+  loadingMore: false,
+  error: null,
+  fetchQuestions: jest.fn(),
+  fetchRandomQuestions: jest.fn(),
+  fetchQuestionsByIds: mockFetchQuestionsByIds,
+  loadMore: jest.fn(),
+  reset: jest.fn(),
+}));
+
+jest.mock('../../hooks/useQuestionsList', () => ({
+  createUseQuestionsList: jest.fn(() => mockUseQuestionsList),
+}));
+
+// Mock useToastStore
+const mockAddToast = jest.fn();
+jest.mock('../Toast/utils/ToastStore', () => ({
+  __esModule: true,
+  default: jest.fn((selector) => {
+    if (selector && typeof selector === 'function') {
+      return selector({ addToast: mockAddToast });
+    }
+    return { addToast: mockAddToast };
+  }),
+}));
+
 // Import after mocks
 import { ActivityDetails } from './ActivityDetails';
 import type { ActivityDetailsProps } from './ActivityDetails';
 import { useActivityDetails } from '../../hooks/useActivityDetails';
 import type { BaseApiClient } from '../../types/api';
+import { useQuestionsPdfPrint } from '../QuestionsPdfGenerator/QuestionsPdfGenerator';
+import { createUseQuestionsList } from '../../hooks/useQuestionsList';
+import { convertQuestionToPreview } from '../ActivityCreate/ActivityCreate.utils';
 
 /**
  * Mock activity details data
@@ -409,7 +485,6 @@ describe('ActivityDetails', () => {
   const mockSubmitObservation = jest.fn();
   const mockSubmitQuestionCorrection = jest.fn();
   const mockOnBack = jest.fn();
-  const mockOnViewActivity = jest.fn();
   const mockMapSubjectNameToEnum = jest.fn();
   const mockApiClient: BaseApiClient = {
     get: jest.fn(),
@@ -422,7 +497,6 @@ describe('ActivityDetails', () => {
     activityId: 'activity-123',
     apiClient: mockApiClient,
     onBack: mockOnBack,
-    onViewActivity: mockOnViewActivity,
     mapSubjectNameToEnum: mockMapSubjectNameToEnum,
   };
 
@@ -585,11 +659,11 @@ describe('ActivityDetails', () => {
       });
     });
 
-    it('should render Ver atividade button', async () => {
+    it('should render Baixar Atividade button', async () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Ver atividade')).toBeInTheDocument();
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
       });
     });
   });
@@ -605,18 +679,6 @@ describe('ActivityDetails', () => {
       fireEvent.click(screen.getByText('Atividades'));
 
       expect(mockOnBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call onViewActivity when Ver atividade is clicked', async () => {
-      render(<ActivityDetails {...defaultProps} />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Ver atividade')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText('Ver atividade'));
-
-      expect(mockOnViewActivity).toHaveBeenCalledTimes(1);
     });
 
     it('should open modal when Corrigir atividade is clicked', async () => {
@@ -681,6 +743,62 @@ describe('ActivityDetails', () => {
         });
       });
     });
+
+    it('should reset PDF/question state when activityId changes', async () => {
+      const mockQuestions = [
+        createQuestion('q1', 'Questão 1', QUESTION_TYPE.ALTERNATIVA, [
+          { id: 'opt1', option: 'Opção A' },
+          { id: 'opt2', option: 'Opção B' },
+        ]),
+      ];
+
+      // Mock API to return questions for first activity
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: mockQuestions,
+          },
+        },
+      });
+
+      const { rerender } = render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      // Load questions for first activity
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/activities/activity-123/quiz'
+        );
+      });
+
+      // Change activityId
+      rerender(<ActivityDetails {...defaultProps} activityId="activity-456" />);
+
+      // PDF/question state should be reset (questions cleared, loading false, error null, shouldPrint false)
+      // This is verified by checking that if we try to download again, it will fetch for the new activity
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: [],
+          },
+        },
+      });
+
+      // Click download button again - should fetch for new activity
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/activities/activity-456/quiz'
+        );
+      });
+    });
   });
 
   describe('Empty States', () => {
@@ -711,21 +829,6 @@ describe('ActivityDetails', () => {
 
       // Should not throw when clicking
       fireEvent.click(screen.getByText('Atividades'));
-    });
-
-    it('should not crash when onViewActivity is not provided', async () => {
-      const propsWithoutOnViewActivity = { ...defaultProps };
-      delete (propsWithoutOnViewActivity as Partial<ActivityDetailsProps>)
-        .onViewActivity;
-
-      render(<ActivityDetails {...propsWithoutOnViewActivity} />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Ver atividade')).toBeInTheDocument();
-      });
-
-      // Should not throw when clicking
-      fireEvent.click(screen.getByText('Ver atividade'));
     });
 
     it('should handle missing mapSubjectNameToEnum', async () => {
@@ -992,6 +1095,478 @@ describe('ActivityDetails', () => {
       });
 
       expect(mockFetchActivityDetails).toHaveBeenCalled();
+    });
+  });
+
+  describe('PDF Download', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockHandlePrint.mockClear();
+      mockFetchQuestionsByIds.mockClear();
+      mockConvertQuestionToPreview.mockClear();
+      mockAddToast.mockClear();
+      (useQuestionsPdfPrint as jest.Mock).mockReturnValue({
+        contentRef: mockContentRef,
+        handlePrint: mockHandlePrint,
+      });
+      (createUseQuestionsList as jest.Mock).mockReturnValue(
+        mockUseQuestionsList
+      );
+    });
+
+    it('should render PDF content component', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('questions-pdf-content')).toBeInTheDocument();
+      });
+    });
+
+    it('should fetch questions when download button is clicked and questions are empty', async () => {
+      const mockQuestions = [
+        createQuestion('q1', 'Questão 1', QUESTION_TYPE.ALTERNATIVA, [
+          { id: 'opt1', option: 'Opção A' },
+          { id: 'opt2', option: 'Opção B' },
+        ]),
+      ];
+
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: mockQuestions,
+          },
+        },
+      });
+
+      mockFetchQuestionsByIds.mockResolvedValue(mockQuestions);
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/activities/activity-123/quiz'
+        );
+      });
+    });
+
+    it('should fetch questions by IDs when quiz response contains questionIds', async () => {
+      const mockQuestions = [
+        createQuestion('q1', 'Questão 1', QUESTION_TYPE.ALTERNATIVA, [
+          { id: 'opt1', option: 'Opção A' },
+          { id: 'opt2', option: 'Opção B' },
+        ]),
+      ];
+
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questionIds: ['q1'],
+          },
+        },
+      });
+
+      mockFetchQuestionsByIds.mockResolvedValue(mockQuestions);
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        expect(mockFetchQuestionsByIds).toHaveBeenCalledWith(['q1']);
+      });
+    });
+
+    it('should call handlePrint when questions are already loaded', async () => {
+      const mockQuestions = [
+        createQuestion('q1', 'Questão 1', QUESTION_TYPE.ALTERNATIVA, [
+          { id: 'opt1', option: 'Opção A' },
+          { id: 'opt2', option: 'Opção B' },
+        ]),
+      ];
+
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: mockQuestions,
+          },
+        },
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      // Click to load questions and trigger print
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalled();
+      });
+
+      // Wait for handlePrint to be called after questions are loaded
+      await waitFor(
+        () => {
+          expect(mockHandlePrint).toHaveBeenCalled();
+        },
+        { timeout: 2000 }
+      );
+    });
+
+    it('should show loading state when fetching questions', async () => {
+      mockApiClient.get = jest.fn().mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(() => {
+              resolve({
+                data: {
+                  data: {
+                    questions: [],
+                  },
+                },
+              });
+            }, 100);
+          })
+      );
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      // Should show loading text
+      await waitFor(() => {
+        expect(screen.getByText('Carregando...')).toBeInTheDocument();
+      });
+    });
+
+    it('should handle error when fetching questions', async () => {
+      mockApiClient.get = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Fetch failed'))
+        .mockRejectedValueOnce(new Error('Alternative endpoint also failed'));
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      // Wait for API calls to be attempted
+      await waitFor(
+        () => {
+          // Both endpoints should be attempted
+          expect(mockApiClient.get).toHaveBeenCalledWith(
+            '/activities/activity-123/quiz'
+          );
+          expect(mockApiClient.get).toHaveBeenCalledWith(
+            '/activities/activity-123'
+          );
+        },
+        { timeout: 2000 }
+      );
+
+      // Should show error toast when both endpoints fail
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Erro ao carregar questões',
+            variant: 'solid',
+            action: 'warning',
+          })
+        );
+      });
+
+      // Button should still be enabled after error (not in loading state)
+      await waitFor(
+        () => {
+          expect(screen.queryByText('Carregando...')).not.toBeInTheDocument();
+        },
+        { timeout: 2000 }
+      );
+    });
+
+    it('should convert questions to preview format when fetching', async () => {
+      const mockQuestions = [
+        createQuestion('q1', 'Questão 1', QUESTION_TYPE.ALTERNATIVA, [
+          { id: 'opt1', option: 'Opção A' },
+          { id: 'opt2', option: 'Opção B' },
+        ]),
+      ];
+
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: mockQuestions,
+          },
+        },
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        expect(convertQuestionToPreview).toHaveBeenCalled();
+      });
+    });
+
+    it('should use alternative endpoint when quiz endpoint fails', async () => {
+      const mockQuestions = [
+        createQuestion('q1', 'Questão 1', QUESTION_TYPE.ALTERNATIVA, [
+          { id: 'opt1', option: 'Opção A' },
+          { id: 'opt2', option: 'Opção B' },
+        ]),
+      ];
+
+      mockApiClient.get = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Quiz endpoint failed'))
+        .mockResolvedValueOnce({
+          data: {
+            data: {
+              questions: mockQuestions,
+            },
+          },
+        });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/activities/activity-123'
+        );
+      });
+    });
+
+    it('should show toast notification when no questions are found', async () => {
+      // Mock API to return empty questions array
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: [],
+          },
+        },
+      });
+
+      mockFetchQuestionsByIds.mockResolvedValue([]);
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Nenhuma questão encontrada',
+          description: 'Esta atividade não possui questões para download.',
+          variant: 'solid',
+          action: 'info',
+          position: 'top-right',
+        });
+      });
+    });
+
+    it('should not set shouldPrint when fetchActivityQuestions returns false (no questions)', async () => {
+      // Mock API to return empty questions array
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: [],
+          },
+        },
+      });
+
+      mockFetchQuestionsByIds.mockResolvedValue([]);
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      // Wait for fetch to complete
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalled();
+      });
+
+      // Should not call handlePrint because shouldPrint should be false
+      await waitFor(
+        () => {
+          expect(mockHandlePrint).not.toHaveBeenCalled();
+        },
+        { timeout: 1000 }
+      );
+    });
+
+    it('should set shouldPrint to false when questions are already loaded but empty', async () => {
+      // First, load questions (even if empty)
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: [],
+          },
+        },
+      });
+
+      mockFetchQuestionsByIds.mockResolvedValue([]);
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+
+      // First click to load (empty) questions
+      fireEvent.click(downloadButton);
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalled();
+      });
+
+      // Second click - questions are already loaded but empty
+      fireEvent.click(downloadButton);
+
+      // Should not call handlePrint
+      await waitFor(
+        () => {
+          expect(mockHandlePrint).not.toHaveBeenCalled();
+        },
+        { timeout: 1000 }
+      );
+    });
+
+    it('should not set shouldPrint when fetchActivityQuestions returns false due to error', async () => {
+      // Mock fetchQuestionsByIds to throw an error (this will trigger the catch block)
+      mockFetchQuestionsByIds.mockRejectedValueOnce(
+        new Error('Failed to fetch questions')
+      );
+
+      // Mock API to return questionIds that will trigger fetchQuestionsByIds
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questionIds: ['q1'],
+          },
+        },
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      // Wait for error handling
+      await waitFor(() => {
+        expect(mockFetchQuestionsByIds).toHaveBeenCalled();
+      });
+
+      // Should not call handlePrint because shouldPrint should be false
+      await waitFor(
+        () => {
+          expect(mockHandlePrint).not.toHaveBeenCalled();
+        },
+        { timeout: 1000 }
+      );
+
+      // Should show error toast
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Erro ao carregar questões',
+            variant: 'solid',
+            action: 'warning',
+          })
+        );
+      });
+    });
+
+    it('should call handlePrint when questions are successfully loaded and shouldPrint is true', async () => {
+      const mockQuestions = [
+        createQuestion('q1', 'Questão 1', QUESTION_TYPE.ALTERNATIVA, [
+          { id: 'opt1', option: 'Opção A' },
+          { id: 'opt2', option: 'Opção B' },
+        ]),
+      ];
+
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: {
+          data: {
+            questions: mockQuestions,
+          },
+        },
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      const downloadButton = screen.getByText('Baixar Atividade');
+      fireEvent.click(downloadButton);
+
+      // Wait for questions to be loaded
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalled();
+      });
+
+      // handlePrint should eventually be called when questions are loaded and shouldPrint is true
+      await waitFor(
+        () => {
+          expect(mockHandlePrint).toHaveBeenCalled();
+        },
+        { timeout: 2000 }
+      );
+
+      // Verify that handlePrint was called (meaning shouldPrint was true and conditions were met)
+      expect(mockHandlePrint).toHaveBeenCalled();
     });
   });
 });
