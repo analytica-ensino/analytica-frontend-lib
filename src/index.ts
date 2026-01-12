@@ -295,6 +295,16 @@ export {
   CardAudio,
 } from './components/Card/Card';
 export { StatisticsCard } from './components/StatisticsCard/StatisticsCard';
+export {
+  StudentRanking,
+  RankingCard,
+} from './components/StudentRanking/StudentRanking';
+export type {
+  StudentRankingProps,
+  StudentRankingItem,
+  StudentRankingVariant,
+  RankingCardProps,
+} from './components/StudentRanking/StudentRanking';
 
 // Skeleton Components
 export {
