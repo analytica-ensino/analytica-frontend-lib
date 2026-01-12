@@ -670,6 +670,20 @@ export type {
   GoalActivitiesGoals,
 } from './types/recommendedLessons';
 
+// Goal Models Hook Factory
+export {
+  createUseGoalModels,
+  createGoalModelsHook,
+  transformGoalModelToTableItem,
+  handleGoalModelFetchError,
+  goalModelsApiResponseSchema,
+  DEFAULT_GOAL_MODELS_PAGINATION,
+} from './hooks/useGoalModels';
+export type {
+  UseGoalModelsState,
+  UseGoalModelsReturn,
+} from './hooks/useGoalModels';
+
 // Activities History Component
 export { ActivitiesHistory } from './components/ActivitiesHistory';
 export type { ActivitiesHistoryProps } from './components/ActivitiesHistory';
