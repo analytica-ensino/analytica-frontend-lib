@@ -1210,7 +1210,7 @@ describe('ActivityDetails', () => {
         expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
       });
 
-      // First click to load questions
+      // Click to load questions and trigger print
       const downloadButton = screen.getByText('Baixar Atividade');
       fireEvent.click(downloadButton);
 
@@ -1218,15 +1218,7 @@ describe('ActivityDetails', () => {
         expect(mockApiClient.get).toHaveBeenCalled();
       });
 
-      // Wait a bit and click again to trigger print
-      await waitFor(
-        () => {
-          fireEvent.click(downloadButton);
-        },
-        { timeout: 1000 }
-      );
-
-      // Give some time for the setTimeout to execute
+      // Wait for handlePrint to be called after questions are loaded
       await waitFor(
         () => {
           expect(mockHandlePrint).toHaveBeenCalled();

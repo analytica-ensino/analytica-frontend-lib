@@ -331,7 +331,7 @@ describe('LessonFilters', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders knowledge structure filter with topics when subject is selected', () => {
+  it('renders knowledge structure filter with topics when subject is selected', async () => {
     mockUseActivityFiltersDataReturn = buildMockReturn({
       knowledgeCategories: [
         {
@@ -348,19 +348,19 @@ describe('LessonFilters', () => {
     const mathRadio = screen.getByLabelText(/Matemática/i);
     fireEvent.click(mathRadio);
 
-    waitFor(() => {
-      expect(screen.getByText('Tema, Subtema e Assunto')).toBeInTheDocument();
-    });
+      await waitFor(() => {
+        expect(screen.getByText('Tema, Subtema e Assunto')).toBeInTheDocument();
+      });
   });
 
-  it('calls onFiltersChange when subject is selected', () => {
+  it('calls onFiltersChange when subject is selected', async () => {
     const mockOnFiltersChange = jest.fn();
     renderComponent({ onFiltersChange: mockOnFiltersChange });
 
     const mathRadio = screen.getByLabelText(/Matemática/i);
     fireEvent.click(mathRadio);
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(mockOnFiltersChange).toHaveBeenCalledWith(
         expect.objectContaining({
           subjectIds: ['subject1'],
@@ -524,14 +524,14 @@ describe('LessonFilters', () => {
     expect(screen.getByText('Filtro de aulas')).toBeInTheDocument();
   });
 
-  it('toggles subject selection', () => {
+  it('toggles subject selection', async () => {
     const mockOnFiltersChange = jest.fn();
     renderComponent({ onFiltersChange: mockOnFiltersChange });
 
     const mathRadio = screen.getByLabelText(/Matemática/i);
     fireEvent.click(mathRadio);
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(mockOnFiltersChange).toHaveBeenCalledWith(
         expect.objectContaining({
           subjectIds: ['subject1'],
@@ -541,7 +541,7 @@ describe('LessonFilters', () => {
 
     fireEvent.click(mathRadio);
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(mockOnFiltersChange).toHaveBeenCalledWith(
         expect.objectContaining({
           subjectIds: [],
@@ -550,7 +550,7 @@ describe('LessonFilters', () => {
     });
   });
 
-  it('calls handleCategoriesChange when knowledge categories change', () => {
+  it('calls handleCategoriesChange when knowledge categories change', async () => {
     mockUseActivityFiltersDataReturn = buildMockReturn({
       knowledgeCategories: [
         {
@@ -567,9 +567,9 @@ describe('LessonFilters', () => {
     const mathRadio = screen.getByLabelText(/Matemática/i);
     fireEvent.click(mathRadio);
 
-    waitFor(() => {
-      expect(screen.getByText('Tema, Subtema e Assunto')).toBeInTheDocument();
-    });
+      await waitFor(() => {
+        expect(screen.getByText('Tema, Subtema e Assunto')).toBeInTheDocument();
+      });
 
     const updatedCategories = [
       {

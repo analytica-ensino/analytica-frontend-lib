@@ -26,6 +26,11 @@ export const useInitialFiltersLoader = ({
   const hasRequestedContentsRef = useRef(false);
 
   useEffect(() => {
+    // Reset refs synchronously before any loader checks to avoid race conditions
+    hasRequestedTopicsRef.current = false;
+    hasRequestedSubtopicsRef.current = false;
+    hasRequestedContentsRef.current = false;
+
     if (!initialFilters) {
       return;
     }
@@ -55,13 +60,6 @@ export const useInitialFiltersLoader = ({
       hasRequestedContentsRef.current = true;
     }
   }, [initialFilters, loadTopics, loadSubtopics, loadContents]);
-
-  // Reset refs when initialFilters changes
-  useEffect(() => {
-    hasRequestedTopicsRef.current = false;
-    hasRequestedSubtopicsRef.current = false;
-    hasRequestedContentsRef.current = false;
-  }, [initialFilters]);
 
   return {
     hasRequestedTopicsRef,
