@@ -705,7 +705,7 @@ export const ActivityFiltersPopover = ({
 
   // Use appliedFilters from store if available, otherwise fall back to initialFilters
   const effectiveInitialFilters =
-    appliedFilters || activityFiltersProps.initialFilters || undefined;
+    appliedFilters ?? activityFiltersProps.initialFilters ?? undefined;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
