@@ -278,9 +278,7 @@ describe('QuestionsData', () => {
     it('should have readable legend content', () => {
       render(<QuestionsData data={mockData} showEmBranco />);
 
-      expect(
-        screen.getByText('Total de questões respondidas')
-      ).toBeVisible();
+      expect(screen.getByText('Total de questões respondidas')).toBeVisible();
       expect(screen.getByText('Questões corretas')).toBeVisible();
       expect(screen.getByText('Questões incorretas')).toBeVisible();
       expect(screen.getByText('Questões em branco')).toBeVisible();

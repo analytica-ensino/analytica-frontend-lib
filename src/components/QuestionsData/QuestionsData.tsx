@@ -74,19 +74,19 @@ const calculateYAxisTicks = (maxValue: number): number[] => {
 
   // Generate 5 ticks including 0 and max
   const step = niceMax / 4;
-  return [niceMax, Math.round(step * 3), Math.round(step * 2), Math.round(step), 0];
+  return [
+    niceMax,
+    Math.round(step * 3),
+    Math.round(step * 2),
+    Math.round(step),
+    0,
+  ];
 };
 
 /**
  * Legend item component
  */
-const LegendItem = ({
-  color,
-  label,
-}: {
-  color: string;
-  label: string;
-}) => (
+const LegendItem = ({ color, label }: { color: string; label: string }) => (
   <div className="flex flex-row items-center gap-2">
     <div className={cn('w-2 h-2 rounded-full', color)} />
     <Text size="xs" weight="medium" className="text-text-600">
@@ -122,7 +122,10 @@ const DataBar = ({
         style={{ height: chartHeight }}
       >
         <div
-          className={cn('w-16 rounded-lg transition-all duration-300', colorClass)}
+          className={cn(
+            'w-16 rounded-lg transition-all duration-300',
+            colorClass
+          )}
           style={{ height: `${barHeight}px` }}
         />
       </div>
@@ -145,9 +148,6 @@ const GridLines = ({
   ticks: number[];
   chartHeight: number;
 }) => {
-  const lineCount = ticks.length;
-  const spacing = chartHeight / (lineCount - 1);
-
   return (
     <div
       className="absolute inset-0 flex flex-col justify-between pointer-events-none"
@@ -279,7 +279,9 @@ export const QuestionsData = ({
         {barItems.map((item) => (
           <LegendItem
             key={item.key}
-            color={LEGEND_DOT_COLORS[item.key as keyof typeof LEGEND_DOT_COLORS]}
+            color={
+              LEGEND_DOT_COLORS[item.key as keyof typeof LEGEND_DOT_COLORS]
+            }
             label={item.legendLabel}
           />
         ))}
