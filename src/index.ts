@@ -424,6 +424,8 @@ export type { QuestionFiltersState } from './store/questionFiltersStore';
 export type { AuthState } from './store/authStore';
 export { ActivityCardQuestionBanks } from './components/ActivityCardQuestionBanks/ActivityCardQuestionBanks';
 export { ActivityCardQuestionPreview } from './components/ActivityCardQuestionPreview/ActivityCardQuestionPreview';
+export { ActivityListQuestions } from './components/ActivityListQuestions/ActivityListQuestions';
+export type { ActivityListQuestionsProps } from './components/ActivityListQuestions/ActivityListQuestions';
 export type { ActivityCardQuestionPreviewProps } from './components/ActivityCardQuestionPreview/ActivityCardQuestionPreview';
 export { ActivityPreview } from './components/ActivityPreview/ActivityPreview';
 export type {
@@ -667,20 +669,6 @@ export type {
   GoalSupUsersActivities,
   GoalActivitiesGoals,
 } from './types/recommendedLessons';
-
-// Goal Models Hook Factory
-export {
-  createUseGoalModels,
-  createGoalModelsHook,
-  transformGoalModelToTableItem,
-  handleGoalModelFetchError,
-  goalModelsApiResponseSchema,
-  DEFAULT_GOAL_MODELS_PAGINATION,
-} from './hooks/useGoalModels';
-export type {
-  UseGoalModelsState,
-  UseGoalModelsReturn,
-} from './hooks/useGoalModels';
 
 // Activities History Component
 export { ActivitiesHistory } from './components/ActivitiesHistory';

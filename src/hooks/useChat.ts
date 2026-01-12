@@ -273,6 +273,8 @@ export function useChat({
       setIsConnected(true);
       setError(null);
       reconnectAttemptsRef.current = 0;
+      ws.send(JSON.stringify({ type: 'getInitialData' }));
+
       onConnect?.();
     };
 
