@@ -10,8 +10,8 @@ export const Default: Story = () => (
       data={{
         total: 100,
         corretas: 60,
-        incorretas: 50,
-        emBranco: 30,
+        incorretas: 30,
+        emBranco: 10,
       }}
       showEmBranco
     />

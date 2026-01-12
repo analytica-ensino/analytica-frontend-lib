@@ -44,19 +44,9 @@ interface BarItemConfig {
 }
 
 /**
- * Color classes for each bar type using design system tokens
+ * Color classes for bars and legend dots using design system tokens
  */
 const BAR_COLORS = {
-  total: 'bg-info-600',
-  corretas: 'bg-success-200',
-  incorretas: 'bg-warning-400',
-  emBranco: 'bg-background-300',
-} as const;
-
-/**
- * Legend dot colors
- */
-const LEGEND_DOT_COLORS = {
   total: 'bg-info-600',
   corretas: 'bg-success-200',
   incorretas: 'bg-warning-400',
@@ -155,7 +145,7 @@ const GridLines = ({
     >
       {ticks.map((tick, index) => (
         <div
-          key={tick}
+          key={`${tick}-${index}`}
           className="w-full border-t border-dashed border-border-200"
           style={{ marginTop: index === 0 ? 0 : undefined }}
         />
@@ -279,9 +269,7 @@ export const QuestionsData = ({
         {barItems.map((item) => (
           <LegendItem
             key={item.key}
-            color={
-              LEGEND_DOT_COLORS[item.key as keyof typeof LEGEND_DOT_COLORS]
-            }
+            color={BAR_COLORS[item.key as keyof typeof BAR_COLORS]}
             label={item.legendLabel}
           />
         ))}

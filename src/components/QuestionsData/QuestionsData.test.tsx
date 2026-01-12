@@ -260,8 +260,8 @@ describe('QuestionsData', () => {
       const barContainers = container.querySelectorAll(
         '.flex.items-end.justify-center'
       );
-      barContainers.forEach((container) => {
-        expect((container as HTMLElement).style.height).toBe('200px');
+      barContainers.forEach((barContainer) => {
+        expect((barContainer as HTMLElement).style.height).toBe('200px');
       });
     });
   });
