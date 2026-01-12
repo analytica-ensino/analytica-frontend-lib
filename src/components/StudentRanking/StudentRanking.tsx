@@ -76,7 +76,7 @@ const getPositionBackgroundClass = (
   variant: StudentRankingVariant,
   position: number
 ): string => {
-  const positionKey = Math.min(position, 3) as 1 | 2 | 3;
+  const positionKey = Math.max(1, Math.min(position, 3)) as 1 | 2 | 3;
   return CARD_BACKGROUND_CLASSES[variant][positionKey];
 };
 
