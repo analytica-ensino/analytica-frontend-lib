@@ -96,6 +96,7 @@ const StudentCard = ({ student, variant }: StudentCardProps) => {
     >
       {/* Position badge */}
       <span
+        aria-label={`Posição ${student.position}`}
         className={cn(
           'w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-text',
           BADGE_BACKGROUND_CLASSES[variant]
@@ -115,12 +116,13 @@ const StudentCard = ({ student, variant }: StudentCardProps) => {
 
       {/* Percentage badge */}
       <span
+        aria-label={`Desempenho ${student.percentage}%`}
         className={cn(
           'flex flex-row items-center h-[22px] px-2 gap-1 rounded text-xs font-bold text-text',
           PERCENTAGE_BADGE_CLASSES[variant]
         )}
       >
-        <TrendIcon size={16} weight="bold" />
+        <TrendIcon size={16} weight="bold" aria-hidden="true" />
         {student.percentage}%
       </span>
     </div>
@@ -187,9 +189,9 @@ export const RankingCard = ({
 
       {/* Students list */}
       <div className="flex flex-col gap-2">
-        {students.map((student) => (
+        {students.map((student, index) => (
           <StudentCard
-            key={`${variant}-${student.position}-${student.name}`}
+            key={`${variant}-${index}-${student.position}`}
             student={student}
             variant={variant}
           />
