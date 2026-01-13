@@ -54,7 +54,7 @@ function transformToCategoryConfig(
       selectedIds: [],
     },
     {
-      key: 'alunos',
+      key: 'students',
       label: 'Aluno',
       dependsOn: ['escola', 'serie', 'turma'],
       itens: data.students,
