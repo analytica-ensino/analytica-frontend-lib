@@ -315,6 +315,32 @@ export const LessonPreview = ({
                 }}
                 className="rounded-lg border border-border-200 bg-background relative group"
               >
+                {/* Hidden drag preview with visual representation of the card */}
+                <div
+                  data-drag-preview="true"
+                  className="fixed -left-[9999px] -top-[9999px] pointer-events-none z-[9999] w-[440px]"
+                >
+                  <div className="w-full rounded-lg border border-border-200 bg-background">
+                    <div className="p-4 flex flex-row items-center justify-between gap-4">
+                      <div className="flex flex-row items-center gap-3 flex-1">
+                        <Text size="sm" className="text-text-600">
+                          {position ?? index + 1}
+                        </Text>
+                        <Text
+                          size="md"
+                          weight="medium"
+                          className="text-text-950 truncate"
+                        >
+                          {lessonTitle}
+                        </Text>
+                      </div>
+                      <div className="flex flex-row items-center text-text-950">
+                        <Video size={24} color="currentColor" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {onRemoveLesson && (
                   <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
@@ -332,15 +358,6 @@ export const LessonPreview = ({
                 )}
                 <div className="p-4 flex flex-row items-center justify-between gap-4">
                   <div className="flex flex-row items-center gap-3 flex-1">
-                    <div
-                      data-drag-preview="true"
-                      className="opacity-0 absolute pointer-events-none"
-                    >
-                      drag-preview
-                    </div>
-                    <Text size="sm" className="text-text-600">
-                      {position ?? index + 1}
-                    </Text>
                     <Text size="md" weight="medium" className="text-text-950">
                       {lessonTitle}
                     </Text>
