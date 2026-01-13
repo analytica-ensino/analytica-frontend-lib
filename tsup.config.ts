@@ -129,6 +129,8 @@ export default defineConfig({
     'RecommendedLessonsHistory/index':
       'src/components/RecommendedLessonsHistory/index.ts',
     'hooks/useRecommendedLessons/index': 'src/hooks/useRecommendedLessons.ts',
+    'hooks/useRecommendedLessonsPage/index':
+      'src/hooks/useRecommendedLessonsPage.ts',
     'types/recommendedLessons/index': 'src/types/recommendedLessons.ts',
 
     // ActivitiesHistory

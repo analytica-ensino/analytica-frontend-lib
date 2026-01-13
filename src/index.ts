@@ -614,6 +614,23 @@ export type {
   UseRecommendedLessonsHistoryReturn,
 } from './hooks/useRecommendedLessons';
 
+// Recommended Lessons Page Hook Factory
+export {
+  createUseRecommendedLessonsPage,
+  createRecommendedLessonsPageHook,
+} from './hooks/useRecommendedLessonsPage';
+export type {
+  UseRecommendedLessonsPageConfig,
+  UseRecommendedLessonsPageReturn,
+  RecommendedLessonsApiClient,
+  RecommendedLessonsUserData,
+  RecommendedLessonsPagePaths,
+  RecommendedLessonsPageEndpoints,
+  RecommendedLessonsPageTexts,
+  UserInstitution as RecommendedLessonsUserInstitution,
+  SubTeacherTopicClass as RecommendedLessonsSubTeacherTopicClass,
+} from './hooks/useRecommendedLessonsPage';
+
 // Recommended Lesson Details Hook Factory
 export {
   createUseRecommendedLessonDetails,
