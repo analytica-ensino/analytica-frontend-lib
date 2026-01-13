@@ -448,6 +448,12 @@ export type {
   PreviewQuestion,
 } from './components/ActivityPreview/ActivityPreview';
 
+export { LessonPreview } from './components/LessonPreview/LessonPreview';
+export type {
+  LessonPreviewProps,
+  PreviewLesson,
+} from './components/LessonPreview/LessonPreview';
+
 export {
   QuestionsPdfGenerator,
   QuestionsPdfContent,
