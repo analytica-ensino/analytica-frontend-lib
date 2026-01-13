@@ -1,5 +1,4 @@
 import {
-  isNonEmptyArray,
   isValidApiStatus,
   buildHistoryFiltersFromParams,
   buildModelsFiltersFromParams,
@@ -8,25 +7,6 @@ import { GenericApiStatus } from '../../../types/common';
 import type { TableParams } from '../../TableProvider/TableProvider';
 
 describe('filterBuilders', () => {
-  describe('isNonEmptyArray', () => {
-    it('should return true for non-empty arrays', () => {
-      expect(isNonEmptyArray(['test'])).toBe(true);
-      expect(isNonEmptyArray(['a', 'b'])).toBe(true);
-    });
-
-    it('should return false for empty arrays', () => {
-      expect(isNonEmptyArray([])).toBe(false);
-    });
-
-    it('should return false for non-array values', () => {
-      expect(isNonEmptyArray('string')).toBe(false);
-      expect(isNonEmptyArray(123)).toBe(false);
-      expect(isNonEmptyArray(null)).toBe(false);
-      expect(isNonEmptyArray(undefined)).toBe(false);
-      expect(isNonEmptyArray({})).toBe(false);
-    });
-  });
-
   describe('isValidApiStatus', () => {
     it('should return true for valid GenericApiStatus values', () => {
       expect(isValidApiStatus(GenericApiStatus.A_VENCER)).toBe(true);

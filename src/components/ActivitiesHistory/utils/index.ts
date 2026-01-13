@@ -1,6 +1,5 @@
 export { renderTruncatedText } from './renderTruncatedText';
 export {
-  isNonEmptyArray,
   buildHistoryFiltersFromParams,
   buildModelsFiltersFromParams,
 } from './filterBuilders';

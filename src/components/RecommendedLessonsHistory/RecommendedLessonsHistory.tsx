@@ -104,18 +104,12 @@ export interface RecommendedLessonsHistoryProps {
 }
 
 /**
- * Check if param is a non-empty array
- */
-const isNonEmptyArray = (param: unknown): param is string[] =>
-  Array.isArray(param) && param.length > 0;
-
-/**
  * Extract filter value from params for single/multiple selection
  */
 const extractFilterValue = (
   param: unknown
 ): { single?: string; multiple?: string[] } => {
-  if (!isNonEmptyArray(param)) return {};
+  if (!Array.isArray(param) || param.length === 0) return {};
   return param.length === 1 ? { single: param[0] } : { multiple: param };
 };
 
@@ -133,7 +127,7 @@ const buildFiltersFromParams = (params: TableParams): GoalHistoryFilters => {
   }
 
   // Status filter (single selection)
-  if (isNonEmptyArray(params.status)) {
+  if (Array.isArray(params.status) && params.status.length > 0) {
     filters.status = params.status[0] as GoalApiStatus;
   }
 
@@ -148,12 +142,12 @@ const buildFiltersFromParams = (params: TableParams): GoalHistoryFilters => {
   if (classFilter.multiple) filters.classIds = classFilter.multiple;
 
   // Students filter (always multiple)
-  if (isNonEmptyArray(params.students)) {
+  if (Array.isArray(params.students) && params.students.length > 0) {
     filters.studentIds = params.students;
   }
 
   // Subject filter (single selection)
-  if (isNonEmptyArray(params.subject)) {
+  if (Array.isArray(params.subject) && params.subject.length > 0) {
     filters.subjectId = params.subject[0];
   }
 
