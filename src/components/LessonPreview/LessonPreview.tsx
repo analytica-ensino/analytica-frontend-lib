@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Book, Trash } from 'phosphor-react';
+import { Book, Trash, PencilSimple } from 'phosphor-react';
 import { Button, Text, Divider } from '../../index';
 import type { Lesson } from '../../types/lessons';
 import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
@@ -7,6 +7,9 @@ import { cn } from '../../utils/utils';
 import Video from '../../assets/icons/subjects/Video';
 import { LessonWatchModal } from '../shared/LessonWatchModal';
 import { AddActivityOptionModal, type ActivityOption } from './components';
+import { ChooseActivityModelModal } from '../ChooseActivityModelModal';
+import type { BaseApiClient } from '../../types/api';
+import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 
 type PreviewLesson = Lesson & {
   position?: number;
@@ -43,6 +46,18 @@ interface LessonPreviewProps {
    * Callback when create new activity is clicked
    */
   onCreateNewActivity?: () => void;
+  /**
+   * API client for fetching activity models
+   */
+  apiClient?: BaseApiClient;
+  /**
+   * Callback when an activity model is selected
+   */
+  onActivitySelected?: (model: ActivityModelTableItem) => void;
+  /**
+   * Callback when edit activity button is clicked
+   */
+  onEditActivity?: (activity: ActivityModelTableItem) => void;
 }
 
 export const LessonPreview = ({
@@ -58,6 +73,9 @@ export const LessonPreview = ({
   onPodcastEnded,
   getInitialTimestamp,
   onCreateNewActivity,
+  apiClient,
+  onActivitySelected,
+  onEditActivity,
 }: LessonPreviewProps) => {
   const onPositionsChangeRef = useRef(onPositionsChange);
   onPositionsChangeRef.current = onPositionsChange;
@@ -79,6 +97,9 @@ export const LessonPreview = ({
   const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
   const [isActivityOptionModalOpen, setIsActivityOptionModalOpen] =
     useState(false);
+  const [isChooseModelModalOpen, setIsChooseModelModalOpen] = useState(false);
+  const [selectedActivity, setSelectedActivity] =
+    useState<ActivityModelTableItem | null>(null);
 
   // Refs for board images
   const firstBoardImageRef = useRef<HTMLDivElement | null>(null);
@@ -243,8 +264,28 @@ export const LessonPreview = ({
     if (option === 'create-new' && onCreateNewActivity) {
       onCreateNewActivity();
     } else if (option === 'choose-model') {
-      // TODO: Implementar escolha de modelo
-      console.log('Escolher modelo - a ser implementado');
+      // Aguarda o primeiro modal fechar antes de abrir o próximo
+      setTimeout(() => {
+        setIsChooseModelModalOpen(true);
+      }, 100);
+    }
+  };
+
+  const handleSelectActivityModel = (model: ActivityModelTableItem) => {
+    setIsChooseModelModalOpen(false);
+    setSelectedActivity(model);
+    if (onActivitySelected) {
+      onActivitySelected(model);
+    }
+  };
+
+  const handleRemoveActivity = () => {
+    setSelectedActivity(null);
+  };
+
+  const handleEditActivity = () => {
+    if (selectedActivity && onEditActivity) {
+      onEditActivity(selectedActivity);
     }
   };
 
@@ -341,12 +382,9 @@ export const LessonPreview = ({
                   <div className="w-full rounded-lg border border-border-200 bg-background">
                     <div className="p-4 flex flex-row items-center justify-between gap-4">
                       <div className="flex flex-row items-center gap-3 flex-1">
-                        <Text size="sm" className="text-text-600">
-                          {position ?? index + 1}
-                        </Text>
                         <Text
                           size="md"
-                          weight="medium"
+                          weight="bold"
                           className="text-text-950 truncate"
                         >
                           {lessonTitle}
@@ -376,7 +414,7 @@ export const LessonPreview = ({
                 )}
                 <div className="p-4 flex flex-row items-center justify-between gap-4">
                   <div className="flex flex-row items-center gap-3 flex-1">
-                    <Text size="md" weight="medium" className="text-text-950">
+                    <Text size="md" weight="bold" className="text-text-950">
                       {lessonTitle}
                     </Text>
                   </div>
@@ -423,6 +461,16 @@ export const LessonPreview = ({
         onSelectOption={handleSelectActivityOption}
       />
 
+      {/* Choose Activity Model Modal */}
+      {apiClient && (
+        <ChooseActivityModelModal
+          isOpen={isChooseModelModalOpen}
+          onClose={() => setIsChooseModelModalOpen(false)}
+          onSelectModel={handleSelectActivityModel}
+          apiClient={apiClient}
+        />
+      )}
+
       {/* Activity Section */}
       <Divider />
       <div
@@ -434,18 +482,52 @@ export const LessonPreview = ({
         <section className="flex flex-row items-center gap-2 text-text-950">
           <Book size={24} />
           <Text size="lg" weight="bold">
-            Atividade da aula recomendada
+            Atividade da aula
           </Text>
         </section>
 
-        <Button
-          variant="outline"
-          action="primary"
-          onClick={() => setIsActivityOptionModalOpen(true)}
-          className="w-full"
-        >
-          Adicionar atividade
-        </Button>
+        {selectedActivity ? (
+          <div className="flex flex-col gap-3">
+            <div className="bg-background-light rounded-lg">
+              <div className="p-4 flex flex-row items-center justify-between gap-4">
+                <div className="flex flex-row items-center gap-3 flex-1">
+                  <Text size="md" weight="bold" className="text-text-950">
+                    {selectedActivity.title}
+                  </Text>
+                </div>
+                <div className="flex flex-row items-center text-text-950 gap-1">
+                  <Button
+                    variant="link"
+                    action="secondary"
+                    onClick={handleEditActivity}
+                    aria-label="Editar atividade"
+                    className="px-0 cursor-pointer"
+                  >
+                    <PencilSimple size={24} color="currentColor" />
+                  </Button>
+                  <Button
+                    variant="link"
+                    action="secondary"
+                    onClick={handleRemoveActivity}
+                    aria-label="Remover atividade"
+                    className="px-0 cursor-pointer"
+                  >
+                    <Trash size={24} color="currentColor" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <Button
+            variant="outline"
+            action="primary"
+            onClick={() => setIsActivityOptionModalOpen(true)}
+            className="w-full"
+          >
+            Adicionar atividade
+          </Button>
+        )}
       </div>
     </>
   );
