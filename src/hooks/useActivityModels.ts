@@ -84,22 +84,33 @@ export const DEFAULT_MODELS_PAGINATION: ActivityPagination = {
 /**
  * Transform API response to table item format
  * @param model - Activity model from API response
- * @param subjectsMap - Map of subject IDs to subject names
+ * @param subjectsMap - Map of subject IDs to subject names (fallback if subject is not in response)
  * @returns Formatted model for table display
  */
 export const transformModelToTableItem = (
   model: ActivityModelResponse,
   subjectsMap?: Map<string, string>
 ): ActivityModelTableItem => {
-  const subjectName = model.subjectId
-    ? subjectsMap?.get(model.subjectId) || ''
-    : '';
+  // Use subject from API response if available
+  // If not available and subjectsMap is provided, create a basic subject object
+  let subject = model.subject;
+  if (!subject && model.subjectId && subjectsMap) {
+    const subjectName = subjectsMap.get(model.subjectId);
+    if (subjectName) {
+      subject = {
+        id: model.subjectId,
+        subjectName,
+        subjectIcon: 'BookOpen',
+        subjectColor: '#6B7280',
+      };
+    }
+  }
 
   return {
     id: model.id,
     title: model.title || 'Sem título',
     savedAt: dayjs(model.createdAt).format('DD/MM/YYYY'),
-    subject: subjectName,
+    subject: subject || null,
     subjectId: model.subjectId,
   };
 };

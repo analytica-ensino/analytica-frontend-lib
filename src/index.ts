@@ -571,6 +571,10 @@ export {
   ERROR_MESSAGES,
 } from './components/SendActivityModal';
 
+// ChooseActivityModelModal Component
+export { ChooseActivityModelModal } from './components/ChooseActivityModelModal';
+export type { ChooseActivityModelModalProps } from './components/ChooseActivityModelModal';
+
 // SendLessonModal Component
 export { SendLessonModal } from './components/SendLessonModal';
 export { useSendLessonModal } from './components/SendLessonModal';
