@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Book, Trash } from 'phosphor-react';
-import { Button, Text } from '../../index';
+import { Button, Text, Divider } from '../../index';
 import type { Lesson } from '../../types/lessons';
 import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
 import { cn } from '../../utils/utils';
 import Video from '@/assets/icons/subjects/Video';
 import { LessonWatchModal } from '../shared/LessonWatchModal';
+import { AddActivityOptionModal, type ActivityOption } from './components';
 
 type PreviewLesson = Lesson & {
   position?: number;
@@ -38,6 +39,10 @@ interface LessonPreviewProps {
    * Get initial timestamp for a lesson
    */
   getInitialTimestamp?: (lessonId: string) => number;
+  /**
+   * Callback when create new activity is clicked
+   */
+  onCreateNewActivity?: () => void;
 }
 
 export const LessonPreview = ({
@@ -52,6 +57,7 @@ export const LessonPreview = ({
   onVideoComplete,
   onPodcastEnded,
   getInitialTimestamp,
+  onCreateNewActivity,
 }: LessonPreviewProps) => {
   const onPositionsChangeRef = useRef(onPositionsChange);
   onPositionsChangeRef.current = onPositionsChange;
@@ -71,6 +77,8 @@ export const LessonPreview = ({
 
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
+  const [isActivityOptionModalOpen, setIsActivityOptionModalOpen] =
+    useState(false);
 
   // Refs for board images
   const firstBoardImageRef = useRef<HTMLDivElement | null>(null);
@@ -228,6 +236,16 @@ export const LessonPreview = ({
     setOrderedLessons(normalized);
     onReorder?.(normalized);
     onPositionsChange?.(normalized);
+  };
+
+  const handleSelectActivityOption = (option: ActivityOption) => {
+    setIsActivityOptionModalOpen(false);
+    if (option === 'create-new' && onCreateNewActivity) {
+      onCreateNewActivity();
+    } else if (option === 'choose-model') {
+      // TODO: Implementar escolha de modelo
+      console.log('Escolher modelo - a ser implementado');
+    }
   };
 
   return (
@@ -397,6 +415,38 @@ export const LessonPreview = ({
         getBoardImages={getBoardImages}
         getBoardImageRef={getBoardImageRef}
       />
+
+      {/* Activity Option Modal */}
+      <AddActivityOptionModal
+        isOpen={isActivityOptionModalOpen}
+        onClose={() => setIsActivityOptionModalOpen(false)}
+        onSelectOption={handleSelectActivityOption}
+      />
+
+      {/* Activity Section */}
+      <Divider />
+      <div
+        className={cn(
+          'w-full flex-shrink-0 p-4 rounded-lg bg-background flex flex-col gap-4',
+          className
+        )}
+      >
+        <section className="flex flex-row items-center gap-2 text-text-950">
+          <Book size={24} />
+          <Text size="lg" weight="bold">
+            Atividade da aula recomendada
+          </Text>
+        </section>
+
+        <Button
+          variant="outline"
+          action="primary"
+          onClick={() => setIsActivityOptionModalOpen(true)}
+          className="w-full"
+        >
+          Adicionar atividade
+        </Button>
+      </div>
     </>
   );
 };
