@@ -17,8 +17,14 @@ import { useMemo } from 'react';
 import { cn } from '../../utils/utils';
 import { questionTypeLabels } from '../../types/questionTypes';
 
+interface QuestionOption {
+  id: string;
+  option: string;
+  correct?: boolean;
+}
+
 interface QuestionData {
-  options: { id: string; option: string }[];
+  options: QuestionOption[];
   correctOptionIds?: string[];
 }
 
@@ -221,6 +227,9 @@ export const ActivityCardQuestionBanks = ({
     [QUESTION_TYPE.IMAGEM]: renderImage,
   };
 
+  console.log('alternatives', question);
+  console.log('multipleChoices', multipleChoices);
+  console.log('passou aqui');
   return (
     <div className="w-full flex flex-col gap-2 px-4 py-6">
       <section className="flex flex-row gap-2 text-text-650">

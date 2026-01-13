@@ -161,6 +161,7 @@ export const ActivityCardQuestionPreview = ({
 
   const renderMultipleChoice = () => {
     if (multipleChoices.length === 0) return null;
+    console.log('question', question);
     return (
       <div className="mt-4">
         <MultipleChoiceList

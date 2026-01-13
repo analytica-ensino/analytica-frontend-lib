@@ -89,6 +89,7 @@ export interface QuestionsListResponse {
 export interface QuestionOptionActivity {
   id: string;
   option: string;
+  correct?: boolean;
 }
 
 /**

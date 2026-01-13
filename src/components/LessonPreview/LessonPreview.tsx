@@ -4,7 +4,7 @@ import { Button, Text, Divider } from '../../index';
 import type { Lesson } from '../../types/lessons';
 import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
 import { cn } from '../../utils/utils';
-import Video from '@/assets/icons/subjects/Video';
+import Video from '../../assets/icons/subjects/Video';
 import { LessonWatchModal } from '../shared/LessonWatchModal';
 import { AddActivityOptionModal, type ActivityOption } from './components';
 

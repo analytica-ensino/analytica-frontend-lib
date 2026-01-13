@@ -2,7 +2,7 @@ import { Book, Plus } from 'phosphor-react';
 import { Button, Text, SkeletonText, BaseApiClient } from '../..';
 import type { Lesson } from '../../types/lessons';
 import { useLessonBank, type LessonFilters } from './hooks/useLessonBank';
-import Video from '@/assets/icons/subjects/Video';
+import Video from '../../assets/icons/subjects/Video';
 import { LessonWatchModal } from '../shared/LessonWatchModal';
 
 interface LessonBankProps {

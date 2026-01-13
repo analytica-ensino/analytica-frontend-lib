@@ -9,7 +9,13 @@ import type {
   ActivityModelTableItem,
 } from '../../types/activitiesHistory';
 import { ActivityDraftType } from '../../types/activitiesHistory';
-import type { SubjectEnum } from '../../enums/SubjectEnum';
+import type { ActivityData } from '../ActivityCreate/ActivityCreate.types';
+import { ActivityType } from '../ActivityCreate/ActivityCreate.types';
+import { QUESTION_TYPE } from '../Quiz/useQuizStore';
+import {
+  DIFFICULTY_LEVEL_ENUM,
+  QUESTION_STATUS_ENUM,
+} from '../../types/questions';
 
 // Mock data - ActivityModelResponse format (as returned by API)
 const mockModelsResponse: ActivityModelResponse[] = [
@@ -79,6 +85,209 @@ const mockModelsResponse: ActivityModelResponse[] = [
   },
 ];
 
+// Mock activity details with questions
+const mockActivityDetails: Record<string, ActivityData> = {
+  '1': {
+    id: '1',
+    type: ActivityType.MODELO,
+    title: 'Explorando a Fotossíntese: Atividade Prática de Campo',
+    subjectId: 'bio-1',
+    filters: {},
+    questionIds: ['q1', 'q2', 'q3'],
+    selectedQuestions: [
+      {
+        id: 'q1',
+        statement:
+          'Um grupo de cientistas está estudando o comportamento de uma população de bactérias em um laboratório. Eles observaram que a população dobra a cada 3 horas. Se inicialmente havia 100 bactérias, quantas bactérias haverá após 12 horas?',
+        description: null,
+        questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
+        status: QUESTION_STATUS_ENUM.APROVADO,
+        difficultyLevel: DIFFICULTY_LEVEL_ENUM.MEDIO,
+        questionBankYearId: 'qby-1',
+        solutionExplanation: null,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        knowledgeMatrix: [
+          {
+            subject: {
+              id: 'bio-1',
+              name: 'Biologia',
+              color: '#E8F5E9',
+              icon: 'Microscope',
+            },
+            topic: {
+              id: 't1',
+              name: 'Fotossíntese',
+            },
+          },
+        ],
+        options: [
+          { id: 'opt1', option: '400 bactérias', correct: false },
+          { id: 'opt2', option: '800 bactérias', correct: false },
+          { id: 'opt3', option: '1600 bactérias', correct: true },
+          { id: 'opt4', option: '3200 bactérias', correct: false },
+        ],
+      },
+      {
+        id: 'q2',
+        statement:
+          'Qual é o processo pelo qual as plantas convertem luz solar em energia química?',
+        description: null,
+        questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
+        status: QUESTION_STATUS_ENUM.APROVADO,
+        difficultyLevel: DIFFICULTY_LEVEL_ENUM.FACIL,
+        questionBankYearId: 'qby-1',
+        solutionExplanation: null,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        knowledgeMatrix: [
+          {
+            subject: {
+              id: 'bio-1',
+              name: 'Biologia',
+              color: '#E8F5E9',
+              icon: 'Microscope',
+            },
+            topic: {
+              id: 't1',
+              name: 'Fotossíntese',
+            },
+          },
+        ],
+        options: [
+          { id: 'opt5', option: 'Respiração', correct: false },
+          { id: 'opt6', option: 'Fotossíntese', correct: true },
+          { id: 'opt7', option: 'Digestão', correct: false },
+          { id: 'opt8', option: 'Fermentação', correct: false },
+        ],
+      },
+      {
+        id: 'q3',
+        statement: 'Quais são os produtos finais da fotossíntese?',
+        description: null,
+        questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
+        status: QUESTION_STATUS_ENUM.APROVADO,
+        difficultyLevel: DIFFICULTY_LEVEL_ENUM.MEDIO,
+        questionBankYearId: 'qby-1',
+        solutionExplanation: null,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        knowledgeMatrix: [
+          {
+            subject: {
+              id: 'bio-1',
+              name: 'Biologia',
+              color: '#E8F5E9',
+              icon: 'Microscope',
+            },
+            topic: {
+              id: 't1',
+              name: 'Fotossíntese',
+            },
+          },
+        ],
+        options: [
+          { id: 'opt9', option: 'Glicose e oxigênio', correct: true },
+          { id: 'opt10', option: 'Água e dióxido de carbono', correct: false },
+          { id: 'opt11', option: 'Proteínas e lipídios', correct: false },
+          { id: 'opt12', option: 'Aminoácidos e vitaminas', correct: false },
+        ],
+      },
+    ],
+  },
+  '2': {
+    id: '2',
+    type: ActivityType.MODELO,
+    title: 'Estudo dos Ecossistemas: Criando um Terrário',
+    subjectId: 'bio-1',
+    filters: {},
+    questionIds: ['q4', 'q5'],
+    selectedQuestions: [
+      {
+        id: 'q4',
+        statement: 'O que é um ecossistema?',
+        description: null,
+        questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
+        status: QUESTION_STATUS_ENUM.APROVADO,
+        difficultyLevel: DIFFICULTY_LEVEL_ENUM.FACIL,
+        questionBankYearId: 'qby-1',
+        solutionExplanation: null,
+        createdAt: '2024-01-02T00:00:00Z',
+        updatedAt: '2024-01-02T00:00:00Z',
+        knowledgeMatrix: [
+          {
+            subject: {
+              id: 'bio-1',
+              name: 'Biologia',
+              color: '#E8F5E9',
+              icon: 'Microscope',
+            },
+            topic: {
+              id: 't2',
+              name: 'Ecossistemas',
+            },
+          },
+        ],
+        options: [
+          {
+            id: 'opt13',
+            option:
+              'Um conjunto de seres vivos e o ambiente em que vivem, interagindo entre si',
+            correct: true,
+          },
+          {
+            id: 'opt14',
+            option: 'Apenas os animais de uma região',
+            correct: false,
+          },
+          {
+            id: 'opt15',
+            option: 'Somente as plantas de um local',
+            correct: false,
+          },
+          {
+            id: 'opt16',
+            option: 'O clima de uma área específica',
+            correct: false,
+          },
+        ],
+      },
+      {
+        id: 'q5',
+        statement: 'Qual é a função dos decompositores em um ecossistema?',
+        description: null,
+        questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
+        status: QUESTION_STATUS_ENUM.APROVADO,
+        difficultyLevel: DIFFICULTY_LEVEL_ENUM.MEDIO,
+        questionBankYearId: 'qby-1',
+        solutionExplanation: null,
+        createdAt: '2024-01-02T00:00:00Z',
+        updatedAt: '2024-01-02T00:00:00Z',
+        knowledgeMatrix: [
+          {
+            subject: {
+              id: 'bio-1',
+              name: 'Biologia',
+              color: '#E8F5E9',
+              icon: 'Microscope',
+            },
+            topic: {
+              id: 't2',
+              name: 'Ecossistemas',
+            },
+          },
+        ],
+        options: [
+          { id: 'opt17', option: 'Produzir energia', correct: false },
+          { id: 'opt18', option: 'Decompor matéria orgânica', correct: true },
+          { id: 'opt19', option: 'Caçar outros animais', correct: false },
+          { id: 'opt20', option: 'Realizar fotossíntese', correct: false },
+        ],
+      },
+    ],
+  },
+};
+
 /**
  * Create mock API client that intercepts /activity-drafts URL
  */
@@ -120,6 +329,20 @@ const createMockApiClient = (delay: number = 500): BaseApiClient => ({
       };
 
       return { data: response as T };
+    }
+
+    // Intercept /activity-drafts/:id endpoint
+    if (url.startsWith('/activity-drafts/')) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      const activityId = url.split('/').pop();
+      const activityData = activityId ? mockActivityDetails[activityId] : null;
+
+      if (activityData) {
+        return { data: { data: activityData } as T };
+      }
+
+      throw new Error(`Activity not found: ${activityId}`);
     }
 
     throw new Error(`Unknown endpoint: ${url}`);
@@ -167,39 +390,6 @@ export const Basic: Story = () => {
           console.log('Model selected:', model);
         }}
         apiClient={apiClient}
-      />
-    </div>
-  );
-};
-
-/**
- * Modal with subject mapping
- */
-export const WithSubjectMapping: Story = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const apiClient = useMemo(() => createMockApiClient(500), []);
-
-  const mapSubjectNameToEnum = (subjectName: string) => {
-    const mapping: Record<string, SubjectEnum> = {
-      Biologia: 'BIOLOGY' as SubjectEnum,
-      Artes: 'ARTS' as SubjectEnum,
-    };
-    return mapping[subjectName] || null;
-  };
-
-  return (
-    <div className="flex flex-col gap-4 p-4">
-      <Button onClick={() => setIsOpen(true)}>Abrir Modal</Button>
-
-      <ChooseActivityModelModal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        onSelectModel={(model) => {
-          console.log('Model selected:', model);
-          setIsOpen(false);
-        }}
-        apiClient={apiClient}
-        mapSubjectNameToEnum={mapSubjectNameToEnum}
       />
     </div>
   );
