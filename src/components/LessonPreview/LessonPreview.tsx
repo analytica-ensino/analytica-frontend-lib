@@ -191,7 +191,7 @@ export const LessonPreview = ({
     try {
       const stored = localStorage.getItem(`lesson-${id}-time`);
       if (stored) {
-        return parseFloat(stored) || 0;
+        return Number.parseFloat(stored) || 0;
       }
     } catch {
       // Ignore localStorage errors

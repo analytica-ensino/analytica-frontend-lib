@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 interface ToastState {
   isOpen: boolean;
@@ -78,7 +78,15 @@ export const useToastNotification = (): UseToastNotificationReturn => {
     action: 'success',
   });
 
+  // Ref to store the timeout ID for cleanup
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const hideToast = useCallback(() => {
+    // Clear any existing timeout when manually hiding
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+      toastTimeoutRef.current = null;
+    }
     setToastState((prev) => ({ ...prev, isOpen: false }));
   }, []);
 
@@ -89,6 +97,12 @@ export const useToastNotification = (): UseToastNotificationReturn => {
       description?: string,
       duration: number = 3000
     ) => {
+      // Clear any existing timeout before creating a new one
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+        toastTimeoutRef.current = null;
+      }
+
       setToastState({
         isOpen: true,
         title,
@@ -96,14 +110,25 @@ export const useToastNotification = (): UseToastNotificationReturn => {
         action,
       });
 
+      // Schedule auto-dismiss if duration is positive
       if (duration > 0) {
-        setTimeout(() => {
-          hideToast();
+        toastTimeoutRef.current = setTimeout(() => {
+          setToastState((prev) => ({ ...prev, isOpen: false }));
+          toastTimeoutRef.current = null;
         }, duration);
       }
     },
-    [hideToast]
+    []
   );
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const showSuccess = useCallback(
     (title: string, description?: string, duration?: number) => {
