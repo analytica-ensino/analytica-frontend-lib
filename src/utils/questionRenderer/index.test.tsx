@@ -3,6 +3,7 @@ import '@testing-library/jest-dom';
 import React from 'react';
 import {
   renderFromMap,
+  renderQuestion,
   renderQuestionAlternative,
   renderQuestionMultipleChoice,
   renderQuestionTrueOrFalse,
@@ -1277,6 +1278,244 @@ describe('questionRenderer', () => {
       expect(
         screen.getByText('Tipo de questão: Ligar Pontos')
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('renderQuestion', () => {
+    it('should render ALTERNATIVA question type', () => {
+      const question = createQuestion(
+        'q1',
+        'Qual é a capital do Brasil?',
+        QUESTION_TYPE.ALTERNATIVA,
+        [
+          { id: 'opt1', option: 'Brasília' },
+          { id: 'opt2', option: 'São Paulo' },
+        ],
+        ['opt1']
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        null,
+        [{ optionId: 'opt1' }],
+        [
+          { id: 'opt1', option: 'Brasília', isCorrect: true },
+          { id: 'opt2', option: 'São Paulo', isCorrect: false },
+        ]
+      );
+
+      const { container } = render(<>{renderQuestion({ question, result })}</>);
+
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should render MULTIPLA_ESCOLHA question type', () => {
+      const question = createQuestion(
+        'q1',
+        'Selecione todas as capitais',
+        QUESTION_TYPE.MULTIPLA_ESCOLHA,
+        [
+          { id: 'opt1', option: 'Brasília' },
+          { id: 'opt2', option: 'São Paulo' },
+        ],
+        ['opt1']
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        null,
+        [{ optionId: 'opt1' }],
+        [
+          { id: 'opt1', option: 'Brasília', isCorrect: true },
+          { id: 'opt2', option: 'São Paulo', isCorrect: false },
+        ]
+      );
+
+      const { container } = render(<>{renderQuestion({ question, result })}</>);
+
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should render VERDADEIRO_FALSO question type', () => {
+      const question = createQuestion(
+        'q1',
+        'Marque V ou F',
+        QUESTION_TYPE.VERDADEIRO_FALSO,
+        [{ id: 'opt1', option: 'O Brasil é um país' }],
+        []
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        null,
+        [{ optionId: 'opt1' }],
+        [{ id: 'opt1', option: 'O Brasil é um país', isCorrect: true }]
+      );
+
+      const { container } = render(<>{renderQuestion({ question, result })}</>);
+
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should render PREENCHER question type', () => {
+      const question = createQuestion(
+        'q1',
+        'O Brasil está localizado na {{continente}}.',
+        QUESTION_TYPE.PREENCHER,
+        [{ id: 'opt1', option: 'América' }],
+        []
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        JSON.stringify({
+          continente: {
+            answer: 'América',
+            isCorrect: true,
+            correctAnswer: 'América',
+          },
+        }),
+        [],
+        [{ id: 'opt1', option: 'América', isCorrect: true }]
+      );
+
+      const Wrapper = () => <>{renderQuestion({ question, result })}</>;
+      const { container } = render(<Wrapper />);
+
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should render DISSERTATIVA question type', () => {
+      const question = createQuestion(
+        'q1',
+        'Explique o ciclo da água',
+        QUESTION_TYPE.DISSERTATIVA,
+        [],
+        []
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        'A água evapora e condensa'
+      );
+
+      const { container } = render(<>{renderQuestion({ question, result })}</>);
+
+      expect(container).toBeInTheDocument();
+      expect(screen.getByText('A água evapora e condensa')).toBeInTheDocument();
+    });
+
+    it('should render IMAGEM question type', () => {
+      const question = createQuestion(
+        'q1',
+        'Clique na área correta',
+        QUESTION_TYPE.IMAGEM,
+        [],
+        []
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        JSON.stringify({ x: 0.48, y: 0.45 })
+      );
+
+      const { container } = render(<>{renderQuestion({ question, result })}</>);
+
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should render LIGAR_PONTOS question type', () => {
+      const question = createQuestion(
+        'q1',
+        'Ligue os pontos',
+        QUESTION_TYPE.LIGAR_PONTOS,
+        [],
+        []
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        null
+      );
+
+      const { container } = render(<>{renderQuestion({ question, result })}</>);
+
+      expect(container).toBeInTheDocument();
+      expect(
+        screen.getByText('Tipo de questão: Ligar Pontos')
+      ).toBeInTheDocument();
+    });
+
+    it('should fallback to alternative renderer when questionType is unknown but has options', () => {
+      const question = {
+        id: 'q1',
+        statement: 'Questão com tipo desconhecido',
+        questionType: 'UNKNOWN_TYPE' as QUESTION_TYPE,
+        difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+        description: '',
+        examBoard: null,
+        examYear: null,
+        solutionExplanation: null,
+        answer: null,
+        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+        options: [
+          { id: 'opt1', option: 'Opção A' },
+          { id: 'opt2', option: 'Opção B' },
+        ],
+        knowledgeMatrix: [],
+        correctOptionIds: ['opt1'],
+      };
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        null,
+        [{ optionId: 'opt1' }],
+        [
+          { id: 'opt1', option: 'Opção A', isCorrect: true },
+          { id: 'opt2', option: 'Opção B', isCorrect: false },
+        ]
+      );
+
+      const { container } = render(<>{renderQuestion({ question, result })}</>);
+
+      expect(container).toBeInTheDocument();
+    });
+
+    it('should fallback to dissertative renderer when questionType is unknown and has no options', () => {
+      const question = {
+        id: 'q1',
+        statement: 'Questão com tipo desconhecido',
+        questionType: 'UNKNOWN_TYPE' as QUESTION_TYPE,
+        difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+        description: '',
+        examBoard: null,
+        examYear: null,
+        solutionExplanation: null,
+        answer: null,
+        answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+        options: [],
+        knowledgeMatrix: [],
+        correctOptionIds: [],
+      };
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.NAO_RESPONDIDO,
+        null
+      );
+
+      const { container } = render(<>{renderQuestion({ question, result })}</>);
+
+      expect(container).toBeInTheDocument();
+      expect(screen.getByText('Resposta do aluno')).toBeInTheDocument();
     });
   });
 });
