@@ -13,7 +13,19 @@ import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { ToastNotification } from '../shared/ToastNotification/ToastNotification';
 import { useToastNotification } from '../shared/ToastNotification/useToastNotification';
 
-type PreviewLesson = Lesson & {
+/**
+ * Extended lesson type with optional media properties
+ */
+interface LessonWithMedia extends Lesson {
+  videoSrc?: string;
+  videoPoster?: string;
+  videoSubtitles?: string;
+  podcastSrc?: string;
+  podcastTitle?: string;
+  boardImages?: WhiteboardImage[];
+}
+
+type PreviewLesson = LessonWithMedia & {
   position?: number;
 };
 
@@ -51,7 +63,7 @@ interface LessonPreviewProps {
   /**
    * API client for fetching activity models
    */
-  apiClient?: BaseApiClient;
+  apiClient: BaseApiClient;
   /**
    * Callback when an activity model is selected
    */
@@ -125,46 +137,34 @@ export const LessonPreview = ({
   /**
    * Get video data from lesson
    */
-  const getVideoData = (lesson: Lesson | null) => {
+  const getVideoData = (lesson: LessonWithMedia | null) => {
     if (!lesson) return { src: '' };
-    const videoSrc = (lesson as Lesson & { videoSrc?: string }).videoSrc;
-    const videoPoster = (lesson as Lesson & { videoPoster?: string })
-      .videoPoster;
-    const videoSubtitles = (lesson as Lesson & { videoSubtitles?: string })
-      .videoSubtitles;
     return {
-      src: videoSrc || '',
-      poster: videoPoster,
-      subtitles: videoSubtitles,
+      src: lesson.videoSrc || '',
+      poster: lesson.videoPoster,
+      subtitles: lesson.videoSubtitles,
     };
   };
 
   /**
    * Get podcast data from lesson
    */
-  const getPodcastData = (lesson: Lesson | null) => {
+  const getPodcastData = (lesson: LessonWithMedia | null) => {
     if (!lesson) return { src: '', title: '' };
-    const podcastSrc = (lesson as Lesson & { podcastSrc?: string }).podcastSrc;
-    const podcastTitle =
-      (lesson as Lesson & { podcastTitle?: string }).podcastTitle ||
-      'Podcast da aula';
     return {
-      src: podcastSrc || '',
-      title: podcastTitle,
+      src: lesson.podcastSrc || '',
+      title: lesson.podcastTitle || 'Podcast da aula',
     };
   };
 
   /**
    * Get board images from lesson
    */
-  const getBoardImages = (lesson: Lesson | null): WhiteboardImage[] => {
+  const getBoardImages = (
+    lesson: LessonWithMedia | null
+  ): WhiteboardImage[] => {
     if (!lesson) return [];
-    const boardImages = (
-      lesson as Lesson & {
-        boardImages?: WhiteboardImage[];
-      }
-    ).boardImages;
-    return boardImages || [];
+    return lesson.boardImages || [];
   };
 
   /**
@@ -268,7 +268,7 @@ export const LessonPreview = ({
     setIsActivityOptionModalOpen(false);
     if (option === 'create-new' && onCreateNewActivity) {
       onCreateNewActivity();
-    } else if (option === 'choose-model' && apiClient) {
+    } else if (option === 'choose-model') {
       // Aguarda o primeiro modal fechar antes de abrir o próximo
       setTimeout(() => {
         setIsChooseModelModalOpen(true);
@@ -466,18 +466,15 @@ export const LessonPreview = ({
         isOpen={isActivityOptionModalOpen}
         onClose={() => setIsActivityOptionModalOpen(false)}
         onSelectOption={handleSelectActivityOption}
-        disableChooseModel={!apiClient}
       />
 
       {/* Choose Activity Model Modal */}
-      {apiClient && (
-        <ChooseActivityModelModal
-          isOpen={isChooseModelModalOpen}
-          onClose={() => setIsChooseModelModalOpen(false)}
-          onSelectModel={handleSelectActivityModel}
-          apiClient={apiClient}
-        />
-      )}
+      <ChooseActivityModelModal
+        isOpen={isChooseModelModalOpen}
+        onClose={() => setIsChooseModelModalOpen(false)}
+        onSelectModel={handleSelectActivityModel}
+        apiClient={apiClient}
+      />
 
       {/* Activity Section */}
       <Divider />

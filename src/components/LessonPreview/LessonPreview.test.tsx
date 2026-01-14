@@ -700,16 +700,6 @@ describe('LessonPreview', () => {
   });
 
   describe('conditional rendering', () => {
-    it('should not render choose model modal when apiClient is not provided', () => {
-      const { container } = render(
-        <LessonPreview {...defaultProps} apiClient={undefined} />
-      );
-
-      expect(
-        container.querySelector('[data-testid="choose-activity-model-modal"]')
-      ).not.toBeInTheDocument();
-    });
-
     it('should render choose model modal when apiClient is provided', async () => {
       render(<LessonPreview {...defaultProps} />);
 
@@ -726,16 +716,6 @@ describe('LessonPreview', () => {
       });
     });
 
-    it('should disable choose model option when apiClient is not provided', () => {
-      render(<LessonPreview {...defaultProps} apiClient={undefined} />);
-
-      const addButton = screen.getByText('Adicionar atividade');
-      fireEvent.click(addButton);
-
-      const chooseModelButton = screen.getByTestId('choose-model-option');
-      expect(chooseModelButton).toBeDisabled();
-    });
-
     it('should not disable choose model option when apiClient is provided', () => {
       render(<LessonPreview {...defaultProps} />);
 
@@ -744,25 +724,6 @@ describe('LessonPreview', () => {
 
       const chooseModelButton = screen.getByTestId('choose-model-option');
       expect(chooseModelButton).not.toBeDisabled();
-    });
-
-    it('should not open choose model modal when disabled button is clicked', async () => {
-      render(<LessonPreview {...defaultProps} apiClient={undefined} />);
-
-      const addButton = screen.getByText('Adicionar atividade');
-      fireEvent.click(addButton);
-
-      const chooseModelButton = screen.getByTestId('choose-model-option');
-      fireEvent.click(chooseModelButton);
-
-      await waitFor(
-        () => {
-          expect(
-            screen.queryByTestId('choose-activity-model-modal')
-          ).not.toBeInTheDocument();
-        },
-        { timeout: 200 }
-      );
     });
   });
 
@@ -1230,8 +1191,8 @@ describe('LessonPreview', () => {
           id: 'lesson-board',
           title: 'Board Lesson',
           boardImages: [
-            { id: 'img-1', url: 'https://example.com/image1.jpg' },
-            { id: 'img-2', url: 'https://example.com/image2.jpg' },
+            { id: 'img-1', imageUrl: 'https://example.com/image1.jpg' },
+            { id: 'img-2', imageUrl: 'https://example.com/image2.jpg' },
           ],
         },
       ];
@@ -1256,9 +1217,9 @@ describe('LessonPreview', () => {
           id: 'lesson-many-boards',
           title: 'Many Boards Lesson',
           boardImages: [
-            { id: 'img-1', url: 'https://example.com/image1.jpg' },
-            { id: 'img-2', url: 'https://example.com/image2.jpg' },
-            { id: 'img-3', url: 'https://example.com/image3.jpg' },
+            { id: 'img-1', imageUrl: 'https://example.com/image1.jpg' },
+            { id: 'img-2', imageUrl: 'https://example.com/image2.jpg' },
+            { id: 'img-3', imageUrl: 'https://example.com/image3.jpg' },
           ],
         },
       ];
