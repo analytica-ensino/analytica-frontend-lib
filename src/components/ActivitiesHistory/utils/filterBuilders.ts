@@ -6,14 +6,6 @@ import type {
 import type { TableParams } from '../../TableProvider/TableProvider';
 
 /**
- * Check if param is a non-empty array
- * @param param - Parameter to check
- * @returns True if param is a non-empty array
- */
-export const isNonEmptyArray = (param: unknown): param is string[] =>
-  Array.isArray(param) && param.length > 0;
-
-/**
  * Check if a value is a valid GenericApiStatus enum value
  * @param value - Value to validate
  * @returns True if value is a valid GenericApiStatus
@@ -39,17 +31,21 @@ export const buildHistoryFiltersFromParams = (
   }
 
   // Status filter (single selection) - with runtime validation
-  if (isNonEmptyArray(params.status) && isValidApiStatus(params.status[0])) {
+  if (
+    Array.isArray(params.status) &&
+    params.status.length > 0 &&
+    isValidApiStatus(params.status[0])
+  ) {
     filters.status = params.status[0];
   }
 
   // School filter
-  if (isNonEmptyArray(params.school)) {
+  if (Array.isArray(params.school) && params.school.length > 0) {
     filters.schoolId = params.school[0];
   }
 
   // Subject filter
-  if (isNonEmptyArray(params.subject)) {
+  if (Array.isArray(params.subject) && params.subject.length > 0) {
     filters.subjectId = params.subject[0];
   }
 
@@ -74,7 +70,7 @@ export const buildModelsFiltersFromParams = (
   }
 
   // Subject filter
-  if (isNonEmptyArray(params.subject)) {
+  if (Array.isArray(params.subject) && params.subject.length > 0) {
     filters.subjectId = params.subject[0];
   }
 

@@ -173,7 +173,7 @@ describe('useSendActivity', () => {
         'serie',
       ]);
 
-      expect(result.current.categories[3].key).toBe('alunos');
+      expect(result.current.categories[3].key).toBe('students');
       expect(result.current.categories[3].dependsOn).toEqual([
         'escola',
         'serie',

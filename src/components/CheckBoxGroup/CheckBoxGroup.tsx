@@ -47,9 +47,10 @@ export const CheckboxGroup = ({
   const [openAccordion, setOpenAccordion] = useState<string>('');
 
   // Refs to prevent infinite loops and track auto-selection state
-  const autoSelectionAppliedRef = useRef<boolean>(false);
   const onCategoriesChangeRef = useRef(onCategoriesChange);
   const previousCategoriesRef = useRef<CategoryConfig[]>(categories);
+  // Track which categories have had auto-selection applied (by stringified selectedIds)
+  const appliedAutoSelectionRef = useRef<string>('');
 
   // Update ref when onCategoriesChange changes
   useEffect(() => {
@@ -86,13 +87,6 @@ export const CheckboxGroup = ({
   useEffect(() => {
     // Check if categories have actually changed by comparing with previous reference
     const categoriesChanged = categories !== previousCategoriesRef.current;
-
-    if (!categoriesChanged && autoSelectionAppliedRef.current) {
-      // No changes and auto-selection already applied, skip
-      return;
-    }
-
-    // Update previous categories reference
     previousCategoriesRef.current = categories;
 
     // Check for auto-selection changes using efficient comparison
@@ -103,13 +97,23 @@ export const CheckboxGroup = ({
       }
     );
 
-    if (hasAutoSelectionChanges) {
-      autoSelectionAppliedRef.current = true;
-      // Use ref to avoid dependency on potentially non-memoized callback
+    if (!hasAutoSelectionChanges) {
+      // No auto-selection needed, reset tracking if categories changed
+      if (categoriesChanged) {
+        appliedAutoSelectionRef.current = '';
+      }
+      return;
+    }
+
+    // Create a signature of the auto-selection to prevent duplicate notifications
+    const autoSelectionSignature = JSON.stringify(
+      categoriesWithAutoSelection.map((c) => c.selectedIds)
+    );
+
+    // Only notify if this exact auto-selection hasn't been applied yet
+    if (appliedAutoSelectionRef.current !== autoSelectionSignature) {
+      appliedAutoSelectionRef.current = autoSelectionSignature;
       onCategoriesChangeRef.current(categoriesWithAutoSelection);
-    } else if (categoriesChanged) {
-      // Reset auto-selection flag when categories change externally
-      autoSelectionAppliedRef.current = false;
     }
   }, [categoriesWithAutoSelection, categories]);
 
@@ -527,15 +531,7 @@ export const CheckboxGroup = ({
     const uniqueId = `${categoryKey}-${item.id}`;
 
     return (
-      <div
-        key={item.id}
-        className="flex items-center gap-3 px-2"
-        role="presentation"
-        onClick={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
-        onMouseUp={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
+      <div key={item.id} className="flex items-center gap-3 px-2">
         <CheckBox
           id={uniqueId}
           checked={isCheckBoxIsSelected(categoryKey, item.id)}
