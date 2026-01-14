@@ -5,7 +5,10 @@ import type {
   ActivityModelTableItem,
   SubjectData,
 } from '../../../types/activitiesHistory';
-import type { TableParams, ColumnConfig } from '../../TableProvider/TableProvider';
+import type {
+  TableParams,
+  ColumnConfig,
+} from '../../TableProvider/TableProvider';
 
 interface ActivityModelsListProps {
   /** List of activity models to display */
@@ -108,4 +111,3 @@ export const ActivityModelsList = ({
 };
 
 export type { ActivityModelsListProps };
-

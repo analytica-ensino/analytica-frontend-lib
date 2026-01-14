@@ -123,7 +123,10 @@ const mockActivityData: ActivityData = {
 export const Basic: Story = () => {
   return (
     <div className="p-4">
-      <ActivityModelDetails activityDetails={mockActivityData} loading={false} />
+      <ActivityModelDetails
+        activityDetails={mockActivityData}
+        loading={false}
+      />
     </div>
   );
 };
@@ -168,4 +171,3 @@ export const SingleQuestion: Story = () => {
     </div>
   );
 };
-

@@ -4,6 +4,8 @@ import type { Lesson } from '../../types/lessons';
 import { useLessonBank, type LessonFilters } from './hooks/useLessonBank';
 import Video from '../../assets/icons/subjects/Video';
 import { LessonWatchModal } from '../shared/LessonWatchModal';
+import { ToastNotification } from '../shared/ToastNotification/ToastNotification';
+import { useToastNotification } from '../shared/ToastNotification/useToastNotification';
 
 interface LessonBankProps {
   apiClient: BaseApiClient;
@@ -36,6 +38,9 @@ export const LessonBank = ({
   onPodcastEnded,
   filters,
 }: LessonBankProps) => {
+  // Toast notifications
+  const { toastState, showSuccess, hideToast } = useToastNotification();
+
   const {
     loading,
     loadingMore,
@@ -71,6 +76,16 @@ export const LessonBank = ({
     onVideoComplete,
     onPodcastEnded,
   });
+
+  const handleAddWithToast = (lesson: Lesson) => {
+    handleAddToLesson(lesson);
+    showSuccess('Aula adicionada à aula recomendada');
+  };
+
+  const handleAddFromModalWithToast = () => {
+    handleAddToLessonFromModal();
+    showSuccess('Aula adicionada à aula recomendada');
+  };
 
   /**
    * Renders the appropriate content based on loading, error, and lessons state
@@ -134,7 +149,7 @@ export const LessonBank = ({
                 variant="outline"
                 action="primary"
                 size="small"
-                onClick={() => handleAddToLesson(lesson)}
+                onClick={() => handleAddWithToast(lesson)}
                 className="flex-1"
                 iconLeft={<Plus size={16} />}
               >
@@ -202,11 +217,20 @@ export const LessonBank = ({
             <Button variant="outline" onClick={handleCloseModal}>
               Cancelar
             </Button>
-            <Button variant="solid" onClick={handleAddToLessonFromModal}>
+            <Button variant="solid" onClick={handleAddFromModalWithToast}>
               Adicionar à aula
             </Button>
           </div>
         }
+      />
+
+      {/* Toast Notification */}
+      <ToastNotification
+        isOpen={toastState.isOpen}
+        onClose={hideToast}
+        title={toastState.title}
+        description={toastState.description}
+        action={toastState.action}
       />
     </div>
   );

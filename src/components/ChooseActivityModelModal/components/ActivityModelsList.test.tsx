@@ -68,4 +68,3 @@ describe('ActivityModelsList', () => {
     expect(screen.queryByText('Test Activity Model')).not.toBeInTheDocument();
   });
 });
-

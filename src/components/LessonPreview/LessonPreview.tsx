@@ -10,6 +10,8 @@ import { AddActivityOptionModal, type ActivityOption } from './components';
 import { ChooseActivityModelModal } from '../ChooseActivityModelModal';
 import type { BaseApiClient } from '../../types/api';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
+import { ToastNotification } from '../shared/ToastNotification/ToastNotification';
+import { useToastNotification } from '../shared/ToastNotification/useToastNotification';
 
 type PreviewLesson = Lesson & {
   position?: number;
@@ -100,6 +102,10 @@ export const LessonPreview = ({
   const [isChooseModelModalOpen, setIsChooseModelModalOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] =
     useState<ActivityModelTableItem | null>(null);
+
+  // Toast notifications
+  const { toastState, showSuccess, showError, hideToast } =
+    useToastNotification();
 
   // Refs for board images
   const firstBoardImageRef = useRef<HTMLDivElement | null>(null);
@@ -272,10 +278,17 @@ export const LessonPreview = ({
   };
 
   const handleSelectActivityModel = (model: ActivityModelTableItem) => {
-    setIsChooseModelModalOpen(false);
-    setSelectedActivity(model);
-    if (onActivitySelected) {
-      onActivitySelected(model);
+    try {
+      setIsChooseModelModalOpen(false);
+      setSelectedActivity(model);
+      if (onActivitySelected) {
+        onActivitySelected(model);
+      }
+      // Show success toast
+      showSuccess('Atividade adicionada à aula recomendada');
+    } catch (error) {
+      showError('Erro ao adicionar atividade');
+      console.error('Error selecting activity:', error);
     }
   };
 
@@ -397,28 +410,13 @@ export const LessonPreview = ({
                   </div>
                 </div>
 
-                {onRemoveLesson && (
-                  <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="link"
-                      action="secondary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemoveLesson(id);
-                      }}
-                      aria-label={`Remover aula ${position ?? index + 1}`}
-                    >
-                      <Trash size={16} color="currentColor" />
-                    </Button>
-                  </div>
-                )}
                 <div className="p-4 flex flex-row items-center justify-between gap-4">
                   <div className="flex flex-row items-center gap-3 flex-1">
                     <Text size="md" weight="bold" className="text-text-950">
                       {lessonTitle}
                     </Text>
                   </div>
-                  <div className="flex flex-row items-center text-text-950">
+                  <div className="flex flex-row items-center text-text-950 gap-1">
                     <Button
                       variant="link"
                       action="secondary"
@@ -429,9 +427,24 @@ export const LessonPreview = ({
                         }
                       }}
                       aria-label="Assistir aula"
+                      className="px-0 cursor-pointer"
                     >
                       <Video size={24} color="currentColor" />
                     </Button>
+                    {onRemoveLesson && (
+                      <Button
+                        variant="link"
+                        action="secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRemoveLesson(id);
+                        }}
+                        aria-label={`Remover aula ${position ?? index + 1}`}
+                        className="px-0 cursor-pointer"
+                      >
+                        <Trash size={24} color="currentColor" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -529,6 +542,15 @@ export const LessonPreview = ({
           </Button>
         )}
       </div>
+
+      {/* Toast Notification */}
+      <ToastNotification
+        isOpen={toastState.isOpen}
+        onClose={hideToast}
+        title={toastState.title}
+        description={toastState.description}
+        action={toastState.action}
+      />
     </>
   );
 };

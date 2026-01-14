@@ -61,7 +61,10 @@ describe('ActivityModelDetails', () => {
 
   it('renders activity details with questions', () => {
     render(
-      <ActivityModelDetails activityDetails={mockActivityData} loading={false} />
+      <ActivityModelDetails
+        activityDetails={mockActivityData}
+        loading={false}
+      />
     );
 
     expect(screen.getByText('1 questão adicionada')).toBeInTheDocument();
@@ -88,4 +91,3 @@ describe('ActivityModelDetails', () => {
     expect(screen.getByText('3 questões adicionadas')).toBeInTheDocument();
   });
 });
-

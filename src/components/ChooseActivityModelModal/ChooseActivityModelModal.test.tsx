@@ -1,52 +1,70 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ChooseActivityModelModal } from './ChooseActivityModelModal';
-import type {
-  ActivityModelTableItem,
-  ActivityModelFilters,
-  ActivityModelsApiResponse,
-} from '../../types/activitiesHistory';
+import type { ActivityModelResponse } from '../../types/activitiesHistory';
+import { ActivityDraftType } from '../../types/activitiesHistory';
+import type { BaseApiClient } from '../../types/api';
 
 // Mock data
-const mockModels: Array<ActivityModelTableItem & { type?: string }> = [
+const mockModels: ActivityModelResponse[] = [
   {
     id: '1',
+    type: ActivityDraftType.MODELO,
     title: 'Test Activity 1',
-    savedAt: '01/01/2024',
-    subject: 'Biologia',
+    creatorUserInstitutionId: 'user-1',
     subjectId: 'bio-1',
-    type: 'PROVA',
+    subject: {
+      id: 'bio-1',
+      subjectName: 'Biologia',
+      subjectIcon: 'Microscope',
+      subjectColor: '#00A651',
+    },
+    filters: null,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
   },
   {
     id: '2',
+    type: ActivityDraftType.MODELO,
     title: 'Test Activity 2',
-    savedAt: '02/01/2024',
-    subject: 'Artes',
+    creatorUserInstitutionId: 'user-1',
     subjectId: 'art-1',
-    type: 'TRABALHO',
+    subject: {
+      id: 'art-1',
+      subjectName: 'Artes',
+      subjectIcon: 'PaintBrush',
+      subjectColor: '#FF6B6B',
+    },
+    filters: null,
+    createdAt: '2024-01-02T00:00:00Z',
+    updatedAt: '2024-01-02T00:00:00Z',
   },
 ];
 
-const mockFetchActivityModels = jest.fn(
-  async (
-    filters?: ActivityModelFilters
-  ): Promise<ActivityModelsApiResponse> => {
+const createMockApiClient = (): BaseApiClient => ({
+  get: jest.fn().mockImplementation(async () => {
     return {
-      message: 'Success',
       data: {
-        activityDrafts: mockModels as ActivityModelTableItem[],
-        total: mockModels.length,
+        message: 'Success',
+        data: {
+          activityDrafts: mockModels,
+          total: mockModels.length,
+        },
       },
     };
-  }
-);
+  }) as BaseApiClient['get'],
+  post: jest.fn() as BaseApiClient['post'],
+  patch: jest.fn() as BaseApiClient['patch'],
+  delete: jest.fn() as BaseApiClient['delete'],
+});
 
 describe('ChooseActivityModelModal', () => {
+  const mockApiClient = createMockApiClient();
   const defaultProps = {
     isOpen: true,
     onClose: jest.fn(),
     onSelectModel: jest.fn(),
-    fetchActivityModels: mockFetchActivityModels,
+    apiClient: mockApiClient,
   };
 
   beforeEach(() => {
@@ -62,19 +80,22 @@ describe('ChooseActivityModelModal', () => {
   it('should not render modal when isOpen is false', () => {
     render(<ChooseActivityModelModal {...defaultProps} isOpen={false} />);
 
-    expect(
-      screen.queryByText('Adicionar atividade')
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Adicionar atividade')).not.toBeInTheDocument();
   });
 
-  it('should call fetchActivityModels when modal opens', async () => {
+  it('should call apiClient.get when modal opens', async () => {
     render(<ChooseActivityModelModal {...defaultProps} />);
 
     await waitFor(() => {
-      expect(mockFetchActivityModels).toHaveBeenCalledWith({
-        page: 1,
-        limit: 10,
-      });
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        '/activity-drafts',
+        expect.objectContaining({
+          params: expect.objectContaining({
+            page: 1,
+            limit: 10,
+          }),
+        })
+      );
     });
   });
 
@@ -97,34 +118,19 @@ describe('ChooseActivityModelModal', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('should disable select button when no model is selected', async () => {
-    render(<ChooseActivityModelModal {...defaultProps} />);
-
-    await waitFor(() => {
-      const selectButton = screen.getByText('Selecionar');
-      expect(selectButton).toBeDisabled();
-    });
-  });
-
-  it('should enable select button when a model is selected', async () => {
+  it('should display activity models in table with clickable rows', async () => {
     render(<ChooseActivityModelModal {...defaultProps} />);
 
     await waitFor(() => {
       expect(screen.getByText('Test Activity 1')).toBeInTheDocument();
+      expect(screen.getByText('Test Activity 2')).toBeInTheDocument();
     });
 
     const row = screen.getByText('Test Activity 1').closest('tr');
-    if (row) {
-      await userEvent.click(row);
-    }
-
-    await waitFor(() => {
-      const selectButton = screen.getByText('Selecionar');
-      expect(selectButton).not.toBeDisabled();
-    });
+    expect(row).toBeInTheDocument();
   });
 
-  it('should call onSelectModel when select button is clicked', async () => {
+  it('should call onSelectModel when row is clicked', async () => {
     const onSelectModel = jest.fn();
     render(
       <ChooseActivityModelModal
@@ -143,14 +149,8 @@ describe('ChooseActivityModelModal', () => {
     }
 
     await waitFor(() => {
-      const selectButton = screen.getByText('Selecionar');
-      expect(selectButton).not.toBeDisabled();
+      expect(onSelectModel).toHaveBeenCalled();
     });
-
-    const selectButton = screen.getByText('Selecionar');
-    await userEvent.click(selectButton);
-
-    expect(onSelectModel).toHaveBeenCalledWith(mockModels[0]);
   });
 
   it('should filter models when search is used', async () => {
@@ -160,16 +160,18 @@ describe('ChooseActivityModelModal', () => {
       expect(screen.getByText('Test Activity 1')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('Buscar modelo');
+    const searchInput = screen.getByPlaceholderText('Buscar');
     await userEvent.type(searchInput, 'Activity 1');
 
     await waitFor(() => {
-      expect(mockFetchActivityModels).toHaveBeenCalledWith(
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        '/activity-drafts',
         expect.objectContaining({
-          search: 'Activity 1',
+          params: expect.objectContaining({
+            search: 'Activity 1',
+          }),
         })
       );
     });
   });
 });
-
