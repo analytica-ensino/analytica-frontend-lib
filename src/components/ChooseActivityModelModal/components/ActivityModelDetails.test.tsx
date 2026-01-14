@@ -7,6 +7,7 @@ import { QUESTION_TYPE } from '../../Quiz/useQuizStore';
 import {
   DIFFICULTY_LEVEL_ENUM,
   QUESTION_STATUS_ENUM,
+  QuestionOptionActivity,
 } from '../../../types/questions';
 
 // Mock do componente Text
@@ -521,7 +522,7 @@ describe('ActivityModelDetails', () => {
             createdAt: '2024-01-01T00:00:00Z',
             updatedAt: '2024-01-01T00:00:00Z',
             knowledgeMatrix: [],
-            options: undefined,
+            options: null as unknown as QuestionOptionActivity[],
           },
         ],
       };
