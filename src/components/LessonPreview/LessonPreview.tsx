@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { Book, Trash, PencilSimple } from 'phosphor-react';
 import { Button, Text, Divider } from '../../index';
 import type { Lesson } from '../../types/lessons';
@@ -173,7 +173,7 @@ export const LessonPreview = ({
   const getBoardImageRef = (
     index: number,
     total: number
-  ): React.RefObject<HTMLDivElement | null> | null => {
+  ): RefObject<HTMLDivElement | null> | null => {
     if (index === 0) return firstBoardImageRef;
     if (index === total - 1) return lastBoardImageRef;
     return null;
