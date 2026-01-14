@@ -17,8 +17,14 @@ import { useMemo } from 'react';
 import { cn } from '../../utils/utils';
 import { questionTypeLabels } from '../../types/questionTypes';
 
+interface QuestionOption {
+  id: string;
+  option: string;
+  correct?: boolean;
+}
+
 interface QuestionData {
-  options: { id: string; option: string }[];
+  options: QuestionOption[];
   correctOptionIds?: string[];
 }
 

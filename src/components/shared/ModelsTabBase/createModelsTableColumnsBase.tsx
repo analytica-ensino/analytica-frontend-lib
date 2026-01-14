@@ -14,7 +14,15 @@ import type { SubjectEnum } from '../../../enums/SubjectEnum';
 export interface BaseModelItem {
   id: string;
   title: string;
-  subject?: string;
+  subject?:
+    | string
+    | {
+        id: string;
+        subjectName: string;
+        subjectIcon: string;
+        subjectColor: string;
+      }
+    | null;
   savedAt?: string;
   [key: string]: unknown;
 }

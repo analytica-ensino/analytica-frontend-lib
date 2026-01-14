@@ -1,0 +1,311 @@
+import { renderHook, act } from '@testing-library/react';
+import { useToastNotification } from './useToastNotification';
+
+describe('useToastNotification', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('should initialize with closed toast', () => {
+    const { result } = renderHook(() => useToastNotification());
+
+    expect(result.current.toastState.isOpen).toBe(false);
+    expect(result.current.toastState.title).toBe('');
+    expect(result.current.toastState.action).toBe('success');
+  });
+
+  it('should show success toast', () => {
+    const { result } = renderHook(() => useToastNotification());
+
+    act(() => {
+      result.current.showSuccess('Success message');
+    });
+
+    expect(result.current.toastState.isOpen).toBe(true);
+    expect(result.current.toastState.title).toBe('Success message');
+    expect(result.current.toastState.action).toBe('success');
+  });
+
+  it('should show error toast', () => {
+    const { result } = renderHook(() => useToastNotification());
+
+    act(() => {
+      result.current.showError('Error message');
+    });
+
+    expect(result.current.toastState.isOpen).toBe(true);
+    expect(result.current.toastState.title).toBe('Error message');
+    expect(result.current.toastState.action).toBe('warning');
+  });
+
+  it('should show info toast', () => {
+    const { result } = renderHook(() => useToastNotification());
+
+    act(() => {
+      result.current.showInfo('Info message');
+    });
+
+    expect(result.current.toastState.isOpen).toBe(true);
+    expect(result.current.toastState.title).toBe('Info message');
+    expect(result.current.toastState.action).toBe('info');
+  });
+
+  it('should show toast with description', () => {
+    const { result } = renderHook(() => useToastNotification());
+
+    act(() => {
+      result.current.showSuccess('Title', 'Description text');
+    });
+
+    expect(result.current.toastState.title).toBe('Title');
+    expect(result.current.toastState.description).toBe('Description text');
+  });
+
+  it('should auto-dismiss toast after default duration (3000ms)', () => {
+    const { result } = renderHook(() => useToastNotification());
+
+    act(() => {
+      result.current.showSuccess('Success message');
+    });
+
+    expect(result.current.toastState.isOpen).toBe(true);
+
+    act(() => {
+      jest.advanceTimersByTime(3000);
+    });
+
+    expect(result.current.toastState.isOpen).toBe(false);
+  });
+
+  it('should auto-dismiss toast after custom duration', () => {
+    const { result } = renderHook(() => useToastNotification());
+
+    act(() => {
+      result.current.showSuccess('Success message', undefined, 5000);
+    });
+
+    expect(result.current.toastState.isOpen).toBe(true);
+
+    act(() => {
+      jest.advanceTimersByTime(4999);
+    });
+
+    expect(result.current.toastState.isOpen).toBe(true);
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+
+    expect(result.current.toastState.isOpen).toBe(false);
+  });
+
+  it('should manually hide toast', () => {
+    const { result } = renderHook(() => useToastNotification());
+
+    act(() => {
+      result.current.showSuccess('Success message');
+    });
+
+    expect(result.current.toastState.isOpen).toBe(true);
+
+    act(() => {
+      result.current.hideToast();
+    });
+
+    expect(result.current.toastState.isOpen).toBe(false);
+  });
+
+  it('should not auto-dismiss when duration is 0', () => {
+    const { result } = renderHook(() => useToastNotification());
+
+    act(() => {
+      result.current.showSuccess('Success message', undefined, 0);
+    });
+
+    expect(result.current.toastState.isOpen).toBe(true);
+
+    act(() => {
+      jest.advanceTimersByTime(10000);
+    });
+
+    expect(result.current.toastState.isOpen).toBe(true);
+  });
+
+  it('should replace previous toast when showing new one', () => {
+    const { result } = renderHook(() => useToastNotification());
+
+    act(() => {
+      result.current.showSuccess('First message');
+    });
+
+    expect(result.current.toastState.title).toBe('First message');
+    expect(result.current.toastState.action).toBe('success');
+
+    act(() => {
+      result.current.showError('Second message');
+    });
+
+    expect(result.current.toastState.title).toBe('Second message');
+    expect(result.current.toastState.action).toBe('warning');
+  });
+
+  it('should handle multiple show/hide cycles', () => {
+    const { result } = renderHook(() => useToastNotification());
+
+    // First cycle
+    act(() => {
+      result.current.showSuccess('Message 1');
+    });
+    expect(result.current.toastState.isOpen).toBe(true);
+
+    act(() => {
+      result.current.hideToast();
+    });
+    expect(result.current.toastState.isOpen).toBe(false);
+
+    // Second cycle
+    act(() => {
+      result.current.showError('Message 2');
+    });
+    expect(result.current.toastState.isOpen).toBe(true);
+
+    act(() => {
+      jest.advanceTimersByTime(3000);
+    });
+    expect(result.current.toastState.isOpen).toBe(false);
+  });
+
+  it('should clear previous timeout when showing new toast', () => {
+    const { result } = renderHook(() => useToastNotification());
+
+    // Show first toast
+    act(() => {
+      result.current.showSuccess('First message', undefined, 3000);
+    });
+
+    expect(result.current.toastState.isOpen).toBe(true);
+    expect(result.current.toastState.title).toBe('First message');
+
+    // Advance time partially
+    act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
+    expect(result.current.toastState.isOpen).toBe(true);
+
+    // Show second toast before first one auto-dismisses
+    act(() => {
+      result.current.showError('Second message', undefined, 3000);
+    });
+
+    expect(result.current.toastState.title).toBe('Second message');
+
+    // Advance remaining time from first toast (1500ms)
+    act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
+    // Should still be open because second toast has new timeout
+    expect(result.current.toastState.isOpen).toBe(true);
+
+    // Complete second toast duration
+    act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
+    expect(result.current.toastState.isOpen).toBe(false);
+  });
+
+  it('should clear timeout when manually hiding toast', () => {
+    const { result } = renderHook(() => useToastNotification());
+
+    act(() => {
+      result.current.showSuccess('Success message', undefined, 5000);
+    });
+
+    expect(result.current.toastState.isOpen).toBe(true);
+
+    // Manually hide before auto-dismiss
+    act(() => {
+      result.current.hideToast();
+    });
+
+    expect(result.current.toastState.isOpen).toBe(false);
+
+    // Advance time past original auto-dismiss duration
+    act(() => {
+      jest.advanceTimersByTime(5000);
+    });
+
+    // Should remain closed (timeout was cleared)
+    expect(result.current.toastState.isOpen).toBe(false);
+  });
+
+  it('should clean up timeout on unmount', () => {
+    const { result, unmount } = renderHook(() => useToastNotification());
+
+    act(() => {
+      result.current.showSuccess('Success message', undefined, 3000);
+    });
+
+    expect(result.current.toastState.isOpen).toBe(true);
+
+    // Unmount hook
+    unmount();
+
+    // Advance time past auto-dismiss duration
+    act(() => {
+      jest.advanceTimersByTime(3000);
+    });
+
+    // No errors should occur (timeout was cleaned up)
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
+  it('should not fire stray hideToast after multiple rapid show calls', () => {
+    const { result } = renderHook(() => useToastNotification());
+
+    // Rapidly show multiple toasts
+    act(() => {
+      result.current.showSuccess('Message 1', undefined, 1000);
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+
+    act(() => {
+      result.current.showError('Message 2', undefined, 1000);
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+
+    act(() => {
+      result.current.showInfo('Message 3', undefined, 2000);
+    });
+
+    expect(result.current.toastState.title).toBe('Message 3');
+    expect(result.current.toastState.isOpen).toBe(true);
+
+    // Advance past first two timeouts
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    // Should still be open (only last timeout should fire)
+    expect(result.current.toastState.isOpen).toBe(true);
+
+    // Complete last timeout
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(result.current.toastState.isOpen).toBe(false);
+  });
+});

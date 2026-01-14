@@ -448,6 +448,12 @@ export type {
   PreviewQuestion,
 } from './components/ActivityPreview/ActivityPreview';
 
+export { LessonPreview } from './components/LessonPreview/LessonPreview';
+export type {
+  LessonPreviewProps,
+  PreviewLesson,
+} from './components/LessonPreview/LessonPreview';
+
 export {
   QuestionsPdfGenerator,
   QuestionsPdfContent,
@@ -564,6 +570,10 @@ export {
   isFormValid,
   ERROR_MESSAGES,
 } from './components/SendActivityModal';
+
+// ChooseActivityModelModal Component
+export { ChooseActivityModelModal } from './components/ChooseActivityModelModal';
+export type { ChooseActivityModelModalProps } from './components/ChooseActivityModelModal';
 
 // SendLessonModal Component
 export { SendLessonModal } from './components/SendLessonModal';

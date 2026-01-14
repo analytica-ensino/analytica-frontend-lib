@@ -1,177 +1,11 @@
-import { type RefObject } from 'react';
 import { Book, Plus } from 'phosphor-react';
-import {
-  Button,
-  Modal,
-  Text,
-  SkeletonText,
-  BaseApiClient,
-  VideoPlayer,
-  Alert,
-  CardAudio,
-  Whiteboard,
-} from '../..';
+import { Button, Text, SkeletonText, BaseApiClient } from '../..';
 import type { Lesson } from '../../types/lessons';
-import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
 import { useLessonBank, type LessonFilters } from './hooks/useLessonBank';
-import Video from '@/assets/icons/subjects/Video';
-
-interface PodcastSectionProps {
-  lesson: Lesson;
-  getPodcastData: (lesson: Lesson | null) => { src: string; title: string };
-  onPodcastEnded: () => void;
-}
-
-/**
- * Renders podcast section if available
- */
-const PodcastSection = ({
-  lesson,
-  getPodcastData,
-  onPodcastEnded,
-}: PodcastSectionProps) => {
-  const podcastData = getPodcastData(lesson);
-  if (!podcastData.src) {
-    return null;
-  }
-  return (
-    <div className="w-full">
-      <Text size="md" weight="bold" className="pb-2">
-        {podcastData.title}
-      </Text>
-      <CardAudio
-        src={podcastData.src}
-        title={podcastData.title}
-        onEnded={onPodcastEnded}
-      />
-    </div>
-  );
-};
-
-interface BoardImagesSectionProps {
-  lesson: Lesson;
-  getBoardImages: (lesson: Lesson | null) => WhiteboardImage[];
-  getBoardImageRef: (
-    index: number,
-    total: number
-  ) => RefObject<HTMLDivElement | null> | null;
-}
-
-/**
- * Renders board images section if available
- */
-const BoardImagesSection = ({
-  lesson,
-  getBoardImages,
-  getBoardImageRef,
-}: BoardImagesSectionProps) => {
-  const boardImages: WhiteboardImage[] = getBoardImages(lesson);
-  if (boardImages.length === 0) {
-    return null;
-  }
-  return (
-    <div className="w-full">
-      <Text size="md" weight="bold" className="pb-2">
-        Quadros da aula
-      </Text>
-      <div className="flex flex-wrap gap-4">
-        {boardImages.map((image: WhiteboardImage, index: number) => (
-          <div
-            key={image.id || `board-image-${index}`}
-            ref={getBoardImageRef(index, boardImages.length)}
-            className="flex flex-row rounded-xl bg-background-50"
-          >
-            <Whiteboard
-              images={[image]}
-              showDownload={true}
-              imagesPerRow={2}
-              className="gap-4 w-full items-center border-border-50"
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-interface VideoSectionProps {
-  lesson: Lesson;
-  getVideoData: (lesson: Lesson | null) => {
-    src: string;
-    poster?: string;
-    subtitles?: string;
-  };
-  getInitialTimestampValue: (lessonId: string) => number;
-  handleVideoTimeUpdate: (time: number) => void;
-  handleVideoCompleteCallback: () => void;
-  getPodcastData: (lesson: Lesson | null) => { src: string; title: string };
-  onPodcastEnded: () => void;
-  getBoardImages: (lesson: Lesson | null) => WhiteboardImage[];
-  getBoardImageRef: (
-    index: number,
-    total: number
-  ) => RefObject<HTMLDivElement | null> | null;
-}
-
-/**
- * Renders video section with player, podcast, and board images
- */
-const VideoSection = ({
-  lesson,
-  getVideoData,
-  getInitialTimestampValue,
-  handleVideoTimeUpdate,
-  handleVideoCompleteCallback,
-  getPodcastData,
-  onPodcastEnded,
-  getBoardImages,
-  getBoardImageRef,
-}: VideoSectionProps) => {
-  const videoData = getVideoData(lesson);
-  if (!videoData.src) {
-    return (
-      <div className="px-6 py-6 flex flex-col gap-4">
-        <Text size="md" className="text-text-600">
-          Vídeo não disponível para esta aula.
-        </Text>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <VideoPlayer
-        src={videoData.src}
-        poster={videoData.poster}
-        subtitles={videoData.subtitles}
-        onTimeUpdate={handleVideoTimeUpdate}
-        onVideoComplete={handleVideoCompleteCallback}
-        initialTime={getInitialTimestampValue(lesson.id)}
-        className="w-full h-full object-cover rounded-b-xl"
-        autoSave={true}
-        storageKey={`lesson-${lesson.id}`}
-      />
-      <div className="flex flex-col gap-4">
-        <Alert
-          action="info"
-          variant="solid"
-          description="Cada aula inclui questionários automáticos para o aluno praticar o conteúdo."
-          className="w-full"
-        />
-        <PodcastSection
-          lesson={lesson}
-          getPodcastData={getPodcastData}
-          onPodcastEnded={onPodcastEnded}
-        />
-        <BoardImagesSection
-          lesson={lesson}
-          getBoardImages={getBoardImages}
-          getBoardImageRef={getBoardImageRef}
-        />
-      </div>
-    </>
-  );
-};
+import Video from '../../assets/icons/subjects/Video';
+import { LessonWatchModal } from '../shared/LessonWatchModal';
+import { ToastNotification } from '../shared/ToastNotification/ToastNotification';
+import { useToastNotification } from '../shared/ToastNotification/useToastNotification';
 
 interface LessonBankProps {
   apiClient: BaseApiClient;
@@ -204,6 +38,9 @@ export const LessonBank = ({
   onPodcastEnded,
   filters,
 }: LessonBankProps) => {
+  // Toast notifications
+  const { toastState, showSuccess, hideToast } = useToastNotification();
+
   const {
     loading,
     loadingMore,
@@ -239,6 +76,16 @@ export const LessonBank = ({
     onVideoComplete,
     onPodcastEnded,
   });
+
+  const handleAddWithToast = (lesson: Lesson) => {
+    handleAddToLesson(lesson);
+    showSuccess('Aula adicionada à aula recomendada');
+  };
+
+  const handleAddFromModalWithToast = () => {
+    handleAddToLessonFromModal();
+    showSuccess('Aula adicionada à aula recomendada');
+  };
 
   /**
    * Renders the appropriate content based on loading, error, and lessons state
@@ -302,7 +149,7 @@ export const LessonBank = ({
                 variant="outline"
                 action="primary"
                 size="small"
-                onClick={() => handleAddToLesson(lesson)}
+                onClick={() => handleAddWithToast(lesson)}
                 className="flex-1"
                 iconLeft={<Plus size={16} />}
               >
@@ -353,45 +200,38 @@ export const LessonBank = ({
         {renderLessonsContent()}
       </div>
 
-      <Modal
+      <LessonWatchModal
         isOpen={isWatchModalOpen}
         onClose={handleCloseModal}
-        title={selectedLesson?.title || 'Assistir Aula'}
-        size="lg"
-        hideCloseButton={true}
+        selectedLesson={selectedLesson}
+        getVideoData={getVideoData}
+        getInitialTimestampValue={getInitialTimestampValue}
+        handleVideoTimeUpdate={handleVideoTimeUpdate}
+        handleVideoCompleteCallback={handleVideoCompleteCallback}
+        getPodcastData={getPodcastData}
+        onPodcastEnded={handlePodcastEnded}
+        getBoardImages={getBoardImages}
+        getBoardImageRef={getBoardImageRef}
         footer={
           <div className="flex gap-3">
             <Button variant="outline" onClick={handleCloseModal}>
               Cancelar
             </Button>
-            <Button variant="solid" onClick={handleAddToLessonFromModal}>
+            <Button variant="solid" onClick={handleAddFromModalWithToast}>
               Adicionar à aula
             </Button>
           </div>
         }
-      >
-        <div className="flex flex-col gap-4 max-h-[70vh] overflow-auto">
-          {selectedLesson ? (
-            <VideoSection
-              lesson={selectedLesson}
-              getVideoData={getVideoData}
-              getInitialTimestampValue={getInitialTimestampValue}
-              handleVideoTimeUpdate={handleVideoTimeUpdate}
-              handleVideoCompleteCallback={handleVideoCompleteCallback}
-              getPodcastData={getPodcastData}
-              onPodcastEnded={handlePodcastEnded}
-              getBoardImages={getBoardImages}
-              getBoardImageRef={getBoardImageRef}
-            />
-          ) : (
-            <div className="px-6 py-6 flex flex-col gap-4">
-              <Text size="md" className="text-text-600">
-                Carregando...
-              </Text>
-            </div>
-          )}
-        </div>
-      </Modal>
+      />
+
+      {/* Toast Notification */}
+      <ToastNotification
+        isOpen={toastState.isOpen}
+        onClose={hideToast}
+        title={toastState.title}
+        description={toastState.description}
+        action={toastState.action}
+      />
     </div>
   );
 };

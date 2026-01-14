@@ -53,7 +53,12 @@ describe('useActivityModels', () => {
       expect(result.id).toBe('model-123');
       expect(result.title).toBe('Test Model');
       expect(result.savedAt).toBe('01/06/2024');
-      expect(result.subject).toBe('Matemática');
+      expect(result.subject).toEqual({
+        id: 'subject-1',
+        subjectName: 'Matemática',
+        subjectIcon: 'BookOpen',
+        subjectColor: '#6B7280',
+      });
       expect(result.subjectId).toBe('subject-1');
     });
 
@@ -74,7 +79,7 @@ describe('useActivityModels', () => {
       };
 
       const result = transformModelToTableItem(model, subjectsMap);
-      expect(result.subject).toBe('');
+      expect(result.subject).toBeNull();
       expect(result.subjectId).toBeNull();
     });
 
@@ -85,17 +90,17 @@ describe('useActivityModels', () => {
       };
 
       const result = transformModelToTableItem(model, subjectsMap);
-      expect(result.subject).toBe('');
+      expect(result.subject).toBeNull();
     });
 
     it('should handle undefined subjectsMap', () => {
       const result = transformModelToTableItem(baseModel, undefined);
-      expect(result.subject).toBe('');
+      expect(result.subject).toBeNull();
     });
 
     it('should handle empty subjectsMap', () => {
       const result = transformModelToTableItem(baseModel, new Map());
-      expect(result.subject).toBe('');
+      expect(result.subject).toBeNull();
     });
 
     it('should format date correctly', () => {
@@ -333,7 +338,12 @@ describe('useActivityModels', () => {
       });
       expect(result.current.models).toHaveLength(1);
       expect(result.current.models[0].title).toBe('Test Model');
-      expect(result.current.models[0].subject).toBe('Matemática');
+      expect(result.current.models[0].subject).toEqual({
+        id: '123e4567-e89b-12d3-a456-426614174002',
+        subjectName: 'Matemática',
+        subjectIcon: 'BookOpen',
+        subjectColor: '#6B7280',
+      });
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
     });

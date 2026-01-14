@@ -122,6 +122,16 @@ export interface ActivityDraftFilters {
 }
 
 /**
+ * Subject object with icon and color information
+ */
+export interface SubjectData {
+  id: string;
+  subjectName: string;
+  subjectIcon: string;
+  subjectColor: string;
+}
+
+/**
  * Activity model response from backend API (/activity-drafts)
  */
 export interface ActivityModelResponse {
@@ -130,6 +140,7 @@ export interface ActivityModelResponse {
   title: string | null;
   creatorUserInstitutionId: string | null;
   subjectId: string | null;
+  subject?: SubjectData | null;
   filters: ActivityDraftFilters | null;
   createdAt: string;
   updatedAt: string;
@@ -142,7 +153,7 @@ export interface ActivityModelTableItem extends Record<string, unknown> {
   id: string;
   title: string;
   savedAt: string;
-  subject: string;
+  subject: SubjectData | null;
   subjectId: string | null;
 }
 
