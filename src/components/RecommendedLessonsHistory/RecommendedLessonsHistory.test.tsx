@@ -1281,18 +1281,24 @@ describe('RecommendedLessonsHistory', () => {
 
   describe('Controlled Tab Mode (defaultTab and onTabChange)', () => {
     it('should use defaultTab when provided', async () => {
+      const mockFetchGoalDrafts = jest.fn().mockResolvedValue({
+        message: 'Success',
+        data: { goals: [], total: 0 },
+      });
+      const mockDeleteGoalDraft = jest.fn().mockResolvedValue(undefined);
+
       render(
         <RecommendedLessonsHistory
           {...defaultProps}
           defaultTab={GoalPageTab.DRAFTS}
+          fetchGoalDrafts={mockFetchGoalDrafts}
+          deleteGoalDraft={mockDeleteGoalDraft}
         />
       );
 
       await waitFor(() => {
-        // The drafts tab content should be visible
-        expect(
-          screen.getByText('Rascunhos em desenvolvimento')
-        ).toBeInTheDocument();
+        // The drafts tab content should be visible (goal-drafts-tab testId from config)
+        expect(screen.getByTestId('goal-drafts-tab')).toBeInTheDocument();
       });
     });
 
@@ -1365,10 +1371,18 @@ describe('RecommendedLessonsHistory', () => {
     });
 
     it('should sync with defaultTab prop changes', async () => {
+      const mockFetchGoalDrafts = jest.fn().mockResolvedValue({
+        message: 'Success',
+        data: { goals: [], total: 0 },
+      });
+      const mockDeleteGoalDraft = jest.fn().mockResolvedValue(undefined);
+
       const { rerender } = render(
         <RecommendedLessonsHistory
           {...defaultProps}
           defaultTab={GoalPageTab.HISTORY}
+          fetchGoalDrafts={mockFetchGoalDrafts}
+          deleteGoalDraft={mockDeleteGoalDraft}
         />
       );
 
@@ -1381,13 +1395,14 @@ describe('RecommendedLessonsHistory', () => {
         <RecommendedLessonsHistory
           {...defaultProps}
           defaultTab={GoalPageTab.DRAFTS}
+          fetchGoalDrafts={mockFetchGoalDrafts}
+          deleteGoalDraft={mockDeleteGoalDraft}
         />
       );
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Rascunhos em desenvolvimento')
-        ).toBeInTheDocument();
+        // The drafts tab content should be visible (goal-drafts-tab testId from config)
+        expect(screen.getByTestId('goal-drafts-tab')).toBeInTheDocument();
       });
     });
 

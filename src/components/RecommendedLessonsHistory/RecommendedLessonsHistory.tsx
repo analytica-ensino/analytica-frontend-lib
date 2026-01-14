@@ -33,6 +33,7 @@ import {
   type UseRecommendedLessonsHistoryReturn,
 } from '../../hooks/useRecommendedLessons';
 import { GoalModelsTab } from './tabs/ModelsTab';
+import { GoalDraftsTab } from './tabs/DraftsTab';
 
 /**
  * Enum for page tabs - exported for external routing control
@@ -91,6 +92,16 @@ export interface RecommendedLessonsHistoryProps {
    * to avoid unnecessary re-fetches.
    */
   subjectsMap?: Map<string, string>;
+  /** Function to fetch goal drafts from API (optional - for Drafts tab) */
+  fetchGoalDrafts?: (
+    filters?: GoalModelFilters
+  ) => Promise<GoalModelsApiResponse>;
+  /** Function to delete a goal draft (optional - for Drafts tab) */
+  deleteGoalDraft?: (id: string) => Promise<void>;
+  /** Callback when send draft button is clicked (optional - for Drafts tab) */
+  onSendDraft?: (draft: GoalModelTableItem) => void;
+  /** Callback when edit draft button is clicked (optional - for Drafts tab) */
+  onEditDraft?: (draft: GoalModelTableItem) => void;
   /**
    * Default tab to display. When provided with onTabChange, enables controlled mode
    * for URL routing.
@@ -498,6 +509,10 @@ export const RecommendedLessonsHistory = ({
   onSendLesson,
   onEditModel,
   subjectsMap,
+  fetchGoalDrafts,
+  deleteGoalDraft,
+  onSendDraft,
+  onEditDraft,
   defaultTab,
   onTabChange,
 }: RecommendedLessonsHistoryProps) => {
@@ -725,13 +740,23 @@ export const RecommendedLessonsHistory = ({
             </>
           )}
 
-          {activeTab === GoalPageTab.DRAFTS && (
-            <div className="flex items-center justify-center bg-background rounded-xl w-full min-h-[705px]">
-              <Text size="lg" color="text-text-600">
-                Rascunhos em desenvolvimento
-              </Text>
-            </div>
-          )}
+          {activeTab === GoalPageTab.DRAFTS &&
+            fetchGoalDrafts &&
+            deleteGoalDraft &&
+            onCreateLesson && (
+              <GoalDraftsTab
+                fetchGoalDrafts={fetchGoalDrafts}
+                deleteGoalDraft={deleteGoalDraft}
+                onCreateDraft={onCreateLesson}
+                onSendDraft={onSendDraft}
+                onEditDraft={onEditDraft}
+                emptyStateImage={emptyStateImage}
+                noSearchImage={noSearchImage}
+                mapSubjectNameToEnum={mapSubjectNameToEnum}
+                userFilterData={userFilterData}
+                subjectsMap={subjectsMap}
+              />
+            )}
 
           {activeTab === GoalPageTab.MODELS &&
             fetchGoalModels &&
