@@ -58,6 +58,7 @@ const RecommendedLessonCreate = ({
   onBack,
   onCreateRecommendedLesson,
   onSaveModel,
+  preFilters: preFiltersProp,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -67,6 +68,8 @@ const RecommendedLessonCreate = ({
     recommendedLessonData: RecommendedLessonCreatePayload
   ) => void;
   onSaveModel?: (response: RecommendedLessonDraftResponse) => void;
+  /** Pre-filters to apply when creating a new recommended lesson */
+  preFilters?: RecommendedLessonPreFiltersInput | null;
 }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -113,7 +116,7 @@ const RecommendedLessonCreate = ({
   const [recommendedLesson, setRecommendedLesson] =
     useState<RecommendedLessonData | null>(null);
   const [preFilters, setPreFilters] =
-    useState<RecommendedLessonPreFiltersInput | null>(null);
+    useState<RecommendedLessonPreFiltersInput | null>(preFiltersProp ?? null);
   const [loading, setLoading] = useState(false);
   const [lessons, setLessons] = useState<PreviewLesson[]>([]);
   const [loadingInitialLessons, setLoadingInitialLessons] = useState(false);
@@ -192,6 +195,15 @@ const RecommendedLessonCreate = ({
   useEffect(() => {
     hasAppliedInitialFiltersRef.current = false;
   }, [recommendedLesson?.id, recommendedLesson?.filters, resolvedPreFilters]);
+
+  /**
+   * Update preFilters when prop changes
+   */
+  useEffect(() => {
+    if (preFiltersProp) {
+      setPreFilters(preFiltersProp);
+    }
+  }, [preFiltersProp]);
 
   /**
    * Load knowledge areas on mount

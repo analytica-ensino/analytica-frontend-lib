@@ -84,8 +84,9 @@ const mockLessons: Lesson[] = [
   },
 ];
 
-// Helper function to check if filters have any values
-const hasFiltersApplied = (filters?: {
+// Helper function to check if ALL required filters are applied
+// Lessons only appear when ALL filters are selected (subject, topic, subtopic, content)
+const hasAllFiltersApplied = (filters?: {
   subjectId?: string[];
   topicIds?: string[];
   subtopicIds?: string[];
@@ -93,14 +94,13 @@ const hasFiltersApplied = (filters?: {
   selectedIds?: string[];
 }): boolean => {
   if (!filters) return false;
-  return (
-    (filters.subjectId && filters.subjectId.length > 0) ||
-    (filters.topicIds && filters.topicIds.length > 0) ||
-    (filters.subtopicIds && filters.subtopicIds.length > 0) ||
-    (filters.contentIds && filters.contentIds.length > 0) ||
-    (filters.selectedIds && filters.selectedIds.length > 0) ||
-    false
-  );
+  // ALL filters must be filled for lessons to appear
+  const hasSubject = filters.subjectId && filters.subjectId.length > 0;
+  const hasTopic = filters.topicIds && filters.topicIds.length > 0;
+  const hasSubtopic = filters.subtopicIds && filters.subtopicIds.length > 0;
+  const hasContent = filters.contentIds && filters.contentIds.length > 0;
+
+  return !!(hasSubject && hasTopic && hasSubtopic && hasContent);
 };
 
 // Helper function to create mock API client
@@ -284,6 +284,7 @@ const createMockApiClient = (
       if (url.startsWith('/recommended-class/drafts/')) {
         const draftId = url.split('/').pop() || 'mock-draft-id';
         // Return draft with selectedLessons for preview
+        // ALL filters must be filled for the draft to work correctly
         return {
           data: {
             data: {
@@ -296,8 +297,8 @@ const createMockApiClient = (
               filters: {
                 subjects: ['matematica'],
                 topics: ['tema-1'],
-                subtopics: [],
-                contents: [],
+                subtopics: ['subtema-1'],
+                contents: ['assunto-1'],
               },
               lessonIds: ['lesson-1', 'lesson-2', 'lesson-3'],
               // Include selectedLessons for preview
@@ -328,8 +329,8 @@ const createMockApiClient = (
             }
           | undefined;
 
-        // Return empty array if no filters are applied
-        if (!hasFiltersApplied(filters)) {
+        // Return empty array if not ALL filters are applied
+        if (!hasAllFiltersApplied(filters)) {
           return {
             data: {
               message: 'Lessons fetched successfully',
@@ -522,17 +523,27 @@ export const WithoutInitialLessons: Story = () => {
 WithoutInitialLessons.storyName = 'Without Initial Lessons';
 
 export const WithPreFilters: Story = () => {
+  // Pre-filters matching the backend format (same as ActivityCreate)
+  // ALL filters must be filled for lessons to appear in the bank
+  const preFilters = {
+    subjects: ['matematica'],
+    topics: ['tema-1'],
+    subtopics: ['subtema-1'],
+    contents: ['assunto-1'],
+  };
+
   return (
     <BrowserRouter>
       <RecommendedLessonCreate
         apiClient={mockApiClient}
         institutionId="institution-1"
+        preFilters={preFilters}
       />
     </BrowserRouter>
   );
 };
 
-WithPreFilters.storyName = 'With preFilters (pre-selected filters)';
+WithPreFilters.storyName = 'With preFilters (all filters pre-selected)';
 
 export const WithInitialLessons: Story = () => {
   return (
