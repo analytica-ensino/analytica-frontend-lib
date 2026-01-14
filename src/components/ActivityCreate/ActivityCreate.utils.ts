@@ -409,7 +409,7 @@ export async function loadCategoriesData(
       selectedIds: [],
     },
     {
-      key: 'alunos',
+      key: 'students',
       label: 'Alunos',
       dependsOn: ['turma'],
       filteredBy: [{ key: 'turma', internalField: 'classId' }],
