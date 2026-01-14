@@ -1122,45 +1122,6 @@ describe('LessonPreview', () => {
     });
   });
 
-  describe('activity error handling', () => {
-    it('should handle error when selecting activity', async () => {
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-      const onActivitySelected = jest.fn(() => {
-        throw new Error('Test error');
-      });
-
-      render(
-        <LessonPreview
-          {...defaultProps}
-          onActivitySelected={onActivitySelected}
-        />
-      );
-
-      const addButton = screen.getByText('Adicionar atividade');
-      fireEvent.click(addButton);
-
-      const chooseModelButton = screen.getByTestId('choose-model-option');
-      fireEvent.click(chooseModelButton);
-
-      await waitFor(() => {
-        expect(
-          screen.getByTestId('choose-activity-model-modal')
-        ).toBeInTheDocument();
-      });
-
-      const selectModelButton = screen.getByTestId('select-model');
-      fireEvent.click(selectModelButton);
-
-      await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalled();
-      });
-
-      consoleErrorSpy.mockRestore();
-    });
-  });
-
   describe('modal close behavior', () => {
     it('should close activity option modal when close button is clicked', () => {
       render(<LessonPreview {...defaultProps} />);

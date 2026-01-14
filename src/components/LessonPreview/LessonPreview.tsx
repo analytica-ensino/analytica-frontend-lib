@@ -104,8 +104,7 @@ export const LessonPreview = ({
     useState<ActivityModelTableItem | null>(null);
 
   // Toast notifications
-  const { toastState, showSuccess, showError, hideToast } =
-    useToastNotification();
+  const { toastState, showSuccess, hideToast } = useToastNotification();
 
   // Refs for board images
   const firstBoardImageRef = useRef<HTMLDivElement | null>(null);
@@ -278,18 +277,13 @@ export const LessonPreview = ({
   };
 
   const handleSelectActivityModel = (model: ActivityModelTableItem) => {
-    try {
-      setIsChooseModelModalOpen(false);
-      setSelectedActivity(model);
-      if (onActivitySelected) {
-        onActivitySelected(model);
-      }
-      // Show success toast
-      showSuccess('Atividade adicionada à aula recomendada');
-    } catch (error) {
-      showError('Erro ao adicionar atividade');
-      console.error('Error selecting activity:', error);
+    setIsChooseModelModalOpen(false);
+    setSelectedActivity(model);
+    if (onActivitySelected) {
+      onActivitySelected(model);
     }
+    // Show success toast
+    showSuccess('Atividade adicionada à aula recomendada');
   };
 
   const handleRemoveActivity = () => {
