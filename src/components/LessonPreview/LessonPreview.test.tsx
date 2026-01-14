@@ -158,16 +158,19 @@ jest.mock('./components', () => ({
     isOpen,
     onClose,
     onSelectOption,
+    disableChooseModel,
   }: {
     isOpen: boolean;
     onClose: () => void;
     onSelectOption: (option: string) => void;
+    disableChooseModel?: boolean;
   }) =>
     isOpen ? (
       <div data-testid="add-activity-option-modal">
         <button
           data-testid="choose-model-option"
           onClick={() => onSelectOption('choose-model')}
+          disabled={disableChooseModel}
         >
           Choose Model
         </button>
@@ -721,6 +724,45 @@ describe('LessonPreview', () => {
           screen.getByTestId('choose-activity-model-modal')
         ).toBeInTheDocument();
       });
+    });
+
+    it('should disable choose model option when apiClient is not provided', () => {
+      render(<LessonPreview {...defaultProps} apiClient={undefined} />);
+
+      const addButton = screen.getByText('Adicionar atividade');
+      fireEvent.click(addButton);
+
+      const chooseModelButton = screen.getByTestId('choose-model-option');
+      expect(chooseModelButton).toBeDisabled();
+    });
+
+    it('should not disable choose model option when apiClient is provided', () => {
+      render(<LessonPreview {...defaultProps} />);
+
+      const addButton = screen.getByText('Adicionar atividade');
+      fireEvent.click(addButton);
+
+      const chooseModelButton = screen.getByTestId('choose-model-option');
+      expect(chooseModelButton).not.toBeDisabled();
+    });
+
+    it('should not open choose model modal when disabled button is clicked', async () => {
+      render(<LessonPreview {...defaultProps} apiClient={undefined} />);
+
+      const addButton = screen.getByText('Adicionar atividade');
+      fireEvent.click(addButton);
+
+      const chooseModelButton = screen.getByTestId('choose-model-option');
+      fireEvent.click(chooseModelButton);
+
+      await waitFor(
+        () => {
+          expect(
+            screen.queryByTestId('choose-activity-model-modal')
+          ).not.toBeInTheDocument();
+        },
+        { timeout: 200 }
+      );
     });
   });
 

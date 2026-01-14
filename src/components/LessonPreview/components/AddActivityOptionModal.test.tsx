@@ -46,18 +46,21 @@ jest.mock('../../../index', () => ({
     label,
     selected,
     onClick,
+    disabled,
     className,
   }: {
     icon: React.ReactNode;
     label: string;
     selected: boolean;
     onClick: () => void;
+    disabled?: boolean;
     className?: string;
   }) => (
     <button
       data-testid={`selection-button-${label}`}
       data-selected={selected}
       onClick={onClick}
+      disabled={disabled}
       className={className}
     >
       <span data-testid="button-icon">{icon}</span>
@@ -357,6 +360,91 @@ describe('AddActivityOptionModal', () => {
       fireEvent.click(chooseModelButton);
 
       expect(onSelectOption).toHaveBeenCalledWith('choose-model');
+    });
+  });
+
+  describe('disableChooseModel prop', () => {
+    it('should not disable choose model button when disableChooseModel is false', () => {
+      render(
+        <AddActivityOptionModal {...defaultProps} disableChooseModel={false} />
+      );
+
+      const chooseModelButton = screen.getByTestId(
+        'selection-button-Escolher modelo de atividade'
+      );
+
+      expect(chooseModelButton).not.toBeDisabled();
+    });
+
+    it('should not disable choose model button when disableChooseModel is not provided', () => {
+      render(<AddActivityOptionModal {...defaultProps} />);
+
+      const chooseModelButton = screen.getByTestId(
+        'selection-button-Escolher modelo de atividade'
+      );
+
+      expect(chooseModelButton).not.toBeDisabled();
+    });
+
+    it('should disable choose model button when disableChooseModel is true', () => {
+      render(
+        <AddActivityOptionModal {...defaultProps} disableChooseModel={true} />
+      );
+
+      const chooseModelButton = screen.getByTestId(
+        'selection-button-Escolher modelo de atividade'
+      );
+
+      expect(chooseModelButton).toBeDisabled();
+    });
+
+    it('should not disable create new button when disableChooseModel is true', () => {
+      render(
+        <AddActivityOptionModal {...defaultProps} disableChooseModel={true} />
+      );
+
+      const createNewButton = screen.getByTestId(
+        'selection-button-Criar nova atividade'
+      );
+
+      expect(createNewButton).not.toBeDisabled();
+    });
+
+    it('should not call onSelectOption when disabled choose model button is clicked', () => {
+      const onSelectOption = jest.fn();
+      render(
+        <AddActivityOptionModal
+          {...defaultProps}
+          onSelectOption={onSelectOption}
+          disableChooseModel={true}
+        />
+      );
+
+      const chooseModelButton = screen.getByTestId(
+        'selection-button-Escolher modelo de atividade'
+      );
+      fireEvent.click(chooseModelButton);
+
+      expect(onSelectOption).not.toHaveBeenCalled();
+    });
+
+    it('should allow create new button to work when choose model is disabled', () => {
+      const onSelectOption = jest.fn();
+      render(
+        <AddActivityOptionModal
+          {...defaultProps}
+          onSelectOption={onSelectOption}
+          disableChooseModel={true}
+        />
+      );
+
+      const createNewButton = screen.getByTestId(
+        'selection-button-Criar nova atividade'
+      );
+      fireEvent.click(createNewButton);
+
+      expect(onSelectOption).toHaveBeenCalledTimes(1);
+      expect(onSelectOption).toHaveBeenCalledWith('create-new');
     });
   });
 });

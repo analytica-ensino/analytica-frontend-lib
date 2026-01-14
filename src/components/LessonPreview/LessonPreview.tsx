@@ -269,7 +269,7 @@ export const LessonPreview = ({
     setIsActivityOptionModalOpen(false);
     if (option === 'create-new' && onCreateNewActivity) {
       onCreateNewActivity();
-    } else if (option === 'choose-model') {
+    } else if (option === 'choose-model' && apiClient) {
       // Aguarda o primeiro modal fechar antes de abrir o próximo
       setTimeout(() => {
         setIsChooseModelModalOpen(true);
@@ -472,6 +472,7 @@ export const LessonPreview = ({
         isOpen={isActivityOptionModalOpen}
         onClose={() => setIsActivityOptionModalOpen(false)}
         onSelectOption={handleSelectActivityOption}
+        disableChooseModel={!apiClient}
       />
 
       {/* Choose Activity Model Modal */}

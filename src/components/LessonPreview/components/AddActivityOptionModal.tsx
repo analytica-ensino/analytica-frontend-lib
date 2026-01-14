@@ -7,6 +7,7 @@ interface AddActivityOptionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectOption: (option: ActivityOption) => void;
+  disableChooseModel?: boolean;
 }
 
 /**
@@ -16,6 +17,7 @@ export const AddActivityOptionModal = ({
   isOpen,
   onClose,
   onSelectOption,
+  disableChooseModel = false,
 }: AddActivityOptionModalProps) => {
   return (
     <Modal
@@ -34,6 +36,7 @@ export const AddActivityOptionModal = ({
             label="Escolher modelo de atividade"
             selected={false}
             onClick={() => onSelectOption('choose-model')}
+            disabled={disableChooseModel}
             className="w-full"
           />
           <SelectionButton
