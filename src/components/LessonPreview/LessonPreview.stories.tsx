@@ -374,6 +374,7 @@ export const Default: Story = () => {
     <div className="p-6">
       <LessonPreview
         lessons={lessons}
+        apiClient={createMockApiClient()}
         onRemoveAll={() => console.log('Remover tudo')}
         onPositionsChange={(ordered) =>
           console.log(
@@ -393,6 +394,7 @@ export const WithVideoPlayer: Story = () => {
     <div className="p-6">
       <LessonPreview
         lessons={lessons}
+        apiClient={createMockApiClient()}
         onRemoveAll={() => console.log('Remover tudo')}
         onVideoTimeUpdate={(lessonId, time) =>
           console.log(`Lesson ${lessonId} time: ${time}`)
@@ -421,6 +423,7 @@ export const WithVideoPlayerAndPodcast: Story = () => {
     <div className="p-6">
       <LessonPreview
         lessons={lessons}
+        apiClient={createMockApiClient()}
         onRemoveAll={() => console.log('Remover tudo')}
         onPodcastEnded={async (lessonId) => {
           console.log(`Podcast ended for lesson ${lessonId}`);
@@ -453,6 +456,7 @@ export const WithReorder: Story = () => {
     <div className="p-6">
       <LessonPreview
         lessons={lessons}
+        apiClient={createMockApiClient()}
         onRemoveAll={() => console.log('Remover tudo')}
         onReorder={handleReorder}
         onPositionsChange={(ordered) =>
@@ -485,6 +489,7 @@ export const WithRemoveLesson: Story = () => {
     <div className="p-6">
       <LessonPreview
         lessons={lessons}
+        apiClient={createMockApiClient()}
         onRemoveLesson={handleRemoveLesson}
         onRemoveAll={handleRemoveAll}
         onPositionsChange={(ordered) =>
@@ -505,6 +510,7 @@ export const SingleLesson: Story = () => {
     <div className="p-6">
       <LessonPreview
         lessons={lessons}
+        apiClient={createMockApiClient()}
         onRemoveAll={() => console.log('Remover tudo')}
         onPositionsChange={(ordered) =>
           console.log(
@@ -522,6 +528,7 @@ export const Empty: Story = () => {
     <div className="p-6">
       <LessonPreview
         lessons={[]}
+        apiClient={createMockApiClient()}
         onRemoveAll={() => console.log('Remover tudo')}
         onPositionsChange={(ordered) =>
           console.log(
@@ -542,6 +549,7 @@ export const CustomTitle: Story = () => {
       <LessonPreview
         title="Aulas Selecionadas"
         lessons={lessons}
+        apiClient={createMockApiClient()}
         onRemoveAll={() => console.log('Remover tudo')}
         onPositionsChange={(ordered) =>
           console.log(
@@ -561,6 +569,7 @@ export const WithCallbacks: Story = () => {
     <div className="p-6">
       <LessonPreview
         lessons={lessons}
+        apiClient={createMockApiClient()}
         onRemoveAll={() => console.log('Remover tudo')}
         onVideoTimeUpdate={(lessonId, time) =>
           console.log(`Video time update: ${lessonId} at ${time}s`)
@@ -594,8 +603,8 @@ export const WithActivitySelection: Story = () => {
     <div className="p-6">
       <LessonPreview
         lessons={lessons}
-        onRemoveAll={() => console.log('Remover tudo')}
         apiClient={apiClient}
+        onRemoveAll={() => console.log('Remover tudo')}
         onActivitySelected={(model: ActivityModelTableItem) => {
           console.log('Activity selected:', model);
         }}
