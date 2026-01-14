@@ -139,6 +139,12 @@ export interface UseRecommendedLessonsPageReturn {
     onEditGoal: (id: string) => void;
     onEditModel: (model: GoalModelTableItem) => void;
     onSendLesson: (model: GoalModelTableItem) => void;
+    fetchGoalDrafts: (
+      filters?: GoalModelFilters
+    ) => Promise<GoalModelsApiResponse>;
+    deleteGoalDraft: (id: string) => Promise<void>;
+    onSendDraft: (draft: GoalModelTableItem) => void;
+    onEditDraft: (draft: GoalModelTableItem) => void;
     emptyStateImage: string;
     noSearchImage: string;
     mapSubjectNameToEnum: (subjectName: string) => SubjectEnum | null;
@@ -382,6 +388,34 @@ export const createUseRecommendedLessonsPage = (
     );
 
     /**
+     * Fetch goal drafts from API
+     */
+    const fetchGoalDrafts = useCallback(
+      async (filters?: GoalModelFilters): Promise<GoalModelsApiResponse> => {
+        const params = buildQueryParams({
+          ...filters,
+          type: GoalDraftType.RASCUNHO,
+        } as Record<string, unknown>);
+        const response = await api.get<GoalModelsApiResponse>(
+          endpoints.goalDrafts,
+          { params }
+        );
+        return response.data;
+      },
+      [api, endpoints.goalDrafts]
+    );
+
+    /**
+     * Delete a goal draft
+     */
+    const deleteGoalDraft = useCallback(
+      async (id: string): Promise<void> => {
+        await api.delete(`${endpoints.goalDrafts}/${id}`);
+      },
+      [api, endpoints.goalDrafts]
+    );
+
+    /**
      * Handle create lesson button click
      */
     const handleCreateLesson = useCallback(() => {
@@ -504,6 +538,10 @@ export const createUseRecommendedLessonsPage = (
         onEditGoal: handleEditGoal,
         onEditModel: handleEditModel,
         onSendLesson: handleSendLesson,
+        fetchGoalDrafts,
+        deleteGoalDraft,
+        onSendDraft: handleSendLesson,
+        onEditDraft: handleEditModel,
         emptyStateImage,
         noSearchImage,
         mapSubjectNameToEnum,

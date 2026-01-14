@@ -726,6 +726,22 @@ export type {
   UseGoalModelsReturn,
 } from './hooks/useGoalModels';
 
+// Goal Drafts Hook Factory
+export {
+  createUseGoalDrafts,
+  createGoalDraftsHook,
+  handleGoalDraftFetchError,
+  DEFAULT_GOAL_DRAFTS_PAGINATION,
+} from './hooks/useGoalDrafts';
+export type {
+  UseGoalDraftsState,
+  UseGoalDraftsReturn,
+} from './hooks/useGoalDrafts';
+
+// Goal Drafts Tab Component
+export { GoalDraftsTab } from './components/RecommendedLessonsHistory/tabs/DraftsTab';
+export type { GoalDraftsTabProps } from './components/RecommendedLessonsHistory/tabs/DraftsTab';
+
 // Activities History Component
 export { ActivitiesHistory } from './components/ActivitiesHistory';
 export type { ActivitiesHistoryProps } from './components/ActivitiesHistory';

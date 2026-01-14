@@ -131,6 +131,7 @@ export default defineConfig({
     'hooks/useRecommendedLessons/index': 'src/hooks/useRecommendedLessons.ts',
     'hooks/useRecommendedLessonsPage/index':
       'src/hooks/useRecommendedLessonsPage.ts',
+    'hooks/useGoalDrafts/index': 'src/hooks/useGoalDrafts.ts',
     'types/recommendedLessons/index': 'src/types/recommendedLessons.ts',
 
     // ActivitiesHistory
