@@ -1,14 +1,13 @@
 import { renderHook, act } from '@testing-library/react';
 import { useToastNotification } from './useToastNotification';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('useToastNotification', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    jest.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('should initialize with closed toast', () => {
@@ -76,7 +75,7 @@ describe('useToastNotification', () => {
     expect(result.current.toastState.isOpen).toBe(true);
 
     act(() => {
-      vi.advanceTimersByTime(3000);
+      jest.advanceTimersByTime(3000);
     });
 
     expect(result.current.toastState.isOpen).toBe(false);
@@ -92,13 +91,13 @@ describe('useToastNotification', () => {
     expect(result.current.toastState.isOpen).toBe(true);
 
     act(() => {
-      vi.advanceTimersByTime(4999);
+      jest.advanceTimersByTime(4999);
     });
 
     expect(result.current.toastState.isOpen).toBe(true);
 
     act(() => {
-      vi.advanceTimersByTime(1);
+      jest.advanceTimersByTime(1);
     });
 
     expect(result.current.toastState.isOpen).toBe(false);
@@ -130,7 +129,7 @@ describe('useToastNotification', () => {
     expect(result.current.toastState.isOpen).toBe(true);
 
     act(() => {
-      vi.advanceTimersByTime(10000);
+      jest.advanceTimersByTime(10000);
     });
 
     expect(result.current.toastState.isOpen).toBe(true);
@@ -175,7 +174,7 @@ describe('useToastNotification', () => {
     expect(result.current.toastState.isOpen).toBe(true);
 
     act(() => {
-      vi.advanceTimersByTime(3000);
+      jest.advanceTimersByTime(3000);
     });
     expect(result.current.toastState.isOpen).toBe(false);
   });

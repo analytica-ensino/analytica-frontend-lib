@@ -1,6 +1,5 @@
 import { render, screen } from '@testing-library/react';
 import { ToastNotification } from './ToastNotification';
-import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 
 describe('ToastNotification', () => {
@@ -36,7 +35,7 @@ describe('ToastNotification', () => {
 
   it('should call onClose when close button is clicked', async () => {
     const user = userEvent.setup();
-    const onClose = vi.fn();
+    const onClose = jest.fn();
 
     render(
       <ToastNotification isOpen={true} onClose={onClose} title="Test Toast" />
