@@ -775,25 +775,25 @@ describe('LessonPreview', () => {
         .getAllByRole('button')
         .filter((btn) => btn.getAttribute('draggable') === 'true');
 
-      if (draggables.length >= 2) {
-        const firstLesson = draggables[0];
-        const secondLesson = draggables[1];
+      expect(draggables.length).toBeGreaterThanOrEqual(2);
 
-        fireEvent.dragStart(firstLesson, {
-          dataTransfer: {
-            setData: jest.fn(),
-            setDragImage: jest.fn(),
-          },
-        });
+      const firstLesson = draggables[0];
+      const secondLesson = draggables[1];
 
-        fireEvent.drop(secondLesson, {
-          dataTransfer: {
-            getData: jest.fn(() => 'lesson-1'),
-          },
-        });
+      fireEvent.dragStart(firstLesson, {
+        dataTransfer: {
+          setData: jest.fn(),
+          setDragImage: jest.fn(),
+        },
+      });
 
-        expect(onReorder).toHaveBeenCalled();
-      }
+      fireEvent.drop(secondLesson, {
+        dataTransfer: {
+          getData: jest.fn(() => 'lesson-1'),
+        },
+      });
+
+      expect(onReorder).toHaveBeenCalled();
     });
 
     it('should handle drag start with drag preview element', () => {
@@ -804,19 +804,19 @@ describe('LessonPreview', () => {
         .getAllByRole('button')
         .filter((btn) => btn.getAttribute('draggable') === 'true');
 
-      if (draggables.length > 0) {
-        const setDataMock = jest.fn();
-        const setDragImageMock = jest.fn();
+      expect(draggables.length).toBeGreaterThan(0);
 
-        fireEvent.dragStart(draggables[0], {
-          dataTransfer: {
-            setData: setDataMock,
-            setDragImage: setDragImageMock,
-          },
-        });
+      const setDataMock = jest.fn();
+      const setDragImageMock = jest.fn();
 
-        expect(setDataMock).toHaveBeenCalledWith('text/plain', 'lesson-1');
-      }
+      fireEvent.dragStart(draggables[0], {
+        dataTransfer: {
+          setData: setDataMock,
+          setDragImage: setDragImageMock,
+        },
+      });
+
+      expect(setDataMock).toHaveBeenCalledWith('text/plain', 'lesson-1');
     });
 
     it('should handle drag over event', () => {
@@ -826,11 +826,11 @@ describe('LessonPreview', () => {
         .getAllByRole('button')
         .filter((btn) => btn.getAttribute('draggable') === 'true');
 
-      if (draggables.length > 0) {
-        fireEvent.dragOver(draggables[0]);
-        // Drag over is handled - no assertions needed as it just prevents default
-        expect(draggables[0]).toBeInTheDocument();
-      }
+      expect(draggables.length).toBeGreaterThan(0);
+
+      fireEvent.dragOver(draggables[0]);
+      // Drag over is handled - no assertions needed as it just prevents default
+      expect(draggables[0]).toBeInTheDocument();
     });
 
     it('should not reorder when dropping on same lesson', () => {
@@ -841,22 +841,22 @@ describe('LessonPreview', () => {
         .getAllByRole('button')
         .filter((btn) => btn.getAttribute('draggable') === 'true');
 
-      if (draggables.length > 0) {
-        fireEvent.dragStart(draggables[0], {
-          dataTransfer: {
-            setData: jest.fn(),
-            setDragImage: jest.fn(),
-          },
-        });
+      expect(draggables.length).toBeGreaterThan(0);
 
-        fireEvent.drop(draggables[0], {
-          dataTransfer: {
-            getData: jest.fn(() => 'lesson-1'),
-          },
-        });
+      fireEvent.dragStart(draggables[0], {
+        dataTransfer: {
+          setData: jest.fn(),
+          setDragImage: jest.fn(),
+        },
+      });
 
-        expect(onReorder).not.toHaveBeenCalled();
-      }
+      fireEvent.drop(draggables[0], {
+        dataTransfer: {
+          getData: jest.fn(() => 'lesson-1'),
+        },
+      });
+
+      expect(onReorder).not.toHaveBeenCalled();
     });
   });
 
@@ -869,13 +869,13 @@ describe('LessonPreview', () => {
         .getAllByRole('button')
         .filter((btn) => btn.getAttribute('draggable') === 'true');
 
-      if (draggables.length >= 2) {
-        fireEvent.keyDown(draggables[1], {
-          key: 'ArrowUp',
-        });
+      expect(draggables.length).toBeGreaterThanOrEqual(2);
 
-        expect(onReorder).toHaveBeenCalled();
-      }
+      fireEvent.keyDown(draggables[1], {
+        key: 'ArrowUp',
+      });
+
+      expect(onReorder).toHaveBeenCalled();
     });
 
     it('should move lesson down with ArrowDown key', () => {
@@ -886,13 +886,13 @@ describe('LessonPreview', () => {
         .getAllByRole('button')
         .filter((btn) => btn.getAttribute('draggable') === 'true');
 
-      if (draggables.length >= 2) {
-        fireEvent.keyDown(draggables[0], {
-          key: 'ArrowDown',
-        });
+      expect(draggables.length).toBeGreaterThanOrEqual(2);
 
-        expect(onReorder).toHaveBeenCalled();
-      }
+      fireEvent.keyDown(draggables[0], {
+        key: 'ArrowDown',
+      });
+
+      expect(onReorder).toHaveBeenCalled();
     });
 
     it('should not move first lesson up', () => {
@@ -903,13 +903,13 @@ describe('LessonPreview', () => {
         .getAllByRole('button')
         .filter((btn) => btn.getAttribute('draggable') === 'true');
 
-      if (draggables.length > 0) {
-        fireEvent.keyDown(draggables[0], {
-          key: 'ArrowUp',
-        });
+      expect(draggables.length).toBeGreaterThan(0);
 
-        expect(onReorder).not.toHaveBeenCalled();
-      }
+      fireEvent.keyDown(draggables[0], {
+        key: 'ArrowUp',
+      });
+
+      expect(onReorder).not.toHaveBeenCalled();
     });
 
     it('should not move last lesson down', () => {
@@ -920,14 +920,14 @@ describe('LessonPreview', () => {
         .getAllByRole('button')
         .filter((btn) => btn.getAttribute('draggable') === 'true');
 
-      if (draggables.length > 0) {
-        const lastLesson = draggables[draggables.length - 1];
-        fireEvent.keyDown(lastLesson, {
-          key: 'ArrowDown',
-        });
+      expect(draggables.length).toBeGreaterThan(0);
 
-        expect(onReorder).not.toHaveBeenCalled();
-      }
+      const lastLesson = draggables[draggables.length - 1];
+      fireEvent.keyDown(lastLesson, {
+        key: 'ArrowDown',
+      });
+
+      expect(onReorder).not.toHaveBeenCalled();
     });
 
     it('should handle Enter key without action', () => {
@@ -938,14 +938,14 @@ describe('LessonPreview', () => {
         .getAllByRole('button')
         .filter((btn) => btn.getAttribute('draggable') === 'true');
 
-      if (draggables.length > 0) {
-        fireEvent.keyDown(draggables[0], {
-          key: 'Enter',
-        });
+      expect(draggables.length).toBeGreaterThan(0);
 
-        // Enter key should not trigger reorder
-        expect(onReorder).not.toHaveBeenCalled();
-      }
+      fireEvent.keyDown(draggables[0], {
+        key: 'Enter',
+      });
+
+      // Enter key should not trigger reorder
+      expect(onReorder).not.toHaveBeenCalled();
     });
 
     it('should handle Space key without action', () => {
@@ -956,14 +956,14 @@ describe('LessonPreview', () => {
         .getAllByRole('button')
         .filter((btn) => btn.getAttribute('draggable') === 'true');
 
-      if (draggables.length > 0) {
-        fireEvent.keyDown(draggables[0], {
-          key: ' ',
-        });
+      expect(draggables.length).toBeGreaterThan(0);
 
-        // Space key should not trigger reorder
-        expect(onReorder).not.toHaveBeenCalled();
-      }
+      fireEvent.keyDown(draggables[0], {
+        key: ' ',
+      });
+
+      // Space key should not trigger reorder
+      expect(onReorder).not.toHaveBeenCalled();
     });
   });
 
