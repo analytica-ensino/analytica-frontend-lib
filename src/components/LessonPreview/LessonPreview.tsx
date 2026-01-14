@@ -445,45 +445,9 @@ export const LessonPreview = ({
             )
           )}
         </section>
-      </div>
 
-      <LessonWatchModal
-        isOpen={isWatchModalOpen}
-        onClose={handleCloseModal}
-        selectedLesson={selectedLesson}
-        getVideoData={getVideoData}
-        getInitialTimestampValue={getInitialTimestampValue}
-        handleVideoTimeUpdate={handleVideoTimeUpdate}
-        handleVideoCompleteCallback={handleVideoCompleteCallback}
-        getPodcastData={getPodcastData}
-        onPodcastEnded={handlePodcastEnded}
-        getBoardImages={getBoardImages}
-        getBoardImageRef={getBoardImageRef}
-      />
-
-      {/* Activity Option Modal */}
-      <AddActivityOptionModal
-        isOpen={isActivityOptionModalOpen}
-        onClose={() => setIsActivityOptionModalOpen(false)}
-        onSelectOption={handleSelectActivityOption}
-      />
-
-      {/* Choose Activity Model Modal */}
-      <ChooseActivityModelModal
-        isOpen={isChooseModelModalOpen}
-        onClose={() => setIsChooseModelModalOpen(false)}
-        onSelectModel={handleSelectActivityModel}
-        apiClient={apiClient}
-      />
-
-      {/* Activity Section */}
-      <Divider />
-      <div
-        className={cn(
-          'w-full flex-shrink-0 p-4 rounded-lg bg-background flex flex-col gap-4',
-          className
-        )}
-      >
+        {/* Activity Section */}
+        <Divider />
         <section className="flex flex-row items-center gap-2 text-text-950">
           <Book size={24} />
           <Text size="lg" weight="bold">
@@ -493,7 +457,7 @@ export const LessonPreview = ({
 
         {selectedActivity ? (
           <div className="flex flex-col gap-3">
-            <div className="bg-background-light rounded-lg">
+            <div className="bg-background rounded-lg">
               <div className="p-4 flex flex-row items-center justify-between gap-4">
                 <div className="flex flex-row items-center gap-3 flex-1">
                   <Text size="md" weight="bold" className="text-text-950">
@@ -534,6 +498,35 @@ export const LessonPreview = ({
           </Button>
         )}
       </div>
+
+      <LessonWatchModal
+        isOpen={isWatchModalOpen}
+        onClose={handleCloseModal}
+        selectedLesson={selectedLesson}
+        getVideoData={getVideoData}
+        getInitialTimestampValue={getInitialTimestampValue}
+        handleVideoTimeUpdate={handleVideoTimeUpdate}
+        handleVideoCompleteCallback={handleVideoCompleteCallback}
+        getPodcastData={getPodcastData}
+        onPodcastEnded={handlePodcastEnded}
+        getBoardImages={getBoardImages}
+        getBoardImageRef={getBoardImageRef}
+      />
+
+      {/* Activity Option Modal */}
+      <AddActivityOptionModal
+        isOpen={isActivityOptionModalOpen}
+        onClose={() => setIsActivityOptionModalOpen(false)}
+        onSelectOption={handleSelectActivityOption}
+      />
+
+      {/* Choose Activity Model Modal */}
+      <ChooseActivityModelModal
+        isOpen={isChooseModelModalOpen}
+        onClose={() => setIsChooseModelModalOpen(false)}
+        onSelectModel={handleSelectActivityModel}
+        apiClient={apiClient}
+      />
 
       {/* Toast Notification */}
       <ToastNotification

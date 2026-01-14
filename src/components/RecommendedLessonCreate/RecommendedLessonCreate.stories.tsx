@@ -5,6 +5,7 @@ import type { BaseApiClient } from '../../types/api';
 import type { Lesson } from '../../types/lessons';
 import { Toaster } from '../..';
 import { GoalDraftType } from './RecommendedLessonCreate.types';
+import { ActivityDraftType } from '../../types/activitiesHistory';
 
 // Mock lessons data with media properties
 const mockLessons: Lesson[] = [
@@ -307,6 +308,255 @@ const createMockApiClient = (
               finalDate: null,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+            },
+          },
+        };
+      }
+
+      // Mock GET /activity-drafts endpoint (for ChooseActivityModelModal)
+      if (url === '/activity-drafts') {
+        return {
+          data: {
+            message: 'Activity drafts fetched successfully',
+            data: {
+              activityDrafts: [
+                {
+                  id: 'activity-model-1',
+                  type: ActivityDraftType.MODELO,
+                  title: 'Atividade de Álgebra - Equações',
+                  creatorUserInstitutionId: 'mock-institution-id',
+                  subjectId: 'matematica',
+                  subject: {
+                    id: 'matematica',
+                    subjectName: 'Matemática',
+                    subjectIcon: 'MathOperations',
+                    subjectColor: '#0066b8',
+                  },
+                  filters: {
+                    questionTypes: ['multiple-choice'],
+                    subjects: ['matematica'],
+                    topics: ['tema-1'],
+                  },
+                  createdAt: '2024-01-15T10:00:00.000Z',
+                  updatedAt: '2024-01-15T10:00:00.000Z',
+                },
+                {
+                  id: 'activity-model-2',
+                  type: ActivityDraftType.MODELO,
+                  title: 'Atividade de Geometria - Formas',
+                  creatorUserInstitutionId: 'mock-institution-id',
+                  subjectId: 'matematica',
+                  subject: {
+                    id: 'matematica',
+                    subjectName: 'Matemática',
+                    subjectIcon: 'MathOperations',
+                    subjectColor: '#0066b8',
+                  },
+                  filters: {
+                    questionTypes: ['multiple-choice', 'open-ended'],
+                    subjects: ['matematica'],
+                    topics: ['tema-2'],
+                  },
+                  createdAt: '2024-01-14T14:30:00.000Z',
+                  updatedAt: '2024-01-14T14:30:00.000Z',
+                },
+                {
+                  id: 'activity-model-3',
+                  type: ActivityDraftType.MODELO,
+                  title: 'Atividade de Português - Interpretação',
+                  creatorUserInstitutionId: 'mock-institution-id',
+                  subjectId: 'portugues',
+                  subject: {
+                    id: 'portugues',
+                    subjectName: 'Português',
+                    subjectIcon: 'ChatPT',
+                    subjectColor: '#00a651',
+                  },
+                  filters: {
+                    questionTypes: ['open-ended'],
+                    subjects: ['portugues'],
+                    topics: ['literatura'],
+                  },
+                  createdAt: '2024-01-13T09:15:00.000Z',
+                  updatedAt: '2024-01-13T09:15:00.000Z',
+                },
+                {
+                  id: 'activity-model-4',
+                  type: ActivityDraftType.MODELO,
+                  title: 'Atividade de História - Brasil Colonial',
+                  creatorUserInstitutionId: 'mock-institution-id',
+                  subjectId: 'historia',
+                  subject: {
+                    id: 'historia',
+                    subjectName: 'História',
+                    subjectIcon: 'CastleTurret',
+                    subjectColor: '#6366f1',
+                  },
+                  filters: {
+                    questionTypes: ['multiple-choice'],
+                    subjects: ['historia'],
+                  },
+                  createdAt: '2024-01-12T16:45:00.000Z',
+                  updatedAt: '2024-01-12T16:45:00.000Z',
+                },
+                {
+                  id: 'activity-model-5',
+                  type: ActivityDraftType.MODELO,
+                  title: 'Atividade de Física - Leis de Newton',
+                  creatorUserInstitutionId: 'mock-institution-id',
+                  subjectId: 'fisica',
+                  subject: {
+                    id: 'fisica',
+                    subjectName: 'Física',
+                    subjectIcon: 'Atom',
+                    subjectColor: '#8B5CF6',
+                  },
+                  filters: {
+                    questionTypes: ['multiple-choice', 'calculation'],
+                    subjects: ['fisica'],
+                  },
+                  createdAt: '2024-01-11T11:20:00.000Z',
+                  updatedAt: '2024-01-11T11:20:00.000Z',
+                },
+              ],
+              total: 5,
+            },
+          },
+        };
+      }
+
+      // Mock GET /activity-drafts/:id endpoint (for activity details)
+      if (url.startsWith('/activity-drafts/')) {
+        const activityId = url.split('/').pop() || 'activity-model-1';
+        // Return ActivityData format with selectedQuestions array
+        return {
+          data: {
+            data: {
+              id: activityId,
+              type: 'MODELO',
+              title: 'Atividade de Álgebra - Equações',
+              subjectId: 'matematica',
+              filters: {
+                questionTypes: ['MULTIPLA_ESCOLHA'],
+                subjects: ['matematica'],
+                topics: ['tema-1'],
+              },
+              questionIds: ['question-1', 'question-2', 'question-3'],
+              selectedQuestions: [
+                {
+                  id: 'question-1',
+                  statement:
+                    '<p>Resolva a equação do primeiro grau: <strong>2x + 5 = 15</strong></p>',
+                  description: null,
+                  questionType: 'MULTIPLA_ESCOLHA',
+                  status: 'APROVADO',
+                  difficultyLevel: 'FACIL',
+                  questionBankYearId: 'qb-year-1',
+                  solutionExplanation:
+                    'Para resolver, isolamos x: 2x = 15 - 5, então 2x = 10, logo x = 5',
+                  createdAt: '2024-01-10T10:00:00.000Z',
+                  updatedAt: '2024-01-10T10:00:00.000Z',
+                  knowledgeMatrix: [
+                    {
+                      subject: {
+                        id: 'matematica',
+                        name: 'Matemática',
+                        color: '#0066b8',
+                        icon: 'MathOperations',
+                      },
+                      topic: {
+                        id: 'tema-1',
+                        name: 'Álgebra',
+                      },
+                      subtopic: {
+                        id: 'subtema-1',
+                        name: 'Equações do 1º grau',
+                      },
+                    },
+                  ],
+                  options: [
+                    { id: 'opt-1a', option: 'x = 5', correct: true },
+                    { id: 'opt-1b', option: 'x = 10', correct: false },
+                    { id: 'opt-1c', option: 'x = 7', correct: false },
+                    { id: 'opt-1d', option: 'x = 3', correct: false },
+                  ],
+                },
+                {
+                  id: 'question-2',
+                  statement:
+                    '<p>Qual é o valor de <strong>x</strong> na equação <em>3x - 9 = 0</em>?</p>',
+                  description: null,
+                  questionType: 'MULTIPLA_ESCOLHA',
+                  status: 'APROVADO',
+                  difficultyLevel: 'FACIL',
+                  questionBankYearId: 'qb-year-1',
+                  solutionExplanation: 'Isolando x: 3x = 9, então x = 9/3 = 3',
+                  createdAt: '2024-01-10T10:00:00.000Z',
+                  updatedAt: '2024-01-10T10:00:00.000Z',
+                  knowledgeMatrix: [
+                    {
+                      subject: {
+                        id: 'matematica',
+                        name: 'Matemática',
+                        color: '#0066b8',
+                        icon: 'MathOperations',
+                      },
+                      topic: {
+                        id: 'tema-1',
+                        name: 'Álgebra',
+                      },
+                      subtopic: {
+                        id: 'subtema-1',
+                        name: 'Equações do 1º grau',
+                      },
+                    },
+                  ],
+                  options: [
+                    { id: 'opt-2a', option: 'x = 3', correct: true },
+                    { id: 'opt-2b', option: 'x = 9', correct: false },
+                    { id: 'opt-2c', option: 'x = -3', correct: false },
+                    { id: 'opt-2d', option: 'x = 0', correct: false },
+                  ],
+                },
+                {
+                  id: 'question-3',
+                  statement:
+                    '<p>Se <strong>5x + 10 = 35</strong>, qual o valor de x?</p>',
+                  description: null,
+                  questionType: 'MULTIPLA_ESCOLHA',
+                  status: 'APROVADO',
+                  difficultyLevel: 'MEDIO',
+                  questionBankYearId: 'qb-year-1',
+                  solutionExplanation: '5x = 35 - 10 = 25, então x = 25/5 = 5',
+                  createdAt: '2024-01-10T10:00:00.000Z',
+                  updatedAt: '2024-01-10T10:00:00.000Z',
+                  knowledgeMatrix: [
+                    {
+                      subject: {
+                        id: 'matematica',
+                        name: 'Matemática',
+                        color: '#0066b8',
+                        icon: 'MathOperations',
+                      },
+                      topic: {
+                        id: 'tema-1',
+                        name: 'Álgebra',
+                      },
+                      subtopic: {
+                        id: 'subtema-1',
+                        name: 'Equações do 1º grau',
+                      },
+                    },
+                  ],
+                  options: [
+                    { id: 'opt-3a', option: 'x = 5', correct: true },
+                    { id: 'opt-3b', option: 'x = 7', correct: false },
+                    { id: 'opt-3c', option: 'x = 25', correct: false },
+                    { id: 'opt-3d', option: 'x = 4', correct: false },
+                  ],
+                },
+              ],
+              updatedAt: '2024-01-15T10:00:00.000Z',
             },
           },
         };
