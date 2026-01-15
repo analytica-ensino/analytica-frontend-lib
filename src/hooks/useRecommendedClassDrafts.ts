@@ -1,32 +1,33 @@
 import { useState, useCallback } from 'react';
 import {
   goalModelsApiResponseSchema,
-  transformGoalModelToTableItem,
-} from './useGoalModels';
+  transformRecommendedClassModelToTableItem,
+} from './useRecommendedClassModels';
 import { createFetchErrorHandler } from '../utils/hookErrorHandler';
 import type {
-  GoalModelTableItem,
-  GoalModelsApiResponse,
-  GoalModelFilters,
-  GoalModelPagination,
+  RecommendedClassModelTableItem,
+  RecommendedClassModelsApiResponse,
+  RecommendedClassModelFilters,
+  RecommendedClassModelPagination,
 } from '../types/recommendedLessons';
 
 /**
  * Hook state interface for goal drafts
  */
-export interface UseGoalDraftsState {
-  models: GoalModelTableItem[];
+export interface UseRecommendedClassDraftsState {
+  models: RecommendedClassModelTableItem[];
   loading: boolean;
   error: string | null;
-  pagination: GoalModelPagination;
+  pagination: RecommendedClassModelPagination;
 }
 
 /**
  * Hook return type for goal drafts
  */
-export interface UseGoalDraftsReturn extends UseGoalDraftsState {
+export interface UseRecommendedClassDraftsReturn
+  extends UseRecommendedClassDraftsState {
   fetchModels: (
-    filters?: GoalModelFilters,
+    filters?: RecommendedClassModelFilters,
     subjectsMap?: Map<string, string>
   ) => Promise<void>;
   deleteModel: (id: string) => Promise<boolean>;
@@ -35,7 +36,7 @@ export interface UseGoalDraftsReturn extends UseGoalDraftsState {
 /**
  * Default pagination values for drafts
  */
-export const DEFAULT_GOAL_DRAFTS_PAGINATION: GoalModelPagination = {
+export const DEFAULT_GOAL_DRAFTS_PAGINATION: RecommendedClassModelPagination = {
   total: 0,
   page: 1,
   limit: 10,
@@ -46,44 +47,44 @@ export const DEFAULT_GOAL_DRAFTS_PAGINATION: GoalModelPagination = {
  * Handle errors during draft fetch
  * Uses the generic error handler factory to reduce code duplication
  */
-export const handleGoalDraftFetchError = createFetchErrorHandler(
+export const handleRecommendedClassDraftFetchError = createFetchErrorHandler(
   'Erro ao validar dados de rascunhos de aulas',
   'Erro ao carregar rascunhos de aulas'
 );
 
 /**
- * Factory function to create useGoalDrafts hook
+ * Factory function to create useRecommendedClassDrafts hook
  *
- * @param fetchGoalDrafts - Function to fetch drafts from API
- * @param deleteGoalDraft - Function to delete a draft
+ * @param fetchRecommendedClassDrafts - Function to fetch drafts from API
+ * @param deleteRecommendedClassDraft - Function to delete a draft
  * @returns Hook for managing goal drafts
  *
  * @example
  * ```tsx
  * // In your app setup
- * const fetchGoalDrafts = async (filters) => {
+ * const fetchRecommendedClassDrafts = async (filters) => {
  *   const response = await api.get('/recommended-class/drafts', { params: { ...filters, type: 'RASCUNHO' } });
  *   return response.data;
  * };
  *
- * const deleteGoalDraft = async (id) => {
+ * const deleteRecommendedClassDraft = async (id) => {
  *   await api.delete(`/recommended-class/drafts/${id}`);
  * };
  *
- * const useGoalDrafts = createUseGoalDrafts(fetchGoalDrafts, deleteGoalDraft);
+ * const useRecommendedClassDrafts = createUseRecommendedClassDrafts(fetchRecommendedClassDrafts, deleteRecommendedClassDraft);
  *
  * // In your component
- * const { models, loading, error, pagination, fetchModels, deleteModel } = useGoalDrafts();
+ * const { models, loading, error, pagination, fetchModels, deleteModel } = useRecommendedClassDrafts();
  * ```
  */
-export const createUseGoalDrafts = (
-  fetchGoalDrafts: (
-    filters?: GoalModelFilters
-  ) => Promise<GoalModelsApiResponse>,
-  deleteGoalDraft: (id: string) => Promise<void>
+export const createUseRecommendedClassDrafts = (
+  fetchRecommendedClassDrafts: (
+    filters?: RecommendedClassModelFilters
+  ) => Promise<RecommendedClassModelsApiResponse>,
+  deleteRecommendedClassDraft: (id: string) => Promise<void>
 ) => {
-  return (): UseGoalDraftsReturn => {
-    const [state, setState] = useState<UseGoalDraftsState>({
+  return (): UseRecommendedClassDraftsReturn => {
+    const [state, setState] = useState<UseRecommendedClassDraftsState>({
       models: [],
       loading: false,
       error: null,
@@ -96,19 +97,22 @@ export const createUseGoalDrafts = (
      * @param subjectsMap - Map of subject IDs to subject names for display
      */
     const fetchModels = useCallback(
-      async (filters?: GoalModelFilters, subjectsMap?: Map<string, string>) => {
+      async (
+        filters?: RecommendedClassModelFilters,
+        subjectsMap?: Map<string, string>
+      ) => {
         setState((prev) => ({ ...prev, loading: true, error: null }));
 
         try {
           // Fetch data from API
-          const responseData = await fetchGoalDrafts(filters);
+          const responseData = await fetchRecommendedClassDrafts(filters);
 
           // Validate response with Zod
           const validatedData = goalModelsApiResponseSchema.parse(responseData);
 
           // Transform drafts to table format
           const tableItems = validatedData.data.drafts.map((draft) =>
-            transformGoalModelToTableItem(draft, subjectsMap)
+            transformRecommendedClassModelToTableItem(draft, subjectsMap)
           );
 
           // Calculate pagination
@@ -130,7 +134,7 @@ export const createUseGoalDrafts = (
             },
           });
         } catch (error) {
-          const errorMessage = handleGoalDraftFetchError(error);
+          const errorMessage = handleRecommendedClassDraftFetchError(error);
           setState((prev) => ({
             ...prev,
             loading: false,
@@ -138,7 +142,7 @@ export const createUseGoalDrafts = (
           }));
         }
       },
-      [fetchGoalDrafts]
+      [fetchRecommendedClassDrafts]
     );
 
     /**
@@ -149,14 +153,14 @@ export const createUseGoalDrafts = (
     const deleteModel = useCallback(
       async (id: string): Promise<boolean> => {
         try {
-          await deleteGoalDraft(id);
+          await deleteRecommendedClassDraft(id);
           return true;
         } catch (error) {
           console.error('Erro ao deletar rascunho:', error);
           return false;
         }
       },
-      [deleteGoalDraft]
+      [deleteRecommendedClassDraft]
     );
 
     return {
@@ -168,6 +172,6 @@ export const createUseGoalDrafts = (
 };
 
 /**
- * Alias for createUseGoalDrafts
+ * Alias for createUseRecommendedClassDrafts
  */
-export const createGoalDraftsHook = createUseGoalDrafts;
+export const createRecommendedClassDraftsHook = createUseRecommendedClassDrafts;

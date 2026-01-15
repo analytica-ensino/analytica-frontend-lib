@@ -1,13 +1,13 @@
 import { useState, useCallback } from 'react';
 import { z } from 'zod';
 import dayjs from 'dayjs';
-import { GoalDisplayStatus } from '../types/recommendedLessons';
+import { RecommendedClassDisplayStatus } from '../types/recommendedLessons';
 import type {
-  GoalHistoryItem,
-  GoalTableItem,
-  GoalsHistoryApiResponse,
-  GoalHistoryFilters,
-  GoalHistoryPagination,
+  RecommendedClassHistoryItem,
+  RecommendedClassTableItem,
+  RecommendedClassHistoryApiResponse,
+  RecommendedClassHistoryFilters,
+  RecommendedClassHistoryPagination,
 } from '../types/recommendedLessons';
 
 /**
@@ -73,10 +73,10 @@ export const goalsHistoryApiResponseSchema = z.object({
  * Hook state interface
  */
 export interface UseRecommendedLessonsHistoryState {
-  recommendedClass: GoalTableItem[];
+  recommendedClass: RecommendedClassTableItem[];
   loading: boolean;
   error: string | null;
-  pagination: GoalHistoryPagination;
+  pagination: RecommendedClassHistoryPagination;
 }
 
 /**
@@ -84,42 +84,44 @@ export interface UseRecommendedLessonsHistoryState {
  */
 export interface UseRecommendedLessonsHistoryReturn
   extends UseRecommendedLessonsHistoryState {
-  fetchGoals: (filters?: GoalHistoryFilters) => Promise<void>;
+  fetchRecommendedClass: (
+    filters?: RecommendedClassHistoryFilters
+  ) => Promise<void>;
 }
 
 /**
  * Determine status based on dates and completion
- * @param finalDate - Goal final date
+ * @param finalDate - RecommendedClass final date
  * @param completionPercentage - Completion percentage
  * @returns Display status for UI
  */
-export const determineGoalStatus = (
+export const determineRecommendedClassStatus = (
   finalDate: string | null,
   completionPercentage: number
-): GoalDisplayStatus => {
+): RecommendedClassDisplayStatus => {
   if (completionPercentage === 100) {
-    return GoalDisplayStatus.CONCLUIDA;
+    return RecommendedClassDisplayStatus.CONCLUIDA;
   }
 
   if (finalDate) {
     const now = dayjs();
     const deadline = dayjs(finalDate);
     if (deadline.isBefore(now)) {
-      return GoalDisplayStatus.VENCIDA;
+      return RecommendedClassDisplayStatus.VENCIDA;
     }
   }
 
-  return GoalDisplayStatus.ATIVA;
+  return RecommendedClassDisplayStatus.ATIVA;
 };
 
 /**
  * Transform API response to table item format
- * @param item - Goal history item from API response
+ * @param item - RecommendedClass history item from API response
  * @returns Formatted goal for table display
  */
-export const transformGoalToTableItem = (
-  item: GoalHistoryItem
-): GoalTableItem => {
+export const transformRecommendedClassToTableItem = (
+  item: RecommendedClassHistoryItem
+): RecommendedClassTableItem => {
   // Get first breakdown for school/class info (or aggregate)
   const firstBreakdown = item.breakdown[0];
   const schoolName = firstBreakdown?.schoolName || '-';
@@ -142,7 +144,7 @@ export const transformGoalToTableItem = (
     year: '-', // API doesn't provide year directly
     subject: item.subject?.name || '-',
     class: classDisplay,
-    status: determineGoalStatus(
+    status: determineRecommendedClassStatus(
       item.recommendedClass.finalDate,
       item.stats.completionPercentage
     ),
@@ -155,7 +157,7 @@ export const transformGoalToTableItem = (
  * @param error - Error object
  * @returns Error message for UI display
  */
-export const handleGoalFetchError = (error: unknown): string => {
+export const handleRecommendedClassFetchError = (error: unknown): string => {
   if (error instanceof z.ZodError) {
     console.error('Erro ao validar dados de histórico de aulas:', error);
     return 'Erro ao validar dados de histórico de aulas';
@@ -168,27 +170,27 @@ export const handleGoalFetchError = (error: unknown): string => {
 /**
  * Factory function to create useRecommendedLessonsHistory hook
  *
- * @param fetchGoalsHistory - Function to fetch goals from API
+ * @param fetchRecommendedClassHistory - Function to fetch goals from API
  * @returns Hook for managing recommended lessons history
  *
  * @example
  * ```tsx
  * // In your app setup
- * const fetchGoalsHistory = async (filters) => {
+ * const fetchRecommendedClassHistory = async (filters) => {
  *   const response = await api.get('/recommended-class/history', { params: filters });
  *   return response.data;
  * };
  *
- * const useGoalsHistory = createUseRecommendedLessonsHistory(fetchGoalsHistory);
+ * const useRecommendedClassHistory = createUseRecommendedLessonsHistory(fetchRecommendedClassHistory);
  *
  * // In your component
- * const { goals, loading, error, pagination, fetchGoals } = useGoalsHistory();
+ * const { goals, loading, error, pagination, fetchRecommendedClass } = useRecommendedClassHistory();
  * ```
  */
 export const createUseRecommendedLessonsHistory = (
-  fetchGoalsHistory: (
-    filters?: GoalHistoryFilters
-  ) => Promise<GoalsHistoryApiResponse>
+  fetchRecommendedClassHistory: (
+    filters?: RecommendedClassHistoryFilters
+  ) => Promise<RecommendedClassHistoryApiResponse>
 ) => {
   return (): UseRecommendedLessonsHistoryReturn => {
     const [state, setState] = useState<UseRecommendedLessonsHistoryState>({
@@ -207,13 +209,13 @@ export const createUseRecommendedLessonsHistory = (
      * Fetch goals history from API
      * @param filters - Optional filters for pagination, search, sorting, etc.
      */
-    const fetchGoals = useCallback(
-      async (filters?: GoalHistoryFilters) => {
+    const fetchRecommendedClass = useCallback(
+      async (filters?: RecommendedClassHistoryFilters) => {
         setState((prev) => ({ ...prev, loading: true, error: null }));
 
         try {
           // Fetch data from API
-          const responseData = await fetchGoalsHistory(filters);
+          const responseData = await fetchRecommendedClassHistory(filters);
 
           // Validate response with Zod
           const validatedData =
@@ -221,7 +223,7 @@ export const createUseRecommendedLessonsHistory = (
 
           // Transform goals to table format
           const tableItems = validatedData.data.recommendedClass.map(
-            transformGoalToTableItem
+            transformRecommendedClassToTableItem
           );
 
           // Calculate pagination from total
@@ -243,7 +245,7 @@ export const createUseRecommendedLessonsHistory = (
             },
           });
         } catch (error) {
-          const errorMessage = handleGoalFetchError(error);
+          const errorMessage = handleRecommendedClassFetchError(error);
           setState((prev) => ({
             ...prev,
             loading: false,
@@ -251,12 +253,12 @@ export const createUseRecommendedLessonsHistory = (
           }));
         }
       },
-      [fetchGoalsHistory]
+      [fetchRecommendedClassHistory]
     );
 
     return {
       ...state,
-      fetchGoals,
+      fetchRecommendedClass,
     };
   };
 };

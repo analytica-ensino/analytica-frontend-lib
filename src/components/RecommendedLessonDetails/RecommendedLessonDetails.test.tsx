@@ -702,7 +702,7 @@ describe('RecommendedLessonDetails', () => {
   });
 
   describe('Missing lessons data', () => {
-    it('should handle missing lessonsGoals gracefully', () => {
+    it('should handle missing lessonsRecommendedClass gracefully', () => {
       const dataWithoutLessons: LessonDetailsData = {
         ...mockLessonData,
         recommendedClass: {

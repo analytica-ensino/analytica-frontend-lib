@@ -15,30 +15,30 @@ import { SubjectEnum } from '../../enums/SubjectEnum';
 import type { ColumnConfig, TableParams } from '../TableProvider/TableProvider';
 import type { FilterConfig } from '../Filter';
 import {
-  GoalDisplayStatus,
-  GoalApiStatus,
-  getGoalStatusBadgeAction,
+  RecommendedClassDisplayStatus,
+  RecommendedClassApiStatus,
+  getRecommendedClassStatusBadgeAction,
   GOAL_FILTER_STATUS_OPTIONS,
-  type GoalTableItem,
-  type GoalHistoryFilters,
-  type GoalsHistoryApiResponse,
-  type GoalUserFilterData,
-  type GoalFilterOption,
-  type GoalModelFilters,
-  type GoalModelsApiResponse,
-  type GoalModelTableItem,
+  type RecommendedClassTableItem,
+  type RecommendedClassHistoryFilters,
+  type RecommendedClassHistoryApiResponse,
+  type RecommendedClassUserFilterData,
+  type RecommendedClassFilterOption,
+  type RecommendedClassModelFilters,
+  type RecommendedClassModelsApiResponse,
+  type RecommendedClassModelTableItem,
 } from '../../types/recommendedLessons';
 import {
   createUseRecommendedLessonsHistory,
   type UseRecommendedLessonsHistoryReturn,
 } from '../../hooks/useRecommendedLessons';
-import { GoalModelsTab } from './tabs/ModelsTab';
-import { GoalDraftsTab } from './tabs/DraftsTab';
+import { RecommendedClassModelsTab } from './tabs/ModelsTab';
+import { RecommendedClassDraftsTab } from './tabs/DraftsTab';
 
 /**
  * Enum for page tabs - exported for external routing control
  */
-export enum GoalPageTab {
+export enum RecommendedClassPageTab {
   HISTORY = 'history',
   DRAFTS = 'drafts',
   MODELS = 'models',
@@ -48,18 +48,18 @@ export enum GoalPageTab {
  * Props for the RecommendedLessonsHistory component
  */
 export interface RecommendedLessonsHistoryProps {
-  /** Function to fetch goals history from API. Must return GoalsHistoryApiResponse. */
-  fetchGoalsHistory: (
-    filters?: GoalHistoryFilters
-  ) => Promise<GoalsHistoryApiResponse>;
+  /** Function to fetch goals history from API. Must return RecommendedClassHistoryApiResponse. */
+  fetchRecommendedClassHistory: (
+    filters?: RecommendedClassHistoryFilters
+  ) => Promise<RecommendedClassHistoryApiResponse>;
   /** Callback when create lesson button is clicked */
   onCreateLesson: () => void;
   /** Callback when a row is clicked */
-  onRowClick: (row: GoalTableItem) => void;
+  onRowClick: (row: RecommendedClassTableItem) => void;
   /** Callback when delete action is clicked */
-  onDeleteGoal?: (id: string) => void;
+  onDeleteRecommendedClass?: (id: string) => void;
   /** Callback when edit action is clicked */
-  onEditGoal?: (id: string) => void;
+  onEditRecommendedClass?: (id: string) => void;
   /** Image for empty state */
   emptyStateImage?: string;
   /** Image for no search results */
@@ -67,7 +67,7 @@ export interface RecommendedLessonsHistoryProps {
   /** Function to map subject name to SubjectEnum */
   mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /** User data for populating filter options */
-  userFilterData?: GoalUserFilterData;
+  userFilterData?: RecommendedClassUserFilterData;
   /** Page title */
   title?: string;
   /** Create button text */
@@ -75,17 +75,17 @@ export interface RecommendedLessonsHistoryProps {
   /** Search placeholder */
   searchPlaceholder?: string;
   /** Function to fetch goal models from API (optional - for Models tab) */
-  fetchGoalModels?: (
-    filters?: GoalModelFilters
-  ) => Promise<GoalModelsApiResponse>;
+  fetchRecommendedClassModels?: (
+    filters?: RecommendedClassModelFilters
+  ) => Promise<RecommendedClassModelsApiResponse>;
   /** Function to delete a goal model (optional - for Models tab) */
-  deleteGoalModel?: (id: string) => Promise<void>;
+  deleteRecommendedClassModel?: (id: string) => Promise<void>;
   /** Callback when create model button is clicked (optional - for Models tab) */
   onCreateModel?: () => void;
   /** Callback when send lesson button is clicked on a model (optional - for Models tab) */
-  onSendLesson?: (model: GoalModelTableItem) => void;
+  onSendLesson?: (model: RecommendedClassModelTableItem) => void;
   /** Callback when edit model button is clicked (optional - for Models tab) */
-  onEditModel?: (model: GoalModelTableItem) => void;
+  onEditModel?: (model: RecommendedClassModelTableItem) => void;
   /**
    * Map of subject IDs to names for models display.
    * IMPORTANT: This Map should be memoized with useMemo in the parent component
@@ -93,25 +93,25 @@ export interface RecommendedLessonsHistoryProps {
    */
   subjectsMap?: Map<string, string>;
   /** Function to fetch goal drafts from API (optional - for Drafts tab) */
-  fetchGoalDrafts?: (
-    filters?: GoalModelFilters
-  ) => Promise<GoalModelsApiResponse>;
+  fetchRecommendedClassDrafts?: (
+    filters?: RecommendedClassModelFilters
+  ) => Promise<RecommendedClassModelsApiResponse>;
   /** Function to delete a goal draft (optional - for Drafts tab) */
-  deleteGoalDraft?: (id: string) => Promise<void>;
+  deleteRecommendedClassDraft?: (id: string) => Promise<void>;
   /** Callback when send draft button is clicked (optional - for Drafts tab) */
-  onSendDraft?: (draft: GoalModelTableItem) => void;
+  onSendDraft?: (draft: RecommendedClassModelTableItem) => void;
   /** Callback when edit draft button is clicked (optional - for Drafts tab) */
-  onEditDraft?: (draft: GoalModelTableItem) => void;
+  onEditDraft?: (draft: RecommendedClassModelTableItem) => void;
   /**
    * Default tab to display. When provided with onTabChange, enables controlled mode
    * for URL routing.
    */
-  defaultTab?: GoalPageTab;
+  defaultTab?: RecommendedClassPageTab;
   /**
    * Callback when tab changes. When provided, enables controlled mode for URL routing.
    * Use this to navigate to different routes when tabs change.
    */
-  onTabChange?: (tab: GoalPageTab) => void;
+  onTabChange?: (tab: RecommendedClassPageTab) => void;
 }
 
 /**
@@ -127,8 +127,10 @@ const extractFilterValue = (
 /**
  * Build goal history filters from table params
  */
-const buildFiltersFromParams = (params: TableParams): GoalHistoryFilters => {
-  const filters: GoalHistoryFilters = {
+const buildFiltersFromParams = (
+  params: TableParams
+): RecommendedClassHistoryFilters => {
+  const filters: RecommendedClassHistoryFilters = {
     page: params.page,
     limit: params.limit,
   };
@@ -139,7 +141,7 @@ const buildFiltersFromParams = (params: TableParams): GoalHistoryFilters => {
 
   // Status filter (single selection)
   if (Array.isArray(params.status) && params.status.length > 0) {
-    filters.status = params.status[0] as GoalApiStatus;
+    filters.status = params.status[0] as RecommendedClassApiStatus;
   }
 
   // School filter
@@ -174,8 +176,8 @@ const buildFiltersFromParams = (params: TableParams): GoalHistoryFilters => {
  * Get school options from user data
  */
 const getSchoolOptions = (
-  data: GoalUserFilterData | undefined
-): GoalFilterOption[] => {
+  data: RecommendedClassUserFilterData | undefined
+): RecommendedClassFilterOption[] => {
   if (!data?.schools) return [];
   return data.schools.map((school) => ({
     id: school.id,
@@ -187,8 +189,8 @@ const getSchoolOptions = (
  * Get subject options from user data
  */
 const getSubjectOptions = (
-  data: GoalUserFilterData | undefined
-): GoalFilterOption[] => {
+  data: RecommendedClassUserFilterData | undefined
+): RecommendedClassFilterOption[] => {
   if (!data?.subjects) return [];
   return data.subjects.map((subject) => ({
     id: subject.id,
@@ -200,8 +202,8 @@ const getSubjectOptions = (
  * Get school year options from user data
  */
 const getSchoolYearOptions = (
-  data: GoalUserFilterData | undefined
-): GoalFilterOption[] => {
+  data: RecommendedClassUserFilterData | undefined
+): RecommendedClassFilterOption[] => {
   if (!data?.schoolYears) return [];
   return data.schoolYears.map((year) => ({
     id: year.id,
@@ -213,8 +215,8 @@ const getSchoolYearOptions = (
  * Get class options from user data
  */
 const getClassOptions = (
-  data: GoalUserFilterData | undefined
-): GoalFilterOption[] => {
+  data: RecommendedClassUserFilterData | undefined
+): RecommendedClassFilterOption[] => {
   if (!data?.classes) return [];
   return data.classes.map((cls) => ({
     id: cls.id,
@@ -225,8 +227,8 @@ const getClassOptions = (
 /**
  * Create filter configuration for goals
  */
-const createGoalFiltersConfig = (
-  userData: GoalUserFilterData | undefined
+const createRecommendedClassFiltersConfig = (
+  userData: RecommendedClassUserFilterData | undefined
 ): FilterConfig[] => [
   {
     key: 'academic',
@@ -313,9 +315,9 @@ const createGoalFiltersConfig = (
  */
 const createTableColumns = (
   mapSubjectNameToEnum: ((name: string) => SubjectEnum | null) | undefined,
-  onDeleteGoal: ((id: string) => void) | undefined,
-  onEditGoal: ((id: string) => void) | undefined
-): ColumnConfig<GoalTableItem>[] => [
+  onDeleteRecommendedClass: ((id: string) => void) | undefined,
+  onEditRecommendedClass: ((id: string) => void) | undefined
+): ColumnConfig<RecommendedClassTableItem>[] => [
   {
     key: 'startDate',
     label: 'Início',
@@ -416,7 +418,9 @@ const createTableColumns = (
       return (
         <Badge
           variant="solid"
-          action={getGoalStatusBadgeAction(status as GoalDisplayStatus)}
+          action={getRecommendedClassStatusBadgeAction(
+            status as RecommendedClassDisplayStatus
+          )}
           size="small"
         >
           {status}
@@ -444,15 +448,15 @@ const createTableColumns = (
     label: '',
     sortable: false,
     className: 'w-20',
-    render: (_value: unknown, row: GoalTableItem) => {
+    render: (_value: unknown, row: RecommendedClassTableItem) => {
       const handleDelete = (e: MouseEvent) => {
         e.stopPropagation();
-        onDeleteGoal?.(row.id);
+        onDeleteRecommendedClass?.(row.id);
       };
 
       const handleEdit = (e: MouseEvent) => {
         e.stopPropagation();
-        onEditGoal?.(row.id);
+        onEditRecommendedClass?.(row.id);
       };
 
       return (
@@ -491,11 +495,11 @@ const createTableColumns = (
  * Displays goals/recommended lessons history with tabs, filters, and table
  */
 export const RecommendedLessonsHistory = ({
-  fetchGoalsHistory,
+  fetchRecommendedClassHistory,
   onCreateLesson,
   onRowClick,
-  onDeleteGoal,
-  onEditGoal,
+  onDeleteRecommendedClass,
+  onEditRecommendedClass,
   emptyStateImage,
   noSearchImage,
   mapSubjectNameToEnum,
@@ -503,21 +507,21 @@ export const RecommendedLessonsHistory = ({
   title = 'Histórico de aulas recomendadas',
   createButtonText = 'Criar aula',
   searchPlaceholder = 'Buscar aula',
-  fetchGoalModels,
-  deleteGoalModel,
+  fetchRecommendedClassModels,
+  deleteRecommendedClassModel,
   onCreateModel,
   onSendLesson,
   onEditModel,
   subjectsMap,
-  fetchGoalDrafts,
-  deleteGoalDraft,
+  fetchRecommendedClassDrafts,
+  deleteRecommendedClassDraft,
   onSendDraft,
   onEditDraft,
   defaultTab,
   onTabChange,
 }: RecommendedLessonsHistoryProps) => {
-  const [activeTab, setActiveTab] = useState<GoalPageTab>(
-    defaultTab ?? GoalPageTab.HISTORY
+  const [activeTab, setActiveTab] = useState<RecommendedClassPageTab>(
+    defaultTab ?? RecommendedClassPageTab.HISTORY
   );
 
   // Sync with external defaultTab prop when it changes (for URL routing)
@@ -532,23 +536,23 @@ export const RecommendedLessonsHistory = ({
    */
   const handleTabChange = useCallback(
     (value: string) => {
-      const newTab = value as GoalPageTab;
+      const newTab = value as RecommendedClassPageTab;
       setActiveTab(newTab);
       onTabChange?.(newTab);
     },
     [onTabChange]
   );
 
-  // Use ref to keep stable reference of fetchGoalsHistory
+  // Use ref to keep stable reference of fetchRecommendedClassHistory
   // This prevents hook recreation if parent doesn't memoize the function
-  const fetchGoalsHistoryRef = useRef(fetchGoalsHistory);
-  fetchGoalsHistoryRef.current = fetchGoalsHistory;
+  const fetchRecommendedClassHistoryRef = useRef(fetchRecommendedClassHistory);
+  fetchRecommendedClassHistoryRef.current = fetchRecommendedClassHistory;
 
   // Create hook instance with stable fetch function wrapper
-  const useGoalsHistory = useMemo(
+  const useRecommendedClassHistory = useMemo(
     () =>
       createUseRecommendedLessonsHistory((filters) =>
-        fetchGoalsHistoryRef.current(filters)
+        fetchRecommendedClassHistoryRef.current(filters)
       ),
     []
   );
@@ -559,18 +563,23 @@ export const RecommendedLessonsHistory = ({
     loading,
     error,
     pagination,
-    fetchGoals,
-  }: UseRecommendedLessonsHistoryReturn = useGoalsHistory();
+    fetchRecommendedClass,
+  }: UseRecommendedLessonsHistoryReturn = useRecommendedClassHistory();
 
   // Create filter and column configurations
   const initialFilterConfigs = useMemo(
-    () => createGoalFiltersConfig(userFilterData),
+    () => createRecommendedClassFiltersConfig(userFilterData),
     [userFilterData]
   );
 
   const tableColumns = useMemo(
-    () => createTableColumns(mapSubjectNameToEnum, onDeleteGoal, onEditGoal),
-    [mapSubjectNameToEnum, onDeleteGoal, onEditGoal]
+    () =>
+      createTableColumns(
+        mapSubjectNameToEnum,
+        onDeleteRecommendedClass,
+        onEditRecommendedClass
+      ),
+    [mapSubjectNameToEnum, onDeleteRecommendedClass, onEditRecommendedClass]
   );
 
   /**
@@ -581,9 +590,9 @@ export const RecommendedLessonsHistory = ({
   const handleParamsChange = useCallback(
     (params: TableParams) => {
       const filters = buildFiltersFromParams(params);
-      fetchGoals(filters);
+      fetchRecommendedClass(filters);
     },
-    [fetchGoals]
+    [fetchRecommendedClass]
   );
 
   return (
@@ -610,7 +619,7 @@ export const RecommendedLessonsHistory = ({
           {/* Tabs Menu */}
           <div className="flex-shrink-0 lg:w-auto self-center sm:self-auto">
             <Menu
-              defaultValue={GoalPageTab.HISTORY}
+              defaultValue={RecommendedClassPageTab.HISTORY}
               value={activeTab}
               onValueChange={handleTabChange}
               variant="menu2"
@@ -622,7 +631,7 @@ export const RecommendedLessonsHistory = ({
               >
                 <MenuItem
                   variant="menu2"
-                  value={GoalPageTab.HISTORY}
+                  value={RecommendedClassPageTab.HISTORY}
                   data-testid="menu-item-history"
                   className="whitespace-nowrap flex-1 lg:flex-none"
                 >
@@ -630,7 +639,7 @@ export const RecommendedLessonsHistory = ({
                 </MenuItem>
                 <MenuItem
                   variant="menu2"
-                  value={GoalPageTab.DRAFTS}
+                  value={RecommendedClassPageTab.DRAFTS}
                   data-testid="menu-item-drafts"
                   className="whitespace-nowrap flex-1 lg:flex-none"
                 >
@@ -638,7 +647,7 @@ export const RecommendedLessonsHistory = ({
                 </MenuItem>
                 <MenuItem
                   variant="menu2"
-                  value={GoalPageTab.MODELS}
+                  value={RecommendedClassPageTab.MODELS}
                   data-testid="menu-item-models"
                   className="whitespace-nowrap flex-1 lg:flex-none"
                 >
@@ -651,7 +660,7 @@ export const RecommendedLessonsHistory = ({
 
         {/* Content Area */}
         <div className="flex flex-col items-center w-full min-h-0 flex-1">
-          {activeTab === GoalPageTab.HISTORY && (
+          {activeTab === RecommendedClassPageTab.HISTORY && (
             <>
               {/* Error State */}
               {error ? (
@@ -740,13 +749,13 @@ export const RecommendedLessonsHistory = ({
             </>
           )}
 
-          {activeTab === GoalPageTab.DRAFTS &&
-            fetchGoalDrafts &&
-            deleteGoalDraft &&
+          {activeTab === RecommendedClassPageTab.DRAFTS &&
+            fetchRecommendedClassDrafts &&
+            deleteRecommendedClassDraft &&
             onCreateLesson && (
-              <GoalDraftsTab
-                fetchGoalDrafts={fetchGoalDrafts}
-                deleteGoalDraft={deleteGoalDraft}
+              <RecommendedClassDraftsTab
+                fetchRecommendedClassDrafts={fetchRecommendedClassDrafts}
+                deleteRecommendedClassDraft={deleteRecommendedClassDraft}
                 onCreateDraft={onCreateLesson}
                 onSendDraft={onSendDraft}
                 onEditDraft={onEditDraft}
@@ -758,13 +767,13 @@ export const RecommendedLessonsHistory = ({
               />
             )}
 
-          {activeTab === GoalPageTab.MODELS &&
-            fetchGoalModels &&
-            deleteGoalModel &&
+          {activeTab === RecommendedClassPageTab.MODELS &&
+            fetchRecommendedClassModels &&
+            deleteRecommendedClassModel &&
             onCreateModel && (
-              <GoalModelsTab
-                fetchGoalModels={fetchGoalModels}
-                deleteGoalModel={deleteGoalModel}
+              <RecommendedClassModelsTab
+                fetchRecommendedClassModels={fetchRecommendedClassModels}
+                deleteRecommendedClassModel={deleteRecommendedClassModel}
                 onCreateModel={onCreateModel}
                 onSendLesson={onSendLesson}
                 onEditModel={onEditModel}

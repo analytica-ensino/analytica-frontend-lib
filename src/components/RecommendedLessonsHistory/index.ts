@@ -1,6 +1,6 @@
 export {
   RecommendedLessonsHistory,
   default,
-  GoalPageTab,
+  RecommendedClassPageTab,
   type RecommendedLessonsHistoryProps,
 } from './RecommendedLessonsHistory';

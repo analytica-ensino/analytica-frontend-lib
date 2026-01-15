@@ -894,7 +894,7 @@ describe('Internal Helper Functions', () => {
             id: '1',
             senderUserInstitutionId: null,
             receiverUserInstitutionId: 'user-1',
-            title: 'Goal Notification',
+            title: 'RecommendedClass Notification',
             description: 'Description',
             entityType: NotificationEntityType.GOAL,
             entityId: 'goal-1',
@@ -905,7 +905,7 @@ describe('Internal Helper Functions', () => {
             activity: null,
             recommendedClass: {
               id: 'goal-1',
-              title: 'Test Goal',
+              title: 'Test RecommendedClass',
             },
           },
         ],
@@ -930,7 +930,7 @@ describe('Internal Helper Functions', () => {
       expect(notification.entityType).toBe(NotificationEntityType.GOAL);
       expect(notification.recommendedClass).toEqual({
         id: 'goal-1',
-        title: 'Test Goal',
+        title: 'Test RecommendedClass',
       });
     });
 
@@ -941,7 +941,7 @@ describe('Internal Helper Functions', () => {
             id: '1',
             senderUserInstitutionId: null,
             receiverUserInstitutionId: 'user-1',
-            title: 'Goal Notification',
+            title: 'RecommendedClass Notification',
             description: 'Description',
             entityType: 'goal', // lowercase
             entityId: 'goal-1',
@@ -1084,7 +1084,7 @@ describe('Internal Helper Functions', () => {
             },
             recommendedClass: {
               id: 'goal-1',
-              title: 'Test Goal',
+              title: 'Test RecommendedClass',
             },
           },
         ],
@@ -1128,7 +1128,7 @@ describe('Internal Helper Functions', () => {
       });
       expect(notification.recommendedClass).toEqual({
         id: 'goal-1',
-        title: 'Test Goal',
+        title: 'Test RecommendedClass',
       });
     });
 

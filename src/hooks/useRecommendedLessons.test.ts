@@ -3,16 +3,16 @@ import { z } from 'zod';
 import {
   createUseRecommendedLessonsHistory,
   createRecommendedLessonsHistoryHook,
-  determineGoalStatus,
-  transformGoalToTableItem,
-  handleGoalFetchError,
+  determineRecommendedClassStatus,
+  transformRecommendedClassToTableItem,
+  handleRecommendedClassFetchError,
   goalsHistoryApiResponseSchema,
 } from './useRecommendedLessons';
-import { GoalDisplayStatus } from '../types/recommendedLessons';
+import { RecommendedClassDisplayStatus } from '../types/recommendedLessons';
 import type {
-  GoalHistoryItem,
-  GoalsHistoryApiResponse,
-  GoalHistoryFilters,
+  RecommendedClassHistoryItem,
+  RecommendedClassHistoryApiResponse,
+  RecommendedClassHistoryFilters,
 } from '../types/recommendedLessons';
 
 // Mock dayjs
@@ -26,43 +26,43 @@ jest.mock('dayjs', () => {
 });
 
 describe('useRecommendedLessons', () => {
-  describe('determineGoalStatus', () => {
+  describe('determineRecommendedClassStatus', () => {
     it('should return CONCLUIDA when completion is 100%', () => {
-      const result = determineGoalStatus('2024-12-31', 100);
-      expect(result).toBe(GoalDisplayStatus.CONCLUIDA);
+      const result = determineRecommendedClassStatus('2024-12-31', 100);
+      expect(result).toBe(RecommendedClassDisplayStatus.CONCLUIDA);
     });
 
     it('should return CONCLUIDA when completion is 100% even with past deadline', () => {
-      const result = determineGoalStatus('2024-01-01', 100);
-      expect(result).toBe(GoalDisplayStatus.CONCLUIDA);
+      const result = determineRecommendedClassStatus('2024-01-01', 100);
+      expect(result).toBe(RecommendedClassDisplayStatus.CONCLUIDA);
     });
 
     it('should return VENCIDA when deadline has passed and not completed', () => {
-      const result = determineGoalStatus('2024-01-01', 50);
-      expect(result).toBe(GoalDisplayStatus.VENCIDA);
+      const result = determineRecommendedClassStatus('2024-01-01', 50);
+      expect(result).toBe(RecommendedClassDisplayStatus.VENCIDA);
     });
 
     it('should return ATIVA when deadline is in the future', () => {
-      const result = determineGoalStatus('2024-12-31', 50);
-      expect(result).toBe(GoalDisplayStatus.ATIVA);
+      const result = determineRecommendedClassStatus('2024-12-31', 50);
+      expect(result).toBe(RecommendedClassDisplayStatus.ATIVA);
     });
 
     it('should return ATIVA when finalDate is null', () => {
-      const result = determineGoalStatus(null, 50);
-      expect(result).toBe(GoalDisplayStatus.ATIVA);
+      const result = determineRecommendedClassStatus(null, 50);
+      expect(result).toBe(RecommendedClassDisplayStatus.ATIVA);
     });
 
     it('should return ATIVA when finalDate is null and 0% completion', () => {
-      const result = determineGoalStatus(null, 0);
-      expect(result).toBe(GoalDisplayStatus.ATIVA);
+      const result = determineRecommendedClassStatus(null, 0);
+      expect(result).toBe(RecommendedClassDisplayStatus.ATIVA);
     });
   });
 
-  describe('transformGoalToTableItem', () => {
-    const baseGoalHistoryItem: GoalHistoryItem = {
+  describe('transformRecommendedClassToTableItem', () => {
+    const baseRecommendedClassHistoryItem: RecommendedClassHistoryItem = {
       recommendedClass: {
         id: 'goal-123',
-        title: 'Test Goal',
+        title: 'Test RecommendedClass',
         startDate: '2024-06-01',
         finalDate: '2024-12-31',
         createdAt: '2024-06-01T10:00:00Z',
@@ -95,58 +95,60 @@ describe('useRecommendedLessons', () => {
     };
 
     it('should transform goal item correctly', () => {
-      const result = transformGoalToTableItem(baseGoalHistoryItem);
+      const result = transformRecommendedClassToTableItem(
+        baseRecommendedClassHistoryItem
+      );
 
       expect(result.id).toBe('goal-123');
-      expect(result.title).toBe('Test Goal');
+      expect(result.title).toBe('Test RecommendedClass');
       expect(result.startDate).toBe('01/06');
       expect(result.deadline).toBe('31/12');
       expect(result.school).toBe('Escola Exemplo');
       expect(result.subject).toBe('Matemática');
       expect(result.class).toBe('Turma A');
       expect(result.completionPercentage).toBe(50);
-      expect(result.status).toBe(GoalDisplayStatus.ATIVA);
+      expect(result.status).toBe(RecommendedClassDisplayStatus.ATIVA);
     });
 
     it('should handle null startDate', () => {
-      const item: GoalHistoryItem = {
-        ...baseGoalHistoryItem,
+      const item: RecommendedClassHistoryItem = {
+        ...baseRecommendedClassHistoryItem,
         recommendedClass: {
-          ...baseGoalHistoryItem.recommendedClass,
+          ...baseRecommendedClassHistoryItem.recommendedClass,
           startDate: null,
         },
       };
 
-      const result = transformGoalToTableItem(item);
+      const result = transformRecommendedClassToTableItem(item);
       expect(result.startDate).toBe('-');
     });
 
     it('should handle null finalDate', () => {
-      const item: GoalHistoryItem = {
-        ...baseGoalHistoryItem,
+      const item: RecommendedClassHistoryItem = {
+        ...baseRecommendedClassHistoryItem,
         recommendedClass: {
-          ...baseGoalHistoryItem.recommendedClass,
+          ...baseRecommendedClassHistoryItem.recommendedClass,
           finalDate: null,
         },
       };
 
-      const result = transformGoalToTableItem(item);
+      const result = transformRecommendedClassToTableItem(item);
       expect(result.deadline).toBe('-');
     });
 
     it('should handle null subject', () => {
-      const item: GoalHistoryItem = {
-        ...baseGoalHistoryItem,
+      const item: RecommendedClassHistoryItem = {
+        ...baseRecommendedClassHistoryItem,
         subject: null,
       };
 
-      const result = transformGoalToTableItem(item);
+      const result = transformRecommendedClassToTableItem(item);
       expect(result.subject).toBe('-');
     });
 
     it('should show class count when multiple breakdowns exist', () => {
-      const item: GoalHistoryItem = {
-        ...baseGoalHistoryItem,
+      const item: RecommendedClassHistoryItem = {
+        ...baseRecommendedClassHistoryItem,
         breakdown: [
           {
             classId: 'class-1',
@@ -175,28 +177,30 @@ describe('useRecommendedLessons', () => {
         ],
       };
 
-      const result = transformGoalToTableItem(item);
+      const result = transformRecommendedClassToTableItem(item);
       expect(result.class).toBe('3 turmas');
     });
 
     it('should handle empty breakdown array', () => {
-      const item: GoalHistoryItem = {
-        ...baseGoalHistoryItem,
+      const item: RecommendedClassHistoryItem = {
+        ...baseRecommendedClassHistoryItem,
         breakdown: [],
       };
 
-      const result = transformGoalToTableItem(item);
+      const result = transformRecommendedClassToTableItem(item);
       expect(result.school).toBe('-');
       expect(result.class).toBe('-');
     });
 
     it('should always set year to "-"', () => {
-      const result = transformGoalToTableItem(baseGoalHistoryItem);
+      const result = transformRecommendedClassToTableItem(
+        baseRecommendedClassHistoryItem
+      );
       expect(result.year).toBe('-');
     });
   });
 
-  describe('handleGoalFetchError', () => {
+  describe('handleRecommendedClassFetchError', () => {
     it('should return specific message for Zod errors', () => {
       const consoleErrorSpy = jest
         .spyOn(console, 'error')
@@ -212,7 +216,7 @@ describe('useRecommendedLessons', () => {
         },
       ]);
 
-      const result = handleGoalFetchError(zodError);
+      const result = handleRecommendedClassFetchError(zodError);
       expect(result).toBe('Erro ao validar dados de histórico de aulas');
 
       consoleErrorSpy.mockRestore();
@@ -224,7 +228,7 @@ describe('useRecommendedLessons', () => {
         .mockImplementation(() => {});
 
       const genericError = new Error('Network error');
-      const result = handleGoalFetchError(genericError);
+      const result = handleRecommendedClassFetchError(genericError);
       expect(result).toBe('Erro ao carregar histórico de aulas');
 
       consoleErrorSpy.mockRestore();
@@ -235,7 +239,7 @@ describe('useRecommendedLessons', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      const result = handleGoalFetchError('string error');
+      const result = handleRecommendedClassFetchError('string error');
       expect(result).toBe('Erro ao carregar histórico de aulas');
 
       consoleErrorSpy.mockRestore();
@@ -251,7 +255,7 @@ describe('useRecommendedLessons', () => {
             {
               recommendedClass: {
                 id: '123e4567-e89b-12d3-a456-426614174000',
-                title: 'Test Goal',
+                title: 'Test RecommendedClass',
                 startDate: '2024-06-01',
                 finalDate: '2024-12-31',
                 createdAt: '2024-06-01T10:00:00Z',
@@ -299,7 +303,7 @@ describe('useRecommendedLessons', () => {
             {
               recommendedClass: {
                 id: '123e4567-e89b-12d3-a456-426614174000',
-                title: 'Test Goal',
+                title: 'Test RecommendedClass',
                 startDate: null,
                 finalDate: null,
                 createdAt: '2024-06-01T10:00:00Z',
@@ -332,7 +336,7 @@ describe('useRecommendedLessons', () => {
             {
               recommendedClass: {
                 id: 'not-a-uuid',
-                title: 'Test Goal',
+                title: 'Test RecommendedClass',
                 startDate: null,
                 finalDate: null,
                 createdAt: '2024-06-01T10:00:00Z',
@@ -372,19 +376,19 @@ describe('useRecommendedLessons', () => {
   });
 
   describe('createUseRecommendedLessonsHistory', () => {
-    const mockFetchGoalsHistory = jest.fn<
-      Promise<GoalsHistoryApiResponse>,
-      [GoalHistoryFilters?]
+    const mockFetchRecommendedClassHistory = jest.fn<
+      Promise<RecommendedClassHistoryApiResponse>,
+      [RecommendedClassHistoryFilters?]
     >();
 
-    const validApiResponse: GoalsHistoryApiResponse = {
+    const validApiResponse: RecommendedClassHistoryApiResponse = {
       message: 'Success',
       data: {
         recommendedClass: [
           {
             recommendedClass: {
               id: '123e4567-e89b-12d3-a456-426614174000',
-              title: 'Test Goal',
+              title: 'Test RecommendedClass',
               startDate: '2024-06-01',
               finalDate: '2024-12-31',
               createdAt: '2024-06-01T10:00:00Z',
@@ -425,10 +429,10 @@ describe('useRecommendedLessons', () => {
     });
 
     it('should return initial state', () => {
-      const useGoalsHistory = createUseRecommendedLessonsHistory(
-        mockFetchGoalsHistory
+      const useRecommendedClassHistory = createUseRecommendedLessonsHistory(
+        mockFetchRecommendedClassHistory
       );
-      const { result } = renderHook(() => useGoalsHistory());
+      const { result } = renderHook(() => useRecommendedClassHistory());
 
       expect(result.current.recommendedClass).toEqual([]);
       expect(result.current.loading).toBe(false);
@@ -439,27 +443,29 @@ describe('useRecommendedLessons', () => {
         limit: 10,
         totalPages: 0,
       });
-      expect(result.current.fetchGoals).toBeInstanceOf(Function);
+      expect(result.current.fetchRecommendedClass).toBeInstanceOf(Function);
     });
 
     it('should fetch goals successfully', async () => {
-      mockFetchGoalsHistory.mockResolvedValueOnce(validApiResponse);
+      mockFetchRecommendedClassHistory.mockResolvedValueOnce(validApiResponse);
 
-      const useGoalsHistory = createUseRecommendedLessonsHistory(
-        mockFetchGoalsHistory
+      const useRecommendedClassHistory = createUseRecommendedLessonsHistory(
+        mockFetchRecommendedClassHistory
       );
-      const { result } = renderHook(() => useGoalsHistory());
+      const { result } = renderHook(() => useRecommendedClassHistory());
 
       await act(async () => {
-        await result.current.fetchGoals({ page: 1, limit: 10 });
+        await result.current.fetchRecommendedClass({ page: 1, limit: 10 });
       });
 
-      expect(mockFetchGoalsHistory).toHaveBeenCalledWith({
+      expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
         page: 1,
         limit: 10,
       });
       expect(result.current.recommendedClass).toHaveLength(1);
-      expect(result.current.recommendedClass[0].title).toBe('Test Goal');
+      expect(result.current.recommendedClass[0].title).toBe(
+        'Test RecommendedClass'
+      );
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
       expect(result.current.pagination).toEqual({
@@ -471,20 +477,22 @@ describe('useRecommendedLessons', () => {
     });
 
     it('should set loading state while fetching', async () => {
-      let resolvePromise: (value: GoalsHistoryApiResponse) => void;
-      const promise = new Promise<GoalsHistoryApiResponse>((resolve) => {
-        resolvePromise = resolve;
-      });
-
-      mockFetchGoalsHistory.mockReturnValueOnce(promise);
-
-      const useGoalsHistory = createUseRecommendedLessonsHistory(
-        mockFetchGoalsHistory
+      let resolvePromise: (value: RecommendedClassHistoryApiResponse) => void;
+      const promise = new Promise<RecommendedClassHistoryApiResponse>(
+        (resolve) => {
+          resolvePromise = resolve;
+        }
       );
-      const { result } = renderHook(() => useGoalsHistory());
+
+      mockFetchRecommendedClassHistory.mockReturnValueOnce(promise);
+
+      const useRecommendedClassHistory = createUseRecommendedLessonsHistory(
+        mockFetchRecommendedClassHistory
+      );
+      const { result } = renderHook(() => useRecommendedClassHistory());
 
       act(() => {
-        result.current.fetchGoals();
+        result.current.fetchRecommendedClass();
       });
 
       await waitFor(() => {
@@ -504,15 +512,17 @@ describe('useRecommendedLessons', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockFetchGoalsHistory.mockRejectedValueOnce(new Error('Network error'));
-
-      const useGoalsHistory = createUseRecommendedLessonsHistory(
-        mockFetchGoalsHistory
+      mockFetchRecommendedClassHistory.mockRejectedValueOnce(
+        new Error('Network error')
       );
-      const { result } = renderHook(() => useGoalsHistory());
+
+      const useRecommendedClassHistory = createUseRecommendedLessonsHistory(
+        mockFetchRecommendedClassHistory
+      );
+      const { result } = renderHook(() => useRecommendedClassHistory());
 
       await act(async () => {
-        await result.current.fetchGoals();
+        await result.current.fetchRecommendedClass();
       });
 
       expect(result.current.loading).toBe(false);
@@ -535,17 +545,17 @@ describe('useRecommendedLessons', () => {
         },
       };
 
-      mockFetchGoalsHistory.mockResolvedValueOnce(
-        invalidResponse as unknown as GoalsHistoryApiResponse
+      mockFetchRecommendedClassHistory.mockResolvedValueOnce(
+        invalidResponse as unknown as RecommendedClassHistoryApiResponse
       );
 
-      const useGoalsHistory = createUseRecommendedLessonsHistory(
-        mockFetchGoalsHistory
+      const useRecommendedClassHistory = createUseRecommendedLessonsHistory(
+        mockFetchRecommendedClassHistory
       );
-      const { result } = renderHook(() => useGoalsHistory());
+      const { result } = renderHook(() => useRecommendedClassHistory());
 
       await act(async () => {
-        await result.current.fetchGoals();
+        await result.current.fetchRecommendedClass();
       });
 
       expect(result.current.loading).toBe(false);
@@ -557,7 +567,7 @@ describe('useRecommendedLessons', () => {
     });
 
     it('should calculate pagination correctly', async () => {
-      const responseWith25Items: GoalsHistoryApiResponse = {
+      const responseWith25Items: RecommendedClassHistoryApiResponse = {
         message: 'Success',
         data: {
           recommendedClass: [],
@@ -565,15 +575,17 @@ describe('useRecommendedLessons', () => {
         },
       };
 
-      mockFetchGoalsHistory.mockResolvedValueOnce(responseWith25Items);
-
-      const useGoalsHistory = createUseRecommendedLessonsHistory(
-        mockFetchGoalsHistory
+      mockFetchRecommendedClassHistory.mockResolvedValueOnce(
+        responseWith25Items
       );
-      const { result } = renderHook(() => useGoalsHistory());
+
+      const useRecommendedClassHistory = createUseRecommendedLessonsHistory(
+        mockFetchRecommendedClassHistory
+      );
+      const { result } = renderHook(() => useRecommendedClassHistory());
 
       await act(async () => {
-        await result.current.fetchGoals({ page: 2, limit: 10 });
+        await result.current.fetchRecommendedClass({ page: 2, limit: 10 });
       });
 
       expect(result.current.pagination).toEqual({
@@ -585,15 +597,15 @@ describe('useRecommendedLessons', () => {
     });
 
     it('should use default pagination values when not provided', async () => {
-      mockFetchGoalsHistory.mockResolvedValueOnce(validApiResponse);
+      mockFetchRecommendedClassHistory.mockResolvedValueOnce(validApiResponse);
 
-      const useGoalsHistory = createUseRecommendedLessonsHistory(
-        mockFetchGoalsHistory
+      const useRecommendedClassHistory = createUseRecommendedLessonsHistory(
+        mockFetchRecommendedClassHistory
       );
-      const { result } = renderHook(() => useGoalsHistory());
+      const { result } = renderHook(() => useRecommendedClassHistory());
 
       await act(async () => {
-        await result.current.fetchGoals();
+        await result.current.fetchRecommendedClass();
       });
 
       expect(result.current.pagination.page).toBe(1);
@@ -605,25 +617,27 @@ describe('useRecommendedLessons', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockFetchGoalsHistory.mockRejectedValueOnce(new Error('Network error'));
-
-      const useGoalsHistory = createUseRecommendedLessonsHistory(
-        mockFetchGoalsHistory
+      mockFetchRecommendedClassHistory.mockRejectedValueOnce(
+        new Error('Network error')
       );
-      const { result } = renderHook(() => useGoalsHistory());
+
+      const useRecommendedClassHistory = createUseRecommendedLessonsHistory(
+        mockFetchRecommendedClassHistory
+      );
+      const { result } = renderHook(() => useRecommendedClassHistory());
 
       // First fetch - should fail
       await act(async () => {
-        await result.current.fetchGoals();
+        await result.current.fetchRecommendedClass();
       });
 
       expect(result.current.error).toBe('Erro ao carregar histórico de aulas');
 
       // Second fetch - should clear error
-      mockFetchGoalsHistory.mockResolvedValueOnce(validApiResponse);
+      mockFetchRecommendedClassHistory.mockResolvedValueOnce(validApiResponse);
 
       await act(async () => {
-        await result.current.fetchGoals();
+        await result.current.fetchRecommendedClass();
       });
 
       expect(result.current.error).toBeNull();
@@ -648,7 +662,7 @@ describe('useRecommendedLessons', () => {
       const useHook = createRecommendedLessonsHistoryHook(mockFetch);
       const { result } = renderHook(() => useHook());
 
-      expect(result.current.fetchGoals).toBeInstanceOf(Function);
+      expect(result.current.fetchRecommendedClass).toBeInstanceOf(Function);
       expect(result.current.recommendedClass).toEqual([]);
     });
   });

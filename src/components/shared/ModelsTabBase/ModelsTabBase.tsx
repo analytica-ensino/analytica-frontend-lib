@@ -103,7 +103,7 @@ export interface ModelsTabBaseProps<
 
 /**
  * Generic ModelsTab base component that can be used by both
- * GoalModels (Lessons) and ActivityModels with type-safe generics.
+ * RecommendedClassModels (Lessons) and ActivityModels with type-safe generics.
  */
 export const ModelsTabBase = <
   T extends BaseModelItem,

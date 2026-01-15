@@ -1,7 +1,7 @@
 import type { FilterConfig } from '../../Filter';
 import type {
-  GoalUserFilterData,
-  GoalFilterOption,
+  RecommendedClassUserFilterData,
+  RecommendedClassFilterOption,
 } from '../../../types/recommendedLessons';
 
 /**
@@ -10,8 +10,8 @@ import type {
  * @returns Array of subject options for filter dropdown
  */
 const getSubjectOptions = (
-  data: GoalUserFilterData | undefined
-): GoalFilterOption[] => {
+  data: RecommendedClassUserFilterData | undefined
+): RecommendedClassFilterOption[] => {
   if (!data?.subjects) return [];
   return data.subjects.map((subject) => ({
     id: subject.id,
@@ -25,8 +25,8 @@ const getSubjectOptions = (
  * @param userData - User data for populating filter options
  * @returns Array of filter configurations
  */
-export const createGoalDraftsFiltersConfig = (
-  userData: GoalUserFilterData | undefined
+export const createRecommendedClassDraftsFiltersConfig = (
+  userData: RecommendedClassUserFilterData | undefined
 ): FilterConfig[] => [
   {
     key: 'content',

@@ -83,7 +83,7 @@ export interface Notification {
     type: string;
   } | null;
   /**
-   * Goal information (optional)
+   * RecommendedClass information (optional)
    */
   recommendedClass?: {
     id: string;

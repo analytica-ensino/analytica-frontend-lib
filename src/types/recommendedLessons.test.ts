@@ -1,8 +1,8 @@
 import {
-  GoalDisplayStatus,
-  GoalBadgeActionType,
-  GoalApiStatus,
-  getGoalStatusBadgeAction,
+  RecommendedClassDisplayStatus,
+  RecommendedClassBadgeActionType,
+  RecommendedClassApiStatus,
+  getRecommendedClassStatusBadgeAction,
   GOAL_FILTER_STATUS_OPTIONS,
   GOAL_STATUS_OPTIONS,
   StudentLessonStatus,
@@ -13,51 +13,57 @@ import {
 } from './recommendedLessons';
 
 describe('recommendedLessons types', () => {
-  describe('GoalApiStatus enum', () => {
+  describe('RecommendedClassApiStatus enum', () => {
     it('should have correct API status values', () => {
-      expect(GoalApiStatus.A_VENCER).toBe('A_VENCER');
-      expect(GoalApiStatus.VENCIDA).toBe('VENCIDA');
-      expect(GoalApiStatus.CONCLUIDA).toBe('CONCLUIDA');
+      expect(RecommendedClassApiStatus.A_VENCER).toBe('A_VENCER');
+      expect(RecommendedClassApiStatus.VENCIDA).toBe('VENCIDA');
+      expect(RecommendedClassApiStatus.CONCLUIDA).toBe('CONCLUIDA');
     });
   });
 
-  describe('GoalDisplayStatus enum', () => {
+  describe('RecommendedClassDisplayStatus enum', () => {
     it('should have correct display status values', () => {
-      expect(GoalDisplayStatus.ATIVA).toBe('ATIVA');
-      expect(GoalDisplayStatus.VENCIDA).toBe('VENCIDA');
-      expect(GoalDisplayStatus.CONCLUIDA).toBe('CONCLUÍDA');
+      expect(RecommendedClassDisplayStatus.ATIVA).toBe('ATIVA');
+      expect(RecommendedClassDisplayStatus.VENCIDA).toBe('VENCIDA');
+      expect(RecommendedClassDisplayStatus.CONCLUIDA).toBe('CONCLUÍDA');
     });
   });
 
-  describe('GoalBadgeActionType enum', () => {
+  describe('RecommendedClassBadgeActionType enum', () => {
     it('should have correct badge action values', () => {
-      expect(GoalBadgeActionType.SUCCESS).toBe('success');
-      expect(GoalBadgeActionType.WARNING).toBe('warning');
-      expect(GoalBadgeActionType.ERROR).toBe('error');
+      expect(RecommendedClassBadgeActionType.SUCCESS).toBe('success');
+      expect(RecommendedClassBadgeActionType.WARNING).toBe('warning');
+      expect(RecommendedClassBadgeActionType.ERROR).toBe('error');
     });
   });
 
-  describe('getGoalStatusBadgeAction', () => {
+  describe('getRecommendedClassStatusBadgeAction', () => {
     it('should return SUCCESS for CONCLUIDA status', () => {
-      const result = getGoalStatusBadgeAction(GoalDisplayStatus.CONCLUIDA);
-      expect(result).toBe(GoalBadgeActionType.SUCCESS);
+      const result = getRecommendedClassStatusBadgeAction(
+        RecommendedClassDisplayStatus.CONCLUIDA
+      );
+      expect(result).toBe(RecommendedClassBadgeActionType.SUCCESS);
     });
 
     it('should return WARNING for ATIVA status', () => {
-      const result = getGoalStatusBadgeAction(GoalDisplayStatus.ATIVA);
-      expect(result).toBe(GoalBadgeActionType.WARNING);
+      const result = getRecommendedClassStatusBadgeAction(
+        RecommendedClassDisplayStatus.ATIVA
+      );
+      expect(result).toBe(RecommendedClassBadgeActionType.WARNING);
     });
 
     it('should return ERROR for VENCIDA status', () => {
-      const result = getGoalStatusBadgeAction(GoalDisplayStatus.VENCIDA);
-      expect(result).toBe(GoalBadgeActionType.ERROR);
+      const result = getRecommendedClassStatusBadgeAction(
+        RecommendedClassDisplayStatus.VENCIDA
+      );
+      expect(result).toBe(RecommendedClassBadgeActionType.ERROR);
     });
 
     it('should return WARNING as fallback for unknown status', () => {
-      const result = getGoalStatusBadgeAction(
-        'UNKNOWN_STATUS' as GoalDisplayStatus
+      const result = getRecommendedClassStatusBadgeAction(
+        'UNKNOWN_STATUS' as RecommendedClassDisplayStatus
       );
-      expect(result).toBe(GoalBadgeActionType.WARNING);
+      expect(result).toBe(RecommendedClassBadgeActionType.WARNING);
     });
   });
 
@@ -65,11 +71,11 @@ describe('recommendedLessons types', () => {
     it('should contain Vencida and Ativa options', () => {
       expect(GOAL_FILTER_STATUS_OPTIONS).toHaveLength(2);
       expect(GOAL_FILTER_STATUS_OPTIONS).toContainEqual({
-        id: GoalApiStatus.VENCIDA,
+        id: RecommendedClassApiStatus.VENCIDA,
         name: 'Vencida',
       });
       expect(GOAL_FILTER_STATUS_OPTIONS).toContainEqual({
-        id: GoalApiStatus.A_VENCER,
+        id: RecommendedClassApiStatus.A_VENCER,
         name: 'Ativa',
       });
     });
@@ -88,15 +94,15 @@ describe('recommendedLessons types', () => {
     it('should contain all status options', () => {
       expect(GOAL_STATUS_OPTIONS).toHaveLength(3);
       expect(GOAL_STATUS_OPTIONS).toContainEqual({
-        id: GoalApiStatus.A_VENCER,
+        id: RecommendedClassApiStatus.A_VENCER,
         name: 'A Vencer',
       });
       expect(GOAL_STATUS_OPTIONS).toContainEqual({
-        id: GoalApiStatus.VENCIDA,
+        id: RecommendedClassApiStatus.VENCIDA,
         name: 'Vencida',
       });
       expect(GOAL_STATUS_OPTIONS).toContainEqual({
-        id: GoalApiStatus.CONCLUIDA,
+        id: RecommendedClassApiStatus.CONCLUIDA,
         name: 'Concluída',
       });
     });

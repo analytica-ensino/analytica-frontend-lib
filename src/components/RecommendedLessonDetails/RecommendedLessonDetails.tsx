@@ -23,7 +23,7 @@ import {
  * Props for RecommendedLessonDetails component
  */
 export interface RecommendedLessonDetailsProps {
-  /** Goal ID for fetching student performance */
+  /** RecommendedClass ID for fetching student performance */
   recommendedClassId?: string;
   /** Lesson data to display (from API responses) */
   data: LessonDetailsData | null;

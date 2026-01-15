@@ -2,12 +2,12 @@ import { useState, useCallback, useEffect } from 'react';
 import { z } from 'zod';
 import type {
   LessonDetailsData,
-  GoalMetadata,
-  GoalDetailsData,
-  GoalBreakdown,
-  GoalApiResponse,
-  GoalDetailsApiResponse,
-  GoalsHistoryApiResponse,
+  RecommendedClassMetadata,
+  RecommendedClassDetailsData,
+  RecommendedClassBreakdown,
+  RecommendedClassApiResponse,
+  RecommendedClassDetailsApiResponse,
+  RecommendedClassHistoryApiResponse,
 } from '../types/recommendedLessons';
 
 // ============================================
@@ -57,7 +57,7 @@ const goalLessonProgressSchema = z.object({
 /**
  * Schema for lesson goal item
  */
-const goalLessonGoalItemSchema = z.object({
+const goalLessonRecommendedClassItemSchema = z.object({
   recommendedClassId: z.string(),
   supLessonsProgressId: z.string(),
   supLessonsProgress: goalLessonProgressSchema,
@@ -72,7 +72,7 @@ const goalMetadataSchema = z.object({
   startDate: z.string(),
   finalDate: z.string(),
   progress: z.number(),
-  lessons: z.array(goalLessonGoalItemSchema),
+  lessons: z.array(goalLessonRecommendedClassItemSchema),
 });
 
 /**
@@ -155,7 +155,7 @@ const goalBreakdownSchema = z.object({
 /**
  * Schema for history goal item (partial, only what we need)
  */
-const historyGoalItemSchema = z.object({
+const historyRecommendedClassItemSchema = z.object({
   recommendedClass: z.object({ id: z.string().uuid() }),
   breakdown: z.array(goalBreakdownSchema),
 });
@@ -166,7 +166,7 @@ const historyGoalItemSchema = z.object({
 export const historyApiResponseSchema = z.object({
   message: z.string(),
   data: z.object({
-    recommendedClass: z.array(historyGoalItemSchema),
+    recommendedClass: z.array(historyRecommendedClassItemSchema),
     total: z.number(),
   }),
 });
@@ -197,11 +197,13 @@ export interface UseRecommendedLessonDetailsReturn
  */
 export interface LessonDetailsApiClient {
   /** Fetch goal metadata from /goals/{id} */
-  fetchGoal: (id: string) => Promise<GoalApiResponse>;
+  fetchRecommendedClass: (id: string) => Promise<RecommendedClassApiResponse>;
   /** Fetch goal details from /goals/{id}/details */
-  fetchGoalDetails: (id: string) => Promise<GoalDetailsApiResponse>;
+  fetchRecommendedClassDetails: (
+    id: string
+  ) => Promise<RecommendedClassDetailsApiResponse>;
   /** Optional: Fetch breakdown from /recommended-class/history */
-  fetchBreakdown?: (id: string) => Promise<GoalsHistoryApiResponse>;
+  fetchBreakdown?: (id: string) => Promise<RecommendedClassHistoryApiResponse>;
 }
 
 // ============================================
@@ -237,11 +239,11 @@ export const handleLessonDetailsFetchError = (error: unknown): string => {
  * ```tsx
  * // In your app setup
  * const apiClient = {
- *   fetchGoal: async (id) => {
+ *   fetchRecommendedClass: async (id) => {
  *     const response = await api.get(`/goals/${id}`);
  *     return response.data;
  *   },
- *   fetchGoalDetails: async (id) => {
+ *   fetchRecommendedClassDetails: async (id) => {
  *     const response = await api.get(`/goals/${id}/details`);
  *     return response.data;
  *   },
@@ -251,10 +253,10 @@ export const handleLessonDetailsFetchError = (error: unknown): string => {
  *   },
  * };
  *
- * const useGoalDetails = createUseRecommendedLessonDetails(apiClient);
+ * const useRecommendedClassDetails = createUseRecommendedLessonDetails(apiClient);
  *
  * // In your component
- * const { data, loading, error, refetch } = useGoalDetails('goal-id-123');
+ * const { data, loading, error, refetch } = useRecommendedClassDetails('goal-id-123');
  * ```
  */
 export const createUseRecommendedLessonDetails = (
@@ -286,12 +288,12 @@ export const createUseRecommendedLessonDetails = (
         // Fetch goal metadata and details in parallel
         // Breakdown is optional
         const promises: [
-          Promise<GoalApiResponse>,
-          Promise<GoalDetailsApiResponse>,
-          Promise<GoalsHistoryApiResponse | null>,
+          Promise<RecommendedClassApiResponse>,
+          Promise<RecommendedClassDetailsApiResponse>,
+          Promise<RecommendedClassHistoryApiResponse | null>,
         ] = [
-          apiClient.fetchGoal(lessonId),
-          apiClient.fetchGoalDetails(lessonId),
+          apiClient.fetchRecommendedClass(lessonId),
+          apiClient.fetchRecommendedClassDetails(lessonId),
           apiClient.fetchBreakdown
             ? apiClient.fetchBreakdown(lessonId)
             : Promise.resolve(null),
@@ -301,12 +303,13 @@ export const createUseRecommendedLessonDetails = (
           await Promise.all(promises);
 
         // Validate responses with Zod
-        const validatedGoal = goalApiResponseSchema.parse(goalResponse);
+        const validatedRecommendedClass =
+          goalApiResponseSchema.parse(goalResponse);
         const validatedDetails =
           goalDetailsApiResponseSchema.parse(detailsResponse);
 
         // Extract and validate breakdown if available
-        let breakdown: GoalBreakdown | undefined;
+        let breakdown: RecommendedClassBreakdown | undefined;
         if (historyResponse) {
           const validatedHistory =
             historyApiResponseSchema.parse(historyResponse);
@@ -318,8 +321,9 @@ export const createUseRecommendedLessonDetails = (
 
         // Combine data
         const lessonData: LessonDetailsData = {
-          recommendedClass: validatedGoal.data as GoalMetadata,
-          details: validatedDetails.data as GoalDetailsData,
+          recommendedClass:
+            validatedRecommendedClass.data as RecommendedClassMetadata,
+          details: validatedDetails.data as RecommendedClassDetailsData,
           breakdown,
         };
 

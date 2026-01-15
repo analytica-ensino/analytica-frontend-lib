@@ -1,18 +1,18 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { z } from 'zod';
 import {
-  createUseGoalDrafts,
-  createGoalDraftsHook,
-  handleGoalDraftFetchError,
+  createUseRecommendedClassDrafts,
+  createRecommendedClassDraftsHook,
+  handleRecommendedClassDraftFetchError,
   DEFAULT_GOAL_DRAFTS_PAGINATION,
-} from './useGoalDrafts';
-import { GoalDraftType } from '../types/recommendedLessons';
+} from './useRecommendedClassDrafts';
+import { RecommendedClassDraftType } from '../types/recommendedLessons';
 import type {
-  GoalModelsApiResponse,
-  GoalModelFilters,
+  RecommendedClassModelsApiResponse,
+  RecommendedClassModelFilters,
 } from '../types/recommendedLessons';
 
-describe('useGoalDrafts', () => {
+describe('useRecommendedClassDrafts', () => {
   describe('DEFAULT_GOAL_DRAFTS_PAGINATION', () => {
     it('should have correct default values', () => {
       expect(DEFAULT_GOAL_DRAFTS_PAGINATION).toEqual({
@@ -24,7 +24,7 @@ describe('useGoalDrafts', () => {
     });
   });
 
-  describe('handleGoalDraftFetchError', () => {
+  describe('handleRecommendedClassDraftFetchError', () => {
     let consoleErrorSpy: jest.SpyInstance;
 
     beforeEach(() => {
@@ -46,40 +46,40 @@ describe('useGoalDrafts', () => {
         },
       ]);
 
-      const result = handleGoalDraftFetchError(zodError);
+      const result = handleRecommendedClassDraftFetchError(zodError);
       expect(result).toBe('Erro ao validar dados de rascunhos de aulas');
       expect(consoleErrorSpy).toHaveBeenCalled();
     });
 
     it('should return generic message for other errors', () => {
       const genericError = new Error('Network error');
-      const result = handleGoalDraftFetchError(genericError);
+      const result = handleRecommendedClassDraftFetchError(genericError);
       expect(result).toBe('Erro ao carregar rascunhos de aulas');
       expect(consoleErrorSpy).toHaveBeenCalled();
     });
 
     it('should return generic message for unknown error types', () => {
-      const result = handleGoalDraftFetchError('string error');
+      const result = handleRecommendedClassDraftFetchError('string error');
       expect(result).toBe('Erro ao carregar rascunhos de aulas');
       expect(consoleErrorSpy).toHaveBeenCalled();
     });
   });
 
-  describe('createUseGoalDrafts', () => {
-    const mockFetchGoalDrafts = jest.fn<
-      Promise<GoalModelsApiResponse>,
-      [GoalModelFilters?]
+  describe('createUseRecommendedClassDrafts', () => {
+    const mockFetchRecommendedClassDrafts = jest.fn<
+      Promise<RecommendedClassModelsApiResponse>,
+      [RecommendedClassModelFilters?]
     >();
 
-    const mockDeleteGoalDraft = jest.fn<Promise<void>, [string]>();
+    const mockDeleteRecommendedClassDraft = jest.fn<Promise<void>, [string]>();
 
-    const validApiResponse: GoalModelsApiResponse = {
+    const validApiResponse: RecommendedClassModelsApiResponse = {
       message: 'Success',
       data: {
         drafts: [
           {
             id: '123e4567-e89b-12d3-a456-426614174000',
-            type: GoalDraftType.RASCUNHO,
+            type: RecommendedClassDraftType.RASCUNHO,
             title: 'Test Draft',
             description: 'Test description',
             creatorUserInstitutionId: '123e4567-e89b-12d3-a456-426614174001',
@@ -103,11 +103,11 @@ describe('useGoalDrafts', () => {
     });
 
     it('should return initial state', () => {
-      const useGoalDrafts = createUseGoalDrafts(
-        mockFetchGoalDrafts,
-        mockDeleteGoalDraft
+      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(
+        mockFetchRecommendedClassDrafts,
+        mockDeleteRecommendedClassDraft
       );
-      const { result } = renderHook(() => useGoalDrafts());
+      const { result } = renderHook(() => useRecommendedClassDrafts());
 
       expect(result.current.models).toEqual([]);
       expect(result.current.loading).toBe(false);
@@ -118,19 +118,19 @@ describe('useGoalDrafts', () => {
     });
 
     it('should fetch drafts successfully', async () => {
-      mockFetchGoalDrafts.mockResolvedValueOnce(validApiResponse);
+      mockFetchRecommendedClassDrafts.mockResolvedValueOnce(validApiResponse);
 
-      const useGoalDrafts = createUseGoalDrafts(
-        mockFetchGoalDrafts,
-        mockDeleteGoalDraft
+      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(
+        mockFetchRecommendedClassDrafts,
+        mockDeleteRecommendedClassDraft
       );
-      const { result } = renderHook(() => useGoalDrafts());
+      const { result } = renderHook(() => useRecommendedClassDrafts());
 
       await act(async () => {
         await result.current.fetchModels({ page: 1, limit: 10 }, subjectsMap);
       });
 
-      expect(mockFetchGoalDrafts).toHaveBeenCalledWith({
+      expect(mockFetchRecommendedClassDrafts).toHaveBeenCalledWith({
         page: 1,
         limit: 10,
       });
@@ -142,7 +142,7 @@ describe('useGoalDrafts', () => {
     });
 
     it('should calculate pagination correctly', async () => {
-      const responseWith25Items: GoalModelsApiResponse = {
+      const responseWith25Items: RecommendedClassModelsApiResponse = {
         message: 'Success',
         data: {
           drafts: [],
@@ -150,13 +150,15 @@ describe('useGoalDrafts', () => {
         },
       };
 
-      mockFetchGoalDrafts.mockResolvedValueOnce(responseWith25Items);
-
-      const useGoalDrafts = createUseGoalDrafts(
-        mockFetchGoalDrafts,
-        mockDeleteGoalDraft
+      mockFetchRecommendedClassDrafts.mockResolvedValueOnce(
+        responseWith25Items
       );
-      const { result } = renderHook(() => useGoalDrafts());
+
+      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(
+        mockFetchRecommendedClassDrafts,
+        mockDeleteRecommendedClassDraft
+      );
+      const { result } = renderHook(() => useRecommendedClassDrafts());
 
       await act(async () => {
         await result.current.fetchModels({ page: 2, limit: 10 });
@@ -171,13 +173,13 @@ describe('useGoalDrafts', () => {
     });
 
     it('should use default pagination values when not provided', async () => {
-      mockFetchGoalDrafts.mockResolvedValueOnce(validApiResponse);
+      mockFetchRecommendedClassDrafts.mockResolvedValueOnce(validApiResponse);
 
-      const useGoalDrafts = createUseGoalDrafts(
-        mockFetchGoalDrafts,
-        mockDeleteGoalDraft
+      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(
+        mockFetchRecommendedClassDrafts,
+        mockDeleteRecommendedClassDraft
       );
-      const { result } = renderHook(() => useGoalDrafts());
+      const { result } = renderHook(() => useRecommendedClassDrafts());
 
       await act(async () => {
         await result.current.fetchModels();
@@ -188,18 +190,20 @@ describe('useGoalDrafts', () => {
     });
 
     it('should set loading state while fetching', async () => {
-      let resolvePromise: (value: GoalModelsApiResponse) => void;
-      const promise = new Promise<GoalModelsApiResponse>((resolve) => {
-        resolvePromise = resolve;
-      });
-
-      mockFetchGoalDrafts.mockReturnValueOnce(promise);
-
-      const useGoalDrafts = createUseGoalDrafts(
-        mockFetchGoalDrafts,
-        mockDeleteGoalDraft
+      let resolvePromise: (value: RecommendedClassModelsApiResponse) => void;
+      const promise = new Promise<RecommendedClassModelsApiResponse>(
+        (resolve) => {
+          resolvePromise = resolve;
+        }
       );
-      const { result } = renderHook(() => useGoalDrafts());
+
+      mockFetchRecommendedClassDrafts.mockReturnValueOnce(promise);
+
+      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(
+        mockFetchRecommendedClassDrafts,
+        mockDeleteRecommendedClassDraft
+      );
+      const { result } = renderHook(() => useRecommendedClassDrafts());
 
       act(() => {
         result.current.fetchModels();
@@ -222,13 +226,15 @@ describe('useGoalDrafts', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockFetchGoalDrafts.mockRejectedValueOnce(new Error('Network error'));
-
-      const useGoalDrafts = createUseGoalDrafts(
-        mockFetchGoalDrafts,
-        mockDeleteGoalDraft
+      mockFetchRecommendedClassDrafts.mockRejectedValueOnce(
+        new Error('Network error')
       );
-      const { result } = renderHook(() => useGoalDrafts());
+
+      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(
+        mockFetchRecommendedClassDrafts,
+        mockDeleteRecommendedClassDraft
+      );
+      const { result } = renderHook(() => useRecommendedClassDrafts());
 
       await act(async () => {
         await result.current.fetchModels();
@@ -254,15 +260,15 @@ describe('useGoalDrafts', () => {
         },
       };
 
-      mockFetchGoalDrafts.mockResolvedValueOnce(
-        invalidResponse as unknown as GoalModelsApiResponse
+      mockFetchRecommendedClassDrafts.mockResolvedValueOnce(
+        invalidResponse as unknown as RecommendedClassModelsApiResponse
       );
 
-      const useGoalDrafts = createUseGoalDrafts(
-        mockFetchGoalDrafts,
-        mockDeleteGoalDraft
+      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(
+        mockFetchRecommendedClassDrafts,
+        mockDeleteRecommendedClassDraft
       );
-      const { result } = renderHook(() => useGoalDrafts());
+      const { result } = renderHook(() => useRecommendedClassDrafts());
 
       await act(async () => {
         await result.current.fetchModels();
@@ -277,13 +283,13 @@ describe('useGoalDrafts', () => {
     });
 
     it('should delete draft successfully', async () => {
-      mockDeleteGoalDraft.mockResolvedValueOnce(undefined);
+      mockDeleteRecommendedClassDraft.mockResolvedValueOnce(undefined);
 
-      const useGoalDrafts = createUseGoalDrafts(
-        mockFetchGoalDrafts,
-        mockDeleteGoalDraft
+      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(
+        mockFetchRecommendedClassDrafts,
+        mockDeleteRecommendedClassDraft
       );
-      const { result } = renderHook(() => useGoalDrafts());
+      const { result } = renderHook(() => useRecommendedClassDrafts());
 
       let deleteResult: boolean = false;
       await act(async () => {
@@ -291,7 +297,7 @@ describe('useGoalDrafts', () => {
       });
 
       expect(deleteResult).toBe(true);
-      expect(mockDeleteGoalDraft).toHaveBeenCalledWith('draft-id');
+      expect(mockDeleteRecommendedClassDraft).toHaveBeenCalledWith('draft-id');
     });
 
     it('should return false on delete failure', async () => {
@@ -299,13 +305,15 @@ describe('useGoalDrafts', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockDeleteGoalDraft.mockRejectedValueOnce(new Error('Delete failed'));
-
-      const useGoalDrafts = createUseGoalDrafts(
-        mockFetchGoalDrafts,
-        mockDeleteGoalDraft
+      mockDeleteRecommendedClassDraft.mockRejectedValueOnce(
+        new Error('Delete failed')
       );
-      const { result } = renderHook(() => useGoalDrafts());
+
+      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(
+        mockFetchRecommendedClassDrafts,
+        mockDeleteRecommendedClassDraft
+      );
+      const { result } = renderHook(() => useRecommendedClassDrafts());
 
       let deleteResult: boolean = true;
       await act(async () => {
@@ -323,13 +331,15 @@ describe('useGoalDrafts', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockFetchGoalDrafts.mockRejectedValueOnce(new Error('Network error'));
-
-      const useGoalDrafts = createUseGoalDrafts(
-        mockFetchGoalDrafts,
-        mockDeleteGoalDraft
+      mockFetchRecommendedClassDrafts.mockRejectedValueOnce(
+        new Error('Network error')
       );
-      const { result } = renderHook(() => useGoalDrafts());
+
+      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(
+        mockFetchRecommendedClassDrafts,
+        mockDeleteRecommendedClassDraft
+      );
+      const { result } = renderHook(() => useRecommendedClassDrafts());
 
       await act(async () => {
         await result.current.fetchModels();
@@ -337,7 +347,7 @@ describe('useGoalDrafts', () => {
 
       expect(result.current.error).toBe('Erro ao carregar rascunhos de aulas');
 
-      mockFetchGoalDrafts.mockResolvedValueOnce(validApiResponse);
+      mockFetchRecommendedClassDrafts.mockResolvedValueOnce(validApiResponse);
 
       await act(async () => {
         await result.current.fetchModels();
@@ -349,9 +359,11 @@ describe('useGoalDrafts', () => {
     });
   });
 
-  describe('createGoalDraftsHook', () => {
-    it('should be an alias for createUseGoalDrafts', () => {
-      expect(createGoalDraftsHook).toBe(createUseGoalDrafts);
+  describe('createRecommendedClassDraftsHook', () => {
+    it('should be an alias for createUseRecommendedClassDrafts', () => {
+      expect(createRecommendedClassDraftsHook).toBe(
+        createUseRecommendedClassDrafts
+      );
     });
 
     it('should create a functional hook', () => {
@@ -361,7 +373,7 @@ describe('useGoalDrafts', () => {
       });
       const mockDelete = jest.fn().mockResolvedValue(undefined);
 
-      const useHook = createGoalDraftsHook(mockFetch, mockDelete);
+      const useHook = createRecommendedClassDraftsHook(mockFetch, mockDelete);
       const { result } = renderHook(() => useHook());
 
       expect(result.current.fetchModels).toBeInstanceOf(Function);

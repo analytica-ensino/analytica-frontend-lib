@@ -14,24 +14,24 @@ import {
  * Recommended Class status from backend API
  * Re-exported from common for backward compatibility
  */
-export { GenericApiStatus as GoalApiStatus } from './common';
+export { GenericApiStatus as RecommendedClassApiStatus } from './common';
 
 /**
  * Recommended Class status for display in UI (Badge component)
  * Re-exported from common for backward compatibility
  */
-export { GenericDisplayStatus as GoalDisplayStatus } from './common';
+export { GenericDisplayStatus as RecommendedClassDisplayStatus } from './common';
 
 /**
  * Badge action types for recommended class status visualization
  * Re-exported from common for backward compatibility
  */
-export { BadgeActionType as GoalBadgeActionType } from './common';
+export { BadgeActionType as RecommendedClassBadgeActionType } from './common';
 
 /**
  * Subject info from API response
  */
-export interface GoalSubject {
+export interface RecommendedClassSubject {
   id: string;
   name: string;
 }
@@ -39,7 +39,7 @@ export interface GoalSubject {
 /**
  * Creator info from API response
  */
-export interface GoalCreator {
+export interface RecommendedClassCreator {
   id: string;
   name: string;
 }
@@ -47,7 +47,7 @@ export interface GoalCreator {
 /**
  * Recommended Class stats from API response
  */
-export interface GoalStats {
+export interface RecommendedClassStats {
   totalStudents: number;
   completedCount: number;
   completionPercentage: number;
@@ -56,7 +56,7 @@ export interface GoalStats {
 /**
  * Class breakdown info from API response
  */
-export interface GoalBreakdown {
+export interface RecommendedClassBreakdown {
   classId: string;
   className: string;
   schoolId: string;
@@ -68,7 +68,7 @@ export interface GoalBreakdown {
 /**
  * Recommended Class data from API response
  */
-export interface GoalData {
+export interface RecommendedClassData {
   id: string;
   title: string;
   startDate: string | null;
@@ -81,18 +81,18 @@ export interface GoalData {
 /**
  * Recommended Class history item from /recommended-class/history endpoint
  */
-export interface GoalHistoryItem {
-  recommendedClass: GoalData;
-  subject: GoalSubject | null;
-  creator: GoalCreator | null;
-  stats: GoalStats;
-  breakdown: GoalBreakdown[];
+export interface RecommendedClassHistoryItem {
+  recommendedClass: RecommendedClassData;
+  subject: RecommendedClassSubject | null;
+  creator: RecommendedClassCreator | null;
+  stats: RecommendedClassStats;
+  breakdown: RecommendedClassBreakdown[];
 }
 
 /**
  * Recommended Class table item interface for recommended class list table
  */
-export interface GoalTableItem extends Record<string, unknown> {
+export interface RecommendedClassTableItem extends Record<string, unknown> {
   id: string;
   startDate: string | null;
   deadline: string | null;
@@ -108,10 +108,10 @@ export interface GoalTableItem extends Record<string, unknown> {
 /**
  * Recommended Class history API complete response from /recommended-class/history
  */
-export interface GoalsHistoryApiResponse {
+export interface RecommendedClassHistoryApiResponse {
   message: string;
   data: {
-    recommendedClass: GoalHistoryItem[];
+    recommendedClass: RecommendedClassHistoryItem[];
     total: number;
   };
 }
@@ -119,7 +119,7 @@ export interface GoalsHistoryApiResponse {
 /**
  * Recommended Class history filters for API query parameters
  */
-export interface GoalHistoryFilters {
+export interface RecommendedClassHistoryFilters {
   page?: number;
   limit?: number;
   status?: GenericApiStatus;
@@ -139,7 +139,7 @@ export interface GoalHistoryFilters {
 /**
  * Pagination info for recommended class history
  */
-export interface GoalHistoryPagination {
+export interface RecommendedClassHistoryPagination {
   total: number;
   page: number;
   limit: number;
@@ -150,7 +150,7 @@ export interface GoalHistoryPagination {
  * Filter option for dropdowns
  * Extends with index signature to be compatible with CheckBoxGroup Item type
  */
-export interface GoalFilterOption {
+export interface RecommendedClassFilterOption {
   id: string;
   name: string;
   [key: string]: unknown;
@@ -159,7 +159,7 @@ export interface GoalFilterOption {
 /**
  * User data for filter options (schools, classes, subjects)
  */
-export interface GoalUserFilterData {
+export interface RecommendedClassUserFilterData {
   schools?: Array<{ id: string; name: string }>;
   classes?: Array<{ id: string; name: string; schoolId?: string }>;
   subjects?: Array<{ id: string; name: string }>;
@@ -171,14 +171,14 @@ export interface GoalUserFilterData {
  * @param status - Recommended Class display status
  * @returns Badge action type for styling
  */
-export const getGoalStatusBadgeAction = (
+export const getRecommendedClassStatusBadgeAction = (
   status: GenericDisplayStatus
 ): BadgeActionType => getStatusBadgeAction(status);
 
 /**
  * Recommended Class status options for filter (Vencida and Ativa)
  */
-export const GOAL_FILTER_STATUS_OPTIONS: GoalFilterOption[] = [
+export const GOAL_FILTER_STATUS_OPTIONS: RecommendedClassFilterOption[] = [
   { id: GenericApiStatus.VENCIDA, name: 'Vencida' },
   { id: GenericApiStatus.A_VENCER, name: 'Ativa' },
 ];
@@ -186,7 +186,7 @@ export const GOAL_FILTER_STATUS_OPTIONS: GoalFilterOption[] = [
 /**
  * All recommended class status options
  */
-export const GOAL_STATUS_OPTIONS: GoalFilterOption[] = [
+export const GOAL_STATUS_OPTIONS: RecommendedClassFilterOption[] = [
   { id: GenericApiStatus.A_VENCER, name: 'A Vencer' },
   { id: GenericApiStatus.VENCIDA, name: 'Vencida' },
   { id: GenericApiStatus.CONCLUIDA, name: 'Concluída' },
@@ -280,7 +280,7 @@ export const formatDaysToComplete = (
 /**
  * Student data from /recommended class/{id}/details endpoint
  */
-export interface GoalDetailStudent {
+export interface RecommendedClassDetailStudent {
   userInstitutionId: string;
   userId: string;
   name: string;
@@ -293,7 +293,7 @@ export interface GoalDetailStudent {
 /**
  * Aggregated stats from /recommended class/{id}/details endpoint
  */
-export interface GoalDetailAggregated {
+export interface RecommendedClassDetailAggregated {
   completionPercentage: number;
   avgScore: number | null;
 }
@@ -301,7 +301,7 @@ export interface GoalDetailAggregated {
 /**
  * Content performance item from /recommended class/{id}/details endpoint
  */
-export interface GoalDetailContentPerformanceItem {
+export interface RecommendedClassDetailContentPerformanceItem {
   contentId: string;
   contentName: string;
   rate: number;
@@ -310,26 +310,26 @@ export interface GoalDetailContentPerformanceItem {
 /**
  * Content performance from /recommended class/{id}/details endpoint
  */
-export interface GoalDetailContentPerformance {
-  best: GoalDetailContentPerformanceItem | null;
-  worst: GoalDetailContentPerformanceItem | null;
+export interface RecommendedClassDetailContentPerformance {
+  best: RecommendedClassDetailContentPerformanceItem | null;
+  worst: RecommendedClassDetailContentPerformanceItem | null;
 }
 
 /**
  * Response data from /recommended class/{id}/details endpoint
  */
-export interface GoalDetailsData {
-  students: GoalDetailStudent[];
-  aggregated: GoalDetailAggregated;
-  contentPerformance: GoalDetailContentPerformance;
+export interface RecommendedClassDetailsData {
+  students: RecommendedClassDetailStudent[];
+  aggregated: RecommendedClassDetailAggregated;
+  contentPerformance: RecommendedClassDetailContentPerformance;
 }
 
 /**
  * Full API response from /recommended class/{id}/details endpoint
  */
-export interface GoalDetailsApiResponse {
+export interface RecommendedClassDetailsApiResponse {
   message: string;
-  data: GoalDetailsData;
+  data: RecommendedClassDetailsData;
 }
 
 // ============================================
@@ -338,7 +338,7 @@ export interface GoalDetailsApiResponse {
 
 /**
  * Activity status for recommended class activities
- * Used in activitiesGoals array from /recommended class/{id} endpoint
+ * Used in activitiesRecommendedClass array from /recommended class/{id} endpoint
  */
 export const GOAL_ACTIVITY_STATUS = {
   PENDENTE: 'PENDENTE',
@@ -346,24 +346,24 @@ export const GOAL_ACTIVITY_STATUS = {
   EXPIRADA: 'EXPIRADA',
 } as const;
 
-export type GoalActivityStatus =
+export type RecommendedClassActivityStatus =
   (typeof GOAL_ACTIVITY_STATUS)[keyof typeof GOAL_ACTIVITY_STATUS];
 
 /**
  * Activity details within a recommended class
  */
-export interface GoalActivity {
+export interface RecommendedClassActivity {
   id: string;
   title: string;
-  status: GoalActivityStatus;
+  status: RecommendedClassActivityStatus;
 }
 
 /**
  * User activities within a recommended class
  */
-export interface GoalSupUsersActivities {
+export interface RecommendedClassSupUsersActivities {
   id: string;
-  activity: GoalActivity;
+  activity: RecommendedClassActivity;
   userInstitutionId: string;
   answeredAt: string | null;
   timeSpent: number;
@@ -374,10 +374,10 @@ export interface GoalSupUsersActivities {
 /**
  * Activities associated with a recommended class
  */
-export interface GoalActivitiesGoals {
+export interface RecommendedClassActivitiesRecommendedClass {
   recommendedClassId: string;
   supUsersActivitiesId: string;
-  supUsersActivities: GoalSupUsersActivities;
+  supUsersActivities: RecommendedClassSupUsersActivities;
 }
 
 // ============================================
@@ -387,7 +387,7 @@ export interface GoalActivitiesGoals {
 /**
  * Subject info from lesson in /recommended class/{id} response
  */
-export interface GoalLessonSubject {
+export interface RecommendedClassLessonSubject {
   id: string;
   name: string;
   color: string;
@@ -397,53 +397,53 @@ export interface GoalLessonSubject {
 /**
  * Lesson info from /recommended class/{id} response
  */
-export interface GoalLesson {
+export interface RecommendedClassLesson {
   id: string;
   content: { id: string; name: string };
   subtopic: { id: string; name: string };
   topic: { id: string; name: string };
-  subject: GoalLessonSubject;
+  subject: RecommendedClassLessonSubject;
 }
 
 /**
  * Lesson progress from /recommended class/{id} response
  */
-export interface GoalLessonProgress {
+export interface RecommendedClassLessonProgress {
   id: string;
   userId: string;
   lessonId: string;
   progress: number;
-  lesson: GoalLesson;
+  lesson: RecommendedClassLesson;
 }
 
 /**
  * Lesson recommended class item from /recommended class/{id} response
  */
-export interface GoalLessonGoalItem {
+export interface RecommendedClassLessonRecommendedClassItem {
   recommendedClassId: string;
   supLessonsProgressId: string;
-  supLessonsProgress: GoalLessonProgress;
+  supLessonsProgress: RecommendedClassLessonProgress;
 }
 
 /**
  * Recommended Class metadata from /recommended class/{id} endpoint
  */
-export interface GoalMetadata {
+export interface RecommendedClassMetadata {
   id: string;
   title: string;
   startDate: string;
   finalDate: string;
   progress: number;
-  lessons: GoalLessonGoalItem[];
-  activities?: GoalActivitiesGoals[];
+  lessons: RecommendedClassLessonRecommendedClassItem[];
+  activities?: RecommendedClassActivitiesRecommendedClass[];
 }
 
 /**
  * Full API response from /recommended class/{id} endpoint
  */
-export interface GoalApiResponse {
+export interface RecommendedClassApiResponse {
   message: string;
-  data: GoalMetadata;
+  data: RecommendedClassMetadata;
 }
 
 // ============================================
@@ -456,11 +456,11 @@ export interface GoalApiResponse {
  */
 export interface LessonDetailsData {
   /** Recommended Class metadata from /recommended class/{id} */
-  recommendedClass: GoalMetadata;
+  recommendedClass: RecommendedClassMetadata;
   /** Details from /recommended class/{id}/details */
-  details: GoalDetailsData;
+  details: RecommendedClassDetailsData;
   /** Optional breakdown info from /recommended-class/history */
-  breakdown?: GoalBreakdown;
+  breakdown?: RecommendedClassBreakdown;
 }
 
 // ============================================
@@ -471,7 +471,7 @@ export interface LessonDetailsData {
 /**
  * Recommended Class draft type enum - matches backend GOAL_DRAFT_TYPE
  */
-export enum GoalDraftType {
+export enum RecommendedClassDraftType {
   MODELO = 'MODELO',
   RASCUNHO = 'RASCUNHO',
 }
@@ -479,9 +479,9 @@ export enum GoalDraftType {
 /**
  * Recommended Class model response from backend API /recommended-class/drafts
  */
-export interface GoalModelResponse {
+export interface RecommendedClassModelResponse {
   id: string;
-  type: GoalDraftType;
+  type: RecommendedClassDraftType;
   title: string;
   description: string | null;
   creatorUserInstitutionId: string;
@@ -495,7 +495,8 @@ export interface GoalModelResponse {
 /**
  * Recommended Class model table item for display in models table
  */
-export interface GoalModelTableItem extends Record<string, unknown> {
+export interface RecommendedClassModelTableItem
+  extends Record<string, unknown> {
   id: string;
   title: string;
   savedAt: string;
@@ -506,10 +507,10 @@ export interface GoalModelTableItem extends Record<string, unknown> {
 /**
  * Recommended Class models API complete response from /recommended-class/drafts
  */
-export interface GoalModelsApiResponse {
+export interface RecommendedClassModelsApiResponse {
   message: string;
   data: {
-    drafts: GoalModelResponse[];
+    drafts: RecommendedClassModelResponse[];
     total: number;
   };
 }
@@ -517,18 +518,18 @@ export interface GoalModelsApiResponse {
 /**
  * Recommended Class model filters for API query parameters
  */
-export interface GoalModelFilters {
+export interface RecommendedClassModelFilters {
   page?: number;
   limit?: number;
   search?: string;
   subjectId?: string;
-  type?: GoalDraftType;
+  type?: RecommendedClassDraftType;
 }
 
 /**
  * Pagination info for recommended class models
  */
-export interface GoalModelPagination {
+export interface RecommendedClassModelPagination {
   total: number;
   page: number;
   limit: number;

@@ -1,16 +1,16 @@
 import type { TableParams } from '../../TableProvider/TableProvider';
-import type { GoalModelFilters } from '../../../types/recommendedLessons';
+import type { RecommendedClassModelFilters } from '../../../types/recommendedLessons';
 
 /**
  * Build goal models filters from table params
  * Converts TableProvider parameters to API filter format
  * @param params - Table parameters from TableProvider
- * @returns Goal model filters for API request
+ * @returns RecommendedClass model filters for API request
  */
-export const buildGoalModelsFiltersFromParams = (
+export const buildRecommendedClassModelsFiltersFromParams = (
   params: TableParams
-): GoalModelFilters => {
-  const filters: GoalModelFilters = {
+): RecommendedClassModelFilters => {
+  const filters: RecommendedClassModelFilters = {
     page: params.page,
     limit: params.limit,
   };

@@ -4,14 +4,14 @@ import {
   type ModelsTabConfig,
   type ModelsColumnsConfig,
 } from '../../shared/ModelsTabBase';
-import { createGoalDraftsFiltersConfig } from '../config/draftsFiltersConfig';
-import { buildGoalModelsFiltersFromParams } from '../utils/filterBuilders';
-import { createUseGoalDrafts } from '../../../hooks/useGoalDrafts';
+import { createRecommendedClassDraftsFiltersConfig } from '../config/draftsFiltersConfig';
+import { buildRecommendedClassModelsFiltersFromParams } from '../utils/filterBuilders';
+import { createUseRecommendedClassDrafts } from '../../../hooks/useRecommendedClassDrafts';
 import type {
-  GoalModelTableItem,
-  GoalModelFilters,
-  GoalModelsApiResponse,
-  GoalUserFilterData,
+  RecommendedClassModelTableItem,
+  RecommendedClassModelFilters,
+  RecommendedClassModelsApiResponse,
+  RecommendedClassUserFilterData,
 } from '../../../types/recommendedLessons';
 import type { SubjectEnum } from '../../../enums/SubjectEnum';
 
@@ -39,21 +39,21 @@ const GOAL_DRAFTS_COLUMNS_CONFIG: ModelsColumnsConfig = {
 };
 
 /**
- * Props for the GoalDraftsTab component
+ * Props for the RecommendedClassDraftsTab component
  */
-export interface GoalDraftsTabProps {
+export interface RecommendedClassDraftsTabProps {
   /** Function to fetch goal drafts from API */
-  fetchGoalDrafts: (
-    filters?: GoalModelFilters
-  ) => Promise<GoalModelsApiResponse>;
+  fetchRecommendedClassDrafts: (
+    filters?: RecommendedClassModelFilters
+  ) => Promise<RecommendedClassModelsApiResponse>;
   /** Function to delete a goal draft */
-  deleteGoalDraft: (id: string) => Promise<void>;
+  deleteRecommendedClassDraft: (id: string) => Promise<void>;
   /** Callback when create draft button is clicked */
   onCreateDraft: () => void;
   /** Callback when send lesson button is clicked on a draft */
-  onSendDraft?: (draft: GoalModelTableItem) => void;
+  onSendDraft?: (draft: RecommendedClassModelTableItem) => void;
   /** Callback when edit draft button is clicked */
-  onEditDraft?: (draft: GoalModelTableItem) => void;
+  onEditDraft?: (draft: RecommendedClassModelTableItem) => void;
   /** Image for empty state */
   emptyStateImage?: string;
   /** Image for no search results */
@@ -61,7 +61,7 @@ export interface GoalDraftsTabProps {
   /** Function to map subject name to SubjectEnum */
   mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /** User data for populating filter options */
-  userFilterData?: GoalUserFilterData;
+  userFilterData?: RecommendedClassUserFilterData;
   /**
    * Map of subject IDs to names for drafts display.
    * IMPORTANT: This Map should be memoized with useMemo in the parent component
@@ -71,13 +71,13 @@ export interface GoalDraftsTabProps {
 }
 
 /**
- * GoalDraftsTab component
+ * RecommendedClassDraftsTab component
  * Displays goal drafts with filters, pagination, and CRUD actions.
  * Uses the shared ModelsTabBase component for common functionality.
  */
-export const GoalDraftsTab = ({
-  fetchGoalDrafts,
-  deleteGoalDraft,
+export const RecommendedClassDraftsTab = ({
+  fetchRecommendedClassDrafts,
+  deleteRecommendedClassDraft,
   onCreateDraft,
   onSendDraft,
   onEditDraft,
@@ -86,15 +86,15 @@ export const GoalDraftsTab = ({
   mapSubjectNameToEnum,
   userFilterData,
   subjectsMap,
-}: GoalDraftsTabProps) => (
+}: RecommendedClassDraftsTabProps) => (
   <ModelsTabBase<
-    GoalModelTableItem,
-    GoalModelFilters,
-    GoalModelsApiResponse,
-    GoalUserFilterData
+    RecommendedClassModelTableItem,
+    RecommendedClassModelFilters,
+    RecommendedClassModelsApiResponse,
+    RecommendedClassUserFilterData
   >
-    fetchModels={fetchGoalDrafts}
-    deleteModel={deleteGoalDraft}
+    fetchModels={fetchRecommendedClassDrafts}
+    deleteModel={deleteRecommendedClassDraft}
     onCreateModel={onCreateDraft}
     onSend={onSendDraft}
     onEditModel={onEditDraft}
@@ -113,10 +113,10 @@ export const GoalDraftsTab = ({
         GOAL_DRAFTS_COLUMNS_CONFIG
       )
     }
-    createFiltersConfig={createGoalDraftsFiltersConfig}
-    buildFiltersFromParams={buildGoalModelsFiltersFromParams}
-    createUseModels={createUseGoalDrafts}
+    createFiltersConfig={createRecommendedClassDraftsFiltersConfig}
+    buildFiltersFromParams={buildRecommendedClassModelsFiltersFromParams}
+    createUseModels={createUseRecommendedClassDrafts}
   />
 );
 
-export default GoalDraftsTab;
+export default RecommendedClassDraftsTab;

@@ -1,21 +1,21 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { z } from 'zod';
 import {
-  createUseGoalModels,
-  createGoalModelsHook,
-  transformGoalModelToTableItem,
-  handleGoalModelFetchError,
+  createUseRecommendedClassModels,
+  createRecommendedClassModelsHook,
+  transformRecommendedClassModelToTableItem,
+  handleRecommendedClassModelFetchError,
   goalModelsApiResponseSchema,
   DEFAULT_GOAL_MODELS_PAGINATION,
-} from './useGoalModels';
-import { GoalDraftType } from '../types/recommendedLessons';
+} from './useRecommendedClassModels';
+import { RecommendedClassDraftType } from '../types/recommendedLessons';
 import type {
-  GoalModelResponse,
-  GoalModelsApiResponse,
-  GoalModelFilters,
+  RecommendedClassModelResponse,
+  RecommendedClassModelsApiResponse,
+  RecommendedClassModelFilters,
 } from '../types/recommendedLessons';
 
-describe('useGoalModels', () => {
+describe('useRecommendedClassModels', () => {
   describe('DEFAULT_GOAL_MODELS_PAGINATION', () => {
     it('should have correct default values', () => {
       expect(DEFAULT_GOAL_MODELS_PAGINATION).toEqual({
@@ -27,10 +27,10 @@ describe('useGoalModels', () => {
     });
   });
 
-  describe('transformGoalModelToTableItem', () => {
-    const baseModel: GoalModelResponse = {
+  describe('transformRecommendedClassModelToTableItem', () => {
+    const baseModel: RecommendedClassModelResponse = {
       id: '123e4567-e89b-12d3-a456-426614174000',
-      type: GoalDraftType.MODELO,
+      type: RecommendedClassDraftType.MODELO,
       title: 'Test Model',
       description: 'Test description',
       creatorUserInstitutionId: '123e4567-e89b-12d3-a456-426614174001',
@@ -47,7 +47,10 @@ describe('useGoalModels', () => {
     ]);
 
     it('should transform model correctly with all fields', () => {
-      const result = transformGoalModelToTableItem(baseModel, subjectsMap);
+      const result = transformRecommendedClassModelToTableItem(
+        baseModel,
+        subjectsMap
+      );
 
       expect(result.id).toBe('123e4567-e89b-12d3-a456-426614174000');
       expect(result.title).toBe('Test Model');
@@ -57,68 +60,89 @@ describe('useGoalModels', () => {
     });
 
     it('should handle null title', () => {
-      const model: GoalModelResponse = {
+      const model: RecommendedClassModelResponse = {
         ...baseModel,
         title: null as unknown as string,
       };
 
-      const result = transformGoalModelToTableItem(model, subjectsMap);
+      const result = transformRecommendedClassModelToTableItem(
+        model,
+        subjectsMap
+      );
       expect(result.title).toBe('Sem título');
     });
 
     it('should handle empty title', () => {
-      const model: GoalModelResponse = {
+      const model: RecommendedClassModelResponse = {
         ...baseModel,
         title: '',
       };
 
-      const result = transformGoalModelToTableItem(model, subjectsMap);
+      const result = transformRecommendedClassModelToTableItem(
+        model,
+        subjectsMap
+      );
       expect(result.title).toBe('Sem título');
     });
 
     it('should handle null subjectId', () => {
-      const model: GoalModelResponse = {
+      const model: RecommendedClassModelResponse = {
         ...baseModel,
         subjectId: null,
       };
 
-      const result = transformGoalModelToTableItem(model, subjectsMap);
+      const result = transformRecommendedClassModelToTableItem(
+        model,
+        subjectsMap
+      );
       expect(result.subject).toBe('');
       expect(result.subjectId).toBeNull();
     });
 
     it('should handle missing subject in subjectsMap', () => {
-      const model: GoalModelResponse = {
+      const model: RecommendedClassModelResponse = {
         ...baseModel,
         subjectId: 'unknown-subject',
       };
 
-      const result = transformGoalModelToTableItem(model, subjectsMap);
+      const result = transformRecommendedClassModelToTableItem(
+        model,
+        subjectsMap
+      );
       expect(result.subject).toBe('');
     });
 
     it('should handle undefined subjectsMap', () => {
-      const result = transformGoalModelToTableItem(baseModel, undefined);
+      const result = transformRecommendedClassModelToTableItem(
+        baseModel,
+        undefined
+      );
       expect(result.subject).toBe('');
     });
 
     it('should handle empty subjectsMap', () => {
-      const result = transformGoalModelToTableItem(baseModel, new Map());
+      const result = transformRecommendedClassModelToTableItem(
+        baseModel,
+        new Map()
+      );
       expect(result.subject).toBe('');
     });
 
     it('should format date correctly', () => {
-      const model: GoalModelResponse = {
+      const model: RecommendedClassModelResponse = {
         ...baseModel,
         createdAt: '2024-12-25T08:00:00Z',
       };
 
-      const result = transformGoalModelToTableItem(model, subjectsMap);
+      const result = transformRecommendedClassModelToTableItem(
+        model,
+        subjectsMap
+      );
       expect(result.savedAt).toBe('25/12/2024');
     });
   });
 
-  describe('handleGoalModelFetchError', () => {
+  describe('handleRecommendedClassModelFetchError', () => {
     let consoleErrorSpy: jest.SpyInstance;
 
     beforeEach(() => {
@@ -140,20 +164,20 @@ describe('useGoalModels', () => {
         },
       ]);
 
-      const result = handleGoalModelFetchError(zodError);
+      const result = handleRecommendedClassModelFetchError(zodError);
       expect(result).toBe('Erro ao validar dados de modelos de aulas');
       expect(consoleErrorSpy).toHaveBeenCalled();
     });
 
     it('should return generic message for other errors', () => {
       const genericError = new Error('Network error');
-      const result = handleGoalModelFetchError(genericError);
+      const result = handleRecommendedClassModelFetchError(genericError);
       expect(result).toBe('Erro ao carregar modelos de aulas');
       expect(consoleErrorSpy).toHaveBeenCalled();
     });
 
     it('should return generic message for unknown error types', () => {
-      const result = handleGoalModelFetchError('string error');
+      const result = handleRecommendedClassModelFetchError('string error');
       expect(result).toBe('Erro ao carregar modelos de aulas');
       expect(consoleErrorSpy).toHaveBeenCalled();
     });
@@ -167,7 +191,7 @@ describe('useGoalModels', () => {
           drafts: [
             {
               id: '123e4567-e89b-12d3-a456-426614174000',
-              type: GoalDraftType.MODELO,
+              type: RecommendedClassDraftType.MODELO,
               title: 'Test Model',
               description: 'Test description',
               creatorUserInstitutionId: '123e4567-e89b-12d3-a456-426614174001',
@@ -193,7 +217,7 @@ describe('useGoalModels', () => {
           drafts: [
             {
               id: '123e4567-e89b-12d3-a456-426614174000',
-              type: GoalDraftType.MODELO,
+              type: RecommendedClassDraftType.MODELO,
               title: 'Test',
               description: null,
               creatorUserInstitutionId: '123e4567-e89b-12d3-a456-426614174001',
@@ -219,7 +243,7 @@ describe('useGoalModels', () => {
           drafts: [
             {
               id: 'not-a-uuid',
-              type: GoalDraftType.MODELO,
+              type: RecommendedClassDraftType.MODELO,
               title: 'Test',
               description: null,
               creatorUserInstitutionId: '123e4567-e89b-12d3-a456-426614174001',
@@ -277,21 +301,21 @@ describe('useGoalModels', () => {
     });
   });
 
-  describe('createUseGoalModels', () => {
-    const mockFetchGoalModels = jest.fn<
-      Promise<GoalModelsApiResponse>,
-      [GoalModelFilters?]
+  describe('createUseRecommendedClassModels', () => {
+    const mockFetchRecommendedClassModels = jest.fn<
+      Promise<RecommendedClassModelsApiResponse>,
+      [RecommendedClassModelFilters?]
     >();
 
-    const mockDeleteGoalModel = jest.fn<Promise<void>, [string]>();
+    const mockDeleteRecommendedClassModel = jest.fn<Promise<void>, [string]>();
 
-    const validApiResponse: GoalModelsApiResponse = {
+    const validApiResponse: RecommendedClassModelsApiResponse = {
       message: 'Success',
       data: {
         drafts: [
           {
             id: '123e4567-e89b-12d3-a456-426614174000',
-            type: GoalDraftType.MODELO,
+            type: RecommendedClassDraftType.MODELO,
             title: 'Test Model',
             description: 'Test description',
             creatorUserInstitutionId: '123e4567-e89b-12d3-a456-426614174001',
@@ -315,11 +339,11 @@ describe('useGoalModels', () => {
     });
 
     it('should return initial state', () => {
-      const useGoalModels = createUseGoalModels(
-        mockFetchGoalModels,
-        mockDeleteGoalModel
+      const useRecommendedClassModels = createUseRecommendedClassModels(
+        mockFetchRecommendedClassModels,
+        mockDeleteRecommendedClassModel
       );
-      const { result } = renderHook(() => useGoalModels());
+      const { result } = renderHook(() => useRecommendedClassModels());
 
       expect(result.current.models).toEqual([]);
       expect(result.current.loading).toBe(false);
@@ -330,19 +354,19 @@ describe('useGoalModels', () => {
     });
 
     it('should fetch models successfully', async () => {
-      mockFetchGoalModels.mockResolvedValueOnce(validApiResponse);
+      mockFetchRecommendedClassModels.mockResolvedValueOnce(validApiResponse);
 
-      const useGoalModels = createUseGoalModels(
-        mockFetchGoalModels,
-        mockDeleteGoalModel
+      const useRecommendedClassModels = createUseRecommendedClassModels(
+        mockFetchRecommendedClassModels,
+        mockDeleteRecommendedClassModel
       );
-      const { result } = renderHook(() => useGoalModels());
+      const { result } = renderHook(() => useRecommendedClassModels());
 
       await act(async () => {
         await result.current.fetchModels({ page: 1, limit: 10 }, subjectsMap);
       });
 
-      expect(mockFetchGoalModels).toHaveBeenCalledWith({
+      expect(mockFetchRecommendedClassModels).toHaveBeenCalledWith({
         page: 1,
         limit: 10,
       });
@@ -354,7 +378,7 @@ describe('useGoalModels', () => {
     });
 
     it('should calculate pagination correctly', async () => {
-      const responseWith25Items: GoalModelsApiResponse = {
+      const responseWith25Items: RecommendedClassModelsApiResponse = {
         message: 'Success',
         data: {
           drafts: [],
@@ -362,13 +386,15 @@ describe('useGoalModels', () => {
         },
       };
 
-      mockFetchGoalModels.mockResolvedValueOnce(responseWith25Items);
-
-      const useGoalModels = createUseGoalModels(
-        mockFetchGoalModels,
-        mockDeleteGoalModel
+      mockFetchRecommendedClassModels.mockResolvedValueOnce(
+        responseWith25Items
       );
-      const { result } = renderHook(() => useGoalModels());
+
+      const useRecommendedClassModels = createUseRecommendedClassModels(
+        mockFetchRecommendedClassModels,
+        mockDeleteRecommendedClassModel
+      );
+      const { result } = renderHook(() => useRecommendedClassModels());
 
       await act(async () => {
         await result.current.fetchModels({ page: 2, limit: 10 });
@@ -383,13 +409,13 @@ describe('useGoalModels', () => {
     });
 
     it('should use default pagination values when not provided', async () => {
-      mockFetchGoalModels.mockResolvedValueOnce(validApiResponse);
+      mockFetchRecommendedClassModels.mockResolvedValueOnce(validApiResponse);
 
-      const useGoalModels = createUseGoalModels(
-        mockFetchGoalModels,
-        mockDeleteGoalModel
+      const useRecommendedClassModels = createUseRecommendedClassModels(
+        mockFetchRecommendedClassModels,
+        mockDeleteRecommendedClassModel
       );
-      const { result } = renderHook(() => useGoalModels());
+      const { result } = renderHook(() => useRecommendedClassModels());
 
       await act(async () => {
         await result.current.fetchModels();
@@ -400,18 +426,20 @@ describe('useGoalModels', () => {
     });
 
     it('should set loading state while fetching', async () => {
-      let resolvePromise: (value: GoalModelsApiResponse) => void;
-      const promise = new Promise<GoalModelsApiResponse>((resolve) => {
-        resolvePromise = resolve;
-      });
-
-      mockFetchGoalModels.mockReturnValueOnce(promise);
-
-      const useGoalModels = createUseGoalModels(
-        mockFetchGoalModels,
-        mockDeleteGoalModel
+      let resolvePromise: (value: RecommendedClassModelsApiResponse) => void;
+      const promise = new Promise<RecommendedClassModelsApiResponse>(
+        (resolve) => {
+          resolvePromise = resolve;
+        }
       );
-      const { result } = renderHook(() => useGoalModels());
+
+      mockFetchRecommendedClassModels.mockReturnValueOnce(promise);
+
+      const useRecommendedClassModels = createUseRecommendedClassModels(
+        mockFetchRecommendedClassModels,
+        mockDeleteRecommendedClassModel
+      );
+      const { result } = renderHook(() => useRecommendedClassModels());
 
       act(() => {
         result.current.fetchModels();
@@ -434,13 +462,15 @@ describe('useGoalModels', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockFetchGoalModels.mockRejectedValueOnce(new Error('Network error'));
-
-      const useGoalModels = createUseGoalModels(
-        mockFetchGoalModels,
-        mockDeleteGoalModel
+      mockFetchRecommendedClassModels.mockRejectedValueOnce(
+        new Error('Network error')
       );
-      const { result } = renderHook(() => useGoalModels());
+
+      const useRecommendedClassModels = createUseRecommendedClassModels(
+        mockFetchRecommendedClassModels,
+        mockDeleteRecommendedClassModel
+      );
+      const { result } = renderHook(() => useRecommendedClassModels());
 
       await act(async () => {
         await result.current.fetchModels();
@@ -466,15 +496,15 @@ describe('useGoalModels', () => {
         },
       };
 
-      mockFetchGoalModels.mockResolvedValueOnce(
-        invalidResponse as unknown as GoalModelsApiResponse
+      mockFetchRecommendedClassModels.mockResolvedValueOnce(
+        invalidResponse as unknown as RecommendedClassModelsApiResponse
       );
 
-      const useGoalModels = createUseGoalModels(
-        mockFetchGoalModels,
-        mockDeleteGoalModel
+      const useRecommendedClassModels = createUseRecommendedClassModels(
+        mockFetchRecommendedClassModels,
+        mockDeleteRecommendedClassModel
       );
-      const { result } = renderHook(() => useGoalModels());
+      const { result } = renderHook(() => useRecommendedClassModels());
 
       await act(async () => {
         await result.current.fetchModels();
@@ -489,13 +519,13 @@ describe('useGoalModels', () => {
     });
 
     it('should delete model successfully', async () => {
-      mockDeleteGoalModel.mockResolvedValueOnce(undefined);
+      mockDeleteRecommendedClassModel.mockResolvedValueOnce(undefined);
 
-      const useGoalModels = createUseGoalModels(
-        mockFetchGoalModels,
-        mockDeleteGoalModel
+      const useRecommendedClassModels = createUseRecommendedClassModels(
+        mockFetchRecommendedClassModels,
+        mockDeleteRecommendedClassModel
       );
-      const { result } = renderHook(() => useGoalModels());
+      const { result } = renderHook(() => useRecommendedClassModels());
 
       let deleteResult: boolean = false;
       await act(async () => {
@@ -503,7 +533,7 @@ describe('useGoalModels', () => {
       });
 
       expect(deleteResult).toBe(true);
-      expect(mockDeleteGoalModel).toHaveBeenCalledWith('model-id');
+      expect(mockDeleteRecommendedClassModel).toHaveBeenCalledWith('model-id');
     });
 
     it('should return false on delete failure', async () => {
@@ -511,13 +541,15 @@ describe('useGoalModels', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockDeleteGoalModel.mockRejectedValueOnce(new Error('Delete failed'));
-
-      const useGoalModels = createUseGoalModels(
-        mockFetchGoalModels,
-        mockDeleteGoalModel
+      mockDeleteRecommendedClassModel.mockRejectedValueOnce(
+        new Error('Delete failed')
       );
-      const { result } = renderHook(() => useGoalModels());
+
+      const useRecommendedClassModels = createUseRecommendedClassModels(
+        mockFetchRecommendedClassModels,
+        mockDeleteRecommendedClassModel
+      );
+      const { result } = renderHook(() => useRecommendedClassModels());
 
       let deleteResult: boolean = true;
       await act(async () => {
@@ -535,13 +567,15 @@ describe('useGoalModels', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockFetchGoalModels.mockRejectedValueOnce(new Error('Network error'));
-
-      const useGoalModels = createUseGoalModels(
-        mockFetchGoalModels,
-        mockDeleteGoalModel
+      mockFetchRecommendedClassModels.mockRejectedValueOnce(
+        new Error('Network error')
       );
-      const { result } = renderHook(() => useGoalModels());
+
+      const useRecommendedClassModels = createUseRecommendedClassModels(
+        mockFetchRecommendedClassModels,
+        mockDeleteRecommendedClassModel
+      );
+      const { result } = renderHook(() => useRecommendedClassModels());
 
       await act(async () => {
         await result.current.fetchModels();
@@ -549,7 +583,7 @@ describe('useGoalModels', () => {
 
       expect(result.current.error).toBe('Erro ao carregar modelos de aulas');
 
-      mockFetchGoalModels.mockResolvedValueOnce(validApiResponse);
+      mockFetchRecommendedClassModels.mockResolvedValueOnce(validApiResponse);
 
       await act(async () => {
         await result.current.fetchModels();
@@ -561,9 +595,11 @@ describe('useGoalModels', () => {
     });
   });
 
-  describe('createGoalModelsHook', () => {
-    it('should be an alias for createUseGoalModels', () => {
-      expect(createGoalModelsHook).toBe(createUseGoalModels);
+  describe('createRecommendedClassModelsHook', () => {
+    it('should be an alias for createUseRecommendedClassModels', () => {
+      expect(createRecommendedClassModelsHook).toBe(
+        createUseRecommendedClassModels
+      );
     });
 
     it('should create a functional hook', () => {
@@ -573,7 +609,7 @@ describe('useGoalModels', () => {
       });
       const mockDelete = jest.fn().mockResolvedValue(undefined);
 
-      const useHook = createGoalModelsHook(mockFetch, mockDelete);
+      const useHook = createRecommendedClassModelsHook(mockFetch, mockDelete);
       const { result } = renderHook(() => useHook());
 
       expect(result.current.fetchModels).toBeInstanceOf(Function);
