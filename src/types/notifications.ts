@@ -10,9 +10,9 @@ import type { BaseApiClient } from './api';
 export type NotificationType =
   | 'ACTIVITY'
   | 'TRAIL'
-  | 'GOAL'
+  | 'GENERAL'
   | 'ANNOUNCEMENT'
-  | 'GENERAL';
+  | 'RECOMMENDEDCLASS';
 
 /**
  * Entity type for navigation
@@ -20,7 +20,7 @@ export type NotificationType =
 export enum NotificationEntityType {
   ACTIVITY = 'ACTIVITY',
   TRAIL = 'TRAIL',
-  GOAL = 'GOAL',
+  RECOMMENDEDCLASS = 'RECOMMENDEDCLASS',
 }
 
 /**
@@ -83,9 +83,9 @@ export interface Notification {
     type: string;
   } | null;
   /**
-   * Goal information (optional)
+   * RecommendedClass information (optional)
    */
-  goal?: {
+  recommendedClass?: {
     id: string;
     title: string;
   } | null;
@@ -119,7 +119,7 @@ export interface BackendNotification {
     title: string;
     type: string;
   } | null;
-  goal?: {
+  recommendedClass?: {
     id: string;
     title: string;
   } | null;

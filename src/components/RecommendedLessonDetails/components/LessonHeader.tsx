@@ -31,11 +31,12 @@ export const LessonHeader = ({
   mapSubjectNameToEnum,
   viewLessonLabel,
 }: LessonHeaderProps) => {
-  const { goal, breakdown } = data;
+  const { recommendedClass, breakdown } = data;
 
   // Extract subject from first lesson if available
   const subjectName =
-    goal.lessonsGoals[0]?.supLessonsProgress?.lesson?.subject?.name || '';
+    recommendedClass.lessons[0]?.supLessonsProgress?.lesson?.subject?.name ||
+    '';
   const subjectEnum = mapSubjectNameToEnum?.(subjectName);
   const subjectInfo = subjectEnum ? getSubjectInfo(subjectEnum) : null;
 
@@ -49,17 +50,17 @@ export const LessonHeader = ({
             weight="bold"
             className="text-text-950 lg:text-2xl"
           >
-            {goal.title}
+            {recommendedClass.title}
           </Text>
           <div className="flex flex-wrap items-center gap-2 text-sm text-text-600">
             <Text as="span" size="sm" className="text-text-600">
-              Início em {formatDate(goal.startDate)}
+              Início em {formatDate(recommendedClass.startDate)}
             </Text>
             <Text as="span" size="sm" className="text-text-400">
               •
             </Text>
             <Text as="span" size="sm" className="text-text-600">
-              Prazo final {formatDate(goal.finalDate)}
+              Prazo final {formatDate(recommendedClass.finalDate)}
             </Text>
             {breakdown?.schoolName && (
               <>

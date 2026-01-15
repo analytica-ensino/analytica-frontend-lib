@@ -4,24 +4,24 @@ import {
   type ModelsTabConfig,
   type ModelsColumnsConfig,
 } from '../../shared/ModelsTabBase';
-import { createGoalModelsFiltersConfig } from '../config/modelsFiltersConfig';
-import { buildGoalModelsFiltersFromParams } from '../utils/filterBuilders';
-import { createUseGoalModels } from '../../../hooks/useGoalModels';
+import { createRecommendedClassModelsFiltersConfig } from '../config/modelsFiltersConfig';
+import { buildRecommendedClassModelsFiltersFromParams } from '../utils/filterBuilders';
+import { createUseRecommendedClassModels } from '../../../hooks/useRecommendedClassModels';
 import type {
-  GoalModelTableItem,
-  GoalModelFilters,
-  GoalModelsApiResponse,
-  GoalUserFilterData,
+  RecommendedClassModelTableItem,
+  RecommendedClassModelFilters,
+  RecommendedClassModelsApiResponse,
+  RecommendedClassUserFilterData,
 } from '../../../types/recommendedLessons';
 import type { SubjectEnum } from '../../../enums/SubjectEnum';
 
 /**
- * Configuration for goal models tab
+ * Configuration for recommendedClass models tab
  */
-const GOAL_MODELS_CONFIG: ModelsTabConfig = {
+const RECOMMENDED_CLASS_MODELS_CONFIG: ModelsTabConfig = {
   entityName: 'aula',
   entityNamePlural: 'aulas',
-  testId: 'goal-models-tab',
+  testId: 'recommendedClass-models-tab',
   emptyStateTitle: 'Crie modelos para agilizar suas aulas',
   emptyStateDescription:
     'Salve modelos de aulas recomendadas para reutilizar e enviar rapidamente para suas turmas!',
@@ -29,9 +29,9 @@ const GOAL_MODELS_CONFIG: ModelsTabConfig = {
 };
 
 /**
- * Configuration for goal models table columns
+ * Configuration for recommendedClass models table columns
  */
-const GOAL_COLUMNS_CONFIG: ModelsColumnsConfig = {
+const RECOMMENDED_CLASS_COLUMNS_CONFIG: ModelsColumnsConfig = {
   sendButtonLabel: 'Enviar aula',
   sendButtonAriaLabel: 'Enviar aula',
   deleteButtonAriaLabel: 'Deletar modelo',
@@ -39,21 +39,21 @@ const GOAL_COLUMNS_CONFIG: ModelsColumnsConfig = {
 };
 
 /**
- * Props for the GoalModelsTab component
+ * Props for the RecommendedClassModelsTab component
  */
-export interface GoalModelsTabProps {
-  /** Function to fetch goal models from API */
-  fetchGoalModels: (
-    filters?: GoalModelFilters
-  ) => Promise<GoalModelsApiResponse>;
-  /** Function to delete a goal model */
-  deleteGoalModel: (id: string) => Promise<void>;
+export interface RecommendedClassModelsTabProps {
+  /** Function to fetch recommendedClass models from API */
+  fetchRecommendedClassModels: (
+    filters?: RecommendedClassModelFilters
+  ) => Promise<RecommendedClassModelsApiResponse>;
+  /** Function to delete a recommendedClass model */
+  deleteRecommendedClassModel: (id: string) => Promise<void>;
   /** Callback when create model button is clicked */
   onCreateModel: () => void;
   /** Callback when send lesson button is clicked on a model */
-  onSendLesson?: (model: GoalModelTableItem) => void;
+  onSendLesson?: (model: RecommendedClassModelTableItem) => void;
   /** Callback when edit model button is clicked */
-  onEditModel?: (model: GoalModelTableItem) => void;
+  onEditModel?: (model: RecommendedClassModelTableItem) => void;
   /** Image for empty state */
   emptyStateImage?: string;
   /** Image for no search results */
@@ -61,7 +61,7 @@ export interface GoalModelsTabProps {
   /** Function to map subject name to SubjectEnum */
   mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /** User data for populating filter options */
-  userFilterData?: GoalUserFilterData;
+  userFilterData?: RecommendedClassUserFilterData;
   /**
    * Map of subject IDs to names for models display.
    * IMPORTANT: This Map should be memoized with useMemo in the parent component
@@ -71,13 +71,13 @@ export interface GoalModelsTabProps {
 }
 
 /**
- * GoalModelsTab component
- * Displays goal models with filters, pagination, and CRUD actions.
+ * RecommendedClassModelsTab component
+ * Displays recommendedClass models with filters, pagination, and CRUD actions.
  * Uses the shared ModelsTabBase component for common functionality.
  */
-export const GoalModelsTab = ({
-  fetchGoalModels,
-  deleteGoalModel,
+export const RecommendedClassModelsTab = ({
+  fetchRecommendedClassModels,
+  deleteRecommendedClassModel,
   onCreateModel,
   onSendLesson,
   onEditModel,
@@ -86,15 +86,15 @@ export const GoalModelsTab = ({
   mapSubjectNameToEnum,
   userFilterData,
   subjectsMap,
-}: GoalModelsTabProps) => (
+}: RecommendedClassModelsTabProps) => (
   <ModelsTabBase<
-    GoalModelTableItem,
-    GoalModelFilters,
-    GoalModelsApiResponse,
-    GoalUserFilterData
+    RecommendedClassModelTableItem,
+    RecommendedClassModelFilters,
+    RecommendedClassModelsApiResponse,
+    RecommendedClassUserFilterData
   >
-    fetchModels={fetchGoalModels}
-    deleteModel={deleteGoalModel}
+    fetchModels={fetchRecommendedClassModels}
+    deleteModel={deleteRecommendedClassModel}
     onCreateModel={onCreateModel}
     onSend={onSendLesson}
     onEditModel={onEditModel}
@@ -103,20 +103,20 @@ export const GoalModelsTab = ({
     mapSubjectNameToEnum={mapSubjectNameToEnum}
     userFilterData={userFilterData}
     subjectsMap={subjectsMap}
-    config={GOAL_MODELS_CONFIG}
+    config={RECOMMENDED_CLASS_MODELS_CONFIG}
     createTableColumns={(mapSubject, send, edit, del) =>
       createModelsTableColumnsBase(
         mapSubject,
         send,
         edit,
         del,
-        GOAL_COLUMNS_CONFIG
+        RECOMMENDED_CLASS_COLUMNS_CONFIG
       )
     }
-    createFiltersConfig={createGoalModelsFiltersConfig}
-    buildFiltersFromParams={buildGoalModelsFiltersFromParams}
-    createUseModels={createUseGoalModels}
+    createFiltersConfig={createRecommendedClassModelsFiltersConfig}
+    buildFiltersFromParams={buildRecommendedClassModelsFiltersFromParams}
+    createUseModels={createUseRecommendedClassModels}
   />
 );
 
-export default GoalModelsTab;
+export default RecommendedClassModelsTab;

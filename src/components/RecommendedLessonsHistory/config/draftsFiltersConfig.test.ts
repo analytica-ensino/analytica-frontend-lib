@@ -1,10 +1,10 @@
-import { createGoalDraftsFiltersConfig } from './draftsFiltersConfig';
-import type { GoalUserFilterData } from '../../../types/recommendedLessons';
+import { createRecommendedClassDraftsFiltersConfig } from './draftsFiltersConfig';
+import type { RecommendedClassUserFilterData } from '../../../types/recommendedLessons';
 
 describe('draftsFiltersConfig', () => {
-  describe('createGoalDraftsFiltersConfig', () => {
+  describe('createRecommendedClassDraftsFiltersConfig', () => {
     it('should return filter config with subject category', () => {
-      const userData: GoalUserFilterData = {
+      const userData: RecommendedClassUserFilterData = {
         schools: [],
         classes: [],
         subjects: [
@@ -13,7 +13,7 @@ describe('draftsFiltersConfig', () => {
         ],
       };
 
-      const result = createGoalDraftsFiltersConfig(userData);
+      const result = createRecommendedClassDraftsFiltersConfig(userData);
 
       expect(result).toHaveLength(1);
       expect(result[0].key).toBe('content');
@@ -26,7 +26,7 @@ describe('draftsFiltersConfig', () => {
     });
 
     it('should map subjects to filter options correctly', () => {
-      const userData: GoalUserFilterData = {
+      const userData: RecommendedClassUserFilterData = {
         schools: [],
         classes: [],
         subjects: [
@@ -35,7 +35,7 @@ describe('draftsFiltersConfig', () => {
         ],
       };
 
-      const result = createGoalDraftsFiltersConfig(userData);
+      const result = createRecommendedClassDraftsFiltersConfig(userData);
       const subjectItems = result[0].categories[0].itens;
 
       expect(subjectItems).toEqual([
@@ -45,44 +45,45 @@ describe('draftsFiltersConfig', () => {
     });
 
     it('should handle undefined userData', () => {
-      const result = createGoalDraftsFiltersConfig(undefined);
+      const result = createRecommendedClassDraftsFiltersConfig(undefined);
 
       expect(result).toHaveLength(1);
       expect(result[0].categories[0].itens).toEqual([]);
     });
 
     it('should handle userData with undefined subjects', () => {
-      const userData: GoalUserFilterData = {
+      const userData: RecommendedClassUserFilterData = {
         schools: [],
         classes: [],
-        subjects: undefined as unknown as GoalUserFilterData['subjects'],
+        subjects:
+          undefined as unknown as RecommendedClassUserFilterData['subjects'],
       };
 
-      const result = createGoalDraftsFiltersConfig(userData);
+      const result = createRecommendedClassDraftsFiltersConfig(userData);
 
       expect(result[0].categories[0].itens).toEqual([]);
     });
 
     it('should handle empty subjects array', () => {
-      const userData: GoalUserFilterData = {
+      const userData: RecommendedClassUserFilterData = {
         schools: [],
         classes: [],
         subjects: [],
       };
 
-      const result = createGoalDraftsFiltersConfig(userData);
+      const result = createRecommendedClassDraftsFiltersConfig(userData);
 
       expect(result[0].categories[0].itens).toEqual([]);
     });
 
     it('should always return empty selectedIds', () => {
-      const userData: GoalUserFilterData = {
+      const userData: RecommendedClassUserFilterData = {
         schools: [],
         classes: [],
         subjects: [{ id: 'subject-1', name: 'Test' }],
       };
 
-      const result = createGoalDraftsFiltersConfig(userData);
+      const result = createRecommendedClassDraftsFiltersConfig(userData);
 
       expect(result[0].categories[0].selectedIds).toEqual([]);
     });

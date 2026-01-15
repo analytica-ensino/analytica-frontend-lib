@@ -494,6 +494,20 @@ export {
   studentActivityStatusSchema,
 } from './types/activityDetails';
 
+// Lesson Availability Types
+export { LESSON_AVAILABILITY } from './types/lessonAvailability';
+export type {
+  LessonAvailability,
+  LessonAvailabilityResult,
+} from './types/lessonAvailability';
+
+// Lesson Availability Utils
+export {
+  checkLessonAvailability,
+  isLessonNotYetAvailable,
+  isLessonExpired,
+} from './utils/lessonAvailabilityUtils';
+
 // Activity Details Utils
 export {
   getStatusBadgeConfig,
@@ -599,10 +613,10 @@ export type {
   StepConfig as SendLessonStepConfig,
 } from './components/SendLessonModal';
 
-// Recommended Lessons / Goals History Component
+// Recommended Lessons / RecommendedClass History Component
 export {
   RecommendedLessonsHistory,
-  GoalPageTab,
+  RecommendedClassPageTab,
 } from './components/RecommendedLessonsHistory';
 export type { RecommendedLessonsHistoryProps } from './components/RecommendedLessonsHistory';
 
@@ -627,10 +641,10 @@ export type {
 export {
   createUseRecommendedLessonsHistory,
   createRecommendedLessonsHistoryHook,
-  determineGoalStatus,
-  transformGoalToTableItem,
-  handleGoalFetchError,
-  goalsHistoryApiResponseSchema,
+  determineRecommendedClassStatus,
+  transformRecommendedClassToTableItem,
+  handleRecommendedClassFetchError,
+  recommendedClassHistoryApiResponseSchema,
 } from './hooks/useRecommendedLessons';
 export type {
   UseRecommendedLessonsHistoryState,
@@ -659,8 +673,8 @@ export {
   createUseRecommendedLessonDetails,
   createRecommendedLessonDetailsHook,
   handleLessonDetailsFetchError,
-  goalApiResponseSchema,
-  goalDetailsApiResponseSchema,
+  recommendedClassApiResponseSchema,
+  recommendedClassDetailsApiResponseSchema,
   historyApiResponseSchema,
 } from './hooks/useRecommendedLessonDetails';
 export type {
@@ -671,89 +685,89 @@ export type {
 
 // Recommended Lessons Types
 export {
-  GoalApiStatus,
-  GoalDisplayStatus,
-  GoalBadgeActionType,
-  getGoalStatusBadgeAction,
-  GOAL_FILTER_STATUS_OPTIONS,
-  GOAL_STATUS_OPTIONS,
+  RecommendedClassApiStatus,
+  RecommendedClassDisplayStatus,
+  RecommendedClassBadgeActionType,
+  getRecommendedClassStatusBadgeAction,
+  RECOMMENDED_CLASS_FILTER_STATUS_OPTIONS,
+  RECOMMENDED_CLASS_STATUS_OPTIONS,
   StudentLessonStatus,
   getStudentStatusBadgeAction,
   isDeadlinePassed,
   deriveStudentStatus,
   formatDaysToComplete,
-  GoalDraftType,
-  GOAL_ACTIVITY_STATUS,
+  RecommendedClassDraftType,
+  RECOMMENDED_CLASS_ACTIVITY_STATUS,
 } from './types/recommendedLessons';
 export type {
-  GoalSubject,
-  GoalCreator,
-  GoalStats,
-  GoalBreakdown,
-  GoalData,
-  GoalHistoryItem,
-  GoalTableItem,
-  GoalsHistoryApiResponse,
-  GoalHistoryFilters,
-  GoalHistoryPagination,
-  GoalFilterOption,
-  GoalUserFilterData,
+  RecommendedClassSubject,
+  RecommendedClassCreator,
+  RecommendedClassStats,
+  RecommendedClassBreakdown,
+  RecommendedClassData,
+  RecommendedClassHistoryItem,
+  RecommendedClassTableItem,
+  RecommendedClassHistoryApiResponse,
+  RecommendedClassHistoryFilters,
+  RecommendedClassHistoryPagination,
+  RecommendedClassFilterOption,
+  RecommendedClassUserFilterData,
   // Lesson Details API Types
-  GoalDetailStudent,
-  GoalDetailAggregated,
-  GoalDetailContentPerformanceItem,
-  GoalDetailContentPerformance,
-  GoalDetailsData,
-  GoalDetailsApiResponse,
-  GoalLessonSubject,
-  GoalLesson,
-  GoalLessonProgress,
-  GoalLessonGoalItem,
-  GoalMetadata,
-  GoalApiResponse,
+  RecommendedClassDetailStudent,
+  RecommendedClassDetailAggregated,
+  RecommendedClassDetailContentPerformanceItem,
+  RecommendedClassDetailContentPerformance,
+  RecommendedClassDetailsData,
+  RecommendedClassDetailsApiResponse,
+  RecommendedClassLessonSubject,
+  RecommendedClassLesson,
+  RecommendedClassLessonProgress,
+  RecommendedClassLessonsItem,
+  RecommendedClassMetadata,
+  RecommendedClassApiResponse,
   LessonDetailsData,
-  // Goal Models Types
-  GoalModelResponse,
-  GoalModelTableItem,
-  GoalModelsApiResponse,
-  GoalModelFilters,
-  GoalModelPagination,
-  // Goal Activity Types
-  GoalActivityStatus,
-  GoalActivity,
-  GoalSupUsersActivities,
-  GoalActivitiesGoals,
+  // RecommendedClass Models Types
+  RecommendedClassModelResponse,
+  RecommendedClassModelTableItem,
+  RecommendedClassModelsApiResponse,
+  RecommendedClassModelFilters,
+  RecommendedClassModelPagination,
+  // RecommendedClass Activity Types
+  RecommendedClassActivityStatus,
+  RecommendedClassActivity,
+  RecommendedClassSupUsersActivities,
+  RecommendedClassActivities,
 } from './types/recommendedLessons';
 
-// Goal Models Hook Factory
+// RecommendedClass Models Hook Factory
 export {
-  createUseGoalModels,
-  createGoalModelsHook,
-  transformGoalModelToTableItem,
-  handleGoalModelFetchError,
-  goalModelsApiResponseSchema,
-  DEFAULT_GOAL_MODELS_PAGINATION,
-} from './hooks/useGoalModels';
+  createUseRecommendedClassModels,
+  createRecommendedClassModelsHook,
+  transformRecommendedClassModelToTableItem,
+  handleRecommendedClassModelFetchError,
+  recommendedClassModelsApiResponseSchema,
+  DEFAULT_RECOMMENDED_CLASS_MODELS_PAGINATION,
+} from './hooks/useRecommendedClassModels';
 export type {
-  UseGoalModelsState,
-  UseGoalModelsReturn,
-} from './hooks/useGoalModels';
+  UseRecommendedClassModelsState,
+  UseRecommendedClassModelsReturn,
+} from './hooks/useRecommendedClassModels';
 
-// Goal Drafts Hook Factory
+// RecommendedClass Drafts Hook Factory
 export {
-  createUseGoalDrafts,
-  createGoalDraftsHook,
-  handleGoalDraftFetchError,
-  DEFAULT_GOAL_DRAFTS_PAGINATION,
-} from './hooks/useGoalDrafts';
+  createUseRecommendedClassDrafts,
+  createRecommendedClassDraftsHook,
+  handleRecommendedClassDraftFetchError,
+  DEFAULT_RECOMMENDED_CLASS_DRAFTS_PAGINATION,
+} from './hooks/useRecommendedClassDrafts';
 export type {
-  UseGoalDraftsState,
-  UseGoalDraftsReturn,
-} from './hooks/useGoalDrafts';
+  UseRecommendedClassDraftsState,
+  UseRecommendedClassDraftsReturn,
+} from './hooks/useRecommendedClassDrafts';
 
-// Goal Drafts Tab Component
-export { GoalDraftsTab } from './components/RecommendedLessonsHistory/tabs/DraftsTab';
-export type { GoalDraftsTabProps } from './components/RecommendedLessonsHistory/tabs/DraftsTab';
+// RecommendedClass Drafts Tab Component
+export { RecommendedClassDraftsTab } from './components/RecommendedLessonsHistory/tabs/DraftsTab';
+export type { RecommendedClassDraftsTabProps } from './components/RecommendedLessonsHistory/tabs/DraftsTab';
 
 // Activities History Component
 export { ActivitiesHistory } from './components/ActivitiesHistory';

@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { GoalDraftsTab } from './DraftsTab';
-import type { GoalModelsApiResponse } from '../../../types/recommendedLessons';
+import { RecommendedClassDraftsTab } from './DraftsTab';
+import type { RecommendedClassModelsApiResponse } from '../../../types/recommendedLessons';
 
 // Mock dependencies
 jest.mock('../../shared/ModelsTabBase', () => ({
@@ -26,22 +26,22 @@ jest.mock('../../shared/ModelsTabBase', () => ({
   createModelsTableColumnsBase: jest.fn(() => []),
 }));
 
-describe('GoalDraftsTab', () => {
-  const mockFetchGoalDrafts = jest
-    .fn<Promise<GoalModelsApiResponse>, []>()
+describe('RecommendedClassDraftsTab', () => {
+  const mockFetchRecommendedClassDrafts = jest
+    .fn<Promise<RecommendedClassModelsApiResponse>, []>()
     .mockResolvedValue({
       message: 'Success',
       data: { drafts: [], total: 0 },
     });
 
-  const mockDeleteGoalDraft = jest.fn<Promise<void>, [string]>();
+  const mockDeleteRecommendedClassDraft = jest.fn<Promise<void>, [string]>();
   const mockOnCreateDraft = jest.fn();
   const mockOnSendDraft = jest.fn();
   const mockOnEditDraft = jest.fn();
 
   const defaultProps = {
-    fetchGoalDrafts: mockFetchGoalDrafts,
-    deleteGoalDraft: mockDeleteGoalDraft,
+    fetchRecommendedClassDrafts: mockFetchRecommendedClassDrafts,
+    deleteRecommendedClassDraft: mockDeleteRecommendedClassDraft,
     onCreateDraft: mockOnCreateDraft,
     onSendDraft: mockOnSendDraft,
     onEditDraft: mockOnEditDraft,
@@ -54,13 +54,15 @@ describe('GoalDraftsTab', () => {
   });
 
   it('should render with correct test id', () => {
-    render(<GoalDraftsTab {...defaultProps} />);
+    render(<RecommendedClassDraftsTab {...defaultProps} />);
 
-    expect(screen.getByTestId('goal-drafts-tab')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('recommendedClass-drafts-tab')
+    ).toBeInTheDocument();
   });
 
   it('should render with correct empty state title', () => {
-    render(<GoalDraftsTab {...defaultProps} />);
+    render(<RecommendedClassDraftsTab {...defaultProps} />);
 
     expect(screen.getByTestId('empty-state-title')).toHaveTextContent(
       'Você não tem aulas recomendadas em rascunho'
@@ -68,7 +70,7 @@ describe('GoalDraftsTab', () => {
   });
 
   it('should render with correct search placeholder', () => {
-    render(<GoalDraftsTab {...defaultProps} />);
+    render(<RecommendedClassDraftsTab {...defaultProps} />);
 
     expect(screen.getByTestId('search-placeholder')).toHaveTextContent(
       'Buscar rascunho'
@@ -76,7 +78,7 @@ describe('GoalDraftsTab', () => {
   });
 
   it('should call onCreateDraft when create button is clicked', async () => {
-    render(<GoalDraftsTab {...defaultProps} />);
+    render(<RecommendedClassDraftsTab {...defaultProps} />);
 
     const createButton = screen.getByTestId('create-button');
     createButton.click();
@@ -95,25 +97,29 @@ describe('GoalDraftsTab', () => {
     };
 
     render(
-      <GoalDraftsTab
+      <RecommendedClassDraftsTab
         {...defaultProps}
         subjectsMap={subjectsMap}
         userFilterData={userFilterData}
       />
     );
 
-    expect(screen.getByTestId('goal-drafts-tab')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('recommendedClass-drafts-tab')
+    ).toBeInTheDocument();
   });
 
   it('should render without optional callbacks', () => {
     const propsWithoutOptionals = {
-      fetchGoalDrafts: mockFetchGoalDrafts,
-      deleteGoalDraft: mockDeleteGoalDraft,
+      fetchRecommendedClassDrafts: mockFetchRecommendedClassDrafts,
+      deleteRecommendedClassDraft: mockDeleteRecommendedClassDraft,
       onCreateDraft: mockOnCreateDraft,
     };
 
-    render(<GoalDraftsTab {...propsWithoutOptionals} />);
+    render(<RecommendedClassDraftsTab {...propsWithoutOptionals} />);
 
-    expect(screen.getByTestId('goal-drafts-tab')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('recommendedClass-drafts-tab')
+    ).toBeInTheDocument();
   });
 });

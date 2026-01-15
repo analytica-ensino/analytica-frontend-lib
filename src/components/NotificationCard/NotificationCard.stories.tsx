@@ -202,7 +202,7 @@ export const Multiple: Story = () => {
       entityId: null,
       actionLink: null, // Global sem botão
       activity: null,
-      goal: null,
+      recommendedClass: null,
     },
     {
       id: '3',
@@ -216,7 +216,7 @@ export const Multiple: Story = () => {
       entityId: null,
       actionLink: '/sistema/novidades', // Global com botão
       activity: null,
-      goal: null,
+      recommendedClass: null,
     },
     {
       id: '4',
@@ -230,7 +230,7 @@ export const Multiple: Story = () => {
       entityId: null,
       actionLink: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', // Global com vídeo
       activity: null,
-      goal: null,
+      recommendedClass: null,
     },
   ]);
 

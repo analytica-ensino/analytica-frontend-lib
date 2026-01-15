@@ -1,14 +1,14 @@
 import type { Story } from '@ladle/react';
 import {
   RecommendedLessonsHistory,
-  GoalPageTab,
+  RecommendedClassPageTab,
 } from './RecommendedLessonsHistory';
 import type { RecommendedLessonsHistoryProps } from './RecommendedLessonsHistory';
 import type {
-  GoalsHistoryApiResponse,
-  GoalModelsApiResponse,
+  RecommendedClassHistoryApiResponse,
+  RecommendedClassModelsApiResponse,
 } from '../../types/recommendedLessons';
-import { GoalDraftType } from '../../types/recommendedLessons';
+import { RecommendedClassDraftType } from '../../types/recommendedLessons';
 import { SubjectEnum } from '../../enums/SubjectEnum';
 
 /**
@@ -46,15 +46,15 @@ const mockSubjectsMap = new Map<string, string>([
 ]);
 
 /**
- * Mock goal models data
+ * Mock recommendedClass models data
  */
-const mockGoalModelsResponse: GoalModelsApiResponse = {
+const mockRecommendedClassModelsResponse: RecommendedClassModelsApiResponse = {
   message: 'Success',
   data: {
     drafts: [
       {
         id: MOCK_UUIDS.models.model1,
-        type: GoalDraftType.MODELO,
+        type: RecommendedClassDraftType.MODELO,
         title: 'Modelo de Aula - Álgebra Linear',
         description: 'Modelo para aulas de álgebra com foco em matrizes',
         creatorUserInstitutionId: MOCK_UUIDS.users.creator,
@@ -66,7 +66,7 @@ const mockGoalModelsResponse: GoalModelsApiResponse = {
       },
       {
         id: MOCK_UUIDS.models.model2,
-        type: GoalDraftType.MODELO,
+        type: RecommendedClassDraftType.MODELO,
         title: 'Modelo de Aula - Mecânica Clássica',
         description: 'Modelo para aulas de física sobre leis de Newton',
         creatorUserInstitutionId: MOCK_UUIDS.users.creator,
@@ -78,7 +78,7 @@ const mockGoalModelsResponse: GoalModelsApiResponse = {
       },
       {
         id: MOCK_UUIDS.models.model3,
-        type: GoalDraftType.MODELO,
+        type: RecommendedClassDraftType.MODELO,
         title: 'Modelo de Aula - Química Orgânica',
         description: 'Modelo para aulas de química sobre hidrocarbonetos',
         creatorUserInstitutionId: MOCK_UUIDS.users.creator,
@@ -90,7 +90,7 @@ const mockGoalModelsResponse: GoalModelsApiResponse = {
       },
       {
         id: MOCK_UUIDS.models.model4,
-        type: GoalDraftType.MODELO,
+        type: RecommendedClassDraftType.MODELO,
         title: 'Modelo de Aula - Literatura Brasileira',
         description: 'Modelo para aulas de português sobre modernismo',
         creatorUserInstitutionId: MOCK_UUIDS.users.creator,
@@ -102,7 +102,7 @@ const mockGoalModelsResponse: GoalModelsApiResponse = {
       },
       {
         id: MOCK_UUIDS.models.model5,
-        type: GoalDraftType.MODELO,
+        type: RecommendedClassDraftType.MODELO,
         title: 'Modelo de Aula - Biologia Celular',
         description: 'Modelo para aulas de biologia sobre mitose e meiose',
         creatorUserInstitutionId: MOCK_UUIDS.users.creator,
@@ -120,7 +120,7 @@ const mockGoalModelsResponse: GoalModelsApiResponse = {
 /**
  * Empty models response
  */
-const emptyModelsResponse: GoalModelsApiResponse = {
+const emptyModelsResponse: RecommendedClassModelsApiResponse = {
   message: 'Success',
   data: {
     drafts: [],
@@ -129,14 +129,14 @@ const emptyModelsResponse: GoalModelsApiResponse = {
 };
 
 /**
- * Mock goals history data
+ * Mock recommendedClass history data
  */
-const mockGoalsHistoryData: GoalsHistoryApiResponse = {
+const mockRecommendedClassHistoryData: RecommendedClassHistoryApiResponse = {
   message: 'Success',
   data: {
-    goals: [
+    recommendedClass: [
       {
-        goal: {
+        recommendedClass: {
           id: '550e8400-e29b-41d4-a716-446655440001',
           title: 'Álgebra Linear - Matrizes e Determinantes',
           startDate: '2024-06-01',
@@ -170,7 +170,7 @@ const mockGoalsHistoryData: GoalsHistoryApiResponse = {
         ],
       },
       {
-        goal: {
+        recommendedClass: {
           id: '550e8400-e29b-41d4-a716-446655440002',
           title: 'Mecânica Clássica - Leis de Newton',
           startDate: '2024-05-15',
@@ -204,7 +204,7 @@ const mockGoalsHistoryData: GoalsHistoryApiResponse = {
         ],
       },
       {
-        goal: {
+        recommendedClass: {
           id: '550e8400-e29b-41d4-a716-446655440003',
           title: 'Química Orgânica - Hidrocarbonetos',
           startDate: '2024-04-01',
@@ -238,7 +238,7 @@ const mockGoalsHistoryData: GoalsHistoryApiResponse = {
         ],
       },
       {
-        goal: {
+        recommendedClass: {
           id: '550e8400-e29b-41d4-a716-446655440004',
           title: 'Literatura Brasileira - Modernismo',
           startDate: '2024-06-10',
@@ -280,7 +280,7 @@ const mockGoalsHistoryData: GoalsHistoryApiResponse = {
         ],
       },
       {
-        goal: {
+        recommendedClass: {
           id: '550e8400-e29b-41d4-a716-446655440005',
           title: 'Biologia Celular - Mitose e Meiose',
           startDate: '2024-05-01',
@@ -321,10 +321,10 @@ const mockGoalsHistoryData: GoalsHistoryApiResponse = {
 /**
  * Empty data response
  */
-const emptyDataResponse: GoalsHistoryApiResponse = {
+const emptyDataResponse: RecommendedClassHistoryApiResponse = {
   message: 'Success',
   data: {
-    goals: [],
+    recommendedClass: [],
     total: 0,
   },
 };
@@ -376,22 +376,22 @@ const mapSubjectNameToEnum = (subjectName: string): SubjectEnum | null => {
  * Default props for stories
  */
 const defaultProps: RecommendedLessonsHistoryProps = {
-  fetchGoalsHistory: async () => {
+  fetchRecommendedClassHistory: async () => {
     await new Promise((resolve) => setTimeout(resolve, 500));
-    return mockGoalsHistoryData;
+    return mockRecommendedClassHistoryData;
   },
   onCreateLesson: () => console.log('Create lesson clicked'),
   onRowClick: (row) => console.log('Row clicked:', row),
-  onDeleteGoal: (id) => console.log('Delete goal:', id),
-  onEditGoal: (id) => console.log('Edit goal:', id),
+  onDeleteRecommendedClass: (id) => console.log('Delete recommendedClass:', id),
+  onEditRecommendedClass: (id) => console.log('Edit recommendedClass:', id),
   mapSubjectNameToEnum,
   userFilterData: mockUserFilterData,
   // Model props - enables Models tab in all stories
-  fetchGoalModels: async () => {
+  fetchRecommendedClassModels: async () => {
     await new Promise((resolve) => setTimeout(resolve, 500));
-    return mockGoalModelsResponse;
+    return mockRecommendedClassModelsResponse;
   },
-  deleteGoalModel: async (id) => {
+  deleteRecommendedClassModel: async (id) => {
     console.log('Delete model:', id);
   },
   onCreateModel: () => console.log('Create model clicked'),
@@ -416,7 +416,7 @@ Default.meta = {
 export const Loading: Story = () => (
   <RecommendedLessonsHistory
     {...defaultProps}
-    fetchGoalsHistory={() => new Promise(() => {})}
+    fetchRecommendedClassHistory={() => new Promise(() => {})}
   />
 );
 Loading.meta = {
@@ -424,12 +424,12 @@ Loading.meta = {
 };
 
 /**
- * Empty state - shows the component when no goals exist
+ * Empty state - shows the component when no recommendedClass exist
  */
 export const Empty: Story = () => (
   <RecommendedLessonsHistory
     {...defaultProps}
-    fetchGoalsHistory={async () => {
+    fetchRecommendedClassHistory={async () => {
       await new Promise((resolve) => setTimeout(resolve, 300));
       return emptyDataResponse;
     }}
@@ -445,7 +445,7 @@ Empty.meta = {
 export const ErrorState: Story = () => (
   <RecommendedLessonsHistory
     {...defaultProps}
-    fetchGoalsHistory={() =>
+    fetchRecommendedClassHistory={() =>
       Promise.reject(new Error('Erro ao carregar dados'))
     }
   />
@@ -483,10 +483,10 @@ WithoutSubjectIcons.meta = {
 };
 
 /**
- * Many goals - shows the component with pagination
+ * Many recommendedClass - shows the component with pagination
  */
-export const ManyGoals: Story = () => {
-  const generateGoals = (count: number) => {
+export const ManyRecommendedClass: Story = () => {
+  const generateRecommendedClass = (count: number) => {
     const subjects = [
       'Matemática',
       'Física',
@@ -498,7 +498,7 @@ export const ManyGoals: Story = () => {
     const schools = ['Escola Estadual', 'Colégio Municipal', 'Instituto Norte'];
 
     return Array.from({ length: count }, (_, i) => ({
-      goal: {
+      recommendedClass: {
         id: `550e8400-e29b-41d4-a716-4466554400${String(i).padStart(2, '0')}`,
         title: `Aula ${i + 1} - ${subjects[i % subjects.length]}`,
         startDate: '2024-06-01',
@@ -536,12 +536,12 @@ export const ManyGoals: Story = () => {
   return (
     <RecommendedLessonsHistory
       {...defaultProps}
-      fetchGoalsHistory={async () => {
+      fetchRecommendedClassHistory={async () => {
         await new Promise((resolve) => setTimeout(resolve, 500));
         return {
           message: 'Success',
           data: {
-            goals: generateGoals(25),
+            recommendedClass: generateRecommendedClass(25),
             total: 25,
           },
         };
@@ -549,20 +549,20 @@ export const ManyGoals: Story = () => {
     />
   );
 };
-ManyGoals.meta = {
-  name: 'Many Goals (Pagination)',
+ManyRecommendedClass.meta = {
+  name: 'Many RecommendedClass (Pagination)',
 };
 
 /**
- * Multiple classes per goal - shows goals assigned to multiple classes
+ * Multiple classes per recommendedClass - shows recommendedClass assigned to multiple classes
  */
 export const MultipleClasses: Story = () => {
-  const multipleClassesData: GoalsHistoryApiResponse = {
+  const multipleClassesData: RecommendedClassHistoryApiResponse = {
     message: 'Success',
     data: {
-      goals: [
+      recommendedClass: [
         {
-          goal: {
+          recommendedClass: {
             id: '550e8400-e29b-41d4-a716-446655440001',
             title: 'Trigonometria - Funções Trigonométricas',
             startDate: '2024-06-01',
@@ -619,7 +619,7 @@ export const MultipleClasses: Story = () => {
   return (
     <RecommendedLessonsHistory
       {...defaultProps}
-      fetchGoalsHistory={async () => {
+      fetchRecommendedClassHistory={async () => {
         await new Promise((resolve) => setTimeout(resolve, 300));
         return multipleClassesData;
       }}
@@ -627,7 +627,7 @@ export const MultipleClasses: Story = () => {
   );
 };
 MultipleClasses.meta = {
-  name: 'Multiple Classes Per Goal',
+  name: 'Multiple Classes Per RecommendedClass',
 };
 
 /**
@@ -645,7 +645,7 @@ const getRelativeDate = (daysOffset: number): string => {
 };
 
 /**
- * All statuses - shows goals with different status states
+ * All statuses - shows recommendedClass with different status states
  */
 export const AllStatuses: Story = () => {
   // Dynamic dates relative to current date
@@ -668,12 +668,12 @@ export const AllStatuses: Story = () => {
     now.getTime() - 125 * 24 * 60 * 60 * 1000
   ).toISOString();
 
-  const allStatusesData: GoalsHistoryApiResponse = {
+  const allStatusesData: RecommendedClassHistoryApiResponse = {
     message: 'Success',
     data: {
-      goals: [
+      recommendedClass: [
         {
-          goal: {
+          recommendedClass: {
             id: '550e8400-e29b-41d4-a716-446655440001',
             title: 'Aula Ativa - Em Andamento',
             startDate: activeStartDate,
@@ -704,7 +704,7 @@ export const AllStatuses: Story = () => {
           ],
         },
         {
-          goal: {
+          recommendedClass: {
             id: '550e8400-e29b-41d4-a716-446655440002',
             title: 'Aula Concluída - 100% Completo',
             startDate: completedStartDate,
@@ -735,7 +735,7 @@ export const AllStatuses: Story = () => {
           ],
         },
         {
-          goal: {
+          recommendedClass: {
             id: '550e8400-e29b-41d4-a716-446655440003',
             title: 'Aula Vencida - Prazo Expirado',
             startDate: overdueStartDate,
@@ -773,7 +773,7 @@ export const AllStatuses: Story = () => {
   return (
     <RecommendedLessonsHistory
       {...defaultProps}
-      fetchGoalsHistory={async () => {
+      fetchRecommendedClassHistory={async () => {
         await new Promise((resolve) => setTimeout(resolve, 300));
         return allStatusesData;
       }}
@@ -789,7 +789,7 @@ AllStatuses.meta = {
  */
 const modelsProps: RecommendedLessonsHistoryProps = {
   ...defaultProps,
-  defaultTab: GoalPageTab.MODELS,
+  defaultTab: RecommendedClassPageTab.MODELS,
 };
 
 /**
@@ -808,7 +808,7 @@ ModelsTab.meta = {
 export const ModelsEmpty: Story = () => (
   <RecommendedLessonsHistory
     {...modelsProps}
-    fetchGoalModels={async () => {
+    fetchRecommendedClassModels={async () => {
       await new Promise((resolve) => setTimeout(resolve, 300));
       return emptyModelsResponse;
     }}
@@ -824,7 +824,7 @@ ModelsEmpty.meta = {
 export const ModelsLoading: Story = () => (
   <RecommendedLessonsHistory
     {...modelsProps}
-    fetchGoalModels={() => new Promise(() => {})}
+    fetchRecommendedClassModels={() => new Promise(() => {})}
   />
 );
 ModelsLoading.meta = {
@@ -837,7 +837,7 @@ ModelsLoading.meta = {
 export const ModelsError: Story = () => (
   <RecommendedLessonsHistory
     {...modelsProps}
-    fetchGoalModels={() =>
+    fetchRecommendedClassModels={() =>
       Promise.reject(new Error('Erro ao carregar modelos'))
     }
   />

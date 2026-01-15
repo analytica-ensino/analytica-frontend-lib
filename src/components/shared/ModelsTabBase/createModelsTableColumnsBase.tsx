@@ -43,7 +43,7 @@ export interface ModelsColumnsConfig {
 
 /**
  * Creates base table columns configuration for models.
- * Can be used by both GoalModels and ActivityModels with type-safe generics.
+ * Can be used by both RecommendedClassModels and ActivityModels with type-safe generics.
  * @param mapSubjectNameToEnum - Optional function to map subject names to enum values
  * @param onSend - Callback when send button is clicked
  * @param onEdit - Callback when edit button is clicked

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { GoalsHistoryApiResponse } from '../../types/recommendedLessons';
+import type { RecommendedClassHistoryApiResponse } from '../../types/recommendedLessons';
 
 // Mock dayjs
 jest.mock('dayjs', () => {
@@ -332,34 +332,34 @@ jest.mock('../TableProvider/TableProvider', () => {
 // Import component after all mocks
 import {
   RecommendedLessonsHistory,
-  GoalPageTab,
+  RecommendedClassPageTab,
   type RecommendedLessonsHistoryProps,
 } from './RecommendedLessonsHistory';
 
 describe('RecommendedLessonsHistory', () => {
-  const mockFetchGoalsHistory = jest.fn<
-    Promise<GoalsHistoryApiResponse>,
+  const mockFetchRecommendedClassHistory = jest.fn<
+    Promise<RecommendedClassHistoryApiResponse>,
     [unknown]
   >();
   const mockOnCreateLesson = jest.fn();
   const mockOnRowClick = jest.fn();
-  const mockOnDeleteGoal = jest.fn();
-  const mockOnEditGoal = jest.fn();
+  const mockOnDeleteRecommendedClass = jest.fn();
+  const mockOnEditRecommendedClass = jest.fn();
 
   const defaultProps: RecommendedLessonsHistoryProps = {
-    fetchGoalsHistory: mockFetchGoalsHistory,
+    fetchRecommendedClassHistory: mockFetchRecommendedClassHistory,
     onCreateLesson: mockOnCreateLesson,
     onRowClick: mockOnRowClick,
-    onDeleteGoal: mockOnDeleteGoal,
-    onEditGoal: mockOnEditGoal,
+    onDeleteRecommendedClass: mockOnDeleteRecommendedClass,
+    onEditRecommendedClass: mockOnEditRecommendedClass,
   };
 
-  const validApiResponse: GoalsHistoryApiResponse = {
+  const validApiResponse: RecommendedClassHistoryApiResponse = {
     message: 'Success',
     data: {
-      goals: [
+      recommendedClass: [
         {
-          goal: {
+          recommendedClass: {
             id: '123e4567-e89b-12d3-a456-426614174000',
             title: 'Aula de Matemática',
             startDate: '2024-06-01',
@@ -397,17 +397,17 @@ describe('RecommendedLessonsHistory', () => {
     },
   };
 
-  const emptyApiResponse: GoalsHistoryApiResponse = {
+  const emptyApiResponse: RecommendedClassHistoryApiResponse = {
     message: 'Success',
     data: {
-      goals: [],
+      recommendedClass: [],
       total: 0,
     },
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFetchGoalsHistory.mockResolvedValue(validApiResponse);
+    mockFetchRecommendedClassHistory.mockResolvedValue(validApiResponse);
   });
 
   describe('Rendering', () => {
@@ -474,20 +474,20 @@ describe('RecommendedLessonsHistory', () => {
   });
 
   describe('Data Fetching', () => {
-    it('should call fetchGoalsHistory when TableProvider triggers onParamsChange on mount', async () => {
+    it('should call fetchRecommendedClassHistory when TableProvider triggers onParamsChange on mount', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       // TableProvider mock calls onParamsChange on mount with initial params
       // This simulates the real TableProvider's useEffect behavior
       await waitFor(() => {
-        expect(mockFetchGoalsHistory).toHaveBeenCalledWith({
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
         });
       });
     });
 
-    it('should display goal data in table', async () => {
+    it('should display recommendedClass data in table', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
@@ -497,8 +497,8 @@ describe('RecommendedLessonsHistory', () => {
   });
 
   describe('Empty State', () => {
-    it('should show empty state when no goals', async () => {
-      mockFetchGoalsHistory.mockResolvedValue(emptyApiResponse);
+    it('should show empty state when no recommendedClass', async () => {
+      mockFetchRecommendedClassHistory.mockResolvedValue(emptyApiResponse);
 
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
@@ -515,7 +515,9 @@ describe('RecommendedLessonsHistory', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockFetchGoalsHistory.mockRejectedValue(new Error('Network error'));
+      mockFetchRecommendedClassHistory.mockRejectedValue(
+        new Error('Network error')
+      );
 
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
@@ -543,7 +545,7 @@ describe('RecommendedLessonsHistory', () => {
       expect(mockOnCreateLesson).toHaveBeenCalled();
     });
 
-    it('should call onDeleteGoal when delete button is clicked', async () => {
+    it('should call onDeleteRecommendedClass when delete button is clicked', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
@@ -552,12 +554,12 @@ describe('RecommendedLessonsHistory', () => {
 
       fireEvent.click(screen.getByTitle('Excluir'));
 
-      expect(mockOnDeleteGoal).toHaveBeenCalledWith(
+      expect(mockOnDeleteRecommendedClass).toHaveBeenCalledWith(
         '123e4567-e89b-12d3-a456-426614174000'
       );
     });
 
-    it('should call onEditGoal when edit button is clicked', async () => {
+    it('should call onEditRecommendedClass when edit button is clicked', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
@@ -566,7 +568,7 @@ describe('RecommendedLessonsHistory', () => {
 
       fireEvent.click(screen.getByTitle('Editar'));
 
-      expect(mockOnEditGoal).toHaveBeenCalledWith(
+      expect(mockOnEditRecommendedClass).toHaveBeenCalledWith(
         '123e4567-e89b-12d3-a456-426614174000'
       );
     });
@@ -641,7 +643,7 @@ describe('RecommendedLessonsHistory', () => {
 
   describe('Custom Props', () => {
     it('should accept emptyStateImage prop', async () => {
-      mockFetchGoalsHistory.mockResolvedValue(emptyApiResponse);
+      mockFetchRecommendedClassHistory.mockResolvedValue(emptyApiResponse);
 
       render(
         <RecommendedLessonsHistory
@@ -673,14 +675,14 @@ describe('RecommendedLessonsHistory', () => {
 
   describe('Multiple Classes Display', () => {
     it('should display class count when multiple classes', async () => {
-      const responseWithMultipleClasses: GoalsHistoryApiResponse = {
+      const responseWithMultipleClasses: RecommendedClassHistoryApiResponse = {
         message: 'Success',
         data: {
-          goals: [
+          recommendedClass: [
             {
-              goal: {
+              recommendedClass: {
                 id: '123e4567-e89b-12d3-a456-426614174000',
-                title: 'Test Goal',
+                title: 'Test RecommendedClass',
                 startDate: '2024-06-01',
                 finalDate: '2024-12-31',
                 createdAt: '2024-06-01T10:00:00Z',
@@ -718,7 +720,9 @@ describe('RecommendedLessonsHistory', () => {
         },
       };
 
-      mockFetchGoalsHistory.mockResolvedValue(responseWithMultipleClasses);
+      mockFetchRecommendedClassHistory.mockResolvedValue(
+        responseWithMultipleClasses
+      );
 
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
@@ -883,14 +887,14 @@ describe('RecommendedLessonsHistory', () => {
   });
 
   describe('handleParamsChange', () => {
-    it('should call fetchGoals with search filter', async () => {
+    it('should call fetchRecommendedClass with search filter', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
         expect(capturedOnParamsChange).toBeDefined();
       });
 
-      mockFetchGoalsHistory.mockClear();
+      mockFetchRecommendedClassHistory.mockClear();
 
       capturedOnParamsChange?.({
         page: 1,
@@ -899,7 +903,7 @@ describe('RecommendedLessonsHistory', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetchGoalsHistory).toHaveBeenCalledWith({
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
           search: 'test search',
@@ -907,14 +911,14 @@ describe('RecommendedLessonsHistory', () => {
       });
     });
 
-    it('should call fetchGoals with status filter', async () => {
+    it('should call fetchRecommendedClass with status filter', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
         expect(capturedOnParamsChange).toBeDefined();
       });
 
-      mockFetchGoalsHistory.mockClear();
+      mockFetchRecommendedClassHistory.mockClear();
 
       capturedOnParamsChange?.({
         page: 1,
@@ -923,7 +927,7 @@ describe('RecommendedLessonsHistory', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetchGoalsHistory).toHaveBeenCalledWith({
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
           status: 'EM_ANDAMENTO',
@@ -931,14 +935,14 @@ describe('RecommendedLessonsHistory', () => {
       });
     });
 
-    it('should call fetchGoals with single school filter', async () => {
+    it('should call fetchRecommendedClass with single school filter', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
         expect(capturedOnParamsChange).toBeDefined();
       });
 
-      mockFetchGoalsHistory.mockClear();
+      mockFetchRecommendedClassHistory.mockClear();
 
       capturedOnParamsChange?.({
         page: 1,
@@ -947,7 +951,7 @@ describe('RecommendedLessonsHistory', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetchGoalsHistory).toHaveBeenCalledWith({
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
           schoolId: 'school-1',
@@ -955,14 +959,14 @@ describe('RecommendedLessonsHistory', () => {
       });
     });
 
-    it('should call fetchGoals with multiple school filters', async () => {
+    it('should call fetchRecommendedClass with multiple school filters', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
         expect(capturedOnParamsChange).toBeDefined();
       });
 
-      mockFetchGoalsHistory.mockClear();
+      mockFetchRecommendedClassHistory.mockClear();
 
       capturedOnParamsChange?.({
         page: 1,
@@ -971,7 +975,7 @@ describe('RecommendedLessonsHistory', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetchGoalsHistory).toHaveBeenCalledWith({
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
           schoolIds: ['school-1', 'school-2'],
@@ -979,14 +983,14 @@ describe('RecommendedLessonsHistory', () => {
       });
     });
 
-    it('should call fetchGoals with single class filter', async () => {
+    it('should call fetchRecommendedClass with single class filter', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
         expect(capturedOnParamsChange).toBeDefined();
       });
 
-      mockFetchGoalsHistory.mockClear();
+      mockFetchRecommendedClassHistory.mockClear();
 
       capturedOnParamsChange?.({
         page: 1,
@@ -995,7 +999,7 @@ describe('RecommendedLessonsHistory', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetchGoalsHistory).toHaveBeenCalledWith({
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
           classId: 'class-1',
@@ -1003,14 +1007,14 @@ describe('RecommendedLessonsHistory', () => {
       });
     });
 
-    it('should call fetchGoals with multiple class filters', async () => {
+    it('should call fetchRecommendedClass with multiple class filters', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
         expect(capturedOnParamsChange).toBeDefined();
       });
 
-      mockFetchGoalsHistory.mockClear();
+      mockFetchRecommendedClassHistory.mockClear();
 
       capturedOnParamsChange?.({
         page: 1,
@@ -1019,7 +1023,7 @@ describe('RecommendedLessonsHistory', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetchGoalsHistory).toHaveBeenCalledWith({
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
           classIds: ['class-1', 'class-2'],
@@ -1027,14 +1031,14 @@ describe('RecommendedLessonsHistory', () => {
       });
     });
 
-    it('should call fetchGoals with students filter', async () => {
+    it('should call fetchRecommendedClass with students filter', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
         expect(capturedOnParamsChange).toBeDefined();
       });
 
-      mockFetchGoalsHistory.mockClear();
+      mockFetchRecommendedClassHistory.mockClear();
 
       capturedOnParamsChange?.({
         page: 1,
@@ -1043,7 +1047,7 @@ describe('RecommendedLessonsHistory', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetchGoalsHistory).toHaveBeenCalledWith({
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
           studentIds: ['student-1', 'student-2'],
@@ -1051,14 +1055,14 @@ describe('RecommendedLessonsHistory', () => {
       });
     });
 
-    it('should call fetchGoals with subject filter', async () => {
+    it('should call fetchRecommendedClass with subject filter', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
         expect(capturedOnParamsChange).toBeDefined();
       });
 
-      mockFetchGoalsHistory.mockClear();
+      mockFetchRecommendedClassHistory.mockClear();
 
       capturedOnParamsChange?.({
         page: 1,
@@ -1067,7 +1071,7 @@ describe('RecommendedLessonsHistory', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetchGoalsHistory).toHaveBeenCalledWith({
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
           subjectId: 'subject-1',
@@ -1075,14 +1079,14 @@ describe('RecommendedLessonsHistory', () => {
       });
     });
 
-    it('should call fetchGoals with startDate filter', async () => {
+    it('should call fetchRecommendedClass with startDate filter', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
         expect(capturedOnParamsChange).toBeDefined();
       });
 
-      mockFetchGoalsHistory.mockClear();
+      mockFetchRecommendedClassHistory.mockClear();
 
       capturedOnParamsChange?.({
         page: 1,
@@ -1091,7 +1095,7 @@ describe('RecommendedLessonsHistory', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetchGoalsHistory).toHaveBeenCalledWith({
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
           startDate: '2024-01-01',
@@ -1106,7 +1110,7 @@ describe('RecommendedLessonsHistory', () => {
         expect(capturedOnParamsChange).toBeDefined();
       });
 
-      mockFetchGoalsHistory.mockClear();
+      mockFetchRecommendedClassHistory.mockClear();
 
       capturedOnParamsChange?.({
         page: 1,
@@ -1117,7 +1121,7 @@ describe('RecommendedLessonsHistory', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetchGoalsHistory).toHaveBeenCalledWith({
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
         });
@@ -1131,7 +1135,7 @@ describe('RecommendedLessonsHistory', () => {
         expect(capturedOnParamsChange).toBeDefined();
       });
 
-      mockFetchGoalsHistory.mockClear();
+      mockFetchRecommendedClassHistory.mockClear();
 
       capturedOnParamsChange?.({
         page: 1,
@@ -1140,7 +1144,7 @@ describe('RecommendedLessonsHistory', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetchGoalsHistory).toHaveBeenCalledWith({
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
         });
@@ -1224,10 +1228,10 @@ describe('RecommendedLessonsHistory', () => {
   });
 
   describe('Actions Column', () => {
-    it('should render delete button but not call callback when onDeleteGoal is not provided', async () => {
+    it('should render delete button but not call callback when onDeleteRecommendedClass is not provided', async () => {
       const propsWithoutDelete = {
         ...defaultProps,
-        onDeleteGoal: undefined,
+        onDeleteRecommendedClass: undefined,
       };
 
       render(<RecommendedLessonsHistory {...propsWithoutDelete} />);
@@ -1242,10 +1246,10 @@ describe('RecommendedLessonsHistory', () => {
       // No callback should be called since it's undefined
     });
 
-    it('should render edit button but not call callback when onEditGoal is not provided', async () => {
+    it('should render edit button but not call callback when onEditRecommendedClass is not provided', async () => {
       const propsWithoutEdit = {
         ...defaultProps,
-        onEditGoal: undefined,
+        onEditRecommendedClass: undefined,
       };
 
       render(<RecommendedLessonsHistory {...propsWithoutEdit} />);
@@ -1281,24 +1285,28 @@ describe('RecommendedLessonsHistory', () => {
 
   describe('Controlled Tab Mode (defaultTab and onTabChange)', () => {
     it('should use defaultTab when provided', async () => {
-      const mockFetchGoalDrafts = jest.fn().mockResolvedValue({
+      const mockFetchRecommendedClassDrafts = jest.fn().mockResolvedValue({
         message: 'Success',
-        data: { goals: [], total: 0 },
+        data: { recommendedClass: [], total: 0 },
       });
-      const mockDeleteGoalDraft = jest.fn().mockResolvedValue(undefined);
+      const mockDeleteRecommendedClassDraft = jest
+        .fn()
+        .mockResolvedValue(undefined);
 
       render(
         <RecommendedLessonsHistory
           {...defaultProps}
-          defaultTab={GoalPageTab.DRAFTS}
-          fetchGoalDrafts={mockFetchGoalDrafts}
-          deleteGoalDraft={mockDeleteGoalDraft}
+          defaultTab={RecommendedClassPageTab.DRAFTS}
+          fetchRecommendedClassDrafts={mockFetchRecommendedClassDrafts}
+          deleteRecommendedClassDraft={mockDeleteRecommendedClassDraft}
         />
       );
 
       await waitFor(() => {
-        // The drafts tab content should be visible (goal-drafts-tab testId from config)
-        expect(screen.getByTestId('goal-drafts-tab')).toBeInTheDocument();
+        // The drafts tab content should be visible (recommendedClass-drafts-tab testId from config)
+        expect(
+          screen.getByTestId('recommendedClass-drafts-tab')
+        ).toBeInTheDocument();
       });
     });
 
@@ -1328,7 +1336,9 @@ describe('RecommendedLessonsHistory', () => {
       // Simulate tab change via menu
       capturedMenuOnValueChange?.('drafts');
 
-      expect(mockOnTabChange).toHaveBeenCalledWith(GoalPageTab.DRAFTS);
+      expect(mockOnTabChange).toHaveBeenCalledWith(
+        RecommendedClassPageTab.DRAFTS
+      );
     });
 
     it('should call onTabChange with models tab', async () => {
@@ -1347,7 +1357,9 @@ describe('RecommendedLessonsHistory', () => {
 
       capturedMenuOnValueChange?.('models');
 
-      expect(mockOnTabChange).toHaveBeenCalledWith(GoalPageTab.MODELS);
+      expect(mockOnTabChange).toHaveBeenCalledWith(
+        RecommendedClassPageTab.MODELS
+      );
     });
 
     it('should call onTabChange with history tab', async () => {
@@ -1356,7 +1368,7 @@ describe('RecommendedLessonsHistory', () => {
       render(
         <RecommendedLessonsHistory
           {...defaultProps}
-          defaultTab={GoalPageTab.DRAFTS}
+          defaultTab={RecommendedClassPageTab.DRAFTS}
           onTabChange={mockOnTabChange}
         />
       );
@@ -1367,22 +1379,26 @@ describe('RecommendedLessonsHistory', () => {
 
       capturedMenuOnValueChange?.('history');
 
-      expect(mockOnTabChange).toHaveBeenCalledWith(GoalPageTab.HISTORY);
+      expect(mockOnTabChange).toHaveBeenCalledWith(
+        RecommendedClassPageTab.HISTORY
+      );
     });
 
     it('should sync with defaultTab prop changes', async () => {
-      const mockFetchGoalDrafts = jest.fn().mockResolvedValue({
+      const mockFetchRecommendedClassDrafts = jest.fn().mockResolvedValue({
         message: 'Success',
-        data: { goals: [], total: 0 },
+        data: { recommendedClass: [], total: 0 },
       });
-      const mockDeleteGoalDraft = jest.fn().mockResolvedValue(undefined);
+      const mockDeleteRecommendedClassDraft = jest
+        .fn()
+        .mockResolvedValue(undefined);
 
       const { rerender } = render(
         <RecommendedLessonsHistory
           {...defaultProps}
-          defaultTab={GoalPageTab.HISTORY}
-          fetchGoalDrafts={mockFetchGoalDrafts}
-          deleteGoalDraft={mockDeleteGoalDraft}
+          defaultTab={RecommendedClassPageTab.HISTORY}
+          fetchRecommendedClassDrafts={mockFetchRecommendedClassDrafts}
+          deleteRecommendedClassDraft={mockDeleteRecommendedClassDraft}
         />
       );
 
@@ -1394,15 +1410,17 @@ describe('RecommendedLessonsHistory', () => {
       rerender(
         <RecommendedLessonsHistory
           {...defaultProps}
-          defaultTab={GoalPageTab.DRAFTS}
-          fetchGoalDrafts={mockFetchGoalDrafts}
-          deleteGoalDraft={mockDeleteGoalDraft}
+          defaultTab={RecommendedClassPageTab.DRAFTS}
+          fetchRecommendedClassDrafts={mockFetchRecommendedClassDrafts}
+          deleteRecommendedClassDraft={mockDeleteRecommendedClassDraft}
         />
       );
 
       await waitFor(() => {
-        // The drafts tab content should be visible (goal-drafts-tab testId from config)
-        expect(screen.getByTestId('goal-drafts-tab')).toBeInTheDocument();
+        // The drafts tab content should be visible (recommendedClass-drafts-tab testId from config)
+        expect(
+          screen.getByTestId('recommendedClass-drafts-tab')
+        ).toBeInTheDocument();
       });
     });
 
@@ -1410,7 +1428,7 @@ describe('RecommendedLessonsHistory', () => {
       render(
         <RecommendedLessonsHistory
           {...defaultProps}
-          defaultTab={GoalPageTab.HISTORY}
+          defaultTab={RecommendedClassPageTab.HISTORY}
         />
       );
 
@@ -1428,22 +1446,24 @@ describe('RecommendedLessonsHistory', () => {
       render(
         <RecommendedLessonsHistory
           {...defaultProps}
-          defaultTab={GoalPageTab.MODELS}
+          defaultTab={RecommendedClassPageTab.MODELS}
         />
       );
 
       await waitFor(() => {
-        // Models tab without required props (fetchGoalModels, deleteGoalModel, onCreateModel) renders nothing
-        expect(screen.queryByTestId('goal-models-tab')).not.toBeInTheDocument();
+        // Models tab without required props (fetchRecommendedClassModels, deleteRecommendedClassModel, onCreateModel) renders nothing
+        expect(
+          screen.queryByTestId('recommendedClass-models-tab')
+        ).not.toBeInTheDocument();
       });
     });
   });
 
-  describe('GoalPageTab enum', () => {
-    it('should export GoalPageTab enum with correct values', () => {
-      expect(GoalPageTab.HISTORY).toBe('history');
-      expect(GoalPageTab.DRAFTS).toBe('drafts');
-      expect(GoalPageTab.MODELS).toBe('models');
+  describe('RecommendedClassPageTab enum', () => {
+    it('should export RecommendedClassPageTab enum with correct values', () => {
+      expect(RecommendedClassPageTab.HISTORY).toBe('history');
+      expect(RecommendedClassPageTab.DRAFTS).toBe('drafts');
+      expect(RecommendedClassPageTab.MODELS).toBe('models');
     });
   });
 });
