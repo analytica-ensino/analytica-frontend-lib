@@ -11,6 +11,8 @@ import {
   SendActivityModal,
   CategoryConfig,
   useToastStore,
+  Modal,
+  Text,
 } from '../..';
 import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import type {
@@ -57,6 +59,7 @@ const CreateActivity = ({
   onBack,
   onCreateActivity,
   onSaveModel,
+  onAddActivityToLesson,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -67,12 +70,22 @@ const CreateActivity = ({
     activityData: ActivityCreatePayload
   ) => void;
   onSaveModel?: (response: ActivityDraftResponse) => void;
+  onAddActivityToLesson?: (activityDraftId: string) => void;
 }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const typeParam = searchParams.get('type') || undefined;
   const idParam = searchParams.get('id') || undefined;
+  const recommendedLessonId = searchParams.get('recommended-lesson') || undefined;
+  const recommendedLessonDraftId =
+    searchParams.get('recommended-lesson-draft') || undefined;
+  const onFinishPath = searchParams.get('onFinish') || undefined;
+
+  // Determine if we're in recommended lesson mode
+  const isRecommendedLessonMode = !!(
+    recommendedLessonId || recommendedLessonDraftId
+  );
   const applyFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.applyFilters
   );
@@ -127,6 +140,7 @@ const CreateActivity = ({
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [isSendingActivity, setIsSendingActivity] = useState(false);
+  const [isLessonPreviewModalOpen, setIsLessonPreviewModalOpen] = useState(false);
   const hasFirstSaveBeenDone = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedFiltersRef = useRef<ActivityFiltersData | null>(null);
@@ -147,16 +161,30 @@ const CreateActivity = ({
 
   /**
    * Handle back button click - resets everything before calling onBack
+   * If onFinishPath is provided, navigate to that path instead
    */
   const handleBack = useCallback(() => {
     // Clear filters from store
     clearFilters();
 
+    // If onFinishPath is provided, navigate to it
+    if (onFinishPath) {
+      navigate(`/${onFinishPath}`);
+      return;
+    }
+
     // Call original onBack if provided
     if (onBack) {
       onBack();
     }
-  }, [clearFilters, onBack]);
+  }, [clearFilters, onBack, onFinishPath, navigate]);
+
+  /**
+   * Handle lesson preview button click - opens modal with "em desenvolvimento" message
+   */
+  const handleLessonPreview = useCallback(() => {
+    setIsLessonPreviewModalOpen(true);
+  }, []);
 
   const useActivityFiltersData = createUseActivityFiltersData(apiClient);
   const { knowledgeAreas, loadKnowledgeAreas } = useActivityFiltersData({
@@ -544,6 +572,42 @@ const CreateActivity = ({
   }, []);
 
   /**
+   * Handle add activity to lesson - saves draft and navigates back or calls callback
+   */
+  const handleAddActivityToLesson = useCallback(async () => {
+    // Ensure draft is saved before adding to lesson
+    if (!draftId && questions.length > 0) {
+      await saveDraft();
+    }
+
+    const activityDraftId = draftId;
+
+    // Call callback if provided
+    if (onAddActivityToLesson && activityDraftId) {
+      onAddActivityToLesson(activityDraftId);
+    }
+
+    // Clear filters
+    clearFilters();
+
+    // Navigate to onFinishPath if provided
+    if (onFinishPath) {
+      navigate(`/${onFinishPath}`);
+    } else if (onBack) {
+      onBack();
+    }
+  }, [
+    draftId,
+    questions.length,
+    saveDraft,
+    onAddActivityToLesson,
+    clearFilters,
+    onFinishPath,
+    navigate,
+    onBack,
+  ]);
+
+  /**
    * Load knowledge areas on mount
    */
   useEffect(() => {
@@ -902,6 +966,9 @@ const CreateActivity = ({
         onSaveModel={handleSaveModel}
         onSendActivity={handleOpenSendModal}
         onBack={handleBack}
+        isRecommendedLessonMode={isRecommendedLessonMode}
+        onLessonPreview={handleLessonPreview}
+        onAddActivity={handleAddActivityToLesson}
       />
 
       {/* Main Content */}
@@ -1066,6 +1133,25 @@ const CreateActivity = ({
           });
         }}
       />
+
+      {/* Lesson Preview Modal - In Development */}
+      <Modal
+        isOpen={isLessonPreviewModalOpen}
+        onClose={() => setIsLessonPreviewModalOpen(false)}
+        title="Prévia da aula"
+        size="sm"
+        footer={
+          <Button onClick={() => setIsLessonPreviewModalOpen(false)}>
+            Fechar
+          </Button>
+        }
+      >
+        <div className="flex flex-col items-center justify-center py-8 gap-4">
+          <Text size="md" className="text-text-600 text-center">
+            Esta funcionalidade está em desenvolvimento.
+          </Text>
+        </div>
+      </Modal>
     </div>
   );
 };

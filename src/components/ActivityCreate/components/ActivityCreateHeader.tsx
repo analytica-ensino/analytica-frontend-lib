@@ -1,5 +1,5 @@
 import { Button, Text } from '../../..';
-import { CaretLeft, PaperPlaneTilt } from 'phosphor-react';
+import { CaretLeft, PaperPlaneTilt, Eye, Plus } from 'phosphor-react';
 import type { ActivityData } from '../ActivityCreate.types';
 import { ActivityType } from '../ActivityCreate.types';
 import { getActivityTypeLabel, formatTime } from '../ActivityCreate.utils';
@@ -20,6 +20,9 @@ export const ActivityCreateHeader = ({
   onSaveModel,
   onSendActivity,
   onBack,
+  isRecommendedLessonMode,
+  onLessonPreview,
+  onAddActivity,
 }: {
   activity?: ActivityData;
   activityType: ActivityType;
@@ -29,6 +32,9 @@ export const ActivityCreateHeader = ({
   onSaveModel: () => void;
   onSendActivity: () => void;
   onBack?: () => void;
+  isRecommendedLessonMode?: boolean;
+  onLessonPreview?: () => void;
+  onAddActivity?: () => void;
 }) => {
   const activityTypeLabel = getActivityTypeLabel(activityType);
 
@@ -63,14 +69,35 @@ export const ActivityCreateHeader = ({
             <Button size="small" onClick={onSaveModel}>
               Salvar modelo
             </Button>
-            <Button
-              size="small"
-              iconLeft={<PaperPlaneTilt />}
-              onClick={onSendActivity}
-              disabled={questionsCount === 0}
-            >
-              Enviar atividade
-            </Button>
+            {isRecommendedLessonMode ? (
+              <>
+                <Button
+                  size="small"
+                  iconLeft={<Eye />}
+                  onClick={onLessonPreview}
+                  variant="outline"
+                >
+                  Prévia da aula
+                </Button>
+                <Button
+                  size="small"
+                  iconLeft={<Plus />}
+                  onClick={onAddActivity}
+                  disabled={questionsCount === 0}
+                >
+                  Adicionar atividade
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="small"
+                iconLeft={<PaperPlaneTilt />}
+                onClick={onSendActivity}
+                disabled={questionsCount === 0}
+              >
+                Enviar atividade
+              </Button>
+            )}
           </div>
         </div>
 
