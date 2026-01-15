@@ -16,11 +16,11 @@ const sampleLessons: Lesson[] = [
 
 const samplePagination: LessonsPagination = {
   page: 1,
-  pageSize: 10,
+  limit: 10,
   total: 100,
   totalPages: 10,
   hasNext: true,
-  hasPrevious: false,
+  hasPrev: false,
 };
 
 describe('lessonFiltersStore', () => {
@@ -37,8 +37,7 @@ describe('lessonFiltersStore', () => {
 
   describe('initial state', () => {
     it('should start with null draft and applied filters', () => {
-      const { draftFilters, appliedFilters } =
-        useLessonFiltersStore.getState();
+      const { draftFilters, appliedFilters } = useLessonFiltersStore.getState();
 
       expect(draftFilters).toBeNull();
       expect(appliedFilters).toBeNull();
@@ -223,11 +222,11 @@ describe('lessonFiltersStore', () => {
       const newLessons: Lesson[] = [{ id: 'lesson-3', title: 'Lesson 3' }];
       const newPagination: LessonsPagination = {
         page: 2,
-        pageSize: 20,
+        limit: 20,
         total: 200,
         totalPages: 10,
         hasNext: false,
-        hasPrevious: true,
+        hasPrev: true,
       };
       const newFilters: LessonFiltersData = {
         subjectIds: ['subject-2'],
@@ -312,8 +311,12 @@ describe('lessonFiltersStore', () => {
     });
 
     it('should handle clearing cache without affecting filters', () => {
-      const { setDraftFilters, applyFilters, setCachedLessons, clearCachedLessons } =
-        useLessonFiltersStore.getState();
+      const {
+        setDraftFilters,
+        applyFilters,
+        setCachedLessons,
+        clearCachedLessons,
+      } = useLessonFiltersStore.getState();
 
       // Setup state
       setDraftFilters(sampleFilters);

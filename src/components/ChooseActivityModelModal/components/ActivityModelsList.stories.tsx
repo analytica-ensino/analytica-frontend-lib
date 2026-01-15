@@ -1,10 +1,12 @@
 import type { Story } from '@ladle/react';
 import { ActivityModelsList } from './ActivityModelsList';
 import type { ActivityModelTableItem } from '../../../types/activitiesHistory';
+import { ActivityType } from '../../ActivityCreate/ActivityCreate.types';
 
 const mockModels: ActivityModelTableItem[] = [
   {
     id: '1',
+    type: ActivityType.MODELO,
     title: 'Explorando a Fotossíntese: Atividade Prática de Campo',
     savedAt: '01/01/2024',
     subject: {
@@ -17,6 +19,7 @@ const mockModels: ActivityModelTableItem[] = [
   },
   {
     id: '2',
+    type: ActivityType.MODELO,
     title: 'Estudo dos Ecossistemas: Criando um Terrário',
     savedAt: '02/01/2024',
     subject: {
@@ -29,6 +32,7 @@ const mockModels: ActivityModelTableItem[] = [
   },
   {
     id: '3',
+    type: ActivityType.MODELO,
     title: 'Análise de pinturas: Observação ao Microscópio',
     savedAt: '03/01/2024',
     subject: {

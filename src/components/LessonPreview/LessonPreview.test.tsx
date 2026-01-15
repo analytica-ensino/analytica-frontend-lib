@@ -4,6 +4,7 @@ import { LessonPreview } from './LessonPreview';
 import type { Lesson } from '../../types/lessons';
 import type { BaseApiClient } from '../../types/api';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
+import { ActivityType } from '../ActivityCreate/ActivityCreate.types';
 
 // Mock dependencies
 jest.mock('../../index', () => ({
@@ -204,6 +205,7 @@ jest.mock('../ChooseActivityModelModal', () => ({
           onClick={() =>
             onSelectModel({
               id: 'model-1',
+              type: ActivityType.MODELO,
               title: 'Test Model',
               savedAt: '2024-01-01',
               subject: null,
@@ -509,6 +511,7 @@ describe('LessonPreview', () => {
       expect(onActivitySelected).toHaveBeenCalledTimes(1);
       expect(onActivitySelected).toHaveBeenCalledWith({
         id: 'model-1',
+        type: ActivityType.MODELO,
         title: 'Test Model',
         savedAt: '2024-01-01',
         subject: null,
@@ -598,6 +601,7 @@ describe('LessonPreview', () => {
       expect(onEditActivity).toHaveBeenCalledTimes(1);
       expect(onEditActivity).toHaveBeenCalledWith({
         id: 'model-1',
+        type: ActivityType.MODELO,
         title: 'Test Model',
         savedAt: '2024-01-01',
         subject: null,

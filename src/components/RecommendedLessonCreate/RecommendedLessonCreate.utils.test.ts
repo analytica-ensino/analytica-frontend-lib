@@ -201,7 +201,11 @@ describe('RecommendedLessonCreate.utils', () => {
     });
 
     it('should generate title without subject when subjectId is null', () => {
-      const result = generateTitle(GoalDraftType.RASCUNHO, null, knowledgeAreas);
+      const result = generateTitle(
+        GoalDraftType.RASCUNHO,
+        null,
+        knowledgeAreas
+      );
 
       expect(result).toBe('Rascunho');
     });
@@ -345,8 +349,18 @@ describe('RecommendedLessonCreate.utils', () => {
   describe('fetchAllStudents', () => {
     it('should fetch all students from single page', async () => {
       const mockStudents = [
-        { id: 's1', name: 'Student 1', classId: 'c1', userInstitutionId: 'ui1' },
-        { id: 's2', name: 'Student 2', classId: 'c1', userInstitutionId: 'ui2' },
+        {
+          id: 's1',
+          name: 'Student 1',
+          classId: 'c1',
+          userInstitutionId: 'ui1',
+        },
+        {
+          id: 's2',
+          name: 'Student 2',
+          classId: 'c1',
+          userInstitutionId: 'ui2',
+        },
       ];
 
       const mockApiClient: BaseApiClient = {
@@ -372,15 +386,27 @@ describe('RecommendedLessonCreate.utils', () => {
 
       expect(result).toEqual(mockStudents);
       expect(mockApiClient.get).toHaveBeenCalledTimes(1);
-      expect(mockApiClient.get).toHaveBeenCalledWith('/students?page=1&limit=100');
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        '/students?page=1&limit=100'
+      );
     });
 
     it('should fetch all students from multiple pages', async () => {
       const page1Students = [
-        { id: 's1', name: 'Student 1', classId: 'c1', userInstitutionId: 'ui1' },
+        {
+          id: 's1',
+          name: 'Student 1',
+          classId: 'c1',
+          userInstitutionId: 'ui1',
+        },
       ];
       const page2Students = [
-        { id: 's2', name: 'Student 2', classId: 'c1', userInstitutionId: 'ui2' },
+        {
+          id: 's2',
+          name: 'Student 2',
+          classId: 'c1',
+          userInstitutionId: 'ui2',
+        },
       ];
 
       const mockApiClient: BaseApiClient = {
@@ -411,8 +437,14 @@ describe('RecommendedLessonCreate.utils', () => {
 
       expect(result).toEqual([...page1Students, ...page2Students]);
       expect(mockApiClient.get).toHaveBeenCalledTimes(2);
-      expect(mockApiClient.get).toHaveBeenNthCalledWith(1, '/students?page=1&limit=100');
-      expect(mockApiClient.get).toHaveBeenNthCalledWith(2, '/students?page=2&limit=100');
+      expect(mockApiClient.get).toHaveBeenNthCalledWith(
+        1,
+        '/students?page=1&limit=100'
+      );
+      expect(mockApiClient.get).toHaveBeenNthCalledWith(
+        2,
+        '/students?page=2&limit=100'
+      );
     });
 
     it('should return empty array when no students', async () => {
@@ -441,42 +473,47 @@ describe('RecommendedLessonCreate.utils', () => {
     const mockSchoolYears = [
       { id: 'sy-1', name: 'Year 1', schoolId: 'school-1' },
     ];
-    const mockClasses = [{ id: 'class-1', name: 'Class A', schoolYearId: 'sy-1' }];
+    const mockClasses = [
+      { id: 'class-1', name: 'Class A', schoolYearId: 'sy-1' },
+    ];
     const mockStudents = [
-      { id: 'student-1', name: 'Student One', classId: 'class-1', userInstitutionId: 'ui-1' },
+      {
+        id: 'student-1',
+        name: 'Student One',
+        classId: 'class-1',
+        userInstitutionId: 'ui-1',
+      },
     ];
 
     const createMockApiClient = (): BaseApiClient => ({
-      get: jest
-        .fn()
-        .mockImplementation((url: string) => {
-          if (url === '/school') {
-            return Promise.resolve({
-              data: { data: { schools: mockSchools } },
-            });
-          }
-          if (url === '/schoolYear') {
-            return Promise.resolve({
-              data: { data: { schoolYears: mockSchoolYears } },
-            });
-          }
-          if (url === '/classes') {
-            return Promise.resolve({
-              data: { data: { classes: mockClasses } },
-            });
-          }
-          if (url.startsWith('/students')) {
-            return Promise.resolve({
+      get: jest.fn().mockImplementation((url: string) => {
+        if (url === '/school') {
+          return Promise.resolve({
+            data: { data: { schools: mockSchools } },
+          });
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve({
+            data: { data: { schoolYears: mockSchoolYears } },
+          });
+        }
+        if (url === '/classes') {
+          return Promise.resolve({
+            data: { data: { classes: mockClasses } },
+          });
+        }
+        if (url.startsWith('/students')) {
+          return Promise.resolve({
+            data: {
               data: {
-                data: {
-                  students: mockStudents,
-                  pagination: { page: 1, limit: 100, total: 1, totalPages: 1 },
-                },
+                students: mockStudents,
+                pagination: { page: 1, limit: 100, total: 1, totalPages: 1 },
               },
-            });
-          }
-          return Promise.reject(new Error('Unknown URL'));
-        }),
+            },
+          });
+        }
+        return Promise.reject(new Error('Unknown URL'));
+      }),
       post: jest.fn(),
       patch: jest.fn(),
       delete: jest.fn(),
@@ -488,7 +525,10 @@ describe('RecommendedLessonCreate.utils', () => {
       ];
       const mockApiClient = createMockApiClient();
 
-      const result = await loadCategoriesData(mockApiClient, existingCategories);
+      const result = await loadCategoriesData(
+        mockApiClient,
+        existingCategories
+      );
 
       expect(result).toBe(existingCategories);
       expect(mockApiClient.get).not.toHaveBeenCalled();
@@ -548,7 +588,9 @@ describe('RecommendedLessonCreate.utils', () => {
       expect(mockApiClient.get).toHaveBeenCalledWith('/school');
       expect(mockApiClient.get).toHaveBeenCalledWith('/schoolYear');
       expect(mockApiClient.get).toHaveBeenCalledWith('/classes');
-      expect(mockApiClient.get).toHaveBeenCalledWith('/students?page=1&limit=100');
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        '/students?page=1&limit=100'
+      );
     });
   });
 });

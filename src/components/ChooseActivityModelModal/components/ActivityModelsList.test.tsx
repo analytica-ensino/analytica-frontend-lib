@@ -5,6 +5,7 @@ import type {
   ActivityModelTableItem,
   SubjectData,
 } from '../../../types/activitiesHistory';
+import { ActivityType } from '../../ActivityCreate/ActivityCreate.types';
 import type { TableParams } from '../../TableProvider/TableProvider';
 
 // Mock do TableProvider
@@ -140,6 +141,7 @@ describe('ActivityModelsList', () => {
   const mockModels: ActivityModelTableItem[] = [
     {
       id: 'model-1',
+      type: ActivityType.MODELO,
       title: 'Model 1',
       savedAt: '2024-01-01T00:00:00Z',
       subject: mockSubject1,
@@ -147,6 +149,7 @@ describe('ActivityModelsList', () => {
     },
     {
       id: 'model-2',
+      type: ActivityType.MODELO,
       title: 'Model 2',
       savedAt: '2024-01-02T00:00:00Z',
       subject: mockSubject2,
@@ -154,6 +157,7 @@ describe('ActivityModelsList', () => {
     },
     {
       id: 'model-3',
+      type: ActivityType.MODELO,
       title: 'Model 3',
       savedAt: '2024-01-03T00:00:00Z',
       subject: null,
@@ -238,6 +242,7 @@ describe('ActivityModelsList', () => {
       const modelsWithNullSubject: ActivityModelTableItem[] = [
         {
           id: 'model-null',
+          type: ActivityType.MODELO,
           title: 'Model with null subject',
           savedAt: '2024-01-01T00:00:00Z',
           subject: null,
@@ -263,6 +268,7 @@ describe('ActivityModelsList', () => {
       const modelsAllNull: ActivityModelTableItem[] = [
         {
           id: 'model-1',
+          type: ActivityType.MODELO,
           title: 'Model 1',
           savedAt: '2024-01-01T00:00:00Z',
           subject: null,
@@ -270,6 +276,7 @@ describe('ActivityModelsList', () => {
         },
         {
           id: 'model-2',
+          type: ActivityType.MODELO,
           title: 'Model 2',
           savedAt: '2024-01-02T00:00:00Z',
           subject: null,
@@ -277,6 +284,7 @@ describe('ActivityModelsList', () => {
         },
         {
           id: 'model-3',
+          type: ActivityType.MODELO,
           title: 'Model 3',
           savedAt: '2024-01-03T00:00:00Z',
           subject: null,
@@ -298,6 +306,7 @@ describe('ActivityModelsList', () => {
       const modelWithExplicitNull: ActivityModelTableItem[] = [
         {
           id: 'explicit-null',
+          type: ActivityType.MODELO,
           title: 'Explicit null',
           savedAt: '2024-01-01T00:00:00Z',
           subject: null,
@@ -322,6 +331,7 @@ describe('ActivityModelsList', () => {
       const modelWithUndefinedSubject: ActivityModelTableItem[] = [
         {
           id: 'undefined-subject',
+          type: ActivityType.MODELO,
           title: 'Undefined subject',
           savedAt: '2024-01-01T00:00:00Z',
           subject: undefined as unknown as SubjectData | null,
@@ -347,6 +357,7 @@ describe('ActivityModelsList', () => {
       const modelsWithSubject: ActivityModelTableItem[] = [
         {
           id: 'model-with-subject',
+          type: ActivityType.MODELO,
           title: 'Model with subject',
           savedAt: '2024-01-01T00:00:00Z',
           subject: mockSubject1,
@@ -399,6 +410,7 @@ describe('ActivityModelsList', () => {
       const modelsWithDifferentSubjects: ActivityModelTableItem[] = [
         {
           id: 'math',
+          type: ActivityType.MODELO,
           title: 'Math Model',
           savedAt: '2024-01-01T00:00:00Z',
           subject: mockSubject1,
@@ -406,6 +418,7 @@ describe('ActivityModelsList', () => {
         },
         {
           id: 'port',
+          type: ActivityType.MODELO,
           title: 'Portuguese Model',
           savedAt: '2024-01-02T00:00:00Z',
           subject: mockSubject2,
@@ -453,6 +466,7 @@ describe('ActivityModelsList', () => {
       const mixedModels: ActivityModelTableItem[] = [
         {
           id: 'with-subject',
+          type: ActivityType.MODELO,
           title: 'With Subject',
           savedAt: '2024-01-01T00:00:00Z',
           subject: mockSubject1,
@@ -460,6 +474,7 @@ describe('ActivityModelsList', () => {
         },
         {
           id: 'without-subject',
+          type: ActivityType.MODELO,
           title: 'Without Subject',
           savedAt: '2024-01-02T00:00:00Z',
           subject: null,
@@ -489,6 +504,7 @@ describe('ActivityModelsList', () => {
       const modelsWithSubject: ActivityModelTableItem[] = [
         {
           id: 'css-test',
+          type: ActivityType.MODELO,
           title: 'CSS Test',
           savedAt: '2024-01-01T00:00:00Z',
           subject: mockSubject1,
@@ -535,6 +551,7 @@ describe('ActivityModelsList', () => {
       const modelsWithLongName: ActivityModelTableItem[] = [
         {
           id: 'long-name',
+          type: ActivityType.MODELO,
           title: 'Long Name Test',
           savedAt: '2024-01-01T00:00:00Z',
           subject: longSubject,

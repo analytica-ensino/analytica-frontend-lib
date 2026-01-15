@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { z } from 'zod';
 import dayjs from 'dayjs';
 import { ActivityDraftType } from '../types/activitiesHistory';
+import { ActivityType } from '../components/ActivityCreate/ActivityCreate.types';
 import type {
   ActivityModelResponse,
   ActivityModelTableItem,
@@ -106,8 +107,15 @@ export const transformModelToTableItem = (
     }
   }
 
+  // Map ActivityDraftType to ActivityType
+  const activityType =
+    model.type === ActivityDraftType.MODELO
+      ? ActivityType.MODELO
+      : ActivityType.RASCUNHO;
+
   return {
     id: model.id,
+    type: activityType,
     title: model.title || 'Sem título',
     savedAt: dayjs(model.createdAt).format('DD/MM/YYYY'),
     subject: subject || null,
