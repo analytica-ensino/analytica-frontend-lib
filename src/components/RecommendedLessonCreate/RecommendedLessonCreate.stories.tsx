@@ -1,6 +1,7 @@
 import type { Story } from '@ladle/react';
-import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter, Routes, Route } from 'react-router-dom';
 import { RecommendedLessonCreate } from './RecommendedLessonCreate';
+import { CreateActivity } from '../ActivityCreate/ActivityCreate';
 import type { BaseApiClient } from '../../types/api';
 import type { Lesson } from '../../types/lessons';
 import { Toaster } from '../..';
@@ -979,3 +980,256 @@ export const WithExistingDraft: Story = () => {
 };
 
 WithExistingDraft.storyName = 'With Existing Draft (Lessons in Preview)';
+
+/**
+ * Story that demonstrates the full navigation flow between RecommendedLessonCreate and CreateActivity
+ * Uses Routes to simulate real navigation:
+ * 1. Start at RecommendedLessonCreate with a draft
+ * 2. Click "Adicionar atividade" to navigate to CreateActivity
+ * 3. Click back or "Adicionar atividade" button in CreateActivity to return to RecommendedLessonCreate
+ */
+export const WithFullNavigationFlow: Story = () => {
+  // Extended mock API client with ActivityCreate endpoints
+  const baseMockClient = createMockApiClient();
+  const fullMockApiClient = {
+    ...baseMockClient,
+    get: async (url: string) => {
+      // Handle questions/list endpoint for CreateActivity
+      if (url === '/questions/list' || url.startsWith('/questions')) {
+        return {
+          data: {
+            data: {
+              questions: [
+                {
+                  id: 'question-1',
+                  statement:
+                    '<p>Resolva a equação: <strong>2x + 5 = 15</strong></p>',
+                  questionType: 'MULTIPLA_ESCOLHA',
+                  status: 'APROVADO',
+                  difficultyLevel: 'FACIL',
+                  knowledgeMatrix: [
+                    {
+                      subject: {
+                        id: 'matematica',
+                        name: 'Matemática',
+                        color: '#0066b8',
+                        icon: 'MathOperations',
+                      },
+                      topic: { id: 'tema-1', name: 'Álgebra' },
+                      subtopic: {
+                        id: 'subtema-1',
+                        name: 'Equações do 1º grau',
+                      },
+                    },
+                  ],
+                  options: [
+                    { id: 'opt-1a', option: 'x = 5', correct: true },
+                    { id: 'opt-1b', option: 'x = 10', correct: false },
+                  ],
+                },
+                {
+                  id: 'question-2',
+                  statement:
+                    '<p>Qual é o valor de <strong>x</strong> na equação <em>3x - 9 = 0</em>?</p>',
+                  questionType: 'MULTIPLA_ESCOLHA',
+                  status: 'APROVADO',
+                  difficultyLevel: 'FACIL',
+                  knowledgeMatrix: [
+                    {
+                      subject: {
+                        id: 'matematica',
+                        name: 'Matemática',
+                        color: '#0066b8',
+                        icon: 'MathOperations',
+                      },
+                      topic: { id: 'tema-1', name: 'Álgebra' },
+                      subtopic: {
+                        id: 'subtema-1',
+                        name: 'Equações do 1º grau',
+                      },
+                    },
+                  ],
+                  options: [
+                    { id: 'opt-2a', option: 'x = 3', correct: true },
+                    { id: 'opt-2b', option: 'x = 9', correct: false },
+                  ],
+                },
+              ],
+              pagination: {
+                page: 1,
+                limit: 20,
+                total: 2,
+                totalPages: 1,
+              },
+            },
+          },
+        };
+      }
+
+      // Delegate all other endpoints (including /activity-drafts and /activity-drafts/{id}) to base mock
+      // The base mock already has proper selectedQuestions data
+      return baseMockClient.get(url);
+    },
+    post: async (url: string, body: unknown) => {
+      // Handle activity-drafts POST for CreateActivity
+      if (url === '/activity-drafts') {
+        const payload = body as {
+          type?: string;
+          title?: string;
+          subjectId?: string;
+          filters?: unknown;
+          questionIds?: string[];
+        };
+        return {
+          data: {
+            message: 'Activity draft created successfully',
+            data: {
+              draft: {
+                id: `activity-draft-${Date.now()}`,
+                type: payload.type || 'RASCUNHO',
+                title: payload.title || '',
+                creatorUserInstitutionId: 'mock-institution-id',
+                subjectId: payload.subjectId || null,
+                filters: payload.filters || {},
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+              questionsLinked: payload.questionIds?.length || 0,
+            },
+          },
+        };
+      }
+
+      // Handle questions/list POST
+      if (url === '/questions/list') {
+        return {
+          data: {
+            data: {
+              questions: [
+                {
+                  id: 'question-1',
+                  statement:
+                    '<p>Resolva a equação: <strong>2x + 5 = 15</strong></p>',
+                  questionType: 'MULTIPLA_ESCOLHA',
+                  status: 'APROVADO',
+                  difficultyLevel: 'FACIL',
+                  knowledgeMatrix: [
+                    {
+                      subject: {
+                        id: 'matematica',
+                        name: 'Matemática',
+                        color: '#0066b8',
+                        icon: 'MathOperations',
+                      },
+                      topic: { id: 'tema-1', name: 'Álgebra' },
+                      subtopic: {
+                        id: 'subtema-1',
+                        name: 'Equações do 1º grau',
+                      },
+                    },
+                  ],
+                  options: [
+                    { id: 'opt-1a', option: 'x = 5', correct: true },
+                    { id: 'opt-1b', option: 'x = 10', correct: false },
+                  ],
+                },
+              ],
+              pagination: {
+                page: 1,
+                limit: 20,
+                total: 1,
+                totalPages: 1,
+              },
+            },
+          },
+        };
+      }
+
+      // Delegate to base mock for other endpoints
+      return baseMockClient.post(
+        url,
+        body as Record<string, unknown> | undefined
+      );
+    },
+    patch: async (url: string, body: unknown) => {
+      // Handle activity-drafts PATCH
+      if (url.startsWith('/activity-drafts/')) {
+        const draftId = url.split('/').pop() || 'activity-draft-id';
+        const payload = body as {
+          type?: string;
+          title?: string;
+          subjectId?: string;
+          filters?: unknown;
+          questionIds?: string[];
+        };
+        return {
+          data: {
+            message: 'Activity draft updated successfully',
+            data: {
+              draft: {
+                id: draftId,
+                type: payload.type || 'RASCUNHO',
+                title: payload.title || '',
+                creatorUserInstitutionId: 'mock-institution-id',
+                subjectId: payload.subjectId || null,
+                filters: payload.filters || {},
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+              questionsLinked: payload.questionIds?.length || 0,
+            },
+          },
+        };
+      }
+
+      // Delegate to base mock
+      return baseMockClient.patch(
+        url,
+        body as Record<string, unknown> | undefined
+      );
+    },
+    delete: async () => ({ data: {} }),
+  } as BaseApiClient;
+
+  return (
+    <MemoryRouter
+      initialEntries={[
+        '/criar-aula-recomendada?type=rascunho&id=existing-draft-123',
+      ]}
+    >
+      <Routes>
+        {/* RecommendedLessonCreate route */}
+        <Route
+          path="/criar-aula-recomendada"
+          element={
+            <RecommendedLessonCreate
+              apiClient={fullMockApiClient}
+              institutionId="institution-1"
+              onBack={() => console.log('Back from RecommendedLessonCreate')}
+            />
+          }
+        />
+
+        {/* CreateActivity route - accessed when clicking "Adicionar atividade" button in LessonPreview */}
+        <Route
+          path="/criar-atividade"
+          element={
+            <CreateActivity
+              apiClient={fullMockApiClient}
+              institutionId="institution-1"
+              isDark={false}
+              onBack={() => console.log('Back from CreateActivity')}
+              onAddActivityToLesson={(activityDraftId) => {
+                console.log('Activity added to lesson:', activityDraftId);
+              }}
+            />
+          }
+        />
+      </Routes>
+      <Toaster />
+    </MemoryRouter>
+  );
+};
+
+WithFullNavigationFlow.storyName =
+  'With Full Navigation Flow (RecommendedLesson to CreateActivity)';

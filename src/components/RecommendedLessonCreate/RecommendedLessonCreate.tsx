@@ -8,7 +8,11 @@ import {
   SendLessonModal,
 } from '../..';
 import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
-import type { BaseApiClient } from '../..';
+import type {
+  ActivityModelTableItem,
+  ActivityType,
+  BaseApiClient,
+} from '../..';
 import type { LessonFiltersData } from '../../types/lessonFilters';
 import type { Lesson } from '../../types/lessons';
 import type { SendLessonFormData } from '../SendLessonModal';
@@ -59,6 +63,7 @@ const RecommendedLessonCreate = ({
   onCreateRecommendedLesson,
   onSaveModel,
   preFilters: preFiltersProp,
+  onRedirectToActivity,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -70,6 +75,17 @@ const RecommendedLessonCreate = ({
   onSaveModel?: (response: RecommendedLessonDraftResponse) => void;
   /** Pre-filters to apply when creating a new recommended lesson */
   preFilters?: RecommendedLessonPreFiltersInput | null;
+  onRedirectToActivity?: ({
+    activityId,
+    activityType,
+    lessonId,
+    lessonType,
+  }: {
+    activityId: string;
+    activityType: ActivityType;
+    lessonId: string;
+    lessonType: GoalDraftType;
+  }) => void;
 }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -164,6 +180,39 @@ const RecommendedLessonCreate = ({
       onBack();
     }
   }, [clearFilters, onBack]);
+
+  const handleRedirectToActivity = (activity: ActivityModelTableItem) => {
+    if (onRedirectToActivity) {
+      if (!recommendedLesson?.id || !recommendedLesson?.type) {
+        addToast({
+          title: 'Erro ao redirecionar para a atividade',
+          description: 'A aula recomendada não foi encontrada',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+        return;
+      }
+
+      if (!activity.id || !activity.type) {
+        addToast({
+          title: 'Erro ao redirecionar para a atividade',
+          description: 'A atividade não foi encontrada',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+        return;
+      }
+
+      onRedirectToActivity({
+        activityId: activity.id,
+        activityType: activity.type,
+        lessonId: recommendedLesson?.id,
+        lessonType: recommendedLesson?.type,
+      });
+    }
+  };
 
   const resolvedPreFilters = useMemo(() => {
     if (!preFilters) {
@@ -966,6 +1015,7 @@ const RecommendedLessonCreate = ({
                     onRemoveLesson={handleRemoveLesson}
                     onReorder={handleReorder}
                     apiClient={apiClient}
+                    onEditActivity={handleRedirectToActivity}
                     className="h-full overflow-y-auto"
                   />
                 )}
@@ -1033,6 +1083,7 @@ const RecommendedLessonCreate = ({
                 onRemoveLesson={handleRemoveLesson}
                 onReorder={handleReorder}
                 apiClient={apiClient}
+                onEditActivity={handleRedirectToActivity}
                 className="h-full overflow-y-auto"
               />
             )}
