@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import { CreateActivity } from './ActivityCreate';
 import type { BaseApiClient } from '../../types/api';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
@@ -567,14 +567,51 @@ export const WithoutInitialQuestions: Story = () => {
 WithoutInitialQuestions.storyName = 'Without Initial Questions';
 
 export const WithPreFilters: Story = () => {
+  // Mock API client that returns a draft with pre-selected filters
+  const mockApiClientWithPreFilters = {
+    ...mockApiClientAllTypes,
+    get: async (url: string) => {
+      // Intercept activity-drafts/{id} to return draft with filters
+      if (url.startsWith('/activity-drafts/')) {
+        return {
+          data: {
+            data: {
+              id: 'draft-with-prefilters',
+              type: 'RASCUNHO',
+              title: 'Atividade com filtros pré-selecionados',
+              creatorUserInstitutionId: 'institution-1',
+              subjectId: 'matematica',
+              filters: {
+                questionTypes: ['ALTERNATIVA', 'MULTIPLA_ESCOLHA'],
+                questionBanks: ['1'],
+                subjects: ['matematica'],
+                topics: ['tema-1'],
+                subtopics: ['subtema-1'],
+                contents: ['assunto-1'],
+              },
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          },
+        };
+      }
+      // Delegate other GET requests to the original mock
+      return mockApiClientAllTypes.get(url);
+    },
+  } as BaseApiClient;
+
   return (
-    <BrowserRouter>
+    <MemoryRouter
+      initialEntries={[
+        '/criar-atividade?type=rascunho&id=draft-with-prefilters',
+      ]}
+    >
       <CreateActivity
-        apiClient={mockApiClientAllTypes}
+        apiClient={mockApiClientWithPreFilters}
         institutionId="institution-1"
         isDark={false}
       />
-    </BrowserRouter>
+    </MemoryRouter>
   );
 };
 
