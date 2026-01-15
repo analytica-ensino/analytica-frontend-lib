@@ -57,7 +57,7 @@ const recommendedClassLessonProgressSchema = z.object({
 /**
  * Schema for lesson recommendedClass item
  */
-const recommendedClasslessonsItemSchema = z.object({
+const recommendedClassLessonsItemSchema = z.object({
   recommendedClassId: z.string(),
   supLessonsProgressId: z.string(),
   supLessonsProgress: recommendedClassLessonProgressSchema,
@@ -72,7 +72,7 @@ const recommendedClassMetadataSchema = z.object({
   startDate: z.string(),
   finalDate: z.string(),
   progress: z.number(),
-  lessons: z.array(recommendedClasslessonsItemSchema),
+  lessons: z.array(recommendedClassLessonsItemSchema),
 });
 
 /**

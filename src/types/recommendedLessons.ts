@@ -421,7 +421,7 @@ export interface RecommendedClassLessonProgress {
 /**
  * Lesson recommended class item from /recommended class/{id} response
  */
-export interface RecommendedClasslessonsItem {
+export interface RecommendedClassLessonsItem {
   recommendedClassId: string;
   supLessonsProgressId: string;
   supLessonsProgress: RecommendedClassLessonProgress;
@@ -436,7 +436,7 @@ export interface RecommendedClassMetadata {
   startDate: string;
   finalDate: string;
   progress: number;
-  lessons: RecommendedClasslessonsItem[];
+  lessons: RecommendedClassLessonsItem[];
   activities?: RecommendedClassActivities[];
 }
 

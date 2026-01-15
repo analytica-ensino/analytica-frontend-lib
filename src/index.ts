@@ -695,7 +695,7 @@ export type {
   RecommendedClassLessonSubject,
   RecommendedClassLesson,
   RecommendedClassLessonProgress,
-  RecommendedClasslessonsItem,
+  RecommendedClassLessonsItem,
   RecommendedClassMetadata,
   RecommendedClassApiResponse,
   LessonDetailsData,
