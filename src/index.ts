@@ -481,6 +481,20 @@ export {
   studentActivityStatusSchema,
 } from './types/activityDetails';
 
+// Lesson Availability Types
+export { LESSON_AVAILABILITY } from './types/lessonAvailability';
+export type {
+  LessonAvailability,
+  LessonAvailabilityResult,
+} from './types/lessonAvailability';
+
+// Lesson Availability Utils
+export {
+  checkLessonAvailability,
+  isLessonNotYetAvailable,
+  isLessonExpired,
+} from './utils/lessonAvailabilityUtils';
+
 // Activity Details Utils
 export {
   getStatusBadgeConfig,
