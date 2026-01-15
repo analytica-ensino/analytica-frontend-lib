@@ -485,6 +485,7 @@ describe('ChooseActivityModelModal', () => {
         savedAt: '01/01/2024',
         subject: mockModelsResponse.data.activityDrafts[0].subject,
         subjectId: 's1',
+        type: ActivityDraftType.MODELO,
       });
     });
 
