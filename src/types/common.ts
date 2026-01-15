@@ -1,10 +1,10 @@
 /**
  * Common Type Definitions
- * Shared types used across multiple features (activities, goals, etc.)
+ * Shared types used across multiple features (activities, recommendedClasss, etc.)
  */
 
 /**
- * Generic API status for activities and goals
+ * Generic API status for activities and recommendedClasss
  * Used by backend endpoints for status filtering
  */
 export enum GenericApiStatus {

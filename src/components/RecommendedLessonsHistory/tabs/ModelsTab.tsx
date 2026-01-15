@@ -16,12 +16,12 @@ import type {
 import type { SubjectEnum } from '../../../enums/SubjectEnum';
 
 /**
- * Configuration for goal models tab
+ * Configuration for recommendedClass models tab
  */
 const GOAL_MODELS_CONFIG: ModelsTabConfig = {
   entityName: 'aula',
   entityNamePlural: 'aulas',
-  testId: 'goal-models-tab',
+  testId: 'recommendedClass-models-tab',
   emptyStateTitle: 'Crie modelos para agilizar suas aulas',
   emptyStateDescription:
     'Salve modelos de aulas recomendadas para reutilizar e enviar rapidamente para suas turmas!',
@@ -29,7 +29,7 @@ const GOAL_MODELS_CONFIG: ModelsTabConfig = {
 };
 
 /**
- * Configuration for goal models table columns
+ * Configuration for recommendedClass models table columns
  */
 const GOAL_COLUMNS_CONFIG: ModelsColumnsConfig = {
   sendButtonLabel: 'Enviar aula',
@@ -42,11 +42,11 @@ const GOAL_COLUMNS_CONFIG: ModelsColumnsConfig = {
  * Props for the RecommendedClassModelsTab component
  */
 export interface RecommendedClassModelsTabProps {
-  /** Function to fetch goal models from API */
+  /** Function to fetch recommendedClass models from API */
   fetchRecommendedClassModels: (
     filters?: RecommendedClassModelFilters
   ) => Promise<RecommendedClassModelsApiResponse>;
-  /** Function to delete a goal model */
+  /** Function to delete a recommendedClass model */
   deleteRecommendedClassModel: (id: string) => Promise<void>;
   /** Callback when create model button is clicked */
   onCreateModel: () => void;
@@ -72,7 +72,7 @@ export interface RecommendedClassModelsTabProps {
 
 /**
  * RecommendedClassModelsTab component
- * Displays goal models with filters, pagination, and CRUD actions.
+ * Displays recommendedClass models with filters, pagination, and CRUD actions.
  * Uses the shared ModelsTabBase component for common functionality.
  */
 export const RecommendedClassModelsTab = ({

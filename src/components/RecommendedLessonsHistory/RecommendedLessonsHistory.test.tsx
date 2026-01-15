@@ -487,7 +487,7 @@ describe('RecommendedLessonsHistory', () => {
       });
     });
 
-    it('should display goal data in table', async () => {
+    it('should display recommendedClass data in table', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
@@ -497,7 +497,7 @@ describe('RecommendedLessonsHistory', () => {
   });
 
   describe('Empty State', () => {
-    it('should show empty state when no goals', async () => {
+    it('should show empty state when no recommendedClasss', async () => {
       mockFetchRecommendedClassHistory.mockResolvedValue(emptyApiResponse);
 
       render(<RecommendedLessonsHistory {...defaultProps} />);
@@ -1303,8 +1303,10 @@ describe('RecommendedLessonsHistory', () => {
       );
 
       await waitFor(() => {
-        // The drafts tab content should be visible (goal-drafts-tab testId from config)
-        expect(screen.getByTestId('goal-drafts-tab')).toBeInTheDocument();
+        // The drafts tab content should be visible (recommendedClass-drafts-tab testId from config)
+        expect(
+          screen.getByTestId('recommendedClass-drafts-tab')
+        ).toBeInTheDocument();
       });
     });
 
@@ -1415,8 +1417,10 @@ describe('RecommendedLessonsHistory', () => {
       );
 
       await waitFor(() => {
-        // The drafts tab content should be visible (goal-drafts-tab testId from config)
-        expect(screen.getByTestId('goal-drafts-tab')).toBeInTheDocument();
+        // The drafts tab content should be visible (recommendedClass-drafts-tab testId from config)
+        expect(
+          screen.getByTestId('recommendedClass-drafts-tab')
+        ).toBeInTheDocument();
       });
     });
 
@@ -1448,7 +1452,9 @@ describe('RecommendedLessonsHistory', () => {
 
       await waitFor(() => {
         // Models tab without required props (fetchRecommendedClassModels, deleteRecommendedClassModel, onCreateModel) renders nothing
-        expect(screen.queryByTestId('goal-models-tab')).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('recommendedClass-models-tab')
+        ).not.toBeInTheDocument();
       });
     });
   });

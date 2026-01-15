@@ -93,7 +93,7 @@ describe('useNotifications', () => {
       expect(window.location.href).toBe('/atividades/123');
     });
 
-    it('should navigate to goal page when entityType is GOAL', () => {
+    it('should navigate to recommendedClass page when entityType is GOAL', () => {
       const { result } = renderHook(() => useNotifications());
 
       act(() => {

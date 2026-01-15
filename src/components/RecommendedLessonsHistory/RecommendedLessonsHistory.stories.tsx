@@ -46,7 +46,7 @@ const mockSubjectsMap = new Map<string, string>([
 ]);
 
 /**
- * Mock goal models data
+ * Mock recommendedClass models data
  */
 const mockRecommendedClassModelsResponse: RecommendedClassModelsApiResponse = {
   message: 'Success',
@@ -129,7 +129,7 @@ const emptyModelsResponse: RecommendedClassModelsApiResponse = {
 };
 
 /**
- * Mock goals history data
+ * Mock recommendedClasss history data
  */
 const mockRecommendedClassHistoryData: RecommendedClassHistoryApiResponse = {
   message: 'Success',
@@ -424,7 +424,7 @@ Loading.meta = {
 };
 
 /**
- * Empty state - shows the component when no goals exist
+ * Empty state - shows the component when no recommendedClasss exist
  */
 export const Empty: Story = () => (
   <RecommendedLessonsHistory
@@ -483,7 +483,7 @@ WithoutSubjectIcons.meta = {
 };
 
 /**
- * Many goals - shows the component with pagination
+ * Many recommendedClasss - shows the component with pagination
  */
 export const ManyRecommendedClass: Story = () => {
   const generateRecommendedClass = (count: number) => {
@@ -554,7 +554,7 @@ ManyRecommendedClass.meta = {
 };
 
 /**
- * Multiple classes per goal - shows goals assigned to multiple classes
+ * Multiple classes per recommendedClass - shows recommendedClasss assigned to multiple classes
  */
 export const MultipleClasses: Story = () => {
   const multipleClassesData: RecommendedClassHistoryApiResponse = {
@@ -645,7 +645,7 @@ const getRelativeDate = (daysOffset: number): string => {
 };
 
 /**
- * All statuses - shows goals with different status states
+ * All statuses - shows recommendedClasss with different status states
  */
 export const AllStatuses: Story = () => {
   // Dynamic dates relative to current date

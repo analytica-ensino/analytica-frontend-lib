@@ -2,7 +2,7 @@ import type { TableParams } from '../../TableProvider/TableProvider';
 import type { RecommendedClassModelFilters } from '../../../types/recommendedLessons';
 
 /**
- * Build goal models filters from table params
+ * Build recommendedClass models filters from table params
  * Converts TableProvider parameters to API filter format
  * @param params - Table parameters from TableProvider
  * @returns RecommendedClass model filters for API request

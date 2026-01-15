@@ -11,30 +11,30 @@ import type {
 } from '../types/recommendedLessons';
 
 /**
- * Zod schema for goal history API response validation
+ * Zod schema for recommendedClass history API response validation
  * Based on /recommended-class/history endpoint
  */
-const goalSubjectSchema = z
+const recommendedClassSubjectSchema = z
   .object({
     id: z.string().uuid(),
     name: z.string(),
   })
   .nullable();
 
-const goalCreatorSchema = z
+const recommendedClassCreatorSchema = z
   .object({
     id: z.string().uuid(),
     name: z.string(),
   })
   .nullable();
 
-const goalStatsSchema = z.object({
+const recommendedClassStatsSchema = z.object({
   totalStudents: z.number(),
   completedCount: z.number(),
   completionPercentage: z.number(),
 });
 
-const goalBreakdownSchema = z.object({
+const recommendedClassBreakdownSchema = z.object({
   classId: z.string().uuid(),
   className: z.string(),
   schoolId: z.string(),
@@ -43,7 +43,7 @@ const goalBreakdownSchema = z.object({
   completedCount: z.number(),
 });
 
-const goalDataSchema = z.object({
+const recommendedClassDataSchema = z.object({
   id: z.string().uuid(),
   title: z.string(),
   startDate: z.string().nullable(),
@@ -53,18 +53,18 @@ const goalDataSchema = z.object({
   totalLessons: z.number(),
 });
 
-const goalHistoryItemSchema = z.object({
-  recommendedClass: goalDataSchema,
-  subject: goalSubjectSchema,
-  creator: goalCreatorSchema,
-  stats: goalStatsSchema,
-  breakdown: z.array(goalBreakdownSchema),
+const recommendedClassHistoryItemSchema = z.object({
+  recommendedClass: recommendedClassDataSchema,
+  subject: recommendedClassSubjectSchema,
+  creator: recommendedClassCreatorSchema,
+  stats: recommendedClassStatsSchema,
+  breakdown: z.array(recommendedClassBreakdownSchema),
 });
 
-export const goalsHistoryApiResponseSchema = z.object({
+export const recommendedClasssHistoryApiResponseSchema = z.object({
   message: z.string(),
   data: z.object({
-    recommendedClass: z.array(goalHistoryItemSchema),
+    recommendedClass: z.array(recommendedClassHistoryItemSchema),
     total: z.number(),
   }),
 });
@@ -117,7 +117,7 @@ export const determineRecommendedClassStatus = (
 /**
  * Transform API response to table item format
  * @param item - RecommendedClass history item from API response
- * @returns Formatted goal for table display
+ * @returns Formatted recommendedClass for table display
  */
 export const transformRecommendedClassToTableItem = (
   item: RecommendedClassHistoryItem
@@ -153,7 +153,7 @@ export const transformRecommendedClassToTableItem = (
 };
 
 /**
- * Handle errors during goal fetch
+ * Handle errors during recommendedClass fetch
  * @param error - Error object
  * @returns Error message for UI display
  */
@@ -170,7 +170,7 @@ export const handleRecommendedClassFetchError = (error: unknown): string => {
 /**
  * Factory function to create useRecommendedLessonsHistory hook
  *
- * @param fetchRecommendedClassHistory - Function to fetch goals from API
+ * @param fetchRecommendedClassHistory - Function to fetch recommendedClasss from API
  * @returns Hook for managing recommended lessons history
  *
  * @example
@@ -184,7 +184,7 @@ export const handleRecommendedClassFetchError = (error: unknown): string => {
  * const useRecommendedClassHistory = createUseRecommendedLessonsHistory(fetchRecommendedClassHistory);
  *
  * // In your component
- * const { goals, loading, error, pagination, fetchRecommendedClass } = useRecommendedClassHistory();
+ * const { recommendedClasss, loading, error, pagination, fetchRecommendedClass } = useRecommendedClassHistory();
  * ```
  */
 export const createUseRecommendedLessonsHistory = (
@@ -206,7 +206,7 @@ export const createUseRecommendedLessonsHistory = (
     });
 
     /**
-     * Fetch goals history from API
+     * Fetch recommendedClasss history from API
      * @param filters - Optional filters for pagination, search, sorting, etc.
      */
     const fetchRecommendedClass = useCallback(
@@ -219,9 +219,9 @@ export const createUseRecommendedLessonsHistory = (
 
           // Validate response with Zod
           const validatedData =
-            goalsHistoryApiResponseSchema.parse(responseData);
+            recommendedClasssHistoryApiResponseSchema.parse(responseData);
 
-          // Transform goals to table format
+          // Transform recommendedClasss to table format
           const tableItems = validatedData.data.recommendedClass.map(
             transformRecommendedClassToTableItem
           );

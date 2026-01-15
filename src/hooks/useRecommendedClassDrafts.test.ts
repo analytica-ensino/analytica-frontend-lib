@@ -4,7 +4,7 @@ import {
   createUseRecommendedClassDrafts,
   createRecommendedClassDraftsHook,
   handleRecommendedClassDraftFetchError,
-  DEFAULT_GOAL_DRAFTS_PAGINATION,
+  DEFAULT_RECOMMENDED_CLASS_DRAFTS_PAGINATION,
 } from './useRecommendedClassDrafts';
 import { RecommendedClassDraftType } from '../types/recommendedLessons';
 import type {
@@ -13,9 +13,9 @@ import type {
 } from '../types/recommendedLessons';
 
 describe('useRecommendedClassDrafts', () => {
-  describe('DEFAULT_GOAL_DRAFTS_PAGINATION', () => {
+  describe('DEFAULT_RECOMMENDED_CLASS_DRAFTS_PAGINATION', () => {
     it('should have correct default values', () => {
-      expect(DEFAULT_GOAL_DRAFTS_PAGINATION).toEqual({
+      expect(DEFAULT_RECOMMENDED_CLASS_DRAFTS_PAGINATION).toEqual({
         total: 0,
         page: 1,
         limit: 10,
@@ -112,7 +112,9 @@ describe('useRecommendedClassDrafts', () => {
       expect(result.current.models).toEqual([]);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
-      expect(result.current.pagination).toEqual(DEFAULT_GOAL_DRAFTS_PAGINATION);
+      expect(result.current.pagination).toEqual(
+        DEFAULT_RECOMMENDED_CLASS_DRAFTS_PAGINATION
+      );
       expect(result.current.fetchModels).toBeInstanceOf(Function);
       expect(result.current.deleteModel).toBeInstanceOf(Function);
     });

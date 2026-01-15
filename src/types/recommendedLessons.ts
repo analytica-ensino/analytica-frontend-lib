@@ -374,7 +374,7 @@ export interface RecommendedClassSupUsersActivities {
 /**
  * Activities associated with a recommended class
  */
-export interface RecommendedClassActivitiesRecommendedClass {
+export interface RecommendedClassActivities {
   recommendedClassId: string;
   supUsersActivitiesId: string;
   supUsersActivities: RecommendedClassSupUsersActivities;
@@ -419,7 +419,7 @@ export interface RecommendedClassLessonProgress {
 /**
  * Lesson recommended class item from /recommended class/{id} response
  */
-export interface RecommendedClassLessonRecommendedClassItem {
+export interface RecommendedClasslessonsItem {
   recommendedClassId: string;
   supLessonsProgressId: string;
   supLessonsProgress: RecommendedClassLessonProgress;
@@ -434,8 +434,8 @@ export interface RecommendedClassMetadata {
   startDate: string;
   finalDate: string;
   progress: number;
-  lessons: RecommendedClassLessonRecommendedClassItem[];
-  activities?: RecommendedClassActivitiesRecommendedClass[];
+  lessons: RecommendedClasslessonsItem[];
+  activities?: RecommendedClassActivities[];
 }
 
 /**

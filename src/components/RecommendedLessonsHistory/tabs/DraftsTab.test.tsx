@@ -56,7 +56,9 @@ describe('RecommendedClassDraftsTab', () => {
   it('should render with correct test id', () => {
     render(<RecommendedClassDraftsTab {...defaultProps} />);
 
-    expect(screen.getByTestId('goal-drafts-tab')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('recommendedClass-drafts-tab')
+    ).toBeInTheDocument();
   });
 
   it('should render with correct empty state title', () => {
@@ -102,7 +104,9 @@ describe('RecommendedClassDraftsTab', () => {
       />
     );
 
-    expect(screen.getByTestId('goal-drafts-tab')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('recommendedClass-drafts-tab')
+    ).toBeInTheDocument();
   });
 
   it('should render without optional callbacks', () => {
@@ -114,6 +118,8 @@ describe('RecommendedClassDraftsTab', () => {
 
     render(<RecommendedClassDraftsTab {...propsWithoutOptionals} />);
 
-    expect(screen.getByTestId('goal-drafts-tab')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('recommendedClass-drafts-tab')
+    ).toBeInTheDocument();
   });
 });

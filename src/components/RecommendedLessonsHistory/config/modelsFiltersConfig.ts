@@ -20,7 +20,7 @@ const getSubjectOptions = (
 };
 
 /**
- * Create filter configuration for goal models
+ * Create filter configuration for recommendedClass models
  * Simplified filter with only subject selection
  * @param userData - User data for populating filter options
  * @returns Array of filter configurations

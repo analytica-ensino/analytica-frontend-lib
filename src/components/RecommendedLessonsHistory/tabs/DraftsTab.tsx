@@ -16,12 +16,12 @@ import type {
 import type { SubjectEnum } from '../../../enums/SubjectEnum';
 
 /**
- * Configuration for goal drafts tab
+ * Configuration for recommendedClass drafts tab
  */
 const GOAL_DRAFTS_CONFIG: ModelsTabConfig = {
   entityName: 'rascunho',
   entityNamePlural: 'rascunhos',
-  testId: 'goal-drafts-tab',
+  testId: 'recommendedClass-drafts-tab',
   emptyStateTitle: 'Você não tem aulas recomendadas em rascunho',
   emptyStateDescription:
     'As aulas recomendadas que você começar a criar, aparecerão aqui automaticamente como rascunhos. Tudo é salvo enquanto você cria, continue de onde parou quando quiser!',
@@ -29,7 +29,7 @@ const GOAL_DRAFTS_CONFIG: ModelsTabConfig = {
 };
 
 /**
- * Configuration for goal drafts table columns
+ * Configuration for recommendedClass drafts table columns
  */
 const GOAL_DRAFTS_COLUMNS_CONFIG: ModelsColumnsConfig = {
   sendButtonLabel: 'Enviar aula',
@@ -42,11 +42,11 @@ const GOAL_DRAFTS_COLUMNS_CONFIG: ModelsColumnsConfig = {
  * Props for the RecommendedClassDraftsTab component
  */
 export interface RecommendedClassDraftsTabProps {
-  /** Function to fetch goal drafts from API */
+  /** Function to fetch recommendedClass drafts from API */
   fetchRecommendedClassDrafts: (
     filters?: RecommendedClassModelFilters
   ) => Promise<RecommendedClassModelsApiResponse>;
-  /** Function to delete a goal draft */
+  /** Function to delete a recommendedClass draft */
   deleteRecommendedClassDraft: (id: string) => Promise<void>;
   /** Callback when create draft button is clicked */
   onCreateDraft: () => void;
@@ -72,7 +72,7 @@ export interface RecommendedClassDraftsTabProps {
 
 /**
  * RecommendedClassDraftsTab component
- * Displays goal drafts with filters, pagination, and CRUD actions.
+ * Displays recommendedClass drafts with filters, pagination, and CRUD actions.
  * Uses the shared ModelsTabBase component for common functionality.
  */
 export const RecommendedClassDraftsTab = ({

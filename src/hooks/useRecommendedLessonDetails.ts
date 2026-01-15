@@ -17,7 +17,7 @@ import type {
 /**
  * Schema for subject in lesson
  */
-const goalLessonSubjectSchema = z.object({
+const recommendedClassLessonSubjectSchema = z.object({
   id: z.string(),
   name: z.string(),
   color: z.string(),
@@ -33,60 +33,60 @@ const lessonContentSchema = z.object({
 });
 
 /**
- * Schema for lesson in goal
+ * Schema for lesson in recommendedClass
  */
-const goalLessonSchema = z.object({
+const recommendedClassLessonSchema = z.object({
   id: z.string(),
   content: lessonContentSchema,
   subtopic: lessonContentSchema,
   topic: lessonContentSchema,
-  subject: goalLessonSubjectSchema,
+  subject: recommendedClassLessonSubjectSchema,
 });
 
 /**
  * Schema for lesson progress
  */
-const goalLessonProgressSchema = z.object({
+const recommendedClassLessonProgressSchema = z.object({
   id: z.string(),
   userId: z.string(),
   lessonId: z.string(),
   progress: z.number(),
-  lesson: goalLessonSchema,
+  lesson: recommendedClassLessonSchema,
 });
 
 /**
- * Schema for lesson goal item
+ * Schema for lesson recommendedClass item
  */
-const goalLessonRecommendedClassItemSchema = z.object({
+const recommendedClasslessonsItemSchema = z.object({
   recommendedClassId: z.string(),
   supLessonsProgressId: z.string(),
-  supLessonsProgress: goalLessonProgressSchema,
+  supLessonsProgress: recommendedClassLessonProgressSchema,
 });
 
 /**
- * Schema for goal metadata from /goals/{id}
+ * Schema for recommendedClass metadata from /recommendedClasss/{id}
  */
-const goalMetadataSchema = z.object({
+const recommendedClassMetadataSchema = z.object({
   id: z.string(),
   title: z.string(),
   startDate: z.string(),
   finalDate: z.string(),
   progress: z.number(),
-  lessons: z.array(goalLessonRecommendedClassItemSchema),
+  lessons: z.array(recommendedClasslessonsItemSchema),
 });
 
 /**
- * Schema for /goals/{id} API response
+ * Schema for /recommendedClasss/{id} API response
  */
-export const goalApiResponseSchema = z.object({
+export const recommendedClassApiResponseSchema = z.object({
   message: z.string(),
-  data: goalMetadataSchema,
+  data: recommendedClassMetadataSchema,
 });
 
 /**
  * Schema for student in details
  */
-const goalDetailStudentSchema = z.object({
+const recommendedClassDetailStudentSchema = z.object({
   userInstitutionId: z.string(),
   userId: z.string(),
   name: z.string(),
@@ -99,7 +99,7 @@ const goalDetailStudentSchema = z.object({
 /**
  * Schema for aggregated stats
  */
-const goalDetailAggregatedSchema = z.object({
+const recommendedClassDetailAggregatedSchema = z.object({
   completionPercentage: z.number(),
   avgScore: z.number().nullable(),
 });
@@ -107,7 +107,7 @@ const goalDetailAggregatedSchema = z.object({
 /**
  * Schema for content performance item
  */
-const goalDetailContentPerformanceItemSchema = z
+const recommendedClassDetailContentPerformanceItemSchema = z
   .object({
     contentId: z.string(),
     contentName: z.string(),
@@ -118,32 +118,32 @@ const goalDetailContentPerformanceItemSchema = z
 /**
  * Schema for content performance
  */
-const goalDetailContentPerformanceSchema = z.object({
-  best: goalDetailContentPerformanceItemSchema,
-  worst: goalDetailContentPerformanceItemSchema,
+const recommendedClassDetailContentPerformanceSchema = z.object({
+  best: recommendedClassDetailContentPerformanceItemSchema,
+  worst: recommendedClassDetailContentPerformanceItemSchema,
 });
 
 /**
- * Schema for details data from /goals/{id}/details
+ * Schema for details data from /recommendedClasss/{id}/details
  */
-const goalDetailsDataSchema = z.object({
-  students: z.array(goalDetailStudentSchema),
-  aggregated: goalDetailAggregatedSchema,
-  contentPerformance: goalDetailContentPerformanceSchema,
+const recommendedClassDetailsDataSchema = z.object({
+  students: z.array(recommendedClassDetailStudentSchema),
+  aggregated: recommendedClassDetailAggregatedSchema,
+  contentPerformance: recommendedClassDetailContentPerformanceSchema,
 });
 
 /**
- * Schema for /goals/{id}/details API response
+ * Schema for /recommendedClasss/{id}/details API response
  */
-export const goalDetailsApiResponseSchema = z.object({
+export const recommendedClassDetailsApiResponseSchema = z.object({
   message: z.string(),
-  data: goalDetailsDataSchema,
+  data: recommendedClassDetailsDataSchema,
 });
 
 /**
  * Schema for breakdown item from history
  */
-const goalBreakdownSchema = z.object({
+const recommendedClassBreakdownSchema = z.object({
   classId: z.string().uuid(),
   className: z.string(),
   schoolId: z.string(),
@@ -153,11 +153,11 @@ const goalBreakdownSchema = z.object({
 });
 
 /**
- * Schema for history goal item (partial, only what we need)
+ * Schema for history recommendedClass item (partial, only what we need)
  */
 const historyRecommendedClassItemSchema = z.object({
   recommendedClass: z.object({ id: z.string().uuid() }),
-  breakdown: z.array(goalBreakdownSchema),
+  breakdown: z.array(recommendedClassBreakdownSchema),
 });
 
 /**
@@ -196,9 +196,9 @@ export interface UseRecommendedLessonDetailsReturn
  * API client interface for fetching lesson details
  */
 export interface LessonDetailsApiClient {
-  /** Fetch goal metadata from /goals/{id} */
+  /** Fetch recommendedClass metadata from /recommendedClasss/{id} */
   fetchRecommendedClass: (id: string) => Promise<RecommendedClassApiResponse>;
-  /** Fetch goal details from /goals/{id}/details */
+  /** Fetch recommendedClass details from /recommendedClasss/{id}/details */
   fetchRecommendedClassDetails: (
     id: string
   ) => Promise<RecommendedClassDetailsApiResponse>;
@@ -240,11 +240,11 @@ export const handleLessonDetailsFetchError = (error: unknown): string => {
  * // In your app setup
  * const apiClient = {
  *   fetchRecommendedClass: async (id) => {
- *     const response = await api.get(`/goals/${id}`);
+ *     const response = await api.get(`/recommendedClasss/${id}`);
  *     return response.data;
  *   },
  *   fetchRecommendedClassDetails: async (id) => {
- *     const response = await api.get(`/goals/${id}/details`);
+ *     const response = await api.get(`/recommendedClasss/${id}/details`);
  *     return response.data;
  *   },
  *   fetchBreakdown: async (id) => {
@@ -256,7 +256,7 @@ export const handleLessonDetailsFetchError = (error: unknown): string => {
  * const useRecommendedClassDetails = createUseRecommendedLessonDetails(apiClient);
  *
  * // In your component
- * const { data, loading, error, refetch } = useRecommendedClassDetails('goal-id-123');
+ * const { data, loading, error, refetch } = useRecommendedClassDetails('recommendedClass-id-123');
  * ```
  */
 export const createUseRecommendedLessonDetails = (
@@ -285,7 +285,7 @@ export const createUseRecommendedLessonDetails = (
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
-        // Fetch goal metadata and details in parallel
+        // Fetch recommendedClass metadata and details in parallel
         // Breakdown is optional
         const promises: [
           Promise<RecommendedClassApiResponse>,
@@ -299,14 +299,14 @@ export const createUseRecommendedLessonDetails = (
             : Promise.resolve(null),
         ];
 
-        const [goalResponse, detailsResponse, historyResponse] =
+        const [recommendedClassResponse, detailsResponse, historyResponse] =
           await Promise.all(promises);
 
         // Validate responses with Zod
         const validatedRecommendedClass =
-          goalApiResponseSchema.parse(goalResponse);
+          recommendedClassApiResponseSchema.parse(recommendedClassResponse);
         const validatedDetails =
-          goalDetailsApiResponseSchema.parse(detailsResponse);
+          recommendedClassDetailsApiResponseSchema.parse(detailsResponse);
 
         // Extract and validate breakdown if available
         let breakdown: RecommendedClassBreakdown | undefined;

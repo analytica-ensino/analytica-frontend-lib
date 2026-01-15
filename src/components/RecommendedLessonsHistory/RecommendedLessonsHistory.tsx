@@ -48,7 +48,7 @@ export enum RecommendedClassPageTab {
  * Props for the RecommendedLessonsHistory component
  */
 export interface RecommendedLessonsHistoryProps {
-  /** Function to fetch goals history from API. Must return RecommendedClassHistoryApiResponse. */
+  /** Function to fetch recommendedClasss history from API. Must return RecommendedClassHistoryApiResponse. */
   fetchRecommendedClassHistory: (
     filters?: RecommendedClassHistoryFilters
   ) => Promise<RecommendedClassHistoryApiResponse>;
@@ -74,11 +74,11 @@ export interface RecommendedLessonsHistoryProps {
   createButtonText?: string;
   /** Search placeholder */
   searchPlaceholder?: string;
-  /** Function to fetch goal models from API (optional - for Models tab) */
+  /** Function to fetch recommendedClass models from API (optional - for Models tab) */
   fetchRecommendedClassModels?: (
     filters?: RecommendedClassModelFilters
   ) => Promise<RecommendedClassModelsApiResponse>;
-  /** Function to delete a goal model (optional - for Models tab) */
+  /** Function to delete a recommendedClass model (optional - for Models tab) */
   deleteRecommendedClassModel?: (id: string) => Promise<void>;
   /** Callback when create model button is clicked (optional - for Models tab) */
   onCreateModel?: () => void;
@@ -92,11 +92,11 @@ export interface RecommendedLessonsHistoryProps {
    * to avoid unnecessary re-fetches.
    */
   subjectsMap?: Map<string, string>;
-  /** Function to fetch goal drafts from API (optional - for Drafts tab) */
+  /** Function to fetch recommendedClass drafts from API (optional - for Drafts tab) */
   fetchRecommendedClassDrafts?: (
     filters?: RecommendedClassModelFilters
   ) => Promise<RecommendedClassModelsApiResponse>;
-  /** Function to delete a goal draft (optional - for Drafts tab) */
+  /** Function to delete a recommendedClass draft (optional - for Drafts tab) */
   deleteRecommendedClassDraft?: (id: string) => Promise<void>;
   /** Callback when send draft button is clicked (optional - for Drafts tab) */
   onSendDraft?: (draft: RecommendedClassModelTableItem) => void;
@@ -125,7 +125,7 @@ const extractFilterValue = (
 };
 
 /**
- * Build goal history filters from table params
+ * Build recommendedClass history filters from table params
  */
 const buildFiltersFromParams = (
   params: TableParams
@@ -225,7 +225,7 @@ const getClassOptions = (
 };
 
 /**
- * Create filter configuration for goals
+ * Create filter configuration for recommendedClasss
  */
 const createRecommendedClassFiltersConfig = (
   userData: RecommendedClassUserFilterData | undefined
@@ -492,7 +492,7 @@ const createTableColumns = (
 
 /**
  * RecommendedLessonsHistory component
- * Displays goals/recommended lessons history with tabs, filters, and table
+ * Displays recommendedClasss/recommended lessons history with tabs, filters, and table
  */
 export const RecommendedLessonsHistory = ({
   fetchRecommendedClassHistory,

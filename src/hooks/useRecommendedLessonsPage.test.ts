@@ -67,9 +67,9 @@ describe('useRecommendedLessonsPage', () => {
   };
 
   const mockEndpoints = {
-    goalsHistory: '/recommended-class/history',
-    goalDrafts: '/recommended-class/drafts',
-    submitRecommendedClass: '/goals',
+    recommendedClasssHistory: '/recommended-class/history',
+    recommendedClassDrafts: '/recommended-class/drafts',
+    submitRecommendedClass: '/recommendedClasss',
   };
 
   const mockTexts = {
@@ -422,7 +422,7 @@ describe('useRecommendedLessonsPage', () => {
       '/lessons/123e4567-e89b-12d3-a456-426614174000',
       {
         state: {
-          goalData:
+          recommendedClassData:
             validRecommendedClassHistoryResponse.data.recommendedClass[0],
         },
       }
@@ -432,9 +432,13 @@ describe('useRecommendedLessonsPage', () => {
   it('navigation: onEditRecommendedClass should navigate correctly', () => {
     const { result } = setupHook();
     act(() => {
-      result.current.historyProps.onEditRecommendedClass('goal-123');
+      result.current.historyProps.onEditRecommendedClass(
+        'recommendedClass-123'
+      );
     });
-    expect(mockNavigate).toHaveBeenCalledWith('/lessons/goal-123/editar');
+    expect(mockNavigate).toHaveBeenCalledWith(
+      '/lessons/recommendedClass-123/editar'
+    );
   });
 
   it('navigation: onEditModel should navigate correctly', () => {
@@ -530,7 +534,7 @@ describe('useRecommendedLessonsPage', () => {
       await result.current.modalProps.onSubmit(testFormData);
     });
 
-    expect(mockApi.post).toHaveBeenCalledWith('/goals', {
+    expect(mockApi.post).toHaveBeenCalledWith('/recommendedClasss', {
       draftId: 'model-123',
       students: [{ studentId: 'student-1', userInstitutionId: 'inst-1' }],
       startDate: '2024-06-01T08:00:00',

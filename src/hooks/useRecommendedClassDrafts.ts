@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import {
-  goalModelsApiResponseSchema,
+  recommendedClassModelsApiResponseSchema,
   transformRecommendedClassModelToTableItem,
 } from './useRecommendedClassModels';
 import { createFetchErrorHandler } from '../utils/hookErrorHandler';
@@ -12,7 +12,7 @@ import type {
 } from '../types/recommendedLessons';
 
 /**
- * Hook state interface for goal drafts
+ * Hook state interface for recommendedClass drafts
  */
 export interface UseRecommendedClassDraftsState {
   models: RecommendedClassModelTableItem[];
@@ -22,7 +22,7 @@ export interface UseRecommendedClassDraftsState {
 }
 
 /**
- * Hook return type for goal drafts
+ * Hook return type for recommendedClass drafts
  */
 export interface UseRecommendedClassDraftsReturn
   extends UseRecommendedClassDraftsState {
@@ -36,12 +36,13 @@ export interface UseRecommendedClassDraftsReturn
 /**
  * Default pagination values for drafts
  */
-export const DEFAULT_GOAL_DRAFTS_PAGINATION: RecommendedClassModelPagination = {
-  total: 0,
-  page: 1,
-  limit: 10,
-  totalPages: 0,
-};
+export const DEFAULT_RECOMMENDED_CLASS_DRAFTS_PAGINATION: RecommendedClassModelPagination =
+  {
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  };
 
 /**
  * Handle errors during draft fetch
@@ -57,7 +58,7 @@ export const handleRecommendedClassDraftFetchError = createFetchErrorHandler(
  *
  * @param fetchRecommendedClassDrafts - Function to fetch drafts from API
  * @param deleteRecommendedClassDraft - Function to delete a draft
- * @returns Hook for managing goal drafts
+ * @returns Hook for managing recommendedClass drafts
  *
  * @example
  * ```tsx
@@ -88,11 +89,11 @@ export const createUseRecommendedClassDrafts = (
       models: [],
       loading: false,
       error: null,
-      pagination: DEFAULT_GOAL_DRAFTS_PAGINATION,
+      pagination: DEFAULT_RECOMMENDED_CLASS_DRAFTS_PAGINATION,
     });
 
     /**
-     * Fetch goal drafts from API
+     * Fetch recommendedClass drafts from API
      * @param filters - Optional filters for pagination, search, etc.
      * @param subjectsMap - Map of subject IDs to subject names for display
      */
@@ -108,7 +109,8 @@ export const createUseRecommendedClassDrafts = (
           const responseData = await fetchRecommendedClassDrafts(filters);
 
           // Validate response with Zod
-          const validatedData = goalModelsApiResponseSchema.parse(responseData);
+          const validatedData =
+            recommendedClassModelsApiResponseSchema.parse(responseData);
 
           // Transform drafts to table format
           const tableItems = validatedData.data.drafts.map((draft) =>
@@ -146,7 +148,7 @@ export const createUseRecommendedClassDrafts = (
     );
 
     /**
-     * Delete a goal draft
+     * Delete a recommendedClass draft
      * @param id - Draft ID to delete
      * @returns True if deletion was successful
      */

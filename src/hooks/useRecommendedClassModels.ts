@@ -12,9 +12,9 @@ import type {
 import { createFetchErrorHandler } from '../utils/hookErrorHandler';
 
 /**
- * Zod schema for goal model response validation
+ * Zod schema for recommendedClass model response validation
  */
-const goalModelResponseSchema = z.object({
+const recommendedClassModelResponseSchema = z.object({
   id: z.string().uuid(),
   type: z.nativeEnum(RecommendedClassDraftType),
   title: z.string(),
@@ -28,12 +28,12 @@ const goalModelResponseSchema = z.object({
 });
 
 /**
- * Zod schema for goal models API response validation
+ * Zod schema for recommendedClass models API response validation
  */
-export const goalModelsApiResponseSchema = z.object({
+export const recommendedClassModelsApiResponseSchema = z.object({
   message: z.string(),
   data: z.object({
-    drafts: z.array(goalModelResponseSchema),
+    drafts: z.array(recommendedClassModelResponseSchema),
     total: z.number(),
   }),
 });
@@ -63,12 +63,13 @@ export interface UseRecommendedClassModelsReturn
 /**
  * Default pagination values
  */
-export const DEFAULT_GOAL_MODELS_PAGINATION: RecommendedClassModelPagination = {
-  total: 0,
-  page: 1,
-  limit: 10,
-  totalPages: 0,
-};
+export const DEFAULT_RECOMMENDED_CLASS_MODELS_PAGINATION: RecommendedClassModelPagination =
+  {
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  };
 
 /**
  * Transform API response to table item format
@@ -107,7 +108,7 @@ export const handleRecommendedClassModelFetchError = createFetchErrorHandler(
  *
  * @param fetchRecommendedClassModels - Function to fetch models from API
  * @param deleteRecommendedClassModel - Function to delete a model
- * @returns Hook for managing goal models
+ * @returns Hook for managing recommendedClass models
  *
  * @example
  * ```tsx
@@ -138,11 +139,11 @@ export const createUseRecommendedClassModels = (
       models: [],
       loading: false,
       error: null,
-      pagination: DEFAULT_GOAL_MODELS_PAGINATION,
+      pagination: DEFAULT_RECOMMENDED_CLASS_MODELS_PAGINATION,
     });
 
     /**
-     * Fetch goal models from API
+     * Fetch recommendedClass models from API
      * @param filters - Optional filters for pagination, search, etc.
      * @param subjectsMap - Map of subject IDs to subject names for display
      */
@@ -158,7 +159,8 @@ export const createUseRecommendedClassModels = (
           const responseData = await fetchRecommendedClassModels(filters);
 
           // Validate response with Zod
-          const validatedData = goalModelsApiResponseSchema.parse(responseData);
+          const validatedData =
+            recommendedClassModelsApiResponseSchema.parse(responseData);
 
           // Transform models to table format
           const tableItems = validatedData.data.drafts.map((model) =>
@@ -196,7 +198,7 @@ export const createUseRecommendedClassModels = (
     );
 
     /**
-     * Delete a goal model
+     * Delete a recommendedClass model
      * @param id - Model ID to delete
      * @returns True if deletion was successful
      */

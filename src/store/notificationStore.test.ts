@@ -897,14 +897,14 @@ describe('Internal Helper Functions', () => {
             title: 'RecommendedClass Notification',
             description: 'Description',
             entityType: NotificationEntityType.GOAL,
-            entityId: 'goal-1',
+            entityId: 'recommendedClass-1',
             read: false,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             sender: null,
             activity: null,
             recommendedClass: {
-              id: 'goal-1',
+              id: 'recommendedClass-1',
               title: 'Test RecommendedClass',
             },
           },
@@ -929,7 +929,7 @@ describe('Internal Helper Functions', () => {
       expect(notification.type).toBe('GOAL');
       expect(notification.entityType).toBe(NotificationEntityType.GOAL);
       expect(notification.recommendedClass).toEqual({
-        id: 'goal-1',
+        id: 'recommendedClass-1',
         title: 'Test RecommendedClass',
       });
     });
@@ -943,8 +943,8 @@ describe('Internal Helper Functions', () => {
             receiverUserInstitutionId: 'user-1',
             title: 'RecommendedClass Notification',
             description: 'Description',
-            entityType: 'goal', // lowercase
-            entityId: 'goal-1',
+            entityType: 'recommendedClass', // lowercase
+            entityId: 'recommendedClass-1',
             read: false,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -1083,7 +1083,7 @@ describe('Internal Helper Functions', () => {
               type: 'quiz',
             },
             recommendedClass: {
-              id: 'goal-1',
+              id: 'recommendedClass-1',
               title: 'Test RecommendedClass',
             },
           },
@@ -1127,7 +1127,7 @@ describe('Internal Helper Functions', () => {
         type: 'quiz',
       });
       expect(notification.recommendedClass).toEqual({
-        id: 'goal-1',
+        id: 'recommendedClass-1',
         title: 'Test RecommendedClass',
       });
     });

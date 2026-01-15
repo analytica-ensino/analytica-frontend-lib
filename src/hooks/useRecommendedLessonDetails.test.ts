@@ -4,8 +4,8 @@ import {
   createUseRecommendedLessonDetails,
   createRecommendedLessonDetailsHook,
   handleLessonDetailsFetchError,
-  goalApiResponseSchema,
-  goalDetailsApiResponseSchema,
+  recommendedClassApiResponseSchema,
+  recommendedClassDetailsApiResponseSchema,
   historyApiResponseSchema,
 } from './useRecommendedLessonDetails';
 import type {
@@ -183,9 +183,9 @@ describe('useRecommendedLessonDetails', () => {
     });
   });
 
-  describe('goalApiResponseSchema', () => {
-    it('should validate a valid goal API response', () => {
-      const result = goalApiResponseSchema.safeParse(
+  describe('recommendedClassApiResponseSchema', () => {
+    it('should validate a valid recommendedClass API response', () => {
+      const result = recommendedClassApiResponseSchema.safeParse(
         mockRecommendedClassResponse
       );
       expect(result.success).toBe(true);
@@ -200,15 +200,16 @@ describe('useRecommendedLessonDetails', () => {
         },
       };
 
-      const result = goalApiResponseSchema.safeParse(invalidResponse);
+      const result =
+        recommendedClassApiResponseSchema.safeParse(invalidResponse);
       expect(result.success).toBe(false);
     });
   });
 
-  describe('goalDetailsApiResponseSchema', () => {
+  describe('recommendedClassDetailsApiResponseSchema', () => {
     it('should validate a valid details API response', () => {
       const result =
-        goalDetailsApiResponseSchema.safeParse(mockDetailsResponse);
+        recommendedClassDetailsApiResponseSchema.safeParse(mockDetailsResponse);
       expect(result.success).toBe(true);
     });
 
@@ -228,7 +229,8 @@ describe('useRecommendedLessonDetails', () => {
         },
       };
 
-      const result = goalDetailsApiResponseSchema.safeParse(responseWithNulls);
+      const result =
+        recommendedClassDetailsApiResponseSchema.safeParse(responseWithNulls);
       expect(result.success).toBe(true);
     });
 
@@ -253,7 +255,8 @@ describe('useRecommendedLessonDetails', () => {
         },
       };
 
-      const result = goalDetailsApiResponseSchema.safeParse(invalidResponse);
+      const result =
+        recommendedClassDetailsApiResponseSchema.safeParse(invalidResponse);
       expect(result.success).toBe(false);
     });
   });
@@ -264,7 +267,7 @@ describe('useRecommendedLessonDetails', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should validate empty goals array', () => {
+    it('should validate empty recommendedClasss array', () => {
       const emptyResponse = {
         message: 'Success',
         data: {
@@ -277,7 +280,7 @@ describe('useRecommendedLessonDetails', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should reject invalid goal id format', () => {
+    it('should reject invalid recommendedClass id format', () => {
       const invalidResponse = {
         message: 'Success',
         data: {

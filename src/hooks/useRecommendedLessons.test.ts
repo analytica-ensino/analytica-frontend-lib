@@ -6,7 +6,7 @@ import {
   determineRecommendedClassStatus,
   transformRecommendedClassToTableItem,
   handleRecommendedClassFetchError,
-  goalsHistoryApiResponseSchema,
+  recommendedClasssHistoryApiResponseSchema,
 } from './useRecommendedLessons';
 import { RecommendedClassDisplayStatus } from '../types/recommendedLessons';
 import type {
@@ -61,7 +61,7 @@ describe('useRecommendedLessons', () => {
   describe('transformRecommendedClassToTableItem', () => {
     const baseRecommendedClassHistoryItem: RecommendedClassHistoryItem = {
       recommendedClass: {
-        id: 'goal-123',
+        id: 'recommendedClass-123',
         title: 'Test RecommendedClass',
         startDate: '2024-06-01',
         finalDate: '2024-12-31',
@@ -94,12 +94,12 @@ describe('useRecommendedLessons', () => {
       ],
     };
 
-    it('should transform goal item correctly', () => {
+    it('should transform recommendedClass item correctly', () => {
       const result = transformRecommendedClassToTableItem(
         baseRecommendedClassHistoryItem
       );
 
-      expect(result.id).toBe('goal-123');
+      expect(result.id).toBe('recommendedClass-123');
       expect(result.title).toBe('Test RecommendedClass');
       expect(result.startDate).toBe('01/06');
       expect(result.deadline).toBe('31/12');
@@ -211,7 +211,7 @@ describe('useRecommendedLessons', () => {
           code: 'invalid_type',
           expected: 'string',
           received: 'number',
-          path: ['data', 'goals'],
+          path: ['data', 'recommendedClasss'],
           message: 'Expected string, received number',
         },
       ]);
@@ -246,7 +246,7 @@ describe('useRecommendedLessons', () => {
     });
   });
 
-  describe('goalsHistoryApiResponseSchema', () => {
+  describe('recommendedClasssHistoryApiResponseSchema', () => {
     it('should validate a valid API response', () => {
       const validResponse = {
         message: 'Success',
@@ -291,7 +291,8 @@ describe('useRecommendedLessons', () => {
         },
       };
 
-      const result = goalsHistoryApiResponseSchema.safeParse(validResponse);
+      const result =
+        recommendedClasssHistoryApiResponseSchema.safeParse(validResponse);
       expect(result.success).toBe(true);
     });
 
@@ -324,11 +325,12 @@ describe('useRecommendedLessons', () => {
         },
       };
 
-      const result = goalsHistoryApiResponseSchema.safeParse(responseWithNulls);
+      const result =
+        recommendedClasssHistoryApiResponseSchema.safeParse(responseWithNulls);
       expect(result.success).toBe(true);
     });
 
-    it('should reject invalid goal id format', () => {
+    it('should reject invalid recommendedClass id format', () => {
       const invalidResponse = {
         message: 'Success',
         data: {
@@ -357,7 +359,8 @@ describe('useRecommendedLessons', () => {
         },
       };
 
-      const result = goalsHistoryApiResponseSchema.safeParse(invalidResponse);
+      const result =
+        recommendedClasssHistoryApiResponseSchema.safeParse(invalidResponse);
       expect(result.success).toBe(false);
     });
 
@@ -370,7 +373,8 @@ describe('useRecommendedLessons', () => {
         },
       };
 
-      const result = goalsHistoryApiResponseSchema.safeParse(missingFields);
+      const result =
+        recommendedClasssHistoryApiResponseSchema.safeParse(missingFields);
       expect(result.success).toBe(false);
     });
   });
@@ -446,7 +450,7 @@ describe('useRecommendedLessons', () => {
       expect(result.current.fetchRecommendedClass).toBeInstanceOf(Function);
     });
 
-    it('should fetch goals successfully', async () => {
+    it('should fetch recommendedClasss successfully', async () => {
       mockFetchRecommendedClassHistory.mockResolvedValueOnce(validApiResponse);
 
       const useRecommendedClassHistory = createUseRecommendedLessonsHistory(

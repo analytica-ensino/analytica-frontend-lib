@@ -67,8 +67,8 @@ export interface RecommendedLessonDetailsProps {
  * ```tsx
  * <RecommendedLessonDetails
  *   data={{
- *     recommendedClass: goalData,       // from /goals/{id}
- *     details: detailsData, // from /goals/{id}/details
+ *     recommendedClass: recommendedClassData,       // from /recommendedClasss/{id}
+ *     details: detailsData, // from /recommendedClasss/{id}/details
  *     breakdown: breakdown, // optional, from /recommended-class/history
  *   }}
  *   onViewLesson={() => navigate('/view-lesson')}

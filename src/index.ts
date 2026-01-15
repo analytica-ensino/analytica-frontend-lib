@@ -617,7 +617,7 @@ export {
   determineRecommendedClassStatus,
   transformRecommendedClassToTableItem,
   handleRecommendedClassFetchError,
-  goalsHistoryApiResponseSchema,
+  recommendedClasssHistoryApiResponseSchema,
 } from './hooks/useRecommendedLessons';
 export type {
   UseRecommendedLessonsHistoryState,
@@ -646,8 +646,8 @@ export {
   createUseRecommendedLessonDetails,
   createRecommendedLessonDetailsHook,
   handleLessonDetailsFetchError,
-  goalApiResponseSchema,
-  goalDetailsApiResponseSchema,
+  recommendedClassApiResponseSchema,
+  recommendedClassDetailsApiResponseSchema,
   historyApiResponseSchema,
 } from './hooks/useRecommendedLessonDetails';
 export type {
@@ -695,7 +695,7 @@ export type {
   RecommendedClassLessonSubject,
   RecommendedClassLesson,
   RecommendedClassLessonProgress,
-  RecommendedClassLessonRecommendedClassItem,
+  RecommendedClasslessonsItem,
   RecommendedClassMetadata,
   RecommendedClassApiResponse,
   LessonDetailsData,
@@ -709,7 +709,7 @@ export type {
   RecommendedClassActivityStatus,
   RecommendedClassActivity,
   RecommendedClassSupUsersActivities,
-  RecommendedClassActivitiesRecommendedClass,
+  RecommendedClassActivities,
 } from './types/recommendedLessons';
 
 // RecommendedClass Models Hook Factory
@@ -718,8 +718,8 @@ export {
   createRecommendedClassModelsHook,
   transformRecommendedClassModelToTableItem,
   handleRecommendedClassModelFetchError,
-  goalModelsApiResponseSchema,
-  DEFAULT_GOAL_MODELS_PAGINATION,
+  recommendedClassModelsApiResponseSchema,
+  DEFAULT_RECOMMENDED_CLASS_MODELS_PAGINATION,
 } from './hooks/useRecommendedClassModels';
 export type {
   UseRecommendedClassModelsState,
@@ -731,7 +731,7 @@ export {
   createUseRecommendedClassDrafts,
   createRecommendedClassDraftsHook,
   handleRecommendedClassDraftFetchError,
-  DEFAULT_GOAL_DRAFTS_PAGINATION,
+  DEFAULT_RECOMMENDED_CLASS_DRAFTS_PAGINATION,
 } from './hooks/useRecommendedClassDrafts';
 export type {
   UseRecommendedClassDraftsState,

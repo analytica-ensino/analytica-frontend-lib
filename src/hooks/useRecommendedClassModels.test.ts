@@ -5,8 +5,8 @@ import {
   createRecommendedClassModelsHook,
   transformRecommendedClassModelToTableItem,
   handleRecommendedClassModelFetchError,
-  goalModelsApiResponseSchema,
-  DEFAULT_GOAL_MODELS_PAGINATION,
+  recommendedClassModelsApiResponseSchema,
+  DEFAULT_RECOMMENDED_CLASS_MODELS_PAGINATION,
 } from './useRecommendedClassModels';
 import { RecommendedClassDraftType } from '../types/recommendedLessons';
 import type {
@@ -16,9 +16,9 @@ import type {
 } from '../types/recommendedLessons';
 
 describe('useRecommendedClassModels', () => {
-  describe('DEFAULT_GOAL_MODELS_PAGINATION', () => {
+  describe('DEFAULT_RECOMMENDED_CLASS_MODELS_PAGINATION', () => {
     it('should have correct default values', () => {
-      expect(DEFAULT_GOAL_MODELS_PAGINATION).toEqual({
+      expect(DEFAULT_RECOMMENDED_CLASS_MODELS_PAGINATION).toEqual({
         total: 0,
         page: 1,
         limit: 10,
@@ -183,7 +183,7 @@ describe('useRecommendedClassModels', () => {
     });
   });
 
-  describe('goalModelsApiResponseSchema', () => {
+  describe('recommendedClassModelsApiResponseSchema', () => {
     it('should validate a valid API response', () => {
       const validResponse = {
         message: 'Success',
@@ -206,7 +206,8 @@ describe('useRecommendedClassModels', () => {
         },
       };
 
-      const result = goalModelsApiResponseSchema.safeParse(validResponse);
+      const result =
+        recommendedClassModelsApiResponseSchema.safeParse(validResponse);
       expect(result.success).toBe(true);
     });
 
@@ -232,7 +233,8 @@ describe('useRecommendedClassModels', () => {
         },
       };
 
-      const result = goalModelsApiResponseSchema.safeParse(responseWithNulls);
+      const result =
+        recommendedClassModelsApiResponseSchema.safeParse(responseWithNulls);
       expect(result.success).toBe(true);
     });
 
@@ -258,7 +260,8 @@ describe('useRecommendedClassModels', () => {
         },
       };
 
-      const result = goalModelsApiResponseSchema.safeParse(invalidResponse);
+      const result =
+        recommendedClassModelsApiResponseSchema.safeParse(invalidResponse);
       expect(result.success).toBe(false);
     });
 
@@ -270,7 +273,8 @@ describe('useRecommendedClassModels', () => {
         },
       };
 
-      const result = goalModelsApiResponseSchema.safeParse(missingTotal);
+      const result =
+        recommendedClassModelsApiResponseSchema.safeParse(missingTotal);
       expect(result.success).toBe(false);
     });
 
@@ -296,7 +300,8 @@ describe('useRecommendedClassModels', () => {
         },
       };
 
-      const result = goalModelsApiResponseSchema.safeParse(invalidType);
+      const result =
+        recommendedClassModelsApiResponseSchema.safeParse(invalidType);
       expect(result.success).toBe(false);
     });
   });
@@ -348,7 +353,9 @@ describe('useRecommendedClassModels', () => {
       expect(result.current.models).toEqual([]);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
-      expect(result.current.pagination).toEqual(DEFAULT_GOAL_MODELS_PAGINATION);
+      expect(result.current.pagination).toEqual(
+        DEFAULT_RECOMMENDED_CLASS_MODELS_PAGINATION
+      );
       expect(result.current.fetchModels).toBeInstanceOf(Function);
       expect(result.current.deleteModel).toBeInstanceOf(Function);
     });

@@ -79,11 +79,11 @@ export interface RecommendedLessonsPagePaths {
  * API endpoints configuration
  */
 export interface RecommendedLessonsPageEndpoints {
-  /** Endpoint for fetching goals history */
-  goalsHistory: string;
-  /** Endpoint for fetching goal models/drafts */
-  goalDrafts: string;
-  /** Endpoint for submitting a goal */
+  /** Endpoint for fetching recommendedClasss history */
+  recommendedClasssHistory: string;
+  /** Endpoint for fetching recommendedClass models/drafts */
+  recommendedClassDrafts: string;
+  /** Endpoint for submitting a recommendedClass */
   submitRecommendedClass: string;
 }
 
@@ -271,9 +271,9 @@ const getSubjectOptions = (
  *     editModel: '/criar-aula?mode=model&id=',
  *   },
  *   endpoints: {
- *     goalsHistory: '/recommended-class/history',
- *     goalDrafts: '/recommended-class/drafts',
- *     submitRecommendedClass: '/goals',
+ *     recommendedClasssHistory: '/recommended-class/history',
+ *     recommendedClassDrafts: '/recommended-class/drafts',
+ *     submitRecommendedClass: '/recommendedClasss',
  *   },
  *   texts: {
  *     title: 'Histórico de aulas recomendadas',
@@ -305,10 +305,10 @@ export const createUseRecommendedLessonsPage = (
   } = config;
 
   return (): UseRecommendedLessonsPageReturn => {
-    // Store original goal data for navigation
-    const goalsMapRef = useRef<Map<string, RecommendedClassHistoryItem>>(
-      new Map()
-    );
+    // Store original recommendedClass data for navigation
+    const recommendedClasssMapRef = useRef<
+      Map<string, RecommendedClassHistoryItem>
+    >(new Map());
 
     // SendLessonModal state
     const [sendModalOpen, setSendModalOpen] = useState(false);
@@ -338,7 +338,7 @@ export const createUseRecommendedLessonsPage = (
     }, [userData]);
 
     /**
-     * Fetch goals history from API
+     * Fetch recommendedClasss history from API
      */
     const fetchRecommendedClassHistory = useCallback(
       async (
@@ -346,14 +346,14 @@ export const createUseRecommendedLessonsPage = (
       ): Promise<RecommendedClassHistoryApiResponse> => {
         const params = buildQueryParams(filters as Record<string, unknown>);
         const response = await api.get<RecommendedClassHistoryApiResponse>(
-          endpoints.goalsHistory,
+          endpoints.recommendedClasssHistory,
           { params }
         );
 
-        // Store original goal data for later use in navigation
+        // Store original recommendedClass data for later use in navigation
         const recommendedClass = response.data.data.recommendedClass;
         recommendedClass.forEach((recommendedClass) => {
-          goalsMapRef.current.set(
+          recommendedClasssMapRef.current.set(
             recommendedClass.recommendedClass.id,
             recommendedClass
           );
@@ -361,11 +361,11 @@ export const createUseRecommendedLessonsPage = (
 
         return response.data;
       },
-      [api, endpoints.goalsHistory]
+      [api, endpoints.recommendedClasssHistory]
     );
 
     /**
-     * Fetch goal models from API
+     * Fetch recommendedClass models from API
      */
     const fetchRecommendedClassModels = useCallback(
       async (
@@ -376,26 +376,26 @@ export const createUseRecommendedLessonsPage = (
           type: RecommendedClassDraftType.MODELO,
         } as Record<string, unknown>);
         const response = await api.get<RecommendedClassModelsApiResponse>(
-          endpoints.goalDrafts,
+          endpoints.recommendedClassDrafts,
           { params }
         );
         return response.data;
       },
-      [api, endpoints.goalDrafts]
+      [api, endpoints.recommendedClassDrafts]
     );
 
     /**
-     * Delete a goal model
+     * Delete a recommendedClass model
      */
     const deleteRecommendedClassModel = useCallback(
       async (id: string): Promise<void> => {
-        await api.delete(`${endpoints.goalDrafts}/${id}`);
+        await api.delete(`${endpoints.recommendedClassDrafts}/${id}`);
       },
-      [api, endpoints.goalDrafts]
+      [api, endpoints.recommendedClassDrafts]
     );
 
     /**
-     * Fetch goal drafts from API
+     * Fetch recommendedClass drafts from API
      */
     const fetchRecommendedClassDrafts = useCallback(
       async (
@@ -406,22 +406,22 @@ export const createUseRecommendedLessonsPage = (
           type: RecommendedClassDraftType.RASCUNHO,
         } as Record<string, unknown>);
         const response = await api.get<RecommendedClassModelsApiResponse>(
-          endpoints.goalDrafts,
+          endpoints.recommendedClassDrafts,
           { params }
         );
         return response.data;
       },
-      [api, endpoints.goalDrafts]
+      [api, endpoints.recommendedClassDrafts]
     );
 
     /**
-     * Delete a goal draft
+     * Delete a recommendedClass draft
      */
     const deleteRecommendedClassDraft = useCallback(
       async (id: string): Promise<void> => {
-        await api.delete(`${endpoints.goalDrafts}/${id}`);
+        await api.delete(`${endpoints.recommendedClassDrafts}/${id}`);
       },
-      [api, endpoints.goalDrafts]
+      [api, endpoints.recommendedClassDrafts]
     );
 
     /**
@@ -439,17 +439,17 @@ export const createUseRecommendedLessonsPage = (
     }, []);
 
     /**
-     * Handle row click - navigate to goal details
+     * Handle row click - navigate to recommendedClass details
      */
     const handleRowClick = useCallback((row: RecommendedClassTableItem) => {
-      const originalData = goalsMapRef.current.get(row.id);
+      const originalData = recommendedClasssMapRef.current.get(row.id);
       navigate(`${paths.lessonDetails}/${row.id}`, {
-        state: { goalData: originalData },
+        state: { recommendedClassData: originalData },
       });
     }, []);
 
     /**
-     * Handle edit goal action
+     * Handle edit recommendedClass action
      */
     const handleEditRecommendedClass = useCallback((id: string) => {
       navigate(`${paths.editLesson}/${id}/editar`);
