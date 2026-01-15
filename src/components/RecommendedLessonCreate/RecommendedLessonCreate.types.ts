@@ -1,9 +1,6 @@
 import type { Lesson } from '../../types/lessons';
 import { GoalDraftType } from '../../types/recommendedLessons';
 
-// Re-export GoalDraftType for convenience
-export { GoalDraftType };
-
 // Re-export category types from shared utils for backward compatibility
 export type {
   School,
@@ -102,3 +99,5 @@ export interface RecommendedLessonCreateResponse {
     updatedAt: string;
   };
 }
+
+export { GoalDraftType } from '../../types/recommendedLessons';

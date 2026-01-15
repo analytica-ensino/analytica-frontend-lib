@@ -1183,8 +1183,8 @@ const CreateActivity = ({
             <>
               <Text size="sm" className="text-text-500">
                 {previewLessons.length} aula
-                {previewLessons.length !== 1 ? 's' : ''} adicionada
-                {previewLessons.length !== 1 ? 's' : ''}
+                {previewLessons.length === 1 ? '' : 's'} adicionada
+                {previewLessons.length === 1 ? '' : 's'}
               </Text>
               <div className="flex flex-col gap-2">
                 {previewLessons.map((lesson) => (
