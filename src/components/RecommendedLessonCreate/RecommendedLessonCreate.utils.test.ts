@@ -221,7 +221,11 @@ describe('RecommendedLessonCreate.utils', () => {
     });
 
     it('should generate title without subject when knowledgeAreas is empty', () => {
-      const result = generateTitle(RecommendedClassDraftType.RASCUNHO, 'math-1', []);
+      const result = generateTitle(
+        RecommendedClassDraftType.RASCUNHO,
+        'math-1',
+        []
+      );
 
       expect(result).toBe('Rascunho');
     });

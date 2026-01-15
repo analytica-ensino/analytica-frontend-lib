@@ -149,7 +149,9 @@ export function getTypeFromUrl(type: RecommendedClassDraftType): string {
  * @param type - String from URL (rascunho or modelo)
  * @returns RecommendedClassDraftType enum value
  */
-export function getTypeFromUrlString(type: string | undefined): RecommendedClassDraftType {
+export function getTypeFromUrlString(
+  type: string | undefined
+): RecommendedClassDraftType {
   switch (type) {
     case 'rascunho':
       return RecommendedClassDraftType.RASCUNHO;

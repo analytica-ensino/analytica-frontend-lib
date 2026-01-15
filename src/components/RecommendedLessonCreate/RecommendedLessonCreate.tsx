@@ -730,7 +730,10 @@ const RecommendedLessonCreate = ({
    * Save immediately when draftType changes to MODELO
    */
   useEffect(() => {
-    if (draftType === RecommendedClassDraftType.MODELO && hasFirstSaveBeenDone.current) {
+    if (
+      draftType === RecommendedClassDraftType.MODELO &&
+      hasFirstSaveBeenDone.current
+    ) {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
