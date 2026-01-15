@@ -54,7 +54,7 @@ const goalDataSchema = z.object({
 });
 
 const goalHistoryItemSchema = z.object({
-  goal: goalDataSchema,
+  recommendedClass: goalDataSchema,
   subject: goalSubjectSchema,
   creator: goalCreatorSchema,
   stats: goalStatsSchema,
@@ -64,7 +64,7 @@ const goalHistoryItemSchema = z.object({
 export const goalsHistoryApiResponseSchema = z.object({
   message: z.string(),
   data: z.object({
-    goals: z.array(goalHistoryItemSchema),
+    recommendedClass: z.array(goalHistoryItemSchema),
     total: z.number(),
   }),
 });
@@ -73,7 +73,7 @@ export const goalsHistoryApiResponseSchema = z.object({
  * Hook state interface
  */
 export interface UseRecommendedLessonsHistoryState {
-  goals: GoalTableItem[];
+  recommendedClass: GoalTableItem[];
   loading: boolean;
   error: string | null;
   pagination: GoalHistoryPagination;
@@ -130,20 +130,20 @@ export const transformGoalToTableItem = (
     item.breakdown.length > 1 ? `${item.breakdown.length} turmas` : className;
 
   return {
-    id: item.goal.id,
-    startDate: item.goal.startDate
-      ? dayjs(item.goal.startDate).format('DD/MM')
+    id: item.recommendedClass.id,
+    startDate: item.recommendedClass.startDate
+      ? dayjs(item.recommendedClass.startDate).format('DD/MM')
       : '-',
-    deadline: item.goal.finalDate
-      ? dayjs(item.goal.finalDate).format('DD/MM')
+    deadline: item.recommendedClass.finalDate
+      ? dayjs(item.recommendedClass.finalDate).format('DD/MM')
       : '-',
-    title: item.goal.title,
+    title: item.recommendedClass.title,
     school: schoolName,
     year: '-', // API doesn't provide year directly
     subject: item.subject?.name || '-',
     class: classDisplay,
     status: determineGoalStatus(
-      item.goal.finalDate,
+      item.recommendedClass.finalDate,
       item.stats.completionPercentage
     ),
     completionPercentage: item.stats.completionPercentage,
@@ -192,7 +192,7 @@ export const createUseRecommendedLessonsHistory = (
 ) => {
   return (): UseRecommendedLessonsHistoryReturn => {
     const [state, setState] = useState<UseRecommendedLessonsHistoryState>({
-      goals: [],
+      recommendedClass: [],
       loading: false,
       error: null,
       pagination: {
@@ -220,7 +220,7 @@ export const createUseRecommendedLessonsHistory = (
             goalsHistoryApiResponseSchema.parse(responseData);
 
           // Transform goals to table format
-          const tableItems = validatedData.data.goals.map(
+          const tableItems = validatedData.data.recommendedClass.map(
             transformGoalToTableItem
           );
 
@@ -232,7 +232,7 @@ export const createUseRecommendedLessonsHistory = (
 
           // Update state with validated and transformed data
           setState({
-            goals: tableItems,
+            recommendedClass: tableItems,
             loading: false,
             error: null,
             pagination: {

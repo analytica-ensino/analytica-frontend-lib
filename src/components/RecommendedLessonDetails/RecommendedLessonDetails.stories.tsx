@@ -11,15 +11,15 @@ import type { StudentPerformanceData } from './types';
  * Mock lesson details data aligned with API responses
  */
 const mockLessonData: LessonDetailsData = {
-  goal: {
+  recommendedClass: {
     id: 'lesson-1',
     title: 'Explorando a Fotossíntese: Atividade Prática de Campo',
     startDate: '2024-01-01',
     finalDate: '2024-01-31',
     progress: 90,
-    lessonsGoals: [
+    lessons: [
       {
-        goalId: 'lesson-1',
+        recommendedClassId: 'lesson-1',
         supLessonsProgressId: 'progress-1',
         supLessonsProgress: {
           id: 'progress-1',
@@ -113,15 +113,15 @@ const mockLessonData: LessonDetailsData = {
  * Mock data for Mathematics lesson
  */
 const mockMathLessonData: LessonDetailsData = {
-  goal: {
+  recommendedClass: {
     id: 'lesson-2',
     title: 'Álgebra Linear: Matrizes e Determinantes',
     startDate: '2024-02-01',
     finalDate: '2024-02-28',
     progress: 60,
-    lessonsGoals: [
+    lessons: [
       {
-        goalId: 'lesson-2',
+        recommendedClassId: 'lesson-2',
         supLessonsProgressId: 'progress-2',
         supLessonsProgress: {
           id: 'progress-2',
@@ -497,10 +497,13 @@ const mapSubjectNameToEnum = (subjectName: string): SubjectEnum | null => {
  * Mock fetch function for student performance
  */
 const mockFetchStudentPerformance = async (
-  goalId: string,
+  recommendedClassId: string,
   studentId: string
 ): Promise<StudentPerformanceData> => {
-  console.log('Fetching student performance:', { goalId, studentId });
+  console.log('Fetching student performance:', {
+    recommendedClassId,
+    studentId,
+  });
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 500));
   return (
@@ -519,7 +522,7 @@ const mockFetchStudentPerformance = async (
  * Default props for stories
  */
 const defaultProps: RecommendedLessonDetailsProps = {
-  goalId: 'lesson-1',
+  recommendedClassId: 'lesson-1',
   data: mockLessonData,
   onViewLesson: () => console.log('View lesson clicked'),
   fetchStudentPerformance: mockFetchStudentPerformance,
@@ -583,7 +586,7 @@ MathematicsLesson.meta = {
  */
 export const WithoutBreakdown: Story = () => {
   const dataWithoutBreakdown: LessonDetailsData = {
-    goal: mockLessonData.goal,
+    recommendedClass: mockLessonData.recommendedClass,
     details: mockLessonData.details,
     // No breakdown
   };
@@ -835,15 +838,15 @@ WithoutStudentPerformance.meta = {
  */
 export const PhysicsLesson: Story = () => {
   const physicsData: LessonDetailsData = {
-    goal: {
+    recommendedClass: {
       id: 'lesson-3',
       title: 'Mecânica Clássica: Leis de Newton',
       startDate: '2024-03-01',
       finalDate: '2024-03-31',
       progress: 75,
-      lessonsGoals: [
+      lessons: [
         {
-          goalId: 'lesson-3',
+          recommendedClassId: 'lesson-3',
           supLessonsProgressId: 'progress-3',
           supLessonsProgress: {
             id: 'progress-3',
@@ -932,7 +935,7 @@ PhysicsLesson.meta = {
 export const WithPerformanceModal: Story = () => {
   return (
     <RecommendedLessonDetails
-      goalId="lesson-1"
+      recommendedClassId="lesson-1"
       data={mockLessonData}
       onViewLesson={() => console.log('View lesson clicked')}
       fetchStudentPerformance={mockFetchStudentPerformance}

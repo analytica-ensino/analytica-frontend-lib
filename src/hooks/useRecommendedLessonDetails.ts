@@ -58,7 +58,7 @@ const goalLessonProgressSchema = z.object({
  * Schema for lesson goal item
  */
 const goalLessonGoalItemSchema = z.object({
-  goalId: z.string(),
+  recommendedClassId: z.string(),
   supLessonsProgressId: z.string(),
   supLessonsProgress: goalLessonProgressSchema,
 });
@@ -72,7 +72,7 @@ const goalMetadataSchema = z.object({
   startDate: z.string(),
   finalDate: z.string(),
   progress: z.number(),
-  lessonsGoals: z.array(goalLessonGoalItemSchema),
+  lessons: z.array(goalLessonGoalItemSchema),
 });
 
 /**
@@ -156,7 +156,7 @@ const goalBreakdownSchema = z.object({
  * Schema for history goal item (partial, only what we need)
  */
 const historyGoalItemSchema = z.object({
-  goal: z.object({ id: z.string().uuid() }),
+  recommendedClass: z.object({ id: z.string().uuid() }),
   breakdown: z.array(goalBreakdownSchema),
 });
 
@@ -166,7 +166,7 @@ const historyGoalItemSchema = z.object({
 export const historyApiResponseSchema = z.object({
   message: z.string(),
   data: z.object({
-    goals: z.array(historyGoalItemSchema),
+    recommendedClass: z.array(historyGoalItemSchema),
     total: z.number(),
   }),
 });
@@ -310,15 +310,15 @@ export const createUseRecommendedLessonDetails = (
         if (historyResponse) {
           const validatedHistory =
             historyApiResponseSchema.parse(historyResponse);
-          const historyItem = validatedHistory.data.goals.find(
-            (g) => g.goal.id === lessonId
+          const historyItem = validatedHistory.data.recommendedClass.find(
+            (g) => g.recommendedClass.id === lessonId
           );
           breakdown = historyItem?.breakdown[0];
         }
 
         // Combine data
         const lessonData: LessonDetailsData = {
-          goal: validatedGoal.data as GoalMetadata,
+          recommendedClass: validatedGoal.data as GoalMetadata,
           details: validatedDetails.data as GoalDetailsData,
           breakdown,
         };

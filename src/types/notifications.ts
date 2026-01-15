@@ -85,7 +85,7 @@ export interface Notification {
   /**
    * Goal information (optional)
    */
-  goal?: {
+  recommendedClass?: {
     id: string;
     title: string;
   } | null;
@@ -119,7 +119,7 @@ export interface BackendNotification {
     title: string;
     type: string;
   } | null;
-  goal?: {
+  recommendedClass?: {
     id: string;
     title: string;
   } | null;

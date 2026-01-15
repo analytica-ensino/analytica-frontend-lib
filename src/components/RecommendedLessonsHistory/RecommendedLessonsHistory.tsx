@@ -555,7 +555,7 @@ export const RecommendedLessonsHistory = ({
 
   // Use the hook
   const {
-    goals,
+    recommendedClass,
     loading,
     error,
     pagination,
@@ -663,7 +663,7 @@ export const RecommendedLessonsHistory = ({
               ) : (
                 <div className="w-full">
                   <TableProvider
-                    data={goals}
+                    data={recommendedClass}
                     headers={tableColumns}
                     loading={loading}
                     variant="borderless"

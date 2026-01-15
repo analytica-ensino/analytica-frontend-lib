@@ -357,9 +357,9 @@ describe('RecommendedLessonsHistory', () => {
   const validApiResponse: GoalsHistoryApiResponse = {
     message: 'Success',
     data: {
-      goals: [
+      recommendedClass: [
         {
-          goal: {
+          recommendedClass: {
             id: '123e4567-e89b-12d3-a456-426614174000',
             title: 'Aula de Matemática',
             startDate: '2024-06-01',
@@ -400,7 +400,7 @@ describe('RecommendedLessonsHistory', () => {
   const emptyApiResponse: GoalsHistoryApiResponse = {
     message: 'Success',
     data: {
-      goals: [],
+      recommendedClass: [],
       total: 0,
     },
   };
@@ -676,9 +676,9 @@ describe('RecommendedLessonsHistory', () => {
       const responseWithMultipleClasses: GoalsHistoryApiResponse = {
         message: 'Success',
         data: {
-          goals: [
+          recommendedClass: [
             {
-              goal: {
+              recommendedClass: {
                 id: '123e4567-e89b-12d3-a456-426614174000',
                 title: 'Test Goal',
                 startDate: '2024-06-01',
@@ -1283,7 +1283,7 @@ describe('RecommendedLessonsHistory', () => {
     it('should use defaultTab when provided', async () => {
       const mockFetchGoalDrafts = jest.fn().mockResolvedValue({
         message: 'Success',
-        data: { goals: [], total: 0 },
+        data: { recommendedClass: [], total: 0 },
       });
       const mockDeleteGoalDraft = jest.fn().mockResolvedValue(undefined);
 
@@ -1373,7 +1373,7 @@ describe('RecommendedLessonsHistory', () => {
     it('should sync with defaultTab prop changes', async () => {
       const mockFetchGoalDrafts = jest.fn().mockResolvedValue({
         message: 'Success',
-        data: { goals: [], total: 0 },
+        data: { recommendedClass: [], total: 0 },
       });
       const mockDeleteGoalDraft = jest.fn().mockResolvedValue(undefined);
 

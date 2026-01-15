@@ -119,7 +119,7 @@ const mapBackendNotification = (
     entityId: backendNotification.entityId,
     sender: backendNotification.sender,
     activity: backendNotification.activity,
-    goal: backendNotification.goal,
+    recommendedClass: backendNotification.recommendedClass,
     actionLink: backendNotification.actionLink ?? null,
   };
 };

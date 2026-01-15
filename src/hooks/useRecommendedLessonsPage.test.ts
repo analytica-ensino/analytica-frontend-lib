@@ -101,9 +101,9 @@ describe('useRecommendedLessonsPage', () => {
   const validGoalsHistoryResponse: GoalsHistoryApiResponse = {
     message: 'Success',
     data: {
-      goals: [
+      recommendedClass: [
         {
-          goal: {
+          recommendedClass: {
             id: '123e4567-e89b-12d3-a456-426614174000',
             title: 'Test Goal',
             startDate: '2024-06-01T10:00:00Z',
@@ -413,7 +413,9 @@ describe('useRecommendedLessonsPage', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(
       '/lessons/123e4567-e89b-12d3-a456-426614174000',
-      { state: { goalData: validGoalsHistoryResponse.data.goals[0] } }
+      {
+        state: { goalData: validGoalsHistoryResponse.data.recommendedClass[0] },
+      }
     );
   });
 

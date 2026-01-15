@@ -349,9 +349,12 @@ export const createUseRecommendedLessonsPage = (
         );
 
         // Store original goal data for later use in navigation
-        const goals = response.data.data.goals;
-        goals.forEach((goal) => {
-          goalsMapRef.current.set(goal.goal.id, goal);
+        const recommendedClass = response.data.data.recommendedClass;
+        recommendedClass.forEach((recommendedClass) => {
+          goalsMapRef.current.set(
+            recommendedClass.recommendedClass.id,
+            recommendedClass
+          );
         });
 
         return response.data;

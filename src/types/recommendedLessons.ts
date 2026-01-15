@@ -1,5 +1,5 @@
 /**
- * Recommended Lessons / Goals (Aulas Recomendadas) Type Definitions
+ * Recommended Lessons / Recommended Class (Aulas Recomendadas) Type Definitions
  * Based on /recommended-class/history endpoint
  */
 
@@ -11,19 +11,19 @@ import {
 } from './common';
 
 /**
- * Goal status from backend API
+ * Recommended Class status from backend API
  * Re-exported from common for backward compatibility
  */
 export { GenericApiStatus as GoalApiStatus } from './common';
 
 /**
- * Goal status for display in UI (Badge component)
+ * Recommended Class status for display in UI (Badge component)
  * Re-exported from common for backward compatibility
  */
 export { GenericDisplayStatus as GoalDisplayStatus } from './common';
 
 /**
- * Badge action types for goal status visualization
+ * Badge action types for recommended class status visualization
  * Re-exported from common for backward compatibility
  */
 export { BadgeActionType as GoalBadgeActionType } from './common';
@@ -45,7 +45,7 @@ export interface GoalCreator {
 }
 
 /**
- * Goal stats from API response
+ * Recommended Class stats from API response
  */
 export interface GoalStats {
   totalStudents: number;
@@ -66,7 +66,7 @@ export interface GoalBreakdown {
 }
 
 /**
- * Goal data from API response
+ * Recommended Class data from API response
  */
 export interface GoalData {
   id: string;
@@ -79,10 +79,10 @@ export interface GoalData {
 }
 
 /**
- * Goal history item from /recommended-class/history endpoint
+ * Recommended Class history item from /recommended-class/history endpoint
  */
 export interface GoalHistoryItem {
-  goal: GoalData;
+  recommendedClass: GoalData;
   subject: GoalSubject | null;
   creator: GoalCreator | null;
   stats: GoalStats;
@@ -90,7 +90,7 @@ export interface GoalHistoryItem {
 }
 
 /**
- * Goal table item interface for goals list table
+ * Recommended Class table item interface for recommended class list table
  */
 export interface GoalTableItem extends Record<string, unknown> {
   id: string;
@@ -106,18 +106,18 @@ export interface GoalTableItem extends Record<string, unknown> {
 }
 
 /**
- * Goals history API complete response from /recommended-class/history
+ * Recommended Class history API complete response from /recommended-class/history
  */
 export interface GoalsHistoryApiResponse {
   message: string;
   data: {
-    goals: GoalHistoryItem[];
+    recommendedClass: GoalHistoryItem[];
     total: number;
   };
 }
 
 /**
- * Goal history filters for API query parameters
+ * Recommended Class history filters for API query parameters
  */
 export interface GoalHistoryFilters {
   page?: number;
@@ -137,7 +137,7 @@ export interface GoalHistoryFilters {
 }
 
 /**
- * Pagination info for goals history
+ * Pagination info for recommended class history
  */
 export interface GoalHistoryPagination {
   total: number;
@@ -167,8 +167,8 @@ export interface GoalUserFilterData {
 }
 
 /**
- * Get status badge action based on goal display status
- * @param status - Goal display status
+ * Get status badge action based on recommended class display status
+ * @param status - Recommended Class display status
  * @returns Badge action type for styling
  */
 export const getGoalStatusBadgeAction = (
@@ -176,7 +176,7 @@ export const getGoalStatusBadgeAction = (
 ): BadgeActionType => getStatusBadgeAction(status);
 
 /**
- * Goal status options for filter (Vencida and Ativa)
+ * Recommended Class status options for filter (Vencida and Ativa)
  */
 export const GOAL_FILTER_STATUS_OPTIONS: GoalFilterOption[] = [
   { id: GenericApiStatus.VENCIDA, name: 'Vencida' },
@@ -184,7 +184,7 @@ export const GOAL_FILTER_STATUS_OPTIONS: GoalFilterOption[] = [
 ];
 
 /**
- * All goal status options
+ * All recommended class status options
  */
 export const GOAL_STATUS_OPTIONS: GoalFilterOption[] = [
   { id: GenericApiStatus.A_VENCER, name: 'A Vencer' },
@@ -194,7 +194,7 @@ export const GOAL_STATUS_OPTIONS: GoalFilterOption[] = [
 
 // ============================================
 // Recommended Lesson Details Types
-// Based on /goals/{id} and /goals/{id}/details endpoints
+// Based on /recommended class/{id} and /recommended class/{id}/details endpoints
 // ============================================
 
 /**
@@ -239,7 +239,7 @@ export const isDeadlinePassed = (deadline: string | null): boolean => {
  * Derives student display status from progress, completedAt, and deadline
  * @param progress - Student progress percentage (0-100)
  * @param completedAt - ISO date string when student completed, or null
- * @param deadline - ISO date string of the goal deadline, or null
+ * @param deadline - ISO date string of the recommended class deadline, or null
  * @returns The appropriate StudentLessonStatus
  */
 export const deriveStudentStatus = (
@@ -274,11 +274,11 @@ export const formatDaysToComplete = (
 };
 
 // ============================================
-// API Response Types - /goals/{id}/details
+// API Response Types - /recommended class/{id}/details
 // ============================================
 
 /**
- * Student data from /goals/{id}/details endpoint
+ * Student data from /recommended class/{id}/details endpoint
  */
 export interface GoalDetailStudent {
   userInstitutionId: string;
@@ -291,7 +291,7 @@ export interface GoalDetailStudent {
 }
 
 /**
- * Aggregated stats from /goals/{id}/details endpoint
+ * Aggregated stats from /recommended class/{id}/details endpoint
  */
 export interface GoalDetailAggregated {
   completionPercentage: number;
@@ -299,7 +299,7 @@ export interface GoalDetailAggregated {
 }
 
 /**
- * Content performance item from /goals/{id}/details endpoint
+ * Content performance item from /recommended class/{id}/details endpoint
  */
 export interface GoalDetailContentPerformanceItem {
   contentId: string;
@@ -308,7 +308,7 @@ export interface GoalDetailContentPerformanceItem {
 }
 
 /**
- * Content performance from /goals/{id}/details endpoint
+ * Content performance from /recommended class/{id}/details endpoint
  */
 export interface GoalDetailContentPerformance {
   best: GoalDetailContentPerformanceItem | null;
@@ -316,7 +316,7 @@ export interface GoalDetailContentPerformance {
 }
 
 /**
- * Response data from /goals/{id}/details endpoint
+ * Response data from /recommended class/{id}/details endpoint
  */
 export interface GoalDetailsData {
   students: GoalDetailStudent[];
@@ -325,7 +325,7 @@ export interface GoalDetailsData {
 }
 
 /**
- * Full API response from /goals/{id}/details endpoint
+ * Full API response from /recommended class/{id}/details endpoint
  */
 export interface GoalDetailsApiResponse {
   message: string;
@@ -333,12 +333,12 @@ export interface GoalDetailsApiResponse {
 }
 
 // ============================================
-// Goal Activity Types - /goals/{id} activities
+// Recommended Class Activity Types - /recommended class/{id} activities
 // ============================================
 
 /**
- * Activity status for goal activities
- * Used in activitiesGoals array from /goals/{id} endpoint
+ * Activity status for recommended class activities
+ * Used in activitiesGoals array from /recommended class/{id} endpoint
  */
 export const GOAL_ACTIVITY_STATUS = {
   PENDENTE: 'PENDENTE',
@@ -350,7 +350,7 @@ export type GoalActivityStatus =
   (typeof GOAL_ACTIVITY_STATUS)[keyof typeof GOAL_ACTIVITY_STATUS];
 
 /**
- * Activity details within a goal
+ * Activity details within a recommended class
  */
 export interface GoalActivity {
   id: string;
@@ -359,7 +359,7 @@ export interface GoalActivity {
 }
 
 /**
- * User activities within a goal
+ * User activities within a recommended class
  */
 export interface GoalSupUsersActivities {
   id: string;
@@ -372,20 +372,20 @@ export interface GoalSupUsersActivities {
 }
 
 /**
- * Activities associated with a goal
+ * Activities associated with a recommended class
  */
 export interface GoalActivitiesGoals {
-  goalId: string;
+  recommendedClassId: string;
   supUsersActivitiesId: string;
   supUsersActivities: GoalSupUsersActivities;
 }
 
 // ============================================
-// API Response Types - /goals/{id}
+// API Response Types - /recommended class/{id}
 // ============================================
 
 /**
- * Subject info from lesson in /goals/{id} response
+ * Subject info from lesson in /recommended class/{id} response
  */
 export interface GoalLessonSubject {
   id: string;
@@ -395,7 +395,7 @@ export interface GoalLessonSubject {
 }
 
 /**
- * Lesson info from /goals/{id} response
+ * Lesson info from /recommended class/{id} response
  */
 export interface GoalLesson {
   id: string;
@@ -406,7 +406,7 @@ export interface GoalLesson {
 }
 
 /**
- * Lesson progress from /goals/{id} response
+ * Lesson progress from /recommended class/{id} response
  */
 export interface GoalLessonProgress {
   id: string;
@@ -417,16 +417,16 @@ export interface GoalLessonProgress {
 }
 
 /**
- * Lesson goal item from /goals/{id} response
+ * Lesson recommended class item from /recommended class/{id} response
  */
 export interface GoalLessonGoalItem {
-  goalId: string;
+  recommendedClassId: string;
   supLessonsProgressId: string;
   supLessonsProgress: GoalLessonProgress;
 }
 
 /**
- * Goal metadata from /goals/{id} endpoint
+ * Recommended Class metadata from /recommended class/{id} endpoint
  */
 export interface GoalMetadata {
   id: string;
@@ -434,12 +434,12 @@ export interface GoalMetadata {
   startDate: string;
   finalDate: string;
   progress: number;
-  lessonsGoals: GoalLessonGoalItem[];
-  activitiesGoals?: GoalActivitiesGoals[];
+  lessons: GoalLessonGoalItem[];
+  activities?: GoalActivitiesGoals[];
 }
 
 /**
- * Full API response from /goals/{id} endpoint
+ * Full API response from /recommended class/{id} endpoint
  */
 export interface GoalApiResponse {
   message: string;
@@ -452,24 +452,24 @@ export interface GoalApiResponse {
 
 /**
  * Combined data structure for RecommendedLessonDetails component
- * Combines data from /goals/{id}, /goals/{id}/details, and breakdown info
+ * Combines data from /recommended class/{id}, /recommended class/{id}/details, and breakdown info
  */
 export interface LessonDetailsData {
-  /** Goal metadata from /goals/{id} */
-  goal: GoalMetadata;
-  /** Details from /goals/{id}/details */
+  /** Recommended Class metadata from /recommended class/{id} */
+  recommendedClass: GoalMetadata;
+  /** Details from /recommended class/{id}/details */
   details: GoalDetailsData;
   /** Optional breakdown info from /recommended-class/history */
   breakdown?: GoalBreakdown;
 }
 
 // ============================================
-// Goal Draft/Model Types
+// Recommended Class Draft/Model Types
 // Based on /recommended-class/drafts endpoint
 // ============================================
 
 /**
- * Goal draft type enum - matches backend GOAL_DRAFT_TYPE
+ * Recommended Class draft type enum - matches backend GOAL_DRAFT_TYPE
  */
 export enum GoalDraftType {
   MODELO = 'MODELO',
@@ -477,7 +477,7 @@ export enum GoalDraftType {
 }
 
 /**
- * Goal model response from backend API /recommended-class/drafts
+ * Recommended Class model response from backend API /recommended-class/drafts
  */
 export interface GoalModelResponse {
   id: string;
@@ -493,7 +493,7 @@ export interface GoalModelResponse {
 }
 
 /**
- * Goal model table item for display in models table
+ * Recommended Class model table item for display in models table
  */
 export interface GoalModelTableItem extends Record<string, unknown> {
   id: string;
@@ -504,7 +504,7 @@ export interface GoalModelTableItem extends Record<string, unknown> {
 }
 
 /**
- * Goal models API complete response from /recommended-class/drafts
+ * Recommended Class models API complete response from /recommended-class/drafts
  */
 export interface GoalModelsApiResponse {
   message: string;
@@ -515,7 +515,7 @@ export interface GoalModelsApiResponse {
 }
 
 /**
- * Goal model filters for API query parameters
+ * Recommended Class model filters for API query parameters
  */
 export interface GoalModelFilters {
   page?: number;
@@ -526,7 +526,7 @@ export interface GoalModelFilters {
 }
 
 /**
- * Pagination info for goal models
+ * Pagination info for recommended class models
  */
 export interface GoalModelPagination {
   total: number;

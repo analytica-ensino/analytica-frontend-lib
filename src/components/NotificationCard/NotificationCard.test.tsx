@@ -622,7 +622,7 @@ describe('NotificationCard', () => {
           title: 'Test Activity',
           type: 'LESSON',
         },
-        goal: null,
+        recommendedClass: null,
       };
 
       render(
@@ -660,7 +660,7 @@ describe('NotificationCard', () => {
         entityId: null,
         actionLink: 'https://example.com',
         activity: null,
-        goal: null,
+        recommendedClass: null,
       };
 
       render(
@@ -697,7 +697,7 @@ describe('NotificationCard', () => {
         entityId: null,
         actionLink: 'https://example.com',
         activity: null,
-        goal: null,
+        recommendedClass: null,
       };
 
       render(
@@ -734,7 +734,7 @@ describe('NotificationCard', () => {
         entityId: null,
         actionLink: 'https://example.com',
         activity: null,
-        goal: null,
+        recommendedClass: null,
       };
 
       render(
@@ -791,7 +791,7 @@ describe('NotificationCard', () => {
         entityId: null,
         actionLink: 'https://example.com',
         activity: null,
-        goal: null,
+        recommendedClass: null,
       };
 
       render(
@@ -837,7 +837,7 @@ describe('NotificationCard', () => {
         entityId: null,
         actionLink: 'https://example.com',
         activity: null,
-        goal: null,
+        recommendedClass: null,
       };
 
       render(
@@ -1553,7 +1553,7 @@ describe('NotificationCard', () => {
               entityId: 'activity-1',
               sender: null,
               activity: null,
-              goal: null,
+              recommendedClass: null,
             } as Notification,
           ],
         },
@@ -1598,7 +1598,7 @@ describe('NotificationCard', () => {
         entityId: null,
         sender: null,
         activity: null,
-        goal: null,
+        recommendedClass: null,
       };
 
       render(
@@ -1649,7 +1649,7 @@ describe('NotificationCard', () => {
         entityId: undefined, // No entityId makes it global
         sender: null,
         activity: null,
-        goal: null,
+        recommendedClass: null,
       };
 
       render(
@@ -1729,7 +1729,7 @@ describe('NotificationCard', () => {
               entityId: 'activity-1',
               sender: null,
               activity: null,
-              goal: null,
+              recommendedClass: null,
             } as Notification,
           ],
         },
@@ -1824,7 +1824,7 @@ describe('NotificationCard', () => {
               entityId: 'activity-desktop-1',
               sender: null,
               activity: null,
-              goal: null,
+              recommendedClass: null,
             } as Notification,
           ],
         },
@@ -2017,7 +2017,7 @@ describe('NotificationCard', () => {
                 entityId: null,
                 sender: null,
                 activity: null,
-                goal: null,
+                recommendedClass: null,
               },
             ],
           },
@@ -2050,7 +2050,7 @@ describe('NotificationCard', () => {
                 entityId: null,
                 sender: null,
                 activity: null,
-                goal: null,
+                recommendedClass: null,
               },
             ],
           },
@@ -2079,7 +2079,7 @@ describe('NotificationCard', () => {
           entityId: null,
           sender: null,
           activity: null,
-          goal: null,
+          recommendedClass: null,
         },
       ];
 

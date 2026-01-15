@@ -48,7 +48,7 @@ describe('notificationStore', () => {
             entityId: 'activity-1',
             sender: null,
             activity: null,
-            goal: null,
+            recommendedClass: null,
           },
           {
             id: '2',
@@ -61,7 +61,7 @@ describe('notificationStore', () => {
             entityId: null,
             sender: null,
             activity: null,
-            goal: null,
+            recommendedClass: null,
           },
         ],
         unreadCount: 1,
@@ -111,7 +111,7 @@ describe('notificationStore', () => {
             title: 'Test Activity',
             type: 'quiz',
           },
-          goal: null,
+          recommendedClass: null,
         },
         {
           id: '2',
@@ -126,7 +126,7 @@ describe('notificationStore', () => {
           updatedAt: new Date('2024-01-15T09:00:00Z').toISOString(),
           sender: null,
           activity: null,
-          goal: null,
+          recommendedClass: null,
         },
       ],
       pagination: {
@@ -324,7 +324,7 @@ describe('notificationStore', () => {
               entityId: 'activity-1',
               sender: null,
               activity: null,
-              goal: null,
+              recommendedClass: null,
             },
             {
               id: '2',
@@ -337,7 +337,7 @@ describe('notificationStore', () => {
               entityId: null,
               sender: null,
               activity: null,
-              goal: null,
+              recommendedClass: null,
             },
             {
               id: '3',
@@ -350,7 +350,7 @@ describe('notificationStore', () => {
               entityId: 'trail-1',
               sender: null,
               activity: null,
-              goal: null,
+              recommendedClass: null,
             },
           ],
           unreadCount: 2,
@@ -422,7 +422,7 @@ describe('notificationStore', () => {
               entityId: 'activity-1',
               sender: null,
               activity: null,
-              goal: null,
+              recommendedClass: null,
             },
           ],
           unreadCount: 0,
@@ -454,7 +454,7 @@ describe('notificationStore', () => {
               entityId: 'activity-1',
               sender: null,
               activity: null,
-              goal: null,
+              recommendedClass: null,
             },
           ],
           unreadCount: 0,
@@ -547,7 +547,7 @@ describe('notificationStore', () => {
               entityId: null,
               sender: null,
               activity: null,
-              goal: null,
+              recommendedClass: null,
             },
           ],
           unreadCount: 1,
@@ -670,7 +670,7 @@ describe('notificationStore', () => {
         entityId: null,
         sender: null,
         activity: null,
-        goal: null,
+        recommendedClass: null,
       };
 
       const lastWeekNotification = {
@@ -684,7 +684,7 @@ describe('notificationStore', () => {
         entityId: null,
         sender: null,
         activity: null,
-        goal: null,
+        recommendedClass: null,
       };
 
       act(() => {
@@ -818,7 +818,7 @@ describe('Internal Helper Functions', () => {
               title: 'Test Activity',
               type: 'quiz',
             },
-            goal: null,
+            recommendedClass: null,
           },
         ],
         pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
@@ -863,7 +863,7 @@ describe('Internal Helper Functions', () => {
             updatedAt: new Date().toISOString(),
             sender: null,
             activity: null,
-            goal: null,
+            recommendedClass: null,
           },
         ],
         pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
@@ -903,7 +903,7 @@ describe('Internal Helper Functions', () => {
             updatedAt: new Date().toISOString(),
             sender: null,
             activity: null,
-            goal: {
+            recommendedClass: {
               id: 'goal-1',
               title: 'Test Goal',
             },
@@ -928,7 +928,7 @@ describe('Internal Helper Functions', () => {
       const notification = result.current.notifications[0];
       expect(notification.type).toBe('GOAL');
       expect(notification.entityType).toBe(NotificationEntityType.GOAL);
-      expect(notification.goal).toEqual({
+      expect(notification.recommendedClass).toEqual({
         id: 'goal-1',
         title: 'Test Goal',
       });
@@ -950,7 +950,7 @@ describe('Internal Helper Functions', () => {
             updatedAt: new Date().toISOString(),
             sender: null,
             activity: null,
-            goal: null,
+            recommendedClass: null,
           },
         ],
         pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
@@ -990,7 +990,7 @@ describe('Internal Helper Functions', () => {
             updatedAt: new Date().toISOString(),
             sender: null,
             activity: null,
-            goal: null,
+            recommendedClass: null,
           },
         ],
         pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
@@ -1030,7 +1030,7 @@ describe('Internal Helper Functions', () => {
             updatedAt: new Date().toISOString(),
             sender: null,
             activity: null,
-            goal: null,
+            recommendedClass: null,
           },
         ],
         pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
@@ -1082,7 +1082,7 @@ describe('Internal Helper Functions', () => {
               title: 'Test Activity',
               type: 'quiz',
             },
-            goal: {
+            recommendedClass: {
               id: 'goal-1',
               title: 'Test Goal',
             },
@@ -1126,7 +1126,7 @@ describe('Internal Helper Functions', () => {
         title: 'Test Activity',
         type: 'quiz',
       });
-      expect(notification.goal).toEqual({
+      expect(notification.recommendedClass).toEqual({
         id: 'goal-1',
         title: 'Test Goal',
       });
@@ -1149,7 +1149,7 @@ describe('Internal Helper Functions', () => {
             updatedAt: new Date().toISOString(),
             sender: null,
             activity: null,
-            goal: null,
+            recommendedClass: null,
           },
           {
             id: '2',
@@ -1164,7 +1164,7 @@ describe('Internal Helper Functions', () => {
             updatedAt: new Date().toISOString(),
             sender: null,
             activity: null,
-            goal: null,
+            recommendedClass: null,
           },
         ],
         pagination: { page: 1, limit: 10, total: 2, totalPages: 1 },
@@ -1235,7 +1235,7 @@ describe('Internal Helper Functions', () => {
           entityId: null,
           sender: null,
           activity: null,
-          goal: null,
+          recommendedClass: null,
         },
         {
           id: '2',
@@ -1248,7 +1248,7 @@ describe('Internal Helper Functions', () => {
           entityId: null,
           sender: null,
           activity: null,
-          goal: null,
+          recommendedClass: null,
         },
       ];
 
@@ -1287,7 +1287,7 @@ describe('Internal Helper Functions', () => {
           entityId: null,
           sender: null,
           activity: null,
-          goal: null,
+          recommendedClass: null,
         },
         {
           id: '2',
@@ -1300,7 +1300,7 @@ describe('Internal Helper Functions', () => {
           entityId: null,
           sender: null,
           activity: null,
-          goal: null,
+          recommendedClass: null,
         },
       ];
 
@@ -1339,7 +1339,7 @@ describe('Internal Helper Functions', () => {
           entityId: null,
           sender: null,
           activity: null,
-          goal: null,
+          recommendedClass: null,
         },
       ];
 
@@ -1381,7 +1381,7 @@ describe('Internal Helper Functions', () => {
           entityId: null,
           sender: null,
           activity: null,
-          goal: null,
+          recommendedClass: null,
         },
         // Exactly one week ago
         {
@@ -1395,7 +1395,7 @@ describe('Internal Helper Functions', () => {
           entityId: null,
           sender: null,
           activity: null,
-          goal: null,
+          recommendedClass: null,
         },
         // Just within the last week range
         {
@@ -1409,7 +1409,7 @@ describe('Internal Helper Functions', () => {
           entityId: null,
           sender: null,
           activity: null,
-          goal: null,
+          recommendedClass: null,
         },
       ];
 

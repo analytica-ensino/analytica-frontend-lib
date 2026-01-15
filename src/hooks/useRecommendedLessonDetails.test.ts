@@ -25,9 +25,9 @@ describe('useRecommendedLessonDetails', () => {
       startDate: '2024-06-01',
       finalDate: '2024-12-31',
       progress: 50,
-      lessonsGoals: [
+      lessons: [
         {
-          goalId: '123e4567-e89b-12d3-a456-426614174000',
+          recommendedClassId: '123e4567-e89b-12d3-a456-426614174000',
           supLessonsProgressId: 'progress-1',
           supLessonsProgress: {
             id: 'progress-1',
@@ -97,9 +97,9 @@ describe('useRecommendedLessonDetails', () => {
   const mockHistoryResponse: GoalsHistoryApiResponse = {
     message: 'Success',
     data: {
-      goals: [
+      recommendedClass: [
         {
-          goal: {
+          recommendedClass: {
             id: '123e4567-e89b-12d3-a456-426614174000',
             title: 'Aula de Matemática',
             startDate: '2024-06-01',
@@ -266,7 +266,7 @@ describe('useRecommendedLessonDetails', () => {
       const emptyResponse = {
         message: 'Success',
         data: {
-          goals: [],
+          recommendedClass: [],
           total: 0,
         },
       };
@@ -279,9 +279,9 @@ describe('useRecommendedLessonDetails', () => {
       const invalidResponse = {
         message: 'Success',
         data: {
-          goals: [
+          recommendedClass: [
             {
-              goal: { id: 'not-a-uuid' },
+              recommendedClass: { id: 'not-a-uuid' },
               breakdown: [],
             },
           ],
@@ -346,7 +346,9 @@ describe('useRecommendedLessonDetails', () => {
       });
 
       expect(result.current.data).not.toBeNull();
-      expect(result.current.data?.goal.title).toBe('Aula de Matemática');
+      expect(result.current.data?.recommendedClass.title).toBe(
+        'Aula de Matemática'
+      );
       expect(result.current.data?.details.students).toHaveLength(2);
       expect(result.current.data?.breakdown?.className).toBe('Turma A');
       expect(result.current.error).toBeNull();
@@ -371,7 +373,9 @@ describe('useRecommendedLessonDetails', () => {
       });
 
       expect(result.current.data).not.toBeNull();
-      expect(result.current.data?.goal.title).toBe('Aula de Matemática');
+      expect(result.current.data?.recommendedClass.title).toBe(
+        'Aula de Matemática'
+      );
       expect(result.current.data?.breakdown).toBeUndefined();
       expect(result.current.error).toBeNull();
     });
@@ -515,9 +519,9 @@ describe('useRecommendedLessonDetails', () => {
       (mockClient.fetchBreakdown as jest.Mock).mockResolvedValue({
         message: 'Success',
         data: {
-          goals: [
+          recommendedClass: [
             {
-              goal: { id: DIFFERENT_ID },
+              recommendedClass: { id: DIFFERENT_ID },
               breakdown: [
                 {
                   classId: '123e4567-e89b-12d3-a456-426614174003',

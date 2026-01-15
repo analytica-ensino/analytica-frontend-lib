@@ -88,15 +88,15 @@ const startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
 // Mock data aligned with API responses
 const mockLessonData: LessonDetailsData = {
-  goal: {
+  recommendedClass: {
     id: 'lesson-1',
     title: 'Explorando a Fotossíntese: Atividade Prática de Campo',
     startDate: startDate,
     finalDate: futureDate,
     progress: 90,
-    lessonsGoals: [
+    lessons: [
       {
-        goalId: 'lesson-1',
+        recommendedClassId: 'lesson-1',
         supLessonsProgressId: 'progress-1',
         supLessonsProgress: {
           id: 'progress-1',
@@ -342,7 +342,7 @@ describe('RecommendedLessonDetails', () => {
 
       render(
         <RecommendedLessonDetails
-          goalId="lesson-1"
+          recommendedClassId="lesson-1"
           data={mockLessonData}
           fetchStudentPerformance={mockFetchStudentPerformance}
           mapSubjectNameToEnum={mockMapSubjectNameToEnum}
@@ -371,7 +371,7 @@ describe('RecommendedLessonDetails', () => {
 
       render(
         <RecommendedLessonDetails
-          goalId="lesson-1"
+          recommendedClassId="lesson-1"
           data={mockLessonData}
           fetchStudentPerformance={mockFetchStudentPerformance}
           mapSubjectNameToEnum={mockMapSubjectNameToEnum}
@@ -399,7 +399,7 @@ describe('RecommendedLessonDetails', () => {
 
       render(
         <RecommendedLessonDetails
-          goalId="lesson-1"
+          recommendedClassId="lesson-1"
           data={mockLessonData}
           fetchStudentPerformance={mockFetchStudentPerformance}
           mapSubjectNameToEnum={mockMapSubjectNameToEnum}
@@ -496,8 +496,8 @@ describe('RecommendedLessonDetails', () => {
     it('should show placeholder for null dates', () => {
       const dataWithNullDates: LessonDetailsData = {
         ...mockLessonData,
-        goal: {
-          ...mockLessonData.goal,
+        recommendedClass: {
+          ...mockLessonData.recommendedClass,
           startDate: null as unknown as string,
           finalDate: null as unknown as string,
         },
@@ -517,8 +517,8 @@ describe('RecommendedLessonDetails', () => {
     it('should show placeholder for invalid date strings', () => {
       const dataWithInvalidDates: LessonDetailsData = {
         ...mockLessonData,
-        goal: {
-          ...mockLessonData.goal,
+        recommendedClass: {
+          ...mockLessonData.recommendedClass,
           startDate: 'invalid-date',
           finalDate: 'not-a-date',
         },
@@ -617,7 +617,7 @@ describe('RecommendedLessonDetails', () => {
     it('should disable Ver desempenho for A_INICIAR and EM_ANDAMENTO students', () => {
       render(
         <RecommendedLessonDetails
-          goalId="lesson-1"
+          recommendedClassId="lesson-1"
           data={mockLessonData}
           fetchStudentPerformance={mockFetchStudentPerformance}
           mapSubjectNameToEnum={mockMapSubjectNameToEnum}
@@ -636,7 +636,7 @@ describe('RecommendedLessonDetails', () => {
     it('should enable Ver desempenho for CONCLUIDO students', () => {
       render(
         <RecommendedLessonDetails
-          goalId="lesson-1"
+          recommendedClassId="lesson-1"
           data={mockLessonData}
           fetchStudentPerformance={mockFetchStudentPerformance}
           mapSubjectNameToEnum={mockMapSubjectNameToEnum}
@@ -682,7 +682,7 @@ describe('RecommendedLessonDetails', () => {
   describe('Missing breakdown data', () => {
     it('should handle missing breakdown gracefully', () => {
       const dataWithoutBreakdown: LessonDetailsData = {
-        goal: mockLessonData.goal,
+        recommendedClass: mockLessonData.recommendedClass,
         details: mockLessonData.details,
         // No breakdown
       };
@@ -705,9 +705,9 @@ describe('RecommendedLessonDetails', () => {
     it('should handle missing lessonsGoals gracefully', () => {
       const dataWithoutLessons: LessonDetailsData = {
         ...mockLessonData,
-        goal: {
-          ...mockLessonData.goal,
-          lessonsGoals: [],
+        recommendedClass: {
+          ...mockLessonData.recommendedClass,
+          lessons: [],
         },
       };
 
@@ -732,8 +732,8 @@ describe('RecommendedLessonDetails', () => {
       .split('T')[0];
 
     const mockDataWithPastDeadline: LessonDetailsData = {
-      goal: {
-        ...mockLessonData.goal,
+      recommendedClass: {
+        ...mockLessonData.recommendedClass,
         finalDate: pastDeadline,
       },
       details: {
@@ -809,7 +809,7 @@ describe('RecommendedLessonDetails', () => {
 
       render(
         <RecommendedLessonDetails
-          goalId="lesson-1"
+          recommendedClassId="lesson-1"
           data={mockDataWithPastDeadline}
           fetchStudentPerformance={mockFetchStudentPerformance}
           mapSubjectNameToEnum={mockMapSubjectNameToEnum}
@@ -837,7 +837,7 @@ describe('RecommendedLessonDetails', () => {
 
       render(
         <RecommendedLessonDetails
-          goalId="lesson-1"
+          recommendedClassId="lesson-1"
           data={mockDataWithPastDeadline}
           fetchStudentPerformance={mockFetchStudentPerformance}
           mapSubjectNameToEnum={mockMapSubjectNameToEnum}

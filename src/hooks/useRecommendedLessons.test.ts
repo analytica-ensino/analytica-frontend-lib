@@ -60,7 +60,7 @@ describe('useRecommendedLessons', () => {
 
   describe('transformGoalToTableItem', () => {
     const baseGoalHistoryItem: GoalHistoryItem = {
-      goal: {
+      recommendedClass: {
         id: 'goal-123',
         title: 'Test Goal',
         startDate: '2024-06-01',
@@ -111,8 +111,8 @@ describe('useRecommendedLessons', () => {
     it('should handle null startDate', () => {
       const item: GoalHistoryItem = {
         ...baseGoalHistoryItem,
-        goal: {
-          ...baseGoalHistoryItem.goal,
+        recommendedClass: {
+          ...baseGoalHistoryItem.recommendedClass,
           startDate: null,
         },
       };
@@ -124,8 +124,8 @@ describe('useRecommendedLessons', () => {
     it('should handle null finalDate', () => {
       const item: GoalHistoryItem = {
         ...baseGoalHistoryItem,
-        goal: {
-          ...baseGoalHistoryItem.goal,
+        recommendedClass: {
+          ...baseGoalHistoryItem.recommendedClass,
           finalDate: null,
         },
       };
@@ -247,9 +247,9 @@ describe('useRecommendedLessons', () => {
       const validResponse = {
         message: 'Success',
         data: {
-          goals: [
+          recommendedClass: [
             {
-              goal: {
+              recommendedClass: {
                 id: '123e4567-e89b-12d3-a456-426614174000',
                 title: 'Test Goal',
                 startDate: '2024-06-01',
@@ -295,9 +295,9 @@ describe('useRecommendedLessons', () => {
       const responseWithNulls = {
         message: 'Success',
         data: {
-          goals: [
+          recommendedClass: [
             {
-              goal: {
+              recommendedClass: {
                 id: '123e4567-e89b-12d3-a456-426614174000',
                 title: 'Test Goal',
                 startDate: null,
@@ -328,9 +328,9 @@ describe('useRecommendedLessons', () => {
       const invalidResponse = {
         message: 'Success',
         data: {
-          goals: [
+          recommendedClass: [
             {
-              goal: {
+              recommendedClass: {
                 id: 'not-a-uuid',
                 title: 'Test Goal',
                 startDate: null,
@@ -361,7 +361,7 @@ describe('useRecommendedLessons', () => {
       const missingFields = {
         message: 'Success',
         data: {
-          goals: [],
+          recommendedClass: [],
           // missing total
         },
       };
@@ -380,9 +380,9 @@ describe('useRecommendedLessons', () => {
     const validApiResponse: GoalsHistoryApiResponse = {
       message: 'Success',
       data: {
-        goals: [
+        recommendedClass: [
           {
-            goal: {
+            recommendedClass: {
               id: '123e4567-e89b-12d3-a456-426614174000',
               title: 'Test Goal',
               startDate: '2024-06-01',
@@ -430,7 +430,7 @@ describe('useRecommendedLessons', () => {
       );
       const { result } = renderHook(() => useGoalsHistory());
 
-      expect(result.current.goals).toEqual([]);
+      expect(result.current.recommendedClass).toEqual([]);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
       expect(result.current.pagination).toEqual({
@@ -458,8 +458,8 @@ describe('useRecommendedLessons', () => {
         page: 1,
         limit: 10,
       });
-      expect(result.current.goals).toHaveLength(1);
-      expect(result.current.goals[0].title).toBe('Test Goal');
+      expect(result.current.recommendedClass).toHaveLength(1);
+      expect(result.current.recommendedClass[0].title).toBe('Test Goal');
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
       expect(result.current.pagination).toEqual({
@@ -517,7 +517,7 @@ describe('useRecommendedLessons', () => {
 
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBe('Erro ao carregar histórico de aulas');
-      expect(result.current.goals).toEqual([]);
+      expect(result.current.recommendedClass).toEqual([]);
 
       consoleErrorSpy.mockRestore();
     });
@@ -530,7 +530,7 @@ describe('useRecommendedLessons', () => {
       const invalidResponse = {
         message: 'Success',
         data: {
-          goals: 'invalid',
+          recommendedClass: 'invalid',
           total: 1,
         },
       };
@@ -560,7 +560,7 @@ describe('useRecommendedLessons', () => {
       const responseWith25Items: GoalsHistoryApiResponse = {
         message: 'Success',
         data: {
-          goals: [],
+          recommendedClass: [],
           total: 25,
         },
       };
@@ -642,14 +642,14 @@ describe('useRecommendedLessons', () => {
     it('should create a functional hook', () => {
       const mockFetch = jest.fn().mockResolvedValue({
         message: 'Success',
-        data: { goals: [], total: 0 },
+        data: { recommendedClass: [], total: 0 },
       });
 
       const useHook = createRecommendedLessonsHistoryHook(mockFetch);
       const { result } = renderHook(() => useHook());
 
       expect(result.current.fetchGoals).toBeInstanceOf(Function);
-      expect(result.current.goals).toEqual([]);
+      expect(result.current.recommendedClass).toEqual([]);
     });
   });
 });
