@@ -99,9 +99,9 @@ const mapBackendNotification = (
         type = 'TRAIL';
         entityType = NotificationEntityType.TRAIL;
         break;
-      case NotificationEntityType.GOAL:
-        type = 'GOAL';
-        entityType = NotificationEntityType.GOAL;
+      case NotificationEntityType.RECOMMENDED_CLASS:
+        type = 'RECOMMENDED_CLASS';
+        entityType = NotificationEntityType.RECOMMENDED_CLASS;
         break;
       default:
         break;

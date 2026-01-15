@@ -617,7 +617,7 @@ export {
   determineRecommendedClassStatus,
   transformRecommendedClassToTableItem,
   handleRecommendedClassFetchError,
-  recommendedClasssHistoryApiResponseSchema,
+  recommendedClassHistoryApiResponseSchema,
 } from './hooks/useRecommendedLessons';
 export type {
   UseRecommendedLessonsHistoryState,
@@ -662,15 +662,15 @@ export {
   RecommendedClassDisplayStatus,
   RecommendedClassBadgeActionType,
   getRecommendedClassStatusBadgeAction,
-  GOAL_FILTER_STATUS_OPTIONS,
-  GOAL_STATUS_OPTIONS,
+  RECOMMENDED_CLASS_FILTER_STATUS_OPTIONS,
+  RECOMMENDED_CLASS_STATUS_OPTIONS,
   StudentLessonStatus,
   getStudentStatusBadgeAction,
   isDeadlinePassed,
   deriveStudentStatus,
   formatDaysToComplete,
   RecommendedClassDraftType,
-  GOAL_ACTIVITY_STATUS,
+  RECOMMENDED_CLASS_ACTIVITY_STATUS,
 } from './types/recommendedLessons';
 export type {
   RecommendedClassSubject,

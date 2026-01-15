@@ -267,7 +267,7 @@ describe('useRecommendedLessonDetails', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should validate empty recommendedClasss array', () => {
+    it('should validate empty recommendedClass array', () => {
       const emptyResponse = {
         message: 'Success',
         data: {

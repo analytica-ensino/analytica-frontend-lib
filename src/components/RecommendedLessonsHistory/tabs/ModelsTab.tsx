@@ -18,7 +18,7 @@ import type { SubjectEnum } from '../../../enums/SubjectEnum';
 /**
  * Configuration for recommendedClass models tab
  */
-const GOAL_MODELS_CONFIG: ModelsTabConfig = {
+const RECOMMENDED_CLASS_MODELS_CONFIG: ModelsTabConfig = {
   entityName: 'aula',
   entityNamePlural: 'aulas',
   testId: 'recommendedClass-models-tab',
@@ -31,7 +31,7 @@ const GOAL_MODELS_CONFIG: ModelsTabConfig = {
 /**
  * Configuration for recommendedClass models table columns
  */
-const GOAL_COLUMNS_CONFIG: ModelsColumnsConfig = {
+const RECOMMENDED_CLASS_COLUMNS_CONFIG: ModelsColumnsConfig = {
   sendButtonLabel: 'Enviar aula',
   sendButtonAriaLabel: 'Enviar aula',
   deleteButtonAriaLabel: 'Deletar modelo',
@@ -103,14 +103,14 @@ export const RecommendedClassModelsTab = ({
     mapSubjectNameToEnum={mapSubjectNameToEnum}
     userFilterData={userFilterData}
     subjectsMap={subjectsMap}
-    config={GOAL_MODELS_CONFIG}
+    config={RECOMMENDED_CLASS_MODELS_CONFIG}
     createTableColumns={(mapSubject, send, edit, del) =>
       createModelsTableColumnsBase(
         mapSubject,
         send,
         edit,
         del,
-        GOAL_COLUMNS_CONFIG
+        RECOMMENDED_CLASS_COLUMNS_CONFIG
       )
     }
     createFiltersConfig={createRecommendedClassModelsFiltersConfig}

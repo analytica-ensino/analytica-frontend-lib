@@ -38,7 +38,7 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
      * Handle navigation based on notification entity type and ID
      * Uses window.location.href for cross-framework compatibility
      *
-     * @param entityType - Type of entity (ACTIVITY, GOAL)
+     * @param entityType - Type of entity (ACTIVITY, RECOMMENDED_CLASS)
      * @param entityId - ID of the entity
      * @param onAfterNavigate - Optional callback to execute after navigation
      */
@@ -53,7 +53,7 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
             case NotificationEntityType.ACTIVITY:
               window.location.href = `/atividades/${entityId}`;
               break;
-            case NotificationEntityType.GOAL:
+            case NotificationEntityType.RECOMMENDED_CLASS:
               window.location.href = `/painel/trilhas/${entityId}`;
               break;
             default:
@@ -69,7 +69,7 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
     /**
      * Get action label based on entity type
      *
-     * @param entityType - Type of entity (ACTIVITY, GOAL)
+     * @param entityType - Type of entity (ACTIVITY, RECOMMENDED_CLASS)
      * @returns Action label or undefined
      */
     const getActionLabel = useCallback(
@@ -79,7 +79,7 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
         switch (entityType.toUpperCase()) {
           case NotificationEntityType.ACTIVITY:
             return 'Ver atividade';
-          case NotificationEntityType.GOAL:
+          case NotificationEntityType.RECOMMENDED_CLASS:
             return 'Ver meta';
           default:
             return undefined;

@@ -67,9 +67,9 @@ describe('useRecommendedLessonsPage', () => {
   };
 
   const mockEndpoints = {
-    recommendedClasssHistory: '/recommended-class/history',
+    recommendedClassHistory: '/recommended-class/history',
     recommendedClassDrafts: '/recommended-class/drafts',
-    submitRecommendedClass: '/recommendedClasss',
+    submitRecommendedClass: '/recommendedClass',
   };
 
   const mockTexts = {
@@ -534,7 +534,7 @@ describe('useRecommendedLessonsPage', () => {
       await result.current.modalProps.onSubmit(testFormData);
     });
 
-    expect(mockApi.post).toHaveBeenCalledWith('/recommendedClasss', {
+    expect(mockApi.post).toHaveBeenCalledWith('/recommendedClass', {
       draftId: 'model-123',
       students: [{ studentId: 'student-1', userInstitutionId: 'inst-1' }],
       startDate: '2024-06-01T08:00:00',

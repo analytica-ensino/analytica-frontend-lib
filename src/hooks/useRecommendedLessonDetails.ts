@@ -64,7 +64,7 @@ const recommendedClasslessonsItemSchema = z.object({
 });
 
 /**
- * Schema for recommendedClass metadata from /recommendedClasss/{id}
+ * Schema for recommendedClass metadata from /recommendedClass/{id}
  */
 const recommendedClassMetadataSchema = z.object({
   id: z.string(),
@@ -76,7 +76,7 @@ const recommendedClassMetadataSchema = z.object({
 });
 
 /**
- * Schema for /recommendedClasss/{id} API response
+ * Schema for /recommendedClass/{id} API response
  */
 export const recommendedClassApiResponseSchema = z.object({
   message: z.string(),
@@ -124,7 +124,7 @@ const recommendedClassDetailContentPerformanceSchema = z.object({
 });
 
 /**
- * Schema for details data from /recommendedClasss/{id}/details
+ * Schema for details data from /recommendedClass/{id}/details
  */
 const recommendedClassDetailsDataSchema = z.object({
   students: z.array(recommendedClassDetailStudentSchema),
@@ -133,7 +133,7 @@ const recommendedClassDetailsDataSchema = z.object({
 });
 
 /**
- * Schema for /recommendedClasss/{id}/details API response
+ * Schema for /recommendedClass/{id}/details API response
  */
 export const recommendedClassDetailsApiResponseSchema = z.object({
   message: z.string(),
@@ -196,9 +196,9 @@ export interface UseRecommendedLessonDetailsReturn
  * API client interface for fetching lesson details
  */
 export interface LessonDetailsApiClient {
-  /** Fetch recommendedClass metadata from /recommendedClasss/{id} */
+  /** Fetch recommendedClass metadata from /recommendedClass/{id} */
   fetchRecommendedClass: (id: string) => Promise<RecommendedClassApiResponse>;
-  /** Fetch recommendedClass details from /recommendedClasss/{id}/details */
+  /** Fetch recommendedClass details from /recommendedClass/{id}/details */
   fetchRecommendedClassDetails: (
     id: string
   ) => Promise<RecommendedClassDetailsApiResponse>;
@@ -240,11 +240,11 @@ export const handleLessonDetailsFetchError = (error: unknown): string => {
  * // In your app setup
  * const apiClient = {
  *   fetchRecommendedClass: async (id) => {
- *     const response = await api.get(`/recommendedClasss/${id}`);
+ *     const response = await api.get(`/recommendedClass/${id}`);
  *     return response.data;
  *   },
  *   fetchRecommendedClassDetails: async (id) => {
- *     const response = await api.get(`/recommendedClasss/${id}/details`);
+ *     const response = await api.get(`/recommendedClass/${id}/details`);
  *     return response.data;
  *   },
  *   fetchBreakdown: async (id) => {

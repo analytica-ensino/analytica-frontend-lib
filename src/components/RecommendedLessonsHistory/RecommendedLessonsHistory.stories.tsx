@@ -129,7 +129,7 @@ const emptyModelsResponse: RecommendedClassModelsApiResponse = {
 };
 
 /**
- * Mock recommendedClasss history data
+ * Mock recommendedClass history data
  */
 const mockRecommendedClassHistoryData: RecommendedClassHistoryApiResponse = {
   message: 'Success',
@@ -424,7 +424,7 @@ Loading.meta = {
 };
 
 /**
- * Empty state - shows the component when no recommendedClasss exist
+ * Empty state - shows the component when no recommendedClass exist
  */
 export const Empty: Story = () => (
   <RecommendedLessonsHistory
@@ -483,7 +483,7 @@ WithoutSubjectIcons.meta = {
 };
 
 /**
- * Many recommendedClasss - shows the component with pagination
+ * Many recommendedClass - shows the component with pagination
  */
 export const ManyRecommendedClass: Story = () => {
   const generateRecommendedClass = (count: number) => {
@@ -554,7 +554,7 @@ ManyRecommendedClass.meta = {
 };
 
 /**
- * Multiple classes per recommendedClass - shows recommendedClasss assigned to multiple classes
+ * Multiple classes per recommendedClass - shows recommendedClass assigned to multiple classes
  */
 export const MultipleClasses: Story = () => {
   const multipleClassesData: RecommendedClassHistoryApiResponse = {
@@ -645,7 +645,7 @@ const getRelativeDate = (daysOffset: number): string => {
 };
 
 /**
- * All statuses - shows recommendedClasss with different status states
+ * All statuses - shows recommendedClass with different status states
  */
 export const AllStatuses: Story = () => {
   // Dynamic dates relative to current date

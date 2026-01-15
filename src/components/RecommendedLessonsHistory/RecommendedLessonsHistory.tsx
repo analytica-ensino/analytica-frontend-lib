@@ -18,7 +18,7 @@ import {
   RecommendedClassDisplayStatus,
   RecommendedClassApiStatus,
   getRecommendedClassStatusBadgeAction,
-  GOAL_FILTER_STATUS_OPTIONS,
+  RECOMMENDED_CLASS_FILTER_STATUS_OPTIONS,
   type RecommendedClassTableItem,
   type RecommendedClassHistoryFilters,
   type RecommendedClassHistoryApiResponse,
@@ -48,7 +48,7 @@ export enum RecommendedClassPageTab {
  * Props for the RecommendedLessonsHistory component
  */
 export interface RecommendedLessonsHistoryProps {
-  /** Function to fetch recommendedClasss history from API. Must return RecommendedClassHistoryApiResponse. */
+  /** Function to fetch recommendedClass history from API. Must return RecommendedClassHistoryApiResponse. */
   fetchRecommendedClassHistory: (
     filters?: RecommendedClassHistoryFilters
   ) => Promise<RecommendedClassHistoryApiResponse>;
@@ -225,7 +225,7 @@ const getClassOptions = (
 };
 
 /**
- * Create filter configuration for recommendedClasss
+ * Create filter configuration for recommendedClass
  */
 const createRecommendedClassFiltersConfig = (
   userData: RecommendedClassUserFilterData | undefined
@@ -304,7 +304,7 @@ const createRecommendedClassFiltersConfig = (
         key: 'status',
         label: 'Status',
         selectedIds: [],
-        itens: GOAL_FILTER_STATUS_OPTIONS,
+        itens: RECOMMENDED_CLASS_FILTER_STATUS_OPTIONS,
       },
     ],
   },
@@ -492,7 +492,7 @@ const createTableColumns = (
 
 /**
  * RecommendedLessonsHistory component
- * Displays recommendedClasss/recommended lessons history with tabs, filters, and table
+ * Displays recommendedClass/recommended lessons history with tabs, filters, and table
  */
 export const RecommendedLessonsHistory = ({
   fetchRecommendedClassHistory,

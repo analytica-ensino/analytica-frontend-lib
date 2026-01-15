@@ -3,8 +3,8 @@ import {
   RecommendedClassBadgeActionType,
   RecommendedClassApiStatus,
   getRecommendedClassStatusBadgeAction,
-  GOAL_FILTER_STATUS_OPTIONS,
-  GOAL_STATUS_OPTIONS,
+  RECOMMENDED_CLASS_FILTER_STATUS_OPTIONS,
+  RECOMMENDED_CLASS_STATUS_OPTIONS,
   StudentLessonStatus,
   getStudentStatusBadgeAction,
   isDeadlinePassed,
@@ -67,21 +67,21 @@ describe('recommendedLessons types', () => {
     });
   });
 
-  describe('GOAL_FILTER_STATUS_OPTIONS', () => {
+  describe('RECOMMENDED_CLASS_FILTER_STATUS_OPTIONS', () => {
     it('should contain Vencida and Ativa options', () => {
-      expect(GOAL_FILTER_STATUS_OPTIONS).toHaveLength(2);
-      expect(GOAL_FILTER_STATUS_OPTIONS).toContainEqual({
+      expect(RECOMMENDED_CLASS_FILTER_STATUS_OPTIONS).toHaveLength(2);
+      expect(RECOMMENDED_CLASS_FILTER_STATUS_OPTIONS).toContainEqual({
         id: RecommendedClassApiStatus.VENCIDA,
         name: 'Vencida',
       });
-      expect(GOAL_FILTER_STATUS_OPTIONS).toContainEqual({
+      expect(RECOMMENDED_CLASS_FILTER_STATUS_OPTIONS).toContainEqual({
         id: RecommendedClassApiStatus.A_VENCER,
         name: 'Ativa',
       });
     });
 
     it('should have correct structure for filter compatibility', () => {
-      GOAL_FILTER_STATUS_OPTIONS.forEach((option) => {
+      RECOMMENDED_CLASS_FILTER_STATUS_OPTIONS.forEach((option) => {
         expect(option).toHaveProperty('id');
         expect(option).toHaveProperty('name');
         expect(typeof option.id).toBe('string');
@@ -90,25 +90,25 @@ describe('recommendedLessons types', () => {
     });
   });
 
-  describe('GOAL_STATUS_OPTIONS', () => {
+  describe('RECOMMENDED_CLASS_STATUS_OPTIONS', () => {
     it('should contain all status options', () => {
-      expect(GOAL_STATUS_OPTIONS).toHaveLength(3);
-      expect(GOAL_STATUS_OPTIONS).toContainEqual({
+      expect(RECOMMENDED_CLASS_STATUS_OPTIONS).toHaveLength(3);
+      expect(RECOMMENDED_CLASS_STATUS_OPTIONS).toContainEqual({
         id: RecommendedClassApiStatus.A_VENCER,
         name: 'A Vencer',
       });
-      expect(GOAL_STATUS_OPTIONS).toContainEqual({
+      expect(RECOMMENDED_CLASS_STATUS_OPTIONS).toContainEqual({
         id: RecommendedClassApiStatus.VENCIDA,
         name: 'Vencida',
       });
-      expect(GOAL_STATUS_OPTIONS).toContainEqual({
+      expect(RECOMMENDED_CLASS_STATUS_OPTIONS).toContainEqual({
         id: RecommendedClassApiStatus.CONCLUIDA,
         name: 'Concluída',
       });
     });
 
     it('should have correct structure for filter compatibility', () => {
-      GOAL_STATUS_OPTIONS.forEach((option) => {
+      RECOMMENDED_CLASS_STATUS_OPTIONS.forEach((option) => {
         expect(option).toHaveProperty('id');
         expect(option).toHaveProperty('name');
         expect(typeof option.id).toBe('string');

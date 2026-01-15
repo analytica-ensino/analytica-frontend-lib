@@ -178,19 +178,21 @@ export const getRecommendedClassStatusBadgeAction = (
 /**
  * Recommended Class status options for filter (Vencida and Ativa)
  */
-export const GOAL_FILTER_STATUS_OPTIONS: RecommendedClassFilterOption[] = [
-  { id: GenericApiStatus.VENCIDA, name: 'Vencida' },
-  { id: GenericApiStatus.A_VENCER, name: 'Ativa' },
-];
+export const RECOMMENDED_CLASS_FILTER_STATUS_OPTIONS: RecommendedClassFilterOption[] =
+  [
+    { id: GenericApiStatus.VENCIDA, name: 'Vencida' },
+    { id: GenericApiStatus.A_VENCER, name: 'Ativa' },
+  ];
 
 /**
  * All recommended class status options
  */
-export const GOAL_STATUS_OPTIONS: RecommendedClassFilterOption[] = [
-  { id: GenericApiStatus.A_VENCER, name: 'A Vencer' },
-  { id: GenericApiStatus.VENCIDA, name: 'Vencida' },
-  { id: GenericApiStatus.CONCLUIDA, name: 'Concluída' },
-];
+export const RECOMMENDED_CLASS_STATUS_OPTIONS: RecommendedClassFilterOption[] =
+  [
+    { id: GenericApiStatus.A_VENCER, name: 'A Vencer' },
+    { id: GenericApiStatus.VENCIDA, name: 'Vencida' },
+    { id: GenericApiStatus.CONCLUIDA, name: 'Concluída' },
+  ];
 
 // ============================================
 // Recommended Lesson Details Types
@@ -340,14 +342,14 @@ export interface RecommendedClassDetailsApiResponse {
  * Activity status for recommended class activities
  * Used in activitiesRecommendedClass array from /recommended class/{id} endpoint
  */
-export const GOAL_ACTIVITY_STATUS = {
+export const RECOMMENDED_CLASS_ACTIVITY_STATUS = {
   PENDENTE: 'PENDENTE',
   CONCLUIDA: 'CONCLUIDA',
   EXPIRADA: 'EXPIRADA',
 } as const;
 
 export type RecommendedClassActivityStatus =
-  (typeof GOAL_ACTIVITY_STATUS)[keyof typeof GOAL_ACTIVITY_STATUS];
+  (typeof RECOMMENDED_CLASS_ACTIVITY_STATUS)[keyof typeof RECOMMENDED_CLASS_ACTIVITY_STATUS];
 
 /**
  * Activity details within a recommended class
@@ -469,7 +471,7 @@ export interface LessonDetailsData {
 // ============================================
 
 /**
- * Recommended Class draft type enum - matches backend GOAL_DRAFT_TYPE
+ * Recommended Class draft type enum - matches backend RECOMMENDED_CLASS_DRAFT_TYPE
  */
 export enum RecommendedClassDraftType {
   MODELO = 'MODELO',

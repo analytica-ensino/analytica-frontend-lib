@@ -61,7 +61,7 @@ const recommendedClassHistoryItemSchema = z.object({
   breakdown: z.array(recommendedClassBreakdownSchema),
 });
 
-export const recommendedClasssHistoryApiResponseSchema = z.object({
+export const recommendedClassHistoryApiResponseSchema = z.object({
   message: z.string(),
   data: z.object({
     recommendedClass: z.array(recommendedClassHistoryItemSchema),
@@ -170,7 +170,7 @@ export const handleRecommendedClassFetchError = (error: unknown): string => {
 /**
  * Factory function to create useRecommendedLessonsHistory hook
  *
- * @param fetchRecommendedClassHistory - Function to fetch recommendedClasss from API
+ * @param fetchRecommendedClassHistory - Function to fetch recommendedClass from API
  * @returns Hook for managing recommended lessons history
  *
  * @example
@@ -184,7 +184,7 @@ export const handleRecommendedClassFetchError = (error: unknown): string => {
  * const useRecommendedClassHistory = createUseRecommendedLessonsHistory(fetchRecommendedClassHistory);
  *
  * // In your component
- * const { recommendedClasss, loading, error, pagination, fetchRecommendedClass } = useRecommendedClassHistory();
+ * const { recommendedClass, loading, error, pagination, fetchRecommendedClass } = useRecommendedClassHistory();
  * ```
  */
 export const createUseRecommendedLessonsHistory = (
@@ -206,7 +206,7 @@ export const createUseRecommendedLessonsHistory = (
     });
 
     /**
-     * Fetch recommendedClasss history from API
+     * Fetch recommendedClass history from API
      * @param filters - Optional filters for pagination, search, sorting, etc.
      */
     const fetchRecommendedClass = useCallback(
@@ -219,9 +219,9 @@ export const createUseRecommendedLessonsHistory = (
 
           // Validate response with Zod
           const validatedData =
-            recommendedClasssHistoryApiResponseSchema.parse(responseData);
+            recommendedClassHistoryApiResponseSchema.parse(responseData);
 
-          // Transform recommendedClasss to table format
+          // Transform recommendedClass to table format
           const tableItems = validatedData.data.recommendedClass.map(
             transformRecommendedClassToTableItem
           );

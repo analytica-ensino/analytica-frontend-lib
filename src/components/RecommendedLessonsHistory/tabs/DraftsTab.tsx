@@ -18,7 +18,7 @@ import type { SubjectEnum } from '../../../enums/SubjectEnum';
 /**
  * Configuration for recommendedClass drafts tab
  */
-const GOAL_DRAFTS_CONFIG: ModelsTabConfig = {
+const RECOMMENDED_CLASS_DRAFTS_CONFIG: ModelsTabConfig = {
   entityName: 'rascunho',
   entityNamePlural: 'rascunhos',
   testId: 'recommendedClass-drafts-tab',
@@ -31,7 +31,7 @@ const GOAL_DRAFTS_CONFIG: ModelsTabConfig = {
 /**
  * Configuration for recommendedClass drafts table columns
  */
-const GOAL_DRAFTS_COLUMNS_CONFIG: ModelsColumnsConfig = {
+const RECOMMENDED_CLASS_DRAFTS_COLUMNS_CONFIG: ModelsColumnsConfig = {
   sendButtonLabel: 'Enviar aula',
   sendButtonAriaLabel: 'Enviar rascunho',
   deleteButtonAriaLabel: 'Deletar rascunho',
@@ -103,14 +103,14 @@ export const RecommendedClassDraftsTab = ({
     mapSubjectNameToEnum={mapSubjectNameToEnum}
     userFilterData={userFilterData}
     subjectsMap={subjectsMap}
-    config={GOAL_DRAFTS_CONFIG}
+    config={RECOMMENDED_CLASS_DRAFTS_CONFIG}
     createTableColumns={(mapSubject, send, edit, del) =>
       createModelsTableColumnsBase(
         mapSubject,
         send,
         edit,
         del,
-        GOAL_DRAFTS_COLUMNS_CONFIG
+        RECOMMENDED_CLASS_DRAFTS_COLUMNS_CONFIG
       )
     }
     createFiltersConfig={createRecommendedClassDraftsFiltersConfig}

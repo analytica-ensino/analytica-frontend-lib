@@ -79,8 +79,8 @@ export interface RecommendedLessonsPagePaths {
  * API endpoints configuration
  */
 export interface RecommendedLessonsPageEndpoints {
-  /** Endpoint for fetching recommendedClasss history */
-  recommendedClasssHistory: string;
+  /** Endpoint for fetching recommendedClass history */
+  recommendedClassHistory: string;
   /** Endpoint for fetching recommendedClass models/drafts */
   recommendedClassDrafts: string;
   /** Endpoint for submitting a recommendedClass */
@@ -271,9 +271,9 @@ const getSubjectOptions = (
  *     editModel: '/criar-aula?mode=model&id=',
  *   },
  *   endpoints: {
- *     recommendedClasssHistory: '/recommended-class/history',
+ *     recommendedClassHistory: '/recommended-class/history',
  *     recommendedClassDrafts: '/recommended-class/drafts',
- *     submitRecommendedClass: '/recommendedClasss',
+ *     submitRecommendedClass: '/recommendedClass',
  *   },
  *   texts: {
  *     title: 'Histórico de aulas recomendadas',
@@ -306,7 +306,7 @@ export const createUseRecommendedLessonsPage = (
 
   return (): UseRecommendedLessonsPageReturn => {
     // Store original recommendedClass data for navigation
-    const recommendedClasssMapRef = useRef<
+    const recommendedClassMapRef = useRef<
       Map<string, RecommendedClassHistoryItem>
     >(new Map());
 
@@ -338,7 +338,7 @@ export const createUseRecommendedLessonsPage = (
     }, [userData]);
 
     /**
-     * Fetch recommendedClasss history from API
+     * Fetch recommendedClass history from API
      */
     const fetchRecommendedClassHistory = useCallback(
       async (
@@ -346,14 +346,14 @@ export const createUseRecommendedLessonsPage = (
       ): Promise<RecommendedClassHistoryApiResponse> => {
         const params = buildQueryParams(filters as Record<string, unknown>);
         const response = await api.get<RecommendedClassHistoryApiResponse>(
-          endpoints.recommendedClasssHistory,
+          endpoints.recommendedClassHistory,
           { params }
         );
 
         // Store original recommendedClass data for later use in navigation
         const recommendedClass = response.data.data.recommendedClass;
         recommendedClass.forEach((recommendedClass) => {
-          recommendedClasssMapRef.current.set(
+          recommendedClassMapRef.current.set(
             recommendedClass.recommendedClass.id,
             recommendedClass
           );
@@ -361,7 +361,7 @@ export const createUseRecommendedLessonsPage = (
 
         return response.data;
       },
-      [api, endpoints.recommendedClasssHistory]
+      [api, endpoints.recommendedClassHistory]
     );
 
     /**
@@ -442,7 +442,7 @@ export const createUseRecommendedLessonsPage = (
      * Handle row click - navigate to recommendedClass details
      */
     const handleRowClick = useCallback((row: RecommendedClassTableItem) => {
-      const originalData = recommendedClasssMapRef.current.get(row.id);
+      const originalData = recommendedClassMapRef.current.get(row.id);
       navigate(`${paths.lessonDetails}/${row.id}`, {
         state: { recommendedClassData: originalData },
       });

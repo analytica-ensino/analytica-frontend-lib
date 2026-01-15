@@ -6,7 +6,7 @@ import {
   determineRecommendedClassStatus,
   transformRecommendedClassToTableItem,
   handleRecommendedClassFetchError,
-  recommendedClasssHistoryApiResponseSchema,
+  recommendedClassHistoryApiResponseSchema,
 } from './useRecommendedLessons';
 import { RecommendedClassDisplayStatus } from '../types/recommendedLessons';
 import type {
@@ -211,7 +211,7 @@ describe('useRecommendedLessons', () => {
           code: 'invalid_type',
           expected: 'string',
           received: 'number',
-          path: ['data', 'recommendedClasss'],
+          path: ['data', 'recommendedClass'],
           message: 'Expected string, received number',
         },
       ]);
@@ -246,7 +246,7 @@ describe('useRecommendedLessons', () => {
     });
   });
 
-  describe('recommendedClasssHistoryApiResponseSchema', () => {
+  describe('recommendedClassHistoryApiResponseSchema', () => {
     it('should validate a valid API response', () => {
       const validResponse = {
         message: 'Success',
@@ -292,7 +292,7 @@ describe('useRecommendedLessons', () => {
       };
 
       const result =
-        recommendedClasssHistoryApiResponseSchema.safeParse(validResponse);
+        recommendedClassHistoryApiResponseSchema.safeParse(validResponse);
       expect(result.success).toBe(true);
     });
 
@@ -326,7 +326,7 @@ describe('useRecommendedLessons', () => {
       };
 
       const result =
-        recommendedClasssHistoryApiResponseSchema.safeParse(responseWithNulls);
+        recommendedClassHistoryApiResponseSchema.safeParse(responseWithNulls);
       expect(result.success).toBe(true);
     });
 
@@ -360,7 +360,7 @@ describe('useRecommendedLessons', () => {
       };
 
       const result =
-        recommendedClasssHistoryApiResponseSchema.safeParse(invalidResponse);
+        recommendedClassHistoryApiResponseSchema.safeParse(invalidResponse);
       expect(result.success).toBe(false);
     });
 
@@ -374,7 +374,7 @@ describe('useRecommendedLessons', () => {
       };
 
       const result =
-        recommendedClasssHistoryApiResponseSchema.safeParse(missingFields);
+        recommendedClassHistoryApiResponseSchema.safeParse(missingFields);
       expect(result.success).toBe(false);
     });
   });
@@ -450,7 +450,7 @@ describe('useRecommendedLessons', () => {
       expect(result.current.fetchRecommendedClass).toBeInstanceOf(Function);
     });
 
-    it('should fetch recommendedClasss successfully', async () => {
+    it('should fetch recommendedClass successfully', async () => {
       mockFetchRecommendedClassHistory.mockResolvedValueOnce(validApiResponse);
 
       const useRecommendedClassHistory = createUseRecommendedLessonsHistory(

@@ -497,7 +497,7 @@ describe('RecommendedLessonsHistory', () => {
   });
 
   describe('Empty State', () => {
-    it('should show empty state when no recommendedClasss', async () => {
+    it('should show empty state when no recommendedClass', async () => {
       mockFetchRecommendedClassHistory.mockResolvedValue(emptyApiResponse);
 
       render(<RecommendedLessonsHistory {...defaultProps} />);
