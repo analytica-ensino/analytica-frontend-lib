@@ -18,6 +18,8 @@ type UseScreenSizeReturn = {
 
 // Mobile width in pixels
 const MOBILE_WIDTH = 931;
+// Small screen width in pixels (for ActivityCreate and RecommendedLessonCreate)
+const SMALL_SCREEN_WIDTH = 1200;
 
 /**
  * Hook para capturar o tamanho da tela do usuário
@@ -109,4 +111,27 @@ export const useMobile = () => {
   }, []);
 
   return isMobile;
+};
+
+/**
+ * Hook to detect small screen size (width <= 1200px)
+ * Used by ActivityCreate and RecommendedLessonCreate components
+ * @returns true if the screen width is <= 1200px, false otherwise
+ */
+export const useSmallScreen = () => {
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsSmallScreen(window.innerWidth <= SMALL_SCREEN_WIDTH);
+    };
+
+    checkScreenSize();
+
+    window.addEventListener('resize', checkScreenSize);
+
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  return isSmallScreen;
 };
