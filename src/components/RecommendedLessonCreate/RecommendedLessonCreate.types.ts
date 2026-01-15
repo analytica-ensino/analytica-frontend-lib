@@ -4,6 +4,14 @@ import { GoalDraftType } from '../../types/recommendedLessons';
 // Re-export GoalDraftType for convenience
 export { GoalDraftType };
 
+// Re-export category types from shared utils for backward compatibility
+export type {
+  School,
+  SchoolYear,
+  Class,
+  Student,
+} from '../../utils/categoryDataUtils';
+
 /**
  * Backend filters format for recommended lessons (from API)
  */
@@ -63,42 +71,6 @@ export interface RecommendedLessonData {
   updatedAt?: string;
   startDate?: string | null;
   finalDate?: string | null;
-}
-
-/**
- * School type for categories data
- */
-export interface School {
-  id: string;
-  companyName: string;
-}
-
-/**
- * SchoolYear type for categories data
- */
-export interface SchoolYear {
-  id: string;
-  name: string;
-  schoolId: string;
-}
-
-/**
- * Class type for categories data
- */
-export interface Class {
-  id: string;
-  name: string;
-  schoolYearId: string;
-}
-
-/**
- * Student type for categories data
- */
-export interface Student {
-  id: string;
-  name: string;
-  classId: string;
-  userInstitutionId: string;
 }
 
 /**
