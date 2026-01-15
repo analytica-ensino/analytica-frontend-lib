@@ -23,7 +23,8 @@ import type {
   QuestionFiltersState,
   SendActivityFormData,
 } from '../..';
-import { Funnel } from 'phosphor-react';
+import type { Lesson } from '../../types/lessons';
+import { Funnel, MonitorPlay } from 'phosphor-react';
 import { ActivityListQuestions } from '../ActivityListQuestions/ActivityListQuestions';
 import { areFiltersEqual } from '../../utils/activityFilters';
 import type {
@@ -77,7 +78,8 @@ const CreateActivity = ({
 
   const typeParam = searchParams.get('type') || undefined;
   const idParam = searchParams.get('id') || undefined;
-  const recommendedLessonId = searchParams.get('recommended-lesson') || undefined;
+  const recommendedLessonId =
+    searchParams.get('recommended-lesson') || undefined;
   const recommendedLessonDraftId =
     searchParams.get('recommended-lesson-draft') || undefined;
   const onFinishPath = searchParams.get('onFinish') || undefined;
@@ -140,7 +142,10 @@ const CreateActivity = ({
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [isSendingActivity, setIsSendingActivity] = useState(false);
-  const [isLessonPreviewModalOpen, setIsLessonPreviewModalOpen] = useState(false);
+  const [isLessonPreviewModalOpen, setIsLessonPreviewModalOpen] =
+    useState(false);
+  const [previewLessons, setPreviewLessons] = useState<Lesson[]>([]);
+  const [isLoadingPreviewLessons, setIsLoadingPreviewLessons] = useState(false);
   const hasFirstSaveBeenDone = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedFiltersRef = useRef<ActivityFiltersData | null>(null);
@@ -180,11 +185,44 @@ const CreateActivity = ({
   }, [clearFilters, onBack, onFinishPath, navigate]);
 
   /**
-   * Handle lesson preview button click - opens modal with "em desenvolvimento" message
+   * Handle lesson preview button click - fetches lessons from recommended-lesson-draft and opens modal
    */
-  const handleLessonPreview = useCallback(() => {
+  const handleLessonPreview = useCallback(async () => {
     setIsLessonPreviewModalOpen(true);
-  }, []);
+
+    // Get the draft ID from URL params
+    const draftIdToFetch = recommendedLessonDraftId || recommendedLessonId;
+    if (!draftIdToFetch) {
+      return;
+    }
+
+    setIsLoadingPreviewLessons(true);
+    try {
+      // Determine endpoint based on which ID we have
+      const endpoint = recommendedLessonDraftId
+        ? `/recommended-lesson-drafts/${draftIdToFetch}`
+        : `/recommended-lessons/${draftIdToFetch}`;
+
+      const response = await apiClient.get<{
+        data: {
+          draft?: { selectedLessons?: Lesson[] };
+          selectedLessons?: Lesson[];
+        };
+      }>(endpoint);
+
+      // Handle both response formats (draft wrapper or direct)
+      const lessons =
+        response.data.data.draft?.selectedLessons ||
+        response.data.data.selectedLessons ||
+        [];
+      setPreviewLessons(lessons);
+    } catch (error) {
+      console.error('Error fetching lesson preview:', error);
+      setPreviewLessons([]);
+    } finally {
+      setIsLoadingPreviewLessons(false);
+    }
+  }, [recommendedLessonDraftId, recommendedLessonId, apiClient]);
 
   const useActivityFiltersData = createUseActivityFiltersData(apiClient);
   const { knowledgeAreas, loadKnowledgeAreas } = useActivityFiltersData({
@@ -1134,22 +1172,56 @@ const CreateActivity = ({
         }}
       />
 
-      {/* Lesson Preview Modal - In Development */}
+      {/* Lesson Preview Modal */}
       <Modal
         isOpen={isLessonPreviewModalOpen}
         onClose={() => setIsLessonPreviewModalOpen(false)}
-        title="Prévia da aula"
+        title="Prévia da aula recomendada"
         size="sm"
         footer={
-          <Button onClick={() => setIsLessonPreviewModalOpen(false)}>
-            Fechar
-          </Button>
+          <Button onClick={() => setIsLessonPreviewModalOpen(false)}>OK</Button>
         }
       >
-        <div className="flex flex-col items-center justify-center py-8 gap-4">
-          <Text size="md" className="text-text-600 text-center">
-            Esta funcionalidade está em desenvolvimento.
-          </Text>
+        <div className="flex flex-col gap-3">
+          {isLoadingPreviewLessons ? (
+            <div className="flex flex-col gap-3">
+              <SkeletonText className="h-4 w-32" />
+              <SkeletonText className="h-14 w-full" />
+              <SkeletonText className="h-14 w-full" />
+            </div>
+          ) : (
+            <>
+              <Text size="sm" className="text-text-500">
+                {previewLessons.length} aula
+                {previewLessons.length !== 1 ? 's' : ''} adicionada
+                {previewLessons.length !== 1 ? 's' : ''}
+              </Text>
+              <div className="flex flex-col gap-2">
+                {previewLessons.map((lesson) => (
+                  <div
+                    key={lesson.id}
+                    className="flex items-center justify-between p-4 border border-border-200 rounded-lg"
+                  >
+                    <Text
+                      size="sm"
+                      className="text-text-700 truncate flex-1 mr-2"
+                    >
+                      {lesson.title}
+                    </Text>
+                    <MonitorPlay
+                      size={20}
+                      className="text-text-400 flex-shrink-0"
+                    />
+                  </div>
+                ))}
+                {previewLessons.length === 0 && (
+                  <Text size="sm" className="text-text-500 text-center py-4">
+                    Nenhuma aula adicionada ainda.
+                  </Text>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </Modal>
     </div>

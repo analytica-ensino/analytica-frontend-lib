@@ -1093,6 +1093,51 @@ export const WithFullNavigationFlow: Story = () => {
         };
       }
 
+      // Handle recommended-lesson-drafts/{id} endpoint for lesson preview modal
+      if (url.startsWith('/recommended-lesson-drafts/')) {
+        return {
+          data: {
+            message: 'Recommended lesson draft retrieved successfully',
+            data: {
+              draft: {
+                id: 'existing-draft-123',
+                type: GoalDraftType.RASCUNHO,
+                title: 'Aula de Matemática - Álgebra',
+                description: null,
+                creatorUserInstitutionId: 'mock-institution-id',
+                subjectId: 'matematica',
+                filters: {
+                  subjects: ['matematica'],
+                  topics: ['tema-1'],
+                  subtopics: ['subtema-1'],
+                  contents: ['assunto-1'],
+                },
+                startDate: null,
+                finalDate: null,
+                createdAt: '2024-01-15T10:00:00.000Z',
+                updatedAt: '2024-01-15T10:00:00.000Z',
+                selectedLessons: [
+                  {
+                    id: 'lesson-1',
+                    title: 'Estratégias para Preservação de Ecossistemas',
+                  },
+                  {
+                    id: 'lesson-2',
+                    title: 'Fotossíntese aplicada',
+                  },
+                  {
+                    id: 'lesson-3',
+                    title:
+                      'Estratégias para Preservação de Ecossistemas Marinhos',
+                  },
+                ],
+              },
+              lessonsLinked: 3,
+            },
+          },
+        };
+      }
+
       // Delegate all other endpoints (including /activity-drafts and /activity-drafts/{id}) to base mock
       // The base mock already has proper selectedQuestions data
       return baseMockClient.get(url);
@@ -1233,10 +1278,28 @@ export const WithFullNavigationFlow: Story = () => {
       lessonId: string;
       lessonType: string;
     }) => {
-      // Build URL with all necessary parameters
+      // Build URL with all necessary parameters for editing existing activity
       const params = new URLSearchParams();
       params.set('type', activityType.toLowerCase());
       params.set('id', activityId);
+      params.set('recommended-lesson-draft', lessonId);
+      params.set(
+        'onFinish',
+        `criar-aula-recomendada?type=${lessonType.toLowerCase()}&id=${lessonId}`
+      );
+
+      navigate(`/criar-atividade?${params.toString()}`);
+    };
+
+    const handleCreateNewActivity = ({
+      lessonId,
+      lessonType,
+    }: {
+      lessonId: string;
+      lessonType: string;
+    }) => {
+      // Build URL for creating new activity (no activityId or activityType)
+      const params = new URLSearchParams();
       params.set('recommended-lesson-draft', lessonId);
       params.set(
         'onFinish',
@@ -1252,6 +1315,7 @@ export const WithFullNavigationFlow: Story = () => {
         institutionId="institution-1"
         onBack={() => console.log('Back from RecommendedLessonCreate')}
         onRedirectToActivity={handleRedirectToActivity}
+        onCreateNewActivity={handleCreateNewActivity}
       />
     );
   };

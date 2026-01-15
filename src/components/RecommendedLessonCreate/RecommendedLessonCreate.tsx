@@ -64,6 +64,7 @@ const RecommendedLessonCreate = ({
   onSaveModel,
   preFilters: preFiltersProp,
   onRedirectToActivity,
+  onCreateNewActivity,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -83,6 +84,14 @@ const RecommendedLessonCreate = ({
   }: {
     activityId: string;
     activityType: ActivityType;
+    lessonId: string;
+    lessonType: GoalDraftType;
+  }) => void;
+  /** Callback when create new activity is clicked (without existing activity) */
+  onCreateNewActivity?: ({
+    lessonId,
+    lessonType,
+  }: {
     lessonId: string;
     lessonType: GoalDraftType;
   }) => void;
@@ -210,6 +219,26 @@ const RecommendedLessonCreate = ({
         activityType: activity.type,
         lessonId: recommendedLesson?.id,
         lessonType: recommendedLesson?.type,
+      });
+    }
+  };
+
+  const handleCreateNewActivity = () => {
+    if (onCreateNewActivity) {
+      if (!recommendedLesson?.id || !recommendedLesson?.type) {
+        addToast({
+          title: 'Erro ao criar nova atividade',
+          description: 'A aula recomendada não foi encontrada',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+        return;
+      }
+
+      onCreateNewActivity({
+        lessonId: recommendedLesson.id,
+        lessonType: recommendedLesson.type,
       });
     }
   };
@@ -1016,6 +1045,7 @@ const RecommendedLessonCreate = ({
                     onReorder={handleReorder}
                     apiClient={apiClient}
                     onEditActivity={handleRedirectToActivity}
+                    onCreateNewActivity={handleCreateNewActivity}
                     className="h-full overflow-y-auto"
                   />
                 )}
@@ -1084,6 +1114,7 @@ const RecommendedLessonCreate = ({
                 onReorder={handleReorder}
                 apiClient={apiClient}
                 onEditActivity={handleRedirectToActivity}
+                onCreateNewActivity={handleCreateNewActivity}
                 className="h-full overflow-y-auto"
               />
             )}
