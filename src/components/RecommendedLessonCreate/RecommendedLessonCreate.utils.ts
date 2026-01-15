@@ -1,7 +1,7 @@
 import type { LessonFiltersData } from '../../types/lessonFilters';
 import type { Lesson } from '../../types/lessons';
 import type { LessonBackendFiltersFormat } from './RecommendedLessonCreate.types';
-import { GoalDraftType } from './RecommendedLessonCreate.types';
+import { RecommendedClassDraftType } from './RecommendedLessonCreate.types';
 
 // Re-export shared utilities for backward compatibility
 export {
@@ -97,13 +97,13 @@ export function getSubjectName(
 /**
  * Get goal draft type label using object literal mapping
  *
- * @param type - GoalDraftType enum value
+ * @param type - RecommendedClassDraftType enum value
  * @returns Label string for the goal draft type
  */
-export function getGoalDraftTypeLabel(type: GoalDraftType): string {
-  const typeLabels: Record<GoalDraftType, string> = {
-    [GoalDraftType.RASCUNHO]: 'Rascunho',
-    [GoalDraftType.MODELO]: 'Modelo',
+export function getGoalDraftTypeLabel(type: RecommendedClassDraftType): string {
+  const typeLabels: Record<RecommendedClassDraftType, string> = {
+    [RecommendedClassDraftType.RASCUNHO]: 'Rascunho',
+    [RecommendedClassDraftType.MODELO]: 'Modelo',
   };
   return typeLabels[type];
 }
@@ -111,13 +111,13 @@ export function getGoalDraftTypeLabel(type: GoalDraftType): string {
 /**
  * Generate recommended lesson title based on type and subject
  *
- * @param type - GoalDraftType enum value
+ * @param type - RecommendedClassDraftType enum value
  * @param subjectId - Subject ID to get name from
  * @param knowledgeAreas - Array of knowledge areas for subject lookup
  * @returns Generated title string
  */
 export function generateTitle(
-  type: GoalDraftType,
+  type: RecommendedClassDraftType,
   subjectId: string | null,
   knowledgeAreas: KnowledgeArea[]
 ): string {
@@ -127,16 +127,16 @@ export function generateTitle(
 }
 
 /**
- * Convert GoalDraftType to the format used in URL
+ * Convert RecommendedClassDraftType to the format used in URL
  *
- * @param type - GoalDraftType enum value
+ * @param type - RecommendedClassDraftType enum value
  * @returns String representation for URL (rascunho or modelo)
  */
-export function getTypeFromUrl(type: GoalDraftType): string {
+export function getTypeFromUrl(type: RecommendedClassDraftType): string {
   switch (type) {
-    case GoalDraftType.RASCUNHO:
+    case RecommendedClassDraftType.RASCUNHO:
       return 'rascunho';
-    case GoalDraftType.MODELO:
+    case RecommendedClassDraftType.MODELO:
       return 'modelo';
     default:
       return 'rascunho';
@@ -144,19 +144,19 @@ export function getTypeFromUrl(type: GoalDraftType): string {
 }
 
 /**
- * Convert string from URL to GoalDraftType
+ * Convert string from URL to RecommendedClassDraftType
  *
  * @param type - String from URL (rascunho or modelo)
- * @returns GoalDraftType enum value
+ * @returns RecommendedClassDraftType enum value
  */
-export function getTypeFromUrlString(type: string | undefined): GoalDraftType {
+export function getTypeFromUrlString(type: string | undefined): RecommendedClassDraftType {
   switch (type) {
     case 'rascunho':
-      return GoalDraftType.RASCUNHO;
+      return RecommendedClassDraftType.RASCUNHO;
     case 'modelo':
-      return GoalDraftType.MODELO;
+      return RecommendedClassDraftType.MODELO;
     default:
-      return GoalDraftType.RASCUNHO;
+      return RecommendedClassDraftType.RASCUNHO;
   }
 }
 

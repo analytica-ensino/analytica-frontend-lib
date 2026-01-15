@@ -7,7 +7,7 @@ import {
 } from '@testing-library/react';
 import React from 'react';
 import { RecommendedLessonCreate } from './RecommendedLessonCreate';
-import { GoalDraftType } from './RecommendedLessonCreate.types';
+import { RecommendedClassDraftType } from './RecommendedLessonCreate.types';
 import type { BaseApiClient } from '../../types/api';
 
 // Mock react-router-dom
@@ -379,7 +379,7 @@ describe('RecommendedLessonCreate', () => {
         data: {
           draft: {
             id: 'draft-1',
-            type: GoalDraftType.RASCUNHO,
+            type: RecommendedClassDraftType.RASCUNHO,
             title: 'Test Draft',
             subjectId: 'subject-1',
             filters: {},
@@ -925,7 +925,7 @@ describe('RecommendedLessonCreate', () => {
             data: {
               data: {
                 id: 'draft-123',
-                type: GoalDraftType.RASCUNHO,
+                type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 filters: { subjects: ['subject-1'] },
                 lessonIds: [],
@@ -992,7 +992,7 @@ describe('RecommendedLessonCreate', () => {
           data: {
             draft: {
               id: 'new-draft-1',
-              type: GoalDraftType.RASCUNHO,
+              type: RecommendedClassDraftType.RASCUNHO,
               title: 'Rascunho - Math',
               subjectId: 'subject-1',
               filters: { subjects: ['subject-1'] },
@@ -1021,7 +1021,7 @@ describe('RecommendedLessonCreate', () => {
         expect(mockApiClient.post).toHaveBeenCalledWith(
           '/recommended-class/drafts',
           expect.objectContaining({
-            type: GoalDraftType.RASCUNHO,
+            type: RecommendedClassDraftType.RASCUNHO,
             lessonIds: ['lesson-1'],
           })
         );
@@ -1039,7 +1039,7 @@ describe('RecommendedLessonCreate', () => {
             data: {
               data: {
                 id: 'existing-draft-1',
-                type: GoalDraftType.RASCUNHO,
+                type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 filters: { subjects: ['subject-1'] },
                 lessonIds: [],
@@ -1061,7 +1061,7 @@ describe('RecommendedLessonCreate', () => {
           data: {
             draft: {
               id: 'existing-draft-1',
-              type: GoalDraftType.RASCUNHO,
+              type: RecommendedClassDraftType.RASCUNHO,
               title: 'Updated Draft',
               subjectId: 'subject-1',
               filters: { subjects: ['subject-1'] },
@@ -1163,7 +1163,7 @@ describe('RecommendedLessonCreate', () => {
           data: {
             draft: {
               id: 'draft-1',
-              type: GoalDraftType.RASCUNHO,
+              type: RecommendedClassDraftType.RASCUNHO,
               title: 'Test Draft',
               subjectId: 'subject-1',
               filters: {},
@@ -1179,7 +1179,7 @@ describe('RecommendedLessonCreate', () => {
           data: {
             draft: {
               id: 'draft-1',
-              type: GoalDraftType.MODELO,
+              type: RecommendedClassDraftType.MODELO,
               title: 'Modelo - Math',
               subjectId: 'subject-1',
               filters: {},
@@ -1230,7 +1230,7 @@ describe('RecommendedLessonCreate', () => {
             data: {
               data: {
                 id: 'existing-draft-1',
-                type: GoalDraftType.RASCUNHO,
+                type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 filters: { subjects: ['subject-1'] },
                 lessonIds: ['lesson-1'],
@@ -1253,7 +1253,7 @@ describe('RecommendedLessonCreate', () => {
           data: {
             draft: {
               id: 'existing-draft-1',
-              type: GoalDraftType.MODELO,
+              type: RecommendedClassDraftType.MODELO,
               title: 'Modelo - Math',
               subjectId: 'subject-1',
               filters: { subjects: ['subject-1'] },
@@ -1306,7 +1306,7 @@ describe('RecommendedLessonCreate', () => {
             data: {
               data: {
                 id: 'draft-1',
-                type: GoalDraftType.RASCUNHO,
+                type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 subjectId: 'subject-1',
                 filters: { subjects: ['subject-1'] },
@@ -1421,7 +1421,7 @@ describe('RecommendedLessonCreate', () => {
             data: {
               data: {
                 id: 'draft-1',
-                type: GoalDraftType.RASCUNHO,
+                type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 subjectId: 'subject-1',
                 filters: { subjects: ['subject-1'] },
@@ -1523,7 +1523,7 @@ describe('RecommendedLessonCreate', () => {
             data: {
               data: {
                 id: 'draft-1',
-                type: GoalDraftType.RASCUNHO,
+                type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 filters: { subjects: ['subject-1'] },
                 lessonIds: [],
@@ -1563,7 +1563,7 @@ describe('RecommendedLessonCreate', () => {
         activityId: 'activity-1',
         activityType: 'MODELO',
         lessonId: 'draft-1',
-        lessonType: GoalDraftType.RASCUNHO,
+        lessonType: RecommendedClassDraftType.RASCUNHO,
       });
     });
 
@@ -1578,7 +1578,7 @@ describe('RecommendedLessonCreate', () => {
             data: {
               data: {
                 id: 'draft-1',
-                type: GoalDraftType.RASCUNHO,
+                type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 filters: { subjects: ['subject-1'] },
                 lessonIds: [],
@@ -1620,7 +1620,7 @@ describe('RecommendedLessonCreate', () => {
 
       expect(onCreateNewActivity).toHaveBeenCalledWith({
         lessonId: 'draft-1',
-        lessonType: GoalDraftType.RASCUNHO,
+        lessonType: RecommendedClassDraftType.RASCUNHO,
       });
     });
 
@@ -1654,7 +1654,7 @@ describe('RecommendedLessonCreate', () => {
             data: {
               data: {
                 id: 'draft-1',
-                type: GoalDraftType.RASCUNHO,
+                type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 filters: { subjects: ['subject-1'] },
                 lessonIds: [],
@@ -1760,7 +1760,7 @@ describe('RecommendedLessonCreate', () => {
           data: {
             draft: {
               id: 'draft-1',
-              type: GoalDraftType.RASCUNHO,
+              type: RecommendedClassDraftType.RASCUNHO,
               title: 'Test Draft',
               subjectId: 'subject-1',
               filters: {},
@@ -1817,7 +1817,7 @@ describe('RecommendedLessonCreate', () => {
             data: {
               data: {
                 id: 'draft-1',
-                type: GoalDraftType.RASCUNHO,
+                type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 filters: { subjects: ['subject-1'] },
                 lessonIds: ['lesson-1', 'lesson-2'],
@@ -1857,7 +1857,7 @@ describe('RecommendedLessonCreate', () => {
           data: {
             draft: {
               id: 'new-draft-123',
-              type: GoalDraftType.RASCUNHO,
+              type: RecommendedClassDraftType.RASCUNHO,
               title: 'Test Draft',
               subjectId: 'subject-1',
               filters: {},
@@ -2040,7 +2040,7 @@ describe('RecommendedLessonCreate', () => {
             data: {
               data: {
                 id: 'draft-1',
-                type: GoalDraftType.RASCUNHO,
+                type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 filters: { subjects: ['subject-1'] },
                 lessonIds: [],
@@ -2116,7 +2116,7 @@ describe('RecommendedLessonCreate', () => {
         data: {
           draft: {
             id: 'draft-123',
-            type: GoalDraftType.RASCUNHO,
+            type: RecommendedClassDraftType.RASCUNHO,
             title: 'Test Draft',
             subjectId: 'subject-1',
             filters: {},
@@ -2159,7 +2159,7 @@ describe('RecommendedLessonCreate', () => {
             data: {
               data: {
                 id: 'draft-1',
-                type: GoalDraftType.RASCUNHO,
+                type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 filters: { subjects: ['subject-1'] },
                 lessonIds: ['lesson-1'],
@@ -2203,7 +2203,7 @@ describe('RecommendedLessonCreate', () => {
                     data: {
                       draft: {
                         id: 'draft-1',
-                        type: GoalDraftType.RASCUNHO,
+                        type: RecommendedClassDraftType.RASCUNHO,
                         title: 'Test Draft',
                         subjectId: 'subject-1',
                         filters: {},
@@ -2349,7 +2349,7 @@ describe('RecommendedLessonCreate', () => {
             data: {
               data: {
                 id: 'existing-draft-1',
-                type: GoalDraftType.RASCUNHO,
+                type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 filters: { subjects: ['subject-1'] },
                 lessonIds: [],
@@ -2372,7 +2372,7 @@ describe('RecommendedLessonCreate', () => {
           data: {
             draft: {
               id: 'different-draft-id',
-              type: GoalDraftType.RASCUNHO,
+              type: RecommendedClassDraftType.RASCUNHO,
               title: 'Updated Draft',
               subjectId: 'subject-1',
               filters: { subjects: ['subject-1'] },

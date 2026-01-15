@@ -1,7 +1,7 @@
 import { Button, Text } from '../../..';
 import { CaretLeft, PaperPlaneTilt } from 'phosphor-react';
 import type { RecommendedLessonData } from '../RecommendedLessonCreate.types';
-import { GoalDraftType } from '../RecommendedLessonCreate.types';
+import { RecommendedClassDraftType } from '../RecommendedLessonCreate.types';
 import {
   getGoalDraftTypeLabel,
   formatTime,
@@ -25,7 +25,7 @@ export const RecommendedLessonCreateHeader = ({
   onBack,
 }: {
   recommendedLesson?: RecommendedLessonData;
-  draftType: GoalDraftType;
+  draftType: RecommendedClassDraftType;
   lastSavedAt: Date | null;
   isSaving: boolean;
   lessonsCount: number;

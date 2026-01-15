@@ -12,7 +12,7 @@ import {
   loadCategoriesData,
 } from './RecommendedLessonCreate.utils';
 import type { KnowledgeArea } from './RecommendedLessonCreate.utils';
-import { GoalDraftType } from './RecommendedLessonCreate.types';
+import { RecommendedClassDraftType } from './RecommendedLessonCreate.types';
 import type { LessonFiltersData } from '../../types/lessonFilters';
 import type { LessonBackendFiltersFormat } from './RecommendedLessonCreate.types';
 import type { Lesson } from '../../types/lessons';
@@ -162,13 +162,13 @@ describe('RecommendedLessonCreate.utils', () => {
 
   describe('getGoalDraftTypeLabel', () => {
     it('should return "Rascunho" for RASCUNHO type', () => {
-      const result = getGoalDraftTypeLabel(GoalDraftType.RASCUNHO);
+      const result = getGoalDraftTypeLabel(RecommendedClassDraftType.RASCUNHO);
 
       expect(result).toBe('Rascunho');
     });
 
     it('should return "Modelo" for MODELO type', () => {
-      const result = getGoalDraftTypeLabel(GoalDraftType.MODELO);
+      const result = getGoalDraftTypeLabel(RecommendedClassDraftType.MODELO);
 
       expect(result).toBe('Modelo');
     });
@@ -182,7 +182,7 @@ describe('RecommendedLessonCreate.utils', () => {
 
     it('should generate title with subject name for RASCUNHO', () => {
       const result = generateTitle(
-        GoalDraftType.RASCUNHO,
+        RecommendedClassDraftType.RASCUNHO,
         'math-1',
         knowledgeAreas
       );
@@ -192,7 +192,7 @@ describe('RecommendedLessonCreate.utils', () => {
 
     it('should generate title with subject name for MODELO', () => {
       const result = generateTitle(
-        GoalDraftType.MODELO,
+        RecommendedClassDraftType.MODELO,
         'port-1',
         knowledgeAreas
       );
@@ -202,7 +202,7 @@ describe('RecommendedLessonCreate.utils', () => {
 
     it('should generate title without subject when subjectId is null', () => {
       const result = generateTitle(
-        GoalDraftType.RASCUNHO,
+        RecommendedClassDraftType.RASCUNHO,
         null,
         knowledgeAreas
       );
@@ -212,7 +212,7 @@ describe('RecommendedLessonCreate.utils', () => {
 
     it('should generate title without subject when subject not found', () => {
       const result = generateTitle(
-        GoalDraftType.MODELO,
+        RecommendedClassDraftType.MODELO,
         'unknown-id',
         knowledgeAreas
       );
@@ -221,7 +221,7 @@ describe('RecommendedLessonCreate.utils', () => {
     });
 
     it('should generate title without subject when knowledgeAreas is empty', () => {
-      const result = generateTitle(GoalDraftType.RASCUNHO, 'math-1', []);
+      const result = generateTitle(RecommendedClassDraftType.RASCUNHO, 'math-1', []);
 
       expect(result).toBe('Rascunho');
     });
@@ -266,19 +266,19 @@ describe('RecommendedLessonCreate.utils', () => {
 
   describe('getTypeFromUrl', () => {
     it('should return "rascunho" for RASCUNHO type', () => {
-      const result = getTypeFromUrl(GoalDraftType.RASCUNHO);
+      const result = getTypeFromUrl(RecommendedClassDraftType.RASCUNHO);
 
       expect(result).toBe('rascunho');
     });
 
     it('should return "modelo" for MODELO type', () => {
-      const result = getTypeFromUrl(GoalDraftType.MODELO);
+      const result = getTypeFromUrl(RecommendedClassDraftType.MODELO);
 
       expect(result).toBe('modelo');
     });
 
     it('should return "rascunho" as default for unknown type', () => {
-      const result = getTypeFromUrl('UNKNOWN' as GoalDraftType);
+      const result = getTypeFromUrl('UNKNOWN' as RecommendedClassDraftType);
 
       expect(result).toBe('rascunho');
     });
@@ -288,31 +288,31 @@ describe('RecommendedLessonCreate.utils', () => {
     it('should return RASCUNHO for "rascunho" string', () => {
       const result = getTypeFromUrlString('rascunho');
 
-      expect(result).toBe(GoalDraftType.RASCUNHO);
+      expect(result).toBe(RecommendedClassDraftType.RASCUNHO);
     });
 
     it('should return MODELO for "modelo" string', () => {
       const result = getTypeFromUrlString('modelo');
 
-      expect(result).toBe(GoalDraftType.MODELO);
+      expect(result).toBe(RecommendedClassDraftType.MODELO);
     });
 
     it('should return RASCUNHO for undefined', () => {
       const result = getTypeFromUrlString(undefined);
 
-      expect(result).toBe(GoalDraftType.RASCUNHO);
+      expect(result).toBe(RecommendedClassDraftType.RASCUNHO);
     });
 
     it('should return RASCUNHO for unknown string', () => {
       const result = getTypeFromUrlString('unknown');
 
-      expect(result).toBe(GoalDraftType.RASCUNHO);
+      expect(result).toBe(RecommendedClassDraftType.RASCUNHO);
     });
 
     it('should return RASCUNHO for empty string', () => {
       const result = getTypeFromUrlString('');
 
-      expect(result).toBe(GoalDraftType.RASCUNHO);
+      expect(result).toBe(RecommendedClassDraftType.RASCUNHO);
     });
   });
 

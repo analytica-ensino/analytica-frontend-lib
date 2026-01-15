@@ -39,7 +39,7 @@ import type {
   RecommendedLessonPreFiltersInput,
   RecommendedLessonCreatePayload,
 } from './RecommendedLessonCreate.types';
-import { GoalDraftType } from './RecommendedLessonCreate.types';
+import { RecommendedClassDraftType } from './RecommendedLessonCreate.types';
 import {
   convertFiltersToBackendFormat,
   convertBackendFiltersToLessonFiltersData,
@@ -86,7 +86,7 @@ const RecommendedLessonCreate = ({
     activityId: string;
     activityType: ActivityType;
     lessonId: string;
-    lessonType: GoalDraftType;
+    lessonType: RecommendedClassDraftType;
   }) => void;
   /** Callback when create new activity is clicked (without existing activity) */
   onCreateNewActivity?: ({
@@ -94,7 +94,7 @@ const RecommendedLessonCreate = ({
     lessonType,
   }: {
     lessonId: string;
-    lessonType: GoalDraftType;
+    lessonType: RecommendedClassDraftType;
   }) => void;
 }) => {
   const [searchParams] = useSearchParams();
@@ -136,7 +136,7 @@ const RecommendedLessonCreate = ({
   const [lessons, setLessons] = useState<PreviewLesson[]>([]);
   const [loadingInitialLessons, setLoadingInitialLessons] = useState(false);
   const [draftId, setDraftId] = useState<string | null>(idParam ?? null);
-  const [draftType, setDraftType] = useState<GoalDraftType>(
+  const [draftType, setDraftType] = useState<RecommendedClassDraftType>(
     getTypeFromUrlString(typeParam)
   );
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
@@ -408,7 +408,7 @@ const RecommendedLessonCreate = ({
    */
   const updateExistingDraft = useCallback(
     async (payload: {
-      type: GoalDraftType;
+      type: RecommendedClassDraftType;
       title: string;
       subjectId: string;
       filters: LessonBackendFiltersFormat;
@@ -454,7 +454,7 @@ const RecommendedLessonCreate = ({
       }
 
       if (
-        payload.type === GoalDraftType.MODELO &&
+        payload.type === RecommendedClassDraftType.MODELO &&
         onSaveModel &&
         response?.data
       ) {
@@ -550,7 +550,7 @@ const RecommendedLessonCreate = ({
       }
 
       if (
-        savedDraft.type === GoalDraftType.MODELO &&
+        savedDraft.type === RecommendedClassDraftType.MODELO &&
         onSaveModel &&
         fullResponse
       ) {
@@ -619,7 +619,7 @@ const RecommendedLessonCreate = ({
    * Handle save model button click
    */
   const handleSaveModel = useCallback(async () => {
-    setDraftType(GoalDraftType.MODELO);
+    setDraftType(RecommendedClassDraftType.MODELO);
   }, []);
 
   /**
@@ -730,7 +730,7 @@ const RecommendedLessonCreate = ({
    * Save immediately when draftType changes to MODELO
    */
   useEffect(() => {
-    if (draftType === GoalDraftType.MODELO && hasFirstSaveBeenDone.current) {
+    if (draftType === RecommendedClassDraftType.MODELO && hasFirstSaveBeenDone.current) {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
@@ -1139,7 +1139,7 @@ const RecommendedLessonCreate = ({
 };
 
 export { RecommendedLessonCreate };
-export { GoalDraftType } from './RecommendedLessonCreate.types';
+export { RecommendedClassDraftType } from './RecommendedLessonCreate.types';
 export type {
   LessonBackendFiltersFormat,
   RecommendedLessonDraftResponse,

@@ -1,5 +1,5 @@
 import type { Lesson } from '../../types/lessons';
-import { GoalDraftType } from '../../types/recommendedLessons';
+import { RecommendedClassDraftType } from '../../types/recommendedLessons';
 
 // Re-export category types from shared utils for backward compatibility
 export type {
@@ -38,7 +38,7 @@ export interface RecommendedLessonDraftResponse {
   data: {
     draft: {
       id: string;
-      type: GoalDraftType;
+      type: RecommendedClassDraftType;
       title: string;
       description: string | null;
       creatorUserInstitutionId: string;
@@ -58,7 +58,7 @@ export interface RecommendedLessonDraftResponse {
  */
 export interface RecommendedLessonData {
   id?: string;
-  type: GoalDraftType;
+  type: RecommendedClassDraftType;
   title: string;
   description?: string | null;
   subjectId?: string | null;
@@ -100,4 +100,4 @@ export interface RecommendedLessonCreateResponse {
   };
 }
 
-export { GoalDraftType } from '../../types/recommendedLessons';
+export { RecommendedClassDraftType } from '../../types/recommendedLessons';

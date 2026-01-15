@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { RecommendedLessonCreateHeader } from './RecommendedLessonCreateHeader';
-import { GoalDraftType } from '../RecommendedLessonCreate.types';
+import { RecommendedClassDraftType } from '../RecommendedLessonCreate.types';
 import type { RecommendedLessonData } from '../RecommendedLessonCreate.types';
 
 // Mock the components
@@ -62,7 +62,7 @@ jest.mock('phosphor-react', () => ({
 
 describe('RecommendedLessonCreateHeader', () => {
   const defaultProps = {
-    draftType: GoalDraftType.RASCUNHO,
+    draftType: RecommendedClassDraftType.RASCUNHO,
     lastSavedAt: null,
     isSaving: false,
     lessonsCount: 0,
@@ -94,7 +94,7 @@ describe('RecommendedLessonCreateHeader', () => {
     it('should render "Editar aula recomendada" when recommendedLesson is provided', () => {
       const recommendedLesson: RecommendedLessonData = {
         id: 'lesson-1',
-        type: GoalDraftType.RASCUNHO,
+        type: RecommendedClassDraftType.RASCUNHO,
         title: 'Test Lesson',
         filters: {},
         lessonIds: [],
@@ -177,7 +177,7 @@ describe('RecommendedLessonCreateHeader', () => {
         <RecommendedLessonCreateHeader
           {...defaultProps}
           lastSavedAt={savedTime}
-          draftType={GoalDraftType.RASCUNHO}
+          draftType={RecommendedClassDraftType.RASCUNHO}
         />
       );
 
@@ -195,7 +195,7 @@ describe('RecommendedLessonCreateHeader', () => {
         <RecommendedLessonCreateHeader
           {...defaultProps}
           lastSavedAt={savedTime}
-          draftType={GoalDraftType.MODELO}
+          draftType={RecommendedClassDraftType.MODELO}
         />
       );
 
@@ -306,7 +306,7 @@ describe('RecommendedLessonCreateHeader', () => {
         <RecommendedLessonCreateHeader
           {...defaultProps}
           lastSavedAt={savedTime}
-          draftType={GoalDraftType.RASCUNHO}
+          draftType={RecommendedClassDraftType.RASCUNHO}
         />
       );
 
@@ -324,7 +324,7 @@ describe('RecommendedLessonCreateHeader', () => {
         <RecommendedLessonCreateHeader
           {...defaultProps}
           lastSavedAt={savedTime}
-          draftType={GoalDraftType.MODELO}
+          draftType={RecommendedClassDraftType.MODELO}
         />
       );
 

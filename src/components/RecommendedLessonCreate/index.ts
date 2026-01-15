@@ -1,5 +1,5 @@
 export { RecommendedLessonCreate } from './RecommendedLessonCreate';
-export { GoalDraftType } from './RecommendedLessonCreate.types';
+export { RecommendedClassDraftType } from './RecommendedLessonCreate.types';
 export type {
   LessonBackendFiltersFormat,
   RecommendedLessonDraftResponse,

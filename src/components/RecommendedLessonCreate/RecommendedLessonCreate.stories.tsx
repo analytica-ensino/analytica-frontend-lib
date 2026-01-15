@@ -11,7 +11,7 @@ import { CreateActivity } from '../ActivityCreate/ActivityCreate';
 import type { BaseApiClient } from '../../types/api';
 import type { Lesson } from '../../types/lessons';
 import { Toaster } from '../..';
-import { GoalDraftType } from './RecommendedLessonCreate.types';
+import { RecommendedClassDraftType } from './RecommendedLessonCreate.types';
 import { ActivityDraftType } from '../../types/activitiesHistory';
 
 // Mock lessons data with media properties
@@ -297,7 +297,7 @@ const createMockApiClient = (
           data: {
             data: {
               id: draftId,
-              type: GoalDraftType.RASCUNHO,
+              type: RecommendedClassDraftType.RASCUNHO,
               title: 'Aula Recomendada - Matemática',
               description: null,
               creatorUserInstitutionId: 'mock-institution-id',
@@ -1101,7 +1101,7 @@ export const WithFullNavigationFlow: Story = () => {
             data: {
               draft: {
                 id: 'existing-draft-123',
-                type: GoalDraftType.RASCUNHO,
+                type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Aula de Matemática - Álgebra',
                 description: null,
                 creatorUserInstitutionId: 'mock-institution-id',
