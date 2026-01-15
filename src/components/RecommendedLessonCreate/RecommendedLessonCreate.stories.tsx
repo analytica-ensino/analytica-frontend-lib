@@ -1,5 +1,11 @@
 import type { Story } from '@ladle/react';
-import { BrowserRouter, MemoryRouter, Routes, Route } from 'react-router-dom';
+import {
+  BrowserRouter,
+  MemoryRouter,
+  Routes,
+  Route,
+  useNavigate,
+} from 'react-router-dom';
 import { RecommendedLessonCreate } from './RecommendedLessonCreate';
 import { CreateActivity } from '../ActivityCreate/ActivityCreate';
 import type { BaseApiClient } from '../../types/api';
@@ -439,8 +445,11 @@ const createMockApiClient = (
               subjectId: 'matematica',
               filters: {
                 questionTypes: ['MULTIPLA_ESCOLHA'],
+                questionBanks: ['ANALYTICA'],
                 subjects: ['matematica'],
                 topics: ['tema-1'],
+                subtopics: ['subtema-1'],
+                contents: ['assunto-1'],
               },
               questionIds: ['question-1', 'question-2', 'question-3'],
               selectedQuestions: [
@@ -994,6 +1003,24 @@ export const WithFullNavigationFlow: Story = () => {
   const fullMockApiClient = {
     ...baseMockClient,
     get: async (url: string) => {
+      // Handle institution question types endpoint for ActivityFilters
+      if (url.includes('/institutions/') && url.includes('/question-types')) {
+        return {
+          data: {
+            message: 'Question types retrieved successfully',
+            data: {
+              questionTypes: [
+                'MULTIPLA_ESCOLHA',
+                'ALTERNATIVA',
+                'DISSERTATIVA',
+                'VERDADEIRO_OU_FALSO',
+              ],
+              isFiltered: false,
+            },
+          },
+        };
+      }
+
       // Handle questions/list endpoint for CreateActivity
       if (url === '/questions/list' || url.startsWith('/questions')) {
         return {
@@ -1191,6 +1218,44 @@ export const WithFullNavigationFlow: Story = () => {
     delete: async () => ({ data: {} }),
   } as BaseApiClient;
 
+  // Wrapper component to use navigation hooks inside Router context
+  const RecommendedLessonCreateWithNavigation = () => {
+    const navigate = useNavigate();
+
+    const handleRedirectToActivity = ({
+      activityId,
+      activityType,
+      lessonId,
+      lessonType,
+    }: {
+      activityId: string;
+      activityType: string;
+      lessonId: string;
+      lessonType: string;
+    }) => {
+      // Build URL with all necessary parameters
+      const params = new URLSearchParams();
+      params.set('type', activityType.toLowerCase());
+      params.set('id', activityId);
+      params.set('recommended-lesson-draft', lessonId);
+      params.set(
+        'onFinish',
+        `criar-aula-recomendada?type=${lessonType.toLowerCase()}&id=${lessonId}`
+      );
+
+      navigate(`/criar-atividade?${params.toString()}`);
+    };
+
+    return (
+      <RecommendedLessonCreate
+        apiClient={fullMockApiClient}
+        institutionId="institution-1"
+        onBack={() => console.log('Back from RecommendedLessonCreate')}
+        onRedirectToActivity={handleRedirectToActivity}
+      />
+    );
+  };
+
   return (
     <MemoryRouter
       initialEntries={[
@@ -1201,13 +1266,7 @@ export const WithFullNavigationFlow: Story = () => {
         {/* RecommendedLessonCreate route */}
         <Route
           path="/criar-aula-recomendada"
-          element={
-            <RecommendedLessonCreate
-              apiClient={fullMockApiClient}
-              institutionId="institution-1"
-              onBack={() => console.log('Back from RecommendedLessonCreate')}
-            />
-          }
+          element={<RecommendedLessonCreateWithNavigation />}
         />
 
         {/* CreateActivity route - accessed when clicking "Adicionar atividade" button in LessonPreview */}
