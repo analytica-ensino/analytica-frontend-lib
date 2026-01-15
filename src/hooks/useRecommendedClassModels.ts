@@ -1,22 +1,22 @@
 import { useState, useCallback } from 'react';
 import { z } from 'zod';
 import dayjs from 'dayjs';
-import { GoalDraftType } from '../types/recommendedLessons';
+import { RecommendedClassDraftType } from '../types/recommendedLessons';
 import type {
-  GoalModelResponse,
-  GoalModelTableItem,
-  GoalModelsApiResponse,
-  GoalModelFilters,
-  GoalModelPagination,
+  RecommendedClassModelResponse,
+  RecommendedClassModelTableItem,
+  RecommendedClassModelsApiResponse,
+  RecommendedClassModelFilters,
+  RecommendedClassModelPagination,
 } from '../types/recommendedLessons';
 import { createFetchErrorHandler } from '../utils/hookErrorHandler';
 
 /**
- * Zod schema for goal model response validation
+ * Zod schema for recommendedClass model response validation
  */
-const goalModelResponseSchema = z.object({
+const recommendedClassModelResponseSchema = z.object({
   id: z.string().uuid(),
-  type: z.nativeEnum(GoalDraftType),
+  type: z.nativeEnum(RecommendedClassDraftType),
   title: z.string(),
   description: z.string().nullable(),
   creatorUserInstitutionId: z.string().uuid(),
@@ -28,12 +28,12 @@ const goalModelResponseSchema = z.object({
 });
 
 /**
- * Zod schema for goal models API response validation
+ * Zod schema for recommendedClass models API response validation
  */
-export const goalModelsApiResponseSchema = z.object({
+export const recommendedClassModelsApiResponseSchema = z.object({
   message: z.string(),
   data: z.object({
-    drafts: z.array(goalModelResponseSchema),
+    drafts: z.array(recommendedClassModelResponseSchema),
     total: z.number(),
   }),
 });
@@ -41,19 +41,20 @@ export const goalModelsApiResponseSchema = z.object({
 /**
  * Hook state interface
  */
-export interface UseGoalModelsState {
-  models: GoalModelTableItem[];
+export interface UseRecommendedClassModelsState {
+  models: RecommendedClassModelTableItem[];
   loading: boolean;
   error: string | null;
-  pagination: GoalModelPagination;
+  pagination: RecommendedClassModelPagination;
 }
 
 /**
  * Hook return type
  */
-export interface UseGoalModelsReturn extends UseGoalModelsState {
+export interface UseRecommendedClassModelsReturn
+  extends UseRecommendedClassModelsState {
   fetchModels: (
-    filters?: GoalModelFilters,
+    filters?: RecommendedClassModelFilters,
     subjectsMap?: Map<string, string>
   ) => Promise<void>;
   deleteModel: (id: string) => Promise<boolean>;
@@ -62,23 +63,24 @@ export interface UseGoalModelsReturn extends UseGoalModelsState {
 /**
  * Default pagination values
  */
-export const DEFAULT_GOAL_MODELS_PAGINATION: GoalModelPagination = {
-  total: 0,
-  page: 1,
-  limit: 10,
-  totalPages: 0,
-};
+export const DEFAULT_RECOMMENDED_CLASS_MODELS_PAGINATION: RecommendedClassModelPagination =
+  {
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  };
 
 /**
  * Transform API response to table item format
- * @param model - Goal model from API response
+ * @param model - RecommendedClass model from API response
  * @param subjectsMap - Map of subject IDs to subject names
  * @returns Formatted model for table display
  */
-export const transformGoalModelToTableItem = (
-  model: GoalModelResponse,
+export const transformRecommendedClassModelToTableItem = (
+  model: RecommendedClassModelResponse,
   subjectsMap?: Map<string, string>
-): GoalModelTableItem => {
+): RecommendedClassModelTableItem => {
   const subjectName = model.subjectId
     ? subjectsMap?.get(model.subjectId) || ''
     : '';
@@ -96,69 +98,73 @@ export const transformGoalModelToTableItem = (
  * Handle errors during model fetch
  * Uses the generic error handler factory to reduce code duplication
  */
-export const handleGoalModelFetchError = createFetchErrorHandler(
+export const handleRecommendedClassModelFetchError = createFetchErrorHandler(
   'Erro ao validar dados de modelos de aulas',
   'Erro ao carregar modelos de aulas'
 );
 
 /**
- * Factory function to create useGoalModels hook
+ * Factory function to create useRecommendedClassModels hook
  *
- * @param fetchGoalModels - Function to fetch models from API
- * @param deleteGoalModel - Function to delete a model
- * @returns Hook for managing goal models
+ * @param fetchRecommendedClassModels - Function to fetch models from API
+ * @param deleteRecommendedClassModel - Function to delete a model
+ * @returns Hook for managing recommendedClass models
  *
  * @example
  * ```tsx
  * // In your app setup
- * const fetchGoalModels = async (filters) => {
+ * const fetchRecommendedClassModels = async (filters) => {
  *   const response = await api.get('/recommended-class/drafts', { params: { ...filters, type: 'MODELO' } });
  *   return response.data;
  * };
  *
- * const deleteGoalModel = async (id) => {
+ * const deleteRecommendedClassModel = async (id) => {
  *   await api.delete(`/recommended-class/drafts/${id}`);
  * };
  *
- * const useGoalModels = createUseGoalModels(fetchGoalModels, deleteGoalModel);
+ * const useRecommendedClassModels = createUseRecommendedClassModels(fetchRecommendedClassModels, deleteRecommendedClassModel);
  *
  * // In your component
- * const { models, loading, error, pagination, fetchModels, deleteModel } = useGoalModels();
+ * const { models, loading, error, pagination, fetchModels, deleteModel } = useRecommendedClassModels();
  * ```
  */
-export const createUseGoalModels = (
-  fetchGoalModels: (
-    filters?: GoalModelFilters
-  ) => Promise<GoalModelsApiResponse>,
-  deleteGoalModel: (id: string) => Promise<void>
+export const createUseRecommendedClassModels = (
+  fetchRecommendedClassModels: (
+    filters?: RecommendedClassModelFilters
+  ) => Promise<RecommendedClassModelsApiResponse>,
+  deleteRecommendedClassModel: (id: string) => Promise<void>
 ) => {
-  return (): UseGoalModelsReturn => {
-    const [state, setState] = useState<UseGoalModelsState>({
+  return (): UseRecommendedClassModelsReturn => {
+    const [state, setState] = useState<UseRecommendedClassModelsState>({
       models: [],
       loading: false,
       error: null,
-      pagination: DEFAULT_GOAL_MODELS_PAGINATION,
+      pagination: DEFAULT_RECOMMENDED_CLASS_MODELS_PAGINATION,
     });
 
     /**
-     * Fetch goal models from API
+     * Fetch recommendedClass models from API
      * @param filters - Optional filters for pagination, search, etc.
      * @param subjectsMap - Map of subject IDs to subject names for display
      */
     const fetchModels = useCallback(
-      async (filters?: GoalModelFilters, subjectsMap?: Map<string, string>) => {
+      async (
+        filters?: RecommendedClassModelFilters,
+        subjectsMap?: Map<string, string>
+      ) => {
         setState((prev) => ({ ...prev, loading: true, error: null }));
 
         try {
           // Fetch data from API
-          const responseData = await fetchGoalModels(filters);
+          const responseData = await fetchRecommendedClassModels(filters);
 
           // Validate response with Zod
-          const validatedData = goalModelsApiResponseSchema.parse(responseData);
+          const validatedData =
+            recommendedClassModelsApiResponseSchema.parse(responseData);
 
           // Transform models to table format
           const tableItems = validatedData.data.drafts.map((model) =>
-            transformGoalModelToTableItem(model, subjectsMap)
+            transformRecommendedClassModelToTableItem(model, subjectsMap)
           );
 
           // Calculate pagination
@@ -180,7 +186,7 @@ export const createUseGoalModels = (
             },
           });
         } catch (error) {
-          const errorMessage = handleGoalModelFetchError(error);
+          const errorMessage = handleRecommendedClassModelFetchError(error);
           setState((prev) => ({
             ...prev,
             loading: false,
@@ -188,25 +194,25 @@ export const createUseGoalModels = (
           }));
         }
       },
-      [fetchGoalModels]
+      [fetchRecommendedClassModels]
     );
 
     /**
-     * Delete a goal model
+     * Delete a recommendedClass model
      * @param id - Model ID to delete
      * @returns True if deletion was successful
      */
     const deleteModel = useCallback(
       async (id: string): Promise<boolean> => {
         try {
-          await deleteGoalModel(id);
+          await deleteRecommendedClassModel(id);
           return true;
         } catch (error) {
           console.error('Erro ao deletar modelo:', error);
           return false;
         }
       },
-      [deleteGoalModel]
+      [deleteRecommendedClassModel]
     );
 
     return {
@@ -218,6 +224,6 @@ export const createUseGoalModels = (
 };
 
 /**
- * Alias for createUseGoalModels
+ * Alias for createUseRecommendedClassModels
  */
-export const createGoalModelsHook = createUseGoalModels;
+export const createRecommendedClassModelsHook = createUseRecommendedClassModels;

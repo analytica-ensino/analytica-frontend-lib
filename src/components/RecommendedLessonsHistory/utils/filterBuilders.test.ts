@@ -1,15 +1,15 @@
-import { buildGoalModelsFiltersFromParams } from './filterBuilders';
+import { buildRecommendedClassModelsFiltersFromParams } from './filterBuilders';
 import type { TableParams } from '../../TableProvider/TableProvider';
 
 describe('filterBuilders', () => {
-  describe('buildGoalModelsFiltersFromParams', () => {
+  describe('buildRecommendedClassModelsFiltersFromParams', () => {
     it('should return basic pagination filters', () => {
       const params: TableParams = {
         page: 1,
         limit: 10,
       };
 
-      const result = buildGoalModelsFiltersFromParams(params);
+      const result = buildRecommendedClassModelsFiltersFromParams(params);
 
       expect(result).toEqual({
         page: 1,
@@ -24,7 +24,7 @@ describe('filterBuilders', () => {
         search: 'test query',
       };
 
-      const result = buildGoalModelsFiltersFromParams(params);
+      const result = buildRecommendedClassModelsFiltersFromParams(params);
 
       expect(result).toEqual({
         page: 1,
@@ -40,7 +40,7 @@ describe('filterBuilders', () => {
         subject: ['subject-123'],
       };
 
-      const result = buildGoalModelsFiltersFromParams(params);
+      const result = buildRecommendedClassModelsFiltersFromParams(params);
 
       expect(result).toEqual({
         page: 1,
@@ -56,7 +56,7 @@ describe('filterBuilders', () => {
         subject: ['subject-1', 'subject-2', 'subject-3'],
       };
 
-      const result = buildGoalModelsFiltersFromParams(params);
+      const result = buildRecommendedClassModelsFiltersFromParams(params);
 
       expect(result.subjectId).toBe('subject-1');
     });
@@ -68,7 +68,7 @@ describe('filterBuilders', () => {
         subject: [],
       };
 
-      const result = buildGoalModelsFiltersFromParams(params);
+      const result = buildRecommendedClassModelsFiltersFromParams(params);
 
       expect(result.subjectId).toBeUndefined();
     });
@@ -80,7 +80,7 @@ describe('filterBuilders', () => {
         subject: undefined,
       };
 
-      const result = buildGoalModelsFiltersFromParams(params);
+      const result = buildRecommendedClassModelsFiltersFromParams(params);
 
       expect(result.subjectId).toBeUndefined();
     });
@@ -92,7 +92,7 @@ describe('filterBuilders', () => {
         search: '',
       };
 
-      const result = buildGoalModelsFiltersFromParams(params);
+      const result = buildRecommendedClassModelsFiltersFromParams(params);
 
       expect(result.search).toBeUndefined();
     });
@@ -105,7 +105,7 @@ describe('filterBuilders', () => {
         subject: ['math-uuid'],
       };
 
-      const result = buildGoalModelsFiltersFromParams(params);
+      const result = buildRecommendedClassModelsFiltersFromParams(params);
 
       expect(result).toEqual({
         page: 3,
@@ -122,7 +122,7 @@ describe('filterBuilders', () => {
         subject: 'not-an-array' as unknown as string[],
       };
 
-      const result = buildGoalModelsFiltersFromParams(params);
+      const result = buildRecommendedClassModelsFiltersFromParams(params);
 
       expect(result.subjectId).toBeUndefined();
     });

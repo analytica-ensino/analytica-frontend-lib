@@ -8,12 +8,15 @@ import type {
   RecommendedLessonsUserData,
   RecommendedLessonsApiClient,
 } from './useRecommendedLessonsPage';
-import { GoalDraftType, GoalDisplayStatus } from '../types/recommendedLessons';
+import {
+  RecommendedClassDraftType,
+  RecommendedClassDisplayStatus,
+} from '../types/recommendedLessons';
 import type {
-  GoalsHistoryApiResponse,
-  GoalModelsApiResponse,
-  GoalTableItem,
-  GoalModelTableItem,
+  RecommendedClassHistoryApiResponse,
+  RecommendedClassModelsApiResponse,
+  RecommendedClassTableItem,
+  RecommendedClassModelTableItem,
 } from '../types/recommendedLessons';
 import type { SendLessonFormData } from '../components/SendLessonModal/types';
 import { SubjectEnum } from '../enums/SubjectEnum';
@@ -64,9 +67,9 @@ describe('useRecommendedLessonsPage', () => {
   };
 
   const mockEndpoints = {
-    goalsHistory: '/recommended-class/history',
-    goalDrafts: '/recommended-class/drafts',
-    submitGoal: '/goals',
+    recommendedClassHistory: '/recommended-class/history',
+    recommendedClassDrafts: '/recommended-class/drafts',
+    submitRecommendedClass: '/recommendedClass',
   };
 
   const mockTexts = {
@@ -98,65 +101,67 @@ describe('useRecommendedLessonsPage', () => {
     ...overrides,
   });
 
-  const validGoalsHistoryResponse: GoalsHistoryApiResponse = {
-    message: 'Success',
-    data: {
-      goals: [
-        {
-          goal: {
-            id: '123e4567-e89b-12d3-a456-426614174000',
-            title: 'Test Goal',
-            startDate: '2024-06-01T10:00:00Z',
-            finalDate: '2024-06-15T14:30:00Z',
-            createdAt: '2024-06-01T10:00:00Z',
-            progress: 50,
-            totalLessons: 10,
-          },
-          subject: { id: 'subject-1', name: 'Mathematics' },
-          creator: { id: 'creator-1', name: 'Teacher' },
-          stats: {
-            totalStudents: 30,
-            completedCount: 15,
-            completionPercentage: 50,
-          },
-          breakdown: [
-            {
-              classId: 'class-1',
-              className: 'Class A',
-              schoolId: 'school-1',
-              schoolName: 'School One',
-              studentCount: 30,
-              completedCount: 15,
+  const validRecommendedClassHistoryResponse: RecommendedClassHistoryApiResponse =
+    {
+      message: 'Success',
+      data: {
+        recommendedClass: [
+          {
+            recommendedClass: {
+              id: '123e4567-e89b-12d3-a456-426614174000',
+              title: 'Test RecommendedClass',
+              startDate: '2024-06-01T10:00:00Z',
+              finalDate: '2024-06-15T14:30:00Z',
+              createdAt: '2024-06-01T10:00:00Z',
+              progress: 50,
+              totalLessons: 10,
             },
-          ],
-        },
-      ],
-      total: 1,
-    },
-  };
+            subject: { id: 'subject-1', name: 'Mathematics' },
+            creator: { id: 'creator-1', name: 'Teacher' },
+            stats: {
+              totalStudents: 30,
+              completedCount: 15,
+              completionPercentage: 50,
+            },
+            breakdown: [
+              {
+                classId: 'class-1',
+                className: 'Class A',
+                schoolId: 'school-1',
+                schoolName: 'School One',
+                studentCount: 30,
+                completedCount: 15,
+              },
+            ],
+          },
+        ],
+        total: 1,
+      },
+    };
 
-  const validGoalModelsResponse: GoalModelsApiResponse = {
-    message: 'Success',
-    data: {
-      drafts: [
-        {
-          id: '123e4567-e89b-12d3-a456-426614174001',
-          type: GoalDraftType.MODELO,
-          title: 'Test Model',
-          description: 'Test description',
-          creatorUserInstitutionId: '123e4567-e89b-12d3-a456-426614174002',
-          subjectId: 'subject-1',
-          startDate: null,
-          finalDate: null,
-          createdAt: '2024-06-01T10:00:00Z',
-          updatedAt: '2024-06-01T10:00:00Z',
-        },
-      ],
-      total: 1,
-    },
-  };
+  const validRecommendedClassModelsResponse: RecommendedClassModelsApiResponse =
+    {
+      message: 'Success',
+      data: {
+        drafts: [
+          {
+            id: '123e4567-e89b-12d3-a456-426614174001',
+            type: RecommendedClassDraftType.MODELO,
+            title: 'Test Model',
+            description: 'Test description',
+            creatorUserInstitutionId: '123e4567-e89b-12d3-a456-426614174002',
+            subjectId: 'subject-1',
+            startDate: null,
+            finalDate: null,
+            createdAt: '2024-06-01T10:00:00Z',
+            updatedAt: '2024-06-01T10:00:00Z',
+          },
+        ],
+        total: 1,
+      },
+    };
 
-  const testModel: GoalModelTableItem = {
+  const testModel: RecommendedClassModelTableItem = {
     id: 'model-123',
     title: 'Test Model',
     savedAt: '01/06/2024',
@@ -204,13 +209,13 @@ describe('useRecommendedLessonsPage', () => {
     const { result } = setupHook();
     const { historyProps } = result.current;
 
-    expect(historyProps.fetchGoalsHistory).toBeInstanceOf(Function);
-    expect(historyProps.fetchGoalModels).toBeInstanceOf(Function);
-    expect(historyProps.deleteGoalModel).toBeInstanceOf(Function);
+    expect(historyProps.fetchRecommendedClassHistory).toBeInstanceOf(Function);
+    expect(historyProps.fetchRecommendedClassModels).toBeInstanceOf(Function);
+    expect(historyProps.deleteRecommendedClassModel).toBeInstanceOf(Function);
     expect(historyProps.onCreateLesson).toBeInstanceOf(Function);
     expect(historyProps.onCreateModel).toBeInstanceOf(Function);
     expect(historyProps.onRowClick).toBeInstanceOf(Function);
-    expect(historyProps.onEditGoal).toBeInstanceOf(Function);
+    expect(historyProps.onEditRecommendedClass).toBeInstanceOf(Function);
     expect(historyProps.onEditModel).toBeInstanceOf(Function);
     expect(historyProps.onSendLesson).toBeInstanceOf(Function);
     expect(historyProps.emptyStateImage).toBe('/empty.png');
@@ -274,36 +279,38 @@ describe('useRecommendedLessonsPage', () => {
     expect(userFilterData.subjects).toEqual([]);
   });
 
-  // fetchGoalsHistory tests
-  it('fetchGoalsHistory: should fetch and return data', async () => {
+  // fetchRecommendedClassHistory tests
+  it('fetchRecommendedClassHistory: should fetch and return data', async () => {
     (mockApi.get as jest.Mock).mockResolvedValueOnce({
-      data: validGoalsHistoryResponse,
+      data: validRecommendedClassHistoryResponse,
     });
 
     const { result } = setupHook();
-    let response: GoalsHistoryApiResponse | undefined;
+    let response: RecommendedClassHistoryApiResponse | undefined;
 
     await act(async () => {
-      response = await result.current.historyProps.fetchGoalsHistory({
-        page: 1,
-        limit: 10,
-      });
+      response = await result.current.historyProps.fetchRecommendedClassHistory(
+        {
+          page: 1,
+          limit: 10,
+        }
+      );
     });
 
     expect(mockApi.get).toHaveBeenCalledWith('/recommended-class/history', {
       params: { page: 1, limit: 10 },
     });
-    expect(response).toEqual(validGoalsHistoryResponse);
+    expect(response).toEqual(validRecommendedClassHistoryResponse);
   });
 
-  it('fetchGoalsHistory: should call API without filters', async () => {
+  it('fetchRecommendedClassHistory: should call API without filters', async () => {
     (mockApi.get as jest.Mock).mockResolvedValueOnce({
-      data: validGoalsHistoryResponse,
+      data: validRecommendedClassHistoryResponse,
     });
 
     const { result } = setupHook();
     await act(async () => {
-      await result.current.historyProps.fetchGoalsHistory();
+      await result.current.historyProps.fetchRecommendedClassHistory();
     });
 
     expect(mockApi.get).toHaveBeenCalledWith('/recommended-class/history', {
@@ -311,14 +318,14 @@ describe('useRecommendedLessonsPage', () => {
     });
   });
 
-  it('fetchGoalsHistory: should filter out undefined values', async () => {
+  it('fetchRecommendedClassHistory: should filter out undefined values', async () => {
     (mockApi.get as jest.Mock).mockResolvedValueOnce({
-      data: validGoalsHistoryResponse,
+      data: validRecommendedClassHistoryResponse,
     });
 
     const { result } = setupHook();
     await act(async () => {
-      await result.current.historyProps.fetchGoalsHistory({
+      await result.current.historyProps.fetchRecommendedClassHistory({
         page: 1,
         limit: undefined,
         search: undefined,
@@ -330,35 +337,35 @@ describe('useRecommendedLessonsPage', () => {
     });
   });
 
-  // fetchGoalModels tests
-  it('fetchGoalModels: should fetch with MODELO type', async () => {
+  // fetchRecommendedClassModels tests
+  it('fetchRecommendedClassModels: should fetch with MODELO type', async () => {
     (mockApi.get as jest.Mock).mockResolvedValueOnce({
-      data: validGoalModelsResponse,
+      data: validRecommendedClassModelsResponse,
     });
 
     const { result } = setupHook();
-    let response: GoalModelsApiResponse | undefined;
+    let response: RecommendedClassModelsApiResponse | undefined;
 
     await act(async () => {
-      response = await result.current.historyProps.fetchGoalModels({
+      response = await result.current.historyProps.fetchRecommendedClassModels({
         page: 1,
         limit: 10,
       });
     });
 
     expect(mockApi.get).toHaveBeenCalledWith('/recommended-class/drafts', {
-      params: { page: 1, limit: 10, type: GoalDraftType.MODELO },
+      params: { page: 1, limit: 10, type: RecommendedClassDraftType.MODELO },
     });
-    expect(response).toEqual(validGoalModelsResponse);
+    expect(response).toEqual(validRecommendedClassModelsResponse);
   });
 
-  // deleteGoalModel tests
-  it('deleteGoalModel: should call delete API', async () => {
+  // deleteRecommendedClassModel tests
+  it('deleteRecommendedClassModel: should call delete API', async () => {
     (mockApi.delete as jest.Mock).mockResolvedValueOnce({ data: {} });
 
     const { result } = setupHook();
     await act(async () => {
-      await result.current.historyProps.deleteGoalModel('model-id');
+      await result.current.historyProps.deleteRecommendedClassModel('model-id');
     });
 
     expect(mockApi.delete).toHaveBeenCalledWith(
@@ -385,25 +392,25 @@ describe('useRecommendedLessonsPage', () => {
 
   it('navigation: onRowClick should navigate to lesson details', async () => {
     (mockApi.get as jest.Mock).mockResolvedValueOnce({
-      data: validGoalsHistoryResponse,
+      data: validRecommendedClassHistoryResponse,
     });
 
     const { result } = setupHook();
 
     await act(async () => {
-      await result.current.historyProps.fetchGoalsHistory();
+      await result.current.historyProps.fetchRecommendedClassHistory();
     });
 
-    const row: GoalTableItem = {
+    const row: RecommendedClassTableItem = {
       id: '123e4567-e89b-12d3-a456-426614174000',
       startDate: '01/06',
       deadline: '15/06',
-      title: 'Test Goal',
+      title: 'Test RecommendedClass',
       school: 'School One',
       year: '-',
       subject: 'Mathematics',
       class: 'Class A',
-      status: GoalDisplayStatus.ATIVA,
+      status: RecommendedClassDisplayStatus.ATIVA,
       completionPercentage: 50,
     };
 
@@ -413,16 +420,25 @@ describe('useRecommendedLessonsPage', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(
       '/lessons/123e4567-e89b-12d3-a456-426614174000',
-      { state: { goalData: validGoalsHistoryResponse.data.goals[0] } }
+      {
+        state: {
+          recommendedClassData:
+            validRecommendedClassHistoryResponse.data.recommendedClass[0],
+        },
+      }
     );
   });
 
-  it('navigation: onEditGoal should navigate correctly', () => {
+  it('navigation: onEditRecommendedClass should navigate correctly', () => {
     const { result } = setupHook();
     act(() => {
-      result.current.historyProps.onEditGoal('goal-123');
+      result.current.historyProps.onEditRecommendedClass(
+        'recommendedClass-123'
+      );
     });
-    expect(mockNavigate).toHaveBeenCalledWith('/lessons/goal-123/editar');
+    expect(mockNavigate).toHaveBeenCalledWith(
+      '/lessons/recommendedClass-123/editar'
+    );
   });
 
   it('navigation: onEditModel should navigate correctly', () => {
@@ -518,7 +534,7 @@ describe('useRecommendedLessonsPage', () => {
       await result.current.modalProps.onSubmit(testFormData);
     });
 
-    expect(mockApi.post).toHaveBeenCalledWith('/goals', {
+    expect(mockApi.post).toHaveBeenCalledWith('/recommendedClass', {
       draftId: 'model-123',
       students: [{ studentId: 'student-1', userInstitutionId: 'inst-1' }],
       startDate: '2024-06-01T08:00:00',

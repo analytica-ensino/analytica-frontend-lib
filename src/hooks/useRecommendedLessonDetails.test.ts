@@ -4,20 +4,20 @@ import {
   createUseRecommendedLessonDetails,
   createRecommendedLessonDetailsHook,
   handleLessonDetailsFetchError,
-  goalApiResponseSchema,
-  goalDetailsApiResponseSchema,
+  recommendedClassApiResponseSchema,
+  recommendedClassDetailsApiResponseSchema,
   historyApiResponseSchema,
 } from './useRecommendedLessonDetails';
 import type {
-  GoalApiResponse,
-  GoalDetailsApiResponse,
-  GoalsHistoryApiResponse,
+  RecommendedClassApiResponse,
+  RecommendedClassDetailsApiResponse,
+  RecommendedClassHistoryApiResponse,
 } from '../types/recommendedLessons';
 import type { LessonDetailsApiClient } from './useRecommendedLessonDetails';
 
 describe('useRecommendedLessonDetails', () => {
   // Mock API responses
-  const mockGoalResponse: GoalApiResponse = {
+  const mockRecommendedClassResponse: RecommendedClassApiResponse = {
     message: 'Success',
     data: {
       id: '123e4567-e89b-12d3-a456-426614174000',
@@ -25,9 +25,9 @@ describe('useRecommendedLessonDetails', () => {
       startDate: '2024-06-01',
       finalDate: '2024-12-31',
       progress: 50,
-      lessonsGoals: [
+      lessons: [
         {
-          goalId: '123e4567-e89b-12d3-a456-426614174000',
+          recommendedClassId: '123e4567-e89b-12d3-a456-426614174000',
           supLessonsProgressId: 'progress-1',
           supLessonsProgress: {
             id: 'progress-1',
@@ -52,7 +52,7 @@ describe('useRecommendedLessonDetails', () => {
     },
   };
 
-  const mockDetailsResponse: GoalDetailsApiResponse = {
+  const mockDetailsResponse: RecommendedClassDetailsApiResponse = {
     message: 'Success',
     data: {
       students: [
@@ -94,12 +94,12 @@ describe('useRecommendedLessonDetails', () => {
     },
   };
 
-  const mockHistoryResponse: GoalsHistoryApiResponse = {
+  const mockHistoryResponse: RecommendedClassHistoryApiResponse = {
     message: 'Success',
     data: {
-      goals: [
+      recommendedClass: [
         {
-          goal: {
+          recommendedClass: {
             id: '123e4567-e89b-12d3-a456-426614174000',
             title: 'Aula de Matemática',
             startDate: '2024-06-01',
@@ -183,9 +183,11 @@ describe('useRecommendedLessonDetails', () => {
     });
   });
 
-  describe('goalApiResponseSchema', () => {
-    it('should validate a valid goal API response', () => {
-      const result = goalApiResponseSchema.safeParse(mockGoalResponse);
+  describe('recommendedClassApiResponseSchema', () => {
+    it('should validate a valid recommendedClass API response', () => {
+      const result = recommendedClassApiResponseSchema.safeParse(
+        mockRecommendedClassResponse
+      );
       expect(result.success).toBe(true);
     });
 
@@ -198,15 +200,16 @@ describe('useRecommendedLessonDetails', () => {
         },
       };
 
-      const result = goalApiResponseSchema.safeParse(invalidResponse);
+      const result =
+        recommendedClassApiResponseSchema.safeParse(invalidResponse);
       expect(result.success).toBe(false);
     });
   });
 
-  describe('goalDetailsApiResponseSchema', () => {
+  describe('recommendedClassDetailsApiResponseSchema', () => {
     it('should validate a valid details API response', () => {
       const result =
-        goalDetailsApiResponseSchema.safeParse(mockDetailsResponse);
+        recommendedClassDetailsApiResponseSchema.safeParse(mockDetailsResponse);
       expect(result.success).toBe(true);
     });
 
@@ -226,7 +229,8 @@ describe('useRecommendedLessonDetails', () => {
         },
       };
 
-      const result = goalDetailsApiResponseSchema.safeParse(responseWithNulls);
+      const result =
+        recommendedClassDetailsApiResponseSchema.safeParse(responseWithNulls);
       expect(result.success).toBe(true);
     });
 
@@ -251,7 +255,8 @@ describe('useRecommendedLessonDetails', () => {
         },
       };
 
-      const result = goalDetailsApiResponseSchema.safeParse(invalidResponse);
+      const result =
+        recommendedClassDetailsApiResponseSchema.safeParse(invalidResponse);
       expect(result.success).toBe(false);
     });
   });
@@ -262,11 +267,11 @@ describe('useRecommendedLessonDetails', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should validate empty goals array', () => {
+    it('should validate empty recommendedClass array', () => {
       const emptyResponse = {
         message: 'Success',
         data: {
-          goals: [],
+          recommendedClass: [],
           total: 0,
         },
       };
@@ -275,13 +280,13 @@ describe('useRecommendedLessonDetails', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should reject invalid goal id format', () => {
+    it('should reject invalid recommendedClass id format', () => {
       const invalidResponse = {
         message: 'Success',
         data: {
-          goals: [
+          recommendedClass: [
             {
-              goal: { id: 'not-a-uuid' },
+              recommendedClass: { id: 'not-a-uuid' },
               breakdown: [],
             },
           ],
@@ -298,8 +303,8 @@ describe('useRecommendedLessonDetails', () => {
     const LESSON_ID = '123e4567-e89b-12d3-a456-426614174000';
 
     const createMockApiClient = (): LessonDetailsApiClient => ({
-      fetchGoal: jest.fn(),
-      fetchGoalDetails: jest.fn(),
+      fetchRecommendedClass: jest.fn(),
+      fetchRecommendedClassDetails: jest.fn(),
       fetchBreakdown: jest.fn(),
     });
 
@@ -309,10 +314,10 @@ describe('useRecommendedLessonDetails', () => {
 
     it('should return initial loading state', () => {
       const mockClient = createMockApiClient();
-      (mockClient.fetchGoal as jest.Mock).mockReturnValue(
+      (mockClient.fetchRecommendedClass as jest.Mock).mockReturnValue(
         new Promise(() => {})
       );
-      (mockClient.fetchGoalDetails as jest.Mock).mockReturnValue(
+      (mockClient.fetchRecommendedClassDetails as jest.Mock).mockReturnValue(
         new Promise(() => {})
       );
       (mockClient.fetchBreakdown as jest.Mock).mockReturnValue(
@@ -330,8 +335,10 @@ describe('useRecommendedLessonDetails', () => {
 
     it('should fetch data successfully', async () => {
       const mockClient = createMockApiClient();
-      (mockClient.fetchGoal as jest.Mock).mockResolvedValue(mockGoalResponse);
-      (mockClient.fetchGoalDetails as jest.Mock).mockResolvedValue(
+      (mockClient.fetchRecommendedClass as jest.Mock).mockResolvedValue(
+        mockRecommendedClassResponse
+      );
+      (mockClient.fetchRecommendedClassDetails as jest.Mock).mockResolvedValue(
         mockDetailsResponse
       );
       (mockClient.fetchBreakdown as jest.Mock).mockResolvedValue(
@@ -346,20 +353,28 @@ describe('useRecommendedLessonDetails', () => {
       });
 
       expect(result.current.data).not.toBeNull();
-      expect(result.current.data?.goal.title).toBe('Aula de Matemática');
+      expect(result.current.data?.recommendedClass.title).toBe(
+        'Aula de Matemática'
+      );
       expect(result.current.data?.details.students).toHaveLength(2);
       expect(result.current.data?.breakdown?.className).toBe('Turma A');
       expect(result.current.error).toBeNull();
 
-      expect(mockClient.fetchGoal).toHaveBeenCalledWith(LESSON_ID);
-      expect(mockClient.fetchGoalDetails).toHaveBeenCalledWith(LESSON_ID);
+      expect(mockClient.fetchRecommendedClass).toHaveBeenCalledWith(LESSON_ID);
+      expect(mockClient.fetchRecommendedClassDetails).toHaveBeenCalledWith(
+        LESSON_ID
+      );
       expect(mockClient.fetchBreakdown).toHaveBeenCalledWith(LESSON_ID);
     });
 
     it('should work without fetchBreakdown', async () => {
       const mockClient: LessonDetailsApiClient = {
-        fetchGoal: jest.fn().mockResolvedValue(mockGoalResponse),
-        fetchGoalDetails: jest.fn().mockResolvedValue(mockDetailsResponse),
+        fetchRecommendedClass: jest
+          .fn()
+          .mockResolvedValue(mockRecommendedClassResponse),
+        fetchRecommendedClassDetails: jest
+          .fn()
+          .mockResolvedValue(mockDetailsResponse),
         // No fetchBreakdown
       };
 
@@ -371,7 +386,9 @@ describe('useRecommendedLessonDetails', () => {
       });
 
       expect(result.current.data).not.toBeNull();
-      expect(result.current.data?.goal.title).toBe('Aula de Matemática');
+      expect(result.current.data?.recommendedClass.title).toBe(
+        'Aula de Matemática'
+      );
       expect(result.current.data?.breakdown).toBeUndefined();
       expect(result.current.error).toBeNull();
     });
@@ -388,7 +405,7 @@ describe('useRecommendedLessonDetails', () => {
 
       expect(result.current.data).toBeNull();
       expect(result.current.error).toBe('ID da aula não encontrado');
-      expect(mockClient.fetchGoal).not.toHaveBeenCalled();
+      expect(mockClient.fetchRecommendedClass).not.toHaveBeenCalled();
     });
 
     it('should handle fetch error', async () => {
@@ -397,10 +414,10 @@ describe('useRecommendedLessonDetails', () => {
         .mockImplementation(() => {});
 
       const mockClient = createMockApiClient();
-      (mockClient.fetchGoal as jest.Mock).mockRejectedValue(
+      (mockClient.fetchRecommendedClass as jest.Mock).mockRejectedValue(
         new Error('Network error')
       );
-      (mockClient.fetchGoalDetails as jest.Mock).mockResolvedValue(
+      (mockClient.fetchRecommendedClassDetails as jest.Mock).mockResolvedValue(
         mockDetailsResponse
       );
 
@@ -423,11 +440,11 @@ describe('useRecommendedLessonDetails', () => {
         .mockImplementation(() => {});
 
       const mockClient = createMockApiClient();
-      (mockClient.fetchGoal as jest.Mock).mockResolvedValue({
+      (mockClient.fetchRecommendedClass as jest.Mock).mockResolvedValue({
         message: 'Success',
         data: { invalid: 'data' },
       });
-      (mockClient.fetchGoalDetails as jest.Mock).mockResolvedValue(
+      (mockClient.fetchRecommendedClassDetails as jest.Mock).mockResolvedValue(
         mockDetailsResponse
       );
 
@@ -450,8 +467,10 @@ describe('useRecommendedLessonDetails', () => {
       const SECOND_LESSON_ID = '223e4567-e89b-12d3-a456-426614174001';
 
       const mockClient = createMockApiClient();
-      (mockClient.fetchGoal as jest.Mock).mockResolvedValue(mockGoalResponse);
-      (mockClient.fetchGoalDetails as jest.Mock).mockResolvedValue(
+      (mockClient.fetchRecommendedClass as jest.Mock).mockResolvedValue(
+        mockRecommendedClassResponse
+      );
+      (mockClient.fetchRecommendedClassDetails as jest.Mock).mockResolvedValue(
         mockDetailsResponse
       );
       (mockClient.fetchBreakdown as jest.Mock).mockResolvedValue(
@@ -467,20 +486,24 @@ describe('useRecommendedLessonDetails', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(mockClient.fetchGoal).toHaveBeenCalledWith(LESSON_ID);
+      expect(mockClient.fetchRecommendedClass).toHaveBeenCalledWith(LESSON_ID);
 
       // Change lessonId
       rerender({ id: SECOND_LESSON_ID });
 
       await waitFor(() => {
-        expect(mockClient.fetchGoal).toHaveBeenCalledWith(SECOND_LESSON_ID);
+        expect(mockClient.fetchRecommendedClass).toHaveBeenCalledWith(
+          SECOND_LESSON_ID
+        );
       });
     });
 
     it('should allow manual refetch', async () => {
       const mockClient = createMockApiClient();
-      (mockClient.fetchGoal as jest.Mock).mockResolvedValue(mockGoalResponse);
-      (mockClient.fetchGoalDetails as jest.Mock).mockResolvedValue(
+      (mockClient.fetchRecommendedClass as jest.Mock).mockResolvedValue(
+        mockRecommendedClassResponse
+      );
+      (mockClient.fetchRecommendedClassDetails as jest.Mock).mockResolvedValue(
         mockDetailsResponse
       );
       (mockClient.fetchBreakdown as jest.Mock).mockResolvedValue(
@@ -494,30 +517,32 @@ describe('useRecommendedLessonDetails', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(mockClient.fetchGoal).toHaveBeenCalledTimes(1);
+      expect(mockClient.fetchRecommendedClass).toHaveBeenCalledTimes(1);
 
       // Manual refetch
       await act(async () => {
         await result.current.refetch();
       });
 
-      expect(mockClient.fetchGoal).toHaveBeenCalledTimes(2);
+      expect(mockClient.fetchRecommendedClass).toHaveBeenCalledTimes(2);
     });
 
     it('should handle breakdown not found in history', async () => {
       const DIFFERENT_ID = '999e4567-e89b-12d3-a456-426614174999';
 
       const mockClient = createMockApiClient();
-      (mockClient.fetchGoal as jest.Mock).mockResolvedValue(mockGoalResponse);
-      (mockClient.fetchGoalDetails as jest.Mock).mockResolvedValue(
+      (mockClient.fetchRecommendedClass as jest.Mock).mockResolvedValue(
+        mockRecommendedClassResponse
+      );
+      (mockClient.fetchRecommendedClassDetails as jest.Mock).mockResolvedValue(
         mockDetailsResponse
       );
       (mockClient.fetchBreakdown as jest.Mock).mockResolvedValue({
         message: 'Success',
         data: {
-          goals: [
+          recommendedClass: [
             {
-              goal: { id: DIFFERENT_ID },
+              recommendedClass: { id: DIFFERENT_ID },
               breakdown: [
                 {
                   classId: '123e4567-e89b-12d3-a456-426614174003',
@@ -557,8 +582,12 @@ describe('useRecommendedLessonDetails', () => {
       const LESSON_ID = '123e4567-e89b-12d3-a456-426614174000';
 
       const mockClient: LessonDetailsApiClient = {
-        fetchGoal: jest.fn().mockResolvedValue(mockGoalResponse),
-        fetchGoalDetails: jest.fn().mockResolvedValue(mockDetailsResponse),
+        fetchRecommendedClass: jest
+          .fn()
+          .mockResolvedValue(mockRecommendedClassResponse),
+        fetchRecommendedClassDetails: jest
+          .fn()
+          .mockResolvedValue(mockDetailsResponse),
       };
 
       const useHook = createRecommendedLessonDetailsHook(mockClient);

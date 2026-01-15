@@ -87,10 +87,7 @@ const mapBackendNotification = (
   let entityType: NotificationEntityType | null = null;
 
   if (backendNotification.entityType) {
-    // Convert to uppercase for comparison since backend returns lowercase
-    const backendEntityType = backendNotification.entityType.toUpperCase();
-
-    switch (backendEntityType) {
+    switch (backendNotification.entityType.toUpperCase()) {
       case NotificationEntityType.ACTIVITY:
         type = 'ACTIVITY';
         entityType = NotificationEntityType.ACTIVITY;
@@ -99,9 +96,9 @@ const mapBackendNotification = (
         type = 'TRAIL';
         entityType = NotificationEntityType.TRAIL;
         break;
-      case NotificationEntityType.GOAL:
-        type = 'GOAL';
-        entityType = NotificationEntityType.GOAL;
+      case NotificationEntityType.RECOMMENDEDCLASS:
+        type = 'RECOMMENDEDCLASS';
+        entityType = NotificationEntityType.RECOMMENDEDCLASS;
         break;
       default:
         break;
@@ -119,7 +116,7 @@ const mapBackendNotification = (
     entityId: backendNotification.entityId,
     sender: backendNotification.sender,
     activity: backendNotification.activity,
-    goal: backendNotification.goal,
+    recommendedClass: backendNotification.recommendedClass,
     actionLink: backendNotification.actionLink ?? null,
   };
 };

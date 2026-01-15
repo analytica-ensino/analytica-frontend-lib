@@ -23,8 +23,8 @@ import {
  * Props for RecommendedLessonDetails component
  */
 export interface RecommendedLessonDetailsProps {
-  /** Goal ID for fetching student performance */
-  goalId?: string;
+  /** RecommendedClass ID for fetching student performance */
+  recommendedClassId?: string;
   /** Lesson data to display (from API responses) */
   data: LessonDetailsData | null;
   /** Loading state */
@@ -39,7 +39,7 @@ export interface RecommendedLessonDetailsProps {
    * Must be memoized (using useCallback) to prevent re-fetches on every render.
    */
   fetchStudentPerformance?: (
-    goalId: string,
+    recommendedClassId: string,
     studentId: string
   ) => Promise<StudentPerformanceData>;
   /** Callback for breadcrumb navigation */
@@ -67,8 +67,8 @@ export interface RecommendedLessonDetailsProps {
  * ```tsx
  * <RecommendedLessonDetails
  *   data={{
- *     goal: goalData,       // from /goals/{id}
- *     details: detailsData, // from /goals/{id}/details
+ *     recommendedClass: recommendedClassData,       // from /recommendedClass/{id}
+ *     details: detailsData, // from /recommendedClass/{id}/details
  *     breakdown: breakdown, // optional, from /recommended-class/history
  *   }}
  *   onViewLesson={() => navigate('/view-lesson')}
@@ -78,7 +78,7 @@ export interface RecommendedLessonDetailsProps {
  * ```
  */
 const RecommendedLessonDetails = ({
-  goalId,
+  recommendedClassId,
   data,
   loading = false,
   error = null,
@@ -107,7 +107,7 @@ const RecommendedLessonDetails = ({
    */
   const handleViewStudentPerformance = useCallback(
     async (studentId: string) => {
-      if (!fetchStudentPerformance || !goalId) return;
+      if (!fetchStudentPerformance || !recommendedClassId) return;
 
       setPerformanceModalOpen(true);
       setPerformanceLoading(true);
@@ -115,7 +115,10 @@ const RecommendedLessonDetails = ({
       setPerformanceError(null);
 
       try {
-        const result = await fetchStudentPerformance(goalId, studentId);
+        const result = await fetchStudentPerformance(
+          recommendedClassId,
+          studentId
+        );
         setPerformanceData(result);
       } catch (err) {
         console.error('Error fetching student performance:', err);
@@ -128,7 +131,7 @@ const RecommendedLessonDetails = ({
         setPerformanceLoading(false);
       }
     },
-    [fetchStudentPerformance, goalId]
+    [fetchStudentPerformance, recommendedClassId]
   );
 
   /**
@@ -143,9 +146,9 @@ const RecommendedLessonDetails = ({
   const defaultBreadcrumbs: BreadcrumbItem[] = useMemo(
     () => [
       { label: 'Aulas recomendadas', path: '/aulas-recomendadas' },
-      { label: data?.goal.title || 'Detalhes' },
+      { label: data?.recommendedClass.title || 'Detalhes' },
     ],
-    [data?.goal.title]
+    [data?.recommendedClass.title]
   );
 
   const breadcrumbItems = breadcrumbs || defaultBreadcrumbs;
@@ -153,11 +156,11 @@ const RecommendedLessonDetails = ({
   // Transform API students to display format
   const displayStudents = useMemo(() => {
     if (!data?.details.students) return [];
-    const deadline = data?.goal.finalDate;
+    const deadline = data?.recommendedClass.finalDate;
     return data.details.students.map((student) =>
       transformStudentForDisplay(student, deadline)
     );
-  }, [data?.details.students, data?.goal.finalDate]);
+  }, [data?.details.students, data?.recommendedClass.finalDate]);
 
   if (loading) {
     return (

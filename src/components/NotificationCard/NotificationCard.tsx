@@ -548,7 +548,7 @@ const NotificationList = ({
               !notification.entityType &&
               !notification.entityId &&
               !notification.activity &&
-              !notification.goal;
+              !notification.recommendedClass;
 
             // Determine navigation handler
             let navigationHandler: (() => void) | undefined;

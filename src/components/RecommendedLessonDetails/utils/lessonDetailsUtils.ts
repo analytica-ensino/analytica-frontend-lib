@@ -1,4 +1,4 @@
-import type { GoalDetailStudent } from '../../../types/recommendedLessons';
+import type { RecommendedClassDetailStudent } from '../../../types/recommendedLessons';
 import {
   deriveStudentStatus,
   formatDaysToComplete,
@@ -24,11 +24,11 @@ export const formatDate = (dateString: string | null): string => {
 /**
  * Transform API student data to display format
  * @param student - Student data from API
- * @param deadline - Goal deadline to determine NAO_FINALIZADO status
+ * @param deadline - RecommendedClass deadline to determine NAO_FINALIZADO status
  * @returns Transformed student for table display
  */
 export const transformStudentForDisplay = (
-  student: GoalDetailStudent,
+  student: RecommendedClassDetailStudent,
   deadline?: string | null
 ): DisplayStudent => ({
   id: student.userInstitutionId,
