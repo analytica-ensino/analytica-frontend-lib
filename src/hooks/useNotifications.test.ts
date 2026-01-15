@@ -93,11 +93,11 @@ describe('useNotifications', () => {
       expect(window.location.href).toBe('/atividades/123');
     });
 
-    it('should navigate to recommendedClass page when entityType is RECOMMENDED_CLASS', () => {
+    it('should navigate to recommendedClass page when entityType is RECOMMENDEDCLASS', () => {
       const { result } = renderHook(() => useNotifications());
 
       act(() => {
-        result.current.handleNavigate('RECOMMENDED_CLASS', '456');
+        result.current.handleNavigate('recommendedClass', '456');
       });
 
       expect(window.location.href).toBe('/painel/trilhas/456');
@@ -184,10 +184,10 @@ describe('useNotifications', () => {
       expect(label).toBe('Ver atividade');
     });
 
-    it('should return correct label for RECOMMENDED_CLASS', () => {
+    it('should return correct label for RECOMMENDEDCLASS', () => {
       const { result } = renderHook(() => useNotifications());
 
-      const label = result.current.getActionLabel('RECOMMENDED_CLASS');
+      const label = result.current.getActionLabel('recommendedClass');
       expect(label).toBe('Ver meta');
     });
 

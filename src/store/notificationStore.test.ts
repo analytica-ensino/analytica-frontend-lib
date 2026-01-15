@@ -887,7 +887,7 @@ describe('Internal Helper Functions', () => {
       expect(notification.entityType).toBe(NotificationEntityType.TRAIL);
     });
 
-    it('should map RECOMMENDED_CLASS entity type correctly', async () => {
+    it('should map RECOMMENDEDCLASS entity type correctly', async () => {
       const mockResponse: BackendNotificationsResponse = {
         notifications: [
           {
@@ -896,7 +896,7 @@ describe('Internal Helper Functions', () => {
             receiverUserInstitutionId: 'user-1',
             title: 'RecommendedClass Notification',
             description: 'Description',
-            entityType: NotificationEntityType.RECOMMENDED_CLASS,
+            entityType: NotificationEntityType.RECOMMENDEDCLASS,
             entityId: 'recommendedClass-1',
             read: false,
             createdAt: new Date().toISOString(),
@@ -926,9 +926,9 @@ describe('Internal Helper Functions', () => {
       });
 
       const notification = result.current.notifications[0];
-      expect(notification.type).toBe('RECOMMENDED_CLASS');
+      expect(notification.type).toBe('RECOMMENDEDCLASS');
       expect(notification.entityType).toBe(
-        NotificationEntityType.RECOMMENDED_CLASS
+        NotificationEntityType.RECOMMENDEDCLASS
       );
       expect(notification.recommendedClass).toEqual({
         id: 'recommendedClass-1',
@@ -945,7 +945,7 @@ describe('Internal Helper Functions', () => {
             receiverUserInstitutionId: 'user-1',
             title: 'RecommendedClass Notification',
             description: 'Description',
-            entityType: 'recommendedClass', // lowercase
+            entityType: 'recommendedClass',
             entityId: 'recommendedClass-1',
             read: false,
             createdAt: new Date().toISOString(),
@@ -972,9 +972,9 @@ describe('Internal Helper Functions', () => {
       });
 
       const notification = result.current.notifications[0];
-      expect(notification.type).toBe('GENERAL');
+      expect(notification.type).toBe('RECOMMENDEDCLASS');
       expect(notification.entityType).toBe(
-        NotificationEntityType.RECOMMENDED_CLASS
+        NotificationEntityType.RECOMMENDEDCLASS
       );
     });
 
@@ -1297,7 +1297,7 @@ describe('Internal Helper Functions', () => {
           id: '2',
           title: 'Last Week 2',
           message: 'Message',
-          type: 'RECOMMENDED_CLASS' as const,
+          type: 'RECOMMENDEDCLASS' as const,
           isRead: true,
           createdAt: new Date('2024-01-09T08:00:00Z'),
           entityType: null,
@@ -1406,7 +1406,7 @@ describe('Internal Helper Functions', () => {
           id: '3',
           title: 'Just Within Week',
           message: 'Message',
-          type: 'RECOMMENDED_CLASS' as const,
+          type: 'RECOMMENDEDCLASS' as const,
           isRead: false,
           createdAt: new Date('2024-01-09T12:00:00Z'),
           entityType: null,

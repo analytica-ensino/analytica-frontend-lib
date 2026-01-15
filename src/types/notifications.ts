@@ -12,7 +12,7 @@ export type NotificationType =
   | 'TRAIL'
   | 'GENERAL'
   | 'ANNOUNCEMENT'
-  | 'RECOMMENDED_CLASS';
+  | 'RECOMMENDEDCLASS';
 
 /**
  * Entity type for navigation
@@ -20,7 +20,7 @@ export type NotificationType =
 export enum NotificationEntityType {
   ACTIVITY = 'ACTIVITY',
   TRAIL = 'TRAIL',
-  RECOMMENDED_CLASS = 'RECOMMENDED_CLASS',
+  RECOMMENDEDCLASS = 'RECOMMENDEDCLASS',
 }
 
 /**
