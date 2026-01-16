@@ -12,6 +12,7 @@ import Search from '../Search/Search';
 import { FilterModal } from '../Filter/FilterModal';
 import Button from '../Button/Button';
 import { Funnel } from 'phosphor-react';
+import { cn } from '../../utils/utils';
 
 /**
  * Column configuration with flexible rendering options
@@ -447,7 +448,7 @@ export function TableProvider<T extends Record<string, unknown>>({
 
       {/* Search */}
       {enableSearch && (
-        <div className={searchContainerClassName ?? 'flex-1'}>
+        <div className={cn('flex-1', searchContainerClassName)}>
           <Search
             value={searchQuery}
             onSearch={handleSearchChange}

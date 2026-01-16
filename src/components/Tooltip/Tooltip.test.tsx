@@ -425,7 +425,6 @@ describe('Tooltip', () => {
       );
 
       const wrapper = screen.getByText('Info icon').parentElement!;
-      expect(wrapper).toHaveAttribute('role', 'button');
       expect(wrapper).toHaveAttribute('tabIndex', '0');
     });
 

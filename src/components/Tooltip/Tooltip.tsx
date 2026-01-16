@@ -61,6 +61,11 @@ export function Tooltip({
   const showTooltip = () => {
     if (disabled) return;
 
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
     if (delay > 0) {
       timeoutRef.current = setTimeout(() => {
         setIsVisible(true);
@@ -89,7 +94,6 @@ export function Tooltip({
 
   return (
     <span
-      role="button"
       tabIndex={0}
       className={cn('relative inline-flex', className)}
       onMouseEnter={showTooltip}
