@@ -93,8 +93,7 @@ export function Tooltip({
   }, []);
 
   return (
-    <span
-      tabIndex={0}
+    <div
       className={cn('relative inline-flex', className)}
       onMouseEnter={showTooltip}
       onMouseLeave={hideTooltip}
@@ -105,7 +104,7 @@ export function Tooltip({
 
       {/* Tooltip content */}
       {isVisible && (
-        <span
+        <div
           role="tooltip"
           className={cn(
             'absolute z-50 whitespace-nowrap',
@@ -119,9 +118,9 @@ export function Tooltip({
           )}
         >
           {content}
-        </span>
+        </div>
       )}
-    </span>
+    </div>
   );
 }
 

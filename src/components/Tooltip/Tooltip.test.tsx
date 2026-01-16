@@ -202,6 +202,43 @@ describe('Tooltip', () => {
       // Tooltip should not be visible
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
     });
+
+    it('clears pending timeout when showTooltip is called again', () => {
+      render(
+        <Tooltip content="Tooltip text" delay={500}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+
+      const wrapper = screen.getByText('Hover me').parentElement!;
+
+      // First mouse enter - starts timeout
+      fireEvent.mouseEnter(wrapper);
+
+      // Advance time partially
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
+
+      // Second mouse enter (e.g., focus event) - should clear and restart timeout
+      fireEvent.focus(wrapper);
+
+      // Advance time by remaining 300ms from first timeout
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Tooltip should NOT be visible yet (timeout was reset)
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+
+      // Advance remaining 200ms to complete the new timeout
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
+
+      // Now tooltip should be visible
+      expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    });
   });
 
   describe('Position variants', () => {
@@ -417,7 +454,7 @@ describe('Tooltip', () => {
       expect(wrapper).toHaveClass('inline-flex');
     });
 
-    it('has proper accessibility attributes on wrapper', () => {
+    it('uses div element for wrapper', () => {
       render(
         <Tooltip content="Tooltip text">
           <span>Info icon</span>
@@ -425,18 +462,7 @@ describe('Tooltip', () => {
       );
 
       const wrapper = screen.getByText('Info icon').parentElement!;
-      expect(wrapper).toHaveAttribute('tabIndex', '0');
-    });
-
-    it('uses span element for wrapper', () => {
-      render(
-        <Tooltip content="Tooltip text">
-          <span>Info icon</span>
-        </Tooltip>
-      );
-
-      const wrapper = screen.getByText('Info icon').parentElement!;
-      expect(wrapper.tagName.toLowerCase()).toBe('span');
+      expect(wrapper.tagName.toLowerCase()).toBe('div');
     });
   });
 
