@@ -155,6 +155,8 @@ export interface TableProviderProps<T = Record<string, unknown>> {
   readonly paginationConfig?: PaginationConfig;
   /** Search placeholder text */
   readonly searchPlaceholder?: string;
+  /** Additional CSS classes for the search container */
+  readonly searchContainerClassName?: string;
   /** Empty state configuration (when table is empty with no search) */
   readonly emptyState?: EmptyStateConfig;
   /** Loading state configuration (when table is loading) */
@@ -242,6 +244,7 @@ export function TableProvider<T extends Record<string, unknown>>({
   initialFilters = [],
   paginationConfig = {},
   searchPlaceholder = 'Buscar...',
+  searchContainerClassName,
   emptyState,
   loadingState,
   noSearchResultState,
@@ -444,7 +447,7 @@ export function TableProvider<T extends Record<string, unknown>>({
 
       {/* Search */}
       {enableSearch && (
-        <div className="flex-1">
+        <div className={searchContainerClassName ?? 'flex-1'}>
           <Search
             value={searchQuery}
             onSearch={handleSearchChange}

@@ -16,6 +16,8 @@ export { default as Alert } from './components/Alert/Alert';
 export { default as LatexRenderer } from './components/LatexRenderer/LatexRenderer';
 export type { LatexRendererProps } from './components/LatexRenderer/LatexRenderer';
 export { default as IconButton } from './components/IconButton/IconButton';
+export { Tooltip } from './components/Tooltip/Tooltip';
+export type { TooltipProps } from './components/Tooltip/Tooltip';
 export { default as IconRoundedButton } from './components/IconRoundedButton/IconRoundedButton';
 export { default as NavButton } from './components/NavButton/NavButton';
 export { default as SelectionButton } from './components/SelectionButton/SelectionButton';
