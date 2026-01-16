@@ -1,4 +1,4 @@
-import { ReactNode, useState, useRef, useEffect } from 'react';
+import { ReactNode } from 'react';
 import { cn } from '../../utils/utils';
 
 /**
@@ -16,8 +16,6 @@ export interface TooltipProps {
   children: ReactNode;
   /** Position of the tooltip relative to the trigger */
   position?: TooltipPosition;
-  /** Delay before showing the tooltip (ms) */
-  delay?: number;
   /** Additional className for the tooltip container */
   className?: string;
   /** Additional className for the tooltip content */
@@ -38,6 +36,7 @@ const POSITION_CLASSES: Record<TooltipPosition, string> = {
 
 /**
  * Tooltip component - Displays contextual information on hover/focus
+ * Uses CSS-only approach with group-hover for better accessibility
  *
  * @example
  * ```tsx
@@ -50,76 +49,37 @@ export function Tooltip({
   content,
   children,
   position = 'top',
-  delay = 0,
   className,
   contentClassName,
   disabled = false,
 }: Readonly<TooltipProps>) {
-  const [isVisible, setIsVisible] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const showTooltip = () => {
-    if (disabled) return;
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-
-    if (delay > 0) {
-      timeoutRef.current = setTimeout(() => {
-        setIsVisible(true);
-      }, delay);
-    } else {
-      setIsVisible(true);
-    }
-  };
-
-  const hideTooltip = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    setIsVisible(false);
-  };
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
+  if (disabled) {
+    return <>{children}</>;
+  }
 
   return (
-    <div
-      className={cn('relative inline-flex', className)}
-      onMouseEnter={showTooltip}
-      onMouseLeave={hideTooltip}
-      onFocus={showTooltip}
-      onBlur={hideTooltip}
-    >
+    <div className={cn('relative inline-flex group', className)}>
       {children}
 
-      {/* Tooltip content */}
-      {isVisible && (
-        <div
-          role="tooltip"
-          className={cn(
-            'absolute z-50 whitespace-nowrap',
-            'px-4 py-2 rounded-lg',
-            'bg-background-900 text-white',
-            'text-sm font-medium',
-            'shadow-[0px_3px_10px_0px_rgba(38,38,38,0.2)]',
-            'animate-in fade-in-0 zoom-in-95 duration-150',
-            POSITION_CLASSES[position],
-            contentClassName
-          )}
-        >
-          {content}
-        </div>
-      )}
+      {/* Tooltip content - shown on hover/focus via CSS */}
+      <div
+        role="tooltip"
+        className={cn(
+          'absolute z-50 whitespace-nowrap',
+          'px-4 py-2 rounded-lg',
+          'bg-background-900 text-white',
+          'text-sm font-medium',
+          'shadow-[0px_3px_10px_0px_rgba(38,38,38,0.2)]',
+          'opacity-0 invisible',
+          'group-hover:opacity-100 group-hover:visible',
+          'group-focus-within:opacity-100 group-focus-within:visible',
+          'transition-opacity duration-150',
+          POSITION_CLASSES[position],
+          contentClassName
+        )}
+      >
+        {content}
+      </div>
     </div>
   );
 }
