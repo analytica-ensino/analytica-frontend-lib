@@ -788,6 +788,47 @@ export type {
   UseActivityModelsReturn,
 } from './hooks/useActivityModels';
 
+// Students Highlight Hook Factory
+export {
+  createUseStudentsHighlight,
+  createStudentsHighlightHook,
+  calculatePerformancePercentage,
+  transformStudentHighlightItem,
+  handleStudentsHighlightFetchError,
+  studentsHighlightApiResponseSchema,
+} from './hooks/useStudentsHighlight';
+export type {
+  StudentsHighlightPeriod,
+  StudentsHighlightType,
+  TrendDirection,
+  StudentsHighlightFilters,
+  StudentHighlightApiItem,
+  StudentsHighlightApiResponse,
+  StudentHighlightItem,
+  UseStudentsHighlightState,
+  UseStudentsHighlightReturn,
+} from './hooks/useStudentsHighlight';
+
+// Questions Data Hook Factory
+export {
+  createUseQuestionsData,
+  createQuestionsDataHook,
+  transformQuestionsData,
+  handleQuestionsDataFetchError,
+  questionsDataApiResponseSchema,
+} from './hooks/useQuestionsData';
+export type {
+  QuestionsDataPeriod,
+  QuestionsDataTrendDirection,
+  QuestionsDataFilters,
+  QuestionsDataTrend,
+  QuestionsDataApiData,
+  QuestionsDataApiResponse,
+  QuestionsDataHookResult,
+  UseQuestionsDataState,
+  UseQuestionsDataReturn,
+} from './hooks/useQuestionsData';
+
 // Activities History Types
 export {
   ActivityApiStatus,
