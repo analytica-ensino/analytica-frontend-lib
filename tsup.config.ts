@@ -35,6 +35,7 @@ export default defineConfig({
     'Text/index': 'src/components/Text/Text.tsx',
     'TextArea/index': 'src/components/TextArea/TextArea.tsx',
     'Toast/index': 'src/components/Toast/Toast.tsx',
+    'Tooltip/index': 'src/components/Tooltip/Tooltip.tsx',
     'Menu/index': 'src/components/Menu/Menu.tsx',
     'Modal/index': 'src/components/Modal/Modal.tsx',
     'Modal/utils/videoUtils/index': 'src/components/Modal/utils/videoUtils.ts',
