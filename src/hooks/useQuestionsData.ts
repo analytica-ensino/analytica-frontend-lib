@@ -54,9 +54,11 @@ export interface QuestionsDataApiResponse {
 }
 
 /**
- * Transformed data for UI display (compatible with QuestionsData component)
+ * Transformed data for UI display.
+ * Extends the basic QuestionsDataItem from component with additional API fields.
+ * Can be passed directly to QuestionsData component (extra fields are ignored).
  */
-export interface QuestionsDataItem {
+export interface QuestionsDataHookResult {
   /** Total number of questions answered */
   total: number;
   /** Number of correct answers */
@@ -112,7 +114,7 @@ export const questionsDataApiResponseSchema = z.object({
  * Hook state interface
  */
 export interface UseQuestionsDataState {
-  data: QuestionsDataItem | null;
+  data: QuestionsDataHookResult | null;
   loading: boolean;
   error: string | null;
 }
@@ -132,7 +134,7 @@ export interface UseQuestionsDataReturn extends UseQuestionsDataState {
  */
 export const transformQuestionsData = (
   apiData: QuestionsDataApiData
-): QuestionsDataItem => ({
+): QuestionsDataHookResult => ({
   total: apiData.totalQuestions,
   corretas: apiData.correctQuestions,
   incorretas: apiData.incorrectQuestions,

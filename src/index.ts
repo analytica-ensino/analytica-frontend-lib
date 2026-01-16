@@ -824,7 +824,7 @@ export type {
   QuestionsDataTrend,
   QuestionsDataApiData,
   QuestionsDataApiResponse,
-  QuestionsDataItem as QuestionsDataHookItem,
+  QuestionsDataHookResult,
   UseQuestionsDataState,
   UseQuestionsDataReturn,
 } from './hooks/useQuestionsData';

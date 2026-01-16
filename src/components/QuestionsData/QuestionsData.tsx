@@ -217,7 +217,7 @@ const YAxis = ({
  *
  *   useEffect(() => {
  *     fetchQuestionsData({ period: '30_DAYS' });
- *   }, []);
+ *   }, [fetchQuestionsData]);
  *
  *   if (loading || !data) return <Skeleton />;
  *
