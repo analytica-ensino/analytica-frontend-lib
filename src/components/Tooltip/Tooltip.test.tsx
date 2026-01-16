@@ -416,6 +416,29 @@ describe('Tooltip', () => {
       expect(wrapper).toHaveClass('relative');
       expect(wrapper).toHaveClass('inline-flex');
     });
+
+    it('has proper accessibility attributes on wrapper', () => {
+      render(
+        <Tooltip content="Tooltip text">
+          <span>Info icon</span>
+        </Tooltip>
+      );
+
+      const wrapper = screen.getByText('Info icon').parentElement!;
+      expect(wrapper).toHaveAttribute('role', 'button');
+      expect(wrapper).toHaveAttribute('tabIndex', '0');
+    });
+
+    it('uses span element for wrapper', () => {
+      render(
+        <Tooltip content="Tooltip text">
+          <span>Info icon</span>
+        </Tooltip>
+      );
+
+      const wrapper = screen.getByText('Info icon').parentElement!;
+      expect(wrapper.tagName.toLowerCase()).toBe('span');
+    });
   });
 
   describe('Edge cases', () => {

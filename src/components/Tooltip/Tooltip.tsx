@@ -54,7 +54,7 @@ export function Tooltip({
   className,
   contentClassName,
   disabled = false,
-}: TooltipProps) {
+}: Readonly<TooltipProps>) {
   const [isVisible, setIsVisible] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -88,7 +88,9 @@ export function Tooltip({
   }, []);
 
   return (
-    <div
+    <span
+      role="button"
+      tabIndex={0}
       className={cn('relative inline-flex', className)}
       onMouseEnter={showTooltip}
       onMouseLeave={hideTooltip}
@@ -99,7 +101,7 @@ export function Tooltip({
 
       {/* Tooltip content */}
       {isVisible && (
-        <div
+        <span
           role="tooltip"
           className={cn(
             'absolute z-50 whitespace-nowrap',
@@ -113,9 +115,9 @@ export function Tooltip({
           )}
         >
           {content}
-        </div>
+        </span>
       )}
-    </div>
+    </span>
   );
 }
 
