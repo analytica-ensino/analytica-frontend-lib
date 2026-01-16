@@ -1287,7 +1287,7 @@ describe('RecommendedLessonsHistory', () => {
     it('should use defaultTab when provided', async () => {
       const mockFetchRecommendedClassDrafts = jest.fn().mockResolvedValue({
         message: 'Success',
-        data: { recommendedClass: [], total: 0 },
+        data: { drafts: [], total: 0 },
       });
       const mockDeleteRecommendedClassDraft = jest
         .fn()
@@ -1387,7 +1387,7 @@ describe('RecommendedLessonsHistory', () => {
     it('should sync with defaultTab prop changes', async () => {
       const mockFetchRecommendedClassDrafts = jest.fn().mockResolvedValue({
         message: 'Success',
-        data: { recommendedClass: [], total: 0 },
+        data: { drafts: [], total: 0 },
       });
       const mockDeleteRecommendedClassDraft = jest
         .fn()

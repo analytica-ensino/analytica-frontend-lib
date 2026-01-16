@@ -2,13 +2,19 @@ import { useState, useCallback } from 'react';
 import { z } from 'zod';
 
 /**
- * Period filter options for students highlight
+ * Period tabs configuration matching the Figma design
  */
-export type StudentsHighlightPeriod =
-  | '7_DAYS'
-  | '30_DAYS'
-  | '6_MONTHS'
-  | '1_YEAR';
+export const PERIOD_TABS = [
+  { value: '7_DAYS', label: '7 dias' },
+  { value: '30_DAYS', label: '30 dias' },
+  { value: '6_MONTHS', label: '6 meses' },
+  { value: '1_YEAR', label: '1 ano' },
+] as const;
+
+/**
+ * Period filter options for students highlight (derived from PERIOD_TABS)
+ */
+export type StudentsHighlightPeriod = (typeof PERIOD_TABS)[number]['value'];
 
 /**
  * Type filter options for students highlight

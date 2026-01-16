@@ -798,6 +798,7 @@ export {
   transformStudentHighlightItem,
   handleStudentsHighlightFetchError,
   studentsHighlightApiResponseSchema,
+  PERIOD_TABS,
 } from './hooks/useStudentsHighlight';
 export type {
   StudentsHighlightPeriod,
@@ -946,3 +947,11 @@ export type {
   ActivityModelItem,
   RecipientItem as SendActivityRecipientItem,
 } from './types/sendActivity';
+
+// Performance Types and Utils
+export {
+  PERFORMANCE_TAG_CONFIG,
+  getPerformanceTag,
+  getPerformanceTagConfig,
+} from './types/performance';
+export type { PerformanceTag, PerformanceTagConfig } from './types/performance';
