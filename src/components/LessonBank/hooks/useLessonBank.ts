@@ -292,7 +292,7 @@ export const useLessonBank = (
     };
 
     loadLessons();
-  }, [filtersKey, buildFiltersBody, filters]);
+  }, [filtersKey, buildFiltersBody]);
 
   /**
    * Intersection Observer for infinite scroll
