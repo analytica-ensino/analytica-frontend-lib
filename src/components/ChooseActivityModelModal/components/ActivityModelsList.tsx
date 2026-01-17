@@ -68,10 +68,7 @@ export const ActivityModelsList = ({
           }
 
           return (
-            <div
-              className="flex items-center gap-2"
-              title={subject.name}
-            >
+            <div className="flex items-center gap-2" title={subject.name}>
               <span
                 className="w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0"
                 style={{ backgroundColor: subject.color }}
