@@ -375,10 +375,7 @@ describe('ActivityModelsList', () => {
       // Check container with title attribute
       const subjectContainer = subjectCell.querySelector('[title]');
       expect(subjectContainer).toBeInTheDocument();
-      expect(subjectContainer).toHaveAttribute(
-        'title',
-        mockSubject1.name
-      );
+      expect(subjectContainer).toHaveAttribute('title', mockSubject1.name);
 
       // Check icon container with background color
       const iconContainer = subjectCell.querySelector(
@@ -440,10 +437,7 @@ describe('ActivityModelsList', () => {
         backgroundColor: mockSubject1.color,
       });
       const mathIcon = mathCell.querySelector('[data-icon-name]');
-      expect(mathIcon).toHaveAttribute(
-        'data-icon-name',
-        mockSubject1.icon
-      );
+      expect(mathIcon).toHaveAttribute('data-icon-name', mockSubject1.icon);
       const mathText = mathCell.querySelector('[data-testid="text"]');
       expect(mathText?.textContent).toBe(mockSubject1.name);
 
@@ -454,10 +448,7 @@ describe('ActivityModelsList', () => {
         backgroundColor: mockSubject2.color,
       });
       const portIcon = portCell.querySelector('[data-icon-name]');
-      expect(portIcon).toHaveAttribute(
-        'data-icon-name',
-        mockSubject2.icon
-      );
+      expect(portIcon).toHaveAttribute('data-icon-name', mockSubject2.icon);
       const portText = portCell.querySelector('[data-testid="text"]');
       expect(portText?.textContent).toBe(mockSubject2.name);
     });

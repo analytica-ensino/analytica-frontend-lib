@@ -405,7 +405,11 @@ describe('LessonBank', () => {
     it('should render with custom className', async () => {
       const apiClient = createMockApiClient();
       const { container } = render(
-        <LessonBank apiClient={apiClient} className="custom-class" filters={defaultFilters} />
+        <LessonBank
+          apiClient={apiClient}
+          className="custom-class"
+          filters={defaultFilters}
+        />
       );
 
       await waitFor(() => {
