@@ -126,16 +126,16 @@ jest.mock('../../shared/ModelsTabBase/createModelsTableColumnsBase', () => ({
 describe('ActivityModelsList', () => {
   const mockSubject1: SubjectData = {
     id: 's1',
-    subjectName: 'Mathematics',
-    subjectIcon: 'Calculator',
-    subjectColor: '#FF5733',
+    name: 'Mathematics',
+    icon: 'Calculator',
+    color: '#FF5733',
   };
 
   const mockSubject2: SubjectData = {
     id: 's2',
-    subjectName: 'Portuguese',
-    subjectIcon: 'BookOpen',
-    subjectColor: '#3357FF',
+    name: 'Portuguese',
+    icon: 'BookOpen',
+    color: '#3357FF',
   };
 
   const mockModels: ActivityModelTableItem[] = [
@@ -377,7 +377,7 @@ describe('ActivityModelsList', () => {
       expect(subjectContainer).toBeInTheDocument();
       expect(subjectContainer).toHaveAttribute(
         'title',
-        mockSubject1.subjectName
+        mockSubject1.name
       );
 
       // Check icon container with background color
@@ -386,7 +386,7 @@ describe('ActivityModelsList', () => {
       );
       expect(iconContainer).toBeInTheDocument();
       expect(iconContainer).toHaveStyle({
-        backgroundColor: mockSubject1.subjectColor,
+        backgroundColor: mockSubject1.color,
       });
       expect(iconContainer?.className).toContain('rounded-sm');
       expect(iconContainer?.className).toContain('text-text-950');
@@ -394,7 +394,7 @@ describe('ActivityModelsList', () => {
       // Check icon
       const icon = subjectCell.querySelector('[data-testid="icon-render"]');
       expect(icon).toBeInTheDocument();
-      expect(icon).toHaveAttribute('data-icon-name', mockSubject1.subjectIcon);
+      expect(icon).toHaveAttribute('data-icon-name', mockSubject1.icon);
       expect(icon).toHaveAttribute('data-size', '17');
       expect(icon).toHaveAttribute('data-color', 'currentColor');
 
@@ -403,7 +403,7 @@ describe('ActivityModelsList', () => {
       expect(text).toBeInTheDocument();
       expect(text).toHaveAttribute('data-size', 'sm');
       expect(text?.className).toContain('truncate');
-      expect(text?.textContent).toBe(mockSubject1.subjectName);
+      expect(text?.textContent).toBe(mockSubject1.name);
     });
 
     it('should render different subjects with different colors and icons', () => {
@@ -437,29 +437,29 @@ describe('ActivityModelsList', () => {
       const mathCell = screen.getByTestId('subject-cell-math');
       const mathIconContainer = mathCell.querySelector('.w-\\[21px\\]');
       expect(mathIconContainer).toHaveStyle({
-        backgroundColor: mockSubject1.subjectColor,
+        backgroundColor: mockSubject1.color,
       });
       const mathIcon = mathCell.querySelector('[data-icon-name]');
       expect(mathIcon).toHaveAttribute(
         'data-icon-name',
-        mockSubject1.subjectIcon
+        mockSubject1.icon
       );
       const mathText = mathCell.querySelector('[data-testid="text"]');
-      expect(mathText?.textContent).toBe(mockSubject1.subjectName);
+      expect(mathText?.textContent).toBe(mockSubject1.name);
 
       // Check second subject (Portuguese)
       const portCell = screen.getByTestId('subject-cell-port');
       const portIconContainer = portCell.querySelector('.w-\\[21px\\]');
       expect(portIconContainer).toHaveStyle({
-        backgroundColor: mockSubject2.subjectColor,
+        backgroundColor: mockSubject2.color,
       });
       const portIcon = portCell.querySelector('[data-icon-name]');
       expect(portIcon).toHaveAttribute(
         'data-icon-name',
-        mockSubject2.subjectIcon
+        mockSubject2.icon
       );
       const portText = portCell.querySelector('[data-testid="text"]');
-      expect(portText?.textContent).toBe(mockSubject2.subjectName);
+      expect(portText?.textContent).toBe(mockSubject2.name);
     });
 
     it('should render mixed subjects (some null, some with value)', () => {
@@ -489,7 +489,7 @@ describe('ActivityModelsList', () => {
       const icon = withSubjectCell.querySelector('[data-icon-name]');
       expect(icon).toBeInTheDocument();
       const text = withSubjectCell.querySelector('[data-testid="text"]');
-      expect(text?.textContent).toBe(mockSubject1.subjectName);
+      expect(text?.textContent).toBe(mockSubject1.name);
 
       // Check model without subject
       const withoutSubjectCell = screen.getByTestId(
@@ -542,10 +542,9 @@ describe('ActivityModelsList', () => {
     it('should truncate long subject names', () => {
       const longSubject: SubjectData = {
         id: 'long',
-        subjectName:
-          'This is a very long subject name that should be truncated',
-        subjectIcon: 'BookOpen',
-        subjectColor: '#FF5733',
+        name: 'This is a very long subject name that should be truncated',
+        icon: 'BookOpen',
+        color: '#FF5733',
       };
 
       const modelsWithLongName: ActivityModelTableItem[] = [
@@ -567,7 +566,7 @@ describe('ActivityModelsList', () => {
       const text = subjectCell.querySelector('[data-testid="text"]');
 
       expect(text?.className).toContain('truncate');
-      expect(text?.textContent).toBe(longSubject.subjectName);
+      expect(text?.textContent).toBe(longSubject.name);
     });
   });
 });

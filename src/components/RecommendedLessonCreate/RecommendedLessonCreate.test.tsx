@@ -13,8 +13,9 @@ import type { BaseApiClient } from '../../types/api';
 // Mock react-router-dom
 const mockNavigate = jest.fn();
 const mockSearchParams = new URLSearchParams();
+const mockSetSearchParams = jest.fn();
 jest.mock('react-router-dom', () => ({
-  useSearchParams: () => [mockSearchParams],
+  useSearchParams: () => [mockSearchParams, mockSetSearchParams],
   useNavigate: () => mockNavigate,
 }));
 
@@ -359,7 +360,7 @@ describe('RecommendedLessonCreate', () => {
 
     // Default API responses
     (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
-      if (url === '/subjects') {
+      if (url === 'knowledge/subjects') {
         return Promise.resolve({
           data: {
             data: {
@@ -456,7 +457,7 @@ describe('RecommendedLessonCreate', () => {
         if (url.includes('/recommended-class/drafts/')) {
           return new Promise(() => {}); // Never resolves
         }
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [] } },
           });
@@ -654,7 +655,7 @@ describe('RecommendedLessonCreate', () => {
 
       // Mock categories API
       (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [{ id: 'subject-1', name: 'Math' }] } },
           });
@@ -711,7 +712,7 @@ describe('RecommendedLessonCreate', () => {
       mockAppliedFilters = { subjectIds: ['subject-1'] };
 
       (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [] } },
           });
@@ -861,14 +862,14 @@ describe('RecommendedLessonCreate', () => {
         <RecommendedLessonCreate {...defaultProps} />
       );
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/subjects');
+      expect(mockApiClient.get).toHaveBeenCalledWith('knowledge/subjects');
     });
 
     it('should handle error loading knowledge areas', async () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
 
       (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.reject(new Error('API Error'));
         }
         return Promise.resolve({ data: { data: {} } });
@@ -934,7 +935,7 @@ describe('RecommendedLessonCreate', () => {
             },
           });
         }
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [] } },
           });
@@ -961,7 +962,7 @@ describe('RecommendedLessonCreate', () => {
         if (url.includes('/recommended-class/drafts/')) {
           return Promise.reject(new Error('Draft not found'));
         }
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [] } },
           });
@@ -1022,7 +1023,7 @@ describe('RecommendedLessonCreate', () => {
           '/recommended-class/drafts',
           expect.objectContaining({
             type: RecommendedClassDraftType.RASCUNHO,
-            lessonIds: ['lesson-1'],
+            lessonIds: [{ lessonId: 'lesson-1', sequence: 1 }],
           })
         );
       });
@@ -1048,7 +1049,7 @@ describe('RecommendedLessonCreate', () => {
             },
           });
         }
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [{ id: 'subject-1', name: 'Math' }] } },
           });
@@ -1097,7 +1098,7 @@ describe('RecommendedLessonCreate', () => {
         expect(mockApiClient.patch).toHaveBeenCalledWith(
           '/recommended-class/drafts/existing-draft-1',
           expect.objectContaining({
-            lessonIds: ['lesson-1'],
+            lessonIds: [{ lessonId: 'lesson-1', sequence: 1 }],
           })
         );
       });
@@ -1233,14 +1234,19 @@ describe('RecommendedLessonCreate', () => {
                 type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 filters: { subjects: ['subject-1'] },
-                lessonIds: ['lesson-1'],
-                selectedLessons: [{ id: 'lesson-1', title: 'Lesson 1' }],
+                lessons: [
+                  {
+                    lessonId: 'lesson-1',
+                    sequence: 1,
+                    lesson: { id: 'lesson-1', title: 'Lesson 1' },
+                  },
+                ],
                 updatedAt: '2024-01-15T10:00:00Z',
               },
             },
           });
         }
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [{ id: 'subject-1', name: 'Math' }] } },
           });
@@ -1310,14 +1316,19 @@ describe('RecommendedLessonCreate', () => {
                 title: 'Test Draft',
                 subjectId: 'subject-1',
                 filters: { subjects: ['subject-1'] },
-                lessonIds: ['lesson-1'],
-                selectedLessons: [{ id: 'lesson-1', title: 'Lesson 1' }],
+                lessons: [
+                  {
+                    lessonId: 'lesson-1',
+                    sequence: 1,
+                    lesson: { id: 'lesson-1', title: 'Lesson 1' },
+                  },
+                ],
                 updatedAt: '2024-01-15T10:00:00Z',
               },
             },
           });
         }
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [{ id: 'subject-1', name: 'Math' }] } },
           });
@@ -1385,7 +1396,7 @@ describe('RecommendedLessonCreate', () => {
         expect(mockApiClient.post).toHaveBeenCalledWith(
           '/recommended-class',
           expect.objectContaining({
-            lessonIds: ['lesson-1'],
+            lessonIds: [{ lessonId: 'lesson-1', sequence: 1 }],
           })
         );
       });
@@ -1425,14 +1436,19 @@ describe('RecommendedLessonCreate', () => {
                 title: 'Test Draft',
                 subjectId: 'subject-1',
                 filters: { subjects: ['subject-1'] },
-                lessonIds: ['lesson-1'],
-                selectedLessons: [{ id: 'lesson-1', title: 'Lesson 1' }],
+                lessons: [
+                  {
+                    lessonId: 'lesson-1',
+                    sequence: 1,
+                    lesson: { id: 'lesson-1', title: 'Lesson 1' },
+                  },
+                ],
                 updatedAt: '2024-01-15T10:00:00Z',
               },
             },
           });
         }
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [] } },
           });
@@ -1504,7 +1520,7 @@ describe('RecommendedLessonCreate', () => {
         expect(onCreateRecommendedLesson).toHaveBeenCalledWith(
           'lesson-created-1',
           expect.objectContaining({
-            lessonIds: ['lesson-1'],
+            lessonIds: [{ lessonId: 'lesson-1', sequence: 1 }],
           })
         );
       });
@@ -1532,7 +1548,7 @@ describe('RecommendedLessonCreate', () => {
             },
           });
         }
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [] } },
           });
@@ -1587,7 +1603,7 @@ describe('RecommendedLessonCreate', () => {
             },
           });
         }
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [] } },
           });
@@ -1663,7 +1679,7 @@ describe('RecommendedLessonCreate', () => {
             },
           });
         }
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [] } },
           });
@@ -1820,17 +1836,24 @@ describe('RecommendedLessonCreate', () => {
                 type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 filters: { subjects: ['subject-1'] },
-                lessonIds: ['lesson-1', 'lesson-2'],
-                selectedLessons: [
-                  { id: 'lesson-1', title: 'Lesson 1' },
-                  { id: 'lesson-2', title: 'Lesson 2' },
+                lessons: [
+                  {
+                    lessonId: 'lesson-1',
+                    sequence: 1,
+                    lesson: { id: 'lesson-1', title: 'Lesson 1' },
+                  },
+                  {
+                    lessonId: 'lesson-2',
+                    sequence: 2,
+                    lesson: { id: 'lesson-2', title: 'Lesson 2' },
+                  },
                 ],
                 updatedAt: '2024-01-15T10:00:00Z',
               },
             },
           });
         }
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [] } },
           });
@@ -1855,14 +1878,12 @@ describe('RecommendedLessonCreate', () => {
       (mockApiClient.post as jest.Mock).mockResolvedValue({
         data: {
           data: {
-            draft: {
-              id: 'new-draft-123',
-              type: RecommendedClassDraftType.RASCUNHO,
-              title: 'Test Draft',
-              subjectId: 'subject-1',
-              filters: {},
-              updatedAt: '2024-01-15T10:00:00Z',
-            },
+            id: 'new-draft-123',
+            type: RecommendedClassDraftType.RASCUNHO,
+            title: 'Test Draft',
+            subjectId: 'subject-1',
+            filters: {},
+            updatedAt: '2024-01-15T10:00:00Z',
           },
         },
       });
@@ -1882,9 +1903,18 @@ describe('RecommendedLessonCreate', () => {
         jest.advanceTimersByTime(600);
       });
 
+      // Wait for the POST to be called
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          '/criar-aula-recomendada?type=rascunho&id=new-draft-123',
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/recommended-class/drafts',
+          expect.anything()
+        );
+      });
+
+      // The URL update happens in a useEffect after recommendedLesson state is updated
+      await waitFor(() => {
+        expect(mockSetSearchParams).toHaveBeenCalledWith(
+          { type: 'rascunho', id: 'new-draft-123' },
           { replace: true }
         );
       });
@@ -1896,7 +1926,7 @@ describe('RecommendedLessonCreate', () => {
       mockAppliedFilters = { subjectIds: ['subject-1'] };
 
       (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [] } },
           });
@@ -2049,7 +2079,7 @@ describe('RecommendedLessonCreate', () => {
             },
           });
         }
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [] } },
           });
@@ -2162,14 +2192,19 @@ describe('RecommendedLessonCreate', () => {
                 type: RecommendedClassDraftType.RASCUNHO,
                 title: 'Test Draft',
                 filters: { subjects: ['subject-1'] },
-                lessonIds: ['lesson-1'],
-                selectedLessons: [{ id: 'lesson-1', title: 'Lesson 1' }],
+                lessons: [
+                  {
+                    lessonId: 'lesson-1',
+                    sequence: 1,
+                    lesson: { id: 'lesson-1', title: 'Lesson 1' },
+                  },
+                ],
                 updatedAt: '2024-01-15T10:00:00Z',
               },
             },
           });
         }
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [] } },
           });
@@ -2358,7 +2393,7 @@ describe('RecommendedLessonCreate', () => {
             },
           });
         }
-        if (url === '/subjects') {
+        if (url === 'knowledge/subjects') {
           return Promise.resolve({
             data: { data: { subjects: [{ id: 'subject-1', name: 'Math' }] } },
           });

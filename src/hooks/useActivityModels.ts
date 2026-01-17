@@ -100,9 +100,9 @@ export const transformModelToTableItem = (
     if (subjectName) {
       subject = {
         id: model.subjectId,
-        subjectName,
-        subjectIcon: 'BookOpen',
-        subjectColor: '#6B7280',
+        name: subjectName,
+        icon: 'BookOpen',
+        color: '#6B7280',
       };
     }
   }

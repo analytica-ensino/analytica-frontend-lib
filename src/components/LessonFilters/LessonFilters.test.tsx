@@ -406,9 +406,11 @@ describe('LessonFilters', () => {
     const mockOnClearFilters = jest.fn();
     const mockOnApplyFilters = jest.fn();
 
+    // FilterActions is only rendered when variant="popover"
     renderComponent({
       onClearFilters: mockOnClearFilters,
       onApplyFilters: mockOnApplyFilters,
+      variant: 'popover',
     });
 
     expect(screen.getByText('Limpar filtros')).toBeInTheDocument();
@@ -418,7 +420,8 @@ describe('LessonFilters', () => {
   it('calls onClearFilters when clear button is clicked', () => {
     const mockOnClearFilters = jest.fn();
 
-    renderComponent({ onClearFilters: mockOnClearFilters });
+    // FilterActions is only rendered when variant="popover"
+    renderComponent({ onClearFilters: mockOnClearFilters, variant: 'popover' });
 
     const clearButton = screen.getByText('Limpar filtros');
     fireEvent.click(clearButton);
@@ -429,7 +432,8 @@ describe('LessonFilters', () => {
   it('calls onApplyFilters when apply button is clicked', () => {
     const mockOnApplyFilters = jest.fn();
 
-    renderComponent({ onApplyFilters: mockOnApplyFilters });
+    // FilterActions is only rendered when variant="popover"
+    renderComponent({ onApplyFilters: mockOnApplyFilters, variant: 'popover' });
 
     const applyButton = screen.getByText('Filtrar');
     fireEvent.click(applyButton);
