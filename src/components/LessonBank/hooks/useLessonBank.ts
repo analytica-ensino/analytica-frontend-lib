@@ -128,6 +128,7 @@ export const useLessonBank = (
 
   /**
    * Build filters body from filters object
+   * Maps to the expected API format for POST /lesson/list
    */
   const buildFiltersBody = useCallback(
     (currentFilters: LessonFilters | undefined): Record<string, unknown> => {
@@ -136,22 +137,22 @@ export const useLessonBank = (
         filtersBody.subjectId = currentFilters.subjectId;
       }
       if (currentFilters?.topicIds && currentFilters.topicIds.length > 0) {
-        filtersBody.topicIds = currentFilters.topicIds;
+        filtersBody.topicId = currentFilters.topicIds; // API expects topicId (singular)
       }
       if (
         currentFilters?.subtopicIds &&
         currentFilters.subtopicIds.length > 0
       ) {
-        filtersBody.subtopicIds = currentFilters.subtopicIds;
+        filtersBody.subtopicId = currentFilters.subtopicIds; // API expects subtopicId (singular)
       }
       if (currentFilters?.contentIds && currentFilters.contentIds.length > 0) {
-        filtersBody.contentIds = currentFilters.contentIds;
+        filtersBody.contentId = currentFilters.contentIds; // API expects contentId (singular)
       }
       if (
         currentFilters?.selectedIds &&
         currentFilters.selectedIds.length > 0
       ) {
-        filtersBody.selectedIds = currentFilters.selectedIds;
+        filtersBody.selectedLessonsIds = currentFilters.selectedIds; // API expects selectedLessonsIds
       }
       return filtersBody;
     },
@@ -179,19 +180,17 @@ export const useLessonBank = (
           limit: 20,
         };
 
-        // Add filters object if any filter is provided
+        // Add filters directly to the request body (not wrapped in a filters object)
         const currentFilters = filtersRef.current;
         if (currentFilters) {
           const filtersBody = buildFiltersBody(currentFilters);
 
-          // Only add filters object if it has any properties
-          if (Object.keys(filtersBody).length > 0) {
-            requestBody.filters = filtersBody;
-          }
+          // Merge filters directly into the request body
+          Object.assign(requestBody, filtersBody);
         }
 
         const response = await apiClientRef.current.post<LessonsListResponse>(
-          '/lessons/list',
+          '/lesson/list',
           requestBody
         );
 
@@ -241,8 +240,21 @@ export const useLessonBank = (
   /**
    * Reset pagination and fetch lessons when filters change
    * Only runs when filters actually change, not when other props change
+   * Only fetches if filters contain at least a subjectId
    */
   useEffect(() => {
+    // Check if filters are valid (at least subjectId must be present)
+    const hasValidFilters = filters?.subjectId && filters.subjectId.length > 0;
+
+    // If no valid filters, reset state and skip fetch
+    if (!hasValidFilters) {
+      setPagination(null);
+      setLessons([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     setPagination(null);
     setLessons([]);
     const loadLessons = async () => {
@@ -255,18 +267,16 @@ export const useLessonBank = (
           limit: 20,
         };
 
-        // Add filters object if any filter is provided
+        // Add filters directly to the request body (not wrapped in a filters object)
         if (filters) {
           const filtersBody = buildFiltersBody(filters);
 
-          // Only add filters object if it has any properties
-          if (Object.keys(filtersBody).length > 0) {
-            requestBody.filters = filtersBody;
-          }
+          // Merge filters directly into the request body
+          Object.assign(requestBody, filtersBody);
         }
 
         const response = await apiClientRef.current.post<LessonsListResponse>(
-          '/lessons/list',
+          '/lesson/list',
           requestBody
         );
 
@@ -282,7 +292,7 @@ export const useLessonBank = (
     };
 
     loadLessons();
-  }, [filtersKey, buildFiltersBody]);
+  }, [filtersKey, buildFiltersBody, filters]);
 
   /**
    * Intersection Observer for infinite scroll
@@ -367,10 +377,9 @@ export const useLessonBank = (
     }
 
     return {
-      src: (lesson as Lesson & { videoSrc?: string }).videoSrc || '',
-      poster: (lesson as Lesson & { videoPoster?: string }).videoPoster,
-      subtitles: (lesson as Lesson & { videoSubtitles?: string })
-        .videoSubtitles,
+      src: lesson.urlVideo || '',
+      poster: lesson.urlCover,
+      subtitles: lesson.urlSubtitle,
     };
   }, []);
 
@@ -386,8 +395,8 @@ export const useLessonBank = (
     }
 
     return {
-      src: (lesson as Lesson & { podcastSrc?: string }).podcastSrc || '',
-      title: (lesson as Lesson & { podcastTitle?: string }).podcastTitle || '',
+      src: lesson.urlPodCast || '',
+      title: lesson.podCastTitle || '',
     };
   }, []);
 

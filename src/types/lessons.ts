@@ -3,7 +3,45 @@
  */
 export interface Lesson {
   id: string;
-  title: string;
+  title?: string; // Kept for backwards compatibility
+  areaKnowledgeId?: string;
+  subjectId?: string;
+  topicId?: string;
+  subtopicId?: string;
+  contentId?: string;
+  urlVideo?: string;
+  urlPodCast?: string;
+  urlCover?: string;
+  urlInitialFrame?: string;
+  urlFinalFrame?: string;
+  urlDoc?: string;
+  urlSubtitle?: string;
+  videoTitle?: string;
+  podCastTitle?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  areaKnowledge?: {
+    id: string;
+    name: string;
+  };
+  subject?: {
+    id: string;
+    name: string;
+    color: string;
+    icon: string;
+  };
+  topic?: {
+    id: string;
+    name: string;
+  };
+  subtopic?: {
+    id: string;
+    name: string;
+  };
+  content?: {
+    id: string;
+    name: string;
+  };
   [key: string]: unknown;
 }
 

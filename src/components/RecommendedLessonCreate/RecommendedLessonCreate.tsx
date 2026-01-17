@@ -167,6 +167,10 @@ const RecommendedLessonCreate = ({
     applyFilters();
   }, [applyFilters]);
 
+  const handleClearFilters = useCallback(() => {
+    clearFilters();
+  }, [clearFilters]);
+
   /**
    * Handle back button click - resets everything before calling onBack
    */
@@ -282,7 +286,7 @@ const RecommendedLessonCreate = ({
         const response = await apiClient.get<{
           message: string;
           data: { subjects: { id: string; name: string }[] };
-        }>('/subjects');
+        }>('knowledge/subjects');
         setKnowledgeAreas(response.data.data.subjects || []);
       } catch (error) {
         console.error('Error loading knowledge areas:', error);
@@ -392,7 +396,10 @@ const RecommendedLessonCreate = ({
     }
     const title = generateTitle(draftType, subjectId, knowledgeAreas);
     const filters = convertFiltersToBackendFormat(appliedFilters);
-    const lessonIds = lessons.map((l) => l.id);
+    const lessonIds = lessons.map((l, index) => ({
+      lessonId: l.id,
+      sequence: index + 1,
+    }));
 
     return {
       type: draftType,
@@ -412,7 +419,7 @@ const RecommendedLessonCreate = ({
       title: string;
       subjectId: string;
       filters: LessonBackendFiltersFormat;
-      lessonIds: string[];
+      lessonIds: { lessonId: string; sequence: number }[];
     }) => {
       const response = await apiClient.patch<RecommendedLessonDraftResponse>(
         `/recommended-class/drafts/${draftId}`,
@@ -866,7 +873,10 @@ const RecommendedLessonCreate = ({
         const lessonPayload: RecommendedLessonCreatePayload = {
           title: recommendedLesson?.title || 'Aula Recomendada',
           subjectId: subjectId || null,
-          lessonIds: lessons.map((l) => l.id),
+          lessonIds: lessons.map((l, index) => ({
+            lessonId: l.id,
+            sequence: index + 1,
+          })),
           startDate: startDateTime,
           finalDate: finalDateTime,
         };
@@ -1058,6 +1068,8 @@ const RecommendedLessonCreate = ({
                 variant={'default'}
                 onFiltersChange={handleFiltersChange}
                 initialFilters={initialFiltersData || undefined}
+                onClearFilters={handleClearFilters}
+                onApplyFilters={handleApplyFilters}
               />
             </div>
             <div className="flex-shrink-0">

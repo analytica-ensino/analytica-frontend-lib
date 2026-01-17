@@ -71,13 +71,21 @@ export interface RecommendedLessonData {
 }
 
 /**
+ * Lesson ID with sequence for recommended lesson creation
+ */
+export interface RecommendedLessonIdWithSequence {
+  lessonId: string;
+  sequence: number;
+}
+
+/**
  * Recommended lesson creation payload sent to API
  */
 export interface RecommendedLessonCreatePayload {
   title: string;
   description?: string;
   subjectId?: string | null;
-  lessonIds: string[];
+  lessonIds: RecommendedLessonIdWithSequence[];
   startDate: string;
   finalDate: string;
   [key: string]: unknown;

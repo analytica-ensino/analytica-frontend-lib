@@ -673,10 +673,12 @@ export const ActivityFilters = ({
             />
           )}
 
-          <FilterActions
-            onClearFilters={onClearFilters}
-            onApplyFilters={onApplyFilters}
-          />
+          {variant === 'popover' && (
+            <FilterActions
+              onClearFilters={onClearFilters}
+              onApplyFilters={onApplyFilters}
+            />
+          )}
         </section>
       </div>
     </div>

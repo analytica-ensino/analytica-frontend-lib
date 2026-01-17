@@ -7,6 +7,7 @@ export type {
   RecommendedLessonPreFiltersInput,
   RecommendedLessonCreatePayload,
   RecommendedLessonCreateResponse,
+  RecommendedLessonIdWithSequence,
   School,
   SchoolYear,
   Class,
