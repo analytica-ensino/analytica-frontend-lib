@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useSmallScreen } from '../../hooks/useScreen';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import {
   Button,
   SkeletonText,
@@ -8,12 +8,10 @@ import {
   useToastStore,
   SendLessonModal,
 } from '../..';
+import type { ActivityModelTableItem } from '../../types/activitiesHistory';
+import { ActivityType } from '../ActivityCreate/ActivityCreate.types';
 import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
-import type {
-  ActivityModelTableItem,
-  ActivityType,
-  BaseApiClient,
-} from '../..';
+import type { BaseApiClient } from '../..';
 import type { LessonFiltersData } from '../../types/lessonFilters';
 import type { Lesson } from '../../types/lessons';
 import type { SendLessonFormData } from '../SendLessonModal';
@@ -97,8 +95,7 @@ const RecommendedLessonCreate = ({
     lessonType: RecommendedClassDraftType;
   }) => void;
 }) => {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const typeParam = searchParams.get('type') || undefined;
   const idParam = searchParams.get('id') || undefined;
@@ -217,6 +214,161 @@ const RecommendedLessonCreate = ({
     }
   };
 
+  const handleActivitySelected = useCallback(
+    async (activity: ActivityModelTableItem) => {
+      if (!recommendedLesson?.id || !activity.id) {
+        addToast({
+          title: 'Erro ao adicionar atividade',
+          description: 'A aula recomendada ou atividade não foi encontrada',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+        return;
+      }
+
+      try {
+        setIsSaving(true);
+
+        // Build the payload with current data + new activity
+        const lessonIds = lessons.map((l, index) => ({
+          lessonId: l.id,
+          sequence: index + 1,
+        }));
+
+        const activityDraftIds = [
+          {
+            activityDraftId: activity.id,
+            sequence: 1,
+          },
+        ];
+
+        const payload = {
+          type: draftType,
+          title: recommendedLesson.title,
+          subjectId: recommendedLesson.subjectId,
+          filters: recommendedLesson.filters,
+          lessonIds,
+          activityDraftIds,
+        };
+
+        // Update the draft
+        await apiClient.patch(
+          `/recommended-class/drafts/${recommendedLesson.id}`,
+          payload
+        );
+
+        // Update local state
+        setRecommendedLesson((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            activityDraftIds: [activity.id],
+            activityDrafts: [
+              {
+                activityDraftId: activity.id,
+                sequence: 1,
+                title: activity.title,
+              },
+            ],
+          };
+        });
+
+        setLastSavedAt(new Date());
+
+        addToast({
+          title: 'Atividade adicionada',
+          description: 'A atividade foi adicionada à aula recomendada',
+          variant: 'solid',
+          action: 'success',
+          position: 'top-right',
+        });
+      } catch (error) {
+        console.error('Error adding activity to recommended lesson:', error);
+        addToast({
+          title: 'Erro ao adicionar atividade',
+          description:
+            'Não foi possível adicionar a atividade à aula recomendada',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [recommendedLesson, lessons, draftType, apiClient, addToast]
+  );
+
+  const handleRemoveActivity = useCallback(async () => {
+    if (!recommendedLesson?.id) {
+      addToast({
+        title: 'Erro ao remover atividade',
+        description: 'A aula recomendada não foi encontrada',
+        variant: 'solid',
+        action: 'warning',
+        position: 'top-right',
+      });
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+
+      // Build the payload with current data + empty activityDraftIds
+      const lessonIds = lessons.map((l, index) => ({
+        lessonId: l.id,
+        sequence: index + 1,
+      }));
+
+      const payload = {
+        type: draftType,
+        title: recommendedLesson.title,
+        subjectId: recommendedLesson.subjectId,
+        filters: recommendedLesson.filters,
+        lessonIds,
+        activityDraftIds: [], // Empty array to signal removal
+      };
+
+      // Update the draft
+      await apiClient.patch(
+        `/recommended-class/drafts/${recommendedLesson.id}`,
+        payload
+      );
+
+      // Update local state
+      setRecommendedLesson((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          activityDraftIds: [],
+          activityDrafts: [],
+        };
+      });
+
+      setLastSavedAt(new Date());
+
+      addToast({
+        title: 'Atividade removida',
+        description: 'A atividade foi removida da aula recomendada',
+        variant: 'solid',
+        action: 'success',
+        position: 'top-right',
+      });
+    } catch (error) {
+      console.error('Error removing activity from recommended lesson:', error);
+      addToast({
+        title: 'Erro ao remover atividade',
+        description: 'Não foi possível remover a atividade da aula recomendada',
+        variant: 'solid',
+        action: 'warning',
+        position: 'top-right',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [recommendedLesson, lessons, draftType, apiClient, addToast]);
+
   const handleCreateNewActivity = () => {
     if (onCreateNewActivity) {
       if (!recommendedLesson?.id || !recommendedLesson?.type) {
@@ -304,11 +456,38 @@ const RecommendedLessonCreate = ({
       if (idParam && idParam !== lastFetchedLessonIdRef.current) {
         setLoading(true);
         try {
-          const response = await apiClient.get<
-            { data: RecommendedLessonData } | RecommendedLessonData
-          >(`/recommended-class/drafts/${idParam}`);
-          const lessonData =
-            'data' in response.data ? response.data.data : response.data;
+          const response = await apiClient.get<RecommendedLessonDraftResponse>(
+            `/recommended-class/drafts/${idParam}`
+          );
+          const draftData = response.data.data;
+
+          // Extract lessons with full data if available
+          const selectedLessons =
+            draftData.lessons
+              ?.map((item) => {
+                if ('lesson' in item) {
+                  return item.lesson;
+                }
+                return null;
+              })
+              .filter((lesson): lesson is Lesson => lesson !== null) || [];
+
+          const lessonData: RecommendedLessonData = {
+            id: draftData.id,
+            type: draftData.type,
+            title: draftData.title,
+            description: draftData.description,
+            subjectId: draftData.subjectId,
+            filters: draftData.filters,
+            lessonIds: draftData.lessons?.map((l) => l.lessonId) || [],
+            selectedLessons,
+            activityDraftIds:
+              draftData.activityDrafts?.map((a) => a.activityDraftId) || [],
+            activityDrafts: draftData.activityDrafts || [],
+            updatedAt: draftData.updatedAt,
+            startDate: draftData.startDate,
+            finalDate: draftData.finalDate,
+          };
 
           setRecommendedLesson(lessonData);
           setPreFilters(lessonData.filters);
@@ -354,11 +533,12 @@ const RecommendedLessonCreate = ({
         currentUrlId !== recommendedLesson.id ||
         currentUrlType !== urlType
       ) {
-        navigate(
-          `/criar-aula-recomendada?type=${urlType}&id=${recommendedLesson.id}`,
+        setSearchParams(
           {
-            replace: true,
-          }
+            type: urlType,
+            id: recommendedLesson.id,
+          },
+          { replace: true }
         );
       }
     }
@@ -367,7 +547,7 @@ const RecommendedLessonCreate = ({
     recommendedLesson?.type,
     typeParam,
     idParam,
-    navigate,
+    setSearchParams,
   ]);
 
   /**
@@ -401,14 +581,22 @@ const RecommendedLessonCreate = ({
       sequence: index + 1,
     }));
 
+    const activityDraftIds = recommendedLesson?.activityDraftIds
+      ? recommendedLesson.activityDraftIds.map((id, index) => ({
+          activityDraftId: id,
+          sequence: index + 1,
+        }))
+      : undefined;
+
     return {
       type: draftType,
       title,
       subjectId,
       filters,
       lessonIds,
+      ...(activityDraftIds && { activityDraftIds }),
     };
-  }, [appliedFilters, draftType, knowledgeAreas, lessons]);
+  }, [appliedFilters, draftType, knowledgeAreas, lessons, recommendedLesson]);
 
   /**
    * Update existing draft via PATCH
@@ -427,7 +615,7 @@ const RecommendedLessonCreate = ({
       );
       lastSavedLessonsRef.current = lessons;
       lastSavedFiltersRef.current = appliedFilters!;
-      const savedDraft = response?.data?.data?.draft;
+      const savedDraft = response?.data?.data;
       setLastSavedAt(
         savedDraft?.updatedAt ? new Date(savedDraft.updatedAt) : new Date()
       );
@@ -477,38 +665,33 @@ const RecommendedLessonCreate = ({
   const extractDraftFromResponse = useCallback(
     (response: {
       data: RecommendedLessonDraftResponse;
-    }): RecommendedLessonDraftResponse['data']['draft'] => {
+    }): RecommendedLessonDraftResponse['data'] => {
       if (!response?.data) {
         console.error('Empty response from API when creating draft:', response);
         throw new Error('Invalid response: empty response from API');
       }
 
-      let savedDraft:
-        | RecommendedLessonDraftResponse['data']['draft']
-        | undefined;
+      let savedDraft: RecommendedLessonDraftResponse['data'] | undefined;
 
-      if (response.data.data?.draft) {
-        savedDraft = response.data.data.draft;
+      if (response.data.data) {
+        savedDraft = response.data.data;
       } else if (
         response.data &&
-        'draft' in response.data &&
+        'id' in response.data &&
         typeof response.data === 'object'
       ) {
-        savedDraft = (
-          response.data as unknown as {
-            draft: RecommendedLessonDraftResponse['data']['draft'];
-          }
-        )?.draft;
+        savedDraft =
+          response.data as unknown as RecommendedLessonDraftResponse['data'];
       }
 
       if (!savedDraft?.id) {
         console.error('Invalid API response when creating draft:', {
           response,
           responseData: response?.data,
-          responseDataData: response?.data?.data,
+          responseDataKeys: response?.data ? Object.keys(response.data) : [],
         });
         throw new Error(
-          'Invalid response: draft data is missing. Expected structure: response.data.data.draft'
+          'Invalid response: draft data is missing. Expected structure: response.data.data or response.data'
         );
       }
 
@@ -522,7 +705,7 @@ const RecommendedLessonCreate = ({
    */
   const updateStateAfterSave = useCallback(
     (
-      savedDraft: RecommendedLessonDraftResponse['data']['draft'],
+      savedDraft: RecommendedLessonDraftResponse['data'],
       fullResponse?: RecommendedLessonDraftResponse,
       wasNewDraft = false
     ) => {
@@ -548,11 +731,12 @@ const RecommendedLessonCreate = ({
 
       if (wasNewDraft && savedDraft.id) {
         const urlType = getTypeFromUrl(savedDraft.type);
-        navigate(
-          `/criar-aula-recomendada?type=${urlType}&id=${savedDraft.id}`,
+        setSearchParams(
           {
-            replace: true,
-          }
+            type: urlType,
+            id: savedDraft.id,
+          },
+          { replace: true }
         );
       }
 
@@ -564,7 +748,7 @@ const RecommendedLessonCreate = ({
         onSaveModel(fullResponse);
       }
     },
-    [lessons, appliedFilters, onSaveModel, navigate]
+    [lessons, appliedFilters, onSaveModel, setSearchParams]
   );
 
   /**
@@ -870,6 +1054,13 @@ const RecommendedLessonCreate = ({
           `${formData.finalDate}T${formData.finalTime}`
         ).toISOString();
 
+        const activityDraftIds = recommendedLesson?.activityDraftIds
+          ? recommendedLesson.activityDraftIds.map((id, index) => ({
+              activityDraftId: id,
+              sequence: index + 1,
+            }))
+          : undefined;
+
         const lessonPayload: RecommendedLessonCreatePayload = {
           title: recommendedLesson?.title || 'Aula Recomendada',
           subjectId: subjectId || null,
@@ -877,6 +1068,7 @@ const RecommendedLessonCreate = ({
             lessonId: l.id,
             sequence: index + 1,
           })),
+          ...(activityDraftIds && { activityDraftIds }),
           startDate: startDateTime,
           finalDate: finalDateTime,
         };
@@ -953,6 +1145,22 @@ const RecommendedLessonCreate = ({
   );
 
   const addedLessonIds = useMemo(() => lessons.map((l) => l.id), [lessons]);
+
+  // Convert activityDrafts to ActivityModelTableItem format for LessonPreview
+  const selectedActivityForPreview =
+    useMemo((): ActivityModelTableItem | null => {
+      const activityDraft = recommendedLesson?.activityDrafts?.[0];
+      if (!activityDraft) return null;
+
+      return {
+        id: activityDraft.activityDraftId,
+        title: activityDraft.title || 'Atividade sem título',
+        type: ActivityType.MODELO,
+        savedAt: new Date().toISOString(),
+        subject: null,
+        subjectId: null,
+      };
+    }, [recommendedLesson?.activityDrafts]);
 
   // Convert appliedFilters to LessonBankFilters format
   const lessonBankFilters: LessonBankFilters | undefined = useMemo(() => {
@@ -1047,6 +1255,9 @@ const RecommendedLessonCreate = ({
                     onRemoveLesson={handleRemoveLesson}
                     onReorder={handleReorder}
                     apiClient={apiClient}
+                    selectedActivity={selectedActivityForPreview}
+                    onActivitySelected={handleActivitySelected}
+                    onRemoveActivity={handleRemoveActivity}
                     onEditActivity={handleRedirectToActivity}
                     onCreateNewActivity={handleCreateNewActivity}
                     className="h-full overflow-y-auto"
@@ -1118,6 +1329,9 @@ const RecommendedLessonCreate = ({
                 onRemoveLesson={handleRemoveLesson}
                 onReorder={handleReorder}
                 apiClient={apiClient}
+                selectedActivity={selectedActivityForPreview}
+                onActivitySelected={handleActivitySelected}
+                onRemoveActivity={handleRemoveActivity}
                 onEditActivity={handleRedirectToActivity}
                 onCreateNewActivity={handleCreateNewActivity}
                 className="h-full overflow-y-auto"

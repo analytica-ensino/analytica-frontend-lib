@@ -72,6 +72,14 @@ interface LessonPreviewProps {
    * Callback when edit activity button is clicked
    */
   onEditActivity?: (activity: ActivityModelTableItem) => void;
+  /**
+   * Callback when remove activity button is clicked
+   */
+  onRemoveActivity?: () => void;
+  /**
+   * Initial selected activity (if any)
+   */
+  selectedActivity?: ActivityModelTableItem | null;
 }
 
 export const LessonPreview = ({
@@ -90,6 +98,8 @@ export const LessonPreview = ({
   apiClient,
   onActivitySelected,
   onEditActivity,
+  onRemoveActivity,
+  selectedActivity: initialSelectedActivity = null,
 }: LessonPreviewProps) => {
   const onPositionsChangeRef = useRef(onPositionsChange);
   onPositionsChangeRef.current = onPositionsChange;
@@ -113,7 +123,7 @@ export const LessonPreview = ({
     useState(false);
   const [isChooseModelModalOpen, setIsChooseModelModalOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] =
-    useState<ActivityModelTableItem | null>(null);
+    useState<ActivityModelTableItem | null>(initialSelectedActivity);
 
   // Toast notifications
   const { toastState, showSuccess, hideToast } = useToastNotification();
@@ -129,6 +139,11 @@ export const LessonPreview = ({
     setOrderedLessons(normalized);
     onPositionsChangeRef.current?.(normalized);
   }, [lessons, normalizeWithPositions]);
+
+  // Sync selected activity when prop changes
+  useEffect(() => {
+    setSelectedActivity(initialSelectedActivity);
+  }, [initialSelectedActivity]);
 
   const total = orderedLessons.length;
   const totalLabel =
@@ -288,6 +303,9 @@ export const LessonPreview = ({
 
   const handleRemoveActivity = () => {
     setSelectedActivity(null);
+    if (onRemoveActivity) {
+      onRemoveActivity();
+    }
   };
 
   const handleEditActivity = () => {

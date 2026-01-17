@@ -127,9 +127,9 @@ export interface ActivityDraftFilters {
  */
 export interface SubjectData {
   id: string;
-  subjectName: string;
-  subjectIcon: string;
-  subjectColor: string;
+  name: string;
+  icon: string;
+  color: string;
 }
 
 /**

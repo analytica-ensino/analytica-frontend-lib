@@ -36,21 +36,29 @@ export type RecommendedLessonPreFiltersInput =
 export interface RecommendedLessonDraftResponse {
   message: string;
   data: {
-    draft: {
-      id: string;
-      type: RecommendedClassDraftType;
-      title: string;
-      description: string | null;
-      creatorUserInstitutionId: string;
-      subjectId: string | null;
-      filters: LessonBackendFiltersFormat;
-      startDate: string | null;
-      finalDate: string | null;
-      createdAt: string;
-      updatedAt: string;
-    };
-    lessonsLinked: number;
+    id: string;
+    type: RecommendedClassDraftType;
+    title: string;
+    description: string | null;
+    creatorUserInstitutionId: string;
+    subjectId: string | null;
+    filters: LessonBackendFiltersFormat;
+    startDate: string | null;
+    finalDate: string | null;
+    createdAt: string;
+    updatedAt: string;
+    lessons?: RecommendedLessonIdWithSequence[] | RecommendedLessonWithData[];
+    activityDrafts?: RecommendedLessonActivityDraft[];
   };
+}
+
+/**
+ * Activity draft ID with sequence for recommended lesson creation
+ */
+export interface RecommendedLessonActivityDraft {
+  activityDraftId: string;
+  sequence: number;
+  title?: string;
 }
 
 /**
@@ -65,6 +73,8 @@ export interface RecommendedLessonData {
   filters: LessonBackendFiltersFormat;
   lessonIds: string[];
   selectedLessons?: Lesson[];
+  activityDraftIds?: string[];
+  activityDrafts?: RecommendedLessonActivityDraft[];
   updatedAt?: string;
   startDate?: string | null;
   finalDate?: string | null;
@@ -79,6 +89,15 @@ export interface RecommendedLessonIdWithSequence {
 }
 
 /**
+ * Lesson with sequence and full lesson data from GET endpoint
+ */
+export interface RecommendedLessonWithData {
+  lessonId: string;
+  sequence: number;
+  lesson: Lesson;
+}
+
+/**
  * Recommended lesson creation payload sent to API
  */
 export interface RecommendedLessonCreatePayload {
@@ -86,6 +105,7 @@ export interface RecommendedLessonCreatePayload {
   description?: string;
   subjectId?: string | null;
   lessonIds: RecommendedLessonIdWithSequence[];
+  activityDraftIds?: RecommendedLessonActivityDraft[];
   startDate: string;
   finalDate: string;
   [key: string]: unknown;

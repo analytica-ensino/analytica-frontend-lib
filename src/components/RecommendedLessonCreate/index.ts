@@ -8,6 +8,8 @@ export type {
   RecommendedLessonCreatePayload,
   RecommendedLessonCreateResponse,
   RecommendedLessonIdWithSequence,
+  RecommendedLessonWithData,
+  RecommendedLessonActivityDraft,
   School,
   SchoolYear,
   Class,

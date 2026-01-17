@@ -171,6 +171,7 @@ export function getTypeFromUrlString(
 export function convertLessonToPreview(lesson: Lesson): PreviewLesson {
   return {
     ...lesson,
+    title: lesson.videoTitle || lesson.title,
     position: undefined,
   };
 }
