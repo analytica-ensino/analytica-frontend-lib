@@ -240,12 +240,22 @@ jest.mock('../LessonPreview/LessonPreview', () => ({
         Reorder
       </button>
       {onEditActivity && (
-        <button
-          data-testid="edit-activity-btn"
-          onClick={() => onEditActivity({ id: 'activity-1', type: 'MODELO' })}
-        >
-          Edit Activity
-        </button>
+        <>
+          <button
+            data-testid="edit-activity-btn"
+            onClick={() => onEditActivity({ id: 'activity-1', type: 'MODELO' })}
+          >
+            Edit Activity
+          </button>
+          <button
+            data-testid="edit-activity-no-id-btn"
+            onClick={() =>
+              onEditActivity({ type: 'MODELO' } as { id: string; type: string })
+            }
+          >
+            Edit Activity No ID
+          </button>
+        </>
       )}
       {onCreateNewActivity && (
         <button
@@ -1644,26 +1654,6 @@ describe('RecommendedLessonCreate', () => {
       const onRedirectToActivity = jest.fn();
       mockSearchParams.set('id', 'draft-1');
 
-      // Mock LessonPreview to pass activity without id
-      jest.doMock('../LessonPreview/LessonPreview', () => ({
-        LessonPreview: ({
-          onEditActivity,
-        }: {
-          onEditActivity?: (activity: { id?: string; type?: string }) => void;
-        }) => (
-          <div data-testid="lesson-preview">
-            {onEditActivity && (
-              <button
-                data-testid="edit-activity-no-id"
-                onClick={() => onEditActivity({ type: 'MODELO' })}
-              >
-                Edit Activity No ID
-              </button>
-            )}
-          </div>
-        ),
-      }));
-
       (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
         if (url.includes('/recommended-class/drafts/')) {
           return Promise.resolve({
@@ -1696,10 +1686,29 @@ describe('RecommendedLessonCreate', () => {
         );
       });
 
-      // The existing mock will be used, verify the component renders
+      // Wait for component to render with the edit activity button
       await waitFor(() => {
-        expect(screen.getByTestId('edit-activity-btn')).toBeInTheDocument();
+        expect(
+          screen.getByTestId('edit-activity-no-id-btn')
+        ).toBeInTheDocument();
       });
+
+      // Click the button that triggers onEditActivity without an id
+      const editNoIdBtn = screen.getByTestId('edit-activity-no-id-btn');
+      await act(async () => {
+        fireEvent.click(editNoIdBtn);
+      });
+
+      // Verify error toast was shown
+      expect(mockAddToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: expect.stringContaining('Erro'),
+          action: 'error',
+        })
+      );
+
+      // Verify onRedirectToActivity was NOT called
+      expect(onRedirectToActivity).not.toHaveBeenCalled();
     });
   });
 

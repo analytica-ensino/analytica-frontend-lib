@@ -1099,17 +1099,10 @@ const RecommendedLessonCreate = ({
           students: formData.students,
         };
 
-        const sendToStudentsResponse = await apiClient.post<{
+        await apiClient.post<{
           message: string;
           data: unknown;
         }>('/recommended-class/send-to-students', sendToStudentsPayload);
-
-        if (!createResponse?.data) {
-          throw new Error('Resposta inválida ao criar aula recomendada');
-        }
-        if (!sendToStudentsResponse?.data) {
-          throw new Error('Resposta inválida ao enviar aula para estudantes');
-        }
 
         setIsSendModalOpen(false);
         addToast({
