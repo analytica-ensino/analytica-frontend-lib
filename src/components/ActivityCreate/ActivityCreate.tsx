@@ -539,10 +539,11 @@ const CreateActivity = ({
 
   /**
    * Save draft to backend
+   * @returns The draft ID (existing or newly created), or undefined if save failed
    */
-  const saveDraft = useCallback(async () => {
+  const saveDraft = useCallback(async (): Promise<string | undefined> => {
     if (!validateSaveConditions()) {
-      return;
+      return draftId || undefined;
     }
 
     setIsSaving(true);
@@ -552,7 +553,7 @@ const CreateActivity = ({
 
       if (draftId) {
         await updateExistingDraft(payload);
-        return;
+        return draftId;
       }
 
       const response = await apiClient.post<ActivityDraftResponse>(
@@ -563,6 +564,7 @@ const CreateActivity = ({
 
       const savedDraft = extractDraftFromResponse(response);
       updateStateAfterSave(savedDraft, response?.data, true);
+      return savedDraft.id;
     } catch (error) {
       console.error('❌ Erro ao salvar rascunho:', error);
 
@@ -578,6 +580,7 @@ const CreateActivity = ({
         action: 'warning',
         position: 'top-right',
       });
+      return undefined;
     } finally {
       setIsSaving(false);
     }
@@ -603,12 +606,13 @@ const CreateActivity = ({
    * Handle add activity to lesson - saves draft and navigates back or calls callback
    */
   const handleAddActivityToLesson = useCallback(async () => {
-    // Ensure draft is saved before adding to lesson
-    if (!draftId && questions.length > 0) {
-      await saveDraft();
-    }
+    // Get the current draft ID or save and get the new one
+    let activityDraftId: string | null | undefined = draftId;
 
-    const activityDraftId = draftId;
+    // Ensure draft is saved before adding to lesson
+    if (!activityDraftId && questions.length > 0) {
+      activityDraftId = await saveDraft();
+    }
 
     // Call callback if provided
     if (onAddActivityToLesson && activityDraftId) {

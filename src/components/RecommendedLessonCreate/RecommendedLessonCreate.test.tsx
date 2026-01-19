@@ -1702,8 +1702,8 @@ describe('RecommendedLessonCreate', () => {
       // Verify error toast was shown
       expect(mockAddToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: expect.stringContaining('Erro'),
-          action: 'error',
+          title: 'Erro ao redirecionar para a atividade',
+          action: 'warning',
         })
       );
 
