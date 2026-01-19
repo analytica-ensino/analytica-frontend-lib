@@ -261,7 +261,8 @@ describe('SubjectsFilter', () => {
         (radio) => (radio as HTMLInputElement).value === 'math-1'
       );
 
-      fireEvent.click(mathRadio!);
+      expect(mathRadio).toBeDefined();
+      fireEvent.click(mathRadio as HTMLElement);
 
       expect(onSubjectChange).toHaveBeenCalledWith('math-1');
     });

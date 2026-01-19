@@ -160,6 +160,30 @@ export const useLessonBank = (
   );
 
   /**
+   * Build the complete request body for lesson list API
+   * @param page - Page number
+   * @param limit - Items per page
+   * @param currentFilters - Optional filters to apply
+   */
+  const buildLessonRequestBody = useCallback(
+    (
+      page: number,
+      limit: number,
+      currentFilters: LessonFilters | undefined
+    ): Record<string, unknown> => {
+      const requestBody: Record<string, unknown> = { page, limit };
+
+      if (currentFilters) {
+        const filtersBody = buildFiltersBody(currentFilters);
+        Object.assign(requestBody, filtersBody);
+      }
+
+      return requestBody;
+    },
+    [buildFiltersBody]
+  );
+
+  /**
    * Fetch lessons from API
    */
   const fetchLessons = useCallback(
@@ -175,19 +199,11 @@ export const useLessonBank = (
         const currentPagination = pagination;
         const page =
           append && currentPagination ? currentPagination.page + 1 : 1;
-        const requestBody: Record<string, unknown> = {
+        const requestBody = buildLessonRequestBody(
           page,
-          limit: 20,
-        };
-
-        // Add filters directly to the request body (not wrapped in a filters object)
-        const currentFilters = filtersRef.current;
-        if (currentFilters) {
-          const filtersBody = buildFiltersBody(currentFilters);
-
-          // Merge filters directly into the request body
-          Object.assign(requestBody, filtersBody);
-        }
+          20,
+          filtersRef.current
+        );
 
         const response = await apiClientRef.current.post<LessonsListResponse>(
           '/lesson/list',
@@ -211,7 +227,7 @@ export const useLessonBank = (
         setLoadingMore(false);
       }
     },
-    [pagination, buildFiltersBody]
+    [pagination, buildLessonRequestBody]
   );
 
   /**
@@ -262,18 +278,7 @@ export const useLessonBank = (
       setError(null);
 
       try {
-        const requestBody: Record<string, unknown> = {
-          page: 1,
-          limit: 20,
-        };
-
-        // Add filters directly to the request body (not wrapped in a filters object)
-        if (filters) {
-          const filtersBody = buildFiltersBody(filters);
-
-          // Merge filters directly into the request body
-          Object.assign(requestBody, filtersBody);
-        }
+        const requestBody = buildLessonRequestBody(1, 20, filters);
 
         const response = await apiClientRef.current.post<LessonsListResponse>(
           '/lesson/list',
@@ -292,7 +297,7 @@ export const useLessonBank = (
     };
 
     loadLessons();
-  }, [filtersKey, buildFiltersBody]);
+  }, [filtersKey, buildLessonRequestBody]);
 
   /**
    * Intersection Observer for infinite scroll
