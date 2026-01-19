@@ -18,9 +18,12 @@ export interface BaseModelItem {
     | string
     | {
         id: string;
-        subjectName: string;
-        subjectIcon: string;
-        subjectColor: string;
+        subjectName?: string;
+        subjectIcon?: string;
+        subjectColor?: string;
+        name?: string;
+        icon?: string;
+        color?: string;
       }
     | null;
   savedAt?: string;

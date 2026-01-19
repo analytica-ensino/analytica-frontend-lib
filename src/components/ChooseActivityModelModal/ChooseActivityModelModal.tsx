@@ -12,7 +12,25 @@ import type {
 } from '../../types/activitiesHistory';
 import { ActivityDraftType } from '../../types/activitiesHistory';
 import type { ActivityData } from '../ActivityCreate/ActivityCreate.types';
+import { ActivityType } from '../ActivityCreate/ActivityCreate.types';
 import type { TableParams } from '../TableProvider/TableProvider';
+
+/**
+ * Map ActivityDraftType to ActivityType
+ * @param draftType - Draft type from API response
+ * @returns Corresponding ActivityType
+ */
+const mapDraftTypeToActivityType = (
+  draftType: ActivityDraftType
+): ActivityType => {
+  switch (draftType) {
+    case ActivityDraftType.MODELO:
+      return ActivityType.MODELO;
+    case ActivityDraftType.RASCUNHO:
+    default:
+      return ActivityType.RASCUNHO;
+  }
+};
 
 /**
  * Transform API response to table item format for ChooseActivityModelModal
@@ -24,6 +42,7 @@ const transformActivityModelToTableItem = (
 ): ActivityModelTableItem => {
   return {
     id: model.id,
+    type: mapDraftTypeToActivityType(model.type),
     title: model.title || 'Sem título',
     savedAt: dayjs(model.createdAt).format('DD/MM/YYYY'),
     subject: model.subject || null,

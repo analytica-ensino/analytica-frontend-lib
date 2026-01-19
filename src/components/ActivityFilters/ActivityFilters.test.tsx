@@ -350,7 +350,8 @@ describe('ActivityFilters', () => {
     const onClearFilters = jest.fn();
     const onApplyFilters = jest.fn();
 
-    renderComponent({ onClearFilters, onApplyFilters });
+    // FilterActions is only rendered when variant="popover"
+    renderComponent({ onClearFilters, onApplyFilters, variant: 'popover' });
 
     fireEvent.click(screen.getByText('Limpar filtros'));
     fireEvent.click(screen.getByText('Filtrar'));

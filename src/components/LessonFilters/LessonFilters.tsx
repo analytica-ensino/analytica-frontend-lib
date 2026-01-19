@@ -179,10 +179,12 @@ export const LessonFilters = ({
             handleCategoriesChange={handleCategoriesChange}
           />
 
-          <FilterActions
-            onClearFilters={onClearFilters}
-            onApplyFilters={onApplyFilters}
-          />
+          {variant === 'popover' && (
+            <FilterActions
+              onClearFilters={onClearFilters}
+              onApplyFilters={onApplyFilters}
+            />
+          )}
         </section>
       </div>
     </div>

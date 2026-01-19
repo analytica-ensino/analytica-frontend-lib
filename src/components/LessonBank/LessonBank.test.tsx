@@ -293,11 +293,11 @@ describe('LessonBank', () => {
     {
       id: 'lesson-1',
       title: 'Introdução à Álgebra Linear',
-      videoSrc: 'https://example.com/video1.mp4',
-      videoPoster: 'https://example.com/poster1.jpg',
-      videoSubtitles: 'https://example.com/subtitles1.vtt',
-      podcastSrc: 'https://example.com/podcast1.mp3',
-      podcastTitle: 'Podcast: Introdução à Álgebra Linear',
+      urlVideo: 'https://example.com/video1.mp4',
+      urlCover: 'https://example.com/poster1.jpg',
+      urlSubtitle: 'https://example.com/subtitles1.vtt',
+      urlPodCast: 'https://example.com/podcast1.mp3',
+      podCastTitle: 'Podcast: Introdução à Álgebra Linear',
       boardImages: [
         {
           id: 'board-1',
@@ -309,7 +309,7 @@ describe('LessonBank', () => {
     {
       id: 'lesson-2',
       title: 'Fotossíntese: Processo e Importância',
-      videoSrc: 'https://example.com/video2.mp4',
+      urlVideo: 'https://example.com/video2.mp4',
     },
     {
       id: 'lesson-3',
@@ -346,7 +346,7 @@ describe('LessonBank', () => {
               throw new Error('API Error');
             }
 
-            if (url === '/lessons/list') {
+            if (url === '/lesson/list') {
               const page = (body?.page as number) || 1;
               const limit = (body?.limit as number) || 20;
               const startIndex = (page - 1) * limit;
@@ -380,6 +380,9 @@ describe('LessonBank', () => {
     } as BaseApiClient;
   };
 
+  // Default filters required for lessons to load
+  const defaultFilters = { subjectId: ['subject-1'] };
+
   beforeEach(() => {
     jest.clearAllMocks();
     localStorageMock.clear();
@@ -388,7 +391,7 @@ describe('LessonBank', () => {
   describe('Basic Rendering', () => {
     it('should render with default props', async () => {
       const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(screen.getByText('Banco de Aulas')).toBeInTheDocument();
@@ -402,7 +405,11 @@ describe('LessonBank', () => {
     it('should render with custom className', async () => {
       const apiClient = createMockApiClient();
       const { container } = render(
-        <LessonBank apiClient={apiClient} className="custom-class" />
+        <LessonBank
+          apiClient={apiClient}
+          className="custom-class"
+          filters={defaultFilters}
+        />
       );
 
       await waitFor(() => {
@@ -412,7 +419,7 @@ describe('LessonBank', () => {
 
     it('should display total lessons count', async () => {
       const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(screen.getByText('3 aulas total')).toBeInTheDocument();
@@ -425,7 +432,7 @@ describe('LessonBank', () => {
         ...mockPagination,
         total: 1,
       });
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(screen.getByText('1 aula total')).toBeInTheDocument();
@@ -436,7 +443,7 @@ describe('LessonBank', () => {
   describe('Loading States', () => {
     it('should show loading state initially', () => {
       const apiClient = createMockApiClient([], mockPagination, 100);
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       expect(screen.getByText('Carregando...')).toBeInTheDocument();
       expect(screen.getAllByTestId('skeleton-text').length).toBeGreaterThan(0);
@@ -448,7 +455,7 @@ describe('LessonBank', () => {
         hasNext: true,
       };
       const apiClient = createMockApiClient(mockLessons, paginationWithNext);
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(
@@ -461,7 +468,7 @@ describe('LessonBank', () => {
   describe('Error States', () => {
     it('should display error message when API fails', async () => {
       const apiClient = createMockApiClient([], mockPagination, 0, true);
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(screen.getByText(/Erro ao carregar aulas/i)).toBeInTheDocument();
@@ -472,7 +479,7 @@ describe('LessonBank', () => {
   describe('Empty States', () => {
     it('should display empty state when no lessons are found', async () => {
       const apiClient = createMockApiClient([]);
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(
@@ -485,7 +492,7 @@ describe('LessonBank', () => {
   describe('Lesson Cards', () => {
     it('should render lesson cards with title and buttons', async () => {
       const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(
@@ -499,7 +506,7 @@ describe('LessonBank', () => {
 
     it('should render Assistir and Adicionar à aula buttons for each lesson', async () => {
       const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         const assistirButtons = screen.getAllByText('Assistir');
@@ -518,6 +525,7 @@ describe('LessonBank', () => {
         <LessonBank
           apiClient={apiClient}
           addedLessonIds={['lesson-1', 'lesson-2']}
+          filters={defaultFilters}
         />
       );
 
@@ -538,7 +546,7 @@ describe('LessonBank', () => {
   describe('Watch Modal', () => {
     it('should open modal when clicking Assistir button', async () => {
       const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(
@@ -559,7 +567,7 @@ describe('LessonBank', () => {
 
     it('should close modal when clicking Cancelar button', async () => {
       const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(
@@ -591,7 +599,7 @@ describe('LessonBank', () => {
   describe('VideoPlayer in Modal', () => {
     it('should render VideoPlayer when lesson has video', async () => {
       const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(
@@ -619,7 +627,7 @@ describe('LessonBank', () => {
         },
       ];
       const apiClient = createMockApiClient(lessonWithoutVideo);
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(screen.getByText('Aula sem Vídeo')).toBeInTheDocument();
@@ -638,7 +646,7 @@ describe('LessonBank', () => {
 
     it('should render VideoPlayer with correct props', async () => {
       const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(
@@ -671,7 +679,7 @@ describe('LessonBank', () => {
   describe('Alert in Modal', () => {
     it('should render Alert with info message in modal', async () => {
       const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(
@@ -700,7 +708,7 @@ describe('LessonBank', () => {
   describe('CardAudio in Modal', () => {
     it('should render CardAudio when lesson has podcast', async () => {
       const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(
@@ -728,11 +736,11 @@ describe('LessonBank', () => {
         {
           id: 'lesson-no-podcast',
           title: 'Aula sem Podcast',
-          videoSrc: 'https://example.com/video.mp4',
+          urlVideo: 'https://example.com/video.mp4',
         },
       ];
       const apiClient = createMockApiClient(lessonWithoutPodcast);
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(screen.getByText('Aula sem Podcast')).toBeInTheDocument();
@@ -750,7 +758,7 @@ describe('LessonBank', () => {
   describe('Whiteboard in Modal', () => {
     it('should render Whiteboard when lesson has board images', async () => {
       const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(
@@ -775,11 +783,11 @@ describe('LessonBank', () => {
         {
           id: 'lesson-no-boards',
           title: 'Aula sem Quadros',
-          videoSrc: 'https://example.com/video.mp4',
+          urlVideo: 'https://example.com/video.mp4',
         },
       ];
       const apiClient = createMockApiClient(lessonWithoutBoards);
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(screen.getByText('Aula sem Quadros')).toBeInTheDocument();
@@ -798,7 +806,7 @@ describe('LessonBank', () => {
         {
           id: 'lesson-multiple-boards',
           title: 'Aula com Múltiplos Quadros',
-          videoSrc: 'https://example.com/video.mp4',
+          urlVideo: 'https://example.com/video.mp4',
           boardImages: [
             {
               id: 'board-1',
@@ -819,7 +827,7 @@ describe('LessonBank', () => {
         },
       ];
       const apiClient = createMockApiClient(lessonWithMultipleBoards);
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(
@@ -853,7 +861,7 @@ describe('LessonBank', () => {
         },
       ];
       const apiClient = createMockApiClient(lessonWithoutMedia);
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(screen.getByText('Aula sem Mídia')).toBeInTheDocument();
@@ -874,11 +882,11 @@ describe('LessonBank', () => {
         {
           id: 'lesson-video-only',
           title: 'Aula só com Vídeo',
-          videoSrc: 'https://example.com/video.mp4',
+          urlVideo: 'https://example.com/video.mp4',
         },
       ];
       const apiClient = createMockApiClient(lessonWithOnlyVideo);
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(screen.getByText('Aula só com Vídeo')).toBeInTheDocument();
@@ -898,7 +906,7 @@ describe('LessonBank', () => {
   describe('Component Integration', () => {
     it('should render all components together in modal', async () => {
       const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(
@@ -919,7 +927,7 @@ describe('LessonBank', () => {
 
     it('should maintain state when switching between lessons', async () => {
       const apiClient = createMockApiClient();
-      render(<LessonBank apiClient={apiClient} />);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
       await waitFor(() => {
         expect(

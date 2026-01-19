@@ -932,7 +932,7 @@ describe('ActivityCreate.utils', () => {
         selectedIds: [],
       });
       expect(result[3]).toMatchObject({
-        key: 'alunos',
+        key: 'students',
         label: 'Alunos',
         dependsOn: ['turma'],
         itens: [

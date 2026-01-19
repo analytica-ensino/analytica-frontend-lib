@@ -4,6 +4,7 @@
  * Based on /activities/history and /activity-drafts endpoints
  */
 
+import { ActivityType } from '@/components/ActivityCreate/ActivityCreate.types';
 import {
   GenericApiStatus,
   GenericDisplayStatus,
@@ -126,9 +127,9 @@ export interface ActivityDraftFilters {
  */
 export interface SubjectData {
   id: string;
-  subjectName: string;
-  subjectIcon: string;
-  subjectColor: string;
+  name: string;
+  icon: string;
+  color: string;
 }
 
 /**
@@ -151,6 +152,7 @@ export interface ActivityModelResponse {
  */
 export interface ActivityModelTableItem extends Record<string, unknown> {
   id: string;
+  type: ActivityType;
   title: string;
   savedAt: string;
   subject: SubjectData | null;

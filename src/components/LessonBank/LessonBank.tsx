@@ -114,10 +114,16 @@ export const LessonBank = ({
     }
 
     if (filteredLessons.length === 0) {
+      // Check if filters are applied
+      const hasFiltersApplied =
+        filters?.subjectId && filters.subjectId.length > 0;
+
       return (
         <div className="flex items-center justify-center h-full">
           <Text size="md" className="text-text-600">
-            Nenhuma aula encontrada.
+            {hasFiltersApplied
+              ? 'Nenhuma aula encontrada.'
+              : 'Nenhuma aula encontrada. Aplique os filtros para buscar aulas.'}
           </Text>
         </div>
       );
@@ -131,7 +137,7 @@ export const LessonBank = ({
             className="flex flex-col gap-3 p-4 border border-border-200 rounded-lg bg-background"
           >
             <Text size="md" weight="medium" className="text-text-950">
-              {lesson.title}
+              {lesson.videoTitle || lesson.title || 'Aula sem título'}
             </Text>
 
             <div className="flex gap-2">

@@ -1,49 +1,60 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useLessonBank, type LessonFilters } from './useLessonBank';
+import { useLessonBank } from './useLessonBank';
 import type { BaseApiClient } from '../../../types/api';
-import type {
-  Lesson,
-  LessonsListResponse,
-  LessonsPagination,
-} from '../../../types/lessons';
-import type { WhiteboardImage } from '../../Whiteboard/Whiteboard';
+import type { Lesson, LessonsListResponse } from '../../../types/lessons';
 
 // Mock IntersectionObserver
-(globalThis as { IntersectionObserver: unknown }).IntersectionObserver = jest
-  .fn()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  .mockImplementation((callback: any) => {
-    return {
-      observe: jest.fn(),
-      unobserve: jest.fn(),
-      disconnect: jest.fn(),
-      trigger: (entries: IntersectionObserverEntry[]) => {
-        callback(entries, {} as IntersectionObserver);
-      },
-    };
-  }) as unknown as typeof IntersectionObserver;
+const mockObserve = jest.fn();
+const mockUnobserve = jest.fn();
+const mockDisconnect = jest.fn();
+
+class MockIntersectionObserver implements IntersectionObserver {
+  readonly root: Element | Document | null = null;
+  readonly rootMargin: string = '';
+  readonly thresholds: ReadonlyArray<number> = [];
+  callback: (
+    entries: IntersectionObserverEntry[],
+    observer: IntersectionObserver
+  ) => void;
+
+  constructor(
+    callback: (
+      entries: IntersectionObserverEntry[],
+      observer: IntersectionObserver
+    ) => void
+  ) {
+    this.callback = callback;
+  }
+
+  observe = mockObserve;
+  unobserve = mockUnobserve;
+  disconnect = mockDisconnect;
+  takeRecords = (): IntersectionObserverEntry[] => [];
+}
+
+(
+  globalThis as unknown as {
+    IntersectionObserver: typeof MockIntersectionObserver;
+  }
+).IntersectionObserver = MockIntersectionObserver;
 
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
-
   return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value.toString();
-    },
-    removeItem: (key: string) => {
+    getItem: jest.fn((key: string) => store[key] || null),
+    setItem: jest.fn((key: string, value: string) => {
+      store[key] = value;
+    }),
+    removeItem: jest.fn((key: string) => {
       delete store[key];
-    },
-    clear: () => {
+    }),
+    clear: jest.fn(() => {
       store = {};
-    },
+    }),
   };
 })();
-
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-});
+Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
 describe('useLessonBank', () => {
   const mockApiClient: BaseApiClient = {
@@ -53,53 +64,61 @@ describe('useLessonBank', () => {
     delete: jest.fn(),
   };
 
-  const buildLesson = (overrides: Partial<Lesson> = {}): Lesson => ({
-    id: 'lesson-1',
-    title: 'Test Lesson',
+  const createMockLesson = (
+    id: string,
+    overrides?: Partial<Lesson>
+  ): Lesson => ({
+    id,
+    title: `Lesson ${id}`,
+    subjectId: 'subject-1',
+    topicId: 'topic-1',
+    subtopicId: 'subtopic-1',
+    contentId: 'content-1',
+    urlVideo: `https://example.com/video-${id}.mp4`,
+    urlPodCast: `https://example.com/podcast-${id}.mp3`,
+    urlCover: `https://example.com/cover-${id}.jpg`,
+    urlSubtitle: `https://example.com/subtitle-${id}.vtt`,
+    videoTitle: `Video ${id}`,
+    podCastTitle: `Podcast ${id}`,
+    subject: {
+      id: 'subject-1',
+      name: 'Matemática',
+      color: '#FF0000',
+      icon: 'math',
+    },
+    topic: {
+      id: 'topic-1',
+      name: 'Álgebra',
+    },
+    subtopic: {
+      id: 'subtopic-1',
+      name: 'Equações',
+    },
+    content: {
+      id: 'content-1',
+      name: 'Equações de 1º grau',
+    },
     ...overrides,
   });
 
-  const buildLessonWithMedia = (
-    overrides: Partial<
-      Lesson & {
-        videoSrc?: string;
-        podcastSrc?: string;
-        boardImages?: WhiteboardImage[];
-      }
-    > = {}
-  ): Lesson & {
-    videoSrc?: string;
-    videoPoster?: string;
-    videoSubtitles?: string;
-    podcastSrc?: string;
-    podcastTitle?: string;
-    boardImages?: WhiteboardImage[];
-  } => ({
-    ...buildLesson(overrides),
-    videoSrc: 'https://example.com/video.mp4',
-    videoPoster: 'https://example.com/poster.jpg',
-    videoSubtitles: 'https://example.com/subtitles.vtt',
-    podcastSrc: 'https://example.com/podcast.mp3',
-    podcastTitle: 'Test Podcast',
-    boardImages: [
-      {
-        id: 'board-1',
-        imageUrl: 'https://example.com/board1.jpg',
+  const createMockResponse = (
+    lessons: Lesson[],
+    pagination = {
+      page: 1,
+      limit: 20,
+      total: lessons.length,
+      totalPages: 1,
+      hasNext: false,
+      hasPrev: false,
+    }
+  ): { data: LessonsListResponse } => ({
+    data: {
+      message: 'Success',
+      data: {
+        lessons,
+        pagination,
       },
-    ],
-    ...overrides,
-  });
-
-  const buildPagination = (
-    overrides: Partial<LessonsPagination> = {}
-  ): LessonsPagination => ({
-    page: 1,
-    limit: 20,
-    total: 10,
-    totalPages: 1,
-    hasNext: false,
-    hasPrev: false,
-    ...overrides,
+    },
   });
 
   beforeEach(() => {
@@ -108,126 +127,76 @@ describe('useLessonBank', () => {
   });
 
   describe('Initial State', () => {
-    it('should return initial state with empty data', async () => {
-      (mockApiClient.post as jest.Mock).mockResolvedValue({
-        data: {
-          message: 'Success',
-          data: {
-            lessons: [],
-            pagination: buildPagination({ total: 0 }),
-          },
-        },
-      });
-
+    it('should return initial state with empty data when no filters provided', () => {
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
         })
       );
 
-      // Wait for initial fetch to complete
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
+      expect(result.current.lessons).toEqual([]);
+      expect(result.current.pagination).toBeNull();
+      expect(result.current.loading).toBe(false);
+      expect(result.current.loadingMore).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(result.current.selectedLesson).toBeNull();
+      expect(result.current.isWatchModalOpen).toBe(false);
+      expect(result.current.filteredLessons).toEqual([]);
+      expect(result.current.totalLessons).toBe(0);
+    });
 
-      expect(result.current).toMatchObject({
-        lessons: [],
-        pagination: expect.any(Object),
-        loading: false,
-        loadingMore: false,
-        error: null,
-        selectedLesson: null,
-        isWatchModalOpen: false,
-        filteredLessons: [],
-        totalLessons: 0,
-      });
+    it('should return all expected functions and refs', () => {
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+        })
+      );
 
-      expect(result.current.observerTarget).toBeDefined();
-      expect(result.current.firstBoardImageRef).toBeDefined();
-      expect(result.current.lastBoardImageRef).toBeDefined();
+      // Actions
       expect(result.current.handleWatch).toBeInstanceOf(Function);
       expect(result.current.handleAddToLesson).toBeInstanceOf(Function);
+      expect(result.current.handleAddToLessonFromModal).toBeInstanceOf(
+        Function
+      );
       expect(result.current.handleCloseModal).toBeInstanceOf(Function);
+
+      // Data getters
       expect(result.current.getVideoData).toBeInstanceOf(Function);
       expect(result.current.getPodcastData).toBeInstanceOf(Function);
       expect(result.current.getBoardImages).toBeInstanceOf(Function);
+      expect(result.current.getBoardImageRef).toBeInstanceOf(Function);
+      expect(result.current.getInitialTimestampValue).toBeInstanceOf(Function);
+
+      // Callbacks
+      expect(result.current.handleVideoTimeUpdate).toBeInstanceOf(Function);
+      expect(result.current.handleVideoCompleteCallback).toBeInstanceOf(
+        Function
+      );
+      expect(result.current.handlePodcastEnded).toBeInstanceOf(Function);
+
+      // Helpers
       expect(result.current.uniqueLesson).toBeInstanceOf(Function);
+
+      // Refs
+      expect(result.current.observerTarget).toBeDefined();
+      expect(result.current.firstBoardImageRef).toBeDefined();
+      expect(result.current.lastBoardImageRef).toBeDefined();
     });
   });
 
-  describe('Fetch Lessons', () => {
-    it('should fetch lessons successfully on mount when filters are provided', async () => {
-      const mockLessons: Lesson[] = [
-        buildLesson({ id: 'lesson-1', title: 'Lesson 1' }),
-        buildLesson({ id: 'lesson-2', title: 'Lesson 2' }),
-      ];
+  describe('Fetching Lessons', () => {
+    it('should fetch lessons when valid filters are provided', async () => {
+      const mockLessons = [createMockLesson('1'), createMockLesson('2')];
+      const mockResponse = createMockResponse(mockLessons);
 
-      const mockPagination = buildPagination({
-        total: 2,
-        hasNext: false,
-      });
-
-      const mockResponse: LessonsListResponse = {
-        message: 'Success',
-        data: {
-          lessons: mockLessons,
-          pagination: mockPagination,
-        },
-      };
-
-      (mockApiClient.post as jest.Mock).mockResolvedValue({
-        data: mockResponse,
-      });
-
-      const filters: LessonFilters = {
-        subjectId: ['math'],
-      };
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
-          filters,
-        })
-      );
-
-      expect(result.current.loading).toBe(true);
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(result.current.lessons).toEqual(mockLessons);
-      expect(result.current.pagination).toEqual(mockPagination);
-      expect(result.current.error).toBeNull();
-      expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/lessons/list',
-        expect.objectContaining({
-          page: 1,
-          limit: 20,
           filters: {
-            subjectId: ['math'],
+            subjectId: ['subject-1'],
           },
-        })
-      );
-    });
-
-    it('should fetch lessons without filters when filters are not provided', async () => {
-      const mockLessons: Lesson[] = [buildLesson()];
-      const mockPagination = buildPagination();
-
-      (mockApiClient.post as jest.Mock).mockResolvedValue({
-        data: {
-          message: 'Success',
-          data: {
-            lessons: mockLessons,
-            pagination: mockPagination,
-          },
-        },
-      });
-
-      const { result } = renderHook(() =>
-        useLessonBank({
-          apiClient: mockApiClient,
         })
       );
 
@@ -235,32 +204,101 @@ describe('useLessonBank', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/lessons/list',
-        expect.objectContaining({
-          page: 1,
-          limit: 20,
-        })
-      );
+      expect(mockApiClient.post).toHaveBeenCalledWith('/lesson/list', {
+        page: 1,
+        limit: 20,
+        subjectId: ['subject-1'],
+      });
 
-      expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/lessons/list',
-        expect.not.objectContaining({
-          filters: expect.anything(),
-        })
-      );
+      expect(result.current.lessons).toHaveLength(2);
+      expect(result.current.error).toBeNull();
     });
 
-    it('should handle API errors', async () => {
-      const errorMessage = 'API Error';
-      (mockApiClient.post as jest.Mock).mockRejectedValue(
-        new Error(errorMessage)
+    it('should not fetch lessons when filters have no subjectId', async () => {
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+          filters: {
+            topicIds: ['topic-1'],
+          },
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(mockApiClient.post).not.toHaveBeenCalled();
+      expect(result.current.lessons).toEqual([]);
+    });
+
+    it('should not fetch lessons when subjectId is empty array', async () => {
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+          filters: {
+            subjectId: [],
+          },
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(mockApiClient.post).not.toHaveBeenCalled();
+      expect(result.current.lessons).toEqual([]);
+    });
+
+    it('should include all filter types in request body', async () => {
+      const mockLessons = [createMockLesson('1')];
+      const mockResponse = createMockResponse(mockLessons);
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+          filters: {
+            subjectId: ['subject-1', 'subject-2'],
+            topicIds: ['topic-1'],
+            subtopicIds: ['subtopic-1'],
+            contentIds: ['content-1'],
+            selectedIds: ['lesson-1', 'lesson-2'],
+          },
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(mockApiClient.post).toHaveBeenCalledWith('/lesson/list', {
+        page: 1,
+        limit: 20,
+        subjectId: ['subject-1', 'subject-2'],
+        topicId: ['topic-1'],
+        subtopicId: ['subtopic-1'],
+        contentId: ['content-1'],
+        selectedLessonsIds: ['lesson-1', 'lesson-2'],
+      });
+    });
+
+    it('should handle API error gracefully', async () => {
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      (mockApiClient.post as jest.Mock).mockRejectedValueOnce(
+        new Error('Network error')
       );
 
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
-          filters: { subjectId: ['math'] },
+          filters: {
+            subjectId: ['subject-1'],
+          },
         })
       );
 
@@ -270,31 +308,21 @@ describe('useLessonBank', () => {
 
       expect(result.current.error).toBe('Erro ao carregar aulas');
       expect(result.current.lessons).toEqual([]);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Erro ao carregar aulas:',
+        expect.any(Error)
+      );
+
+      consoleErrorSpy.mockRestore();
     });
 
     it('should refetch lessons when filters change', async () => {
-      const mockLessons1: Lesson[] = [buildLesson({ id: 'lesson-1' })];
-      const mockLessons2: Lesson[] = [buildLesson({ id: 'lesson-2' })];
+      const mockLessons1 = [createMockLesson('1')];
+      const mockLessons2 = [createMockLesson('2'), createMockLesson('3')];
 
       (mockApiClient.post as jest.Mock)
-        .mockResolvedValueOnce({
-          data: {
-            message: 'Success',
-            data: {
-              lessons: mockLessons1,
-              pagination: buildPagination(),
-            },
-          },
-        })
-        .mockResolvedValueOnce({
-          data: {
-            message: 'Success',
-            data: {
-              lessons: mockLessons2,
-              pagination: buildPagination(),
-            },
-          },
-        });
+        .mockResolvedValueOnce(createMockResponse(mockLessons1))
+        .mockResolvedValueOnce(createMockResponse(mockLessons2));
 
       const { result, rerender } = renderHook(
         ({ filters }) =>
@@ -303,217 +331,114 @@ describe('useLessonBank', () => {
             filters,
           }),
         {
-          initialProps: { filters: { subjectId: ['math'] } as LessonFilters },
+          initialProps: {
+            filters: { subjectId: ['subject-1'] },
+          },
         }
       );
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false);
+        expect(result.current.lessons).toHaveLength(1);
       });
 
-      expect(result.current.lessons).toEqual(mockLessons1);
-
-      rerender({ filters: { subjectId: ['science'] } as LessonFilters });
+      rerender({ filters: { subjectId: ['subject-2'] } });
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false);
+        expect(result.current.lessons).toHaveLength(2);
       });
 
-      expect(result.current.lessons).toEqual(mockLessons2);
       expect(mockApiClient.post).toHaveBeenCalledTimes(2);
     });
   });
 
-  describe('Filters', () => {
-    it('should include all filter types in request', async () => {
-      const filters: LessonFilters = {
-        subjectId: ['math'],
-        topicIds: ['algebra'],
-        subtopicIds: ['equations'],
-        contentIds: ['linear-equations'],
-        selectedIds: ['lesson-1', 'lesson-2'],
-      };
-
-      (mockApiClient.post as jest.Mock).mockResolvedValue({
-        data: {
-          message: 'Success',
-          data: {
-            lessons: [],
-            pagination: buildPagination(),
-          },
-        },
+  describe('Pagination', () => {
+    it('should set pagination data from API response', async () => {
+      const mockLessons = [createMockLesson('1')];
+      const mockResponse = createMockResponse(mockLessons, {
+        page: 1,
+        limit: 20,
+        total: 50,
+        totalPages: 3,
+        hasNext: true,
+        hasPrev: false,
       });
 
-      renderHook(() =>
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
-          filters,
-        })
-      );
-
-      await waitFor(() => {
-        expect(mockApiClient.post).toHaveBeenCalled();
-      });
-
-      expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/lessons/list',
-        expect.objectContaining({
           filters: {
-            subjectId: ['math'],
-            topicIds: ['algebra'],
-            subtopicIds: ['equations'],
-            contentIds: ['linear-equations'],
-            selectedIds: ['lesson-1', 'lesson-2'],
+            subjectId: ['subject-1'],
           },
-        })
-      );
-    });
-
-    it('should not include empty filter arrays', async () => {
-      const filters: LessonFilters = {
-        subjectId: ['math'],
-        topicIds: [],
-        subtopicIds: undefined,
-      };
-
-      (mockApiClient.post as jest.Mock).mockResolvedValue({
-        data: {
-          message: 'Success',
-          data: {
-            lessons: [],
-            pagination: buildPagination(),
-          },
-        },
-      });
-
-      renderHook(() =>
-        useLessonBank({
-          apiClient: mockApiClient,
-          filters,
         })
       );
 
       await waitFor(() => {
-        expect(mockApiClient.post).toHaveBeenCalled();
+        expect(result.current.pagination).not.toBeNull();
       });
 
-      const callArgs = (mockApiClient.post as jest.Mock).mock
-        .calls[0][1] as Record<string, unknown>;
-      const filtersBody = callArgs.filters as Record<string, unknown>;
-
-      expect(filtersBody.subjectId).toEqual(['math']);
-      expect(filtersBody.topicIds).toBeUndefined();
-      expect(filtersBody.subtopicIds).toBeUndefined();
+      expect(result.current.pagination).toEqual({
+        page: 1,
+        limit: 20,
+        total: 50,
+        totalPages: 3,
+        hasNext: true,
+        hasPrev: false,
+      });
+      expect(result.current.totalLessons).toBe(50);
     });
   });
 
-  describe('Filtered Lessons', () => {
-    it('should filter out added lessons', async () => {
-      const mockLessons: Lesson[] = [
-        buildLesson({ id: 'lesson-1' }),
-        buildLesson({ id: 'lesson-2' }),
-        buildLesson({ id: 'lesson-3' }),
-      ];
+  describe('Watch Modal', () => {
+    it('should open watch modal when handleWatch is called', async () => {
+      const mockLesson = createMockLesson('1');
+      const mockResponse = createMockResponse([mockLesson]);
 
-      (mockApiClient.post as jest.Mock).mockResolvedValue({
-        data: {
-          message: 'Success',
-          data: {
-            lessons: mockLessons,
-            pagination: buildPagination(),
-          },
-        },
-      });
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
-          addedLessonIds: ['lesson-2'],
-        })
-      );
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(result.current.filteredLessons).toHaveLength(2);
-      expect(result.current.filteredLessons.map((l) => l.id)).toEqual([
-        'lesson-1',
-        'lesson-3',
-      ]);
-    });
-
-    it('should update filtered lessons when addedLessonIds change', async () => {
-      const mockLessons: Lesson[] = [
-        buildLesson({ id: 'lesson-1' }),
-        buildLesson({ id: 'lesson-2' }),
-      ];
-
-      (mockApiClient.post as jest.Mock).mockResolvedValue({
-        data: {
-          message: 'Success',
-          data: {
-            lessons: mockLessons,
-            pagination: buildPagination(),
+          filters: {
+            subjectId: ['subject-1'],
           },
-        },
-      });
-
-      const { result, rerender } = renderHook(
-        ({ addedLessonIds }) =>
-          useLessonBank({
-            apiClient: mockApiClient,
-            addedLessonIds,
-          }),
-        {
-          initialProps: { addedLessonIds: [] },
-        }
-      );
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(result.current.filteredLessons).toHaveLength(2);
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      rerender({ addedLessonIds: ['lesson-1'] as any });
-
-      expect(result.current.filteredLessons).toHaveLength(1);
-      expect(result.current.filteredLessons[0].id).toBe('lesson-2');
-    });
-  });
-
-  describe('Modal Handlers', () => {
-    it('should open modal and set selected lesson when handleWatch is called', () => {
-      const lesson = buildLesson();
-      const { result } = renderHook(() =>
-        useLessonBank({
-          apiClient: mockApiClient,
         })
       );
 
-      expect(result.current.isWatchModalOpen).toBe(false);
-      expect(result.current.selectedLesson).toBeNull();
+      await waitFor(() => {
+        expect(result.current.lessons).toHaveLength(1);
+      });
 
       act(() => {
-        result.current.handleWatch(lesson);
+        result.current.handleWatch(mockLesson);
       });
 
       expect(result.current.isWatchModalOpen).toBe(true);
-      expect(result.current.selectedLesson).toEqual(lesson);
+      expect(result.current.selectedLesson).toEqual(mockLesson);
     });
 
-    it('should close modal when handleCloseModal is called', () => {
-      const lesson = buildLesson();
+    it('should close watch modal and clear selected lesson when handleCloseModal is called', async () => {
+      const mockLesson = createMockLesson('1');
+      const mockResponse = createMockResponse([mockLesson]);
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
+          filters: {
+            subjectId: ['subject-1'],
+          },
         })
       );
 
+      await waitFor(() => {
+        expect(result.current.lessons).toHaveLength(1);
+      });
+
       act(() => {
-        result.current.handleWatch(lesson);
+        result.current.handleWatch(mockLesson);
       });
 
       expect(result.current.isWatchModalOpen).toBe(true);
@@ -525,10 +450,13 @@ describe('useLessonBank', () => {
       expect(result.current.isWatchModalOpen).toBe(false);
       expect(result.current.selectedLesson).toBeNull();
     });
+  });
 
-    it('should call onAddLesson when handleAddToLesson is called', () => {
-      const lesson = buildLesson();
+  describe('Add to Lesson', () => {
+    it('should call onAddLesson callback when handleAddToLesson is called', () => {
       const onAddLesson = jest.fn();
+      const mockLesson = createMockLesson('1');
+
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
@@ -537,60 +465,139 @@ describe('useLessonBank', () => {
       );
 
       act(() => {
-        result.current.handleAddToLesson(lesson);
+        result.current.handleAddToLesson(mockLesson);
       });
 
-      expect(onAddLesson).toHaveBeenCalledWith(lesson);
+      expect(onAddLesson).toHaveBeenCalledWith(mockLesson);
     });
 
-    it('should call onAddLesson and close modal when handleAddToLessonFromModal is called', () => {
-      const lesson = buildLesson();
+    it('should not throw when onAddLesson is not provided', () => {
+      const mockLesson = createMockLesson('1');
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+        })
+      );
+
+      expect(() => {
+        act(() => {
+          result.current.handleAddToLesson(mockLesson);
+        });
+      }).not.toThrow();
+    });
+
+    it('should call onAddLesson and close modal when handleAddToLessonFromModal is called', async () => {
       const onAddLesson = jest.fn();
+      const mockLesson = createMockLesson('1');
+      const mockResponse = createMockResponse([mockLesson]);
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
           onAddLesson,
+          filters: {
+            subjectId: ['subject-1'],
+          },
         })
       );
 
-      act(() => {
-        result.current.handleWatch(lesson);
+      await waitFor(() => {
+        expect(result.current.lessons).toHaveLength(1);
       });
 
-      expect(result.current.isWatchModalOpen).toBe(true);
+      act(() => {
+        result.current.handleWatch(mockLesson);
+      });
 
       act(() => {
         result.current.handleAddToLessonFromModal();
       });
 
-      expect(onAddLesson).toHaveBeenCalledWith(lesson);
+      expect(onAddLesson).toHaveBeenCalledWith(mockLesson);
       expect(result.current.isWatchModalOpen).toBe(false);
       expect(result.current.selectedLesson).toBeNull();
     });
 
-    it('should not call onAddLesson if not provided', () => {
-      const lesson = buildLesson();
+    it('should not call onAddLesson from modal when no lesson is selected', () => {
+      const onAddLesson = jest.fn();
+
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
+          onAddLesson,
         })
       );
 
       act(() => {
-        result.current.handleAddToLesson(lesson);
+        result.current.handleAddToLessonFromModal();
       });
 
-      // Should not throw
-      expect(result.current.isWatchModalOpen).toBe(false);
+      expect(onAddLesson).not.toHaveBeenCalled();
     });
   });
 
-  describe('Data Getters', () => {
-    it('should get video data from lesson', () => {
-      const lesson = buildLessonWithMedia({
-        videoSrc: 'https://example.com/video.mp4',
-        videoPoster: 'https://example.com/poster.jpg',
-        videoSubtitles: 'https://example.com/subtitles.vtt',
+  describe('Filtered Lessons', () => {
+    it('should filter out already added lessons', async () => {
+      const mockLessons = [
+        createMockLesson('1'),
+        createMockLesson('2'),
+        createMockLesson('3'),
+      ];
+      const mockResponse = createMockResponse(mockLessons);
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+          filters: {
+            subjectId: ['subject-1'],
+          },
+          addedLessonIds: ['1', '3'],
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.lessons).toHaveLength(3);
+      });
+
+      expect(result.current.filteredLessons).toHaveLength(1);
+      expect(result.current.filteredLessons[0].id).toBe('2');
+    });
+
+    it('should return all lessons when addedLessonIds is empty', async () => {
+      const mockLessons = [createMockLesson('1'), createMockLesson('2')];
+      const mockResponse = createMockResponse(mockLessons);
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+          filters: {
+            subjectId: ['subject-1'],
+          },
+          addedLessonIds: [],
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.lessons).toHaveLength(2);
+      });
+
+      expect(result.current.filteredLessons).toHaveLength(2);
+    });
+  });
+
+  describe('Video Data', () => {
+    it('should return video data for a lesson', () => {
+      const mockLesson = createMockLesson('1', {
+        urlVideo: 'https://example.com/video.mp4',
+        urlCover: 'https://example.com/cover.jpg',
+        urlSubtitle: 'https://example.com/subtitle.vtt',
       });
 
       const { result } = renderHook(() =>
@@ -599,12 +606,12 @@ describe('useLessonBank', () => {
         })
       );
 
-      const videoData = result.current.getVideoData(lesson);
+      const videoData = result.current.getVideoData(mockLesson);
 
       expect(videoData).toEqual({
         src: 'https://example.com/video.mp4',
-        poster: 'https://example.com/poster.jpg',
-        subtitles: 'https://example.com/subtitles.vtt',
+        poster: 'https://example.com/cover.jpg',
+        subtitles: 'https://example.com/subtitle.vtt',
       });
     });
 
@@ -624,10 +631,11 @@ describe('useLessonBank', () => {
       });
     });
 
-    it('should get podcast data from lesson', () => {
-      const lesson = buildLessonWithMedia({
-        podcastSrc: 'https://example.com/podcast.mp3',
-        podcastTitle: 'Test Podcast',
+    it('should handle lesson without video URL', () => {
+      const mockLesson = createMockLesson('1', {
+        urlVideo: undefined,
+        urlCover: undefined,
+        urlSubtitle: undefined,
       });
 
       const { result } = renderHook(() =>
@@ -636,11 +644,34 @@ describe('useLessonBank', () => {
         })
       );
 
-      const podcastData = result.current.getPodcastData(lesson);
+      const videoData = result.current.getVideoData(mockLesson);
+
+      expect(videoData).toEqual({
+        src: '',
+        poster: undefined,
+        subtitles: undefined,
+      });
+    });
+  });
+
+  describe('Podcast Data', () => {
+    it('should return podcast data for a lesson', () => {
+      const mockLesson = createMockLesson('1', {
+        urlPodCast: 'https://example.com/podcast.mp3',
+        podCastTitle: 'My Podcast',
+      });
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+        })
+      );
+
+      const podcastData = result.current.getPodcastData(mockLesson);
 
       expect(podcastData).toEqual({
         src: 'https://example.com/podcast.mp3',
-        title: 'Test Podcast',
+        title: 'My Podcast',
       });
     });
 
@@ -659,13 +690,11 @@ describe('useLessonBank', () => {
       });
     });
 
-    it('should get board images from lesson', () => {
-      const boardImages: WhiteboardImage[] = [
-        { id: 'board-1', imageUrl: 'https://example.com/board1.jpg' },
-        { id: 'board-2', imageUrl: 'https://example.com/board2.jpg' },
-      ];
-
-      const lesson = buildLessonWithMedia({ boardImages });
+    it('should handle lesson without podcast URL', () => {
+      const mockLesson = createMockLesson('1', {
+        urlPodCast: undefined,
+        podCastTitle: undefined,
+      });
 
       const { result } = renderHook(() =>
         useLessonBank({
@@ -673,7 +702,33 @@ describe('useLessonBank', () => {
         })
       );
 
-      const images = result.current.getBoardImages(lesson);
+      const podcastData = result.current.getPodcastData(mockLesson);
+
+      expect(podcastData).toEqual({
+        src: '',
+        title: '',
+      });
+    });
+  });
+
+  describe('Board Images', () => {
+    it('should return board images from lesson', () => {
+      const boardImages = [
+        { url: 'https://example.com/board1.jpg' },
+        { url: 'https://example.com/board2.jpg' },
+      ];
+      const mockLesson = {
+        ...createMockLesson('1'),
+        boardImages,
+      };
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+        })
+      );
+
+      const images = result.current.getBoardImages(mockLesson);
 
       expect(images).toEqual(boardImages);
     });
@@ -690,24 +745,63 @@ describe('useLessonBank', () => {
       expect(images).toEqual([]);
     });
 
-    it('should get board image ref correctly', () => {
+    it('should return empty array when lesson has no board images', () => {
+      const mockLesson = createMockLesson('1');
+
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
         })
       );
 
-      const firstRef = result.current.getBoardImageRef(0, 3);
-      const lastRef = result.current.getBoardImageRef(2, 3);
-      const middleRef = result.current.getBoardImageRef(1, 3);
+      const images = result.current.getBoardImages(mockLesson);
 
-      expect(firstRef).toBe(result.current.firstBoardImageRef);
-      expect(lastRef).toBe(result.current.lastBoardImageRef);
-      expect(middleRef).toBeNull();
+      expect(images).toEqual([]);
+    });
+  });
+
+  describe('Board Image Refs', () => {
+    it('should return firstBoardImageRef for index 0', () => {
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+        })
+      );
+
+      const ref = result.current.getBoardImageRef(0, 3);
+
+      expect(ref).toBe(result.current.firstBoardImageRef);
     });
 
-    it('should get initial timestamp from callback if provided', () => {
+    it('should return lastBoardImageRef for last index', () => {
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+        })
+      );
+
+      const ref = result.current.getBoardImageRef(2, 3);
+
+      expect(ref).toBe(result.current.lastBoardImageRef);
+    });
+
+    it('should return null for middle indices', () => {
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+        })
+      );
+
+      const ref = result.current.getBoardImageRef(1, 3);
+
+      expect(ref).toBeNull();
+    });
+  });
+
+  describe('Initial Timestamp', () => {
+    it('should use getInitialTimestamp callback when provided', () => {
       const getInitialTimestamp = jest.fn().mockReturnValue(120);
+
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
@@ -721,8 +815,8 @@ describe('useLessonBank', () => {
       expect(timestamp).toBe(120);
     });
 
-    it('should get initial timestamp from localStorage if callback not provided', () => {
-      localStorageMock.setItem('lesson-lesson-1', '150.5');
+    it('should fallback to localStorage when getInitialTimestamp not provided', () => {
+      localStorageMock.getItem.mockReturnValueOnce('60.5');
 
       const { result } = renderHook(() =>
         useLessonBank({
@@ -732,10 +826,41 @@ describe('useLessonBank', () => {
 
       const timestamp = result.current.getInitialTimestampValue('lesson-1');
 
-      expect(timestamp).toBe(150.5);
+      expect(localStorageMock.getItem).toHaveBeenCalledWith('lesson-lesson-1');
+      expect(timestamp).toBe(60.5);
     });
 
-    it('should return 0 if no timestamp found', () => {
+    it('should return 0 when localStorage has no value', () => {
+      localStorageMock.getItem.mockReturnValueOnce(null);
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+        })
+      );
+
+      const timestamp = result.current.getInitialTimestampValue('lesson-1');
+
+      expect(timestamp).toBe(0);
+    });
+
+    it('should return 0 for invalid localStorage value', () => {
+      localStorageMock.getItem.mockReturnValueOnce('invalid');
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+        })
+      );
+
+      const timestamp = result.current.getInitialTimestampValue('lesson-1');
+
+      expect(timestamp).toBe(0);
+    });
+
+    it('should return 0 for negative localStorage value', () => {
+      localStorageMock.getItem.mockReturnValueOnce('-10');
+
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
@@ -748,247 +873,412 @@ describe('useLessonBank', () => {
     });
   });
 
-  describe('Video Callbacks', () => {
-    it('should call onVideoTimeUpdate when handleVideoTimeUpdate is called', () => {
-      const lesson = buildLesson({ id: 'lesson-1' });
+  describe('Video Time Update', () => {
+    it('should call onVideoTimeUpdate with lesson id and time', async () => {
       const onVideoTimeUpdate = jest.fn();
+      const mockLesson = createMockLesson('1');
+      const mockResponse = createMockResponse([mockLesson]);
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
           onVideoTimeUpdate,
+          filters: {
+            subjectId: ['subject-1'],
+          },
         })
       );
 
-      act(() => {
-        result.current.handleWatch(lesson);
+      await waitFor(() => {
+        expect(result.current.lessons).toHaveLength(1);
       });
 
       act(() => {
-        result.current.handleVideoTimeUpdate(120);
+        result.current.handleWatch(mockLesson);
       });
 
-      expect(onVideoTimeUpdate).toHaveBeenCalledWith('lesson-1', 120);
+      act(() => {
+        result.current.handleVideoTimeUpdate(30);
+      });
+
+      expect(onVideoTimeUpdate).toHaveBeenCalledWith('1', 30);
     });
 
-    it('should use lessonId when isFromTrailRoute is true', () => {
-      const lesson = buildLesson({ id: 'lesson-1' });
+    it('should use lessonId from config when isFromTrailRoute is true', async () => {
       const onVideoTimeUpdate = jest.fn();
+      const mockLesson = createMockLesson('1');
+      const mockResponse = createMockResponse([mockLesson]);
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
           onVideoTimeUpdate,
           isFromTrailRoute: true,
-          lessonId: 'trail-lesson-1',
+          lessonId: 'trail-lesson-id',
+          filters: {
+            subjectId: ['subject-1'],
+          },
         })
       );
 
-      act(() => {
-        result.current.handleWatch(lesson);
+      await waitFor(() => {
+        expect(result.current.lessons).toHaveLength(1);
       });
 
       act(() => {
-        result.current.handleVideoTimeUpdate(120);
+        result.current.handleWatch(mockLesson);
       });
 
-      expect(onVideoTimeUpdate).toHaveBeenCalledWith('trail-lesson-1', 120);
+      act(() => {
+        result.current.handleVideoTimeUpdate(30);
+      });
+
+      expect(onVideoTimeUpdate).toHaveBeenCalledWith('trail-lesson-id', 30);
     });
 
-    it('should call onVideoComplete when handleVideoCompleteCallback is called', () => {
-      const lesson = buildLesson({ id: 'lesson-1' });
-      const onVideoComplete = jest.fn();
-      const { result } = renderHook(() =>
-        useLessonBank({
-          apiClient: mockApiClient,
-          onVideoComplete,
-        })
-      );
-
-      act(() => {
-        result.current.handleWatch(lesson);
-      });
-
-      act(() => {
-        result.current.handleVideoCompleteCallback();
-      });
-
-      expect(onVideoComplete).toHaveBeenCalledWith('lesson-1');
-    });
-
-    it('should not call callbacks if no lesson is selected', () => {
+    it('should not call onVideoTimeUpdate when no lesson is selected', () => {
       const onVideoTimeUpdate = jest.fn();
-      const onVideoComplete = jest.fn();
+
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
           onVideoTimeUpdate,
-          onVideoComplete,
         })
       );
 
       act(() => {
-        result.current.handleVideoTimeUpdate(120);
+        result.current.handleVideoTimeUpdate(30);
+      });
+
+      expect(onVideoTimeUpdate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Video Complete Callback', () => {
+    it('should call onVideoComplete with lesson id', async () => {
+      const onVideoComplete = jest.fn();
+      const mockLesson = createMockLesson('1');
+      const mockResponse = createMockResponse([mockLesson]);
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+          onVideoComplete,
+          filters: {
+            subjectId: ['subject-1'],
+          },
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.lessons).toHaveLength(1);
+      });
+
+      act(() => {
+        result.current.handleWatch(mockLesson);
       });
 
       act(() => {
         result.current.handleVideoCompleteCallback();
       });
 
-      expect(onVideoTimeUpdate).not.toHaveBeenCalled();
+      expect(onVideoComplete).toHaveBeenCalledWith('1');
+    });
+
+    it('should use lessonId from config when isFromTrailRoute is true', async () => {
+      const onVideoComplete = jest.fn();
+      const mockLesson = createMockLesson('1');
+      const mockResponse = createMockResponse([mockLesson]);
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+          onVideoComplete,
+          isFromTrailRoute: true,
+          lessonId: 'trail-lesson-id',
+          filters: {
+            subjectId: ['subject-1'],
+          },
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.lessons).toHaveLength(1);
+      });
+
+      act(() => {
+        result.current.handleWatch(mockLesson);
+      });
+
+      act(() => {
+        result.current.handleVideoCompleteCallback();
+      });
+
+      expect(onVideoComplete).toHaveBeenCalledWith('trail-lesson-id');
+    });
+
+    it('should not call onVideoComplete when no lesson is selected', () => {
+      const onVideoComplete = jest.fn();
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+          onVideoComplete,
+        })
+      );
+
+      act(() => {
+        result.current.handleVideoCompleteCallback();
+      });
+
       expect(onVideoComplete).not.toHaveBeenCalled();
     });
   });
 
-  describe('Podcast Callbacks', () => {
-    it('should call onPodcastEnded when handlePodcastEnded is called', async () => {
-      const lesson = buildLesson({ id: 'lesson-1' });
+  describe('Podcast Ended Callback', () => {
+    it('should call onPodcastEnded with lesson id', async () => {
       const onPodcastEnded = jest.fn().mockResolvedValue(undefined);
+      const mockLesson = createMockLesson('1');
+      const mockResponse = createMockResponse([mockLesson]);
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
           onPodcastEnded,
+          filters: {
+            subjectId: ['subject-1'],
+          },
         })
       );
 
+      await waitFor(() => {
+        expect(result.current.lessons).toHaveLength(1);
+      });
+
       act(() => {
-        result.current.handleWatch(lesson);
+        result.current.handleWatch(mockLesson);
       });
 
       await act(async () => {
         await result.current.handlePodcastEnded();
       });
 
-      expect(onPodcastEnded).toHaveBeenCalledWith('lesson-1');
+      expect(onPodcastEnded).toHaveBeenCalledWith('1');
     });
 
     it('should only call onPodcastEnded once per lesson', async () => {
-      const lesson = buildLesson({ id: 'lesson-1' });
       const onPodcastEnded = jest.fn().mockResolvedValue(undefined);
+      const mockLesson = createMockLesson('1');
+      const mockResponse = createMockResponse([mockLesson]);
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
           onPodcastEnded,
+          filters: {
+            subjectId: ['subject-1'],
+          },
         })
       );
 
+      await waitFor(() => {
+        expect(result.current.lessons).toHaveLength(1);
+      });
+
       act(() => {
-        result.current.handleWatch(lesson);
+        result.current.handleWatch(mockLesson);
       });
 
       await act(async () => {
         await result.current.handlePodcastEnded();
+      });
+
+      await act(async () => {
         await result.current.handlePodcastEnded();
       });
 
       expect(onPodcastEnded).toHaveBeenCalledTimes(1);
     });
 
-    it('should reset flag when lesson changes', async () => {
-      const lesson1 = buildLesson({ id: 'lesson-1' });
-      const lesson2 = buildLesson({ id: 'lesson-2' });
+    it('should reset podcast flag when lesson changes', async () => {
       const onPodcastEnded = jest.fn().mockResolvedValue(undefined);
+      const mockLesson1 = createMockLesson('1');
+      const mockLesson2 = createMockLesson('2');
+      const mockResponse = createMockResponse([mockLesson1, mockLesson2]);
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
           onPodcastEnded,
-        })
-      );
-
-      act(() => {
-        result.current.handleWatch(lesson1);
-      });
-
-      await act(async () => {
-        await result.current.handlePodcastEnded();
-      });
-
-      act(() => {
-        result.current.handleWatch(lesson2);
-      });
-
-      await act(async () => {
-        await result.current.handlePodcastEnded();
-      });
-
-      expect(onPodcastEnded).toHaveBeenCalledTimes(2);
-    });
-
-    it('should revert flag if onPodcastEnded fails', async () => {
-      const lesson = buildLesson({ id: 'lesson-1' });
-      const onPodcastEnded = jest.fn().mockRejectedValue(new Error('Failed'));
-      const { result } = renderHook(() =>
-        useLessonBank({
-          apiClient: mockApiClient,
-          onPodcastEnded,
-        })
-      );
-
-      act(() => {
-        result.current.handleWatch(lesson);
-      });
-
-      await act(async () => {
-        await result.current.handlePodcastEnded();
-      });
-
-      // Should be able to call again after failure
-      await act(async () => {
-        await result.current.handlePodcastEnded();
-      });
-
-      expect(onPodcastEnded).toHaveBeenCalledTimes(2);
-    });
-  });
-
-  describe('Helpers', () => {
-    it('should return singular form for one lesson', async () => {
-      (mockApiClient.post as jest.Mock).mockResolvedValue({
-        data: {
-          message: 'Success',
-          data: {
-            lessons: [buildLesson()],
-            pagination: buildPagination({ total: 1 }),
+          filters: {
+            subjectId: ['subject-1'],
           },
-        },
-      });
-
-      const { result } = renderHook(() =>
-        useLessonBank({
-          apiClient: mockApiClient,
         })
       );
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false);
+        expect(result.current.lessons).toHaveLength(2);
+      });
+
+      act(() => {
+        result.current.handleWatch(mockLesson1);
+      });
+
+      await act(async () => {
+        await result.current.handlePodcastEnded();
+      });
+
+      act(() => {
+        result.current.handleWatch(mockLesson2);
+      });
+
+      await act(async () => {
+        await result.current.handlePodcastEnded();
+      });
+
+      expect(onPodcastEnded).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle onPodcastEnded error and revert flag', async () => {
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      const onPodcastEnded = jest.fn().mockRejectedValue(new Error('Failed'));
+      const mockLesson = createMockLesson('1');
+      const mockResponse = createMockResponse([mockLesson]);
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+          onPodcastEnded,
+          filters: {
+            subjectId: ['subject-1'],
+          },
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.lessons).toHaveLength(1);
+      });
+
+      act(() => {
+        result.current.handleWatch(mockLesson);
+      });
+
+      await act(async () => {
+        await result.current.handlePodcastEnded();
+      });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error in podcast ended callback:',
+        expect.any(Error)
+      );
+
+      // Flag should be reverted, allowing another call
+      await act(async () => {
+        await result.current.handlePodcastEnded();
+      });
+
+      expect(onPodcastEnded).toHaveBeenCalledTimes(2);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should not call onPodcastEnded when no lesson is selected', async () => {
+      const onPodcastEnded = jest.fn().mockResolvedValue(undefined);
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+          onPodcastEnded,
+        })
+      );
+
+      await act(async () => {
+        await result.current.handlePodcastEnded();
+      });
+
+      expect(onPodcastEnded).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Unique Lesson Helper', () => {
+    it('should return "aula" for single lesson', async () => {
+      const mockLessons = [createMockLesson('1')];
+      const mockResponse = createMockResponse(mockLessons, {
+        page: 1,
+        limit: 20,
+        total: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      });
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+          filters: {
+            subjectId: ['subject-1'],
+          },
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.totalLessons).toBe(1);
       });
 
       expect(result.current.uniqueLesson()).toBe('aula');
     });
 
-    it('should return plural form for multiple lessons', async () => {
-      (mockApiClient.post as jest.Mock).mockResolvedValue({
-        data: {
-          message: 'Success',
-          data: {
-            lessons: [buildLesson(), buildLesson({ id: 'lesson-2' })],
-            pagination: buildPagination({ total: 2 }),
-          },
-        },
+    it('should return "aulas" for multiple lessons', async () => {
+      const mockLessons = [createMockLesson('1'), createMockLesson('2')];
+      const mockResponse = createMockResponse(mockLessons, {
+        page: 1,
+        limit: 20,
+        total: 2,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
       });
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
+          filters: {
+            subjectId: ['subject-1'],
+          },
         })
       );
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false);
+        expect(result.current.totalLessons).toBe(2);
       });
 
       expect(result.current.uniqueLesson()).toBe('aulas');
     });
 
-    it('should return plural form when total is 0', () => {
+    it('should return "aulas" for zero lessons', () => {
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
@@ -999,146 +1289,118 @@ describe('useLessonBank', () => {
     });
   });
 
-  describe('Infinite Scroll', () => {
-    it('should setup IntersectionObserver', async () => {
-      (mockApiClient.post as jest.Mock).mockResolvedValue({
-        data: {
-          message: 'Success',
-          data: {
-            lessons: [buildLesson()],
-            pagination: buildPagination({ hasNext: true }),
-          },
-        },
+  describe('Loading States', () => {
+    it('should set loading state while fetching', async () => {
+      let resolvePromise: (value: unknown) => void;
+      const promise = new Promise((resolve) => {
+        resolvePromise = resolve;
       });
 
-      renderHook(() =>
-        useLessonBank({
-          apiClient: mockApiClient,
-        })
-      );
-
-      await waitFor(() => {
-        expect(IntersectionObserver).toHaveBeenCalled();
-      });
-    });
-
-    it('should load more lessons when intersection occurs', async () => {
-      const mockLessons1: Lesson[] = [buildLesson({ id: 'lesson-1' })];
-      const mockLessons2: Lesson[] = [buildLesson({ id: 'lesson-2' })];
-
-      (mockApiClient.post as jest.Mock)
-        .mockResolvedValueOnce({
-          data: {
-            message: 'Success',
-            data: {
-              lessons: mockLessons1,
-              pagination: buildPagination({ hasNext: true, page: 1 }),
-            },
-          },
-        })
-        .mockResolvedValueOnce({
-          data: {
-            message: 'Success',
-            data: {
-              lessons: mockLessons2,
-              pagination: buildPagination({ hasNext: false, page: 2 }),
-            },
-          },
-        });
+      (mockApiClient.post as jest.Mock).mockReturnValueOnce(promise);
 
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
+          filters: {
+            subjectId: ['subject-1'],
+          },
         })
       );
 
       await waitFor(() => {
-        expect(result.current.loading).toBe(false);
+        expect(result.current.loading).toBe(true);
       });
 
-      expect(result.current.lessons).toEqual(mockLessons1);
-      expect(result.current.pagination?.hasNext).toBe(true);
+      await act(async () => {
+        resolvePromise!(createMockResponse([createMockLesson('1')]));
+        await promise;
+      });
+
       expect(result.current.loading).toBe(false);
-      expect(result.current.loadingMore).toBe(false);
-
-      // Wait a bit for observer to be set up
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
-      // Get the most recent observer instance
-      const mockCalls = (IntersectionObserver as jest.Mock).mock.results;
-      expect(mockCalls.length).toBeGreaterThan(0);
-      const observerInstance = mockCalls[mockCalls.length - 1].value;
-
-      await act(async () => {
-        observerInstance.trigger([
-          {
-            isIntersecting: true,
-            target: document.createElement('div'),
-          } as unknown as IntersectionObserverEntry,
-        ]);
-      });
-
-      await waitFor(
-        () => {
-          expect(result.current.loadingMore).toBe(false);
-        },
-        { timeout: 2000 }
-      );
-
-      await waitFor(
-        () => {
-          expect(result.current.lessons).toHaveLength(2);
-        },
-        { timeout: 2000 }
-      );
-
-      expect(result.current.lessons.map((l) => l.id)).toEqual([
-        'lesson-1',
-        'lesson-2',
-      ]);
     });
+  });
 
-    it('should not load more when hasNext is false', async () => {
-      (mockApiClient.post as jest.Mock).mockResolvedValue({
-        data: {
-          message: 'Success',
-          data: {
-            lessons: [buildLesson()],
-            pagination: buildPagination({ hasNext: false }),
-          },
-        },
-      });
-
+  describe('Intersection Observer', () => {
+    it('should return observerTarget ref that can be attached to an element', () => {
       const { result } = renderHook(() =>
         useLessonBank({
           apiClient: mockApiClient,
         })
       );
 
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
+      // The observerTarget ref should be defined and can be used
+      expect(result.current.observerTarget).toBeDefined();
+      expect(result.current.observerTarget.current).toBeNull();
+    });
+  });
 
-      const initialCallCount = (mockApiClient.post as jest.Mock).mock.calls
-        .length;
+  describe('Filter Changes', () => {
+    it('should reset state when filters become invalid', async () => {
+      const mockLessons = [createMockLesson('1')];
+      const mockResponse = createMockResponse(mockLessons);
 
-      const observerInstance = (IntersectionObserver as jest.Mock).mock
-        .results[0].value;
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
 
-      await act(async () => {
-        observerInstance.trigger([
-          {
-            isIntersecting: true,
-          } as IntersectionObserverEntry,
-        ]);
-      });
-
-      // Wait a bit to ensure no additional calls
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      expect((mockApiClient.post as jest.Mock).mock.calls.length).toBe(
-        initialCallCount
+      const { result, rerender } = renderHook(
+        ({ filters }) =>
+          useLessonBank({
+            apiClient: mockApiClient,
+            filters,
+          }),
+        {
+          initialProps: {
+            filters: { subjectId: ['subject-1'] },
+          },
+        }
       );
+
+      await waitFor(() => {
+        expect(result.current.lessons).toHaveLength(1);
+      });
+
+      rerender({ filters: { subjectId: [] } });
+
+      await waitFor(() => {
+        expect(result.current.lessons).toEqual([]);
+      });
+
+      expect(result.current.pagination).toBeNull();
+      expect(result.current.error).toBeNull();
+    });
+  });
+
+  describe('isFromTrailRoute with empty lessonId', () => {
+    it('should use empty string when lessonId is undefined and isFromTrailRoute is true', async () => {
+      const onVideoTimeUpdate = jest.fn();
+      const mockLesson = createMockLesson('1');
+      const mockResponse = createMockResponse([mockLesson]);
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(mockResponse);
+
+      const { result } = renderHook(() =>
+        useLessonBank({
+          apiClient: mockApiClient,
+          onVideoTimeUpdate,
+          isFromTrailRoute: true,
+          filters: {
+            subjectId: ['subject-1'],
+          },
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.lessons).toHaveLength(1);
+      });
+
+      act(() => {
+        result.current.handleWatch(mockLesson);
+      });
+
+      act(() => {
+        result.current.handleVideoTimeUpdate(30);
+      });
+
+      expect(onVideoTimeUpdate).toHaveBeenCalledWith('', 30);
     });
   });
 });

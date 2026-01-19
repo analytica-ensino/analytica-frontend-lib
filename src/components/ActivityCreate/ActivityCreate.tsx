@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { useSmallScreen } from '../../hooks/useScreen';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   ActivityFilters,
@@ -11,6 +12,8 @@ import {
   SendActivityModal,
   CategoryConfig,
   useToastStore,
+  Modal,
+  Text,
 } from '../..';
 import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import type {
@@ -21,7 +24,8 @@ import type {
   QuestionFiltersState,
   SendActivityFormData,
 } from '../..';
-import { Funnel } from 'phosphor-react';
+import type { Lesson } from '../../types/lessons';
+import { Funnel, MonitorPlay } from 'phosphor-react';
 import { ActivityListQuestions } from '../ActivityListQuestions/ActivityListQuestions';
 import { areFiltersEqual } from '../../utils/activityFilters';
 import type {
@@ -57,6 +61,7 @@ const CreateActivity = ({
   onBack,
   onCreateActivity,
   onSaveModel,
+  onAddActivityToLesson,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -67,12 +72,23 @@ const CreateActivity = ({
     activityData: ActivityCreatePayload
   ) => void;
   onSaveModel?: (response: ActivityDraftResponse) => void;
+  onAddActivityToLesson?: (activityDraftId: string) => void;
 }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const typeParam = searchParams.get('type') || undefined;
   const idParam = searchParams.get('id') || undefined;
+  const recommendedLessonId =
+    searchParams.get('recommended-lesson') || undefined;
+  const recommendedLessonDraftId =
+    searchParams.get('recommended-lesson-draft') || undefined;
+  const onFinishPath = searchParams.get('onFinish') || undefined;
+
+  // Determine if we're in recommended lesson mode
+  const isRecommendedLessonMode = !!(
+    recommendedLessonId || recommendedLessonDraftId
+  );
   const applyFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.applyFilters
   );
@@ -94,21 +110,10 @@ const CreateActivity = ({
   const addToast = useToastStore((state) => state.addToast);
 
   // Responsive state for screen width <= 1200px
-  const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const isSmallScreen = useSmallScreen();
   const [selectedView, setSelectedView] = useState<'questions' | 'preview'>(
     'questions'
   );
-
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsSmallScreen(window.innerWidth <= 1200);
-    };
-
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
 
   // Estados internos
   const [activity, setActivity] = useState<ActivityData | null>(null);
@@ -127,6 +132,10 @@ const CreateActivity = ({
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [isSendingActivity, setIsSendingActivity] = useState(false);
+  const [isLessonPreviewModalOpen, setIsLessonPreviewModalOpen] =
+    useState(false);
+  const [previewLessons, setPreviewLessons] = useState<Lesson[]>([]);
+  const [isLoadingPreviewLessons, setIsLoadingPreviewLessons] = useState(false);
   const hasFirstSaveBeenDone = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedFiltersRef = useRef<ActivityFiltersData | null>(null);
@@ -147,16 +156,63 @@ const CreateActivity = ({
 
   /**
    * Handle back button click - resets everything before calling onBack
+   * If onFinishPath is provided, navigate to that path instead
    */
   const handleBack = useCallback(() => {
     // Clear filters from store
     clearFilters();
 
+    // If onFinishPath is provided, navigate to it
+    if (onFinishPath) {
+      navigate(`/${onFinishPath}`);
+      return;
+    }
+
     // Call original onBack if provided
     if (onBack) {
       onBack();
     }
-  }, [clearFilters, onBack]);
+  }, [clearFilters, onBack, onFinishPath, navigate]);
+
+  /**
+   * Handle lesson preview button click - fetches lessons from recommended-lesson-draft and opens modal
+   */
+  const handleLessonPreview = useCallback(async () => {
+    setIsLessonPreviewModalOpen(true);
+
+    // Get the draft ID from URL params
+    const draftIdToFetch = recommendedLessonDraftId || recommendedLessonId;
+    if (!draftIdToFetch) {
+      return;
+    }
+
+    setIsLoadingPreviewLessons(true);
+    try {
+      // Determine endpoint based on which ID we have
+      const endpoint = recommendedLessonDraftId
+        ? `/recommended-lesson-drafts/${draftIdToFetch}`
+        : `/recommended-lessons/${draftIdToFetch}`;
+
+      const response = await apiClient.get<{
+        data: {
+          draft?: { selectedLessons?: Lesson[] };
+          selectedLessons?: Lesson[];
+        };
+      }>(endpoint);
+
+      // Handle both response formats (draft wrapper or direct)
+      const lessons =
+        response.data.data.draft?.selectedLessons ||
+        response.data.data.selectedLessons ||
+        [];
+      setPreviewLessons(lessons);
+    } catch (error) {
+      console.error('Error fetching lesson preview:', error);
+      setPreviewLessons([]);
+    } finally {
+      setIsLoadingPreviewLessons(false);
+    }
+  }, [recommendedLessonDraftId, recommendedLessonId, apiClient]);
 
   const useActivityFiltersData = createUseActivityFiltersData(apiClient);
   const { knowledgeAreas, loadKnowledgeAreas } = useActivityFiltersData({
@@ -483,10 +539,11 @@ const CreateActivity = ({
 
   /**
    * Save draft to backend
+   * @returns The draft ID (existing or newly created), or undefined if save failed
    */
-  const saveDraft = useCallback(async () => {
+  const saveDraft = useCallback(async (): Promise<string | undefined> => {
     if (!validateSaveConditions()) {
-      return;
+      return draftId || undefined;
     }
 
     setIsSaving(true);
@@ -496,7 +553,7 @@ const CreateActivity = ({
 
       if (draftId) {
         await updateExistingDraft(payload);
-        return;
+        return draftId;
       }
 
       const response = await apiClient.post<ActivityDraftResponse>(
@@ -507,6 +564,7 @@ const CreateActivity = ({
 
       const savedDraft = extractDraftFromResponse(response);
       updateStateAfterSave(savedDraft, response?.data, true);
+      return savedDraft.id;
     } catch (error) {
       console.error('❌ Erro ao salvar rascunho:', error);
 
@@ -522,6 +580,7 @@ const CreateActivity = ({
         action: 'warning',
         position: 'top-right',
       });
+      return undefined;
     } finally {
       setIsSaving(false);
     }
@@ -542,6 +601,43 @@ const CreateActivity = ({
   const handleSaveModel = useCallback(async () => {
     setActivityType(ActivityType.MODELO);
   }, []);
+
+  /**
+   * Handle add activity to lesson - saves draft and navigates back or calls callback
+   */
+  const handleAddActivityToLesson = useCallback(async () => {
+    // Get the current draft ID or save and get the new one
+    let activityDraftId: string | null | undefined = draftId;
+
+    // Ensure draft is saved before adding to lesson
+    if (!activityDraftId && questions.length > 0) {
+      activityDraftId = await saveDraft();
+    }
+
+    // Call callback if provided
+    if (onAddActivityToLesson && activityDraftId) {
+      onAddActivityToLesson(activityDraftId);
+    }
+
+    // Clear filters
+    clearFilters();
+
+    // Navigate to onFinishPath if provided
+    if (onFinishPath) {
+      navigate(`/${onFinishPath}`);
+    } else if (onBack) {
+      onBack();
+    }
+  }, [
+    draftId,
+    questions.length,
+    saveDraft,
+    onAddActivityToLesson,
+    clearFilters,
+    onFinishPath,
+    navigate,
+    onBack,
+  ]);
 
   /**
    * Load knowledge areas on mount
@@ -902,6 +998,9 @@ const CreateActivity = ({
         onSaveModel={handleSaveModel}
         onSendActivity={handleOpenSendModal}
         onBack={handleBack}
+        isRecommendedLessonMode={isRecommendedLessonMode}
+        onLessonPreview={handleLessonPreview}
+        onAddActivity={handleAddActivityToLesson}
       />
 
       {/* Main Content */}
@@ -1066,6 +1165,59 @@ const CreateActivity = ({
           });
         }}
       />
+
+      {/* Lesson Preview Modal */}
+      <Modal
+        isOpen={isLessonPreviewModalOpen}
+        onClose={() => setIsLessonPreviewModalOpen(false)}
+        title="Prévia da aula recomendada"
+        size="sm"
+        footer={
+          <Button onClick={() => setIsLessonPreviewModalOpen(false)}>OK</Button>
+        }
+      >
+        <div className="flex flex-col gap-3">
+          {isLoadingPreviewLessons ? (
+            <div className="flex flex-col gap-3">
+              <SkeletonText className="h-4 w-32" />
+              <SkeletonText className="h-14 w-full" />
+              <SkeletonText className="h-14 w-full" />
+            </div>
+          ) : (
+            <>
+              <Text size="sm" className="text-text-500">
+                {previewLessons.length} aula
+                {previewLessons.length === 1 ? '' : 's'} adicionada
+                {previewLessons.length === 1 ? '' : 's'}
+              </Text>
+              <div className="flex flex-col gap-2">
+                {previewLessons.map((lesson) => (
+                  <div
+                    key={lesson.id}
+                    className="flex items-center justify-between p-4 border border-border-200 rounded-lg"
+                  >
+                    <Text
+                      size="sm"
+                      className="text-text-700 truncate flex-1 mr-2"
+                    >
+                      {lesson.title}
+                    </Text>
+                    <MonitorPlay
+                      size={20}
+                      className="text-text-400 flex-shrink-0"
+                    />
+                  </div>
+                ))}
+                {previewLessons.length === 0 && (
+                  <Text size="sm" className="text-text-500 text-center py-4">
+                    Nenhuma aula adicionada ainda.
+                  </Text>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };

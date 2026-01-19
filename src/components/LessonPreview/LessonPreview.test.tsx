@@ -4,6 +4,7 @@ import { LessonPreview } from './LessonPreview';
 import type { Lesson } from '../../types/lessons';
 import type { BaseApiClient } from '../../types/api';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
+import { ActivityType } from '../ActivityCreate/ActivityCreate.types';
 
 // Mock dependencies
 jest.mock('../../index', () => ({
@@ -204,6 +205,7 @@ jest.mock('../ChooseActivityModelModal', () => ({
           onClick={() =>
             onSelectModel({
               id: 'model-1',
+              type: ActivityType.MODELO,
               title: 'Test Model',
               savedAt: '2024-01-01',
               subject: null,
@@ -509,6 +511,7 @@ describe('LessonPreview', () => {
       expect(onActivitySelected).toHaveBeenCalledTimes(1);
       expect(onActivitySelected).toHaveBeenCalledWith({
         id: 'model-1',
+        type: ActivityType.MODELO,
         title: 'Test Model',
         savedAt: '2024-01-01',
         subject: null,
@@ -596,6 +599,50 @@ describe('LessonPreview', () => {
       });
 
       expect(onEditActivity).toHaveBeenCalledTimes(1);
+      expect(onEditActivity).toHaveBeenCalledWith({
+        id: 'model-1',
+        type: ActivityType.MODELO,
+        title: 'Test Model',
+        savedAt: '2024-01-01',
+        subject: null,
+        subjectId: null,
+      });
+    });
+
+    it('should not call onEditActivity when no activity is selected', () => {
+      const onEditActivity = jest.fn();
+      render(
+        <LessonPreview {...defaultProps} onEditActivity={onEditActivity} />
+      );
+
+      // No activity is selected, so there's no edit button to click
+      expect(
+        screen.queryByTestId('button-Editar atividade')
+      ).not.toBeInTheDocument();
+      expect(onEditActivity).not.toHaveBeenCalled();
+    });
+
+    it('should not call onEditActivity when callback is not provided', async () => {
+      render(<LessonPreview {...defaultProps} />);
+
+      const addButton = screen.getByText('Adicionar atividade');
+      fireEvent.click(addButton);
+
+      const chooseModelButton = screen.getByTestId('choose-model-option');
+      fireEvent.click(chooseModelButton);
+
+      await waitFor(() => {
+        const selectModelButton = screen.getByTestId('select-model');
+        fireEvent.click(selectModelButton);
+      });
+
+      await waitFor(() => {
+        const editButton = screen.getByTestId('button-Editar atividade');
+        // Click should not throw error even without onEditActivity callback
+        fireEvent.click(editButton);
+      });
+
+      // Test passes if no error is thrown
     });
   });
 

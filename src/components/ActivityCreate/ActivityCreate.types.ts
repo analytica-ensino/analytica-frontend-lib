@@ -1,5 +1,13 @@
 import type { QuestionActivity as Question } from '../..';
 
+// Re-export category types from shared utils for backward compatibility
+export type {
+  School,
+  SchoolYear,
+  Class,
+  Student,
+} from '../../utils/categoryDataUtils';
+
 /**
  * Activity type enum
  * RASCUNHO: Draft activity (not sent)
@@ -75,42 +83,6 @@ export interface ActivityData {
   questionIds: string[];
   selectedQuestions?: Question[];
   updatedAt?: string;
-}
-
-/**
- * School type for categories data
- */
-export interface School {
-  id: string;
-  companyName: string;
-}
-
-/**
- * SchoolYear type for categories data
- */
-export interface SchoolYear {
-  id: string;
-  name: string;
-  schoolId: string;
-}
-
-/**
- * Class type for categories data
- */
-export interface Class {
-  id: string;
-  name: string;
-  schoolYearId: string;
-}
-
-/**
- * Student type for categories data
- */
-export interface Student {
-  id: string;
-  name: string;
-  classId: string;
-  userInstitutionId: string;
 }
 
 /**

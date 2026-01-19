@@ -126,9 +126,9 @@ describe('ChooseActivityModelModal', () => {
           subjectId: 's1',
           subject: {
             id: 's1',
-            subjectName: 'Mathematics',
-            subjectIcon: 'Calculator',
-            subjectColor: '#FF5733',
+            name: 'Mathematics',
+            icon: 'Calculator',
+            color: '#FF5733',
           },
           filters: null,
           createdAt: '2024-01-01T00:00:00Z',
@@ -142,9 +142,9 @@ describe('ChooseActivityModelModal', () => {
           subjectId: 's2',
           subject: {
             id: 's2',
-            subjectName: 'Portuguese',
-            subjectIcon: 'BookOpen',
-            subjectColor: '#3357FF',
+            name: 'Portuguese',
+            icon: 'BookOpen',
+            color: '#3357FF',
           },
           filters: null,
           createdAt: '2024-01-02T00:00:00Z',
@@ -485,6 +485,7 @@ describe('ChooseActivityModelModal', () => {
         savedAt: '01/01/2024',
         subject: mockModelsResponse.data.activityDrafts[0].subject,
         subjectId: 's1',
+        type: ActivityDraftType.MODELO,
       });
     });
 
@@ -647,6 +648,169 @@ describe('ChooseActivityModelModal', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('model-model-1')).toBeInTheDocument();
+      });
+    });
+
+    it('should handle model with RASCUNHO type', async () => {
+      const responseWithRascunhoType: ActivityModelsApiResponse = {
+        message: 'Success',
+        data: {
+          activityDrafts: [
+            {
+              ...mockModelsResponse.data.activityDrafts[0],
+              type: ActivityDraftType.RASCUNHO,
+            },
+          ],
+          total: 1,
+        },
+      };
+
+      (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
+        data: responseWithRascunhoType,
+      });
+
+      render(<ChooseActivityModelModal {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('model-model-1')).toBeInTheDocument();
+      });
+    });
+
+    it('should use subjectId from model when subject is null', async () => {
+      const responseWithSubjectIdOnly: ActivityModelsApiResponse = {
+        message: 'Success',
+        data: {
+          activityDrafts: [
+            {
+              ...mockModelsResponse.data.activityDrafts[0],
+              subject: null,
+              subjectId: 'fallback-subject-id',
+            },
+          ],
+          total: 1,
+        },
+      };
+
+      (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
+        data: responseWithSubjectIdOnly,
+      });
+
+      render(<ChooseActivityModelModal {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('model-model-1')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('search functionality', () => {
+    it('should pass search parameter to API', async () => {
+      // Update mock to capture params with search
+      const mockGet = jest.fn().mockResolvedValue({ data: mockModelsResponse });
+      const apiClientWithSearch = {
+        ...mockApiClient,
+        get: mockGet,
+      };
+
+      render(
+        <ChooseActivityModelModal
+          {...defaultProps}
+          apiClient={apiClientWithSearch}
+        />
+      );
+
+      await waitFor(() => {
+        expect(mockGet).toHaveBeenCalledWith('/activity-drafts', {
+          params: expect.objectContaining({
+            page: 1,
+            limit: 10,
+            type: 'MODELO',
+          }),
+        });
+      });
+    });
+  });
+
+  describe('cancel details view', () => {
+    it('should close modal and reset state when cancel is clicked in details view', async () => {
+      const onClose = jest.fn();
+      (mockApiClient.get as jest.Mock)
+        .mockResolvedValueOnce({ data: mockModelsResponse })
+        .mockResolvedValueOnce({ data: mockActivityDetails });
+
+      render(<ChooseActivityModelModal {...defaultProps} onClose={onClose} />);
+
+      await waitFor(() => {
+        fireEvent.click(screen.getByTestId('model-model-1'));
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('activity-model-details')
+        ).toBeInTheDocument();
+      });
+
+      // Click cancel button in details view
+      const cancelButton = screen.getByText('Cancelar');
+      fireEvent.click(cancelButton);
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('confirm selection reset', () => {
+    it('should reset state after confirming selection', async () => {
+      const onSelectModel = jest.fn();
+      (mockApiClient.get as jest.Mock)
+        .mockResolvedValueOnce({ data: mockModelsResponse })
+        .mockResolvedValueOnce({ data: mockActivityDetails });
+
+      render(
+        <ChooseActivityModelModal
+          {...defaultProps}
+          onSelectModel={onSelectModel}
+        />
+      );
+
+      await waitFor(() => {
+        fireEvent.click(screen.getByTestId('model-model-1'));
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('activity-model-details')
+        ).toBeInTheDocument();
+      });
+
+      // Click confirm button
+      const confirmButton = screen.getByText('Adicionar atividade');
+      fireEvent.click(confirmButton);
+
+      expect(onSelectModel).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('fallback title in details view', () => {
+    it('should show fallback title when activity details has no title', async () => {
+      const detailsWithoutTitle = {
+        ...mockActivityDetails,
+        title: undefined,
+      };
+
+      (mockApiClient.get as jest.Mock)
+        .mockResolvedValueOnce({ data: mockModelsResponse })
+        .mockResolvedValueOnce({ data: detailsWithoutTitle });
+
+      render(<ChooseActivityModelModal {...defaultProps} />);
+
+      await waitFor(() => {
+        fireEvent.click(screen.getByTestId('model-model-1'));
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('modal-title')).toHaveTextContent(
+          'Detalhes da atividade'
+        );
       });
     });
   });
