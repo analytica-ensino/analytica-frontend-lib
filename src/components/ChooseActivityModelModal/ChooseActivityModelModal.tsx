@@ -27,6 +27,7 @@ const mapDraftTypeToActivityType = (
     case ActivityDraftType.MODELO:
       return ActivityType.MODELO;
     case ActivityDraftType.RASCUNHO:
+      return ActivityType.RASCUNHO;
     default:
       return ActivityType.RASCUNHO;
   }

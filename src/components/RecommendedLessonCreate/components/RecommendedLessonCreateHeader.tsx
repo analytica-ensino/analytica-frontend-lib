@@ -2,10 +2,8 @@ import { Button, Text } from '../../..';
 import { CaretLeft, PaperPlaneTilt } from 'phosphor-react';
 import type { RecommendedLessonData } from '../RecommendedLessonCreate.types';
 import { RecommendedClassDraftType } from '../RecommendedLessonCreate.types';
-import {
-  getGoalDraftTypeLabel,
-  formatTime,
-} from '../RecommendedLessonCreate.utils';
+import { getGoalDraftTypeLabel } from '../RecommendedLessonCreate.utils';
+import { formatTime } from '../../../utils/categoryDataUtils';
 
 /**
  * Header component for RecommendedLessonCreate page

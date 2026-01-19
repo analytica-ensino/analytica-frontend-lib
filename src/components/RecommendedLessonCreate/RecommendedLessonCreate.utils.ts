@@ -3,17 +3,6 @@ import type { Lesson } from '../../types/lessons';
 import type { LessonBackendFiltersFormat } from './RecommendedLessonCreate.types';
 import { RecommendedClassDraftType } from './RecommendedLessonCreate.types';
 
-// Re-export shared utilities for backward compatibility
-export {
-  fetchAllStudents,
-  loadCategoriesData,
-  formatTime,
-  type School,
-  type SchoolYear,
-  type Class,
-  type Student,
-} from '../../utils/categoryDataUtils';
-
 /**
  * Knowledge area interface for subject lookup
  */

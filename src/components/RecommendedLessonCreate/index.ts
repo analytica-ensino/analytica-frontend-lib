@@ -21,12 +21,9 @@ export {
   generateTitle,
   getGoalDraftTypeLabel,
   getSubjectName,
-  formatTime,
   getTypeFromUrl,
   getTypeFromUrlString,
   convertLessonToPreview,
-  loadCategoriesData,
-  fetchAllStudents,
 } from './RecommendedLessonCreate.utils';
 export type {
   KnowledgeArea,

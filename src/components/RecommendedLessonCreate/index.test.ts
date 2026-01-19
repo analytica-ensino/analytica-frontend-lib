@@ -51,12 +51,9 @@ import {
   generateTitle,
   getGoalDraftTypeLabel,
   getSubjectName,
-  formatTime,
   getTypeFromUrl,
   getTypeFromUrlString,
   convertLessonToPreview,
-  loadCategoriesData,
-  fetchAllStudents,
 } from './index';
 import type {
   LessonBackendFiltersFormat,
@@ -118,11 +115,6 @@ describe('RecommendedLessonCreate index exports', () => {
       expect(typeof getSubjectName).toBe('function');
     });
 
-    it('should export formatTime', () => {
-      expect(formatTime).toBeDefined();
-      expect(typeof formatTime).toBe('function');
-    });
-
     it('should export getTypeFromUrl', () => {
       expect(getTypeFromUrl).toBeDefined();
       expect(typeof getTypeFromUrl).toBe('function');
@@ -136,16 +128,6 @@ describe('RecommendedLessonCreate index exports', () => {
     it('should export convertLessonToPreview', () => {
       expect(convertLessonToPreview).toBeDefined();
       expect(typeof convertLessonToPreview).toBe('function');
-    });
-
-    it('should export loadCategoriesData', () => {
-      expect(loadCategoriesData).toBeDefined();
-      expect(typeof loadCategoriesData).toBe('function');
-    });
-
-    it('should export fetchAllStudents', () => {
-      expect(fetchAllStudents).toBeDefined();
-      expect(typeof fetchAllStudents).toBe('function');
     });
   });
 

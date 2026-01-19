@@ -45,10 +45,10 @@ import {
   getTypeFromUrl,
   getTypeFromUrlString,
   convertLessonToPreview,
-  loadCategoriesData,
 } from './RecommendedLessonCreate.utils';
 import { RecommendedLessonCreateSkeleton } from './components/RecommendedLessonCreateSkeleton';
 import { RecommendedLessonCreateHeader } from './components/RecommendedLessonCreateHeader';
+import { loadCategoriesData } from '../../utils/categoryDataUtils';
 
 /**
  * RecommendedLessonCreate page component for creating new recommended lessons
