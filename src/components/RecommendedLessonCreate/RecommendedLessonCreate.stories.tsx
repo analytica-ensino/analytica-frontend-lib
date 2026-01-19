@@ -863,10 +863,31 @@ export const WithLessonDebug: Story = () => {
 WithLessonDebug.storyName = 'With Lesson Debug (Logs)';
 
 export const LoadingState: Story = () => {
+  // Create a delayed mock API client that simulates slow responses
+  const delayedMockApiClient: BaseApiClient = {
+    get: async (url: string) => {
+      // Simulate a very long loading time that never resolves quickly
+      await new Promise((resolve) => setTimeout(resolve, 999999));
+      return mockApiClient.get(url);
+    },
+    post: async (url: string, body?: Record<string, unknown>) => {
+      await new Promise((resolve) => setTimeout(resolve, 999999));
+      return mockApiClient.post(url, body);
+    },
+    patch: async (url: string, body?: Record<string, unknown>) => {
+      await new Promise((resolve) => setTimeout(resolve, 999999));
+      return mockApiClient.patch(url, body);
+    },
+    delete: async (url: string) => {
+      await new Promise((resolve) => setTimeout(resolve, 999999));
+      return mockApiClient.delete(url);
+    },
+  };
+
   return (
     <BrowserRouter>
       <RecommendedLessonCreate
-        apiClient={mockApiClient}
+        apiClient={delayedMockApiClient}
         institutionId="institution-1"
       />
     </BrowserRouter>

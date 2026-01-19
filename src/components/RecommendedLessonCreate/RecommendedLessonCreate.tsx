@@ -614,7 +614,9 @@ const RecommendedLessonCreate = ({
         payload
       );
       lastSavedLessonsRef.current = lessons;
-      lastSavedFiltersRef.current = appliedFilters!;
+      if (appliedFilters) {
+        lastSavedFiltersRef.current = appliedFilters;
+      }
       const savedDraft = response?.data?.data;
       setLastSavedAt(
         savedDraft?.updatedAt ? new Date(savedDraft.updatedAt) : new Date()
@@ -714,7 +716,9 @@ const RecommendedLessonCreate = ({
         savedDraft.updatedAt ? new Date(savedDraft.updatedAt) : new Date()
       );
       lastSavedLessonsRef.current = lessons;
-      lastSavedFiltersRef.current = appliedFilters!;
+      if (appliedFilters) {
+        lastSavedFiltersRef.current = appliedFilters;
+      }
 
       const updatedLesson: RecommendedLessonData = {
         id: savedDraft.id,
