@@ -781,7 +781,7 @@ export const WithRecommendedLessonCreate: Story = () => {
     ...mockApiClientAllTypes,
     get: async (url: string) => {
       // Intercept recommended-lesson-draft endpoint
-      if (url.startsWith('/recommended-lesson-draft/')) {
+      if (url.startsWith('/recommended-lesson-drafts/')) {
         return {
           data: {
             data: {
@@ -1019,7 +1019,7 @@ export const WithRecommendedLessonEdit: Story = () => {
       }
 
       // Intercept recommended-lesson-draft endpoint
-      if (url.startsWith('/recommended-lesson-draft/')) {
+      if (url.startsWith('/recommended-lesson-drafts/')) {
         return {
           data: {
             data: {
@@ -1185,7 +1185,7 @@ export const WithRecommendedLesson: Story = () => {
     ...mockApiClientAllTypes,
     get: async (url: string) => {
       // Intercept recommended-lesson-draft endpoint
-      if (url.startsWith('/recommended-lesson-draft/')) {
+      if (url.startsWith('/recommended-lesson-drafts/')) {
         return {
           data: {
             data: {
@@ -1200,7 +1200,7 @@ export const WithRecommendedLesson: Story = () => {
         };
       }
       // Intercept recommended-lesson endpoint
-      if (url.startsWith('/recommended-lesson/')) {
+      if (url.startsWith('/recommended-lessons/')) {
         return {
           data: {
             data: {
