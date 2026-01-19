@@ -197,6 +197,7 @@ describe('RecommendedLessonCreate index exports', () => {
           subtopics: [],
           contents: [],
         },
+        lessonIds: [],
         updatedAt: '2024-01-01T00:00:00Z',
       };
       expect(data.id).toBe('lesson-1');
@@ -228,6 +229,13 @@ describe('RecommendedLessonCreate index exports', () => {
         message: 'Created',
         data: {
           id: 'new-lesson-1',
+          title: 'New Lesson',
+          description: null,
+          subjectId: 'subject-1',
+          startDate: '2024-01-01T00:00:00Z',
+          finalDate: '2024-01-02T00:00:00Z',
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
         },
       };
       expect(response.data.id).toBe('new-lesson-1');
@@ -245,9 +253,12 @@ describe('RecommendedLessonCreate index exports', () => {
       const lesson: RecommendedLessonWithData = {
         lessonId: 'lesson-1',
         sequence: 1,
-        name: 'Test Lesson',
+        lesson: {
+          id: 'lesson-1',
+          title: 'Test Lesson',
+        },
       };
-      expect(lesson.name).toBe('Test Lesson');
+      expect(lesson.lesson.title).toBe('Test Lesson');
     });
 
     it('should allow creating RecommendedLessonActivityDraft type', () => {
@@ -261,15 +272,16 @@ describe('RecommendedLessonCreate index exports', () => {
     it('should allow creating School type', () => {
       const school: School = {
         id: 'school-1',
-        name: 'Test School',
+        companyName: 'Test School',
       };
-      expect(school.name).toBe('Test School');
+      expect(school.companyName).toBe('Test School');
     });
 
     it('should allow creating SchoolYear type', () => {
       const schoolYear: SchoolYear = {
         id: 'year-1',
         name: '2024',
+        schoolId: 'school-1',
       };
       expect(schoolYear.name).toBe('2024');
     });
@@ -278,6 +290,7 @@ describe('RecommendedLessonCreate index exports', () => {
       const classItem: Class = {
         id: 'class-1',
         name: 'Class A',
+        schoolYearId: 'year-1',
       };
       expect(classItem.name).toBe('Class A');
     });
@@ -286,6 +299,8 @@ describe('RecommendedLessonCreate index exports', () => {
       const student: Student = {
         id: 'student-1',
         name: 'John Doe',
+        classId: 'class-1',
+        userInstitutionId: 'user-1',
       };
       expect(student.name).toBe('John Doe');
     });
