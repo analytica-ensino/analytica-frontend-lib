@@ -2,18 +2,16 @@ import { HTMLAttributes } from 'react';
 import { Trophy, Warning, TrendUp, TrendDown } from 'phosphor-react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
+import type { StudentHighlightItem } from '../../hooks/useStudentsHighlight';
 
 /**
- * Student data item for the ranking
+ * Re-export StudentHighlightItem as StudentRankingItem for backwards compatibility
+ * and direct usage with the component
  */
-export interface StudentRankingItem {
-  /** Student position in the ranking */
-  position: number;
-  /** Student name */
-  name: string;
-  /** Performance percentage (0-100) */
-  percentage: number;
-}
+export type StudentRankingItem = Pick<
+  StudentHighlightItem,
+  'position' | 'name' | 'percentage'
+>;
 
 /**
  * Card variant type
@@ -225,6 +223,7 @@ export interface StudentRankingProps extends HTMLAttributes<HTMLDivElement> {
  *
  * @example
  * ```tsx
+ * // Basic usage with static data
  * <StudentRanking
  *   highlightTitle="Estudantes em destaque"
  *   attentionTitle="Estudantes precisando de atenção"
@@ -239,6 +238,34 @@ export interface StudentRankingProps extends HTMLAttributes<HTMLDivElement> {
  *     { position: 3, name: 'Gabriel Oliveira', percentage: 40 },
  *   ]}
  * />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Usage with useStudentsHighlight hook (direct usage - no transformation needed)
+ * const fetchStudentsHighlight = async (filters) => {
+ *   const response = await api.get('/performance/students-highlight', { params: filters });
+ *   return response.data;
+ * };
+ *
+ * const useStudentsHighlight = createUseStudentsHighlight(fetchStudentsHighlight);
+ *
+ * function MyComponent() {
+ *   const { topStudents, bottomStudents, loading, fetchStudentsHighlight } = useStudentsHighlight();
+ *
+ *   useEffect(() => {
+ *     fetchStudentsHighlight({ period: '30_DAYS' });
+ *   }, [fetchStudentsHighlight]);
+ *
+ *   if (loading) return <Skeleton />;
+ *
+ *   return (
+ *     <StudentRanking
+ *       highlightStudents={topStudents}
+ *       attentionStudents={bottomStudents}
+ *     />
+ *   );
+ * }
  * ```
  */
 export const StudentRanking = ({

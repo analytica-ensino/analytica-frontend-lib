@@ -3,7 +3,8 @@ import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 
 /**
- * Data structure for questions statistics
+ * Data structure for questions statistics.
+ * Compatible with useQuestionsData hook output (hook data can be passed directly).
  */
 export interface QuestionsDataItem {
   /** Total number of questions answered */
@@ -188,6 +189,7 @@ const YAxis = ({
  *
  * @example
  * ```tsx
+ * // Basic usage with static data
  * <QuestionsData
  *   title="Dados de questões"
  *   data={{
@@ -198,6 +200,29 @@ const YAxis = ({
  *   }}
  *   showEmBranco
  * />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Usage with useQuestionsData hook (direct usage - no transformation needed)
+ * const fetchQuestionsData = async (filters) => {
+ *   const response = await api.get('/performance/questions-data', { params: filters });
+ *   return response.data;
+ * };
+ *
+ * const useQuestionsData = createUseQuestionsData(fetchQuestionsData);
+ *
+ * function MyComponent() {
+ *   const { data, loading, fetchQuestionsData } = useQuestionsData();
+ *
+ *   useEffect(() => {
+ *     fetchQuestionsData({ period: '30_DAYS' });
+ *   }, [fetchQuestionsData]);
+ *
+ *   if (loading || !data) return <Skeleton />;
+ *
+ *   return <QuestionsData data={data} showEmBranco />;
+ * }
  * ```
  */
 export const QuestionsData = ({

@@ -16,6 +16,8 @@ export { default as Alert } from './components/Alert/Alert';
 export { default as LatexRenderer } from './components/LatexRenderer/LatexRenderer';
 export type { LatexRendererProps } from './components/LatexRenderer/LatexRenderer';
 export { default as IconButton } from './components/IconButton/IconButton';
+export { Tooltip } from './components/Tooltip/Tooltip';
+export type { TooltipProps } from './components/Tooltip/Tooltip';
 export { default as IconRoundedButton } from './components/IconRoundedButton/IconRoundedButton';
 export { default as NavButton } from './components/NavButton/NavButton';
 export { default as SelectionButton } from './components/SelectionButton/SelectionButton';
@@ -801,6 +803,48 @@ export type {
   UseActivityModelsReturn,
 } from './hooks/useActivityModels';
 
+// Students Highlight Hook Factory
+export {
+  createUseStudentsHighlight,
+  createStudentsHighlightHook,
+  calculatePerformancePercentage,
+  transformStudentHighlightItem,
+  handleStudentsHighlightFetchError,
+  studentsHighlightApiResponseSchema,
+  PERIOD_TABS,
+} from './hooks/useStudentsHighlight';
+export type {
+  StudentsHighlightPeriod,
+  StudentsHighlightType,
+  TrendDirection,
+  StudentsHighlightFilters,
+  StudentHighlightApiItem,
+  StudentsHighlightApiResponse,
+  StudentHighlightItem,
+  UseStudentsHighlightState,
+  UseStudentsHighlightReturn,
+} from './hooks/useStudentsHighlight';
+
+// Questions Data Hook Factory
+export {
+  createUseQuestionsData,
+  createQuestionsDataHook,
+  transformQuestionsData,
+  handleQuestionsDataFetchError,
+  questionsDataApiResponseSchema,
+} from './hooks/useQuestionsData';
+export type {
+  QuestionsDataPeriod,
+  QuestionsDataTrendDirection,
+  QuestionsDataFilters,
+  QuestionsDataTrend,
+  QuestionsDataApiData,
+  QuestionsDataApiResponse,
+  QuestionsDataHookResult,
+  UseQuestionsDataState,
+  UseQuestionsDataReturn,
+} from './hooks/useQuestionsData';
+
 // Activities History Types
 export {
   ActivityApiStatus,
@@ -916,3 +960,11 @@ export type {
   ActivityModelItem,
   RecipientItem as SendActivityRecipientItem,
 } from './types/sendActivity';
+
+// Performance Types and Utils
+export {
+  PERFORMANCE_TAG_CONFIG,
+  getPerformanceTag,
+  getPerformanceTagConfig,
+} from './types/performance';
+export type { PerformanceTag, PerformanceTagConfig } from './types/performance';

@@ -12,6 +12,7 @@ import Search from '../Search/Search';
 import { FilterModal } from '../Filter/FilterModal';
 import Button from '../Button/Button';
 import { Funnel } from 'phosphor-react';
+import { cn } from '../../utils/utils';
 
 /**
  * Column configuration with flexible rendering options
@@ -155,6 +156,8 @@ export interface TableProviderProps<T = Record<string, unknown>> {
   readonly paginationConfig?: PaginationConfig;
   /** Search placeholder text */
   readonly searchPlaceholder?: string;
+  /** Additional CSS classes for the search container */
+  readonly searchContainerClassName?: string;
   /** Empty state configuration (when table is empty with no search) */
   readonly emptyState?: EmptyStateConfig;
   /** Loading state configuration (when table is loading) */
@@ -242,6 +245,7 @@ export function TableProvider<T extends Record<string, unknown>>({
   initialFilters = [],
   paginationConfig = {},
   searchPlaceholder = 'Buscar...',
+  searchContainerClassName,
   emptyState,
   loadingState,
   noSearchResultState,
@@ -444,7 +448,7 @@ export function TableProvider<T extends Record<string, unknown>>({
 
       {/* Search */}
       {enableSearch && (
-        <div className="flex-1">
+        <div className={cn('flex-1', searchContainerClassName)}>
           <Search
             value={searchQuery}
             onSearch={handleSearchChange}
