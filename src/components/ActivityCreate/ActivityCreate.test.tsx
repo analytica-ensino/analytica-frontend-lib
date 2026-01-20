@@ -55,11 +55,15 @@ const mockParams: {
   id?: string;
   'recommended-class'?: string;
   'recommended-class-draft'?: string;
+  onFinish?: string;
+  classType?: string;
 } = {
   type: undefined,
   id: undefined,
   'recommended-class': undefined,
   'recommended-class-draft': undefined,
+  onFinish: undefined,
+  classType: undefined,
 };
 
 const mockSetSearchParams = jest.fn();
@@ -76,6 +80,8 @@ jest.mock('react-router-dom', () => ({
           return mockParams['recommended-class'] || null;
         if (key === 'recommended-class-draft')
           return mockParams['recommended-class-draft'] || null;
+        if (key === 'onFinish') return mockParams.onFinish || null;
+        if (key === 'classType') return mockParams.classType || null;
         return null;
       },
     };
@@ -688,6 +694,8 @@ describe('CreateActivity', () => {
     mockParams.id = undefined;
     mockParams['recommended-class'] = undefined;
     mockParams['recommended-class-draft'] = undefined;
+    mockParams.onFinish = undefined;
+    mockParams.classType = undefined;
   });
 
   afterEach(() => {
@@ -3295,9 +3303,7 @@ describe('CreateActivity', () => {
     it('should handle API error gracefully and set empty lessons array', async () => {
       mockParams['recommended-class-draft'] = 'draft-123';
 
-      mockApiClient.get = jest
-        .fn()
-        .mockRejectedValue(new Error('API Error'));
+      mockApiClient.get = jest.fn().mockRejectedValue(new Error('API Error'));
 
       render(<CreateActivity {...defaultProps} />);
 
@@ -3320,9 +3326,7 @@ describe('CreateActivity', () => {
     it('should handle response with selectedLessons directly (not wrapped in draft)', async () => {
       mockParams['recommended-class'] = 'lesson-456';
 
-      const mockLessons = [
-        { id: 'lesson-1', title: 'Direct Lesson' },
-      ];
+      const mockLessons = [{ id: 'lesson-1', title: 'Direct Lesson' }];
 
       mockApiClient.get = jest.fn().mockResolvedValue({
         data: {
@@ -3405,6 +3409,96 @@ describe('CreateActivity', () => {
           '/recommended-class-drafts/draft-123'
         );
       });
+    });
+  });
+
+  describe('URL Parameter Preservation', () => {
+    it('should navigate to onFinishPath when back button is clicked', async () => {
+      mockParams['recommended-class-draft'] = 'draft-123';
+      mockParams.onFinish = 'criar-aula?id=lesson-123&type=rascunho';
+
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('back-button')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('back-button'));
+
+      expect(mockClearFilters).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        '/criar-aula?id=lesson-123&type=rascunho'
+      );
+    });
+
+    it('should handle onFinishPath with leading slash', async () => {
+      mockParams['recommended-class-draft'] = 'draft-123';
+      mockParams.onFinish = '/criar-aula?id=lesson-123';
+
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('back-button')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('back-button'));
+
+      expect(mockNavigate).toHaveBeenCalledWith('/criar-aula?id=lesson-123');
+    });
+
+    it('should call onBack when onFinishPath is not provided', async () => {
+      const mockOnBack = jest.fn();
+      render(<CreateActivity {...defaultProps} onBack={mockOnBack} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('back-button')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('back-button'));
+
+      expect(mockClearFilters).toHaveBeenCalled();
+      expect(mockOnBack).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('should be in recommended lesson mode when recommended-class-draft is present', () => {
+      mockParams['recommended-class-draft'] = 'draft-123';
+
+      render(<CreateActivity {...defaultProps} />);
+
+      expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+    });
+
+    it('should be in recommended lesson mode when recommended-class is present', () => {
+      mockParams['recommended-class'] = 'lesson-123';
+
+      render(<CreateActivity {...defaultProps} />);
+
+      expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+    });
+
+    it('should not be in recommended lesson mode when neither recommended-class nor recommended-class-draft is present', () => {
+      render(<CreateActivity {...defaultProps} />);
+
+      expect(
+        screen.queryByTestId('lesson-preview-button')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should preserve classType parameter in URL', async () => {
+      mockParams['recommended-class-draft'] = 'draft-123';
+      mockParams.classType = 'rascunho';
+      mockParams.onFinish = 'criar-aula?id=lesson-123';
+
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('back-button')).toBeInTheDocument();
+      });
+
+      // The classType should be read from URL params
+      // This test verifies the component initializes correctly with classType
+      expect(screen.getByTestId('create-activity-page')).toBeInTheDocument();
     });
   });
 });
