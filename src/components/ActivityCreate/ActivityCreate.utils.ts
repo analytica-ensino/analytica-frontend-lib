@@ -7,17 +7,6 @@ import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import type { BackendFiltersFormat } from './ActivityCreate.types';
 import { ActivityType } from './ActivityCreate.types';
 
-// Re-export shared utilities for backward compatibility
-export {
-  fetchAllStudents,
-  loadCategoriesData,
-  formatTime,
-  type School,
-  type SchoolYear,
-  type Class,
-  type Student,
-} from '../../utils/categoryDataUtils';
-
 /**
  * Set of valid QUESTION_TYPE enum values for runtime validation
  */

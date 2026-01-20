@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
-import { useSmallScreen } from '../../hooks/useScreen';
+import { usTabletScreen } from '../../hooks/useScreen';
 import { useSearchParams } from 'react-router-dom';
 import {
   Button,
@@ -119,7 +119,7 @@ const RecommendedLessonCreate = ({
   const addToast = useToastStore((state) => state.addToast);
 
   // Responsive state for screen width <= 1200px
-  const isSmallScreen = useSmallScreen();
+  const isSmallScreen = usTabletScreen();
   const [selectedView, setSelectedView] = useState<'lessons' | 'preview'>(
     'lessons'
   );

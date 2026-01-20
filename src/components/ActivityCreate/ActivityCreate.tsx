@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
-import { useSmallScreen } from '../../hooks/useScreen';
+import { usTabletScreen } from '../../hooks/useScreen';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   ActivityFilters,
@@ -42,12 +42,12 @@ import {
   convertBackendFiltersToActivityFiltersData,
   generateTitle,
   convertQuestionToPreview,
-  loadCategoriesData,
   getTypeFromUrl,
   getTypeFromUrlString,
 } from './ActivityCreate.utils';
 import { ActivityCreateSkeleton } from './components/ActivityCreateSkeleton';
 import { ActivityCreateHeader } from './components/ActivityCreateHeader';
+import { loadCategoriesData } from '@/utils/categoryDataUtils';
 
 /**
  * CreateActivity page component for creating new activities
@@ -110,7 +110,7 @@ const CreateActivity = ({
   const addToast = useToastStore((state) => state.addToast);
 
   // Responsive state for screen width <= 1200px
-  const isSmallScreen = useSmallScreen();
+  const isSmallScreen = usTabletScreen();
   const [selectedView, setSelectedView] = useState<'questions' | 'preview'>(
     'questions'
   );

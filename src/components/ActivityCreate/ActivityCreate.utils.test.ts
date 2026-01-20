@@ -4,14 +4,16 @@ import {
   getSubjectName,
   getActivityTypeLabel,
   generateTitle,
-  formatTime,
   convertQuestionToPreview,
-  fetchAllStudents,
-  loadCategoriesData,
   getTypeFromUrl,
   getTypeFromUrlString,
   type KnowledgeArea,
 } from './ActivityCreate.utils';
+import {
+  fetchAllStudents,
+  loadCategoriesData,
+  formatTime,
+} from '@/utils/categoryDataUtils';
 import { ActivityType } from './ActivityCreate.types';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import type { BaseApiClient } from '../../types/api';
