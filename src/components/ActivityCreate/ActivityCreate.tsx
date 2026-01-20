@@ -230,7 +230,7 @@ const CreateActivity = ({
     try {
       // Determine endpoint based on which ID we have
       const endpoint = recommendedLessonDraftId
-        ? `/recommended-class-drafts/${draftIdToFetch}`
+        ? `/recommended-class/drafts/${draftIdToFetch}`
         : `/recommended-class/${draftIdToFetch}`;
 
       const response = await apiClient.get<{

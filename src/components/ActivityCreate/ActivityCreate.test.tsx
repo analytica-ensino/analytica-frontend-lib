@@ -3234,7 +3234,7 @@ describe('CreateActivity', () => {
 
       await waitFor(() => {
         expect(mockApiClient.get).toHaveBeenCalledWith(
-          '/recommended-class-drafts/draft-123'
+          '/recommended-class/drafts/draft-123'
         );
       });
     });
@@ -3295,7 +3295,7 @@ describe('CreateActivity', () => {
 
       await waitFor(() => {
         expect(mockApiClient.get).toHaveBeenCalledWith(
-          '/recommended-class-drafts/draft-123'
+          '/recommended-class/drafts/draft-123'
         );
       });
     });
@@ -3378,7 +3378,7 @@ describe('CreateActivity', () => {
 
       await waitFor(() => {
         expect(mockApiClient.get).toHaveBeenCalledWith(
-          '/recommended-class-drafts/draft-123'
+          '/recommended-class/drafts/draft-123'
         );
       });
     });
@@ -3406,7 +3406,7 @@ describe('CreateActivity', () => {
 
       await waitFor(() => {
         expect(mockApiClient.get).toHaveBeenCalledWith(
-          '/recommended-class-drafts/draft-123'
+          '/recommended-class/drafts/draft-123'
         );
       });
     });
