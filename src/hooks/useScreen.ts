@@ -118,7 +118,7 @@ export const useMobile = () => {
  * Used by ActivityCreate and RecommendedLessonCreate components
  * @returns true if the screen width is <= 1200px, false otherwise
  */
-export const usTabletScreen = () => {
+export const useTabletScreen = () => {
   const [isSmallScreen, setIsSmallScreen] = useState(false);
 
   useEffect(() => {
