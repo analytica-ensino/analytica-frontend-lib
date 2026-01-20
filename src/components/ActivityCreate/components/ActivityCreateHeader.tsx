@@ -3,7 +3,7 @@ import { CaretLeft, PaperPlaneTilt, Eye, Plus } from 'phosphor-react';
 import type { ActivityData } from '../ActivityCreate.types';
 import { ActivityType } from '../ActivityCreate.types';
 import { getActivityTypeLabel } from '../ActivityCreate.utils';
-import { formatTime } from '@/utils/categoryDataUtils';
+import { formatTime } from '../../../utils/categoryDataUtils';
 
 /**
  * Header component for ActivityCreate page

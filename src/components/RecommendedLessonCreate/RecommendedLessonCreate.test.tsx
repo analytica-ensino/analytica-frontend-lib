@@ -412,7 +412,7 @@ describe('RecommendedLessonCreate', () => {
       );
 
       expect(
-        screen.getByTestId('create-recommended-lesson-page')
+        screen.getByTestId('create-recommended-class-page')
       ).toBeInTheDocument();
     });
 
@@ -861,7 +861,7 @@ describe('RecommendedLessonCreate', () => {
       );
 
       expect(
-        screen.getByTestId('create-recommended-lesson-page')
+        screen.getByTestId('create-recommended-class-page')
       ).toBeInTheDocument();
     });
   });
@@ -1771,7 +1771,7 @@ describe('RecommendedLessonCreate', () => {
 
       // Component should still be in document
       expect(
-        screen.getByTestId('create-recommended-lesson-page')
+        screen.getByTestId('create-recommended-class-page')
       ).toBeInTheDocument();
     });
   });
@@ -2062,7 +2062,7 @@ describe('RecommendedLessonCreate', () => {
 
       // Component should render without errors
       expect(
-        screen.getByTestId('create-recommended-lesson-page')
+        screen.getByTestId('create-recommended-class-page')
       ).toBeInTheDocument();
     });
   });
@@ -2228,7 +2228,7 @@ describe('RecommendedLessonCreate', () => {
       // Component should render
       await waitFor(() => {
         expect(
-          screen.getByTestId('create-recommended-lesson-page')
+          screen.getByTestId('create-recommended-class-page')
         ).toBeInTheDocument();
       });
     });

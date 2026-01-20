@@ -48,14 +48,14 @@ describe('RecommendedLessonCreateSkeleton', () => {
   it('should render the skeleton component', () => {
     render(<RecommendedLessonCreateSkeleton />);
 
-    const container = screen.getByTestId('create-recommended-lesson-page');
+    const container = screen.getByTestId('create-recommended-class-page');
     expect(container).toBeInTheDocument();
   });
 
   it('should have the correct container classes', () => {
     render(<RecommendedLessonCreateSkeleton />);
 
-    const container = screen.getByTestId('create-recommended-lesson-page');
+    const container = screen.getByTestId('create-recommended-class-page');
     expect(container).toHaveClass('flex', 'flex-col', 'w-full', 'h-screen');
   });
 
@@ -274,7 +274,7 @@ describe('RecommendedLessonCreateSkeleton', () => {
 
       // Check main container exists
       const mainContainer = container.querySelector(
-        '[data-testid="create-recommended-lesson-page"]'
+        '[data-testid="create-recommended-class-page"]'
       );
       expect(mainContainer).toBeInTheDocument();
     });

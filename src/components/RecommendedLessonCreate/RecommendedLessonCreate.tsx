@@ -1178,7 +1178,7 @@ const RecommendedLessonCreate = ({
 
   return (
     <div
-      data-testid="create-recommended-lesson-page"
+      data-testid="create-recommended-class-page"
       className="flex flex-col w-full h-screen overflow-hidden p-5 bg-background"
     >
       {/* Header Section */}

@@ -416,7 +416,7 @@ describe('RecommendedLessonsHistory', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByTestId('recommended-lessons-history')
+          screen.getByTestId('recommended-class-history')
         ).toBeInTheDocument();
       });
     });
@@ -616,7 +616,7 @@ describe('RecommendedLessonsHistory', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByTestId('recommended-lessons-history')
+          screen.getByTestId('recommended-class-history')
         ).toBeInTheDocument();
       });
     });
@@ -635,7 +635,7 @@ describe('RecommendedLessonsHistory', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByTestId('recommended-lessons-history')
+          screen.getByTestId('recommended-class-history')
         ).toBeInTheDocument();
       });
     });

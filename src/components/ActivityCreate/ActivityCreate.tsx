@@ -47,7 +47,7 @@ import {
 } from './ActivityCreate.utils';
 import { ActivityCreateSkeleton } from './components/ActivityCreateSkeleton';
 import { ActivityCreateHeader } from './components/ActivityCreateHeader';
-import { loadCategoriesData } from '@/utils/categoryDataUtils';
+import { loadCategoriesData } from '../../utils/categoryDataUtils';
 
 /**
  * CreateActivity page component for creating new activities
@@ -80,15 +80,51 @@ const CreateActivity = ({
   const typeParam = searchParams.get('type') || undefined;
   const idParam = searchParams.get('id') || undefined;
   const recommendedLessonId =
-    searchParams.get('recommended-lesson') || undefined;
+    searchParams.get('recommended-class') || undefined;
   const recommendedLessonDraftId =
-    searchParams.get('recommended-lesson-draft') || undefined;
+    searchParams.get('recommended-class-draft') || undefined;
   const onFinishPath = searchParams.get('onFinish') || undefined;
+  const classTypeParam = searchParams.get('classType') || undefined;
+
+  /**
+   * Build URL preserving existing query parameters
+   * Used when updating URL after saving draft to maintain context for navigation
+   */
+  const buildUrlWithParams = useCallback(
+    (newType: string, newId: string) => {
+      const params = new URLSearchParams();
+      params.set('type', newType);
+      params.set('id', newId);
+
+      // Preserve existing params for recommended lesson flow
+      if (recommendedLessonDraftId) {
+        params.set('recommended-class-draft', recommendedLessonDraftId);
+      }
+      if (recommendedLessonId) {
+        params.set('recommended-class', recommendedLessonId);
+      }
+      if (classTypeParam) {
+        params.set('classType', classTypeParam);
+      }
+      if (onFinishPath) {
+        params.set('onFinish', onFinishPath);
+      }
+
+      return `/criar-atividade?${params.toString()}`;
+    },
+    [
+      recommendedLessonDraftId,
+      recommendedLessonId,
+      classTypeParam,
+      onFinishPath,
+    ]
+  );
 
   // Determine if we're in recommended lesson mode
   const isRecommendedLessonMode = !!(
     recommendedLessonId || recommendedLessonDraftId
   );
+
   const applyFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.applyFilters
   );
@@ -164,7 +200,11 @@ const CreateActivity = ({
 
     // If onFinishPath is provided, navigate to it
     if (onFinishPath) {
-      navigate(`/${onFinishPath}`);
+      // Handle path that may already include query params
+      const navigatePath = onFinishPath.startsWith('/')
+        ? onFinishPath
+        : `/${onFinishPath}`;
+      navigate(navigatePath);
       return;
     }
 
@@ -175,7 +215,7 @@ const CreateActivity = ({
   }, [clearFilters, onBack, onFinishPath, navigate]);
 
   /**
-   * Handle lesson preview button click - fetches lessons from recommended-lesson-draft and opens modal
+   * Handle lesson preview button click - fetches lessons from recommended-class-draft and opens modal
    */
   const handleLessonPreview = useCallback(async () => {
     setIsLessonPreviewModalOpen(true);
@@ -190,8 +230,8 @@ const CreateActivity = ({
     try {
       // Determine endpoint based on which ID we have
       const endpoint = recommendedLessonDraftId
-        ? `/recommended-lesson-drafts/${draftIdToFetch}`
-        : `/recommended-lessons/${draftIdToFetch}`;
+        ? `/recommended-class-drafts/${draftIdToFetch}`
+        : `/recommended-class/${draftIdToFetch}`;
 
       const response = await apiClient.get<{
         data: {
@@ -311,12 +351,19 @@ const CreateActivity = ({
         currentUrlId !== activity.id ||
         currentUrlType !== urlType
       ) {
-        navigate(`/criar-atividade?type=${urlType}&id=${activity.id}`, {
+        navigate(buildUrlWithParams(urlType, activity.id), {
           replace: true,
         });
       }
     }
-  }, [activity?.id, activity?.type, typeParam, idParam, navigate]);
+  }, [
+    activity?.id,
+    activity?.type,
+    typeParam,
+    idParam,
+    navigate,
+    buildUrlWithParams,
+  ]);
 
   /**
    * Validate if save conditions are met
@@ -520,7 +567,7 @@ const CreateActivity = ({
       // Se foi um novo rascunho, atualiza a URL
       if (wasNewDraft && savedDraft.id) {
         const urlType = getTypeFromUrl(savedDraft.type);
-        navigate(`/criar-atividade?type=${urlType}&id=${savedDraft.id}`, {
+        navigate(buildUrlWithParams(urlType, savedDraft.id), {
           replace: true,
         });
       }
@@ -534,7 +581,7 @@ const CreateActivity = ({
         onSaveModel(fullResponse);
       }
     },
-    [questions, appliedFilters, onSaveModel, navigate]
+    [questions, appliedFilters, onSaveModel, navigate, buildUrlWithParams]
   );
 
   /**
@@ -624,7 +671,10 @@ const CreateActivity = ({
 
     // Navigate to onFinishPath if provided
     if (onFinishPath) {
-      navigate(`/${onFinishPath}`);
+      const navigatePath = onFinishPath.startsWith('/')
+        ? onFinishPath
+        : `/${onFinishPath}`;
+      navigate(navigatePath);
     } else if (onBack) {
       onBack();
     }

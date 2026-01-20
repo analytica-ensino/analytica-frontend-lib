@@ -50,9 +50,16 @@ const mockConsoleError = jest
 
 // Mock react-router-dom
 const mockNavigate = jest.fn();
-const mockParams: { type?: string; id?: string } = {
+const mockParams: {
+  type?: string;
+  id?: string;
+  'recommended-class'?: string;
+  'recommended-class-draft'?: string;
+} = {
   type: undefined,
   id: undefined,
+  'recommended-class': undefined,
+  'recommended-class-draft': undefined,
 };
 
 const mockSetSearchParams = jest.fn();
@@ -65,6 +72,10 @@ jest.mock('react-router-dom', () => ({
       get: (key: string): string | null => {
         if (key === 'type') return mockParams.type || null;
         if (key === 'id') return mockParams.id || null;
+        if (key === 'recommended-class')
+          return mockParams['recommended-class'] || null;
+        if (key === 'recommended-class-draft')
+          return mockParams['recommended-class-draft'] || null;
         return null;
       },
     };
@@ -78,6 +89,9 @@ jest.mock('phosphor-react', () => ({
   CaretLeft: () => <span data-testid="caret-left">←</span>,
   PaperPlaneTilt: () => <span data-testid="paper-plane">✈</span>,
   Funnel: () => <span data-testid="funnel">🔽</span>,
+  MonitorPlay: () => <span data-testid="monitor-play">🖥️</span>,
+  Eye: () => <span data-testid="eye">👁️</span>,
+  Plus: () => <span data-testid="plus">➕</span>,
 }));
 
 // Mock components
@@ -290,6 +304,8 @@ jest.mock('./components/ActivityCreateHeader', () => {
       onBack,
       onSaveModel,
       onSendActivity,
+      isRecommendedLessonMode,
+      onLessonPreview,
     }: {
       activity?: unknown;
       activityType: string;
@@ -299,6 +315,8 @@ jest.mock('./components/ActivityCreateHeader', () => {
       onBack?: () => void;
       onSaveModel?: () => void;
       onSendActivity?: () => void;
+      isRecommendedLessonMode?: boolean;
+      onLessonPreview?: () => void;
     }) => {
       // Helper functions to match utils behavior
       const getActivityTypeLabel = (type: string): string => {
@@ -356,6 +374,15 @@ jest.mock('./components/ActivityCreateHeader', () => {
           },
           'Enviar atividade'
         ),
+        isRecommendedLessonMode &&
+          React.createElement(
+            'button',
+            {
+              'data-testid': 'lesson-preview-button',
+              onClick: onLessonPreview,
+            },
+            'Prévia da aula'
+          ),
         React.createElement(
           'span',
           {},
@@ -572,6 +599,26 @@ jest.mock('../..', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     SendActivityModal: require('../SendActivityModal/SendActivityModal')
       .SendActivityModal,
+    Modal: ({
+      isOpen,
+      onClose,
+      title,
+      children,
+    }: {
+      isOpen: boolean;
+      onClose: () => void;
+      title?: string;
+      children?: React.ReactNode;
+    }) =>
+      isOpen ? (
+        <div data-testid="lesson-preview-modal">
+          <span data-testid="modal-title">{title}</span>
+          <button data-testid="modal-close-button" onClick={onClose}>
+            Close
+          </button>
+          {children}
+        </div>
+      ) : null,
     useQuestionFiltersStore: (selector: (state: unknown) => unknown) => {
       const mockState = {
         draftFilters: mockDraftFilters,
@@ -639,6 +686,8 @@ describe('CreateActivity', () => {
     mockClearFilters.mockClear();
     mockParams.type = undefined;
     mockParams.id = undefined;
+    mockParams['recommended-class'] = undefined;
+    mockParams['recommended-class-draft'] = undefined;
   });
 
   afterEach(() => {
@@ -3125,6 +3174,237 @@ describe('CreateActivity', () => {
       const onBackCallOrder = mockOnBack.mock.invocationCallOrder[0];
 
       expect(clearFiltersCallOrder).toBeLessThan(onBackCallOrder);
+    });
+  });
+
+  describe('Lesson Preview (handleLessonPreview)', () => {
+    it('should show lesson preview button when in recommended lesson mode', async () => {
+      mockParams['recommended-class-draft'] = 'draft-123';
+
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+      });
+    });
+
+    it('should not show lesson preview button when not in recommended lesson mode', () => {
+      render(<CreateActivity {...defaultProps} />);
+
+      expect(
+        screen.queryByTestId('lesson-preview-button')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should open modal and fetch lessons from draft endpoint when recommendedLessonDraftId is present', async () => {
+      mockParams['recommended-class-draft'] = 'draft-123';
+
+      const mockLessons = [
+        { id: 'lesson-1', title: 'Lesson 1' },
+        { id: 'lesson-2', title: 'Lesson 2' },
+      ];
+
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              selectedLessons: mockLessons,
+            },
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+      });
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('lesson-preview-button'));
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/recommended-class-drafts/draft-123'
+        );
+      });
+    });
+
+    it('should open modal and fetch lessons from recommended-class endpoint when only recommendedLessonId is present', async () => {
+      mockParams['recommended-class'] = 'lesson-456';
+
+      const mockLessons = [{ id: 'lesson-1', title: 'Lesson 1' }];
+
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            selectedLessons: mockLessons,
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+      });
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('lesson-preview-button'));
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/recommended-class/lesson-456'
+        );
+      });
+    });
+
+    it('should prioritize recommendedLessonDraftId over recommendedLessonId when both are present', async () => {
+      mockParams['recommended-class-draft'] = 'draft-123';
+      mockParams['recommended-class'] = 'lesson-456';
+
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              selectedLessons: [],
+            },
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+      });
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('lesson-preview-button'));
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/recommended-class-drafts/draft-123'
+        );
+      });
+    });
+
+    it('should handle API error gracefully and set empty lessons array', async () => {
+      mockParams['recommended-class-draft'] = 'draft-123';
+
+      mockApiClient.get = jest
+        .fn()
+        .mockRejectedValue(new Error('API Error'));
+
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+      });
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('lesson-preview-button'));
+      });
+
+      await waitFor(() => {
+        expect(mockConsoleError).toHaveBeenCalledWith(
+          'Error fetching lesson preview:',
+          expect.any(Error)
+        );
+      });
+    });
+
+    it('should handle response with selectedLessons directly (not wrapped in draft)', async () => {
+      mockParams['recommended-class'] = 'lesson-456';
+
+      const mockLessons = [
+        { id: 'lesson-1', title: 'Direct Lesson' },
+      ];
+
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            selectedLessons: mockLessons,
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+      });
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('lesson-preview-button'));
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/recommended-class/lesson-456'
+        );
+      });
+    });
+
+    it('should handle response with empty selectedLessons', async () => {
+      mockParams['recommended-class-draft'] = 'draft-123';
+
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              selectedLessons: [],
+            },
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+      });
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('lesson-preview-button'));
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/recommended-class-drafts/draft-123'
+        );
+      });
+    });
+
+    it('should handle response with undefined selectedLessons', async () => {
+      mockParams['recommended-class-draft'] = 'draft-123';
+
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {},
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+      });
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('lesson-preview-button'));
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/recommended-class-drafts/draft-123'
+        );
+      });
     });
   });
 });
