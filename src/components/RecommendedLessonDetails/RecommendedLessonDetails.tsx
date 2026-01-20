@@ -197,7 +197,7 @@ const RecommendedLessonDetails = ({
     <>
       <div
         className={cn('flex flex-col gap-6', className)}
-        data-testid="recommended-lesson-details"
+        data-testid="recommended-class-details"
       >
         {/* Breadcrumb */}
         <Breadcrumb items={breadcrumbItems} onItemClick={onBreadcrumbClick} />

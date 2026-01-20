@@ -173,6 +173,17 @@ export type {
   Class,
   Student,
 } from './components/ActivityCreate/ActivityCreate';
+
+// RecommendedLessonCreate Component
+export { RecommendedLessonCreate } from './components/RecommendedLessonCreate';
+export type {
+  LessonBackendFiltersFormat,
+  RecommendedLessonDraftResponse,
+  RecommendedLessonData,
+  RecommendedLessonPreFiltersInput,
+  RecommendedLessonCreatePayload,
+  RecommendedLessonCreateResponse,
+} from './components/RecommendedLessonCreate';
 export type { UseQuestionsListReturn } from './hooks/useQuestionsList';
 export type {
   Question as QuestionActivity,
@@ -438,6 +449,8 @@ export { useAuthStore } from './store/authStore';
 export { useAppStore } from './store/appStore';
 export { useQuestionFiltersStore } from './store/questionFiltersStore';
 export type { QuestionFiltersState } from './store/questionFiltersStore';
+export { useLessonFiltersStore } from './store/lessonFiltersStore';
+export type { LessonFiltersState } from './store/lessonFiltersStore';
 export type { AuthState } from './store/authStore';
 export { ActivityCardQuestionBanks } from './components/ActivityCardQuestionBanks/ActivityCardQuestionBanks';
 export { ActivityCardQuestionPreview } from './components/ActivityCardQuestionPreview/ActivityCardQuestionPreview';

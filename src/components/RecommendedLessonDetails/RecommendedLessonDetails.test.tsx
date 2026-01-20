@@ -193,7 +193,7 @@ describe('RecommendedLessonDetails', () => {
       );
 
       expect(
-        screen.getByTestId('recommended-lesson-details')
+        screen.getByTestId('recommended-class-details')
       ).toBeInTheDocument();
     });
 
@@ -696,7 +696,7 @@ describe('RecommendedLessonDetails', () => {
 
       // Should still render without school/class info
       expect(
-        screen.getByTestId('recommended-lesson-details')
+        screen.getByTestId('recommended-class-details')
       ).toBeInTheDocument();
     });
   });
@@ -720,7 +720,7 @@ describe('RecommendedLessonDetails', () => {
 
       // Should still render without subject info
       expect(
-        screen.getByTestId('recommended-lesson-details')
+        screen.getByTestId('recommended-class-details')
       ).toBeInTheDocument();
     });
   });

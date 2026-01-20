@@ -68,22 +68,19 @@ export const ActivityModelsList = ({
           }
 
           return (
-            <div
-              className="flex items-center gap-2"
-              title={subject.subjectName}
-            >
+            <div className="flex items-center gap-2" title={subject.name}>
               <span
                 className="w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0"
-                style={{ backgroundColor: subject.subjectColor }}
+                style={{ backgroundColor: subject.color }}
               >
                 <IconRender
-                  iconName={subject.subjectIcon}
+                  iconName={subject.icon}
                   size={17}
                   color="currentColor"
                 />
               </span>
               <Text size="sm" className="truncate">
-                {subject.subjectName}
+                {subject.name}
               </Text>
             </div>
           );

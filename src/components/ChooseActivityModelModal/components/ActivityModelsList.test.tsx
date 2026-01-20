@@ -5,6 +5,7 @@ import type {
   ActivityModelTableItem,
   SubjectData,
 } from '../../../types/activitiesHistory';
+import { ActivityType } from '../../ActivityCreate/ActivityCreate.types';
 import type { TableParams } from '../../TableProvider/TableProvider';
 
 // Mock do TableProvider
@@ -125,21 +126,22 @@ jest.mock('../../shared/ModelsTabBase/createModelsTableColumnsBase', () => ({
 describe('ActivityModelsList', () => {
   const mockSubject1: SubjectData = {
     id: 's1',
-    subjectName: 'Mathematics',
-    subjectIcon: 'Calculator',
-    subjectColor: '#FF5733',
+    name: 'Mathematics',
+    icon: 'Calculator',
+    color: '#FF5733',
   };
 
   const mockSubject2: SubjectData = {
     id: 's2',
-    subjectName: 'Portuguese',
-    subjectIcon: 'BookOpen',
-    subjectColor: '#3357FF',
+    name: 'Portuguese',
+    icon: 'BookOpen',
+    color: '#3357FF',
   };
 
   const mockModels: ActivityModelTableItem[] = [
     {
       id: 'model-1',
+      type: ActivityType.MODELO,
       title: 'Model 1',
       savedAt: '2024-01-01T00:00:00Z',
       subject: mockSubject1,
@@ -147,6 +149,7 @@ describe('ActivityModelsList', () => {
     },
     {
       id: 'model-2',
+      type: ActivityType.MODELO,
       title: 'Model 2',
       savedAt: '2024-01-02T00:00:00Z',
       subject: mockSubject2,
@@ -154,6 +157,7 @@ describe('ActivityModelsList', () => {
     },
     {
       id: 'model-3',
+      type: ActivityType.MODELO,
       title: 'Model 3',
       savedAt: '2024-01-03T00:00:00Z',
       subject: null,
@@ -238,6 +242,7 @@ describe('ActivityModelsList', () => {
       const modelsWithNullSubject: ActivityModelTableItem[] = [
         {
           id: 'model-null',
+          type: ActivityType.MODELO,
           title: 'Model with null subject',
           savedAt: '2024-01-01T00:00:00Z',
           subject: null,
@@ -263,6 +268,7 @@ describe('ActivityModelsList', () => {
       const modelsAllNull: ActivityModelTableItem[] = [
         {
           id: 'model-1',
+          type: ActivityType.MODELO,
           title: 'Model 1',
           savedAt: '2024-01-01T00:00:00Z',
           subject: null,
@@ -270,6 +276,7 @@ describe('ActivityModelsList', () => {
         },
         {
           id: 'model-2',
+          type: ActivityType.MODELO,
           title: 'Model 2',
           savedAt: '2024-01-02T00:00:00Z',
           subject: null,
@@ -277,6 +284,7 @@ describe('ActivityModelsList', () => {
         },
         {
           id: 'model-3',
+          type: ActivityType.MODELO,
           title: 'Model 3',
           savedAt: '2024-01-03T00:00:00Z',
           subject: null,
@@ -298,6 +306,7 @@ describe('ActivityModelsList', () => {
       const modelWithExplicitNull: ActivityModelTableItem[] = [
         {
           id: 'explicit-null',
+          type: ActivityType.MODELO,
           title: 'Explicit null',
           savedAt: '2024-01-01T00:00:00Z',
           subject: null,
@@ -322,6 +331,7 @@ describe('ActivityModelsList', () => {
       const modelWithUndefinedSubject: ActivityModelTableItem[] = [
         {
           id: 'undefined-subject',
+          type: ActivityType.MODELO,
           title: 'Undefined subject',
           savedAt: '2024-01-01T00:00:00Z',
           subject: undefined as unknown as SubjectData | null,
@@ -347,6 +357,7 @@ describe('ActivityModelsList', () => {
       const modelsWithSubject: ActivityModelTableItem[] = [
         {
           id: 'model-with-subject',
+          type: ActivityType.MODELO,
           title: 'Model with subject',
           savedAt: '2024-01-01T00:00:00Z',
           subject: mockSubject1,
@@ -364,10 +375,7 @@ describe('ActivityModelsList', () => {
       // Check container with title attribute
       const subjectContainer = subjectCell.querySelector('[title]');
       expect(subjectContainer).toBeInTheDocument();
-      expect(subjectContainer).toHaveAttribute(
-        'title',
-        mockSubject1.subjectName
-      );
+      expect(subjectContainer).toHaveAttribute('title', mockSubject1.name);
 
       // Check icon container with background color
       const iconContainer = subjectCell.querySelector(
@@ -375,7 +383,7 @@ describe('ActivityModelsList', () => {
       );
       expect(iconContainer).toBeInTheDocument();
       expect(iconContainer).toHaveStyle({
-        backgroundColor: mockSubject1.subjectColor,
+        backgroundColor: mockSubject1.color,
       });
       expect(iconContainer?.className).toContain('rounded-sm');
       expect(iconContainer?.className).toContain('text-text-950');
@@ -383,7 +391,7 @@ describe('ActivityModelsList', () => {
       // Check icon
       const icon = subjectCell.querySelector('[data-testid="icon-render"]');
       expect(icon).toBeInTheDocument();
-      expect(icon).toHaveAttribute('data-icon-name', mockSubject1.subjectIcon);
+      expect(icon).toHaveAttribute('data-icon-name', mockSubject1.icon);
       expect(icon).toHaveAttribute('data-size', '17');
       expect(icon).toHaveAttribute('data-color', 'currentColor');
 
@@ -392,13 +400,14 @@ describe('ActivityModelsList', () => {
       expect(text).toBeInTheDocument();
       expect(text).toHaveAttribute('data-size', 'sm');
       expect(text?.className).toContain('truncate');
-      expect(text?.textContent).toBe(mockSubject1.subjectName);
+      expect(text?.textContent).toBe(mockSubject1.name);
     });
 
     it('should render different subjects with different colors and icons', () => {
       const modelsWithDifferentSubjects: ActivityModelTableItem[] = [
         {
           id: 'math',
+          type: ActivityType.MODELO,
           title: 'Math Model',
           savedAt: '2024-01-01T00:00:00Z',
           subject: mockSubject1,
@@ -406,6 +415,7 @@ describe('ActivityModelsList', () => {
         },
         {
           id: 'port',
+          type: ActivityType.MODELO,
           title: 'Portuguese Model',
           savedAt: '2024-01-02T00:00:00Z',
           subject: mockSubject2,
@@ -424,35 +434,30 @@ describe('ActivityModelsList', () => {
       const mathCell = screen.getByTestId('subject-cell-math');
       const mathIconContainer = mathCell.querySelector('.w-\\[21px\\]');
       expect(mathIconContainer).toHaveStyle({
-        backgroundColor: mockSubject1.subjectColor,
+        backgroundColor: mockSubject1.color,
       });
       const mathIcon = mathCell.querySelector('[data-icon-name]');
-      expect(mathIcon).toHaveAttribute(
-        'data-icon-name',
-        mockSubject1.subjectIcon
-      );
+      expect(mathIcon).toHaveAttribute('data-icon-name', mockSubject1.icon);
       const mathText = mathCell.querySelector('[data-testid="text"]');
-      expect(mathText?.textContent).toBe(mockSubject1.subjectName);
+      expect(mathText?.textContent).toBe(mockSubject1.name);
 
       // Check second subject (Portuguese)
       const portCell = screen.getByTestId('subject-cell-port');
       const portIconContainer = portCell.querySelector('.w-\\[21px\\]');
       expect(portIconContainer).toHaveStyle({
-        backgroundColor: mockSubject2.subjectColor,
+        backgroundColor: mockSubject2.color,
       });
       const portIcon = portCell.querySelector('[data-icon-name]');
-      expect(portIcon).toHaveAttribute(
-        'data-icon-name',
-        mockSubject2.subjectIcon
-      );
+      expect(portIcon).toHaveAttribute('data-icon-name', mockSubject2.icon);
       const portText = portCell.querySelector('[data-testid="text"]');
-      expect(portText?.textContent).toBe(mockSubject2.subjectName);
+      expect(portText?.textContent).toBe(mockSubject2.name);
     });
 
     it('should render mixed subjects (some null, some with value)', () => {
       const mixedModels: ActivityModelTableItem[] = [
         {
           id: 'with-subject',
+          type: ActivityType.MODELO,
           title: 'With Subject',
           savedAt: '2024-01-01T00:00:00Z',
           subject: mockSubject1,
@@ -460,6 +465,7 @@ describe('ActivityModelsList', () => {
         },
         {
           id: 'without-subject',
+          type: ActivityType.MODELO,
           title: 'Without Subject',
           savedAt: '2024-01-02T00:00:00Z',
           subject: null,
@@ -474,7 +480,7 @@ describe('ActivityModelsList', () => {
       const icon = withSubjectCell.querySelector('[data-icon-name]');
       expect(icon).toBeInTheDocument();
       const text = withSubjectCell.querySelector('[data-testid="text"]');
-      expect(text?.textContent).toBe(mockSubject1.subjectName);
+      expect(text?.textContent).toBe(mockSubject1.name);
 
       // Check model without subject
       const withoutSubjectCell = screen.getByTestId(
@@ -489,6 +495,7 @@ describe('ActivityModelsList', () => {
       const modelsWithSubject: ActivityModelTableItem[] = [
         {
           id: 'css-test',
+          type: ActivityType.MODELO,
           title: 'CSS Test',
           savedAt: '2024-01-01T00:00:00Z',
           subject: mockSubject1,
@@ -526,15 +533,15 @@ describe('ActivityModelsList', () => {
     it('should truncate long subject names', () => {
       const longSubject: SubjectData = {
         id: 'long',
-        subjectName:
-          'This is a very long subject name that should be truncated',
-        subjectIcon: 'BookOpen',
-        subjectColor: '#FF5733',
+        name: 'This is a very long subject name that should be truncated',
+        icon: 'BookOpen',
+        color: '#FF5733',
       };
 
       const modelsWithLongName: ActivityModelTableItem[] = [
         {
           id: 'long-name',
+          type: ActivityType.MODELO,
           title: 'Long Name Test',
           savedAt: '2024-01-01T00:00:00Z',
           subject: longSubject,
@@ -550,7 +557,7 @@ describe('ActivityModelsList', () => {
       const text = subjectCell.querySelector('[data-testid="text"]');
 
       expect(text?.className).toContain('truncate');
-      expect(text?.textContent).toBe(longSubject.subjectName);
+      expect(text?.textContent).toBe(longSubject.name);
     });
   });
 });

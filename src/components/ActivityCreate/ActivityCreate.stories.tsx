@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import { CreateActivity } from './ActivityCreate';
 import type { BaseApiClient } from '../../types/api';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
@@ -567,14 +567,51 @@ export const WithoutInitialQuestions: Story = () => {
 WithoutInitialQuestions.storyName = 'Without Initial Questions';
 
 export const WithPreFilters: Story = () => {
+  // Mock API client that returns a draft with pre-selected filters
+  const mockApiClientWithPreFilters = {
+    ...mockApiClientAllTypes,
+    get: async (url: string) => {
+      // Intercept activity-drafts/{id} to return draft with filters
+      if (url.startsWith('/activity-drafts/')) {
+        return {
+          data: {
+            data: {
+              id: 'draft-with-prefilters',
+              type: 'RASCUNHO',
+              title: 'Atividade com filtros pré-selecionados',
+              creatorUserInstitutionId: 'institution-1',
+              subjectId: 'matematica',
+              filters: {
+                questionTypes: ['ALTERNATIVA', 'MULTIPLA_ESCOLHA'],
+                questionBanks: ['1'],
+                subjects: ['matematica'],
+                topics: ['tema-1'],
+                subtopics: ['subtema-1'],
+                contents: ['assunto-1'],
+              },
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          },
+        };
+      }
+      // Delegate other GET requests to the original mock
+      return mockApiClientAllTypes.get(url);
+    },
+  } as BaseApiClient;
+
   return (
-    <BrowserRouter>
+    <MemoryRouter
+      initialEntries={[
+        '/criar-atividade?type=rascunho&id=draft-with-prefilters',
+      ]}
+    >
       <CreateActivity
-        apiClient={mockApiClientAllTypes}
+        apiClient={mockApiClientWithPreFilters}
         institutionId="institution-1"
         isDark={false}
       />
-    </BrowserRouter>
+    </MemoryRouter>
   );
 };
 
@@ -733,3 +770,475 @@ export const WithBackNavigation: Story = () => {
 };
 
 WithBackNavigation.storyName = 'With Back Navigation';
+
+/**
+ * Story 1: Creating a new activity from recommended lesson (no existing draft)
+ * User navigates from "criar-aula-recomendada" to create a new activity
+ */
+export const WithRecommendedLessonCreate: Story = () => {
+  // Mock API client for creating new activity from recommended lesson
+  const mockApiClientWithRecommendedLesson = {
+    ...mockApiClientAllTypes,
+    get: async (url: string) => {
+      // Intercept recommended-lesson-draft endpoint
+      if (url.startsWith('/recommended-lesson-drafts/')) {
+        return {
+          data: {
+            data: {
+              id: '019ba10b-2a77-789e-802d-f8240ff4e0b4',
+              type: 'RASCUNHO',
+              title: 'Aula de Matemática - Números e Operações',
+              description: 'Aula sobre números reais e operações básicas',
+              creatorUserInstitutionId: '019b588f-faf8-7b85-9c85-2e08e8b03909',
+              subjectId: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+              filters: {
+                subjects: ['019b588e-5a1d-7b64-954e-c84a81c7ca58'],
+                topics: ['019b588e-5c4b-7e1f-a85f-1c78a8218f3a'],
+                subtopics: ['019b588e-5e7d-7bff-8966-8ac59395f124'],
+                contents: ['019b588e-60ad-7c90-b3a5-36f51aed6794'],
+              },
+              startDate: '2026-01-20T08:00:00.000Z',
+              finalDate: '2026-01-20T10:00:00.000Z',
+              createdAt: '2026-01-09T01:37:02.199Z',
+              updatedAt: '2026-01-09T04:37:40.376Z',
+              lessons: [
+                {
+                  lessonId: 'lesson-1',
+                  name: 'Introdução aos Números Reais',
+                  sequence: 1,
+                },
+                {
+                  lessonId: 'lesson-2',
+                  name: 'Operações com Números Reais',
+                  sequence: 2,
+                },
+              ],
+              creator: {
+                id: '019b588f-faf8-7b85-9c85-2e08e8b03909',
+                user: {
+                  id: 'user-123',
+                  name: 'Professor João Silva',
+                },
+              },
+              subject: {
+                id: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+                name: 'Matemática',
+              },
+            },
+          },
+        };
+      }
+      // Delegate other GET requests to the original mock
+      return mockApiClientAllTypes.get(url);
+    },
+  } as BaseApiClient;
+
+  const handleAddActivityToLesson = (activityDraftId: string) => {
+    console.log('Activity draft added to lesson:', activityDraftId);
+    alert(`Atividade ${activityDraftId} adicionada à aula!`);
+  };
+
+  return (
+    <MemoryRouter
+      initialEntries={[
+        '/criar-atividade?recommended-lesson-draft=019ba10b-2a77-789e-802d-f8240ff4e0b4&onFinish=criar-aula-recomendada/019ba10b-2a77-789e-802d-f8240ff4e0b4',
+      ]}
+    >
+      <CreateActivity
+        apiClient={mockApiClientWithRecommendedLesson}
+        institutionId="institution-1"
+        isDark={false}
+        onAddActivityToLesson={handleAddActivityToLesson}
+      />
+    </MemoryRouter>
+  );
+};
+
+WithRecommendedLessonCreate.storyName =
+  'Recommended Lesson - Create New Activity';
+
+/**
+ * Story 2: Editing an existing activity draft from recommended lesson
+ * User has an existing draft with pre-filters and selected questions
+ */
+export const WithRecommendedLessonEdit: Story = () => {
+  // Mock questions that will be pre-selected in the activity draft
+  const mockSelectedQuestions: Question[] = [
+    {
+      id: '019b588f-c6e9-7685-8681-75a23b6925ab',
+      statement: 'Qual é a raiz quadrada de 144?',
+      description: 'Questão alternativa sobre raiz quadrada',
+      questionType: QUESTION_TYPE.ALTERNATIVA,
+      status: QUESTION_STATUS_ENUM.APROVADO,
+      difficultyLevel: DIFFICULTY_LEVEL_ENUM.FACIL,
+      questionBankYearId: '019b588f-3d01-75a6-96a7-a7c18d11d10a',
+      solutionExplanation: '√144 = 12',
+      createdAt: '2025-12-25T23:49:02.278Z',
+      updatedAt: '2025-12-25T23:49:02.278Z',
+      knowledgeMatrix: [
+        {
+          subject: {
+            id: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+            name: 'Matemática',
+            color: '#ff0000',
+            icon: 'math',
+          },
+          topic: {
+            id: '019b588e-5c4b-7e1f-a85f-1c78a8218f3a',
+            name: 'Números e Operações',
+          },
+          subtopic: {
+            id: '019b588e-5e7d-7bff-8966-8ac59395f124',
+            name: 'Conjuntos Numéricos',
+          },
+          content: {
+            id: '019b588e-60ad-7c90-b3a5-36f51aed6794',
+            name: 'Números Reais',
+          },
+        },
+      ],
+      options: [
+        { id: '019b588f-ca43-70cd-adc9-85e47a28da92', option: '12' },
+        { id: '019b588f-cb5e-7f8e-82c2-744a87fb0307', option: '14' },
+        { id: '019b588f-cc83-7cb5-b50f-d0f698e9a201', option: '10' },
+        { id: '019b588f-cd9e-718a-9b3e-483429b20217', option: '16' },
+        { id: '019b588f-ceb8-79ef-9cd8-9c3ed36d2ed7', option: '8' },
+      ],
+    },
+    {
+      id: '019b588f-50b3-75e3-a6f8-c6d6e7d07e40',
+      statement:
+        'Discorra sobre a importância dos números reais na matemática e suas aplicações.',
+      description: 'Questão dissertativa sobre números reais',
+      questionType: QUESTION_TYPE.DISSERTATIVA,
+      status: QUESTION_STATUS_ENUM.APROVADO,
+      difficultyLevel: DIFFICULTY_LEVEL_ENUM.DIFICIL,
+      questionBankYearId: '019b588f-3d01-75a6-96a7-a7bb7301d602',
+      solutionExplanation:
+        'Os números reais são fundamentais na matemática pois completam os números racionais incluindo os irracionais.',
+      createdAt: '2025-12-25T23:49:02.278Z',
+      updatedAt: '2025-12-25T23:49:02.278Z',
+      knowledgeMatrix: [
+        {
+          subject: {
+            id: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+            name: 'Matemática',
+            color: '#ff0000',
+            icon: 'math',
+          },
+          topic: {
+            id: '019b588e-5c4b-7e1f-a85f-1c78a8218f3a',
+            name: 'Números e Operações',
+          },
+          subtopic: {
+            id: '019b588e-5e7d-7bff-8966-8ac59395f124',
+            name: 'Conjuntos Numéricos',
+          },
+          content: {
+            id: '019b588e-60ad-7c90-b3a5-36f51aed6794',
+            name: 'Números Reais',
+          },
+        },
+      ],
+      options: [],
+    },
+    {
+      id: '019b588f-4a1a-7cfd-83fa-8d29fa282b26',
+      statement:
+        'Explique o conceito de função quadrática e suas características principais.',
+      description: 'Questão dissertativa sobre funções quadráticas',
+      questionType: QUESTION_TYPE.DISSERTATIVA,
+      status: QUESTION_STATUS_ENUM.APROVADO,
+      difficultyLevel: DIFFICULTY_LEVEL_ENUM.MEDIO,
+      questionBankYearId: '019b588f-3d01-75a6-96a7-a7cce2c585b5',
+      solutionExplanation:
+        'Uma função quadrática é uma função polinomial de segundo grau da forma f(x) = ax² + bx + c.',
+      createdAt: '2025-12-25T23:49:02.278Z',
+      updatedAt: '2025-12-25T23:49:02.278Z',
+      knowledgeMatrix: [
+        {
+          subject: {
+            id: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+            name: 'Matemática',
+            color: '#ff0000',
+            icon: 'math',
+          },
+          topic: {
+            id: '019b588e-5c4b-7e1f-a85f-1c78a8218f3a',
+            name: 'Números e Operações',
+          },
+          subtopic: {
+            id: '019b588e-5e7d-7bff-8966-8ac59395f124',
+            name: 'Conjuntos Numéricos',
+          },
+          content: {
+            id: '019b588e-60ad-7c90-b3a5-36f51aed6794',
+            name: 'Números Reais',
+          },
+        },
+      ],
+      options: [],
+    },
+  ];
+
+  // Mock API client for editing existing activity draft
+  const mockApiClientWithExistingDraft = {
+    ...mockApiClientAllTypes,
+    get: async (url: string) => {
+      // Intercept activity-drafts/{id} to return existing draft with filters and questions
+      if (url.startsWith('/activity-drafts/')) {
+        return {
+          data: {
+            data: {
+              id: '019ba10b-2a77-789e-802d-f8240ff4e0b4',
+              type: 'MODELO',
+              title: 'Modelo - Matemática',
+              creatorUserInstitutionId: '019b588f-faf8-7b85-9c85-2e08e8b03909',
+              subjectId: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+              filters: {
+                questionTypes: ['ALTERNATIVA', 'DISSERTATIVA'],
+                questionBanks: [
+                  'ANALYTICA',
+                  'ENEM',
+                  'UEL',
+                  'UEM',
+                  'UNICENTRO',
+                  'UPFR',
+                ],
+                subjects: ['019b588e-5a1d-7b64-954e-c84a81c7ca58'],
+                topics: ['019b588e-5c4b-7e1f-a85f-1c78a8218f3a'],
+                subtopics: ['019b588e-5e7d-7bff-8966-8ac59395f124'],
+                contents: ['019b588e-60ad-7c90-b3a5-36f51aed6794'],
+              },
+              createdAt: '2026-01-09T01:37:02.199Z',
+              updatedAt: '2026-01-09T04:37:40.376Z',
+              selectedQuestions: mockSelectedQuestions,
+            },
+          },
+        };
+      }
+
+      // Intercept recommended-lesson-draft endpoint
+      if (url.startsWith('/recommended-lesson-drafts/')) {
+        return {
+          data: {
+            data: {
+              id: '019ba10b-lesson-draft-id',
+              type: 'RASCUNHO',
+              title: 'Aula de Matemática - Números e Operações',
+              description: 'Aula completa sobre números reais e operações',
+              creatorUserInstitutionId: '019b588f-faf8-7b85-9c85-2e08e8b03909',
+              subjectId: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+              filters: {
+                subjects: ['019b588e-5a1d-7b64-954e-c84a81c7ca58'],
+                topics: ['019b588e-5c4b-7e1f-a85f-1c78a8218f3a'],
+              },
+              startDate: '2026-01-20T08:00:00.000Z',
+              finalDate: '2026-01-20T10:00:00.000Z',
+              createdAt: '2026-01-09T01:37:02.199Z',
+              updatedAt: '2026-01-14T15:30:00.000Z',
+              lessons: [
+                {
+                  lessonId: 'lesson-1',
+                  name: 'Introdução aos Números Reais',
+                  sequence: 1,
+                },
+                {
+                  lessonId: 'lesson-2',
+                  name: 'Operações com Números Reais',
+                  sequence: 2,
+                },
+                {
+                  lessonId: 'lesson-3',
+                  name: 'Exercícios Práticos',
+                  sequence: 3,
+                },
+              ],
+              creator: {
+                id: '019b588f-faf8-7b85-9c85-2e08e8b03909',
+                user: {
+                  id: 'user-123',
+                  name: 'Professor João Silva',
+                },
+              },
+              subject: {
+                id: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+                name: 'Matemática',
+              },
+            },
+          },
+        };
+      }
+
+      // Mock knowledge subjects with real IDs
+      if (url === '/knowledge/subjects') {
+        return {
+          data: {
+            data: [
+              {
+                id: '019b588e-5a1d-7b64-954e-c84a81c7ca58',
+                name: 'Matemática',
+                color: '#ff0000',
+                icon: 'math',
+              },
+              {
+                id: 'portugues-id',
+                name: 'Português',
+                color: '#00a651',
+                icon: 'ChatPT',
+              },
+            ],
+          },
+        };
+      }
+
+      // Delegate other GET requests to the original mock
+      return mockApiClientAllTypes.get(url);
+    },
+    post: async (url: string, _body: unknown) => {
+      // Mock /knowledge/topics
+      if (url === '/knowledge/topics') {
+        return {
+          data: {
+            data: [
+              {
+                id: '019b588e-5c4b-7e1f-a85f-1c78a8218f3a',
+                name: 'Números e Operações',
+              },
+              { id: 'tema-2', name: 'Geometria' },
+              { id: 'tema-3', name: 'Álgebra' },
+            ],
+          },
+        };
+      }
+
+      // Mock /knowledge/subtopics
+      if (url === '/knowledge/subtopics') {
+        return {
+          data: {
+            data: [
+              {
+                id: '019b588e-5e7d-7bff-8966-8ac59395f124',
+                name: 'Conjuntos Numéricos',
+              },
+              { id: 'subtema-2', name: 'Números Inteiros' },
+            ],
+          },
+        };
+      }
+
+      // Mock /knowledge/contents
+      if (url === '/knowledge/contents') {
+        return {
+          data: {
+            data: [
+              {
+                id: '019b588e-60ad-7c90-b3a5-36f51aed6794',
+                name: 'Números Reais',
+              },
+              { id: 'assunto-2', name: 'Números Racionais' },
+            ],
+          },
+        };
+      }
+
+      // Delegate other POST requests
+      return mockApiClientAllTypes.post(
+        url,
+        _body as Record<string, unknown> | undefined
+      );
+    },
+  } as BaseApiClient;
+
+  const handleAddActivityToLesson = (activityDraftId: string) => {
+    console.log('Activity draft updated and added to lesson:', activityDraftId);
+    alert(
+      `Atividade ${activityDraftId} atualizada e adicionada à aula! Redirecionando para criar-aula-recomendada...`
+    );
+  };
+
+  return (
+    <MemoryRouter
+      initialEntries={[
+        '/criar-atividade?type=modelo&id=019ba10b-2a77-789e-802d-f8240ff4e0b4&recommended-lesson-draft=019ba10b-lesson-draft-id&onFinish=criar-aula-recomendada/019ba10b-lesson-draft-id',
+      ]}
+    >
+      <CreateActivity
+        apiClient={mockApiClientWithExistingDraft}
+        institutionId="institution-1"
+        isDark={false}
+        onAddActivityToLesson={handleAddActivityToLesson}
+      />
+    </MemoryRouter>
+  );
+};
+
+WithRecommendedLessonEdit.storyName =
+  'Recommended Lesson - Edit Existing Draft (with questions)';
+
+/**
+ * @deprecated Use WithRecommendedLessonCreate or WithRecommendedLessonEdit instead
+ */
+export const WithRecommendedLesson: Story = () => {
+  // Mock API client that handles recommended-lesson-draft endpoint
+  const mockApiClientWithRecommendedLesson = {
+    ...mockApiClientAllTypes,
+    get: async (url: string) => {
+      // Intercept recommended-lesson-draft endpoint
+      if (url.startsWith('/recommended-lesson-drafts/')) {
+        return {
+          data: {
+            data: {
+              id: 'recommended-lesson-draft-123',
+              title: 'Aula de Matemática - Álgebra',
+              subjectId: 'matematica',
+              activities: [],
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          },
+        };
+      }
+      // Intercept recommended-lesson endpoint
+      if (url.startsWith('/recommended-lessons/')) {
+        return {
+          data: {
+            data: {
+              id: 'recommended-lesson-456',
+              title: 'Aula de Português - Literatura',
+              subjectId: 'portugues',
+              activities: [],
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          },
+        };
+      }
+      // Delegate other GET requests to the original mock
+      return mockApiClientAllTypes.get(url);
+    },
+  } as BaseApiClient;
+
+  const handleAddActivityToLesson = (activityDraftId: string) => {
+    console.log('Activity draft added to lesson:', activityDraftId);
+    alert(`Atividade ${activityDraftId} adicionada à aula!`);
+  };
+
+  return (
+    <MemoryRouter
+      initialEntries={[
+        '/criar-atividade?recommended-lesson-draft=recommended-lesson-draft-123&onFinish=criar-aula-recomendada/recommended-lesson-draft-123',
+      ]}
+    >
+      <CreateActivity
+        apiClient={mockApiClientWithRecommendedLesson}
+        institutionId="institution-1"
+        isDark={false}
+        onAddActivityToLesson={handleAddActivityToLesson}
+      />
+    </MemoryRouter>
+  );
+};
+
+WithRecommendedLesson.storyName =
+  'With Recommended Lesson (from criar-aula-recomendada)';

@@ -597,7 +597,7 @@ export const RecommendedLessonsHistory = ({
 
   return (
     <div
-      data-testid="recommended-lessons-history"
+      data-testid="recommended-class-history"
       className="flex flex-col w-full h-auto relative justify-center items-center mb-5 overflow-hidden"
     >
       {/* Background decoration */}
