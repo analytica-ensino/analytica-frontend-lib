@@ -1081,10 +1081,12 @@ const RecommendedLessonCreate = ({
         // POST: Create recommended lesson
         const createResponse = await apiClient.post<{
           message: string;
-          data: { id: string };
+          data: { id?: string; recommendedClass?: { id?: string } };
         }>('/recommended-class', lessonPayload);
 
-        const lessonId = createResponse?.data?.data?.id;
+        const lessonId =
+          createResponse?.data?.data?.id ||
+          createResponse?.data?.data?.recommendedClass?.id;
         if (!lessonId) {
           throw new Error('ID da aula recomendada não retornado pela API');
         }
@@ -1094,22 +1096,12 @@ const RecommendedLessonCreate = ({
           onCreateRecommendedLesson(lessonId, lessonPayload);
         }
 
-        // POST: Send to students
-        const sendToStudentsPayload = {
-          goalId: lessonId,
-          students: formData.students,
-        };
-
-        await apiClient.post<{
-          message: string;
-          data: unknown;
-        }>('/recommended-class/send-to-students', sendToStudentsPayload);
-
+        // Success: close modal, notify and return to previous screen
         setIsSendModalOpen(false);
+        handleBack();
         addToast({
-          title: 'Aula enviada com sucesso!',
-          description:
-            'A aula recomendada foi criada e enviada para os estudantes selecionados.',
+          title: 'Meta criada com sucesso!',
+          description: `Alunos afetados: ${formData.students.length}`,
           variant: 'solid',
           action: 'success',
           position: 'top-right',
@@ -1139,6 +1131,7 @@ const RecommendedLessonCreate = ({
       apiClient,
       addToast,
       onCreateRecommendedLesson,
+      handleBack,
     ]
   );
 
