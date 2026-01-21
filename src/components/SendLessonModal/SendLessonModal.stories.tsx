@@ -194,11 +194,31 @@ const completeCategoriesData: CategoryConfig[] = [
     dependsOn: ['serie'],
     filteredBy: [{ key: 'serie', internalField: 'schoolYearId' }],
     itens: [
-      { id: 'turma-9a', name: '9º Ano A - Manhã', schoolYearId: 'serie-9-fund' },
-      { id: 'turma-9b', name: '9º Ano B - Tarde', schoolYearId: 'serie-9-fund' },
-      { id: 'turma-8a', name: '8º Ano A - Manhã', schoolYearId: 'serie-8-fund' },
-      { id: 'turma-1a', name: 'Turma A - Manhã', schoolYearId: 'serie-1-medio' },
-      { id: 'turma-1b', name: 'Turma B - Tarde', schoolYearId: 'serie-1-medio' },
+      {
+        id: 'turma-9a',
+        name: '9º Ano A - Manhã',
+        schoolYearId: 'serie-9-fund',
+      },
+      {
+        id: 'turma-9b',
+        name: '9º Ano B - Tarde',
+        schoolYearId: 'serie-9-fund',
+      },
+      {
+        id: 'turma-8a',
+        name: '8º Ano A - Manhã',
+        schoolYearId: 'serie-8-fund',
+      },
+      {
+        id: 'turma-1a',
+        name: 'Turma A - Manhã',
+        schoolYearId: 'serie-1-medio',
+      },
+      {
+        id: 'turma-1b',
+        name: 'Turma B - Tarde',
+        schoolYearId: 'serie-1-medio',
+      },
       { id: 'turma-2a', name: 'Turma Única', schoolYearId: 'serie-2-medio' },
     ],
     selectedIds: [],
@@ -408,4 +428,3 @@ export const WithCustomTitle: Story = () => {
     </div>
   );
 };
-
