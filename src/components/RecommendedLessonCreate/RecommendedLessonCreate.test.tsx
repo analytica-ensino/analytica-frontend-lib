@@ -209,6 +209,8 @@ jest.mock('../LessonPreview/LessonPreview', () => ({
     onReorder,
     onEditActivity,
     onCreateNewActivity,
+    onActivitySelected,
+    onRemoveActivity,
   }: {
     lessons: { id: string; title: string }[];
     onRemoveAll: () => void;
@@ -216,6 +218,8 @@ jest.mock('../LessonPreview/LessonPreview', () => ({
     onReorder: (lessons: { id: string }[]) => void;
     onEditActivity?: (activity: { id: string; type: string }) => void;
     onCreateNewActivity?: () => void;
+    onActivitySelected?: (activity: { id: string; title: string }) => void;
+    onRemoveActivity?: () => void;
   }) => (
     <div data-testid="lesson-preview">
       <span data-testid="lessons-count">{lessons.length}</span>
@@ -263,6 +267,33 @@ jest.mock('../LessonPreview/LessonPreview', () => ({
           onClick={onCreateNewActivity}
         >
           Create New Activity
+        </button>
+      )}
+      {onActivitySelected && (
+        <>
+          <button
+            data-testid="select-activity-btn"
+            onClick={() =>
+              onActivitySelected({ id: 'activity-123', title: 'Test Activity' })
+            }
+          >
+            Select Activity
+          </button>
+          <button
+            data-testid="select-activity-no-id-btn"
+            onClick={() =>
+              onActivitySelected({
+                title: 'Activity No ID',
+              } as { id: string; title: string })
+            }
+          >
+            Select Activity No ID
+          </button>
+        </>
+      )}
+      {onRemoveActivity && (
+        <button data-testid="remove-activity-btn" onClick={onRemoveActivity}>
+          Remove Activity
         </button>
       )}
     </div>
@@ -2450,6 +2481,378 @@ describe('RecommendedLessonCreate', () => {
 
       await waitFor(() => {
         expect(mockApiClient.patch).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('handleActivitySelected', () => {
+    it('should show error toast when recommendedLesson is not available', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      // Without loading a draft, recommendedLesson.id will be null
+      const selectActivityBtn = screen.getByTestId('select-activity-btn');
+      await act(async () => {
+        fireEvent.click(selectActivityBtn);
+      });
+
+      expect(mockAddToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Erro ao adicionar atividade',
+          description: 'A aula recomendada ou atividade não foi encontrada',
+        })
+      );
+    });
+
+    it('should show error toast when activity has no id', async () => {
+      mockSearchParams.set('id', 'draft-123');
+      mockSearchParams.set('type', 'rascunho');
+
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('/recommended-class/drafts/')) {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-123',
+                type: RecommendedClassDraftType.RASCUNHO,
+                title: 'Test Draft',
+                subjectId: 'subject-1',
+                filters: { subjects: ['subject-1'] },
+                lessonIds: [],
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({
+            data: { data: { subjects: [] } },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      await act(async () => {
+        render(<RecommendedLessonCreate {...defaultProps} />);
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('select-activity-no-id-btn')
+        ).toBeInTheDocument();
+      });
+
+      const selectActivityNoIdBtn = screen.getByTestId(
+        'select-activity-no-id-btn'
+      );
+      await act(async () => {
+        fireEvent.click(selectActivityNoIdBtn);
+      });
+
+      expect(mockAddToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Erro ao adicionar atividade',
+          description: 'A aula recomendada ou atividade não foi encontrada',
+        })
+      );
+    });
+
+    it('should successfully add activity to recommended lesson', async () => {
+      mockSearchParams.set('id', 'draft-123');
+      mockSearchParams.set('type', 'rascunho');
+
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('/recommended-class/drafts/')) {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-123',
+                type: RecommendedClassDraftType.RASCUNHO,
+                title: 'Test Draft',
+                subjectId: 'subject-1',
+                filters: { subjects: ['subject-1'] },
+                lessons: [
+                  {
+                    lessonId: 'lesson-1',
+                    sequence: 1,
+                    lesson: { id: 'lesson-1', title: 'Lesson 1' },
+                  },
+                ],
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({
+            data: { data: { subjects: [{ id: 'subject-1', name: 'Math' }] } },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      (mockApiClient.patch as jest.Mock).mockResolvedValue({
+        data: {
+          data: {
+            id: 'draft-123',
+            type: RecommendedClassDraftType.RASCUNHO,
+            title: 'Test Draft',
+            subjectId: 'subject-1',
+            filters: { subjects: ['subject-1'] },
+            updatedAt: '2024-01-15T10:30:00Z',
+          },
+        },
+      });
+
+      await act(async () => {
+        render(<RecommendedLessonCreate {...defaultProps} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('select-activity-btn')).toBeInTheDocument();
+      });
+
+      const selectActivityBtn = screen.getByTestId('select-activity-btn');
+      await act(async () => {
+        fireEvent.click(selectActivityBtn);
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith(
+          '/recommended-class/drafts/draft-123',
+          expect.objectContaining({
+            activityDraftIds: [
+              {
+                activityDraftId: 'activity-123',
+                sequence: 1,
+              },
+            ],
+          })
+        );
+      });
+
+      expect(mockAddToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Atividade adicionada',
+          description: 'A atividade foi adicionada à aula recomendada',
+        })
+      );
+    });
+
+    it('should handle API error when adding activity', async () => {
+      mockSearchParams.set('id', 'draft-123');
+      mockSearchParams.set('type', 'rascunho');
+
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('/recommended-class/drafts/')) {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-123',
+                type: RecommendedClassDraftType.RASCUNHO,
+                title: 'Test Draft',
+                subjectId: 'subject-1',
+                filters: { subjects: ['subject-1'] },
+                lessonIds: [],
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({
+            data: { data: { subjects: [] } },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      (mockApiClient.patch as jest.Mock).mockRejectedValue(
+        new Error('API Error')
+      );
+
+      await act(async () => {
+        render(<RecommendedLessonCreate {...defaultProps} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('select-activity-btn')).toBeInTheDocument();
+      });
+
+      const selectActivityBtn = screen.getByTestId('select-activity-btn');
+      await act(async () => {
+        fireEvent.click(selectActivityBtn);
+      });
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Erro ao adicionar atividade',
+            description:
+              'Não foi possível adicionar a atividade à aula recomendada',
+          })
+        );
+      });
+    });
+  });
+
+  describe('handleRemoveActivity', () => {
+    it('should show error toast when recommendedLesson is not available', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      const removeActivityBtn = screen.getByTestId('remove-activity-btn');
+      await act(async () => {
+        fireEvent.click(removeActivityBtn);
+      });
+
+      expect(mockAddToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Erro ao remover atividade',
+          description: 'A aula recomendada não foi encontrada',
+        })
+      );
+    });
+
+    it('should successfully remove activity from recommended lesson', async () => {
+      mockSearchParams.set('id', 'draft-123');
+      mockSearchParams.set('type', 'rascunho');
+
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('/recommended-class/drafts/')) {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-123',
+                type: RecommendedClassDraftType.RASCUNHO,
+                title: 'Test Draft',
+                subjectId: 'subject-1',
+                filters: { subjects: ['subject-1'] },
+                lessons: [
+                  {
+                    lessonId: 'lesson-1',
+                    sequence: 1,
+                    lesson: { id: 'lesson-1', title: 'Lesson 1' },
+                  },
+                ],
+                activityDrafts: [
+                  {
+                    activityDraftId: 'activity-1',
+                    sequence: 1,
+                    title: 'Activity 1',
+                  },
+                ],
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({
+            data: { data: { subjects: [{ id: 'subject-1', name: 'Math' }] } },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      (mockApiClient.patch as jest.Mock).mockResolvedValue({
+        data: {
+          data: {
+            id: 'draft-123',
+            type: RecommendedClassDraftType.RASCUNHO,
+            title: 'Test Draft',
+            subjectId: 'subject-1',
+            filters: { subjects: ['subject-1'] },
+            updatedAt: '2024-01-15T10:30:00Z',
+          },
+        },
+      });
+
+      await act(async () => {
+        render(<RecommendedLessonCreate {...defaultProps} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('remove-activity-btn')).toBeInTheDocument();
+      });
+
+      const removeActivityBtn = screen.getByTestId('remove-activity-btn');
+      await act(async () => {
+        fireEvent.click(removeActivityBtn);
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith(
+          '/recommended-class/drafts/draft-123',
+          expect.objectContaining({
+            activityDraftIds: [],
+          })
+        );
+      });
+
+      expect(mockAddToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Atividade removida',
+          description: 'A atividade foi removida da aula recomendada',
+        })
+      );
+    });
+
+    it('should handle API error when removing activity', async () => {
+      mockSearchParams.set('id', 'draft-123');
+      mockSearchParams.set('type', 'rascunho');
+
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('/recommended-class/drafts/')) {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-123',
+                type: RecommendedClassDraftType.RASCUNHO,
+                title: 'Test Draft',
+                subjectId: 'subject-1',
+                filters: { subjects: ['subject-1'] },
+                lessonIds: [],
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({
+            data: { data: { subjects: [] } },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      (mockApiClient.patch as jest.Mock).mockRejectedValue(
+        new Error('API Error')
+      );
+
+      await act(async () => {
+        render(<RecommendedLessonCreate {...defaultProps} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('remove-activity-btn')).toBeInTheDocument();
+      });
+
+      const removeActivityBtn = screen.getByTestId('remove-activity-btn');
+      await act(async () => {
+        fireEvent.click(removeActivityBtn);
+      });
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Erro ao remover atividade',
+            description:
+              'Não foi possível remover a atividade da aula recomendada',
+          })
+        );
       });
     });
   });

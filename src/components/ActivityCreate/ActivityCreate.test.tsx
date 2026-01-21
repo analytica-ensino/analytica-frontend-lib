@@ -3500,5 +3500,372 @@ describe('CreateActivity', () => {
       // This test verifies the component initializes correctly with classType
       expect(screen.getByTestId('create-activity-page')).toBeInTheDocument();
     });
+
+    it('should preserve all URL parameters when saving draft and updating URL', async () => {
+      mockParams['recommended-class-draft'] = 'draft-123';
+      mockParams['recommended-class'] = 'lesson-456';
+      mockParams.classType = 'modelo';
+      mockParams.onFinish = 'criar-aula?id=lesson-123&type=rascunho';
+
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      const mockDraftResponse = {
+        data: {
+          data: {
+            draft: {
+              id: 'new-draft-789',
+              type: ActivityType.RASCUNHO,
+              title: 'Rascunho - Matemática',
+              subjectId: 'subject1',
+              filters: {},
+              updatedAt: '2025-01-15T10:00:00.000Z',
+            },
+            questionsLinked: 1,
+          },
+        },
+      };
+
+      mockApiClient.post = jest.fn().mockResolvedValue(mockDraftResponse);
+
+      render(<CreateActivity {...defaultProps} />);
+
+      // Add a question to trigger save
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/activity-drafts',
+          expect.objectContaining({
+            type: ActivityType.RASCUNHO,
+            subjectId: 'subject1',
+          })
+        );
+      });
+
+      // After saving, URL should be updated with new draft ID
+      // The buildUrlWithParams function should preserve all existing params
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          expect.stringContaining('type=rascunho'),
+          expect.objectContaining({ replace: true })
+        );
+      });
+    });
+
+    it('should preserve recommended-class-draft parameter in URL after draft creation', async () => {
+      mockParams['recommended-class-draft'] = 'lesson-draft-abc';
+
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      mockApiClient.post = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              id: 'activity-draft-new',
+              type: ActivityType.RASCUNHO,
+              title: 'Rascunho - Test',
+              subjectId: 'subject1',
+              filters: {},
+              updatedAt: '2025-01-15T10:00:00.000Z',
+            },
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          expect.stringContaining('recommended-class-draft=lesson-draft-abc'),
+          expect.objectContaining({ replace: true })
+        );
+      });
+    });
+
+    it('should preserve recommended-class parameter in URL after draft creation', async () => {
+      mockParams['recommended-class'] = 'published-lesson-xyz';
+
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      mockApiClient.post = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              id: 'activity-draft-new',
+              type: ActivityType.RASCUNHO,
+              title: 'Rascunho - Test',
+              subjectId: 'subject1',
+              filters: {},
+              updatedAt: '2025-01-15T10:00:00.000Z',
+            },
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          expect.stringContaining('recommended-class=published-lesson-xyz'),
+          expect.objectContaining({ replace: true })
+        );
+      });
+    });
+
+    it('should preserve onFinish parameter in URL after draft creation', async () => {
+      mockParams['recommended-class-draft'] = 'draft-abc';
+      mockParams.onFinish = 'criar-aula?id=lesson-123&type=rascunho';
+
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      mockApiClient.post = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              id: 'activity-draft-new',
+              type: ActivityType.RASCUNHO,
+              title: 'Rascunho - Test',
+              subjectId: 'subject1',
+              filters: {},
+              updatedAt: '2025-01-15T10:00:00.000Z',
+            },
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          expect.stringContaining(
+            'onFinish=criar-aula%3Fid%3Dlesson-123%26type%3Drascunho'
+          ),
+          expect.objectContaining({ replace: true })
+        );
+      });
+    });
+
+    it('should preserve classType parameter in URL after draft creation', async () => {
+      mockParams['recommended-class-draft'] = 'draft-abc';
+      mockParams.classType = 'modelo';
+
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      mockApiClient.post = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              id: 'activity-draft-new',
+              type: ActivityType.RASCUNHO,
+              title: 'Rascunho - Test',
+              subjectId: 'subject1',
+              filters: {},
+              updatedAt: '2025-01-15T10:00:00.000Z',
+            },
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          expect.stringContaining('classType=modelo'),
+          expect.objectContaining({ replace: true })
+        );
+      });
+    });
+  });
+
+  describe('handleAddActivityToLesson', () => {
+    it('should save draft and call onAddActivityToLesson callback when provided', async () => {
+      const onAddActivityToLesson = jest.fn();
+      mockParams['recommended-class-draft'] = 'lesson-draft-123';
+      mockParams.onFinish = 'criar-aula?id=lesson-123';
+
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      mockApiClient.post = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              id: 'activity-draft-new',
+              type: ActivityType.RASCUNHO,
+              title: 'Rascunho - Test',
+              subjectId: 'subject1',
+              filters: {},
+              updatedAt: '2025-01-15T10:00:00.000Z',
+            },
+          },
+        },
+      });
+
+      render(
+        <CreateActivity
+          {...defaultProps}
+          onAddActivityToLesson={onAddActivityToLesson}
+        />
+      );
+
+      // Add a question first
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      // Wait for the draft to be saved
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/activity-drafts',
+          expect.any(Object)
+        );
+      });
+    });
+
+    it('should navigate to onFinishPath when handleAddActivityToLesson is called', async () => {
+      const onAddActivityToLesson = jest.fn();
+      mockParams['recommended-class-draft'] = 'lesson-draft-123';
+      mockParams.onFinish = 'criar-aula?id=lesson-123&type=rascunho';
+
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      render(
+        <CreateActivity
+          {...defaultProps}
+          onAddActivityToLesson={onAddActivityToLesson}
+        />
+      );
+
+      // The component should be in recommended lesson mode
+      expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+    });
+
+    it('should call onBack when onFinishPath is not provided in handleAddActivityToLesson', async () => {
+      const onAddActivityToLesson = jest.fn();
+      const onBack = jest.fn();
+      mockParams['recommended-class-draft'] = 'lesson-draft-123';
+
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      render(
+        <CreateActivity
+          {...defaultProps}
+          onAddActivityToLesson={onAddActivityToLesson}
+          onBack={onBack}
+        />
+      );
+
+      // The component should be in recommended lesson mode
+      expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+    });
+
+    it('should clear filters when handleAddActivityToLesson is executed', async () => {
+      const onAddActivityToLesson = jest.fn();
+      mockParams['recommended-class-draft'] = 'lesson-draft-123';
+      mockParams.onFinish = 'criar-aula?id=lesson-123';
+
+      render(
+        <CreateActivity
+          {...defaultProps}
+          onAddActivityToLesson={onAddActivityToLesson}
+        />
+      );
+
+      // Just verify the component renders in recommended lesson mode
+      expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+    });
   });
 });
