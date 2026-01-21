@@ -1091,6 +1091,13 @@ const RecommendedLessonCreate = ({
           throw new Error('ID da aula recomendada não retornado pela API');
         }
 
+        addToast({
+          title: 'Aula enviada com sucesso!',
+          description: `Alunos afetados: ${formData.students.length}`,
+          variant: 'solid',
+          action: 'success',
+          position: 'top-right',
+        });
         // Call callback if provided
         if (onCreateRecommendedLesson) {
           onCreateRecommendedLesson(lessonId, lessonPayload);

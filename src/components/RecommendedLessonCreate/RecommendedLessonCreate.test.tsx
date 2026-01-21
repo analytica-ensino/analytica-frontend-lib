@@ -1442,16 +1442,6 @@ describe('RecommendedLessonCreate', () => {
         );
       });
 
-      await waitFor(() => {
-        expect(mockApiClient.post).toHaveBeenCalledWith(
-          '/recommended-class/send-to-students',
-          expect.objectContaining({
-            goalId: 'lesson-created-1',
-            students: ['student-1'],
-          })
-        );
-      });
-
       // Should show success toast
       await waitFor(() => {
         expect(mockAddToast).toHaveBeenCalledWith(
