@@ -1105,14 +1105,6 @@ const RecommendedLessonCreate = ({
 
         // Success: close modal, notify and return to previous screen
         setIsSendModalOpen(false);
-        handleBack();
-        addToast({
-          title: 'Meta criada com sucesso!',
-          description: `Alunos afetados: ${formData.students.length}`,
-          variant: 'solid',
-          action: 'success',
-          position: 'top-right',
-        });
       } catch (error) {
         console.error('Error sending recommended lesson:', error);
         const errorMessage =
