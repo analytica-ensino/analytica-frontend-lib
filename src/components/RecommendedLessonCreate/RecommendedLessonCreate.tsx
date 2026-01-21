@@ -1075,6 +1075,7 @@ const RecommendedLessonCreate = ({
           ...(activityDraftIds && { activityDraftIds }),
           startDate: startDateTime,
           finalDate: finalDateTime,
+          targetStudentIds: formData.students.map((s) => s.studentId),
         };
 
         // POST: Create recommended lesson
