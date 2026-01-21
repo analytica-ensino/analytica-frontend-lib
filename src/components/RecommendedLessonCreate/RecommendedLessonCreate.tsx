@@ -36,6 +36,7 @@ import type {
   LessonBackendFiltersFormat,
   RecommendedLessonPreFiltersInput,
   RecommendedLessonCreatePayload,
+  RecommendedLessonCreateResponse,
 } from './RecommendedLessonCreate.types';
 import { RecommendedClassDraftType } from './RecommendedLessonCreate.types';
 import {
@@ -1079,10 +1080,11 @@ const RecommendedLessonCreate = ({
         };
 
         // POST: Create recommended lesson
-        const createResponse = await apiClient.post<{
-          message: string;
-          data: { id?: string; recommendedClass?: { id?: string } };
-        }>('/recommended-class', lessonPayload);
+        const createResponse =
+          await apiClient.post<RecommendedLessonCreateResponse>(
+            '/recommended-class',
+            lessonPayload
+          );
 
         const lessonId =
           createResponse?.data?.data?.id ||
@@ -1103,7 +1105,7 @@ const RecommendedLessonCreate = ({
           onCreateRecommendedLesson(lessonId, lessonPayload);
         }
 
-        // Success: close modal, notify and return to previous screen
+        // Success: close modal
         setIsSendModalOpen(false);
       } catch (error) {
         console.error('Error sending recommended lesson:', error);

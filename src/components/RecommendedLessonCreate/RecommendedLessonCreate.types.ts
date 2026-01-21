@@ -117,14 +117,30 @@ export interface RecommendedLessonCreatePayload {
 export interface RecommendedLessonCreateResponse {
   message: string;
   data: {
-    id: string;
-    title: string;
-    description: string | null;
-    subjectId: string | null;
-    startDate: string;
-    finalDate: string;
-    createdAt: string;
-    updatedAt: string;
+    /** Legacy flat shape */
+    id?: string;
+    title?: string;
+    description?: string | null;
+    subjectId?: string | null;
+    startDate?: string;
+    finalDate?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    /** Newer shape with recommendedClass wrapper */
+    recommendedClass?: {
+      id?: string;
+      title?: string;
+      description?: string | null;
+      subjectId?: string | null;
+      startDate?: string;
+      finalDate?: string;
+      createdAt?: string;
+      updatedAt?: string;
+    };
+    /** Optional metrics returned by the endpoint */
+    studentsAffected?: number;
+    activitiesLinked?: number;
+    lessonsLinked?: number;
   };
 }
 
