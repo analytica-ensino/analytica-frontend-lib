@@ -36,6 +36,7 @@ import type {
   LessonBackendFiltersFormat,
   RecommendedLessonPreFiltersInput,
   RecommendedLessonCreatePayload,
+  RecommendedLessonCreateResponse,
 } from './RecommendedLessonCreate.types';
 import { RecommendedClassDraftType } from './RecommendedLessonCreate.types';
 import {
@@ -1075,44 +1076,37 @@ const RecommendedLessonCreate = ({
           ...(activityDraftIds && { activityDraftIds }),
           startDate: startDateTime,
           finalDate: finalDateTime,
+          targetStudentIds: formData.students.map((s) => s.studentId),
         };
 
         // POST: Create recommended lesson
-        const createResponse = await apiClient.post<{
-          message: string;
-          data: { id: string };
-        }>('/recommended-class', lessonPayload);
+        const createResponse =
+          await apiClient.post<RecommendedLessonCreateResponse>(
+            '/recommended-class',
+            lessonPayload
+          );
 
-        const lessonId = createResponse?.data?.data?.id;
+        const lessonId =
+          createResponse?.data?.data?.id ||
+          createResponse?.data?.data?.recommendedClass?.id;
         if (!lessonId) {
           throw new Error('ID da aula recomendada não retornado pela API');
         }
 
+        addToast({
+          title: 'Aula enviada com sucesso!',
+          description: `Alunos afetados: ${formData.students.length}`,
+          variant: 'solid',
+          action: 'success',
+          position: 'top-right',
+        });
         // Call callback if provided
         if (onCreateRecommendedLesson) {
           onCreateRecommendedLesson(lessonId, lessonPayload);
         }
 
-        // POST: Send to students
-        const sendToStudentsPayload = {
-          goalId: lessonId,
-          students: formData.students,
-        };
-
-        await apiClient.post<{
-          message: string;
-          data: unknown;
-        }>('/recommended-class/send-to-students', sendToStudentsPayload);
-
+        // Success: close modal
         setIsSendModalOpen(false);
-        addToast({
-          title: 'Aula enviada com sucesso!',
-          description:
-            'A aula recomendada foi criada e enviada para os estudantes selecionados.',
-          variant: 'solid',
-          action: 'success',
-          position: 'top-right',
-        });
       } catch (error) {
         console.error('Error sending recommended lesson:', error);
         const errorMessage =
@@ -1138,6 +1132,7 @@ const RecommendedLessonCreate = ({
       apiClient,
       addToast,
       onCreateRecommendedLesson,
+      handleBack,
     ]
   );
 

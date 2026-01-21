@@ -217,6 +217,74 @@ describe('SendLessonModal', () => {
       expect(screen.getByText('Iniciar em*')).toBeInTheDocument();
       expect(screen.getByText('Finalizar até*')).toBeInTheDocument();
     });
+
+    it('should auto-select chained single options (escola/serie/turma/aluno)', async () => {
+      const singleHierarchyCategories: CategoryConfig[] = [
+        {
+          key: 'escola',
+          label: 'Escola',
+          itens: [{ id: 'school-1', name: 'Escola Única' }],
+          selectedIds: [],
+        },
+        {
+          key: 'serie',
+          label: 'Série',
+          dependsOn: ['escola'],
+          filteredBy: [{ key: 'escola', internalField: 'schoolId' }],
+          itens: [{ id: 'serie-1', name: '1ª Série', schoolId: 'school-1' }],
+          selectedIds: [],
+        },
+        {
+          key: 'turma',
+          label: 'Turma',
+          dependsOn: ['serie'],
+          filteredBy: [{ key: 'serie', internalField: 'schoolYearId' }],
+          itens: [{ id: 'turma-1', name: 'Turma A', schoolYearId: 'serie-1' }],
+          selectedIds: [],
+        },
+        {
+          key: 'students',
+          label: 'Alunos',
+          dependsOn: ['turma'],
+          filteredBy: [{ key: 'turma', internalField: 'classId' }],
+          itens: [
+            {
+              id: 'student-1',
+              name: 'Aluno Único',
+              classId: 'turma-1',
+              studentId: 'student-1',
+              userInstitutionId: 'ui-1',
+            },
+          ],
+          selectedIds: [],
+        },
+      ];
+
+      render(
+        <SendLessonModal
+          {...defaultProps}
+          categories={singleHierarchyCategories}
+        />
+      );
+
+      await waitFor(() => {
+        const state = useSendLessonModalStore.getState();
+        const escola = state.categories.find((c) => c.key === 'escola');
+        const serie = state.categories.find((c) => c.key === 'serie');
+        const turma = state.categories.find((c) => c.key === 'turma');
+        const students = state.categories.find((c) => c.key === 'students');
+
+        expect(escola?.selectedIds).toEqual(['school-1']);
+        expect(serie?.selectedIds).toEqual(['serie-1']);
+        expect(turma?.selectedIds).toEqual(['turma-1']);
+        expect(students?.selectedIds).toEqual(['student-1']);
+
+        // formData should also have students populated
+        expect(state.formData.students).toEqual([
+          { studentId: 'student-1', userInstitutionId: 'ui-1' },
+        ]);
+      });
+    });
   });
 
   describe('step 2 - Deadline', () => {
