@@ -129,6 +129,7 @@ export const useLessonBank = (
   /**
    * Build filters body from filters object
    * Maps to the expected API format for POST /lesson/list
+   * Note: selectedIds is NOT sent to the API - it's only used for client-side filtering
    */
   const buildFiltersBody = useCallback(
     (currentFilters: LessonFilters | undefined): Record<string, unknown> => {
@@ -147,12 +148,6 @@ export const useLessonBank = (
       }
       if (currentFilters?.contentIds && currentFilters.contentIds.length > 0) {
         filtersBody.contentId = currentFilters.contentIds; // API expects contentId (singular)
-      }
-      if (
-        currentFilters?.selectedIds &&
-        currentFilters.selectedIds.length > 0
-      ) {
-        filtersBody.selectedLessonsIds = currentFilters.selectedIds; // API expects selectedLessonsIds
       }
       return filtersBody;
     },
@@ -241,6 +236,8 @@ export const useLessonBank = (
 
   /**
    * Create a stable key from filters to detect changes
+   * Note: selectedIds is excluded from the key because it's only used for client-side filtering,
+   * not for API requests. Changes to selectedIds should not trigger a refetch.
    */
   const filtersKey = useMemo(() => {
     if (!filters) return '';
@@ -249,7 +246,6 @@ export const useLessonBank = (
       topicIds: filters.topicIds || [],
       subtopicIds: filters.subtopicIds || [],
       contentIds: filters.contentIds || [],
-      selectedIds: filters.selectedIds || [],
     });
   }, [filters]);
 
@@ -529,7 +525,13 @@ export const useLessonBank = (
     return lessons.filter((lesson) => !addedLessonIds.includes(lesson.id));
   }, [lessons, addedLessonIds]);
 
-  const totalLessons = pagination?.total || 0;
+  /**
+   * Calculate total lessons based on filtered lessons (visible in list)
+   * This reflects the actual number of lessons displayed, excluding already added ones
+   */
+  const totalLessons = useMemo(() => {
+    return filteredLessons.length;
+  }, [filteredLessons.length]);
 
   const uniqueLesson = useCallback(() => {
     return totalLessons === 1 ? 'aula' : 'aulas';
