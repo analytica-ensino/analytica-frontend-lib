@@ -13,9 +13,15 @@ export interface KnowledgeArea {
 
 /**
  * Preview lesson type for LessonPreview component
+ * Includes media fields mapped from API response
  */
 export interface PreviewLesson extends Lesson {
   position?: number;
+  videoSrc?: string;
+  videoPoster?: string;
+  videoSubtitles?: string;
+  podcastSrc?: string;
+  podcastTitle?: string;
 }
 
 /**
@@ -153,6 +159,7 @@ export function getTypeFromUrlString(
 
 /**
  * Convert Lesson to PreviewLesson format
+ * Maps API fields (urlVideo, urlPodCast, etc.) to component-expected fields (videoSrc, podcastSrc, etc.)
  *
  * @param lesson - Lesson object to convert
  * @returns PreviewLesson object with converted data
@@ -162,5 +169,11 @@ export function convertLessonToPreview(lesson: Lesson): PreviewLesson {
     ...lesson,
     title: lesson.videoTitle || lesson.title,
     position: undefined,
+    // Map API fields to component-expected fields for LessonPreview
+    videoSrc: lesson.urlVideo,
+    videoPoster: lesson.urlInitialFrame || lesson.urlCover,
+    videoSubtitles: lesson.urlSubtitle,
+    podcastSrc: lesson.urlPodCast,
+    podcastTitle: lesson.podCastTitle,
   };
 }
