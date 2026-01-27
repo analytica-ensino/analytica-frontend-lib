@@ -170,6 +170,8 @@ describe('useRecommendedLessonsPage', () => {
   };
 
   const testFormData: SendLessonFormData = {
+    title: 'Test Lesson',
+    notification: 'Test notification',
     students: [{ studentId: 'student-1', userInstitutionId: 'inst-1' }],
     startDate: '2024-06-01',
     startTime: '08:00',

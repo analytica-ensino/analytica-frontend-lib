@@ -12,7 +12,7 @@ export interface SendLessonModalStore {
   /** Set form data */
   setFormData: (data: Partial<SendLessonFormData>) => void;
 
-  /** Current step (1 or 2) */
+  /** Current step (1, 2, or 3) */
   currentStep: number;
   /** Completed steps */
   completedSteps: number[];
@@ -66,7 +66,7 @@ export const useSendLessonModalStore = create<SendLessonModalStore>(
     },
 
     goToStep: (step) => {
-      if (step >= 1 && step <= 2) {
+      if (step >= 1 && step <= 3) {
         set({ currentStep: step, errors: {} });
       }
     },
@@ -75,7 +75,7 @@ export const useSendLessonModalStore = create<SendLessonModalStore>(
       const state = get();
       const isValid = state.validateCurrentStep();
 
-      if (isValid && state.currentStep < 2) {
+      if (isValid && state.currentStep < 3) {
         set((prev) => ({
           currentStep: prev.currentStep + 1,
           completedSteps: prev.completedSteps.includes(prev.currentStep)
@@ -102,10 +102,10 @@ export const useSendLessonModalStore = create<SendLessonModalStore>(
 
     validateCurrentStep: () => {
       const state = get();
-      // For step 1, extract students from categories
+      // For step 2, extract students from categories
       let formDataToValidate = state.formData;
       let updatedFormData = state.formData;
-      if (state.currentStep === 1 && state.categories.length > 0) {
+      if (state.currentStep === 2 && state.categories.length > 0) {
         const students = extractStudentsFromCategories(state.categories);
         formDataToValidate = { ...state.formData, students };
         updatedFormData = formDataToValidate;
@@ -117,15 +117,16 @@ export const useSendLessonModalStore = create<SendLessonModalStore>(
 
     validateAllSteps: () => {
       const state = get();
-      // Extract students from categories for step 1 validation
-      let formDataForStep1 = state.formData;
+      // Extract students from categories for step 2 validation
+      let formDataForStep2 = state.formData;
       if (state.categories.length > 0) {
         const students = extractStudentsFromCategories(state.categories);
-        formDataForStep1 = { ...state.formData, students };
+        formDataForStep2 = { ...state.formData, students };
       }
-      const errors1 = validateStep(1, formDataForStep1);
-      const errors2 = validateStep(2, state.formData);
-      const allErrors = { ...errors1, ...errors2 };
+      const errors1 = validateStep(1, state.formData);
+      const errors2 = validateStep(2, formDataForStep2);
+      const errors3 = validateStep(3, state.formData);
+      const allErrors = { ...errors1, ...errors2, ...errors3 };
       set({ errors: allErrors });
       return Object.keys(allErrors).length === 0;
     },

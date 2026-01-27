@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, ChangeEvent } from 'react';
 import Modal from '../Modal/Modal';
 import Stepper from '../Stepper/Stepper';
+import Input from '../Input/Input';
+import TextArea from '../TextArea/TextArea';
 import { useSendLessonModalStore } from './hooks/useSendLessonModal';
 import {
   SendLessonModalProps,
@@ -19,6 +21,7 @@ import {
  * Stepper steps configuration
  */
 const STEPPER_STEPS = [
+  { id: 'lesson', label: 'Aula', state: 'pending' as const },
   { id: 'recipient', label: 'Destinatário', state: 'pending' as const },
   { id: 'deadline', label: 'Prazo', state: 'pending' as const },
 ];
@@ -26,16 +29,17 @@ const STEPPER_STEPS = [
 /**
  * Modal configuration constants
  */
-const MAX_STEPS = 2;
+const MAX_STEPS = 3;
 const ENTITY_NAME = 'aula';
 const ENTITY_NAME_WITH_ARTICLE = 'a aula';
 
 /**
  * SendLessonModal component for sending lessons to students
  *
- * A multi-step modal with 2 steps:
- * 1. Recipient - Select students from hierarchical structure using CheckboxGroup
- * 2. Deadline - Set start/end dates
+ * A multi-step modal with 3 steps:
+ * 1. Lesson - Enter title and optional notification message
+ * 2. Recipient - Select students from hierarchical structure using CheckboxGroup
+ * 3. Deadline - Set start/end dates
  */
 const SendLessonModal = ({
   isOpen,
@@ -146,6 +150,26 @@ const SendLessonModal = ({
   );
 
   /**
+   * Handle title change
+   */
+  const handleTitleChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      store.setFormData({ title: e.target.value });
+    },
+    [store]
+  );
+
+  /**
+   * Handle notification message change
+   */
+  const handleNotificationChange = useCallback(
+    (e: ChangeEvent<HTMLTextAreaElement>) => {
+      store.setFormData({ notification: e.target.value });
+    },
+    [store]
+  );
+
+  /**
    * Handle form submission
    */
   const handleSubmit = useCallback(async () => {
@@ -172,6 +196,32 @@ const SendLessonModal = ({
   }, [onClose]);
 
   /**
+   * Render Step 1 - Lesson (unique to SendLessonModal)
+   */
+  const renderLessonStep = () => (
+    <div className="flex flex-col gap-6">
+      {/* Title Input */}
+      <Input
+        label="Título"
+        placeholder="Digite o título da aula"
+        value={store.formData.title || ''}
+        onChange={handleTitleChange}
+        variant="rounded"
+        required
+        errorMessage={store.errors.title}
+      />
+
+      {/* Notification Message */}
+      <TextArea
+        label="Mensagem da notificação"
+        placeholder="Digite uma mensagem para a notificação (opcional)"
+        value={store.formData.notification || ''}
+        onChange={handleNotificationChange}
+      />
+    </div>
+  );
+
+  /**
    * Render current step content
    */
   const renderStepContent = () => {
@@ -181,6 +231,8 @@ const SendLessonModal = ({
 
     switch (store.currentStep) {
       case 1:
+        return renderLessonStep();
+      case 2:
         return (
           <RecipientStep
             categories={categoriesToRender}
@@ -189,7 +241,7 @@ const SendLessonModal = ({
             studentsError={store.errors.students}
           />
         );
-      case 2:
+      case 3:
         return (
           <DeadlineStep
             startDate={store.formData.startDate || ''}
@@ -229,7 +281,7 @@ const SendLessonModal = ({
 
   const modalTitle = modalTitleProp
     ? `Enviar aula: ${modalTitleProp}`
-    : 'Enviar aula';
+    : 'Enviar aula recomendada';
 
   return (
     <Modal

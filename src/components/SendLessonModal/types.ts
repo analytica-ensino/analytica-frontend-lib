@@ -7,18 +7,22 @@ export type { CategoryConfig, Item } from '../CheckBoxGroup/CheckBoxGroup';
  * Form data structure for sending lesson
  */
 export interface SendLessonFormData {
-  /** Array of students to send lesson to (Step 1) */
+  /** Lesson title (Step 1) */
+  title: string;
+  /** Notification message (Step 1) */
+  notification?: string;
+  /** Array of students to send lesson to (Step 2) */
   students: Array<{
     studentId: string;
     userInstitutionId: string;
   }>;
-  /** Start date in YYYY-MM-DD format (Step 2) */
+  /** Start date in YYYY-MM-DD format (Step 3) */
   startDate: string;
-  /** Start time in HH:MM format (Step 2) */
+  /** Start time in HH:MM format (Step 3) */
   startTime: string;
-  /** End date in YYYY-MM-DD format (Step 2) */
+  /** End date in YYYY-MM-DD format (Step 3) */
   finalDate: string;
-  /** End time in HH:MM format (Step 2) */
+  /** End time in HH:MM format (Step 3) */
   finalTime: string;
 }
 
@@ -48,6 +52,7 @@ export interface SendLessonModalProps {
  * Step validation errors
  */
 export interface StepErrors {
+  title?: string;
   students?: string;
   startDate?: string;
   startTime?: string;

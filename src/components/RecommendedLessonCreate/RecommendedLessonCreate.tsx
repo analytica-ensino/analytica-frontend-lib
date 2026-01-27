@@ -1067,7 +1067,8 @@ const RecommendedLessonCreate = ({
           : undefined;
 
         const lessonPayload: RecommendedLessonCreatePayload = {
-          title: recommendedLesson?.title || 'Aula Recomendada',
+          title:
+            formData.title || recommendedLesson?.title || 'Aula Recomendada',
           subjectId: subjectId || null,
           lessonIds: lessons.map((l, index) => ({
             lessonId: l.id,
@@ -1077,6 +1078,8 @@ const RecommendedLessonCreate = ({
           startDate: startDateTime,
           finalDate: finalDateTime,
           targetStudentIds: formData.students.map((s) => s.studentId),
+          // Send notification as separate field (backend expects "notification")
+          ...(formData.notification && { notification: formData.notification }),
         };
 
         // POST: Create recommended lesson

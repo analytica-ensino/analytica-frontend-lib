@@ -141,7 +141,7 @@ describe('useSendLessonModalStore', () => {
   });
 
   describe('validation', () => {
-    it('should return false for invalid step 1 (missing students)', () => {
+    it('should return false for invalid step 1 (missing title)', () => {
       const store = useSendLessonModalStore.getState();
 
       let isValid = false;
@@ -150,7 +150,7 @@ describe('useSendLessonModalStore', () => {
       });
 
       expect(isValid).toBe(false);
-      expect(useSendLessonModalStore.getState().errors.students).toBeDefined();
+      expect(useSendLessonModalStore.getState().errors.title).toBeDefined();
     });
 
     it('should return true for valid step 1', () => {
@@ -158,7 +158,7 @@ describe('useSendLessonModalStore', () => {
 
       act(() => {
         store.setFormData({
-          students: [{ studentId: 's1', userInstitutionId: 'ui1' }],
+          title: 'Aula de Matemática',
         });
       });
 
@@ -171,7 +171,26 @@ describe('useSendLessonModalStore', () => {
       expect(useSendLessonModalStore.getState().errors).toEqual({});
     });
 
-    it('should extract students from categories when validating step 1', () => {
+    it('should return false for invalid step 2 (missing students)', () => {
+      const store = useSendLessonModalStore.getState();
+
+      act(() => {
+        store.setFormData({
+          title: 'Aula de Matemática',
+        });
+        store.goToStep(2);
+      });
+
+      let isValid = false;
+      act(() => {
+        isValid = store.validateCurrentStep();
+      });
+
+      expect(isValid).toBe(false);
+      expect(useSendLessonModalStore.getState().errors.students).toBeDefined();
+    });
+
+    it('should extract students from categories when validating step 2', () => {
       const store = useSendLessonModalStore.getState();
 
       const categoriesWithSelection = [...mockCategories];
@@ -181,7 +200,11 @@ describe('useSendLessonModalStore', () => {
       };
 
       act(() => {
+        store.setFormData({
+          title: 'Aula de Matemática',
+        });
         store.setCategories(categoriesWithSelection);
+        store.goToStep(2);
       });
 
       let isValid = false;
@@ -195,11 +218,11 @@ describe('useSendLessonModalStore', () => {
       ]);
     });
 
-    it('should return false for invalid step 2 (missing dates)', () => {
+    it('should return false for invalid step 3 (missing dates)', () => {
       const store = useSendLessonModalStore.getState();
 
       act(() => {
-        store.goToStep(2);
+        store.goToStep(3);
       });
 
       let isValid = false;
@@ -212,11 +235,11 @@ describe('useSendLessonModalStore', () => {
       expect(useSendLessonModalStore.getState().errors.finalDate).toBeDefined();
     });
 
-    it('should return true for valid step 2', () => {
+    it('should return true for valid step 3', () => {
       const store = useSendLessonModalStore.getState();
 
       act(() => {
-        store.goToStep(2);
+        store.goToStep(3);
         store.setFormData({
           startDate: '2024-01-01',
           finalDate: '2024-12-31',
@@ -255,6 +278,7 @@ describe('useSendLessonModalStore', () => {
       act(() => {
         store.setCategories(categoriesWithSelection);
         store.setFormData({
+          title: 'Aula de Matemática',
           startDate: '2024-01-01',
           finalDate: '2024-12-31',
         });
@@ -275,7 +299,7 @@ describe('useSendLessonModalStore', () => {
 
       act(() => {
         store.setFormData({
-          students: [{ studentId: 's1', userInstitutionId: 'ui1' }],
+          title: 'Aula de Matemática',
         });
       });
 
@@ -301,13 +325,19 @@ describe('useSendLessonModalStore', () => {
       expect(useSendLessonModalStore.getState().currentStep).toBe(1);
     });
 
-    it('should not advance beyond step 2', () => {
+    it('should not advance beyond step 3', () => {
       const store = useSendLessonModalStore.getState();
 
       act(() => {
-        store.goToStep(2);
+        store.setFormData({
+          title: 'Aula de Matemática',
+        });
+        store.nextStep(); // Step 1 -> 2
         store.setFormData({
           students: [{ studentId: 's1', userInstitutionId: 'ui1' }],
+        });
+        store.nextStep(); // Step 2 -> 3
+        store.setFormData({
           startDate: '2024-01-01',
           finalDate: '2024-12-31',
         });
@@ -317,8 +347,8 @@ describe('useSendLessonModalStore', () => {
         store.nextStep();
       });
 
-      // Should stay on step 2
-      expect(useSendLessonModalStore.getState().currentStep).toBe(2);
+      // Should stay on step 3
+      expect(useSendLessonModalStore.getState().currentStep).toBe(3);
     });
 
     it('should not duplicate completed steps', () => {
@@ -326,7 +356,7 @@ describe('useSendLessonModalStore', () => {
 
       act(() => {
         store.setFormData({
-          students: [{ studentId: 's1', userInstitutionId: 'ui1' }],
+          title: 'Aula de Matemática',
         });
       });
 
