@@ -575,7 +575,7 @@ const RecommendedLessonCreate = ({
     if (!subjectId) {
       throw new Error('Subject ID não encontrado');
     }
-    const title = generateTitle(draftType, subjectId, knowledgeAreas);
+    const title = generateTitle(draftType, subjectId, knowledgeAreas, lessons);
     const filters = convertFiltersToBackendFormat(appliedFilters);
     const lessonIds = lessons.map((l, index) => ({
       lessonId: l.id,

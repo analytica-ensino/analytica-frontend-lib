@@ -176,24 +176,96 @@ describe('RecommendedLessonCreate.utils', () => {
       { id: 'port-1', name: 'Português' },
     ];
 
-    it('should generate title with subject name for RASCUNHO', () => {
+    it('should generate title with subject name and date for RASCUNHO', () => {
       const result = generateTitle(
         RecommendedClassDraftType.RASCUNHO,
         'math-1',
         knowledgeAreas
       );
 
-      expect(result).toBe('Rascunho - Matemática');
+      expect(result).toMatch(/^Rascunho - Matemática - \d{2}\/\d{2}\/\d{4}$/);
+      expect(result).toContain('Rascunho - Matemática');
+      // Date format: DD/MM/YYYY
+      expect(result).toMatch(/\d{2}\/\d{2}\/\d{4}$/);
     });
 
-    it('should generate title with subject name for MODELO', () => {
+    it('should generate title with subject name and date for MODELO', () => {
       const result = generateTitle(
         RecommendedClassDraftType.MODELO,
         'port-1',
         knowledgeAreas
       );
 
-      expect(result).toBe('Modelo - Português');
+      expect(result).toMatch(/^Modelo - Português - \d{2}\/\d{2}\/\d{4}$/);
+      expect(result).toContain('Modelo - Português');
+      // Date format: DD/MM/YYYY
+      expect(result).toMatch(/\d{2}\/\d{2}\/\d{4}$/);
+    });
+
+    it('should generate title with first lesson name when lessons provided', () => {
+      const lessons: Lesson[] = [
+        {
+          id: 'lesson-1',
+          videoTitle: 'Introdução aos Números Reais',
+        } as Lesson,
+      ];
+
+      const result = generateTitle(
+        RecommendedClassDraftType.RASCUNHO,
+        'math-1',
+        knowledgeAreas,
+        lessons
+      );
+
+      expect(result).toContain('Rascunho');
+      expect(result).toContain('Matemática');
+      expect(result).toContain('Introdução aos Números Reais');
+      // Date format: DD/MM/YYYY
+      expect(result).toMatch(/\d{2}\/\d{2}\/\d{4}$/);
+    });
+
+    it('should truncate long lesson names', () => {
+      const lessons: Lesson[] = [
+        {
+          id: 'lesson-1',
+          videoTitle:
+            'Esta é uma aula com um título muito longo que deve ser truncado',
+        } as Lesson,
+      ];
+
+      const result = generateTitle(
+        RecommendedClassDraftType.RASCUNHO,
+        'math-1',
+        knowledgeAreas,
+        lessons
+      );
+
+      // Should contain truncated version (starts with first part)
+      expect(result).toContain('Esta é uma aula com um títu');
+      // Should not contain the full long title
+      expect(result).not.toContain(
+        'Esta é uma aula com um título muito longo que deve ser truncado'
+      );
+      // Should end with ... indicating truncation
+      expect(result).toMatch(/\.\.\./);
+    });
+
+    it('should use title when videoTitle is not available', () => {
+      const lessons: Lesson[] = [
+        {
+          id: 'lesson-1',
+          title: 'Aula de Matemática',
+        } as Lesson,
+      ];
+
+      const result = generateTitle(
+        RecommendedClassDraftType.RASCUNHO,
+        'math-1',
+        knowledgeAreas,
+        lessons
+      );
+
+      expect(result).toContain('Aula de Matemática');
     });
 
     it('should generate title without subject when subjectId is null', () => {
@@ -203,7 +275,10 @@ describe('RecommendedLessonCreate.utils', () => {
         knowledgeAreas
       );
 
-      expect(result).toBe('Rascunho');
+      expect(result).toMatch(/^Rascunho - \d{2}\/\d{2}\/\d{4}$/);
+      expect(result).toContain('Rascunho');
+      // Date format: DD/MM/YYYY
+      expect(result).toMatch(/\d{2}\/\d{2}\/\d{4}$/);
     });
 
     it('should generate title without subject when subject not found', () => {
@@ -213,7 +288,10 @@ describe('RecommendedLessonCreate.utils', () => {
         knowledgeAreas
       );
 
-      expect(result).toBe('Modelo');
+      expect(result).toMatch(/^Modelo - \d{2}\/\d{2}\/\d{4}$/);
+      expect(result).toContain('Modelo');
+      // Date format: DD/MM/YYYY
+      expect(result).toMatch(/\d{2}\/\d{2}\/\d{4}$/);
     });
 
     it('should generate title without subject when knowledgeAreas is empty', () => {
@@ -223,7 +301,10 @@ describe('RecommendedLessonCreate.utils', () => {
         []
       );
 
-      expect(result).toBe('Rascunho');
+      expect(result).toMatch(/^Rascunho - \d{2}\/\d{2}\/\d{4}$/);
+      expect(result).toContain('Rascunho');
+      // Date format: DD/MM/YYYY
+      expect(result).toMatch(/\d{2}\/\d{2}\/\d{4}$/);
     });
   });
 
