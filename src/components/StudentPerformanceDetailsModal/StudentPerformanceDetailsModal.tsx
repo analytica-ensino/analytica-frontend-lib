@@ -145,15 +145,37 @@ interface ActivityCardProps {
   activity: ActivityProgress;
   /** No data message */
   noDataMessage: string;
+  /** Activity progress text template */
+  activityProgressText: string;
+  /** Activity details unavailable message */
+  activityDetailsUnavailable: string;
 }
+
+/**
+ * Format activity progress text by replacing placeholders
+ */
+const formatProgressText = (
+  template: string,
+  correct: number,
+  total: number
+): string => {
+  return template
+    .replace('{correct}', String(correct))
+    .replace('{total}', String(total));
+};
 
 const ActivityAccordionCard = ({
   activity,
   noDataMessage,
+  activityProgressText,
+  activityDetailsUnavailable,
 }: ActivityCardProps) => {
   const hasData = !activity.hasNoData && activity.totalCount > 0;
   const progressPercentage = hasData
-    ? (activity.correctCount / activity.totalCount) * 100
+    ? Math.min(
+        100,
+        Math.max(0, (activity.correctCount / activity.totalCount) * 100)
+      )
     : 0;
 
   return (
@@ -181,7 +203,11 @@ const ActivityAccordionCard = ({
                 weight="medium"
                 className="text-text-950 whitespace-nowrap"
               >
-                {activity.correctCount} de {activity.totalCount} corretas
+                {formatProgressText(
+                  activityProgressText,
+                  activity.correctCount,
+                  activity.totalCount
+                )}
               </Text>
             </div>
           ) : (
@@ -193,7 +219,7 @@ const ActivityAccordionCard = ({
       }
     >
       <Text size="sm" className="text-text-700">
-        {activity.description || 'Detalhes da atividade não disponíveis.'}
+        {activity.description || activityDetailsUnavailable}
       </Text>
     </CardAccordation>
   );
@@ -324,6 +350,8 @@ const PerformanceContent = ({
               key={activity.id}
               activity={activity}
               noDataMessage={labels.noDataMessage}
+              activityProgressText={labels.activityProgressText}
+              activityDetailsUnavailable={labels.activityDetailsUnavailable}
             />
           ))}
         </div>

@@ -93,6 +93,10 @@ export interface StudentPerformanceDetailsLabels {
   activitiesProgressTitle: string;
   /** No data message */
   noDataMessage: string;
+  /** Activity progress text template (use {correct} and {total} placeholders) */
+  activityProgressText: string;
+  /** Activity details unavailable message */
+  activityDetailsUnavailable: string;
 }
 
 /**
@@ -115,6 +119,8 @@ export const DEFAULT_PERFORMANCE_DETAILS_LABELS: StudentPerformanceDetailsLabels
     lastLoginLabel: 'ÚLTIMO LOGIN',
     activitiesProgressTitle: 'Desempenho atividades',
     noDataMessage: 'Sem dados ainda! A atividade ainda não foi feita.',
+    activityProgressText: '{correct} de {total} corretas',
+    activityDetailsUnavailable: 'Detalhes da atividade não disponíveis.',
   };
 
 /**
