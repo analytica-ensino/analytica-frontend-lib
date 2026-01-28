@@ -196,6 +196,83 @@ export function useDynamicStudentFetching(
   const fetchRequestId = useRef(0);
 
   /**
+   * Build filters object for student fetching
+   */
+  const buildStudentFilters = useCallback(
+    (
+      selectedSchoolIds: string[],
+      selectedSchoolYearIds: string[],
+      selectedClassIds: string[]
+    ) => ({
+      schoolIds: selectedSchoolIds.length > 0 ? selectedSchoolIds : undefined,
+      schoolYearIds:
+        selectedSchoolYearIds.length > 0 ? selectedSchoolYearIds : undefined,
+      classIds: selectedClassIds.length > 0 ? selectedClassIds : undefined,
+    }),
+    []
+  );
+
+  /**
+   * Fetch students using custom function
+   */
+  const fetchWithCustomFunction = useCallback(
+    async (
+      selectedSchoolIds: string[],
+      selectedSchoolYearIds: string[],
+      selectedClassIds: string[],
+      localRequestId: number
+    ): Promise<StudentWithNestedData[] | null> => {
+      if (!customFetchStudents) {
+        return null;
+      }
+
+      const filters = buildStudentFilters(
+        selectedSchoolIds,
+        selectedSchoolYearIds,
+        selectedClassIds
+      );
+      const students = await customFetchStudents(filters);
+
+      if (localRequestId !== fetchRequestId.current) {
+        return null;
+      }
+
+      return students;
+    },
+    [customFetchStudents, buildStudentFilters]
+  );
+
+  /**
+   * Fetch students using API client
+   */
+  const fetchWithApiClient = useCallback(
+    async (
+      selectedSchoolIds: string[],
+      selectedSchoolYearIds: string[],
+      selectedClassIds: string[],
+      localRequestId: number
+    ): Promise<StudentWithNestedData[] | null> => {
+      if (!apiClient) {
+        return null;
+      }
+
+      const filters = buildStudentFilters(
+        selectedSchoolIds,
+        selectedSchoolYearIds,
+        selectedClassIds
+      );
+      const students = await fetchStudentsByFilters(apiClient, filters);
+
+      if (localRequestId !== fetchRequestId.current) {
+        return null;
+      }
+
+      return students;
+    },
+    [apiClient, buildStudentFilters]
+  );
+
+  /**
    * Fetch students using the appropriate method (custom function or API client)
    */
   const performStudentFetch = useCallback(
@@ -205,45 +282,25 @@ export function useDynamicStudentFetching(
       selectedClassIds: string[],
       localRequestId: number
     ): Promise<StudentWithNestedData[] | null> => {
-      if (customFetchStudents) {
-        const students = await customFetchStudents({
-          schoolIds:
-            selectedSchoolIds.length > 0 ? selectedSchoolIds : undefined,
-          schoolYearIds:
-            selectedSchoolYearIds.length > 0
-              ? selectedSchoolYearIds
-              : undefined,
-          classIds: selectedClassIds.length > 0 ? selectedClassIds : undefined,
-        });
+      const students = await fetchWithCustomFunction(
+        selectedSchoolIds,
+        selectedSchoolYearIds,
+        selectedClassIds,
+        localRequestId
+      );
 
-        if (localRequestId !== fetchRequestId.current) {
-          return null;
-        }
-
+      if (students !== null) {
         return students;
       }
 
-      if (apiClient) {
-        const students = await fetchStudentsByFilters(apiClient, {
-          schoolIds:
-            selectedSchoolIds.length > 0 ? selectedSchoolIds : undefined,
-          schoolYearIds:
-            selectedSchoolYearIds.length > 0
-              ? selectedSchoolYearIds
-              : undefined,
-          classIds: selectedClassIds.length > 0 ? selectedClassIds : undefined,
-        });
-
-        if (localRequestId !== fetchRequestId.current) {
-          return null;
-        }
-
-        return students;
-      }
-
-      return null;
+      return fetchWithApiClient(
+        selectedSchoolIds,
+        selectedSchoolYearIds,
+        selectedClassIds,
+        localRequestId
+      );
     },
-    [apiClient, customFetchStudents]
+    [fetchWithCustomFunction, fetchWithApiClient]
   );
 
   /**
