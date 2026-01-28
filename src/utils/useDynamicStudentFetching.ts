@@ -2,12 +2,156 @@ import { useCallback, useRef } from 'react';
 import type { CategoryConfig } from '../components/CheckBoxGroup/CheckBoxGroup';
 import type { BaseApiClient } from '../types/api';
 import { fetchStudentsByFilters } from './categoryDataUtils';
-import type { FetchStudentsByFiltersFunction } from './studentTypes';
+import type {
+  FetchStudentsByFiltersFunction,
+  StudentWithNestedData,
+} from './studentTypes';
 
 export interface UseDynamicStudentFetchingOptions {
   apiClient?: BaseApiClient;
   fetchStudentsByFilters?: FetchStudentsByFiltersFunction;
   onError?: (error: Error) => void;
+}
+
+/**
+ * Extract selected IDs from categories
+ */
+function extractSelectedIds(updatedCategories: CategoryConfig[]): {
+  schoolIds: string[];
+  schoolYearIds: string[];
+  classIds: string[];
+  studentsCategory: CategoryConfig | undefined;
+} {
+  const escolaCategory = updatedCategories.find((c) => c.key === 'escola');
+  const serieCategory = updatedCategories.find((c) => c.key === 'serie');
+  const turmaCategory = updatedCategories.find((c) => c.key === 'turma');
+  const studentsCategory = updatedCategories.find((c) => c.key === 'students');
+
+  return {
+    schoolIds: escolaCategory?.selectedIds || [],
+    schoolYearIds: serieCategory?.selectedIds || [],
+    classIds: turmaCategory?.selectedIds || [],
+    studentsCategory,
+  };
+}
+
+/**
+ * Detect if selections have changed compared to previous selections
+ */
+function detectSelectionChanges(
+  previousSelections: {
+    schoolIds: string[];
+    schoolYearIds: string[];
+    classIds: string[];
+  },
+  currentSelections: {
+    schoolIds: string[];
+    schoolYearIds: string[];
+    classIds: string[];
+  }
+): {
+  schoolIdsChanged: boolean;
+  schoolYearIdsChanged: boolean;
+  classIdsChanged: boolean;
+  shouldFetchStudents: boolean;
+} {
+  const isInitialState =
+    previousSelections.schoolIds.length === 0 &&
+    previousSelections.schoolYearIds.length === 0 &&
+    previousSelections.classIds.length === 0;
+
+  const arraysEqual = (a: string[], b: string[]) => {
+    if (a.length !== b.length) return false;
+    return a.every((id) => b.includes(id)) && b.every((id) => a.includes(id));
+  };
+
+  const schoolIdsChanged =
+    isInitialState ||
+    !arraysEqual(previousSelections.schoolIds, currentSelections.schoolIds);
+
+  const schoolYearIdsChanged =
+    isInitialState ||
+    !arraysEqual(
+      previousSelections.schoolYearIds,
+      currentSelections.schoolYearIds
+    );
+
+  const classIdsChanged =
+    isInitialState ||
+    !arraysEqual(previousSelections.classIds, currentSelections.classIds);
+
+  const shouldFetchStudents =
+    schoolIdsChanged || schoolYearIdsChanged || classIdsChanged;
+
+  return {
+    schoolIdsChanged,
+    schoolYearIdsChanged,
+    classIdsChanged,
+    shouldFetchStudents,
+  };
+}
+
+/**
+ * Transform students to items format with nested data
+ */
+function transformStudentsToItems(students: StudentWithNestedData[]): Array<{
+  id: string;
+  name: string;
+  classId: string;
+  schoolId: string;
+  schoolYearId: string;
+  studentId: string;
+  userInstitutionId: string;
+  escolaId: string;
+  serieId: string;
+  turmaId: string;
+}> {
+  return students.map((s) => ({
+    id: `${s.userInstitutionId}-${s.class.id}`,
+    name: s.name,
+    classId: String(s.class.id),
+    schoolId: String(s.school.id),
+    schoolYearId: String(s.schoolYear.id),
+    studentId: s.id,
+    userInstitutionId: s.userInstitutionId,
+    escolaId: String(s.school.id),
+    serieId: String(s.schoolYear.id),
+    turmaId: String(s.class.id),
+  }));
+}
+
+/**
+ * Update categories with student items
+ */
+function updateCategoriesWithStudents(
+  updatedCategories: CategoryConfig[],
+  studentItems: Array<{
+    id: string;
+    name: string;
+    classId: string;
+    schoolId: string;
+    schoolYearId: string;
+    studentId: string;
+    userInstitutionId: string;
+    escolaId: string;
+    serieId: string;
+    turmaId: string;
+  }>
+): CategoryConfig[] {
+  return updatedCategories.map((cat) =>
+    cat.key === 'students' ? { ...cat, itens: studentItems } : cat
+  );
+}
+
+/**
+ * Clear students from categories
+ */
+function clearStudentsFromCategories(
+  updatedCategories: CategoryConfig[]
+): CategoryConfig[] {
+  return updatedCategories.map((cat) =>
+    cat.key === 'students' ? { ...cat, itens: [] } : cat
+  );
 }
 
 /**
@@ -48,6 +192,109 @@ export function useDynamicStudentFetching(
     classIds: [],
   });
 
+  // Ref to track fetch request ID and prevent race conditions
+  const fetchRequestId = useRef(0);
+
+  /**
+   * Fetch students using the appropriate method (custom function or API client)
+   */
+  const performStudentFetch = useCallback(
+    async (
+      selectedSchoolIds: string[],
+      selectedSchoolYearIds: string[],
+      selectedClassIds: string[],
+      localRequestId: number
+    ): Promise<StudentWithNestedData[] | null> => {
+      if (customFetchStudents) {
+        const students = await customFetchStudents({
+          schoolIds:
+            selectedSchoolIds.length > 0 ? selectedSchoolIds : undefined,
+          schoolYearIds:
+            selectedSchoolYearIds.length > 0
+              ? selectedSchoolYearIds
+              : undefined,
+          classIds: selectedClassIds.length > 0 ? selectedClassIds : undefined,
+        });
+
+        if (localRequestId !== fetchRequestId.current) {
+          return null;
+        }
+
+        return students;
+      }
+
+      if (apiClient) {
+        const students = await fetchStudentsByFilters(apiClient, {
+          schoolIds:
+            selectedSchoolIds.length > 0 ? selectedSchoolIds : undefined,
+          schoolYearIds:
+            selectedSchoolYearIds.length > 0
+              ? selectedSchoolYearIds
+              : undefined,
+          classIds: selectedClassIds.length > 0 ? selectedClassIds : undefined,
+        });
+
+        if (localRequestId !== fetchRequestId.current) {
+          return null;
+        }
+
+        return students;
+      }
+
+      return null;
+    },
+    [apiClient, customFetchStudents]
+  );
+
+  /**
+   * Handle successful student fetch
+   */
+  const handleSuccessfulFetch = useCallback(
+    (
+      students: StudentWithNestedData[],
+      updatedCategories: CategoryConfig[],
+      localRequestId: number
+    ): boolean => {
+      if (localRequestId !== fetchRequestId.current) {
+        return false;
+      }
+
+      const studentItems = transformStudentsToItems(students);
+      const finalCategories = updateCategoriesWithStudents(
+        updatedCategories,
+        studentItems
+      );
+      setCategories(finalCategories);
+      return true;
+    },
+    [setCategories]
+  );
+
+  /**
+   * Handle error during student fetch
+   */
+  const handleFetchError = useCallback(
+    (
+      error: unknown,
+      updatedCategories: CategoryConfig[],
+      localRequestId: number
+    ): boolean => {
+      console.error('Error fetching students:', error);
+      if (onError && error instanceof Error) {
+        onError(error);
+      }
+
+      if (localRequestId !== fetchRequestId.current) {
+        return false;
+      }
+
+      const finalCategories = clearStudentsFromCategories(updatedCategories);
+      setCategories(finalCategories);
+      return true;
+    },
+    [onError, setCategories]
+  );
+
   const handleCategoriesChange = useCallback(
     async (updatedCategories: CategoryConfig[]) => {
       // If no fetch function is provided, just update categories
@@ -56,60 +303,24 @@ export function useDynamicStudentFetching(
         return;
       }
 
-      // Find selected schools, schoolYears, and classes BEFORE updating state
-      const escolaCategory = updatedCategories.find((c) => c.key === 'escola');
-      const serieCategory = updatedCategories.find((c) => c.key === 'serie');
-      const turmaCategory = updatedCategories.find((c) => c.key === 'turma');
-      const studentsCategory = updatedCategories.find(
-        (c) => c.key === 'students'
-      );
+      // Extract selected IDs from categories
+      const {
+        schoolIds: selectedSchoolIds,
+        schoolYearIds: selectedSchoolYearIds,
+        classIds: selectedClassIds,
+        studentsCategory,
+      } = extractSelectedIds(updatedCategories);
 
-      const selectedSchoolIds = escolaCategory?.selectedIds || [];
-      const selectedSchoolYearIds = serieCategory?.selectedIds || [];
-      const selectedClassIds = turmaCategory?.selectedIds || [];
-
-      // Check if school, series, or class selections actually changed
+      // Detect if selections have changed
       const previousSelections = previousSelectionsRef.current;
-
-      // If previous selections are empty (initial state), consider it a change
-      const isInitialState =
-        previousSelections.schoolIds.length === 0 &&
-        previousSelections.schoolYearIds.length === 0 &&
-        previousSelections.classIds.length === 0;
-
-      const schoolIdsChanged =
-        isInitialState ||
-        previousSelections.schoolIds.length !== selectedSchoolIds.length ||
-        previousSelections.schoolIds.some(
-          (id) => !selectedSchoolIds.includes(id)
-        ) ||
-        selectedSchoolIds.some(
-          (id) => !previousSelections.schoolIds.includes(id)
-        );
-
-      const schoolYearIdsChanged =
-        isInitialState ||
-        previousSelections.schoolYearIds.length !==
-          selectedSchoolYearIds.length ||
-        previousSelections.schoolYearIds.some(
-          (id) => !selectedSchoolYearIds.includes(id)
-        ) ||
-        selectedSchoolYearIds.some(
-          (id) => !previousSelections.schoolYearIds.includes(id)
-        );
-
-      const classIdsChanged =
-        isInitialState ||
-        previousSelections.classIds.length !== selectedClassIds.length ||
-        previousSelections.classIds.some(
-          (id) => !selectedClassIds.includes(id)
-        ) ||
-        selectedClassIds.some(
-          (id) => !previousSelections.classIds.includes(id)
-        );
-
-      const shouldFetchStudents =
-        schoolIdsChanged || schoolYearIdsChanged || classIdsChanged;
+      const { shouldFetchStudents } = detectSelectionChanges(
+        previousSelections,
+        {
+          schoolIds: selectedSchoolIds,
+          schoolYearIds: selectedSchoolYearIds,
+          classIds: selectedClassIds,
+        }
+      );
 
       // Update previous selections
       previousSelectionsRef.current = {
@@ -124,82 +335,44 @@ export function useDynamicStudentFetching(
         selectedClassIds.length > 0 &&
         studentsCategory
       ) {
+        // Increment request ID to invalidate any in-flight requests
+        fetchRequestId.current += 1;
+        const localRequestId = fetchRequestId.current;
+
         try {
-          let students;
-          if (customFetchStudents) {
-            students = await customFetchStudents({
-              schoolIds:
-                selectedSchoolIds.length > 0 ? selectedSchoolIds : undefined,
-              schoolYearIds:
-                selectedSchoolYearIds.length > 0
-                  ? selectedSchoolYearIds
-                  : undefined,
-              classIds:
-                selectedClassIds.length > 0 ? selectedClassIds : undefined,
-            });
-          } else if (apiClient) {
-            students = await fetchStudentsByFilters(apiClient, {
-              schoolIds:
-                selectedSchoolIds.length > 0 ? selectedSchoolIds : undefined,
-              schoolYearIds:
-                selectedSchoolYearIds.length > 0
-                  ? selectedSchoolYearIds
-                  : undefined,
-              classIds:
-                selectedClassIds.length > 0 ? selectedClassIds : undefined,
-            });
-          } else {
-            setCategories(updatedCategories);
-            return;
-          }
-
-          // Transform students to items format with nested data
-          // Use userInstitutionId + classId as unique ID to allow same user in different classes
-          const studentItems = students.map((s) => ({
-            id: `${s.userInstitutionId}-${s.class.id}`, // Unique ID combining userInstitutionId and classId
-            name: s.name,
-            classId: String(s.class.id),
-            schoolId: String(s.school.id),
-            schoolYearId: String(s.schoolYear.id),
-            studentId: s.id,
-            userInstitutionId: s.userInstitutionId,
-            // Include nested data for filtering (matching filteredBy in category config)
-            // These fields must match the IDs in the parent categories' selectedIds (as strings)
-            escolaId: String(s.school.id),
-            serieId: String(s.schoolYear.id),
-            turmaId: String(s.class.id),
-          }));
-
-          // Update students category with fetched students
-          // Preserve all other categories exactly as they are (including selectedIds)
-          const finalCategories = updatedCategories.map((cat) =>
-            cat.key === 'students' ? { ...cat, itens: studentItems } : cat
+          const students = await performStudentFetch(
+            selectedSchoolIds,
+            selectedSchoolYearIds,
+            selectedClassIds,
+            localRequestId
           );
 
-          setCategories(finalCategories);
+          if (students === null) {
+            return; // Request was invalidated
+          }
+
+          handleSuccessfulFetch(students, updatedCategories, localRequestId);
         } catch (error) {
-          console.error('Error fetching students:', error);
-          if (onError && error instanceof Error) {
-            onError(error);
-          }
-          // On error, clear students but keep all other categories unchanged
-          const finalCategories = updatedCategories.map((cat) =>
-            cat.key === 'students' ? { ...cat, itens: [] } : cat
-          );
-          setCategories(finalCategories);
+          handleFetchError(error, updatedCategories, localRequestId);
         }
       } else if (shouldFetchStudents && studentsCategory) {
-        // If no classes selected after a change, clear students but keep all other categories
-        const finalCategories = updatedCategories.map((cat) =>
-          cat.key === 'students' ? { ...cat, itens: [] } : cat
-        );
+        // If no classes selected after a change, clear students
+        fetchRequestId.current += 1;
+        const finalCategories = clearStudentsFromCategories(updatedCategories);
         setCategories(finalCategories);
       } else {
         // No relevant changes (only student selections changed), just update categories as-is
         setCategories(updatedCategories);
       }
     },
-    [apiClient, customFetchStudents, setCategories, onError]
+    [
+      apiClient,
+      customFetchStudents,
+      setCategories,
+      performStudentFetch,
+      handleSuccessfulFetch,
+      handleFetchError,
+    ]
   );
 
   return {
