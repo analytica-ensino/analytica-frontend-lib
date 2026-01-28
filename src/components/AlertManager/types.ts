@@ -95,29 +95,6 @@ export interface AlertsConfig {
 
     // Callback ao enviar aviso
     onSendAlert?: (alertData: AlertData) => Promise<void>;
-
-    // Função para buscar estudantes dinamicamente (opcional)
-    // Se fornecida, será usada para buscar estudantes quando escola/série/turma mudarem
-    fetchStudentsByFilters?: (filters: {
-      schoolIds?: string[];
-      schoolYearIds?: string[];
-      classIds?: string[];
-    }) => Promise<
-      Array<{
-        id: string;
-        email: string;
-        name: string;
-        active: boolean;
-        createdAt: string;
-        updatedAt: string;
-        userInstitutionId: string;
-        institutionId: string;
-        profileId: string;
-        school: { id: string; name: string };
-        schoolYear: { id: string; name: string };
-        class: { id: string; name: string };
-      }>
-    >;
   };
 }
 
