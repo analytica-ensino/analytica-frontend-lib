@@ -22,6 +22,7 @@ import {
   SendModalError,
   useDateTimeHandlers,
 } from '../shared/SendModalBase';
+import { calculateFormattedItemsForAutoSelection } from '../CheckBoxGroup/CheckBoxGroup.helpers';
 
 /**
  * Stepper steps configuration
@@ -67,6 +68,49 @@ const SendActivityModal = ({
   );
 
   /**
+   * Apply the same "single visible option" auto-selection behavior that the CheckboxGroup
+   * applies internally, but during initialization.
+   *
+   * This fixes the scenario where the first category (e.g. Escola) is rendered in compact
+   * mode (single item) and therefore has no UI affordance to manually select it, leaving
+   * dependent categories disabled.
+   */
+  const applyChainedAutoSelection = useCallback(
+    (categories: CategoryConfig[]): CategoryConfig[] => {
+      let current = categories;
+      let safety = 0;
+      let changed = true;
+
+      while (changed && safety < categories.length + 2) {
+        safety += 1;
+        changed = false;
+
+        const next = current.map((category) => {
+          const filteredItems = calculateFormattedItemsForAutoSelection(
+            category,
+            current
+          );
+
+          const hasNoSelection =
+            !category.selectedIds || category.selectedIds.length === 0;
+
+          if (filteredItems.length === 1 && hasNoSelection) {
+            changed = true;
+            return { ...category, selectedIds: [filteredItems[0].id] };
+          }
+
+          return category;
+        });
+
+        current = next;
+      }
+
+      return current;
+    },
+    []
+  );
+
+  /**
    * Track if categories have been initialized for this modal session
    */
   const categoriesInitialized = useRef(false);
@@ -87,10 +131,54 @@ const SendActivityModal = ({
       initialCategories.length > 0 &&
       !categoriesInitialized.current
     ) {
-      setCategories(initialCategories);
+      const autoSelectedCategories =
+        applyChainedAutoSelection(initialCategories);
+      setCategories(autoSelectedCategories);
+      // Trigger onCategoriesChange to allow parent to fetch students if needed
+      // This is important when auto-selection happens (e.g., single school/series/class)
+      if (onCategoriesChange) {
+        onCategoriesChange(autoSelectedCategories);
+      }
       categoriesInitialized.current = true;
     }
-  }, [isOpen, initialCategories, setCategories]);
+  }, [
+    isOpen,
+    initialCategories,
+    setCategories,
+    applyChainedAutoSelection,
+    onCategoriesChange,
+  ]);
+
+  /**
+   * Sync categories from parent when they change (e.g., after fetching students)
+   * This ensures the store is updated when parent updates categories
+   */
+  useEffect(() => {
+    if (
+      isOpen &&
+      initialCategories.length > 0 &&
+      categoriesInitialized.current
+    ) {
+      // Only sync if categories have students (indicates they were fetched)
+      const studentsCategory = initialCategories.find(
+        (c) => c.key === 'students'
+      );
+      const storeStudentsCategory = storeCategories.find(
+        (c) => c.key === 'students'
+      );
+
+      // If parent has students but store doesn't, or vice versa, sync
+      const parentHasStudents =
+        studentsCategory?.itens && studentsCategory.itens.length > 0;
+      const storeHasStudents =
+        storeStudentsCategory?.itens && storeStudentsCategory.itens.length > 0;
+
+      if (parentHasStudents !== storeHasStudents || parentHasStudents) {
+        // Update store with parent categories to sync students
+        setCategories(initialCategories);
+      }
+    }
+  }, [isOpen, initialCategories, storeCategories, setCategories]);
 
   /**
    * Apply initial data when modal opens with new data
