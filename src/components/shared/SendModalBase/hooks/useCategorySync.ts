@@ -1,4 +1,4 @@
-import { MutableRefObject, useEffect } from 'react';
+import { RefObject, useEffect } from 'react';
 import type { CategoryConfig } from '../../../CheckBoxGroup/CheckBoxGroup';
 
 export interface UseCategorySyncProps {
@@ -6,7 +6,7 @@ export interface UseCategorySyncProps {
   initialCategories: CategoryConfig[];
   storeCategories: CategoryConfig[];
   setCategories: (categories: CategoryConfig[]) => void;
-  categoriesInitializedRef: MutableRefObject<boolean>;
+  categoriesInitializedRef: RefObject<boolean>;
 }
 
 /**
