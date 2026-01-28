@@ -41,7 +41,7 @@ const STAT_CARD_COLORS = {
   },
   green: {
     headerBg: 'bg-success-200',
-    iconBg: 'bg-warning-300',
+    iconBg: 'bg-success-300',
     valueColor: 'text-success-700',
     secondaryLabelColor: 'text-success-600',
   },
@@ -399,7 +399,7 @@ const renderModalContent = (
  * Displays a modal with detailed student performance information including:
  * - Student name with profile icon
  * - Three main stat cards (grade, correct questions, incorrect questions)
- * - Six metric cards (activities, contents, questions, access, time, last login)
+ * - Five metric cards (activities, questions, access, time, last login)
  * - Expandable list of activity progress
  *
  * @example
@@ -413,7 +413,6 @@ const renderModalContent = (
  *     correctQuestions: { value: 8, bestResultTopic: 'Fotossíntese' },
  *     incorrectQuestions: { value: 7, hardestTopic: 'Células' },
  *     activitiesCompleted: 10,
- *     contentsCompleted: 2,
  *     questionsAnswered: 40,
  *     accessCount: '00',
  *     timeOnline: '00:00:00',
