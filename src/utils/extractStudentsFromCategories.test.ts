@@ -25,16 +25,13 @@ describe('extractStudentsFromCategories', () => {
           {
             id: 's1',
             name: 'Student 1',
-            studentId: 'student-1',
             userInstitutionId: 'ui-1',
           },
         ],
       },
     ];
     const result = extractStudentsFromCategories(categories);
-    expect(result).toEqual([
-      { studentId: 'student-1', userInstitutionId: 'ui-1' },
-    ]);
+    expect(result).toEqual([{ studentId: 's1', userInstitutionId: 'ui-1' }]);
   });
 
   it('should not find category with key "alunos" (only "students" is valid)', () => {
@@ -118,19 +115,16 @@ describe('extractStudentsFromCategories', () => {
           {
             id: 's1',
             name: 'Student 1',
-            studentId: 'student-1',
             userInstitutionId: 'ui-1',
           },
           {
             id: 's2',
             name: 'Student 2',
-            studentId: 'student-2',
             userInstitutionId: 'ui-2',
           },
           {
             id: 's3',
             name: 'Student 3',
-            studentId: 'student-3',
             userInstitutionId: 'ui-3',
           },
         ],
@@ -139,9 +133,9 @@ describe('extractStudentsFromCategories', () => {
     const result = extractStudentsFromCategories(categories);
     expect(result).toHaveLength(3);
     expect(result).toEqual([
-      { studentId: 'student-1', userInstitutionId: 'ui-1' },
-      { studentId: 'student-2', userInstitutionId: 'ui-2' },
-      { studentId: 'student-3', userInstitutionId: 'ui-3' },
+      { studentId: 's1', userInstitutionId: 'ui-1' },
+      { studentId: 's2', userInstitutionId: 'ui-2' },
+      { studentId: 's3', userInstitutionId: 'ui-3' },
     ]);
   });
 
@@ -155,7 +149,6 @@ describe('extractStudentsFromCategories', () => {
           {
             id: 's1',
             name: 'Student 1',
-            studentId: 'student-1',
             userInstitutionId: 'ui-1',
           },
         ],
@@ -163,12 +156,10 @@ describe('extractStudentsFromCategories', () => {
     ];
     const result = extractStudentsFromCategories(categories);
     expect(result).toHaveLength(1);
-    expect(result).toEqual([
-      { studentId: 'student-1', userInstitutionId: 'ui-1' },
-    ]);
+    expect(result).toEqual([{ studentId: 's1', userInstitutionId: 'ui-1' }]);
   });
 
-  it('should use item.id as studentId when studentId is not a string or number', () => {
+  it('should use id as studentId when studentId is not available', () => {
     const categories: CategoryConfig[] = [
       {
         key: 'students',
@@ -178,7 +169,6 @@ describe('extractStudentsFromCategories', () => {
           {
             id: 's1',
             name: 'Student 1',
-            studentId: undefined,
             userInstitutionId: 'ui-1',
           },
         ],
@@ -198,16 +188,13 @@ describe('extractStudentsFromCategories', () => {
           {
             id: 's1',
             name: 'Student 1',
-            studentId: 'student-1',
             institutionId: 'inst-1',
           },
         ],
       },
     ];
     const result = extractStudentsFromCategories(categories);
-    expect(result).toEqual([
-      { studentId: 'student-1', userInstitutionId: 'inst-1' },
-    ]);
+    expect(result).toEqual([{ studentId: 's1', userInstitutionId: 'inst-1' }]);
   });
 
   it('should handle numeric studentId and userInstitutionId', () => {
@@ -240,16 +227,13 @@ describe('extractStudentsFromCategories', () => {
           {
             id: 's1',
             name: 'Student 1',
-            studentId: 'student-1',
             institutionId: 789,
           },
         ],
       },
     ];
     const result = extractStudentsFromCategories(categories);
-    expect(result).toEqual([
-      { studentId: 'student-1', userInstitutionId: '789' },
-    ]);
+    expect(result).toEqual([{ studentId: 's1', userInstitutionId: '789' }]);
   });
 
   it('should filter out students without userInstitutionId or institutionId', () => {
@@ -259,11 +243,10 @@ describe('extractStudentsFromCategories', () => {
         label: 'Alunos',
         selectedIds: ['s1', 's2'],
         itens: [
-          { id: 's1', name: 'Student 1', studentId: 'student-1' },
+          { id: 's1', name: 'Student 1' },
           {
             id: 's2',
             name: 'Student 2',
-            studentId: 'student-2',
             userInstitutionId: 'ui-2',
           },
         ],
@@ -271,9 +254,7 @@ describe('extractStudentsFromCategories', () => {
     ];
     const result = extractStudentsFromCategories(categories);
     expect(result).toHaveLength(1);
-    expect(result).toEqual([
-      { studentId: 'student-2', userInstitutionId: 'ui-2' },
-    ]);
+    expect(result).toEqual([{ studentId: 's2', userInstitutionId: 'ui-2' }]);
   });
 
   it('should prioritize userInstitutionId over institutionId', () => {
@@ -286,7 +267,6 @@ describe('extractStudentsFromCategories', () => {
           {
             id: 's1',
             name: 'Student 1',
-            studentId: 'student-1',
             userInstitutionId: 'ui-1',
             institutionId: 'inst-1',
           },
@@ -294,9 +274,7 @@ describe('extractStudentsFromCategories', () => {
       },
     ];
     const result = extractStudentsFromCategories(categories);
-    expect(result).toEqual([
-      { studentId: 'student-1', userInstitutionId: 'ui-1' },
-    ]);
+    expect(result).toEqual([{ studentId: 's1', userInstitutionId: 'ui-1' }]);
   });
 
   it('should only use "students" key and ignore other category keys', () => {
@@ -309,7 +287,6 @@ describe('extractStudentsFromCategories', () => {
           {
             id: 's1',
             name: 'Student 1',
-            studentId: 'student-1',
             userInstitutionId: 'ui-1',
           },
         ],
@@ -322,7 +299,6 @@ describe('extractStudentsFromCategories', () => {
           {
             id: 'a1',
             name: 'Aluno 1',
-            studentId: 'aluno-1',
             userInstitutionId: 'ui-a1',
           },
         ],
@@ -330,8 +306,28 @@ describe('extractStudentsFromCategories', () => {
     ];
     const result = extractStudentsFromCategories(categories);
     // Only "students" category is used, "alunos" is ignored
+    expect(result).toEqual([{ studentId: 's1', userInstitutionId: 'ui-1' }]);
+  });
+
+  it('should use explicit studentId when available', () => {
+    const categories: CategoryConfig[] = [
+      {
+        key: 'students',
+        label: 'Alunos',
+        selectedIds: ['s1'],
+        itens: [
+          {
+            id: 's1',
+            name: 'Student 1',
+            studentId: 'explicit-student-id',
+            userInstitutionId: 'ui-1',
+          },
+        ],
+      },
+    ];
+    const result = extractStudentsFromCategories(categories);
     expect(result).toEqual([
-      { studentId: 'student-1', userInstitutionId: 'ui-1' },
+      { studentId: 'explicit-student-id', userInstitutionId: 'ui-1' },
     ]);
   });
 });

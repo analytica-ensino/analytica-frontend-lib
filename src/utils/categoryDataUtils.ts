@@ -93,15 +93,18 @@ export async function fetchStudentsByFilters(
       students: Student[];
     };
   }>('/students/filters', {
-    ...(filters.schoolIds && filters.schoolIds.length > 0 && {
-      schoolIds: filters.schoolIds,
-    }),
-    ...(filters.schoolYearIds && filters.schoolYearIds.length > 0 && {
-      schoolYearIds: filters.schoolYearIds,
-    }),
-    ...(filters.classIds && filters.classIds.length > 0 && {
-      classIds: filters.classIds,
-    }),
+    ...(filters.schoolIds &&
+      filters.schoolIds.length > 0 && {
+        schoolIds: filters.schoolIds,
+      }),
+    ...(filters.schoolYearIds &&
+      filters.schoolYearIds.length > 0 && {
+        schoolYearIds: filters.schoolYearIds,
+      }),
+    ...(filters.classIds &&
+      filters.classIds.length > 0 && {
+        classIds: filters.classIds,
+      }),
   });
 
   return response.data.data.students || [];

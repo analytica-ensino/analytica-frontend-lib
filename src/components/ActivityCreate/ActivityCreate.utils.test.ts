@@ -9,11 +9,7 @@ import {
   getTypeFromUrlString,
   type KnowledgeArea,
 } from './ActivityCreate.utils';
-import {
-  fetchAllStudents,
-  loadCategoriesData,
-  formatTime,
-} from '@/utils/categoryDataUtils';
+import { loadCategoriesData, formatTime } from '@/utils/categoryDataUtils';
 import { ActivityType } from './ActivityCreate.types';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import type { BaseApiClient } from '../../types/api';
@@ -23,7 +19,6 @@ import type {
   School,
   SchoolYear,
   Class,
-  Student,
 } from './ActivityCreate.types';
 
 describe('ActivityCreate.utils', () => {
@@ -633,174 +628,6 @@ describe('ActivityCreate.utils', () => {
     });
   });
 
-  describe('fetchAllStudents', () => {
-    let mockApiClient: BaseApiClient;
-
-    beforeEach(() => {
-      mockApiClient = {
-        get: jest.fn(),
-        post: jest.fn(),
-        patch: jest.fn(),
-        delete: jest.fn(),
-      };
-    });
-
-    it('should fetch all students from single page', async () => {
-      const mockStudents: Student[] = [
-        {
-          id: 'student1',
-          name: 'Student 1',
-          classId: 'class1',
-          userInstitutionId: 'ui1',
-        },
-        {
-          id: 'student2',
-          name: 'Student 2',
-          classId: 'class1',
-          userInstitutionId: 'ui2',
-        },
-      ];
-
-      (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: {
-          data: {
-            students: mockStudents,
-            pagination: {
-              page: 1,
-              limit: 100,
-              total: 2,
-              totalPages: 1,
-            },
-          },
-        },
-      });
-
-      const result = await fetchAllStudents(mockApiClient);
-
-      expect(result).toEqual(mockStudents);
-      expect(mockApiClient.get).toHaveBeenCalledTimes(1);
-      expect(mockApiClient.get).toHaveBeenCalledWith(
-        '/students?page=1&limit=100'
-      );
-    });
-
-    it('should fetch all students from multiple pages', async () => {
-      const page1Students: Student[] = [
-        {
-          id: 'student1',
-          name: 'Student 1',
-          classId: 'class1',
-          userInstitutionId: 'ui1',
-        },
-      ];
-      const page2Students: Student[] = [
-        {
-          id: 'student2',
-          name: 'Student 2',
-          classId: 'class2',
-          userInstitutionId: 'ui2',
-        },
-      ];
-
-      (mockApiClient.get as jest.Mock)
-        .mockResolvedValueOnce({
-          data: {
-            data: {
-              students: page1Students,
-              pagination: {
-                page: 1,
-                limit: 100,
-                total: 2,
-                totalPages: 2,
-              },
-            },
-          },
-        })
-        .mockResolvedValueOnce({
-          data: {
-            data: {
-              students: page2Students,
-              pagination: {
-                page: 2,
-                limit: 100,
-                total: 2,
-                totalPages: 2,
-              },
-            },
-          },
-        });
-
-      const result = await fetchAllStudents(mockApiClient);
-
-      expect(result).toEqual([...page1Students, ...page2Students]);
-      expect(mockApiClient.get).toHaveBeenCalledTimes(2);
-      expect(mockApiClient.get).toHaveBeenNthCalledWith(
-        1,
-        '/students?page=1&limit=100'
-      );
-      expect(mockApiClient.get).toHaveBeenNthCalledWith(
-        2,
-        '/students?page=2&limit=100'
-      );
-    });
-
-    it('should handle empty students array', async () => {
-      (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: {
-          data: {
-            students: [],
-            pagination: {
-              page: 1,
-              limit: 100,
-              total: 0,
-              totalPages: 1,
-            },
-          },
-        },
-      });
-
-      const result = await fetchAllStudents(mockApiClient);
-
-      expect(result).toEqual([]);
-      expect(mockApiClient.get).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle large number of pages', async () => {
-      const studentsPerPage: Student[] = Array.from(
-        { length: 100 },
-        (_, i) => ({
-          id: `student${i + 1}`,
-          name: `Student ${i + 1}`,
-          classId: 'class1',
-          userInstitutionId: `ui${i + 1}`,
-        })
-      );
-
-      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
-        const pageMatch = url.match(/page=(\d+)/);
-        const page = pageMatch ? parseInt(pageMatch[1], 10) : 1;
-        return Promise.resolve({
-          data: {
-            data: {
-              students: studentsPerPage,
-              pagination: {
-                page,
-                limit: 100,
-                total: 300,
-                totalPages: 3,
-              },
-            },
-          },
-        });
-      });
-
-      const result = await fetchAllStudents(mockApiClient);
-
-      expect(result).toHaveLength(300);
-      expect(mockApiClient.get).toHaveBeenCalledTimes(3);
-    });
-  });
-
   describe('loadCategoriesData', () => {
     let mockApiClient: BaseApiClient;
 
@@ -853,14 +680,6 @@ describe('ActivityCreate.utils', () => {
           schoolYearId: 'year1',
         },
       ];
-      const mockStudents: Student[] = [
-        {
-          id: 'student1',
-          name: 'Student 1',
-          classId: 'class1',
-          userInstitutionId: 'ui1',
-        },
-      ];
 
       (mockApiClient.get as jest.Mock)
         .mockResolvedValueOnce({
@@ -881,19 +700,6 @@ describe('ActivityCreate.utils', () => {
           data: {
             data: {
               classes: mockClasses,
-            },
-          },
-        })
-        .mockResolvedValueOnce({
-          data: {
-            data: {
-              students: mockStudents,
-              pagination: {
-                page: 1,
-                limit: 100,
-                total: 1,
-                totalPages: 1,
-              },
             },
           },
         });
@@ -937,15 +743,7 @@ describe('ActivityCreate.utils', () => {
         key: 'students',
         label: 'Alunos',
         dependsOn: ['turma'],
-        itens: [
-          {
-            id: 'student1',
-            name: 'Student 1',
-            classId: 'class1',
-            studentId: 'student1',
-            userInstitutionId: 'ui1',
-          },
-        ],
+        itens: [],
         selectedIds: [],
       });
     });
@@ -972,19 +770,6 @@ describe('ActivityCreate.utils', () => {
               classes: [],
             },
           },
-        })
-        .mockResolvedValueOnce({
-          data: {
-            data: {
-              students: [],
-              pagination: {
-                page: 1,
-                limit: 100,
-                total: 0,
-                totalPages: 1,
-              },
-            },
-          },
         });
 
       const result = await loadCategoriesData(mockApiClient, []);
@@ -994,59 +779,6 @@ describe('ActivityCreate.utils', () => {
       expect(result[1].itens).toEqual([]);
       expect(result[2].itens).toEqual([]);
       expect(result[3].itens).toEqual([]);
-    });
-
-    it('should call fetchAllStudents for pagination', async () => {
-      const mockStudents: Student[] = [
-        {
-          id: 'student1',
-          name: 'Student 1',
-          classId: 'class1',
-          userInstitutionId: 'ui1',
-        },
-      ];
-
-      (mockApiClient.get as jest.Mock)
-        .mockResolvedValueOnce({
-          data: {
-            data: {
-              schools: [],
-            },
-          },
-        })
-        .mockResolvedValueOnce({
-          data: {
-            data: {
-              schoolYears: [],
-            },
-          },
-        })
-        .mockResolvedValueOnce({
-          data: {
-            data: {
-              classes: [],
-            },
-          },
-        })
-        .mockResolvedValueOnce({
-          data: {
-            data: {
-              students: mockStudents,
-              pagination: {
-                page: 1,
-                limit: 100,
-                total: 1,
-                totalPages: 1,
-              },
-            },
-          },
-        });
-
-      await loadCategoriesData(mockApiClient, []);
-
-      expect(mockApiClient.get).toHaveBeenCalledWith(
-        '/students?page=1&limit=100'
-      );
     });
   });
 

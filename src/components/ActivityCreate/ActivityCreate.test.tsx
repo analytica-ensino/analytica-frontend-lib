@@ -1554,11 +1554,6 @@ describe('CreateActivity', () => {
           data: { classes: [] },
         },
       };
-      const mockStudentsResponse = {
-        data: {
-          data: { students: [], pagination: {} },
-        },
-      };
 
       mockApiClient.get = jest.fn((url: string) => {
         if (url === '/school')
@@ -1567,8 +1562,6 @@ describe('CreateActivity', () => {
           return Promise.resolve(mockSchoolYearsResponse as never);
         if (url === '/classes')
           return Promise.resolve(mockClassesResponse as never);
-        if (url === '/students?page=1&limit=100')
-          return Promise.resolve(mockStudentsResponse as never);
         return Promise.reject(new Error('Unknown endpoint'));
       }) as typeof mockApiClient.get;
 
@@ -1653,29 +1646,6 @@ describe('CreateActivity', () => {
           },
         },
       };
-      const mockStudentsResponse = {
-        data: {
-          data: {
-            students: [
-              {
-                id: 'student1',
-                email: 'student@test.com',
-                name: 'Student 1',
-                active: true,
-                createdAt: '2025-01-01',
-                updatedAt: '2025-01-01',
-                userInstitutionId: 'user1',
-                institutionId: 'inst1',
-                schoolId: 'school1',
-                schoolYearId: 'year1',
-                classId: 'class1',
-                profileId: 'profile1',
-              },
-            ],
-            pagination: {},
-          },
-        },
-      };
 
       mockApiClient.get = jest.fn((url: string) => {
         if (url === '/school')
@@ -1684,8 +1654,6 @@ describe('CreateActivity', () => {
           return Promise.resolve(mockSchoolYearsResponse as never);
         if (url === '/classes')
           return Promise.resolve(mockClassesResponse as never);
-        if (url === '/students?page=1&limit=100')
-          return Promise.resolve(mockStudentsResponse as never);
         return Promise.reject(new Error('Unknown endpoint'));
       }) as typeof mockApiClient.get;
 
@@ -1699,9 +1667,6 @@ describe('CreateActivity', () => {
         expect(mockApiClient.get).toHaveBeenCalledWith('/school');
         expect(mockApiClient.get).toHaveBeenCalledWith('/schoolYear');
         expect(mockApiClient.get).toHaveBeenCalledWith('/classes');
-        expect(mockApiClient.get).toHaveBeenCalledWith(
-          '/students?page=1&limit=100'
-        );
       });
     });
 
@@ -1743,11 +1708,6 @@ describe('CreateActivity', () => {
           data: { classes: [] },
         },
       };
-      const mockStudentsResponse = {
-        data: {
-          data: { students: [], pagination: {} },
-        },
-      };
 
       mockApiClient.get = jest.fn((url: string) => {
         if (url === '/school') {
@@ -1758,9 +1718,6 @@ describe('CreateActivity', () => {
         }
         if (url === '/classes') {
           return Promise.resolve(mockClassesResponse as never);
-        }
-        if (url === '/students?page=1&limit=100') {
-          return Promise.resolve(mockStudentsResponse as never);
         }
         return Promise.reject(new Error('Unknown endpoint'));
       }) as typeof mockApiClient.get;
@@ -1779,7 +1736,8 @@ describe('CreateActivity', () => {
       fireEvent.click(screen.getByText('Enviar atividade'));
 
       await waitFor(() => {
-        expect(mockApiClient.get).toHaveBeenCalledTimes(4);
+        // Now only 3 calls: /school, /schoolYear, /classes (students are loaded dynamically)
+        expect(mockApiClient.get).toHaveBeenCalledTimes(3);
       });
     });
 

@@ -16,13 +16,11 @@ const mockCategories: CategoryConfig[] = [
       {
         id: 'class-1',
         name: 'Turma A',
-        studentId: 'student-1',
         userInstitutionId: 'ui-1',
       },
       {
         id: 'class-2',
         name: 'Turma B',
-        studentId: 'student-2',
         userInstitutionId: 'ui-2',
       },
     ],
@@ -214,7 +212,7 @@ describe('useSendLessonModalStore', () => {
 
       expect(isValid).toBe(true);
       expect(useSendLessonModalStore.getState().formData.students).toEqual([
-        { studentId: 'student-1', userInstitutionId: 'ui-1' },
+        { studentId: 'class-1', userInstitutionId: 'ui-1' },
       ]);
     });
 
@@ -334,7 +332,7 @@ describe('useSendLessonModalStore', () => {
         });
         store.nextStep(); // Step 1 -> 2
         store.setFormData({
-          students: [{ studentId: 's1', userInstitutionId: 'ui1' }],
+          students: [{ studentId: 'ui1', userInstitutionId: 'ui1' }],
         });
         store.nextStep(); // Step 2 -> 3
         store.setFormData({
@@ -399,7 +397,7 @@ describe('useSendLessonModalStore', () => {
 
       const state = useSendLessonModalStore.getState();
       expect(state.formData.students).toEqual([
-        { studentId: 'student-1', userInstitutionId: 'ui-1' },
+        { studentId: 'class-1', userInstitutionId: 'ui-1' },
       ]);
     });
 
@@ -491,7 +489,6 @@ describe('useSendLessonModalStore', () => {
             {
               id: 'item-1',
               name: 'Item 1',
-              studentId: 'student-1',
               institutionId: 'inst-1',
             },
           ],
@@ -505,7 +502,7 @@ describe('useSendLessonModalStore', () => {
 
       const state = useSendLessonModalStore.getState();
       expect(state.formData.students).toEqual([
-        { studentId: 'student-1', userInstitutionId: 'inst-1' },
+        { studentId: 'item-1', userInstitutionId: 'inst-1' },
       ]);
     });
 
@@ -520,13 +517,11 @@ describe('useSendLessonModalStore', () => {
             {
               id: 'item-1',
               name: 'Item 1',
-              studentId: 'student-1',
               // No userInstitutionId or institutionId
             },
             {
               id: 'item-2',
               name: 'Item 2',
-              studentId: 'student-2',
               userInstitutionId: 'ui-2',
             },
           ],
@@ -540,7 +535,7 @@ describe('useSendLessonModalStore', () => {
 
       const state = useSendLessonModalStore.getState();
       expect(state.formData.students).toEqual([
-        { studentId: 'student-2', userInstitutionId: 'ui-2' },
+        { studentId: 'item-2', userInstitutionId: 'ui-2' },
       ]);
     });
 

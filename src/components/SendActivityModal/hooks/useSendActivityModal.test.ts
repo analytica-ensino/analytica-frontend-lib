@@ -41,14 +41,12 @@ const mockCategories: CategoryConfig[] = [
         id: 'student-1',
         name: 'Aluno 1',
         classId: 'class-1',
-        studentId: 'student-1',
         userInstitutionId: 'ui-1',
       },
       {
         id: 'student-2',
         name: 'Aluno 2',
         classId: 'class-1',
-        studentId: 'student-2',
         userInstitutionId: 'ui-2',
       },
     ],
@@ -268,7 +266,7 @@ describe('useSendActivityModalStore', () => {
         store.setFormData({
           subtype: 'TAREFA',
           title: 'Test',
-          students: [{ studentId: 's1', userInstitutionId: 'ui1' }],
+          students: [{ studentId: 'ui1', userInstitutionId: 'ui1' }],
           startDate: '2025-01-20',
           finalDate: '2025-01-25',
         });

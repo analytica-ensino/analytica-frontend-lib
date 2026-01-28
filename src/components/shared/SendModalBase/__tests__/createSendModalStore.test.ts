@@ -56,13 +56,11 @@ const mockCategories: CategoryConfig[] = [
       {
         id: 'student-1',
         name: 'Aluno 1',
-        studentId: 'student-1',
         userInstitutionId: 'ui-1',
       },
       {
         id: 'student-2',
         name: 'Aluno 2',
-        studentId: 'student-2',
         userInstitutionId: 'ui-2',
       },
     ],
@@ -361,7 +359,9 @@ describe('createSendModalStore', () => {
       });
 
       expect(result.current.formData.students).toHaveLength(1);
-      expect(result.current.formData.students?.[0].studentId).toBe('student-1');
+      expect(result.current.formData.students?.[0].userInstitutionId).toBe(
+        'ui-1'
+      );
     });
   });
 
@@ -370,7 +370,7 @@ describe('createSendModalStore', () => {
       const useStore = createSendModalStore<TestFormData, TestErrors>({
         maxSteps: 2,
         initialFormData: {
-          students: [{ studentId: 's1', userInstitutionId: 'ui1' }],
+          students: [{ studentId: 'ui1', userInstitutionId: 'ui1' }],
           startDate: '2024-01-15',
           finalDate: '2024-01-20',
         },
@@ -421,7 +421,7 @@ describe('createSendModalStore', () => {
         1,
         expect.objectContaining({
           students: expect.arrayContaining([
-            expect.objectContaining({ studentId: 'student-1' }),
+            expect.objectContaining({ userInstitutionId: 'ui-1' }),
           ]),
         })
       );

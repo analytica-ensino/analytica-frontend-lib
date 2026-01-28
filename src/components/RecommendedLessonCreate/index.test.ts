@@ -281,8 +281,16 @@ describe('RecommendedLessonCreate index exports', () => {
       const student: Student = {
         id: 'student-1',
         name: 'John Doe',
-        classId: 'class-1',
+        email: 'john@example.com',
+        active: true,
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
         userInstitutionId: 'user-1',
+        institutionId: 'inst-1',
+        profileId: 'profile-1',
+        school: { id: 'school-1', name: 'School 1' },
+        schoolYear: { id: 'year-1', name: '2024' },
+        class: { id: 'class-1', name: 'Class A' },
       };
       expect(student.name).toBe('John Doe');
     });

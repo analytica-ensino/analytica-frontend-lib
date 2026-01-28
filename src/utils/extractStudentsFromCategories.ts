@@ -4,8 +4,8 @@ import type { CategoryConfig } from '../components/CheckBoxGroup/CheckBoxGroup';
  * Student data extracted from category selection
  */
 export interface ExtractedStudent {
+  studentId: string;
   userInstitutionId: string;
-  userId?: string;
 }
 
 /**
@@ -29,7 +29,8 @@ export function extractStudentsFromCategories(
       if (student) {
         const rawUserInstId = student.userInstitutionId;
         const rawInstId = student.institutionId;
-        const rawUserId = (student as { userId?: string | number }).userId;
+        const rawStudentId = (student as { studentId?: string | number })
+          .studentId;
 
         let userInstitutionId = '';
         if (
@@ -44,16 +45,16 @@ export function extractStudentsFromCategories(
           userInstitutionId = String(rawInstId);
         }
 
-        // Extract userId if available, otherwise use userInstitutionId as userId
-        let userId: string | undefined;
+        // Extract studentId if available, otherwise use id as studentId
+        let studentId: string;
         if (
-          typeof rawUserId === 'string' ||
-          typeof rawUserId === 'number'
+          typeof rawStudentId === 'string' ||
+          typeof rawStudentId === 'number'
         ) {
-          userId = String(rawUserId);
-        } else if (userInstitutionId) {
-          // If userId is not available, use userInstitutionId as userId
-          userId = userInstitutionId;
+          studentId = String(rawStudentId);
+        } else {
+          // If studentId is not available, use the item id
+          studentId = String(student.id);
         }
 
         // Filter out entries without valid userInstitutionId
@@ -61,7 +62,7 @@ export function extractStudentsFromCategories(
           return null;
         }
 
-        return { userInstitutionId, ...(userId && { userId }) };
+        return { studentId, userInstitutionId };
       }
       return null;
     })
