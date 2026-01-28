@@ -21,8 +21,8 @@ import {
   SendModalFooter,
   SendModalError,
   useDateTimeHandlers,
+  useCategoryInitialization,
 } from '../shared/SendModalBase';
-import { calculateFormattedItemsForAutoSelection } from '../CheckBoxGroup/CheckBoxGroup.helpers';
 
 /**
  * Stepper steps configuration
@@ -68,54 +68,6 @@ const SendActivityModal = ({
   );
 
   /**
-   * Apply the same "single visible option" auto-selection behavior that the CheckboxGroup
-   * applies internally, but during initialization.
-   *
-   * This fixes the scenario where the first category (e.g. Escola) is rendered in compact
-   * mode (single item) and therefore has no UI affordance to manually select it, leaving
-   * dependent categories disabled.
-   */
-  const applyChainedAutoSelection = useCallback(
-    (categories: CategoryConfig[]): CategoryConfig[] => {
-      let current = categories;
-      let safety = 0;
-      let changed = true;
-
-      while (changed && safety < categories.length + 2) {
-        safety += 1;
-        changed = false;
-
-        const next = current.map((category) => {
-          const filteredItems = calculateFormattedItemsForAutoSelection(
-            category,
-            current
-          );
-
-          const hasNoSelection =
-            !category.selectedIds || category.selectedIds.length === 0;
-
-          if (filteredItems.length === 1 && hasNoSelection) {
-            changed = true;
-            return { ...category, selectedIds: [filteredItems[0].id] };
-          }
-
-          return category;
-        });
-
-        current = next;
-      }
-
-      return current;
-    },
-    []
-  );
-
-  /**
-   * Track if categories have been initialized for this modal session
-   */
-  const categoriesInitialized = useRef(false);
-
-  /**
    * Track the previous initialData reference to detect changes
    */
   const prevInitialDataRef = useRef<SendActivityModalInitialData | undefined>(
@@ -123,31 +75,24 @@ const SendActivityModal = ({
   );
 
   /**
-   * Initialize categories when modal opens
+   * Initialize categories with auto-selection when modal opens
    */
-  useEffect(() => {
-    if (
-      isOpen &&
-      initialCategories.length > 0 &&
-      !categoriesInitialized.current
-    ) {
-      const autoSelectedCategories =
-        applyChainedAutoSelection(initialCategories);
-      setCategories(autoSelectedCategories);
-      // Trigger onCategoriesChange to allow parent to fetch students if needed
-      // This is important when auto-selection happens (e.g., single school/series/class)
-      if (onCategoriesChange) {
-        onCategoriesChange(autoSelectedCategories);
-      }
-      categoriesInitialized.current = true;
-    }
-  }, [
+  useCategoryInitialization({
     isOpen,
     initialCategories,
     setCategories,
-    applyChainedAutoSelection,
     onCategoriesChange,
-  ]);
+  });
+
+  /**
+   * Get categoriesInitialized ref from hook
+   */
+  const { categoriesInitializedRef } = useCategoryInitialization({
+    isOpen,
+    initialCategories,
+    setCategories,
+    onCategoriesChange,
+  });
 
   /**
    * Sync categories from parent when they change (e.g., after fetching students)
@@ -157,7 +102,7 @@ const SendActivityModal = ({
     if (
       isOpen &&
       initialCategories.length > 0 &&
-      categoriesInitialized.current
+      categoriesInitializedRef.current
     ) {
       // Only sync if categories have students (indicates they were fetched)
       const studentsCategory = initialCategories.find(
@@ -178,7 +123,13 @@ const SendActivityModal = ({
         setCategories(initialCategories);
       }
     }
-  }, [isOpen, initialCategories, storeCategories, setCategories]);
+  }, [
+    isOpen,
+    initialCategories,
+    storeCategories,
+    setCategories,
+    categoriesInitializedRef,
+  ]);
 
   /**
    * Apply initial data when modal opens with new data
@@ -195,12 +146,11 @@ const SendActivityModal = ({
   }, [isOpen, initialData, store]);
 
   /**
-   * Reset store and initialization flag when modal closes
+   * Reset store when modal closes
    */
   useEffect(() => {
     if (!isOpen) {
       reset();
-      categoriesInitialized.current = false;
       prevInitialDataRef.current = undefined;
     }
   }, [isOpen, reset]);

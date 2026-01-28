@@ -23,7 +23,8 @@ import {
   isCurrentStepValid as isCurrentStepValidValidation,
   handleNext as handleNextValidation,
 } from './validation';
-import { calculateFormattedItemsForAutoSelection } from '../CheckBoxGroup/CheckBoxGroup.helpers';
+import { applyChainedAutoSelection } from '../shared/SendModalBase';
+import { useDynamicStudentFetching } from '../../utils/useDynamicStudentFetching';
 
 interface AlertsManagerProps {
   config: AlertsConfig;
@@ -51,17 +52,6 @@ export const AlertsManager = ({
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [categories, setCategories] = useState(config.categories);
 
-  // Refs to track previous selections and prevent unnecessary API calls
-  const previousSelectionsRef = useRef<{
-    schoolIds: string[];
-    schoolYearIds: string[];
-    classIds: string[];
-  }>({
-    schoolIds: [],
-    schoolYearIds: [],
-    classIds: [],
-  });
-
   // Subscribe to form store changes using useSyncExternalStore
   const formData = useSyncExternalStore(
     useAlertFormStore.subscribe,
@@ -74,49 +64,6 @@ export const AlertsManager = ({
   }, [isOpen]);
 
   /**
-   * Apply the same "single visible option" auto-selection behavior that the CheckboxGroup
-   * applies internally, but during initialization.
-   *
-   * This fixes the scenario where the first category (e.g. Escola) is rendered in compact
-   * mode (single item) and therefore has no UI affordance to manually select it, leaving
-   * dependent categories disabled.
-   */
-  const applyChainedAutoSelection = useCallback(
-    (categories: CategoryConfig[]): CategoryConfig[] => {
-      let current = categories;
-      let safety = 0;
-      let changed = true;
-
-      while (changed && safety < categories.length + 2) {
-        safety += 1;
-        changed = false;
-
-        const next = current.map((category) => {
-          const filteredItems = calculateFormattedItemsForAutoSelection(
-            category,
-            current
-          );
-
-          const hasNoSelection =
-            !category.selectedIds || category.selectedIds.length === 0;
-
-          if (filteredItems.length === 1 && hasNoSelection) {
-            changed = true;
-            return { ...category, selectedIds: [filteredItems[0].id] };
-          }
-
-          return category;
-        });
-
-        current = next;
-      }
-
-      return current;
-    },
-    []
-  );
-
-  /**
    * Track if categories have been initialized for this modal session
    */
   const categoriesInitializedRef = useRef(false);
@@ -126,138 +73,16 @@ export const AlertsManager = ({
   /**
    * Handle categories change and fetch students dynamically if fetchStudentsByFilters is provided
    */
+  const { handleCategoriesChange: baseHandleCategoriesChange } =
+    useDynamicStudentFetching(setCategories, {
+      fetchStudentsByFilters: behavior?.fetchStudentsByFilters,
+    });
+
   const handleCategoriesChange = useCallback(
     async (updatedCategories: CategoryConfig[]) => {
-      // If fetchStudentsByFilters is not provided, just update categories
-      if (!behavior?.fetchStudentsByFilters) {
-        setCategories(updatedCategories);
-        return;
-      }
-
-      // Find selected schools, schoolYears, and classes BEFORE updating state
-      const escolaCategory = updatedCategories.find((c) => c.key === 'escola');
-      const serieCategory = updatedCategories.find((c) => c.key === 'serie');
-      const turmaCategory = updatedCategories.find((c) => c.key === 'turma');
-      const studentsCategory = updatedCategories.find(
-        (c) => c.key === 'students'
-      );
-
-      const selectedSchoolIds = escolaCategory?.selectedIds || [];
-      const selectedSchoolYearIds = serieCategory?.selectedIds || [];
-      const selectedClassIds = turmaCategory?.selectedIds || [];
-
-      // Check if school, series, or class selections actually changed
-      const previousSelections = previousSelectionsRef.current;
-
-      // If previous selections are empty (initial state), consider it a change
-      const isInitialState =
-        previousSelections.schoolIds.length === 0 &&
-        previousSelections.schoolYearIds.length === 0 &&
-        previousSelections.classIds.length === 0;
-
-      const schoolIdsChanged =
-        isInitialState ||
-        previousSelections.schoolIds.length !== selectedSchoolIds.length ||
-        previousSelections.schoolIds.some(
-          (id) => !selectedSchoolIds.includes(id)
-        ) ||
-        selectedSchoolIds.some(
-          (id) => !previousSelections.schoolIds.includes(id)
-        );
-
-      const schoolYearIdsChanged =
-        isInitialState ||
-        previousSelections.schoolYearIds.length !==
-          selectedSchoolYearIds.length ||
-        previousSelections.schoolYearIds.some(
-          (id) => !selectedSchoolYearIds.includes(id)
-        ) ||
-        selectedSchoolYearIds.some(
-          (id) => !previousSelections.schoolYearIds.includes(id)
-        );
-
-      const classIdsChanged =
-        isInitialState ||
-        previousSelections.classIds.length !== selectedClassIds.length ||
-        previousSelections.classIds.some(
-          (id) => !selectedClassIds.includes(id)
-        ) ||
-        selectedClassIds.some(
-          (id) => !previousSelections.classIds.includes(id)
-        );
-
-      const shouldFetchStudents =
-        schoolIdsChanged || schoolYearIdsChanged || classIdsChanged;
-
-      // Update previous selections
-      previousSelectionsRef.current = {
-        schoolIds: [...selectedSchoolIds],
-        schoolYearIds: [...selectedSchoolYearIds],
-        classIds: [...selectedClassIds],
-      };
-
-      // Only fetch students if school/series/class selections changed
-      if (
-        shouldFetchStudents &&
-        selectedClassIds.length > 0 &&
-        studentsCategory
-      ) {
-        try {
-          const students = await behavior.fetchStudentsByFilters({
-            schoolIds:
-              selectedSchoolIds.length > 0 ? selectedSchoolIds : undefined,
-            schoolYearIds:
-              selectedSchoolYearIds.length > 0
-                ? selectedSchoolYearIds
-                : undefined,
-            classIds:
-              selectedClassIds.length > 0 ? selectedClassIds : undefined,
-          });
-
-          // Transform students to items format with nested data
-          // Use userInstitutionId + classId as unique ID to allow same user in different classes
-          const studentItems = students.map((s) => ({
-            id: `${s.userInstitutionId}-${s.class.id}`, // Unique ID combining userInstitutionId and classId
-            name: s.name,
-            classId: String(s.class.id),
-            schoolId: String(s.school.id),
-            schoolYearId: String(s.schoolYear.id),
-            studentId: s.id,
-            userInstitutionId: s.userInstitutionId,
-            // Include nested data for filtering (matching filteredBy in category config)
-            // These fields must match the IDs in the parent categories' selectedIds (as strings)
-            escolaId: String(s.school.id),
-            serieId: String(s.schoolYear.id),
-            turmaId: String(s.class.id),
-          }));
-
-          // Update students category with fetched students
-          // Preserve all other categories exactly as they are (including selectedIds)
-          const finalCategories = updatedCategories.map((cat) =>
-            cat.key === 'students' ? { ...cat, itens: studentItems } : cat
-          );
-
-          setCategories(finalCategories);
-        } catch (error) {
-          console.error('Error fetching students:', error);
-          // On error, clear students but keep all other categories unchanged
-          const finalCategories = updatedCategories.map((cat) =>
-            cat.key === 'students' ? { ...cat, itens: [] } : cat
-          );
-          setCategories(finalCategories);
-        }
-      } else if (shouldFetchStudents && studentsCategory) {
-        // If no classes selected after a change, clear students but keep all other categories
-        const finalCategories = updatedCategories.map((cat) =>
-          cat.key === 'students' ? { ...cat, itens: [] } : cat
-        );
-        setCategories(finalCategories);
-      } else {
-        // No relevant changes (only student selections changed), just update categories as-is
-        setCategories(updatedCategories);
-      }
+      await baseHandleCategoriesChange(updatedCategories);
     },
-    [behavior]
+    [baseHandleCategoriesChange]
   );
 
   /**

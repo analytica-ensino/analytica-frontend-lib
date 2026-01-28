@@ -23,12 +23,19 @@ export {
   type CreateSendModalStoreConfig,
 } from './createSendModalStore';
 
+// Utils
+export { applyChainedAutoSelection } from './utils/applyChainedAutoSelection';
+
 // Hooks
 export {
   useDateTimeHandlers,
   type UseDateTimeHandlersProps,
   type UseDateTimeHandlersReturn,
 } from './hooks/useDateTimeHandlers';
+export {
+  useCategoryInitialization,
+  type UseCategoryInitializationProps,
+} from './hooks/useCategoryInitialization';
 
 // Components
 export {

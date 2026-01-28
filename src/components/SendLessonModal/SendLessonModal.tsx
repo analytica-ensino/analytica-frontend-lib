@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, ChangeEvent } from 'react';
+import { useCallback, useEffect, ChangeEvent } from 'react';
 import Modal from '../Modal/Modal';
 import Stepper from '../Stepper/Stepper';
 import Input from '../Input/Input';
@@ -9,12 +9,12 @@ import {
   SendLessonFormData,
   CategoryConfig,
 } from './types';
-import { calculateFormattedItemsForAutoSelection } from '../CheckBoxGroup/CheckBoxGroup.helpers';
 import {
   RecipientStep,
   DeadlineStep,
   SendModalFooter,
   useDateTimeHandlers,
+  useCategoryInitialization,
 } from '../shared/SendModalBase';
 
 /**
@@ -57,79 +57,14 @@ const SendLessonModal = ({
   const storeCategories = useSendLessonModalStore((state) => state.categories);
 
   /**
-   * Apply the same "single visible option" auto-selection behavior that the CheckboxGroup
-   * applies internally, but during initialization.
-   *
-   * This fixes the scenario where the first category (e.g. Escola) is rendered in compact
-   * mode (single item) and therefore has no UI affordance to manually select it, leaving
-   * dependent categories disabled.
+   * Initialize categories with auto-selection when modal opens
    */
-  const applyChainedAutoSelection = useCallback(
-    (categories: CategoryConfig[]): CategoryConfig[] => {
-      let current = categories;
-      let safety = 0;
-      let changed = true;
-
-      while (changed && safety < categories.length + 2) {
-        safety += 1;
-        changed = false;
-
-        const next = current.map((category) => {
-          const filteredItems = calculateFormattedItemsForAutoSelection(
-            category,
-            current
-          );
-
-          const hasNoSelection =
-            !category.selectedIds || category.selectedIds.length === 0;
-
-          if (filteredItems.length === 1 && hasNoSelection) {
-            changed = true;
-            return { ...category, selectedIds: [filteredItems[0].id] };
-          }
-
-          return category;
-        });
-
-        current = next;
-      }
-
-      return current;
-    },
-    []
-  );
-
-  /**
-   * Track if categories have been initialized for this modal session
-   */
-  const categoriesInitialized = useRef(false);
-
-  /**
-   * Initialize categories when modal opens
-   */
-  useEffect(() => {
-    if (
-      isOpen &&
-      initialCategories.length > 0 &&
-      !categoriesInitialized.current
-    ) {
-      const autoSelectedCategories =
-        applyChainedAutoSelection(initialCategories);
-      setCategories(autoSelectedCategories);
-      // Trigger onCategoriesChange to allow parent to fetch students if needed
-      // This is important when auto-selection happens (e.g., single school/series/class)
-      if (onCategoriesChange) {
-        onCategoriesChange(autoSelectedCategories);
-      }
-      categoriesInitialized.current = true;
-    }
-  }, [
+  const { categoriesInitializedRef } = useCategoryInitialization({
     isOpen,
     initialCategories,
     setCategories,
-    applyChainedAutoSelection,
     onCategoriesChange,
-  ]);
+  });
 
   /**
    * Sync categories from parent when they change (e.g., after fetching students)
@@ -139,7 +74,7 @@ const SendLessonModal = ({
     if (
       isOpen &&
       initialCategories.length > 0 &&
-      categoriesInitialized.current
+      categoriesInitializedRef.current
     ) {
       // Only sync if categories have students (indicates they were fetched)
       const studentsCategory = initialCategories.find(
@@ -160,15 +95,20 @@ const SendLessonModal = ({
         setCategories(initialCategories);
       }
     }
-  }, [isOpen, initialCategories, storeCategories, setCategories]);
+  }, [
+    isOpen,
+    initialCategories,
+    storeCategories,
+    setCategories,
+    categoriesInitializedRef,
+  ]);
 
   /**
-   * Reset store and initialization flag when modal closes
+   * Reset store when modal closes
    */
   useEffect(() => {
     if (!isOpen) {
       reset();
-      categoriesInitialized.current = false;
     }
   }, [isOpen, reset]);
 

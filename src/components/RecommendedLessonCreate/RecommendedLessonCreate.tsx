@@ -49,10 +49,8 @@ import {
 } from './RecommendedLessonCreate.utils';
 import { RecommendedLessonCreateSkeleton } from './components/RecommendedLessonCreateSkeleton';
 import { RecommendedLessonCreateHeader } from './components/RecommendedLessonCreateHeader';
-import {
-  loadCategoriesData,
-  fetchStudentsByFilters,
-} from '../../utils/categoryDataUtils';
+import { loadCategoriesData } from '../../utils/categoryDataUtils';
+import { useDynamicStudentFetching } from '../../utils/useDynamicStudentFetching';
 
 /**
  * RecommendedLessonCreate page component for creating new recommended lessons
@@ -1000,17 +998,6 @@ const RecommendedLessonCreate = ({
     [appliedFilters, loadingInitialLessons, isSaving]
   );
 
-  // Refs to track previous selections and prevent unnecessary API calls
-  const previousSelectionsRef = useRef<{
-    schoolIds: string[];
-    schoolYearIds: string[];
-    classIds: string[];
-  }>({
-    schoolIds: [],
-    schoolYearIds: [],
-    classIds: [],
-  });
-
   /**
    * Load categories data from API
    */
@@ -1025,23 +1012,6 @@ const RecommendedLessonCreate = ({
         categories
       );
       setCategories(transformedCategories);
-
-      // Initialize previous selections ref with initial values
-      const escolaCategory = transformedCategories.find(
-        (c) => c.key === 'escola'
-      );
-      const serieCategory = transformedCategories.find(
-        (c) => c.key === 'serie'
-      );
-      const turmaCategory = transformedCategories.find(
-        (c) => c.key === 'turma'
-      );
-
-      previousSelectionsRef.current = {
-        schoolIds: escolaCategory?.selectedIds || [],
-        schoolYearIds: serieCategory?.selectedIds || [],
-        classIds: turmaCategory?.selectedIds || [],
-      };
     } catch (error) {
       console.error('Error loading categories:', error);
       throw error;
@@ -1051,124 +1021,9 @@ const RecommendedLessonCreate = ({
   /**
    * Handle categories change and fetch students dynamically
    */
-
-  const handleCategoriesChange = useCallback(
-    async (updatedCategories: CategoryConfig[]) => {
-      // Find selected schools, schoolYears, and classes BEFORE updating state
-      const escolaCategory = updatedCategories.find((c) => c.key === 'escola');
-      const serieCategory = updatedCategories.find((c) => c.key === 'serie');
-      const turmaCategory = updatedCategories.find((c) => c.key === 'turma');
-      const studentsCategory = updatedCategories.find(
-        (c) => c.key === 'students'
-      );
-
-      const selectedSchoolIds = escolaCategory?.selectedIds || [];
-      const selectedSchoolYearIds = serieCategory?.selectedIds || [];
-      const selectedClassIds = turmaCategory?.selectedIds || [];
-
-      // Check if school, series, or class selections actually changed
-      const previousSelections = previousSelectionsRef.current;
-      const schoolIdsChanged =
-        previousSelections.schoolIds.length !== selectedSchoolIds.length ||
-        previousSelections.schoolIds.some(
-          (id) => !selectedSchoolIds.includes(id)
-        ) ||
-        selectedSchoolIds.some(
-          (id) => !previousSelections.schoolIds.includes(id)
-        );
-
-      const schoolYearIdsChanged =
-        previousSelections.schoolYearIds.length !==
-          selectedSchoolYearIds.length ||
-        previousSelections.schoolYearIds.some(
-          (id) => !selectedSchoolYearIds.includes(id)
-        ) ||
-        selectedSchoolYearIds.some(
-          (id) => !previousSelections.schoolYearIds.includes(id)
-        );
-
-      const classIdsChanged =
-        previousSelections.classIds.length !== selectedClassIds.length ||
-        previousSelections.classIds.some(
-          (id) => !selectedClassIds.includes(id)
-        ) ||
-        selectedClassIds.some(
-          (id) => !previousSelections.classIds.includes(id)
-        );
-
-      const shouldFetchStudents =
-        schoolIdsChanged || schoolYearIdsChanged || classIdsChanged;
-
-      // Update previous selections
-      previousSelectionsRef.current = {
-        schoolIds: [...selectedSchoolIds],
-        schoolYearIds: [...selectedSchoolYearIds],
-        classIds: [...selectedClassIds],
-      };
-
-      // Only fetch students if school/series/class selections changed
-      if (
-        shouldFetchStudents &&
-        selectedClassIds.length > 0 &&
-        studentsCategory
-      ) {
-        try {
-          const students = await fetchStudentsByFilters(apiClient, {
-            schoolIds:
-              selectedSchoolIds.length > 0 ? selectedSchoolIds : undefined,
-            schoolYearIds:
-              selectedSchoolYearIds.length > 0
-                ? selectedSchoolYearIds
-                : undefined,
-            classIds:
-              selectedClassIds.length > 0 ? selectedClassIds : undefined,
-          });
-
-          // Transform students to items format with nested data
-          // Use userInstitutionId + classId as unique ID to allow same user in different classes
-          const studentItems = students.map((s) => ({
-            id: `${s.userInstitutionId}-${s.class.id}`, // Unique ID combining userInstitutionId and classId
-            name: s.name,
-            classId: String(s.class.id),
-            schoolId: String(s.school.id),
-            schoolYearId: String(s.schoolYear.id),
-            studentId: s.id,
-            userInstitutionId: s.userInstitutionId,
-            // Include nested data for filtering (matching filteredBy in category config)
-            // These fields must match the IDs in the parent categories' selectedIds (as strings)
-            escolaId: String(s.school.id),
-            serieId: String(s.schoolYear.id),
-            turmaId: String(s.class.id),
-          }));
-
-          // Update students category with fetched students
-          // Preserve all other categories exactly as they are (including selectedIds)
-          const finalCategories = updatedCategories.map((cat) =>
-            cat.key === 'students' ? { ...cat, itens: studentItems } : cat
-          );
-
-          setCategories(finalCategories);
-        } catch (error) {
-          console.error('Error fetching students:', error);
-          // On error, clear students but keep all other categories unchanged
-          const finalCategories = updatedCategories.map((cat) =>
-            cat.key === 'students' ? { ...cat, itens: [] } : cat
-          );
-          setCategories(finalCategories);
-        }
-      } else if (shouldFetchStudents && studentsCategory) {
-        // If no classes selected after a change, clear students but keep all other categories
-        const finalCategories = updatedCategories.map((cat) =>
-          cat.key === 'students' ? { ...cat, itens: [] } : cat
-        );
-        setCategories(finalCategories);
-      } else {
-        // No relevant changes (only student selections changed), just update categories as-is
-        setCategories(updatedCategories);
-      }
-    },
-    [apiClient]
-  );
+  const { handleCategoriesChange } = useDynamicStudentFetching(setCategories, {
+    apiClient,
+  });
 
   /**
    * Handle opening the send lesson modal
