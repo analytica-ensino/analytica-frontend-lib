@@ -628,7 +628,7 @@ const RecommendedLessonCreate = ({
 
       if (savedDraft) {
         setRecommendedLesson((prevLesson) => {
-          if (!prevLesson || prevLesson.id !== savedDraft.id) {
+          if (prevLesson?.id !== savedDraft.id) {
             return {
               id: savedDraft.id,
               type: savedDraft.type,

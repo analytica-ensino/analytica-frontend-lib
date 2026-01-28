@@ -500,7 +500,7 @@ const CreateActivity = ({
       // Não atualizamos filters para evitar disparar novas buscas desnecessárias
       if (savedDraft) {
         setActivity((prevActivity) => {
-          if (!prevActivity || prevActivity.id !== savedDraft.id) {
+          if (prevActivity?.id !== savedDraft.id) {
             // Se não há atividade anterior ou o ID mudou, atualiza tudo
             return {
               id: savedDraft.id,
