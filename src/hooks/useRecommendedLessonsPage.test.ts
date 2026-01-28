@@ -172,7 +172,7 @@ describe('useRecommendedLessonsPage', () => {
   const testFormData: SendLessonFormData = {
     title: 'Test Lesson',
     notification: 'Test notification',
-    students: [{ studentId: 'student-1', userInstitutionId: 'inst-1' }],
+    students: [{ userInstitutionId: 'inst-1' }],
     startDate: '2024-06-01',
     startTime: '08:00',
     finalDate: '2024-06-15',
@@ -538,7 +538,7 @@ describe('useRecommendedLessonsPage', () => {
 
     expect(mockApi.post).toHaveBeenCalledWith('/recommendedClass', {
       draftId: 'model-123',
-      students: [{ studentId: 'student-1', userInstitutionId: 'inst-1' }],
+      students: [{ userInstitutionId: 'inst-1' }],
       startDate: '2024-06-01T08:00:00',
       finalDate: '2024-06-15T23:59:00',
     });

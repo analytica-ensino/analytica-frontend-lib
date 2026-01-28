@@ -13,8 +13,8 @@ export interface SendLessonFormData {
   notification?: string;
   /** Array of students to send lesson to (Step 2) */
   students: Array<{
-    studentId: string;
     userInstitutionId: string;
+    userId?: string;
   }>;
   /** Start date in YYYY-MM-DD format (Step 3) */
   startDate: string;

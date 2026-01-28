@@ -4,14 +4,14 @@ import type { CategoryConfig } from '../components/CheckBoxGroup/CheckBoxGroup';
  * Student data extracted from category selection
  */
 export interface ExtractedStudent {
-  studentId: string;
   userInstitutionId: string;
+  userId?: string;
 }
 
 /**
  * Extract selected students from the students category
  * @param categories - Array of category configurations from CheckBoxGroup
- * @returns Array of extracted student data with studentId and userInstitutionId
+ * @returns Array of extracted student data with userInstitutionId
  */
 export function extractStudentsFromCategories(
   categories: CategoryConfig[]
@@ -27,15 +27,10 @@ export function extractStudentsFromCategories(
     .map((id) => {
       const student = studentsCategory.itens?.find((item) => item.id === id);
       if (student) {
-        const rawStudentId = student.studentId;
         const rawUserInstId = student.userInstitutionId;
         const rawInstId = student.institutionId;
+        const rawUserId = (student as { userId?: string | number }).userId;
 
-        // Extract studentId with type guard
-        const studentId =
-          typeof rawStudentId === 'string' || typeof rawStudentId === 'number'
-            ? String(rawStudentId)
-            : student.id;
         let userInstitutionId = '';
         if (
           typeof rawUserInstId === 'string' ||
@@ -49,12 +44,24 @@ export function extractStudentsFromCategories(
           userInstitutionId = String(rawInstId);
         }
 
+        // Extract userId if available, otherwise use userInstitutionId as userId
+        let userId: string | undefined;
+        if (
+          typeof rawUserId === 'string' ||
+          typeof rawUserId === 'number'
+        ) {
+          userId = String(rawUserId);
+        } else if (userInstitutionId) {
+          // If userId is not available, use userInstitutionId as userId
+          userId = userInstitutionId;
+        }
+
         // Filter out entries without valid userInstitutionId
         if (!userInstitutionId) {
           return null;
         }
 
-        return { studentId, userInstitutionId };
+        return { userInstitutionId, ...(userId && { userId }) };
       }
       return null;
     })

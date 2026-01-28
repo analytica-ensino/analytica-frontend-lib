@@ -113,10 +113,54 @@ const SendLessonModal = ({
       initialCategories.length > 0 &&
       !categoriesInitialized.current
     ) {
-      setCategories(applyChainedAutoSelection(initialCategories));
+      const autoSelectedCategories =
+        applyChainedAutoSelection(initialCategories);
+      setCategories(autoSelectedCategories);
+      // Trigger onCategoriesChange to allow parent to fetch students if needed
+      // This is important when auto-selection happens (e.g., single school/series/class)
+      if (onCategoriesChange) {
+        onCategoriesChange(autoSelectedCategories);
+      }
       categoriesInitialized.current = true;
     }
-  }, [isOpen, initialCategories, setCategories, applyChainedAutoSelection]);
+  }, [
+    isOpen,
+    initialCategories,
+    setCategories,
+    applyChainedAutoSelection,
+    onCategoriesChange,
+  ]);
+
+  /**
+   * Sync categories from parent when they change (e.g., after fetching students)
+   * This ensures the store is updated when parent updates categories
+   */
+  useEffect(() => {
+    if (
+      isOpen &&
+      initialCategories.length > 0 &&
+      categoriesInitialized.current
+    ) {
+      // Only sync if categories have students (indicates they were fetched)
+      const studentsCategory = initialCategories.find(
+        (c) => c.key === 'students'
+      );
+      const storeStudentsCategory = storeCategories.find(
+        (c) => c.key === 'students'
+      );
+
+      // If parent has students but store doesn't, or vice versa, sync
+      const parentHasStudents =
+        studentsCategory?.itens && studentsCategory.itens.length > 0;
+      const storeHasStudents =
+        storeStudentsCategory?.itens && storeStudentsCategory.itens.length > 0;
+
+      if (parentHasStudents !== storeHasStudents || parentHasStudents) {
+        // Update store with parent categories to sync students
+        setCategories(initialCategories);
+      }
+    }
+  }, [isOpen, initialCategories, storeCategories, setCategories]);
 
   /**
    * Reset store and initialization flag when modal closes
