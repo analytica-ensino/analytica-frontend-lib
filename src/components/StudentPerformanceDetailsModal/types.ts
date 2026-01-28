@@ -45,8 +45,8 @@ export interface StudentPerformanceDetailsData {
   };
   /** Secondary stat: ATIVIDADES REALIZADAS */
   activitiesCompleted: number | string;
-  /** Secondary stat: CONTEÚDOS CONCLUÍDOS */
-  contentsCompleted: number | string;
+  /** Secondary stat: CONTEÚDOS CONCLUÍDOS (deprecated - not displayed) */
+  contentsCompleted?: number | string;
   /** Secondary stat: QUESTÕES RESPONDIDAS */
   questionsAnswered: number | string;
   /** Tertiary stat: QUANTIDADE DE ACESSOS */
@@ -79,8 +79,8 @@ export interface StudentPerformanceDetailsLabels {
   hardestTopicLabel: string;
   /** Activities completed label */
   activitiesLabel: string;
-  /** Contents completed label */
-  contentsLabel: string;
+  /** Contents completed label (deprecated - not displayed) */
+  contentsLabel?: string;
   /** Questions answered label */
   questionsLabel: string;
   /** Access count label */

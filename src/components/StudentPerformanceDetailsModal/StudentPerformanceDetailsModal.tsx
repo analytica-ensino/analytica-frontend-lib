@@ -51,6 +51,12 @@ const STAT_CARD_COLORS = {
     valueColor: 'text-error-700',
     secondaryLabelColor: 'text-error-300',
   },
+  default: {
+    headerBg: 'bg-warning-background',
+    iconBg: 'bg-warning-300',
+    valueColor: 'text-warning-600',
+    secondaryLabelColor: 'text-warning-500',
+  },
 } as const;
 
 /**
@@ -64,7 +70,7 @@ const PerformanceStatCard = ({
   badgeText,
   variant,
 }: PerformanceStatCardProps) => {
-  const colors = STAT_CARD_COLORS[variant];
+  const colors = STAT_CARD_COLORS[variant] ?? STAT_CARD_COLORS.default;
 
   return (
     <div className="flex flex-col rounded-xl border border-border-50 bg-background overflow-hidden flex-1">
@@ -236,6 +242,10 @@ const LoadingSkeleton = () => (
       <div className="h-48 bg-background-200 rounded-xl" />
       <div className="h-48 bg-background-200 rounded-xl" />
     </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className="h-20 bg-background-200 rounded-xl" />
+      <div className="h-20 bg-background-200 rounded-xl" />
+    </div>
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
       <div className="h-20 bg-background-200 rounded-xl" />
       <div className="h-20 bg-background-200 rounded-xl" />
@@ -319,12 +329,11 @@ const PerformanceContent = ({
     </div>
 
     {/* Secondary stats row */}
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
       <MetricCard
         label={labels.activitiesLabel}
         value={data.activitiesCompleted}
       />
-      <MetricCard label={labels.contentsLabel} value={data.contentsCompleted} />
       <MetricCard
         label={labels.questionsLabel}
         value={data.questionsAnswered}

@@ -149,12 +149,6 @@ describe('StudentPerformanceDetailsModal', () => {
       expect(screen.getByText('10')).toBeInTheDocument();
     });
 
-    it('renders contents completed metric', () => {
-      render(<StudentPerformanceDetailsModal {...defaultProps} />);
-      expect(screen.getByText('CONTEÚDOS CONCLUÍDOS')).toBeInTheDocument();
-      expect(screen.getByText('2')).toBeInTheDocument();
-    });
-
     it('renders questions answered metric', () => {
       render(<StudentPerformanceDetailsModal {...defaultProps} />);
       expect(screen.getByText('QUESTÕES RESPONDIDAS')).toBeInTheDocument();
