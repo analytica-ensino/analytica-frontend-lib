@@ -280,7 +280,7 @@ describe('useLessonBank', () => {
         topicId: ['topic-1'],
         subtopicId: ['subtopic-1'],
         contentId: ['content-1'],
-        selectedLessonsIds: ['lesson-1', 'lesson-2'],
+        // selectedLessonsIds is no longer sent to API - it's only used for client-side filtering
       });
     });
 
@@ -386,7 +386,9 @@ describe('useLessonBank', () => {
         hasNext: true,
         hasPrev: false,
       });
-      expect(result.current.totalLessons).toBe(50);
+      // totalLessons now reflects filteredLessons.length (visible lessons), not pagination.total
+      // Since mock returns 1 lesson and no addedLessonIds, filteredLessons.length is 1
+      expect(result.current.totalLessons).toBe(1);
     });
   });
 
@@ -566,6 +568,8 @@ describe('useLessonBank', () => {
 
       expect(result.current.filteredLessons).toHaveLength(1);
       expect(result.current.filteredLessons[0].id).toBe('2');
+      // totalLessons should match filteredLessons.length
+      expect(result.current.totalLessons).toBe(1);
     });
 
     it('should return all lessons when addedLessonIds is empty', async () => {
@@ -589,6 +593,8 @@ describe('useLessonBank', () => {
       });
 
       expect(result.current.filteredLessons).toHaveLength(2);
+      // totalLessons should match filteredLessons.length
+      expect(result.current.totalLessons).toBe(2);
     });
   });
 

@@ -5,12 +5,13 @@ import {
   useMemo,
   useCallback,
   useSyncExternalStore,
+  useRef,
 } from 'react';
 import { Button, Modal, Stepper } from '../..';
 import { CaretLeft, CaretRight, PaperPlaneTilt } from 'phosphor-react';
 import { StepData } from '../Stepper/Stepper';
 import { useAlertFormStore } from './useAlertForm';
-import type { AlertsConfig } from '.';
+import type { AlertsConfig, CategoryConfig } from '.';
 import {
   MessageStep,
   RecipientsStep,
@@ -22,6 +23,8 @@ import {
   isCurrentStepValid as isCurrentStepValidValidation,
   handleNext as handleNextValidation,
 } from './validation';
+import { applyChainedAutoSelection } from '../shared/SendModalBase';
+import { useDynamicStudentFetching } from '../../utils/useDynamicStudentFetching';
 
 interface AlertsManagerProps {
   config: AlertsConfig;
@@ -60,7 +63,64 @@ export const AlertsManager = ({
     setIsModalOpen(isOpen);
   }, [isOpen]);
 
+  /**
+   * Track if categories have been initialized for this modal session
+   */
+  const categoriesInitializedRef = useRef(false);
+
   const { labels, behavior, steps: customSteps } = config;
+
+  /**
+   * Handle categories change and fetch students dynamically if fetchStudentsByFilters is provided
+   */
+  const { handleCategoriesChange: baseHandleCategoriesChange } =
+    useDynamicStudentFetching(setCategories, {
+      fetchStudentsByFilters: behavior?.fetchStudentsByFilters,
+    });
+
+  const handleCategoriesChange = useCallback(
+    async (updatedCategories: CategoryConfig[]) => {
+      await baseHandleCategoriesChange(updatedCategories);
+    },
+    [baseHandleCategoriesChange]
+  );
+
+  /**
+   * Initialize categories with auto-selection when modal opens
+   */
+  useEffect(() => {
+    if (
+      isModalOpen &&
+      config.categories.length > 0 &&
+      !categoriesInitializedRef.current
+    ) {
+      const autoSelectedCategories = applyChainedAutoSelection(
+        config.categories
+      );
+      setCategories(autoSelectedCategories);
+
+      // Trigger handleCategoriesChange to fetch students if needed
+      // This is important when auto-selection happens (e.g., single school/series/class)
+      // Note: previousSelectionsRef will be updated inside handleCategoriesChange
+      void handleCategoriesChange(autoSelectedCategories);
+
+      categoriesInitializedRef.current = true;
+    }
+  }, [
+    isModalOpen,
+    config.categories,
+    applyChainedAutoSelection,
+    handleCategoriesChange,
+  ]);
+
+  /**
+   * Reset initialization flag when modal closes
+   */
+  useEffect(() => {
+    if (!isModalOpen) {
+      categoriesInitializedRef.current = false;
+    }
+  }, [isModalOpen]);
 
   // Steps padrão se não fornecidos
   const defaultSteps: StepData[] = [
@@ -218,7 +278,7 @@ export const AlertsManager = ({
             <RecipientsStep
               categories={categories}
               labels={labels}
-              onCategoriesChange={setCategories}
+              onCategoriesChange={handleCategoriesChange}
             />
           </StepWrapper>
         );

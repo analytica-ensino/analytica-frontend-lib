@@ -1,5 +1,6 @@
 import { ComponentType } from 'react';
 import type { CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
+import type { FetchStudentsByFiltersFunction } from '../../utils/studentTypes';
 
 // Re-export para facilitar imports
 export type { RecipientItem } from './useAlertForm';
@@ -95,6 +96,10 @@ export interface AlertsConfig {
 
     // Callback ao enviar aviso
     onSendAlert?: (alertData: AlertData) => Promise<void>;
+
+    // Função para buscar estudantes dinamicamente (opcional)
+    // Se fornecida, será usada para buscar estudantes quando escola/série/turma mudarem
+    fetchStudentsByFilters?: FetchStudentsByFiltersFunction;
   };
 }
 

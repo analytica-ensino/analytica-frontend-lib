@@ -48,6 +48,7 @@ import {
 import { ActivityCreateSkeleton } from './components/ActivityCreateSkeleton';
 import { ActivityCreateHeader } from './components/ActivityCreateHeader';
 import { loadCategoriesData } from '../../utils/categoryDataUtils';
+import { useDynamicStudentFetching } from '../../utils/useDynamicStudentFetching';
 
 /**
  * CreateActivity page component for creating new activities
@@ -168,6 +169,7 @@ const CreateActivity = ({
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [isSendingActivity, setIsSendingActivity] = useState(false);
+
   const [isLessonPreviewModalOpen, setIsLessonPreviewModalOpen] =
     useState(false);
   const [previewLessons, setPreviewLessons] = useState<Lesson[]>([]);
@@ -234,17 +236,82 @@ const CreateActivity = ({
         : `/recommended-class/${draftIdToFetch}`;
 
       const response = await apiClient.get<{
+        message?: string;
         data: {
-          draft?: { selectedLessons?: Lesson[] };
+          draft?: {
+            selectedLessons?: Lesson[];
+            lessons?: Array<{
+              lessonId: string;
+              sequence: number;
+              lesson?: Lesson;
+            }>;
+          };
           selectedLessons?: Lesson[];
+          lessons?: Array<{
+            lessonId: string;
+            sequence: number;
+            lesson?: Lesson;
+          }>;
         };
       }>(endpoint);
 
-      // Handle both response formats (draft wrapper or direct)
-      const lessons =
-        response.data.data.draft?.selectedLessons ||
-        response.data.data.selectedLessons ||
-        [];
+      // Extract lessons from response
+      // Handle multiple response formats:
+      // 1. data.data.draft.selectedLessons (array of Lesson)
+      // 2. data.data.selectedLessons (array of Lesson)
+      // 3. data.data.draft.lessons (array with lesson property)
+      // 4. data.data.lessons (array with lesson property)
+      let lessons: Lesson[] = [];
+
+      // Handle both response.data.data and response.data formats
+      const responseData =
+        'data' in response.data ? response.data.data : response.data;
+      const draft = responseData.draft;
+
+      // Try draft.selectedLessons first
+      if (draft?.selectedLessons && draft.selectedLessons.length > 0) {
+        lessons = draft.selectedLessons;
+      }
+      // Try responseData.selectedLessons
+      else if (
+        responseData.selectedLessons &&
+        responseData.selectedLessons.length > 0
+      ) {
+        lessons = responseData.selectedLessons;
+      }
+      // Try draft.lessons (extract lesson property)
+      else if (draft?.lessons && draft.lessons.length > 0) {
+        lessons = draft.lessons
+          .map((item) => {
+            if (
+              item &&
+              typeof item === 'object' &&
+              'lesson' in item &&
+              item.lesson
+            ) {
+              return item.lesson;
+            }
+            return null;
+          })
+          .filter((lesson): lesson is Lesson => lesson !== null);
+      }
+      // Try responseData.lessons (extract lesson property) - this is the actual format
+      else if (responseData.lessons && responseData.lessons.length > 0) {
+        lessons = responseData.lessons
+          .map((item) => {
+            if (
+              item &&
+              typeof item === 'object' &&
+              'lesson' in item &&
+              item.lesson
+            ) {
+              return item.lesson;
+            }
+            return null;
+          })
+          .filter((lesson): lesson is Lesson => lesson !== null);
+      }
+
       setPreviewLessons(lessons);
     } catch (error) {
       console.error('Error fetching lesson preview:', error);
@@ -435,7 +502,7 @@ const CreateActivity = ({
       // Não atualizamos filters para evitar disparar novas buscas desnecessárias
       if (savedDraft) {
         setActivity((prevActivity) => {
-          if (!prevActivity || prevActivity.id !== savedDraft.id) {
+          if (prevActivity?.id !== savedDraft.id) {
             // Se não há atividade anterior ou o ID mudou, atualiza tudo
             return {
               id: savedDraft.id,
@@ -895,6 +962,13 @@ const CreateActivity = ({
   }, [apiClient, categories]);
 
   /**
+   * Handle categories change and fetch students dynamically
+   */
+  const { handleCategoriesChange } = useDynamicStudentFetching(setCategories, {
+    apiClient,
+  });
+
+  /**
    * Handle opening the send activity modal
    */
   const handleOpenSendModal = useCallback(async () => {
@@ -1199,6 +1273,7 @@ const CreateActivity = ({
         onClose={() => setIsSendModalOpen(false)}
         onSubmit={handleSendActivity}
         categories={categories}
+        onCategoriesChange={handleCategoriesChange}
         isLoading={isSendingActivity}
         onError={(error) => {
           console.error('Erro ao enviar atividade:', error);
@@ -1250,7 +1325,7 @@ const CreateActivity = ({
                       size="sm"
                       className="text-text-700 truncate flex-1 mr-2"
                     >
-                      {lesson.title}
+                      {lesson.videoTitle || lesson.title || 'Aula sem título'}
                     </Text>
                     <MonitorPlay
                       size={20}

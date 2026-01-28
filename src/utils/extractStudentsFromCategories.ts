@@ -11,7 +11,7 @@ export interface ExtractedStudent {
 /**
  * Extract selected students from the students category
  * @param categories - Array of category configurations from CheckBoxGroup
- * @returns Array of extracted student data with studentId and userInstitutionId
+ * @returns Array of extracted student data with userInstitutionId
  */
 export function extractStudentsFromCategories(
   categories: CategoryConfig[]
@@ -27,15 +27,11 @@ export function extractStudentsFromCategories(
     .map((id) => {
       const student = studentsCategory.itens?.find((item) => item.id === id);
       if (student) {
-        const rawStudentId = student.studentId;
         const rawUserInstId = student.userInstitutionId;
         const rawInstId = student.institutionId;
+        const rawStudentId = (student as { studentId?: string | number })
+          .studentId;
 
-        // Extract studentId with type guard
-        const studentId =
-          typeof rawStudentId === 'string' || typeof rawStudentId === 'number'
-            ? String(rawStudentId)
-            : student.id;
         let userInstitutionId = '';
         if (
           typeof rawUserInstId === 'string' ||
@@ -47,6 +43,18 @@ export function extractStudentsFromCategories(
           typeof rawInstId === 'number'
         ) {
           userInstitutionId = String(rawInstId);
+        }
+
+        // Extract studentId if available, otherwise use id as studentId
+        let studentId: string;
+        if (
+          typeof rawStudentId === 'string' ||
+          typeof rawStudentId === 'number'
+        ) {
+          studentId = String(rawStudentId);
+        } else {
+          // If studentId is not available, use the item id
+          studentId = String(student.id);
         }
 
         // Filter out entries without valid userInstitutionId

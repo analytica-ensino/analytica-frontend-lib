@@ -13,9 +13,15 @@ export interface KnowledgeArea {
 
 /**
  * Preview lesson type for LessonPreview component
+ * Includes media fields mapped from API response
  */
 export interface PreviewLesson extends Lesson {
   position?: number;
+  videoSrc?: string;
+  videoPoster?: string;
+  videoSubtitles?: string;
+  podcastSrc?: string;
+  podcastTitle?: string;
 }
 
 /**
@@ -98,21 +104,57 @@ export function getGoalDraftTypeLabel(type: RecommendedClassDraftType): string {
 }
 
 /**
- * Generate recommended lesson title based on type and subject
+ * Generate recommended lesson title based on type, subject, first lesson, and date
  *
  * @param type - RecommendedClassDraftType enum value
  * @param subjectId - Subject ID to get name from
  * @param knowledgeAreas - Array of knowledge areas for subject lookup
+ * @param lessons - Array of lessons (optional, to get first lesson name)
  * @returns Generated title string
  */
 export function generateTitle(
   type: RecommendedClassDraftType,
   subjectId: string | null,
-  knowledgeAreas: KnowledgeArea[]
+  knowledgeAreas: KnowledgeArea[],
+  lessons?: Lesson[]
 ): string {
   const typeLabel = getGoalDraftTypeLabel(type);
   const subjectName = getSubjectName(subjectId, knowledgeAreas);
-  return subjectName ? `${typeLabel} - ${subjectName}` : typeLabel;
+
+  // Get first lesson name if available
+  const firstLessonName =
+    lessons && lessons.length > 0
+      ? lessons[0].videoTitle || lessons[0].title || null
+      : null;
+
+  // Format current date as DD/MM/YYYY
+  const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+
+  // Build title parts
+  const parts: string[] = [typeLabel];
+
+  if (subjectName) {
+    parts.push(subjectName);
+  }
+
+  if (firstLessonName) {
+    // Truncate lesson name if too long (max 30 chars)
+    const truncatedLessonName =
+      firstLessonName.length > 30
+        ? `${firstLessonName.substring(0, 27)}...`
+        : firstLessonName;
+    parts.push(truncatedLessonName);
+  }
+
+  // Always add date at the end
+  parts.push(formattedDate);
+
+  return parts.join(' - ');
 }
 
 /**
@@ -153,6 +195,7 @@ export function getTypeFromUrlString(
 
 /**
  * Convert Lesson to PreviewLesson format
+ * Maps API fields (urlVideo, urlPodCast, etc.) to component-expected fields (videoSrc, podcastSrc, etc.)
  *
  * @param lesson - Lesson object to convert
  * @returns PreviewLesson object with converted data
@@ -162,5 +205,11 @@ export function convertLessonToPreview(lesson: Lesson): PreviewLesson {
     ...lesson,
     title: lesson.videoTitle || lesson.title,
     position: undefined,
+    // Map API fields to component-expected fields for LessonPreview
+    videoSrc: lesson.urlVideo,
+    videoPoster: lesson.urlInitialFrame || lesson.urlCover,
+    videoSubtitles: lesson.urlSubtitle,
+    podcastSrc: lesson.urlPodCast,
+    podcastTitle: lesson.podCastTitle,
   };
 }

@@ -404,6 +404,7 @@ jest.mock('../SendActivityModal/SendActivityModal', () => ({
     isOpen,
     onClose,
     onSubmit,
+    onCategoriesChange,
     categories,
     isLoading,
     onError,
@@ -411,7 +412,8 @@ jest.mock('../SendActivityModal/SendActivityModal', () => ({
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (data: unknown) => Promise<void>;
-    categories: unknown[];
+    onCategoriesChange?: (categories: unknown[]) => void;
+    categories?: unknown[];
     isLoading: boolean;
     onError?: (error: unknown) => void;
   }) =>
@@ -434,7 +436,7 @@ jest.mock('../SendActivityModal/SendActivityModal', () => ({
               notification: '',
               students: [
                 {
-                  studentId: 'student-1',
+                  userId: 'ui-1',
                   userInstitutionId: 'ui-1',
                 },
               ],
@@ -448,7 +450,123 @@ jest.mock('../SendActivityModal/SendActivityModal', () => ({
         <div data-testid="modal-loading">
           {isLoading ? 'Loading' : 'Not Loading'}
         </div>
-        <div data-testid="categories-count">{categories.length}</div>
+        <div data-testid="categories-count">{categories?.length || 0}</div>
+        <button
+          data-testid="trigger-categories-change"
+          onClick={() =>
+            onCategoriesChange?.([
+              {
+                key: 'escola',
+                label: 'Escola',
+                itens: [{ id: 'school-1', name: 'School 1' }],
+                selectedIds: ['school-1'],
+              },
+              {
+                key: 'serie',
+                label: 'Série',
+                itens: [{ id: 'year-1', name: '2024', schoolId: 'school-1' }],
+                selectedIds: ['year-1'],
+              },
+              {
+                key: 'turma',
+                label: 'Turma',
+                itens: [
+                  { id: 'class-1', name: 'Class A', schoolYearId: 'year-1' },
+                ],
+                selectedIds: ['class-1'],
+              },
+              {
+                key: 'students',
+                label: 'Alunos',
+                itens: [],
+                selectedIds: [],
+              },
+            ])
+          }
+        >
+          Trigger Categories Change
+        </button>
+        <button
+          data-testid="trigger-student-selection-change"
+          onClick={() =>
+            onCategoriesChange?.([
+              {
+                key: 'escola',
+                label: 'Escola',
+                itens: [{ id: 'school-1', name: 'School 1' }],
+                selectedIds: ['school-1'],
+              },
+              {
+                key: 'serie',
+                label: 'Série',
+                itens: [{ id: 'year-1', name: '2024', schoolId: 'school-1' }],
+                selectedIds: ['year-1'],
+              },
+              {
+                key: 'turma',
+                label: 'Turma',
+                itens: [
+                  { id: 'class-1', name: 'Class A', schoolYearId: 'year-1' },
+                ],
+                selectedIds: ['class-1'],
+              },
+              {
+                key: 'students',
+                label: 'Alunos',
+                itens: [
+                  {
+                    id: 'ui-1-class-1',
+                    name: 'Student 1',
+                    userInstitutionId: 'ui-1',
+                  },
+                ],
+                selectedIds: ['ui-1-class-1'],
+              },
+            ])
+          }
+        >
+          Trigger Student Selection Change
+        </button>
+        <button
+          data-testid="trigger-empty-class-selection"
+          onClick={() =>
+            onCategoriesChange?.([
+              {
+                key: 'escola',
+                label: 'Escola',
+                itens: [{ id: 'school-1', name: 'School 1' }],
+                selectedIds: ['school-1'],
+              },
+              {
+                key: 'serie',
+                label: 'Série',
+                itens: [{ id: 'year-1', name: '2024', schoolId: 'school-1' }],
+                selectedIds: ['year-1'],
+              },
+              {
+                key: 'turma',
+                label: 'Turma',
+                itens: [
+                  { id: 'class-1', name: 'Class A', schoolYearId: 'year-1' },
+                ],
+                selectedIds: [], // No classes selected
+              },
+              {
+                key: 'students',
+                label: 'Alunos',
+                itens: [],
+                selectedIds: [],
+              },
+            ])
+          }
+        >
+          Trigger Empty Class Selection
+        </button>
+        <span data-testid="students-count">
+          {(categories as Array<{ key: string; itens?: unknown[] }>)?.find(
+            (c) => c.key === 'students'
+          )?.itens?.length || 0}
+        </span>
       </div>
     ) : null,
 }));
@@ -1554,11 +1672,6 @@ describe('CreateActivity', () => {
           data: { classes: [] },
         },
       };
-      const mockStudentsResponse = {
-        data: {
-          data: { students: [], pagination: {} },
-        },
-      };
 
       mockApiClient.get = jest.fn((url: string) => {
         if (url === '/school')
@@ -1567,8 +1680,6 @@ describe('CreateActivity', () => {
           return Promise.resolve(mockSchoolYearsResponse as never);
         if (url === '/classes')
           return Promise.resolve(mockClassesResponse as never);
-        if (url === '/students?page=1&limit=100')
-          return Promise.resolve(mockStudentsResponse as never);
         return Promise.reject(new Error('Unknown endpoint'));
       }) as typeof mockApiClient.get;
 
@@ -1653,29 +1764,6 @@ describe('CreateActivity', () => {
           },
         },
       };
-      const mockStudentsResponse = {
-        data: {
-          data: {
-            students: [
-              {
-                id: 'student1',
-                email: 'student@test.com',
-                name: 'Student 1',
-                active: true,
-                createdAt: '2025-01-01',
-                updatedAt: '2025-01-01',
-                userInstitutionId: 'user1',
-                institutionId: 'inst1',
-                schoolId: 'school1',
-                schoolYearId: 'year1',
-                classId: 'class1',
-                profileId: 'profile1',
-              },
-            ],
-            pagination: {},
-          },
-        },
-      };
 
       mockApiClient.get = jest.fn((url: string) => {
         if (url === '/school')
@@ -1684,8 +1772,6 @@ describe('CreateActivity', () => {
           return Promise.resolve(mockSchoolYearsResponse as never);
         if (url === '/classes')
           return Promise.resolve(mockClassesResponse as never);
-        if (url === '/students?page=1&limit=100')
-          return Promise.resolve(mockStudentsResponse as never);
         return Promise.reject(new Error('Unknown endpoint'));
       }) as typeof mockApiClient.get;
 
@@ -1699,9 +1785,6 @@ describe('CreateActivity', () => {
         expect(mockApiClient.get).toHaveBeenCalledWith('/school');
         expect(mockApiClient.get).toHaveBeenCalledWith('/schoolYear');
         expect(mockApiClient.get).toHaveBeenCalledWith('/classes');
-        expect(mockApiClient.get).toHaveBeenCalledWith(
-          '/students?page=1&limit=100'
-        );
       });
     });
 
@@ -1743,11 +1826,6 @@ describe('CreateActivity', () => {
           data: { classes: [] },
         },
       };
-      const mockStudentsResponse = {
-        data: {
-          data: { students: [], pagination: {} },
-        },
-      };
 
       mockApiClient.get = jest.fn((url: string) => {
         if (url === '/school') {
@@ -1758,9 +1836,6 @@ describe('CreateActivity', () => {
         }
         if (url === '/classes') {
           return Promise.resolve(mockClassesResponse as never);
-        }
-        if (url === '/students?page=1&limit=100') {
-          return Promise.resolve(mockStudentsResponse as never);
         }
         return Promise.reject(new Error('Unknown endpoint'));
       }) as typeof mockApiClient.get;
@@ -1779,7 +1854,8 @@ describe('CreateActivity', () => {
       fireEvent.click(screen.getByText('Enviar atividade'));
 
       await waitFor(() => {
-        expect(mockApiClient.get).toHaveBeenCalledTimes(4);
+        // Now only 3 calls: /school, /schoolYear, /classes (students are loaded dynamically)
+        expect(mockApiClient.get).toHaveBeenCalledTimes(3);
       });
     });
 
@@ -3866,6 +3942,469 @@ describe('CreateActivity', () => {
 
       // Just verify the component renders in recommended lesson mode
       expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+    });
+  });
+
+  describe('handleCategoriesChange - dynamic student fetching', () => {
+    const mockStudents = [
+      {
+        id: 'student1',
+        email: 'student1@example.com',
+        name: 'Student 1',
+        active: true,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        userInstitutionId: 'ui-1',
+        institutionId: 'inst-1',
+        profileId: 'profile-1',
+        school: {
+          id: 'school-1',
+          name: 'School 1',
+        },
+        schoolYear: {
+          id: 'year-1',
+          name: '2024',
+        },
+        class: {
+          id: 'class-1',
+          name: 'Class A',
+        },
+      },
+      {
+        id: 'student2',
+        email: 'student2@example.com',
+        name: 'Student 2',
+        active: true,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        userInstitutionId: 'ui-2',
+        institutionId: 'inst-1',
+        profileId: 'profile-1',
+        school: {
+          id: 'school-1',
+          name: 'School 1',
+        },
+        schoolYear: {
+          id: 'year-1',
+          name: '2024',
+        },
+        class: {
+          id: 'class-1',
+          name: 'Class A',
+        },
+      },
+    ];
+
+    beforeEach(() => {
+      mockApiClient.get = jest.fn().mockImplementation((url: string) => {
+        if (url === '/school') {
+          return Promise.resolve({
+            data: {
+              data: { schools: [{ id: 'school-1', companyName: 'School 1' }] },
+            },
+          });
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve({
+            data: {
+              data: {
+                schoolYears: [
+                  { id: 'year-1', name: '2024', schoolId: 'school-1' },
+                ],
+              },
+            },
+          });
+        }
+        if (url === '/classes') {
+          return Promise.resolve({
+            data: {
+              data: {
+                classes: [
+                  {
+                    id: 'class-1',
+                    name: 'Class A',
+                    schoolYearId: 'year-1',
+                  },
+                ],
+              },
+            },
+          });
+        }
+        return Promise.reject(new Error('Unknown endpoint'));
+      });
+    });
+
+    it('should fetch students when class selection changes', async () => {
+      (mockApiClient.post as jest.Mock).mockImplementation((url: string) => {
+        if (url === '/students/filters') {
+          return Promise.resolve({
+            data: { message: 'Success', data: { students: mockStudents } },
+          });
+        }
+        if (url === '/activity-drafts') {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-1',
+                type: ActivityType.RASCUNHO,
+                title: 'Test Draft',
+                subjectId: 'subject-1',
+                filters: { subjects: ['subject-1'] },
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      await act(async () => {
+        render(<CreateActivity {...defaultProps} />);
+      });
+
+      // Add a question so the send button is enabled
+      const addQuestionBtn = screen.getByTestId('add-question');
+      await act(async () => {
+        fireEvent.click(addQuestionBtn);
+      });
+
+      // Wait for auto-save
+      await act(async () => {
+        jest.advanceTimersByTime(600);
+      });
+
+      // Open send modal
+      const sendActivityBtn = screen.getByText('Enviar atividade');
+      await act(async () => {
+        fireEvent.click(sendActivityBtn);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+      });
+
+      // Trigger categories change (simulating class selection)
+      const triggerBtn = screen.getByTestId('trigger-categories-change');
+      await act(async () => {
+        fireEvent.click(triggerBtn);
+      });
+
+      // Wait for student fetching
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/students/filters',
+          expect.objectContaining({
+            classIds: ['class-1'],
+          })
+        );
+      });
+
+      // Verify students were added to categories
+      await waitFor(() => {
+        const studentsCount = screen.getByTestId('students-count');
+        expect(studentsCount).toHaveTextContent('2');
+      });
+    });
+
+    it('should not fetch students when only student selection changes', async () => {
+      (mockApiClient.post as jest.Mock).mockImplementation((url: string) => {
+        if (url === '/students/filters') {
+          return Promise.resolve({
+            data: { message: 'Success', data: { students: mockStudents } },
+          });
+        }
+        if (url === '/activity-drafts') {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-1',
+                type: ActivityType.RASCUNHO,
+                title: 'Test Draft',
+                subjectId: 'subject-1',
+                filters: { subjects: ['subject-1'] },
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      await act(async () => {
+        render(<CreateActivity {...defaultProps} />);
+      });
+
+      // Add a question so the send button is enabled
+      const addQuestionBtn = screen.getByTestId('add-question');
+      await act(async () => {
+        fireEvent.click(addQuestionBtn);
+      });
+
+      // Wait for auto-save
+      await act(async () => {
+        jest.advanceTimersByTime(600);
+      });
+
+      // Open send modal
+      const sendActivityBtn = screen.getByText('Enviar atividade');
+      await act(async () => {
+        fireEvent.click(sendActivityBtn);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+      });
+
+      // First, trigger class selection to fetch students
+      const triggerClassBtn = screen.getByTestId('trigger-categories-change');
+      await act(async () => {
+        fireEvent.click(triggerClassBtn);
+      });
+
+      // Wait for initial fetch
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/students/filters',
+          expect.objectContaining({
+            classIds: ['class-1'],
+          })
+        );
+      });
+
+      // Clear the mock call count
+      (mockApiClient.post as jest.Mock).mockClear();
+
+      // Now trigger student selection change (should NOT fetch again)
+      const triggerStudentBtn = screen.getByTestId(
+        'trigger-student-selection-change'
+      );
+      await act(async () => {
+        fireEvent.click(triggerStudentBtn);
+      });
+
+      // Wait a bit to ensure no new fetch happens
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Verify no new fetch was made
+      expect(mockApiClient.post).not.toHaveBeenCalled();
+    });
+
+    it('should clear students when no classes selected', async () => {
+      (mockApiClient.post as jest.Mock).mockImplementation((url: string) => {
+        if (url === '/students/filters') {
+          return Promise.resolve({
+            data: { message: 'Success', data: { students: mockStudents } },
+          });
+        }
+        if (url === '/activity-drafts') {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-1',
+                type: ActivityType.RASCUNHO,
+                title: 'Test Draft',
+                subjectId: 'subject-1',
+                filters: { subjects: ['subject-1'] },
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      await act(async () => {
+        render(<CreateActivity {...defaultProps} />);
+      });
+
+      // Add a question so the send button is enabled
+      const addQuestionBtn = screen.getByTestId('add-question');
+      await act(async () => {
+        fireEvent.click(addQuestionBtn);
+      });
+
+      // Wait for auto-save
+      await act(async () => {
+        jest.advanceTimersByTime(600);
+      });
+
+      // Open send modal
+      const sendActivityBtn = screen.getByText('Enviar atividade');
+      await act(async () => {
+        fireEvent.click(sendActivityBtn);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+      });
+
+      // First, trigger class selection to fetch students
+      const triggerClassBtn = screen.getByTestId('trigger-categories-change');
+      await act(async () => {
+        fireEvent.click(triggerClassBtn);
+      });
+
+      // Wait for initial fetch
+      await waitFor(() => {
+        expect(screen.getByTestId('students-count')).toHaveTextContent('2');
+      });
+
+      // Now trigger empty class selection
+      const triggerEmptyBtn = screen.getByTestId(
+        'trigger-empty-class-selection'
+      );
+      await act(async () => {
+        fireEvent.click(triggerEmptyBtn);
+      });
+
+      // Wait for students to be cleared
+      await waitFor(() => {
+        expect(screen.getByTestId('students-count')).toHaveTextContent('0');
+      });
+    });
+
+    it('should handle error when fetching students fails', async () => {
+      (mockApiClient.post as jest.Mock).mockImplementation((url: string) => {
+        if (url === '/students/filters') {
+          return Promise.reject(new Error('Failed to fetch students'));
+        }
+        if (url === '/activity-drafts') {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-1',
+                type: ActivityType.RASCUNHO,
+                title: 'Test Draft',
+                subjectId: 'subject-1',
+                filters: { subjects: ['subject-1'] },
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      await act(async () => {
+        render(<CreateActivity {...defaultProps} />);
+      });
+
+      // Add a question so the send button is enabled
+      const addQuestionBtn = screen.getByTestId('add-question');
+      await act(async () => {
+        fireEvent.click(addQuestionBtn);
+      });
+
+      // Wait for auto-save
+      await act(async () => {
+        jest.advanceTimersByTime(600);
+      });
+
+      // Open send modal
+      const sendActivityBtn = screen.getByText('Enviar atividade');
+      await act(async () => {
+        fireEvent.click(sendActivityBtn);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+      });
+
+      // Trigger categories change (should fail to fetch students)
+      const triggerBtn = screen.getByTestId('trigger-categories-change');
+      await act(async () => {
+        fireEvent.click(triggerBtn);
+      });
+
+      // Wait for error handling
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/students/filters',
+          expect.objectContaining({
+            classIds: ['class-1'],
+          })
+        );
+      });
+
+      // Verify students were cleared on error
+      await waitFor(() => {
+        expect(screen.getByTestId('students-count')).toHaveTextContent('0');
+      });
+    });
+
+    it('should transform students correctly with unique IDs', async () => {
+      (mockApiClient.post as jest.Mock).mockImplementation((url: string) => {
+        if (url === '/students/filters') {
+          return Promise.resolve({
+            data: { message: 'Success', data: { students: mockStudents } },
+          });
+        }
+        if (url === '/activity-drafts') {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-1',
+                type: ActivityType.RASCUNHO,
+                title: 'Test Draft',
+                subjectId: 'subject-1',
+                filters: { subjects: ['subject-1'] },
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      await act(async () => {
+        render(<CreateActivity {...defaultProps} />);
+      });
+
+      // Add a question so the send button is enabled
+      const addQuestionBtn = screen.getByTestId('add-question');
+      await act(async () => {
+        fireEvent.click(addQuestionBtn);
+      });
+
+      // Wait for auto-save
+      await act(async () => {
+        jest.advanceTimersByTime(600);
+      });
+
+      // Open send modal
+      const sendActivityBtn = screen.getByText('Enviar atividade');
+      await act(async () => {
+        fireEvent.click(sendActivityBtn);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+      });
+
+      // Trigger categories change
+      const triggerBtn = screen.getByTestId('trigger-categories-change');
+      await act(async () => {
+        fireEvent.click(triggerBtn);
+      });
+
+      // Wait for student fetching
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/students/filters',
+          expect.objectContaining({
+            classIds: ['class-1'],
+            schoolIds: ['school-1'],
+            schoolYearIds: ['year-1'],
+          })
+        );
+      });
+
+      // Verify students were added (count should be 2)
+      await waitFor(() => {
+        expect(screen.getByTestId('students-count')).toHaveTextContent('2');
+      });
     });
   });
 });

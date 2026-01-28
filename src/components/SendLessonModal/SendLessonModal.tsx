@@ -1,24 +1,28 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, ChangeEvent } from 'react';
 import Modal from '../Modal/Modal';
 import Stepper from '../Stepper/Stepper';
+import Input from '../Input/Input';
+import TextArea from '../TextArea/TextArea';
 import { useSendLessonModalStore } from './hooks/useSendLessonModal';
 import {
   SendLessonModalProps,
   SendLessonFormData,
   CategoryConfig,
 } from './types';
-import { calculateFormattedItemsForAutoSelection } from '../CheckBoxGroup/CheckBoxGroup.helpers';
 import {
   RecipientStep,
   DeadlineStep,
   SendModalFooter,
   useDateTimeHandlers,
+  useCategoryInitialization,
+  useCategorySync,
 } from '../shared/SendModalBase';
 
 /**
  * Stepper steps configuration
  */
 const STEPPER_STEPS = [
+  { id: 'lesson', label: 'Aula', state: 'pending' as const },
   { id: 'recipient', label: 'Destinatário', state: 'pending' as const },
   { id: 'deadline', label: 'Prazo', state: 'pending' as const },
 ];
@@ -26,16 +30,17 @@ const STEPPER_STEPS = [
 /**
  * Modal configuration constants
  */
-const MAX_STEPS = 2;
+const MAX_STEPS = 3;
 const ENTITY_NAME = 'aula';
 const ENTITY_NAME_WITH_ARTICLE = 'a aula';
 
 /**
  * SendLessonModal component for sending lessons to students
  *
- * A multi-step modal with 2 steps:
- * 1. Recipient - Select students from hierarchical structure using CheckboxGroup
- * 2. Deadline - Set start/end dates
+ * A multi-step modal with 3 steps:
+ * 1. Lesson - Enter title and optional notification message
+ * 2. Recipient - Select students from hierarchical structure using CheckboxGroup
+ * 3. Deadline - Set start/end dates
  */
 const SendLessonModal = ({
   isOpen,
@@ -53,74 +58,32 @@ const SendLessonModal = ({
   const storeCategories = useSendLessonModalStore((state) => state.categories);
 
   /**
-   * Apply the same "single visible option" auto-selection behavior that the CheckboxGroup
-   * applies internally, but during initialization.
-   *
-   * This fixes the scenario where the first category (e.g. Escola) is rendered in compact
-   * mode (single item) and therefore has no UI affordance to manually select it, leaving
-   * dependent categories disabled.
+   * Initialize categories with auto-selection when modal opens
    */
-  const applyChainedAutoSelection = useCallback(
-    (categories: CategoryConfig[]): CategoryConfig[] => {
-      let current = categories;
-      let safety = 0;
-      let changed = true;
-
-      while (changed && safety < categories.length + 2) {
-        safety += 1;
-        changed = false;
-
-        const next = current.map((category) => {
-          const filteredItems = calculateFormattedItemsForAutoSelection(
-            category,
-            current
-          );
-
-          const hasNoSelection =
-            !category.selectedIds || category.selectedIds.length === 0;
-
-          if (filteredItems.length === 1 && hasNoSelection) {
-            changed = true;
-            return { ...category, selectedIds: [filteredItems[0].id] };
-          }
-
-          return category;
-        });
-
-        current = next;
-      }
-
-      return current;
-    },
-    []
-  );
+  const { categoriesInitializedRef } = useCategoryInitialization({
+    isOpen,
+    initialCategories,
+    setCategories,
+    onCategoriesChange,
+  });
 
   /**
-   * Track if categories have been initialized for this modal session
+   * Sync categories from parent when they change (e.g., after fetching students)
    */
-  const categoriesInitialized = useRef(false);
+  useCategorySync({
+    isOpen,
+    initialCategories,
+    storeCategories,
+    setCategories,
+    categoriesInitializedRef,
+  });
 
   /**
-   * Initialize categories when modal opens
-   */
-  useEffect(() => {
-    if (
-      isOpen &&
-      initialCategories.length > 0 &&
-      !categoriesInitialized.current
-    ) {
-      setCategories(applyChainedAutoSelection(initialCategories));
-      categoriesInitialized.current = true;
-    }
-  }, [isOpen, initialCategories, setCategories, applyChainedAutoSelection]);
-
-  /**
-   * Reset store and initialization flag when modal closes
+   * Reset store when modal closes
    */
   useEffect(() => {
     if (!isOpen) {
       reset();
-      categoriesInitialized.current = false;
     }
   }, [isOpen, reset]);
 
@@ -143,6 +106,26 @@ const SendLessonModal = ({
       onCategoriesChange?.(updatedCategories);
     },
     [setCategories, onCategoriesChange]
+  );
+
+  /**
+   * Handle title change
+   */
+  const handleTitleChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      store.setFormData({ title: e.target.value });
+    },
+    [store]
+  );
+
+  /**
+   * Handle notification message change
+   */
+  const handleNotificationChange = useCallback(
+    (e: ChangeEvent<HTMLTextAreaElement>) => {
+      store.setFormData({ notification: e.target.value });
+    },
+    [store]
   );
 
   /**
@@ -172,6 +155,32 @@ const SendLessonModal = ({
   }, [onClose]);
 
   /**
+   * Render Step 1 - Lesson (unique to SendLessonModal)
+   */
+  const renderLessonStep = () => (
+    <div className="flex flex-col gap-6">
+      {/* Title Input */}
+      <Input
+        label="Título"
+        placeholder="Digite o título da aula"
+        value={store.formData.title || ''}
+        onChange={handleTitleChange}
+        variant="rounded"
+        required
+        errorMessage={store.errors.title}
+      />
+
+      {/* Notification Message */}
+      <TextArea
+        label="Mensagem da notificação"
+        placeholder="Digite uma mensagem para a notificação (opcional)"
+        value={store.formData.notification || ''}
+        onChange={handleNotificationChange}
+      />
+    </div>
+  );
+
+  /**
    * Render current step content
    */
   const renderStepContent = () => {
@@ -181,6 +190,8 @@ const SendLessonModal = ({
 
     switch (store.currentStep) {
       case 1:
+        return renderLessonStep();
+      case 2:
         return (
           <RecipientStep
             categories={categoriesToRender}
@@ -189,7 +200,7 @@ const SendLessonModal = ({
             studentsError={store.errors.students}
           />
         );
-      case 2:
+      case 3:
         return (
           <DeadlineStep
             startDate={store.formData.startDate || ''}
@@ -229,7 +240,7 @@ const SendLessonModal = ({
 
   const modalTitle = modalTitleProp
     ? `Enviar aula: ${modalTitleProp}`
-    : 'Enviar aula';
+    : 'Enviar aula recomendada';
 
   return (
     <Modal

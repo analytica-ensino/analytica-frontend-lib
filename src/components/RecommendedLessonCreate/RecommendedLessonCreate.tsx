@@ -50,6 +50,7 @@ import {
 import { RecommendedLessonCreateSkeleton } from './components/RecommendedLessonCreateSkeleton';
 import { RecommendedLessonCreateHeader } from './components/RecommendedLessonCreateHeader';
 import { loadCategoriesData } from '../../utils/categoryDataUtils';
+import { useDynamicStudentFetching } from '../../utils/useDynamicStudentFetching';
 
 /**
  * RecommendedLessonCreate page component for creating new recommended lessons
@@ -575,7 +576,7 @@ const RecommendedLessonCreate = ({
     if (!subjectId) {
       throw new Error('Subject ID não encontrado');
     }
-    const title = generateTitle(draftType, subjectId, knowledgeAreas);
+    const title = generateTitle(draftType, subjectId, knowledgeAreas, lessons);
     const filters = convertFiltersToBackendFormat(appliedFilters);
     const lessonIds = lessons.map((l, index) => ({
       lessonId: l.id,
@@ -625,7 +626,7 @@ const RecommendedLessonCreate = ({
 
       if (savedDraft) {
         setRecommendedLesson((prevLesson) => {
-          if (!prevLesson || prevLesson.id !== savedDraft.id) {
+          if (prevLesson?.id !== savedDraft.id) {
             return {
               id: savedDraft.id,
               type: savedDraft.type,
@@ -1018,6 +1019,13 @@ const RecommendedLessonCreate = ({
   }, [apiClient, categories]);
 
   /**
+   * Handle categories change and fetch students dynamically
+   */
+  const { handleCategoriesChange } = useDynamicStudentFetching(setCategories, {
+    apiClient,
+  });
+
+  /**
    * Handle opening the send lesson modal
    */
   const handleOpenSendModal = useCallback(async () => {
@@ -1067,7 +1075,8 @@ const RecommendedLessonCreate = ({
           : undefined;
 
         const lessonPayload: RecommendedLessonCreatePayload = {
-          title: recommendedLesson?.title || 'Aula Recomendada',
+          title:
+            formData.title || recommendedLesson?.title || 'Aula Recomendada',
           subjectId: subjectId || null,
           lessonIds: lessons.map((l, index) => ({
             lessonId: l.id,
@@ -1076,7 +1085,9 @@ const RecommendedLessonCreate = ({
           ...(activityDraftIds && { activityDraftIds }),
           startDate: startDateTime,
           finalDate: finalDateTime,
-          targetStudentIds: formData.students.map((s) => s.studentId),
+          targetStudentIds: formData.students.map((s) => s.userInstitutionId),
+          // Send notification as separate field (backend expects "notification")
+          ...(formData.notification && { notification: formData.notification }),
         };
 
         // POST: Create recommended lesson
@@ -1339,6 +1350,7 @@ const RecommendedLessonCreate = ({
         onClose={() => setIsSendModalOpen(false)}
         onSubmit={handleSendLesson}
         categories={categories}
+        onCategoriesChange={handleCategoriesChange}
         isLoading={isSendingLesson}
         onError={(error) => {
           console.error('Error sending lesson:', error);

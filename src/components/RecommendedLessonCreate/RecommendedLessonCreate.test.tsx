@@ -77,10 +77,14 @@ jest.mock('../..', () => ({
     isOpen,
     onClose,
     onSubmit,
+    onCategoriesChange,
+    categories,
   }: {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (data: unknown) => void;
+    onCategoriesChange?: (categories: unknown[]) => void;
+    categories?: unknown[];
   }) =>
     isOpen ? (
       <div data-testid="send-lesson-modal">
@@ -95,12 +99,88 @@ jest.mock('../..', () => ({
               startTime: '10:00',
               finalDate: '2024-01-20',
               finalTime: '18:00',
-              students: ['student-1'],
+              students: [{ studentId: 'student-1', userInstitutionId: 'ui-1' }],
             })
           }
         >
           Submit
         </button>
+        <button
+          data-testid="trigger-categories-change"
+          onClick={() =>
+            onCategoriesChange?.([
+              {
+                key: 'escola',
+                label: 'Escola',
+                itens: [{ id: 'school-1', name: 'School 1' }],
+                selectedIds: ['school-1'],
+              },
+              {
+                key: 'serie',
+                label: 'Série',
+                itens: [{ id: 'year-1', name: '2024', schoolId: 'school-1' }],
+                selectedIds: ['year-1'],
+              },
+              {
+                key: 'turma',
+                label: 'Turma',
+                itens: [
+                  { id: 'class-1', name: 'Class A', schoolYearId: 'year-1' },
+                ],
+                selectedIds: ['class-1'],
+              },
+              {
+                key: 'students',
+                label: 'Alunos',
+                itens: [],
+                selectedIds: [],
+              },
+            ])
+          }
+        >
+          Trigger Categories Change
+        </button>
+        <button
+          data-testid="trigger-empty-class-selection"
+          onClick={() =>
+            onCategoriesChange?.([
+              {
+                key: 'escola',
+                label: 'Escola',
+                itens: [{ id: 'school-1', name: 'School 1' }],
+                selectedIds: ['school-1'],
+              },
+              {
+                key: 'serie',
+                label: 'Série',
+                itens: [{ id: 'year-1', name: '2024', schoolId: 'school-1' }],
+                selectedIds: ['year-1'],
+              },
+              {
+                key: 'turma',
+                label: 'Turma',
+                itens: [
+                  { id: 'class-1', name: 'Class A', schoolYearId: 'year-1' },
+                ],
+                selectedIds: [], // No classes selected
+              },
+              {
+                key: 'students',
+                label: 'Alunos',
+                itens: [],
+                selectedIds: [],
+              },
+            ])
+          }
+        >
+          Trigger Empty Class Selection
+        </button>
+        <span data-testid="categories-count">{categories?.length || 0}</span>
+        <span data-testid="students-count">
+          {(categories as Array<{ key: string; itens?: unknown[] }>)?.find(
+            (c) => c.key === 'students'
+          )?.itens?.length || 0}
+        </span>
       </div>
     ) : null,
 }));
@@ -2844,6 +2924,541 @@ describe('RecommendedLessonCreate', () => {
           })
         );
       });
+    });
+  });
+
+  describe('handleCategoriesChange and dynamic student fetching', () => {
+    beforeEach(() => {
+      mockAppliedFilters = { subjectIds: ['subject-1'] };
+      mockDraftFilters = { subjectIds: ['subject-1'] };
+    });
+
+    it('should fetch students when class selections change', async () => {
+      const mockStudents = [
+        {
+          id: 'student-1',
+          name: 'John Doe',
+          email: 'john@example.com',
+          active: true,
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          userInstitutionId: 'ui-1',
+          institutionId: 'inst-1',
+          profileId: 'profile-1',
+          school: { id: 'school-1', name: 'School 1' },
+          schoolYear: { id: 'year-1', name: '2024' },
+          class: { id: 'class-1', name: 'Class A' },
+        },
+      ];
+
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url === '/school') {
+          return Promise.resolve({
+            data: {
+              message: 'Success',
+              data: { schools: [{ id: 'school-1', companyName: 'School 1' }] },
+            },
+          });
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve({
+            data: {
+              message: 'Success',
+              data: {
+                schoolYears: [
+                  { id: 'year-1', name: '2024', schoolId: 'school-1' },
+                ],
+              },
+            },
+          });
+        }
+        if (url === '/classes') {
+          return Promise.resolve({
+            data: {
+              message: 'Success',
+              data: {
+                classes: [
+                  { id: 'class-1', name: 'Class A', schoolYearId: 'year-1' },
+                ],
+              },
+            },
+          });
+        }
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({
+            data: { data: { subjects: [{ id: 'subject-1', name: 'Math' }] } },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      (mockApiClient.post as jest.Mock).mockImplementation((url: string) => {
+        if (url === '/students/filters') {
+          return Promise.resolve({
+            data: { message: 'Success', data: { students: mockStudents } },
+          });
+        }
+        if (url === '/recommended-class/drafts') {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-1',
+                type: RecommendedClassDraftType.RASCUNHO,
+                title: 'Test Draft',
+                subjectId: 'subject-1',
+                filters: { subjects: ['subject-1'] },
+                lessonIds: [],
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      await act(async () => {
+        render(<RecommendedLessonCreate {...defaultProps} />);
+      });
+
+      // First, add a lesson so the send button is enabled
+      const addLessonBtn = screen.getByTestId('add-lesson-btn');
+      await act(async () => {
+        fireEvent.click(addLessonBtn);
+      });
+
+      // Wait for auto-save
+      await act(async () => {
+        jest.advanceTimersByTime(600);
+      });
+
+      // Open send modal
+      const sendLessonBtn = screen.getByTestId('send-lesson-btn');
+      await act(async () => {
+        fireEvent.click(sendLessonBtn);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-lesson-modal')).toBeInTheDocument();
+      });
+
+      // Trigger categories change (simulating class selection)
+      const triggerBtn = screen.getByTestId('trigger-categories-change');
+      await act(async () => {
+        fireEvent.click(triggerBtn);
+      });
+
+      // Wait for student fetching
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/students/filters',
+          expect.objectContaining({
+            classIds: ['class-1'],
+          })
+        );
+      });
+    });
+
+    it('should clear students when no classes selected', async () => {
+      const mockStudents = [
+        {
+          id: 'student-1',
+          name: 'John Doe',
+          email: 'john@example.com',
+          active: true,
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          userInstitutionId: 'ui-1',
+          institutionId: 'inst-1',
+          profileId: 'profile-1',
+          school: { id: 'school-1', name: 'School 1' },
+          schoolYear: { id: 'year-1', name: '2024' },
+          class: { id: 'class-1', name: 'Class A' },
+        },
+      ];
+
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url === '/school') {
+          return Promise.resolve({
+            data: {
+              message: 'Success',
+              data: { schools: [{ id: 'school-1', companyName: 'School 1' }] },
+            },
+          });
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve({
+            data: {
+              message: 'Success',
+              data: {
+                schoolYears: [
+                  { id: 'year-1', name: '2024', schoolId: 'school-1' },
+                ],
+              },
+            },
+          });
+        }
+        if (url === '/classes') {
+          return Promise.resolve({
+            data: {
+              message: 'Success',
+              data: {
+                classes: [
+                  { id: 'class-1', name: 'Class A', schoolYearId: 'year-1' },
+                ],
+              },
+            },
+          });
+        }
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({
+            data: { data: { subjects: [] } },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      (mockApiClient.post as jest.Mock).mockImplementation((url: string) => {
+        if (url === '/recommended-class/drafts') {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-1',
+                type: RecommendedClassDraftType.RASCUNHO,
+                title: 'Test Draft',
+                subjectId: 'subject-1',
+                filters: { subjects: ['subject-1'] },
+                lessonIds: [],
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        if (url === '/students/filters') {
+          return Promise.resolve({
+            data: { message: 'Success', data: { students: mockStudents } },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      await act(async () => {
+        render(<RecommendedLessonCreate {...defaultProps} />);
+      });
+
+      // First, add a lesson so the send button is enabled
+      const addLessonBtn = screen.getByTestId('add-lesson-btn');
+      await act(async () => {
+        fireEvent.click(addLessonBtn);
+      });
+
+      // Wait for auto-save
+      await act(async () => {
+        jest.advanceTimersByTime(600);
+      });
+
+      // Open send modal
+      const sendLessonBtn = screen.getByTestId('send-lesson-btn');
+      await act(async () => {
+        fireEvent.click(sendLessonBtn);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-lesson-modal')).toBeInTheDocument();
+      });
+
+      // First trigger a categories change WITH classes selected to fetch students
+      const triggerBtn = screen.getByTestId('trigger-categories-change');
+      await act(async () => {
+        fireEvent.click(triggerBtn);
+      });
+
+      // Wait for students to be fetched
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/students/filters',
+          expect.objectContaining({
+            classIds: ['class-1'],
+          })
+        );
+      });
+
+      // Clear the mock calls to track new calls
+      (mockApiClient.post as jest.Mock).mockClear();
+
+      // Now trigger empty class selection (no classes selected)
+      const emptyClassBtn = screen.getByTestId('trigger-empty-class-selection');
+      await act(async () => {
+        fireEvent.click(emptyClassBtn);
+      });
+
+      // Give time for any potential API calls
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Assert that /students/filters was NOT called when no classes are selected
+      expect(mockApiClient.post).not.toHaveBeenCalledWith(
+        '/students/filters',
+        expect.any(Object)
+      );
+
+      // Assert the students list is empty (0 students in categories)
+      await waitFor(() => {
+        expect(screen.getByTestId('students-count')).toHaveTextContent('0');
+      });
+    });
+
+    it('should handle API error when fetching students', async () => {
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url === '/school') {
+          return Promise.resolve({
+            data: {
+              message: 'Success',
+              data: { schools: [{ id: 'school-1', companyName: 'School 1' }] },
+            },
+          });
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve({
+            data: {
+              message: 'Success',
+              data: {
+                schoolYears: [
+                  { id: 'year-1', name: '2024', schoolId: 'school-1' },
+                ],
+              },
+            },
+          });
+        }
+        if (url === '/classes') {
+          return Promise.resolve({
+            data: {
+              message: 'Success',
+              data: {
+                classes: [
+                  { id: 'class-1', name: 'Class A', schoolYearId: 'year-1' },
+                ],
+              },
+            },
+          });
+        }
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({
+            data: { data: { subjects: [] } },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      (mockApiClient.post as jest.Mock).mockImplementation((url: string) => {
+        if (url === '/students/filters') {
+          return Promise.reject(new Error('API Error'));
+        }
+        if (url === '/recommended-class/drafts') {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-1',
+                type: RecommendedClassDraftType.RASCUNHO,
+                title: 'Test Draft',
+                subjectId: 'subject-1',
+                filters: { subjects: ['subject-1'] },
+                lessonIds: [],
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      // Spy on console.error
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      await act(async () => {
+        render(<RecommendedLessonCreate {...defaultProps} />);
+      });
+
+      // First, add a lesson so the send button is enabled
+      const addLessonBtn = screen.getByTestId('add-lesson-btn');
+      await act(async () => {
+        fireEvent.click(addLessonBtn);
+      });
+
+      // Wait for auto-save
+      await act(async () => {
+        jest.advanceTimersByTime(600);
+      });
+
+      // Open send modal
+      const sendLessonBtn = screen.getByTestId('send-lesson-btn');
+      await act(async () => {
+        fireEvent.click(sendLessonBtn);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-lesson-modal')).toBeInTheDocument();
+      });
+
+      // Trigger categories change
+      const triggerBtn = screen.getByTestId('trigger-categories-change');
+      await act(async () => {
+        fireEvent.click(triggerBtn);
+      });
+
+      // Wait for error to be logged
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalled();
+      });
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should not fetch students when selections have not changed', async () => {
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url === '/school') {
+          return Promise.resolve({
+            data: {
+              message: 'Success',
+              data: { schools: [{ id: 'school-1', companyName: 'School 1' }] },
+            },
+          });
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve({
+            data: {
+              message: 'Success',
+              data: {
+                schoolYears: [
+                  { id: 'year-1', name: '2024', schoolId: 'school-1' },
+                ],
+              },
+            },
+          });
+        }
+        if (url === '/classes') {
+          return Promise.resolve({
+            data: {
+              message: 'Success',
+              data: {
+                classes: [
+                  { id: 'class-1', name: 'Class A', schoolYearId: 'year-1' },
+                ],
+              },
+            },
+          });
+        }
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({
+            data: { data: { subjects: [] } },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      const mockStudents = [
+        {
+          id: 'student-1',
+          name: 'John Doe',
+          email: 'john@example.com',
+          active: true,
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          userInstitutionId: 'ui-1',
+          institutionId: 'inst-1',
+          profileId: 'profile-1',
+          school: { id: 'school-1', name: 'School 1' },
+          schoolYear: { id: 'year-1', name: '2024' },
+          class: { id: 'class-1', name: 'Class A' },
+        },
+      ];
+
+      (mockApiClient.post as jest.Mock).mockImplementation((url: string) => {
+        if (url === '/students/filters') {
+          return Promise.resolve({
+            data: { message: 'Success', data: { students: mockStudents } },
+          });
+        }
+        if (url === '/recommended-class/drafts') {
+          return Promise.resolve({
+            data: {
+              data: {
+                id: 'draft-1',
+                type: RecommendedClassDraftType.RASCUNHO,
+                title: 'Test Draft',
+                subjectId: 'subject-1',
+                filters: { subjects: ['subject-1'] },
+                lessonIds: [],
+                updatedAt: '2024-01-15T10:00:00Z',
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      await act(async () => {
+        render(<RecommendedLessonCreate {...defaultProps} />);
+      });
+
+      // First, add a lesson so the send button is enabled
+      const addLessonBtn = screen.getByTestId('add-lesson-btn');
+      await act(async () => {
+        fireEvent.click(addLessonBtn);
+      });
+
+      // Wait for auto-save
+      await act(async () => {
+        jest.advanceTimersByTime(600);
+      });
+
+      // Open send modal
+      const sendLessonBtn = screen.getByTestId('send-lesson-btn');
+      await act(async () => {
+        fireEvent.click(sendLessonBtn);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-lesson-modal')).toBeInTheDocument();
+      });
+
+      // Trigger categories change first time
+      const triggerBtn = screen.getByTestId('trigger-categories-change');
+      await act(async () => {
+        fireEvent.click(triggerBtn);
+      });
+
+      // Wait for first call
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/students/filters',
+          expect.any(Object)
+        );
+      });
+
+      const callCount = (mockApiClient.post as jest.Mock).mock.calls.filter(
+        (call: string[]) => call[0] === '/students/filters'
+      ).length;
+
+      // Trigger categories change again with same values - should not fetch again
+      await act(async () => {
+        fireEvent.click(triggerBtn);
+      });
+
+      // Give some time for any potential additional calls
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Should still have the same number of calls
+      const newCallCount = (mockApiClient.post as jest.Mock).mock.calls.filter(
+        (call: string[]) => call[0] === '/students/filters'
+      ).length;
+
+      // Call count should be the same (no new API calls for same selections)
+      expect(newCallCount).toBe(callCount);
     });
   });
 });

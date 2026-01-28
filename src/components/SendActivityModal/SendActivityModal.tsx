@@ -21,6 +21,8 @@ import {
   SendModalFooter,
   SendModalError,
   useDateTimeHandlers,
+  useCategoryInitialization,
+  useCategorySync,
 } from '../shared/SendModalBase';
 
 /**
@@ -67,11 +69,6 @@ const SendActivityModal = ({
   );
 
   /**
-   * Track if categories have been initialized for this modal session
-   */
-  const categoriesInitialized = useRef(false);
-
-  /**
    * Track the previous initialData reference to detect changes
    */
   const prevInitialDataRef = useRef<SendActivityModalInitialData | undefined>(
@@ -79,18 +76,35 @@ const SendActivityModal = ({
   );
 
   /**
-   * Initialize categories when modal opens
+   * Initialize categories with auto-selection when modal opens
    */
-  useEffect(() => {
-    if (
-      isOpen &&
-      initialCategories.length > 0 &&
-      !categoriesInitialized.current
-    ) {
-      setCategories(initialCategories);
-      categoriesInitialized.current = true;
-    }
-  }, [isOpen, initialCategories, setCategories]);
+  useCategoryInitialization({
+    isOpen,
+    initialCategories,
+    setCategories,
+    onCategoriesChange,
+  });
+
+  /**
+   * Get categoriesInitialized ref from hook
+   */
+  const { categoriesInitializedRef } = useCategoryInitialization({
+    isOpen,
+    initialCategories,
+    setCategories,
+    onCategoriesChange,
+  });
+
+  /**
+   * Sync categories from parent when they change (e.g., after fetching students)
+   */
+  useCategorySync({
+    isOpen,
+    initialCategories,
+    storeCategories,
+    setCategories,
+    categoriesInitializedRef,
+  });
 
   /**
    * Apply initial data when modal opens with new data
@@ -107,12 +121,11 @@ const SendActivityModal = ({
   }, [isOpen, initialData, store]);
 
   /**
-   * Reset store and initialization flag when modal closes
+   * Reset store when modal closes
    */
   useEffect(() => {
     if (!isOpen) {
       reset();
-      categoriesInitialized.current = false;
       prevInitialDataRef.current = undefined;
     }
   }, [isOpen, reset]);
