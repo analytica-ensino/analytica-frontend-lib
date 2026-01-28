@@ -2,29 +2,11 @@ import { useCallback, useRef } from 'react';
 import type { CategoryConfig } from '../components/CheckBoxGroup/CheckBoxGroup';
 import type { BaseApiClient } from '../types/api';
 import { fetchStudentsByFilters } from './categoryDataUtils';
+import type { FetchStudentsByFiltersFunction } from './studentTypes';
 
 export interface UseDynamicStudentFetchingOptions {
   apiClient?: BaseApiClient;
-  fetchStudentsByFilters?: (filters: {
-    schoolIds?: string[];
-    schoolYearIds?: string[];
-    classIds?: string[];
-  }) => Promise<
-    Array<{
-      id: string;
-      email: string;
-      name: string;
-      active: boolean;
-      createdAt: string;
-      updatedAt: string;
-      userInstitutionId: string;
-      institutionId: string;
-      profileId: string;
-      school: { id: string; name: string };
-      schoolYear: { id: string; name: string };
-      class: { id: string; name: string };
-    }>
-  >;
+  fetchStudentsByFilters?: FetchStudentsByFiltersFunction;
   onError?: (error: Error) => void;
 }
 

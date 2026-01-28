@@ -36,6 +36,10 @@ export {
   useCategoryInitialization,
   type UseCategoryInitializationProps,
 } from './hooks/useCategoryInitialization';
+export {
+  useCategorySync,
+  type UseCategorySyncProps,
+} from './hooks/useCategorySync';
 
 // Components
 export {
