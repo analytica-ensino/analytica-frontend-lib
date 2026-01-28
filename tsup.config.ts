@@ -132,7 +132,8 @@ export default defineConfig({
     'hooks/useRecommendedLessons/index': 'src/hooks/useRecommendedLessons.ts',
     'hooks/useRecommendedLessonsPage/index':
       'src/hooks/useRecommendedLessonsPage.ts',
-    'hooks/useRecommendedClassDrafts/index': 'src/hooks/useRecommendedClassDrafts.ts',
+    'hooks/useRecommendedClassDrafts/index':
+      'src/hooks/useRecommendedClassDrafts.ts',
     'types/recommendedLessons/index': 'src/types/recommendedLessons.ts',
 
     // ActivitiesHistory
@@ -147,6 +148,10 @@ export default defineConfig({
     // SendActivity hook and types
     'types/sendActivity/index': 'src/types/sendActivity.ts',
     'hooks/useSendActivity/index': 'src/hooks/useSendActivity.ts',
+
+    // StudentPerformanceDetailsModal
+    'StudentPerformanceDetailsModal/index':
+      'src/components/StudentPerformanceDetailsModal/index.ts',
 
     // Styles
     styles: 'src/styles.css',

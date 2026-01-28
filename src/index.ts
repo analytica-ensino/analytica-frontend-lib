@@ -968,3 +968,12 @@ export {
   getPerformanceTagConfig,
 } from './types/performance';
 export type { PerformanceTag, PerformanceTagConfig } from './types/performance';
+
+// Student Performance Details Modal
+export { StudentPerformanceDetailsModal } from './components/StudentPerformanceDetailsModal';
+export type {
+  StudentPerformanceDetailsModalProps,
+  StudentPerformanceDetailsData,
+  StudentPerformanceDetailsLabels,
+  ActivityProgress,
+} from './components/StudentPerformanceDetailsModal';
