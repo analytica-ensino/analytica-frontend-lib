@@ -140,7 +140,47 @@ jest.mock('../..', () => ({
         >
           Trigger Categories Change
         </button>
+        <button
+          data-testid="trigger-empty-class-selection"
+          onClick={() =>
+            onCategoriesChange?.([
+              {
+                key: 'escola',
+                label: 'Escola',
+                itens: [{ id: 'school-1', name: 'School 1' }],
+                selectedIds: ['school-1'],
+              },
+              {
+                key: 'serie',
+                label: 'Série',
+                itens: [{ id: 'year-1', name: '2024', schoolId: 'school-1' }],
+                selectedIds: ['year-1'],
+              },
+              {
+                key: 'turma',
+                label: 'Turma',
+                itens: [
+                  { id: 'class-1', name: 'Class A', schoolYearId: 'year-1' },
+                ],
+                selectedIds: [], // No classes selected
+              },
+              {
+                key: 'students',
+                label: 'Alunos',
+                itens: [],
+                selectedIds: [],
+              },
+            ])
+          }
+        >
+          Trigger Empty Class Selection
+        </button>
         <span data-testid="categories-count">{categories?.length || 0}</span>
+        <span data-testid="students-count">
+          {(categories as Array<{ key: string; itens?: unknown[] }>)?.find(
+            (c) => c.key === 'students'
+          )?.itens?.length || 0}
+        </span>
       </div>
     ) : null,
 }));
@@ -3019,6 +3059,23 @@ describe('RecommendedLessonCreate', () => {
     });
 
     it('should clear students when no classes selected', async () => {
+      const mockStudents = [
+        {
+          id: 'student-1',
+          name: 'John Doe',
+          email: 'john@example.com',
+          active: true,
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          userInstitutionId: 'ui-1',
+          institutionId: 'inst-1',
+          profileId: 'profile-1',
+          school: { id: 'school-1', name: 'School 1' },
+          schoolYear: { id: 'year-1', name: '2024' },
+          class: { id: 'class-1', name: 'Class A' },
+        },
+      ];
+
       (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
         if (url === '/school') {
           return Promise.resolve({
@@ -3076,6 +3133,11 @@ describe('RecommendedLessonCreate', () => {
             },
           });
         }
+        if (url === '/students/filters') {
+          return Promise.resolve({
+            data: { message: 'Success', data: { students: mockStudents } },
+          });
+        }
         return Promise.resolve({ data: { data: {} } });
       });
 
@@ -3102,6 +3164,47 @@ describe('RecommendedLessonCreate', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('send-lesson-modal')).toBeInTheDocument();
+      });
+
+      // First trigger a categories change WITH classes selected to fetch students
+      const triggerBtn = screen.getByTestId('trigger-categories-change');
+      await act(async () => {
+        fireEvent.click(triggerBtn);
+      });
+
+      // Wait for students to be fetched
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/students/filters',
+          expect.objectContaining({
+            classIds: ['class-1'],
+          })
+        );
+      });
+
+      // Clear the mock calls to track new calls
+      (mockApiClient.post as jest.Mock).mockClear();
+
+      // Now trigger empty class selection (no classes selected)
+      const emptyClassBtn = screen.getByTestId('trigger-empty-class-selection');
+      await act(async () => {
+        fireEvent.click(emptyClassBtn);
+      });
+
+      // Give time for any potential API calls
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Assert that /students/filters was NOT called when no classes are selected
+      expect(mockApiClient.post).not.toHaveBeenCalledWith(
+        '/students/filters',
+        expect.any(Object)
+      );
+
+      // Assert the students list is empty (0 students in categories)
+      await waitFor(() => {
+        expect(screen.getByTestId('students-count')).toHaveTextContent('0');
       });
     });
 
