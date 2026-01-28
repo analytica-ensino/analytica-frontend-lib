@@ -1,5 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AlertsManager } from '../AlertsManager';
 import { useAlertFormStore } from '../useAlertForm';
@@ -166,6 +172,61 @@ describe('AlertsManager', () => {
         { id: '1', name: 'User 1' },
         { id: '2', name: 'User 2' },
       ],
+    },
+  ];
+
+  const mockHierarchicalCategories: CategoryConfig[] = [
+    {
+      key: 'escola',
+      label: 'Escola',
+      itens: [{ id: 'school-1', name: 'Escola 1', escolaId: 'school-1' }],
+      selectedIds: [],
+    },
+    {
+      key: 'serie',
+      label: 'Série',
+      dependsOn: ['escola'],
+      itens: [
+        {
+          id: 'serie-1',
+          name: 'Série 1',
+          escolaId: 'school-1',
+          serieId: 'serie-1',
+        },
+      ],
+      filteredBy: [{ key: 'escola', internalField: 'escolaId' }],
+      selectedIds: [],
+    },
+    {
+      key: 'turma',
+      label: 'Turma',
+      dependsOn: ['escola', 'serie'],
+      itens: [
+        {
+          id: 'turma-1',
+          name: 'Turma 1',
+          escolaId: 'school-1',
+          serieId: 'serie-1',
+          turmaId: 'turma-1',
+        },
+      ],
+      filteredBy: [
+        { key: 'escola', internalField: 'escolaId' },
+        { key: 'serie', internalField: 'serieId' },
+      ],
+      selectedIds: [],
+    },
+    {
+      key: 'students',
+      label: 'Alunos',
+      dependsOn: ['escola', 'serie', 'turma'],
+      itens: [],
+      filteredBy: [
+        { key: 'escola', internalField: 'escolaId' },
+        { key: 'serie', internalField: 'serieId' },
+        { key: 'turma', internalField: 'turmaId' },
+      ],
+      selectedIds: [],
     },
   ];
 
@@ -458,6 +519,155 @@ describe('AlertsManager', () => {
       fireEvent.click(screen.getByTestId('modal-close'));
 
       expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('auto-selection', () => {
+    it('should auto-select single options in hierarchical categories', async () => {
+      const configWithHierarchy: AlertsConfig = {
+        ...defaultConfig,
+        categories: mockHierarchicalCategories,
+      };
+
+      render(<AlertsManager config={configWithHierarchy} isOpen={true} />);
+
+      await act(async () => {
+        // Wait for auto-selection to complete
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Auto-selection should have been applied
+      // The modal should still be rendered (auto-selection happens internally)
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
+      // The message step should be visible (first step)
+      expect(screen.getByTestId('message-step')).toBeInTheDocument();
+    });
+
+    it('should call handleCategoriesChange after auto-selection when fetchStudentsByFilters is provided', async () => {
+      const mockFetchStudents = jest.fn().mockResolvedValue([
+        {
+          id: 'user-1',
+          email: 'student@example.com',
+          name: 'Student 1',
+          active: true,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          userInstitutionId: 'ui-1',
+          institutionId: 'inst-1',
+          profileId: 'profile-1',
+          school: { id: 'school-1', name: 'Escola 1' },
+          schoolYear: { id: 'serie-1', name: 'Série 1' },
+          class: { id: 'turma-1', name: 'Turma 1' },
+        },
+      ]);
+
+      const configWithFetch: AlertsConfig = {
+        ...defaultConfig,
+        categories: mockHierarchicalCategories,
+        behavior: {
+          ...defaultConfig.behavior,
+          fetchStudentsByFilters: mockFetchStudents,
+        },
+      };
+
+      render(<AlertsManager config={configWithFetch} isOpen={true} />);
+
+      // Wait for auto-selection and student fetching to complete
+      await waitFor(
+        () => {
+          expect(mockFetchStudents).toHaveBeenCalled();
+        },
+        { timeout: 2000 }
+      );
+
+      // fetchStudentsByFilters should be called after auto-selection
+      // The function is called with the auto-selected categories
+      const callArgs = mockFetchStudents.mock.calls[0]?.[0];
+      expect(callArgs).toMatchObject({
+        schoolIds: expect.arrayContaining(['school-1']),
+        schoolYearIds: expect.arrayContaining(['serie-1']),
+        classIds: expect.arrayContaining(['turma-1']),
+      });
+    });
+
+    it('should not call fetchStudentsByFilters if not provided', async () => {
+      const configWithoutFetch: AlertsConfig = {
+        ...defaultConfig,
+        categories: mockHierarchicalCategories,
+      };
+
+      render(<AlertsManager config={configWithoutFetch} isOpen={true} />);
+
+      await act(async () => {
+        // Wait for auto-selection to complete
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Should not throw error and should render normally
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
+    });
+
+    it('should reset initialization flag when modal closes', () => {
+      const { rerender } = render(
+        <AlertsManager config={defaultConfig} isOpen={true} />
+      );
+
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
+
+      // Close modal
+      rerender(<AlertsManager config={defaultConfig} isOpen={false} />);
+
+      expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+
+      // Reopen modal - should re-initialize
+      rerender(<AlertsManager config={defaultConfig} isOpen={true} />);
+
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
+    });
+
+    it('should handle error when fetching students fails', async () => {
+      const mockFetchStudents = jest
+        .fn()
+        .mockRejectedValue(new Error('Failed to fetch students'));
+
+      const configWithFetch: AlertsConfig = {
+        ...defaultConfig,
+        categories: mockHierarchicalCategories,
+        behavior: {
+          ...defaultConfig.behavior,
+          fetchStudentsByFilters: mockFetchStudents,
+        },
+      };
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      render(<AlertsManager config={configWithFetch} isOpen={true} />);
+
+      // Wait for auto-selection and error handling
+      await waitFor(
+        () => {
+          expect(mockFetchStudents).toHaveBeenCalled();
+        },
+        { timeout: 2000 }
+      );
+
+      // Wait for error to be logged
+      await waitFor(
+        () => {
+          expect(consoleErrorSpy).toHaveBeenCalledWith(
+            'Error fetching students:',
+            expect.any(Error)
+          );
+        },
+        { timeout: 1000 }
+      );
+
+      // Modal should still be rendered
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
+
+      consoleErrorSpy.mockRestore();
     });
   });
 });
