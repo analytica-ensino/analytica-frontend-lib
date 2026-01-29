@@ -1,11 +1,12 @@
 /**
  * Performance tag types based on percentage ranges
  */
-export type PerformanceTag =
-  | 'DESTAQUE_DA_TURMA'
-  | 'ACIMA_DA_MEDIA'
-  | 'ABAIXO_DA_MEDIA'
-  | 'PONTO_DE_ATENCAO';
+export enum PerformanceTag {
+  DESTAQUE_DA_TURMA = 'DESTAQUE_DA_TURMA',
+  ACIMA_DA_MEDIA = 'ACIMA_DA_MEDIA',
+  ABAIXO_DA_MEDIA = 'ABAIXO_DA_MEDIA',
+  PONTO_DE_ATENCAO = 'PONTO_DE_ATENCAO',
+}
 
 /**
  * Performance tag configuration
@@ -16,6 +17,12 @@ export interface PerformanceTagConfig {
   minPercentage: number;
   maxPercentage: number;
 }
+
+/**
+ * Time intervals accepted by backend API
+ * Used as query parameter in analytics endpoints
+ */
+export type TimeInterval = '1week' | '15days' | '1month' | '6months' | '1year';
 
 /**
  * Performance tag configurations by type
@@ -60,10 +67,10 @@ export const PERFORMANCE_TAG_CONFIG: Record<
  * @returns Performance tag type
  */
 export function getPerformanceTag(percentage: number): PerformanceTag {
-  if (percentage >= 90) return 'DESTAQUE_DA_TURMA';
-  if (percentage >= 70) return 'ACIMA_DA_MEDIA';
-  if (percentage >= 40) return 'ABAIXO_DA_MEDIA';
-  return 'PONTO_DE_ATENCAO';
+  if (percentage >= 90) return PerformanceTag.DESTAQUE_DA_TURMA;
+  if (percentage >= 70) return PerformanceTag.ACIMA_DA_MEDIA;
+  if (percentage >= 40) return PerformanceTag.ABAIXO_DA_MEDIA;
+  return PerformanceTag.PONTO_DE_ATENCAO;
 }
 
 /**
@@ -75,5 +82,5 @@ export function getPerformanceTagConfig(
   percentage: number
 ): PerformanceTagConfig {
   const tag = getPerformanceTag(percentage);
-  return PERFORMANCE_TAG_CONFIG[tag] ?? PERFORMANCE_TAG_CONFIG.PONTO_DE_ATENCAO;
+  return PERFORMANCE_TAG_CONFIG[tag] ?? PERFORMANCE_TAG_CONFIG[PerformanceTag.PONTO_DE_ATENCAO];
 }
