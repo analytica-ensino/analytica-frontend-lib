@@ -22,7 +22,7 @@ export interface PerformanceTagConfig {
  * Time intervals accepted by backend API
  * Used as query parameter in analytics endpoints
  */
-export type TimeInterval = '1week' | '15days' | '30days' | '6months' | '1year';
+export type TimeInterval = '1week' | '15days' | '1month' | '6months' | '1year';
 
 /**
  * Performance tag configurations by type
