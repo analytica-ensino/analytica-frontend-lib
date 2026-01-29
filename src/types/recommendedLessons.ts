@@ -405,6 +405,7 @@ export interface RecommendedClassLessonSubject {
  */
 export interface RecommendedClassLesson {
   id: string;
+  videoTitle?: string;
   content: { id: string; name: string };
   subtopic: { id: string; name: string };
   topic: { id: string; name: string };
