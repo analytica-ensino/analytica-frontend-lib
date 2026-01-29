@@ -967,7 +967,8 @@ export {
   getPerformanceTag,
   getPerformanceTagConfig,
 } from './types/performance';
-export type { PerformanceTag, PerformanceTagConfig } from './types/performance';
+export { PerformanceTag } from './types/performance';
+export type { PerformanceTagConfig, TimeInterval } from './types/performance';
 
 // Student Performance Details Modal
 export { StudentPerformanceDetailsModal } from './components/StudentPerformanceDetailsModal';
