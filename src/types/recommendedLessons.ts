@@ -346,6 +346,8 @@ export const RECOMMENDED_CLASS_ACTIVITY_STATUS = {
   PENDENTE: 'PENDENTE',
   CONCLUIDA: 'CONCLUIDA',
   EXPIRADA: 'EXPIRADA',
+  AGUARDANDO_CORRECAO: 'AGUARDANDO_CORRECAO',
+  AGUARDANDO_RESPOSTA: 'AGUARDANDO_RESPOSTA',
 } as const;
 
 export type RecommendedClassActivityStatus =
@@ -366,11 +368,13 @@ export interface RecommendedClassActivity {
 export interface RecommendedClassSupUsersActivities {
   id: string;
   activity: RecommendedClassActivity;
+  activityId: string;
   userInstitutionId: string;
   answeredAt: string | null;
   timeSpent: number;
-  score: number | null;
+  score: string | null;
   lastInteraction: string;
+  studentStatus: RecommendedClassActivityStatus;
 }
 
 /**
