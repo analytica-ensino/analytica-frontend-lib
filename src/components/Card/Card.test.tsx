@@ -423,6 +423,20 @@ describe('CardQuestions', () => {
     rerender(<CardQuestions {...baseProps} state="done" />);
     badge = screen.getByTestId('badge');
     expect(badge).toHaveAttribute('data-action', 'success');
+
+    // Test "pending" state with info action
+    rerender(<CardQuestions {...baseProps} state="pending" />);
+    badge = screen.getByTestId('badge');
+    expect(badge).toHaveAttribute('data-action', 'info');
+  });
+
+  it('should render with state "pending" showing "Aguardando correção" and "Ver Resultado" button', () => {
+    render(<CardQuestions {...baseProps} state="pending" />);
+
+    expect(screen.getByText('Aguardando correção')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Ver Resultado/i })
+    ).toBeInTheDocument();
   });
 });
 

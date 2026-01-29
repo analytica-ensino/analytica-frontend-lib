@@ -1,6 +1,6 @@
 {
   "name": "analytica-frontend-lib",
-  "version": "1.2.97",
+  "version": "1.2.98",
   "description": "Repositório público dos componentes utilizados nas plataformas da Analytica Ensino",
   "main": "dist/index.cjs",
   "module": "./dist/index.js",
