@@ -232,7 +232,7 @@ const CardActivitiesResults = forwardRef<
 
 interface CardQuestionProps extends HTMLAttributes<HTMLDivElement> {
   header: string;
-  state?: 'done' | 'undone';
+  state?: 'done' | 'undone' | 'pending';
   onClickButton?: (valueButton?: unknown) => void;
   valueButton?: unknown;
 }
@@ -249,9 +249,30 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
     },
     ref
   ) => {
-    const isDone = state === 'done';
-    const stateLabel = isDone ? 'Realizado' : 'Não Realizado';
-    const buttonLabel = isDone ? 'Ver Resultado' : 'Responder';
+    const getStateConfig = () => {
+      switch (state) {
+        case 'done':
+          return {
+            label: 'Realizado',
+            buttonLabel: 'Ver Resultado',
+            badgeAction: 'success' as const,
+          };
+        case 'pending':
+          return {
+            label: 'Aguardando correção',
+            buttonLabel: 'Ver Resultado',
+            badgeAction: 'info' as const,
+          };
+        default:
+          return {
+            label: 'Não Realizado',
+            buttonLabel: 'Responder',
+            badgeAction: 'error' as const,
+          };
+      }
+    };
+
+    const { label, buttonLabel, badgeAction } = getStateConfig();
 
     return (
       <CardBase
@@ -266,12 +287,8 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
           <p className="font-bold text-xs text-text-950 truncate">{header}</p>
 
           <div className="flex flex-row gap-6 items-center">
-            <Badge
-              size="medium"
-              variant="solid"
-              action={isDone ? 'success' : 'error'}
-            >
-              {stateLabel}
+            <Badge size="medium" variant="solid" action={badgeAction}>
+              {label}
             </Badge>
           </div>
         </section>
