@@ -463,6 +463,34 @@ export const AllCardComponentsShowcase: Story = () => {
 
           <div className="mt-8">
             <h4 className="text-lg font-semibold text-text-900 mb-4">
+              Versão Compacta (sem extended)
+            </h4>
+            <p className="text-sm text-text-600 mb-4">
+              Sem a prop <code>extended</code>, o card exibe apenas a seção
+              colorida com ícone, título e subtítulo — sem borda, fundo branco
+              ou seção inferior.
+            </p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              {actions.map((action) => (
+                <div
+                  key={`${action}-compact`}
+                  className="flex flex-col items-center gap-3"
+                >
+                  <CardActivitiesResults
+                    className="w-full max-w-[262px]"
+                    {...baseProps}
+                    action={action}
+                  />
+                  <span className="text-xs font-medium text-text-600 bg-background-50 px-2 py-1 rounded">
+                    {action} (compact)
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <h4 className="text-lg font-semibold text-text-900 mb-4">
               Versão Estendida
             </h4>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">

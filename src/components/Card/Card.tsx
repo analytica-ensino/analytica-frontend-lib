@@ -174,7 +174,8 @@ const CardActivitiesResults = forwardRef<
       <div
         ref={ref}
         className={cn(
-          'w-full flex flex-col border border-border-50  bg-background rounded-xl',
+          'w-full flex flex-col rounded-xl',
+          extended && 'border border-border-50 bg-background',
           className
         )}
         {...props}
