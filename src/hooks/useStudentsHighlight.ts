@@ -6,7 +6,8 @@ import { z } from 'zod';
  */
 export const PERIOD_TABS = [
   { value: '7_DAYS', label: '7 dias' },
-  { value: '30_DAYS', label: '30 dias' },
+  { value: '1_MONTH', label: '1 mês' },
+  { value: '3_MONTHS', label: '3 meses' },
   { value: '6_MONTHS', label: '6 meses' },
   { value: '1_YEAR', label: '1 ano' },
 ] as const;
@@ -218,7 +219,7 @@ const initialState: UseStudentsHighlightState = {
  * const { topStudents, bottomStudents, loading, error, fetchStudentsHighlight } = useStudentsHighlight();
  *
  * useEffect(() => {
- *   fetchStudentsHighlight({ period: '30_DAYS' });
+ *   fetchStudentsHighlight({ period: '1_MONTH' });
  * }, []);
  * ```
  */

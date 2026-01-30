@@ -254,7 +254,7 @@ export interface StudentRankingProps extends HTMLAttributes<HTMLDivElement> {
  *   const { topStudents, bottomStudents, loading, fetchStudentsHighlight } = useStudentsHighlight();
  *
  *   useEffect(() => {
- *     fetchStudentsHighlight({ period: '30_DAYS' });
+ *     fetchStudentsHighlight({ period: '1_MONTH' });
  *   }, [fetchStudentsHighlight]);
  *
  *   if (loading) return <Skeleton />;

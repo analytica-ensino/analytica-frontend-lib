@@ -350,11 +350,11 @@ describe('useQuestionsData', () => {
       const { result } = renderHook(() => useQuestionsData());
 
       await act(async () => {
-        await result.current.fetchQuestionsData({ period: '30_DAYS' });
+        await result.current.fetchQuestionsData({ period: '1_MONTH' });
       });
 
       expect(mockFetchQuestionsData).toHaveBeenCalledWith({
-        period: '30_DAYS',
+        period: '1_MONTH',
       });
       expect(result.current.data).not.toBeNull();
       expect(result.current.data?.total).toBe(100);
