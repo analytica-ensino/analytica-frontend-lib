@@ -82,8 +82,5 @@ export function getPerformanceTagConfig(
   percentage: number
 ): PerformanceTagConfig {
   const tag = getPerformanceTag(percentage);
-  return (
-    PERFORMANCE_TAG_CONFIG[tag] ??
-    PERFORMANCE_TAG_CONFIG[PerformanceTag.PONTO_DE_ATENCAO]
-  );
+  return PERFORMANCE_TAG_CONFIG[tag];
 }
