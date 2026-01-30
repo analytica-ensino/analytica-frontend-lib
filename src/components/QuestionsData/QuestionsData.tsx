@@ -216,7 +216,7 @@ const YAxis = ({
  *   const { data, loading, fetchQuestionsData } = useQuestionsData();
  *
  *   useEffect(() => {
- *     fetchQuestionsData({ period: '30_DAYS' });
+ *     fetchQuestionsData({ period: '1_MONTH' });
  *   }, [fetchQuestionsData]);
  *
  *   if (loading || !data) return <Skeleton />;

@@ -427,11 +427,11 @@ describe('useStudentsHighlight', () => {
       const { result } = renderHook(() => useStudentsHighlight());
 
       await act(async () => {
-        await result.current.fetchStudentsHighlight({ period: '30_DAYS' });
+        await result.current.fetchStudentsHighlight({ period: '1_MONTH' });
       });
 
       expect(mockFetchStudentsHighlight).toHaveBeenCalledWith({
-        period: '30_DAYS',
+        period: '1_MONTH',
       });
       expect(result.current.topStudents).toHaveLength(3);
       expect(result.current.bottomStudents).toHaveLength(3);

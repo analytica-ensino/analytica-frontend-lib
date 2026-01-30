@@ -4,7 +4,12 @@ import { z } from 'zod';
 /**
  * Period filter options for questions data
  */
-export type QuestionsDataPeriod = '7_DAYS' | '30_DAYS' | '6_MONTHS' | '1_YEAR';
+export type QuestionsDataPeriod =
+  | '7_DAYS'
+  | '1_MONTH'
+  | '3_MONTHS'
+  | '6_MONTHS'
+  | '1_YEAR';
 
 /**
  * Trend direction for questions data
@@ -189,7 +194,7 @@ const initialState: UseQuestionsDataState = {
  * const { data, loading, error, fetchQuestionsData } = useQuestionsData();
  *
  * useEffect(() => {
- *   fetchQuestionsData({ period: '30_DAYS' });
+ *   fetchQuestionsData({ period: '1_MONTH' });
  * }, []);
  *
  * if (loading) return <Skeleton />;
