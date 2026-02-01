@@ -5,3 +5,5 @@ export { ResultsSection } from './ResultsSection';
 export { StudentsTable } from './StudentsTable';
 export { StudentPerformanceModal } from './StudentPerformanceModal';
 export type { StudentPerformanceModalProps } from './StudentPerformanceModal';
+export { StudentActivityPerformanceModal } from './StudentActivityPerformanceModal';
+export type { StudentActivityPerformanceModalProps } from './StudentActivityPerformanceModal';

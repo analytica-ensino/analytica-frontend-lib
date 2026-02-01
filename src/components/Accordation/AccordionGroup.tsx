@@ -71,9 +71,14 @@ const injectStore = (
       }
     >;
 
-    // Check if it's a CardAccordation component
+    // Check component displayName
     const displayName = (typedChild.type as unknown as { displayName?: string })
       ?.displayName;
+
+    // Stop recursion at nested AccordionGroup - it manages its own children
+    if (displayName === 'AccordionGroup') {
+      return child;
+    }
 
     let newProps: Partial<{
       children: ReactNode;

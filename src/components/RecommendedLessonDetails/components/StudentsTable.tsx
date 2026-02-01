@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import { UserIcon } from '@phosphor-icons/react';
 import Text from '../../Text/Text';
 import Button from '../../Button/Button';
@@ -12,10 +11,7 @@ import Table, {
   TableCell,
   useTableSort,
 } from '../../Table/Table';
-import {
-  StudentLessonStatus,
-  getStudentStatusBadgeAction,
-} from '../../../types/recommendedLessons';
+import { getStudentStatusBadgeAction } from '../../../types/recommendedLessons';
 import type { DisplayStudent, LessonDetailsLabels } from '../types';
 
 /**
@@ -24,8 +20,8 @@ import type { DisplayStudent, LessonDetailsLabels } from '../types';
 interface StudentsTableProps {
   /** List of students to display */
   students: DisplayStudent[];
-  /** Callback when view performance button is clicked */
-  onViewPerformance?: (studentId: string) => void;
+  /** Callback when correct activity is clicked */
+  onCorrectActivity?: (studentId: string) => void;
   /** Labels for the component */
   labels: LessonDetailsLabels;
   /** Empty state message */
@@ -38,19 +34,12 @@ interface StudentsTableProps {
  */
 export const StudentsTable = ({
   students,
-  onViewPerformance,
+  onCorrectActivity,
   labels,
   emptyMessage = 'Nenhum aluno encontrado',
 }: StudentsTableProps) => {
   const { sortedData, sortColumn, sortDirection, handleSort } =
     useTableSort<DisplayStudent>(students);
-
-  const canViewPerformance = useCallback((student: DisplayStudent) => {
-    return (
-      student.status === StudentLessonStatus.CONCLUIDO ||
-      student.status === StudentLessonStatus.NAO_FINALIZADO
-    );
-  }, []);
 
   return (
     <div className="bg-background rounded-xl border border-border-50 overflow-hidden">
@@ -85,7 +74,7 @@ export const StudentsTable = ({
               {labels.completionColumn}
             </TableHead>
             <TableHead>{labels.durationColumn}</TableHead>
-            <TableHead className="w-[140px]" />
+            <TableHead className="w-[160px]" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -141,17 +130,13 @@ export const StudentsTable = ({
                   </Text>
                 </TableCell>
                 <TableCell>
-                  {canViewPerformance(student) ? (
+                  {onCorrectActivity && (
                     <Button
                       variant="outline"
                       size="extra-small"
-                      onClick={() => onViewPerformance?.(student.id)}
+                      onClick={() => onCorrectActivity(student.id)}
                     >
-                      {labels.viewPerformance}
-                    </Button>
-                  ) : (
-                    <Button variant="outline" size="extra-small" disabled>
-                      {labels.viewPerformance}
+                      {labels.correctActivity}
                     </Button>
                   )}
                 </TableCell>

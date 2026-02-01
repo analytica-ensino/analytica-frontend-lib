@@ -17,6 +17,7 @@ export interface DisplayStudent extends Record<string, unknown> {
 export interface LessonDetailsLabels {
   viewLesson: string;
   viewPerformance: string;
+  correctActivity: string;
   resultsTitle: string;
   completedLabel: string;
   bestResultLabel: string;
@@ -33,6 +34,7 @@ export interface LessonDetailsLabels {
 export const DEFAULT_LABELS: LessonDetailsLabels = {
   viewLesson: 'Ver aula',
   viewPerformance: 'Ver desempenho',
+  correctActivity: 'Corrigir atividade',
   resultsTitle: 'Resultados da aula recomendada',
   completedLabel: 'CONCLUÍDO',
   bestResultLabel: 'MELHOR RESULTADO',
@@ -66,9 +68,18 @@ export interface QuestionAlternative {
  */
 export interface LessonQuestion {
   id: string;
+  /** Answer ID from the API (used for correction) */
+  answerId: string;
+  /** Activity ID this question belongs to */
+  activityId: string;
   title: string;
   statement: string;
-  isCorrect: boolean;
+  /** Question type (e.g., 'DISSERTATIVA', 'MULTIPLA_ESCOLHA') */
+  questionType: string;
+  /** Whether the answer is correct (null for not yet evaluated) */
+  isCorrect: boolean | null;
+  /** Teacher feedback for the answer */
+  teacherFeedback: string | null;
   alternatives: QuestionAlternative[];
 }
 
@@ -117,3 +128,103 @@ export const DEFAULT_PERFORMANCE_LABELS: StudentPerformanceLabels = {
   hardestTopicLabel: 'MAIOR DIFICULDADE',
   lessonsTitle: 'Aulas',
 };
+
+/**
+ * Activity data for the StudentActivityPerformanceModal
+ */
+export interface PerformanceActivity {
+  id: string;
+  title: string;
+  questions: LessonQuestion[];
+}
+
+/**
+ * Lesson data for the StudentActivityPerformanceModal (placeholder for future)
+ */
+export interface PerformanceLesson {
+  id: string;
+  title: string;
+  progress: number;
+}
+
+/**
+ * Data for StudentActivityPerformanceModal
+ */
+export interface StudentActivityPerformanceData {
+  /** User institution ID for API calls */
+  userInstitutionId: string;
+  /** User ID for correction API calls */
+  userId: string;
+  studentName: string;
+  /** Student score (0-10) */
+  score: number | null;
+  /** Number of correct answers */
+  correctAnswers: number;
+  /** Number of incorrect answers */
+  incorrectAnswers: number;
+  /** Time to complete (formatted string, e.g., "30 dias") */
+  completionTime: string | null;
+  /** Best result topic */
+  bestResult: string | null;
+  /** Hardest topic */
+  hardestTopic: string | null;
+  /** List of activities with questions */
+  activities: PerformanceActivity[];
+  /** List of lessons (placeholder) */
+  lessons?: PerformanceLesson[];
+}
+
+/**
+ * Correction data for a question
+ */
+export interface QuestionCorrection {
+  questionId: string;
+  activityId: string;
+  isCorrect: boolean | null;
+  teacherFeedback: string;
+}
+
+/**
+ * Labels for StudentActivityPerformanceModal (pt-BR)
+ */
+export interface StudentActivityPerformanceLabels {
+  title: string;
+  resultTitle: string;
+  scoreLabel: string;
+  correctAnswersLabel: string;
+  incorrectAnswersLabel: string;
+  completionTimeLabel: string;
+  bestResultLabel: string;
+  hardestTopicLabel: string;
+  activitiesTitle: string;
+  lessonsTitle: string;
+  lessonsInDevelopment: string;
+  feedbackPlaceholder: string;
+  markCorrect: string;
+  markIncorrect: string;
+  saveCorrection: string;
+  saving: string;
+}
+
+/**
+ * Default labels for StudentActivityPerformanceModal (pt-BR)
+ */
+export const DEFAULT_ACTIVITY_PERFORMANCE_LABELS: StudentActivityPerformanceLabels =
+  {
+    title: 'Corrigir atividade',
+    resultTitle: 'Resultado da atividade',
+    scoreLabel: 'NOTA',
+    correctAnswersLabel: 'N° DE QUESTÕES CORRETAS',
+    incorrectAnswersLabel: 'N° DE QUESTÕES INCORRETAS',
+    completionTimeLabel: 'TEMPO DE CONCLUSÃO',
+    bestResultLabel: 'MELHOR RESULTADO',
+    hardestTopicLabel: 'MAIOR DIFICULDADE',
+    activitiesTitle: 'Atividade',
+    lessonsTitle: 'Aulas',
+    lessonsInDevelopment: 'Em desenvolvimento',
+    feedbackPlaceholder: 'Adicionar feedback para o aluno...',
+    markCorrect: 'Correta',
+    markIncorrect: 'Incorreta',
+    saveCorrection: 'Salvar correção',
+    saving: 'Salvando...',
+  };

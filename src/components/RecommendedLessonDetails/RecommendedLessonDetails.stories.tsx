@@ -3,6 +3,7 @@ import type { Story } from '@ladle/react';
 import RecommendedLessonDetails from './RecommendedLessonDetails';
 import type { RecommendedLessonDetailsProps } from './RecommendedLessonDetails';
 import type { LessonDetailsData } from '../../types/recommendedLessons';
+import type { BaseApiClient } from '../../types/api';
 import { SubjectEnum } from '../../enums/SubjectEnum';
 import { StudentPerformanceModal } from './components';
 import type { StudentPerformanceData } from './types';
@@ -204,10 +205,14 @@ const mockQuestions = {
   lesson1: [
     {
       id: 'q1',
+      answerId: 'answer-q1',
+      activityId: 'activity-1',
       title: 'Questão 1',
       statement:
         'Qual é a sequência correta das categorias taxonômicas, da mais ampla para a mais específica?',
+      questionType: 'MULTIPLA_ESCOLHA',
       isCorrect: false,
+      teacherFeedback: null,
       alternatives: [
         {
           id: 'a1',
@@ -237,10 +242,14 @@ const mockQuestions = {
     },
     {
       id: 'q2',
+      answerId: 'answer-q2',
+      activityId: 'activity-1',
       title: 'Questão 2',
       statement:
         'Quem é considerado o pai da taxonomia moderna e criou o sistema binomial de nomenclatura?',
+      questionType: 'MULTIPLA_ESCOLHA',
       isCorrect: true,
+      teacherFeedback: null,
       alternatives: [
         {
           id: 'b1',
@@ -265,10 +274,14 @@ const mockQuestions = {
     },
     {
       id: 'q3',
+      answerId: 'answer-q3',
+      activityId: 'activity-1',
       title: 'Questão 3',
       statement:
         'No sistema binomial de nomenclatura, como deve ser escrito o nome científico de uma espécie?',
+      questionType: 'MULTIPLA_ESCOLHA',
       isCorrect: false,
+      teacherFeedback: null,
       alternatives: [
         {
           id: 'c1',
@@ -298,9 +311,13 @@ const mockQuestions = {
     },
     {
       id: 'q4',
+      answerId: 'answer-q4',
+      activityId: 'activity-1',
       title: 'Questão 4',
       statement: 'Qual categoria taxonômica agrupa espécies semelhantes?',
+      questionType: 'MULTIPLA_ESCOLHA',
       isCorrect: true,
+      teacherFeedback: null,
       alternatives: [
         { id: 'd1', text: 'Gênero', isCorrect: true, isSelected: true },
         { id: 'd2', text: 'Família', isCorrect: false, isSelected: false },
@@ -312,9 +329,13 @@ const mockQuestions = {
   lesson2: [
     {
       id: 'q5',
+      answerId: 'answer-q5',
+      activityId: 'activity-2',
       title: 'Questão 1',
       statement: 'Qual é a classificação dos mamíferos?',
+      questionType: 'MULTIPLA_ESCOLHA',
       isCorrect: true,
+      teacherFeedback: null,
       alternatives: [
         { id: 'e1', text: 'Vertebrados', isCorrect: true, isSelected: true },
         {
@@ -329,9 +350,13 @@ const mockQuestions = {
     },
     {
       id: 'q6',
+      answerId: 'answer-q6',
+      activityId: 'activity-2',
       title: 'Questão 2',
       statement: 'Qual característica define os anfíbios?',
+      questionType: 'MULTIPLA_ESCOLHA',
       isCorrect: false,
+      teacherFeedback: null,
       alternatives: [
         {
           id: 'f1',
@@ -522,10 +547,8 @@ const mockFetchStudentPerformance = async (
  * Default props for stories
  */
 const defaultProps: RecommendedLessonDetailsProps = {
-  recommendedClassId: 'lesson-1',
   data: mockLessonData,
   onViewLesson: () => console.log('View lesson clicked'),
-  fetchStudentPerformance: mockFetchStudentPerformance,
   onBreadcrumbClick: (path) => console.log('Breadcrumb clicked:', path),
   mapSubjectNameToEnum,
 };
@@ -821,16 +844,13 @@ WithoutViewLesson.meta = {
 };
 
 /**
- * Without student performance action - shows disabled buttons for all students
+ * Without activity correction action - shows without the correction button
  */
-export const WithoutStudentPerformance: Story = () => (
-  <RecommendedLessonDetails
-    {...defaultProps}
-    fetchStudentPerformance={undefined}
-  />
+export const WithoutActivityCorrection: Story = () => (
+  <RecommendedLessonDetails {...defaultProps} apiClient={undefined} />
 );
-WithoutStudentPerformance.meta = {
-  name: 'Without Student Performance Action',
+WithoutActivityCorrection.meta = {
+  name: 'Without Activity Correction',
 };
 
 /**
@@ -929,23 +949,63 @@ PhysicsLesson.meta = {
 };
 
 /**
- * Interactive with Performance Modal - shows the component with working performance modal
+ * Interactive with Activity Correction Modal - shows the component with working correction modal
  * The modal is now managed internally by the component
  */
-export const WithPerformanceModal: Story = () => {
+export const WithActivityCorrection: Story = () => {
+  // Mock API client for stories
+  const mockApiClient: BaseApiClient = {
+    get: async <T,>() =>
+      ({
+        data: {
+          message: 'Success',
+          data: {
+            activities: [
+              {
+                id: 'activity-1',
+                title: 'Atividade 1',
+                sequence: 1,
+                answers: [],
+                statistics: {
+                  totalAnswered: 10,
+                  correctAnswers: 7,
+                  incorrectAnswers: 3,
+                  pendingAnswers: 0,
+                  score: 7.0,
+                  timeSpent: 1800,
+                },
+              },
+            ],
+            lessons: [
+              {
+                id: 'lesson-1',
+                title: 'Aula 1 - Introdução',
+                sequence: 1,
+                progress: 100,
+                completedAt: '2024-03-15T00:00:00.000Z',
+                questionnaire: null,
+              },
+            ],
+          },
+        },
+      }) as { data: T },
+    post: async <T,>() => ({}) as { data: T },
+    patch: async <T,>() => ({}) as { data: T },
+    delete: async <T,>() => ({}) as { data: T },
+  };
+
   return (
     <RecommendedLessonDetails
-      recommendedClassId="lesson-1"
       data={mockLessonData}
       onViewLesson={() => console.log('View lesson clicked')}
-      fetchStudentPerformance={mockFetchStudentPerformance}
+      apiClient={mockApiClient}
       onBreadcrumbClick={(path) => console.log('Breadcrumb clicked:', path)}
       mapSubjectNameToEnum={mapSubjectNameToEnum}
     />
   );
 };
-WithPerformanceModal.meta = {
-  name: 'With Performance Modal',
+WithActivityCorrection.meta = {
+  name: 'With Activity Correction',
 };
 
 /**

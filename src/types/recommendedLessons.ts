@@ -318,12 +318,21 @@ export interface RecommendedClassDetailContentPerformance {
 }
 
 /**
+ * Activity item from /recommended class/{id}/details endpoint
+ */
+export interface RecommendedClassDetailActivity {
+  id: string;
+  title: string;
+}
+
+/**
  * Response data from /recommended class/{id}/details endpoint
  */
 export interface RecommendedClassDetailsData {
   students: RecommendedClassDetailStudent[];
   aggregated: RecommendedClassDetailAggregated;
   contentPerformance: RecommendedClassDetailContentPerformance;
+  activities?: RecommendedClassDetailActivity[];
 }
 
 /**
