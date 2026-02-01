@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import CorrectActivityModal from './CorrectActivityModal';
 import type { StudentActivityCorrectionData } from '../../utils/studentActivityCorrection';
@@ -9,6 +9,14 @@ import {
   type Question,
   type QuestionResult,
 } from '../Quiz/useQuizStore';
+
+// Mock useToastStore
+const mockAddToast = jest.fn();
+jest.mock('../Toast/utils/ToastStore', () => ({
+  __esModule: true,
+  default: (selector: (state: { addToast: typeof mockAddToast }) => unknown) =>
+    selector({ addToast: mockAddToast }),
+}));
 
 /**
  * Helper function to create a Question in Quiz format
@@ -278,6 +286,7 @@ describe('CorrectActivityModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAddToast.mockClear();
   });
 
   describe('Basic rendering', () => {
@@ -1513,6 +1522,206 @@ describe('CorrectActivityModal', () => {
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       consoleErrorSpy.mockRestore();
+    });
+
+    it('should show success toast when saving correction succeeds', async () => {
+      const onQuestionCorrectionSubmit = jest.fn().mockResolvedValue(undefined);
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={essayQuestionData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={onQuestionCorrectionSubmit}
+        />
+      );
+
+      const questao1Buttons = screen.getAllByText('Questão 1');
+      const questao1Button = questao1Buttons[0].closest('button');
+      fireEvent.click(questao1Button!);
+
+      const simRadio = screen.getByLabelText('Sim');
+      fireEvent.click(simRadio);
+
+      const salvarButton = screen.getByText('Salvar');
+      fireEvent.click(salvarButton);
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Correção salva',
+          description: 'A correção da questão 1 foi salva com sucesso.',
+          variant: 'solid',
+          action: 'success',
+          position: 'top-right',
+        });
+      });
+    });
+
+    it('should show error toast when saving correction fails', async () => {
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const onQuestionCorrectionSubmit = jest
+        .fn()
+        .mockRejectedValue(new Error('Erro ao salvar'));
+
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={essayQuestionData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={onQuestionCorrectionSubmit}
+        />
+      );
+
+      const questao1Buttons = screen.getAllByText('Questão 1');
+      const questao1Button = questao1Buttons[0].closest('button');
+      fireEvent.click(questao1Button!);
+
+      const simRadio = screen.getByLabelText('Sim');
+      fireEvent.click(simRadio);
+
+      const salvarButton = screen.getByText('Salvar');
+      fireEvent.click(salvarButton);
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Erro ao salvar correção',
+          description: 'Não foi possível salvar a correção. Tente novamente.',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should NOT update badge when changing radio button before save', () => {
+      const onQuestionCorrectionSubmit = jest.fn().mockResolvedValue(undefined);
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={essayQuestionData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={onQuestionCorrectionSubmit}
+        />
+      );
+
+      // Initially badge shows "Pendente"
+      expect(screen.getByText('Pendente')).toBeInTheDocument();
+
+      // Expand question
+      const questao1Buttons = screen.getAllByText('Questão 1');
+      const questao1Button = questao1Buttons[0].closest('button');
+      fireEvent.click(questao1Button!);
+
+      // Select "Sim" radio
+      const simRadio = screen.getByLabelText('Sim');
+      fireEvent.click(simRadio);
+
+      // Badge should STILL be "Pendente" (not "Correta")
+      expect(screen.getByText('Pendente')).toBeInTheDocument();
+      expect(screen.queryByText('Correta')).not.toBeInTheDocument();
+    });
+
+    it('should update badge to "Correta" only after saving correction', async () => {
+      const onQuestionCorrectionSubmit = jest.fn().mockResolvedValue(undefined);
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={essayQuestionData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={onQuestionCorrectionSubmit}
+        />
+      );
+
+      // Initially badge shows "Pendente"
+      expect(screen.getByText('Pendente')).toBeInTheDocument();
+
+      // Expand question
+      const questao1Buttons = screen.getAllByText('Questão 1');
+      const questao1Button = questao1Buttons[0].closest('button');
+      fireEvent.click(questao1Button!);
+
+      // Select "Sim" radio
+      const simRadio = screen.getByLabelText('Sim');
+      fireEvent.click(simRadio);
+
+      // Click save
+      const salvarButton = screen.getByText('Salvar');
+      fireEvent.click(salvarButton);
+
+      // Wait for save to complete and badge to update
+      await waitFor(() => {
+        expect(screen.getByText('Correta')).toBeInTheDocument();
+      });
+    });
+
+    it('should update badge to "Incorreta" only after saving correction', async () => {
+      const onQuestionCorrectionSubmit = jest.fn().mockResolvedValue(undefined);
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={essayQuestionData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={onQuestionCorrectionSubmit}
+        />
+      );
+
+      // Initially badge shows "Pendente"
+      expect(screen.getByText('Pendente')).toBeInTheDocument();
+
+      // Expand question
+      const questao1Buttons = screen.getAllByText('Questão 1');
+      const questao1Button = questao1Buttons[0].closest('button');
+      fireEvent.click(questao1Button!);
+
+      // Select "Não" radio
+      const naoRadio = screen.getByLabelText('Não');
+      fireEvent.click(naoRadio);
+
+      // Click save
+      const salvarButton = screen.getByText('Salvar');
+      fireEvent.click(salvarButton);
+
+      // Wait for save to complete and badge to update
+      await waitFor(() => {
+        expect(screen.getByText('Incorreta')).toBeInTheDocument();
+      });
+    });
+
+    it('should reset badge to pending when changing isCorrect after save', async () => {
+      const onQuestionCorrectionSubmit = jest.fn().mockResolvedValue(undefined);
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={essayQuestionData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={onQuestionCorrectionSubmit}
+        />
+      );
+
+      // Expand question
+      const questao1Buttons = screen.getAllByText('Questão 1');
+      const questao1Button = questao1Buttons[0].closest('button');
+      fireEvent.click(questao1Button!);
+
+      // Select "Sim" and save
+      const simRadio = screen.getByLabelText('Sim');
+      fireEvent.click(simRadio);
+      fireEvent.click(screen.getByText('Salvar'));
+
+      // Wait for badge to update to "Correta"
+      await waitFor(() => {
+        expect(screen.getByText('Correta')).toBeInTheDocument();
+      });
+
+      // Now change to "Não"
+      const naoRadio = screen.getByLabelText('Não');
+      fireEvent.click(naoRadio);
+
+      // Badge should reset to "Pendente" until saved again
+      expect(screen.getByText('Pendente')).toBeInTheDocument();
     });
   });
 
