@@ -1,4 +1,10 @@
-import { useMemo, useState, useCallback, useEffect, type ReactNode } from 'react';
+import {
+  useMemo,
+  useState,
+  useCallback,
+  useEffect,
+  type ReactNode,
+} from 'react';
 import {
   Star,
   Medal,
@@ -471,7 +477,7 @@ export const StudentActivityPerformanceModal = ({
    * Render correction fields for a question (radio group, textarea, save button)
    * Same pattern as CorrectActivityModal
    */
-  const renderCorrectionFields = (question: LessonQuestion, index: number) => {
+  const renderCorrectionFields = (question: LessonQuestion) => {
     const correction = essayCorrections[question.id] || {
       isCorrect: null,
       teacherFeedback: '',
@@ -627,7 +633,7 @@ export const StudentActivityPerformanceModal = ({
           {/* Correction fields (only for essay questions) */}
           {apiClient &&
             question.questionType === 'DISSERTATIVA' &&
-            renderCorrectionFields(question, index)}
+            renderCorrectionFields(question)}
         </div>
       </CardAccordation>
     );

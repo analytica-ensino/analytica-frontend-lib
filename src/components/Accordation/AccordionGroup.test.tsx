@@ -667,7 +667,6 @@ describe('AccordionGroup', () => {
       );
 
       const activity1Button = screen.getByText('Activity 1').closest('button')!;
-      const activity2Button = screen.getByText('Activity 2').closest('button')!;
 
       // Open activity 1
       fireEvent.click(activity1Button);

@@ -512,8 +512,6 @@ describe('RecommendedLessonDetails', () => {
     });
   });
 
-;
-
   describe('Results cards', () => {
     it('should show dash when contentPerformance.best is null', () => {
       const dataWithNullPerformance: LessonDetailsData = {
@@ -657,6 +655,5 @@ describe('RecommendedLessonDetails', () => {
       // There might be multiple "CONCLUÍDO" texts (one in student row, possibly others)
       expect(screen.getAllByText('CONCLUÍDO').length).toBeGreaterThanOrEqual(1);
     });
-
   });
 });

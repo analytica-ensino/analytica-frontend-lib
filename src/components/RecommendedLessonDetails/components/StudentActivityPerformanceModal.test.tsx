@@ -43,9 +43,24 @@ const mockPerformanceData: StudentActivityPerformanceData = {
           isCorrect: true,
           teacherFeedback: null,
           alternatives: [
-            { id: 'alt-1', text: 'São Paulo', isCorrect: false, isSelected: false },
-            { id: 'alt-2', text: 'Brasília', isCorrect: true, isSelected: true },
-            { id: 'alt-3', text: 'Rio de Janeiro', isCorrect: false, isSelected: false },
+            {
+              id: 'alt-1',
+              text: 'São Paulo',
+              isCorrect: false,
+              isSelected: false,
+            },
+            {
+              id: 'alt-2',
+              text: 'Brasília',
+              isCorrect: true,
+              isSelected: true,
+            },
+            {
+              id: 'alt-3',
+              text: 'Rio de Janeiro',
+              isCorrect: false,
+              isSelected: false,
+            },
           ],
         },
         {
@@ -105,7 +120,9 @@ describe('StudentActivityPerformanceModal', () => {
       );
 
       // Modal should not render when there's no data, loading, or error
-      expect(container.querySelector('[data-testid="modal"]')).not.toBeInTheDocument();
+      expect(
+        container.querySelector('[data-testid="modal"]')
+      ).not.toBeInTheDocument();
     });
 
     it('should render loading skeleton when loading is true', () => {
@@ -279,8 +296,18 @@ describe('StudentActivityPerformanceModal', () => {
                 isCorrect: true,
                 teacherFeedback: null,
                 alternatives: [
-                  { id: 'alt-1', text: 'São Paulo', isCorrect: false, isSelected: false },
-                  { id: 'alt-2', text: 'Brasília', isCorrect: true, isSelected: true },
+                  {
+                    id: 'alt-1',
+                    text: 'São Paulo',
+                    isCorrect: false,
+                    isSelected: false,
+                  },
+                  {
+                    id: 'alt-2',
+                    text: 'Brasília',
+                    isCorrect: true,
+                    isSelected: true,
+                  },
                 ],
               },
             ],
@@ -299,7 +326,9 @@ describe('StudentActivityPerformanceModal', () => {
       );
 
       // Open activity
-      const activityButton = screen.getByText('Atividade MC').closest('button')!;
+      const activityButton = screen
+        .getByText('Atividade MC')
+        .closest('button')!;
       fireEvent.click(activityButton);
 
       // Open multiple choice question (rendered as "Questão 1")
@@ -307,7 +336,9 @@ describe('StudentActivityPerformanceModal', () => {
       fireEvent.click(questionButton);
 
       // Correction fields should NOT be visible for multiple choice
-      expect(screen.queryByText('Resposta está correta?')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Resposta está correta?')
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -354,7 +385,9 @@ describe('StudentActivityPerformanceModal', () => {
       fireEvent.click(question2Button);
 
       // Correction fields should NOT be visible
-      expect(screen.queryByText('Resposta está correta?')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Resposta está correta?')
+      ).not.toBeInTheDocument();
     });
 
     it('should update isCorrect when radio button is clicked', () => {
@@ -399,7 +432,9 @@ describe('StudentActivityPerformanceModal', () => {
       fireEvent.click(question2Button);
 
       // Type in textarea
-      const textarea = screen.getByPlaceholderText('Adicionar feedback para o aluno...');
+      const textarea = screen.getByPlaceholderText(
+        'Adicionar feedback para o aluno...'
+      );
       fireEvent.change(textarea, { target: { value: 'Boa resposta!' } });
 
       expect(textarea).toHaveValue('Boa resposta!');
@@ -476,7 +511,9 @@ describe('StudentActivityPerformanceModal', () => {
       const yesRadio = screen.getByLabelText('Sim');
       fireEvent.click(yesRadio);
 
-      const textarea = screen.getByPlaceholderText('Adicionar feedback para o aluno...');
+      const textarea = screen.getByPlaceholderText(
+        'Adicionar feedback para o aluno...'
+      );
       fireEvent.change(textarea, { target: { value: 'Excelente!' } });
 
       // Click save
@@ -505,7 +542,9 @@ describe('StudentActivityPerformanceModal', () => {
     });
 
     it('should show error toast when API call fails', async () => {
-      (mockApiClient.post as jest.Mock).mockRejectedValueOnce(new Error('API Error'));
+      (mockApiClient.post as jest.Mock).mockRejectedValueOnce(
+        new Error('API Error')
+      );
 
       render(
         <StudentActivityPerformanceModal
@@ -632,9 +671,10 @@ describe('StudentActivityPerformanceModal', () => {
       );
 
       // Find close button by aria-label or test-id
-      const closeButton = screen.queryByLabelText(/close/i) ||
-                          screen.queryByTestId('modal-close-button') ||
-                          document.querySelector('[data-testid="close-button"]');
+      const closeButton =
+        screen.queryByLabelText(/close/i) ||
+        screen.queryByTestId('modal-close-button') ||
+        document.querySelector('[data-testid="close-button"]');
 
       if (closeButton) {
         fireEvent.click(closeButton);
@@ -686,7 +726,9 @@ describe('StudentActivityPerformanceModal', () => {
       );
 
       // Open activity and essay question again
-      const activityButton2 = screen.getByText('Atividade 1').closest('button')!;
+      const activityButton2 = screen
+        .getByText('Atividade 1')
+        .closest('button')!;
       fireEvent.click(activityButton2);
 
       const question2Button2 = screen.getByText('Questão 2').closest('button')!;

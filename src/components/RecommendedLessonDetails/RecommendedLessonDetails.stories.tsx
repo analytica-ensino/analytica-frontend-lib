@@ -519,31 +519,6 @@ const mapSubjectNameToEnum = (subjectName: string): SubjectEnum | null => {
 };
 
 /**
- * Mock fetch function for student performance
- */
-const mockFetchStudentPerformance = async (
-  recommendedClassId: string,
-  studentId: string
-): Promise<StudentPerformanceData> => {
-  console.log('Fetching student performance:', {
-    recommendedClassId,
-    studentId,
-  });
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  return (
-    mockStudentPerformanceData[studentId] || {
-      studentName: 'Aluno',
-      correctAnswers: 0,
-      incorrectAnswers: 0,
-      bestResult: null,
-      hardestTopic: null,
-      lessons: [],
-    }
-  );
-};
-
-/**
  * Default props for stories
  */
 const defaultProps: RecommendedLessonDetailsProps = {
