@@ -443,6 +443,7 @@ export const StudentActivityPerformanceModal = ({
               label="Sim"
               size="medium"
               checked={radioValue === 'true'}
+              disabled={correction.isSaving}
               onChange={(e) => {
                 if (e.target.checked) {
                   updateEssayCorrection(questionKey, 'isCorrect', true);
@@ -456,6 +457,7 @@ export const StudentActivityPerformanceModal = ({
               label="Não"
               size="medium"
               checked={radioValue === 'false'}
+              disabled={correction.isSaving}
               onChange={(e) => {
                 if (e.target.checked) {
                   updateEssayCorrection(questionKey, 'isCorrect', false);
@@ -482,6 +484,7 @@ export const StudentActivityPerformanceModal = ({
             placeholder={labels.feedbackPlaceholder}
             rows={4}
             size="medium"
+            disabled={correction.isSaving}
           />
         </div>
 

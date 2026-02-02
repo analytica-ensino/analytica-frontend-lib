@@ -1,4 +1,4 @@
-import { Star, Medal, WarningCircle } from '@phosphor-icons/react';
+import { Star, Medal, WarningCircle } from 'phosphor-react';
 import type { Icon } from '@phosphor-icons/react';
 import Text from '../../Text/Text';
 import { cn } from '../../../utils/utils';

@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import Text from '../Text/Text';
+import useToastStore from '../Toast/utils/ToastStore';
 import { cn } from '../../utils/utils';
 import type { LessonDetailsData } from '../../types/recommendedLessons';
 import type { SubjectEnum } from '../../enums/SubjectEnum';
@@ -93,6 +94,9 @@ const RecommendedLessonDetails = ({
     [customLabels]
   );
 
+  // Toast store for notifications
+  const addToast = useToastStore((state) => state.addToast);
+
   // Activity performance modal state
   const [performanceModalOpen, setPerformanceModalOpen] = useState(false);
   const [performanceData, setPerformanceData] =
@@ -112,8 +116,21 @@ const RecommendedLessonDetails = ({
       const student = data?.details.students.find(
         (s) => s.userInstitutionId === studentId
       );
-      const studentName = student?.name || 'Aluno';
-      const userId = student?.userId || '';
+
+      // Guard: ensure student and userId are valid before proceeding
+      if (!student || !student.userId) {
+        addToast({
+          title: 'Erro ao carregar aluno',
+          description: 'Não foi possível identificar o aluno. Tente novamente.',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+        return;
+      }
+
+      const studentName = student.name;
+      const userId = student.userId;
 
       setPerformanceModalOpen(true);
       setPerformanceLoading(true);
@@ -146,7 +163,7 @@ const RecommendedLessonDetails = ({
         setPerformanceLoading(false);
       }
     },
-    [apiClient, data?.recommendedClass.id, data?.details.students]
+    [apiClient, data?.recommendedClass.id, data?.details.students, addToast]
   );
 
   /**
