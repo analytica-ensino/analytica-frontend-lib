@@ -61,6 +61,12 @@ export interface CorrectActivityModalProps {
   ) => Promise<void>;
 }
 
+/** Field names for essay correction state updates */
+const EssayCorrectionField = {
+  IsCorrect: 'isCorrect',
+  TeacherFeedback: 'teacherFeedback',
+} as const;
+
 /**
  * Modal component for correcting or viewing student activity details
  *
@@ -310,7 +316,9 @@ const CorrectActivityModal = ({
   const updateEssayCorrection = useCallback(
     (
       questionNumber: number,
-      field: 'isCorrect' | 'teacherFeedback',
+      field:
+        | (typeof EssayCorrectionField)['IsCorrect']
+        | (typeof EssayCorrectionField)['TeacherFeedback'],
       value: boolean | string
     ) => {
       setEssayCorrections((prev) => ({
@@ -319,7 +327,9 @@ const CorrectActivityModal = ({
           ...prev[questionNumber],
           [field]: value,
           // Reset isSaved when isCorrect changes so badge doesn't update until saved
-          ...(field === 'isCorrect' ? { isSaved: false } : {}),
+          ...(field === EssayCorrectionField.IsCorrect
+            ? { isSaved: false }
+            : {}),
         },
       }));
     },
@@ -478,7 +488,7 @@ const CorrectActivityModal = ({
                 if (e.target.checked) {
                   updateEssayCorrection(
                     questionData.questionNumber,
-                    'isCorrect',
+                    EssayCorrectionField.IsCorrect,
                     true
                   );
                 }
@@ -495,7 +505,7 @@ const CorrectActivityModal = ({
                 if (e.target.checked) {
                   updateEssayCorrection(
                     questionData.questionNumber,
-                    'isCorrect',
+                    EssayCorrectionField.IsCorrect,
                     false
                   );
                 }
@@ -514,7 +524,7 @@ const CorrectActivityModal = ({
             onChange={(e) => {
               updateEssayCorrection(
                 questionData.questionNumber,
-                'teacherFeedback',
+                EssayCorrectionField.TeacherFeedback,
                 e.target.value
               );
             }}

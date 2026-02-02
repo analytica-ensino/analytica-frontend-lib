@@ -32,6 +32,18 @@ import type {
 import { DEFAULT_ACTIVITY_PERFORMANCE_LABELS } from '../types';
 import { cn } from '../../../utils/utils';
 
+/** Status of an alternative (correct/incorrect) for display */
+const AlternativeStatus = {
+  Correct: 'correct',
+  Incorrect: 'incorrect',
+} as const;
+
+/** Field names for essay correction state updates */
+const EssayCorrectionField = {
+  IsCorrect: 'isCorrect',
+  TeacherFeedback: 'teacherFeedback',
+} as const;
+
 /**
  * Essay correction state for a question
  */
@@ -133,9 +145,9 @@ const InfoCard = ({
 const getAlternativeStatus = (
   isCorrect: boolean,
   isSelected: boolean
-): 'correct' | 'incorrect' | undefined => {
-  if (isCorrect) return 'correct';
-  if (isSelected) return 'incorrect';
+): (typeof AlternativeStatus)[keyof typeof AlternativeStatus] | undefined => {
+  if (isCorrect) return AlternativeStatus.Correct;
+  if (isSelected) return AlternativeStatus.Incorrect;
   return undefined;
 };
 
@@ -170,12 +182,15 @@ const getBadgeAction = (
 };
 
 /**
- * Get badge label based on isCorrect value
+ * Get badge label based on isCorrect value using provided labels
  */
-const getBadgeLabel = (isCorrect: boolean | null): string => {
-  if (isCorrect === true) return 'Correta';
-  if (isCorrect === false) return 'Incorreta';
-  return 'Pendente';
+const getBadgeLabel = (
+  isCorrect: boolean | null,
+  labels: StudentActivityPerformanceLabels
+): string => {
+  if (isCorrect === true) return labels.markCorrect;
+  if (isCorrect === false) return labels.markIncorrect;
+  return labels.pending;
 };
 
 /**
@@ -313,7 +328,9 @@ export const StudentActivityPerformanceModal = ({
   const updateEssayCorrection = useCallback(
     (
       questionId: string,
-      field: 'isCorrect' | 'teacherFeedback',
+      field:
+        | (typeof EssayCorrectionField)['IsCorrect']
+        | (typeof EssayCorrectionField)['TeacherFeedback'],
       value: boolean | string
     ) => {
       setEssayCorrections((prev) => ({
@@ -427,20 +444,24 @@ export const StudentActivityPerformanceModal = ({
         {/* Is correct radio group */}
         <div className="space-y-2">
           <Text className="text-sm font-semibold text-text-950">
-            Resposta está correta?
+            {labels.isCorrectQuestionLabel}
           </Text>
           <div className="flex gap-4">
             <Radio
               name={`isCorrect-${questionKey}`}
               value="true"
               id={`correct-yes-${questionKey}`}
-              label="Sim"
+              label={labels.correctYes}
               size="medium"
               checked={radioValue === 'true'}
               disabled={correction.isSaving}
               onChange={(e) => {
                 if (e.target.checked) {
-                  updateEssayCorrection(questionKey, 'isCorrect', true);
+                  updateEssayCorrection(
+                    questionKey,
+                    EssayCorrectionField.IsCorrect,
+                    true
+                  );
                 }
               }}
             />
@@ -448,13 +469,17 @@ export const StudentActivityPerformanceModal = ({
               name={`isCorrect-${questionKey}`}
               value="false"
               id={`correct-no-${questionKey}`}
-              label="Não"
+              label={labels.correctNo}
               size="medium"
               checked={radioValue === 'false'}
               disabled={correction.isSaving}
               onChange={(e) => {
                 if (e.target.checked) {
-                  updateEssayCorrection(questionKey, 'isCorrect', false);
+                  updateEssayCorrection(
+                    questionKey,
+                    EssayCorrectionField.IsCorrect,
+                    false
+                  );
                 }
               }}
             />
@@ -464,14 +489,14 @@ export const StudentActivityPerformanceModal = ({
         {/* Teacher feedback textarea */}
         <div className="space-y-2">
           <Text className="text-sm font-semibold text-text-950">
-            Incluir observação
+            {labels.observationLabel}
           </Text>
           <TextArea
             value={correction.teacherFeedback}
             onChange={(e) => {
               updateEssayCorrection(
                 questionKey,
-                'teacherFeedback',
+                EssayCorrectionField.TeacherFeedback,
                 e.target.value
               );
             }}
@@ -530,7 +555,7 @@ export const StudentActivityPerformanceModal = ({
               action={getBadgeAction(displayIsCorrect)}
               variant="solid"
             >
-              {getBadgeLabel(displayIsCorrect)}
+              {getBadgeLabel(displayIsCorrect, labels)}
             </Badge>
           </div>
         }

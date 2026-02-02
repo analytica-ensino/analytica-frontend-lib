@@ -202,6 +202,16 @@ export interface StudentActivityPerformanceLabels {
   feedbackPlaceholder: string;
   markCorrect: string;
   markIncorrect: string;
+  /** Label for pending correction (e.g. essay not yet graded) */
+  pending: string;
+  /** Label for "yes" in "is correct?" radio (e.g. Sim) */
+  correctYes: string;
+  /** Label for "no" in "is correct?" radio (e.g. Não) */
+  correctNo: string;
+  /** Label for the "is correct?" question (e.g. Resposta está correta?) */
+  isCorrectQuestionLabel: string;
+  /** Label for the observation/feedback section (e.g. Incluir observação) */
+  observationLabel: string;
   saveCorrection: string;
   saving: string;
 }
@@ -225,6 +235,11 @@ export const DEFAULT_ACTIVITY_PERFORMANCE_LABELS: StudentActivityPerformanceLabe
     feedbackPlaceholder: 'Adicionar feedback para o aluno...',
     markCorrect: 'Correta',
     markIncorrect: 'Incorreta',
+    pending: 'Pendente',
+    correctYes: 'Sim',
+    correctNo: 'Não',
+    isCorrectQuestionLabel: 'Resposta está correta?',
+    observationLabel: 'Incluir observação',
     saveCorrection: 'Salvar correção',
     saving: 'Salvando...',
   };
