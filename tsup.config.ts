@@ -173,4 +173,7 @@ export default defineConfig({
   target: 'es2022',
   sourcemap: true,
   dts: false, // Use tsc directly for better memory efficiency
+  loader: {
+    '.png': 'dataurl',
+  },
 });
