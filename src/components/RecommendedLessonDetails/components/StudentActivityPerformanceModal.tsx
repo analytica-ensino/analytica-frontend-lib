@@ -6,13 +6,11 @@ import {
   type ReactNode,
 } from 'react';
 import {
-  Star,
-  Medal,
-  WarningCircle,
   Timer,
   Trophy,
   Warning,
   UserIcon,
+  WarningCircle,
 } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
 import Modal from '../../Modal/Modal';
@@ -28,6 +26,7 @@ import {
   type Alternative,
 } from '../../Alternative/Alternative';
 import useToastStore from '../../Toast/utils/ToastStore';
+import { StatCard } from '../../shared/StatCard';
 import type { BaseApiClient } from '../../../types/api';
 import type {
   StudentActivityPerformanceData,
@@ -70,44 +69,6 @@ export interface StudentActivityPerformanceModalProps {
 }
 
 /**
- * Configuration for stat card variants
- */
-type StatVariant = 'score' | 'correct' | 'incorrect';
-
-const variantConfig: Record<
-  StatVariant,
-  {
-    bg: string;
-    text: string;
-    iconBg: string;
-    iconColor: string;
-    IconComponent: Icon;
-  }
-> = {
-  score: {
-    bg: 'bg-warning-background',
-    text: 'text-warning-600',
-    iconBg: 'bg-warning-300',
-    iconColor: 'text-white',
-    IconComponent: Star,
-  },
-  correct: {
-    bg: 'bg-success-200',
-    text: 'text-success-700',
-    iconBg: 'bg-indicator-positive',
-    iconColor: 'text-text-950',
-    IconComponent: Medal,
-  },
-  incorrect: {
-    bg: 'bg-error-100',
-    text: 'text-error-700',
-    iconBg: 'bg-indicator-negative',
-    iconColor: 'text-white',
-    IconComponent: WarningCircle,
-  },
-};
-
-/**
  * Configuration for info card variants
  */
 type InfoVariant = 'time' | 'best' | 'hardest';
@@ -139,50 +100,6 @@ const infoVariantConfig: Record<
     IconComponent: Warning,
     iconColor: 'text-error-600',
   },
-};
-
-/**
- * Stat card for score/correct/incorrect counts
- */
-const StatCard = ({
-  label,
-  value,
-  variant,
-}: {
-  label: string;
-  value: string | number;
-  variant: StatVariant;
-}) => {
-  const config = variantConfig[variant];
-  const IconComponent = config.IconComponent;
-
-  return (
-    <div
-      className={cn(
-        'border border-border-50 rounded-xl py-4 px-3 flex flex-col items-center justify-center gap-1',
-        config.bg
-      )}
-    >
-      <div
-        className={cn(
-          'w-[30px] h-[30px] rounded-2xl flex items-center justify-center',
-          config.iconBg
-        )}
-      >
-        <IconComponent
-          size={16}
-          className={config.iconColor}
-          weight="regular"
-        />
-      </div>
-      <Text
-        className={cn('text-2xs font-bold uppercase text-center', config.text)}
-      >
-        {label}
-      </Text>
-      <Text className={cn('text-xl font-bold', config.text)}>{value}</Text>
-    </div>
-  );
 };
 
 /**

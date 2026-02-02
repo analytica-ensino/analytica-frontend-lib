@@ -5,15 +5,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import {
-  PencilSimple,
-  Paperclip,
-  X,
-  Star,
-  Medal,
-  WarningCircle,
-} from 'phosphor-react';
-import type { Icon } from 'phosphor-react';
+import { PencilSimple, Paperclip, X } from 'phosphor-react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -23,6 +15,7 @@ import TextArea from '../TextArea/TextArea';
 import { CardAccordation, AccordionGroup } from '../Accordation';
 import { generateFileId } from '../FileAttachment/FileAttachment';
 import type { AttachedFile } from '../FileAttachment/FileAttachment';
+import { StatCard } from '../shared/StatCard';
 import { cn } from '../../utils/utils';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import {
@@ -67,89 +60,6 @@ export interface CorrectActivityModalProps {
     payload: SaveQuestionCorrectionPayload
   ) => Promise<void>;
 }
-
-/**
- * Props for the StatCard component
- */
-interface StatCardProps {
-  label: string;
-  value: string | number;
-  variant: 'score' | 'correct' | 'incorrect';
-}
-
-/**
- * Configuration for each stat card variant
- */
-const variantConfig: Record<
-  StatCardProps['variant'],
-  {
-    bg: string;
-    text: string;
-    iconBg: string;
-    iconColor: string;
-    IconComponent: Icon;
-  }
-> = {
-  score: {
-    bg: 'bg-warning-background',
-    text: 'text-warning-600',
-    iconBg: 'bg-warning-300',
-    iconColor: 'text-white',
-    IconComponent: Star,
-  },
-  correct: {
-    bg: 'bg-success-200',
-    text: 'text-success-700',
-    iconBg: 'bg-indicator-positive',
-    iconColor: 'text-text-950',
-    IconComponent: Medal,
-  },
-  incorrect: {
-    bg: 'bg-error-100',
-    text: 'text-error-700',
-    iconBg: 'bg-indicator-negative',
-    iconColor: 'text-white',
-    IconComponent: WarningCircle,
-  },
-};
-
-/**
- * Stat card component for displaying statistics with icon
- * @param props - Component props
- * @returns JSX element
- */
-const StatCard = ({ label, value, variant }: StatCardProps) => {
-  const config = variantConfig[variant];
-  const IconComponent = config.IconComponent;
-
-  return (
-    <div
-      className={cn(
-        'border border-border-50 rounded-xl py-4 px-3 flex flex-col items-center justify-center gap-1',
-        config.bg
-      )}
-    >
-      <div
-        className={cn(
-          'w-[30px] h-[30px] rounded-2xl flex items-center justify-center',
-          config.iconBg
-        )}
-      >
-        <IconComponent
-          size={16}
-          className={config.iconColor}
-          weight="regular"
-        />
-      </div>
-      <Text
-        className={cn('text-2xs font-bold uppercase text-center', config.text)}
-      >
-        {label}
-      </Text>
-      <Text className={cn('text-xl font-bold', config.text)}>{value}</Text>
-    </div>
-  );
-};
 
 /**
  * Modal component for correcting or viewing student activity details
