@@ -185,6 +185,17 @@ const getBadgeLabel = (isCorrect: boolean | null): string => {
 };
 
 /**
+ * Generate a unique key for a question
+ * Uses answerId if present, otherwise falls back to activityId-questionId composite
+ */
+const getQuestionKey = (question: LessonQuestion): string => {
+  if (question.answerId) {
+    return question.answerId;
+  }
+  return `${question.activityId}-${question.id}`;
+};
+
+/**
  * Lesson item with progress bar
  */
 const LessonItem = ({ lesson }: { lesson: PerformanceLesson }) => (
@@ -213,7 +224,10 @@ const LessonItem = ({ lesson }: { lesson: PerformanceLesson }) => (
  * Loading skeleton
  */
 const LoadingSkeleton = () => (
-  <div className="flex flex-col gap-4 animate-pulse">
+  <div
+    data-testid="loading-skeleton"
+    className="flex flex-col gap-4 animate-pulse"
+  >
     <div className="h-6 bg-background-200 rounded w-48" />
     <div className="grid grid-cols-3 gap-3">
       <div className="h-28 bg-background-200 rounded-xl" />
@@ -283,8 +297,9 @@ export const StudentActivityPerformanceModal = ({
 
       data.activities.forEach((activity) => {
         activity.questions.forEach((question) => {
-          // Initialize all questions with their current state
-          initialCorrections[question.id] = {
+          // Initialize all questions with their current state using unique key
+          const questionKey = getQuestionKey(question);
+          initialCorrections[questionKey] = {
             isCorrect: question.isCorrect,
             teacherFeedback: question.teacherFeedback || '',
             isSaving: false,
@@ -299,7 +314,7 @@ export const StudentActivityPerformanceModal = ({
 
   /**
    * Update essay correction state
-   * Resets isSaved to false when isCorrect changes so badge only updates after saving
+   * Resets isSaved to false when any field changes so badge only updates after saving
    */
   const updateEssayCorrection = useCallback(
     (
@@ -312,8 +327,8 @@ export const StudentActivityPerformanceModal = ({
         [questionId]: {
           ...prev[questionId],
           [field]: value,
-          // Reset isSaved when isCorrect changes so badge doesn't update until saved
-          ...(field === 'isCorrect' ? { isSaved: false } : {}),
+          // Reset isSaved when any field changes so badge doesn't update until saved
+          isSaved: false,
         },
       }));
     },
@@ -327,14 +342,15 @@ export const StudentActivityPerformanceModal = ({
     async (question: LessonQuestion) => {
       if (!apiClient || !data) return;
 
-      const correction = essayCorrections[question.id];
+      const questionKey = getQuestionKey(question);
+      const correction = essayCorrections[questionKey];
       if (correction?.isCorrect == null) {
         return;
       }
 
       setEssayCorrections((prev) => ({
         ...prev,
-        [question.id]: { ...prev[question.id], isSaving: true },
+        [questionKey]: { ...prev[questionKey], isSaving: true },
       }));
 
       try {
@@ -350,8 +366,8 @@ export const StudentActivityPerformanceModal = ({
         // Mark as saved and show success toast
         setEssayCorrections((prev) => ({
           ...prev,
-          [question.id]: {
-            ...prev[question.id],
+          [questionKey]: {
+            ...prev[questionKey],
             isSaving: false,
             isSaved: true,
           },
@@ -369,7 +385,7 @@ export const StudentActivityPerformanceModal = ({
 
         setEssayCorrections((prev) => ({
           ...prev,
-          [question.id]: { ...prev[question.id], isSaving: false },
+          [questionKey]: { ...prev[questionKey], isSaving: false },
         }));
 
         addToast({
@@ -395,7 +411,8 @@ export const StudentActivityPerformanceModal = ({
    * Same pattern as CorrectActivityModal
    */
   const renderCorrectionFields = (question: LessonQuestion) => {
-    const correction = essayCorrections[question.id] || {
+    const questionKey = getQuestionKey(question);
+    const correction = essayCorrections[questionKey] || {
       isCorrect: null,
       teacherFeedback: '',
       isSaving: false,
@@ -420,28 +437,28 @@ export const StudentActivityPerformanceModal = ({
           </Text>
           <div className="flex gap-4">
             <Radio
-              name={`isCorrect-${question.id}`}
+              name={`isCorrect-${questionKey}`}
               value="true"
-              id={`correct-yes-${question.id}`}
+              id={`correct-yes-${questionKey}`}
               label="Sim"
               size="medium"
               checked={radioValue === 'true'}
               onChange={(e) => {
                 if (e.target.checked) {
-                  updateEssayCorrection(question.id, 'isCorrect', true);
+                  updateEssayCorrection(questionKey, 'isCorrect', true);
                 }
               }}
             />
             <Radio
-              name={`isCorrect-${question.id}`}
+              name={`isCorrect-${questionKey}`}
               value="false"
-              id={`correct-no-${question.id}`}
+              id={`correct-no-${questionKey}`}
               label="Não"
               size="medium"
               checked={radioValue === 'false'}
               onChange={(e) => {
                 if (e.target.checked) {
-                  updateEssayCorrection(question.id, 'isCorrect', false);
+                  updateEssayCorrection(questionKey, 'isCorrect', false);
                 }
               }}
             />
@@ -457,7 +474,7 @@ export const StudentActivityPerformanceModal = ({
             value={correction.teacherFeedback}
             onChange={(e) => {
               updateEssayCorrection(
-                question.id,
+                questionKey,
                 'teacherFeedback',
                 e.target.value
               );
@@ -487,8 +504,10 @@ export const StudentActivityPerformanceModal = ({
     question: LessonQuestion,
     index: number
   ) => {
+    const questionKey = getQuestionKey(question);
+
     // Check if we have a local correction
-    const localCorrection = essayCorrections[question.id];
+    const localCorrection = essayCorrections[questionKey];
     const hasLocalSavedCorrection =
       localCorrection?.isSaved && localCorrection?.isCorrect != null;
 
@@ -499,8 +518,8 @@ export const StudentActivityPerformanceModal = ({
 
     return (
       <CardAccordation
-        key={question.id}
-        value={question.id}
+        key={questionKey}
+        value={questionKey}
         className="bg-background rounded-xl border border-border-50"
         triggerClassName="py-4 px-4"
         contentClassName="px-4 pb-4"
@@ -528,7 +547,7 @@ export const StudentActivityPerformanceModal = ({
           {/* Alternatives (for multiple choice questions) */}
           {question.alternatives.length > 0 && (
             <CardAccordation
-              value={`${question.id}-alternatives`}
+              value={`${questionKey}-alternatives`}
               className="bg-background rounded-lg border border-border-50"
               triggerClassName="py-4 px-4"
               contentClassName="px-4 py-4"

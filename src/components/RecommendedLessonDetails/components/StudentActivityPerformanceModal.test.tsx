@@ -136,9 +136,8 @@ describe('StudentActivityPerformanceModal', () => {
       );
 
       expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
-      // Loading skeleton should be visible (has animate-pulse class)
-      const skeleton = document.querySelector('.animate-pulse');
-      expect(skeleton).toBeInTheDocument();
+      // Loading skeleton should be visible
+      expect(screen.getByTestId('loading-skeleton')).toBeInTheDocument();
     });
 
     it('should render error message when error is provided', () => {
@@ -757,7 +756,11 @@ describe('StudentActivityPerformanceModal', () => {
       const activityButton = screen.getByText('Atividade 1').closest('button')!;
       fireEvent.click(activityButton);
 
-      // Initially should show "Pendente"
+      // Count initial "Correta" badges (question 1 already has one)
+      const initialCorretaBadges = screen.getAllByText('Correta');
+      const initialCount = initialCorretaBadges.length;
+
+      // Initially question 2 should show "Pendente"
       expect(screen.getByText('Pendente')).toBeInTheDocument();
 
       const question2Button = screen.getByText('Questão 2').closest('button')!;
@@ -774,10 +777,10 @@ describe('StudentActivityPerformanceModal', () => {
         expect(mockApiClient.post).toHaveBeenCalled();
       });
 
-      // Badge should update to "Correta" after save
+      // Badge count should increment after save (question 2 now also shows "Correta")
       await waitFor(() => {
-        const badges = screen.getAllByText('Correta');
-        expect(badges.length).toBeGreaterThanOrEqual(1);
+        const updatedCorretaBadges = screen.getAllByText('Correta');
+        expect(updatedCorretaBadges.length).toBe(initialCount + 1);
       });
     });
 
