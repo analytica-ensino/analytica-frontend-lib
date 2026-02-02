@@ -5,13 +5,7 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
-import {
-  Timer,
-  Trophy,
-  Warning,
-  UserIcon,
-  WarningCircle,
-} from '@phosphor-icons/react';
+import { Timer, Trophy, Warning, User, WarningCircle } from 'phosphor-react';
 import type { Icon } from '@phosphor-icons/react';
 import Modal from '../../Modal/Modal';
 import Text from '../../Text/Text';
@@ -626,7 +620,7 @@ export const StudentActivityPerformanceModal = ({
               as="span"
               className="size-8 rounded-full bg-background-100 flex items-center justify-center"
             >
-              <UserIcon size={16} className="text-text-500" />
+              <User size={16} className="text-text-500" />
             </Text>
             <Text size="md" weight="medium" className="text-text-950">
               {data.studentName}

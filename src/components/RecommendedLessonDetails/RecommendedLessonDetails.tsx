@@ -118,7 +118,7 @@ const RecommendedLessonDetails = ({
       );
 
       // Guard: ensure student and userId are valid before proceeding
-      if (!student || !student.userId) {
+      if (!student?.userId) {
         addToast({
           title: 'Erro ao carregar aluno',
           description: 'Não foi possível identificar o aluno. Tente novamente.',
